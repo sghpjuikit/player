@@ -23,7 +23,6 @@ import sp.it.pl.gui.UiManager
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.window.stage.WindowManager
-import sp.it.pl.gui.pane.MessagePane
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
@@ -50,6 +49,7 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.dev.fail
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeTypes
@@ -59,7 +59,6 @@ import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
-import sp.it.util.stacktraceAsString
 import sp.it.util.system.Os
 import sp.it.util.system.SystemOutListener
 import sp.it.util.type.ClassName
@@ -116,7 +115,7 @@ class App: Application(), Configurable<Any> {
    /** Home directory of the os. */
    val locationHome = File(System.getProperty("user.home")) apply_ verify
    /** Uri for github website for project of this application. */
-   val uriGithub = URI.create("https://www.github.com/sghpjuikit/player/")
+   val githubUri = URI.create("https://www.github.com/sghpjuikit/player/")
 
    /** Rank this application instance started with. [MASTER] if started as the first instance, [SLAVE] otherwise. */
    val rankAtStart: Rank = if (getInstances()>1) SLAVE else MASTER
@@ -215,7 +214,7 @@ class App: Application(), Configurable<Any> {
    /** Manages persistence and in-memory storage. */
    @JvmField val db = SongDb()
    /** Manages widgets. */
-   @JvmField val widgetManager = WidgetManager { ui.messagePane.orBuild.show(it) }
+   @JvmField val widgetManager = WidgetManager()
    /** Manages windows. */
    @JvmField val windowManager = WindowManager()
    /** Manages plugins. */
@@ -271,11 +270,12 @@ class App: Application(), Configurable<Any> {
             logger.error(it) { "Application failed to start" }
             logger.info { "Application closing prematurely" }
 
-            MessagePane().initApp().apply { onHidden += { close() } }.show(
-               "Application did not start successfully and will close." +
-                  "\nPlease fill an issue at $uriGithub providing the logs in ${location.user.log}." +
-                  "\nThe exact problem was:\n ${it.stacktraceAsString}"
+            AppErrors.push(
+               "Application did not start successfully and will close.",
+               "Please fill an issue at $githubUri providing the logs in ${location.user.log}." +
+               "\nThe exact problem was:\n ${it.stacktraceAsString}"
             )
+            AppErrors.showDetailForLastError()
          }
       }.ifOk {
          runLater {

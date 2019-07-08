@@ -57,9 +57,9 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
       }
    }
 
-   override fun show(data: Collection<Action>?) {
+   override fun show(data: Collection<Action>) {
       super.show()
-      value = data.orEmpty()
+      value = data
       build(value)
    }
 

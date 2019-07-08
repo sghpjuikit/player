@@ -41,11 +41,14 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
+import sp.it.pl.main.AppError
+import sp.it.pl.main.AppErrors
 import sp.it.pl.main.FastFile
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
+import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isImage
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.withAppProgress
@@ -73,11 +76,12 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.dev.failIf
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType
-import sp.it.util.file.properties.PropVal
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.readProperties
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.getOr
@@ -266,11 +270,11 @@ class GameView(widget: Widget): SimpleController(widget) {
       fun play() {
          val file = exeFile()
          if (file==null) {
-            APP.ui.messagePane.orBuild.show("No launcher is set up.")
+            AppErrors.push("No launcher is set up.")
          } else {
             val arguments = settings["arguments"]?.valN.orEmpty().filter { it.isNotBlank() }
             file.runAsProgram(*arguments.toTypedArray()) ui {
-               it.ifError { APP.ui.messagePane.orBuild.show("Unable to launch program $file. Reason: ${it.message}") }
+               it.ifErrorNotify { AppError("Unable to launch program $file", "Reason: ${it.stacktraceAsString}") }
             }
          }
       }
@@ -345,9 +349,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                                        failIf(!it.file.exists()) { "Target file does not exist." }
                                        link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
                                     }.onDone(FX) {
-                                       it.toTry().ifError {
-                                          APP.ui.messagePane.orBuild.show("can ot set up launcher $link\\nReason:\n$it")
-                                       }
+                                       it.toTry().ifErrorNotify { AppError("Can not set up launcher $link", "Reason:\n${it.stacktraceAsString}") }
                                     }
                                  }
                               } else {

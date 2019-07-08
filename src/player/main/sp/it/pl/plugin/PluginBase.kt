@@ -2,6 +2,7 @@ package sp.it.pl.plugin
 
 import mu.KLogging
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppErrors
 import sp.it.pl.main.run1AppReady
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
@@ -23,7 +24,9 @@ abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean
          logger.info { "Plugin $name starting..." }
 
          val canBeRunning = isSupported() && sequenceOf(location, userLocation).all { isValidatedDirectory(it) }
-            .ifFalse { APP.ui.messagePane.orBuild.show("Directory $location or $userLocation can not be used.") }
+            .ifFalse {
+               AppErrors.push("Plugin $name could not start.", "Directory $location or $userLocation can not be used.")
+            }
 
          if (canBeRunning) start()
          else logger.error { "Plugin $name could not start..." }

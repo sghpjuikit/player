@@ -125,8 +125,8 @@ class LibraryWatcher: PluginBase("Song Library", false) {
 
       APP.plugins.use<Notifier> {
          it.showTextNotification(
-            "Some song files in library changed\n\tAdded: ${toAdd.size of "file"}\n\tRemoved: ${toRem.size of "file"}",
-            "Library file change"
+            "Library file change",
+            "Some song files in library changed\n\tAdded: ${toAdd.size of "file"}\n\tRemoved: ${toRem.size of "file"}"
          )
       }
 

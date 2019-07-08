@@ -10,6 +10,8 @@ import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
+import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.withAppProgress
 import sp.it.util.access.v
 import sp.it.util.async.future.Fut
@@ -18,7 +20,9 @@ import sp.it.util.async.runIO
 import sp.it.util.async.runNew
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
+import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
@@ -72,7 +76,15 @@ class SongDb {
    /** @return item from library with the specified URI or null if not found */
    fun getSong(uri: URI): Metadata? = songsById[uri.toString()]
 
-   fun getAllSongs(): MetadatasDB = CoreSerializer.readSingleStorage() ?: MetadatasDB()
+   @Blocks
+   private fun getAllSongs(): MetadatasDB = CoreSerializer.readSingleStorage<MetadatasDB>()
+      .ifErrorNotify {
+            AppError(
+               "Failed to load song library.",
+               "Don't worry. Your data is not lost. You will only need to reimport your songs.\n\nExact problem:\n${it.stacktraceAsString}"
+            )
+      }
+      .orNull() ?: MetadatasDB()
 
    fun addSongs(items: Collection<Metadata>) {
       if (items.isEmpty()) return

@@ -133,7 +133,7 @@ abstract class OverlayPane<in T>: StackPane() {
 
 
    /** Show this pane with given value. */
-   abstract fun show(data: T?)
+   abstract fun show(data: T)
 
    /** Show this pane. The content should be set before calling this method. */
    protected open fun show() {

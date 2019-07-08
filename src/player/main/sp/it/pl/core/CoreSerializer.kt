@@ -9,8 +9,8 @@ import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.div
 import sp.it.util.file.writeSafely
 import sp.it.util.functional.Try
-import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.runTry
+import java.io.FileNotFoundException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
@@ -45,18 +45,16 @@ object CoreSerializer: Core {
     * @return deserialized object or null if none existed or error
     */
    @Blocks
-   inline fun <reified T: Serializable> readSingleStorage(): T? {
+   inline fun <reified T: Serializable> readSingleStorage(): Try<T,Throwable> {
       val f = APP.location.user.library/(T::class.simpleName ?: T::class.jvmName)
-
-      if (!f.exists()) return null
 
       return runTry {
          ObjectInputStream(f.inputStream()).use {
             it.readObject() as T
          }
-      }.getOrSupply {
-         logger.error(it) { "Failed to deserialize file=$f to type=${T::class}" }
-         null
+      }.ifError {
+         if (it !is FileNotFoundException)
+            logger.error(it) { "Failed to deserialize file=$f to type=${T::class}" }
       }
    }
 

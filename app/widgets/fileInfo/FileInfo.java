@@ -33,7 +33,7 @@ import sp.it.util.access.V;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.EventReducer.HandlerLast;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.Config.PropertyConfig;
+import sp.it.util.conf.ConfigImpl.PropertyConfig;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
 import static java.lang.Double.max;

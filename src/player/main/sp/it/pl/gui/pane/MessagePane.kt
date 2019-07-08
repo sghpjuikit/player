@@ -11,11 +11,14 @@ import javafx.scene.layout.Priority.NEVER
 import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.main.AppError
+import sp.it.pl.main.AppErrors
 import sp.it.pl.main.IconFA
 import sp.it.util.access.toggleNext
 import sp.it.util.functional.supplyIf
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.layScrollVTextCenter
 import sp.it.util.ui.hBox
@@ -25,10 +28,9 @@ import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 
-class MessagePane: OverlayPane<String>() {
+class MessagePane: OverlayPane<AppError>() {
 
    private val text: Text
-   private val history = ArrayList<String>()
    private var historyAt = -1
    private lateinit var historyAtText: WritableValue<String>
 
@@ -90,22 +92,31 @@ class MessagePane: OverlayPane<String>() {
          }
       }
       makeResizableByUser()
+
+      AppErrors.history.onChange { updateIndexes() }
    }
 
-   override fun show(data: String?) {
-      if (data!=null) history += data
-      visit(history.lastIndex)
+   override fun show(data: AppError) {
+      historyAt = AppErrors.history.indexOf(data)
+      visit(historyAt)
       super.show()
    }
 
    private fun visit(at: Int) {
-      historyAt = at
-      text.text = history[historyAt]
-      historyAtText.value = "${historyAt + 1}/${history.size}"
+      update(at, AppErrors.history[at])
    }
 
    private fun visitLeft() = visit(historyAt.max(1) - 1)
 
-   private fun visitRight() = visit(historyAt.min(history.size - 2) + 1)
+   private fun visitRight() = visit(historyAt.min(AppErrors.history.size - 2) + 1)
 
+   private fun updateIndexes() {
+      historyAtText.value = "${historyAt + 1}/${AppErrors.history.size}"
+   }
+
+   private fun update(at: Int, error: AppError) {
+      historyAt = at
+      updateIndexes()
+      text.text = error.textShort + "\n\n" + error.textFull
+   }
 }

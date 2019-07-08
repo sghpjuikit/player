@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.layout.widget.isExperimental
 import sp.it.util.async.NEW
-import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.file.Util.isValidFile
 import sp.it.util.file.div
@@ -57,16 +56,12 @@ fun App.run1AppReady(block: () -> Unit) {
    }
 }
 
-/** Invokes [File.runAsProgram] and if error occurs logs and reports using [sp.it.pl.gui.UiManager.messagePane]. */
+/** Invokes [File.runAsProgram] and if error occurs logs and reports using [AppErrors]. */
 fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}) {
    fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
    fun doOnError(e: Throwable?, text: String?) {
-      logger.error(e) {
-         "$actionName failed.${text.wrap()}"
-      }
-      runFX {
-         APP.ui.messagePane.orBuild.show("$actionName failed.${text.wrap()}")
-      }
+      logger.error(e) { "$actionName failed.${text.wrap()}" }
+      AppErrors.push("$actionName failed.${text.wrap()}")
    }
 
    runAsProgram(*arguments) {

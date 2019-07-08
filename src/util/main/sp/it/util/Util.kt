@@ -1,8 +1,6 @@
 package sp.it.util
 
 import javafx.util.Duration
-import java.io.PrintWriter
-import java.io.StringWriter
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.LocalDateTime
@@ -24,10 +22,6 @@ fun Long.localDateTimeFromMillis(): LocalDateTime? =
    } catch (e: DateTimeException) {
       null
    }
-
-/** @return string of printed stacktrace of this throwable */
-val Throwable.stacktraceAsString: String
-   get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()
 
 /** @return human readable duration value in smallest possible units (millis if less than second, etc.)*/
 fun Duration.formatToSmallestUnit(): String {

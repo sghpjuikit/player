@@ -7,8 +7,12 @@ import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
+import sp.it.pl.main.ifErrorNotify
 import sp.it.util.collections.setTo
 import sp.it.util.dev.Blocks
+import sp.it.util.dev.stacktraceAsString
+import sp.it.util.functional.getOrSupply
 import java.util.ArrayList
 import java.util.UUID
 import kotlin.streams.asSequence
@@ -49,7 +53,14 @@ class PlayerState {
       @Blocks
       @JvmStatic
       fun deserialize() = CoreSerializer.readSingleStorage<PlayerStateDB>()
-         .let { it?.toDomain() ?: PlayerState() }
+         .ifErrorNotify {
+            AppError(
+               "Failed to load song player state.",
+               "You may have to create a new playlist.\n\nExact problem:\n${it.stacktraceAsString}"
+            )
+         }
+         .map { it.toDomain() }
+         .getOrSupply { PlayerState() }
          .also {
             PlaylistManager.playlists += it.playlists
             PlaylistManager.active = it.playlistId

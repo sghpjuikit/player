@@ -22,6 +22,8 @@ import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
+import sp.it.pl.main.AppError
+import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.util.access.Values
 import sp.it.util.access.v
@@ -95,7 +97,7 @@ import kotlin.streams.toList
 import kotlin.text.Charsets.UTF_8
 
 /** Handles operations with Widgets. */
-class WidgetManager(private val userErrorLogger: (String) -> Unit) {
+class WidgetManager {
 
    /** Public API for layout management. */
    @JvmField val layouts = Layouts()
@@ -327,7 +329,7 @@ class WidgetManager(private val userErrorLogger: (String) -> Unit) {
                .ifError { logger.error(it) { "Widget $widgetName failed to compile" } }
                .getOrSupply { Try.error(it.message ?: "Unspecified error") }
                .ifOk { updateFactory() }
-               .ifError { userErrorLogger("Widget $widgetName failed to compile. Reason: $it") }
+               .ifErrorNotify { AppError("Widget $widgetName failed to compile", "Reason: $it") }
          }
       }
 

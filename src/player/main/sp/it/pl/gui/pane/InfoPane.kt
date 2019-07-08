@@ -30,7 +30,7 @@ import sp.it.util.ui.vBox
 import sp.it.util.units.javafx
 import sp.it.util.units.toHMSMs
 
-class InfoPane: OverlayPane<Void>() {
+class InfoPane: OverlayPane<Unit>() {
 
    private val g = GridPane()
 
@@ -56,7 +56,7 @@ class InfoPane: OverlayPane<Void>() {
       }
    }
 
-   override fun show(data: Void?) {
+   override fun show(data: Unit) {
       super.show()
 
       g.children.clear()

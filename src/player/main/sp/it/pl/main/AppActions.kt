@@ -47,7 +47,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.IsConfigurable
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failIfFxThread
-import sp.it.util.dev.stackTraceAsString
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.div
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -83,7 +83,7 @@ class AppActions {
 
    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
    fun openAppGithubPage() {
-      APP.uriGithub.browse()
+      APP.githubUri.browse()
    }
 
    @IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
@@ -162,8 +162,8 @@ class AppActions {
          ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()
 
       if (c!=null) {
-         val op = object: OverlayPane<Void>() {
-            override fun show(data: Void?) {
+         val op = object: OverlayPane<Unit>() {
+            override fun show(data: Unit) {
                val componentRoot = c.load() as Pane
                // getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience // TODO investigate & use | remove
                content = anchorPane {
@@ -192,7 +192,7 @@ class AppActions {
          }
          op.display.value = SCREEN_OF_MOUSE
          op.displayBgr.value = APP.ui.viewDisplayBgr.value
-         op.show(null)
+         op.show(Unit)
          op.makeResizableByUser()
          c.load().apply {
             prefWidth(900.0)
@@ -224,7 +224,7 @@ class AppActions {
 
    @IsAction(name = "Show system info", desc = "Display system information.")
    fun showSysInfo() {
-      APP.ui.infoPane.orBuild.show(null)
+      APP.ui.infoPane.orBuild.show(Unit)
    }
 
    @IsAction(name = "Show overlay", desc = "Display screen overlay.")
@@ -249,7 +249,7 @@ class AppActions {
                }
             }
 
-            override fun show(data: Unit?) {
+            override fun show(data: Unit) {
                super.show()
             }
 
@@ -354,9 +354,9 @@ class AppActions {
             }
          title + sb.toString()
       } catch (e: IOException) {
-         "$title\n$" + e.stackTraceAsString()
+         "$title\n${e.stacktraceAsString}"
       } catch (e: ImageProcessingException) {
-         "$title\n$" + e.stackTraceAsString()
+         "$title\n${e.stacktraceAsString}"
       }
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }
@@ -389,7 +389,7 @@ class AppActions {
                "\nTag:" +
                if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
          }
-         .getOrSupply { "\n${it.stackTraceAsString()}" }
+         .getOrSupply { "\n${it.stacktraceAsString}" }
       val text = title + content
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }

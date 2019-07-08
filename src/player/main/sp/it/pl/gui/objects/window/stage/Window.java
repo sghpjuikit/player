@@ -34,6 +34,7 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Layout;
 import sp.it.pl.layout.container.SwitchContainer;
 import sp.it.pl.layout.container.SwitchContainerUi;
+import sp.it.pl.main.AppErrors;
 import sp.it.pl.main.AppProgress;
 import sp.it.pl.main.Df;
 import sp.it.util.access.V;
@@ -103,7 +104,9 @@ import static sp.it.util.functional.Util.forEachIRStream;
 import static sp.it.util.functional.Util.forEachIStream;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.SubscriptionKt.on;
+import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.text.UtilKt.getNamePretty;
 import static sp.it.util.ui.Util.setAnchors;
@@ -325,11 +328,15 @@ public class Window extends WindowBase {
 			+ "\n\tContent right drag : drag tabs."
 		).styleclass("header-icon");
 		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
+		Icon errorB = new Icon(FontAwesomeIcon.WARNING, -1).styleclass("header-icon")
+			.onClick(e -> AppErrors.INSTANCE.showDetailForLastError())
+			.tooltip("Errors");
+		onChangeAndNow(AppErrors.INSTANCE.getHistory(), runnable(() -> errorB.setVisible(!AppErrors.INSTANCE.getHistory().isEmpty())));
 
 		leftHeaderBox.getChildren().addAll(
 			propB, runB, new Label(" "),
 			ltB, lockB, lmB, rtB, new Label(" "),
-			guideB, helpB, progB
+			guideB, helpB, progB, errorB
 		);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));

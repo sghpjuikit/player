@@ -33,10 +33,6 @@ fun <T> printExecutionTime(block: () -> T): T {
    return t
 }
 
-/** @return stacktrace as string, in the same format as [Exception#printStackTrace]. */
-fun Exception.stackTraceAsString(): String {
-   val sw = StringWriter()
-   val pw = PrintWriter(sw)
-   printStackTrace(pw)
-   return sw.toString()
-}
+/** @return string of printed stacktrace of this throwable */
+val Throwable.stacktraceAsString: String
+   get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()

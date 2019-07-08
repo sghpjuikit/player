@@ -514,7 +514,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             consumer(items -> {
                 writing = false;
                 populate(items);
-                APP.plugins.use(Notifier.class, s -> s.showTextNotification("Tagging complete", Widgets.SONG_TAGGER));
+                APP.plugins.use(Notifier.class, s -> s.showTextNotification(Widgets.SONG_TAGGER, "Tagging complete"));
             })
         );
 

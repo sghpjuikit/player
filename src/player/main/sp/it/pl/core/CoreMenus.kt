@@ -23,7 +23,10 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
+import sp.it.pl.main.AppErrors
 import sp.it.pl.main.configure
+import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
@@ -36,6 +39,7 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.div
 import sp.it.util.functional.ifFalse
 import sp.it.util.system.browse
@@ -114,7 +118,7 @@ object CoreMenus: Core {
                      logger.warn(e) { "File copy failed" }
                      it.onError.value
                   }.ifFalse {
-                     APP.ui.messagePane.orBuild.show("File $selected copy failed")
+                     AppErrors.push("File $selected copy failed")
                   }
                }
             }
@@ -197,10 +201,15 @@ object CoreMenus: Core {
             if (selected.image!=null)
                menu("Cover") {
                   item("Save image as ...") {
-                     saveFile("Save image as...", APP.location, selected.iFile?.name
-                        ?: "new_image", contextMenu.ownerWindow, imageWriteExtensionFilter()).ifOk {
-                        writeImage(selected.image, it).ifError { e ->
-                           APP.ui.messagePane.orBuild.show("Saving image $it failed\n\nReason: ${e.message}")
+                     saveFile(
+                        "Save image as...",
+                        APP.location,
+                        selected.iFile?.name ?: "new_image",
+                        contextMenu.ownerWindow,
+                        imageWriteExtensionFilter()
+                     ).ifOk {
+                        writeImage(selected.image, it).ifErrorNotify { e ->
+                           AppError("Saving image $it failed", "Reason: ${e.stacktraceAsString}")
                         }
                      }
                   }

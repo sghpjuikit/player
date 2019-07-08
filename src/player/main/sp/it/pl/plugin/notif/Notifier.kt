@@ -17,6 +17,7 @@ import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppErrors
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.VarAction
 import sp.it.util.action.IsAction
@@ -116,36 +117,39 @@ class Notifier: PluginBase("Notifications", true) {
 
    override fun isSupported(): Boolean = true
 
-   /** Show notification for custom content.  */
-   fun showNotification(content: Node, title: String) {
+   /** Show notification for custom content. */
+   fun showNotification(title: String, content: Node) {
       if (running) {
-         n!!.run {
+         with(n!!) {
             setContent(content, title)
             isAutoHide = notificationAutohide
             animated.value = notificationAnimated
             animationDuration.value = notificationFadeTime
             duration = notificationDuration
             focusOnShow.value = false
-            lClickAction = onClickL.valueAsAction
-            rClickAction = onClickR.valueAsAction
             screenPreference = notificationScr
+            rClickAction = onClickR.valueAsAction
+            lClickAction = when (title) {
+               AppErrors.ERROR_NOTIFICATION_TITLE -> Runnable { AppErrors.showDetailForLastError() }
+               else -> onClickL.valueAsAction
+            }
             show(notificationPos)
          }
       }
    }
 
-   /** Show notification displaying given text.  */
-   fun showTextNotification(txt: String, title: String) {
+   /** Show notification displaying given text. */
+   fun showTextNotification(title: String, contentText: String) {
       if (running) {
          val root = stackPane {
             setMinSize(150.0, 70.0)
 
-            lay += Text(txt).apply {
+            lay += Text(contentText).apply {
                wrappingWithNatural.value = true
             }
          }
 
-         showNotification(root, title)
+         showNotification(title, root)
       }
    }
 
@@ -165,18 +169,18 @@ class Notifier: PluginBase("Notifications", true) {
          val title = "Now playing \t${m.getPlaylistIndexInfo()}"
          songNotificationInfo!!.read(m)
 
-         showNotification(songNotificationGui!!, title)
+         showNotification(title, songNotificationGui!!)
       }
    }
 
-   private fun playbackChange(s: Status?) {
-      if (showStatusNotification && s!=null) {
-         val title = "Playback change : $s"
+   private fun playbackChange(status: Status?) {
+      if (showStatusNotification && status!=null) {
+         val title = "Playback change : $status"
          val i = ItemInfo(false).apply {
             read(Player.playingSong.value)
          }
 
-         showNotification(i, title)
+         showNotification(title, i)
       }
    }
 

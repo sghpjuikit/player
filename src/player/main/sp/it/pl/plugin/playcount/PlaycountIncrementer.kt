@@ -78,12 +78,12 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
          if (delay.value) {
             queue += m
             if (showNotificationSchedule.value)
-               APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incrementing scheduled", "Playcount") }
+               APP.plugins.use<Notifier> { it.showTextNotification("Playcount", "Song playcount incrementing scheduled") }
          } else {
             val pc = 1 + m.getPlaycountOr0()
             m.write({ it.setPlaycount(pc) }) {
                if (it.isOk && showNotificationUpdate.value)
-                  APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incremented by 1 to: $pc", "Playcount") }
+                  APP.plugins.use<Notifier> { it.showTextNotification("Playcount", "Song playcount incremented by 1 to: $pc") }
             }
          }
       }

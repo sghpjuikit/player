@@ -28,7 +28,7 @@ class PluginManager {
 
    /** @return plugin of the type specified by the argument. */
    @Suppress("UNCHECKED_CAST")
-   fun <P: Plugin> get(type: Class<P>): Optional<P> = Optional.ofNullable(plugins[type] as P)
+   fun <P: Plugin> get(type: Class<P>): Optional<P> = Optional.ofNullable(plugins[type] as P?)
 
    /** Invokes the action with the plugin of the type specified by the argument. */
    fun <P: Plugin> use(type: KClass<P>, action: (P) -> Unit) = use(type.java, Consumer(action))

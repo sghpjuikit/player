@@ -105,7 +105,7 @@ class App: Application(), Configurable<Any> {
    /** Name of this application. */
    val name = "PlayerFX"
    /** Version of this application. */
-   val version = "0.7"
+   val version = "0.7.0"
    /** Application code encoding. Useful for compilation during runtime. */
    val encoding = UTF_8
    /** Absolute file of location of this app. Working directory of the project. `new File("").getAbsoluteFile()`. */

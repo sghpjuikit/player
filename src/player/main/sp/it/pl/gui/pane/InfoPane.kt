@@ -101,7 +101,6 @@ class InfoPane: OverlayPane<Unit>() {
    }
 
    private fun computeProperties(): Map<String, MutableList<Named>> {
-      fun <K, V> MutableMap<K, MutableList<V>>.group(key: K) = getOrPut(key) { ArrayList() }
       val ps = System.getProperties()
          .entries.asSequence()
          .filter { it.key is String && it.value is String }
@@ -120,33 +119,40 @@ class InfoPane: OverlayPane<Unit>() {
          "user" named pInfo.user().orElse("")
       )
       ps.group("java") += "vm.arguments" named APP.fetchVMArguments().joinToString(" ")
+      ps.group("app") += listOf(
+         "version" named APP.version,
+         "location" named APP.location.path
+      )
 
       return ps
    }
 
+   private data class Named(val name: String, val value: String)
+
    companion object {
       private const val STYLECLASS = "info-pane"
       private const val STYLECLASS_GROUP = "info-pane-group-label"
+
+      private fun <K, V> MutableMap<K, MutableList<V>>.group(key: K) = getOrPut(key) { ArrayList() }
+
+      private infix fun String.named(value: String) = Named(this, value)
+
+      private fun String.getPropertyGroup() = substringBefore('.')
+
+      private fun String.fixASCII(): String {
+         when (length) {
+            1 -> {
+               if (this[0]=='\n') return "\n"
+               if (this[0]=='\r') return "\r"
+            }
+            2 -> {
+               if (this[0]=='\n' && this[1]=='\r') return "\\n\\r"
+               if (this[0]=='\r' && this[1]=='\n') return "\\r\\n"
+            }
+         }
+         return this
+      }
    }
 
 }
 
-private data class Named(val name: String, val value: String)
-
-private infix fun String.named(value: String) = Named(this, value)
-
-private fun String.getPropertyGroup() = substringBefore('.')
-
-private fun String.fixASCII(): String {
-   when (length) {
-      1 -> {
-         if (this[0]=='\n') return "\n"
-         if (this[0]=='\r') return "\r"
-      }
-      2 -> {
-         if (this[0]=='\n' && this[1]=='\r') return "\\n\\r"
-         if (this[0]=='\r' && this[1]=='\n') return "\\r\\n"
-      }
-   }
-   return this
-}

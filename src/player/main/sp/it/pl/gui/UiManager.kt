@@ -14,8 +14,8 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.text.Font
 import mu.KLogging
 import sp.it.pl.gui.objects.rating.Rating
+import sp.it.pl.gui.pane.ErrorPane
 import sp.it.pl.gui.pane.InfoPane
-import sp.it.pl.gui.pane.MessagePane
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.ScreenBgrGetter
 import sp.it.pl.layout.widget.WidgetSource.OPEN
@@ -26,6 +26,7 @@ import sp.it.pl.main.initApp
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
+import sp.it.util.collections.ObservableSetRO
 import sp.it.util.collections.project
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
@@ -79,12 +80,19 @@ class UiManager(val skinDir: File): Configurable<Any> {
    @IsConfig(name = PaneS.HIDE_EMPTY_NAME, info = PaneS.HIDE_EMPTY_INFO, group = SU.View.Shortcut.name)
    val viewHideEmptyShortcuts by cv(true)
 
-   val messagePane = LazyOverlayPane { MessagePane().initApp() }
+   /** Action chooser and data info view. */
    val actionPane = LazyOverlayPane { PaneA(APP.className, APP.instanceName, APP.instanceInfo).initApp().initActionPane() }
+   /** Error detail view. Usually used internally by [sp.it.pl.main.AppErrors]. */
+   val errorPane = LazyOverlayPane { ErrorPane().initApp() }
+   /** Shortcut bindings/keymap detail view. */
    val shortcutPane = LazyOverlayPane { PaneS().initApp() }
+   /** System/app info detail view. */
    val infoPane = LazyOverlayPane { InfoPane().initApp() }
 
-   val skins = observableSet<SkinCss>()!!
+   private val skinsImpl = observableSet<SkinCss>()
+   /** Available application skins. Monitored and updated from disc. */
+   val skins = ObservableSetRO<SkinCss>(skinsImpl)
+   /** Css files applied on top of [skin]. Can be used for clever stuff like applying generated css. */
    val additionalStylesheets = observableArrayList<File>()!!
 
    val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
@@ -310,7 +318,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
 
    private fun registerSkin(s: SkinCss): SkinCss {
       logger.info("Registering skin={}", s.name)
-      skins += s
+      skinsImpl += s
       return s
    }
 
@@ -331,7 +339,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
    }
 
    private fun initSkins() {
-      skins setTo findSkins()
+      skinsImpl setTo findSkins()
       monitorSkinFiles()
       observeWindowsAndApplySkin()
    }
@@ -340,7 +348,7 @@ class UiManager(val skinDir: File): Configurable<Any> {
       FileMonitor.monitorDirectory(skinDir, true) { type, file ->
          logger.info { "Change=$type detected in skin directory for $file" }
 
-         skins setTo findSkins()
+         skinsImpl setTo findSkins()
 
          val refreshAlways = true    // skins may import each other hence it is more convenient to refresh always
          val currentSkinDir = skinDir/skin.value

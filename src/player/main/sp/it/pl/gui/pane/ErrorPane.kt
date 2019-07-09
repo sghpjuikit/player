@@ -28,7 +28,7 @@ import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 
-class MessagePane: OverlayPane<AppError>() {
+class ErrorPane: OverlayPane<AppError>() {
 
    private val text: Text
    private var historyAt = -1

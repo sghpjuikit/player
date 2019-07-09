@@ -48,7 +48,7 @@ object AppErrors {
    fun showDetailForLastError() {
       runFX {
          history.lastOrNull()?.let {
-            APP.ui.messagePane.orBuild.show(it)
+            APP.ui.errorPane.orBuild.show(it)
          }
       }
    }

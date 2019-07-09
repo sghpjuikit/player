@@ -54,7 +54,7 @@ infix fun <T> MutableCollection<T>.setToOne(element: T) {
 }
 
 /** @return read only observable list that maintains the elements from this list mapped using the specified mapper */
-fun <T, R> ObservableList<T>.project(mapper: (T) -> R): ObservableListRO<R> {
+fun <T, R, LIST> LIST.project(mapper: (T) -> R): ObservableListRO<R> where LIST: List<T>, LIST: Observable {
    val outBacking = observableArrayList<R>()
    outBacking setTo map(mapper)
    onChange { outBacking setTo map(mapper) }
@@ -62,7 +62,7 @@ fun <T, R> ObservableList<T>.project(mapper: (T) -> R): ObservableListRO<R> {
 }
 
 /** @return read only observable set that maintains the elements from this set mapped using the specified mapper */
-fun <T, R> ObservableSet<T>.project(mapper: (T) -> R): ObservableSetRO<R> {
+fun <T, R, SET> SET.project(mapper: (T) -> R): ObservableSetRO<R> where SET: Set<T>, SET: Observable {
    val outBacking = observableSet<R>()
    outBacking setTo map(mapper)
    onChange { outBacking setTo map(mapper) }

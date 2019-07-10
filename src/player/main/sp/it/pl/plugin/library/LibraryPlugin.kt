@@ -38,7 +38,7 @@ import java.io.File
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 
-class LibraryWatcher: PluginBase("Song Library", false) {
+class LibraryPlugin: PluginBase("Song Library", false) {
 
    @IsConfig(
       name = "Location",

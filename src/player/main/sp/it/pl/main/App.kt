@@ -30,7 +30,7 @@ import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
 import sp.it.pl.plugin.database.SongDb
 import sp.it.pl.plugin.dirsearch.DirSearchPlugin
-import sp.it.pl.plugin.library.LibraryWatcher
+import sp.it.pl.plugin.library.LibraryPlugin
 import sp.it.pl.plugin.notif.Notifier
 import sp.it.pl.plugin.playcount.PlaycountIncrementer
 import sp.it.pl.plugin.screenrotator.ScreenRotator
@@ -360,7 +360,7 @@ class App: Application(), Configurable<Any> {
          TrayPlugin(),
          Notifier(),
          PlaycountIncrementer(),
-         LibraryWatcher(),
+         LibraryPlugin(),
          AppSearchPlugin(),
          DirSearchPlugin(),
          ScreenRotator(),

@@ -674,6 +674,8 @@ Text {
 
 .hyperlink {
     -fx-text-fill: -skin-def-font-color;
+    -fx-padding: 0;
+    -fx-underline: true;
 }
 .hyperlink:hover {
     -fx-text-fill: -fx-focus-color;

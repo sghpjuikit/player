@@ -6,7 +6,7 @@ import kotlin.text.Charsets.UTF_8
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.3.40"
+   kotlin("jvm") version "1.3.41"
    application
    id("com.github.ben-manes.versions") version "0.20.0"
    id("de.undercouch.download") version "3.4.3"

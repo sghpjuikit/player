@@ -11,8 +11,10 @@ import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
+import sp.it.pl.main.AppErrorAction
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.plugin.library.LibraryPlugin
 import sp.it.util.access.v
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
@@ -81,7 +83,13 @@ class SongDb {
       .ifErrorNotify {
             AppError(
                "Failed to load song library.",
-               "Don't worry. Your data is not lost. You will only need to reimport your songs.\n\nExact problem:\n${it.stacktraceAsString}"
+               "Don't worry. Your data is not lost. You will only need to reimport your songs.\n\nExact problem:\n${it.stacktraceAsString}",
+               AppErrorAction("Update Library") {
+                  APP.plugins.get(LibraryPlugin::class.java).ifNotNull {
+                     if (!it.isRunning()) it.start()
+                     if (it.isRunning()) it.updateLibrary()
+                  }
+               }
             )
       }
       .orNull() ?: MetadatasDB()

@@ -105,10 +105,12 @@ class LibraryWatcher: PluginBase("Song Library", false) {
          dirMonitors[dir] = monitorDirectory(dir, true) { type, file ->
             when (type) {
                ENTRY_CREATE -> {
+                  toBeRemoved -= file
                   toBeAdded += file
                   update()
                }
                ENTRY_DELETE -> {
+                  toBeAdded -= file
                   toBeRemoved += file
                   update()
                }

@@ -678,6 +678,10 @@ Text {
 .hyperlink:hover {
     -fx-text-fill: -fx-focus-color;
 }
+.hyperlink:pressed,
+.hyperlink:visited {
+    -fx-border-width: 0;
+}
 
 /******************************************************************************** 
  * PopupMenu

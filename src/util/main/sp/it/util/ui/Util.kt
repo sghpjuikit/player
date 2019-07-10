@@ -14,6 +14,7 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Control
+import javafx.scene.control.Hyperlink
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
@@ -276,6 +277,7 @@ inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!
 inline fun scrollTextCenter(block: () -> Text) = Util.layScrollVTextCenter(block())!!
 inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(block)
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
+inline fun hyperlink(text: String = "", block: Hyperlink.() -> Unit = {}) = Hyperlink(text).apply(block)
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
 inline fun text(text: String = "", block: Text.() -> Unit = {}) = Text(text).apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)

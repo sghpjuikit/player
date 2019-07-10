@@ -13,7 +13,7 @@ import sp.it.pl.plugin.notif.Notifier
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.runGet
-import sp.it.util.async.runNew
+import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.IsConfig
@@ -40,7 +40,10 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 
 class LibraryWatcher: PluginBase("Song Library", false) {
 
-   @IsConfig(name = "Location", info = "Locations to find audio.")
+   @IsConfig(
+      name = "Location",
+      info = "Locations to find audio. Directories will be scanned recursively to unlimited depth."
+   )
    private val sourceDirs by cList<File>().only(DIRECTORY)
    private val sourceDirsChangeHandler = Subscribed {
       sourceDirs.forEach { handleLocationAdded(it) }
@@ -50,13 +53,20 @@ class LibraryWatcher: PluginBase("Song Library", false) {
       )
    }
 
-   @IsConfig(name = "Update on start", info = "Update library when this plugin starts")
+   @IsConfig(
+      name = "Update on start",
+      info = "Update entire library from disc when this plugin starts (which also happens when application starts). " +
+         "May incur significant performance cost on the system"
+   )
    val updateOnStart by cv(false)
 
    @IsConfig(name = "Monitoring supported", info = "On some system, this file monitoring may be unsupported", editable = NONE)
    val dirMonitoringSupported by c(Os.WINDOWS.isCurrent)
 
-   @IsConfig(name = "Monitor files", info = "Monitors files recursively, notify of changes and update library automatically")
+   @IsConfig(
+      name = "Monitor files",
+      info = "Monitor all locations recursively and automatically add/remove added/removed songs to/from library."
+   )
    val dirMonitoringEnabled by cv(false).readOnlyUnless(dirMonitoringSupported)
 
    private val dirMonitors = HashMap<File, FileMonitor>()
@@ -132,16 +142,16 @@ class LibraryWatcher: PluginBase("Song Library", false) {
          )
       }
 
-      runNew {
+      runIO {
          Song.addToLibTask(toAdd.map { SimpleSong(it) }).runGet()
          APP.db.removeSongs(toRem.map { SimpleSong(it) })
       }.withAppProgress("Updating song library from detected changes")
    }
 
    @IsAction(name = "Update", desc = "Remove non-existent songs and add new songs from location")
-   private fun updateLibrary() {
+   fun updateLibrary() {
       val dirs = sourceDirs.materialize()
-      runNew {
+      runIO {
          val songs = findAudio(dirs).map { SimpleSong(it) }.toList()
          Song.addToLibTask(songs).runGet()
          Song.removeMissingFromLibTask().run()

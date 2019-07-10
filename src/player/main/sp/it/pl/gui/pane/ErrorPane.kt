@@ -102,13 +102,11 @@ class ErrorPane: OverlayPane<AppError>() {
       super.show()
    }
 
-   private fun visit(at: Int) {
-      update(at, AppErrors.history[at])
-   }
-
    private fun visitLeft() = visit(historyAt.max(1) - 1)
 
    private fun visitRight() = visit(historyAt.min(AppErrors.history.size - 2) + 1)
+
+   private fun visit(at: Int) = update(at, AppErrors.history[at])
 
    private fun updateIndexes() {
       historyAtText.value = "${historyAt + 1}/${AppErrors.history.size}"

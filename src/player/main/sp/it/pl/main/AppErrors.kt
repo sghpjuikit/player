@@ -6,8 +6,11 @@ import sp.it.util.async.runFX
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.functional.Try
+import sp.it.util.functional.ifNotNull
 
-data class AppError(val textShort: String, val textFull: String)
+class AppError(val textShort: String, val textFull: String, val action: AppErrorAction? = null)
+
+class AppErrorAction(val name: String, val action: () -> Unit)
 
 object AppErrors {
 
@@ -35,10 +38,8 @@ object AppErrors {
    @ThreadSafe
    fun showNotificationForLastError() {
       runFX {
-         history.lastOrNull()?.let {
-            APP.plugins.use<Notifier> { n ->
-               n.showTextNotification(ERROR_NOTIFICATION_TITLE, it.textShort + "\n\nClick to show details")
-            }
+         history.lastOrNull().ifNotNull {
+            APP.plugins.use<Notifier> { n -> n.showTextNotification(it) }
          }
       }
    }
@@ -47,9 +48,7 @@ object AppErrors {
    @ThreadSafe
    fun showDetailForLastError() {
       runFX {
-         history.lastOrNull()?.let {
-            APP.ui.errorPane.orBuild.show(it)
-         }
+         history.lastOrNull().ifNotNull { APP.ui.errorPane.orBuild.show(it) }
       }
    }
 

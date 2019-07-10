@@ -1,6 +1,9 @@
 package sp.it.pl.plugin.notif
 
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PAUSED
@@ -17,6 +20,7 @@ import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.VarAction
@@ -26,10 +30,14 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.valuesIn
+import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.hyperlink
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 
 /** Provides notification functionality. */
@@ -139,11 +147,25 @@ class Notifier: PluginBase("Notifications", true) {
    }
 
    /** Show notification displaying given text. */
+   fun showTextNotification(error: AppError) {
+         val root = vBox(10.0, CENTER_LEFT) {
+            lay += Text(error.textShort + "\n\nClick to show full details").apply {
+               wrappingWithNatural.value = true
+            }
+            lay += supplyIf(error.action!=null) {
+               hyperlink(error.action!!.name) {
+                  onEventDown(MOUSE_CLICKED, PRIMARY) { error.action.action() }
+               }
+            }
+         }
+
+         showNotification(AppErrors.ERROR_NOTIFICATION_TITLE, root)
+   }
+
+   /** Show notification displaying given text. */
    fun showTextNotification(title: String, contentText: String) {
       if (running) {
          val root = stackPane {
-            setMinSize(150.0, 70.0)
-
             lay += Text(contentText).apply {
                wrappingWithNatural.value = true
             }

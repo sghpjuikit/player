@@ -49,6 +49,7 @@ class Notification: PopOver<Node>() {
       styleClass += "notification"
 
       contentNode.value = root.apply {
+         setMinSize(150.0, 70.0)
          onEventDown(MOUSE_CLICKED, PRIMARY) { lClickAction() }
          onEventDown(MOUSE_CLICKED, SECONDARY) { rClickAction() }
          onEventUp(MOUSE_ENTERED) { closer.pause() }

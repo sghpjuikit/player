@@ -3,7 +3,9 @@ package sp.it.pl.plugin
 import sp.it.pl.main.APP
 import sp.it.util.collections.map.ClassMap
 import sp.it.util.dev.failIf
-import java.util.Optional
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.kt
+import sp.it.util.functional.toUnit
 import java.util.function.Consumer
 import kotlin.reflect.KClass
 
@@ -28,13 +30,13 @@ class PluginManager {
 
    /** @return plugin of the type specified by the argument. */
    @Suppress("UNCHECKED_CAST")
-   fun <P: Plugin> get(type: Class<P>): Optional<P> = Optional.ofNullable(plugins[type] as P?)
+   fun <P: Plugin> get(type: Class<P>): P? = plugins[type] as P?
 
    /** Invokes the action with the plugin of the type specified by the argument. */
    fun <P: Plugin> use(type: KClass<P>, action: (P) -> Unit) = use(type.java, Consumer(action))
 
    /** Invokes the action with the plugin of the type specified by the argument. */
-   fun <P: Plugin> use(type: Class<P>, action: Consumer<in P>) = get(type).filter { it.isRunning() }.ifPresent(action)
+   fun <P: Plugin> use(type: Class<P>, action: Consumer<in P>) = get(type)?.takeIf { it.isRunning() }.ifNotNull(action.kt)?.toUnit() ?: Unit
 
    /** Invokes the action with the plugin of the type specified by the generic type argument. */
    inline fun <reified P: Plugin> use(noinline action: (P) -> Unit) = use(P::class.java, Consumer(action))

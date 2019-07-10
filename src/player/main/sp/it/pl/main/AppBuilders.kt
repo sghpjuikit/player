@@ -67,7 +67,7 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
 fun infoIcon(tooltipText: String) = infoIcon { tooltipText }
 
 /** @return standardized icon that opens a help popup with the specified text (lazy)  */
-fun infoIcon(tooltipText: () -> String): Icon = Icon(IconFA.INFO)
+fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    .tooltip("Help")
    .onClick { e ->
       APP.actionStream("Info popup")

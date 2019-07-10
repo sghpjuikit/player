@@ -76,27 +76,32 @@ import kotlin.streams.toList
 @Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
    ap.register<Any?>(
-      FastColAction(
+      FastColAction<Any?>(
          "Set as data",
          "Sets the selected data as input.",
          IconMD.DATABASE,
+         { it !is App && it !is AppDev && it !is AppOpen },
          ap.converting { Try.ok(it) }
-      ),
+      ).preventClosing(),
       FastColAction(
          "Open in Converter",
          "Open data in Converter.",
          IconMD.SWAP_HORIZONTAL,
-         // TODO: make sure it opens Converter or support multiple Opener types
-         { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }
+         { it !is App && it !is AppDev && it !is AppOpen },
+         { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }   // TODO: make sure it opens Converter or support multiple Opener types
       )
    )
    ap.register<App>(
+      FastColAction<App>("For developer", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
+      FastColAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
       FastAction(IconMD.KEYBOARD_VARIANT, ActionRegistrar["Show shortcuts"]),
-      FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"]),
+      FastAction(IconMD.FOLDER, ActionRegistrar["Open app directory"])
+   )
+   ap.register<AppDev>(
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
       FastAction(IconFA.CSS3, ActionRegistrar["Open css guide"]),
       FastAction(IconFA.IMAGE, ActionRegistrar["Open icon viewer"]),
-      FastAction(IconMD.FOLDER, ActionRegistrar["Open app directory"])
+      FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"])
    )
    ap.register<AppOpen>(
       FastAction(
@@ -446,6 +451,9 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
 
 /** Denotes action pane data for 'Open...' actions. */
 object AppOpen
+
+/** Denotes action pane data for 'App.Developer' actions. */
+object AppDev
 
 /** Denotes action pane data representing multiple files for browse actions. */
 class MultipleFiles(val files: Set<File>) {

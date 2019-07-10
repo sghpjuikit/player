@@ -39,7 +39,7 @@ object EnvironmentContext {
 fun copyToSysClipboard(s: String?) = copyToSysClipboard(DataFormat.PLAIN_TEXT, s)
 
 /** Puts the specified object to system clipboard. Does nothing if null. */
-fun copyToSysClipboard(df: DataFormat, o: Any?) = o?.let { Clipboard.getSystemClipboard().setContent(mapOf(df to it)) }
+fun copyToSysClipboard(df: DataFormat, o: Any?) = o.ifNotNull { Clipboard.getSystemClipboard().setContent(mapOf(df to it)) }
 
 /**
  * Launches this file as an executable program as a separate process on a new thread and executes an action (on it)

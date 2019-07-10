@@ -103,11 +103,14 @@ abstract class ActionData<C, T> {
       if (action is ConvertingConsumer<*>) preventClosing = true
    }
 
+   fun preventClosing() = apply {
+      preventClosing = true
+   }
+
    fun preventClosing(action: (ActionPane) -> ComplexActionData<T, *>) = apply {
       isComplex = true
       complexData = action
       preventClosing = true
-      return this
    }
 
    @Suppress("UNCHECKED_CAST")

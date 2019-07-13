@@ -64,7 +64,10 @@ import javafx.stage.Screen
 import javafx.stage.Window
 import javafx.util.Callback
 import sp.it.util.JavaLegacy
+import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.max
@@ -135,6 +138,18 @@ fun Node.removeFromParent() {
       is Pane -> p.children -= this
    }
 }
+
+@Suppress("UNCHECKED_CAST")
+fun <T: Node> Node.lookupChildAt(at: Int): T = when(this) {
+   is Parent -> childrenUnmodifiable.getOrNull(at) as T
+   else -> fail { "${this::class} can not have children" }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <T: Node> Node.lookupSiblingUp(by: Int = 1): T = parent!!.asIs<Parent>().childrenUnmodifiable.net { it.getOrNull(it.indexOf(this) - by)!! } as T
+
+@Suppress("UNCHECKED_CAST")
+fun <T: Node> Node.lookupSiblingDown(by: Int = 1): T = parent!!.asIs<Parent>().childrenUnmodifiable.net { it.getOrNull(it.indexOf(this) + by)!! } as T
 
 /** @return whether this node shape contains the scene coordinates represented by the specified point */
 fun Node.containsScene(scenePoint: Point2D): Boolean = contains(sceneToLocal(scenePoint))

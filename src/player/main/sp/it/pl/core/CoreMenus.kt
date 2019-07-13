@@ -77,7 +77,7 @@ object CoreMenus: Core {
                separator()
                widgetItems<Opener> { it.open(selected) }
             }
-            if (APP.developerMode)
+            if (APP.developerMode.value)
                menu("Public methods") {
                   items(selected::class.java.methods.asSequence()
                      .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }

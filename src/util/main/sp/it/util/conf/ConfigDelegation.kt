@@ -39,7 +39,7 @@ fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> 
 fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
-fun <T: () -> Unit> cr(action: T): ConfR<T> = ConfR(action)
+fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action)
 inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
@@ -212,8 +212,8 @@ abstract class Conf<T: Any?> {
    }
 }
 
-class ConfR<T: () -> Unit>(private val action: T): Conf<T>() {
-   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, T> {
+class ConfR(private val action: () -> Unit): Conf<Action>() {
+   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, Action> {
       property.makeAccessible()
       val info = property.findAnnotation<IsConfig>()
       val infoExt = property.findAnnotation<IsAction>()
@@ -229,8 +229,8 @@ class ConfR<T: () -> Unit>(private val action: T): Conf<T>() {
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false
 
-      return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous), ReadOnlyProperty<Any, T> {
-         override fun getValue(thisRef: Any, property: KProperty<*>) = action
+      return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous, *constraints.toTypedArray()), ReadOnlyProperty<Any, Action> {
+         override fun getValue(thisRef: Any, property: KProperty<*>) = this
       }.registerConfig(ref)
    }
 }

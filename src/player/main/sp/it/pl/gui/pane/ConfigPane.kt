@@ -4,7 +4,6 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
-import javafx.scene.text.TextAlignment.LEFT
 import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
@@ -51,9 +50,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
       children setTo fields.asSequence().flatMap {
          sequenceOf(
             when {
-               needsLabel -> label(it.config.guiName).apply {
-                  alignment = CENTER_LEFT
-                  textAlignment = LEFT
+               needsLabel -> label(it.config.guiName) {
                   styleClass += "form-config-pane-config-name"
                }
                else -> null
@@ -62,7 +59,6 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
                it.config.info.isEmpty() || it.config.guiName==it.config.info -> null
                else -> Text(it.config.info).apply {
                   isManaged = false
-                  textAlignment = LEFT
                   styleClass += "form-config-pane-config-description"
                }
             },

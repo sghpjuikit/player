@@ -18,7 +18,7 @@ import kotlin.math.ceil
 private val logger = KotlinLogging.logger {}
 
 /** @return whether user can use this factory, exactly: APP.developerMode || ![ComponentFactory.isExperimental] */
-fun ComponentFactory<*>.isUsableByUser() = APP.developerMode || !isExperimental()
+fun ComponentFactory<*>.isUsableByUser() = APP.developerMode.value || !isExperimental()
 
 /**
  * Checks validity of a file to be a skin. True return file means the file

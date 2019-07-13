@@ -23,6 +23,7 @@ import sp.it.pl.gui.UiManager
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.window.stage.WindowManager
+import sp.it.pl.gui.pane.VmOptionsPane
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
@@ -36,6 +37,7 @@ import sp.it.pl.plugin.playcount.PlaycountIncrementer
 import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.plugin.tray.TrayPlugin
 import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
+import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
@@ -46,6 +48,8 @@ import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
+import sp.it.util.conf.isEditableByUserRightNow
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.dev.fail
@@ -57,6 +61,7 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.apply_
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.system.Os
@@ -197,13 +202,23 @@ class App: Application(), Configurable<Any> {
    var animationFps by c(60.0).between(10.0, 60.0)
 
    @C(name = "Developer mode", info = "Unlock developer features.")
-   var developerMode by c(false)
+   val developerMode by cv(false)
 
    @C(group = "Settings", name = "Settings use default", info = "Set all settings to default values.")
    val actionSettingsReset by cr { configuration.toDefault() }
 
    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
    val actionSettingsSave by cr { configuration.save(name, location.user.`application properties`) }
+
+   @C(name = "Manage VM options", info = "Manage Java virtual machine settings")
+   val manageVM by cr {
+      val root = VmOptionsPane().apply {
+         prefHeight = 600.scaleEM()
+      }
+      windowManager.showFloating(root, "VM options").toUnit()
+   }.readOnlyUnless(
+      developerMode
+   )
 
    /** Manages ui. */
    @JvmField val ui = UiManager(location.skins)
@@ -303,6 +318,7 @@ class App: Application(), Configurable<Any> {
       onStopping()
 
       // app
+      plugins.getAll().forEach { if (it.isRunning()) it.stop() }
       Player.dispose()
       db.stop()
       ActionManager.stopActionListening()
@@ -325,7 +341,6 @@ class App: Application(), Configurable<Any> {
          if (rank==MASTER && isStateful) Player.state.serialize()
          if (rank==MASTER && isStateful) windowManager.serialize()
          if (rank==MASTER) configuration.save(name, location.user.`application properties`)
-         plugins.getAll().forEach { if (it.isRunning()) it.stop() }  // TODO: implement Plugin.store() and avoid stop() here
       }
    }
 
@@ -370,7 +385,9 @@ class App: Application(), Configurable<Any> {
 
    private fun Search.initForApp() {
       sources += {
-         configuration.getFields().asSequence().map { Entry.of(it) }
+         configuration.getFields()
+            .filter { it.type==Action::class.javaObjectType && it.isEditableByUserRightNow() }
+            .asSequence().map { Entry.of(it) }
       }
       sources += {
          ui.skins.asSequence().map {

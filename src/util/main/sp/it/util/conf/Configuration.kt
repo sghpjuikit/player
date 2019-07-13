@@ -90,7 +90,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
             ?.let {
                val name = "${it.guiName} - toggle"
                val description = "Toggles value ${it.name} between true/false"
-               val r = { if (it.isEditableByUserRightNow()) it.toggle() }
+               val r = Runnable { if (it.isEditableByUserRightNow()) it.toggle() }
                val a = Action(name, r, description, it.group, "", false, false)
                rawSet(a)
                ActionRegistrar.getActions() += a

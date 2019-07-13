@@ -1,5 +1,8 @@
 package sp.it.util.action;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javafx.scene.Scene;
@@ -17,6 +20,7 @@ import static kotlin.text.StringsKt.contains;
 import static kotlin.text.StringsKt.replace;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.UtilKt.orNull;
 
@@ -44,6 +48,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	private KeyCombination keys = KeyCombination.NO_MATCH;
 	private final String defaultKeys;
 	private final boolean defaultGlobal;
+	private Set<Constraint<Action>> constraints = null;
 
 	public Action(IsAction a, String group, Runnable action) {
 		this(a.name(), action, a.desc(), group, a.keys(), a.global(), a.repeat());
@@ -51,6 +56,11 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 
 	public Action(String name, Runnable action, String info, String group, String keys) {
 		this(name, action, info, group, keys, false, false);
+	}
+
+	@SuppressWarnings("unchecked")
+	public Action(String name, Runnable action, String info, String group, String keys, boolean global, boolean continuous) {
+		this(name, action, info, group, keys, global, continuous, new ArrayList<Constraint<Action>>().toArray(new Constraint[]{}));
 	}
 
 	/**
@@ -63,7 +73,8 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	 * @param global value for the global property
 	 * @param continuous value for the final continuous property
 	 */
-	public Action(String name, Runnable action, String info, String group, String keys, boolean global, boolean continuous) {
+	@SafeVarargs
+	public Action(String name, Runnable action, String info, String group, String keys, boolean global, boolean continuous, Constraint<? super Action>... constraints) {
 		this.name = name;
 		this.action = action;
 		this.info = info==null || info.isEmpty() ? name : info;
@@ -73,6 +84,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		this.defaultGlobal = global;
 		this.defaultKeys = keys;
 		changeKeys(keys);
+		addConstraints(constraints);
 	}
 
 	/**
@@ -332,12 +344,15 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 
 	@Override
 	public Set<Constraint<Action>> getConstraints() {
-		return setRO();
+		return constraints==null ? setRO() : constraints;
 	}
 
+	@SuppressWarnings("unchecked")
 	@SafeVarargs
 	@Override
 	public final Config<Action> addConstraints(Constraint<? super Action>... constraints) {
+		if (this.constraints==null) this.constraints = new HashSet<>(constraints.length);
+		this.constraints.addAll((List) list(constraints));
 		return this;
 	}
 

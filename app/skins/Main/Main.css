@@ -2083,6 +2083,7 @@ Text {
  */
 .form-config-pane-config-name {
     -fx-padding: 0.5em 0 0 0;
+    -fx-text-alignment: left;
 }
 
 /*
@@ -2091,6 +2092,7 @@ Text {
  */
 .form-config-pane-config-description {
     -fx-opacity: 0.4;
+    -fx-text-alignment: left;
 }
 
 /************************************ SEARCH ***************************************************************************

@@ -23,6 +23,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.lookupSiblingUp
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.textField
 import sp.it.util.ui.vBox
 import java.lang.management.ManagementFactory
 
@@ -64,7 +65,7 @@ class VmOptionsPane: StackPane() {
                         lookupChildAt<TextField>(0).text = optionRefreshed.value
                      }
 
-                     lay += TextField().apply {
+                     lay += textField {
                         isEditable = option.isWriteable
                         getter = ::getText
                      }

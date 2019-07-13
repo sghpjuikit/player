@@ -24,6 +24,7 @@ import javafx.scene.control.ScrollPane
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.TableView
 import javafx.scene.control.TextArea
+import javafx.scene.control.TextField
 import javafx.scene.control.Tooltip
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeTableView
@@ -295,6 +296,8 @@ inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).
 inline fun hyperlink(text: String = "", block: Hyperlink.() -> Unit = {}) = Hyperlink(text).apply(block)
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
 inline fun text(text: String = "", block: Text.() -> Unit = {}) = Text(text).apply(block)
+inline fun textField(text: String = "", block: TextField.() -> Unit = {}) = TextField(text).apply(block)
+inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextArea(text).apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
 inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)

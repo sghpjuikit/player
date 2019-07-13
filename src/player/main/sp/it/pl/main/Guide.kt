@@ -5,7 +5,6 @@ import javafx.geometry.Insets
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
-import javafx.scene.control.TextArea
 import javafx.scene.input.DataFormat
 import javafx.scene.input.KeyCode.LEFT
 import javafx.scene.input.KeyCode.RIGHT
@@ -47,6 +46,7 @@ import sp.it.util.text.keys
 import sp.it.util.ui.Util.layHorizontally
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
@@ -101,7 +101,7 @@ class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.Plugi
          it.consume()
       }
 
-      lay(ALWAYS) += TextArea().apply {
+      lay(ALWAYS) += textArea {
          isEditable = false
          isMouseTransparent = true
          isWrapText = true

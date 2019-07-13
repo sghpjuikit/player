@@ -11,12 +11,14 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
+import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
 import sp.it.util.math.StrExF
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.ConverterFX
+import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.StringSplitParser
 import sp.it.util.units.Bitrate
@@ -40,6 +42,10 @@ class CoreConverter: Core {
 
    /** Default to/from string converter that uses per class registered converters. */
    @JvmField val general = Parsers.DEFAULT!!
+   /** Default ui to string converter. Converts [UiName] or delegates to [general]. */
+   @JvmField val ui = object: ConverterToString<Any?> {
+      override fun toS(o: Any?) = o?.asIf<UiName>()?.uiName ?: general.toS(o)
+   }
    private val fx = ConverterFX()
 
    override fun init() {
@@ -123,4 +129,9 @@ class CoreConverter: Core {
 
    private fun <T> Try<T, Throwable>.orMessage() = mapError { it.message ?: "Unknown error" }
 
+}
+
+interface UiName {
+   /** Human readable name of this object displayed in user interface. */
+   val uiName: String
 }

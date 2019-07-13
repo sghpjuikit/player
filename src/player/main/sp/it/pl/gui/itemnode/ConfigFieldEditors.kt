@@ -26,9 +26,8 @@ open class EnumerableCF<T>: ConfigField<T> {
 
    @JvmOverloads
    constructor(c: Config<T>, enumeration: Collection<T> = c.enumerateValues()): super(c) {
-      val converter: (T) -> String = c.constraints.filterIsInstance<Constraint.UiConverter<T>>()
-         .firstOrNull()?.converter
-         ?: { enumToHuman(APP.converter.general.toS(it)) }
+      val converter: (T) -> String = c.findConstraint<Constraint.UiConverter<T>>()?.converter
+         ?: { enumToHuman(APP.converter.ui.toS(it)) }
 
       n = ImprovedComboBox(converter)
       n.styleClass += "combobox-field-config"

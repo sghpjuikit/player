@@ -48,6 +48,7 @@ import sp.it.util.conf.ConfigImpl.ListConfig;
 import sp.it.util.conf.ConfigImpl.PropertyConfig;
 import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig;
 import sp.it.util.conf.Configurable;
+import sp.it.util.conf.EditMode;
 import sp.it.util.conf.OrPropertyConfig;
 import sp.it.util.conf.OrPropertyConfig.OrValue;
 import sp.it.util.functional.Functors.Ƒ1;
@@ -537,7 +538,9 @@ abstract public class ConfigField<T> {
                     .map(x -> toS(x.getKey()) + " -> " + toS(x.getValue()))
                     .collect(joining(", ", "[", "]"));
             } else {
-                return APP.converter.general.toS(getConfigValue());
+                return config.isEditable().isByUser()
+                    ? APP.converter.ui.toS(o)
+                    : APP.converter.general.toS(o);
             }
         }
 

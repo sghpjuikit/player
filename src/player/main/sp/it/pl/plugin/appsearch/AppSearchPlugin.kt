@@ -4,6 +4,7 @@ import mu.KLogging
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
@@ -31,7 +32,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
    private val searchDo by cr { findApps() }
 
    private var searchSourceApps = listOf<File>()
-   private val searchSource = { searchSourceApps.asSequence().map { it.toRunApplicationEntry() } }
+   private val searchSource = Source("$name plugin - Applications") { searchSourceApps.asSequence().map { it.toRunApplicationEntry() } }
 
    override fun onStart() {
       APP.search.sources += searchSource

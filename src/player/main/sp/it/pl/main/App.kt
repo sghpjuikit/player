@@ -27,6 +27,7 @@ import sp.it.pl.gui.pane.VmOptionsPane
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
+import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
 import sp.it.pl.plugin.database.SongDb
@@ -225,7 +226,7 @@ class App: Application(), Configurable<Any> {
    /** Guide containing tips and useful information. */
    @JvmField val guide = Guide(actionStream)
    /** Application search */
-   @JvmField val search = Search()
+   @JvmField val search = AppSearch()
    /** Manages persistence and in-memory storage. */
    @JvmField val db = SongDb()
    /** Manages widgets. */
@@ -383,18 +384,18 @@ class App: Application(), Configurable<Any> {
       )
    }
 
-   private fun Search.initForApp() {
-      sources += {
+   private fun AppSearch.initForApp() {
+      sources += Source("Actions") {
          configuration.getFields()
             .filter { it.type==Action::class.javaObjectType && it.isEditableByUserRightNow() }
             .asSequence().map { Entry.of(it) }
       }
-      sources += {
+      sources += Source("Skins") {
          ui.skins.asSequence().map {
             Entry.of({ "Open skin: ${it.name}" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name }
          }
       }
-      sources += {
+      sources += Source("Components - widgets") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
             Entry.SimpleEntry(
                "Open widget ${it.nameGui()}",
@@ -403,7 +404,7 @@ class App: Application(), Configurable<Any> {
             )
          }
       }
-      sources += {
+      sources += Source("Components - all") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { c ->
             Entry.SimpleEntry(
                "Open widget ${c.nameGui()} (in new process)",
@@ -418,7 +419,7 @@ class App: Application(), Configurable<Any> {
             )
          }
       }
-      sources += {
+      sources += Source("Components - compile)") {
          widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null }.map {
             Entry.SimpleEntry(
                "Recompile widget ${it.nameGui()}",

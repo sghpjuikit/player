@@ -2,18 +2,27 @@ package sp.it.pl.main
 
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import sp.it.pl.core.UiName
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.conf.EditMode.USER
+import sp.it.util.conf.IsConfig
+import sp.it.util.conf.MultiConfigurableBase
+import sp.it.util.conf.cList
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
 import sp.it.util.units.millis
 
-class Search {
-   val sources = HashSet<() -> Sequence<ConfigSearch.Entry>>()
+private typealias Src = () -> Sequence<ConfigSearch.Entry>
+
+class AppSearch: MultiConfigurableBase(Settings.Search.name) {
+   @IsConfig(name = "Sources", info = "Sources providing search results", editable = USER)
+   val sources by cList<Source>()
    val history = ConfigSearch.History()
+
 
    fun buildUi(onAutoCompleted: (ConfigSearch.Entry) -> Unit = {}): Node {
       val tf = DecoratedTextField().apply {
@@ -44,4 +53,5 @@ class Search {
       return tf
    }
 
+   class Source(override val uiName: String, source: Src): Src by source, UiName
 }

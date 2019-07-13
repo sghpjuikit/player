@@ -4,6 +4,7 @@ import mu.KLogging
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
@@ -37,7 +38,7 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
    private val cacheFile = getUserResource("dirs.txt")
    private val cacheUpdate = AtomicLong(0)
    private var searchSourceDirs = listOf<File>()
-   private val searchSource = { searchSourceDirs.asSequence().map { it.toOpenDirEntry() } }
+   private val searchSource = Source("$name plugin - Directories") { searchSourceDirs.asSequence().map { it.toOpenDirEntry() } }
 
    override fun onStart() {
       APP.search.sources += searchSource

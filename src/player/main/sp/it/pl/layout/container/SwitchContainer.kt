@@ -44,7 +44,7 @@ class SwitchContainer: Container<SwitchContainerUi>() {
       return ui.root
    }
 
-   companion object: MultiConfigurableBase("${Settings.UI}.Tabs") {
+   companion object: MultiConfigurableBase("${Settings.Ui.name}.Tabs") {
 
       @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
          + " Tabs are always aligned. Seamless mode allows any tab position."

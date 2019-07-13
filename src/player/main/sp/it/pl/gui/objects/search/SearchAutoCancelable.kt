@@ -24,7 +24,7 @@ abstract class SearchAutoCancelable: Search() {
       ENDS_WITH({ text, s -> text.endsWith(s, isIgnoreCase) });
    }
 
-   companion object: MultiConfigurableBase("${Settings.UI}.Search") {
+   companion object: MultiConfigurableBase("${Settings.Ui.name}.Search") {
 
       @IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
       var cancelQueryDelay by c(500.millis)

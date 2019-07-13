@@ -17,7 +17,14 @@ object Actions {
 }
 
 object Settings {
-   const val UI = "Ui"
+
+   object Plugin {
+      const val name = "Plugins"
+   }
+
+   object Search {
+      const val name = "Search"
+   }
 
    object Ui {
       const val name = "Ui"
@@ -51,9 +58,6 @@ object Settings {
       }
    }
 
-   object Plugin {
-      const val name = "Plugins"
-   }
 }
 
 object Ui {

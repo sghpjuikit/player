@@ -49,7 +49,6 @@ import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
-import sp.it.util.conf.isEditableByUserRightNow
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values

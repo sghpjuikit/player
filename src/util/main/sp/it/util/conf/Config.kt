@@ -1,5 +1,6 @@
 package sp.it.util.conf
 
+import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.ObservableList
@@ -8,6 +9,7 @@ import sp.it.util.access.EnumerableValue
 import sp.it.util.access.OrV
 import sp.it.util.access.TypedValue
 import sp.it.util.access.V
+import sp.it.util.access.vAlways
 import sp.it.util.conf.ConfigImpl.ListConfig
 import sp.it.util.conf.ConfigImpl.PropertyConfig
 import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig
@@ -55,8 +57,29 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
    /** Human readable description. Potentially multiple lines. */
    abstract val info: String
 
-   /** Editability. */
+   /** Editability. This can be further restricted with constraints. */
    abstract val isEditable: EditMode
+
+   fun isNotEditableRightNow() = constraints.asSequence().any { it is Constraint.ReadOnlyIf && it.condition.value }
+
+   fun isEditableByUserRightNow() = isEditable.isByUser && !isNotEditableRightNow()
+
+   fun isEditableByUserRightNowProperty(): ObservableValue<Boolean> {
+      return if (!isEditable.isByUser) {
+         vAlways(false)
+      } else {
+         val readOnlyIfs = findConstraints<Constraint.ReadOnlyIf>().map { it.condition }.toList()
+         if (readOnlyIfs.isEmpty())
+            vAlways(true)
+         else
+            object: BooleanBinding() {
+               init {
+                  bind(*readOnlyIfs.toTypedArray())
+               }
+               override fun computeValue() = readOnlyIfs.none { it.value }
+            }
+      }
+   }
 
    /** Limits put on this value or markers that signify certain treatment of it. */
    abstract val constraints: Set<Constraint<T>>
@@ -67,7 +90,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
    @Experimental("Expert API, mutates state")
    fun addConstraints(constraints: Collection<Constraint<T>>): Config<T> = addConstraints(*constraints.toTypedArray())
 
-   inline fun <reified T> findConstraint(): T? = constraints.filterIsInstance<T>().firstOrNull()
+   inline fun <reified T> findConstraint(): T? = findConstraints<T>().firstOrNull()
+
+   inline fun <reified T> findConstraints(): Sequence<T> = constraints.asSequence().filterIsInstance<T>()
 
    /** Initial value. Sensible value and potential fallback when user provided value is invalid. */
    abstract val defaultValue: T

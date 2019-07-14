@@ -14,6 +14,7 @@ import sp.it.util.access.EnumerableValue;
 import sp.it.util.file.properties.PropVal;
 import sp.it.util.validation.Constraint;
 import sp.it.util.validation.Constraint.HasNonNullElements;
+import sp.it.util.validation.Constraint.ReadOnlyIf;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -293,13 +294,15 @@ public interface ConfigImpl {
 		@SuppressWarnings("unchecked")
 		public ListConfig(String name, IsConfig c, ConfList<T> list, String category, Set<Constraint<? super T>> constraints) {
 			super((Class) ObservableList.class, name, c, list.list, category);
-			failIf(isReadOnly(list.list)!=(c.editable()==EditMode.NONE));
+			failIf(isReadOnly(list.list)!=c.editable().isByNone());
 
 			a = list;
 			defaultItems = isFixedSizeAndHasConfigurableItems() ? null : list(list.list);
 			toConfigurable = compose(list.toConfigurable, configurable -> {
-				if (configurable instanceof Config)
+				if (configurable instanceof Config) {
 					((Config) configurable).addConstraints(constraints);
+					if (!isEditable().isByUser()) ((Config) configurable).addConstraints(new ReadOnlyIf(true)); // fixes lack of editability propagation
+				}
 				return configurable;
 			});
 
@@ -309,10 +312,18 @@ public interface ConfigImpl {
 		@SuppressWarnings("unchecked")
 		public ListConfig(String name, String gui_name, ConfList<T> list, String category, String info, EditMode editable) {
 			super((Class) ObservableList.class, name, gui_name, list.list, category, info, isReadOnly(list.list) ? EditMode.NONE :  editable);
+			failIf(isReadOnly(list.list)!=editable.isByNone());
 
 			a = list;
 			defaultItems = isFixedSizeAndHasConfigurableItems() ? null : list(list.list);
-			toConfigurable = list.toConfigurable;
+			toConfigurable = compose(list.toConfigurable, configurable -> {
+				// TODO: implement for every configurable & make sure there is no constraint duplication, use parentConfig constraint delegator
+				if (configurable instanceof Config) {
+					((Config) configurable).addConstraints(constraints);
+					if (!isEditable().isByUser()) ((Config) configurable).addConstraints(new ReadOnlyIf(true)); // fixes lack of editability propagation
+				}
+				return configurable;
+			});
 
 			if (!list.isNullable) addConstraints(HasNonNullElements.INSTANCE);
 		}

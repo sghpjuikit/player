@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -25,7 +24,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -41,6 +39,7 @@ import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.gui.pane.ConfigPane;
 import sp.it.util.access.OrV;
+import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
@@ -48,18 +47,15 @@ import sp.it.util.conf.ConfigImpl.ListConfig;
 import sp.it.util.conf.ConfigImpl.PropertyConfig;
 import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig;
 import sp.it.util.conf.Configurable;
-import sp.it.util.conf.EditMode;
 import sp.it.util.conf.OrPropertyConfig;
 import sp.it.util.conf.OrPropertyConfig.OrValue;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
 import sp.it.util.functional.TryKt;
 import sp.it.util.reactive.Subscription;
-import sp.it.util.text.Password;
 import sp.it.util.validation.Constraint;
 import sp.it.util.validation.Constraint.HasNonNullElements;
 import sp.it.util.validation.Constraint.NumberMinMax;
-import sp.it.util.validation.Constraint.ReadOnlyIf;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_16;
@@ -81,9 +77,9 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.access.PropertiesKt.not;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.collections.UtilKt.setTo;
-import static sp.it.util.conf.ConfigurationUtilKt.isEditableByUserRightNow;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.getAny;
 import static sp.it.util.functional.TryKt.getOr;
@@ -95,6 +91,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onItemSyncWhile;
 import static sp.it.util.reactive.UtilKt.syncBiFrom;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.reactive.UtilKt.syncFrom;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 
@@ -138,7 +135,6 @@ abstract public class ConfigField<T> {
         put(Font.class, FontCF::new);
         put(OrValue.class, config -> config instanceof OrPropertyConfig ? new OrCF((OrPropertyConfig) config) : new GeneralCF(config));
         put(Effect.class, config -> new EffectCF(config, Effect.class));
-        put(Password.class, PasswordCF::new);
         put(Charset.class, charset -> new EnumerableCF<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
         put(KeyCode.class, KeyCodeCF::new);
         put(Configurable.class, ConfigurableCF::new);
@@ -163,7 +159,7 @@ abstract public class ConfigField<T> {
         else if (isMinMax(c)) cf = new SliderCF(c);
         else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralCF::new).apply(c);
 
-	    disableIfReadOnly(cf, c);
+        syncFrom(cf.getEditor().disableProperty(), not(cf.isEditableByUser));
 
         return cf;
     }
@@ -193,9 +189,11 @@ abstract public class ConfigField<T> {
     public Consumer<? super Try<T,String>> observer;
     private Icon defB;
     private Anim defBA;
+    public final ObservableValue<Boolean> isEditableByUser;
 
     protected ConfigField(Config<T> config) {
         this.config = config;
+        this.isEditableByUser = config.isEditableByUserRightNowProperty();
     }
 
     /**
@@ -252,13 +250,12 @@ abstract public class ConfigField<T> {
         root.setPrefSize(-1,-1); // support variable content height
         root.setMaxSize(-1,-1);  // support variable content height
         root.setAlignment(CENTER_LEFT);
-        root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
 
         root.addEventFilter(MOUSE_ENTERED, e -> {
-            if (!isEditableByUserRightNow(config)) return;
+            if (!isEditableByUser.getValue()) return;
             runFX(millis(270), () -> {
                 if (root.isHover()) {
-                    if (defB==null && isEditableByUserRightNow(config)) {
+                    if (defB==null && isEditableByUser.getValue()) {
                         defB = new Icon(null, -1, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
                         defB.styleclass("config-field-default-button");
@@ -352,7 +349,7 @@ abstract public class ConfigField<T> {
 
     /** Sets and applies default value of the config if it has different value set and if editable by user. */
     public void setNapplyDefault() {
-        if (isEditableByUserRightNow(config)) {
+        if (isEditableByUser.getValue()) {
             T t = config.getDefaultValue();
             if (!Objects.equals(config.getValue(), t)) {
                 config.setValue(t);
@@ -384,38 +381,24 @@ abstract public class ConfigField<T> {
 
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
-    private static class PasswordCF extends ConfigField<Password> {
-        private javafx.scene.control.PasswordField editor = new javafx.scene.control.PasswordField();
-
-        public PasswordCF(Config<Password> c) {
-            super(c);
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
-            editor.setPromptText(c.getGuiName());
-            refreshItem();
-        }
-
-        @Override
-        public Node getEditor() {
-            return editor;
-        }
-
-        @Override
-        public Try<Password,String> get() {
-            return ok(new Password(editor.getText()));
-        }
-
-        @Override
-        public void refreshItem() {
-            editor.setText(config.getValue().getValue());
-        }
-
-    }
     private static class GeneralCF<T> extends ConfigField<T> {
         private final DecoratedTextField n = new DecoratedTextField();
         private final boolean isObservable;
-        private final Icon okI = new Icon();
-        private final Icon warnB = new Icon();
-        private final AnchorPane okB = new AnchorPane(okI);
+        private final StackPane okB = new StackPane();
+        private final LazyR<Icon> okI = new LazyR<>(() -> {
+            var i = new Icon();
+            i.styleclass(STYLECLASS_CONFIG_FIELD_OK_BUTTON);
+            i.tooltip(okTooltip);
+            i.onClick(() -> apply(true));
+            okB.getChildren().setAll(i);
+            return i;
+        });
+        private final LazyR<Icon> warnI = new LazyR<>(() -> {
+            var i = new Icon();
+            i.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
+            i.tooltip(warnTooltip);
+            return i;
+        });
 
         private GeneralCF(Config<T> c) {
             super(c);
@@ -426,7 +409,6 @@ abstract public class ConfigField<T> {
                 obv.addListener((o,ov,nv) -> refreshItem());
             }
 
-            // Assumes that any observable config is final
             if (Observable.class.isAssignableFrom(c.getType())) {
                 var v = (Observable) c.getValue();
                 if (v!=null) v.addListener(it -> refreshItem());
@@ -435,25 +417,23 @@ abstract public class ConfigField<T> {
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
-            okI.styleclass(STYLECLASS_CONFIG_FIELD_OK_BUTTON);
-            okI.tooltip(okTooltip);
-            warnB.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
-            warnB.tooltip(warnTooltip);
 
             n.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             n.setPromptText(c.getGuiName());
             n.setText(toS(getConfigValue()));
 
+            // refreshing value
             n.focusedProperty().addListener((o,ov,nv) -> {
-                if (!nv) refreshItem();
+                if (!nv)
+                    refreshItem();
             });
-
             n.addEventHandler(KEY_RELEASED, e -> {
                 if (e.getCode()==ESCAPE) {
                     refreshItem();
                     e.consume();
                 }
             });
+
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
                 Try<T,String> t = getValid();
@@ -462,10 +442,6 @@ abstract public class ConfigField<T> {
                 showWarnButton(t);
                 if (applyOnChange) apply(false);
             });
-            okI.setOnMouseClicked(e -> {
-                apply(true);
-                e.consume();
-            });
             n.setOnKeyPressed(e -> {
                 if (e.getCode()==ENTER) {
                     apply(true);
@@ -473,8 +449,7 @@ abstract public class ConfigField<T> {
                 }
             });
 
-            Try<T,String> t = getValid();
-            showWarnButton(t);
+            syncC(isEditableByUser, it -> showWarnButton(getValid()));
         }
 
         @Override
@@ -515,19 +490,15 @@ abstract public class ConfigField<T> {
         }
 
         private void showOkButton(boolean val) {
-            n.left.setValue(val ? okI : null);
-            okI.setVisible(val);
+            n.left.setValue(val ? okI.get() : null);
+            okI.ifSet(it ->  it.setVisible(false));
         }
 
         private void showWarnButton(Try<?,String> value) {
-            n.right.setValue(value.isError() ? warnB : null);
-            warnB.setVisible(value.isError());
+            var shouldBeVisible = value.isError() && isEditableByUser.getValue();
+            n.right.setValue(shouldBeVisible ? warnI.get() : null);
+            warnI.ifSet(it -> it.setVisible(shouldBeVisible));
             warnTooltip.setText(getAny(value.map(v -> "")));
-        }
-
-        private void showWarnButton(boolean val) {
-            n.right.setValue(val ? warnB : null);
-            warnB.setVisible(val);
         }
 
         private String toS(Object o) {
@@ -930,6 +901,7 @@ abstract public class ConfigField<T> {
 
             // create chain
             chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.itemType, lc.a.factory.get()));
+            syncFrom(chain.editable, chain.getNode().disableProperty().not());
 
             // bind list to the chain
             chain.onUserItemAdded.add(consumer(v -> {
@@ -1125,19 +1097,4 @@ abstract public class ConfigField<T> {
         }
     }
 
-/* ---------- HELPER --------------------------------------------------------------------------------------- */
-
-    static void disableIfReadOnly(ConfigField<?> control, Config<?> config) {
-    	if (!config.isEditable().isByUser()) {
-    		control.getEditor().setDisable(true);
-	    } else {
-	        config.getConstraints().stream()
-	            .filter(Constraint.ReadOnlyIf.class::isInstance)
-	            .map(Constraint.ReadOnlyIf.class::cast)
-		        .map(ReadOnlyIf::getCondition)
-                .reduce(Bindings::and)
-                .ifPresent(control.getEditor().disableProperty()::bind);
-	    }
-    }
 }
-

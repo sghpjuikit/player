@@ -2,19 +2,16 @@
 
 package sp.it.util.validation
 
-import javafx.beans.InvalidationListener
 import javafx.beans.binding.BooleanBinding
-import javafx.beans.value.ChangeListener
-import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
+import sp.it.util.access.vAlways
 import sp.it.util.collections.map.ClassListMap
 import sp.it.util.collections.map.ClassMap
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNot
 import sp.it.util.functional.Try
-import sp.it.util.text.Password
 import sp.it.util.type.Util.getGenericInterface
 import sp.it.util.validation.Constraint.Declaration.EXPLICIT
 import sp.it.util.validation.Constraint.Declaration.IMPLICIT
@@ -128,13 +125,8 @@ interface Constraint<in T> {
    }
 
    class StringNonEmpty: Constraint<String> {
-      override fun isValid(value: String?) = value!=null && !value.isEmpty()
+      override fun isValid(value: String?) = value!=null && value.isNotEmpty()
       override fun message() = "String must not be empty"
-   }
-
-   class PasswordNonEmpty: Constraint<Password> {
-      override fun isValid(value: Password?) = value!=null && !value.value.isEmpty()
-      override fun message() = "Password must not be empty"
    }
 
    class StringLength(val min: Int, val max: Int): Constraint<String> {
@@ -179,7 +171,7 @@ interface Constraint<in T> {
 
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
-   class ReadOnlyIf(val condition: ObservableBooleanValue): Constraint<Any> {
+   class ReadOnlyIf(val condition: ObservableValue<Boolean>): Constraint<Any> {
       constructor(condition: ObservableValue<Boolean>, unless: Boolean): this(
          object: BooleanBinding() {
             init {
@@ -192,16 +184,7 @@ interface Constraint<in T> {
          }
       )
 
-      constructor(condition: Boolean): this(
-         object: ObservableBooleanValue {
-            override fun removeListener(listener: ChangeListener<in Boolean>) {}
-            override fun removeListener(listener: InvalidationListener) {}
-            override fun addListener(listener: ChangeListener<in Boolean>) {}
-            override fun addListener(listener: InvalidationListener) {}
-            override fun getValue() = condition
-            override fun get() = condition
-         }
-      )
+      constructor(condition: Boolean): this(vAlways(condition))
 
       override fun isValid(value: Any?) = true
       override fun message() = "Is disabled"

@@ -18,6 +18,7 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
+import sp.it.util.access.V;
 import sp.it.util.reactive.Handler1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
@@ -32,12 +33,12 @@ import static sp.it.util.functional.Util.repeat;
 /**
  * {@link ValueNode} containing editable list of {@link ValueNode}.
  *
- * @param <V> type of value that is chained. Each value is contained in a chained C - a {@link ValueNode} of the same
+ * @param <VAL> type of value that is chained. Each value is contained in a chained C - a {@link ValueNode} of the same
  * type. The exact type is specified as generic parameter.
  * @param <C> type of chained. This chain will be made of links of chained of exactly this type, either provided
  * manually or constructed using factory.
  */
-public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNode<V> {
+public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends ValueNode<VAL> {
 
 	private static final Tooltip addTooltip = appTooltip("Add");
 	private static final Tooltip remTooltip = appTooltip("Remove");
@@ -47,33 +48,36 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 	@SuppressWarnings("unchecked")
 	protected final ObservableList<Link> chain = (ObservableList) root.getChildren();
 	public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
+	public final V<Boolean> editable = new V<>(true);
 	protected Supplier<C> chainedFactory; // final
 	protected boolean homogeneous = true;
 	public boolean inconsistent_state = true;
-	protected BiPredicate<Integer,V> isHomogeneous = (i, v) -> false;
+	protected BiPredicate<Integer,VAL> isHomogeneous = (i, v) -> false;
 	public final Handler1<Link> onUserItemAdded = new Handler1<>();
 	public final Handler1<Link> onUserItemRemoved = new Handler1<>();
 	public final Handler1<Link> onUserItemEnabled = new Handler1<>();
 	public final Handler1<Link> onUserItemDisabled = new Handler1<>();
 
 	/** Creates unlimited chain of 1 initial chained element. */
-	public ChainValueNode(V initialValue) {
+	public ChainValueNode(VAL initialValue) {
 		super(initialValue);
+		editable.attachC(it -> System.out.println("editable " + it));
+		editable.attachC(it -> chain.forEach(Link::updateIcons));
 	}
 
 	/** Creates unlimited chain of 1 initial chained element. */
-	public ChainValueNode(V initialValue, Supplier<C> chainedFactory) {
+	public ChainValueNode(VAL initialValue, Supplier<C> chainedFactory) {
 		this(1, initialValue, chainedFactory);
 	}
 
 	/** Creates unlimited chain of i initial chained elements. */
-	public ChainValueNode(int i, V initialValue, Supplier<C> chainedFactory) {
+	public ChainValueNode(int i, VAL initialValue, Supplier<C> chainedFactory) {
 		this(i, Integer.MAX_VALUE, initialValue, chainedFactory);
 	}
 
 	/** Creates limited chain of i initial chained elements. */
-	public ChainValueNode(int len, int max_len, V initialValue, Supplier<C> chainedFactory) {
-		super(initialValue);
+	public ChainValueNode(int len, int max_len, VAL initialValue, Supplier<C> chainedFactory) {
+		this(initialValue);
 
 		maxChainLength.set(max_len);
 		this.chainedFactory = chainedFactory;
@@ -174,16 +178,16 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 		changeValue(reduce(getValues()));
 	}
 
-	abstract protected V reduce(Stream<V> values);
+	abstract protected VAL reduce(Stream<VAL> values);
 
-	public V getValueAt(int i) {
+	public VAL getValueAt(int i) {
 		return i>=0 && i<chain.size() && chain.get(i).chained!=null && chain.get(i).chained.getVal()!=null
 				? chain.get(i).chained.getVal()
 				: null;
 	}
 
 	/** Return individual chained values that are enabled and non null. */
-	public Stream<V> getValues() {
+	public Stream<VAL> getValues() {
 		return chain.stream().filter(g -> g.on.getValue())
 				.map(g -> g.chained.getVal())
 				.filter(ISNTØ);
@@ -211,10 +215,10 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 			chained = c;
 			chained.onItemChange = f -> generateValue();
 			setSpacing(5);
-			getChildren().addAll(rem, add, onB, chained.getNode());
 			setPadding(new Insets(0, 0, 0, 5));
-			HBox.setHgrow(chained.getNode(), ALWAYS);
 			setAlignment(CENTER_LEFT);
+			HBox.setHgrow(chained.getNode(), ALWAYS);
+
 			on.addListener((o, ov, nv) -> generateValue());
 			on.addListener((o, ov, nv) -> { if (nv) onUserItemEnabled.invoke(this); else onUserItemDisabled.invoke(this); });
 			rem.setOnMouseClicked(e -> { onRem(); onUserItemRemoved.invoke(this); });
@@ -244,6 +248,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 				if (!wasAdjusted) buttonAdjuster.get().invoke(rem);
 				wasAdjusted = true;
 			}
+
+			if (editable.getValue()) getChildren().setAll(rem, add, onB, chained.getNode());
+			else getChildren().setAll(chained.getNode());
 		}
 
 		public void onRem() {

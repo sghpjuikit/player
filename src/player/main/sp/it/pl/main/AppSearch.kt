@@ -7,7 +7,7 @@ import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.conf.EditMode.USER
+import sp.it.util.conf.EditMode.APP
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.MultiConfigurableBase
 import sp.it.util.conf.cList
@@ -19,7 +19,7 @@ import sp.it.util.units.millis
 private typealias Src = () -> Sequence<ConfigSearch.Entry>
 
 class AppSearch: MultiConfigurableBase(Settings.Search.name) {
-   @IsConfig(name = "Sources", info = "Sources providing search results", editable = USER)
+   @IsConfig(name = "Sources", info = "Sources providing search results", editable = APP)
    val sources by cList<Source>()
    val history = ConfigSearch.History()
 

@@ -1,5 +1,6 @@
 package sp.it.util.access
 
+import javafx.beans.InvalidationListener
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.DoubleBinding
 import javafx.beans.property.BooleanProperty
@@ -8,6 +9,7 @@ import javafx.beans.property.FloatProperty
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.LongProperty
 import javafx.beans.property.Property
+import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableDoubleValue
 import javafx.beans.value.ObservableFloatValue
@@ -114,4 +116,22 @@ operator fun ObservableValue<Boolean>.plus(other: ObservableValue<Boolean>) = v(
 operator fun ObservableValue<Boolean>.times(other: ObservableValue<Boolean>) = v(this@times.value && other.value).apply {
    this@times sync { value = it && other.value }
    other sync { value = this@times.value && it }
+}
+
+/** @return observable value that never changes and is always set to the specified value */
+fun <T> vAlways(v: T): ObservableValue<T> = AlwaysProperty(v)
+
+/** @return observable value that never changes and is always set to the specified value */
+fun vAlways(v: Boolean): ObservableValue<Boolean> = if (v) vAlwaysTrue else vAlwaysFalse
+
+private val vAlwaysTrue: ObservableValue<Boolean> = AlwaysProperty(true)
+
+private val vAlwaysFalse: ObservableValue<Boolean> = AlwaysProperty(false)
+
+private class AlwaysProperty<T>(val v: T): ObservableValue<T> {
+   override fun removeListener(listener: ChangeListener<in T>) = Unit
+   override fun removeListener(listener: InvalidationListener) = Unit
+   override fun addListener(listener: ChangeListener<in T>) = Unit
+   override fun addListener(listener: InvalidationListener) = Unit
+   override fun getValue() = v
 }

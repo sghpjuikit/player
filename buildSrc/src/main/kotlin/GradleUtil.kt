@@ -2,6 +2,7 @@
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
@@ -28,7 +29,7 @@ open class LinkJDK: DefaultTask() {
    /** Not used directly, but useful to automatically trigger the task if the java version changes. */
    @Input lateinit var jdkVersion: JavaVersion
    /** Location of the link to the JDK. */
-   @Input lateinit var linkLocation: File
+   @Input @Internal lateinit var linkLocation: File
 
    @TaskAction
    fun linkJdk() {
@@ -41,7 +42,7 @@ open class LinkJDK: DefaultTask() {
          println("Couldn't create a symbolic link at $linkLocation to $jdkPath: $e")
          val isWindows = "os.name".sysProp?.startsWith("Windows")==true
          if (isWindows) {
-            println("Trying junction...")
+            println("Trying to create a Windows junction instead...")
             val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkLocation" "$jdkPath"""")
             val exitValue = process.waitFor()
             if (exitValue==0 && linkLocation.exists()) println("Junction successful!")

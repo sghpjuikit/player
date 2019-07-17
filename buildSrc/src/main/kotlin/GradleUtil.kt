@@ -34,18 +34,18 @@ open class LinkJDK: DefaultTask() {
    @TaskAction
    fun linkJdk() {
       linkLocation.delete() // delete invalid symbolic link
-      println("Linking JDK to project relative directory...")
       val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
+      logger.info("Creating link at $linkLocation to $jdkPath...")
       try {
          Files.createSymbolicLink(linkLocation.toPath(), jdkPath)
       } catch (e: Exception) {
-         println("Couldn't create a symbolic link at $linkLocation to $jdkPath: $e")
+         logger.warn("Couldn't create a symbolic link at $linkLocation to $jdkPath: $e")
          val isWindows = "os.name".sysProp?.startsWith("Windows")==true
          if (isWindows) {
-            println("Trying to create a Windows junction instead...")
+            logger.info("Trying to create a Windows junction instead...")
             val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkLocation" "$jdkPath"""")
             val exitValue = process.waitFor()
-            if (exitValue==0 && linkLocation.exists()) println("Junction successful!")
+            if (exitValue==0 && linkLocation.exists()) logger.info("Successfully created junction!")
             else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }
          } else {
             failIO(e) { "Unable to make JDK locally accessible!" }

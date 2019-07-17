@@ -7,6 +7,7 @@ import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.Try
 import sp.it.util.functional.runTry
 import java.io.File
+import java.io.FileNotFoundException
 import java.time.LocalDateTime
 import kotlin.text.Charsets.UTF_8
 
@@ -65,7 +66,8 @@ fun File.readProperties(): Try<Map<String, PropVal>, Throwable> {
             }
       }
    }.ifError {
-      logger.error(it) { "Failed to read properties file= $this" }
+      if (it !is FileNotFoundException)
+         logger.error(it) { "Failed to read properties file= $this" }
    }
 }
 

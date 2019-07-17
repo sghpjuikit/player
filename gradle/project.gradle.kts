@@ -198,7 +198,7 @@ tasks {
    val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
-      linkDir = dirJdk
+      linkLocation = dirJdk
       jdkVersion = javaVersion
    }
 

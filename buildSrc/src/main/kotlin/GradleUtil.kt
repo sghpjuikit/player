@@ -4,7 +4,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -26,26 +25,26 @@ val String.sysProp: String?
    get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
 open class LinkJDK: DefaultTask() {
-   /** Not used, but supply it anyway to trigger the task if java version changes. */
+   /** Not used directly, but useful to automatically trigger the task if the java version changes. */
    @Input lateinit var jdkVersion: JavaVersion
-   /** Directory/link that will contain the JDK. Should be inside the project. */
-   @OutputDirectory lateinit var linkDir: File
+   /** Location of the link to the JDK. */
+   @Input lateinit var linkLocation: File
 
    @TaskAction
    fun linkJdk() {
-      linkDir.delete() // delete invalid symbolic link
+      linkLocation.delete() // delete invalid symbolic link
       println("Linking JDK to project relative directory...")
       val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
       try {
-         Files.createSymbolicLink(linkDir.toPath(), jdkPath)
+         Files.createSymbolicLink(linkLocation.toPath(), jdkPath)
       } catch (e: Exception) {
-         println("Couldn't create a symbolic link from $linkDir to $jdkPath: $e")
+         println("Couldn't create a symbolic link at $linkLocation to $jdkPath: $e")
          val isWindows = "os.name".sysProp?.startsWith("Windows")==true
          if (isWindows) {
             println("Trying junction...")
-            val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkDir" "$jdkPath"""")
+            val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkLocation" "$jdkPath"""")
             val exitValue = process.waitFor()
-            if (exitValue==0 && linkDir.exists()) println("Junction successful!")
+            if (exitValue==0 && linkLocation.exists()) println("Junction successful!")
             else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }
          } else {
             failIO(e) { "Unable to make JDK locally accessible!" }

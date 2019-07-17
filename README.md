@@ -333,6 +333,5 @@ Starting the application for the first time will open a guide. It is recommended
 # Copyright
 
 You are free to use the application or make your own builds of the project for personal use.
-
-The project is to adopt MIT licence in the future, but for now remains personal. 
-Before publicizing anything related to this project or publicly sharing builds contact me.
+Before publicizing anything related to this project or publicly sharing builds please contact me.
+Everything else is as defined by [GPLv3](LICENSE), though the application might adopt MIT in the future.

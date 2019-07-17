@@ -78,7 +78,7 @@ allprojects {
       )
       kotlinOptions.javaParameters = true
       kotlinOptions.jdkHome = dirJdk.path
-      kotlinOptions.jvmTarget = "12"
+      kotlinOptions.jvmTarget = javaVersion.toString()
    }
 
    repositories {

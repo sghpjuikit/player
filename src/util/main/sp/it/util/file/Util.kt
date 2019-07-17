@@ -1,0 +1,210 @@
+package sp.it.util.file
+
+import mu.KotlinLogging
+import sp.it.util.dev.Blocks
+import sp.it.util.functional.Try
+import sp.it.util.functional.and
+import sp.it.util.functional.runTry
+import java.io.File
+import java.io.FileFilter
+import java.io.FilenameFilter
+import java.net.MalformedURLException
+import java.net.URI
+import java.nio.charset.Charset
+import java.nio.file.Files
+
+private val logger = KotlinLogging.logger { }
+
+/** @return File.getName], but partition name for root directories, never empty string */
+val File.nameOrRoot: String
+   get() = name.takeUnless { it.isEmpty() } ?: toString()
+
+/**
+ * Returns [File.nameWithoutExtension] or [File.toString] if this is the root directory,
+ * since that returns an empty string otherwise.
+ *
+ * @return name of the file without extension
+ */
+// TODO: does not work for directories with '.'
+val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
+
+/** @return file itself if exists or its first existing parent or error if null or no parent exists */
+@Blocks
+fun File.find1stExistingParentFile(): Try<File, Nothing?> = when {
+   exists() -> Try.ok(this)
+   else -> parentFile?.find1stExistingParentFile() ?: Try.error()
+}
+
+/** @return first existing directory in this file's hierarchy or error if no parent exists */
+@Blocks
+fun File.find1stExistingParentDir(): Try<File, Nothing?> = when {
+   exists() && isDirectory -> Try.ok(this)
+   else -> parentFile?.find1stExistingParentDir() ?: Try.error()
+}
+
+/** Equivalent to [File.child]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
+operator fun File.div(childName: String) = child(childName)
+
+/** @return child of this file, equivalent to `File(this, childName)` */
+fun File.child(childName: String): File = File(this, childName)
+
+infix fun File.isChildOf(parent: File) = parent.isParentOf(this)
+
+infix fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
+
+infix fun File.isParentOf(child: File) = child.parentFile==this
+
+infix fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentFile }.any { isParentOf(it) }
+
+/**
+ * Safe version of [File.listFiles]
+ *
+ * Normally, that method returns null if parameter is not a directory, but also when I/O
+ * error occurs. For example when parameter refers to a directory on a non existent partition,
+ * e.g., residing on hdd that has been disconnected temporarily.
+ *
+ * @return child files of the directory or empty if parameter not a directory or I/O error occurs
+ */
+@Blocks
+fun File.children(): Sequence<File> = listFiles()?.asSequence().orEmpty()
+
+/** @see File.children */
+@Blocks
+fun File.children(filter: FileFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
+
+/** @see File.children */
+@Blocks
+fun File.children(filter: FilenameFilter): Sequence<File> = listFiles(filter)?.asSequence().orEmpty()
+
+/** @return [File.getParentFile] or self if there is no parent */
+val File.parentDirOrRoot get() = parentFile ?: this
+
+/** @return true if the file path ends with '.' followed by the specified [suffix] */
+infix fun File.hasExtension(suffix: String) = path.endsWith(".$suffix", true)
+
+/** @return true if the file path ends with '.' followed by the one of the specified [suffixes] */
+fun File.hasExtension(vararg suffixes: String) = suffixes.any { this hasExtension it }
+
+/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown */
+@Suppress("DEPRECATION")
+fun URI.toFileOrNull() =
+   try {
+      File(this)
+   } catch (e: IllegalArgumentException) {
+      null
+   }
+
+/** @return file denoting the resource of this uri or null if [MalformedURLException] is thrown */
+fun File.toURLOrNull() =
+   try {
+      toURI().toURL()
+   } catch (e: MalformedURLException) {
+      null
+   }
+
+/**
+ * Error-safe [File.writeText]. Error can be:
+ * * [java.io.FileNotFoundException] when file is a directory or can not be created or opened
+ * * [SecurityException] when security manager exists and file write is not permitted
+ * * [java.io.IOException] when error occurs while writing to the file output stream
+ */
+@Blocks
+@JvmOverloads
+fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry { writeText(text, charset) }
+
+/**
+ * Error-safe [File.readText]. Error can be:
+ * * [java.io.FileNotFoundException] when file is a directory or can not be read or opened
+ * * [SecurityException] when security manager exists and file read is not permitted
+ * * [java.io.IOException] when error occurs while reading from the file input stream
+ * * [OutOfMemoryError] when file is too big
+ */
+@Blocks
+@JvmOverloads
+fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(charset) }
+
+/**
+ * Invokes the specified block that saves this file (from now on TARGET file) with safe temporary file saving
+ * semantics. In order to guarantee no loss of data (not even on on subsequent failures of subsequent repeat of this
+ * function) it uses two temporary files WRITE for writing new data and BACKUP for storing original data.
+ *
+ * Steps:
+ * - 1 write to WRITE file (overwrites any existing file)
+ *   - 1.1 if 1 fails delete WRITE file (this can also fail, but that is inconsequential, it's mere cleanup)
+ * - 2 delete existing BACKUP file (safe, TARGET file contains original data, BACKUP file is from previous invocation)
+ *   - if 2 fails we still have original data in TARGET, which we haven't touched
+ * - 3 rename TARGET file to BACKUP file, i.e., make backup
+ *   - if 3 fails we still have original data in TARGET, which we haven't touched
+ * - 4 rename WRITE file to TARGET file
+ *   - 4.1 if 4 fails reverse 3 - rename BACKUP back to TARGET, on success everything is well, on fail we at least still
+ *     have original data in BACKUP (although user will have to manually recover the data)
+ * - 5 delete BACKUP file
+ *
+ * Guarantees:
+ * - TARGET file never contains corrupted data (although it may not exist)
+ * - BACKUP file never contains corrupted data (although it may not exist)
+ * - TARGET or BACKUP exists, i.e, data is never lost
+ *
+ * Notable:
+ * - WRITE file may contain corrupted data, but may also contain valid, more actual data than BACKUP
+ * - If this functions returns Ok, every step succeeded and no temporary files are left behind
+ * - If this functions returns Error, data writing still may have succeeded and may even be in the TARGET file, but
+ * one of the steps 1-5 failed and there may also be temporary files left behind.
+ *
+ * Concurrency:
+ * Calling this function concurrently (on the same file) will result in unpredictable behavior. It is highly advised
+ * to use synchronization, but preferably per file locks to guarantee exclusivity of this call:
+ * ```
+ * file1Lock.withLock {
+ *     file1.writeSafely { ... }
+ * }
+ * ```
+ * This function is blocking and returns only after all io take place, i.e., is thread-safe in single threaded environment.
+ *
+ * @return ok if steps 1 and 2 and 3 and 4 and 5 succeed, error otherwise
+ */
+@Blocks
+fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwable> {
+
+   fun File.tryRenameIfExists(to: File, message: () -> String) = if (!exists() || renameTo(to)) Try.ok() else Try.error(Exception(message()))
+
+   fun File.tryDeleteIfExists(message: (Throwable) -> String) = runTry {
+      Files.deleteIfExists(toPath())
+   }.mapError {
+      Exception(message(it), it)
+   }
+
+   val f = absoluteFile
+   val fW = f.resolveSibling("$name.w.tmp")
+   val fR = f.resolveSibling("$name.tmp")
+
+   return run {
+      run {
+         block(fW)
+      }.mapError {
+         Exception("Safe writing of `$f` failed. Data was not saved to temporary file=`$fW` as ${it.message}", it)
+      }.ifError {
+         fW.tryDeleteIfExists { "Deleting $fW failed" }
+      }
+   }.and {
+      fR.tryDeleteIfExists {
+         "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but deleting temporary backup file=`$fR` failed"
+      }
+   }.and {
+      f.tryRenameIfExists(fR) {
+         "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but renaming file=`$f` to temporary backup file=`$fR` failed"
+      }
+   }.and {
+      fW.tryRenameIfExists(f) {
+         "Safe writing of $f failed. Data was saved to temporary file=`$fW`, but renaming it to file=`$f` failed"
+      }.ifError {
+         fR.tryRenameIfExists(f) { "Renaming file=`$fR` to file=`$f` failed" }
+      }
+   }.and {
+      fR.tryDeleteIfExists {
+         "Safe writing of $f failed. Data was saved, but deleting temporary backup file=`$fR` failed"
+      }
+   }.map {
+      null
+   }
+}

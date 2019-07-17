@@ -1,0 +1,14 @@
+<root>
+    <item name='java.util.Optional T get()'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+    <item name='java.util.UUID java.util.UUID fromString(java.lang.String)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='java.util.UUID java.util.UUID nameUUIDFromBytes(byte[])'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='java.util.UUID java.util.UUID randomUUID()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

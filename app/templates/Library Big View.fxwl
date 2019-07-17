@@ -1,0 +1,45 @@
+<Widget id="21dab3b5-a97d-4500-a7fd-1b72469ab245" name="Library">
+  <properties serialization="custom">
+    <unserializable-parents/>
+    <map>
+      <default>
+        <loadFactor>0.75</loadFactor>
+        <threshold>12</threshold>
+      </default>
+      <int>16</int>
+      <int>3</int>
+      <string>configs</string>
+      <map>
+        <entry>
+          <string>tablezeropad</string>
+          <val1><value>false</value></val1>
+        </entry>
+        <entry>
+          <string>tableorigindex</string>
+          <val1><value>false</value></val1>
+        </entry>
+        <entry>
+          <string>tableshowheader</string>
+          <val1><value>true</value></val1>
+        </entry>
+        <entry>
+          <string>tableshowfooter</string>
+          <val1><value>true</value></val1>
+        </entry>
+        <entry>
+          <string>tableorient</string>
+          <val1><value>INHERIT</value></val1>
+        </entry>
+      </map>
+      <string>ioTo display</string>
+      <string>Song library,396d2407-7040-401e-8f85-56bc71288818</string>
+      <string>columns</string>
+      <string>Artist,3,true,266.0;First played,21,false,202.0;Category,11,true,200.0;Playcount,8,true,115.0;Discs info,7,true,63.0;Rating,9,true,60.0;Album,2,true,286.0;Filesize,16,true,96.0;Discs total,57,false,60.0;Channels,13,true,126.0;Format,14,true,70.0;Disc,57,false,60.0;Encoder,57,false,60.0;Added to library,29,false,209.0;Lyrics,57,false,60.0;Album artist,57,false,60.0;Rating raw,57,false,60.0;Tags,57,false,60.0;Path,18,true,1134.0;Composer,4,true,221.0;Comment,57,false,60.0;#,0,true,55.54545211791992;Tracks total,57,false,60.0;Sample rate,12,true,58.0;Color,57,false,60.0;Title,1,true,358.0;Filename,57,false,60.0;Encoding,57,false,60.0;Publisher,57,false,60.0;Bitrate,15,true,97.0;Custom4,57,false,60.0;Custom3,57,false,60.0;Custom2,57,false,60.0;Custom1,57,false,60.0;Mood,57,false,60.0;Year,10,true,76.0;Length,5,true,70.0;Custom5,57,false,60.0;Last played,20,false,208.0;Track info,6,true,69.0;Genre,17,true,153.0;Track,57,false,60.0+Album,ASCENDING;Discs info,ASCENDING;Track info,ASCENDING</string>
+    </map>
+  </properties>
+  <loadType propertyClass="Loading">AUTOMATIC</loadType>
+  <locked class="javafx.beans.property.SimpleBooleanProperty">false</locked>
+  <preferred propertyClass="boolean">false</preferred>
+  <forbid__use propertyClass="boolean">false</forbid__use>
+  <custom__name propertyClass="string">Library</custom__name>
+</Widget>

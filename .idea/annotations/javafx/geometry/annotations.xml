@@ -1,0 +1,32 @@
+<root>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D add(double, double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D add(javafx.geometry.Point2D)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D midpoint(double, double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D midpoint(javafx.geometry.Point2D)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D multiply(double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D normalize()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D subtract(double, double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point2D subtract(javafx.geometry.Point2D)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point3D crossProduct(double, double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.geometry.Point2D javafx.geometry.Point3D crossProduct(javafx.geometry.Point2D)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

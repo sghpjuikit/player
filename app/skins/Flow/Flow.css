@@ -1,0 +1,108 @@
+/* 
+    Document    : Flow
+    Author      : Martin Polakovic
+    Description : skin
+*/
+
+@import url("../Main/Main.css");
+
+* {
+    -skin-def-icon-border-color: rgba(130,180,240, 0.2);
+}
+
+/* Add background. */
+.window {
+    -fx-background-color: -skin-bgr-color;
+}
+.bgr-image {
+    -fx-opacity: 0.5;
+    -fx-background-image: url("bgr.jpg");
+    -fx-background-size: stretch;
+}
+
+/** Add focus effect */
+.icon:hover {
+    -fx-fill: -fx-focus-color;
+    -fx-border-color: -fx-focus-color;
+}
+.accordion .titled-pane:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow {
+    -fx-background-color: -fx-focus-color;
+}
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
+.accordion .titled-pane:expanded:focused > .title {
+    -fx-text-color: -fx-focus-color;
+}
+
+/** Add border effect */
+.icon,
+.inode:selected,
+.onode:selected,
+.ionode:selected {
+    -fx-border-color: -skin-def-icon-border-color;
+    -fx-border-width: 0.083333em; /* 1 */
+    -fx-border-radius: 11111; /* big value to always achieve perfect circle */
+}
+.inode,
+.onode,
+.ionode,
+.icon-info-icon,
+.icon-info-icon:hover,
+.search-icon-sign,
+.search-icon-sign:hover,
+.resize-content-icon,
+.resize-content-icon:hover,
+.config-field-default-button,
+.config-field-default-button: hover,
+.config-field-warn-button,
+.config-field-warn-button: hover,
+.value-text-field-arrow,
+.value-text-field-arrow: hover,
+.inode:hover Text,
+.onode:hover Text,
+.ionode:hover Text,
+.inode:highlighted Text,
+.onode:highlighted Text,
+.ionode:highlighted Text,
+.inode:hover,
+.onode:hover,
+.ionode:hover,
+.inode:highlighted,
+.onode:highlighted,
+.ionode:highlighted {
+    -fx-border-width: 0.0
+}
+
+/** Add glow effect */
+.icon {
+    -fx-effect: dropshadow(gaussian, rgba(130,170,255, 0.5), 12, 0.2 , 0, 0);   /* decreases performance */
+}
+
+/** Add focus glow effect */
+.icon:hover,
+.inode:hover Text,
+.onode:hover Text,
+.ionode:hover Text,
+.inode:highlighted Text,
+.onode:highlighted Text,
+.ionode:highlighted Text,
+.inode:hover,
+.onode:hover,
+.ionode:hover,
+.inode:highlighted,
+.onode:highlighted,
+.ionode:highlighted,
+.iolink:hover,
+.iolink:highlighted,
+.table-row-cell:played > .indexed-cell:played,
+.table-row-cell:played > .indexed-cell:played:selected,
+.accordion .titled-pane:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
+.accordion .titled-pane:expanded:focused > .title {
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 12,0 , 0,0);
+}

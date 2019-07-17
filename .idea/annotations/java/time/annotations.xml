@@ -1,0 +1,5 @@
+<root>
+    <item name='java.time.ZoneId java.time.ZoneId systemDefault()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

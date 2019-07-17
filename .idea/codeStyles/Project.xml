@@ -2,10 +2,14 @@
   <code_scheme name="Project" version="173">
     <option name="WRAP_COMMENTS" value="true" />
     <JavaCodeStyleSettings>
+      <option name="USE_EXTERNAL_ANNOTATIONS" value="true" />
       <option name="CLASS_NAMES_IN_JAVADOC" value="2" />
       <option name="INSERT_INNER_CLASS_IMPORTS" value="true" />
       <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="100" />
       <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="100" />
+      <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">
+        <value />
+      </option>
       <option name="IMPORT_LAYOUT_TABLE">
         <value>
           <package name="" withSubpackages="true" static="false" />
@@ -162,13 +166,18 @@
       </arrangement>
     </codeStyleSettings>
     <codeStyleSettings language="kotlin">
+      <option name="RIGHT_MARGIN" value="120" />
       <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
       <option name="SPACE_AROUND_EQUALITY_OPERATORS" value="false" />
       <option name="SPACE_AROUND_RELATIONAL_OPERATORS" value="false" />
-      <option name="SPACE_AROUND_ADDITIVE_OPERATORS" value="false" />
       <option name="SPACE_AROUND_MULTIPLICATIVE_OPERATORS" value="false" />
-      <option name="METHOD_ANNOTATION_WRAP" value="1" />
-      <option name="FIELD_ANNOTATION_WRAP" value="1" />
+      <option name="METHOD_ANNOTATION_WRAP" value="0" />
+      <option name="FIELD_ANNOTATION_WRAP" value="0" />
+      <indentOptions>
+        <option name="INDENT_SIZE" value="3" />
+        <option name="CONTINUATION_INDENT_SIZE" value="3" />
+        <option name="TAB_SIZE" value="3" />
+      </indentOptions>
     </codeStyleSettings>
   </code_scheme>
 </component>

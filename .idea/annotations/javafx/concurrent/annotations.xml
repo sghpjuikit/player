@@ -1,0 +1,5 @@
+<root>
+    <item name='javafx.concurrent.Task javafx.concurrent.Worker.State getState()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

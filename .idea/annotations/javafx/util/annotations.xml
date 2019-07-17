@@ -1,0 +1,35 @@
+<root>
+    <item name='javafx.util.Duration javafx.util.Duration add(javafx.util.Duration)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration divide(double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration divide(javafx.util.Duration)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration hours(double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration millis(double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration minutes(double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration multiply(double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration multiply(javafx.util.Duration)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration negate()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration seconds(double)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='javafx.util.Duration javafx.util.Duration subtract(javafx.util.Duration)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>

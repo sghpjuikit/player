@@ -1,0 +1,2565 @@
+/* 
+    Document    : Default
+    Author      : Martin Polakovic
+    Year        : 2014
+    Description : skin
+*/
+
+/* Global variables*/
+* {
+    -skin-bgr-color: rgb(0, 10, 25);
+    -skin-def-font-color: rgb(190, 190, 195);
+    -skin-def-font-color-hover: #ffcc66;
+    -skin-sel-font-color: rgb(175, 175, 176);
+    -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
+    -skin-color-darker: rgba(0,0,0,0.2);
+    -skin-color-lighter: rgba(180,200,255,0.08);
+    /* default color for panels such as header or widget area or other areas. */
+    -skin-pane-color: rgba(100,130,180,0.1);
+    /* Darker version of pane color. By default used for :dragged pseudoclass */
+    -skin-pane-color-dragged: rgba(10,15,25,0.8);
+    /* Default bgr color for tooltips and popups. */
+    -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
+    -skin-value-font-color: rgb(75, 175, 105);
+
+    -fx-focus-color: #ffcc66;
+    -fx-faint-focus-color: #ffcc66;
+}
+
+/******************************************************************************
+ *
+ *  THE APPLICATION OVERRIDES OF JAVAFX
+ *
+ ******************************************************************************/
+
+.root {
+    -fx-font-family: "Arial";
+    -fx-font-size: 1em;
+}
+
+/* ====   TEXT NODES IN CONTROLS   ========================================== */
+
+.text {
+    -fx-bounds-type: logical_vertical_center;
+    -fx-font-smoothing-type: lcd;
+}
+
+/* ====   BUTTON LIKE THINGS   ============================================== */
+
+.button,
+.toggle-button,
+.radio-button > .radio,
+.check-box > .box,
+/*.menu-button, */ /* enable this if you want menu button to look like normal button*/
+.color-picker.split-button > .color-picker-label{
+   /* -fx-background-color:
+        rgba(255, 255, 255, 0.08),
+        rgba(0, 0, 0, 0.8),
+        #090a0c,
+        linear-gradient(#4a5661 0%, #1f2429 20%, #1f242a 100%),
+        linear-gradient(#242a2e, #23282e),
+        radial-gradient(center 50% 0%, radius 100%, rgba(135,142,148,0.9),
+        rgba(255,255,255,0));
+    -fx-background-radius: 4, 3, 3, 3, 2, 3;
+    -fx-background-insets: -3 -3 -4 -3, -3, 0, 1, 2, 0;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-padding: 0;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;*/
+
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-border-color: 
+        transparent transparent rgba(255, 255, 255, 0.08) transparent,
+        rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
+    -fx-border-width: 1, 1.5;
+    -fx-border-insets: -2, -0.5;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-padding: 0;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;
+}
+.menu-button > .label {
+    -fx-alignment: CENTER_LEFT;
+}
+.button:hover,
+.toggle-button:hover,
+.radio-button:hover > .radio,
+.check-box:hover > .box,
+.menu-button:hover,
+.split-menu-button > .label:hover,
+.split-menu-button > .arrow-button:hover,
+/*.slider .thumb:hover,*/
+.color-picker.split-button > .arrow-button:hover,
+.color-picker.split-button > .color-picker-label:hover,
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
+    -fx-background-color:
+        rgba(255, 255, 255, 0.08),
+        rgba(0, 0, 0, 0.8),
+        #090a0c,
+        linear-gradient(#4f6070 0%, #1f2630 30%, #1f2430 100%),
+        linear-gradient(#242a30, #232830),
+        radial-gradient(center 60% 0%, radius 100%, rgba(135,142,160,0.9),
+        rgba(255,255,255,0));
+}
+.button:armed,
+.toggle-button:armed,
+.radio-button:armed > .radio,
+.check-box:armed .box,
+.menu-button:armed,
+.split-menu-button:armed > .label,
+.split-menu-button > .arrow-button:pressed,
+.split-menu-button:showing > .arrow-button,
+/*.slider .thumb:pressed,*/
+/*.choice-box:showing,*/
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
+    -fx-background-color:
+        rgba(255, 255, 255, 0.08),
+        rgba(0, 0, 0, 0.8),
+        #090a0c,
+        linear-gradient(#4f6070 0%, #1f2630 30%, #1f2430 100%),
+        linear-gradient(#242a30, #232830),
+        radial-gradient(center 60% 0%, radius 100%, rgba(145,150,160,0.9),
+        rgba(255,255,255,0));
+}
+.button:focused,
+.toggle-button:focused,
+.radio-button:focused > .radio,
+.menu-button:focused,
+/*.choice-box:focused,*/
+.color-picker.split-button:focused > .color-picker-label{
+    -fx-background-color:
+        rgba(255, 255, 255, 0.08),
+        rgba(0, 0, 0, 0.8),
+        #090a0c,
+        linear-gradient(#4f6070 0%, #1f2630 30%, #1f2430 100%),
+        linear-gradient(#242a30, #232830),
+        radial-gradient(center 60% 0%, radius 100%, rgba(135,142,160,0.9),
+        rgba(255,255,255,0));
+}
+
+/* ====   DISABLED THINGS   ================================================= */
+
+.label:disabled,
+.button:disabled,
+.toggle-button:disabled,
+.radio-button:disabled,
+.check-box:disabled,
+.hyperlink:disabled,
+.menu-button:disabled,
+.split-menu-button:disabled,
+.slider:disabled,
+.scroll-bar:disabled,
+.scroll-pane:disabled,
+.progress-bar:disabled,
+.progress-indicator:disabled,
+.text-input:disabled,
+.choice-box:disabled,
+.combo-box-base:disabled,
+.date-cell:disabled > *, /* This is set on children so border is not affected. */
+.list-view:disabled,
+.tree-view:disabled,
+.table-view:disabled,
+.tree-table-view:disabled,
+.tab-pane:disabled,
+.titled-pane:disabled > .title,
+.accordion:disabled > .titled-pane > .title,
+.tab-pane > .tab-header-area > .headers-region > .tab:disabled,
+.menu:disabled,
+.menu-item:disabled > .label,
+.menu-item:disabled,
+.list-cell:filled:selected:focused:disabled,
+.list-cell:filled:selected:disabled,
+.tree-cell:filled:selected:focused:disabled,
+.tree-cell:filled:selected:disabled,
+.tree-cell > .tree-disclosure-node:disabled,
+.tree-table-row-cell > .tree-disclosure-node:disabled,
+.table-row-cell:selected:disabled,
+.tree-table-row-cell:selected:disabled,
+.table-cell:selected:disabled,
+.tree-table-cell:selected:disabled {
+    -fx-opacity: 0.4;
+}
+/* ====   MNEMONIC THINGS   ================================================= */
+
+.mnemonic-underline {
+    /*-fx-stroke: transparent;*/
+}
+
+.titled-pane:show-mnemonics > .mnemonic-underline,
+.label:show-mnemonics > .mnemonic-underline,
+.context-menu:show-mnemonics > .mnemonic-underline,
+.menu:show-mnemonics > .mnemonic-underline,
+.menu-bar:show-mnemonics > .mnemonic-underline,
+.menu-item:show-mnemonics > .mnemonic-underline,
+.button:show-mnemonics > .mnemonic-underline,
+.toggle-button:show-mnemonics > .mnemonic-underline,
+.radio-button:show-mnemonics > .mnemonic-underline,
+.check-box:show-mnemonics > .mnemonic-underline,
+.hyperlink:show-mnemonics > .mnemonic-underline,
+.split-menu-button:show-mnemonics > .mnemonic-underline,
+.menu-button:show-mnemonics > .mnemonic-underline {
+    /*-fx-stroke: -fx-text-base-color;*/
+}
+
+/* ====   MARKS   =========================================================== */
+
+.radio-button:selected > .radio > .dot,
+.check-box:selected > .box > .mark,
+.check-box:indeterminate  > .box > .mark {
+    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    -fx-background-insets: 1 0 -1 0, 0;
+}
+
+/* ====   ARROWS   ========================================================== */
+
+.menu-button > .arrow-button > .arrow,
+.split-menu-button > .arrow-button > .arrow,
+.choice-box > .open-button > .arrow,
+.menu-button:openvertically > .arrow-button > .arrow,
+.split-menu-button:openvertically > .arrow-button > .arrow,
+.combo-box-base > .arrow-button > .arrow,
+.web-view .form-select-button .arrow,
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button > .arrow  {
+    -fx-background-color: -skin-def-font-color;
+    /* use this to get nice not filled arrow */
+    /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+
+/* ====   CHOICE BOX LIKE THINGS   ========================================== */
+
+.menu-button {
+    -fx-text-fill: -skin-def-font-color;
+    -fx-background-color:
+        rgba(255, 255, 255, 0.3),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 3, 2, 2;
+    -fx-border: null;
+    -fx-padding: 3 10 2 10;
+    /*this creates inner shadow 'gradient effect' for menu item label text*/
+    /*-fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );*/
+}
+
+.choice-box > .label,
+.menu-button > .label,
+.color-picker > .label {
+    /*-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em;*/ /* 4 8 4 8 */
+    -fx-text-fill: -skin-def-font-color;
+}
+.choice-box > .open-button,
+.menu-button > .arrow-button {
+    /*-fx-padding: 0.5em 0.667em 0.5em 0.0em;  6 8 6 0 */
+}
+
+/* ====   BOX LIKE THINGS   ================================================= */
+
+.scroll-pane,
+.split-pane,
+.list-view,
+.tree-view,
+.table-view, 
+.tree-table-view,
+.html-editor {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border: none;
+}
+
+.scroll-pane:focused,
+.split-pane:focused,
+.list-view:focused,
+.tree-view:focused,
+.table-view:focused,
+.tree-table-view:focused,
+.html-editor:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+/********************************** Slider *************************************
+ * 
+ * pseudoclasses: vertical
+ */
+
+.slider {
+    -fx-skin: "sp.it.pl.gui.objects.ImprovedSliderSkin";
+}
+.slider .thumb,
+.slider .thumb:hover,
+.slider .thumb:pressed,
+.slider:focused .thumb,
+.slider:focused .thumb:hover,
+.slider:focused .thumb:pressed {
+    -fx-background-color: -skin-def-font-color;
+    -fx-padding: 0.166667em;
+    -fx-background-radius: 1;
+}
+
+.slider .track {
+    -fx-background-color: rgba(255,255,255,0.3);
+    -fx-background-insets: 0;
+    -fx-background-radius: 1;
+    -fx-padding: 1;      /* basically track width */
+}
+.slider:vertical .track {}
+.slider .axis {
+    -fx-tick-mark-stroke: ladder(-fx-background, derive(-fx-background,30%) 40%, derive(-fx-background,-30%) 41%);
+    -fx-tick-label-fill: -skin-def-font-color;
+    -fx-background-insets: -6,5,4,3;
+    -fx-opacity:0.9;
+}
+
+/********************************** ScrollBar *************************************
+ */
+
+.scroll-bar {
+    -fx-skin: "sp.it.pl.gui.objects.ImprovedScrollBarSkin";
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+}
+.scroll-bar:horizontal {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+}
+.scroll-bar:vertical {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+}
+.scroll-bar:focused {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+}
+.scroll-bar:vertical:focused {
+    -fx-background-color: null;
+}
+.scroll-bar > .thumb {
+/*    default
+    -fx-background-color: rgb(211,211,211);
+    -fx-background-insets: 2, 3, 4;
+    -fx-background-radius: 3, 2, 1;*/
+    -fx-background-color: -skin-def-font-color;
+    -fx-background-insets: 0.525em;
+    -fx-background-radius: 0.25em; /* 3px */
+}
+.scroll-bar:vertical > .thumb {
+    -fx-background-color: -skin-def-font-color;
+}
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-background-color: null;
+    -fx-color: -skin-def-font-color;
+    -fx-padding: 0.25em; /* 3px */
+}
+.scroll-bar:horizontal > .increment-button,
+.scroll-bar:horizontal > .decrement-button {
+    -fx-background-insets: 2 1 2 1, 3 2 3 2, 4 3 4 3;
+}
+.scroll-bar:vertical > .increment-button,
+.scroll-bar:vertical > .decrement-button {
+    -fx-background-insets: 1 2 1 2, 2 3 2 3, 3 4 3 4;
+}
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: -skin-def-font-color;
+}
+.scroll-bar > .increment-button:hover > .increment-arrow,
+.scroll-bar > .decrement-button:hover > .decrement-arrow {
+    -fx-background-color: -skin-def-font-color;
+}
+.scroll-bar > .increment-button:pressed > .increment-arrow,
+.scroll-bar > .decrement-button:pressed > .decrement-arrow {
+    -fx-background-color: -skin-def-font-color;
+}
+.scroll-bar:horizontal > .decrement-button > .decrement-arrow {
+    -fx-padding: 0.333em 0.167em 0.333em 0.167em; /* 4 2 4 2 */
+    -fx-shape: "M5.997,5.072L5.995,6.501l-2.998-4l2.998-4l0.002,1.43l-1.976,2.57L5.997,5.072z";
+}
+.scroll-bar:horizontal > .increment-button > .increment-arrow {
+    -fx-padding: 0.333em 0.167em 0.333em 0.167em; /* 4 2 4 2 */
+    -fx-shape: "M2.998-0.07L3-1.499l2.998,4L3,6.501l-0.002-1.43l1.976-2.57L2.998-0.07z";
+}
+.scroll-bar:vertical > .decrement-button > .decrement-arrow {
+    -fx-padding: 0.167em 0.333em 0.167em 0.333em; /* 2 4 2 4 */
+    -fx-shape: "M1.929,4L0.5,3.998L4.5,1l4,2.998L7.07,4L4.5,2.024L1.929,4z";
+}
+.scroll-bar:vertical > .increment-button > .increment-arrow {
+    -fx-padding: 0.167em 0.333em 0.167em 0.333em; /* 2 4 2 4 */
+    -fx-shape: "M7.071,1L8.5,1.002L4.5,4l-4-2.998L1.93,1L4.5,2.976L7.071,1z";
+}
+
+/* Force all scrollbar to be of equal size */
+.scroll-bar:vertical {
+    -fx-pref-width: 1.66666666667em; /* 20 */ /* adjusting this affects .scroll-bar > .thumb */
+}
+.scroll-bar:horizontal {
+    -fx-pref-height: 1.66666666667em; /* 20 */ /* adjusting this affects .scroll-bar > .thumb */
+}
+
+.scroll-bar,
+.scroll-bar:vertical,
+.scroll-bar:horizontal,
+.virtual-flow > .scroll-bar,
+.virtual-flow > .scroll-bar:vertical,
+.virtual-flow > .scroll-bar:horizontal,
+.text-area > .scroll-pane > .scroll-bar,
+.text-area > .scroll-pane > .scroll-bar:vertical,
+.text-area > .scroll-pane > .scroll-bar:horizontal,
+.list-view > .virtual-flow > .scroll-bar,
+.list-view > .virtual-flow > .scroll-bar:vertical,
+.list-view > .virtual-flow > .scroll-bar:horizontal,
+.tree-view > .virtual-flow > .scroll-bar,
+.tree-view > .virtual-flow > .scroll-bar:vertical,
+.tree-view > .virtual-flow > .scroll-bar:horizontal,
+.table-view > .virtual-flow > .scroll-bar,
+.table-view > .virtual-flow > .scroll-bar:vertical,
+.table-view > .virtual-flow > .scroll-bar:horizontal,
+.tree-table-view > .virtual-flow > .scroll-bar,
+.tree-table-view > .virtual-flow > .scroll-bar:vertical,
+.tree-table-view > .virtual-flow > .scroll-bar:horizontal {
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.scroll-bar > .thumb,
+.scroll-bar:vertical > .thumb,
+.scroll-bar:horizontal > .thumb,
+.virtual-flow > .scroll-bar > .thumb,
+.virtual-flow > .scroll-bar:vertical > .thumb,
+.virtual-flow > .scroll-bar:horizontal > .thumb,
+.text-area > .scroll-pane > .scroll-bar > .thumb,
+.text-area > .scroll-pane > .scroll-bar:vertical > .thumb,
+.text-area > .scroll-pane > .scroll-bar:horizontal > .thumb,
+.list-view > .virtual-flow > .scroll-bar > .thumb,
+.list-view > .virtual-flow > .scroll-bar:vertical > .thumb,
+.list-view > .virtual-flow > .scroll-bar:horizontal > .thumb,
+.tree-view > .virtual-flow > .scroll-bar > .thumb,
+.tree-view > .virtual-flow > .scroll-bar:vertical > .thumb,
+.tree-view > .virtual-flow > .scroll-bar:horizontal > .thumb,
+.table-view > .virtual-flow > .scroll-bar > .thumb,
+.table-view > .virtual-flow > .scroll-bar:vertical > .thumb,
+.table-view > .virtual-flow > .scroll-bar:horizontal > .thumb,
+.tree-table-view > .virtual-flow > .scroll-bar > .thumb,
+.tree-table-view > .virtual-flow > .scroll-bar:vertical > .thumb,
+.tree-table-view > .virtual-flow > .scroll-bar:horizontal > .thumb {
+    -fx-padding: 0;
+    -fx-background-color: -skin-def-font-color;
+    -fx-background-insets: 0.75em;
+    -fx-background-radius: 1em; /* 3px */
+}
+
+/********************************* ScrollPane *********************************/
+
+.scroll-pane,
+.scroll-pane > * {
+    -fx-cache: false;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: null;
+}
+.scroll-pane > .scroll-bar:horizontal {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.scroll-pane > .scroll-bar:horizontal > .increment-button,
+.scroll-pane > .scroll-bar:horizontal > .decrement-button {
+    -fx-padding: 0.166667em 0.25em 0.25em  0.25em; /*2 3 3 3*/ 
+}
+.scroll-pane > .scroll-bar:vertical > .increment-button,
+.scroll-pane > .scroll-bar:vertical > .decrement-button {
+    -fx-padding: 0.25em 0.25em 0.25em 0.166667em;  /*3 3 3 2*/ 
+}
+.scroll-pane > .scroll-bar:vertical {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.scroll-pane > .corner {
+    -fx-opacity: 0;
+    -fx-background-color: rgb(76,81,86), rgb(195,199,203);
+    -fx-background-insets: 0, 1 1 1 1;
+}
+/* new styleclass for edge to edge scroll-panes that don't want to draw a border */
+.scroll-pane.edge-to-edge,
+.tab-pane > * > .scroll-pane {
+    -fx-background-color: -fx-background;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.scroll-pane.edge-to-edge > .scroll-bar,
+.tab-pane > * > .scroll-pane > .scroll-bar,
+.titled-pane > * > * > .scroll-pane > .scroll-bar {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.scroll-pane.edge-to-edge > .scroll-bar > .increment-button, 
+.scroll-pane.edge-to-edge > .scroll-bar > .decrement-button,
+.tab-pane > * > .scroll-pane > .scroll-bar > .increment-button, 
+.tab-pane > * > .scroll-pane > .scroll-bar > .decrement-button,
+.titled-pane > * > * > .scroll-pane > .scroll-bar > .increment-button,
+.titled-pane > * > * > .scroll-pane > .scroll-bar > .decrement-button {
+    -fx-padding: 0.25em; /*3px*/ 
+}
+
+/********************************** Separator *************************************
+ */
+
+.separator:horizontal .line {
+    -fx-border-color: -fx-text-box-border transparent transparent transparent,
+        -fx-shadow-highlight-color transparent transparent transparent;
+    -fx-border-insets: 0, 1 0 0 0;
+}
+.separator:vertical .line {
+    -fx-border-color: transparent transparent transparent -fx-shadow-highlight-color,
+        transparent transparent transparent -fx-text-box-border;
+    -fx-border-width: 3, 1;
+    -fx-border-insets: 0, 0 0 0 1;
+}
+
+/********************************* Text boxes *********************************/
+
+.combo-box-base,
+.combo-box-base:editable,
+.combo-box-base:showing,
+.choice-box,
+.choice-box:showing,
+.text-input {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.combo-box-base:hover,
+.combo-box-base:editable:hover,
+.combo-box-base:showing:hover,
+.choice-box:hover,
+.choice-box:showing:hover,
+.text-input:readonly:focused,
+.text-input:hover {
+    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.combo-box-base:focused,
+.combo-box-base:editable:focused,
+.combo-box-base:showing:focused,
+.choice-box:focused,
+.choice-box:showing:focused,
+.text-input:focused {
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.combo-box-base,
+.combo-box-base:editable,
+.combo-box-base:showing,
+.choice-box,
+.choice-box:showing,
+.combo-box-base:hover,
+.combo-box-base:editable:hover,
+.combo-box-base:showing:hover,
+.choice-box:hover,
+.choice-box:showing:hover,
+.combo-box-base:focused,
+.combo-box-base:editable:focused,
+.combo-box-base:showing:focused,
+.choice-box:focused,
+.choice-box:showing:focused {
+    -fx-padding: 0;
+}
+
+.combo-box > .list-cell,
+.combo-box:hover > .list-cell {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-effect: null;
+    -fx-padding: 0 0 0 5;
+    -fx-effect: null;
+}
+
+/********************************* TextArea ***********************************/
+
+.text-area {
+    -fx-skin: "sp.it.pl.gui.objects.ImprovedTextAreaSkin";
+}
+.text-area:focused {
+
+}
+.text-area > .scroll-pane {
+    -fx-background-color: null;
+}
+.text-area > .scroll-pane > .scroll-bar:horizontal {
+    -fx-background-radius: 0;
+}
+.text-area > .scroll-pane > .scroll-bar:vertical {
+    -fx-background-radius: 0;
+}
+.text-area > .scroll-pane > .corner {
+    -fx-background-radius: 0 0 2 0;
+}
+.text-area .content,
+.text-area:focused .content {
+    -fx-background-color:  transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 3 6 2 6;
+}
+
+/*********************************** Text *************************************/
+
+Text {
+    -fx-fill: -skin-def-font-color;
+}
+
+/********************************* ComboBox ***********************************/
+
+/********* PopupControl that is displayed when the button is pressed **********/
+
+.combo-box-popup > .list-view {
+    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-insets: 0;
+    -fx-effect: null;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-padding: 0 0 0 10;
+    -fx-background-color: null;
+    -fx-text-fill:-skin-def-font-color;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+    -fx-background: null;
+    -fx-background-color: -skin-color-darker;
+    -fx-text-fill: -skin-def-font-color;
+}
+.combo-box-popup > .list-view > .placeholder > .label {
+    -fx-text-fill: derive(-fx-control-inner-background,-30%);
+}
+
+/*********************************** Label ************************************/
+
+.label {
+    -fx-text-fill: -skin-def-font-color;
+    /* decreases performance for little eye candy */
+    /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );*/
+}
+
+/*********************************** Hyperlink ********************************/
+
+.hyperlink {
+    -fx-text-fill: -skin-def-font-color;
+    -fx-padding: 0;
+    -fx-underline: true;
+}
+.hyperlink:hover {
+    -fx-text-fill: -fx-focus-color;
+}
+.hyperlink:pressed,
+.hyperlink:visited {
+    -fx-border-width: 0;
+}
+
+/******************************************************************************** 
+ * PopupMenu
+ */
+.context-menu {
+    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0.5em;
+}
+
+.context-menu .separator:horizontal {
+    -fx-padding: 0.5em;
+}
+
+.context-menu .separator:horizontal .line {
+    -fx-border-width: 1;
+    -fx-border-color: -skin-def-font-color transparent transparent transparent;
+    -fx-border-insets: 1 0 0 0;
+}
+
+/******************************************************************************** 
+ * Menu
+ */
+.menu {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0.5em;
+}
+
+/*******************************************************************************
+ * MenuItem
+ */
+.menu-item {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-border-width: 0;
+    -fx-padding: 0.5em;
+}
+
+.menu-item:focused > .label {
+    -fx-text-fill: -fx-focus-color;
+}
+
+/*******************************************************************************
+ * ChoiceBox
+ */
+.choice-box > .context-menu {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-border-width: 0;
+    -fx-padding: 0.5em;
+}
+
+/*******************************************************************************
+ * MenuBar
+ */
+.menu-bar {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0em;
+    -fx-spacing: 0em;
+}
+
+.menu-bar > .container > .menu-button,
+.menu-bar > .container > .menu-button:hover,
+.menu-bar > .container > .menu-button:focused,
+.menu-bar > .container > .menu-button:showing {
+    -fx-background-color: null;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+}
+
+/* Hide the down arrow for a menu placed in a menu bar */
+.menu-bar > .container > .menu-button > .arrow-button > .arrow {
+    -fx-padding: 0.167em 0 0.250em 0; /* 2 0 3 0 */
+    -fx-background-color: null;
+    -fx-shape: null;
+}
+
+/********************************* TabPane ************************************/
+
+.tab-pane {
+    -fx-tab-min-height: 1.8333em; /* 22 */
+    -fx-tab-max-height: 1.8333em; /* 22 */
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-alignment: CENTER;
+    -fx-text-fill: -skin-def-font-color;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-insets: 0 1 1 0, 1 2 1 1, 2 3 1 2;
+    -fx-background-radius: 3 3 0 0, 2 2 0 0, 1 1 0 0;
+    -fx-padding: 0.083333em 0.5em 0.0769em 0.5em; /* 1 6 0.99 6 */
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:top {
+    -fx-background-color: null;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:right {
+    -fx-background-color: null;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:bottom {
+    -fx-background-color: null;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:left {
+    -fx-background-color: null;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-color: null;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color:-skin-color-lighter;
+    -fx-background-insets: 0 1 1 0, 1 2 0 1, 2 3 0 2;
+}
+.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+    -fx-border-width: 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:disabled:hover {
+    -fx-color: -fx-base;
+}
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent;
+}
+.tab-pane:top > .tab-header-area > .tab-header-background {
+    -fx-background-insets: 0, 0 0 1 0, 1;
+}
+.tab-pane:bottom > .tab-header-area > .tab-header-background {
+    -fx-background-insets: 0, 1 0 0 0, 1;
+}
+.tab-pane:left > .tab-header-area > .tab-header-background {
+    -fx-background-insets: 0, 0 1 0 0, 1;
+}
+.tab-pane:right > .tab-header-area > .tab-header-background {
+    -fx-background-insets: 0, 0 0 0 1, 1;
+}
+.tab-pane:top > .tab-header-area {
+    /*-fx-padding: 0.416667em 0.166667em 0.0em 0.416667em; *//* 5 2 0 5 */
+    -fx-padding: 0.416667em 5 0.0em 0.416667em; /* 5 2 0 5 */
+}
+.tab-pane:bottom > .tab-header-area {
+    -fx-padding: 0 0.166667em 0.416667em 0.416667em; /* 0 2 5 5 */
+}
+.tab-pane:left > .tab-header-area {
+    -fx-padding: 0.416667em 0.0em 0.166667em 0.416667em; /* 5 0 2 5 */
+}
+.tab-pane:right > .tab-header-area {
+    -fx-padding: 0.416667em 0.416667em 0.166667em 0.0em; /* 5 5 2 0 */
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button {
+    /*   
+    -fx-mark-color; << this color (original Modena)
+     produces runtime parsing errors (string cant be parsed into color)
+     grey is good enough
+    */
+    -fx-background-color: grey;
+    -fx-shape: "M 0,0 H1 L 4,3 7,0 H8 V1 L 5,4 8,7 V8 H7 L 4,5 1,8 H0 V7 L 3,4 0,1 Z";
+    -fx-scale-shape: false;
+    -fx-effect: dropshadow(two-pass-box , rgba(255, 255, 255, 0.4), 1, 0 , 0, 1);
+    -fx-opacity: 0.0;
+    -fx-padding: 0 2 0 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container:hover > .tab-close-button,
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-close-button,
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container:hover > .tab-close-button {
+    -fx-opacity: 1;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button:hover {
+    -fx-background-color: derive(grey, -30%); /*same story as above*/
+}
+/* CONTROL BUTTONS */
+.tab-pane > .tab-header-area > .control-buttons-tab > .container {
+    -fx-padding: 3 0 0 0; 
+}
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: -1 0 5 0, 0 1 6 1, 1 2 7 2;
+    -fx-padding: 4 4 9 4;
+    -fx-background-radius: 10;
+}
+.tab-pane:bottom > .tab-header-area > .control-buttons-tab > .container > .tab-down-button {
+    -fx-padding: -0.5em 0.25em 0.25em 0.25em;
+}
+/* FLOATING TABS CUSTOMISATION */
+.tab-pane.floating > .tab-header-area > .tab-header-background {
+    -fx-background-color: null;
+}
+.tab-pane.floating > .tab-header-area {
+    -fx-background-color: null;
+}
+.tab-pane.floating > .tab-content-area {
+    -fx-background-color: null;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 2, 0;
+    -fx-padding: 2;
+}
+
+/********************************* TitledPane *********************************/
+
+.titled-pane {
+    -fx-text-fill: -skin-def-font-color;
+    -fx-border-width: 0;
+}
+.titled-pane > .title {
+    -fx-text-fill: rgba(255,255,255,0.8);
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 5 5 0 0, 4 4 0 0, 3 3 0 0;
+    -fx-padding: 0.166667em 0.833333em 0.25em 0.833333em; /* 2 10 3 10 */
+}
+/* alternative focus using the ring around the entire title area */
+/*.titled-pane:focused > .title {
+    -fx-background-color: -fx-faint-focus-color, -fx-focus-color, -fx-inner-border, -fx-body-color; 
+    -fx-background-insets: 0, 0.7, 2, 3;    
+}*/
+
+.titled-pane > .title > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0.0em 0.25em 0.0em 0.0em; /* 0 3 0 0 */
+}
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -skin-def-font-color;
+    /* use to get nice not filled arrow */
+    /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+/* focus purely on the arrow */
+.titled-pane:focused > .title > .arrow-button > .arrow {
+    /*   
+    -fx-background-color: -fx-focus-color, -fx-mark-color;
+    -fx-background-insets: -1, 0;
+    -fx-effect: dropshadow(two-pass-box , -fx-focus-color, 5, 0.2 , 0, 0);
+    */
+}
+
+.titled-pane > .title:hover {}
+
+/* alternative content using a border and a grad to transparent background - why should TitledPane content have a colour? */
+.titled-pane > *.content {
+    -fx-background: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0.167em;
+}
+
+/********************************* Accordion **********************************/
+
+.accordion > .titled-pane > .title {
+    -fx-background-color: null;
+    -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
+    -fx-background-radius: 0, 0, 0;
+}
+.accordion > .first-titled-pane > .title {
+    -fx-background-insets: 0, 1, 2;
+}
+.accordion .first-titled-pane .title {
+    -fx-background-insets: 0, 1, 2;
+}
+.accordion .titled-pane:focused,
+.accordion .titled-pane:expanded {
+    -fx-text-fill: -fx-focus-color;
+}
+.accordion .titled-pane:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow {
+    -fx-background-color: -fx-focus-color;
+}
+
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
+.accordion .titled-pane:expanded:focused > .title {
+    -fx-text-color: -fx-focus-color;
+}
+
+/********************************* SplitPane **********************************/
+
+.split-pane:horizontal > .split-pane-divider {
+   -fx-border-color: transparent;
+   -fx-background-color: transparent;
+   -fx-padding: 0;
+}
+.split-pane:vertical > .split-pane-divider {
+   -fx-border-color: transparent;
+   -fx-background-color: transparent;
+   -fx-padding: 0;
+}
+.split-pane *.vertical-grabber {
+    -fx-padding: 1 111 1 111;
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+    -fx-background-insets: 0;
+}
+.split-pane *.horizontal-grabber {
+    -fx-padding: 111 1 111 1;
+    -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+    -fx-background-insets: 0;
+}
+
+/********************************* ColorPicker ********************************/
+
+.color-palette {
+    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-border-width: 1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+    -fx-border-radius: 5;
+}
+
+.custom-color-dialog  {
+    -fx-background-color: -skin-bgr-color;
+}
+
+.custom-color-dialog .controls-pane .customcolor-controls-background {
+    -fx-background-color: -skin-pane-color;
+}
+
+/********* Customised CSS for controls placed directly within cells ***********/
+
+.cell > .choice-box {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    /*-fx-padding: 0.0em 0.5em 0.0em 0.0em;*/ /* 0 6 0 0 */
+    -fx-alignment: CENTER_LEFT;
+    -fx-content-display: LEFT;
+}
+.cell > .choice-box > .label {
+    /*-fx-padding: 0em 0.333333em 0.0em 0.333333;*/ /* 2 4 3 6 */
+}
+.cell:focused:selected > .choice-box > .label {
+    -fx-text-fill: white;
+}
+.cell:focused:selected > .choice-box > .open-button > .arrow {
+    -fx-background-color: -fx-mark-highlight-color, white;
+}
+
+/************************* List, Tree, Table COMMON ***************************/
+
+.cell {
+    -fx-background-color: null;
+    -fx-border-color: null;
+    -fx-padding: 0 2 0 2;
+    -fx-text-fill: -skin-def-font-color;
+}
+
+/* remove double borders from scrollbars */
+.list-view > .virtual-flow > .scroll-bar:vertical,
+.tree-view > .virtual-flow > .scroll-bar:vertical,
+.table-view > .virtual-flow > .scroll-bar:vertical,
+.tree-table-view > .virtual-flow > .scroll-bar:vertical {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.list-view > .virtual-flow > .scroll-bar:horizontal,
+.tree-view > .virtual-flow > .scroll-bar:horizontal,
+.table-view > .virtual-flow > .scroll-bar:horizontal,
+.tree-table-view > .virtual-flow > .scroll-bar:horizontal {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.list-view > .virtual-flow > .corner,
+.tree-view > .virtual-flow > .corner,
+.table-view > .virtual-flow > .corner,
+.tree-table-view > .virtual-flow > .corner {
+    -fx-background-color: null;
+}
+/* standard cell */
+.list-cell,
+.tree-cell {}
+/* Selected rows focused control*/
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+    -fx-background-color: rgba(0, 0, 0, 0.2);
+    -fx-text-fill: -skin-sel-font-color;
+}
+/* Selected when control is not focused */
+.list-cell:filled:selected,
+.tree-cell:filled:selected,
+.table-row-cell:filled:selected,
+.tree-table-row-cell:filled:selected,
+.table-row-cell:filled > .table-cell:selected,
+.tree-table-row-cell:filled > .tree-table-cell:selected {
+    -fx-background-color: rgba(0, 0, 0, 0.2);
+    -fx-text-fill: -skin-sel-font-color;
+}
+/* focused cell (keyboard navigation) */
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:focused,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:focused,
+.table-view:focused:row-selection > .virtual-flow > .clipped-container > .sheet > .table-row-cell:focused,
+.tree-table-view:focused:row-selection > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:focused,
+.table-view:focused:cell-selection > .virtual-flow > .clipped-container > .sheet > .table-row-cell > .table-cell:focused,
+.tree-table-view:focused:cell-selection > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell > .tree-table-cell:focused {
+    -fx-background-color: null;
+    /*-fx-background-insets: 0, 1, 2;*/
+}
+
+/*********************************** ListView *********************************/
+
+.list-cell {}
+.list-cell:odd {
+    -fx-background-color: null;
+}
+
+/*********************************** TreeView *********************************/
+
+.tree-cell {
+    -fx-indent: 1em;
+}
+.tree-cell .label {
+    -fx-padding: 0.0em 0.0em 0.0em 0.25em; /* 0 0 0 3 */
+}
+.tree-cell > .tree-disclosure-node,
+.tree-table-row-cell > .tree-disclosure-node {
+    -fx-padding: 4 6 4 8;
+}
+.tree-cell > .tree-disclosure-node > .arrow,
+.tree-table-row-cell > .tree-disclosure-node > .arrow {
+/*    -fx-background-color: -fx-text-background-color;*/
+    -fx-background-color: -skin-def-font-color;
+    -fx-padding: 0.333333em 0.229em 0.333333em 0.229em; /* 4 */
+    -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
+}
+.tree-cell:expanded > .tree-disclosure-node > .arrow,
+.tree-table-row-cell:expanded > .tree-disclosure-node > .arrow {
+    -fx-rotate: 90;
+}
+
+/********************************* TableView  *********************************/
+
+.table-view,
+.tree-table-view {
+    /* Constants used throughout the table-view. */
+    -fx-table-header-border-color: -fx-box-border;
+    -fx-table-cell-border-color: derive(-fx-color,5%);
+}
+/***** ROW CELLS **************************************************************/
+/* Each row in the table is a table-row-cell. Inside a table-row-cell is any
+   number of table-cell.*/
+.table-row-cell {
+    -fx-padding: 0;
+}
+.table-row-cell:odd {
+    -fx-background-color: null;
+}
+.table-row-cell:empty {
+    -fx-background-color: null;
+}
+/***** INDIVIDUAL CELLS ********************************************************/
+.table-cell {}
+.table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+    -fx-background-color: -fx-table-cell-border-color, -fx-background;
+    -fx-background-insets: 0, 0 0 1 0;
+}
+/* When in constrained resize mode, the right-most visible cell should not have
+   a right-border, as it is not possible to get this cleanly out of view without
+   introducing horizontal scrollbars (see RT-14886). */
+.table-view:constrained-resize > .virtual-flow > .clipped-container > .sheet > .table-row-cell > .table-cell:last-visible,
+.tree-table-view:constrained-resize > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell > .tree-table-cell:last-visible {
+    -fx-border-color: null;
+}
+/***** HEADER **********************************************************************/
+/* The column-resize-line is shown when the user is attempting to resize a column. */
+.table-view .column-resize-line,
+.tree-table-view .column-resize-line {
+    -fx-background: -skin-def-font-color;
+    -fx-opacity: 0.6;
+    -fx-background-color: -fx-background;
+    -fx-padding: 0.0em 0.0416667em 0.0em 0.0416667em; /* 0 0.571429 0 0.571429 */
+}
+/* This is the area behind the column headers. An ideal place to specify background
+   and border colors for the whole area (not individual column-header's). */
+.table-view .column-header-background,
+.tree-table-view > .column-header-background {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+}
+/* The column header row is made up of a number of column-header, one for each
+   TableColumn, and a 'filler' area that extends from the right-most column
+   to the edge of the table-view, or up to the 'column control' button. */
+.table-view .column-header,
+.tree-table-view .column-header,
+.table-view .filler,
+.tree-table-view .filler,
+.table-view > .column-header-background > .show-hide-columns-button,
+.tree-table-view > .column-header-background > .show-hide-columns-button,
+.table-view:constrained-resize .filler,
+.tree-table-view:constrained-resize .filler {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+}
+.table-view .filler,
+.tree-table-view .filler,
+.table-view:constrained-resize .filler,
+.tree-table-view:constrained-resize .filler {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+}
+.table-view > .column-header-background > .show-hide-columns-button,
+.tree-table-view > .column-header-background > .show-hide-columns-button {
+    -fx-background-insets: 0, 0 0 1 1, 1 1 2 2;
+}
+.table-view .column-header .sort-order-dots-container,
+.tree-table-view .column-header .sort-order-dots-container{
+    -fx-padding: 2 0 2 0;
+}
+.table-view .column-header .sort-order,
+.tree-table-view .column-header .sort-order{
+    -fx-font-size: 0.916667em; /* 11pt - 1 less than the default font */
+}
+.table-view .column-header .sort-order-dot,
+.tree-table-view .column-header .sort-order-dot {
+    -fx-background-color: -skin-def-font-color;
+    -fx-padding: 0.115em;
+    -fx-background-radius: 0.115em;
+}
+.table-view .column-header .label,
+.tree-table-view .column-header .label {
+    -fx-alignment: center;
+}
+
+/* Plus Symbol - like table menu button for controlling columns visibility*/
+.table-view .show-hide-column-image,
+.tree-table-view .show-hide-column-image {
+    -fx-background-color: -skin-def-font-color;
+    -fx-padding: 0.25em; /* 3px */
+    -fx-shape: "M398.902,298.045c0.667,0,1.333,0,2,0c0,0.667,0,1.333,0,2c0.667,0,1.333,0,2,0c0,0.667,0,1.333,0,2c-0.667,0-1.333,0-2,0c0,0.666,0,1.332,0,1.999c-0.667,0-1.333,0-2,0c0-0.667,0-1.333,0-1.999c-0.666,0-1.333,0-1.999,0c0-0.667,0-1.334,0-2c0.666,0,1.333,0,1.999,0C398.902,299.378,398.902,298.711,398.902,298.045z"; 
+}
+/* When a column is being 'dragged' to be placed in a different position, there
+   is a region that follows along the column header area to indicate where the
+   column will be dropped. This region can be styled using the .column-drag-header
+   name. */
+.table-view .column-drag-header,
+.tree-table-view .column-drag-header {
+    -fx-background: -fx-accent;
+    -fx-background-color: black;
+    -fx-border-color: transparent;
+    -fx-opacity: 0.5;
+}
+/* Semi-transparent overlay to indicate the column that is currently being moved */
+.table-view .column-overlay,
+.tree-table-view .column-overlay {
+    -fx-background-color: black;
+    -fx-opacity: 0.2;
+}
+/* Header Sort Arrows */
+.table-view /*> column-header-background > nested-column-header >*/ .arrow,
+.tree-table-view /*> column-header-background > nested-column-header >*/ .arrow {
+    -fx-background-color: -skin-def-font-color;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+/* This is shown when the table has no rows and/or no columns. */
+.table-view .empty-table,
+.tree-table-view .empty-table {
+    -fx-background-color: white;
+    -fx-font-size: 1.166667em; /* 14pt - 2 more than the default font */
+}
+
+.check-box-table-cell {
+    -fx-alignment: center;
+    -fx-padding: 0;
+}
+.check-box-table-cell > .check-box {
+    -fx-font-size: 0.8em;
+    -fx-opacity: 1;
+    -fx-padding: 0 0 1 0;
+}
+.check-box-table-cell > .check-box > .box {
+    -fx-background-color: -fx-outer-border, -fx-background;
+    -fx-background-insets: 0,1;
+}
+.check-box-table-cell > .check-box:selected > .box > .mark {
+    -fx-background-color: -fx-text-background-color;
+    -fx-background-insets: 0;
+}
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled > .check-box-table-cell:selected > .check-box > .box,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled > .check-box-table-cell:selected > .check-box > .box,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected > .check-box-table-cell > .check-box > .box,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected > .check-box-table-cell > .check-box > .box {
+    -fx-background-color: derive(-fx-accent,40%), -fx-background;
+}
+
+/********************************* Combinations  ******************************/
+
+.tab-pane > * > .table-view,
+.tab-pane > * > .tree-table-view,
+.tab-pane > * > .list-view,
+.tab-pane > * > .tree-view,
+.tab-pane > * > .scroll-pane,
+.tab-pane > * > .split-pane,
+.tab-pane > * > .text-area,
+.tab-pane > * > .html-editor,
+.split-pane > * > .tab-pane,
+.split-pane > * > .table-view,
+.split-pane > * > .tree-table-view,
+.split-pane > * > .list-view,
+.split-pane > * > .tree-view,
+.split-pane > * > .scroll-pane,
+.split-pane > * > .split-pane,
+.split-pane > * > .text-area,
+.split-pane > * > .html-editor {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+ }
+.tab-pane.floating > * > .table-view,
+.tab-pane.floating > * > .tree-table-view,
+.tab-pane.floating > * > .list-view,
+.tab-pane.floating > * > .tree-view,
+.tab-pane.floating > * > .scroll-pane,
+.tab-pane.floating > * > .split-pane,
+.tab-pane.floating > * > .text-area,
+.tab-pane.floating > * > .html-editor {
+    -fx-background-insets: 0;
+    -fx-padding: -1;
+}
+.split-pane > * > .accordion > .titled-pane > *.content {
+    -fx-border-color: null;
+    -fx-border-insets: 0;
+}
+.split-pane > * > .accordion > .titled-pane > .title  {
+    -fx-background-insets: 0,1 0 1 0, 2 1 2 1;
+}
+.split-pane > * > .accordion > .first-titled-pane > .title  {
+    -fx-background-insets: 0,0 0 1 0, 1 1 2 1;
+}
+.split-pane > * > .accordion > .titled-pane:collapsed > .title  {
+    -fx-background-insets: 0,1 0 0 0, 2 1 1 1;
+}
+.split-pane > * > .accordion > .first-titled-pane:collapsed > .title  {
+    -fx-background-insets: 0,0 0 0 0, 1 1 1 1;
+}
+.titled-pane > * > * > .split-pane,
+.titled-pane > * > * > .text-area,
+.titled-pane > * > * > .html-editor,
+.titled-pane > * > * > .list-view,
+.titled-pane > * > * > .tree-view,
+.titled-pane > * > * > .table-view,
+.titled-pane > * > * > .tree-table-view,
+.titled-pane > * > * > .scroll-pane {
+    -fx-background-color: null;
+    -fx-background-insets: 0, 0;
+    -fx-padding: 0;
+}
+.titled-pane > * > * > AnchorPane,
+.titled-pane > * > * > BorderPane,
+.titled-pane > * > * > FlowPane,
+.titled-pane > * > * > GridPane,
+.titled-pane > * > * > HBox,
+.titled-pane > * > * > Pane,
+.titled-pane > * > * > StackPane,
+.titled-pane > * > * > TilePane,
+.titled-pane > * > * > VBox {
+    -fx-padding: 0.8em;
+}
+
+/*********************************** POPUP ***********************************/
+
+.popup {
+    -fx-background-color: transparent;
+}
+
+/********************************** TOOLTIP **********************************/
+
+.tooltip {
+    -fx-text-fill: -skin-def-font-color;
+    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-radius: 5;
+    -fx-border-width: 1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+    -fx-border-radius: 5;
+    -fx-padding: 0.5em 1em 0.5em 1em;
+}
+
+/********************************* FIXED_ROWS *********************************/
+
+.list-view,
+.table-view,
+.tree-view,
+.tree-table-view {
+    -fx-fixed-cell-size: 1.5em;
+}
+
+.combo-box-popup > .list-view {
+    -fx-fixed-cell-size: 2em;
+}
+
+/******************************************************************************
+ *
+ *  THE APPLICATION ELEMENTS
+ *
+ ******************************************************************************/
+
+
+/************************************ FONTS ***********************************/
+
+.text-style-normal {
+    -fx-font-style: normal;
+}
+.text-style-italic {
+    -fx-font-style: italic;
+}
+.text-weight-normal {
+    -fx-font-weight: normal;
+}
+.text-weight-bold {
+    -fx-font-weight: bold;
+}
+
+/************************************ TEXT ************************************/
+
+.text-input:align-left *.text {
+    -fx-text-alignment: left;
+}
+.text-input:align-right *.text {
+    -fx-text-alignment: right;
+}
+.text-input:align-center *.text {
+    -fx-text-alignment: center;
+}
+.text-input:align-justify *.text {
+    -fx-text-alignment: justify;
+}
+
+/********************************* SPLIT PANE *********************************/
+
+.split-pane:collapsed > .split-pane-divider {
+   -fx-padding: 6;
+}
+.split-pane:collapsed *.vertical-grabber {
+    -fx-padding: 3 111 3 111;
+}
+.split-pane:collapsed *.horizontal-grabber {
+    -fx-padding: 111 3 111 3;
+}
+
+/************************************ ICONS ***********************************/
+
+/** 
+ * Icon
+ * Text using glyph to make icon.
+ * inherits: nothing
+ * pseudoclasses: selected - used to achieve hover effect even when mouse is not hovering
+ * properties: -glyph-name - String of the glyph
+ *             -glyph-size - size
+ */
+.icon {
+    -fx-fill: -skin-def-font-color;
+    -glyph-name: "FontAwesomeIcon.CLOSE";
+    -glyph-size: 1em;
+    -glyph-gap: 12;
+}
+
+.icon:hover {
+    -fx-fill: -skin-def-font-color-hover;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+.icon:disabled {
+    -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
+}
+
+/**
+ * Icon used as graphics in menu bars, context menus, etc
+ * inherits: .icon
+ */
+.embedded-icon {}
+.embedded-icon:disabled {
+   -fx-opacity: 1;  /* this is a bug fix to apply disabled state properly */
+}
+
+/** 
+ * Toggle icon - checkbox
+ * inherits: .icon
+ * pseudoclasses: selected
+ */
+.check-icon {
+   -glyph-name: "FontAwesomeIcon.TOGGLE_OFF";
+}
+.check-icon:selected {
+   -glyph-name: "FontAwesomeIcon.TOGGLE_ON";
+}
+
+/** 
+ * Used for check icons that use single icon for selected/unselected and signal this state
+ * by style instead.
+ * inherits: .check-icon
+ */
+.check-icon-disabling {
+    opacity: 1;
+}
+.check-icon-disabling:selected {
+    opacity: 0.4; /* imitate disabled style, should be consistent with it */
+}
+
+/** 
+ * Check icon used to negate filter predicates
+ * inherits: .check-icon
+ */
+.filter-negate-icon {
+   -glyph-name: "FontAwesomeIcon.CIRCLE";
+}
+.filter-negate-icon:selected {
+   -glyph-name: "FontAwesomeIcon.CIRCLE_ALT";
+}
+
+/**
+ * Resize icon for resizing popups and the like.
+ * inherits: .icon
+ */
+.resize-content-icon {
+   -glyph-name: "MaterialDesignIcon.RESIZE_BOTTOM_RIGHT";
+   scaleX: 1.5;
+   scaleY: 1.5;
+}
+
+.header-icon {
+    -fx-padding: 0.416667em;  /* 5 */
+    -glyph-size: 1.166667em; /* 14 */
+}
+
+/************************************ WINDOW ***************************************************************************
+ * Window. More specifically its root pane. 
+ * inherits: .root
+ * pseudoclasses: focused, hover, resized, moved, fullscreen
+ */
+.window {}
+.window:hover {}
+.window:focused {}
+.window:resized {}
+.window:moved {
+    -fx-background-radius: 5;
+}
+.window:fullscreen {}
+
+/* 
+ * Empty layer right above background for brg-image. It is possible to use more
+ * complex backgrounds by specifying both .background and .bgr-image while using
+ * sub 1 opacity
+ * an example would be a slight image overlay over background
+ */
+.bgr-image {
+    -fx-background-color: -skin-bgr-color;
+    -fx-background-image: none; /* for example: url("bgr.jpg"); */
+    -fx-background-size: stretch;
+}
+
+/*
+ * Window header
+ * inherits: .header
+ */
+.window .header {
+    -fx-background-color: -skin-pane-color;
+}
+
+/************************************ COMPONENT ***********************************************************************/
+
+/*
+ * Widget area
+ * pseudoclasses: dragged - when component is being dragged
+ *                active - when component has focus (1 per window)
+ *                layout-mode - when layout mode is active
+ */
+.widget-ui {
+    -fx-background-color: -skin-pane-color;
+}
+
+.widget-ui: active {
+    -fx-border-radius: 5;
+
+}
+
+/** Widget area content, containing the ui of the widget. */
+.widget-ui-content {
+    -fx-padding: 1em;
+
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+}
+
+.widget-ui:active .widget-ui-content {
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%)
+                      linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)
+                      linear-gradient(from 0% 0% to 100% 100%, -skin-def-font-color 0%, transparent 20%)
+                      linear-gradient(from 0% 0% to 100% 100%, transparent 80%, -skin-def-font-color 100%);
+}
+
+/** Widget area controls. Shown in layout mode. */
+.widget-ui-controls {
+    -fx-padding: 1em;
+
+    -fx-background-color: null;
+}
+
+.widget-ui:layout-mode {
+    -fx-background-insets: 0.5;
+}
+
+/*
+ * Container area
+ * pseudoclasses: layout-mode - when layout mode is active
+ */
+.container-ui {}
+
+.container-ui .split-pane .split-pane-divider {
+    -fx-background-color: -skin-pane-color;
+}
+
+.container-ui:layout-mode .split-pane .split-pane-divider {
+    -fx-background-color: -skin-pane-color;
+    -fx-opacity: 0.0;
+}
+
+/* Container area controls. Shown in layout mode. */
+.container-ui-controls {
+    -fx-background-color: -skin-pane-color;
+    -fx-padding: 1em;
+}
+
+.widget-ui:dragged,
+.widget-ui-controls:dragged,
+.container-ui-controls:dragged {
+    -fx-background-color: -skin-pane-color-dragged;
+}
+
+.container-ui:layout-mode .freeflowcontainer-window .header {
+    -fx-background-insets: 1 0 0 0;
+}
+.freeflowcontainer-window .widget-ui:layout-mode {
+    -fx-background-insets: 0 1 1 1;
+}
+
+/**********************************************************************************************************************/
+
+/* HBox containing buttons within a header */
+.header-buttons {}
+
+
+/* Small button mostly within custom controls for opening dialogs. For example
+   Font picker from within text area. */
+.dialog-button {
+    /* arrow css used for other components like combo-box */
+    -fx-background-color: -skin-def-font-color;
+    /* use this to get nice not filled arrow */
+    /* -fx-background-color: -fx-mark-highlight-color, -fx-mark-color; */
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+
+.mini-button {
+    -fx-background-color: rgba(255,255,255,0.4);
+    -fx-background-radius:7;
+    -fx-stroke-width: 1;
+    -fx-stroke-color: black;
+}
+
+/****** Additional row/cell pseudoclasses for ListView, TableView, TreeView, etc **************************************/
+
+/* Denotes a currently played record in the playlist or other table. */
+.table-row-cell:played > .indexed-cell,
+.table-row-cell:played:selected > .indexed-cell {
+    -fx-text-fill: -fx-focus-color;
+}
+
+/* Denotes broken or inconsistent record, e.g. unplayable item on playlist. */
+.table-row-cell:corrupt > .indexed-cell,
+.table-row-cell:corrupt:selected > .indexed-cell {
+    -fx-text-fill: rgb(255, 122, 122);
+}
+
+/*
+ * Quick search which scrolls to the item in the table can also highlight any
+ * while search is active all items have one of the following pseudoclasses
+ * matched items.
+ */
+.table-row-cell:searchmatch > .indexed-cell,
+.table-row-cell:searchmatch:selected > .indexed-cell {
+    /* We leave matched items are normal and instead use of unmatched items style. */
+}
+/* Unmatched items. */
+.table-row-cell:searchmatchnot > .indexed-cell {
+    -fx-opacity: 0.4;
+}
+.table-row-cell:searchmatchnot > .table-row-cell {
+    -fx-opacity: 1;
+}
+
+/******************************** ENHANCED TEXT FIELDS ****************************************************************/
+
+/**
+ * inherits: .text-field
+ */
+.decorated-text-field {}
+
+/**
+ * inherits: .decorated-text-field
+ */
+.value-text-field {}
+
+/**
+ * Button that opens value picker for .value-text-field
+ * inherits: .icon
+ */
+.value-text-field-arrow {
+    -glyph-name: "FontAwesomeIcon.CARET_DOWN";
+    -glyph-size: 1.2em;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1.4;
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.mood-text-field {
+    -fx-pref-column-count: 10;
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.file-text-field {
+    -fx-pref-column-count: 10;
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.effect-text-field {}
+
+/**
+ * inherits: .value-text-field
+ */
+.font-text-field {
+    -fx-pref-column-count: 10;
+}
+
+/******************************** ITEM PICKER **************************************************************************
+ * Picker displays elements to choose from as a scrollable tile grid.
+ * inherits: ScrollPane
+ * Used in layouts (should mirror the style of widget area), but also popups.
+ */
+.item-picker {
+    -fx-padding: 1px
+}
+
+.item-picker-element {
+    -fx-background-color: -skin-pane-color;
+    -fx-background-radius: 0;
+    -fx-pref-height: 2em;
+}
+
+.item-picker-element:hover {
+    -fx-background-color: -skin-pane-color;
+    -fx-background-insets: 2;
+    -fx-effect: dropshadow(three-pass-box, -skin-pane-color, 2, 0.0, 0, 1);
+}
+.item-picker-element:empty:hover {
+    -fx-background-insets: 0;
+}
+
+/********************************* AUTOCOMPLETE POPUP ******************************************************************
+ * Auto complete popup displayed when user types and showing available suggestions.
+ * Should look like a combobox popup.
+ * inherits: .combo-box-popup
+ */
+.auto-complete-popup > .list-view {}
+
+/********************************* POPOVER *****************************************************************************
+ * Custom popup window. Can display arrow pointing to some location and be 'detached'.
+ * inherits: Control
+ * pseudoclasses : detached - when detached from its location, no arrow
+ *                 focused - focus follows focus of the parent window
+ */
+.popover {}
+
+/*
+ * Container for .bgr and .content
+ * Rectangular, not in the popover shape. D not use for bgr coloring
+ * inherits: StackPane
+ */
+.popover-root {
+    -fx-background-color: transparent;  /* null causes mouse events pass through transparent parts */
+}
+
+/*
+ * Bgr - bgr in the shape of the popover. The shape representing the whole popup area including 
+ * the arrow. use for basic appearance like border or bgr styling.
+ * inherits: Path
+ */
+.popover-root > .bgr {
+    -fx-fill: -skin-popup-def-bgr-color;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+                /* -skin-def-font-color; */
+    -fx-stroke-width: 1;
+    /* radius is not styleable for now and is fixed to programmatic value */
+}
+
+/*
+ * Content root - rectangular area for the actual content of the popup.
+ * Includes header, but not the arrow.
+ * inherits: BorderPane
+ */
+.popover-root > .content {
+    -fx-padding: 1em 1.5em 1.5em 1.5em; /* 12 18 18 18 */
+}
+
+/* Popover header - rectangular area at the top of the content. */
+.popover-root > .content > .popover-header {
+    -fx-padding: 0em 0em 1em 0em;   /* 0 0 12 0 */
+}
+
+/* Popover header title. */
+.popover-root > .content > .popover-header > .title  {
+    -fx-font-size: 1.083334em;  /* 13 */
+    -fx-font-weight: bold;
+    /*
+    give title some space, for small popups the control buttons on the right
+    easily become invasive when they come close to the title, looks ugly
+    */
+    -fx-padding: 0 20 0 0;
+}
+
+/* note: more general tha popup - already defined above
+ HBox containing buttons within a header
+.header-buttons {}*/
+
+/* Close button in the header*/
+.popover-close-button {
+    /* separate the close button from the rest a bit visually*/
+    /*-fx-padding: 0 0 0 5;*/ 
+}
+
+/******************************* HELP POPOVER **************************************************************************
+ * Help popover, usually associated with a help icon. Acts mostly as a tooltip.
+ * Has purely informative use. Provides basically no interaction.
+ */
+.help-popover {}
+
+/*
+ * Text of the help popover
+ * inherits: .text
+ */
+.help-popover-text {
+    -fx-text-alignment: justify;
+}
+
+/******************************* NOTIFICATION **************************************************************************
+ * Application notification popover. Does not style notification content.
+ * inherits: .popover
+ * radius fixed to 0 programmatically
+ */
+.notification {}
+
+.notification > .popover-root > .content > .popover-header {}
+
+.notification > .popover-root > .content > .popover-header > .title  {
+    -fx-font-weight: bold;
+}
+
+/***********************************************************************************************************************
+ * Thumbnail.
+ */
+
+/* 
+ * Root - background for thumbnail. 
+ * inherits: .pane
+ */
+.thumbnail {}
+
+/* 
+ * The actual image.
+ * inherits: .image-view
+ */
+.thumbnail-image {}
+
+/*
+ * The border of thumbnail 
+ * inherits: .pane
+ */
+.thumbnail-border {
+    -fx-border-color: black;
+    -fx-border-width: 2;
+}
+
+
+/********************************** BALANCER *****************************************************************************
+ * Control for left-right volume balance.
+ * inherits: .control
+ */
+.balancer {}
+
+/********************************** SEEKER *****************************************************************************
+ * Control for playback seeking.
+ * inherits: .slider
+ */
+
+.seeker {
+    -fx-skin: "sp.it.pl.gui.objects.seeker.SeekerSkin";
+}
+.seeker .thumb {}
+.seeker .thumb:hover,
+.seeker .thumb:pressed {}
+.seeker .track {}
+
+/*
+ * Chapter marker on the seeker. Marks specific time point.
+ * inherits: Rectangle (Shape)
+ * pseudoclasses: .newly-created - when user creates new chapter until he writes
+ *                                 it to tag
+ */
+.seeker-marker {
+    -fx-background-color: -skin-def-font-color;
+    -fx-opacity: 0.5;
+    -fx-padding: 4 1 4 1; /* sets height=4, width=2 */
+}
+.seeker-marker:newly-created {
+    -fx-opacity: 1;
+}
+
+/******************************* VOLUME SLIDER *************************************************************************
+ *
+ * inherits .slider
+ */
+.volume {}
+.volume .thumb {}
+.volume .thumb:hover {}
+.volume .track {}
+
+/********************************** CONFIG ****************************************************************************/
+
+/*
+ * Config field ui, containing the editor and stuff like default button.
+ * inherits: HBox
+ */
+.config-field {
+    -fx-min-height: 2em;
+}
+
+/** 
+ * Text box for configuring objects, e.g. in settings.
+ * inherits: .text-field
+ */
+.text-field-config,
+.text-field-config:hover,
+.text-field-config:focused,
+.text-field-config:focused:hover,
+.combobox-field-config > .list-cell,
+.combobox-field-config:hover > .list-cell,
+.combobox-field-config:focused > .list-cell,
+.combobox-field-config:focused:hover > .list-cell {
+    -fx-pref-column-count: 10;
+    -fx-text-fill: -skin-value-font-color;
+    -fx-prompt-text-fill: -skin-prompt-font-color;
+}
+
+/**
+ * Ok icon used in config fields to apply change.
+ * inherits: .text-field, .text-field-config
+ */
+.shortcut-config-field,
+.shortcut-config-field:readonly,
+.shortcut-config-field:hover,
+.shortcut-config-field:readonly:hover,
+.shortcut-config-field:focused,
+.shortcut-config-field:readonly:focused {
+    -fx-text-fill: -skin-value-font-color;
+    -fx-prompt-text-fill: -skin-value-font-color;
+}
+
+/**
+ * inherits: .check-icon
+ */
+.boolean-config-field Text,
+.boolean-config-field: hover Text {
+    -fx-fill: -skin-value-font-color;
+}
+
+/**
+ * inherits: .slider
+ */
+.slider-config-field .thumb,
+.slider-config-field .thumb:hover,
+.slider-config-field .thumb:armed,
+.slider-config-field:focused .thumb,
+.slider-config-field:focused .thumb:hover,
+.slider-config-field:focused .thumb:armed,
+.slider-config-field:hover .thumb {
+    -fx-fill: -skin-value-font-color;
+    -fx-text-fill: -skin-value-font-color;
+    -fx-background-color: -skin-value-font-color;
+}
+
+.override-config-field {
+    -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK_OUTLINE";
+}
+.override-config-field:selected {
+    -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK";
+}
+
+.config-shortcut-run-icon {
+    -glyph-size: 0.66667em; /* 8 */
+    -glyph-name: "FontAwesomeIcon.PLAY";
+}
+.config-shortcut-global-icon {
+    -glyph-name: "MaterialDesignIcon.CAST";
+}
+.config-shortcut-global-icon:selected {
+    -glyph-name: "MaterialDesignIcon.CAST_CONNECTED";
+}
+
+/* Effect type chooser button for effect config field. */
+.effect-config-field-type-button {
+    -glyph-name: "MaterialDesignIcon.AUTO_FIX";
+    -glyph-size: 0.66667em; /* 8 */
+}
+
+/* Effect properties button for effect config field. */
+.effect-config-field-conf-button {
+    -glyph-name: "FontAwesomeIcon.GEAR";
+    -glyph-size: 0.66667em; /* 8 */
+}
+
+/*
+ * Ok icon used in config fields to apply change.
+ * inherits: .icon
+ */
+.config-field-ok-button {
+    -glyph-name: "FontAwesomeIcon.CHECK";
+}
+
+/*
+ * Warn icon used in config fields to signal erroneous input.
+ * inherits: .icon
+ */
+.config-field-warn-button,
+.config-field-warn-button Text,
+.config-field-warn-button:hover,
+.config-field-warn-button:hover Text {
+    -glyph-name: "FontAwesomeIcon.EXCLAMATION_TRIANGLE";
+    -glyph-size: 0.66667em; /* 8 */
+    -fx-fill: -fx-focus-color;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+
+.config-field-default-button {
+    -glyph-name: "FontAwesomeIcon.RECYCLE";
+    -glyph-size: 0.66667em; /* 8 */
+    -fx-background-color: transparent;
+    -fx-graphic-text-gap: 0px;
+    -fx-text-fill: -skin-def-font-color;
+    -fx-translate-y: 1; /* fix vertical alignment*/
+}
+.config-field-default-button:pressed:hover {
+    -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
+}
+.config-field-default-button:hover {
+    -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
+}
+
+/************************************ FORM ***************************************************************************
+ * Form containing configuration of an object, also referred to as property sheet or settings.
+ */
+
+/*
+ * inherits: .icon
+ */
+.form-ok-button {
+    -glyph-name: "OctIcon.CHECK";
+    -glyph-size: 2em; /* 24 */
+}
+
+/*
+ * Layout for .config-field. Inherently LEFT aligned.
+ * inherits: VBox
+ */
+.form-config-pane {
+    -fx-spacing: 0.25em;
+    -fx-padding: 0 2em 0 2em;
+}
+
+/*
+ * Config name label in .form-config-pane
+ * inherits: .label
+ */
+.form-config-pane-config-name {
+    -fx-padding: 0.5em 0 0 0;
+    -fx-text-alignment: left;
+}
+
+/*
+ * Config description text in .form-config-pane
+ * inherits: Text
+ */
+.form-config-pane-config-description {
+    -fx-opacity: 0.4;
+    -fx-text-alignment: left;
+}
+
+/************************************ SEARCH ***************************************************************************
+ * Search control
+ * inherits: .text-field
+ */
+
+.search {}
+
+/*
+ * Search sign icon on on the left of the search
+ * inherits: .icon
+ */
+.search-icon-sign {
+    -glyph-name: "FontAwesomeIcon.SEARCH";
+    -glyph-size: 0.91667em; /* 11 */
+}
+
+/*
+ * Search clear button on on the right of the search
+ * inherits: .icon
+ */
+.search-clear-button {
+    -glyph-name: "OctIcon.CIRCLE_SLASH";
+    -glyph-size: 0.91667em; /* 11 */
+}
+
+/************************************ ICON CHOOSER *********************************************************************
+ * Search control
+ * inherits: .text-field
+ */
+
+/**
+ * Cell displaying icon. Used in icon browser.
+ */
+.icon-grid-cell,
+.icon-grid-cell:selected {
+    -fx-background-color: transparent;
+}
+
+/*
+ * Icon-info icon showing the icon graphics
+ * inherits: .icon
+ */
+icon-info-icon {
+    -glyph-size: 2em; /* 24 */
+}
+
+
+/************************************ RATING ***************************************************************************
+ * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
+ */
+
+/* Container for the control, use use for padding and such. */
+.rating > .container {
+    /* -fx-padding: 0 4 0 4;*/
+}
+
+/*
+ * .rating-button
+ * the stars (although not necessarily stars (not settable in css))), all of the
+ * icons are one object due to performance optimizations, so so separate effects
+ * on individual icons are impossible
+ * should inherit .glyph, but does not due to possible problems
+ * 
+ * pseudoclasses: min - rating is at min value
+ *                max - rating is at max value
+ * the 'empty' rating button
+ */
+.rating-button {
+    -fx-fill: -skin-def-font-color;
+    -fx-font-size: 10px;
+}
+
+.rating-button:empty {
+    -fx-opacity: 0.0;
+}
+
+.rating-button:min {
+    -fx-opacity: 0.4;
+}
+
+.rating-button:max {
+    -fx-fill: derive(-skin-def-font-color,50%);
+}
+
+/*
+ * the 'full' rating button - 2nd group of icons with this pseudoclass hovers
+ * clipped on top to produce partial rating effect
+ */
+.rating-button.strong {
+    -fx-font-size: 10px;
+}
+
+
+/********************************** SPINNER ****************************************************************************
+ * Simple progress indicator control.
+ * inherits: Arc, Shape
+ */
+
+.spinner {
+    -fx-fill: null;
+    -fx-stroke: -skin-def-font-color;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-width: 0.15em;
+    -fx-stroke-type: inside;
+}
+.spinner-in {
+    -fx-pref-width: 0.6em;
+    -fx-pref-height: 0.6em;
+}
+.spinner-out {
+    -fx-stroke-width: 0.1em;
+    -fx-pref-width: 1em;
+    -fx-pref-height: 1em;
+}
+
+/********************************** MENU *******************************************************************************
+ * Menu item with a check icon
+ * inherits: .menu
+ * pseudoclasses: no support -> use .menu-nochildren styleclass instead
+ */
+.checkicon-menu-item {
+    
+}
+
+/*
+ * The icon of checkicon
+ * inherits: check-icon
+ */
+.checkicon-menu-item-icon {
+    /* -fx-padding: 0 5 1 0;*/ /* i think padding does not work here*/
+    -fx-translate-x: -2;
+}
+.checkicon-menu-item-icon:selected {
+    /* leave default*/
+}
+
+/* inherits: checkicon-menu-item-icon */
+.checkicon-menu-item-icon-single-selection {
+    visibility: hidden;
+    -glyph-name: "FontAwesomeIcon.CHECK";
+}
+.checkicon-menu-item-icon-single-selection:selected {
+    visibility: visible;
+    -glyph-name: "FontAwesomeIcon.CHECK";
+}
+
+/* hide the arrow if no children */
+.menu-nochildren > .right-container > .arrow,
+.menu-nochildren:focused > .right-container > .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+
+/***************************** WIDGET INPUT OUTPUT *********************************************************************
+ * Shown in layout mode, a graph displaying widget outputs and inputs as nodes
+ * and their bindings as edges.
+ */
+
+/*
+ * input node icon, output node icon, input/output node icon
+ * all three behave the same with same properties, etc.
+ * inherits: .icon
+ * pseudoclasses: drag-over  - when user's drag&drop hovers on this icon
+ *                highlighted - when line (including input/output) is hovered or edited
+ *                selected - when node is clicked
+ */
+.inode,
+.onode,
+.ionode {
+    -glyph-name: "FontAwesomeIcon.CIRCLE_ALT";
+    -glyph-size: 0.833334em; /* 10 */
+}
+
+.inode:drag-over,
+.onode:drag-over,
+.ionode:drag-over {
+    -fx-fill: -skin-def-font-color-hover;
+    -fx-scale-x: 1.3;
+    -fx-scale-y: 1.3;
+}
+
+.inode:hover Text,
+.onode:hover Text,
+.ionode:hover Text,
+.inode:highlighted Text,
+.onode:highlighted Text,
+.ionode:highlighted Text,
+.inode:hover,
+.onode:hover,
+.ionode:hover,
+.inode:highlighted,
+.onode:highlighted,
+.ionode:highlighted {
+    -fx-stroke: -fx-focus-color;
+    -fx-text-fill: -fx-focus-color;
+    -fx-fill: -fx-focus-color;
+}
+
+.inode:selected,
+.onode:selected,
+.ionode:selected {
+    -fx-fill: -fx-focus-color;
+    -fx-scale-x: 1.3;
+    -fx-scale-y: 1.3;
+}
+
+/* 
+ * Output -> Input connection line.
+ * inherits: Path
+ * pseudoclasses: highlighted - when line (including input/output) is hovered or edited
+ */
+.iolink {
+    -fx-opacity: 0.5;
+    -fx-stroke: -skin-def-font-color;
+    -fx-stroke-width: 2;
+    -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
+}
+
+.iolink:hover,
+.iolink:highlighted {
+    -fx-opacity: 1;
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 2;
+}
+
+.iolink:disabled {
+    -fx-opacity: 0.2;
+}
+
+/*
+ * Line visible during edit, when user links two i/o nodes
+ * inherits: .iolink
+ * pseudoclasses: value-only - when only value is transferred instead of nodes permanently connected
+ */
+.iolink-edit {}
+.iolink-edit:value-only {
+    -fx-stroke-dash-array: 2 12 12 2;
+}
+
+/*
+ * Dot runner effect on line when data changes
+ * inherits: Circle, Shape
+ */
+.iolink-effect-dot {
+    -fx-fill: -fx-focus-color;
+}
+
+/*
+ * Area runner effect on line when data changes
+ * inherits: Path, Shape
+ */
+.iolink-effect-link {
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 3;
+}
+
+/*
+ * Highlight effect on receiving node when data arrives
+ * inherits: Circle, Shape
+ */
+.iolink-effect-receive {
+    -fx-radius: 0.5em;
+    -fx-fill: null;
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 2;
+}
+
+/***************************** OVERLAY PANE *****************************
+ * Pane laying 'above' some content creating 'overlay' bgr above it. Used for various things, mostly
+ * by subclassing.
+ * inherits: .stack-pane
+ */
+.overlay-pane {
+    -fx-background-color: rgba(0,0,0,0.3);
+}
+
+/* 
+ * Pane for content, does not cover all space, sort of inner box.
+ * inherits: .stack-pane
+ */
+.overlay-pane-content {
+    -fx-background-color: rgba(0,20,30,0.1);
+    -fx-effect: dropshadow(three-pass-box, black, 10, 0 , 0,0);
+    -fx-background-radius: 15;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+    -fx-border-width: 1;
+    /* alternative border style */
+    /*-fx-border-color: -skin-def-font-color;
+     -fx-border-width: 1; */
+    -fx-border-radius: 15;
+    -fx-padding: 20;
+}
+
+/*************************** ACTION PANE *******************************
+ * Action chooser, displays action icons (with description) to choose 
+ * from and action input data information
+ * inherits: .overlay-pane
+ */
+.action-pane {}
+
+/*
+ * Icon for action in an action pane
+ * inherits: .icon
+ */
+.action-pane-action-icon {
+    -glyph-size: 2em; /* 24 */
+}
+
+/*************************** SHORTCUT PANE *******************************
+ * Overlay pane displaying shortcuts and their keys
+ * inherits: .overlay-pane
+ */
+.shortcut-pane{
+    -fx-padding: 10em;
+}
+
+/*
+ * Group title label for shortcut group
+ * inherits: .label
+ */
+.shortcut-pane-group-label {
+    -fx-font-weight: bold;
+}
+
+/*************************** SHORTCUT PANE *******************************
+ * Overlay displaying system properties
+ * inherits: .overlay-pane
+ */
+.info-pane{
+    -fx-padding: 10em;
+}
+
+/*
+ * Group title label for shortcut group
+ * inherits: .label
+ */
+.info-pane-group-label {
+    -fx-font-weight: bold;
+}
+    
+/******************** INSPECTING ***********************************
+ * A 'selected' node.
+ */
+.inspector-highlighted,
+.inspector-highlighted:hover,
+.inspector-highlighted:selected,
+.inspector-highlighted:odd,
+.inspector-highlighted:even,
+.inspector-highlighted:focused,
+.scroll-pane > .inspector-highlighted {
+    -fx-background-color: rgba(90,200,200,0.2);
+}
+
+/******************** PLACEHOLDER PANE *********************
+ * Pane with a placeholder, mostly showed instead of content when there is none (e.g. click to add items).
+ * Normally it highlights on hover/mouse over to signal possible interaction.
+ *
+ * inherits: .stack-pane
+ */
+.placeholder-pane {}
+
+/*
+ * Icon denoting an action that will take place after drag is dropped
+ * inherits: .icon
+ */
+.placeholder-pane-icon {
+    -glyph-size: 2em; /* 24 */
+}
+
+/*
+ * Placeholder for manual loading of widget in .widget-ui
+ * inherits: .placeholder-pane
+ */
+.widget-ui-load-placeholder {}
+
+/******************** DRAG PANE *********************
+ * Drag highlighting pane, visible when drag enters node and hidden when it exists.
+ * Normally it is always highlighted, but only visible on drag over.
+ *
+ * inherits: .placeholder-pane
+ */
+.drag-pane {
+    -fx-background-color: -skin-pane-color-dragged;
+}
+.drag-pane:hover {
+    -fx-border-insets: 1.5em;
+    -fx-border-color: rgba(255,255,255, 0.2);
+    -fx-border-style: segments(10, 15, 15, 15);
+    -fx-border-radius: 0;
+    -fx-border-width: 2;
+}
+
+/*
+ * Icon denoting an action that will take place after drag is dropped
+ * inherits: .placeholder-pane-icon
+ */
+.drag-pane-icon {}
+
+/***************************** GUIDE *****************************
+ * Guide
+ */
+
+/*
+ * Standard text of the guide
+ * inherits: .text
+ */
+.guide-text {
+    -fx-font-weight: bold;
+}
+
+/***************************** GRID VIEW *****************************
+ * Virtualized control displaying 2D matrix of cells. Think of it as 2D ListView.
+ * Contains rows and each rows individual cells.
+ */
+.grid-view {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+/**
+ * Cell in a grid view.
+ * inherits: .indexed-cell
+ * pseudoclasses: selected - when any cell in the row is selected
+ */
+.grid-row {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+/**
+ * Cell in a grid view row.
+ * inherits: .indexed-cell
+ * pseudoclasses: selected, searchmatch, searchmatchnot
+ */
+.grid-cell {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-background-color: rgba(0,0,0,0.2);
+}
+
+.grid-cell:selected {
+    -fx-background-insets: -2;
+    -fx-background-color: rgba(0,0,0,0.4);
+    -fx-padding: -2;
+}
+
+/*
+ * Quick search which scrolls to the item in the table can also highlight any
+ * while search is active all items have one of the following pseudoclasses
+ * matched items.
+ */
+.grid-cell:searchmatch,
+.grid-cell:searchmatch:selected {
+    /* We leave matched items are normal and instead use of unmatched items style. */
+}
+
+/* Unmatched items. */
+.grid-cell:searchmatchnot {
+    -fx-opacity: 0.4;
+}
+
+/***************************** FONT PICKER DIALOG *****************************
+ * Font picker dialog
+ * inherits: .dialog
+ */
+.font-selector-dialog {}
+.font-selector-dialog.dialog-pane {}

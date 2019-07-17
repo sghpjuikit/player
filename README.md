@@ -1,7 +1,8 @@
 
-# ![icon](assets/icons/icon128.png) PlayerFX [![Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6?svg=true)](https://ci.appveyor.com/project/Xerus2000/player)
+# ![icon](app/resources/icons/icon48.png) PlayerFX [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6/branch/master?svg=true)](https://ci.appveyor.com/project/Xerus2000/player) [![Travis Build Status](https://travis-ci.org/sghpjuikit/player.svg?branch=master)](https://travis-ci.org/sghpjuikit/player)
 
 - [What is this?](#what-is-this)
+- [Do I need this?](#do-i-need-this)
 - [Features](#features)
 - [Download](#download)
 - [Screenshots](#screenshots)
@@ -11,12 +12,21 @@
 
 ## What is this?
 
-**PlayerFX** is a desktop audio player and audio management application, with a dynamic module system - 
-a multipurpose extensible application capable of compiling and running custom java widgets.
+**PlayerFX** is a desktop audio player and management application, with a modular ui/functionality capable of compiling and reloading its own parts.
 
-![Playlist View](assets/screenshots/screenshot_playlists.jpg)
+**Is this ready?** Yes and no. It is completely functional, but unprepared for release. An experimental release is due soon. This will mean no automatic updates, need to reimport the library, etc.
 
-There are two main major use cases for this application:
+**Looks like this:**
+
+![Looks like this](assets/screenshots/screenshot_playlists.jpg)
+
+**Can do this:**
+
+![Can do this](assets/screenshots/screenshot_io.gif)
+
+## Do I need this?
+
+You decide. There are two main major use cases for this application:
 
 ##### Audio management system
 You may ask, why another audio player? Because there is significant lack of such application for a power user. 
@@ -28,12 +38,12 @@ Ever needed multiple playlists or display/manipulate your songs in a way that wa
 This application addresses a lot of such issues.
 
 ##### Multi-application
-Collection of unrelated mini-applications. Image browser, movie explorer, file renamer and more. 
+Collection of unrelated mini-applications. Image browser, 0-pain media library creator, file renamer and more. 
 
 If you know Java/Kotlin, you can make your own app with a simple text editor and literally dozen lines of code - 
 without JDK, without IDE and without hassles of creating and deploying your application. 
 Just write your code, hit save and watch as it auto-compiles and runs as widget, which you can run as a standalone application! 
-All that with included support for configurations, skins and full access to player internals.
+All that with included support for configurations, skins and full access to the internals.
 
 ## Features
 
@@ -85,7 +95,7 @@ Tables:
 	it is possible to use **any** combination of attributes (columns), 'comparators' and permissible values. Filters can be inverted (negation) or chained (conjunction).
 - group by - e.g. table of groups of songs per attribute (e.g. year or artist) Searching, filtering and sorting fully supported of course.
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
-- cascading - link tables to other tables as filters and display only selected items (e.g. show songs of autor A's  albums X,D,E in year Y in three linked tables reacting on table selection). Basically library widgets allow linking selection of the table as an input, while simultaneously providing its selection as an output to other tables. Use however library widgets (each having 1 table) you wish and link them up in any way you want.
+- cascading - link tables to other tables as filters and display only selected songs (e.g. show songs of autor A's  albums X,D,E in year Y in three linked tables reacting on table selection). Basically library widgets allow linking selection of the table as an input, while simultaneously providing its selection as an output to other tables. Use however library widgets (each having 1 table) you wish and link them up in any way you want.
 
 ### Audio tag editing
 
@@ -196,11 +206,11 @@ Configurable icon bar/dock. User can add/remove custom icons executing some pred
 ##### FunctionViewer
 Plots custom mathematical function in a graph
 ##### Spectrum
-Displays the audio spectrum of the playing song (doesnt work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines!! Not really useful aside being a fancy visualisation though.
+Displays the audio spectrum of the playing song (doesn't work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines! Not really useful aside being a fancy visualisation though.
 ##### WebReader
 In-app web browser. Experimental and not very useful. Image drag & drop has terrible performance for some reason.
 ##### Layouts
-Layout manager. Saved layout browser. Currently outdated and argely useless. Planned for complete rewrite.
+Layout manager. Saved layout browser. Currently outdated and largely useless. Planned for complete rewrite.
 ##### Comet
 Loose java port of the game Comet from 90s. Something between Crimsonland and Geometry Wars.<br>
 You fly a rocket and shoot UFOs and asteroids to clear missions with increasing difficulty. 
@@ -326,20 +336,7 @@ Download link coming soon.
   - Windows: run PlayerFX.exe
   - Linux: run bin/PlayerFX
 
-Starting the application for the first time will run a guide. Before you close it, 
-read at least first couple of tips (like where to find the guide if you need it again...).
-
-Advice:
-- Read tooltips!
-- If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
-- widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
-
-## Issues
-
-- Some of the widgets or features are **experimental**, buggy or confusing (they are being worked on, so stay tuned).
-- Linux support is continually being worked on, Mac is completely untested.
-- No playlist files (.m3u, etc) supported yet
-- No window transparency for now (due to a java bug causing massive performance degradation)
+Starting the application for the first time will open a guide. It is recommended follow it to get the hang of the UX.
 
 #### Performance
 

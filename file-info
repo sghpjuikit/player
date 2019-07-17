@@ -1,0 +1,87 @@
+# Application location. Working directory of the project.
+app {
+  # Directory containing application documentation.
+  documentation {
+  }
+  # Directory containing Java Development Kit (JDK).
+  java {
+  }
+  # Directory containing Kotlin compiler.
+  kotlinc {
+  }
+  # Directory containing application libraries.
+  lib {
+  }
+  # Directory containing application plugins.
+  plugins {
+  }
+  # Directory containing application resources.
+  resources {
+    # File containing predefined audio mood tag values. Value per line. UTF8.
+    moods.txt
+    # Directory containing application icons.
+    icons {
+      # Icon, 16px.
+      icon16.png
+      # Icon, 24px.
+      icon24.png
+      # Icon, 32px.
+      icon32.png
+      # Icon, 48px.
+      icon48.png
+      # Icon, 128px.
+      icon128.png
+      # Icon, 256px.
+      icon256.png
+      # Icon, 512px.
+      icon512.png
+      # Icon, 512px.
+      icon512.ico
+    }
+  }
+  # Directory containing application skins.
+  skins {
+  }
+  # Directory containing initial ui templates - persisted user ui bundled with the application.
+  templates {
+  }
+  # Directory containing all user data created by application use; such as settings, customizations, library, etc.
+  #
+  # Moving content of this directory to another application installation (of the same version) will effectively move
+  # the 'state' of the application to the new installation.
+  user {
+    # Directory containing persisted user ui and custom templates.
+    layouts {
+      # Last persisted application ui state.
+      current {
+      }
+    }
+    # Directory containing libraries. I.e., audio library, playlists, etc.
+    library {
+    }
+    # Directory for application logging output.
+    log {
+    }
+    # Directory for plugin user data.
+    plugins {
+    }
+    # Both temporary and home directory (`java.io.tmpdir` and `user.home` redirect here).
+    #
+    # It is safe to delete all contents (when application is not running).
+    tmp {
+    }
+    # Directory for widget user data.
+    widgets {
+    }
+    # File for application configuration.
+    application.properties
+  }
+  # Optional directory containing Vlc player installation.
+  vlc {
+  }
+  # Directory containing widgets - source files, class files and widget's resources.
+  widgets {
+  }
+  # File containing application source code and main class. Executed by java.exe when started.
+  PlayerFX.jar
+}

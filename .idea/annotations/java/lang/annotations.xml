@@ -1,0 +1,5 @@
+<root>
+    <item name='java.lang.Class T[] getEnumConstants()'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>

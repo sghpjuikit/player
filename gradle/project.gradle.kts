@@ -198,8 +198,7 @@ tasks {
    val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
-      linkDir = dirJdk
-      jdkVersion = javaVersion
+      linkLocation = dirJdk
    }
 
    val kotlinc by creating(Download::class) {

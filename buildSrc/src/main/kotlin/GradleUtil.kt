@@ -30,8 +30,7 @@ open class LinkJDK: AbstractTask() {
    /** Location of the link to the JDK. */
    @Internal lateinit var linkLocation: File
    /** JDK home as Path. */
-   @Internal val jdkPath = "java.home".sysProp?.let { Paths.get(it) }
-      ?: failIO { "Unable to find JDK - java.home is not set" }
+   @Internal val jdkPath = "java.home".sysProp?.let(Paths::get) ?: failIO { "Unable to find JDK: java.home not set" }
 
    init {
       this.onlyIf {

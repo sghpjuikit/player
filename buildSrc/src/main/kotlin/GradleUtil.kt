@@ -1,15 +1,16 @@
 @file:Suppress("RemoveCurlyBracesFromTemplate", "SpellCheckingInspection")
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.JavaVersion
-import org.gradle.api.tasks.Internal
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.NotLinkException
 import java.nio.file.Paths
 import java.util.Stack
 import kotlin.text.Charsets.UTF_8
@@ -25,16 +26,26 @@ fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, mes
 val String.sysProp: String?
    get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
-open class LinkJDK: DefaultTask() {
-   /** Not used directly, but useful to automatically trigger the task if the java version changes. */
-   @Input lateinit var jdkVersion: JavaVersion
+open class LinkJDK: AbstractTask() {
    /** Location of the link to the JDK. */
-   @Input @Internal lateinit var linkLocation: File
+   @Internal lateinit var linkLocation: File
+   /** JDK home as Path. */
+   @Internal val jdkPath = "java.home".sysProp?.let { Paths.get(it) }
+      ?: failIO { "Unable to find JDK - java.home is not set" }
+
+   init {
+      this.onlyIf {
+         try {
+            Files.readSymbolicLink(linkLocation.toPath())!=jdkPath
+         } catch (ignored: NotLinkException) {
+            true
+         }
+      }
+   }
 
    @TaskAction
    fun linkJdk() {
       linkLocation.delete() // delete invalid symbolic link
-      val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
       logger.info("Creating link at $linkLocation to $jdkPath...")
       try {
          Files.createSymbolicLink(linkLocation.toPath(), jdkPath)

@@ -36,8 +36,13 @@ open class LinkJDK: AbstractTask() {
       this.onlyIf {
          try {
             Files.readSymbolicLink(linkLocation.toPath())!=jdkPath
-         } catch (ignored: NotLinkException) {
+         } catch (e: NotLinkException) {
             true
+         } catch (e: java.nio.file.NoSuchFileException) {
+            true
+         } catch (e: Throwable) {
+            logger.error("Failed linkJdk task up to date check: $e")
+            throw e
          }
       }
    }

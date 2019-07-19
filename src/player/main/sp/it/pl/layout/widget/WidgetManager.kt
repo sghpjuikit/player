@@ -397,7 +397,7 @@ class WidgetManager {
                compilerFile.relativeToApp(),
                "-d", compileDir.relativeToApp(),
                "-jdk-home", APP.location.child("java").relativeToApp(),
-               "-jvm-target", System.getProperty("java.version").substringBefore('.'),
+               "-jvm-target", Runtime.version().feature().toString(),
                "-cp", computeClassPath(),
                kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
             )

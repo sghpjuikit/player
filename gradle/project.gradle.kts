@@ -78,7 +78,7 @@ allprojects {
       )
       kotlinOptions.javaParameters = true
       kotlinOptions.jdkHome = dirJdk.path
-      kotlinOptions.jvmTarget = javaVersion.toString()
+      kotlinOptions.jvmTarget = javaVersion.majorVersion
    }
 
    repositories {

@@ -1,15 +1,16 @@
 @file:Suppress("RemoveCurlyBracesFromTemplate", "SpellCheckingInspection")
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.JavaVersion
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.NotLinkException
 import java.nio.file.Paths
 import java.util.Stack
 import kotlin.text.Charsets.UTF_8
@@ -25,27 +26,37 @@ fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, mes
 val String.sysProp: String?
    get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
-open class LinkJDK: DefaultTask() {
-   /** Not used, but supply it anyway to trigger the task if java version changes. */
-   @Input lateinit var jdkVersion: JavaVersion
-   /** Directory/link that will contain the JDK. Should be inside the project. */
-   @OutputDirectory lateinit var linkDir: File
+open class LinkJDK: AbstractTask() {
+   /** Location of the link to the JDK. */
+   @Internal lateinit var linkLocation: File
+   /** JDK home as Path. */
+   @Internal val jdkPath = "java.home".sysProp?.let { Paths.get(it) }
+      ?: failIO { "Unable to find JDK - java.home is not set" }
+
+   init {
+      this.onlyIf {
+         try {
+            Files.readSymbolicLink(linkLocation.toPath())!=jdkPath
+         } catch (ignored: NotLinkException) {
+            true
+         }
+      }
+   }
 
    @TaskAction
    fun linkJdk() {
-      linkDir.delete() // delete invalid symbolic link
-      println("Linking JDK to project relative directory...")
-      val jdkPath = "java.home".sysProp?.let { Paths.get(it) } ?: failIO { "Unable to find JDK" }
+      linkLocation.delete() // delete invalid symbolic link
+      logger.info("Creating link at $linkLocation to $jdkPath...")
       try {
-         Files.createSymbolicLink(linkDir.toPath(), jdkPath)
+         Files.createSymbolicLink(linkLocation.toPath(), jdkPath)
       } catch (e: Exception) {
-         println("Couldn't create a symbolic link from $linkDir to $jdkPath: $e")
+         logger.warn("Couldn't create a symbolic link at $linkLocation to $jdkPath: $e")
          val isWindows = "os.name".sysProp?.startsWith("Windows")==true
          if (isWindows) {
-            println("Trying junction...")
-            val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkDir" "$jdkPath"""")
+            logger.info("Trying to create a Windows junction instead...")
+            val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkLocation" "$jdkPath"""")
             val exitValue = process.waitFor()
-            if (exitValue==0 && linkDir.exists()) println("Junction successful!")
+            if (exitValue==0 && linkLocation.exists()) logger.info("Successfully created junction!")
             else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }
          } else {
             failIO(e) { "Unable to make JDK locally accessible!" }

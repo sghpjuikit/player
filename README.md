@@ -37,26 +37,34 @@ Ever needed multiple playlists or display/manipulate your songs in a way that wa
 
 This application addresses a lot of such issues.
 
-##### Multiapplication
-Collection of unrelated miniapplications. Image browser, 0-pain media library creator, file renamer and more. 
+##### Multi-application
+Collection of unrelated mini-applications. Image browser, 0-pain media library creator, file renamer and more. 
 
-If you know Java/Kotlin, you can make your own app with simple text editor and literaly dozen lines of code - 
+If you know Java/Kotlin, you can make your own app with a simple text editor and literally dozen lines of code - 
 without JDK, without IDE and without hassles of creating and deploying your application. 
-Just write your code, hit save and watch as it autocompiles and runs as widget, which you can run as a standalone application! 
+Just write your code, hit save and watch as it auto-compiles and runs as widget, which you can run as a standalone application! 
 All that with included support for configurations, skins and full access to the internals.
 
 ## Features
 
 ### Guiding Principles
 
-- **Customizability** - User uses the application how he wants, not how it was designed to be used. Therefore emphasis on customization, skins, settings, etc.
-- **Portability** - No installation (or need for java or other programs), run from anywhere, little/no trace, everything is packaged along (no hunting your library database file in hidden Windows directories... 
-- **Modular functionality** - User can launch or use only selected components he is interested in and ignore everything else as if it was never there.
-- **Modular user interface** - User has the ability to 'make his own gui'. Completely custom component layout. He can create all-in-one GUI or use separate windows or - anything really.
+- **Customizability** - User uses the application how he wants, not how it was designed to be used. 
+    Therefore emphasis on customization, skins, settings, etc.
+- **Portability** - No installation (or need for java or other programs), run from anywhere, little/no trace, 
+    everything is packaged along (no hunting your library database file in hidden Windows directories...)
+- **Modular functionality** - User can launch or use only selected components he is interested in and 
+    ignore everything else as if it was never there.
+- **Modular user interface** - User has the ability to 'make his own gui'. Completely custom component layout. 
+    He can create all-in-one GUI or use separate windows or - anything really.
 - **Fancy features** like: rating in tag, time comments, good image support, advanced & intuitive library management, etc.
-- **Library independence** - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. Always. If you move on to different application or lose your library - you never lose data. Ever again.
-- **Usability** - Ease of use and efficient workflow due to minimalistic and unobtrusive graphical user interface design. Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button somewhere in the corner of whatever you are doing..., etc.
-- **Responsive** - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning that big fat audio collection of yours
+- **Library independence** - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. 
+    Always. If you move on to different application or lose your library - you never lose data. Ever again.
+- **Usability** - Ease of use and efficient workflow due to minimalistic and unobtrusive graphical user interface design. 
+    Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button 
+    somewhere in the corner of whatever you are doing..., etc.
+- **Responsive** - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning 
+    that big fat audio collection of yours
 - **Sexy** - Your way of sexy if you know a tiny bit about css.
 
 ### Play audio 
@@ -71,8 +79,10 @@ Song database:
 - big: 40000 files no problem
 - fast: library is loaded into main memory (RAM).
 - no dependency: song files always store all data in their tag, moving or renaming files poses no problem.
-- no inconsistencies: displayed song metadata can only be out of sync with real data if tag is edited by external application (or as a result of a bug)
-- no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. The library serves as a persistable cache, not as data storage.
+- no inconsistencies: displayed song metadata can only be out of sync with real data if the tag is edited 
+  by an external application (or as a result of a bug)
+- no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. 
+  The library serves as a persistent cache, not as data storage.
 
 Management system is only as good as its user interface. There are powerful tables that try to be as flexible as possible.
 Tables:
@@ -102,26 +112,26 @@ Supported are:
 
 The aim is to be interoperable with other players, where possible. Noteworthy or nonstandard supported tags include:
 ##### Rating
- 	- values are in percent values independent of implementation (mp3=0-255, flac/ogg=0-100)
- 	- floating values (0-1). Values like {1,2,3,4,5} are obsolete, illogical and nobody agrees on what they mean. Use full granularity (limited only by tag (1/255 for mp3, 1/100 for other formats)) and pick graphical representation (progress bar or any number of "stars" you want). Basically rate 1) how you want 2) all audio types the same 3) be happy the value is in the tag 4) visualie the rating value as you want - be it 3 stars or 10 or a progress bar.
-  - interoperable with other players (POPM frame), but most of them will only recognize the value in their own way
+- values are in percent values independent of implementation (mp3=0-255, flac/ogg=0-100)
+- floating values (0-1). Values like {1,2,3,4,5} are obsolete, illogical and nobody agrees on what they mean. Use full granularity (limited only by tag (1/255 for mp3, 1/100 for other formats)) and pick graphical representation (progress bar or any number of "stars" you want). Basically rate 1) how you want 2) all audio types the same 3) be happy the value is in the tag 4) visualie the rating value as you want - be it 3 stars or 10 or a progress bar.
+- interoperable with other players (POPM frame), but most of them will only recognize the value in their own way
 ##### Playcount
-  - number of times the song has been played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily, or edit the value manually (increment/decrement/set arbitrary number - its your collection, excert your power!).
-  - the data are written in custom tag (in mp3, written duplicitly in POPM frame counter)
+- number of times the song has been played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily, or edit the value manually (increment/decrement/set arbitrary number - its your collection, excert your power!).
+- the data are written in custom tag (in mp3, written duplicitly in POPM frame counter)
 ##### Time comments/chapters
-  - comments associated with specific time/part of the song. They can be added during playback on the seeker and viewed in popup menus.
-  - the GUI makes it really easy to add or edit these and takes no space, since uses the seekbar and popup windows.
-  - the data are written in custom tag
+- comments associated with specific time/part of the song. They can be added during playback on the seeker and viewed in popup menus.
+- the GUI makes it really easy to add or edit these and takes no space, since uses the seekbar and popup windows.
+- the data are written in custom tag
 ##### Color
-  - just in case you want to associate songs with a colors, you can.
-  - using custom tag
+- just in case you want to associate songs with a colors, you can.
+- using custom tag
 ##### Cover
-  - image in tag can be imported/exported, but I advise against placing images in audio tags, 
+- image in tag can be imported/exported, but I advise against placing images in audio tags, 
   	consumes space and is semantically incorrect (cover is album metadata, not song metadata).
-  - cover read from file location is supported too, looking for image files named:
-    - song title.filetype
-    - song album.filetype
-    - cover.filetype or folder.filetype
+- cover read from file location is supported too, looking for image files named:
+  - song title.filetype
+  - song album.filetype
+  - cover.filetype or folder.filetype
   
 ### Configurability
 
@@ -151,12 +161,20 @@ Shows cover and song metadata. Supports cover download (url drag & drop) and rat
 Tag editor
 ##### Converter
 Object-object converting facility.
-  - Displays objects as text while allowing user to apply function transformations. Handy file renamer and per-song group tagger. Supports object lists, text transformations, manual text editing, regex, writing to file etc.
-  - Provides set of functions that transform java objects (such as String or File). User can then set some kind of input (formally List<INPUT>) and apply and chain these transformation functions (on every element of the list) to get some result (List<OUTPUT>. It may sound confusing at first, but its a intuitive and very powerful thing, particularly when combined with the ability to see the transformation output as a text at every step and the ability to manually edit this text and reuse it as an input for further transformation. The final output can be used as text or for an action, such as
-  - file renaming
-  - tagging
+  - Displays objects as text while allowing user to apply function transformations. Handy file renamer and per-song 
+    group tagger. Supports object lists, text transformations, manual text editing, regex, writing to file etc.
+  - Provides set of functions that transform java objects (such as String or File). User can then set some kind of input 
+    (formally List<INPUT>) and apply and chain these transformation functions (on every element of the list) to get some 
+    result (List<OUTPUT>. It may sound confusing at first, but its a intuitive and very powerful thing, particularly when 
+    combined with the ability to see the transformation output as a text at every step and the ability to manually edit 
+    that text and reuse it as an input for further transformation. The final output can be used as text or for an action, 
+    such as
+    - file renaming
+    - tagging
 
-This makes it possible to import song titles from copypasted tracklist found on web by 'cleaning' it up with text line transformations (remove x characters from start, etc.) rather than manually. Changing extension or names of bunch of files is peace of cake.
+This makes it possible to import song titles from copy-pasted tracklist found on web by 'cleaning' it up with text line 
+transformations (remove x characters from start, etc.) rather than manually. Changing extension or names of a bunch of 
+files is a peace of cake.
 ##### Library & LibraryView
 Song tables. User can link them up so they display increasingly filtered/sepecialized content. For example, 1st table can display all artists (all unique artists in entire song library), 2nd table linked to 1st would display all unique albums of songs by any artist/s selected in the 1st table. So on until Nth table displays the songs. Combinations are endless. In addition, because of the modular gui, you can set up table size and position as you wish and the layout is not restricted to area of the window (layout has own virtual space, like virtual desktops). Lastly, in is possible to set up widgets (in this case individual tables) to be 'passive' until user allows them to load properly - it is possible to create a multiple views with lots of tables with practically no performance impact at all (by using views only when needed and have them 'sleep', but be prepared and configured all the time).
 ##### Image

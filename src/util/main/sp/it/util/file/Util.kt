@@ -117,7 +117,8 @@ fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry 
  * * [java.io.FileNotFoundException] when file is a directory or can not be read or opened
  * * [SecurityException] when security manager exists and file read is not permitted
  * * [java.io.IOException] when error occurs while reading from the file input stream
- * * [OutOfMemoryError] when file is too big
+ *
+ * Note this method can throw [OutOfMemoryError] when file is too big
  */
 @Blocks
 @JvmOverloads

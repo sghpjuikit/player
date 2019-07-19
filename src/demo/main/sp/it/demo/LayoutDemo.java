@@ -18,6 +18,7 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.StackPane;
@@ -29,7 +30,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeType;
-import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -402,18 +402,16 @@ class LayoutDemo extends Application {
 		});
 		useLayoutBounds.selectedProperty().set(true);
 
-		WebView boundsExplanation = new WebView();
-		boundsExplanation.getEngine().loadContent(
-				"<html><body bgcolor='darkseagreen' fgcolor='lightgrey' style='font-size:12px'><dl>" +
-						"<dt><b>Layout Bounds</b></dt><dd>The boundary of the shape.</dd><br/>" +
-						"<dt><b>Bounds in Local</b></dt><dd>The boundary of the shape and effect.</dd><br/>" +
-						"<dt><b>Bounds in Parent</b></dt><dd>The boundary of the shape, effect and transforms.<br/>The co-ordinates of what you see.</dd>" +
-						"</dl></body></html>"
+		TextArea boundsExplanation = new TextArea();
+		boundsExplanation.setText(
+			"Layout Bounds: The boundary of the shape.\n" +
+			"Bounds in Local: The boundary of the shape and effect.zn" +
+			"Bounds in Parent: The boundary of the shape, effect and transforms.\n" +
+			"The co-ordinates of what you see."
 		);
 		boundsExplanation.setPrefWidth(100);
 		boundsExplanation.setMinHeight(130);
 		boundsExplanation.setMaxHeight(130);
-		boundsExplanation.setStyle("-fx-background-color: transparent");
 
 		// layout the utility pane.
 		VBox utilityLayout = new VBox(10);

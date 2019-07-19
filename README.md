@@ -207,8 +207,6 @@ Configurable icon bar/dock. User can add/remove custom icons executing some pred
 Plots custom mathematical function in a graph
 ##### Spectrum
 Displays the audio spectrum of the playing song (doesn't work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines! Not really useful aside being a fancy visualisation though.
-##### WebReader
-In-app web browser. Experimental and not very useful. Image drag & drop has terrible performance for some reason.
 ##### Layouts
 Layout manager. Saved layout browser. Currently outdated and largely useless. Planned for complete rewrite.
 ##### Comet

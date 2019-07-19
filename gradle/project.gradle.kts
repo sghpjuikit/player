@@ -59,9 +59,7 @@ allprojects {
       options.isWarnings = true
       options.isDeprecation = true
       options.compilerArgs = listOf(
-         "-Xlint:unchecked",
-         "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
-         "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED"
+         "-Xlint:unchecked"
       )
    }
 
@@ -106,7 +104,7 @@ allprojects {
             os.isWindows -> "win"
             else -> failIO { "Unable to determine javafx dependency classifier due to unfamiliar system=$os" }
          }
-         val jfxLibs = arrayOf("base", "controls", "graphics", "fxml", "media", "swing", "web")
+         val jfxLibs = arrayOf("base", "controls", "graphics", "fxml", "media", "swing")
          for (lib in jfxLibs) {
             implementation("org.openjfx", "javafx-$lib", version, classifier = classifier)
          }
@@ -319,7 +317,6 @@ application {
       "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
       "--add-opens", "javafx.graphics/javafx.stage=ALL-UNNAMED",
       "--add-opens", "javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED",
-      "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
-      "--add-opens", "javafx.web/com.sun.webkit=ALL-UNNAMED"
+      "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED"
    )
 }

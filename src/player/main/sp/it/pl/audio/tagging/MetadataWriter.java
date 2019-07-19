@@ -35,7 +35,6 @@ import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.jaudiotagger.tag.wav.WavTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.util.dev.Blocks;
 import sp.it.util.dev.SwitchException;
@@ -799,7 +798,7 @@ public class MetadataWriter extends Song {
 		} catch (Exception ex) {
 			if (isPlayingSame()) {
 				LOGGER.info("File being played, will attempt to suspend playback");
-				Player.suspend(); // may be asynchronous
+				APP.audio.suspend(); // may be asynchronous
 
 				var r = (Try<Boolean, Exception>) null;
 				for (int toSleep: list(0, 250, 1000)) {
@@ -818,7 +817,7 @@ public class MetadataWriter extends Song {
 					}
 				}
 
-				Player.activate();
+				APP.audio.activate();
 				return r;
 			} else {
 				LOGGER.error("Can not write file tag: {}", audioFile.getFile().getPath(), ex);

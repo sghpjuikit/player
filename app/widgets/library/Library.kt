@@ -12,7 +12,6 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.TransferMode.COPY
 import javafx.util.Callback
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
@@ -174,10 +173,10 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
                contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
                contextMenuInstance.show(table, e)
             }
-            styleRuleAdd(pcPlaying) { Player.playingSong.value.same(it) }
+            styleRuleAdd(pcPlaying) { APP.audio.playingSong.value.same(it) }
          }
       }
-      Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
+      APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
 
       table.defaultColumnInfo   // trigger menu initialization
       table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo

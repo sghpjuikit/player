@@ -6,12 +6,12 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KLogging
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.PlayerState
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.main.APP
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
@@ -79,16 +79,16 @@ class GeneralPlayer {
 
                         realTime.syncRealTimeOnPlay()
                         // throw song change event
-                        Player.playingSong.songChanged(song)
-                        Player.suspension_flag = false
+                        APP.audio.playingSong.songChanged(song)
+                        APP.audio.suspension_flag = false
                         // fire other events (may rely on the above)
-                        Player.onPlaybackStart()
-                        if (Player.post_activating_1st || !Player.post_activating)
+                        APP.audio.onPlaybackStart()
+                        if (APP.audio.post_activating_1st || !APP.audio.post_activating)
                         // bug fix, not updated playlist songs can get here, but should not!
                            if (song.timeMs>0)
-                              Player.onPlaybackAt.forEach { t -> t.restart(song.time) }
-                        Player.post_activating = false
-                        Player.post_activating_1st = false
+                              APP.audio.onPlaybackAt.forEach { t -> t.restart(song.time) }
+                        APP.audio.post_activating = false
+                        APP.audio.post_activating_1st = false
                      },
                      { unableToPlayAny ->
                         logger.info { "Player=$p can not play song=$song" }
@@ -111,14 +111,14 @@ class GeneralPlayer {
    fun resume() {
       p?.let {
          it.resume()
-         Player.onPlaybackAt.forEach { it.unpause() }
+         APP.audio.onPlaybackAt.forEach { it.unpause() }
       }
    }
 
    fun pause() {
       p?.let {
          it.pause()
-         Player.onPlaybackAt.forEach { it.pause() }
+         APP.audio.onPlaybackAt.forEach { it.pause() }
       }
    }
 
@@ -133,9 +133,9 @@ class GeneralPlayer {
       p?.let {
          it.stop()
          runFX {
-            Player.playingSong.songChanged(Metadata.EMPTY)
+            APP.audio.playingSong.songChanged(Metadata.EMPTY)
             realTime.syncRealTimeOnStop()
-            Player.onPlaybackAt.forEach { it.stop() }
+            APP.audio.onPlaybackAt.forEach { it.stop() }
             PlaylistManager.playlists.forEach { it.updatePlayingItem(-1) }
             PlaylistManager.active = null
          }
@@ -174,7 +174,7 @@ class GeneralPlayer {
    private fun doSeek(duration: Duration) {
       realTime.syncRealTimeOnPreSeek()
       state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
-      state.playback.currentTime.attach1IfNonNull { Player.onSeekDone.run() }
+      state.playback.currentTime.attach1IfNonNull { APP.audio.onSeekDone.run() }
       p?.seek(duration)
       realTime.syncRealTimeOnPostSeek(duration)
    }

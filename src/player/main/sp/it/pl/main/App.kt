@@ -7,7 +7,7 @@ import javafx.application.Platform
 import javafx.scene.image.Image
 import javafx.stage.Stage
 import mu.KLogging
-import sp.it.pl.audio.Player
+import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.core.CoreEnv
@@ -228,6 +228,8 @@ class App: Application(), Configurable<Any> {
    @JvmField val search = AppSearch()
    /** Manages persistence and in-memory storage. */
    @JvmField val db = SongDb()
+   /** Manages audio playback. */
+   @JvmField val audio = PlayerManager()
    /** Manages widgets. */
    @JvmField val widgetManager = WidgetManager()
    /** Manages windows. */
@@ -267,7 +269,7 @@ class App: Application(), Configurable<Any> {
    override fun start(primaryStage: Stage) {
       isInitialized = runTry {
          plugins.initForApp()
-         configuration.gatherActions(Player::class.java, null)
+         configuration.gatherActions(APP.audio::class.java, null)
          configuration.gatherActions(PlaylistManager::class.java, null)
          configuration.installActions(
             this,
@@ -278,7 +280,7 @@ class App: Application(), Configurable<Any> {
 
          widgetManager.init()
          db.init()
-         Player.initialize()
+         audio.initialize()
          windowManager.deserialize()
       }.ifError {
          runLater {
@@ -294,7 +296,7 @@ class App: Application(), Configurable<Any> {
          }
       }.ifOk {
          runLater {
-            if (isStateful) Player.loadLastState()
+            if (isStateful) audio.loadLastState()
             onStarted()
          }
       }
@@ -306,7 +308,7 @@ class App: Application(), Configurable<Any> {
       if (!isStateful) {
          isStateful = true
          windowManager.deserialize()
-         Player.loadLastState()
+         audio.loadLastState()
       }
    }
 
@@ -319,7 +321,7 @@ class App: Application(), Configurable<Any> {
 
       // app
       plugins.getAll().forEach { if (it.isRunning()) it.stop() }
-      Player.dispose()
+      audio.dispose()
       db.stop()
       ActionManager.stopActionListening()
       appCommunicator.stop()
@@ -338,7 +340,7 @@ class App: Application(), Configurable<Any> {
 
    private fun store() {
       if (isInitialized.isOk) {
-         if (rank==MASTER && isStateful) Player.state.serialize()
+         if (rank==MASTER && isStateful) audio.state.serialize()
          if (rank==MASTER && isStateful) windowManager.serialize()
          if (rank==MASTER) configuration.save(name, location.user.`application properties`)
       }

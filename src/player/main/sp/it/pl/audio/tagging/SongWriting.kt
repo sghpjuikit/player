@@ -1,7 +1,5 @@
 package sp.it.pl.audio.tagging
 
-import sp.it.pl.audio.Player
-import sp.it.pl.audio.PlayerConfiguration
 import sp.it.pl.audio.Song
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.main.APP
@@ -27,12 +25,12 @@ fun Song.write(setter: (MetadataWriter) -> Unit) = listOf(this).write(setter, {}
  */
 @ThreadSafe
 fun Collection<Song>.write(setter: (MetadataWriter) -> Unit, action: (List<Metadata>) -> Unit) {
-   if (PlayerConfiguration.readOnly) return
+   if (APP.audio.readOnly) return
 
    runIO {
       writeNoRefresh(setter)
       val songs = asSequence().map { it.read() }.filter { !it.isEmpty() }.toList()
-      Player.refreshSongsWith(songs)
+      APP.audio.refreshSongsWith(songs)
       songs
    } ui {
       action(it)
@@ -45,7 +43,7 @@ fun Collection<Song>.write(setter: (MetadataWriter) -> Unit, action: (List<Metad
  */
 @ThreadSafe
 fun Song.write(setter: (MetadataWriter) -> Unit, action: (Try<Boolean, Exception>) -> Unit) {
-   if (PlayerConfiguration.readOnly) return
+   if (APP.audio.readOnly) return
 
    if (isFileBased()) {
       runIO {
@@ -55,7 +53,7 @@ fun Song.write(setter: (MetadataWriter) -> Unit, action: (Try<Boolean, Exception
          val success = w.write()
 
          val m = read()
-         if (!m.isEmpty()) Player.refreshItemWith(m)
+         if (!m.isEmpty()) APP.audio.refreshItemWith(m)
          success
       } ui {
          action(it)
@@ -77,7 +75,7 @@ fun Song.writeNoRefresh(setter: (MetadataWriter) -> Unit) = listOf(this).writeNo
 @Blocks
 fun Collection<Song>.writeNoRefresh(setter: (MetadataWriter) -> Unit) {
    failIfFxThread()
-   if (PlayerConfiguration.readOnly) return
+   if (APP.audio.readOnly) return
 
    val w = MetadataWriter()
    forEach {
@@ -92,7 +90,7 @@ fun Collection<Song>.writeNoRefresh(setter: (MetadataWriter) -> Unit) {
 /** Rates the song with <0-1> value representing percentage of the rating or null to remove the value altogether */
 @ThreadSafe
 fun Song.writeRating(rating: Double?) {
-   if (PlayerConfiguration.readOnly) return
+   if (APP.audio.readOnly) return
 
    write({ it.setRatingPercent(rating ?: -1.0) }) {
       if (it.isOk)

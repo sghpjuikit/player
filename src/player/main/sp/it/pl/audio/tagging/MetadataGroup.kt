@@ -1,7 +1,7 @@
 package sp.it.pl.audio.tagging
 
 import javafx.util.Duration
-import sp.it.pl.audio.Player
+import sp.it.pl.main.APP
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.failCase
@@ -64,7 +64,7 @@ class MetadataGroup {
    fun getMainField(): Field<*> = Field.VALUE
 
    /** @return true iff any of the songs belonging to this group is playing */
-   fun isPlaying(): Boolean = field.getOf(Player.playingSong.value)==value
+   fun isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value // TODO: move out
 
    override fun toString() = "$field: $value, items: $itemCount, albums: $albumCount, length: ${getLength()}, size: ${getFileSize()}, avgRating: $avgRating, wighted rating: $weighRating, year: $year"
 

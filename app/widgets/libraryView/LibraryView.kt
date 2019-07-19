@@ -17,7 +17,6 @@ import javafx.scene.input.TransferMode.COPY
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Callback
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.CATEGORY
@@ -195,7 +194,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             }
          }
       }
-      Player.playingSong.onUpdate { table.updateStyleRules() } on onClose
+      APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
 
       table.defaultColumnInfo   // trigger menu initialization
       table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo

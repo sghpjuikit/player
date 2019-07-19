@@ -22,7 +22,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.SongReadingKt;
@@ -236,7 +235,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                             );
                         }
 
-                        Player.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
+                        APP.audio.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
                         return null;
                     }),
                     widget.custom_name.getValue() + "Editing song tags"

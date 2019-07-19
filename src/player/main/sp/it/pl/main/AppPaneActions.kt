@@ -6,7 +6,6 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.layout.Pane
 import javafx.stage.FileChooser.ExtensionFilter
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -208,7 +207,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             "in the database and real metadata cab be a result of a bug or file edited externally. " +
             "After this, the library will be synchronized with the file data.",
          IconFA.REFRESH,
-         { Player.refreshSongs(it) }
+         { APP.audio.refreshSongs(it) }
       ),
       FastColAction<Song>(
          "Add to library",

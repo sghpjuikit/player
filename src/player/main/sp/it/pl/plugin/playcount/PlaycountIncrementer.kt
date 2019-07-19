@@ -1,7 +1,6 @@
 package sp.it.pl.plugin.playcount
 
 import javafx.util.Duration.seconds
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.PlayTimeHandler.Companion.at
 import sp.it.pl.audio.tagging.Metadata
@@ -49,13 +48,13 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
 
    private val queue = ArrayList<Metadata>()
    private val incrementer = { increment() }
-   private var incHandler: PlayTimeHandler? = null
+   private var incHandler: PlayTimeHandler = at({it}, {})
    private var running = false
    private val onStop = Disposer()
 
    override fun start() {
       applyStrategy()
-      onStop += Player.playingSong.onChange { ov, _ -> if (!ov.isEmpty()) incrementQueued(ov) }
+      onStop += APP.audio.playingSong.onChange { ov, _ -> if (!ov.isEmpty()) incrementQueued(ov) }
       running = true
    }
 
@@ -73,7 +72,7 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
    /** Manually increments playcount of currently playing song. According to [delay] now or schedules it for later. */
    @IsAction(name = "Increment playcount", desc = "Manually increments number of times the song has been played by one.")
    fun increment() {
-      val m = Player.playingSong.value
+      val m = APP.audio.playingSong.value
       if (!m.isEmpty() && m.isFileBased()) {
          if (delay.value) {
             queue += m
@@ -96,30 +95,30 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
       when (whenStrategy.value) {
          ON_PERCENT -> {
             incHandler = at({ total -> total*whenPercent.value }, incrementer)
-            Player.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt.add(incHandler)
          }
          ON_TIME -> {
             incHandler = at({ total -> whenTime.value min total*0.8 }, incrementer)
-            Player.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt.add(incHandler)
          }
          ON_TIME_AND_PERCENT -> {
             incHandler = at({ total -> whenTime.value max total*whenPercent.value }, incrementer)
-            Player.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt.add(incHandler)
          }
          ON_TIME_OR_PERCENT -> {
             incHandler = at({ total -> whenTime.value min total*whenPercent.value }, incrementer)
-            Player.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt.add(incHandler)
          }
-         ON_START -> Player.onPlaybackStart += incrementer
-         ON_END -> Player.onPlaybackEnd += incrementer
+         ON_START -> APP.audio.onPlaybackStart += incrementer
+         ON_END -> APP.audio.onPlaybackEnd += incrementer
          MANUAL -> Unit
       }
    }
 
    private fun removeOld() {
-      Player.onPlaybackAt -= incHandler
-      Player.onPlaybackEnd -= incrementer
-      Player.onPlaybackStart -= incrementer
+      APP.audio.onPlaybackAt -= incHandler
+      APP.audio.onPlaybackEnd -= incrementer
+      APP.audio.onPlaybackStart -= incrementer
    }
 
    private fun incrementQueued(m: Metadata) {

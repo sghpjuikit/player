@@ -6,7 +6,6 @@ import javafx.scene.effect.Bloom;
 import javafx.scene.effect.Effect;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.scene.paint.Color;
-import sp.it.pl.audio.Player;
 import sp.it.pl.layout.widget.ExperimentalController;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
@@ -19,6 +18,7 @@ import static java.lang.Math.min;
 import static java.lang.Math.sin;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppKt.APP;
 
 /**
  * Shows audio frequency bars. Animated at 60 fps.
@@ -64,13 +64,13 @@ public class Spectrum extends SimpleController {
         /** Starts listening to the playback */
         public void start() {
             loop.start();
-	        Player.spectrumListeners.add(this);
+	        APP.audio.getSpectrumListeners().add(this);
         }
 
         /** Stops listening to the playback */
         public void stop() {
             loop.stop();
-	        Player.spectrumListeners.remove(this);
+	        APP.audio.getSpectrumListeners().remove(this);
         }
 
         private void doLoop() {

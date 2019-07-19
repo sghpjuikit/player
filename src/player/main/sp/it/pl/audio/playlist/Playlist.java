@@ -23,8 +23,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import sp.it.pl.audio.Player;
-import sp.it.pl.audio.PlayerConfiguration;
+import sp.it.pl.audio.PlayerManager;
 import sp.it.pl.audio.Song;
 import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -405,7 +404,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		try {
 			playItem(transform().get(index));
 		} catch (IndexOutOfBoundsException ex) {
-			Player.stop();
+			APP.audio.stop();
 		}
 	}
 
@@ -437,7 +436,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 					boolean isNonePlayable = unplayable1st==song && stream().allMatch(PlaylistSong::isCorrupt); // potentially blocking
 					runFX(() -> {
 						if (isNonePlayable) {
-							Player.stop();
+							APP.audio.stop();
 							unplayable1st = null;
 						} else {
 							playingSongWrapper.set(song);
@@ -456,7 +455,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 						unplayable1st = null;
 						PlaylistManager.active = this.id;
 						PlaylistManager.playlists.forEach(p -> p.playingSongWrapper.set(p==this ? song : null));
-						Player.play(song);
+						APP.audio.play(song);
 					});
 				}
 			});
@@ -698,17 +697,17 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public void addOrEnqueueFiles(boolean add) {
 		chooseFiles(
 				"Choose Audio Files",
-				PlayerConfiguration.Companion.getBrowse(),
+			APP.audio.getBrowse(),
 				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
 				audioExtensionFilter()
 		).ifOkUse(files -> {
-					PlayerConfiguration.Companion.setBrowse(files.get(0).getParentFile());
+			APP.audio.setBrowse(files.get(0).getParentFile());
 					List<URI> queue = new ArrayList<>();
 					files.forEach(f -> queue.add(f.toURI()));
 
 					if (add) addUris(queue);
 					else {
-						Player.stop();
+						APP.audio.stop();
 						clear();
 						addUris(queue);
 						playFirstItem();
@@ -725,16 +724,16 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		chooseFile(
 						"Choose Audio Files From Directory Tree",
 						DIRECTORY,
-						PlayerConfiguration.Companion.getBrowse(),
+			APP.audio.getBrowse(),
 						APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
 		).ifOkUse(dir -> {
-					PlayerConfiguration.Companion.setBrowse(dir);
+			APP.audio.setBrowse(dir);
 					List<URI> queue = new ArrayList<>();
 					getFilesR(dir, Integer.MAX_VALUE, f -> isAudio(f)).forEach(f -> queue.add(f.toURI()));
 
 					if (add) addUris(queue);
 					else {
-						Player.stop();
+						APP.audio.stop();
 						clear();
 						addUris(queue);
 						playFirstItem();
@@ -759,7 +758,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 				if (add) {
 					addUri(url.getValue());
 				} else {
-					Player.stop();
+					APP.audio.stop();
 					clear();
 					addUri(url.getValue());
 					playFirstItem();

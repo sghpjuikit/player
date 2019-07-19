@@ -2,7 +2,6 @@ package sp.it.pl.plugin.database
 
 import mu.KLogging
 import sp.it.pl.audio.MetadatasDB
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.read
@@ -152,14 +151,14 @@ class SongDb {
    fun refreshSongsFromFile(songs: List<Song>) {
       runNew {
          val metadatas = songs.asSequence().map { it.read() }.filter { !it.isEmpty() }.toList()
-         Player.refreshSongsWith(metadatas)
+         APP.audio.refreshSongsWith(metadatas)
       }.withAppProgress("Refreshing library from disk")
    }
 
    @ThreadSafe
    fun songToMeta(song: Song, action: (Metadata) -> Unit) {
-      if (song.same(Player.playingSong.value)) {
-         action(Player.playingSong.value)
+      if (song.same(APP.audio.playingSong.value)) {
+         action(APP.audio.playingSong.value)
          return
       }
 

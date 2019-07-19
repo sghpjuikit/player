@@ -5,8 +5,7 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import mu.KLogging
-import sp.it.pl.audio.Player
-import sp.it.pl.audio.PlayerConfiguration
+import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
 import sp.it.util.async.runFX
@@ -71,7 +70,7 @@ class VlcPlayer: GeneralPlayer.Play {
          ?: MediaPlayerFactory(discoverVlc(APP.location/"vlc"), "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access")
       playerFactory = pf
 
-      if (PlayerConfiguration.playerVlcLocation.value==null) {
+      if (APP.audio.playerVlcLocation.value==null) {
          logger.info { "Playback creation failed: No vlc discovered" }
          onFail(true)
          return
@@ -90,7 +89,7 @@ class VlcPlayer: GeneralPlayer.Play {
       p.events().addMediaPlayerEventListener(playbackListener)
       d += { p.events().removeMediaPlayerEventListener(playbackListener) }
 
-      if (Player.startTime!=null) {
+      if (APP.audio.startTime!=null) {
          when (state.status.value) {
             PLAYING -> play()
             else -> Unit
@@ -116,38 +115,34 @@ class VlcPlayer: GeneralPlayer.Play {
 
       override fun finished(mediaPlayer: MediaPlayer) {
          runFX {
-            Player.onPlaybackEnd()
+            APP.audio.onPlaybackEnd()
          }
       }
 
       override fun stopped(mediaPlayer: MediaPlayer) {
          runFX {
-            if (!Player.suspension_flag)
+            if (!APP.audio.suspension_flag)
                state.status.value = STOPPED
          }
       }
 
       override fun paused(mediaPlayer: MediaPlayer) {
          runFX {
-            if (!Player.suspension_flag)
+            if (!APP.audio.suspension_flag)
                state.status.value = PAUSED
 
-            if (Player.startTime!=null) {
-               seek(Player.startTime)
-               Player.startTime = null
-            }
+            APP.audio.startTime?.let { seek(it) }
+            APP.audio.startTime = null
          }
       }
 
       override fun playing(mediaPlayer: MediaPlayer) {
          runFX {
-            if (!Player.suspension_flag)
+            if (!APP.audio.suspension_flag)
                state.status.value = PLAYING
 
-            if (Player.startTime!=null) {
-               seek(Player.startTime)
-               Player.startTime = null
-            }
+            APP.audio.startTime?.let { seek(it) }
+            APP.audio.startTime = null
          }
       }
 
@@ -197,14 +192,14 @@ class VlcPlayer: GeneralPlayer.Play {
          override fun setPluginPath(pluginPath: String?) = this@customize.onSetPluginPath(pluginPath)
          override fun discoveryDirectories() = mutableListOf(location.absolutePath)
          override fun onFound(path: String?): Boolean {
-            PlayerConfiguration.playerVlcLocation.value = "Custom: " + location.absolutePath
+            APP.audio.playerVlcLocation.value = "Custom: " + location.absolutePath
             return super.onFound(path)
          }
       }
 
       class NativeDiscoveryStrategyWrapper(private val discoverer: NativeDiscoveryStrategy): NativeDiscoveryStrategy by discoverer {
          override fun onFound(path: String?): Boolean {
-            PlayerConfiguration.playerVlcLocation.value = "Installed in system (${Os.current})"
+            APP.audio.playerVlcLocation.value = "Installed in system (${Os.current})"
             return discoverer.onFound(path)
          }
       }

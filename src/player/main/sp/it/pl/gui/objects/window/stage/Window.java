@@ -27,7 +27,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.audio.Player;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.layout.Component;
@@ -255,8 +254,8 @@ public class Window extends WindowBase {
 
 		// change volume on scroll
 		root.setOnScroll(e -> {
-			if (e.getDeltaY()>0) Player.volumeInc();
-			else if (e.getDeltaY()<0) Player.volumeDec();
+			if (e.getDeltaY()>0) APP.audio.volumeInc();
+			else if (e.getDeltaY()<0) APP.audio.volumeDec();
 		});
 
 		// report focus changes

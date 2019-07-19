@@ -25,7 +25,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.jvm.functions.Function1;
-import sp.it.pl.audio.Player;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.gui.itemnode.ConfigField;
@@ -70,6 +69,7 @@ import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
 import static sp.it.pl.audio.tagging.SongWritingKt.write;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.animation.Anim.mapConcave;
 import static sp.it.util.animation.Anim.mapTo01;
@@ -136,7 +136,7 @@ public final class Seeker extends AnchorPane {
 				if (e.getButton()==PRIMARY) {
 					double p = e.getX()/getWidth();
 					p = clip(0, p, 1);
-					Player.seek(p);
+					APP.audio.seek(p);
 					runFX(millis(100), () -> user_drag = false);
 					if (seeker.isHover()) addB.show(); // ~bug fix
 				}
@@ -182,10 +182,10 @@ public final class Seeker extends AnchorPane {
 		});
 		seeker.addEventHandler(KEY_PRESSED, e -> {
 			if (e.getCode()==KeyCode.RIGHT) {
-				Player.seekForwardAbsolute();
+				APP.audio.seekForwardAbsolute();
 				e.consume();
 			} else if (e.getCode()==KeyCode.LEFT) {
-				Player.seekBackwardAbsolute();
+				APP.audio.seekBackwardAbsolute();
 				e.consume();
 			}
 		});
@@ -381,7 +381,7 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void timeUpdateDo(long frame) {
-		if (!user_drag && Player.state.playback.status.get()==PLAYING) {
+		if (!user_drag && APP.audio.state.playback.status.get()==PLAYING) {
 			long dt = posLastFrame==0 ? 0 : (frame - posLastFrame)/1000000;
 			double dp = dt/timeTot.get().toMillis();
 			posLast += dp;
@@ -556,7 +556,7 @@ public final class Seeker extends AnchorPane {
 				editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
 				commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
 				delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
-					Metadata m = Player.playingSong.getValue();
+					Metadata m = APP.audio.playingSong.getValue();
 					write(m, consumer(it -> it.removeChapter(c, m)));
 				});
 				cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
@@ -695,7 +695,7 @@ public final class Seeker extends AnchorPane {
 				message.setText(text);
 				// and physically
 				c.setText(text);
-				Metadata m = Player.playingSong.getValue();
+				Metadata m = APP.audio.playingSong.getValue();
 				write(m, consumer(it -> it.addChapter(c, m)));
 			}
 			// maintain proper content
@@ -723,7 +723,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		public void seekTo() {
-			Player.seek(c.getTime());
+			APP.audio.seek(c.getTime());
 		}
 
 		double getCenterX() {

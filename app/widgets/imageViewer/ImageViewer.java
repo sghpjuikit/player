@@ -19,7 +19,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.gui.nodeinfo.ItemInfo;
@@ -321,7 +320,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
         onClose.plusAssign(sync1IfInScene(root, runnable(() -> {
             if (!inputLocation.isBound(widget.id) && !inputLocationOf.isBound(widget.id) && !widget.isDeserialized)
-                inputLocationOf.bind(Player.playing.o);
+                inputLocationOf.bind(APP.audio.playing.o);
         })));
     }
 

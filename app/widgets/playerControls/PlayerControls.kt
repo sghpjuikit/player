@@ -15,8 +15,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
 import javafx.scene.media.MediaPlayer.Status
-import sp.it.pl.audio.Player
-import sp.it.pl.audio.Player.Seek
+import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playback.VolumeProperty
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -94,13 +93,13 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val titleL = Label()
    val artistL = Label()
    val seeker = Seeker()
-   val f1 = IconFA.ANGLE_DOUBLE_LEFT.icon(24.0) { Player.seekBackward(seekType.value) }
+   val f1 = IconFA.ANGLE_DOUBLE_LEFT.icon(24.0) { APP.audio.seekBackward(seekType.value) }
    val f2 = IconFA.FAST_BACKWARD.icon(24.0) { PlaylistManager.playPreviousItem() }
-   val f3 = IconFA.PLAY.icon(24.0) { Player.pause_resume() }
+   val f3 = IconFA.PLAY.icon(24.0) { APP.audio.pause_resume() }
    val f4 = IconFA.FAST_FORWARD.icon(24.0) { PlaylistManager.playNextItem() }
-   val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { Player.seekForward(seekType.value) }
-   val muteB = IconFA.VOLUME_UP.icon(12.0) { Player.toggleMute() }
-   val loopB = IconFA.RANDOM.icon(24.0) { Player.toggleLoopMode(it) }
+   val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { APP.audio.seekForward(seekType.value) }
+   val muteB = IconFA.VOLUME_UP.icon(12.0) { APP.audio.toggleMute() }
+   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.toggleLoopMode(it) }
    val playbackButtons = listOf(f1, f2, f3, f4, f5, seeker)
    private var lastCurrentTimeS: Double? = null
    private var lastRemainingTimeS: Double? = null
@@ -122,7 +121,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    init {
       root.prefSize = 850.scaleEM() x 200.scaleEM()
 
-      val ps = Player.state.playback
+      val ps = APP.audio.state.playback
 
       seeker.bindTime(ps.duration, ps.currentTime) on onClose
       seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
@@ -142,7 +141,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
       ps.volume sync { muteChanged(ps) } on onClose
-      Player.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
+      APP.audio.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
       elapsedTime sync { timeChanged(ps, true) } on onClose
 
       currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
@@ -243,9 +242,9 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          lastRemainingTimeS = remainingTimeS
       }
 
-      val realTimeS = Player.player.realTime.get().toSeconds()
+      val realTimeS = APP.audio.player.realTime.get().toSeconds()
       if (realTimeS!=lastRealTimeS)
-         realTime.text = Player.player.realTime.get().toHMSMs()
+         realTime.text = APP.audio.player.realTime.get().toHMSMs()
       lastRealTimeS = realTimeS
    }
 

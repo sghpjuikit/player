@@ -9,7 +9,6 @@ import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
-import sp.it.pl.audio.Player
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.nodeinfo.ItemInfo
 import sp.it.pl.gui.objects.Text
@@ -106,8 +105,8 @@ class Notifier: PluginBase("Notifications", true) {
 
    override fun start() {
       n = Notification()
-      onStop += Player.playingSong.onChange { it -> songChange(it) }
-      onStop += Player.state.playback.status attach {
+      onStop += APP.audio.playingSong.onChange { _, nv -> songChange(nv) }
+      onStop += APP.audio.state.playback.status attach {
          if (it==PAUSED || it==PLAYING || it==STOPPED)
             playbackChange(it)
       }
@@ -184,7 +183,7 @@ class Notifier: PluginBase("Notifications", true) {
    }
 
    @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
-   fun showNowPlayingNotification() = songChange(Player.playingSong.value)
+   fun showNowPlayingNotification() = songChange(APP.audio.playingSong.value)
 
    private fun songChange(m: Metadata) {
       if (showSongNotification && !m.isEmpty()) {
@@ -199,7 +198,7 @@ class Notifier: PluginBase("Notifications", true) {
       if (showStatusNotification && status!=null) {
          val title = "Playback change : $status"
          val i = ItemInfo(false).apply {
-            read(Player.playingSong.value)
+            read(APP.audio.playingSong.value)
          }
 
          showNotification(title, i)

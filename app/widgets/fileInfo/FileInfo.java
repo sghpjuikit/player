@@ -14,7 +14,6 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.TilePane;
-import sp.it.pl.audio.Player;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.Metadata.Field;
@@ -164,10 +163,10 @@ public class FileInfo extends SimpleController implements SongReader {
         inputValue = io.i.create("To display", Object.class, null, consumer(v -> dataReading.push(v)));
 
         // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
-        onClose.plusAssign(Player.onSongRefresh(refreshed -> {
+        onClose.plusAssign(APP.audio.onSongRefresh(consumer(refreshed -> {
             if (!dataReading.hasEventsQueued())
                 refreshed.ifHasE(data, this::read);
-        }));
+        })));
 
         cover.getPane().setDisable(true);
         cover.setBackgroundVisible(false);
@@ -343,7 +342,7 @@ public class FileInfo extends SimpleController implements SongReader {
         items.add(data); // make sure the original is included (Set avoids duplicates)
 
         writeNoRefresh(items, consumer(w -> w.setCover(file)));
-        Player.refreshSongs(items);
+        APP.audio.refreshSongs(items);
     }
 
     private enum Sort { SEMANTIC, ALPHANUMERIC }

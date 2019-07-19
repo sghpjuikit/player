@@ -3,8 +3,6 @@ package playlistView
 import javafx.geometry.NodeOrientation.INHERIT
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.stage.FileChooser
-import sp.it.pl.audio.Player
-import sp.it.pl.audio.PlayerConfiguration
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
@@ -115,7 +113,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
       playlist.playingSong sync { outputPlaying.value = it } on onClose
       playlist.duration attach { table.items_info.updateText() } on onClose
-      Player.onSongRefresh { ms ->
+      APP.audio.onSongRefresh { ms ->
          outputPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outputPlaying.value = it.toPlaylist() }) }
          outputSelected.value?.let { ms.ifHasK(it.uri, Consumer { outputSelected.value = it.toPlaylist() }) }
       } on onClose
@@ -185,14 +183,16 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          item("Save playlist") {
             saveFile(
                "Save playlist as...",
-               lastSavePlaylistLocation ?: PlayerConfiguration.lastSavePlaylistLocation,
+               lastSavePlaylistLocation ?: APP.audio.lastSavePlaylistLocation,
                "Playlist",
                root.scene.window,
                FileChooser.ExtensionFilter("m3u8", "m3u8")
             ).ifOk { file ->
                lastSavePlaylistLocation = file.parentDirOrRoot
-               PlayerConfiguration.lastSavePlaylistLocation = file.parentDirOrRoot
-               runNew { writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot) }
+               APP.audio.lastSavePlaylistLocation = file.parentDirOrRoot
+               runNew {
+                  writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot)
+               }
             }
          }
       }

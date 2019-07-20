@@ -39,7 +39,7 @@ fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> 
 fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
-fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action)
+fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).but(Constraint.ObjectNonNull)
 inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */

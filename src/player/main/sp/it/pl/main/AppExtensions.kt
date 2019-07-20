@@ -1,6 +1,8 @@
 package sp.it.pl.main
 
 import mu.KotlinLogging
+import sp.it.pl.audio.Song
+import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.layout.widget.isExperimental
 import sp.it.util.async.NEW
@@ -19,6 +21,9 @@ private val logger = KotlinLogging.logger {}
 
 /** @return whether user can use this factory, exactly: APP.developerMode || ![ComponentFactory.isExperimental] */
 fun ComponentFactory<*>.isUsableByUser() = APP.developerMode.value || !isExperimental()
+
+/** @return value scaled by current application font size (in [EM] units) and ceil-ed to nearest integer */
+fun Number.scaleEM() = ceil(toDouble()*APP.ui.font.value.size.EM)
 
 /**
  * Checks validity of a file to be a skin. True return file means the file
@@ -44,8 +49,11 @@ fun File.isValidWidgetFile(): Boolean {
    return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.location.widgets
 }
 
-/** @return value scaled by current application font size (in [EM] units) and ceil-ed to nearest integer */
-fun Number.scaleEM() = ceil(toDouble()*APP.ui.font.value.size.EM)
+/** @return true iff this song is [Song.same] as the song that is currently playing */
+fun Song.isPlaying(): Boolean = same(APP.audio.playingSong.value)
+
+/** @return true iff any songs contained in this group [Song.isPlaying] */
+fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value // TODO: move out
 
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */
 fun App.run1AppReady(block: () -> Unit) {

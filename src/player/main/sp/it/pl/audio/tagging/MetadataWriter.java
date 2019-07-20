@@ -54,6 +54,7 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_LIB_ADDED;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_FIRST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_PLAYED_LAST;
 import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
+import static sp.it.pl.main.AppExtensionsKt.isPlaying;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.Util.emptyOr;
@@ -797,7 +798,7 @@ public class MetadataWriter extends Song {
 			audioFile.commit();
 			return ok(true);
 		} catch (Exception ex) {
-			if (isPlayingSame()) {
+			if (isPlaying(this)) {
 				LOGGER.info("File being played, will attempt to suspend playback");
 				APP.audio.suspend(); // may be asynchronous
 

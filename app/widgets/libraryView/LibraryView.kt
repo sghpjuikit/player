@@ -38,6 +38,7 @@ import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
+import sp.it.pl.main.isPlaying
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.util.access.OrV

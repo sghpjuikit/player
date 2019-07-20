@@ -3,7 +3,6 @@ package sp.it.pl.audio
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.main.APP
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.net
@@ -84,9 +83,6 @@ abstract class Song {
     * @return initial name of the song.
     */
    fun getInitialName(): String = getFilename()
-
-   /** @return true iff this song's underlying resource (e.g. file) is being played */
-   fun isPlayingSame(): Boolean = same(APP.audio.playingSong.value)  // TODO: move out
 
    /**
     * Checks whether the song can be played. Only non corrupted songs can be played.

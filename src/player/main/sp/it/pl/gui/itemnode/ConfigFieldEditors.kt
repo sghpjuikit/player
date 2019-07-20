@@ -26,12 +26,16 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
-import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSuperclassOf
-import sp.it.util.validation.Constraint
+import sp.it.util.validation.Constraint.FileActor
+import sp.it.util.validation.Constraint.FileRelative
+import sp.it.util.validation.Constraint.HasNonNullElements
+import sp.it.util.validation.Constraint.ObjectNonNull
+import sp.it.util.validation.Constraint.PreserveOrder
+import sp.it.util.validation.Constraint.UiConverter
 import java.io.File
 import java.util.function.BiConsumer
 
@@ -41,13 +45,13 @@ open class EnumerableCF<T>: ConfigField<T> {
 
    @JvmOverloads
    constructor(c: Config<T>, enumeration: Collection<T> = c.enumerateValues()): super(c) {
-      val converter: (T) -> String = c.findConstraint<Constraint.UiConverter<T>>()?.converter
+      val converter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter
          ?: { enumToHuman(APP.converter.ui.toS(it)) }
 
       n = ImprovedComboBox(converter)
       n.styleClass += "combobox-field-config"
 
-      val isSortable = c.constraints.none { it is Constraint.PreserveOrder }
+      val isSortable = c.constraints.none { it is PreserveOrder }
       val observable = getObservableValue(c)
       val isObservable = observable!=null
       if (isObservable)
@@ -122,14 +126,15 @@ open class EnumerableCF<T>: ConfigField<T> {
 }
 
 private class FileCF(c: Config<File>): ConfigField<File>(c) {
-   internal var editor: FileTextField
-   internal var isObservable: Boolean = false
+   private var editor: FileTextField
+   private var isObservable: Boolean = false
+   private val isNullable = c.findConstraint<ObjectNonNull>()==null
 
    init {
       val v = getObservableValue(c)
       isObservable = v!=null
-      val fileType = c.findConstraint<Constraint.FileActor>() ?: Constraint.FileActor.ANY
-      val relativeTo = c.findConstraint<Constraint.FileRelative>()?.to
+      val fileType = c.findConstraint<FileActor>() ?: FileActor.ANY
+      val relativeTo = c.findConstraint<FileRelative>()?.to
 
       editor = FileTextField(fileType, relativeTo)
       editor.styleClass += STYLECLASS_TEXT_CONFIG_FIELD
@@ -142,7 +147,7 @@ private class FileCF(c: Config<File>): ConfigField<File>(c) {
 
    override fun getEditor() = editor
 
-   public override fun get() = Try.ok(editor.value)   // TODO: return error when nullable not allowed
+   override fun get() = if (isNullable || editor.value!=null) Try.ok(editor.value) else Try.error(ObjectNonNull.message())
 
    override fun refreshItem() {
       if (!isObservable)
@@ -177,7 +182,7 @@ private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<Obs
    private var isSyntheticLinkEvent = false
    private var isSyntheticListEvent = false
    private var isSyntheticSetEvent = false
-   private val isNullable = c.findConstraint<Constraint.HasNonNullElements>()==null
+   private val isNullable = c.findConstraint<HasNonNullElements>()==null
    private val list = lc.a.list
 
    init {
@@ -228,7 +233,7 @@ private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<Obs
 
    override fun refreshItem() {}
 
-   internal inner class ConfigurableField(private val type: Class<T>, value: T?): ValueNode<T?>(value) {
+   private inner class ConfigurableField(private val type: Class<T>, value: T?): ValueNode<T?>(value) {
       private val pane = ConfigPane<T>()
 
       // TODO: improve, as is it can return wrong value

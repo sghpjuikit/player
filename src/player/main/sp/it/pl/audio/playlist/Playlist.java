@@ -23,7 +23,6 @@ import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import sp.it.pl.audio.PlayerManager;
 import sp.it.pl.audio.Song;
 import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -121,7 +120,6 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	/**
 	 * Returns true if specified song is playing song on the playlist. There can
 	 * only be one song in the application for which this method returns true.
-	 * Note the distinction between this method and {@link sp.it.pl.audio.Song#isPlayingSame}
 	 *
 	 * @return true if song is played.
 	 */

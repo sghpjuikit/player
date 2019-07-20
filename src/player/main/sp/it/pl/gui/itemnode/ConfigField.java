@@ -30,9 +30,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import org.jetbrains.annotations.NotNull;
-import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
 import sp.it.pl.gui.itemnode.textfield.EffectTextField;
-import sp.it.pl.gui.itemnode.textfield.FileTextField;
 import sp.it.pl.gui.itemnode.textfield.FontTextField;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -52,9 +50,6 @@ import sp.it.util.conf.OrPropertyConfig.OrValue;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Try;
 import sp.it.util.functional.TryKt;
-import sp.it.util.reactive.Subscription;
-import sp.it.util.validation.Constraint;
-import sp.it.util.validation.Constraint.HasNonNullElements;
 import sp.it.util.validation.Constraint.NumberMinMax;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -63,7 +58,6 @@ import static java.nio.charset.StandardCharsets.UTF_16BE;
 import static java.nio.charset.StandardCharsets.UTF_16LE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
@@ -79,7 +73,6 @@ import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.access.PropertiesKt.not;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.getAny;
 import static sp.it.util.functional.TryKt.getOr;
@@ -88,7 +81,6 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.onItemSyncWhile;
 import static sp.it.util.reactive.UtilKt.syncBiFrom;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncFrom;
@@ -840,130 +832,7 @@ abstract public class ConfigField<T> {
         @Override
         public void refreshItem() {}
     }
-    private static class ObservableListCF<T> extends ConfigField<ObservableList<T>> {
 
-        private final ListConfig<T> lc;
-        private final ListConfigField<T,ConfigurableField> chain;
-        private boolean isSyntheticLinkEvent = false;
-        private boolean isSyntheticListEvent = false;
-        private boolean isSyntheticSetEvent = false;
-        private boolean isSyntheticAddEvent = false;
-        private ListConfigField<T,ConfigurableField>.Link syntheticEventLink = null;
-        private final boolean isNullable;
-
-        @SuppressWarnings("unchecked")
-        public ObservableListCF(Config<ObservableList<T>> c) {
-            super(c);
-            lc = (ListConfig) c;
-            var list = lc.a.list;
-            isNullable = c.getConstraints().stream().noneMatch(HasNonNullElements.class::isInstance);
-
-            // create chain
-            chain = new ListConfigField<>(0, () -> new ConfigurableField(lc.a.itemType, lc.a.factory.get()));
-            syncFrom(chain.editable, chain.getNode().disableProperty().not());
-
-            // bind list to the chain
-            chain.onUserItemAdded.add(consumer(v -> {
-                if (!isSyntheticSetEvent)
-                    if (isNullable || v.chained.getVal()!=null) {
-                        isSyntheticAddEvent = true;
-                        list.add(v.chained.getVal());
-                        isSyntheticAddEvent = false;
-                    }
-            }));
-            chain.onUserItemRemoved.add(consumer(v ->
-                list.remove(v.chained.getVal())
-            ));
-            chain.onUserItemEnabled.add(consumer(v -> {
-                isSyntheticLinkEvent = true;
-                syntheticEventLink = v;
-                if (isNullable || v.chained.getVal()!=null)
-                    list.add(v.chained.getVal());
-                syntheticEventLink = null;
-                isSyntheticLinkEvent =false;
-            }));
-            chain.onUserItemDisabled.add(consumer(v -> {
-                isSyntheticLinkEvent =true;
-                if (isNullable || v.chained.getVal()!=null)
-                    list.remove(v.chained.getVal());
-                isSyntheticLinkEvent =false;
-            }));
-            onItemSyncWhile(
-                list,
-                v -> {
-                    isSyntheticListEvent = true;
-                    var link = isSyntheticLinkEvent
-                            ? syntheticEventLink
-                            : chain.addChained(new ConfigurableField(lc.a.itemType, v));
-                    isSyntheticListEvent = false;
-                    return link==null
-                        ? Subscription.Companion.invoke()
-                        : Subscription.Companion.invoke(runnable(() -> {
-                            if (link.on.getValue())
-                                link.onRem();
-                        }));
-                }
-            );
-
-            chain.growTo1();
-        }
-
-        @Override
-        public Node getEditor() {
-            return chain.getNode();
-        }
-
-        @Override
-        protected Try<ObservableList<T>,String> get() {
-            return ok(config.getValue()); // return the ever-same observable list
-        }
-
-        @Override
-        public void refreshItem() {}
-
-        class ConfigurableField extends ValueNode<T> {
-            private final Class<T> type;
-            private final ConfigPane<T> pane = new ConfigPane<>();
-
-            public ConfigurableField(Class<T> type, T value) {
-                super(value);
-                this.type = type;
-                pane.setOnChange(() -> {
-                    if (isAddableType() && !isSyntheticListEvent && !isSyntheticAddEvent) {
-                        isSyntheticSetEvent = true;
-                        setTo(
-                            lc.a.list,
-                            chain.chain.stream().map(v -> v.chained.getVal()).filter(it -> isNullable || it!=null).collect(toList())
-                        );
-                        isSyntheticSetEvent = false;
-                    }
-                });
-                pane.configure(lc.toConfigurable.invoke(this.value));
-            }
-
-            @Override
-            public Node getNode() {
-                return pane;
-            }
-
-            // TODO: improve, as is it can return wrong value
-            public boolean isAddableType() {
-                if (Configurable.class.isAssignableFrom(type)) return false;
-                var configs = pane.getConfigFields();
-                if (configs.size()!=1) return false;
-                var config1Type = configs.get(0).config.getType();
-                if (config1Type!=type) return false;
-                return true;
-            }
-
-            @Override
-            public T getVal() {
-                if (isAddableType()) return pane.getConfigFields().get(0).getConfigValue();
-                else return value;
-            }
-
-        }
-    }
     private static class PaginatedObservableListCF extends ConfigField<ObservableList<Configurable<?>>> {
 
         private int at = -1;

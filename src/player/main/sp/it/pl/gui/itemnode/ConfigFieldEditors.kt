@@ -12,16 +12,25 @@ import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.gui.itemnode.textfield.FileTextField
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
+import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.main.APP
 import sp.it.util.Util.enumToHuman
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
+import sp.it.util.conf.ConfigImpl
+import sp.it.util.conf.Configurable
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.by
+import sp.it.util.functional.invoke
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.onItemAdded
+import sp.it.util.reactive.onItemRemoved
+import sp.it.util.reactive.onItemSync
+import sp.it.util.reactive.syncFrom
+import sp.it.util.type.isSuperclassOf
 import sp.it.util.validation.Constraint
 import java.io.File
 import java.util.function.BiConsumer
@@ -159,4 +168,93 @@ private class KeyCodeCF: EnumerableCF<KeyCode> {
       }
    }
 
+}
+
+private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<ObservableList<T>>(c) {
+
+   private val lc = c as ConfigImpl.ListConfig<T>
+   private val chain: ChainValueNode.ListConfigField<T, ConfigurableField>
+   private var isSyntheticLinkEvent = false
+   private var isSyntheticListEvent = false
+   private var isSyntheticSetEvent = false
+   private val isNullable = c.findConstraint<Constraint.HasNonNullElements>()==null
+   private val list = lc.a.list
+
+   init {
+
+      chain = ChainValueNode.ListConfigField<T, ConfigurableField>(0) { ConfigurableField(lc.a.itemType, lc.a.factory()) }
+      chain.editable syncFrom !chain.getNode().disableProperty()
+
+      // bind list to chain
+      chain.onUserItemAdded += {
+         isSyntheticLinkEvent = true
+         if (isNullableOk(it.chained.getVal())) list += it.chained.getVal()
+         isSyntheticLinkEvent = false
+      }
+      chain.onUserItemRemoved += {
+         isSyntheticLinkEvent = true
+         list -= it.chained.getVal()
+         isSyntheticLinkEvent = false
+      }
+      chain.onUserItemEnabled += {
+         isSyntheticLinkEvent = true
+         if (isNullableOk(it.chained.getVal())) list += it.chained.getVal()
+         isSyntheticLinkEvent = false
+      }
+      chain.onUserItemDisabled += {
+         isSyntheticLinkEvent = true
+         list -= it.chained.getVal()
+         isSyntheticLinkEvent = false
+      }
+
+      // bind chain to list
+      list.onItemSync {
+         if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
+            chain.addChained(ConfigurableField(lc.a.itemType, it))
+      }
+      list.onItemRemoved {
+         if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
+            chain.chain.find { it.chained.getVal()==it }?.let { chain.chain.remove(it) }
+      }
+
+      chain.growTo1()
+   }
+
+   private fun isNullableOk(it: T?) = isNullable || it!=null
+
+   override fun getEditor() = chain.getNode()
+
+   override fun get() = Try.ok(config.value)
+
+   override fun refreshItem() {}
+
+   internal inner class ConfigurableField(private val type: Class<T>, value: T?): ValueNode<T?>(value) {
+      private val pane = ConfigPane<T>()
+
+      // TODO: improve, as is it can return wrong value
+      val isAddableType: Boolean
+         get() {
+            if (Configurable::class.isSuperclassOf(type)) return false
+            val configs = pane.getConfigFields()
+            if (configs.size!=1) return false
+            val config1Type = configs[0].config.type
+            return config1Type==type
+         }
+
+      init {
+         pane.onChange = Runnable {
+            if (isAddableType && !isSyntheticListEvent && !isSyntheticLinkEvent) {
+               isSyntheticSetEvent = true
+               list setTo chain.chain.map { it.chained.getVal() }.filter { isNullableOk(it) }
+               isSyntheticSetEvent = false
+            }
+         }
+         pane.configure(lc.toConfigurable.invoke(this.value))
+      }
+
+      override fun getNode() = pane
+
+      override fun getVal() = if (isAddableType) pane.getConfigFields()[0].configValue else value
+
+   }
 }

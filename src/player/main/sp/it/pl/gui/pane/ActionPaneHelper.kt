@@ -132,12 +132,14 @@ abstract class ActionData<C, T> {
    }
 
    @Suppress("UNCHECKED_CAST")
-   fun prepInput(data: Any?): T = when (groupApply) {
-      FOR_ALL -> collectionWrap(data) as T
+   fun prepInputExact(data: Any?): T = prepInput(data) as T
+
+   fun prepInput(data: Any?): Any? = when (groupApply) {
+      FOR_ALL -> collectionWrap(data)
       FOR_EACH -> fail { "Action with $groupApply should never get here" }
       NONE -> {
          if (data is Collection<*>) fail { "Action with $groupApply can not use collection" }
-         data as T
+         data
       }
    }
 }

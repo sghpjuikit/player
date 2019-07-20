@@ -280,8 +280,8 @@ public class ActionPane extends OverlayPane<Object> {
 		if (action.isComplex) {
 			ComplexActionData<DATA, NEW_DATA> complexAction = (ComplexActionData) action.complexData.invoke(this);
 			showIcons = false;
-			insteadIcons = () -> (Node) complexAction.gui.invoke((NEW_DATA) getData());
-			var newData = complexAction.input.invoke(action.prepInput(getData()));
+			insteadIcons = () -> (Node) complexAction.gui.invoke((NEW_DATA) action.prepInput(getData()));
+			var newData = complexAction.input.invoke(action.prepInputExact(getData()));
 			show(newData);
 		}
 

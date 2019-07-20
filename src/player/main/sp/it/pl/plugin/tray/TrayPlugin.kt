@@ -63,7 +63,7 @@ class TrayPlugin: PluginBase("Tray", true) {
          menuItem("Show actions") { APP.actions.openOpen() },
          menuItem("Settings") { APP.actions.openSettings() },
          menuItem("New window") { APP.windowManager.createWindow() },
-         menuItem("Play/pause") { APP.audio.pause_resume() },
+         menuItem("Play/pause") { APP.audio.pauseResume() },
          menuItem("Disable tray") { stop() },
          menuItem("Exit") { APP.close() }
       )

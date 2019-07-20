@@ -392,7 +392,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         if (items==null) return;
 
         // remove duplicates
-        MapSet<URI,? extends Song> unique = new MapSet<>(Song::getUri, items);
+        MapSet<URI,? extends Song> unique = new MapSet<>(items, Song::getUri);
 
         this.allSongs.setAll(unique);
         if (add_not_set.get()) add(unique, false); else set(unique);

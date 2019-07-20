@@ -38,7 +38,7 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
 
    constructor(keyMapper: (E) -> K): this(HashMap<K, E>(), keyMapper)
 
-   constructor(keyMapper: (E) -> K, c: Collection<E>): this(HashMap<K, E>(), keyMapper, c)
+   constructor(c: Collection<E>, keyMapper: (E) -> K): this(HashMap<K, E>(), keyMapper, c)
 
    @SafeVarargs
    constructor(keyMapper: (E) -> K, vararg c: E): this(HashMap<K, E>(), keyMapper, *c)

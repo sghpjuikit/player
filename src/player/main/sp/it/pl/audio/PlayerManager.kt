@@ -189,7 +189,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
          return
       }
 
-      if (PlaylistManager.use<PlaylistSong>( { it.getPlaying() }, null)==null) {
+      if (PlaylistManager.use<PlaylistSong>( { it.playing }, null)==null) {
          logger.info("    aborted: no playback was active")
          return
       }
@@ -223,7 +223,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
          PAUSED -> {
             logger.info("playback state is paused, so playback will initialize on resume()/seek()/play()")
             isSuspendedBecauseStartedPaused = true
-            playingSong.songChanged(PlaylistManager.use<PlaylistSong>( { it.getPlaying() }, null)!!)
+            playingSong.songChanged(PlaylistManager.use<PlaylistSong>( { it.playing }, null)!!)
          }
          PLAYING -> {
             player.play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
@@ -337,27 +337,28 @@ class PlayerManager: MultiConfigurableBase("Playback") {
 
       /** Execute when song starts playing.  */
       fun songChanged(song: Song?) {
-         if (song==null) {
-            setValue(true, Metadata.EMPTY)
-            logger.info("Current song changed to none.")
-            logger.info("Current song metadata set to empty.")
-         } else if (value.same(song)) {
-            setValue(true, value)
-            logger.info("Current song changed to the same song.")
-            logger.info("Current song metadata reused.")
-         } else if (valNext.same(song)) {
-            setValue(true, valNext)
-            logger.info("Current song changed to song in order.")
-            logger.info("Current song metadata copied from cache of next song metadata.")
-            // else load
-         } else {
-            logger.info("Current song changed to song not in order.")
-            logger.info("Current song metadata will be loaded...")
-            load(true, song)
-         } // if pre-loaded, set
-         // if same song, still fire change
-
-         // wait 400ms, preload metadata for next song
+         when {
+            song==null -> {
+               setValue(true, Metadata.EMPTY)
+               logger.info("Current song changed to none.")
+               logger.info("Current song metadata set to empty.")
+            }
+            value.same(song) -> {
+               setValue(true, value)
+               logger.info("Current song changed to the same song.")
+               logger.info("Current song metadata reused.")
+            }
+            valNext.same(song) -> {
+               setValue(true, valNext)
+               logger.info("Current song changed to song in order.")
+               logger.info("Current song metadata copied from cache of next song metadata.")
+            }
+            else -> {
+               logger.info("Current song changed to song not in order.")
+               logger.info("Current song metadata will be loaded...")
+               load(true, song)
+            }
+         }
          valNextLoader.start()
       }
 
@@ -373,7 +374,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
       private fun preloadNext() {
          logger.info("Pre-loading metadata for next song to play.")
 
-         val next = PlaylistManager.use( { it.getNextPlaying() }, null)
+         val next = PlaylistManager.use( { it.nextPlaying }, null)
          if (next!=null) {
             runIO {
                next.read()
@@ -420,7 +421,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
 
    /** Pauses/resumes player, if file is being played. Otherwise does nothing.  */
    @IsAction(name = "Pause/resume", desc = "Pauses/resumes playback, if file is being played.", keys = "ALT+S", global = true)
-   fun pause_resume() {
+   fun pauseResume() {
       player.pauseResume()
    }
 
@@ -573,7 +574,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
    @IsAction(name = "Explore current song directory", desc = "Explore current song directory.", keys = "ALT+V", global = true)
    fun openPlayedLocation() {
       if (PlaylistManager.active==null) return
-      val i = PlaylistManager.use<PlaylistSong>( { it.getPlaying() }, null)
+      val i = PlaylistManager.use<PlaylistSong>( { it.playing }, null)
       i?.uri?.browse()
    }
 
@@ -665,17 +666,13 @@ class PlayerManager: MultiConfigurableBase("Playback") {
     * refreshes execute all at once).
     */
    fun refreshSongsWith(ms: List<Metadata>, allowDelay: Boolean) {
-      if (allowDelay)
-         runFX { red.push(ms) }
-      else
-         refreshSongsWithNow(ms)
+      if (allowDelay) runFX { red.push(ms.toMutableList()) }
+      else refreshSongsWithNow(ms)
    }
 
    // processes delayed refreshes - queues them up and invokes refresh after some time
    // use only on fx thread
-   private val red = toLast<List<Metadata>>(3000.0, { o, n ->
-      n + o // TODO: fix performance using mutable list
-   }, { refreshSongsWithNow(it) })
+   private val red = toLast<MutableList<Metadata>>(3000.0, { o, n -> o += n; o }) { refreshSongsWithNow(it) }
 
    private val refreshHandlers = ArrayList<(MapSet<URI, Metadata>) -> Unit>()
 
@@ -689,23 +686,22 @@ class PlayerManager: MultiConfigurableBase("Playback") {
          if (msInDb.isEmpty()) return@runIO
 
          // metadata map hashed with resource identity : O(n^2) -> O(n)
-         val mm = MapSet<URI, Metadata>({ obj: Metadata -> obj.uri }, msInDb)
+         val mm = MapSet(msInDb) { it.uri }
 
          // update library
          APP.db.addSongs(mm)
 
          runFX {
             // update all playlist songs referring to this updated metadata
-            PlaylistManager.playlists.forEach { playlist ->
-               playlist.forEach { song ->
-                  mm.ifHasK(song.uri, Consumer { playlist.updateItem(song) }) // TODO: fix O(n^2) to O(1_
-               }
+            PlaylistManager.playlists.forEach {
+               it.forEach { song -> mm.ifHasK(song.uri, Consumer { song.update(it) }) }
+               it.durationUpdater.push(null)
             }
 
             // refresh playing song data
             mm.ifHasE(playingSong.value, Consumer { playingSong.update(it) })
 
-            if (playing.i.value!=null) mm.ifHasE(playing.i.value!!, Consumer { playing.i.value = it })   // TODO: fix nullpointer
+            if (playing.i.value!=null) mm.ifHasE(playing.i.value!!, Consumer { playing.i.value = it })
 
             // refresh rest
             refreshHandlers.forEach { it(mm) }

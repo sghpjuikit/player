@@ -95,7 +95,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val seeker = Seeker()
    val f1 = IconFA.ANGLE_DOUBLE_LEFT.icon(24.0) { APP.audio.seekBackward(seekType.value) }
    val f2 = IconFA.FAST_BACKWARD.icon(24.0) { PlaylistManager.playPreviousItem() }
-   val f3 = IconFA.PLAY.icon(24.0) { APP.audio.pause_resume() }
+   val f3 = IconFA.PLAY.icon(24.0) { APP.audio.pauseResume() }
    val f4 = IconFA.FAST_FORWARD.icon(24.0) { PlaylistManager.playNextItem() }
    val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { APP.audio.seekForward(seekType.value) }
    val muteB = IconFA.VOLUME_UP.icon(12.0) { APP.audio.toggleMute() }

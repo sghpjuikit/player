@@ -14,6 +14,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.main.APP
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.then
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.reactive.attach1IfNonNull

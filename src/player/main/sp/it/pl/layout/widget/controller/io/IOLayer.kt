@@ -1,6 +1,7 @@
 package sp.it.pl.layout.widget.controller.io
 
 import javafx.animation.PathTransition
+import javafx.animation.Transition
 import javafx.beans.property.DoubleProperty
 import javafx.collections.FXCollections.observableSet
 import javafx.event.EventHandler
@@ -38,9 +39,12 @@ import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
 import sp.it.util.animation.Loop
+import sp.it.util.animation.stopAndFinish
+import sp.it.util.animation.then
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.collections.map.Map2D
 import sp.it.util.collections.map.Map2D.Key
+import sp.it.util.collections.materialize
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
 import sp.it.util.functional.asIs
@@ -459,6 +463,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          }
          val valuePut = if (xPut is Input<*>) input else output
          valuePut!!.sync { a.playCloseDoOpen { label.text.text = valuePut.xPutToStr() } } on disposer
+         disposer += a::stop
       }
 
       fun select(v: Boolean) {
@@ -565,6 +570,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       private val linkGap = 20.0
       private val linkEndOffset = 8.0
       val disposer = Disposer()
+      private val disposerAnimations = mutableListOf<Transition>()
 
       init {
          styleClass += "iolink"
@@ -582,6 +588,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          duplicateTo(effect)
          paneLinks.children += effect
          disposer += { paneLinks.children -= effect }
+
+         disposer += { disposerAnimations.materialize().forEach { it.stopAndFinish() }  }
 
          if (input!=null && output!=null) {
             output.attach { if (edit?.link!=this) dataSend() } on disposer
@@ -684,15 +692,36 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          }
          val a1 = PathTransition(1500.millis, this, pRunner).apply {
             rate = -1.0
-            onFinished = EventHandler { this@IOLayer.children -= pRunner }
+            disposerAnimations += this
+            then {
+               this@IOLayer.children -= pRunner
+               disposerAnimations -= this
+            }
          }
-         val ea1 = anim(300.millis) { eRunner.setScaleXY(sqrt(it)) }.delay(0.millis)
+         val ea1 = anim(300.millis) { eRunner.setScaleXY(sqrt(it)) }.apply {
+            delay = 0.millis
+            disposerAnimations += this
+            then {
+               disposerAnimations -= this
+            }
+         }
          val ea2 = PathTransition(1500.millis, this, eRunner).apply {
             rate = -1.0
             delay = 150.millis
-            onFinished = EventHandler { dataArrived(toX, toY) }
+            disposerAnimations += this
+            then {
+               disposerAnimations -= this
+               dataArrived(toX, toY)
+            }
          }
-         val ea3 = anim(300.millis) { eRunner.setScaleXY(1 - sqrt(it)) }.delay(1500.millis).then { effectClip.children -= eRunner }
+         val ea3 = anim(300.millis) { eRunner.setScaleXY(1 - sqrt(it)) }.apply {
+            delay = 1500.millis
+            disposerAnimations += this
+            then {
+               disposerAnimations -= this
+               effectClip.children -= eRunner
+            }
+         }
 
          a1.playFrom(a1.duration)
          ea1.play()

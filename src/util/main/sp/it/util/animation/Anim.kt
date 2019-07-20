@@ -8,8 +8,10 @@ import javafx.animation.SequentialTransition
 import javafx.animation.Transition
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.util.Duration
+import sp.it.util.dev.Experimental
 import sp.it.util.functional.asArray
 import sp.it.util.functional.invoke
 import sp.it.util.units.divMillis
@@ -103,11 +105,6 @@ open class Anim: Transition {
          }
       }
    )
-
-   /** Sets [onFinished] returns this (fluent style). */
-   fun then(block: Block?) = apply {
-      onFinished = block?.let { EventHandler { block() } }
-   }
 
    override fun interpolate(at: Double) {
       position.value = at
@@ -329,4 +326,16 @@ open class Anim: Transition {
       @S fun mapConcave(x: Double): Double = 1 - abs(2*(x*x - 0.5))
 
    }
+}
+
+/** Sets [Transition.onFinished] returns this (fluent style). */
+fun <T: Transition> T.then(block: Block?) = apply {
+   onFinished = block?.let { EventHandler { block() } }
+}
+
+/** Invokes [Transition.stop] and also [Transition.onFinished]. */
+@Experimental("When using this method, make sure the onFinished handler is not called twice due to stop() calling it")
+fun Transition.stopAndFinish() {
+   stop()
+   onFinished?.handle(ActionEvent(this, null))
 }

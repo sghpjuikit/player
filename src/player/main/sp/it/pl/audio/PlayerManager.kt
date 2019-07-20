@@ -36,9 +36,11 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.MultiConfigurableBase
 import sp.it.util.conf.between
 import sp.it.util.conf.c
+import sp.it.util.conf.cList
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.only
+import sp.it.util.conf.relativeTo
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Functors.Ƒ.f
 import sp.it.util.math.min
@@ -48,7 +50,7 @@ import sp.it.util.system.browse
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
-import sp.it.util.validation.Constraint.FileActor
+import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.net.URI
 import java.util.ArrayList
@@ -78,20 +80,28 @@ class PlayerManager: MultiConfigurableBase("Playback") {
    @IsConfig(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
    val playerInfo by cvro("<none>") { player.pInfo }
 
-   @IsConfig(name = "Vlc player location", editable = EditMode.APP)
+   @IsConfig(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback",  editable = EditMode.APP)
    val playerVlcLocation by cvn<String>(null)
 
+   val playerVlcLocationsRelativeTo = APP.location
+
+   @IsConfig(
+      name = "Vlc player locations",
+      info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location." +
+         "\n\nRequires application restart to take effect."
+   )
+   val playerVlcLocations by cList<File>().only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo)
+
    @IsConfig(name = "Last browse location")
-   var browse by c<File>(APP.location.user).only(FileActor.DIRECTORY)
+   var browse by c<File>(APP.location.user).only(DIRECTORY)
 
    @IsConfig(name = "Last playlist export location")
-   var lastSavePlaylistLocation by c<File>(APP.location.user).only(FileActor.DIRECTORY)
+   var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY)
 
    @IsConfig(
       name = "No song modification",
       info = "Disallow all song modifications by this application." +
-         "\n\nWhen true, app will be unable to change any song metadata" +
-         "\n\nAfter setting this to false, it is recommended to run `Update library` action"
+         "\n\nWhen true, app will be unable to change any song metadata"
    )
    var readOnly by c(true)
 

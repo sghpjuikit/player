@@ -60,13 +60,19 @@ No. Use your operating system to associate files with this application.
 
 ## Installation
 
-User installation steps necessary with the above:
-- download the application release
+User installation steps necessary:
+- download an application release from [Github releases](https://github.com/sghpjuikit/player/releases)
 - set up `JDK`  
-  make `app/java` directory contain or link to `JDK` of correct version
-- set up latest 64-bit `VLC` (optional) using one of:
-  - make `app/vlc` contain/link to (optionally portable) installation of `VLC`
-  - install `VLC` onto your system, this choice is not recommended if absolute privacy and fragile external dependencies are of concern
+  Make `app/java` directory contain or link to `JDK` 11 or 12
+- set up latest 64-bit `VLC` using one of:
+  - make `app/vlc` contain/link to (optionally portable) installation of `VLC`   
+    This is the recommended way, as the application does not depend on external `VLC` version or location
+  - let application discover your `VLC` automatically   
+    This requires `VLC` to be installed.   
+    Note that updating or changing this `VLC` may interfere with this application
+  - add `VLC` location in application settings in `Settings > Playback > Vlc player locations`
+    This is recommended if you do have `VLC` available, but not installed or integrated in your system
+    Note that updating or changing this `VLC` may interfere with this application
   
 ## Uninstallation
 

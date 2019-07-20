@@ -5,7 +5,6 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import mu.KLogging
-import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
 import sp.it.util.async.runFX
@@ -67,7 +66,10 @@ class VlcPlayer: GeneralPlayer.Play {
 
    override fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
       val pf = playerFactory
-         ?: MediaPlayerFactory(discoverVlc(APP.location/"vlc"), "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access")
+         ?: MediaPlayerFactory(
+            discoverVlc(listOf(APP.location/"vlc") + APP.audio.playerVlcLocations),
+            "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access"
+         )
       playerFactory = pf
 
       if (APP.audio.playerVlcLocation.value==null) {
@@ -162,10 +164,10 @@ class VlcPlayer: GeneralPlayer.Play {
 
    companion object: KLogging() {
 
-      private fun discoverVlc(location: File) = NativeDiscovery(
-         WindowsNativeDiscoveryStrategy().customize(location),
-         LinuxNativeDiscoveryStrategy().customize(location),
-         OsxNativeDiscoveryStrategy().customize(location),
+      private fun discoverVlc(locations: List<File>) = NativeDiscovery(
+         WindowsNativeDiscoveryStrategy().customize(locations),
+         LinuxNativeDiscoveryStrategy().customize(locations),
+         OsxNativeDiscoveryStrategy().customize(locations),
          WindowsNativeDiscoveryStrategy().wrap(),
          LinuxNativeDiscoveryStrategy().wrap(),
          OsxNativeDiscoveryStrategy().wrap()
@@ -174,7 +176,7 @@ class VlcPlayer: GeneralPlayer.Play {
       private fun NativeDiscoveryStrategy.wrap() = NativeDiscoveryStrategyWrapper(this)
 
       @Suppress("SpellCheckingInspection")
-      private fun NativeDiscoveryStrategy.customize(location: File) = object: BaseNativeDiscoveryStrategy(
+      private fun NativeDiscoveryStrategy.customize(locations: List<File>) = object: BaseNativeDiscoveryStrategy(
          when (this@customize) {
             is WindowsNativeDiscoveryStrategy -> arrayOf("libvlc\\.dll", "libvlccore\\.dll")
             is LinuxNativeDiscoveryStrategy -> arrayOf("libvlc\\.so(?:\\.\\d)*", "libvlccore\\.so(?:\\.\\d)*")
@@ -190,16 +192,17 @@ class VlcPlayer: GeneralPlayer.Play {
       ) {
          override fun supported() = this@customize.supported()
          override fun setPluginPath(pluginPath: String?) = this@customize.onSetPluginPath(pluginPath)
-         override fun discoveryDirectories() = mutableListOf(location.absolutePath)
+         override fun discoveryDirectories() = locations.map { APP.audio.playerVlcLocationsRelativeTo.resolve(it).path }
+
          override fun onFound(path: String?): Boolean {
-            APP.audio.playerVlcLocation.value = "Custom: " + location.absolutePath
+            APP.audio.playerVlcLocation.value = "Custom: $path"
             return super.onFound(path)
          }
       }
 
       class NativeDiscoveryStrategyWrapper(private val discoverer: NativeDiscoveryStrategy): NativeDiscoveryStrategy by discoverer {
          override fun onFound(path: String?): Boolean {
-            APP.audio.playerVlcLocation.value = "Installed in system (${Os.current})"
+            APP.audio.playerVlcLocation.value = "Installed in system (${Os.current}) as $path"
             return discoverer.onFound(path)
          }
       }

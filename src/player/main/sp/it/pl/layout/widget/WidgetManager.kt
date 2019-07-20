@@ -55,13 +55,15 @@ import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
 import sp.it.util.file.toURLOrNull
 import sp.it.util.functional.Try
+import sp.it.util.functional.andAlso
 import sp.it.util.functional.asArray
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
-import sp.it.util.functional.ifNull
 import sp.it.util.functional.invoke
+import sp.it.util.functional.let_
 import sp.it.util.functional.or
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.toOptional
 import sp.it.util.functional.toTry
 import sp.it.util.functional.toUnit
@@ -300,20 +302,23 @@ class WidgetManager {
       }
 
       @Suppress("UNCHECKED_CAST")
-      private fun registerFactory(controllerType: Class<*>?) {
-         if (controllerType==null) {
-            logger.warn { "Widget class $controllerType is null" }
-            return
-         }
-         if (!controllerType.isSubclassOf<Controller>()) {
-            logger.warn { "Widget class $controllerType in $widgetDir does not implement Controller" }
-            return
-         }
-
-         val widgetType = (controllerType as Class<Controller>).kotlin
-         val widgetFactory = WidgetFactory(widgetType, widgetDir, this)
-         registerFactory(widgetFactory)
-         if (initialized) widgetFactory.reloadAllOpen()
+      private fun registerFactory(controllerType: Try<Class<*>, Throwable>) {
+         controllerType
+            .ifError {
+               logger.warn(it) { "Widget $widgetName failed to register factory" }
+               if (it is UnsupportedClassVersionError)
+                  compileFx()
+            }
+            .ifOk { type ->
+               if (!type.isSubclassOf<Controller>()) {
+                  logger.warn { "Widget $widgetName failed to register factory, class $type in $widgetDir does not implement ${Controller::class}" }
+               } else {
+                  val widgetType = (type as Class<Controller>).kotlin
+                  val widgetFactory = WidgetFactory(widgetType, widgetDir, this)
+                  registerFactory(widgetFactory)
+                  if (initialized) widgetFactory.reloadAllOpen()
+               }
+            }
       }
 
       private fun compileFx() {
@@ -625,26 +630,22 @@ class WidgetManager {
       fun WidgetFactory<*>.scheduleCompilation() = APP.widgetManager.monitors[nameGui()]!!.scheduleCompilation()
 
       /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
-      private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Class<*>? {
+      private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Try<Class<*>, Throwable> {
          val className = "$widgetName.${classFile.nameWithoutExtension}"
-
-         return try {
-            createControllerClassLoader(compileDir, libFiles)
-               .ifNull { logger.info { "Class loading failed for $classFile" } }
-               ?.loadClass(className)
-         } catch (e: ClassNotFoundException) {
-            logger.info(e) { "Class loading failed for $classFile" }
-            null
+         return createControllerClassLoader(compileDir, libFiles).andAlso {
+            try {
+               runTry {
+                  it.loadClass(className)
+               }
+            } catch (t: LinkageError) {
+               Try.error(t)
+            }
          }
       }
 
       /** @return new class loader using specified files to load classes and resources from or null if error */
-      private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): ClassLoader? {
-         return (libFiles + compileDir)
-            .map { it.toURLOrNull().ifNull { logger.error { "Failed to construct class loader due to invalid URL of file=$it" } } }
-            .asArray()
-            .takeIf { it.all { it!=null } }
-            ?.let { URLClassLoader(it) }
+      private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): Try<ClassLoader, Throwable> = runTry {
+         (libFiles + compileDir).map { it.toURI().toURL() }.asArray() let_ ::URLClassLoader
       }
 
       private fun <R> Optional<Widget>.filterIsControllerInstance(type: Class<R>): Optional<R> =

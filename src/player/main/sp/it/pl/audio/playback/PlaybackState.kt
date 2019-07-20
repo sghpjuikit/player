@@ -15,6 +15,7 @@ class PlaybackState {
    val duration = v(0.millis)
    val currentTime = v(0.millis)
    val realTime = v(0.millis)
+   val realTimeImpl = RealTimeProperty(duration, currentTime)
    val mute = v(false)
    val rate = v(1.0)
    val remainingTime: Duration

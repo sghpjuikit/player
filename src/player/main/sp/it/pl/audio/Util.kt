@@ -24,9 +24,9 @@ class PlayerStateDB: Serializable {
    var playlistId: String? = null
 
    constructor(s: PlayerState) {
-      this.playback = PlaybackStateDB(s.playback)
-      this.playlists = s.playlists.map { PlaylistDB(it) }
-      this.playlistId = PlaylistManager.active?.toString()
+      playback = PlaybackStateDB(s.playback)
+      playlists = s.playlists.map { PlaylistDB(it) }
+      playlistId = PlaylistManager.active?.toString()
    }
 
    fun toDomain() = PlayerState(this)
@@ -38,7 +38,7 @@ class PlaybackStateDB(s: PlaybackState): Serializable {
    var status: String = s.status.value.toString()
    var duration: Double = s.duration.value.toMillis()
    var currentTime: Double = s.currentTime.value.toMillis()
-   var realTime: Double = s.realTime.value.toMillis()
+   var realTime: Double = s.realTimeImpl.value.toMillis()
    var mute: Boolean = s.mute.value
    var rate: Double = s.rate.value
 

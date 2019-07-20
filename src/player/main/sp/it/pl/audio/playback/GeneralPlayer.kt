@@ -6,7 +6,6 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KLogging
-import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.PlayerState
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -25,24 +24,18 @@ import sp.it.util.units.millis
 import kotlin.math.pow
 
 /** Audio player which abstracts away from the implementation. */
-class GeneralPlayer {
+class GeneralPlayer(state: PlayerState) {
 
-   private val state: PlayerState
+   private val state = state
    private var p: Play? = null
    private val _pInfo = ReadOnlyObjectWrapper("<none>")
    val pInfo = _pInfo.readOnlyProperty!!
    private var i: Song? = null
-   val realTime: RealTimeProperty    // TODO: move to state
    private var seekDone = true
    private var lastValidVolume = -1.0
    private var volumeAnim: Anim? = null
 
-   constructor(playerManager: PlayerManager) {
-      this.state = playerManager.state
-      this.realTime = playerManager.realTime
-   }
-
-   @Synchronized fun play(song: PlaylistSong) {
+   fun play(song: PlaylistSong) {
       APP.audio.isSuspendedBecauseStartedPaused = false
 
       // Do not recreate player if same song plays again
@@ -79,11 +72,11 @@ class GeneralPlayer {
                      song,
                      state.playback,
                      {
-                        realTime.realSeek = state.playback.realTime.get()
-                        realTime.currentSeek = ZERO
+                        state.playback.realTimeImpl.realSeek = state.playback.realTime.value
+                        state.playback.realTimeImpl.currentSeek = ZERO
                         player.play()
 
-                        realTime.syncRealTimeOnPlay()
+                        state.playback.realTimeImpl.syncRealTimeOnPlay()
                         // throw song change event
                         APP.audio.playingSong.songChanged(song)
                         APP.audio.isSuspended = false
@@ -141,7 +134,7 @@ class GeneralPlayer {
          it.stop()
          runFX {
             APP.audio.playingSong.songChanged(Metadata.EMPTY)
-            realTime.syncRealTimeOnStop()
+            state.playback.realTimeImpl.syncRealTimeOnStop()
             APP.audio.onPlaybackAt.forEach { it.stop() }
             PlaylistManager.playlists.forEach { it.updatePlayingItem(-1) }
             PlaylistManager.active = null
@@ -181,11 +174,11 @@ class GeneralPlayer {
    }
 
    private fun doSeek(duration: Duration) {
-      realTime.syncRealTimeOnPreSeek()
+      state.playback.realTimeImpl.syncRealTimeOnPreSeek()
       state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
       state.playback.currentTime.attach1IfNonNull { APP.audio.onSeekDone.run() }
       p?.seek(duration)
-      realTime.syncRealTimeOnPostSeek(duration)
+      state.playback.realTimeImpl.syncRealTimeOnPostSeek(duration)
    }
 
    fun disposePlayback() {

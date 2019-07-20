@@ -10,7 +10,6 @@ import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
-import sp.it.pl.audio.playback.RealTimeProperty
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.sequence.PlayingSequence
@@ -61,11 +60,10 @@ import java.util.function.Consumer
 
 class PlayerManager: MultiConfigurableBase("Playback") {
 
-   @JvmField val playing = InOutput<Metadata>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing").appWide()
-   @JvmField val playingSong = CurrentItem()
-   @JvmField val state = PlayerState.deserialize()
-   @JvmField val realTime = RealTimeProperty(state.playback.duration, state.playback.currentTime)
-   private val player = GeneralPlayer(this)
+   val playing = InOutput<Metadata>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing").appWide()
+   val playingSong = CurrentItem()
+   val state = PlayerState.deserialize()
+   private val player = GeneralPlayer(state)
 
    @IsConfig(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
    var continuePlaybackOnStart by c(true)
@@ -164,8 +162,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
                it.setPlayedLastNow()
             }
       }
-
-      player.realTime.initialize()
+      state.playback.realTimeImpl.initialize()
       onPlaybackAt += PlayTimeHandler.at({ total -> total }, f { onPlaybackAt.forEach { it.restart(playingSong.value.getLength()) } }) // TODO: fix possible StackOverflowError
       onPlaybackEnd += {
          when (state.playback.loopMode.value) {

@@ -320,7 +320,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
         onClose.plusAssign(sync1IfInScene(root, runnable(() -> {
             if (!inputLocation.isBound(widget.id) && !inputLocationOf.isBound(widget.id) && !widget.isDeserialized)
-                inputLocationOf.bind(APP.audio.playing.o);
+                inputLocationOf.bind(APP.audio.getPlaying().o);
         })));
     }
 

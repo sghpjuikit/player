@@ -242,9 +242,9 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          lastRemainingTimeS = remainingTimeS
       }
 
-      val realTimeS = APP.audio.realTime.get().toSeconds()
+      val realTimeS = APP.audio.state.playback.realTimeImpl.value.toSeconds()
       if (realTimeS!=lastRealTimeS)
-         realTime.text = APP.audio.realTime.get().toHMSMs()
+         realTime.text = APP.audio.state.playback.realTimeImpl.value.toHMSMs()
       lastRealTimeS = realTimeS
    }
 

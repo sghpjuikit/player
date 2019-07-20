@@ -126,6 +126,7 @@ class SongDb {
    private fun setInMemoryDB(l: List<Metadata>) {
       songsById setTo l
       updateSongValues()
+
       runFX {
          songs.i.value = l
       }

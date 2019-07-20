@@ -25,6 +25,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.gui.itemnode.ConfigField;
@@ -286,13 +287,13 @@ public final class Seeker extends AnchorPane {
 
 
 	/** Chapter display strategy. */
-	public final V<ChapterDisplayMode> chapterDisplayMode = new V<>(ChapterDisplayMode.POPUP_SHARED);
+	@NotNull public final V<ChapterDisplayMode> chapterDisplayMode = new V<>(ChapterDisplayMode.POPUP_SHARED);
 	/** Chapter display activation strategy. */
-	public final V<ChapterDisplayActivation> chapterDisplayActivation = new V<>(ChapterDisplayActivation.HOVER);
+	@NotNull public final V<ChapterDisplayActivation> chapterDisplayActivation = new V<>(ChapterDisplayActivation.HOVER);
 	/** Whether seeker snaps to chapters. */
-	public final V<Boolean> chapterSnap = new V<>(false);
+	@NotNull public final V<Boolean> chapterSnap = new V<>(false);
 	/** Seeker snap to chapter activation distance. */
-	public final DoubleProperty chapterSnapDistance = new SimpleDoubleProperty(15);
+	@NotNull public final DoubleProperty chapterSnapDistance = new SimpleDoubleProperty(15);
 	/** Chapter selected */
 	private Chap chapterSelected = null;
 
@@ -382,7 +383,7 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void timeUpdateDo(long frame) {
-		if (!user_drag && APP.audio.state.playback.getStatus().getValue()==PLAYING) {
+		if (!user_drag && APP.audio.getState().playback.getStatus().getValue()==PLAYING) {
 			long dt = posLastFrame==0 ? 0 : (frame - posLastFrame)/1000000;
 			double dp = dt/timeTot.get().toMillis();
 			posLast += dp;
@@ -557,7 +558,7 @@ public final class Seeker extends AnchorPane {
 				editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
 				commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
 				delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
-					Metadata m = APP.audio.playingSong.getValue();
+					Metadata m = APP.audio.getPlayingSong().getValue();
 					write(m, consumer(it -> it.removeChapter(c, m)));
 				});
 				cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
@@ -696,7 +697,7 @@ public final class Seeker extends AnchorPane {
 				message.setText(text);
 				// and physically
 				c.setText(text);
-				Metadata m = APP.audio.playingSong.getValue();
+				Metadata m = APP.audio.getPlayingSong().getValue();
 				write(m, consumer(it -> it.addChapter(c, m)));
 			}
 			// maintain proper content

@@ -34,7 +34,6 @@ class PlayerState {
 
    @Blocks
    fun serialize() {
-      playback.realTime.set(APP.audio.realTime.get()) // TODO: remove
       playlistId = PlaylistManager.active
 
       val activePlaylists = APP.widgetManager.widgets.findAll(OPEN).asSequence()

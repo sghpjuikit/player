@@ -12,8 +12,8 @@ class RealTimeProperty {
    private val totalTime: ObjectProperty<Duration>
    private val currentTime: ObjectProperty<Duration>
    private val realTime: ObjectProperty<Duration>
-   @JvmField var currentSeek: Duration
-   @JvmField var realSeek: Duration
+   var currentSeek: Duration
+   var realSeek: Duration
 
    constructor(totalTime: ObjectProperty<Duration>, currentTime: ObjectProperty<Duration>) {
       this.totalTime = totalTime
@@ -24,7 +24,7 @@ class RealTimeProperty {
    }
 
    fun initialize() {
-      currentTime attach { realTime.value = realSeek + currentTime.get() - currentSeek }
+      currentTime attach { realTime.value = realSeek + currentTime.value - currentSeek }
    }
 
    fun syncRealTimeOnPlay() {
@@ -38,14 +38,15 @@ class RealTimeProperty {
    }
 
    fun syncRealTimeOnPreSeek() {
-      realSeek = realTime.get()
+      realSeek = realTime.value
    }
 
    fun syncRealTimeOnPostSeek(duration: Duration) {
       currentSeek = duration
    }
 
-   fun get() = realTime.get()!!
+   val value: Duration
+      get() = realTime.value
 
    fun realTimeProperty() = realTime
 

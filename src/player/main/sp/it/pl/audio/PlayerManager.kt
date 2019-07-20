@@ -264,9 +264,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
          // This can lead to dangerous situations (rarely) for example when tagging suspends
          // playback and calls this method and there is a listener to this which calls tagging
          // this will cause infinite loop!
-         //
-         // for now we will use flag as dirty solution
-         if (isSuspended) return
+         if (isSuspended && !isSuspendedBecauseStartedPaused) return
 
          if (change) changes.forEach { h -> h(ov, new_metadata) }
          updates.forEach { h -> h(ov, new_metadata) }

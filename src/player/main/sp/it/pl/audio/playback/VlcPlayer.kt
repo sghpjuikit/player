@@ -123,14 +123,14 @@ class VlcPlayer: GeneralPlayer.Play {
 
       override fun stopped(mediaPlayer: MediaPlayer) {
          runFX {
-            if (!APP.audio.suspension_flag)
+            if (!APP.audio.isSuspended)
                state.status.value = STOPPED
          }
       }
 
       override fun paused(mediaPlayer: MediaPlayer) {
          runFX {
-            if (!APP.audio.suspension_flag)
+            if (!APP.audio.isSuspended)
                state.status.value = PAUSED
 
             APP.audio.startTime?.let { seek(it) }
@@ -140,7 +140,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
       override fun playing(mediaPlayer: MediaPlayer) {
          runFX {
-            if (!APP.audio.suspension_flag)
+            if (!APP.audio.isSuspended)
                state.status.value = PLAYING
 
             APP.audio.startTime?.let { seek(it) }

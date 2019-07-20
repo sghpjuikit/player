@@ -4,12 +4,13 @@ import javafx.collections.FXCollections.observableSet
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.media.AudioSpectrumListener
-import javafx.scene.media.MediaPlayer
+import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
+import sp.it.pl.audio.playback.RealTimeProperty
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.sequence.PlayingSequence
@@ -41,6 +42,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.only
 import sp.it.util.conf.relativeTo
+import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Functors.Ƒ.f
 import sp.it.util.math.min
@@ -56,14 +58,14 @@ import java.net.URI
 import java.util.ArrayList
 import java.util.function.BiConsumer
 import java.util.function.Consumer
-import javax.print.attribute.standard.PrinterStateReason.PAUSED
 
 class PlayerManager: MultiConfigurableBase("Playback") {
 
-   @JvmField val state = PlayerState.deserialize()
-   @JvmField val playingSong = CurrentItem()
-   @JvmField val player = GeneralPlayer(state)
    @JvmField val playing = InOutput<Metadata>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing").appWide()
+   @JvmField val playingSong = CurrentItem()
+   @JvmField val state = PlayerState.deserialize()
+   @JvmField val realTime = RealTimeProperty(state.playback.duration, state.playback.currentTime)
+   private val player = GeneralPlayer(this)
 
    @IsConfig(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
    var continuePlaybackOnStart by c(true)
@@ -106,17 +108,13 @@ class PlayerManager: MultiConfigurableBase("Playback") {
    var readOnly by c(true)
 
    var startTime: Duration? = null
-   // this prevents onTime handlers to reset after playback activation
-   // the suspension-activation should undergo as if it never happen
-   var post_activating = false
-   // this negates the above when app starts and playback is activated 1st time
-   var post_activating_1st = true
-   // this prevents update/change playing song events on suspension/activating, it is important (see where it is used)
-   var suspension_flag = false
+   var postActivating = false // this prevents onTime handlers to reset after playback activation the suspension-activation should undergo as if it never happen
+   var postActivating1st = true // this negates the above when app starts and playback is activated 1st time
+   var isSuspended = true
+   var isSuspendedBecauseStartedPaused = false
 
    /**
     * Set of actions that execute when song starts playing. Seeking to song start doesn't activate this event.
-    *
     *
     * It is not safe to assume that application's information on currently played
     * song will be updated before this event. Therefore using cached information
@@ -131,7 +129,6 @@ class PlayerManager: MultiConfigurableBase("Playback") {
 
    /**
     * Set of actions that will execute when song playback ends.
-    *
     *
     * It is safe to use in-app cache of currently played song inside
     * the behavior parameter.
@@ -186,13 +183,55 @@ class PlayerManager: MultiConfigurableBase("Playback") {
 
    /** Initialize state from last session  */
    fun loadLastState() {
-      if (!continuePlaybackOnStart) return
-      if (PlaylistManager.use<PlaylistSong>( { it.getPlaying() }, null)==null) return
+      logger.info { "Restoring last playback state..." }
+      if (!continuePlaybackOnStart) {
+         logger.info("    aborted: continuePlaybackOnStart==false")
+         return
+      }
+
+      if (PlaylistManager.use<PlaylistSong>( { it.getPlaying() }, null)==null) {
+         logger.info("    aborted: no playback was active")
+         return
+      }
 
       if (continuePlaybackPaused)
-         state.playback.status.set(MediaPlayer.Status.PAUSED)
+         state.playback.status.value = PAUSED
 
       activate()
+   }
+
+   @Idempotent
+   fun suspend() {
+      if (isSuspended) return
+      logger.info("Suspending playback")
+
+      isSuspended = true
+      player.disposePlayback()
+   }
+
+   @Idempotent
+   fun activate() {
+      if (!isSuspended) return
+      logger.info("Activating playback")
+
+      postActivating = true
+      val s = state.playback.status.value
+      if (s==PAUSED || s==PLAYING)
+         startTime = state.playback.currentTime.value
+
+      when (s) {
+         PAUSED -> {
+            logger.info("playback state is paused, so playback will initialize on resume()/seek()/play()")
+            isSuspendedBecauseStartedPaused = true
+            playingSong.songChanged(PlaylistManager.use<PlaylistSong>( { it.getPlaying() }, null)!!)
+         }
+         PLAYING -> {
+            player.play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
+            // suspension_flag = false; // set inside player.play();
+            runFX(200.millis) { isSuspended = false } // just in case som condition prevents resetting flag
+         }
+         else -> isSuspended = false
+      }
    }
 
    inner class CurrentItem {
@@ -227,7 +266,7 @@ class PlayerManager: MultiConfigurableBase("Playback") {
          // this will cause infinite loop!
          //
          // for now we will use flag as dirty solution
-         if (suspension_flag) return
+         if (isSuspended) return
 
          if (change) changes.forEach { h -> h(ov, new_metadata) }
          updates.forEach { h -> h(ov, new_metadata) }
@@ -671,34 +710,6 @@ class PlayerManager: MultiConfigurableBase("Playback") {
             // refresh rest
             refreshHandlers.forEach { it(mm) }
          }
-      }
-   }
-
-   fun suspend() {
-      logger.info("Suspending playback")
-
-      suspension_flag = true
-      player.disposePlayback()
-   }
-
-   fun activate() {
-      logger.info("Activating playback")
-
-      post_activating = true
-      val s = state.playback.status.get()
-      if (s==PAUSED || s==PLAYING)
-         startTime = state.playback.currentTime.get()
-      if (s==PAUSED) {
-         // TODO: fix delay
-         player.play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
-         runFX(1000.millis) { player.pause() }
-      }
-      if (s==PLAYING) {
-         player.play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
-         // suspension_flag = false; // set inside player.play();
-         runFX(200.millis) { suspension_flag = false } // just in case som condition prevents resetting flag
-      } else {
-         suspension_flag = false
       }
    }
 

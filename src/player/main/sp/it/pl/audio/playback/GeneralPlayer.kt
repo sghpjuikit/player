@@ -6,6 +6,7 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KLogging
+import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.PlayerState
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -17,6 +18,8 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.then
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.units.millis
 import kotlin.math.pow
@@ -34,12 +37,14 @@ class GeneralPlayer {
    private var lastValidVolume = -1.0
    private var volumeAnim: Anim? = null
 
-   constructor(state: PlayerState) {
-      this.state = state
-      this.realTime = RealTimeProperty(state.playback.duration, state.playback.currentTime)
+   constructor(playerManager: PlayerManager) {
+      this.state = playerManager.state
+      this.realTime = playerManager.realTime
    }
 
    @Synchronized fun play(song: PlaylistSong) {
+      APP.audio.isSuspendedBecauseStartedPaused = false
+
       // Do not recreate player if same song plays again
       // 1) improves performance
       // 2) avoids firing some playback events
@@ -81,15 +86,15 @@ class GeneralPlayer {
                         realTime.syncRealTimeOnPlay()
                         // throw song change event
                         APP.audio.playingSong.songChanged(song)
-                        APP.audio.suspension_flag = false
+                        APP.audio.isSuspended = false
                         // fire other events (may rely on the above)
                         APP.audio.onPlaybackStart()
-                        if (APP.audio.post_activating_1st || !APP.audio.post_activating)
+                        if (APP.audio.postActivating1st || !APP.audio.postActivating)
                         // bug fix, not updated playlist songs can get here, but should not!
                            if (song.timeMs>0)
                               APP.audio.onPlaybackAt.forEach { t -> t.restart(song.time) }
-                        APP.audio.post_activating = false
-                        APP.audio.post_activating_1st = false
+                        APP.audio.postActivating = false
+                        APP.audio.postActivating1st = false
                      },
                      { unableToPlayAny ->
                         logger.info { "Player=$p can not play song=$song" }
@@ -110,28 +115,29 @@ class GeneralPlayer {
    private fun computePlayer(): Play = VlcPlayer()
 
    fun resume() {
-      p?.let {
+      p.ifNotNull {
          it.resume()
          APP.audio.onPlaybackAt.forEach { it.unpause() }
+      }.ifNull {
+         if (APP.audio.isSuspendedBecauseStartedPaused)
+            play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
       }
    }
 
    fun pause() {
-      p?.let {
+      p.ifNotNull {
          it.pause()
          APP.audio.onPlaybackAt.forEach { it.pause() }
       }
    }
 
    fun pauseResume() {
-      p?.let {
-         if (state.playback.status.get()==PLAYING) pause()
-         else resume()
-      }
+      if (state.playback.status.value==PLAYING) pause()
+      else resume()
    }
 
    fun stop() {
-      p?.let {
+      p.ifNotNull {
          it.stop()
          runFX {
             APP.audio.playingSong.songChanged(Metadata.EMPTY)
@@ -144,8 +150,8 @@ class GeneralPlayer {
    }
 
    fun seek(duration: Duration) {
-      p?.let {
-         val s = state.playback.status.get()
+      p.ifNotNull {
+         val s = state.playback.status.value
 
          if (s==STOPPED) pause()
 
@@ -153,7 +159,7 @@ class GeneralPlayer {
 
          // TODO: enable volume fading on seek
          if (false) {
-            val currentVolume = state.playback.volume.get()
+            val currentVolume = state.playback.volume.value
             if (seekDone)
                lastValidVolume = currentVolume
             else {
@@ -169,6 +175,8 @@ class GeneralPlayer {
                }
                .playOpen()
          }
+      }.ifNull {
+         if (APP.audio.isSuspendedBecauseStartedPaused) play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
       }
    }
 

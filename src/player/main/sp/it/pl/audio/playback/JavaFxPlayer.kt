@@ -74,7 +74,7 @@ class JavaFxPlayer: GeneralPlayer.Play {
 
             p.statusProperty().attach1If({ it==PLAYING || it==PAUSED || it==STOPPED }) {
                p.currentTimeProperty() syncTo state.currentTime on onDispose
-               p.statusProperty().sync { if (!APP.audio.suspension_flag) state.status.value = it } on onDispose
+               p.statusProperty().sync {if (!APP.audio.isSuspended) state.status.value = it } on onDispose
             }
             p.statusProperty() attach {
                if (it==PLAYING || it==PAUSED) {

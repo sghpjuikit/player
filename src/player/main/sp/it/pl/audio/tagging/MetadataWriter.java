@@ -57,6 +57,7 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.Util.emptyOr;
+import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
@@ -817,7 +818,9 @@ public class MetadataWriter extends Song {
 					}
 				}
 
-				APP.audio.activate();
+				runFX(() ->
+					APP.audio.activate()
+				);
 				return r;
 			} else {
 				LOGGER.error("Can not write file tag: {}", audioFile.getFile().getPath(), ex);

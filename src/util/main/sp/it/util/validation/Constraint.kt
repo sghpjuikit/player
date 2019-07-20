@@ -110,8 +110,9 @@ interface Constraint<in T> {
 
       override fun isValid(value: File?) = value==null || condition(value)
       override fun message() = message
-
    }
+
+   class FileRelative(val to: File): MarkerConstraint()
 
    class NumberMinMax(val min: Double, val max: Double): Constraint<Number> {
 
@@ -121,7 +122,6 @@ interface Constraint<in T> {
 
       override fun isValid(value: Number?) = value==null || value.toDouble() in min..max
       override fun message() = "Number must be in range $min - $max"
-
    }
 
    class StringNonEmpty: Constraint<String> {
@@ -145,9 +145,7 @@ interface Constraint<in T> {
          return value==null || value.greaterThanOrEqualTo(Duration.ZERO)
       }
 
-      override fun message(): String {
-         return "Duration can not be negative"
-      }
+      override fun message() = "Duration can not be negative"
    }
 
    abstract class MarkerConstraint: Constraint<Any?> {

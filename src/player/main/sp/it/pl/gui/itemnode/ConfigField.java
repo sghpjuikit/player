@@ -790,47 +790,6 @@ abstract public class ConfigField<T> {
             editor.setValue(config.getValue());
         }
     }
-    private static class FileCF extends ConfigField<File> {
-        FileTextField editor;
-        boolean isObservable;
-
-        public FileCF(Config<File> c) {
-            super(c);
-            ObservableValue<File> v = getObservableValue(c);
-            isObservable = v!=null;
-            Constraint.FileActor constraint = stream(c.getConstraints())
-                .filter(Constraint.FileActor.class::isInstance).map(Constraint.FileActor.class::cast)
-                .findFirst().orElse(Constraint.FileActor.ANY);
-
-            editor = new FileTextField(constraint);
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
-            editor.setValue(config.getValue());
-            editor.setOnKeyPressed(e -> {
-                if (e.getCode()==ENTER) {
-                    e.consume();
-                }
-            });
-
-            if (isObservable) v.addListener((o,ov,nv) -> editor.setValue(nv));
-            editor.setOnValueChange((ov, nv) -> apply(false));
-        }
-
-        @Override
-        public Control getEditor() {
-            return editor;
-        }
-
-        @Override
-        public Try<File,String> get() {
-            return ok(editor.getValue());
-        }
-
-        @Override
-        public void refreshItem() {
-            if (!isObservable)
-                editor.setValue(config.getValue());
-        }
-    }
     private static class EffectCF extends ConfigField<Effect> {
 
         private final EffectTextField editor;

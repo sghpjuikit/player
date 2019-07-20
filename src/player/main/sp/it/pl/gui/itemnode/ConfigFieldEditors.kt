@@ -7,7 +7,10 @@ import javafx.collections.ObservableSet
 import javafx.event.EventHandler
 import javafx.scene.control.ComboBox
 import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent.ANY
+import javafx.scene.input.KeyEvent.KEY_PRESSED
+import sp.it.pl.gui.itemnode.textfield.FileTextField
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
 import sp.it.pl.main.APP
 import sp.it.util.Util.enumToHuman
@@ -17,8 +20,11 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.Util.by
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.validation.Constraint
+import java.io.File
+import java.util.function.BiConsumer
 
 open class EnumerableCF<T>: ConfigField<T> {
    protected val n: ComboBox<T>
@@ -106,13 +112,42 @@ open class EnumerableCF<T>: ConfigField<T> {
    override fun getEditor() = n
 }
 
+private class FileCF(c: Config<File>): ConfigField<File>(c) {
+   internal var editor: FileTextField
+   internal var isObservable: Boolean = false
+
+   init {
+      val v = getObservableValue(c)
+      isObservable = v!=null
+      val fileType = c.findConstraint<Constraint.FileActor>() ?: Constraint.FileActor.ANY
+      val relativeTo = c.findConstraint<Constraint.FileRelative>()?.to
+
+      editor = FileTextField(fileType, relativeTo)
+      editor.styleClass += STYLECLASS_TEXT_CONFIG_FIELD
+      editor.onEventDown(KEY_PRESSED, ENTER) { it.consume() }
+      editor.value = config.value
+
+      v?.attach { editor.value = it }
+      editor.onValueChange = BiConsumer { _, _ -> apply(false) }
+   }
+
+   override fun getEditor() = editor
+
+   public override fun get() = Try.ok(editor.value)   // TODO: return error when nullable not allowed
+
+   override fun refreshItem() {
+      if (!isObservable)
+         editor.value = config.value
+   }
+}
+
 private class KeyCodeCF: EnumerableCF<KeyCode> {
 
    constructor(c: Config<KeyCode>): super(c) {
       n.onKeyPressed = EventHandler { it.consume() }
       n.onKeyReleased = EventHandler { it.consume() }
       n.onKeyTyped = EventHandler { it.consume() }
-      n.onEventUp(KeyEvent.ANY) {
+      n.onEventUp(ANY) {
          // Note that in case of UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any
          // which cause selection change) the KEY_PRESSED event will not get fired!
          //

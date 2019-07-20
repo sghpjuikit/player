@@ -374,14 +374,15 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void timeUpdate() {
-		if (timeTot.get()==null) return; // bug fix
-		posLast = timeCur.get().toMillis()/timeTot.get().toMillis();
+		if (timeTot.getValue()==null) return; // bug fix
+		posLast = timeCur.getValue().toMillis()/timeTot.getValue().toMillis();
 		posLastFrame = 0;   // when we seek dt must be 0
-		posUpdateInterval = clip(0, timeTot.get().toMillis()/getWidth(), 60);
+		posUpdateInterval = clip(0, timeTot.getValue().toMillis()/getWidth(), 60);
+		setSeekerValue(posLast);
 	}
 
 	private void timeUpdateDo(long frame) {
-		if (!user_drag && APP.audio.state.playback.status.get()==PLAYING) {
+		if (!user_drag && APP.audio.state.playback.getStatus().getValue()==PLAYING) {
 			long dt = posLastFrame==0 ? 0 : (frame - posLastFrame)/1000000;
 			double dp = dt/timeTot.get().toMillis();
 			posLast += dp;

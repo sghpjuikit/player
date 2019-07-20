@@ -119,6 +119,9 @@ class InfoPane: OverlayPane<Unit>() {
          "user" named pInfo.user().orElse("")
       )
       ps.group("java") += "vm.arguments" named APP.fetchVMArguments().joinToString(" ")
+      ps.group("kotlin") += listOf(
+         "version" named KotlinVersion.CURRENT.toString()
+      )
       ps.group("app") += listOf(
          "version" named APP.version,
          "location" named APP.location.path

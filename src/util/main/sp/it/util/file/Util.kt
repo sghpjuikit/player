@@ -48,13 +48,32 @@ operator fun File.div(childName: String) = child(childName)
 /** @return child of this file, equivalent to `File(this, childName)` */
 fun File.child(childName: String): File = File(this, childName)
 
+/** @return true iff the specified file is [File.getParentFile] of this */
 infix fun File.isChildOf(parent: File) = parent.isParentOf(this)
 
+/** @return true iff the specified file is the same as or [File.getParentFile] of this */
+infix fun File.isChildOrSelfOf(parent: File) = parent.isParentOrSelfOf(this)
+
+/** @return true iff the specified file is direct or indirect parent of this */
 infix fun File.isAnyChildOf(parent: File) = parent.isAnyParentOf(this)
 
+/** @return true iff the specified file is the same as or direct or indirect parent of this */
+infix fun File.isAnyChildOrSelfOf(parent: File) = parent.isAnyParentOrSelfOf(this)
+
+/** @return true iff this is [File.getParentFile] of the specified file */
 infix fun File.isParentOf(child: File) = child.parentFile==this
 
-infix fun File.isAnyParentOf(child: File) = generateSequence(child) { it.parentFile }.any { isParentOf(it) }
+/** @return true iff this is the same as or [File.getParentFile] of the specified file */
+infix fun File.isParentOrSelfOf(child: File) = child.parentFile==this
+
+/** @return true iff this is direct or indirect parent of the specified file */
+infix fun File.isAnyParentOf(child: File) = child.parent?.startsWith(path) ?: false
+
+/** @return true iff this is the same as or direct or indirect parent of the specified file */
+infix fun File.isAnyParentOrSelfOf(child: File) = child.path.startsWith(path)
+
+/** @return true iff this and the specified file have the same [File.getParentFile] */
+infix fun File.isSiblingOf(sibling: File) = parentFile==sibling.parentFile
 
 /**
  * Safe version of [File.listFiles]

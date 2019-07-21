@@ -10,7 +10,6 @@ import sp.it.pl.main.APP
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.file.div
-import sp.it.util.math.clip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -50,13 +49,14 @@ class VlcPlayer: GeneralPlayer.Play {
 
    override fun seek(duration: Duration) {
       player?.let {
-         // When we seek after song finishes, setPosition() becomes no-op, hence the complicated logic.
-         it.controls().play()
-
-         // doesn't work correctly (wrong time)
-         // player?.controls()?.setTime(duration.toMillis().toLong())
-
-         it.controls().setPosition((duration.toMillis().toFloat()/it.status().length().toFloat()).clip(0f, 1f))
+         val isSeekToZero = duration.toMillis()<=0
+         val isSeekImpossible = it.status().length()==-1L
+         if (isSeekToZero || isSeekImpossible) {
+            it.controls().play()
+            it.controls().setPosition(0f)
+         } else {
+            it.controls().setPosition((duration.toMillis().toFloat()/it.status().length().toFloat()).coerceIn(0f..1f))
+         }
       }
    }
 

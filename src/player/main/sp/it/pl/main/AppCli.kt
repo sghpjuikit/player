@@ -67,7 +67,7 @@ private class Cli: CliktCommand(
    help = "${APP.name} application command-line interface"
 
 ) {
-   val version = versionOption("Application version=${APP.version}")
+   val version = versionOption("Application version=${APP.version}, JDK version=${Runtime.version()}, Kotlin version=${KotlinVersion.CURRENT}")
    val stateless by option(help = "Whether application starts with a state. If true, state is not restored on start or stored on close")
       .convert { it.toBoolean() }.default(false)
    val singleton by option(help = "Whether application should close and delegate arguments if there is already running instance")

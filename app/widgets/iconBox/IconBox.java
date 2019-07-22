@@ -40,7 +40,7 @@ public class IconBox extends SimpleController implements HorizontalDock {
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
 
-    @SuppressWarnings("RedundantCast")
+    @SuppressWarnings({"RedundantCast", "unchecked"})
     @IsConfig(name = "Icons", info = "List of icons to show")
     private final ConfList<Icon> icons = new ConfList<>(
         Icon.class,

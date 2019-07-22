@@ -136,10 +136,7 @@ class Notifier: PluginBase("Notifications", true) {
             focusOnShow.value = false
             screenPreference = notificationScr
             rClickAction = onClickR.valueAsAction
-            lClickAction = when (title) {
-               AppErrors.ERROR_NOTIFICATION_TITLE -> Runnable { AppErrors.showDetailForLastError() }
-               else -> onClickL.valueAsAction
-            }
+            lClickAction = onClickL.valueAsAction
             show(notificationPos)
          }
       }
@@ -148,8 +145,11 @@ class Notifier: PluginBase("Notifications", true) {
    /** Show notification displaying given text. */
    fun showTextNotification(error: AppError) {
          val root = vBox(10.0, CENTER_LEFT) {
-            lay += Text(error.textShort + "\n\nClick to show full details").apply {
+            lay += Text(error.textShort).apply {
                wrappingWithNatural.value = true
+            }
+            lay += hyperlink("Click to show full details") {
+               onEventDown(MOUSE_CLICKED, PRIMARY) { AppErrors.showDetailForLastError() }
             }
             lay += supplyIf(error.action!=null) {
                hyperlink(error.action!!.name) {
@@ -158,7 +158,7 @@ class Notifier: PluginBase("Notifications", true) {
             }
          }
 
-         showNotification(AppErrors.ERROR_NOTIFICATION_TITLE, root)
+         showNotification("Error", root)
    }
 
    /** Show notification displaying given text. */

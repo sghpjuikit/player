@@ -14,7 +14,6 @@ class AppErrorAction(val name: String, val action: () -> Unit)
 
 object AppErrors {
 
-   const val ERROR_NOTIFICATION_TITLE = "Error"
    private val historyImpl = observableArrayList<AppError>()
    /** Mutable read-only view of error queue. Must be accessed from fx application thread. */
    val history = ObservableListRO<AppError>(historyImpl)

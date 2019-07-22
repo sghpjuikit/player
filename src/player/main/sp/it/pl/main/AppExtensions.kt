@@ -68,8 +68,8 @@ fun App.run1AppReady(block: () -> Unit) {
 fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}) {
    fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
    fun doOnError(e: Throwable?, text: String?) {
-      logger.error(e) { "$actionName failed.${text.wrap()}" }
-      AppErrors.push("$actionName failed.${text.wrap()}")
+      logger.error(e) { "$actionName failed.\n${text.wrap()}" }
+      AppErrors.push("$actionName failed.", text.wrap())
    }
 
    runAsProgram(*arguments) {

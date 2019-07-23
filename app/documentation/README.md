@@ -3,6 +3,8 @@
 - [Installation bundle](#installation-bundle)
 - [Installation](#installation)
 - [Uninstallation](#uninstallation)
+- [Starting](#starting)
+- [Stopping](#stopping)
 - [Privacy](#privacy-&-security)
 - [Disclaimer](#disclaimer)
 - [Licence](#licence)
@@ -78,12 +80,46 @@ User installation steps necessary:
 
 - remove application directory
 
+## Starting
+
+##### Windows
+
+As gui application: open `./PlayerFX.exe` file   
+As console application: open `./PlayerFXc.exe` file
+
+The difference between `./PlayerFX.exe` and `./PlayerFXc.exe` is that
+- `./PlayerFX.exe` launched from terminal/commandline does not wait for process end and shows no output (stdout/stderr).   
+  Recommended to start the application normally, from file explorer or by shortcut.
+- `./PlayerFXc.exe` launched from outside terminal will open new commandline window
+  Recommended to start the application from terminal, particularly to see its output or use its commands like help.
+
+From terminal (using bash):
+- `cd /drive-letter/path/to/application/directory`
+- `./PlayerFXc.exe` to launch the application as console application
+- for options and commands see help using `./PlayerFX.c -h` or `./PlayerFX.c --help`
+
+##### Linux
+
+From terminal:
+- `cd /path/to/application/directory`
+- `chmod +x PlayerFX.sh` to make the launcher executable
+- `./PlayerFX.sh` to launch the application
+- for options and commands see help using `./PlayerFX.c -h` or `./PlayerFX.c --help`
+
+## Stopping
+
+The application stops running when the main window is closed.
+
+The main window has a designated icon in its header. Using this icon, it is possible to make any window main window. There is always exactly one main window at any time.
+
+When the application is stopped, necessary settings and application state (like all windows and their content) is saved so it can be restored on the next application start.
+
 ## Privacy & Security
 
-TLDR: This application tries to be as private/secure as possible and is certainly less invasive then majority of
-apps you already use. But it may not run with 0 trace and as everything else may be exploited. Long version:
+This application tries to be as private/secure as possible within reason and is certainly less invasive then majority of
+apps you already use. But it may not run with 0 trace and, as everything else, may be exploited.
 
-The application is developed as to follow the certain privacy/security policies as well as complete transparency about 
+The application is developed as to follow certain privacy/security policies as well as complete transparency about 
 them.
 
 The application:
@@ -97,27 +133,26 @@ The application:
   This application does open a network port for the sole reason of communicating among its app instances on the same 
   machine (`Java RMI`).
 - does not collect any data (to help improve the UX or any other nonsense like that) except generating standard logs.
-  These logs can be used to trace user activity (to an extend depending on file log level settings), but only user can
-  share the log files, as application never reads them.
+  These logs may be essential for bug reporting, should a user open an issue. These (if accessed) can be used to trace user activity (to an extend, and depending on logging settings), but only user can share the log files, as application never reads them.
   
   This may not apply to the underlying `VLC` player doing the actual playback and this application is unaware and does 
-  not attempt to prevent it from such behavior.
+  not attempt to prevent it from its own logging.
   
 - does not use any website or cloud storage
 - does not execute any malicious behavior unless exploited by a 3rd party.
  
-  The application could run malicious widget/plugin if user or 3rd party provides it. The application automatically 
-  compiles and loads class file provided in the `app/widgets` directory and currently this behavior can not be disabled.
+  The application could run malicious widget/plugin (such as key logger) if user or 3rd party provides it. The application automatically 
+  compiles and loads widget class files provided in the `app/widgets` directory and currently this behavior can not be disabled.
   
 - is portable, hence
   - writes all files produced during its running in `app/user` directory
   - can be safely moved between computers with all settings
-  - does not inject or create any file in system files, system temporary directory or system user directory or anywhere or that matter
+  - does not inject or create any file in system files, system temporary directory or system user directory or anywhere for that matter
   - does not require installation
   - can be safely 'uninstalled' and all its user data by deleting the application directory
 
 Due to the use of many 3rd party libraries and technologies, it may be difficult to provide 100% guarantee of these
-policies. If any of them are dicovered to be broken, please contact the developers immediately.
+policies. If any of them are discovered to be broken, please contact the developers immediately.
 
 
 ## Disclaimer

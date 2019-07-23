@@ -411,7 +411,7 @@ class App: Application(), Configurable<Any> {
                "Open widget ${c.nameGui()} (in new process)",
                { "Open widget ${c.nameGui()}\n\nOpens the widget in new process." },
                {
-                  val f = location/(if (Os.WINDOWS.isCurrent) "PlayerFX.exe" else "PlayerFX.sh")
+                  val f = if (Os.WINDOWS.isCurrent) location.`playerfxc exe` else location.`playerfx sh`
                   f.runAsAppProgram(
                      "Launching component ${c.nameGui()} in new process",
                      "--singleton=false", "--stateless=true", "open-component", "\"${c.nameGui()}\""

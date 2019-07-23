@@ -531,4 +531,55 @@ object `AppLocation`: Dir(File("").absolutePath) {
    
    }
 
+   /** File child [`PlayerFX exe`]. */
+   val `playerfx exe` = `PlayerFX exe`
+   
+   /**
+    * Compile-time object representing file `File("").absolutePath`, usable in annotations.
+    * 
+    * Windows executable file that opens this application as gui application.
+    */
+   object `PlayerFX exe`: Fil(File("").absolutePath + separator + "PlayerFX.exe") {
+   
+      /** Same as [getName]. Compile-time constant. `PlayerFX.exe`.*/
+      const val fileName: String = """PlayerFX.exe"""
+      /** Description of this file. Compile-time constant. Same as documentation for this object. */
+      const val fileDescription: String = """Windows executable file that opens this application as gui application."""
+   
+   }
+
+   /** File child [`PlayerFXc exe`]. */
+   val `playerfxc exe` = `PlayerFXc exe`
+   
+   /**
+    * Compile-time object representing file `File("").absolutePath`, usable in annotations.
+    * 
+    * Windows executable file that opens this application as console application.
+    */
+   object `PlayerFXc exe`: Fil(File("").absolutePath + separator + "PlayerFXc.exe") {
+   
+      /** Same as [getName]. Compile-time constant. `PlayerFXc.exe`.*/
+      const val fileName: String = """PlayerFXc.exe"""
+      /** Description of this file. Compile-time constant. Same as documentation for this object. */
+      const val fileDescription: String = """Windows executable file that opens this application as console application."""
+   
+   }
+
+   /** File child [`PlayerFX sh`]. */
+   val `playerfx sh` = `PlayerFX sh`
+   
+   /**
+    * Compile-time object representing file `File("").absolutePath`, usable in annotations.
+    * 
+    * Linux/Mac executable file that opens this application.
+    */
+   object `PlayerFX sh`: Fil(File("").absolutePath + separator + "PlayerFX.sh") {
+   
+      /** Same as [getName]. Compile-time constant. `PlayerFX.sh`.*/
+      const val fileName: String = """PlayerFX.sh"""
+      /** Description of this file. Compile-time constant. Same as documentation for this object. */
+      const val fileDescription: String = """Linux/Mac executable file that opens this application."""
+   
+   }
+
 }

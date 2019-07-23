@@ -84,4 +84,10 @@ app {
   }
   # File containing application source code and main class. Executed by java.exe when started.
   PlayerFX.jar
+  # Windows executable file that opens this application as gui application.
+  PlayerFX.exe
+  # Windows executable file that opens this application as console application.
+  PlayerFXc.exe
+  # Linux/Mac executable file that opens this application.
+  PlayerFX.sh
 }

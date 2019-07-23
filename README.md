@@ -348,7 +348,26 @@ Starting the application for the first time will open a guide. It is recommended
 
 # Copyright
 
-You are free to use the application or make your own builds of the project for personal use.
+##### player module (sp.it.pl)
 
-The project is to adopt MIT licence in the future, but for now remains personal. 
-Before publicizing anything related to this project or publicly sharing builds contact me.
+This is the application module, containing the source code for the functionality.
+For now, the sources are provided with **no licence**.   
+Which does not mean anything is permitted, it is the opposite. This will change shortly.
+
+##### widget modules
+
+This is a collection of source codes for widgets for this application, found in `app/widgets`.
+All of the sources, are under [The Unlicense](http://unlicense.org).
+
+##### util module (sp.it.util)
+
+This is collection of useful utility methods/extension, with primary intention of supporting the player module of this project.
+
+All of the sources, unless specifically stated otherwise in the source code file, are under [The Unlicense](http://unlicense.org).
+
+##### demo module (sp.it.demo)
+
+This is a collection of demonstrative projects found on the internet, mostly contributed as answers on stackoverflow.com.
+The sources are provided with **no licence**.   
+Which does not mean anything is permitted, it is the opposite. This is because it would be too time-consuming to hunt the
+authors/contributors and figure things out. If you need to use the code, there files contain information about where to find the authors of the code.

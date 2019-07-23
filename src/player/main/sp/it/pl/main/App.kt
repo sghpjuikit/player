@@ -275,7 +275,8 @@ class App: Application(), Configurable<Any> {
             this,
             ui,
             actions,
-            windowManager
+            windowManager,
+            audio
          )
 
          widgetManager.init()

@@ -815,8 +815,6 @@ class Metadata: Song, Serializable {
 
       fun isFieldEmpty(m: Metadata): Boolean = getOf(m)==getOf(EMPTY)
 
-      override fun isTypeNumberNoNegative(): Boolean = true
-
       override fun toS(o: T?, substitute: String): String {
          if (o==null || ""==o) return substitute
          return when (this) {

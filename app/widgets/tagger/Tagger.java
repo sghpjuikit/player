@@ -260,6 +260,10 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             int i = Integer.parseInt(t);
             return true;
         },NumberFormatException.class)::apply;
+        Predicate<String> isDoubleS = noEx(false,(String t) -> {
+            double i = Double.parseDouble(t);
+            return true;
+        },NumberFormatException.class)::apply;
 
         // initialize fields
         fields.add(new TagField(titleF, TITLE));
@@ -275,9 +279,9 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         fields.add(new TagField(genreF, GENRE));
         fields.add(new TagField(categoryF, CATEGORY));
         fields.add(new TagField(yearF, YEAR, isPastYearS));
-        fields.add(new TagField(ratingF, RATING_RAW));
+        fields.add(new TagField(ratingF, RATING_RAW, isDoubleS));
         fields.add(new TagField(ratingPF, RATING, IsBetween0And1));
-        fields.add(new TagField(playcountF, PLAYCOUNT));
+        fields.add(new TagField(playcountF, PLAYCOUNT, isIntS));
         fields.add(new TagField(commentF, COMMENT));
         fields.add(new TagField(moodF, MOOD));
         fields.add(new TagField(colorF, CUSTOM1, s -> APP.converter.general.isValid(Color.class, s)));
@@ -696,10 +700,6 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             // show description
             c.addEventFilter(MOUSE_ENTERED, e -> fieldDesc.setText(field.description()));
             c.addEventFilter(MOUSE_EXITED, e -> fieldDesc.setText(""));
-
-            // restrain input
-            if (field.isTypeNumber())
-                InputConstraints.numbersOnly(c, !field.isTypeNumberNoNegative(), field.isTypeFloatingNumber());
 
             // if not committable yet, enable committable & set text to tag value on click
             c.setOnMouseClicked(e -> {

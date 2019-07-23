@@ -4,6 +4,7 @@ import javafx.util.Duration
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.failCase
+import sp.it.util.type.isSubclassOf
 import sp.it.util.units.FileSize
 import sp.it.util.units.RangeYear
 import sp.it.util.units.toHMSMs
@@ -138,7 +139,7 @@ class MetadataGroup {
       fun ungroup(groups: Stream<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 
       // TODO: this may need some work"
-      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.isTypeString) "" else null
+      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.isSubclassOf<String>()) "" else null
 
    }
 }

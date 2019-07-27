@@ -161,11 +161,11 @@ class WidgetManager {
 
       // external factories for .fxwl widgets - serialized widgets
       val dirL = APP.location.user.layouts
-      val dirLinit = APP.location.templates
+      val dirLinitial = APP.location.templates
       if (!isValidatedDirectory(dirL)) {
          logger.error { "External .fxwl widgets registration failed." }
       } else {
-         dirLinit.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
+         dirLinitial.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
          dirL.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
 
          FileMonitor.monitorDirectory(dirL, true, { it hasExtension "fxwl" }) { type, f ->
@@ -583,6 +583,33 @@ class WidgetManager {
       //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
       fun <FEATURE> getFactoriesWith(feature: Class<FEATURE>) =
          factoriesW.streamV().filter { it.hasFeature(feature) }.map { FactoryRef<FEATURE>(it) }!!
+
+      /**
+       * Register the specified factory.
+       *
+       * The factory will be immediately available both programmatically and in UI.
+       * Component instances of this factory (presumably in 'no factory' state) will be reloaded.
+       * Must be called from FX thread.
+       */
+      fun register(factory: ComponentFactory<*>) {
+         failIfNotFxThread()
+
+         registerFactory(factory)
+         if (factory is WidgetFactory<*>) factory.reloadAllOpen()
+      }
+
+      /**
+       * Register the specified factory.
+       *
+       * The factory will be immediately removed both for programmatic use and UI.
+       * Component instances produced by the factory will continue to run.
+       * Must be called from FX thread.
+       */
+      fun unregister(factory: ComponentFactory<*>) {
+         failIfNotFxThread()
+
+         unregisterFactory(factory)
+      }
    }
 
    inner class Layouts {

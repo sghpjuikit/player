@@ -30,6 +30,7 @@ import javafx.scene.shape.Rectangle;
 import sp.it.pl.gui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
+import sp.it.pl.gui.objects.grid.GridView.CellGap;
 import sp.it.pl.gui.objects.grid.GridView.Search;
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
 import sp.it.util.access.fieldvalue.ObjectField;
@@ -114,11 +115,12 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		this.grid = control;
 		this.flow = new Flow<>(this);
 
-		attach(grid.cellFactoryProperty(), e -> flow.rebuildCells());
-		attach(grid.cellHeightProperty(), e -> flow.rebuildCells());
-		attach(grid.cellWidthProperty(), e -> flow.rebuildCells());
-		attach(grid.horizontalCellSpacingProperty(), e -> flow.rebuildCells());
-		attach(grid.verticalCellSpacingProperty(), e -> flow.rebuildCells());
+		attach(grid.cellFactory, e -> flow.rebuildCells());
+		attach(grid.cellHeight, e -> flow.rebuildCells());
+		attach(grid.cellWidth, e -> flow.rebuildCells());
+		attach(grid.cellGap, e -> flow.rebuildCells());
+		attach(grid.horizontalCellSpacing, e -> flow.rebuildCells());
+		attach(grid.verticalCellSpacing, e -> flow.rebuildCells());
 		attach(grid.widthProperty(), e -> flow.rebuildCells());
 		attach(grid.heightProperty(), e -> flow.rebuildCells());
 		attach(grid.parentProperty(), p -> {
@@ -407,7 +409,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 		private GridCell<T,F> createCell() {
 			GridView<T,F> grid = getSkinnable();
-			GridCell<T,F> cell = grid.getCellFactory().call(grid);
+			GridCell<T,F> cell = grid.cellFactory.getValue().call(grid);
 			cell.gridView.set(grid);
 			cell.addEventHandler(MOUSE_CLICKED, e -> {
 				if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) {
@@ -515,11 +517,11 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			int itemCount = visibleCells.size();
 			if (itemCount>0) {
 				// update cells
-				double cellWidth = getSkinnable().getCellWidth();
-				double cellHeight = getSkinnable().getCellHeight();
+				double cellWidth = getSkinnable().cellWidth.getValue();
+				double cellHeight = getSkinnable().cellHeight.getValue();
 				int columns = computeMaxCellsInRow();
-				double vGap = getSkinnable().getVerticalCellSpacing();
-				double hGap = (w - columns*cellWidth)/(columns + 1);
+				double vGap = getSkinnable().verticalCellSpacing.getValue();
+				double hGap = getSkinnable().cellGap.getValue()==CellGap.ABSOLUTE ? getSkinnable().verticalCellSpacing.getValue() :  (w - columns*cellWidth)/(columns + 1);
 				double cellGapHeight = cellHeight + vGap;
 				double cellGapWidth = cellWidth + hGap;
 				double viewStartY = viewStart;
@@ -690,12 +692,12 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 		/** @return the max number of cell per row */
 		public int computeMaxCellsInRow() {
-			double gap = getSkinnable().horizontalCellSpacingProperty().doubleValue();
+			double gap = getSkinnable().horizontalCellSpacing.doubleValue();
 			return max((int) Math.floor((computeRowWidth() + gap)/computeCellWidth()), 1);
 		}
 
 		public int computeMaxRowsInView() {
-			double gap = getSkinnable().verticalCellSpacingProperty().doubleValue();
+			double gap = getSkinnable().verticalCellSpacing.doubleValue();
 			return max((int) Math.floor((getSkinnable().getHeight() + gap)/computeRowHeight()), 1);
 		}
 
@@ -705,12 +707,12 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		protected double computeRowHeight() {
-			return getSkinnable().getCellHeight() + getSkinnable().verticalCellSpacingProperty().doubleValue();
+			return getSkinnable().cellHeight.getValue() + getSkinnable().verticalCellSpacing.doubleValue();
 		}
 
 		/** @return the width of a cell */
 		protected double computeCellWidth() {
-			return getSkinnable().cellWidthProperty().doubleValue() + getSkinnable().horizontalCellSpacingProperty().doubleValue();
+			return getSkinnable().cellWidth.doubleValue() + getSkinnable().horizontalCellSpacing.doubleValue();
 		}
 	}
 

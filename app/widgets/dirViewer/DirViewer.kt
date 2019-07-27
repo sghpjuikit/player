@@ -174,7 +174,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       grid.search.field = FileField.PATH
       grid.primaryFilterField = FileField.NAME_FULL
-      grid.cellFactory = Callback { Cell() }
+      grid.cellFactory.value = Callback { Cell() }
       root.lay += layHeaderTop(0.0, Pos.CENTER_LEFT, navigationPane, grid)
 
       grid.onEventDown(KEY_PRESSED, ENTER) {
@@ -192,8 +192,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             if (useFreeStyle) {
                val preserveAspectRatio = true
                val scaleUnit = 1.2
-               val w = grid.cellWidth
-               val h = grid.cellHeight
+               val w = grid.cellWidth.value
+               val h = grid.cellHeight.value
                val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
                var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
                if (preserveAspectRatio) nh = nw/cellSizeRatio.value.ratio
@@ -399,7 +399,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                }
                cs += label(">")
             }
-            if (!cs.isEmpty()) cs.removeAt(cs.size - 1)
+            if (cs.isNotEmpty()) cs.removeAt(cs.size - 1)
 
             children setTo cs
          }

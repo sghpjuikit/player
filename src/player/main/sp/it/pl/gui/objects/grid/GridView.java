@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -43,6 +42,7 @@ import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.CssMetaData;
+import javafx.css.SimpleStyleableDoubleProperty;
 import javafx.css.StyleConverter;
 import javafx.css.Styleable;
 import javafx.css.StyleableDoubleProperty;
@@ -116,10 +116,10 @@ public class GridView<T, F> extends Control {
 	/** Convenience constructor. Creates an empty GridView with specified sizes. */
 	public GridView(Class<F> type, Ƒ1<T,F> filterByMapper, double cellWidth, double cellHeight, double vGap, double hGap) {
 		this(type, filterByMapper, null);
-		setCellWidth(cellWidth);
-		setCellHeight(cellHeight);
-		setHorizontalCellSpacing(hGap);
-		setVerticalCellSpacing(vGap);
+		this.cellWidth.setValue(cellWidth);
+		this.cellHeight.setValue(cellHeight);
+		this.horizontalCellSpacing.setValue(hGap);
+		this.verticalCellSpacing.setValue(vGap);
 	}
 
 	/** Convenience constructor. Creates a default GridView with the provided items. */
@@ -207,186 +207,17 @@ public class GridView<T, F> extends Control {
 		return orAll ? getSelectedOrAllItems() : getSelectedItems();
 	}
 
-	/**
-	 * Property for specifying how much spacing there is between each cell
-	 * in a row (i.e. how much horizontal spacing there is).
-	 */
-	public final DoubleProperty horizontalCellSpacingProperty() {
-		if (horizontalCellSpacing==null) {
-			horizontalCellSpacing = new StyleableDoubleProperty(12) {
-				@Override
-				public CssMetaData<GridView<?,?>,Number> getCssMetaData() {
-					return GridView.StyleableProperties.HORIZONTAL_CELL_SPACING;
-				}
+	public StyleableDoubleProperty horizontalCellSpacing = new SimpleStyleableDoubleProperty(GridView.StyleableProperties.HORIZONTAL_CELL_SPACING, GridView.this, "horizontalCellSpacing", 12.0);
+	public StyleableDoubleProperty verticalCellSpacing = new SimpleStyleableDoubleProperty(GridView.StyleableProperties.HORIZONTAL_CELL_SPACING, GridView.this, "verticalCellSpacing", 12.0);
+	public StyleableDoubleProperty cellWidth = new SimpleStyleableDoubleProperty(GridView.StyleableProperties.CELL_WIDTH, GridView.this, "cellWidth", 64.0);
+	public StyleableDoubleProperty cellHeight = new SimpleStyleableDoubleProperty(GridView.StyleableProperties.CELL_HEIGHT, GridView.this, "cellHeight", 64.0);
+	public V<CellGap> cellGap = new V<>(CellGap.RELATIVE);
 
-				@Override
-				public Object getBean() {
-					return GridView.this;
-				}
-
-				@Override
-				public String getName() {
-					return "horizontalCellSpacing";
-				}
-			};
-		}
-		return horizontalCellSpacing;
-	}
-
-	private DoubleProperty horizontalCellSpacing;
-
-	/**
-	 * Sets the amount of horizontal spacing there should be between cells in
-	 * the same row.
-	 *
-	 * @param value The amount of spacing to use.
-	 */
-	public final void setHorizontalCellSpacing(double value) {
-		horizontalCellSpacingProperty().set(value);
-	}
-
-	/**
-	 * Returns the amount of horizontal spacing there is between cells in
-	 * the same row.
-	 */
-	public final double getHorizontalCellSpacing() {
-		return horizontalCellSpacing==null ? 12.0 : horizontalCellSpacing.get();
-	}
-
-	/**
-	 * Property for specifying how much spacing there is between each cell
-	 * in a column (i.e. how much vertical spacing there is).
-	 */
-	private DoubleProperty verticalCellSpacing;
-
-	public final DoubleProperty verticalCellSpacingProperty() {
-		if (verticalCellSpacing==null) {
-			verticalCellSpacing = new StyleableDoubleProperty(12) {
-				@Override
-				public CssMetaData<GridView<?,?>,Number> getCssMetaData() {
-					return GridView.StyleableProperties.VERTICAL_CELL_SPACING;
-				}
-
-				@Override
-				public Object getBean() {
-					return GridView.this;
-				}
-
-				@Override
-				public String getName() {
-					return "verticalCellSpacing";
-				}
-			};
-		}
-		return verticalCellSpacing;
-	}
-
-	/**
-	 * Sets the amount of vertical spacing there should be between cells in
-	 * the same column.
-	 *
-	 * @param value The amount of spacing to use.
-	 */
-	public final void setVerticalCellSpacing(double value) {
-		verticalCellSpacingProperty().set(value);
-	}
-
-	/**
-	 * Returns the amount of vertical spacing there is between cells in
-	 * the same column.
-	 */
-	public final double getVerticalCellSpacing() {
-		return verticalCellSpacing==null ? 12.0 : verticalCellSpacing.get();
-	}
-
-	/**
-	 * Property representing the width that all cells should be.
-	 */
-	public final DoubleProperty cellWidthProperty() {
-		if (cellWidth==null) {
-			cellWidth = new StyleableDoubleProperty(64) {
-				@Override
-				public CssMetaData<GridView<?,?>,Number> getCssMetaData() {
-					return GridView.StyleableProperties.CELL_WIDTH;
-				}
-
-				@Override
-				public Object getBean() {
-					return GridView.this;
-				}
-
-				@Override
-				public String getName() {
-					return "cellWidth";
-				}
-			};
-		}
-		return cellWidth;
-	}
-
-	private DoubleProperty cellWidth;
-
-	/**
-	 * Sets the width that all cells should be.
-	 */
-	public final void setCellWidth(double value) {
-		cellWidthProperty().set(value);
-	}
-
-	/**
-	 * Returns the width that all cells should be.
-	 */
-	public final double getCellWidth() {
-		return cellWidth==null ? 64.0 : cellWidth.get();
-	}
-
-	/**
-	 * Property representing the height that all cells should be.
-	 */
-	public final DoubleProperty cellHeightProperty() {
-		if (cellHeight==null) {
-			cellHeight = new StyleableDoubleProperty(64) {
-				@Override
-				public CssMetaData<GridView<?,?>,Number> getCssMetaData() {
-					return GridView.StyleableProperties.CELL_HEIGHT;
-				}
-
-				@Override
-				public Object getBean() {
-					return GridView.this;
-				}
-
-				@Override
-				public String getName() {
-					return "cellHeight";
-				}
-			};
-		}
-		return cellHeight;
-	}
-
-	private DoubleProperty cellHeight;
-
-	/**
-	 * Sets the height that all cells should be.
-	 */
-	public final void setCellHeight(double value) {
-		cellHeightProperty().set(value);
-	}
-
-	/**
-	 * Returns the height that all cells should be.
-	 */
-	public final double getCellHeight() {
-		return cellHeight==null ? 64.0 : cellHeight.get();
-	}
 
 	public void setCellSize(double cellWidth, double cellHeight) {
-		setCellWidth(cellWidth);
-		setCellHeight(cellHeight);
+		this.cellWidth.setValue(cellWidth);
+		this.cellHeight.setValue(cellHeight);
 	}
-
-	private ObjectProperty<Callback<GridView<T,F>,GridCell<T,F>>> cellFactory = new SimpleObjectProperty<>(this, "cellFactory");
 
 	/**
 	 * Property representing the cell factory that is currently set in this
@@ -396,25 +227,7 @@ public class GridView<T, F> extends Control {
 	 * visible area of the GridView. Refer to the GridView class documentation
 	 * for more information and examples.
 	 */
-	public final ObjectProperty<Callback<GridView<T,F>,GridCell<T,F>>> cellFactoryProperty() {
-		return cellFactory;
-	}
-
-	/**
-	 * Sets the cell factory to use to create {@link GridCell} instances to
-	 * show in the GridView.
-	 */
-	public final void setCellFactory(Callback<GridView<T,F>,GridCell<T,F>> value) {
-		cellFactory.set(value);
-	}
-
-	/**
-	 * Returns the cell factory that will be used to create {@link GridCell}
-	 * instances to show in the GridView.
-	 */
-	public final Callback<GridView<T,F>,GridCell<T,F>> getCellFactory() {
-		return cellFactory.get();
-	}
+	public ObjectProperty<Callback<GridView<T,F>,GridCell<T,F>>> cellFactory = new SimpleObjectProperty<>(this, "cellFactory");
 
 	public static final String STYLE_CLASS = "grid-view";
 
@@ -424,7 +237,7 @@ public class GridView<T, F> extends Control {
 
 					@Override
 					public Double getInitialValue(GridView<?,?> node) {
-						return node.getHorizontalCellSpacing();
+						return node.horizontalCellSpacing.getValue();
 					}
 
 					@Override
@@ -433,9 +246,8 @@ public class GridView<T, F> extends Control {
 					}
 
 					@Override
-					@SuppressWarnings("unchecked")
 					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-						return (StyleableProperty<Number>) n.horizontalCellSpacingProperty();
+						return n.horizontalCellSpacing;
 					}
 				};
 
@@ -444,7 +256,7 @@ public class GridView<T, F> extends Control {
 
 					@Override
 					public Double getInitialValue(GridView<?,?> node) {
-						return node.getVerticalCellSpacing();
+						return node.verticalCellSpacing.getValue();
 					}
 
 					@Override
@@ -453,9 +265,8 @@ public class GridView<T, F> extends Control {
 					}
 
 					@Override
-					@SuppressWarnings("unchecked")
 					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-						return (StyleableProperty<Number>) n.verticalCellSpacingProperty();
+						return n.verticalCellSpacing;
 					}
 				};
 
@@ -464,7 +275,7 @@ public class GridView<T, F> extends Control {
 
 					@Override
 					public Double getInitialValue(GridView<?,?> node) {
-						return node.getCellWidth();
+						return node.cellWidth.getValue();
 					}
 
 					@Override
@@ -473,9 +284,8 @@ public class GridView<T, F> extends Control {
 					}
 
 					@Override
-					@SuppressWarnings("unchecked")
 					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-						return (StyleableProperty<Number>) n.cellWidthProperty();
+						return n.cellWidth;
 					}
 				};
 
@@ -484,7 +294,7 @@ public class GridView<T, F> extends Control {
 
 					@Override
 					public Double getInitialValue(GridView<?,?> node) {
-						return node.getCellHeight();
+						return node.cellHeight.getValue();
 					}
 
 					@Override
@@ -493,9 +303,8 @@ public class GridView<T, F> extends Control {
 					}
 
 					@Override
-					@SuppressWarnings("unchecked")
 					public StyleableProperty<Number> getStyleableProperty(GridView<?,?> n) {
-						return (StyleableProperty<Number>) n.cellHeightProperty();
+						return n.cellHeight;
 					}
 				};
 
@@ -537,6 +346,10 @@ public class GridView<T, F> extends Control {
 		CellSize(double width) {
 			this.width = width;
 		}
+	}
+
+	public enum CellGap {
+		ABSOLUTE, RELATIVE
 	}
 
 	public class Search extends SearchAutoCancelable {

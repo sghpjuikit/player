@@ -163,7 +163,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       root.lay += grid.apply {
          search.field = FileField.PATH
          primaryFilterField = FileField.NAME_FULL
-         cellFactory = Callback { Cell() }
+         cellFactory.value = Callback { Cell() }
          onEventDown(KEY_PRESSED, ENTER) {
             val si = grid.selectedItem.value
             if (si!=null) viewGame(si.value)
@@ -177,8 +177,8 @@ class GameView(widget: Widget): SimpleController(widget) {
                if (useFreeStyle) {
                   val preserveAspectRatio = true
                   val scaleUnit = 1.2
-                  val w = grid.cellWidth
-                  val h = grid.cellHeight
+                  val w = grid.cellWidth.value
+                  val h = grid.cellHeight.value
                   val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
                   var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
                   if (preserveAspectRatio) nh = nw/cellSizeRatio.get().ratio

@@ -103,7 +103,7 @@ public class AlbumView extends SimpleController {
 
 		view.search.field = VALUE;
 		view.primaryFilterField = VALUE;
-		view.setCellFactory(grid -> new AlbumCell());
+		view.cellFactory.setValue(grid -> new AlbumCell());
 		view.selectedItem.attachC(item -> {
 			out_sel.setValue(item== null ? null : item.items);
 			out_sel_met.setValue(item== null ? Util.listRO() : item.items.getGrouped());
@@ -137,8 +137,8 @@ public class AlbumView extends SimpleController {
 	}
 
 	void applyCellSize() {
-		view.setCellWidth(cellSize.get().width);
-		view.setCellHeight((cellSize.get().width/cellSizeRatio.get().ratio)+CELL_TEXT_HEIGHT);
+		view.cellWidth.setValue(cellSize.getValue().width);
+		view.cellHeight.setValue((cellSize.getValue().width/cellSizeRatio.get().ratio)+CELL_TEXT_HEIGHT);
 	}
 
 	/** Populates metadata groups to table from metadata list. */

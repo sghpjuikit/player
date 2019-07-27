@@ -214,7 +214,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 	 * @return size of an image to be loaded for the thumbnail
 	 */
 	protected ImageSize computeThumbSize(Item item) {
-		return new ImageSize(gridView.get().getCellWidth(), gridView.get().getCellHeight()-computeCellTextHeight());
+		return new ImageSize(gridView.getValue().cellWidth.getValue(), gridView.getValue().cellHeight.getValue()-computeCellTextHeight());
 	}
 
 	/**

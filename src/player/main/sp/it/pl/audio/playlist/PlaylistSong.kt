@@ -188,8 +188,6 @@ class PlaylistSong: Song {
 
       private constructor(type: KClass<T>, name: String, description: String, extractor: (PlaylistSong) -> T?): super(type, extractor, name, description)
 
-      override fun isTypeNumberNoNegative(): Boolean = true
-
       override fun toS(o: T?, substitute: String): String {
          return when (this) {
             NAME, TITLE, ARTIST -> if (""==o) substitute else o.toString()

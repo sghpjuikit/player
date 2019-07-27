@@ -26,9 +26,6 @@ import sp.it.pl.gui.objects.icon.IconInfo
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.pane.OverlayPane
-import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
-import sp.it.pl.layout.container.ComponentUi
-import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -48,12 +45,10 @@ import sp.it.util.conf.IsConfigurable
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
-import sp.it.util.file.div
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.net
-import sp.it.util.functional.orNull
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1If
@@ -61,7 +56,6 @@ import sp.it.util.system.browse
 import sp.it.util.system.open
 import sp.it.util.system.runCommand
 import sp.it.util.type.Util.getEnumConstants
-import sp.it.util.ui.anchorPane
 import sp.it.util.ui.bgr
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hBox
@@ -69,7 +63,6 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.listView
 import sp.it.util.ui.listViewCellFactory
 import sp.it.util.ui.minPrefMaxWidth
-import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 import sp.it.util.units.times
@@ -102,7 +95,7 @@ class AppActions {
       val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
          search.field = StringGetter.of { value, _ -> value.name() }
          selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
-         cellFactory = Callback {
+         cellFactory.value = Callback {
             object: GridCell<GlyphIcons, GlyphIcons>() {
 
                init {
@@ -151,55 +144,6 @@ class AppActions {
 
       PopOver(layout).show(ScreenPos.APP_CENTER)
       if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
-   }
-
-   // TODO: make into a plugin, merge with AppLauncher widget?
-   @IsAction(name = "Open launcher", desc = "Opens program launcher widget.", keys = "CTRL+P")
-   fun openLauncher() {
-      val f = APP.location.user.layouts/"AppMainLauncher.fxwl"
-      val c = null
-         ?: APP.windowManager.instantiateComponent(f)
-         ?: APP.widgetManager.factories.getFactoryByGuiName(Widgets.APP_LAUNCHER).orNull()?.create()
-
-      if (c!=null) {
-         val op = object: OverlayPane<Unit>() {
-            override fun show(data: Unit) {
-               val componentRoot = c.load() as Pane
-               // getChildren().add(componentRoot);   // alternatively for borderless/fullscreen experience // TODO investigate & use | remove
-               content = anchorPane {
-                  lay(20) += componentRoot
-               }
-               if (c is Widget) {
-                  val parent = this
-                  c.controller.getFieldOrThrow("closeOnLaunch").value = true
-                  c.controller.getFieldOrThrow("closeOnRightClick").value = true
-                  c.uiTemp = object: ComponentUi {
-                     override val root = parent
-                     override fun show() {}
-                     override fun hide() {}
-                     override fun dispose() = root.hide()    // TODO: make sure there is no leak, + turn this into WidgetLoader
-                  }
-               }
-               super.show()
-            }
-
-            override fun hide() {
-               super.hide()
-               c.exportFxwl(f)
-               c.close()
-               removeFromParent()
-            }
-         }
-         op.display.value = SCREEN_OF_MOUSE
-         op.displayBgr.value = APP.ui.viewDisplayBgr.value
-         op.show(Unit)
-         op.makeResizableByUser()
-         c.load().apply {
-            prefWidth(900.0)
-            prefHeight(700.0)
-         }
-         c.focus()
-      }
    }
 
    @IsAction(name = "Open settings", desc = "Opens application settings.")

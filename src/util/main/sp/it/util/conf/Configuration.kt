@@ -5,7 +5,6 @@ import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.action.IsAction
 import sp.it.util.collections.mapset.MapSet
-import sp.it.util.conf.ConfigurationUtil.configsOf
 import sp.it.util.dev.failIf
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.Property
@@ -70,12 +69,6 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun <C> collect(vararg cs: Configurable<C>): Unit = cs.forEach { collect(it) }
 
-   fun collectStatic(vararg notAnnotatedClasses: Class<*>): Unit = notAnnotatedClasses.asSequence().distinct()
-      .forEach {
-         collect(configsOf(it, null, true, false))
-      }
-
-
    fun <C> collect(config: Config<C>) {
       configs += config
 
@@ -131,7 +124,8 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
             failIf(it.parameters.isNotEmpty()) { "Action method=$it must have 0 parameters" }
 
             val a = it.getAnnotation(IsAction::class.java)
-            val group = instance?.let { computeConfigGroup(it) } ?: obtainConfigGroup(null, type)
+            val c = it.getAnnotation(IsConfig::class.java)
+            val group = instance?.let { c.computeConfigGroup(it) }
             val r = Runnable {
                try {
                   it.isAccessible = true

@@ -78,7 +78,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		this.name = name;
 		this.action = action;
 		this.info = info==null || info.isEmpty() ? name : info;
-		this.group = group.isEmpty() ? CONFIG_GROUP : group;
+		this.group = group==null || group.isEmpty() ? CONFIG_GROUP : group;
 		this.continuous = continuous;
 		this.global = global;
 		this.defaultGlobal = global;

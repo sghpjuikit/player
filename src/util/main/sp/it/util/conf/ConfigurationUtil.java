@@ -5,7 +5,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,9 +21,10 @@ import sp.it.util.conf.Constraint.IsConstraint;
 import sp.it.util.conf.OrPropertyConfig.OrValue;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static sp.it.util.conf.ConfigurationUtilKt.obtainConfigGroup;
+import static sp.it.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.util.dev.FailKt.failIfFinal;
 import static sp.it.util.dev.FailKt.failIfNotFinal;
+import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.ISNTØ;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getAllFields;
@@ -36,50 +36,45 @@ public class ConfigurationUtil {
 	private static final Lookup methodLookup = MethodHandles.lookup();
 
 	@SuppressWarnings("unchecked")
-	public static List<Config<Object>> configsOf(Class<?> clazz, Object instance, boolean include_static, boolean include_instance) {
-		if (include_instance && instance==null)
-			throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
+	public static List<Config<Object>> configsOf(Class<?> clazz, Object instance) {
+		noNull(instance);
 
 		return (List) stream(getAllFields(clazz))
-				.map(f -> createConfig(clazz, f, instance, include_static, include_instance))
+				.map(f -> createConfig(clazz, f, instance))
 				.filter(ISNTØ)
 				.collect(toList());
 	}
 
 	@SuppressWarnings("unchecked")
-	public static List<Config<Object>> configsOf(Class<?> clazz, String fieldNamePrefix, String category, Object instance, boolean include_static, boolean include_instance) {
-		if (include_instance && instance==null)
-			throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
+	public static List<Config<Object>> configsOf(Class<?> clazz, String fieldNamePrefix, String group, Object instance) {
+		noNull(instance);
 
 		return (List) stream(getAllFields(clazz))
-			.map(f -> createConfig(clazz, fieldNamePrefix, category, f, instance, include_static, include_instance))
+			.map(f -> createConfig(clazz, fieldNamePrefix, group, f, instance))
 			.filter(ISNTØ)
 			.collect(toList());
 	}
 
-	@SuppressWarnings("unchecked")
-	public static Config<?> createConfig(Class<?> cl, Field f, Object instance, boolean include_static, boolean include_instance) {
+	public static Config<?> createConfig(Class<?> cl, Field f, Object instance) {
+		noNull(instance);
+
 		Config<?> c = null;
 		IsConfig a = f.getAnnotation(IsConfig.class);
 		if (a!=null) {
-			String group = obtainConfigGroup(a, (Class) cl, instance);
+			String group = computeConfigGroup(a, instance);
 			String name = f.getName();
-			int modifiers = f.getModifiers();
-			if ((include_static && Modifier.isStatic(modifiers)) || (include_instance && !Modifier.isStatic(modifiers)))
-				c = createConfig(f, instance, name, a, group);
+			c = createConfig(f, instance, name, a, group);
 		}
 		return c;
 	}
 
-	private static Config<?> createConfig(Class<?> cl, String fieldNamePrefix, String category, Field f, Object instance, boolean include_static, boolean include_instance) {
+	private static Config<?> createConfig(Class<?> cl, String fieldNamePrefix, String group, Field f, Object instance) {
 		Config<?> c = null;
 		IsConfig a = f.getAnnotation(IsConfig.class);
 		if (a!=null) {
-			String group = category;
 			String name = fieldNamePrefix + f.getName();
 			int modifiers = f.getModifiers();
-			if ((include_static && Modifier.isStatic(modifiers)) || (include_instance && !Modifier.isStatic(modifiers)))
-				c = createConfig(f, instance, name, a, group);
+			c = createConfig(f, instance, name, a, group);
 		}
 		return c;
 	}

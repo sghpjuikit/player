@@ -213,12 +213,6 @@ public class GridView<T, F> extends Control {
 	public StyleableDoubleProperty cellHeight = new SimpleStyleableDoubleProperty(GridView.StyleableProperties.CELL_HEIGHT, GridView.this, "cellHeight", 64.0);
 	public V<CellGap> cellGap = new V<>(CellGap.RELATIVE);
 
-
-	public void setCellSize(double cellWidth, double cellHeight) {
-		this.cellWidth.setValue(cellWidth);
-		this.cellHeight.setValue(cellHeight);
-	}
-
 	/**
 	 * Property representing the cell factory that is currently set in this
 	 * GridView, or null if no cell factory has been set (in which case the

@@ -36,7 +36,7 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
                "Start screen saver",
                { startScreenSaver() },
                "Starts screen saver if enabled. It can be stopped by moving the mouse. On some system that can open logon screen.",
-               configurableGroup,
+               configurableGroupPrefix,
                "CTRL+SHIFT+ALT+L",
                true, false
             ),
@@ -44,7 +44,7 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
                "Turn off screens",
                { turnScreens(false) },
                "Turns off all screens. They can be turned on again by moving the mouse.",
-               configurableGroup,
+               configurableGroupPrefix,
                "CTRL+SHIFT+ALT+K",
                true,
                false
@@ -94,7 +94,7 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
       "Rotate screen ${screen ?: "(active)"} ${direction.text}",
       { rotateScreen(screen, direction) },
       "Rotates screen ${screen ?: "(active)"} ${direction.text}",
-      configurableGroup,
+      configurableGroupPrefix,
       keys,
       true,
       false

@@ -22,7 +22,7 @@ class Waifu2kPlugin: PluginBase("Waifu2k", false) {
          "Upscale image (waifu2k)...",
          { openUpscaleImage() },
          "Upscale specified image with a neural network algorithm",
-         configurableGroup,
+         configurableGroupPrefix,
          "",
          true,
          false

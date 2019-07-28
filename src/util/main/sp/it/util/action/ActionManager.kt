@@ -7,9 +7,8 @@ import sp.it.util.access.v
 import sp.it.util.action.ActionRegistrar.hotkeys
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.EditMode.NONE
-import sp.it.util.conf.GlobalConfigDelegator
+import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.IsConfig
-import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyUnless
@@ -22,8 +21,7 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
 import java.util.concurrent.ConcurrentHashMap
 
-@IsConfigurable(Action.CONFIG_GROUP)
-object ActionManager: GlobalConfigDelegator {
+object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 
    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
    val keyManageLayout by c(ALT_GRAPH)

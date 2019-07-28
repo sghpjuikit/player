@@ -27,7 +27,7 @@ interface Configurable<T> {
    /** @return all configs of this configurable */
    @Suppress("UNCHECKED_CAST")
    @JvmDefault
-   fun getFields(): Collection<Config<T>> = configsOf(javaClass, this, false, true) as Collection<Config<T>>
+   fun getFields(): Collection<Config<T>> = configsOf(javaClass, this) as Collection<Config<T>>
 
    /** @return config with given [Config.name] or null if does not exist */
    @Suppress("UNCHECKED_CAST")
@@ -36,7 +36,7 @@ interface Configurable<T> {
       return try {
          val c = this.javaClass
          val f = Util.getField(c, name)
-         createConfig(c, f, this, false, true) as Config<T>?
+         createConfig(c, f, this) as Config<T>?
       } catch (e: NoSuchFieldException) {
          null
       } catch (e: SecurityException) {
@@ -60,11 +60,11 @@ interface Configurable<T> {
 }
 
 /** @return configurable of configs representing all fields marked [IsConfig] */
-fun Any.toConfigurableByReflect(): Configurable<*> = configsOf(javaClass, this, false, true).toListConfigurable()
+fun Any.toConfigurableByReflect(): Configurable<*> = configsOf(javaClass, this).toListConfigurable()
 
 /** @return configurable of configs representing all fields marked [IsConfig] */
 fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Configurable<*> =
-   configsOf(javaClass, fieldNamePrefix, category, this, false, true).toListConfigurable()
+   configsOf(javaClass, fieldNamePrefix, category, this).toListConfigurable()
 
 /** @return configurable of configs representing all javafx properties of this object */
 fun Any.toConfigurableFx(): Configurable<*> {

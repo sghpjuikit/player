@@ -41,7 +41,7 @@ import sp.it.util.action.ActionRegistrar
 import sp.it.util.action.IsAction
 import sp.it.util.async.runFX
 import sp.it.util.collections.setTo
-import sp.it.util.conf.IsConfigurable
+import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
@@ -71,8 +71,7 @@ import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
 
-@IsConfigurable("Shortcuts")
-class AppActions {
+class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
    fun openAppGithubPage() {

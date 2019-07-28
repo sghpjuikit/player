@@ -13,7 +13,7 @@ import sp.it.util.file.div
 interface Plugin: Configurable<Any>, ConfigDelegator, GlobalConfigDelegator, Locatable {
 
    val name: String
-   override val configurableDiscriminant get() = "${Settings.Plugin.name}.$name"
+   override val configurableGroupPrefix get() = "${Settings.Plugin.name}.$name"
    override val location get() = APP.location.plugins/name
    override val userLocation get() = APP.location.user.plugins/name
 

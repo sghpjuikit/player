@@ -129,14 +129,9 @@ private val configuration = object: ConfigValueSource {
 
 /** Allows defining delegated configurable properties. */
 interface ConfigDelegator {
-   /** Group suffix shared by all configs of this configurable. Usually unique for every instances. */
-   val configurableDiscriminant: String?
+   /** Group prefix shared by all configs of this configurable. */
+   val configurableGroupPrefix: String?
       get() = null
-
-   /** Group (shared prefix path) shared by all configs of this configurable. Usually same for all instances. */
-   @JvmDefault
-   val configurableGroup
-      get() = computeConfigGroup(this)
 
    /** Config register and value provider. By default common value store. */
    @JvmDefault
@@ -150,8 +145,8 @@ interface GlobalConfigDelegator: ConfigDelegator {
       get() = configuration
 }
 
-/** [GlobalConfigDelegator] with [ConfigDelegator.configurableDiscriminant] supplied at creation time. */
-open class GlobalSubConfigDelegator(override val configurableDiscriminant: String? = null): ConfigDelegator, GlobalConfigDelegator
+/** [GlobalConfigDelegator] with [ConfigDelegator.configurableGroupPrefix] supplied at creation time. */
+open class GlobalSubConfigDelegator(override val configurableGroupPrefix: String? = null): ConfigDelegator, GlobalConfigDelegator
 
 interface ConfigValueSource {
    fun register(config: Config<*>)

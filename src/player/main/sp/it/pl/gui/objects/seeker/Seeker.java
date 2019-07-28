@@ -379,7 +379,7 @@ public final class Seeker extends AnchorPane {
 		posLast = timeCur.getValue().toMillis()/timeTot.getValue().toMillis();
 		posLastFrame = 0;   // when we seek dt must be 0
 		posUpdateInterval = clip(0, timeTot.getValue().toMillis()/getWidth(), 60);
-		setSeekerValue(posLast);
+		if (!user_drag) setSeekerValue(posLast);
 	}
 
 	private void timeUpdateDo(long frame) {

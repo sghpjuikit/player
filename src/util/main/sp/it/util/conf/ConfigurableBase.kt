@@ -4,14 +4,14 @@ import sp.it.util.conf.ConfigValueSource.Companion.SimpleConfigValueStore
 
 /**
  * Configurable that holds its [Config]s, because it provides its own standalone [configurableValueSource] (which is why
- * [configurableDiscriminant] is null).
+ * [configurableGroupPrefix] is null).
  *
  * Allows creating type-safe declarative [Configurable] objects, like:
  * @sample ConfigurableBase.sample
  */
 @Suppress("LeakingThis")
 open class ConfigurableBase<T>: SimpleConfigValueStore<T>(), ConfigDelegator, Configurable<T> {
-   override val configurableDiscriminant: Nothing? = null
+   override val configurableGroupPrefix: Nothing? = null
    override val configurableValueSource = this
 
    companion object {

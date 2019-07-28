@@ -28,7 +28,7 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
    private var isLegacyConfigsInitialized = false
    private val hasLegacyConfigs = this::class.findAnnotation<LegacyController>()!=null
    private val configs = HashMap<String, Config<Any?>>()
-   override val configurableDiscriminant: String? = null
+   override val configurableGroupPrefix: String? = null
    override val configurableValueSource by lazy {
       object: ConfigValueSource {
 

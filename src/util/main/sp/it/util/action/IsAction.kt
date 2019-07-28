@@ -11,10 +11,6 @@ import kotlin.annotation.AnnotationTarget.PROPERTY
  * Such method must have zero parameters. There is no restriction
  * to the access modifier and private method will work the same as public or one
  * with any other access modifier one.
- *
- * In order for the static method to be discovered the class the method resides within
- * must itself be annotated by [sp.it.util.conf.IsConfigurable] which auto-discovers the
- * class in order to scan it for action candidate methods.
  */
 @MustBeDocumented
 @Retention(RUNTIME)

@@ -163,7 +163,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    init {
-      root.prefSize = 1000.scaleEM() x 700.scaleEM()
+      root.prefSize = 1200.scaleEM() x 900.scaleEM()
       root.consumeScrolling()
 
       files.onChange { viewGames() } on onClose
@@ -265,7 +265,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    private class Game(dir: File) {
       /** Directory representing the location where game metadata reside. Game's identity. */
       val location = dir.absoluteFile!!
-      /** Name of the game.. */
+      /** Name of the game. */
       val name = location.name!!
       /** Whether game does not require installation. */
       val isPortable: Boolean = false
@@ -275,6 +275,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       val infoFile = location/"play-howto.md"
       /** Cover. */
       val cover by lazy { FileCover(location.findImage("cover_big") ?: location.findImage("cover"), "") }
+      /** Properties. */
       val settings: Map<String, PropVal> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 
       fun exeFile(): File? = null

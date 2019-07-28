@@ -76,7 +76,6 @@ import sp.it.util.conf.IsConfig;
 import sp.it.util.functional.Functors.Ƒ1;
 import sp.it.util.functional.Util;
 import sp.it.util.type.TypeToken;
-import sp.it.util.validation.InputConstraints;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static javafx.application.Platform.runLater;

@@ -39,7 +39,7 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
  * fields. Those that can be simply set to a value and those that require some
  * code to be executed to have their new value be reflected by the application.
  *
- * For more information about the intention and use read [IsConfigurable] and [Config].
+ * For more information about the intention and use read [Config], [ConfigDelegator].
  *
  * All fields are default-initialized and will never be null. Null checks are unnecessary.
  */

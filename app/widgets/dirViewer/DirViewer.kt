@@ -67,6 +67,7 @@ import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attach1IfNonNull
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
@@ -112,6 +113,10 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       if (it!=null && it.isDirectory && it.exists())
          files setToOne it
    }
+   private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {
+      onClose += { unsubscribe() }
+      attach { applyCellSize() }
+   }
 
    @IsConfig(name = "Location", info = "Root directories of the content.")
    private val files by cList<File>().only(FileActor.DIRECTORY)
@@ -131,7 +136,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
    private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
 
-   private val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 5.0, 5.0)
+   private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 5.0, 5.0)
    private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
    private val visitId = AtomicLong(0)
    private val placeholder = lazy {
@@ -233,7 +238,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       onClose += { imageLoader.shutdown() }
 
       root.sync1IfInScene {
-         revisitCurrent()
+         applyCellSize()
       }
    }
 
@@ -323,7 +328,10 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    }
 
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-      grid.setCellSize(width, height + CELL_TEXT_HEIGHT)
+      grid.cellWidth.value = width.scaleEM()
+      grid.cellHeight.value = height.scaleEM() + cellTextHeight.value
+      grid.horizontalCellSpacing.value = 5.scaleEM()
+      grid.verticalCellSpacing.value = 5.scaleEM()
       revisitCurrent()
    }
 
@@ -343,7 +351,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private inner class Cell: GridFileThumbCell(imageLoader) {
       private val disposer = Disposer()
 
-      override fun computeCellTextHeight() = CELL_TEXT_HEIGHT
+      override fun computeCellTextHeight() = cellTextHeight.value
 
       override fun computeGraphics() {
          super.computeGraphics()
@@ -405,10 +413,6 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          }
       }
 
-   }
-
-   companion object {
-      private const val CELL_TEXT_HEIGHT = 20.0
    }
 
 }

@@ -88,12 +88,15 @@ import sp.it.util.functional.getOr
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.propagateESCAPE
+import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.browse
 import sp.it.util.system.chooseFile
@@ -137,6 +140,11 @@ import kotlin.math.round
 )
 class GameView(widget: Widget): SimpleController(widget) {
 
+   private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {
+      onClose += { unsubscribe() }
+      attach { applyCellSize() }
+   }
+
    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSize by cv(CellSize.NORMAL) attach { applyCellSize() }
    @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
@@ -146,7 +154,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Location", info = "Location of the library.")
    val files by cList<File>().only(DIRECTORY)
 
-   val grid = GridView<Item, File>(File::class.java, { it.value }, cellSize.value.width, cellSize.value.width/cellSizeRatio.value.ratio + CELL_TEXT_HEIGHT, 10.0, 10.0)
+   val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 10.0, 10.0)
    val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("gameView-img-loader", true)))
    val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
       chooseFile("Choose directory", FileType.DIRECTORY, APP.locationHome, root.scene.window)
@@ -194,7 +202,11 @@ class GameView(widget: Widget): SimpleController(widget) {
       onClose += { imageLoader.shutdown() }
 
       placeholder.show(root, files.isEmpty())
-      viewGames()
+
+      root.sync1IfInScene {
+         applyCellSize()
+         viewGames()
+      }
    }
 
    private fun viewGames() {
@@ -223,13 +235,16 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-      grid.setCellSize(width, height + CELL_TEXT_HEIGHT)
+      grid.cellWidth.value = width.scaleEM()
+      grid.cellHeight.value = height.scaleEM() + cellTextHeight.value
+      grid.horizontalCellSpacing.value = 10.scaleEM()
+      grid.verticalCellSpacing.value = 10.scaleEM()
       grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.value, it.valType) }
    }
 
    private inner class Cell: GridFileThumbCell(imageLoader) {
 
-      override fun computeCellTextHeight() = CELL_TEXT_HEIGHT
+      override fun computeCellTextHeight() = cellTextHeight.value
 
       override fun computeGraphics() {
          super.computeGraphics()
@@ -419,7 +434,6 @@ class GameView(widget: Widget): SimpleController(widget) {
 
    companion object: KLogging() {
 
-      private const val CELL_TEXT_HEIGHT = 20.0
       private const val ICON_SIZE = 40.0
 
       private fun File.findImage(imageName: String) = children().find {

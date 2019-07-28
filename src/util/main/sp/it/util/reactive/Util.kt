@@ -36,7 +36,7 @@ fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: DisposableObservab
    private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
    private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
    private var mv: O = mapper(this@map.value)
-   private lateinit var disposer: Subscription
+   private val disposer: Subscription
 
    init {
       disposer = this@map attach { nv ->

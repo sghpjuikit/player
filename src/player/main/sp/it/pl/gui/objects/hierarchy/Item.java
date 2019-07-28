@@ -327,10 +327,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		/** Has no effect if {@link #useParentCoverIfNone} is true. */
 		public boolean useNativeIconIfNone;
 
-		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone, boolean useNativeIconAsFallback) {
+		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone, boolean useNativeIconIfNone) {
 			this.useParentCoverIfNone = useParentCoverIfNone;
 			this.useComposedDirCover = useComposedDirCover;
-			this.useNativeIconIfNone = useNativeIconAsFallback;
+			this.useNativeIconIfNone = useNativeIconIfNone;
 		}
 	}
 }

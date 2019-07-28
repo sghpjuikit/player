@@ -4,7 +4,6 @@ import com.sun.jna.platform.win32.Shell32
 import com.sun.jna.platform.win32.WinDef
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.div
-import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.file.type.MimeExt.Companion.exe
 import sp.it.util.file.type.MimeExt.Companion.lnk
 import sp.it.util.file.writeTextTry
@@ -42,7 +41,7 @@ object IconExtractor {
          return WindowsShortcut.targetedFile(file).map(::getFileIcon).orNull()
 
       val hasUniqueIcon = ext==exe
-      val key = if (hasUniqueIcon) file.nameWithoutExtensionOrRoot else ext
+      val key = if (hasUniqueIcon) file.absolutePath else ext
 
       return icons.computeIfAbsent(key) {
          null
@@ -53,7 +52,7 @@ object IconExtractor {
                val iconFile = null
                   ?: file.takeIf { it.exists() }
                   ?: runIf(!hasUniqueIcon) {
-                     val f = dirTmp/"iconCache"/"file_type_icons.$ext"
+                     val f = dirTmp/"iconCache"/"iconForExtension.$ext"
                      f.takeIf { it.exists() || it.writeTextTry("").isOk }
                   }
                iconFile?.getSwingIconFromFileSystem()?.toImage()
@@ -73,11 +72,11 @@ object IconExtractor {
 
    private fun File.iconOfExecutable(): ImageBf? = when (Os.current) {
       Os.WINDOWS -> {
-         val iconCount = Shell32.INSTANCE.ExtractIconEx(path, -1, null, null, 0)
+         val iconCount = Shell32.INSTANCE.ExtractIconEx(absolutePath, -1, null, null, 0)
 
          if (iconCount>0) {
             val iconHandles = arrayOfNulls<WinDef.HICON?>(iconCount).apply {
-               Shell32.INSTANCE.ExtractIconEx(path, 0, this, null, 1)
+               Shell32.INSTANCE.ExtractIconEx(absolutePath, 0, this, null, 1)
             }
             val iconHandle = iconHandles.filterNotNull().maxBy { IconExtractorJNA.getIconSize(it).width }
 

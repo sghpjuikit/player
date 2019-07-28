@@ -200,8 +200,9 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		Fut<Try<LoadResult,Void>> f = Fut.fut().then(IO, k -> {
 			File file = getCoverFile();
 			if (file==null) {
+				var strategy = getCoverStrategy();
 				if (valType==DIRECTORY) {
-					if (getCoverStrategy().useComposedDirCover) {
+					if (strategy.useComposedDirCover) {
 						var subCovers = (children==null ? Util.<Item>list() : list(children)).stream()
 							.filter(it -> it.valType==FILE)
 							.map(it -> it.getCoverFile())
@@ -228,14 +229,13 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						return ok(new LoadResult(null, coverToBe));
 					}
 				} else if (valType==FILE) {
-					if (value.getPath().endsWith(".exe") || value.getPath().endsWith(".lnk")) {
-						var coverToBe = IconExtractor.INSTANCE.getFileIcon(value);
-						cover = coverToBe;
-						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
-					}
 					if (isAudio(value)) {
 						var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
 						var coverToBe = c.isEmpty() ? null : c.getImage(size);
+						cover = coverToBe;
+						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
+					} else if (strategy.useNativeIconIfNone)  {
+						var coverToBe = IconExtractor.INSTANCE.getFileIcon(value);
 						cover = coverToBe;
 						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
 					}
@@ -320,14 +320,17 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public static class CoverStrategy {
-		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true);
+		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true, false);
 
 		public boolean useParentCoverIfNone;
 		public boolean useComposedDirCover;
+		/** Has no effect if {@link #useParentCoverIfNone} is true. */
+		public boolean useNativeIconIfNone;
 
-		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone) {
+		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone, boolean useNativeIconAsFallback) {
 			this.useParentCoverIfNone = useParentCoverIfNone;
 			this.useComposedDirCover = useComposedDirCover;
+			this.useNativeIconIfNone = useNativeIconAsFallback;
 		}
 	}
 }

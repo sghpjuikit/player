@@ -372,7 +372,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private inner class TopItem: FItem(null, null, null) {
 
       init {
-         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value)
+         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false)
       }
 
       override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) }

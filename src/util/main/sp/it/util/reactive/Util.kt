@@ -28,14 +28,18 @@ import java.util.function.Consumer
 
 private typealias DisposeOn = (Subscription) -> Unit
 
-@Experimental("Questionable API, can not be unsubscribed.")
-fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O> {
+interface DisposableObservableValue<O>: ObservableValue<O> {
+   fun unsubscribe()
+}
+
+fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: DisposableObservableValue<O> {
    private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
    private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
    private var mv: O = mapper(this@map.value)
+   private lateinit var disposer: Subscription
 
    init {
-      this@map attach { nv ->
+      disposer = this@map attach { nv ->
          val omv = mv
          val nmv = mapper(nv)
          mv = nmv
@@ -63,6 +67,8 @@ fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: ObservableValue<O>
    }
 
    override fun getValue() = mv
+
+   override fun unsubscribe() = disposer.unsubscribe()
 }
 
 /** Sets a block to be fired immediately and on every value change. */

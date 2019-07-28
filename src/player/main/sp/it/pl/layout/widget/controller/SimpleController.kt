@@ -5,8 +5,8 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.util.conf.Config
+import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
-import sp.it.util.conf.MultiConfigurable
 import sp.it.util.file.div
 import sp.it.util.file.toURLOrNull
 import sp.it.util.reactive.Disposer
@@ -19,17 +19,17 @@ import kotlin.reflect.full.findAnnotation
  * Base controller implementation that provides
  * - [root]
  * - support for automatic restoration of configurable properties, using delegated configurable properties, see
- * [sp.it.util.conf.cv] family of methods. This is [MultiConfigurable] and uses [widget] as [configurableValueStore].
+ * [sp.it.util.conf.cv] family of methods. This is [ConfigDelegator] and uses [widget] as [configurableValueSource].
  */
-open class SimpleController(widget: Widget): Controller(widget), MultiConfigurable {
+open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator {
 
    @JvmField val root = StackPane()
    @JvmField val onClose = Disposer()
    private var isLegacyConfigsInitialized = false
    private val hasLegacyConfigs = this::class.findAnnotation<LegacyController>()!=null
    private val configs = HashMap<String, Config<Any?>>()
-   override val configurableDiscriminant = null as String?
-   override val configurableValueStore: ConfigValueSource by lazy {
+   override val configurableDiscriminant: String? = null
+   override val configurableValueSource by lazy {
       object: ConfigValueSource {
 
          @Suppress("UNCHECKED_CAST")

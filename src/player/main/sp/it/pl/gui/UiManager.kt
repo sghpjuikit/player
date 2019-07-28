@@ -30,6 +30,7 @@ import sp.it.util.collections.ObservableSetRO
 import sp.it.util.collections.project
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.between
@@ -69,7 +70,7 @@ import sp.it.pl.gui.pane.ShortcutPane as PaneS
 import sp.it.pl.main.Settings.Ui as SU
 
 @IsConfigurable(SU.name)
-class UiManager(val skinDir: File): Configurable<Any> {
+class UiManager(val skinDir: File): GlobalConfigDelegator {
 
    @IsConfig(name = "Display method", group = SU.View.name, info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
    val viewDisplay by cv(OverlayPane.Display.SCREEN_OF_MOUSE)

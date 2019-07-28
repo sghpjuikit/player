@@ -4,7 +4,7 @@ import javafx.scene.Node
 import sp.it.pl.layout.Component
 import sp.it.pl.main.Settings
 import sp.it.util.conf.IsConfig
-import sp.it.util.conf.MultiConfigurableBase
+import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.reactive.syncFrom
@@ -44,7 +44,7 @@ class SwitchContainer: Container<SwitchContainerUi>() {
       return ui.root
    }
 
-   companion object: MultiConfigurableBase("${Settings.Ui.name}.Tabs") {
+   companion object: GlobalSubConfigDelegator("${Settings.Ui.name}.Tabs") {
 
       @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
          + " Tabs are always aligned. Seamless mode allows any tab position."

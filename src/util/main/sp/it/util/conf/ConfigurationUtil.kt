@@ -10,7 +10,7 @@ import kotlin.reflect.jvm.jvmName
 object MainConfiguration: Configuration()
 
 fun computeConfigGroup(declaringRef: Any): String {
-   val groupDiscriminant = (declaringRef as? MultiConfigurable)
+   val groupDiscriminant = (declaringRef as? ConfigDelegator)
       ?.configurableDiscriminant
       ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
       ?: ""
@@ -27,7 +27,7 @@ fun computeConfigGroup(declaringRef: Any): String {
 fun IsConfig?.computeConfigGroup(declaringRef: Any): String {
    if (this!=null && group.isNotBlank()) return group
 
-   val groupDiscriminant = (declaringRef as? MultiConfigurable)
+   val groupDiscriminant = (declaringRef as? ConfigDelegator)
       ?.configurableDiscriminant
       ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }
       ?: ""

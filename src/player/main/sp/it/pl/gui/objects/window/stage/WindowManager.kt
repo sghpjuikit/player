@@ -46,6 +46,7 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.between
@@ -90,7 +91,7 @@ import java.util.Optional
 import javafx.stage.Window as WindowFX
 
 @IsConfigurable(Settings.Ui.Window.name)
-class WindowManager {
+class WindowManager: GlobalConfigDelegator {
 
    @JvmField var screenMaxScaling = 0.0
    /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */

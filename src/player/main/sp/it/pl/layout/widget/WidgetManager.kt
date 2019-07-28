@@ -36,6 +36,7 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
+import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.c
@@ -437,7 +438,7 @@ class WidgetManager {
    }
 
    @IsConfigurable("Widgets")
-   inner class Widgets {
+   inner class Widgets: GlobalConfigDelegator {
 
       @IsConfig(name = "Auto-compilation supported", info = "On some system, this feature may be unsupported", editable = EditMode.NONE)
       val autoRecompileSupported by c(Os.WINDOWS.isCurrent)

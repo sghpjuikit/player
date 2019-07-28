@@ -34,7 +34,7 @@ import sp.it.util.async.runFX
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
-import sp.it.util.conf.MultiConfigurableBase
+import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
@@ -53,7 +53,7 @@ import sp.it.util.units.seconds
 import sp.it.util.units.times
 import java.util.ArrayList
 
-class Guide(guideEvents: Handler1<Any>): MultiConfigurableBase("${Settings.Plugin.name}.Guide") {
+class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Plugin.name}.Guide") {
 
    @IsConfig(name = "Hint", editable = EditMode.APP)
    private var at by c(-1)

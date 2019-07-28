@@ -3,8 +3,8 @@ package sp.it.pl.gui.objects.search
 import sp.it.pl.gui.objects.search.SearchAutoCancelable.Match.CONTAINS
 import sp.it.pl.main.Settings
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.IsConfig
-import sp.it.util.conf.MultiConfigurableBase
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.units.millis
@@ -24,7 +24,7 @@ abstract class SearchAutoCancelable: Search() {
       ENDS_WITH({ text, s -> text.endsWith(s, isIgnoreCase) });
    }
 
-   companion object: MultiConfigurableBase("${Settings.Ui.name}.Search") {
+   companion object: GlobalSubConfigDelegator("${Settings.Ui.name}.Search") {
 
       @IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
       var cancelQueryDelay by c(500.millis)

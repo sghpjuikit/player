@@ -34,7 +34,7 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
-import sp.it.util.conf.MultiConfigurableBase
+import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
@@ -58,7 +58,7 @@ import java.util.ArrayList
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
-class PlayerManager: MultiConfigurableBase("Playback") {
+class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    val playing = InOutput<Metadata>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing").appWide()
    val playingSong = CurrentItem()

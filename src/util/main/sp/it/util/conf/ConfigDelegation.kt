@@ -21,14 +21,14 @@ import sp.it.util.reactive.sync
 import sp.it.util.type.InstanceMap
 import sp.it.util.type.Util.getRawGenericPropertyType
 import java.io.File
-import kotlin.properties.ReadOnlyProperty
-import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
+import kotlin.properties.ReadOnlyProperty as RoProperty
+import kotlin.properties.ReadWriteProperty as RwProperty
 
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).but(Constraint.ObjectNonNull)
 fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
@@ -127,22 +127,31 @@ private val configuration = object: ConfigValueSource {
    }
 }
 
-/** Contract to specify per-instance configurable group (discriminant) for delegated config properties. */
-interface MultiConfigurable {
+/** Allows defining delegated configurable properties. */
+interface ConfigDelegator {
    /** Group suffix shared by all configs of this configurable. Usually unique for every instances. */
    val configurableDiscriminant: String?
+      get() = null
+
    /** Group (shared prefix path) shared by all configs of this configurable. Usually same for all instances. */
    @JvmDefault
    val configurableGroup
       get() = computeConfigGroup(this)
+
    /** Config register and value provider. By default common value store. */
    @JvmDefault
-   val configurableValueStore: ConfigValueSource
+   val configurableValueSource: ConfigValueSource
+}
+
+/** Implementation of [ConfigDelegator] with [MainConfiguration] as [configurableValueSource]. */
+interface GlobalConfigDelegator: ConfigDelegator {
+   @JvmDefault
+   override val configurableValueSource
       get() = configuration
 }
 
-/** Implementation of [MultiConfigurable] with the [MultiConfigurable.configurableDiscriminant] supplied at creation time. */
-open class MultiConfigurableBase(override val configurableDiscriminant: String): MultiConfigurable
+/** [GlobalConfigDelegator] with [ConfigDelegator.configurableDiscriminant] supplied at creation time. */
+open class GlobalSubConfigDelegator(override val configurableDiscriminant: String? = null): ConfigDelegator, GlobalConfigDelegator
 
 interface ConfigValueSource {
    fun register(config: Config<*>)
@@ -174,13 +183,8 @@ interface ConfigValueSource {
    }
 }
 
-
-interface Delegator<REF: Any?, D: Any> {
+interface ConfigPropertyDelegator<REF: ConfigDelegator, D: Any> {
    operator fun provideDelegate(ref: REF, property: KProperty<*>): D
-}
-
-fun <REF: Any, DP: Any> Delegator<REF, DP>.forInstance(instance: REF): Delegator<Nothing?, DP> = object: Delegator<Nothing?, DP> {
-   override fun provideDelegate(ref: Nothing?, property: KProperty<*>): DP = this@forInstance.provideDelegate(instance, property)
 }
 
 abstract class Conf<T: Any?> {
@@ -202,18 +206,13 @@ abstract class Conf<T: Any?> {
       javaField?.isAccessible = true
    }
 
-   fun obtainConfigValueStore(ref: Any?): ConfigValueSource = when (ref) {
-      is MultiConfigurable -> ref.configurableValueStore
-      else -> configuration
-   }
-
-   protected fun <CFGT, CFG: Config<CFGT>> CFG.registerConfig(ref: Any?) = apply {
-      obtainConfigValueStore(ref).register(this)
+   protected fun <CFGT, CFG: Config<CFGT>> CFG.registerConfig(ref: ConfigDelegator) = apply {
+      ref.configurableValueSource.register(this)
    }
 }
 
 class ConfR(private val action: () -> Unit): Conf<Action>() {
-   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, Action> {
+   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, Action> {
       property.makeAccessible()
       val info = property.findAnnotation<IsConfig>()
       val infoExt = property.findAnnotation<IsAction>()
@@ -229,14 +228,14 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false
 
-      return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous, *constraints.toTypedArray()), ReadOnlyProperty<Any, Action> {
-         override fun getValue(thisRef: Any, property: KProperty<*>) = this
+      return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous, *constraints.toTypedArray()), RoProperty<ConfigDelegator, Action> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = this
       }.registerConfig(ref)
    }
 }
 
 class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<T>() {
-   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any, ObservableList<T>> {
+   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, ObservableList<T>> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
       val group = info.computeConfigGroup(ref)
@@ -247,10 +246,10 @@ class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<T>() {
 
       val list = ConfList(type, isNullable)
       val c = ListConfig(property.name, info, list, group, constraints)
-      obtainConfigValueStore(ref).initialize(c)
+      ref.configurableValueSource.initialize(c)
 
-      return object: ListConfig<T>(property.name, info, list, group, constraints), ReadOnlyProperty<Any, ObservableList<T>> {
-         override fun getValue(thisRef: Any, property: KProperty<*>) = list.list
+      return object: ListConfig<T>(property.name, info, list, group, constraints), RoProperty<ConfigDelegator, ObservableList<T>> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = list.list
       }.registerConfig(ref)
    }
 }
@@ -258,7 +257,7 @@ class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<T>() {
 @Suppress("UNCHECKED_CAST")
 class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
 
-   operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadWriteProperty<Any, T> {
+   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RwProperty<ConfigDelegator, T> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
       val type = property.returnType.javaType as Class<T>
@@ -269,12 +268,12 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
       failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
 
       val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
-      obtainConfigValueStore(ref).initialize(c)
+      ref.configurableValueSource.initialize(c)
       validateValue(c.value)
 
-      return object: PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), ReadOnlyProperty<Any, T>, ReadWriteProperty<Any, T> {
-         override fun getValue(thisRef: Any, property: KProperty<*>) = getValue()
-         override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+      return object: PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), RwProperty<ConfigDelegator, T> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = getValue()
+         override fun setValue(thisRef: ConfigDelegator, property: KProperty<*>, value: T) {
             setValue(value)
          }
       }.registerConfig(ref)
@@ -282,7 +281,7 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
 }
 
 @Suppress("UNCHECKED_CAST")
-class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyProperty<Any?, W>> {
+class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
    private val initialValue: T
    private var v: (T) -> W
 
@@ -303,7 +302,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
       v = { s(it).apply { asIf<ObservableValue<T>>()?.sync(block) } }
    }
 
-   override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
+   override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
       val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
@@ -314,18 +313,18 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyPrope
       failIf(!isFinal) { "Property must be immutable" }
 
       val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
-      obtainConfigValueStore(ref).initialize(c)
+      ref.configurableValueSource.initialize(c)
       validateValue(c.value)
 
-      return object: PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), ReadOnlyProperty<Any?, W> {
-         override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
+      return object: PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), RoProperty<ConfigDelegator, W> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
    }
 
 }
 
 @Suppress("UNCHECKED_CAST")
-class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyProperty<Any?, W>> {
+class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
    private val initialValue: T
    private var v: (T) -> W
 
@@ -346,7 +345,7 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyP
       v = { s(it).apply { sync(block) } }
    }
 
-   override operator fun provideDelegate(ref: Any, property: KProperty<*>): ReadOnlyProperty<Any?, W> {
+   override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
       val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
@@ -360,8 +359,8 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, Delegator<Any, ReadOnlyP
       val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
       validateValue(c.value)
 
-      return object: ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), ReadOnlyProperty<Any?, W> {
-         override fun getValue(thisRef: Any?, property: KProperty<*>): W = this.property as W
+      return object: ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), RoProperty<ConfigDelegator, W> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
    }
 

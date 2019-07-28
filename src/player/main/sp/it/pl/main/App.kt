@@ -43,6 +43,7 @@ import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.IsConfigurable
 import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.between
@@ -101,7 +102,7 @@ fun main(args: Array<String>) {
 
 /** Application. Represents the program. */
 @IsConfigurable("General")
-class App: Application(), Configurable<Any> {
+class App: Application(), Configurable<Any>, GlobalConfigDelegator {
 
    init {
       APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }

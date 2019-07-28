@@ -45,6 +45,7 @@ import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.Functors.Ƒ.f
+import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
@@ -481,7 +482,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    @IsAction(name = "Seek backward (%)", desc = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
    fun seekBackwardRelative() {
       val d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() - seekUnitP
-      seek(d min 0.0)
+      seek(d max 0.0)
    }
 
    /** Seek forward by specified duration  */

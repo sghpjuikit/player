@@ -6,13 +6,13 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.util.action.Action
 import sp.it.util.async.runNew
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cvn
 import sp.it.util.conf.only
 import sp.it.util.reactive.attach
 import sp.it.util.system.Os
 import sp.it.util.system.runAsProgram
-import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 class Waifu2kPlugin: PluginBase("Waifu2k", false) {

@@ -31,6 +31,7 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runNew
 import sp.it.util.collections.mapset.MapSet
+import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.MultiConfigurableBase
@@ -51,7 +52,6 @@ import sp.it.util.system.browse
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
-import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.net.URI
 import java.util.ArrayList

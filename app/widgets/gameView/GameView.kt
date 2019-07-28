@@ -70,6 +70,8 @@ import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.Constraint.FileActor.DIRECTORY
+import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
@@ -123,8 +125,6 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
 import sp.it.util.units.times
-import sp.it.util.validation.Constraint.FileActor.DIRECTORY
-import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 import java.net.URI
 import kotlin.math.round

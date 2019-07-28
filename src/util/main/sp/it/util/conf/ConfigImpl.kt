@@ -6,7 +6,6 @@ import sp.it.util.conf.ConfigImpl.ConfigBase
 import sp.it.util.conf.OrPropertyConfig.OrValue
 import sp.it.util.file.properties.PropVal
 import sp.it.util.parsing.Parsers
-import sp.it.util.validation.Constraint
 
 
 /** [Config] wrapping a value. Not observable. */

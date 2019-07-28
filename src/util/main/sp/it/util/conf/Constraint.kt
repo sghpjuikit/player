@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package sp.it.util.validation
+package sp.it.util.conf
 
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
@@ -9,12 +9,12 @@ import javafx.util.Duration
 import sp.it.util.access.vAlways
 import sp.it.util.collections.map.ClassListMap
 import sp.it.util.collections.map.ClassMap
+import sp.it.util.conf.Constraint.Declaration.EXPLICIT
+import sp.it.util.conf.Constraint.Declaration.IMPLICIT
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNot
 import sp.it.util.functional.Try
 import sp.it.util.type.Util.getGenericInterface
-import sp.it.util.validation.Constraint.Declaration.EXPLICIT
-import sp.it.util.validation.Constraint.Declaration.IMPLICIT
 import java.io.File
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.reflect.KClass
@@ -139,7 +139,7 @@ interface Constraint<in T> {
       override fun message() = "Text must be at least $min and at most$max characters long"
    }
 
-   @Constraint.DeclarationType(IMPLICIT)
+   @DeclarationType(IMPLICIT)
    object DurationNonNegative: Constraint<Duration> {
       override fun isValid(value: Duration?): Boolean {
          return value==null || value.greaterThanOrEqualTo(Duration.ZERO)

@@ -49,6 +49,7 @@ import sp.it.util.async.runIO
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
+import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
@@ -83,7 +84,6 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 

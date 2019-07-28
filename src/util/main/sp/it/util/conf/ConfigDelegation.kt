@@ -20,7 +20,6 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.type.InstanceMap
 import sp.it.util.type.Util.getRawGenericPropertyType
-import sp.it.util.validation.Constraint
 import java.io.File
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty

@@ -27,6 +27,7 @@ import sp.it.util.access.toggle
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
+import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cn
@@ -49,7 +50,6 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
-import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.util.UUID
 import java.util.function.Consumer

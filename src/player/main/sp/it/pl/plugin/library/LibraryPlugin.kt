@@ -15,6 +15,7 @@ import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.runGet
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
+import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
@@ -33,7 +34,6 @@ import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
 import sp.it.util.system.Os
 import sp.it.util.text.plural
-import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE

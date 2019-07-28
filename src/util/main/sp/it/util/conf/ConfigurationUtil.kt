@@ -3,8 +3,6 @@ package sp.it.util.conf
 import sp.it.util.dev.failIf
 import sp.it.util.type.Util.unPrimitivize
 import sp.it.util.type.isSuperclassOf
-import sp.it.util.validation.Constraint
-import sp.it.util.validation.Constraints
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.jvmName

@@ -23,7 +23,6 @@ import sp.it.util.parsing.Parsers
 import sp.it.util.type.Util.getEnumConstants
 import sp.it.util.type.Util.isEnum
 import sp.it.util.type.toRaw
-import sp.it.util.validation.Constraint
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.function.Supplier

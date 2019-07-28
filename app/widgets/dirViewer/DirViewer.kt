@@ -47,6 +47,7 @@ import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
+import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cList
@@ -94,7 +95,6 @@ import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
-import sp.it.util.validation.Constraint.FileActor
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong

@@ -15,6 +15,7 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.scaleEM
+import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cvn
 import sp.it.util.conf.only
@@ -28,7 +29,6 @@ import sp.it.util.text.keys
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
-import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 @Widget.Info(

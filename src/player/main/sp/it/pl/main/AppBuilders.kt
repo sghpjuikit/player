@@ -23,6 +23,7 @@ import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.ValueConfig
 import sp.it.util.reactive.attachChanges
 import sp.it.util.ui.setScaleXY
@@ -30,7 +31,6 @@ import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.text
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
-import sp.it.util.validation.Constraint
 import java.util.concurrent.atomic.AtomicLong
 
 /**

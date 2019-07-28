@@ -13,6 +13,7 @@ import sp.it.util.async.NEW
 import sp.it.util.async.runFX
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
+import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
@@ -20,7 +21,6 @@ import sp.it.util.conf.only
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.writeTextTry
 import sp.it.util.system.browse
-import sp.it.util.validation.Constraint.FileActor.DIRECTORY
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 

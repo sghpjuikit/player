@@ -19,6 +19,12 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigImpl
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.Constraint.FileActor
+import sp.it.util.conf.Constraint.FileRelative
+import sp.it.util.conf.Constraint.HasNonNullElements
+import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.PreserveOrder
+import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.by
 import sp.it.util.functional.invoke
@@ -30,12 +36,6 @@ import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSuperclassOf
-import sp.it.util.validation.Constraint.FileActor
-import sp.it.util.validation.Constraint.FileRelative
-import sp.it.util.validation.Constraint.HasNonNullElements
-import sp.it.util.validation.Constraint.ObjectNonNull
-import sp.it.util.validation.Constraint.PreserveOrder
-import sp.it.util.validation.Constraint.UiConverter
 import java.io.File
 import java.util.function.BiConsumer
 

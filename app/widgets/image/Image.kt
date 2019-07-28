@@ -16,6 +16,7 @@ import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
 import sp.it.util.access.toggleNext
+import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
@@ -28,7 +29,6 @@ import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
-import sp.it.util.validation.Constraint.FileActor.FILE
 import java.io.File
 
 @Widget.Info(

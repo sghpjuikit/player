@@ -75,6 +75,7 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
+import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIf
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType
@@ -146,7 +147,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-   val cellSize by cv(CellSize.NORMAL) attach { applyCellSize() }
+   val cellSize by cv(CellSize.NORMAL).uiNoOrder() attach { applyCellSize() }
    @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
    @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")

@@ -53,6 +53,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
+import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
@@ -125,7 +126,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private val fileFlatter by cv(FileFlatter.TOP_LVL)
 
    @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-   private val cellSize by cv(NORMAL) attach { applyCellSize() }
+   private val cellSize by cv(NORMAL).uiNoOrder() attach { applyCellSize() }
    @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
    @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")

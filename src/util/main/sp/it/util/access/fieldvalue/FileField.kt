@@ -13,6 +13,7 @@ import sp.it.util.file.type.mimeType
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.units.FileSize
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -100,6 +101,8 @@ private fun File.readXmpTimeCreated(): FileTime? =
       ImageMetadataReader.readMetadata(this).getFirstDirectoryOfType(XmpDirectory::class.java)
          ?.xmpMeta?.getPropertyDate(Schema.XMP_PROPERTIES, "CreateDate")
          ?.calendar?.timeInMillis?.toFileTime()
+   } catch (e: FileNotFoundException) {
+      null
    } catch (e: IOException) {
       logger.error(e) { "Unable to read file creation date from XMP tag for $this" }
       null

@@ -1,7 +1,7 @@
 package sp.it.util.ui
 
-import javafx.scene.image.Image
-import sp.it.util.file.Util
+import com.sun.jna.platform.win32.Shell32
+import com.sun.jna.platform.win32.WinDef
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.div
 import sp.it.util.file.nameWithoutExtensionOrRoot
@@ -12,12 +12,13 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runIf
 import sp.it.util.system.Os
 import sp.it.util.ui.image.toFX
-import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import javax.swing.Icon
 import javax.swing.filechooser.FileSystemView
+import javafx.scene.image.Image as ImageFx
+import java.awt.image.BufferedImage as ImageBf
+import javax.swing.Icon as ImageSw
 
 /**
  * Extracts an icon for a file type of specific file.
@@ -30,41 +31,66 @@ import javax.swing.filechooser.FileSystemView
 object IconExtractor {
    private val dirTmp = File(System.getProperty("java.io.tmpdir"))
    private val helperFileSystemView by lazy { FileSystemView.getFileSystemView() }
-   private val mapOfFileExtToSmallIcon = ConcurrentHashMap<String, Image?>()
+   private val icons = ConcurrentHashMap<String, ImageFx?>()
 
-   @JvmStatic fun getFileIcon(file: File): Image? {
+   fun getFileIcon(file: File): ImageFx? {
 
-      val ext = Util.getSuffix(file.path).toLowerCase()
+      val ext = file.extension.toLowerCase()
 
-      // shortcuts have icons of files they refer to
+      // resolve links
       if (lnk==ext)
          return WindowsShortcut.targetedFile(file).map(::getFileIcon).orNull()
 
-      // Handle windows executable files (we need to handle each individually)
-      val isExe = exe==ext
-      val key = if (isExe) file.nameWithoutExtensionOrRoot else ext
+      val hasUniqueIcon = ext==exe
+      val key = if (hasUniqueIcon) file.nameWithoutExtensionOrRoot else ext
 
-      return mapOfFileExtToSmallIcon.computeIfAbsent(key) {
-         val iconFile = file.takeIf { it.exists() } ?: runIf(!isExe) {
-            val f = dirTmp/"file_type_icons.$it"
-            f.takeIf { it.exists() || it.writeTextTry("").isOk }
-         }
-         iconFile?.getSwingIconFromFileSystem()?.toImage()
+      return icons.computeIfAbsent(key) {
+         null
+            ?: run {
+               file.iconOfExecutable()?.toFX()
+            }
+            ?: run {
+               val iconFile = null
+                  ?: file.takeIf { it.exists() }
+                  ?: runIf(!hasUniqueIcon) {
+                     val f = dirTmp/"iconCache"/"file_type_icons.$ext"
+                     f.takeIf { it.exists() || it.writeTextTry("").isOk }
+                  }
+               iconFile?.getSwingIconFromFileSystem()?.toImage()
+            }
       }
    }
 
-   private fun File.getSwingIconFromFileSystem(): Icon? = when (Os.current) {
+   private fun File.getSwingIconFromFileSystem(): ImageSw? = when (Os.current) {
       Os.WINDOWS -> helperFileSystemView.getSystemIcon(this)
-      // TODO: implement
-      // Os.OSX -> {
-      //     final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
-      //     return icon = fc.getUI().getFileView(fc).getIcon(file);
-      // }
+      Os.OSX -> {
+         // final javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+         // fc.getUI().getFileView(fc).getIcon(file);
+         null
+      }
       else -> null
    }
 
-   private fun Icon.toImage(): Image? {
-      val image = BufferedImage(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
+   private fun File.iconOfExecutable(): ImageBf? = when (Os.current) {
+      Os.WINDOWS -> {
+         val iconCount = Shell32.INSTANCE.ExtractIconEx(path, -1, null, null, 0)
+
+         if (iconCount>0) {
+            val iconHandles = arrayOfNulls<WinDef.HICON?>(iconCount).apply {
+               Shell32.INSTANCE.ExtractIconEx(path, 0, this, null, 1)
+            }
+            val iconHandle = iconHandles.filterNotNull().maxBy { IconExtractorJNA.getIconSize(it).width }
+
+            iconHandle?.let(IconExtractorJNA::getWindowIcon)
+         } else {
+            null
+         }
+      }
+      else -> null
+   }
+
+   private fun ImageSw.toImage(): ImageFx? {
+      val image = ImageBf(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
       paintIcon(null, image.graphics, 0, 0)
       return image.toFX(null)
    }

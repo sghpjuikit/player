@@ -54,7 +54,7 @@ class IconExtractorDemo extends Application {
 				setGraphic(null);
 				setText(null);
 			} else {
-				Image fxImage = IconExtractor.getFileIcon(new File(item));
+				Image fxImage = IconExtractor.INSTANCE.getFileIcon(new File(item));
 				ImageView imageView = new ImageView(fxImage);
 				setGraphic(imageView);
 				setText(item);

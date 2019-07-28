@@ -229,7 +229,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					}
 				} else if (valType==FILE) {
 					if (value.getPath().endsWith(".exe") || value.getPath().endsWith(".lnk")) {
-						var coverToBe = IconExtractor.getFileIcon(value);
+						var coverToBe = IconExtractor.INSTANCE.getFileIcon(value);
 						cover = coverToBe;
 						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
 					}

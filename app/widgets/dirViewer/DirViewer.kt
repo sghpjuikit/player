@@ -33,6 +33,8 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.scaleEM
 import sp.it.pl.main.withAppProgress
 import sp.it.util.Sort.ASCENDING
+import sp.it.util.Util
+import sp.it.util.Util.*
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggleNext
@@ -54,12 +56,15 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
+import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
+import sp.it.util.file.isAnyParentOrSelfOf
+import sp.it.util.functional.let_
 import sp.it.util.functional.nullsLast
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
@@ -114,10 +119,6 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       if (it!=null && it.isDirectory && it.exists())
          files setToOne it
    }
-   private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {
-      onClose += { unsubscribe() }
-      attach { applyCellSize() }
-   }
 
    @IsConfig(name = "Location", info = "Root directories of the content.")
    private val files by cList<File>().only(FileActor.DIRECTORY)
@@ -125,17 +126,21 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
    private val fileFlatter by cv(FileFlatter.TOP_LVL)
 
-   @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-   private val cellSize by cv(NORMAL).uiNoOrder() attach { applyCellSize() }
-   @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-   private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
-   @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
-   private val fitFrom by cv(FitFrom.OUTSIDE)
-
    @IsConfig(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
    private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover)
    @IsConfig(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
    private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
+   @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   private val coverFitFrom by cv(FitFrom.OUTSIDE)
+   @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
+   private val cellSize by cv(NORMAL).uiNoOrder() attach { applyCellSize() }
+   @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
+   private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
+
+   private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {
+      onClose += { unsubscribe() }
+      attach { applyCellSize() }
+   }
 
    private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 5.0, 5.0)
    private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
@@ -152,7 +157,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
    private val sortFile by cv(DIR_FIRST) attach { applySort() }
    @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-   private val sortBy by cv<FileField<*>>(FileField.NAME).values(FileField.all) attach { applySort() }
+   private val sortBy by cv(FileField.NAME.name()).values(FileField.all.map { it.name() } + "PATH_LIBRARY").uiConverter { enumToHuman(it) } attach { applySort() }
    @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
    private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
 
@@ -211,7 +216,6 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          }
       }
 
-      // drag & drop
       installDrag(
          root, FOLDER_PLUS, "Explore directory",
          { e -> e.dragboard.hasFiles() },
@@ -259,8 +263,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       item = dir
       navigation.values setTo dir.traverse { it.parent }.toList().asReversed()
       lastVisited = dir.value
+      val locationsMaterialized = filesMaterialized
       runIO {
-         dir.children().sortedWith(buildSortComparator())
+         dir.children() let_ { it.sortedWith(buildSortComparator(locationsMaterialized, it)) }
       }.withAppProgress(
          widget.custom_name.value + ": Fetching view"
       ) ui {
@@ -337,17 +342,34 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    }
 
    private fun applySort() {
-      fut(grid.itemsRaw.materialize()).then(IO) {
-         it.sortedWith(buildSortComparator())
+      val itemsMaterialized = grid.itemsRaw.materialize()
+      val locationsMaterialized = filesMaterialized
+      runIO {
+         itemsMaterialized.sortedWith(buildSortComparator(locationsMaterialized, itemsMaterialized))
       } ui {
          grid.itemsRaw setTo it
       }
    }
 
-   private fun buildSortComparator() = compareBy<Item> { 0 }
-      .thenBy { it.valType }.inSort(sortFile.value.sort)
-      .thenBy(sortBy.value.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
-      .thenBy { it.value.path }
+   @Suppress("MapGetWithNotNullAssertionOperator")
+   private fun buildSortComparator(locationsMaterialized: List<File>, items: List<Item>): Comparator<Item> {
+      return when (sortBy.value) {
+         "PATH_LIBRARY" -> {
+            val childByParent = items.associateWith { c -> locationsMaterialized.find { p -> p.isAnyParentOrSelfOf(c.value) }!! }
+            val pathByChild = items.associateWith { c -> c.value.path.substringAfter(childByParent[c]!!.path)  }
+            compareBy<Item> { 0 }
+               .thenBy { it.valType }.inSort(sortFile.value.sort)
+               .thenBy { pathByChild[it]!! }
+         }
+         else -> {
+            val sortByValue = FileField.valueOf(sortBy.value)!!
+            compareBy<Item> { 0 }
+               .thenBy { it.valType }.inSort(sortFile.value.sort)
+               .thenBy(sortByValue.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
+               .thenBy { it.value.path }
+         }
+      }
+   }
 
    private inner class Cell: GridFileThumbCell(imageLoader) {
       private val disposer = Disposer()
@@ -356,7 +378,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       override fun computeGraphics() {
          super.computeGraphics()
-         thumb.fitFrom syncFrom fitFrom on disposer
+         thumb.fitFrom syncFrom coverFitFrom on disposer
          root install appTooltipForData { thumb.representant }
       }
 

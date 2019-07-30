@@ -3,11 +3,11 @@ package sp.it.util.math
 import net.objecthunter.exp4j.Expression
 import net.objecthunter.exp4j.ExpressionBuilder
 import sp.it.util.dev.Dependency
-import sp.it.util.functional.Functors.Ƒ1
+import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.Try
 
 /** Mathematical `Double -> Double` Function created from string expression. */
-class StrExF(s: String): Ƒ1<Double, Double> {
+class StrExF(s: String): F1<Double, Double> {
    private val expression: String
    private val e: Expression
 

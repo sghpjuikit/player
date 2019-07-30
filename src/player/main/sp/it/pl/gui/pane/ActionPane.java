@@ -39,7 +39,7 @@ import sp.it.util.animation.interpolator.ElasticInterpolator;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.ClassListMap;
 import sp.it.util.dev.SwitchException;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import sp.it.util.type.ClassName;
 import sp.it.util.type.InstanceInfo;
@@ -497,7 +497,7 @@ public class ActionPane extends OverlayPane<Object> {
 		iconPaneComplex.getChildren().setAll(insteadIcons.get());
 	}
 
-	public <I> ConvertingConsumer<? super I> converting(Ƒ1<? super I,Try<?,?>> converter) {
+	public <I> ConvertingConsumer<? super I> converting(F1<? super I,Try<?,?>> converter) {
 		return d -> {
 			converter.apply(d).ifOkUse(result -> runFX(() -> ActionPane.this.show(result)));
 			return Unit.INSTANCE;

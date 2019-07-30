@@ -38,7 +38,7 @@ import sp.it.util.animation.Loop;
 import sp.it.util.animation.interpolator.CircularInterpolator;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import sp.it.util.reactive.Subscription;
 import sp.it.util.type.Util;
@@ -734,7 +734,7 @@ public final class Seeker extends AnchorPane {
 
 	}
 
-	private static <V, C extends Comparable<? super C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<? super V,C> by) {
+	private static <V, C extends Comparable<? super C>> Optional<V> minBy(Collection<V> c, C atMost, F1<? super V,C> by) {
 		V minV = null;
 		C minC = atMost;
 		for (V v : c) {

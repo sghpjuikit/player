@@ -81,9 +81,9 @@ import sp.it.util.collections.map.ClassMap;
 import sp.it.util.collections.map.Map2D;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.dev.SwitchException;
-import sp.it.util.functional.Functors.Ƒ;
-import sp.it.util.functional.Functors.Ƒ0;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F;
+import sp.it.util.functional.Functors.F0;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.TriConsumer;
 import sp.it.util.functional.Util;
 import static comet.Comet.Constants.FPS;
@@ -116,7 +116,7 @@ import static sp.it.util.Util.clip;
 import static sp.it.util.Util.pyth;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.TryKt.runTry;
-import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.array;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.forEachCartesianHalfNoSelf;
@@ -648,23 +648,23 @@ interface Utils {
 		}
 	}
 	class Achievement extends Displayable {
-		final Ƒ1<Game,Set<Player>> evaluator;
+		final F1<Game,Set<Player>> evaluator;
 		Predicate<? super Game> condition;
 
-		private Achievement(String NAME, GlyphIcons ICON, Ƒ1<Game,Set<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+		private Achievement(String NAME, GlyphIcons ICON, F1<Game,Set<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
 			super(NAME, ICON, DESCRIPTION);
 			evaluator = EVALUATOR;
 		}
 
-		static Achievement achievement1(String NAME, GlyphIcons ICON, Ƒ1<? super Game,? extends Player> EVALUATOR, CharSequence... DESCRIPTION) {
+		static Achievement achievement1(String NAME, GlyphIcons ICON, F1<? super Game,? extends Player> EVALUATOR, CharSequence... DESCRIPTION) {
 			return new Achievement(NAME, ICON, game -> singleton(EVALUATOR.apply(game)), DESCRIPTION);
 		}
 
-		static Achievement achievement01(String NAME, GlyphIcons ICON, Ƒ1<? super Game,? extends Optional<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+		static Achievement achievement01(String NAME, GlyphIcons ICON, F1<? super Game,? extends Optional<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
 			return new Achievement(NAME, ICON, game -> EVALUATOR.apply(game).stream().collect(toSet()), DESCRIPTION);
 		}
 
-		static Achievement achievement0N(String NAME, GlyphIcons ICON, Ƒ1<Game,Stream<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
+		static Achievement achievement0N(String NAME, GlyphIcons ICON, F1<Game,Stream<Player>> EVALUATOR, CharSequence... DESCRIPTION) {
 			return new Achievement(NAME, ICON, game -> EVALUATOR.apply(game).collect(toSet()), DESCRIPTION);
 		}
 
@@ -886,19 +886,19 @@ interface Utils {
 	class InEffectValue<T> {
 		private int times = 0;
 		private T value;
-		private final Ƒ1<Integer,T> valueCalc;
+		private final F1<Integer,T> valueCalc;
 		private final Consumer<Integer> changeApplier;
 
-		InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator, Consumer<Integer> onChange) {
+		InEffectValue(int times_init, F1<Integer,T> valueCalculator, Consumer<Integer> onChange) {
 			times = times_init;
 			valueCalc = valueCalculator;
 			changeApplier = onChange;
 			value = valueCalc.apply(times);
 		}
-		InEffectValue(int times_init, Ƒ1<Integer,T> valueCalculator) {
+		InEffectValue(int times_init, F1<Integer,T> valueCalculator) {
 			this(times_init, valueCalculator, null);
 		}
-		InEffectValue(Ƒ1<Integer,T> valueCalculator) {
+		InEffectValue(F1<Integer,T> valueCalculator) {
 			this(0, valueCalculator);
 		}
 
@@ -1038,9 +1038,9 @@ interface Utils {
 
 	class ObjectStore<O> {
 		private final Map<Class<?>,Set<O>> m = new HashMap<>();
-		private final Ƒ1<O,Class<?>> mapper;
+		private final F1<O,Class<?>> mapper;
 
-		ObjectStore(Ƒ1<O,Class<?>> classMapper) {
+		ObjectStore(F1<O,Class<?>> classMapper) {
 			mapper = classMapper;
 		}
 
@@ -1085,9 +1085,9 @@ interface Utils {
 	class Pool<P> {
 		private final List<P> pool;
 		 final int max;
-		private final Ƒ0<P> fac;
+		private final F0<P> fac;
 
-		 Pool(int max_size, Ƒ0<P> factory) {
+		 Pool(int max_size, F0<P> factory) {
 			max = max_size;
 			fac = factory;
 			pool = new ArrayList<>(max_size);
@@ -1108,12 +1108,12 @@ interface Utils {
 	}
 	class PoolMap<P> {
 		private final ClassMap<Pool<P>> pools = new ClassMap<>();
-		private final ClassMap<Ƒ1<Class<?>,Pool<P>>> factories = new ClassMap<>();
+		private final ClassMap<F1<Class<?>,Pool<P>>> factories = new ClassMap<>();
 
 		 PoolMap() {
 		}
 
-		void registerPool(Class<?> type, Ƒ0<Pool<P>> poolFactory) {
+		void registerPool(Class<?> type, F0<Pool<P>> poolFactory) {
 			factories.put(type, c -> poolFactory.apply());
 		}
 		void add(Class<?> type, P p) {
@@ -1193,7 +1193,7 @@ interface Utils {
 
 		/** Adds runnable that will run next time this runs. */
 		void add(Runnable r) {
-			lr.add(Ƒ.f(r));
+			lr.add(F.f(r));
 		}
 
 		/** Adds runnable that will run after this runs specified number of times. */
@@ -1229,7 +1229,7 @@ interface Utils {
 		void addPeriodic(Duration delay, Runnable r) {
 			lpt.add(new PTtl(() -> ttl(delay), r));
 		}
-		void addPeriodic(Ƒ0<Double> ttl, Runnable r) {
+		void addPeriodic(F0<Double> ttl, Runnable r) {
 			lpt.add(new PTtl(ttl, r));
 		}
 
@@ -1309,9 +1309,9 @@ interface Utils {
 		}
 	}
 	class PTtl extends Ttl {
-		final Ƒ0<Double> ttlPeriod;
+		final F0<Double> ttlPeriod;
 
-		PTtl(Ƒ0<Double> TTL, Runnable R) {
+		PTtl(F0<Double> TTL, Runnable R) {
 			super(0, R);
 			ttlPeriod = TTL;
 			ttl = TTL.apply();
@@ -2369,7 +2369,7 @@ interface Utils {
 			Set<Cell> selectedCells = stream(game.players)
 				.filter(p -> p.alive)
 				.map(p -> cells.stream().collect(Util.minBy(c -> c.distance(p.rocket.x, p.rocket.y))).orElse(null))
-				.filter(ISNTØ)
+				.filter(ISNT0)
 				.collect(toSet());
 			Map<Coordinate,Cell> inputOutputMap = cells.stream().collect(toMap(o -> new Coordinate(o.x, o.y), o -> o));
 			Collection<Coordinate> cords = inputOutputMap.keySet();

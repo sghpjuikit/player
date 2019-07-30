@@ -8,7 +8,7 @@ import sp.it.util.access.V;
 import sp.it.util.action.IsAction;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.Configurable;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import static sp.it.util.functional.Util.listRO;
 
 /** Manages playlists. */
@@ -30,7 +30,7 @@ public class PlaylistManager implements Configurable {
 		if (p!=null) action.accept(p);
 	}
 
-	public static <T> T use(Ƒ1<Playlist,T> action, T or) {
+	public static <T> T use(F1<Playlist,T> action, T or) {
 		Playlist p = null;
 		if (active!=null) p = playlists.get(active);
 		if (p==null) p = playlists.stream().findAny().orElse(null);

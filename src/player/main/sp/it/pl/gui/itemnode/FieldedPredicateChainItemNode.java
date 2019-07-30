@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.util.access.fieldvalue.ObjectField;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import static sp.it.util.functional.Util.IS;
 
 /**
@@ -19,7 +19,7 @@ public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> e
 	protected final List<PredicateData<F>> data = new ArrayList<>();
 
 	@SuppressWarnings("unchecked")
-	public FieldedPredicateChainItemNode(Ƒ1<FieldedPredicateChainItemNode<T,F>,FieldedPredicateItemNode<T,F>> chainedFactory) {
+	public FieldedPredicateChainItemNode(F1<FieldedPredicateChainItemNode<T,F>,FieldedPredicateItemNode<T,F>> chainedFactory) {
 		super(0, Integer.MAX_VALUE, (Predicate) IS, null);
 		this.chainedFactory = () -> chainedFactory.apply(this);
 		inconsistent_state = false;

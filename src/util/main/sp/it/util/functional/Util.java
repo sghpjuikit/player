@@ -32,10 +32,10 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import sp.it.util.functional.Functors.Ƒ1;
-import sp.it.util.functional.Functors.Ƒ2;
-import sp.it.util.functional.Functors.ƑEC;
-import sp.it.util.functional.Functors.ƑP;
+import sp.it.util.functional.Functors.F1;
+import sp.it.util.functional.Functors.F2;
+import sp.it.util.functional.Functors.FEC;
+import sp.it.util.functional.Functors.FP;
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -54,20 +54,20 @@ import static sp.it.util.dev.FailKt.noNull;
 public interface Util {
 
 	/** Function returning the inputs. */
-	Ƒ1<Object,Object> IDENTITY = o -> o;
+	F1<Object,Object> IDENTITY = o -> o;
 
 	/** Predicate returning true iff object is not null. */
-	ƑP<Object> ISNTØ = Objects::nonNull;
+	FP<Object> ISNT0 = Objects::nonNull;
 
 	/** Predicate returning true iff object is null. */
-	ƑP<Object> ISØ = Objects::isNull;
+	FP<Object> IS0 = Objects::isNull;
 
 	/** Predicate returning true. Matches every object. */
-	ƑP<Object> IS = o -> true;
+	FP<Object> IS = o -> true;
 
 	/** Predicate returning false. Matches no object. */
 	@SuppressWarnings("SpellCheckingInspection")
-	ƑP<Object> ISNT = o -> false;
+	FP<Object> ISNT = o -> false;
 
 	/** Comparator returning 0. Produces no order change. */
 	@SuppressWarnings("ComparatorMethodParameterNotUsed")
@@ -178,22 +178,22 @@ public interface Util {
 	Collector<CharSequence,?,String> toCSList = Collectors.joining(", ");
 
 	/** Collector returning the minimum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,Optional<V>> minBy(Ƒ1<? super V,C> by) {
+	static <V, C extends Comparable<? super C>> Collector<V,?,Optional<V>> minBy(F1<? super V,C> by) {
 		return Collectors.reducing(BinaryOperator.minBy(by(by)));
 	}
 
 	/** Collector returning the maximum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,Optional<V>> maxBy(Ƒ1<? super V,C> by) {
+	static <V, C extends Comparable<? super C>> Collector<V,?,Optional<V>> maxBy(F1<? super V,C> by) {
 		return Collectors.reducing(BinaryOperator.maxBy(by(by)));
 	}
 
 	/** Collector returning the minimum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,V> minByIdentity(V identity, Ƒ1<? super V,C> by) {
+	static <V, C extends Comparable<? super C>> Collector<V,?,V> minByIdentity(V identity, F1<? super V,C> by) {
 		return Collectors.reducing(identity, BinaryOperator.minBy(by(by)));
 	}
 
 	/** Collector returning the maximum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,V> maxByIdentity(V identity, Ƒ1<? super V,C> by) {
+	static <V, C extends Comparable<? super C>> Collector<V,?,V> maxByIdentity(V identity, F1<? super V,C> by) {
 		return Collectors.reducing(identity, BinaryOperator.maxBy(by(by)));
 	}
 
@@ -483,7 +483,7 @@ public interface Util {
 	 * @param items items to execute action for, the order of execution will be the same as if using normal for loop
 	 * @param action action that executes once per item. It can throw exception to signal loop break
 	 */
-	static <T> void forEachAfter(long period, Collection<T> items, ƑEC<T,InterruptedException> action) {
+	static <T> void forEachAfter(long period, Collection<T> items, FEC<T,InterruptedException> action) {
 		for (T item : items) {
 			try {
 				action.apply(item);
@@ -879,7 +879,7 @@ public interface Util {
 		return stream(t.asIterator());
 	}
 
-	static <A, B, R> Stream<R> streamBi(A[] a, B[] b, Ƒ2<A,B,R> zipper) {
+	static <A, B, R> Stream<R> streamBi(A[] a, B[] b, F2<A,B,R> zipper) {
 		failIf(a.length!=b.length);
 		Stream.Builder<R> builder = Stream.builder();
 		for (int i = 0; i<a.length; i++)

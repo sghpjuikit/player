@@ -7,15 +7,15 @@ import java.util.Set;
 import sp.it.util.collections.list.PrefList;
 import sp.it.util.collections.map.PrefListMap;
 import sp.it.util.functional.Functors.Parameter;
-import sp.it.util.functional.Functors.PƑ;
-import sp.it.util.functional.Functors.PƑ0;
-import sp.it.util.functional.Functors.PƑ1;
-import sp.it.util.functional.Functors.PƑ2;
-import sp.it.util.functional.Functors.PƑ3;
-import sp.it.util.functional.Functors.Ƒ1;
-import sp.it.util.functional.Functors.Ƒ2;
-import sp.it.util.functional.Functors.Ƒ3;
-import sp.it.util.functional.Functors.Ƒ4;
+import sp.it.util.functional.Functors.PF;
+import sp.it.util.functional.Functors.PF0;
+import sp.it.util.functional.Functors.PF1;
+import sp.it.util.functional.Functors.PF2;
+import sp.it.util.functional.Functors.PF3;
+import sp.it.util.functional.Functors.F1;
+import sp.it.util.functional.Functors.F2;
+import sp.it.util.functional.Functors.F3;
+import sp.it.util.functional.Functors.F4;
 import static sp.it.util.functional.Util.IDENTITY;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getEnumConstants;
@@ -27,54 +27,54 @@ import static sp.it.util.type.Util.unPrimitivize;
 public class FunctorPool {
 
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor
-	private final PrefListMap<PƑ,Class<?>> fsI = new PrefListMap<>(pf -> pf.in);
-	private final PrefListMap<PƑ,Class<?>> fsO = new PrefListMap<>(pf -> pf.out);
-	private final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
+	private final PrefListMap<PF,Class<?>> fsI = new PrefListMap<>(pf -> pf.in);
+	private final PrefListMap<PF,Class<?>> fsO = new PrefListMap<>(pf -> pf.out);
+	private final PrefListMap<PF,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
 	private final Set<Class> cacheStorage = new HashSet<>();
 
 	@SuppressWarnings("unchecked")
-	public <I,O> void add(String name, Class<I> i , Class<O> o, Ƒ1<? super I, ? extends O> f) {
-		addF(new PƑ0(name,i,o,f));
+	public <I,O> void add(String name, Class<I> i , Class<O> o, F1<? super I, ? extends O> f) {
+		addF(new PF0(name,i,o,f));
 	}
 
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def) {
 		add(name,i,o,f,new Parameter<>(p1, p1def));
 	}
 
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Parameter<P1> p1) {
-		addF(new PƑ1<>(name,i,o,f,p1));
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Parameter<P1> p1) {
+		addF(new PF1<>(name,i,o,f,p1));
 	}
 
-	public <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
+	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
 		add(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def));
 	}
 
-	public <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
-		addF(new PƑ2<>(name,i,o,f,p1,p2));
+	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
+		addF(new PF2<>(name,i,o,f,p1,p2));
 	}
 
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
 		add(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def),new Parameter<>(p3, p3def));
 	}
 
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
-		addF(new PƑ3<>(name,i,o,f,p1,p2,p3));
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
+		addF(new PF3<>(name,i,o,f,p1,p2,p3));
 	}
 
-	public <I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {
-		addF(new PƑ0<>(name,i,o,f),pi,po,pio);
+	public <I,O> void add(String name, Class<I> i , Class<O> o, F1<I,O> f, boolean pi, boolean po, boolean pio) {
+		addF(new PF0<>(name,i,o,f),pi,po,pio);
 	}
 
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
-		addF(new PƑ1<>(name,i,o,f,new Parameter<>(p1,p1def)),pi,po,pio);
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
+		addF(new PF1<>(name,i,o,f,new Parameter<>(p1,p1def)),pi,po,pio);
 	}
 
-	public <I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
-		addF(new PƑ2<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def)),pi,po,pio);
+	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
+		addF(new PF2<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def)),pi,po,pio);
 	}
 
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
-		addF(new PƑ3<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def),new Parameter<>(p3,p3def)),pi,po,pio);
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
+		addF(new PF3<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def),new Parameter<>(p3,p3def)),pi,po,pio);
 	}
 
 	public <C extends Comparable<? super C>> void addPredicatesComparable(Class<C> c, C def_val) {
@@ -87,21 +87,21 @@ public class FunctorPool {
 	}
 
 	/** Add function to the pool. */
-	public void addF(PƑ f) {
+	public void addF(PF f) {
 		fsI.accumulate(f);
 		fsO.accumulate(f);
 		fsIO.accumulate(f);
 	}
 
 	/** Add function to the pool and sets as preferred according to parameters. */
-	public void addF(PƑ f, boolean i, boolean o, boolean io) {
+	public void addF(PF f, boolean i, boolean o, boolean io) {
 		fsI.accumulate(f, i);
 		fsO.accumulate(f, o);
 		fsIO.accumulate(f, io);
 	}
 
 	/** Remove function from the pool. */
-	public void remF(PƑ f) {
+	public void remF(PF f) {
 		fsI.deAccumulate(f);
 		fsO.deAccumulate(f);
 		fsIO.deAccumulate(f);
@@ -113,7 +113,7 @@ public class FunctorPool {
 		cacheStorage.add(c);
 
 		// add self functor
-		addF(new PƑ0("As self", c, c, IDENTITY));
+		addF(new PF0("As self", c, c, IDENTITY));
 
 		// add enum is predicates
 		if (isEnum(c))
@@ -122,14 +122,14 @@ public class FunctorPool {
 
 	/** Returns all functions taking input I. */
 	@SuppressWarnings("unckeched")
-	public <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
+	public <I> PrefList<PF<I,?>> getI(Class<I> i) {
 		addSelfFunctor(i);
 		return (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
 	}
 
 	/** Returns all functions producing output O. */
 	@SuppressWarnings("unckeched")
-	public <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
+	public <O> PrefList<PF<?,O>> getO(Class<O> o) {
 		addSelfFunctor(o);
 		List<?> ll = fsO.get(unPrimitivize(o));
 		return ll==null ? new PrefList<>() : (PrefList) ll;
@@ -137,7 +137,7 @@ public class FunctorPool {
 
 	/** Returns all functions taking input I and producing output O. */
 	@SuppressWarnings("unckeched")
-	public <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
+	public <I,O> PrefList<PF<I,O>> getIO(Class<I> i, Class<O> o) {
 		addSelfFunctor(i);
 		addSelfFunctor(o);
 
@@ -171,32 +171,32 @@ public class FunctorPool {
 	}
 
 	/** Returns all functions taking input IO and producing output IO. */
-	public <IO> PrefList<PƑ<IO,IO>> getIO(Class<IO> io) {
+	public <IO> PrefList<PF<IO,IO>> getIO(Class<IO> io) {
 		return getIO(io, io);
 	}
 
-	public <I,O> PƑ<I,O> getPF(String name, Class<I> i, Class<O> o) {
+	public <I,O> PF<I,O> getPF(String name, Class<I> i, Class<O> o) {
 		@SuppressWarnings("unchecked")
-		List<PƑ<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i), unPrimitivize(o)));
+		List<PF<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i), unPrimitivize(o)));
 		return l==null ? null : stream(l).filter(f -> f.name.equals(name)).findAny().orElse(null);
 	}
 
-	public <I> PƑ<I,?> getPrefI(Class<I> i) {
-		PrefList<PƑ<I,?>> pl = getI(i);
+	public <I> PF<I,?> getPrefI(Class<I> i) {
+		PrefList<PF<I,?>> pl = getI(i);
 		return pl==null ? null : pl.getPreferredOrFirst();
 	}
 
-	public <O> PƑ<?,O> getPrefO(Class<O> o) {
-		PrefList<PƑ<?,O>> l = getO(o);
+	public <O> PF<?,O> getPrefO(Class<O> o) {
+		PrefList<PF<?,O>> l = getO(o);
 		return l==null ? null : l.getPreferredOrFirst();
 	}
 
-	public <I,O> PƑ<I,O> getPrefIO(Class<I> i, Class<O> o) {
-		PrefList<PƑ<I,O>> l = getIO(i,o);
+	public <I,O> PF<I,O> getPrefIO(Class<I> i, Class<O> o) {
+		PrefList<PF<I,O>> l = getIO(i,o);
 		return l==null ? null : l.getPreferredOrFirst();
 	}
 
-	public <IO> PƑ<IO,IO> getPrefIO(Class<IO> io) {
+	public <IO> PF<IO,IO> getPrefIO(Class<IO> io) {
 		return getPrefIO(io,io);
 	}
 

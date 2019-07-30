@@ -27,7 +27,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.util.dev.FailKt.failIf;
-import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.repeat;
 
 /**
@@ -190,7 +190,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 	public Stream<VAL> getValues() {
 		return chain.stream().filter(g -> g.on.getValue())
 				.map(g -> g.chained.getVal())
-				.filter(ISNTØ);
+				.filter(ISNT0);
 	}
 
 	/** Adjusts remove button of the first element of the chain (which is disabled by default). */

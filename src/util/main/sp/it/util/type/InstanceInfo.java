@@ -5,13 +5,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import sp.it.util.collections.map.ClassMap;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import static java.util.Collections.emptyMap;
 
 public class InstanceInfo {
 
-	private static final Ƒ1<?,Map<String,String>> DEF = o -> emptyMap();
-	private final ClassMap<Ƒ1<?,Map<String,String>>> names = new ClassMap<>();
+	private static final F1<?,Map<String,String>> DEF = o -> emptyMap();
+	private final ClassMap<F1<?,Map<String,String>>> names = new ClassMap<>();
 
 	/**
 	 * Registers info function for specified class..
@@ -21,12 +21,12 @@ public class InstanceInfo {
 	 * @param extractor function that transforms instance to map of key value pairs representing information about the
 	 * instance
 	 */
-	public <T> void add(Class<T> c, Ƒ1<? super T,Map<String,String>> extractor) {
+	public <T> void add(Class<T> c, F1<? super T,Map<String,String>> extractor) {
 		names.put(c, extractor);
 	}
 
 	/**
-	 * Convenience method. Alternative to {@link #add(Class, sp.it.util.functional.Functors.Ƒ1)} which passes already
+	 * Convenience method. Alternative to {@link #add(Class, sp.it.util.functional.Functors.F1)} which passes already
 	 * created map to the extractor.
 	 *
 	 * @param c type to add info extractor to. Use {@link Void} class to handle null (since only null can be an
@@ -53,11 +53,11 @@ public class InstanceInfo {
 	public Map<String,String> get(Object instance) {
 		// Handle null as void so user can register his own function
 		Class c = instance==null ? Void.class : instance.getClass();
-		Ƒ1<?,Map<String,String>> f = names.getElementOfSuper(c);
+		F1<?,Map<String,String>> f = names.getElementOfSuper(c);
 		// Fall back to default implementation
 		if (f==null) f = DEF;
 
-		return ((Ƒ1<Object,Map<String,String>>) f).apply(instance);
+		return ((F1<Object,Map<String,String>>) f).apply(instance);
 	}
 
 }

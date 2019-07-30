@@ -26,8 +26,8 @@ import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IDENTITY;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.ISNT;
-import static sp.it.util.functional.Util.ISNTØ;
-import static sp.it.util.functional.Util.ISØ;
+import static sp.it.util.functional.Util.ISNT0;
+import static sp.it.util.functional.Util.IS0;
 import static sp.it.util.functional.Util.isAny;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
@@ -40,10 +40,10 @@ public interface Functors {
 	FunctorPool pool = new FunctorPool();
 
 	/** Marker interface for lambda. */
-	interface Λ {}
+	interface L {}
 
 	/** Marker interface for lambda denoting its first input and output. */
-	interface IO<I, O> extends Λ {
+	interface IO<I, O> extends L {
 		// not sure if good idea
 		// for default impl i want to use reflection to inspect generic type in runtime
 		// subclasses may want to override, like PF or TypeAwareF
@@ -52,7 +52,7 @@ public interface Functors {
 	}
 
 	@FunctionalInterface
-	interface Ƒ extends Λ, IO<Void,Void>, Function0<Unit>, Runnable {
+	interface F extends L, IO<Void,Void>, Function0<Unit>, Runnable {
 		void apply();
 
 		@Override
@@ -66,7 +66,7 @@ public interface Functors {
 			apply();
 		}
 
-		static Ƒ f(Runnable r) {
+		static F f(Runnable r) {
 			return r::run;
 		}
 	}
@@ -77,7 +77,7 @@ public interface Functors {
 	 * @param <O> output type
 	 */
 	@FunctionalInterface
-	interface Ƒ0<O> extends Λ, IO<Void,O>, Function0<O>, Supplier<O> {
+	interface F0<O> extends L, IO<Void,O>, Function0<O>, Supplier<O> {
 		O apply();
 
 		@Override
@@ -90,7 +90,7 @@ public interface Functors {
 			return apply();
 		}
 
-		default <M> Ƒ0<M> map(Ƒ1<? super O,? extends M> f) {
+		default <M> F0<M> map(F1<? super O,? extends M> f) {
 			return () -> f.apply(apply());
 		}
 
@@ -99,31 +99,8 @@ public interface Functors {
 		 * take place as normal, so this function should have side effects. If it does not, a
 		 * function that does nothing should be used instead of this method.
 		 */
-		default Ƒ toƑ() {
+		default F toF() {
 			return this::apply;
-		}
-	}
-
-	/**
-	 * Supplier function throwing an exception.
-	 * <p/>
-	 * Due to the signature, it is impossible to extend {@link Consumer}
-	 *
-	 * @param <O> output type
-	 */
-	@FunctionalInterface
-	interface Ƒ0E<O, E extends Throwable> extends Λ, IO<Void,O> {
-		O apply() throws E;
-
-		default Ƒ0E<O,E> onEx(O or, Class<?>... ecs) {
-			return () -> {
-				try {
-					return apply();
-				} catch (Throwable e) {
-					for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
-					throw e;
-				}
-			};
 		}
 	}
 
@@ -135,20 +112,20 @@ public interface Functors {
 	 * effects - consumer by nature relies on side effects.)
 	 */
 	@FunctionalInterface
-	interface Ƒ1<I, O> extends Λ, IO<I,O>, Function<I,O>, Function1<I,O>, Callback<I,O>, Consumer<I> {
+	interface F1<I, O> extends L, IO<I,O>, Function<I,O>, Function1<I,O>, Callback<I,O>, Consumer<I> {
 
-		static Ƒ1<Void,Void> f1(Runnable r) {
+		static F1<Void,Void> f1(Runnable r) {
 			return i -> {
 				r.run();
 				return null;
 			};
 		}
 
-		static <T> Ƒ1<Void,T> f1(Supplier<T> s) {
+		static <T> F1<Void,T> f1(Supplier<T> s) {
 			return i -> s.get();
 		}
 
-		static <T> Ƒ1<T,Void> f1(Consumer<T> c) {
+		static <T> F1<T,Void> f1(Consumer<T> c) {
 			return i -> {
 				c.accept(i);
 				return null;
@@ -176,7 +153,7 @@ public interface Functors {
 		}
 
 		/** Partially applies this function with 1st parameter. */
-		default Ƒ0<O> toƑ0(I i) {
+		default F0<O> toF0(I i) {
 			return () -> apply(i);
 		}
 
@@ -184,7 +161,7 @@ public interface Functors {
 		 * Returns function equivalent to this, except for when certain exception types are thrown.
 		 * These will be caught and alternative output returned.
 		 */
-		default Ƒ1<I,O> onEx(O or, Class<?>... ecs) {
+		default F1<I,O> onEx(O or, Class<?>... ecs) {
 			return i -> {
 				try {
 					return apply(i);
@@ -198,7 +175,7 @@ public interface Functors {
 		}
 
 		/** Lazy version of {@link #onEx(java.lang.Object, java.lang.Class...) } */
-		default Ƒ1<I,O> onEx(Supplier<O> or, Class<?>... ecs) {
+		default F1<I,O> onEx(Supplier<O> or, Class<?>... ecs) {
 			return i -> {
 				try {
 					return apply(i);
@@ -212,7 +189,7 @@ public interface Functors {
 		}
 
 		/** Function version of {@link #onEx(java.lang.Object, java.lang.Class...) }. */
-		default Ƒ1<I,O> onEx(Ƒ1<I,O> or, Class<?>... ecs) {
+		default F1<I,O> onEx(F1<I,O> or, Class<?>... ecs) {
 			return i -> {
 				try {
 					return apply(i);
@@ -226,13 +203,13 @@ public interface Functors {
 		}
 
 		@Override
-		default <R> Ƒ1<I,R> andThen(Function<? super O,? extends R> after) {
+		default <R> F1<I,R> andThen(Function<? super O,? extends R> after) {
 			noNull(after);
 			return (I t) -> after.apply(apply(t));
 		}
 
 		//* Purely to avoid ambiguity of method overloading. Same as andThen(Function). */
-		default <R> Ƒ1<I,R> andThen(Ƒ1<? super O,? extends R> after) {
+		default <R> F1<I,R> andThen(F1<? super O,? extends R> after) {
 			noNull(after);
 			return (I t) -> after.apply(apply(t));
 		}
@@ -243,7 +220,7 @@ public interface Functors {
 		 * @param after action that executes right after computation is done and before returning the output
 		 * @return function identical to this one, but one which runs the runnable after it computes
 		 */
-		default Ƒ1<I,O> andThen(Runnable after) {
+		default F1<I,O> andThen(Runnable after) {
 			noNull(after);
 			return i -> {
 				O o = apply(i);
@@ -254,7 +231,7 @@ public interface Functors {
 
 		// this change return type from Consumer to Function in a type safe way!!
 		@Override
-		default Ƒ1<I,Void> andThen(Consumer<? super I> after) {
+		default F1<I,Void> andThen(Consumer<? super I> after) {
 			return i -> {
 				apply(i);
 				after.accept(i);
@@ -263,7 +240,7 @@ public interface Functors {
 		}
 
 		@Override
-		default <R> Ƒ1<R,O> compose(Function<? super R,? extends I> before) {
+		default <R> F1<R,O> compose(Function<? super R,? extends I> before) {
 			noNull(before);
 			return (R v) -> apply(before.apply(v));
 		}
@@ -274,7 +251,7 @@ public interface Functors {
 		 * @return composed function that applies this function to its input and then mutates the output before
 		 * returning it.
 		 */
-		default Ƒ1<I,O> andApply(Consumer<O> mutator) {
+		default F1<I,O> andApply(Consumer<O> mutator) {
 			return in -> {
 				O o = apply(in);
 				mutator.accept(o);
@@ -291,7 +268,7 @@ public interface Functors {
 		 * @return composed function that applies this function to its input and then mutates the output before
 		 * returning it.
 		 */
-		default Ƒ1<I,O> andApply(BiConsumer<I,O> mutator) {
+		default F1<I,O> andApply(BiConsumer<I,O> mutator) {
 			return in -> {
 				O o = apply(in);
 				mutator.accept(in, o);
@@ -308,7 +285,7 @@ public interface Functors {
 		 * @return composed function that applies this function to its input and then applies the mutator before
 		 * returning it.
 		 */
-		default <O2> Ƒ1<I,O2> andThen(Ƒ2<I,O,O2> mutator) {
+		default <O2> F1<I,O2> andThen(F2<I,O,O2> mutator) {
 			return in -> {
 				O o = apply(in);
 				return mutator.apply(in, o);
@@ -321,23 +298,23 @@ public interface Functors {
 		 * match.
 		 */
 		@SuppressWarnings("unchecked")
-		default Ƒ1<I,O> nonNull() {
+		default F1<I,O> nonNull() {
 			return in -> {
 				O out = apply(in);
 				return out==null ? (O) in : out;
 			};
 		}
 
-		default Ƒ1<I,O> nonNull(O or) {
+		default F1<I,O> nonNull(O or) {
 			return andThen(o -> o==null ? or : o);
 		}
 
-		default Ƒ1<I,O> passNull() {
+		default F1<I,O> passNull() {
 			return in -> in==null ? null : apply(in);
 		}
 
 		@SuppressWarnings("unchecked")
-		default Ƒ1<I,O> wrap(NullIn i, NullOut o) {
+		default F1<I,O> wrap(NullIn i, NullOut o) {
 			if (i==NullIn.NULL && o==NullOut.NULL)
 				return in -> in==null ? null : apply(in);
 			if (i==NullIn.APPLY && o==NullOut.NULL)
@@ -357,7 +334,7 @@ public interface Functors {
 			throw new AssertionError("Illegal switch case");
 		}
 
-		default Ƒ1<I,O> onNullIn(OnNullIn ni) {
+		default F1<I,O> onNullIn(OnNullIn ni) {
 			if (ni==OnNullIn.NULL)
 				return i -> i==null ? null : apply(i);
 			if (ni==OnNullIn.APPLY)
@@ -367,7 +344,7 @@ public interface Functors {
 			throw new SwitchException(ni);
 		}
 
-		default Ƒ1<I,O> onNullIn(OnNullIn ni, O or) {
+		default F1<I,O> onNullIn(OnNullIn ni, O or) {
 			if (ni==OnNullIn.NULL)
 				throw new SwitchException(ni);
 			if (ni==OnNullIn.APPLY)
@@ -381,12 +358,12 @@ public interface Functors {
 	/**
 	 * Predicate.
 	 * <p/>
-	 * {@link Ƒ1} can not extend Predicate, doing so would not be type safe, hence this subclass.
+	 * {@link sp.it.util.functional.Functors.F1} can not extend Predicate, doing so would not be type safe, hence this subclass.
 	 * This class also preserves predicate identity during predicate combination operations.
 	 */
 	@SuppressWarnings("unchecked")
 	@FunctionalInterface
-	interface ƑP<I> extends Ƒ1<I,Boolean>, Predicate<I> {
+	interface FP<I> extends F1<I,Boolean>, Predicate<I> {
 
 		/** Equivalent to {@link #apply(Object)}}. Exists for compatibility with {@link Predicate}. */
 		@Override
@@ -395,31 +372,31 @@ public interface Functors {
 		}
 
 		@Override
-		default ƑP<I> negate() {
+		default FP<I> negate() {
 			// we should retain the predicate identity if possible. Of course it can be leveraged
 			// only if unique predicates are used, not dynamically created ones, e.g. (o -> o==null)
-			if (this==ISØ) return (ƑP) ISNTØ;
-			else if (this==ISNTØ) return (ƑP) ISØ;
-			else if (this==IS) return (ƑP) IS;
-			else if (this==ISNT) return (ƑP) ISNT;
+			if (this==IS0) return (FP) ISNT0;
+			else if (this==ISNT0) return (FP) IS0;
+			else if (this==IS) return (FP) IS;
+			else if (this==ISNT) return (FP) ISNT;
 			return i -> !apply(i);
 		}
 
 		@Override
-		default ƑP<I> and(Predicate<? super I> p) {
+		default FP<I> and(Predicate<? super I> p) {
 			// we should retain the predicate identity if possible
 			if (this==p) return this;
-			else if ((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP) ISNT;
-			else if (p==ISNT || this==ISNT) return (ƑP) ISNT;
+			else if ((this==IS0 && p==ISNT0) || (this==ISNT0 && p==IS0)) return (FP) ISNT;
+			else if (p==ISNT || this==ISNT) return (FP) ISNT;
 			return i -> apply(i) && apply(i);
 		}
 
 		@Override
-		default ƑP<I> or(Predicate<? super I> p) {
+		default FP<I> or(Predicate<? super I> p) {
 			// we should retain the predicate identity if possible
 			if (this==p) return this;
-			else if ((this==ISØ && p==ISNTØ) || (this==ISNTØ && p==ISØ)) return (ƑP) IS;
-			else if (this==IS || p==IS) return (ƑP) IS;
+			else if ((this==IS0 && p==ISNT0) || (this==ISNT0 && p==IS0)) return (FP) IS;
+			else if (this==IS || p==IS) return (FP) IS;
 			return i -> apply(i) || apply(i);
 		}
 
@@ -431,10 +408,10 @@ public interface Functors {
 	 * Due to the signature, it is impossible to extend {@link Consumer}
 	 */
 	@FunctionalInterface
-	interface Ƒ1E<I, O, E extends Throwable> extends Λ, IO<I,O> {
+	interface F1E<I, O, E extends Throwable> extends L, IO<I,O> {
 		O apply(I i) throws E;
 
-		default Ƒ1E<I,O,E> onEx(O or, Class<?>... ecs) {
+		default F1E<I,O,E> onEx(O or, Class<?>... ecs) {
 			return i -> {
 				try {
 					return apply(i);
@@ -449,14 +426,14 @@ public interface Functors {
 	/**
 	 * {@link Consumer} which throws an exception.
 	 * <p/>
-	 * Consumer version of {@link Ƒ1E}, so lambda expression does not need to return void (null)
+	 * Consumer version of {@link sp.it.util.functional.Functors.F1E}, so lambda expression does not need to return void (null)
 	 * at the end
 	 */
 	// this class is ~pointless, although now lambda does not have to return null like in case of F1E,
 	// but now the some method takes parameter of this class. Which will prevent
 	// other F1E from being used!
 	@FunctionalInterface
-	interface ƑEC<I, E extends Throwable> extends Ƒ1E<I,Void,E> {
+	interface FEC<I, E extends Throwable> extends F1E<I,Void,E> {
 
 		@Override
 		default Void apply(I i) throws E {
@@ -468,7 +445,7 @@ public interface Functors {
 	}
 
 	@FunctionalInterface
-	interface Ƒ2<I, I2, O> extends Λ, IO<I,O>, BiFunction<I,I2,O>, Function2<I,I2,O> {
+	interface F2<I, I2, O> extends L, IO<I,O>, BiFunction<I,I2,O>, Function2<I,I2,O> {
 		@Override
 		O apply(I i, I2 i2);
 
@@ -477,11 +454,11 @@ public interface Functors {
 			return apply(i, i2);
 		}
 
-		default Ƒ1<I,O> toƑ1(I2 i2) {
+		default F1<I,O> toF1(I2 i2) {
 			return (i) -> apply(i, i2);
 		}
 
-		default Ƒ2<I,I2,O> onEx(O or, Class<?>... ecs) {
+		default F2<I,I2,O> onEx(O or, Class<?>... ecs) {
 			return (i1, i2) -> {
 				try {
 					return apply(i1, i2);
@@ -494,7 +471,7 @@ public interface Functors {
 	}
 
 	@FunctionalInterface
-	interface Ƒ3<I, I2, I3, O> extends Λ, IO<I,O>, Function3<I,I2,I3,O> {
+	interface F3<I, I2, I3, O> extends L, IO<I,O>, Function3<I,I2,I3,O> {
 		O apply(I i, I2 i2, I3 i3);
 
 		@Override
@@ -502,11 +479,11 @@ public interface Functors {
 			return apply(i, i2, i3);
 		}
 
-		default Ƒ2<I,I2,O> toƑ2(I3 i3) {
+		default F2<I,I2,O> toF2(I3 i3) {
 			return (i, i2) -> apply(i, i2, i3);
 		}
 
-		default Ƒ3<I,I2,I3,O> onEx(O or, Class<?>... ecs) {
+		default F3<I,I2,I3,O> onEx(O or, Class<?>... ecs) {
 			return (i1, i2, i3) -> {
 				try {
 					return apply(i1, i2, i3);
@@ -519,7 +496,7 @@ public interface Functors {
 	}
 
 	@FunctionalInterface
-	interface Ƒ4<I, I2, I3, I4, O> extends Λ, IO<I,O>, Function4<I,I2,I3,I4,O> {
+	interface F4<I, I2, I3, I4, O> extends L, IO<I,O>, Function4<I,I2,I3,I4,O> {
 		O apply(I i, I2 i2, I3 i3, I4 i4);
 
 		@Override
@@ -527,11 +504,11 @@ public interface Functors {
 			return apply(i, i2, i3, i4);
 		}
 
-		default Ƒ3<I,I2,I3,O> toƑ3(I4 i4) {
+		default F3<I,I2,I3,O> toF3(I4 i4) {
 			return (i, i2, i3) -> apply(i, i2, i3, i4);
 		}
 
-		default Ƒ4<I,I2,I3,I4,O> onEx(O or, Class<?>... ecs) {
+		default F4<I,I2,I3,I4,O> onEx(O or, Class<?>... ecs) {
 			return (i1, i2, i3, i4) -> {
 				try {
 					return apply(i1, i2, i3, i4);
@@ -544,7 +521,7 @@ public interface Functors {
 	}
 
 	@FunctionalInterface
-	interface Ƒ5<I, I2, I3, I4, I5, O> extends Λ, IO<I,O>, Function5<I,I2,I3,I4,I5,O> {
+	interface F5<I, I2, I3, I4, I5, O> extends L, IO<I,O>, Function5<I,I2,I3,I4,I5,O> {
 		O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5);
 
 		@Override
@@ -552,11 +529,11 @@ public interface Functors {
 			return apply(i, i2, i3, i4, i5);
 		}
 
-		default Ƒ4<I,I2,I3,I4,O> toƑ4(I5 i5) {
+		default F4<I,I2,I3,I4,O> toF4(I5 i5) {
 			return (i, i2, i3, i4) -> apply(i, i2, i3, i4, i5);
 		}
 
-		default Ƒ5<I,I2,I3,I4,I5,O> onEx(O or, Class<?>... ecs) {
+		default F5<I,I2,I3,I4,I5,O> onEx(O or, Class<?>... ecs) {
 			return (i1, i2, i3, i4, i5) -> {
 				try {
 					return apply(i1, i2, i3, i4, i5);
@@ -569,7 +546,7 @@ public interface Functors {
 	}
 
 	@FunctionalInterface
-	interface Ƒ6<I, I2, I3, I4, I5, I6, O> extends Λ, IO<I,O>, Function6<I,I2,I3,I4,I5,I6,O> {
+	interface F6<I, I2, I3, I4, I5, I6, O> extends L, IO<I,O>, Function6<I,I2,I3,I4,I5,I6,O> {
 		O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
 
 		@Override
@@ -577,11 +554,11 @@ public interface Functors {
 			return apply(i, i2, i3, i4, i5, i6);
 		}
 
-		default Ƒ5<I,I2,I3,I4,I5,O> toƑ5(I6 i6) {
+		default F5<I,I2,I3,I4,I5,O> toF5(I6 i6) {
 			return (i, i2, i3, i4, i5) -> apply(i, i2, i3, i4, i5, i6);
 		}
 
-		default Ƒ6<I,I2,I3,I4,I5,I6,O> onEx(O or, Class<?>... ecs) {
+		default F6<I,I2,I3,I4,I5,I6,O> onEx(O or, Class<?>... ecs) {
 			return (i1, i2, i3, i4, i5, i6) -> {
 				try {
 					return apply(i1, i2, i3, i4, i5, i6);
@@ -642,21 +619,21 @@ public interface Functors {
 	}
 
 	// parameterized function - variadic I -> O function factory with parameters
-	abstract class PƑ<I, O> implements Ƒ2<I,Object[],O>, Parameterized<Object> {
+	abstract class PF<I, O> implements F2<I,Object[],O>, Parameterized<Object> {
 		public final String name;
 		public final Class<I> in;
 		public final Class<O> out;
 		private final IO<I,O> ff;
 
 		@SuppressWarnings("unchecked")
-		public PƑ(String name, Class<I> in, Class<O> out, IO<I,O> f) {
+		public PF(String name, Class<I> in, Class<O> out, IO<I,O> f) {
 			this.name = name;
 			this.in = unPrimitivize(in);
 			this.out = unPrimitivize(out);
 			this.ff = f;
 		}
 
-		public Ƒ1<I,O> toFunction() {
+		public F1<I,O> toFunction() {
 			return i -> apply(i, new Object[]{});
 		}
 
@@ -664,15 +641,15 @@ public interface Functors {
 		public abstract O apply(I t, Object... is);
 
 		@Override
-		public Ƒ1<I,O> toƑ1(Object... is) {
+		public F1<I,O> toF1(Object... is) {
 			// retain predicate identity
-			if (isAny(ff, IDENTITY, ISØ, ISNTØ, IS, ISNT)) return (Ƒ1<I,O>) ff;
-			return new TypeAwareƑ<>(i -> apply(i, is), in, out);
+			if (isAny(ff, IDENTITY, IS0, ISNT0, IS, ISNT)) return (F1<I,O>) ff;
+			return new TypeAwareF<>(i -> apply(i, is), in, out);
 			// return i -> apply(i, is); // would not preserve I,O types
 		}
 
-		public Ƒ1<I,O> toƑ1(List<?> is) {
-			return toƑ1(is.toArray());
+		public F1<I,O> toF1(List<?> is) {
+			return toF1(is.toArray());
 		}
 
 	}
@@ -680,11 +657,11 @@ public interface Functors {
 	// solely to hide generic parameter of PF above, the 3rd parameter (F) is implementation
 	// detail - we do not want it to pollute external code, in fact this parameter exists solely
 	// so PƑ can access its underlying function, while not breaking type safety for subclasses
-	abstract class PƑB<I, O, F extends IO<I,O>> extends PƑ<I,O> {
+	abstract class PFBase<I, O, F extends IO<I,O>> extends PF<I,O> {
 
 		public final F f;
 
-		public PƑB(String name, Class<I> in, Class<O> out, F f) {
+		public PFBase(String name, Class<I> in, Class<O> out, F f) {
 			super(name, in, out, f);
 			this.f = f;
 		}
@@ -700,9 +677,9 @@ public interface Functors {
 	 * of a function - to express function of any number of parameters equally. This is useful for example for ui
 	 * function builders.
 	 */
-	class PƑ0<I, O> extends PƑB<I,O,Ƒ1<I,O>> {
+	class PF0<I, O> extends PFBase<I,O,F1<I,O>> {
 
-		public PƑ0(String _name, Class<I> i, Class<O> o, Ƒ1<I,O> f) {
+		public PF0(String _name, Class<I> i, Class<O> o, F1<I,O> f) {
 			super(_name, i, o, f);
 		}
 
@@ -719,10 +696,10 @@ public interface Functors {
 	}
 
 	/** Unary parametric function. */
-	class PƑ1<I, P1, O> extends PƑB<I,O,Ƒ2<I,P1,O>> {
+	class PF1<I, P1, O> extends PFBase<I,O,F2<I,P1,O>> {
 		private Parameter<P1> p1;
 
-		public PƑ1(String _name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Parameter<P1> p1) {
+		public PF1(String _name, Class<I> i, Class<O> o, F2<I,P1,O> f, Parameter<P1> p1) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 		}
@@ -739,11 +716,11 @@ public interface Functors {
 	}
 
 	/** Binary parametric function. */
-	class PƑ2<I, P1, P2, O> extends PƑB<I,O,Ƒ3<I,P1,P2,O>> {
+	class PF2<I, P1, P2, O> extends PFBase<I,O,F3<I,P1,P2,O>> {
 		private Parameter<P1> p1;
 		private Parameter<P2> p2;
 
-		public PƑ2(String _name, Class<I> i, Class<O> o, Ƒ3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
+		public PF2(String _name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 			this.p2 = p2;
@@ -761,12 +738,12 @@ public interface Functors {
 	}
 
 	/** Tertiary  parametric function. */
-	class PƑ3<I, P1, P2, P3, O> extends PƑB<I,O,Ƒ4<I,P1,P2,P3,O>> {
+	class PF3<I, P1, P2, P3, O> extends PFBase<I,O,F4<I,P1,P2,P3,O>> {
 		private Parameter<P1> p1;
 		private Parameter<P2> p2;
 		private Parameter<P3> p3;
 
-		public PƑ3(String _name, Class<I> i, Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
+		public PF3(String _name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 			this.p2 = p2;
@@ -785,10 +762,10 @@ public interface Functors {
 	}
 
 	/** N-ary parametric function. */
-	class PƑn<I, O> extends PƑB<I,O,Ƒ2<I,Object[],O>> {
+	class PFN<I, O> extends PFBase<I,O,F2<I,Object[],O>> {
 		private Parameter<Object>[] ps;
 
-		public PƑn(String _name, Class<I> i, Class<O> o, Ƒ2<I,Object[],O> f, Parameter<Object>[] ps) {
+		public PFN(String _name, Class<I> i, Class<O> o, F2<I,Object[],O> f, Parameter<Object>[] ps) {
 			super(_name, i, o, f);
 			this.ps = ps;
 		}
@@ -804,12 +781,12 @@ public interface Functors {
 		}
 	}
 
-	class CƑ<I, O> implements Ƒ1<I,O>, Configurable<Object> {
+	class CF<I, O> implements F1<I,O>, Configurable<Object> {
 
-		final PƑ<I,O> pf;
+		final PF<I,O> pf;
 		private final List<Config<Object>> cs = new ArrayList<>();
 
-		public CƑ(PƑ<I,O> pf) {
+		public CF(PF<I,O> pf) {
 			this.pf = pf;
 			pf.getParameters().forEach(p -> {
 				V<Object> a = new V<>(p.defaultValue);
@@ -824,12 +801,12 @@ public interface Functors {
 
 	}
 
-	class TypeAwareƑ<I, O> implements Ƒ1<I,O> {
+	class TypeAwareF<I, O> implements F1<I,O> {
 		public final Class<I> in;
 		public final Class<O> out;
-		public final Ƒ1<I,O> f;
+		public final F1<I,O> f;
 
-		public TypeAwareƑ(Ƒ1<I,O> f, Class<I> in, Class<O> out) {
+		public TypeAwareF(F1<I,O> f, Class<I> in, Class<O> out) {
 			this.in = in;
 			this.out = out;
 			this.f = f;

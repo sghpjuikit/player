@@ -44,7 +44,7 @@ import sp.it.util.conf.only
 import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIfNotFxThread
-import sp.it.util.functional.Functors.Ƒ.f
+import sp.it.util.functional.Functors.F.f
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Handler0

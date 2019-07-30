@@ -94,7 +94,7 @@ class CoreConverter: Core {
       )
       addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect>(it) })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
-      addP<Functors.PƑ<*, *>>(
+      addP<Functors.PF<*, *>>(
          { "${it.name},${it.`in`},${it.out}" },
          {
             val data = Util.split(it, ",")

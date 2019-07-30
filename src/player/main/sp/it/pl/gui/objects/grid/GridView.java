@@ -55,7 +55,7 @@ import sp.it.pl.gui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.access.fieldvalue.StringGetter;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -83,7 +83,7 @@ public class GridView<T, F> extends Control {
 	final ObservableList<T> itemsAll;
 	final FilteredList<T> itemsFiltered;
 	final SortedList<T> itemsSorted;
-	final Ƒ1<T,F> filterByMapper;
+	final F1<T,F> filterByMapper;
 
 	/*
 	 * Predicate that filters the table list. Null predicate will match all
@@ -109,12 +109,12 @@ public class GridView<T, F> extends Control {
 	}
 
 	/** Creates a default, empty GridView control. */
-	public GridView(Class<F> type, Ƒ1<T,F> filterByMapper) {
+	public GridView(Class<F> type, F1<T,F> filterByMapper) {
 		this(type, filterByMapper, null);
 	}
 
 	/** Convenience constructor. Creates an empty GridView with specified sizes. */
-	public GridView(Class<F> type, Ƒ1<T,F> filterByMapper, double cellWidth, double cellHeight, double vGap, double hGap) {
+	public GridView(Class<F> type, F1<T,F> filterByMapper, double cellWidth, double cellHeight, double vGap, double hGap) {
 		this(type, filterByMapper, null);
 		this.cellWidth.setValue(cellWidth);
 		this.cellHeight.setValue(cellHeight);
@@ -124,7 +124,7 @@ public class GridView<T, F> extends Control {
 
 	/** Convenience constructor. Creates a default GridView with the provided items. */
 	@SuppressWarnings("unchecked")
-	public GridView(Class<F> type, Ƒ1<T,F> filterByMapper, ObservableList<T> backingList) {
+	public GridView(Class<F> type, F1<T,F> filterByMapper, ObservableList<T> backingList) {
 		this.type = type;
 		this.filterByMapper = filterByMapper==null ? x -> (F) x : filterByMapper;
 

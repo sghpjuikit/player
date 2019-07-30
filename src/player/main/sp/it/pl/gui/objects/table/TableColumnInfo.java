@@ -7,7 +7,7 @@ import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import kotlin.Pair;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -28,7 +28,7 @@ public final class TableColumnInfo {
 
 	public final MapSet<String,ColumnInfo> columns;
 	public final ColumnSortInfo sortOrder;
-	public Ƒ1<String,String> nameKeyMapper = name -> name;
+	public F1<String,String> nameKeyMapper = name -> name;
 
 	public TableColumnInfo() {
 		columns = new MapSet<>(c -> nameKeyMapper.apply(c.name));

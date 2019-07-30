@@ -1,12 +1,12 @@
 package sp.it.pl.web
 
 import sp.it.util.Util
-import sp.it.util.functional.Functors.Ƒ1
+import sp.it.util.functional.Functors.F1
 import java.net.URI
 import sp.it.util.parsing.StringParseStrategy as Parse
 
 /** [java.net.URI] builder for searching a resource with a string. */
-interface SearchUriBuilder: Ƒ1<String, URI> {
+interface SearchUriBuilder: F1<String, URI> {
 
    val name: String
 

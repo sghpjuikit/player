@@ -25,7 +25,7 @@ import static sp.it.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.util.dev.FailKt.failIfFinal;
 import static sp.it.util.dev.FailKt.failIfNotFinal;
 import static sp.it.util.dev.FailKt.noNull;
-import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getAllFields;
 import static sp.it.util.type.Util.getRawGenericPropertyType;
@@ -41,7 +41,7 @@ public class ConfigurationUtil {
 
 		return (List) stream(getAllFields(clazz))
 				.map(f -> createConfig(clazz, f, instance))
-				.filter(ISNTØ)
+				.filter(ISNT0)
 				.collect(toList());
 	}
 
@@ -51,7 +51,7 @@ public class ConfigurationUtil {
 
 		return (List) stream(getAllFields(clazz))
 			.map(f -> createConfig(clazz, fieldNamePrefix, group, f, instance))
-			.filter(ISNTØ)
+			.filter(ISNT0)
 			.collect(toList());
 	}
 

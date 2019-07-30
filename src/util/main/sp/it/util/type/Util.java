@@ -36,7 +36,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.functional.Functors;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.TriConsumer;
 import static kotlin.text.StringsKt.substringBeforeLast;
 import static sp.it.util.dev.DebugKt.logger;
@@ -163,7 +163,7 @@ public interface Util {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Observable paneProperty(Parent parent, Node child, Class<T> type, String key, Functors.Ƒ1<Node,T> getter, BiConsumer<Node, T> setter) {
+	private static <T> Observable paneProperty(Parent parent, Node child, Class<T> type, String key, F1<Node,T> getter, BiConsumer<Node, T> setter) {
 		return new SimpleObjectProperty<>(getter.apply(child)) {
 			{
 				child.getProperties().addListener((MapChangeListener.Change<?,?> v) -> {

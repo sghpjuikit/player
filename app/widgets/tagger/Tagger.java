@@ -73,7 +73,7 @@ import sp.it.pl.plugin.notif.Notifier;
 import sp.it.util.access.V;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.IsConfig;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Util;
 import sp.it.util.type.TypeToken;
 import static java.util.Collections.singletonList;
@@ -846,7 +846,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         }
     }
 
-    static <I, O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
+    static <I, O> F1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
         return i -> {
             try {
                 return f.apply(i);

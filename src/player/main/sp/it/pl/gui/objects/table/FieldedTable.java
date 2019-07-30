@@ -31,7 +31,7 @@ import sp.it.pl.gui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.util.Sort;
 import sp.it.util.access.fieldvalue.ColumnField;
 import sp.it.util.access.fieldvalue.ObjectField;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -74,9 +74,9 @@ import static sp.it.util.type.Util.invokeMethodP0;
  */
 public class FieldedTable<T> extends ImprovedTable<T> {
 
-	private Ƒ1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.cOrder(), f.cVisible(), f.cWidth());
-	private Ƒ1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
-	private Ƒ1<String,String> keyNameColMapper = name -> name;
+	private F1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.cOrder(), f.cVisible(), f.cWidth());
+	private F1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
+	private F1<String,String> keyNameColMapper = name -> name;
 
 	private TableColumnInfo defColInfo;
 	private TableColumnInfo columnState;
@@ -132,20 +132,20 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void setColumnFactory(Ƒ1<? super ObjectField<? super T,Object>,TableColumn<T,? extends Object>> columnFactory) {
+	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,? extends Object>> columnFactory) {
 		colFact = f -> {
-			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((Ƒ1) columnFactory).call(f);
+			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
 			c.setUserData(f);
 			return c;
 		};
 	}
 
 	@SuppressWarnings("unchecked")
-	public <X> Ƒ1<? super ObjectField<? super T,X>,TableColumn<T,X>> getColumnFactory() {
-		return (Ƒ1) colFact;
+	public <X> F1<? super ObjectField<? super T,X>,TableColumn<T,X>> getColumnFactory() {
+		return (F1) colFact;
 	}
 
-	public void setColumnStateFactory(Ƒ1<ObjectField<T,?>,ColumnInfo> columnStateFactory) {
+	public void setColumnStateFactory(F1<ObjectField<T,?>,ColumnInfo> columnStateFactory) {
 		colStateFact = columnStateFactory;
 	}
 
@@ -153,7 +153,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return colStateFact;
 	}
 
-	public void setKeyNameColMapper(Ƒ1<String,String> columnNameToKeyMapper) {
+	public void setKeyNameColMapper(F1<String,String> columnNameToKeyMapper) {
 		keyNameColMapper = columnNameToKeyMapper;
 	}
 

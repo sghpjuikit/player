@@ -40,7 +40,7 @@ import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.Dependency;
 import sp.it.util.file.properties.PropVal;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
@@ -51,7 +51,7 @@ import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.file.properties.PropertiesKt.readProperties;
 import static sp.it.util.file.UtilKt.writeTextTry;
-import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.map;
@@ -469,7 +469,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		return this;
 	}
 
-	public static Ƒ1<Config<?>,String> configToRawKeyMapper = it -> it.getName().replace(' ', '_').toLowerCase();
+	public static F1<Config<?>,String> configToRawKeyMapper = it -> it.getName().replace(' ', '_').toLowerCase();
 
 	private void storeConfigs() {
 		// We store only Controller configs as configs of this widget should be defined in this
@@ -556,7 +556,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 			if (io.widget.controller==null) return;
 			Input i = io.widget.controller.io.i.getInputRaw(io.input_name);
 			if (i==null) return;
-			io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
+			io.outputs_ids.stream().map(os::get).filter(ISNT0).forEach(i::bind);
 		});
 
 		IOLayer.allInoutputs.forEach(io -> is.remove(io.i));

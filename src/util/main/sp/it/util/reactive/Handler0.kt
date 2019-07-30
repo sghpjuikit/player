@@ -1,10 +1,10 @@
 package sp.it.util.reactive
 
-import sp.it.util.functional.Functors.Ƒ
+import sp.it.util.functional.Functors.F
 import java.util.HashSet
 
 /** Set of functions taking 0 parameters. Use as a collection of handlers. */
-class Handler0: HashSet<() -> Unit>(2), Ƒ {
+class Handler0: HashSet<() -> Unit>(2), F {
 
    /** Invokes all contained functions. */
    override fun apply() {

@@ -47,7 +47,7 @@ import sp.it.util.access.VarEnum;
 import sp.it.util.collections.map.ClassListMap;
 import sp.it.util.conf.Config;
 import sp.it.util.file.Util;
-import sp.it.util.functional.Functors.Ƒ0;
+import sp.it.util.functional.Functors.F0;
 import sp.it.util.text.StringSplitParser.SplitData;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
@@ -445,7 +445,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     private class Act<Y> {
         String name;
         int max = MAX_VALUE;
-        Ƒ0<List<String>> names;
+        F0<List<String>> names;
         Class<Y> type;
         boolean isNamesDeterminate;
         BiConsumer<Y,Map<String,? extends String>> actionPartial = null;
@@ -463,7 +463,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             this.max = max;
             this.actionImpartial = action;
         }
-        Act(String name, Class<Y> type, int max, Ƒ0<List<String>> names, BiConsumer<Y,Map<String,? extends String>> action) {
+        Act(String name, Class<Y> type, int max, F0<List<String>> names, BiConsumer<Y,Map<String,? extends String>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
@@ -473,7 +473,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             this.names = () -> names;
             isNamesDeterminate = true;
         }
-        Act(String name, Class<Y> type, int max, Ƒ0<List<String>> names, Consumer<Map<String,List<? extends String>>> action) {
+        Act(String name, Class<Y> type, int max, F0<List<String>> names, Consumer<Map<String,List<? extends String>>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
@@ -575,7 +575,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         ConfigField<EditArea> configFieldB;
         HBox root;
 
-        InPane(Ƒ0<? extends Collection<? extends String>> actions) {
+        InPane(F0<? extends Collection<? extends String>> actions) {
             super(null);
             name = new VarEnum<>(actions.get().stream().findFirst().orElse(null), actions);
             input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);

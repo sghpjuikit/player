@@ -2,7 +2,7 @@ package sp.it.util.access.ref;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import sp.it.util.functional.Functors;
+import sp.it.util.functional.Functors.F1;
 import static sp.it.util.dev.FailKt.noNull;
 
 /**
@@ -35,7 +35,7 @@ public class LazyR<V> {
 		v = val;
 	}
 
-	public <M> V get(M m, Functors.Ƒ1<M,V> or) {
+	public <M> V get(M m, F1<M,V> or) {
 		if (!isSet) set(or.apply(m));
 		return v;
 	}

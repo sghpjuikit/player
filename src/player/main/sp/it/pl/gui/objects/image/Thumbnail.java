@@ -50,7 +50,7 @@ import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.file.UtilKt.toFileOrNull;
-import static sp.it.util.functional.Util.ISNTØ;
+import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
@@ -566,7 +566,7 @@ public class Thumbnail {
 				Object representant = getRepresentant();
 				File file = getFile();
 				List<File> files = stream(representant instanceof File ? (File) representant : file)
-						.filter(ISNTØ)
+						.filter(ISNT0)
 						.collect(toList());
 
 				if (!files.isEmpty()) {

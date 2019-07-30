@@ -9,7 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import sp.it.pl.gui.objects.icon.CheckIcon;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.map;
@@ -111,7 +111,7 @@ public class SelectionMenuItem extends Menu {
 		icon.setOnMouseClicked(e -> h.run());
 	}
 
-	public static <I> List<MenuItem> buildSingleSelectionMenu(Collection<I> inputs, I selected, Ƒ1<I,String> toText, Consumer<I> action) {
+	public static <I> List<MenuItem> buildSingleSelectionMenu(Collection<I> inputs, I selected, F1<I,String> toText, Consumer<I> action) {
 		List<MenuItem> ms = map(inputs,
 				input -> {
 					SelectionMenuItem m = new SelectionMenuItem(toText.apply(input), input==selected);

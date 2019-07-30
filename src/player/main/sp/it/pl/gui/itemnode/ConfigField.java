@@ -48,7 +48,7 @@ import sp.it.util.conf.Configurable;
 import sp.it.util.conf.Constraint.NumberMinMax;
 import sp.it.util.conf.OrPropertyConfig;
 import sp.it.util.conf.OrPropertyConfig.OrValue;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import sp.it.util.functional.TryKt;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
@@ -117,7 +117,7 @@ abstract public class ConfigField<T> {
     private static Insets paddingWithDefB = Insets.EMPTY;
 
     @SuppressWarnings("unchecked")
-    private static Map<Class<?>,Ƒ1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
+    private static Map<Class<?>,F1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
         put(boolean.class, BoolCF::new);
         put(Boolean.class, BoolCF::new);
         put(String.class, GeneralCF::new);

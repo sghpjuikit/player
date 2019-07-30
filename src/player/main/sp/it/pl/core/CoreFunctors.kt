@@ -27,7 +27,7 @@ import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
-import sp.it.util.functional.Util.ISØ
+import sp.it.util.functional.Util.IS0
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.isPalindrome
@@ -78,7 +78,7 @@ object CoreFunctors: Core {
          val B = Boolean::class.java
          val S = String::class.java
 
-         add("Is null", Any::class.java, B, ISØ)
+         add("Is null", Any::class.java, B, IS0)
          //  add("Isn't null", Object.class, BOOL, ISNTØ);
          add("As String", Any::class.java, String::class.java) { Objects.toString(it) }
          add("As Boolean", String::class.java, B) { java.lang.Boolean.parseBoolean(it) }

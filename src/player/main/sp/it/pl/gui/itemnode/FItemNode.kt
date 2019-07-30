@@ -11,8 +11,8 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
 import sp.it.util.functional.Functors
-import sp.it.util.functional.Functors.PƑ
-import sp.it.util.functional.Functors.Ƒ1
+import sp.it.util.functional.Functors.PF
+import sp.it.util.functional.Functors.F1
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
@@ -26,11 +26,11 @@ import java.util.function.Supplier
  * @param <I> type of function input
  * @param <O> type of function output
  */
-class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): ValueNode<Ƒ1<in I, out O>?>(null) {
+class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueNode<F1<in I, out O>?>(null) {
    private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
    private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
    private val configs = ArrayList<ConfigField<*>>()
-   private val fCB: ComboBox<PƑ<in I, out O>>
+   private val fCB: ComboBox<PF<in I, out O>>
    private var inconsistentState = false
 
    init {
@@ -71,7 +71,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PƑ<in I, out O>>>): Value
       if (inconsistentState) return
       val functionRaw = fCB.value
       val parameters = configs.map { it.configValue }
-      val function = functionRaw.toƑ1(parameters)
+      val function = functionRaw.toF1(parameters)
       changeValue(function)
    }
 

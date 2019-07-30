@@ -14,7 +14,7 @@ import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.collections.list.PrefList;
-import sp.it.util.functional.Functors.PƑ;
+import sp.it.util.functional.Functors.PF;
 import sp.it.util.functional.Util;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -22,8 +22,8 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.ISNT;
-import static sp.it.util.functional.Util.ISNTØ;
-import static sp.it.util.functional.Util.ISØ;
+import static sp.it.util.functional.Util.ISNT0;
+import static sp.it.util.functional.Util.IS0;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
 
@@ -51,7 +51,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	// where null.equals(null) would return true, basically: element.hasDefaultValue(field).
 	// However, in my opinion, isNull predicate does not lose its value completely.
 	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function<? super T, ? extends Boolean> filter) {
-		return Util.isAny(filter, ISØ, ISNTØ, IS, ISNT)
+		return Util.isAny(filter, IS0, ISNT0, IS, ISNT)
 				? element -> filter.apply(field.getOf(element))
 				: element -> {
 					T o = field.getOf(element);
@@ -71,7 +71,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private boolean empty = true;
 
 	@SuppressWarnings("unchecked")
-	public FieldedPredicateItemNode(Callback<Class,PrefList<PƑ<Object,Boolean>>> predicatePool, Callback<Class,PƑ<Object,Boolean>> prefPredicatePool) {
+	public FieldedPredicateItemNode(Callback<Class,PrefList<PF<Object,Boolean>>> predicatePool, Callback<Class,PF<Object,Boolean>> prefPredicatePool) {
 		super((Predicate) IS);
 
 		root.setAlignment(CENTER_LEFT);

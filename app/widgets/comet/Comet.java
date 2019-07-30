@@ -1,5 +1,6 @@
 package comet;
 
+import comet.Comet.Fermi.FermiMove;
 import comet.Comet.Game.Enhancer;
 import comet.Comet.Ship.Disruptor.DisruptorField;
 import comet.Comet.Ship.Hyperspace;
@@ -99,9 +100,9 @@ import sp.it.util.conf.Constraint;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.FixedConfList;
 import sp.it.util.conf.IsConfig;
-import sp.it.util.functional.Functors.Ƒ0;
-import sp.it.util.functional.Functors.Ƒ1;
-import sp.it.util.functional.Functors.Ƒ5;
+import sp.it.util.functional.Functors.F0;
+import sp.it.util.functional.Functors.F1;
+import sp.it.util.functional.Functors.F5;
 import sp.it.util.functional.Util;
 import static comet.Comet.Constants.FPS;
 import static comet.Comet.Constants.PLAYER_ABILITY_INITIAL;
@@ -1189,12 +1190,12 @@ public class Comet extends SimpleController {
 			final int id;
 			final String name, scale, details;
 			final Colors colors = new Colors();
-			final Ƒ5<Double,Double,Double,Double,Double,Asteroid<?>> planetoidConstructor;
+			final F5<Double,Double,Double,Double,Double,Asteroid<?>> planetoidConstructor;
 			Consumer<Game> initializer = game -> {};
 			Consumer<Game> disposer = game -> {};
 
 			public Mission(int ID, String NAME, String SCALE, String DETAILS, Color COLOR, Color CANVAS_REDRAW,
-					Ƒ5<Double,Double,Double,Double,Double,Asteroid<?>> planetoidFactory) {
+					F5<Double,Double,Double,Double,Double,Asteroid<?>> planetoidFactory) {
 				id = ID;
 				name = NAME; scale = SCALE; details = DETAILS;
 				planetoidConstructor = planetoidFactory;
@@ -1643,14 +1644,14 @@ public class Comet extends SimpleController {
 
 		class Gun {
 			final GunControl control;
-			final Ƒ0<Double> aimer; // determines bullet direction
-			final Ƒ1<Double,Bullet> ammo_type; // bullet factory
+			final F0<Double> aimer; // determines bullet direction
+			final F1<Double,Bullet> ammo_type; // bullet factory
 			final InEffectValue<Double[]> turrets = new InEffectValue<>(1,
                        count -> calculateGunTurretAngles(count, game.settings.ROCKET_GUN_TURRET_ANGLE_GAP));
 			final InEffect blackhole = new InEffect();
 			final TimeDouble reload;
 
-			public Gun(GunControl CONTROL, Duration reloadTime, Ƒ0<Double> AIMER, Ƒ1<Double,Bullet> AMMO_TYPE) {
+			public Gun(GunControl CONTROL, Duration reloadTime, F0<Double> AIMER, F1<Double,Bullet> AMMO_TYPE) {
 				control = CONTROL;
 				reload = new TimeDouble(0, 1, reloadTime).periodic();
 				aimer = AIMER;
@@ -4366,7 +4367,7 @@ public class Comet extends SimpleController {
 			hits_max = splits>2 ? 1 : 0;
 
 			if (size<=0.5 && randBoolean()) {
-				Ƒ1<Fermi,FermiMove> m = randOf(FERMI_MOVES);
+				F1<Fermi,FermiMove> m = randOf(FERMI_MOVES);
 				pseudomovement = m.apply(this);
 			}
 		}
@@ -4517,7 +4518,7 @@ public class Comet extends SimpleController {
 			}
 		}
 	}
-	private static final Set<Ƒ1<Fermi,Fermi.FermiMove>> FERMI_MOVES = set(
+	private static final Set<F1<Fermi,FermiMove>> FERMI_MOVES = set(
 		f -> f.new StraightMove(),f -> f.new WaveMove(),f -> f.new FlowerMove(),
 		f -> f.new ZigZagMove(),f -> f.new KnobMove(),f -> f.new SpiralMove(),f -> f.new SidespiralMove()
 	);

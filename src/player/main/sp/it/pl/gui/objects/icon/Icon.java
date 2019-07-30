@@ -52,7 +52,7 @@ import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.dev.SwitchException;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.text.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
@@ -87,11 +87,11 @@ public class Icon extends StackPane {
 
 
 	// animation builder, & reusable supplier
-	private static final Ƒ1<Icon,Anim> Apress = i -> {
+	private static final F1<Icon,Anim> Apress = i -> {
 		double s = signum(i.node.getScaleX());
 		return new Anim(millis(300), p -> setScaleXY(i.node, s*(1 - 0.3*p*p), 1 - 0.3*p*p));
 	};
-	private static final Ƒ1<Icon,Anim> Ahover = i -> {
+	private static final F1<Icon,Anim> Ahover = i -> {
 		double s = signum(i.node.getScaleX());
 		return new Anim(millis(150), p -> setScaleXY(i.node, s*(1 + 0.2*p*p), 1 + 0.2*p*p));
 	};

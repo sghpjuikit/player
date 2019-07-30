@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.runTry;
@@ -156,7 +156,7 @@ public interface Parsers {
         }
     }
 
-    static <I, O> Ƒ1<I,Try<O,String>> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
+    static <I, O> F1<I,Try<O,String>> noExWrap(Executable m, StringParseStrategy a, ParseDir dir, Function<I,O> f) {
         Set<Class<?>> ecs = new HashSet<>();
         if (a!=null) ecs.addAll(list(dir==ParseDir.TOS ? a.exTo() : a.exFrom()));
         if (m!=null) ecs.addAll(list(m.getExceptionTypes()));

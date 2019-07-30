@@ -2,7 +2,7 @@ package sp.it.util.async.executor;
 
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
-import sp.it.util.functional.Functors.Ƒ2;
+import sp.it.util.functional.Functors.F2;
 import static javafx.util.Duration.millis;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -45,7 +45,7 @@ public interface EventReducer<E> {
 		return new HandlerLast<>(inter_period, null, handler);
 	}
 
-	@NotNull static <E> HandlerLast<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+	@NotNull static <E> HandlerLast<E> toLast(double inter_period, F2<E,E,E> reduction, Consumer<? super E> handler) {
 		return new HandlerLast<>(inter_period, reduction, handler);
 	}
 
@@ -53,7 +53,7 @@ public interface EventReducer<E> {
 		return new HandlerEvery<>(inter_period, (a, b) -> b, handler);
 	}
 
-	@NotNull static <E> EventReducer<E> toEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+	@NotNull static <E> EventReducer<E> toEvery(double inter_period, F2<E,E,E> reduction, Consumer<? super E> handler) {
 		return new HandlerEvery<>(inter_period, reduction, handler);
 	}
 
@@ -64,10 +64,10 @@ public interface EventReducer<E> {
 	abstract class EventReducerBase<E> implements EventReducer<E> {
 		protected Consumer<? super E> action;
 		protected double inter_period;
-		protected final Ƒ2<E,E,E> r;
+		protected final F2<E,E,E> r;
 		protected E e;
 
-		private EventReducerBase(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+		private EventReducerBase(double inter_period, F2<E,E,E> reduction, Consumer<? super E> handler) {
 			this.inter_period = inter_period;
 			action = handler;
 			r = reduction;
@@ -84,7 +84,7 @@ public interface EventReducer<E> {
 	class HandlerLast<E> extends EventReducerBase<E> {
 		private final FxTimer t;
 
-		public HandlerLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+		public HandlerLast(double inter_period, F2<E,E,E> reduction, Consumer<? super E> handler) {
 			super(inter_period, reduction, handler);
 			t = fxTimer(millis(inter_period), 1, runnable(() -> action.accept(e)));
 		}
@@ -105,7 +105,7 @@ public interface EventReducer<E> {
 		private long last = 0;
 		boolean fired = false;
 
-		public HandlerEvery(double inter_period, Ƒ2<E,E,E> reduction, Consumer<? super E> handler) {
+		public HandlerEvery(double inter_period, F2<E,E,E> reduction, Consumer<? super E> handler) {
 			super(inter_period, reduction, handler);
 			t = fxTimer(millis(inter_period), 1, runnable(() -> {
 				action.accept(e);

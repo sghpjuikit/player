@@ -6,9 +6,9 @@ import javafx.collections.ListChangeListener;
 import sp.it.util.collections.list.PrefList;
 import sp.it.util.functional.Functors.NullIn;
 import sp.it.util.functional.Functors.NullOut;
-import sp.it.util.functional.Functors.PƑ;
-import sp.it.util.functional.Functors.TypeAwareƑ;
-import sp.it.util.functional.Functors.Ƒ1;
+import sp.it.util.functional.Functors.PF;
+import sp.it.util.functional.Functors.TypeAwareF;
+import sp.it.util.functional.Functors.F1;
 import static sp.it.util.functional.Util.IDENTITY;
 
 /**
@@ -39,26 +39,26 @@ import static sp.it.util.functional.Util.IDENTITY;
  * consumers (no output) functions. They can be anywhere within the chain.
  * </ul>
  */
-public class FChainItemNode extends ChainValueNode<Ƒ1<? super Object, ? extends Object>, FItemNode<Object,Object>> {
+public class FChainItemNode extends ChainValueNode<F1<? super Object, ? extends Object>, FItemNode<Object,Object>> {
 
-	private final Function<Class,PrefList<PƑ<? super Object, ?>>> fp;
+	private final Function<Class,PrefList<PF<? super Object, ?>>> fp;
 	private Class type_in = Void.class;
 	private NullIn handleNullIn = NullIn.NULL;
 	private NullOut handleNullOut = NullOut.NULL;
 
 	/** Creates unlimited chain starting with Void.class. */
-	public FChainItemNode(Function<Class,PrefList<PƑ<? super Object, ?>>> functionPool) {
+	public FChainItemNode(Function<Class,PrefList<PF<? super Object, ?>>> functionPool) {
 		this(Void.class, Integer.MAX_VALUE, functionPool);
 	}
 
 	/** Creates unlimited chain starting with specified type. */
-	public FChainItemNode(Class in, Function<Class,PrefList<PƑ<? super Object, ?>>> functionPool) {
+	public FChainItemNode(Class in, Function<Class,PrefList<PF<? super Object, ?>>> functionPool) {
 		this(in, Integer.MAX_VALUE, functionPool);
 	}
 
 	/** Creates limited chain starting with specified type. */
 	@SuppressWarnings("SimplifiableConditionalExpression")
-	public FChainItemNode(Class in, int max_len, Function<Class,PrefList<PƑ<? super Object, ?>>> functionPool) {
+	public FChainItemNode(Class in, int max_len, Function<Class,PrefList<PF<? super Object, ?>>> functionPool) {
 		super(null);
 
 //        super(len, max_len, () -> new ƑItemNode(functionPool));
@@ -75,7 +75,7 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<? super Object, ? extends
 			// here, or guarantee that the identity function input type will not be erased
 			// (basically we need instance of identity function per each class)
 			if (f==IDENTITY) return true;
-			if (f instanceof TypeAwareƑ && ((TypeAwareƑ) f).f==IDENTITY) return true; // just in case
+			if (f instanceof TypeAwareF && ((TypeAwareF) f).f==IDENTITY) return true; // just in case
 
 			// If two subsequent functions have same output type (or input type) one of them is safe
 			// to remove (which one depends on whether we check inputs or outputs).
@@ -86,9 +86,9 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<? super Object, ? extends
 			// link being an exceptional case. Below we check for inputs, which results in the last
 			// link to be exceptional case. We do this, because the last link can always be removed
 			// hence we do not have to handle the case.
-			Ƒ1 next_f = getValueAt(i + 1);
-			return next_f instanceof TypeAwareƑ && f instanceof TypeAwareƑ
-					? ((TypeAwareƑ) f).in.equals(((TypeAwareƑ) next_f).in)
+			F1 next_f = getValueAt(i + 1);
+			return next_f instanceof TypeAwareF && f instanceof TypeAwareF
+					? ((TypeAwareF) f).in.equals(((TypeAwareF) next_f).in)
 					: false;
 		};
 		homogeneous = false;
@@ -158,9 +158,9 @@ public class FChainItemNode extends ChainValueNode<Ƒ1<? super Object, ? extends
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected Ƒ1<? super Object, Object> reduce(Stream<Ƒ1<? super Object, ?>> ƒs) {
-		return ƒs.map(ƒ -> ((Ƒ1) ƒ).wrap(handleNullIn, handleNullOut))
-				.reduce(Ƒ1::andThen)
+	protected F1<? super Object, Object> reduce(Stream<F1<? super Object, ?>> ƒs) {
+		return ƒs.map(ƒ -> ((F1) ƒ).wrap(handleNullIn, handleNullOut))
+				.reduce(F1::andThen)
 				.orElse(x -> x);
 	}
 

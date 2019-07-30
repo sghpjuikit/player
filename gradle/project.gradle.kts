@@ -304,8 +304,6 @@ application {
       "-XX:+UseStringDeduplication",
       "-XX:+UseCompressedOops",
       *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
-      "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
-      "--add-exports", "javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED",
       "--add-opens", "java.base/java.util=ALL-UNNAMED",
       "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
       "--add-opens", "java.base/java.text=ALL-UNNAMED",

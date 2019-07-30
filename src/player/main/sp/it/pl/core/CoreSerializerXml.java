@@ -51,6 +51,7 @@ public final class CoreSerializerXml implements Core {
 
 	@Override
 	public void init() {
+		// requires --add-opens=java.desktop/java.awt.font=ALL-UNNAMED
 		x = new XStream(new DomDriver(encoding.name()));
 
 		// configure security

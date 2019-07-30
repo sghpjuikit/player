@@ -1,7 +1,10 @@
 package sp.it.util.system
 
 import com.sun.jna.platform.win32.Advapi32Util
+import com.sun.jna.platform.win32.User32
+import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinReg
+import com.sun.jna.platform.win32.WinUser
 import javafx.scene.input.Clipboard
 import javafx.scene.input.DataFormat
 import javafx.stage.DirectoryChooser
@@ -22,7 +25,6 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.system.EnvironmentContext.defaultChooseFileDir
 import sp.it.util.system.EnvironmentContext.runAsProgramArgsTransformer
-import sp.it.util.ui.ordinal
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
@@ -261,10 +263,31 @@ fun Screen.getWallpaperFile(): File? =
       val isMultiWallpaper = path.endsWith("TranscodedWallpaper")
       if (isMultiWallpaper) {
          val pathPrefix = path.substringBeforeLast("Wallpaper")
-         val index = (ordinal - 1).toString().padStart(3, '0')
-         File("${pathPrefix}_$index")
-            .takeIf { it.exists() }
-            ?: File(path)
+
+         // TODO: implement properly
+         // https://github.com/cbucher/console/issues/187
+         // https://stackoverflow.com/questions/31092395/monitors-position-on-windows-wallpaper
+         // https://github.com/java-native-access/jna/blob/master/contrib/monitordemo/src/com/sun/jna/contrib/demo/MonitorInfoDemo.java
+         /** @return index of the screen as reported by the underlying os */
+         fun Screen.ordinal(): Int {
+            var ord = 0
+
+            User32.INSTANCE.EnumDisplayMonitors(null, null, { hMonitor, _, _, _ ->
+               val info = WinUser.MONITORINFOEX()
+               User32.INSTANCE.GetMonitorInfo(hMonitor, info)
+
+               if (info.rcWork.left==bounds.minX.toInt() && info.rcWork.right==bounds.maxX.toInt() && info.rcWork.top==bounds.minY.toInt() && info.rcWork.bottom==bounds.maxY.toInt()) {
+                  ord = String(info.szDevice).substringAfter("device")[0].toInt()
+               }
+
+               1
+            }, WinDef.LPARAM(0))
+
+            return ord
+         }
+
+         val index = (ordinal() - 1).toString().padStart(3, '0')
+         File("${pathPrefix}_$index").takeIf { it.exists() } ?: File(path)
       } else {
          File(path)
       }

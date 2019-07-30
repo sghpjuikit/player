@@ -240,7 +240,6 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
    fun openWebBar() {
-      // TODO: use URI validator
       configureString("Open on web...", "Website or phrase") {
          val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
          try {

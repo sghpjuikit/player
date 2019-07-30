@@ -52,7 +52,7 @@ fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> 
       wrappingWithNatural.value = true
    }
    return PopOver(t).apply {
-      skinn.contentPadding = Insets(15.0) // TODO: use css instead
+      skinn.contentPadding = Insets(15.0)
       styleClass += "help-popover"
       title.value = textTitle
       isAutoHide = true

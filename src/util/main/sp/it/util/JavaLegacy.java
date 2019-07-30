@@ -1,35 +1,36 @@
 package sp.it.util;
 
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.text.TextBoundsType;
-import javafx.stage.Screen;
+import javafx.scene.text.Text;
 import sp.it.util.dev.Experimental;
 import sp.it.util.type.Util;
 
 /** Umbrella for unsupported or inaccessible modules. */
 public class JavaLegacy {
 
-	// requires --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
-	@Experimental(reason = "May not work properly")
-	public static int screenOrdinal(Screen screen) {
-		int ordinal = com.sun.glass.ui.Screen.getScreens().stream()
-			.filter(it -> it.getWidth()==(int) screen.getBounds().getWidth() && it.getHeight()==(int)screen.getBounds().getHeight())
-			.findFirst()
-			.orElseThrow(() -> new AssertionError("Screen " + screen + " ordinal can not be determined. ui.Screen of such dimensions not found"))
-			.getAdapterOrdinal();
-		return ordinal+1;
-	}
-
 	public static String COMBO_BOX_STYLE_CLASS = "combo-box-popup"; // com.sun.javafx.scene.control.Properties.COMBO_BOX_STYLE_CLASS
 
-	// requires --add-exports javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED
+	private static Text fontMeasuringText = new Text();
+	private static Scene fontMeasuringScene = new Scene(new Group(fontMeasuringText));
+
 	public static double computeFontWidth(javafx.scene.text.Font font, String text) {
-		return com.sun.javafx.scene.control.skin.Utils.computeTextWidth(font, text, -1.0);
+		fontMeasuringText.setFont(font);
+		fontMeasuringText.setText(text);
+		fontMeasuringText.applyCss();
+		return fontMeasuringText.getLayoutBounds().getWidth();
+		// requires --add-exports javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED
+		// return com.sun.javafx.scene.control.skin.Utils.computeTextWidth(font, text, -1.0);
 	}
 
-	// requires --add-exports javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED
 	public static double computeFontHeight(javafx.scene.text.Font font, String text) {
-		return com.sun.javafx.scene.control.skin.Utils.computeTextHeight(font, text, -1.0, TextBoundsType.LOGICAL);
+		fontMeasuringText.setFont(font);
+		fontMeasuringText.setText(text);
+		fontMeasuringText.applyCss();
+		return fontMeasuringText.getLayoutBounds().getHeight();
+		// requires --add-exports javafx.controls/com.sun.javafx.scene.control.skin=ALL-UNNAMED
+		// return com.sun.javafx.scene.control.skin.Utils.computeTextHeight(font, text, -1.0, TextBoundsType.LOGICAL);
 	}
 
 	// requires --add-opens javafx.graphics/com.sun.prism

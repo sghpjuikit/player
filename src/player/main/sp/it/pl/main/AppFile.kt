@@ -40,7 +40,6 @@ val audioExtensions = setOf(
    "mp1",
    "mp2",
    "aac"
-   // TODO: add more formats, perhaps check what vlc supports
 )
 
 /** See [audioExtensionsJaudiotagger]. */

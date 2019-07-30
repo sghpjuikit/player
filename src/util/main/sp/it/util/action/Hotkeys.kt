@@ -11,12 +11,12 @@ import javafx.scene.input.KeyCode.WINDOWS
 import javafx.scene.input.KeyCode.values
 import mu.KLogging
 import org.jnativehook.GlobalScreen
-import org.jnativehook.NativeHookException
 import org.jnativehook.NativeInputEvent
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.list
+import sp.it.util.functional.runTry
 import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -85,27 +85,27 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
 
             override fun nativeKeyTyped(e: NativeKeyEvent) {}
          }
-         try {
+
+         runTry {
             GlobalScreen.setEventDispatcher(eventDispatcher)
             GlobalScreen.addNativeKeyListener(keyListener)
             GlobalScreen.registerNativeHook()
             this.keyListener = keyListener
-         } catch (e: NativeHookException) {
-            logger.error("Failed to register global hotkeys", e)
+         }.ifError {
+            logger.error(it) { "Failed to register global hotkeys" }
          }
-
       }
    }
 
    fun stop() {
       if (isRunning) {
-         try {
+         runTry {
             logger.info { "Stopping global hotkeys" }
             GlobalScreen.removeNativeKeyListener(keyListener)
             keyListener = null
             GlobalScreen.unregisterNativeHook()
-         } catch (e: NativeHookException) {
-            logger.error(e) { "Failed to unregister global hotkeys" }
+         }.ifError {
+            logger.error(it) { "Failed to unregister global hotkeys" }
          }
          isRunning = false
       }

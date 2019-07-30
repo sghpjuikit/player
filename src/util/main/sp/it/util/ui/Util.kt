@@ -1,5 +1,8 @@
 package sp.it.util.ui
 
+import com.sun.jna.platform.win32.User32
+import com.sun.jna.platform.win32.WinDef
+import com.sun.jna.platform.win32.WinUser
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.css.PseudoClass
 import javafx.event.ActionEvent
@@ -65,6 +68,7 @@ import javafx.stage.Screen
 import javafx.stage.Window
 import javafx.util.Callback
 import sp.it.util.JavaLegacy
+import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -888,9 +892,6 @@ fun getScreenForMouse() = Robot().mousePosition.toP().getScreen()
 
 /** @return image representing actual content of this screen */
 fun Screen.makeScreenShot(image: WritableImage? = null) = Robot().getScreenCapture(image, bounds)!!
-
-/** @return index of the screen as reported by the underlying os */
-val Screen.ordinal: Int get() = JavaLegacy.screenOrdinal(this)
 
 /** @return screen containing the centre of this window */
 val Window.screen: Screen get() = getScreen(centreX, centreY)

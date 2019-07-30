@@ -53,7 +53,7 @@ fun File.isValidWidgetFile(): Boolean {
 fun Song.isPlaying(): Boolean = same(APP.audio.playingSong.value)
 
 /** @return true iff any songs contained in this group [Song.isPlaying] */
-fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value // TODO: move out
+fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value
 
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */
 fun App.run1AppReady(block: () -> Unit) {
@@ -87,7 +87,7 @@ fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (Pr
          runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
          val success = p.waitFor()
          if (success!=0)
-            doOnError(null, stdout + stderr)  // TODO: handle with timer (report optionally both p.start failure and p.exit failure)
+            doOnError(null, stdout + stderr)
       }
    }
 }

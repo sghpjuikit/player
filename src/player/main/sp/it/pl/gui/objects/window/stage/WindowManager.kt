@@ -27,6 +27,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.popover.ScreenPos.APP_CENTER
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
@@ -356,7 +357,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
          val w = ws[i]
          val f = dir/"window_${sessionUniqueName}_$i.ws"
          filesNew += f
-         isError = isError or APP.serializerXml.toXML(WindowState(w), f).isError
+         isError = isError or APP.serializerJson.toJson(WindowDb(w), f).isError
          if (isError) break
       }
 
@@ -370,7 +371,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
          val dir = APP.location.user.layouts.current
          if (isValidatedDirectory(dir)) {
             val fs = dir.children().filter { it.path.endsWith(".ws") }.toList()
-            ws += fs.mapNotNull { APP.serializerXml.fromXML(WindowState::class.java, it).orNull()?.toWindow() }
+            ws += fs.mapNotNull { APP.serializerJson.fromJson<WindowDb>(it).orNull()?.toDomain() }
             logger.info { "Restored ${fs.size}/${ws.size} windows." }
          } else {
             logger.error { "Restoring windows/layouts failed: $dir not accessible." }
@@ -477,7 +478,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       val isLauncherEmpty = launcher.useLines { it.count()==1 }
 
       return if (isLauncherEmpty) instantiateComponent(launcher.readTextTry().getOr(""))
-      else APP.serializerXml.fromXML(Component::class.java, launcher).orNull()
+      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.toDomain()
    }
 
    companion object: KLogging()

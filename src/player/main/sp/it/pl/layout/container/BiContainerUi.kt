@@ -25,7 +25,6 @@ import sp.it.pl.main.APP
 import sp.it.util.access.V
 import sp.it.util.access.toggleNext
 import sp.it.util.access.value
-import sp.it.util.collections.map.PropertyMap
 import sp.it.util.collections.setToOne
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
@@ -45,7 +44,6 @@ import sp.it.util.ui.x2
 import kotlin.reflect.KProperty0
 
 class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
-   private val prop: PropertyMap<String>
    private val root1 = AnchorPane()
    private val root2 = AnchorPane()
    private val splitPane = SplitPane(root1, root2)
@@ -53,23 +51,23 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
    private var ui2: ComponentUi? = null
 
    var absoluteSize: Int
-      get() = prop.getI("abs_size")
+      get() = container.absoluteSize.value
       set(i) {
          failIf(i<0 || i>2) { "Only values 0,1,2 allowed" }
 
          SplitPane.setResizableWithParent(root1, i!=1)
          SplitPane.setResizableWithParent(root2, i!=2)
 
-         prop["abs_size"] = i
+         container.absoluteSize.value = i
          ui1?.asIf<WidgetUi>()?.controls?.updateAbsB()
          ui2?.asIf<WidgetUi>()?.controls?.updateAbsB()
          container.children[1]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
          container.children[2]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
       }
    var collapsed: Int
-      get() = prop.getI("col")
+      get() = container.collapsed.value
       set(i) {
-         prop["col"] = i
+         container.collapsed.value = i
          splitPane.orientationProperty().removeListener(collapsedL1)
          if (i!=0) splitPane.orientationProperty().addListener(collapsedL1)
          splitPane.removeEventFilter(MOUSE_RELEASED, collapsedL2)
@@ -112,14 +110,9 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
       root1.minSize = 0.x2
       root2.minSize = 0.x2
 
-      prop = container.properties
-      prop.getOrPut(Double::class.javaObjectType, "pos", 0.5)
-      prop.getOrPut(Int::class.javaObjectType, "abs_size", 0)
-      prop.getOrPut(Int::class.javaObjectType, "col", 0)
-
       container.orientation syncTo splitPane.orientationProperty()
-      absoluteSize = prop.getI("abs_size")
-      collapsed = prop.getI("col")
+      absoluteSize = container.absoluteSize.value
+      collapsed = container.collapsed.value
 
       splitPane.onMouseClicked = root.onMouseClicked
 
@@ -130,7 +123,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
 
       // maintain position in resize (SplitPane position is affected by distortion in case of small sizes)
       splitPane.layoutBoundsProperty() sync {
-         if (prop.getI("abs_size")==0)
+         if (absoluteSize==0)
             updateSplitPosition()
       }
 
@@ -151,7 +144,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
          val v = position.value
          if (v>0.01 && v<0.99) {
             if (!isCollapsed)
-               prop["pos"] = v
+               container.position.value = v
          } else {
             val collapsedNew = if (v<0.5) -1 else 1
             if (it.clickCount==1 && collapsed!=collapsedNew)
@@ -176,7 +169,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
 
    private fun computeSplitPosition() = when (collapsed) {
       -1 -> 0.0
-      0 -> prop.getD("pos")
+      0 -> container.position.value
       1 -> 1.0
       else -> failCase(collapsed)
    }

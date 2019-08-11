@@ -22,6 +22,8 @@ import sp.it.pl.gui.pane.SlowAction
 import sp.it.pl.gui.pane.SlowColAction
 import sp.it.pl.gui.pane.register
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.exportFxwl
+import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
@@ -340,7 +342,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Opens exported widget.",
          IconMD.IMPORT,
          { it hasExtension "fxwl" },
-         { APP.windowManager.launchComponent(it) }
+         { it.loadComponentFxwlJson()?.let { APP.windowManager.launchComponent(it) } }
       )
    )
    ap.register<MultipleFiles>(

@@ -2,17 +2,28 @@ package sp.it.pl.layout.container
 
 import javafx.scene.Node
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.SwitchContainerDb
 import sp.it.pl.main.Settings
-import sp.it.util.conf.IsConfig
+import sp.it.util.access.v
+import sp.it.util.collections.filterNotNullValues
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.reactive.syncFrom
 import java.util.HashMap
 
-class SwitchContainer: Container<SwitchContainerUi>() {
+class SwitchContainer: Container<SwitchContainerUi> {
 
+   val translate = v(0.0)
    private val children = HashMap<Int, Component>()
+
+   @JvmOverloads
+   constructor(state: SwitchContainerDb = SwitchContainerDb()): super(state) {
+      translate.value = state.translate
+      children += state.children.mapValues { it.value?.toDomain() }.filterNotNullValues()
+      setChildrenParents()
+   }
 
    override fun getChildren(): Map<Int, Component> = children
 
@@ -43,6 +54,8 @@ class SwitchContainer: Container<SwitchContainerUi>() {
       children.forEach { (i, c) -> ui.addTab(i, c) }
       return ui.root
    }
+
+   override fun toDb() = SwitchContainerDb(id, translate.value, loadType.value, locked.value, children.mapValues { it.value.toDb() }, properties)
 
    companion object: GlobalSubConfigDelegator("${Settings.Ui.name}.Tabs") {
 

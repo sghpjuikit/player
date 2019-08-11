@@ -1,45 +1,29 @@
-<Widget id="21dab3b5-a97d-4500-a7fd-1b72469ab245" name="Library">
-  <properties serialization="custom">
-    <unserializable-parents/>
-    <map>
-      <default>
-        <loadFactor>0.75</loadFactor>
-        <threshold>12</threshold>
-      </default>
-      <int>16</int>
-      <int>3</int>
-      <string>configs</string>
-      <map>
-        <entry>
-          <string>tablezeropad</string>
-          <val1><value>false</value></val1>
-        </entry>
-        <entry>
-          <string>tableorigindex</string>
-          <val1><value>false</value></val1>
-        </entry>
-        <entry>
-          <string>tableshowheader</string>
-          <val1><value>true</value></val1>
-        </entry>
-        <entry>
-          <string>tableshowfooter</string>
-          <val1><value>true</value></val1>
-        </entry>
-        <entry>
-          <string>tableorient</string>
-          <val1><value>INHERIT</value></val1>
-        </entry>
-      </map>
-      <string>ioTo display</string>
-      <string>Song library,396d2407-7040-401e-8f85-56bc71288818</string>
-      <string>columns</string>
-      <string>Artist,4,true,266.0;First played,16,false,202.0;Category,29,false,60.0;Playcount,20,false,60.0;Discs info,7,true,117.0;Rating,22,false,60.0;Album,3,true,286.0;Filesize,29,false,60.0;Discs total,29,false,60.0;Channels,29,false,60.0;Format,29,false,60.0;Disc,29,false,60.0;Encoder,29,false,60.0;Added to library,1,true,209.0;Lyrics,29,false,60.0;Album artist,29,false,60.0;Rating raw,29,false,60.0;Tags,29,false,60.0;Path,29,false,160.0;Comment,29,false,60.0;Composer,29,false,60.0;#,0,true,55.54545211791992;Tracks total,29,false,60.0;Sample rate,29,false,60.0;Color,29,false,60.0;Title,2,true,358.0;Filename,29,false,60.0;Encoding,29,false,60.0;Publisher,29,false,60.0;Bitrate,29,false,60.0;Custom4,29,false,60.0;Custom3,29,false,60.0;Custom2,29,false,60.0;Custom1,29,false,60.0;Mood,29,false,60.0;Year,29,false,60.0;Length,5,true,92.0;Custom5,29,false,60.0;Last played,17,false,208.0;Track info,6,true,116.0;Genre,29,false,60.0;Track,29,false,60.0+Added to library,DESCENDING</string>
-    </map>
-  </properties>
-  <loadType propertyClass="Loading">AUTOMATIC</loadType>
-  <locked class="javafx.beans.property.SimpleBooleanProperty">false</locked>
-  <preferred propertyClass="boolean">false</preferred>
-  <forbid__use propertyClass="boolean">false</forbid__use>
-  <custom__name propertyClass="string">Library</custom__name>
-</Widget>
+{
+  "forbidUse": false,
+  "name": "Library",
+  "preferred": false,
+  "settings": {
+    "lastadddirlocation": "C:\\Users\\Uranium\\Documents\\GitHub\\player\\app\\user",
+    "lastaddfileslocation": "C:\\Users\\Uranium\\Documents\\GitHub\\player\\app\\user",
+    "tablezeropad": "false",
+    "tableorigindex": "false",
+    "tableshowheader": "true",
+    "tableshowfooter": "true",
+    "tableorient": "INHERIT"
+  },
+  "uiName": "Library",
+  "id": "21dab3b5-a97d-4500-a7fd-1b72469ab245",
+  "loading": "AUTOMATIC",
+  "locked": false,
+  "properties": {
+    "ioTo display": {
+      "value": "Song library,396d2407-7040-401e-8f85-56bc71288818",
+      "_type": "string"
+    },
+    "columns": {
+      "value": "Artist,4,true,266.0;First played,18,false,60.0;Category,18,false,60.0;Playcount,18,false,60.0;Discs info,7,true,117.0;Rating,18,false,60.0;Album,3,true,286.0;Filesize,18,false,60.0;Discs total,18,false,60.0;Channels,18,false,60.0;Format,18,false,60.0;Disc,18,false,60.0;Encoder,18,false,60.0;Added to library,1,true,209.0;Lyrics,18,false,60.0;Album artist,18,false,60.0;Rating raw,18,false,60.0;Tags,18,false,60.0;Path,18,false,160.0;Comment,18,false,60.0;Composer,18,false,60.0;#,0,true,57.41796875;Tracks total,18,false,60.0;Sample rate,18,false,60.0;Color,18,false,60.0;Title,2,true,358.0;Filename,18,false,60.0;Encoding,18,false,60.0;Publisher,18,false,60.0;Bitrate,18,false,60.0;Custom4,18,false,60.0;Custom3,18,false,60.0;Custom2,18,false,60.0;Custom1,18,false,60.0;Mood,18,false,60.0;Year,18,false,60.0;Length,5,true,92.0;Custom5,18,false,60.0;Last played,18,false,60.0;Track info,6,true,116.0;Genre,18,false,60.0;Track,18,false,60.0+Added to library,DESCENDING",
+      "_type": "string"
+    }
+  },
+  "_type": "widget"
+}

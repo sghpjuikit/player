@@ -1,24 +1,36 @@
 package sp.it.pl.layout.container
 
-import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.Node
+import sp.it.pl.layout.BiContainerDb
 import sp.it.pl.layout.Component
+import sp.it.util.access.v
+import sp.it.util.collections.filterNotNullValues
 import sp.it.util.dev.failIf
 import java.util.HashMap
 
 /** [Container] containing two children split vertically or horizontally. */
-class BiContainer(o: Orientation): Container<BiContainerUi>() {
+class BiContainer: Container<BiContainerUi> {
 
    /** Orientation of this container. */
-   val orientation: ObjectProperty<Orientation> = SimpleObjectProperty(VERTICAL)
+   val orientation = SimpleObjectProperty(VERTICAL)
+   val position = v(0.5)
+   val absoluteSize = v(0)
+   val collapsed = v(0)
    private val children = HashMap<Int, Component>()
 
-   init {
-      orientation.value = o
+   constructor(state: BiContainerDb = BiContainerDb()): super(state) {
+      orientation.value = state.orientation
+      position.value = state.position
+      absoluteSize.value = state.absoluteSize
+      collapsed.value = state.collapsed
+      children += state.children.filter { it.key in 1..2 }.mapValues { it.value?.toDomain() }.filterNotNullValues()
+      setChildrenParents()
    }
+
+   constructor(o: Orientation): this(BiContainerDb(orientation = o))
 
    override fun load(): Node {
       ui = ui ?: BiContainerUi(this)
@@ -64,5 +76,7 @@ class BiContainer(o: Orientation): Container<BiContainerUi>() {
    override fun show() = ui?.show() ?: Unit
 
    override fun hide() = ui?.hide() ?: Unit
+
+   override fun toDb() = BiContainerDb(id, orientation.value, position.value, absoluteSize.value, collapsed.value, loadType.value, locked.value, children.mapValues { it.value.toDb() }, properties)
 
 }

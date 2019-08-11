@@ -202,7 +202,7 @@ public final class WidgetUiControls extends ComponentUiControlsBase {
 
     public void updateAbsB() {
         if (area.container instanceof BiContainer) {
-            boolean l = area.container.properties.getI("abs_size") == area.index;
+            boolean l = ((BiContainer) area.container).getAbsoluteSize().getValue() == area.index;
             absB.icon(l ? UNLINK : LINK);
             if (!header_buttons.getChildren().contains(absB))
             header_buttons.getChildren().add(6, absB);

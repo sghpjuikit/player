@@ -167,10 +167,9 @@ public class SwitchContainerUi implements ComponentUi {
 
         sync1IfInScene(root, runnable(() -> {
             // restore last position
-            ui.setTranslateX(container.properties.getOrPut(Double.class, "translate", 0.0));
-
+            ui.setTranslateX(container.getTranslate().getValue());
             // store latest position for deserialization
-            syncC(ui.translateXProperty(), v -> container.properties.put("translate", v));
+            syncC(ui.translateXProperty(), v -> container.getTranslate().setValue(v.doubleValue()));
 
             // maintain position during resize
             // 1 `{}` // does not maintain position:
@@ -196,6 +195,8 @@ public class SwitchContainerUi implements ComponentUi {
             updateEmptyTabs();
         }));
     }
+
+
 
     @Override
     public void dispose() {

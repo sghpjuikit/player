@@ -131,7 +131,6 @@ allprojects {
       "Misc" group {
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.2.2")
-         implementation("com.thoughtworks.xstream", "xstream", "1.4.11.1")
          implementation("com.github.ajalt", "clikt", "2.1.0")
       }
 
@@ -304,17 +303,12 @@ application {
       "-XX:+UseStringDeduplication",
       "-XX:+UseCompressedOops",
       *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
-      "--add-opens", "java.base/java.util=ALL-UNNAMED",
-      "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-      "--add-opens", "java.base/java.text=ALL-UNNAMED",
-      "--add-opens", "java.base/java.util.stream=ALL-UNNAMED",
-      "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-      "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED",
       "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
       "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
       "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
       "--add-opens", "javafx.graphics/javafx.stage=ALL-UNNAMED",
       "--add-opens", "javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED",
-      "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED"
+      "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
+      "--illegal-access=permit"
    )
 }

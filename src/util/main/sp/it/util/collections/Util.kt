@@ -84,3 +84,11 @@ class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Obse
    fun addListener(listener: SetChangeListener<in T>) = set.addListener(listener)
    fun removeListener(listener: SetChangeListener<in T>) = set.removeListener(listener)
 }
+
+/** Returns a map containing all key-value pairs with not null keys. */
+@Suppress("UNCHECKED_CAST")
+fun <K: Any,V> Map<K?,V>.filterNotNullKeys(): Map<K,V> = filterKeys { it != null } as Map<K,V>
+
+/** Returns a map containing all key-value pairs with not null values. */
+@Suppress("UNCHECKED_CAST")
+fun <K: Any,V> Map<K,V?>.filterNotNullValues(): Map<K,V> = filterValues { it != null } as Map<K,V>

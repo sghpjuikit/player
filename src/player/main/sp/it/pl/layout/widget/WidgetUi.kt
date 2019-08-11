@@ -53,9 +53,7 @@ class WidgetUi: ComponentUiBase<Widget> {
     * @param widget widget that will be managed and displayed
     */
    constructor(container: Container<*>, index: Int, widget: Widget): super(widget) {
-      this.container = container.apply {
-         properties.getOrPut(Double::class.javaObjectType, "padding", 0.0)
-      }
+      this.container = container
       this.index = index
       this.widget = widget
       this.widget.parentTemp = this.container

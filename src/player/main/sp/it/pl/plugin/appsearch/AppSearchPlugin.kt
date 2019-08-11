@@ -23,6 +23,7 @@ import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.layout.container.ComponentUi
+import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetFactory

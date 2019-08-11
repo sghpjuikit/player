@@ -2,13 +2,22 @@ package sp.it.pl.layout.container
 
 import javafx.scene.Node
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.FreeFormContainerDb
 import sp.it.util.access.v
+import sp.it.util.collections.filterNotNullValues
 import java.util.HashMap
 
-class FreeFormContainer: Container<FreeFormContainerUi>() {
+class FreeFormContainer: Container<FreeFormContainerUi> {
 
    val showHeaders = v(true)
    private val children = HashMap<Int, Component>()
+
+   @JvmOverloads
+   constructor(state: FreeFormContainerDb = FreeFormContainerDb()): super(state) {
+      showHeaders.value = state.showHeaders
+      children += state.children.mapValues { it.value?.toDomain() }.filterNotNullValues()
+      setChildrenParents()
+   }
 
    override fun getChildren(): Map<Int, Component> = children
 
@@ -37,6 +46,8 @@ class FreeFormContainer: Container<FreeFormContainerUi>() {
       ui.load()
       return ui.root
    }
+
+   override fun toDb() = FreeFormContainerDb(id, loadType.value, locked.value, showHeaders.value, children.mapValues { it.value.toDb() }, properties)
 
    override fun show() = ui?.show() ?: Unit
 

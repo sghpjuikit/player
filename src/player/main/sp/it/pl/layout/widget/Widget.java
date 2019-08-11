@@ -1,8 +1,6 @@
 package sp.it.pl.layout.widget;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.File;
-import java.io.ObjectStreamException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
@@ -23,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
+import sp.it.pl.layout.WidgetDb;
 import sp.it.pl.layout.container.ComponentUi;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
@@ -38,7 +37,6 @@ import sp.it.util.conf.Configurable;
 import sp.it.util.conf.Configuration;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
-import sp.it.util.dev.Dependency;
 import sp.it.util.file.properties.PropVal;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.reactive.Disposer;
@@ -49,13 +47,12 @@ import static java.util.Objects.deepEquals;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.file.properties.PropertiesKt.readProperties;
 import static sp.it.util.file.UtilKt.writeTextTry;
+import static sp.it.util.file.properties.PropertiesKt.readProperties;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.map;
-import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.toS;
 import static sp.it.util.ui.UtilKt.findParent;
@@ -77,7 +74,6 @@ import static sp.it.util.ui.UtilKt.removeFromParent;
 public final class Widget extends Component implements Configurable<Object>, Locatable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
-	private static final Set<String> ignoredConfigs = set("Is preferred", "Is ignored", "Custom name"); // avoids data duplication
 
 	// Name of the widget. Permanent. Same as factory name. Used solely for deserialization (to find
 	// appropriate factory)
@@ -91,12 +87,11 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	 * will be removed from the list of factories (substituted by the new factory), this field will
 	 * still point to the old factory, holding true to the description of this field.
 	 */
-	@Dependency("name - accessed using reflection by name")
-	@XStreamOmitField public final WidgetFactory<?> factory;
-	@XStreamOmitField protected Pane root;
-	@XStreamOmitField protected Controller controller;
-	@XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
-	@XStreamOmitField Disposer onClose = new Disposer();
+	public final WidgetFactory<?> factory;
+	protected Pane root;
+	protected Controller controller;
+	private HashMap<String,Config<Object>> configs = new HashMap<>();
+	Disposer onClose = new Disposer();
 
 	// Temporary workaround for bad design. Widget-Container-Controller-Area relationship is badly
 	// designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
@@ -104,7 +99,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	//
 	// I think this is the best and most painless way to wire widget with area & container (parent)
 	// All the pseudo wiring through Controller is pure chaos.
-	@XStreamOmitField public Container parentTemp;
+	public Container parentTemp;
 
 	/**
 	 * Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
@@ -112,7 +107,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	 * <p/>
 	 * This field allows widget to control its lifecycle and context from its controller.
 	 */
-	@XStreamOmitField public ComponentUi uiTemp;
+	public ComponentUi uiTemp;
 
 	/** Whether this widget will be preferred over other widgets in widget lookup. */
 	@IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "
@@ -128,22 +123,47 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public final V<String> custom_name = new V<>("");
 
 	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false. */
-	@Dependency("name - accessed using reflection by name")
 	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.APP)
-	@XStreamOmitField public final V<Boolean> focused = new V<>(false); // TODO: make read-only
+	public final V<Boolean> focused = new V<>(false); // TODO: make read-only
 
 	/**
 	 * Whether this widget has been created from persisted state or normally by application/user.
 	 * May be used for sensitive initialization, like setting default values that must not override user settings.
 	 */
-	@Dependency("name - accessed using reflection by name")
-	@XStreamOmitField public final boolean isDeserialized = false;
+	public final boolean isDeserialized;
 
 	public Widget(String name, WidgetFactory<?> factory) {
+		super(new WidgetDb());
 		this.name = name;
 		this.factory = factory;
 		custom_name.setValue(name);
 		focused.addListener(computeFocusChangeHandler());
+		isDeserialized = false;
+	}
+
+	public Widget(WidgetDb state) {
+		super(state);
+
+		name = state.getName();
+		factory = firstNotNull(
+			() -> APP.widgetManager.factories.getFactory(name),
+			() -> new NoFactoryFactory(name)
+		);
+		controller = factory instanceof NoFactoryFactory
+			? ((NoFactoryFactory) factory).createController(this)
+			: null;
+		preferred.setValue(state.getPreferred());
+		forbid_use.setValue(state.getForbidUse());
+		custom_name.setValue(state.getUiName());
+		properties.putAll(state.getProperties());
+		getFieldsRaw().putAll(state.getSettings());
+		focused.addListener(computeFocusChangeHandler());
+		isDeserialized = true;
+
+		properties.entrySet().stream()
+			.filter(e -> e.getKey().startsWith("io"))
+			.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
+			.forEach(ios::add);
 	}
 
 	@Override
@@ -407,16 +427,15 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 /****************************** SERIALIZATION *********************************/
 
-	/** Invoked just before the serialization. */
-	@SuppressWarnings("StatementWithEmptyBody")
-	protected Object writeReplace() throws ObjectStreamException {
+	@Override
+	public WidgetDb toDb() {
 		boolean isLoaded = controller!=null;
 
 		// Prepare input-outputs
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
 			getController().io.i.getInputs().forEach(i ->
-					properties.put("io" + i.name, toS(i.getSources(), o -> o.id.toString(), ":"))
+				properties.put("io" + i.name, toS(i.getSources(), o -> o.id.toString(), ":"))
 			);
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are
 		} else {}
@@ -428,45 +447,10 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 			// Otherwise we still have the deserialized name:value pairs and leave them as they are
 		}
 
-		return this;
-	}
-
-	/**
-	 * Invoked just after deserialization.
-	 *
-	 * @implSpec Resolve object by initializing non-deserializable fields or providing an alternative instance (e.g. to
-	 * adhere to singleton pattern).
-	 */
-	@SuppressWarnings("unchecked")
-	protected Object readResolve() throws ObjectStreamException {
-		super.readResolve();
-
-		Util.setField(this, "isDeserialized", true);
-
-		if (factory==null) {
-			var f = firstNotNull(
-				() -> APP.widgetManager.factories.getFactory(name),
-				() -> new NoFactoryFactory(name)
-			);
-			Util.setField(this, "factory", f);
-			if (f instanceof NoFactoryFactory) controller = ((NoFactoryFactory) f).createController(this);
-		}
-
-		if (configs==null) configs = new HashMap<>();
-		if (focused==null) {
-			Util.setField(this, "focused", new V<>(false));
-			focused.addListener(computeFocusChangeHandler());
-		}
-
-		if (onClose==null) Util.setField(this, "onClose", new Disposer());
-
-		// accumulate serialized inputs for later deserialization when all widgets are ready
-		properties.entrySet().stream()
-				.filter(e -> e.getKey().startsWith("io"))
-				.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
-				.forEach(ios::add);
-
-		return this;
+		var props = new HashMap<>(properties);
+		var configs = getFieldsRaw();
+		props.remove("configs");
+		return new WidgetDb(id, name, preferred.getValue(), forbid_use.getValue(), custom_name.getValue(), loadType.getValue(), locked.getValue(), props, configs);
 	}
 
 	public static F1<Config<?>,String> configToRawKeyMapper = it -> it.getName().replace(' ', '_').toLowerCase();
@@ -540,7 +524,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	static final ArrayList<IO> ios = new ArrayList<>();
 
-	@SuppressWarnings({"unchecked", "UseBulkOperation", "deprecation"})
+	@SuppressWarnings({"UseBulkOperation", "unchecked"})
 	public static void deserializeWidgetIO() {
 		Set<Input<?>> is = new HashSet<>();
 		Map<Output.Id,Output<?>> os = new HashMap<>();

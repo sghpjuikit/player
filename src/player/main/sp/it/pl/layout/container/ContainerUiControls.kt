@@ -116,7 +116,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
    fun updateIcons() {
       val c = area.container.parent
       if (c is BiContainer) {
-         val isAbs = c.properties.getI("abs_size")==area.container.indexInParent()!!
+         val isAbs = c.absoluteSize.value==area.container.indexInParent()!!
          absB = icon(if (isAbs) IconFA.UNLINK else IconFA.LINK, "Resize container proportionally").addExtraIcon().onClickDo {
             c.ui.toggleAbsoluteSizeFor(area.container.indexInParent()!!)
          }

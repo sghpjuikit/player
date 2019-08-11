@@ -1,7 +1,5 @@
 package sp.it.pl.layout.container;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
+import sp.it.pl.layout.ComponentDb;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
@@ -55,9 +54,13 @@ import static sp.it.util.functional.Util.stream;
  */
 public abstract class Container<G extends ComponentUi> extends Component implements AltState {
 
-    @XStreamOmitField protected AnchorPane root;
-    @XStreamOmitField private Container parent;
-    @XStreamOmitField public G ui;
+    protected AnchorPane root;
+    private Container parent;
+    public G ui;
+
+    public Container(ComponentDb state) {
+        super(state);
+    }
 
     @Override
     public String getName() {
@@ -331,20 +334,10 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
             .forEach(AltState::hide);
     }
 
-    /**
-     * Invoked just after deserialization.
-     *
-     * @implSpec Resolve object by initializing non-deserializable fields or providing an alternative instance (e.g. to
-     * adhere to singleton pattern).
-     */
-    protected Object readResolve() throws ObjectStreamException {
-        super.readResolve();
-
+    protected final void setChildrenParents() {
         getChildren().values().forEach(it -> {
             if (it instanceof Container<?>)
                 ((Container) it).setParent(this);
         });
-
-        return this;
     }
 }

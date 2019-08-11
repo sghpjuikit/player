@@ -24,7 +24,7 @@ sealed class Try<out R, out E> {
    val orThrow: R
       get() = when (this) {
          is Ok<R> -> value
-         is Error<E> -> fail { "Can not get result of an Error Try" }
+         is Error<E> -> fail { "Can not get result of an Error Try, has value=$value" }
       }
 
    /** Invoke the specified action if success */

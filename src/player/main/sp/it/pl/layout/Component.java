@@ -1,8 +1,5 @@
 package sp.it.pl.layout;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import java.io.File;
-import java.io.ObjectStreamException;
 import java.util.Optional;
 import java.util.UUID;
 import javafx.beans.property.BooleanProperty;
@@ -16,7 +13,6 @@ import sp.it.pl.layout.widget.Widget.LoadType;
 import sp.it.util.access.V;
 import sp.it.util.collections.map.PropertyMap;
 import sp.it.util.conf.IsConfig;
-import sp.it.util.type.Util;
 import static sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC;
 import static sp.it.pl.main.AppKt.APP;
 
@@ -27,7 +23,7 @@ import static sp.it.pl.main.AppKt.APP;
 public abstract class Component {
 
 	/** Unique ID. Permanent. Persists application life cycle. */
-	public final UUID id = UUID.randomUUID();
+	public final UUID id;
 	/**
 	 * Simple storage for component state. Persists application life cycle. All data will serialize
 	 * and deserialize.
@@ -37,6 +33,12 @@ public abstract class Component {
 	@IsConfig(name = "Load type", info = "Manual type delays component loading until user manually requests it")
 	public final V<LoadType> loadType = new V<>(AUTOMATIC);
 
+	public Component(ComponentDb state) {
+		this.id = state.getId();
+		this.properties.putAll(state.getProperties());
+		locked.setValue(state.getLocked());
+		loadType.setValue(state.getLoading());
+	}
 
 	/** @return name */
 	abstract public String getName();
@@ -127,15 +129,6 @@ public abstract class Component {
 		return Optional.ofNullable(w);
 	}
 
-	/**
-	 * Creates a launcher for this component as given file. Launcher is a
-	 * file, opening which by this application opens this component with its
-	 * current settings.
-	 */
-	public void exportFxwl(File file) {
-		APP.serializerXml.toXML(this, file);
-	}
-
 	public String getExportName() {
 		return this instanceof Widget ? ((Widget) this).custom_name.getValue() : getName();
 	}
@@ -146,19 +139,7 @@ public abstract class Component {
 		}
 	}
 
-//*************************************** SERIALIZATION *******************************************/
-
-	@SuppressWarnings("ConstantConditions")
-	protected Object readResolve() throws ObjectStreamException {
-		// Special case. The class at hand (LockedProperty) is inner class (due to unavoidable
-		// dependency on this one) and can not be deserialized since we can not create an
-		// XStream converter for it.
-		//
-		// We must always initialize it manually (we use @XStreamOmit for that) and because
-		// it really should be final, but the initialization is here, we use reflection
-		if (lockedUnder == null) Util.setField(this, "lockedUnder", new LockedProperty());
-		return this;
-	}
+	abstract public ComponentDb toDb();
 
 //***************************************** LOCKING ***********************************************/
 
@@ -171,7 +152,6 @@ public abstract class Component {
 	 */
 	public final BooleanProperty locked = new SimpleBooleanProperty(false);
 	/** True if this container is locked or any parent is locked or entire ui is locked. */
-	@XStreamOmitField // see readResolve() method
 	public final LockedProperty lockedUnder = new LockedProperty();
 
 	public class LockedProperty extends SimpleBooleanProperty {

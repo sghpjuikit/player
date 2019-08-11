@@ -18,7 +18,7 @@ import sp.it.pl.core.CoreLogging
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
-import sp.it.pl.core.CoreSerializerXml
+import sp.it.pl.core.CoreSerializerJson
 import sp.it.pl.gui.UiManager
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
@@ -173,7 +173,7 @@ class App: Application(), GlobalConfigDelegator {
    @JvmField val env = CoreEnv.apply { init() }
    @JvmField val imageIo = CoreImageIO(locationTmp/"imageio")
    @JvmField val converter = CoreConverter().apply { init() }
-   @JvmField val serializerXml = CoreSerializerXml()
+   @JvmField val serializerJson = CoreSerializerJson()
    @JvmField val serializer = CoreSerializer
    @JvmField val instances = CoreInstances
    @JvmField val mimeTypes = MimeTypes
@@ -248,7 +248,7 @@ class App: Application(), GlobalConfigDelegator {
       instanceName.initApp()
       instanceInfo.initApp()
       serializer.init()
-      serializerXml.init()
+      serializerJson.init()
       imageIo.init()
       instances.init()
       contextMenus.init()
@@ -331,7 +331,7 @@ class App: Application(), GlobalConfigDelegator {
       contextMenus.dispose()
       instances.dispose()
       serializer.dispose()
-      serializerXml.dispose()
+      serializerJson.dispose()
       converter.dispose()
       imageIo.dispose()
       env.dispose()

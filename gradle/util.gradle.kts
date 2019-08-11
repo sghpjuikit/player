@@ -12,3 +12,7 @@ sourceSets {
       resources.srcDir("test")
    }
 }
+
+dependencies {
+   implementation("com.beust", "klaxon", "5.0.11")
+}

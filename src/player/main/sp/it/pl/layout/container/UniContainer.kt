@@ -1,10 +1,10 @@
 package sp.it.pl.layout.container
 
-import com.thoughtworks.xstream.annotations.XStreamAlias
-import com.thoughtworks.xstream.annotations.XStreamOmitField
 import javafx.scene.Node
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.Layouter
+import sp.it.pl.layout.UniContainerDb
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetUi
 import sp.it.util.collections.setToOne
@@ -14,17 +14,20 @@ import sp.it.util.ui.setAnchors
 
 
 /** [Container] containing one child spanning entire area. */
-open class UniContainer: Container<ComponentUi>() {
+open class UniContainer: Container<ComponentUi> {
 
-   @XStreamAlias("child")
-   private var _child: Component? = null
-   @XStreamOmitField
+   protected var _child: Component? = null
    protected var isStandalone = false
 
    /** Equal to [getChildren]`.get(1)` and [addChild]`(1, newChild)`. */
    var child: Component?
       get() = _child
       set(w) = addChild(1, w)
+
+   constructor(state: UniContainerDb = UniContainerDb()): super(state) {
+      _child = state.child?.toDomain()
+      setChildrenParents()
+   }
 
    override fun load(): Node {
       val n = when (val c = _child) {
@@ -72,5 +75,7 @@ open class UniContainer: Container<ComponentUi>() {
    override fun getEmptySpot(): Int? = if (_child===null) 1 else null
 
    private fun <T> T.disposeUi() = apply { if (ui is Layouter || ui is WidgetUi) ui.dispose() }
+
+   override fun toDb(): ComponentDb = UniContainerDb(id, loadType.value, locked.value, child?.toDb(), properties)
 
 }

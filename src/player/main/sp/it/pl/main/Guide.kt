@@ -33,8 +33,8 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runFX
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv

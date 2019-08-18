@@ -42,10 +42,8 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.saveFile
 import sp.it.util.type.Util
-import sp.it.util.ui.item
-import sp.it.util.ui.items
+import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
-import sp.it.util.ui.menu
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import sp.it.util.units.millis
@@ -156,7 +154,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
       root.lay += table.root
 
-      table.menuAdd.apply {
+      table.menuAdd.dsl {
          item("Add files") { PlaylistManager.chooseFilesToAdd() }
          item("Add directory") { PlaylistManager.chooseFolderToAdd() }
          item("Add URL") { PlaylistManager.chooseUrlToAdd() }
@@ -166,14 +164,14 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          item("Duplicate selected (+)") { playlist.duplicateItemsByOne(table.selectedItems) }
          item("Duplicate selected (*)") { playlist.duplicateItemsAsGroup(table.selectedItems) }
       }
-      table.menuRemove.apply {
+      table.menuRemove.dsl {
          item("Remove selected") { playlist -= table.selectedItems }
          item("Remove not selected") { playlist.retainAll(table.selectedItems) }
          item("Remove unplayable") { playlist.removeUnplayable() }
          item("Remove duplicates") { playlist.removeDuplicates() }
          item("Remove all") { playlist.clear() }
       }
-      table.menuOrder.apply {
+      table.menuOrder.dsl {
          menu("Order by") {
             items(Field.all.asSequence(), { it.name() }) { table.sortBy(it) }
          }

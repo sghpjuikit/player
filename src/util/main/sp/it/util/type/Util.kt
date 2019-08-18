@@ -35,8 +35,8 @@ inline fun <reified T> Class<*>.isSubclassOf() = isSubclassOf(T::class.java)
 
 /** @return the most specific common supertype of the specified types */
 infix fun KClass<*>.union(type: KClass<*>): KClass<*> = when {
-   this==Any::class || type==Any::class -> Any::class
    this==type -> this
+   this==Any::class || type==Any::class -> Any::class
    this.isSuperclassOf(type) -> this
    type.isSubclassOf(type) -> type
    else -> Any::class

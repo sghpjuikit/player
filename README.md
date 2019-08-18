@@ -151,8 +151,6 @@ the widgets are (recompiled and then) reloaded with previous state and configura
 
 ##### Playback
 Controls for playback, like seeking. Supports chapters.
-##### Playback Mini
-Minimalistic dock version of Playback widget.
 ##### Playlist
 Table or playing songs. Of course it is possible to use more of themat once. Very handy to have a side-playlist sometimes.
 ##### FileInfo
@@ -192,8 +190,6 @@ Configuring facility displaying settings for either:
   - JavaFX scenegraph
   - other java object implementing Configurable. There are methods to turn plain java objects into Configurable. 
   	For example using annotations on fields or using JavaFX properties.
-##### Explorer
-Simple file system browser. Currently slow for big folders (1000+ of files).
 ##### Inspector
 Displays hierarchies:
   - application modules
@@ -207,14 +203,6 @@ Configurable icon bar/dock. User can add/remove custom icons executing some pred
 Plots custom mathematical function in a graph
 ##### Spectrum
 Displays the audio spectrum of the playing song (doesn't work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines! Not really useful aside being a fancy visualisation though.
-##### Layouts
-Layout manager. Saved layout browser. Currently outdated and largely useless. Planned for complete rewrite.
-##### Comet
-Loose java port of the game Comet from 90s. Something between Crimsonland and Geometry Wars.<br>
-You fly a rocket and shoot UFOs and asteroids to clear missions with increasing difficulty. 
-For up to 8 players (no internet support, so prepare lots of keyboards and a living room). 
-Pretty advanced effects though, including Black holes, force fields and wapring frid (inspired by Grid Wars/Geometry Wars).<br>
-Anyone running this app better try the game out. Line count sits at about 5000.
 
 ### Portability
 

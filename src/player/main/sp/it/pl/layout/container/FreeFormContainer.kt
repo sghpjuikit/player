@@ -19,6 +19,8 @@ class FreeFormContainer: Container<FreeFormContainerUi> {
       setChildrenParents()
    }
 
+   override fun getName() = "FreeFormContainer"
+
    override fun getChildren(): Map<Int, Component> = children
 
    override fun addChild(index: Int?, c: Component?) {

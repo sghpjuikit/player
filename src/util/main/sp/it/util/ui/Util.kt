@@ -1,8 +1,5 @@
 package sp.it.util.ui
 
-import com.sun.jna.platform.win32.User32
-import com.sun.jna.platform.win32.WinDef
-import com.sun.jna.platform.win32.WinUser
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.css.PseudoClass
 import javafx.event.ActionEvent
@@ -16,6 +13,7 @@ import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Button
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Control
 import javafx.scene.control.Hyperlink
 import javafx.scene.control.Label
@@ -67,8 +65,7 @@ import javafx.scene.text.TextAlignment
 import javafx.stage.Screen
 import javafx.stage.Window
 import javafx.util.Callback
-import sp.it.util.JavaLegacy
-import sp.it.util.dev.Experimental
+import sp.it.util.dev.Dsl
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -588,26 +585,47 @@ infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
 
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
 
-/** Create and add to items menu with specified text and graphics. */
-inline fun Menu.menu(text: String, graphics: Node? = null, then: (Menu).() -> Unit) {
-   items += Menu(text, graphics).apply { then() }
+@Dsl
+open class MenuBuilder<M,V>(val owner: M, val value: V) {
+
+   open infix fun add(item: MenuItem) = when(owner) {
+      is ContextMenu -> owner.items += item
+      is Menu -> owner.items += item
+      is MutableList<*> -> owner.asIs<MutableList<MenuItem>>() += item
+      else -> fail { "Menu DSL owner must be ${ContextMenu::class} or ${MenuItem::class}, but was $owner" }
+   }
+
+   /** Create and add to items menu with specified text and graphics. */
+   @Dsl
+   inline fun menu(text: String, graphics: Node? = null, crossinline then: @Dsl MenuBuilder<Menu, V>.() -> Unit) = this add Menu(text, graphics).dsl(value) { then() }
+
+
+   /** Create and add to items new menu item with specified text and action. */
+   @Dsl
+   inline fun item(text: String, graphics: Node? = null, crossinline action: (@Dsl MenuItem).(V) -> Unit) = this add MenuItem(text, graphics).apply { onAction = EventHandler { action(value) } }
+
+   /** Create and add to items new menu items with text and action derived from specified source. */
+   @Dsl
+   @Suppress("RedundantLambdaArrow")
+   inline fun <A> items(source: Sequence<A>, crossinline text: (A) -> String, crossinline action: (A) -> Unit) = source.map { menuItem(text(it)) { _ -> action(it) } }.sortedBy { it.text }.forEach { this add it }
+
+   /** Create and add to items new menu separator. */
+   @Dsl
+   fun separator() = this add menuSeparator()
+
 }
 
-/** Create and add to items new menu item with specified text and action. */
-fun Menu.item(text: String, action: (ActionEvent) -> Unit) = apply {
-   items += menuItem(text, action)
-}
+@Dsl
+inline fun ContextMenu.dsl(block: (MenuBuilder<ContextMenu, Nothing?>).() -> Unit) = dsl(null, block)
 
-/** Create and add to items new menu items with text and action derived from specified source. */
-@Suppress("RedundantLambdaArrow")
-fun <A> Menu.items(source: Sequence<A>, text: (A) -> String, action: (A) -> Unit) {
-   items += source.map { menuItem(text(it)) { _ -> action(it) } }.sortedBy { it.text }
-}
+@Dsl
+inline fun <S: Any?> ContextMenu.dsl(selected: S, block: (MenuBuilder<ContextMenu, S>).() -> Unit) = apply { MenuBuilder(this, selected).block() }
 
-/** Create and add to items new menu separator. */
-fun Menu.separator() = apply {
-   items += menuSeparator()
-}
+@Dsl
+fun <M: MenuItem> M.dsl(block: (MenuBuilder<M, Nothing?>).() -> Unit) = dsl(null, block)
+
+@Dsl
+fun <M: MenuItem, S> M.dsl(selected: S, block: (MenuBuilder<M, S>).() -> Unit) = apply { MenuBuilder(this, selected).block() }
 
 /* ---------- POINT ------------------------------------------------------------------------------------------------- */
 

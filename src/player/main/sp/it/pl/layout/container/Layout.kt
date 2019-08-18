@@ -9,6 +9,8 @@ class Layout: UniContainer {
    @JvmOverloads
    constructor(state: RootContainerDb = RootContainerDb()): super(state.toUni())
 
+   override fun getName() = "Layout"
+
    /**
     * @param parentPane root node to load the layout into.
     * @return root node of the this layout

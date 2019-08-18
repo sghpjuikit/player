@@ -114,10 +114,10 @@ class CoreConverter: Core {
    }
 
    private inline fun <reified T: Any> ConverterDefault.addP(noinline to: (T) -> String, noinline of: (String) -> T?) =
-      addParserAsF(T::class.java, to, of)
+      addParserAsF(T::class.javaObjectType, to, of)
 
    private inline fun <reified T: Any> ConverterDefault.addT(noinline to: (T) -> String, noinline of: (String) -> Try<T?, String>) =
-      addParser(T::class.java, to, of)
+      addParser(T::class.javaObjectType, to, of)
 
    private fun <I, O> tryF(vararg ecs: KClass<*>, f: (I) -> O): (I) -> Try<O, String> = {
       runTry {

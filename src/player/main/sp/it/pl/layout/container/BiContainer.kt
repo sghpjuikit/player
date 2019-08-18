@@ -32,6 +32,8 @@ class BiContainer: Container<BiContainerUi> {
 
    constructor(o: Orientation): this(BiContainerDb(orientation = o))
 
+   override fun getName() = "BiContainer"
+
    override fun load(): Node {
       ui = ui ?: BiContainerUi(this)
 

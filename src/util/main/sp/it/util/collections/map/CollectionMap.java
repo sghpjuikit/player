@@ -2,9 +2,9 @@ package sp.it.util.collections.map;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import kotlin.jvm.functions.Function1;
 import static java.util.stream.Collectors.toCollection;
 
 /**
@@ -13,13 +13,13 @@ import static java.util.stream.Collectors.toCollection;
  */
 public class CollectionMap<E, K, C extends Collection<E>> extends AccumulationMap<E,K,C> {
 
-	public CollectionMap(Supplier<? extends C> cacheFactory, Function<E,K> keyMapper) {
+	public CollectionMap(Supplier<? extends C> cacheFactory, Function1<E,K> keyMapper) {
 		super(keyMapper, cacheFactory, (e, cache) -> cache.add(e));
 	}
 
 	/** De-accumulates (removes) given element from this map. */
 	public void deAccumulate(E e) {
-		K k = keyMapper.apply(e);
+		K k = keyMapper.invoke(e);
 		C c = get(k);
 		if (c!=null) {
 			c.remove(e);

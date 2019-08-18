@@ -40,7 +40,6 @@ import static sp.it.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.list;
-import static sp.it.util.functional.Util.stream;
 import static sp.it.util.ui.image.UtilKt.toBuffered;
 import static sp.it.util.ui.image.UtilKt.toFX;
 

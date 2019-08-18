@@ -16,6 +16,8 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
 import sp.it.pl.main.infoIcon
+import sp.it.util.Named
+import sp.it.util.named
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.copyToSysClipboard
@@ -130,15 +132,11 @@ class InfoPane: OverlayPane<Unit>() {
       return ps
    }
 
-   private data class Named(val name: String, val value: String)
-
    companion object {
       private const val STYLECLASS = "info-pane"
       private const val STYLECLASS_GROUP = "info-pane-group-label"
 
       private fun <K, V> MutableMap<K, MutableList<V>>.group(key: K) = getOrPut(key) { ArrayList() }
-
-      private infix fun String.named(value: String) = Named(this, value)
 
       private fun String.getPropertyGroup() = substringBefore('.')
 

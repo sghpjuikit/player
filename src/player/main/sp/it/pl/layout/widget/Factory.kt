@@ -6,10 +6,10 @@ import sp.it.pl.layout.widget.controller.NoFactoryController
 import sp.it.pl.main.APP
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
-import sp.it.util.type.ClassName
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.jvm.jvmName
 
 /** Component factory that creates component by deserializing it from file. */
 interface ComponentFactory<out T: Component>: ComponentInfo {
@@ -47,7 +47,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
     */
    constructor(controllerType: KClass<C>, location: File, externalWidgetData: ExternalWidgetFactoryData?) {
       val i: Widget.Info = controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
-      this.name = ClassName.of(controllerType.java)
+      this.name = controllerType.simpleName ?: controllerType.jvmName
       this.controllerType = controllerType.java
       this.location = location
       this.locationUser = APP.location.user.widgets/location.nameOrRoot

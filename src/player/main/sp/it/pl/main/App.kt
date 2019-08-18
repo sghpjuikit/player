@@ -66,7 +66,7 @@ import sp.it.util.reactive.Handler1
 import sp.it.util.system.Os
 import sp.it.util.system.SystemOutListener
 import sp.it.util.type.ClassName
-import sp.it.util.type.InstanceInfo
+import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
 import java.io.File
@@ -179,7 +179,7 @@ class App: Application(), GlobalConfigDelegator {
    @JvmField val mimeTypes = MimeTypes
    @JvmField val className = ClassName()
    @JvmField val instanceName = InstanceName()
-   @JvmField val instanceInfo = InstanceInfo()
+   @JvmField val instanceInfo = InstanceDescription()
    @JvmField val classFields = ObjectFieldMap.DEFAULT
    @JvmField val contextMenus = CoreMenus
    @JvmField val mouse = CoreMouse
@@ -209,7 +209,7 @@ class App: Application(), GlobalConfigDelegator {
    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
    val actionSettingsSave by cr { configuration.save(name, location.user.`application properties`) }
 
-   @C(name = "Manage VM options", info = "Manage Java virtual machine settings")
+   @C(name = "Manage VM options", info = "Manage Java virtual machine settings. Requires developer mode.")
    val manageVM by cr {
       val root = VmOptionsPane().apply {
          prefHeight = 600.scaleEM()

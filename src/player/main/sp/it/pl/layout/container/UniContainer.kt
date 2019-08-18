@@ -29,6 +29,8 @@ open class UniContainer: Container<ComponentUi> {
       setChildrenParents()
    }
 
+   override fun getName() = "UniContainer"
+
    override fun load(): Node {
       val n = when (val c = _child) {
          is Container<*> -> {

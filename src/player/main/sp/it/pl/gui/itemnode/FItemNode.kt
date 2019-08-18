@@ -11,8 +11,8 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
 import sp.it.util.functional.Functors
-import sp.it.util.functional.Functors.PF
 import sp.it.util.functional.Functors.F1
+import sp.it.util.functional.Functors.PF
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox

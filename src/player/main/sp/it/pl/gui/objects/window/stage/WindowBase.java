@@ -19,7 +19,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import kotlin.Unit;
 import sp.it.pl.gui.objects.window.Resize;
-import sp.it.util.dev.Dependency;
 import sp.it.util.math.P;
 import sp.it.util.system.Os;
 import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
@@ -36,13 +35,6 @@ import static sp.it.util.reactive.UtilKt.syncC;
 
 /**
  * Customized Stage, window of the application.
- * <p/>
- * <p/>
- * Screen depended methods:
- * <br>
- * Several features are screen dependent (like maximization) as they behave
- * differently per screen. Their methods are annotated with {@link Dependency}
- * annotation set to value SCREEN.
  * <p/>
  * Prior to calling these methods, correct screen to this window has to be set.
  * For example the window will maximize within its screen, so correct screen

@@ -7,6 +7,7 @@ import sp.it.pl.gui.pane.GroupApply.FOR_EACH
 import sp.it.pl.gui.pane.GroupApply.NONE
 import sp.it.util.action.Action
 import sp.it.util.async.future.Fut
+import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementType
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
@@ -18,19 +19,6 @@ fun getUnwrappedType(d: Any?): Class<*> = when (d) {
    null -> Void::class.java
    is Collection<*> -> d.getElementType()
    else -> d.javaClass
-}
-
-fun collectionWrap(o: Any?): Collection<Any?> = o as? Collection<Any?> ?: listOf(o)
-
-fun collectionUnwrap(o: Any?): Any? = when (o) {
-   is Collection<*> -> {
-      when (o.size) {
-         0 -> null
-         1 -> o.first()
-         else -> o
-      }
-   }
-   else -> o
 }
 
 fun futureUnwrap(o: Any?): Any? = when (o) {

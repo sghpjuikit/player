@@ -25,6 +25,8 @@ class SwitchContainer: Container<SwitchContainerUi> {
       setChildrenParents()
    }
 
+   override fun getName() = "SwitchContainer"
+
    override fun getChildren(): Map<Int, Component> = children
 
    override fun addChild(index: Int?, c: Component?) {

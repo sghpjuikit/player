@@ -34,6 +34,7 @@ import sp.it.pl.main.get
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.set
+import sp.it.pl.main.uiName
 import sp.it.util.Util.pyth
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -788,13 +789,13 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             when {
                Collection::class.isSuperclassOf(c) -> {
                   val elementType = t.asIs<ParameterizedType>().actualTypeArguments[0].toRaw()
-                  val elementTypeName = APP.className[elementType].plural()
+                  val elementTypeName = elementType.uiName.plural()
                   "List of $elementTypeName"
                }
-               else -> APP.className[c]
+               else -> c.uiName
             }
          } else {
-            APP.className[type]
+            type.uiName
          }
       }
 

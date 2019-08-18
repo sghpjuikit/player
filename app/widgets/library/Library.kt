@@ -60,7 +60,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.chooseFile
 import sp.it.util.system.chooseFiles
-import sp.it.util.ui.item
+import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoclass
@@ -131,11 +131,11 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       }
 
       // add more menu items
-      table.menuAdd.apply {
+      table.menuAdd.dsl {
          item("Add files") { addFiles() }
          item("Add directory") { addDirectory() }
       }
-      table.menuRemove.apply {
+      table.menuRemove.dsl {
          item("Remove selected songs from library") { APP.db.removeSongs(table.selectedItems) }
          item("Remove all shown songs from library") { APP.db.removeSongs(table.items) }
          item("Remove all songs from library") { APP.db.removeSongs(table.items) }

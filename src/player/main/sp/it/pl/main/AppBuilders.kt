@@ -114,10 +114,9 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
    val dName = APP.instanceName.get(it)
-   val dKind = APP.className.get(it?.javaClass ?: Void::class.java)
-   val dInfo = APP.instanceInfo.get(it)
-      .entries.asSequence()
-      .map { "${it.key}: ${it.value}" }
+   val dKind = (if (it==null) Nothing::class else it::class).let { it.uiName + if (APP.developerMode.value) " (${it::class})" else "" }
+   val dInfo = APP.instanceInfo[it]
+      .map { "${it.name}: ${it.value}" }
       .sorted()
       .joinToString("\n")
       .takeUnless { it.isEmpty() }

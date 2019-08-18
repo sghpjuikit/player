@@ -5,10 +5,11 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.input.ContextMenuEvent
 import javafx.scene.input.MouseEvent
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
+import sp.it.pl.core.CoreMenus
 import sp.it.util.collections.setTo
 import sp.it.util.reactive.onEventDown
 
-/** Context menu displaying items for a value. These are generated using [contextMenuGenerator]. */
+/** Context menu displaying items for a value. These are generated using [CoreMenus][CoreMenus.menuItemBuilders]]. */
 open class ValueContextMenu<E: Any?>(clearItemsOnHidden: Boolean = true): ContextMenu() {
 
    init {
@@ -16,10 +17,8 @@ open class ValueContextMenu<E: Any?>(clearItemsOnHidden: Boolean = true): Contex
       if (clearItemsOnHidden) onEventDown(WINDOW_HIDDEN) { items.clear() }
    }
 
-   /** Sets items to those provided by [contextMenuGenerator] for the specified value. */
-   open fun setItemsFor(value: E) {
-      items setTo contextMenuGenerator[this, value]
-   }
+   /** Sets items to those provided by [CoreMenus][CoreMenus.menuItemBuilders] for the specified value. */
+   open fun setItemsFor(value: E) = items setTo CoreMenus.menuItemBuilders[value]
 
    override fun show(n: Node, screenX: Double, screenY: Double) = show(n.scene.window, screenX, screenY)
 

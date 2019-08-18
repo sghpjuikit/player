@@ -10,7 +10,6 @@ import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.ComponentDb;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.util.type.ClassName;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static sp.it.util.functional.Util.list;
@@ -60,11 +59,6 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
 
     public Container(ComponentDb state) {
         super(state);
-    }
-
-    @Override
-    public String getName() {
-        return ClassName.of(getClass());
     }
 
     @Override

@@ -16,6 +16,7 @@ import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import kotlin.math.ceil
+import kotlin.reflect.KClass
 
 private val logger = KotlinLogging.logger {}
 
@@ -54,6 +55,14 @@ fun Song.isPlaying(): Boolean = same(APP.audio.playingSong.value)
 
 /** @return true iff any songs contained in this group [Song.isPlaying] */
 fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value
+
+/** @return ui name of this class, using [App.className].[sp.it.util.type.ClassName.get] */
+val KClass<*>.uiName: String
+   get() = APP.className[this]
+
+/** @return ui name of this class, using [App.className].[sp.it.util.type.ClassName.get] */
+val Class<*>.uiName: String
+   get() = APP.className[this.kotlin]
 
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */
 fun App.run1AppReady(block: () -> Unit) {

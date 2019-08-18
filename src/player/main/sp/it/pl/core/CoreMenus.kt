@@ -1,17 +1,12 @@
 package sp.it.pl.core
 
 import javafx.scene.Node
-import javafx.scene.control.ContextMenu
-import javafx.scene.control.Menu
 import javafx.scene.input.DataFormat
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
-import sp.it.pl.gui.objects.contextmenu.ContextMenuGenerator
-import sp.it.pl.gui.objects.contextmenu.contextMenuGenerator
-import sp.it.pl.gui.objects.contextmenu.item
-import sp.it.pl.gui.objects.contextmenu.menu
+import sp.it.util.ui.ContextMenuGenerator
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.controller.io.InOutput
@@ -32,7 +27,7 @@ import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.writeImage
 import sp.it.pl.web.SearchUriBuilder
-import sp.it.util.async.runNew
+import sp.it.util.async.runIO
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
@@ -40,85 +35,83 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
+import sp.it.util.dev.Dsl
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.div
 import sp.it.util.functional.ifFalse
+import sp.it.util.functional.runTry
 import sp.it.util.system.browse
 import sp.it.util.system.copyToSysClipboard
 import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
-import sp.it.util.ui.item
-import sp.it.util.ui.items
-import sp.it.util.ui.separator
+import sp.it.util.ui.MenuBuilder
 import java.io.File
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 import javafx.stage.Window as WindowFX
 
 object CoreMenus: Core {
 
    /** Menu item builders registered per class. */
-   val menuItemBuilders = contextMenuGenerator
+   val menuItemBuilders = ContextMenuGenerator()
 
    override fun init() {
-      menuItemBuilders.apply {
+      menuItemBuilders {
          addNull {
             menu("Inspect in") {
-               item("Object viewer") { APP.ui.actionPane.orBuild.show(selected) }
+               item("Object viewer") { APP.ui.actionPane.orBuild.show(it) }
                separator()
-               widgetItems<Opener> { it.open(selected) }
+               widgetItems<Opener> { it.open(value) }
             }
          }
          add<Any> {
             menu("Inspect in") {
-               item("Object viewer") { APP.ui.actionPane.orBuild.show(selected) }
+               item("Object viewer") { APP.ui.actionPane.orBuild.show(it) }
                separator()
-               widgetItems<Opener> { it.open(selected) }
+               widgetItems<Opener> { it.open(value) }
             }
             if (APP.developerMode.value)
                menu("Public methods") {
-                  items(selected::class.java.methods.asSequence()
-                     .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
-                     .sortedBy { it.name }
-                     .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
+                  val v = value
+                  items(
+                     v::class.java.methods.asSequence()
+                        .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
+                        .sortedBy { it.name }
+                        .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
                      { it.name },
                      {
-                        try {
-                           it(selected)
-                        } catch (e: IllegalAccessException) {
-                           logger.error(e) { "Could not invoke method $it on object $selected" }
-                        } catch (e: InvocationTargetException) {
-                           logger.error(e) { "Could not invoke method $it on object $selected" }
+                        runTry {
+                           it(v)
+                        }.ifError { e ->
+                           logger.error(e) { "Could not invoke method=$it on object=$v" }
                         }
-                     })
+                     }
+                  )
                }
          }
          add<File> {
-            if (selected.isAudio()) {
-               item("Play") { PlaylistManager.use { it.playUri(selected.toURI()) } }
-               item("Enqueue") { PlaylistManager.use { it.addFile(selected) } }
+            if (value.isAudio()) {
+               item("Play") { PlaylistManager.use { p -> p.playUri(it.toURI()) } }
+               item("Enqueue") { PlaylistManager.use { p -> p.addFile(it) } }
             }
-            if (selected.isImage()) {
-               item("Fullscreen") {
-                  APP.actions.openImageFullscreen(selected)
-               }
+            if (value.isImage()) {
+               item("Fullscreen") { APP.actions.openImageFullscreen(it) }
             }
-            item("Open (in associated program)") { selected.open() }
-            item("Edit (in associated editor)") { selected.edit() }
-            item("Delete from disc") { selected.recycle() }
-            item("Copy as ...") {
+            item("Open (in associated program)") { it.open() }
+            item("Edit (in associated editor)") { it.edit() }
+            item("Delete from disc") { it.recycle() }
+            item("Copy as ...") { f ->
                object: ConfigurableBase<Any?>() {
                   @IsConfig(name = "File") val file by cv(APP.location).only(DIRECTORY)
                   @IsConfig(name = "Overwrite") val overwrite by cv(false)
                   @IsConfig(name = "On error") val onError by cv(OnErrorAction.SKIP)
                }.configure("Copy as...") {
-                  selected.copyRecursively(it.file.value/selected.name, it.overwrite.value) { _, e ->
+                  f.copyRecursively(it.file.value/f.name, it.overwrite.value) { _, e ->
                      logger.warn(e) { "File copy failed" }
                      it.onError.value
                   }.ifFalse {
-                     AppErrors.push("File $selected copy failed")
+                     AppErrors.push("File $f copy failed")
                   }
                }
             }
@@ -126,144 +119,144 @@ object CoreMenus: Core {
          add<Node> {
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w ->
-                  runNew {
-                     selected.toConfigurableFx()
-                  } ui {
-                     w.configure(it)
-                  }
+                  runIO { value.toConfigurableFx() } ui { w.configure(it) }
                }
             }
          }
          add<WindowFX> {
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w ->
-                  runNew {
-                     selected.toConfigurableFx()
-                  } ui {
-                     w.configure(it)
-                  }
+                  runIO { value.toConfigurableFx() } ui { w.configure(it) }
                }
             }
          }
          add<Configurable<*>> {
             menu("Inspect properties in") {
-               widgetItems<ConfiguringFeature> { it.configure(selected) }
+               widgetItems<ConfiguringFeature> { it.configure(value) }
             }
          }
          addMany<File> {
-            item("Copy (to clipboard)") { copyToSysClipboard(DataFormat.FILES, selected) }
-            item("Browse location") { APP.actions.browseMultipleFiles(selected.asSequence()) }
+            item("Copy (to clipboard)") { copyToSysClipboard(DataFormat.FILES, it) }
+            item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }
          }
          add<MetadataGroup> {
-            item("Play songs") { PlaylistManager.use { it.setNplay(selected.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
-            item("Enqueue songs") { PlaylistManager.use { it.addItems(selected.grouped) } }
-            item("Update songs from file") { APP.db.refreshSongsFromFile(selected.grouped) }
-            item("Remove songs from library") { APP.db.removeSongs(selected.grouped) }
+            item("Play songs") { PlaylistManager.use { p -> p.setNplay(it.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
+            item("Enqueue songs") { PlaylistManager.use { p -> p.addItems(it.grouped) } }
+            item("Update songs from file") { APP.db.refreshSongsFromFile(it.grouped) }
+            item("Remove songs from library") { APP.db.removeSongs(it.grouped) }
             menu("Show in") {
-               widgetItems<SongReader> { it.read(selected.grouped) }
+               widgetItems<SongReader> { it.read(value.grouped) }
             }
             menu("Edit tags in") {
-               widgetItems<SongWriter> { it.read(selected.grouped) }
+               widgetItems<SongWriter> { it.read(value.grouped) }
             }
-            item("Explore songs' location") { APP.actions.browseMultipleFiles(selected.grouped.asSequence().mapNotNull { it.getFile() }) }
+            item("Explore songs' location") { APP.actions.browseMultipleFiles(it.grouped.asSequence().mapNotNull { it.getFile() }) }
             menu("Explore songs' location in") {
-               widgetItems<FileExplorerFeature> { it.exploreCommonFileOf(selected.grouped.mapNotNull { it.getFile() }) }
+               widgetItems<FileExplorerFeature> {
+                  it.exploreCommonFileOf(value.grouped.mapNotNull { it.getFile() })
+               }
             }
-            if (selected.field==Metadata.Field.ALBUM)
+            if (value.field==Metadata.Field.ALBUM)
                menu("Search cover in") {
-                  items(APP.instances.getInstances<SearchUriBuilder>().asSequence(),
+                  items(
+                     APP.instances.getInstances<SearchUriBuilder>().asSequence(),
                      { "in ${it.name}" },
-                     { it(selected.getValueS("<none>")).browse() })
+                     { it(value.getValueS("<none>")).browse() }
+                  )
                }
          }
          add<PlaylistSongGroup> {
-            item("Play songs") { selected.playlist.playItem(selected.songs[0]) }
-            item("Remove songs") { selected.playlist.removeAll(selected.songs) }
+            item("Play songs") { it.playlist.playItem(it.songs[0]) }
+            item("Remove songs") { it.playlist.removeAll(it.songs) }
             menu("Show in") {
-               widgetItems<SongReader> { it.read(selected.songs) }
+               widgetItems<SongReader> {
+                  it.read(value.songs)
+               }
             }
             menu("Edit tags in") {
-               widgetItems<SongWriter> { it.read(selected.songs) }
+               widgetItems<SongWriter> {
+                  it.read(value.songs)
+               }
             }
-            item("Crop") { selected.playlist.retainAll(selected.songs) }
+            item("Crop") { it.playlist.retainAll(it.songs) }
             menu("Duplicate") {
-               item("as group") { selected.playlist.duplicateItemsAsGroup(selected.songs) }
-               item("individually") { selected.playlist.duplicateItemsByOne(selected.songs) }
+               item("as group") { it.playlist.duplicateItemsAsGroup(it.songs) }
+               item("individually") { it.playlist.duplicateItemsByOne(it.songs) }
             }
-            item("Explore directory") { APP.actions.browseMultipleFiles(selected.songs.asSequence().mapNotNull { it.getFile() }) }
+            item("Explore directory") { APP.actions.browseMultipleFiles(it.songs.asSequence().mapNotNull { it.getFile() }) }
             menu("Search album cover") {
-               items(APP.instances.getInstances<SearchUriBuilder>().asSequence(),
+               items(
+                  APP.instances.getInstances<SearchUriBuilder>().asSequence(),
                   { "in ${it.name}" },
-                  { APP.db.songToMeta(selected.songs[0]) { i -> it(i.getAlbumOrEmpty()).browse() } })
+                  { APP.db.songToMeta(value.songs[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
+               )
             }
          }
          add<Thumbnail.ContextMenuData> {
-            if (selected.image!=null)
+            if (value.image!=null)
                menu("Cover") {
                   item("Save image as ...") {
                      saveFile(
                         "Save image as...",
                         APP.location,
-                        selected.iFile?.name ?: "new_image",
-                        contextMenu.ownerWindow,
+                        it.iFile?.name ?: "new_image",
+                        parentPopup.ownerWindow,
                         imageWriteExtensionFilter()
-                     ).ifOk {
-                        writeImage(selected.image, it).ifErrorNotify { e ->
-                           AppError("Saving image $it failed", "Reason: ${e.stacktraceAsString}")
+                     ).ifOk { f ->
+                        writeImage(it.image, f).ifErrorNotify { e ->
+                           AppError("Saving image $f failed", "Reason: ${e.stacktraceAsString}")
                         }
                      }
                   }
-                  item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, selected.image) }
+                  item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, it.image) }
                }
-            if (!selected.fsDisabled && selected.iFile!=selected.representant)
-               menuFor(contextMenu, "Cover file", selected.fsImageFile)
-            if (selected.representant!=null)
-               menuFor(contextMenu, selected.representant)
+            if (!value.fsDisabled && value.iFile!=value.representant)
+               menuFor("Cover file", value.fsImageFile)
+            if (value.representant!=null)
+               menuFor(value.representant)
          }
          add<Input<*>> {
-            menuFor(contextMenu, "Value", selected.value)
+            menuFor("Value", value.value)
             menu("Link") {
-               item("All identical") { selected.bindAllIdentical() }
+               item("All identical") { it.bindAllIdentical() }
             }
             menu("Unlink") {
-               item("All inbound") { selected.unbindAll() }
+               item("All inbound") { it.unbindAll() }
             }
          }
          add<Output<*>> {
-            menuFor(contextMenu, "Value", selected.value)
+            menuFor("Value", value.value)
             menu("Unlink") {
-               item("All outbound") { selected.unbindAll() }
+               item("All outbound") { it.unbindAll() }
             }
          }
          add<InOutput<*>> {
-            menuFor(contextMenu, "Value", selected.o.value)
+            menuFor("Value", value.o.value)
             menu("Link") {
-               item("All identical") { selected.i.bindAllIdentical() }
+               item("All identical") { it.i.bindAllIdentical() }
             }
             menu("Unlink") {
-               item("All") { selected.i.unbindAll(); selected.o.unbindAll() }
-               item("All inbound") { selected.i.unbindAll() }
-               item("All outbound") { selected.o.unbindAll() }
+               item("All") { it.i.unbindAll(); it.o.unbindAll() }
+               item("All inbound") { it.i.unbindAll() }
+               item("All outbound") { it.o.unbindAll() }
             }
          }
       }
    }
 
-   private inline fun <reified W> Menu.widgetItems(noinline action: (W) -> Unit) = items(
+   @Dsl
+   private inline fun <reified W> MenuBuilder<*, *>.widgetItems(crossinline action: (W) -> Unit) = items(
       source = APP.widgetManager.factories.getFactoriesWith<W>(),
       text = { it.nameGui() },
       action = { it.use(NO_LAYOUT) { action(it) } }
    )
 
-   private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, value: Any?) = menuFor(
-      contextMenu = contextMenu,
-      menuName = APP.className.get(value?.javaClass ?: Void::class.java),
-      value = value
-   )
+   @Dsl
+   private fun MenuBuilder<*, *>.menuFor(value: Any?) = menuFor(APP.className.getOf(value), value)
 
-   private fun ContextMenuGenerator.Builder<*>.menuFor(contextMenu: ContextMenu, menuName: String, value: Any?) = menu(
-      text = menuName,
-      items = menuItemBuilders[contextMenu, value]
-   )
+   @Dsl
+   private fun MenuBuilder<*, *>.menuFor(menuName: String, value: Any?) = menu(menuName, null) {
+      menuItemBuilders[value].forEach { this add it }
+   }
 
 }

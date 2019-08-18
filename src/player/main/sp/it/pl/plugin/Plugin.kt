@@ -3,8 +3,8 @@ package sp.it.pl.plugin
 import sp.it.pl.main.APP
 import sp.it.pl.main.Settings
 import sp.it.util.Locatable
-import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigDelegator
+import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.dev.Idempotent
 import sp.it.util.file.div

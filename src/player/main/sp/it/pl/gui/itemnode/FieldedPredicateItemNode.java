@@ -21,9 +21,9 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
+import static sp.it.util.functional.Util.IS0;
 import static sp.it.util.functional.Util.ISNT;
 import static sp.it.util.functional.Util.ISNT0;
-import static sp.it.util.functional.Util.IS0;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
 

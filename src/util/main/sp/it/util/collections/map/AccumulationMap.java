@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
+import kotlin.jvm.functions.Function1;
 
 /**
  * Map accumulating multiple values of key into into single cumulative value. It accumulates elements E to accumulation
@@ -25,7 +25,7 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 	 * Extracts keys from elements. Determines the splitting parts of the caching  strategy, e.g. using a predicate
 	 * would split the original collection on two parts - elements that test true, and elements that test false.
 	 */
-	public Function<? super E,? extends K> keyMapper;
+	public Function1<? super E,? extends K> keyMapper;
 	/**
 	 * Builds cache bucket/accumulation container when there is none for the given key during accumulation.
 	 */
@@ -37,7 +37,7 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 	 */
 	public BiConsumer<? super E,? super C> cacheAccumulator;
 
-	public AccumulationMap(Function<? super E,? extends K> keyMapper, Supplier<? extends C> cacheFactory, BiConsumer<? super E,? super C> cacheAccumulator) {
+	public AccumulationMap(Function1<? super E,? extends K> keyMapper, Supplier<? extends C> cacheFactory, BiConsumer<? super E,? super C> cacheAccumulator) {
 		this.keyMapper = keyMapper;
 		this.cacheFactory = cacheFactory;
 		this.cacheAccumulator = cacheAccumulator;
@@ -54,7 +54,7 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 
 	/** Accumulates given element into this map. */
 	public void accumulate(E e) {
-		K k = keyMapper.apply(e);
+		K k = keyMapper.invoke(e);
 		C c = computeIfAbsent(k, k1 -> cacheFactory.get());
 		cacheAccumulator.accept(e, c);
 	}

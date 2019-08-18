@@ -27,7 +27,22 @@ fun <E: Any> Collection<E?>.getElementType(): Class<*> {
       .map { it::class as KClass<*> }.distinct()
       .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
       ?.java
-      ?: Void::class.java
+      ?: Void::class.javaObjectType
+}
+
+/** Wraps the specified object into a collection */
+fun collectionWrap(o: Any?): Collection<Any?> = o as? Collection<Any?> ?: listOf(o)
+
+/** Unwraps the specified object into ordinary object */
+fun collectionUnwrap(o: Any?): Any? = when (o) {
+   is Collection<*> -> {
+      when (o.size) {
+         0 -> null
+         1 -> o.first()
+         else -> o
+      }
+   }
+   else -> o
 }
 
 /** Removes all elements and adds all specified elements to this collection. Atomic for [ObservableList]. */

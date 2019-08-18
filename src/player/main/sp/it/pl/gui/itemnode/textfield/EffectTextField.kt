@@ -27,11 +27,12 @@ import sp.it.pl.gui.objects.picker.Picker
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
+import sp.it.pl.main.uiName
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.functional.net
-import sp.it.util.type.ClassName
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.ui.Util.layHorizontally
-import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
 
 class EffectTextField: ValueTextField<Effect> {
@@ -41,7 +42,7 @@ class EffectTextField: ValueTextField<Effect> {
    private val limitedToType: Class<out Effect>?
 
    /** Creates effect editor which can edit an effect or create effect of any specified types or any type if no specified. */
-   constructor(effectType: Class<out Effect>? = null): super({ ClassName.of(it.javaClass) }) {
+   constructor(effectType: Class<out Effect>? = null): super({ it::class.uiName }) {
       styleClass += STYLECLASS
       typeB = Icon().apply {
          styleclass("effect-config-field-type-button")
@@ -132,23 +133,13 @@ class EffectTextField: ValueTextField<Effect> {
          this.type = type?.java
       }
 
-      internal fun name(): String = if (type==null) "None" else ClassName.of(type)
+      fun name(): String = type?.uiName ?: "None"
 
-      internal fun instantiate(): Effect? = try {
+      fun instantiate(): Effect? = runTry {
          type?.getConstructor()?.newInstance()
-      } catch (e: InstantiationException) {
-         logger.error(e) { "Config could not instantiate effect" }
-         null
-      } catch (e: IllegalAccessException) {
-         logger.error(e) { "Config could not instantiate effect" }
-         null
-      } catch (e: NoSuchMethodException) {
-         logger.error(e) { "Config could not instantiate effect" }
-         null
-      } catch (e: InvocationTargetException) {
-         logger.error(e) { "Config could not instantiate effect" }
-         null
-      }
+      }.ifError {
+         logger.error(it) { "Config could not instantiate effect" }
+      }.orNull()
    }
 
 }

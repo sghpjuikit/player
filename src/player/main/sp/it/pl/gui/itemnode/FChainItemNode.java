@@ -4,11 +4,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javafx.collections.ListChangeListener;
 import sp.it.util.collections.list.PrefList;
+import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Functors.NullIn;
 import sp.it.util.functional.Functors.NullOut;
 import sp.it.util.functional.Functors.PF;
 import sp.it.util.functional.Functors.TypeAwareF;
-import sp.it.util.functional.Functors.F1;
 import static sp.it.util.functional.Util.IDENTITY;
 
 /**

@@ -437,8 +437,9 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 			getController().io.i.getInputs().forEach(i ->
 				properties.put("io" + i.name, toS(i.getSources(), o -> o.id.toString(), ":"))
 			);
+		} else {
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are
-		} else {}
+		}
 
 		// Prepare configs
 		if (isLoaded) {

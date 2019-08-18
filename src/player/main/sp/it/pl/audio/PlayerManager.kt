@@ -33,8 +33,8 @@ import sp.it.util.async.runNew
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cList

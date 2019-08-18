@@ -42,7 +42,7 @@ import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import sp.it.util.type.ClassName;
-import sp.it.util.type.InstanceInfo;
+import sp.it.util.type.InstanceDescription;
 import sp.it.util.type.InstanceName;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
@@ -60,8 +60,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.gui.pane.ActionPaneHelperKt.collectionUnwrap;
-import static sp.it.pl.gui.pane.ActionPaneHelperKt.collectionWrap;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.gui.pane.GroupApply.FOR_ALL;
@@ -69,14 +67,18 @@ import static sp.it.pl.gui.pane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.GroupApply.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppExtensionsKt.getUiName;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
+import static kotlin.streams.jdk8.StreamsKt.asStream;
 import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.NEW;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.async.future.Fut.fut;
+import static sp.it.util.collections.UtilKt.collectionUnwrap;
+import static sp.it.util.collections.UtilKt.collectionWrap;
 import static sp.it.util.collections.UtilKt.getElementType;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.functional.Util.by;
@@ -101,14 +103,14 @@ public class ActionPane extends OverlayPane<Object> {
 	public final V<Boolean> closeOnDone = new V<>(true);
 	public final ClassName className;
 	public final InstanceName instanceName;
-	public final InstanceInfo instanceInfo;
+	public final InstanceDescription instanceDescription;
 	private boolean showIcons = true;
 	private Supplier<? extends Node> insteadIcons = null;
 
-	public ActionPane(ClassName className, InstanceName instanceName, InstanceInfo instanceInfo) {
+	public ActionPane(ClassName className, InstanceName instanceName, InstanceDescription instanceDescription) {
 		this.className = className;
 		this.instanceName = instanceName;
-		this.instanceInfo = instanceInfo;
+		this.instanceDescription = instanceDescription;
 
 		getStyleClass().add(ROOT_STYLECLASS);
 
@@ -393,10 +395,8 @@ public class ActionPane extends OverlayPane<Object> {
 		Object d = computed ? data instanceof Fut ? ((Fut)data).getDoneOrNull() : data : null;
 
 		String dName = !computed ? "n/a" : instanceName.get(d);
-		String dKind = !computed ? "n/a" : className.get(type);
-		String dInfo = !computed ? "" : instanceInfo.get(d).entrySet().stream()
-											.map(e -> e.getKey() + ": " + e.getValue())
-											.sorted().collect(joining("\n"));
+		String dKind = !computed ? "n/a" : getUiName(type) + (APP.getDeveloperMode().getValue() ? " (" + type + ")" : "");
+		String dInfo = !computed ? "" : asStream(instanceDescription.get(d)).map(e -> e.getName() + ": " + e.getValue()).sorted().collect(joining("\n"));
 		return "Data: " + dName + "\n" +
 			   "Type: " + dKind +
 			   (dInfo.isEmpty() ? "" : "\n" + dInfo);
@@ -479,7 +479,7 @@ public class ActionPane extends OverlayPane<Object> {
 				// run action and obtain output
 				.useBy(NEW, action::invoke)
 				// 1) the actions may invoke some action on FX thread, so we give it some by waiting a bit
-				// 2) very short actions 'pretend' to run for a while
+				// 2) very short actions 'pretend'r a while
 				.thenWait(millis(150))
 				.useBy(FX, it -> actionProgress.setProgress(1))
 				.useBy(FX, it -> doneHide(action));

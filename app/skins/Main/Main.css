@@ -1942,6 +1942,7 @@ Text {
 .text-field-config,
 .text-field-config:hover,
 .text-field-config:focused,
+.text-field-config:focused-fix,
 .text-field-config:focused:hover,
 .combobox-field-config > .list-cell,
 .combobox-field-config:hover > .list-cell,
@@ -1961,6 +1962,7 @@ Text {
 .shortcut-config-field:hover,
 .shortcut-config-field:readonly:hover,
 .shortcut-config-field:focused,
+.shortcut-config-field:focused-fix,
 .shortcut-config-field:readonly:focused {
     -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-value-font-color;

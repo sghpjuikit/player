@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -111,6 +112,7 @@ abstract public class ConfigField<T> {
     public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
     public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
     public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
+    private static final PseudoClass PC_TEXT_FIELD_FOCUS_FIX = PseudoClass.getPseudoClass("focused-fix");   // workaround for https://github.com/javafxports/openjdk-jfx/issues/364
     private static final double defBLayoutSize = 15.0;
     private static final double configRootSpacing = 5.0;
     private static Insets paddingNoDefB = new Insets(0.0, defBLayoutSize+configRootSpacing, 0.0, 0.0);
@@ -410,6 +412,7 @@ abstract public class ConfigField<T> {
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
 
+            n.focusedProperty().addListener((o, ov, nv) -> n.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv));
             n.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             n.setPromptText(c.getGuiName());
             n.setText(toS(getConfigValue()));
@@ -644,6 +647,7 @@ abstract public class ConfigField<T> {
             globB.selected.addListener((o,ov,nv) -> apply(false));
 
             txtF = new TextField();
+            txtF.focusedProperty().addListener((o, ov, nv) -> txtF.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv));
             txtF.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             txtF.getStyleClass().add("shortcut-config-field");
             txtF.setPromptText(computePromptText());

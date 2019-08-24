@@ -42,6 +42,7 @@ public class JavaLegacy {
 	 */
 	@Experimental(reason = "Questionable API with usage conditioned by memory leaks and using reflection")
 	public static void destroyImage(Image image) {
+		if (image==null) return;
 		var i = sp.it.util.type.Util.invokeMethodP0(image, "getPlatformImage");
 		if (i!=null) sp.it.util.type.Util.setField(i, "pixelBuffer", null);
 		if (i!=null) Util.setField(i, "pixelaccessor", null);

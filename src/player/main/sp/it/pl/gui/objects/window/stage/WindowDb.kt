@@ -43,7 +43,7 @@ class WindowDb(
          w.fullscreen.value,
          w.alwaysOnTop.value,
          w.maximized.value,
-         w.layout.toDb()
+         w.layout?.toDb()
       )
    }
 }

@@ -70,7 +70,6 @@ import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.LEFT;
 import static javafx.scene.input.KeyCode.RIGHT;
-import static javafx.scene.input.KeyCode.TAB;
 import static javafx.scene.input.KeyCode.UP;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
@@ -121,6 +120,8 @@ public class Window extends WindowBase {
 	private static final Logger logger = LoggerFactory.getLogger(Window.class);
 	/** Styleclass for window. Applied on {@link #root}. */
 	public static final String scWindow = "window";
+	public static final String keyWindowAppWindow = "window";
+	public static final String keyWindowLayout = "layout";
 	/** Pseudoclass active when this window is focused. Applied on {@link #scWindow}. */
 	public static final PseudoClass pcFocused = pseudoclass("focused");
 	/** Pseudoclass active when this window is resized. Applied on {@link #scWindow}. */
@@ -144,7 +145,7 @@ public class Window extends WindowBase {
 
 	Window(Stage owner, StageStyle style) {
 		super(owner, style);
-		s.getProperties().put("window", this);
+		s.getProperties().put(keyWindowAppWindow, this);
 	}
 
 	void initialize() {
@@ -256,21 +257,6 @@ public class Window extends WindowBase {
 		root.setOnScroll(e -> {
 			if (e.getDeltaY()>0) APP.audio.volumeInc();
 			else if (e.getDeltaY()<0) APP.audio.volumeDec();
-		});
-
-		// report focus changes
-		getStage().getScene().focusOwnerProperty().addListener((o,ov,nv) -> APP.ui.getFocusChangedHandler().invoke(nv));
-		root.addEventFilter(MOUSE_PRESSED, e -> {
-			if (e.getButton()==PRIMARY)
-				APP.ui.focusClickedWidget(e);
-		});
-		root.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-			if (e.getCode()==TAB && e.isShortcutDown()) {
-				e.consume();
-
-				if (e.isShiftDown()) APP.widgetManager.widgets.selectPreviousWidget(layout);
-				else APP.widgetManager.widgets.selectNextWidget(layout);
-			}
 		});
 
 		List<Maximized> maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
@@ -406,6 +392,7 @@ public class Window extends WindowBase {
 		failIf(layout!=null, () -> "Layout already initialized");
 
 		layout = l;
+		s.getProperties().put(Window.keyWindowLayout, l);
 		content.getChildren().clear();
 		layout.load(content);
 		topContainer = (SwitchContainer) l.getChild();

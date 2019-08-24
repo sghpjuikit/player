@@ -6,7 +6,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import sp.it.pl.gui.objects.window.stage.Window;
 import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.LoadType;
@@ -111,20 +110,18 @@ public abstract class Component {
 				  : null;
 	}
 
-	/** Window containing this component. Null if not loaded or not in any window. */
-	public Optional<Window> getWindow() {
-		Window w = null;
+	/** @return window containing this component or null if not loaded or not in any window. */
+	public Optional<javafx.stage.Window> getWindow() {
+		javafx.stage.Window w = null;
 		if (this instanceof Container) {
 			Node root = ((Container)this).getRoot();
 			Scene scene = root==null ? null : root.getScene();
-			javafx.stage.Window stage = scene==null ? null : scene.getWindow();
-			w = stage==null ? null : (Window)stage.getProperties().get("window");
+			w = scene==null ? null : scene.getWindow();
 		}
 		if (this instanceof Widget) {
 			Node root = ((Widget)this).getGraphics();
 			Scene scene = root==null ? null : root.getScene();
-			javafx.stage.Window stage = scene==null ? null : scene.getWindow();
-			w = stage==null ? null : (Window)stage.getProperties().get("window");
+			w = scene==null ? null : scene.getWindow();
 		}
 		return Optional.ofNullable(w);
 	}

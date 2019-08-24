@@ -217,7 +217,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
       private fun getUnusedPlaylist(id: UUID): Playlist {
          val danglingPlaylists = ArrayList(PlaylistManager.playlists)
-         APP.widgetManager.widgets.findAll(OPEN.widgetFinder).asSequence()
+         APP.widgetManager.widgets.findAll(OPEN.widgetFinder)
             .filter { it.info.hasFeature(PlaylistFeature::class.java) }
             .mapNotNull { (it.controller as PlaylistFeature?)?.playlist }
             .forEach { danglingPlaylists.removeIf { playlist -> playlist.id==it.id } }

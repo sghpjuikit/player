@@ -33,7 +33,6 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.HorizontalDock
-import sp.it.pl.layout.widget.widgetThisIsRootOf
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Settings
@@ -45,7 +44,6 @@ import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.collections.setTo
-import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.IsConfig
@@ -60,6 +58,7 @@ import sp.it.util.file.div
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.P
 import sp.it.util.math.max
@@ -155,17 +154,18 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
 
    init {
       WindowFX.getWindows().onItemAdded { w ->
-         if (w.properties.containsKey("window") && w.properties["window"]!==dockWindow) {
-            windows += w.properties["window"] as Window
+         w.asAppWindow().ifNotNull {
+            if (it!==dockWindow) {
+               windows += it
+            }
          }
       }
       WindowFX.getWindows().onItemRemoved { w ->
-         if (w.properties.containsKey("window")) {
-            val window = w.properties["window"] as Window
-            if (window.isMain.value && !dockIsTogglingWindows) {
+         w.asAppWindow().ifNotNull {
+            if (it.isMain.value && !dockIsTogglingWindows) {
                APP.close()
             } else {
-               windows -= window
+               windows -= it
             }
          }
       }
@@ -261,9 +261,14 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
             setSize(Screen.getPrimary().bounds.width, 40.0)
             updateSizeAndPos()
          }
-         val contentWidgetRoot = stackPane()
          val content = borderPane {
-            center = contentWidgetRoot
+            center = stackPane {
+               lay += anchorPane {
+                  Layout.openStandalone(this).apply {
+                     mw.s.properties[Window.keyWindowLayout] = this
+                  }
+               }
+            }
             right = hBox(8.0) {
                alignment = CENTER_RIGHT
                isFillHeight = false
@@ -277,13 +282,11 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
          }
          mw.setContent(content)
          mw.onClose += dockWidget sync {
-            contentWidgetRoot.children.firstOrNull()?.widgetThisIsRootOf()?.close()
-            contentWidgetRoot.children setToOne APP.widgetManager.widgets.find(it, NEW(CUSTOM)).orNull()
-               ?.apply { APP.widgetManager.widgets.initAsStandalone(this) }
-               ?.load()
+            mw.s.asLayout()?.child?.close()
+            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it, NEW(CUSTOM)).orNull()
          }
          mw.onClose += {
-            contentWidgetRoot.children.firstOrNull()?.widgetThisIsRootOf()?.close()
+            mw.s.asLayout()?.child?.close()
          }
 
          // show and apply state
@@ -447,9 +450,12 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       val p = PopOver(l.root).apply {
          title.value = c.info.nameGui()
          isAutoFix = false
+         properties[Window.keyWindowLayout] = l
+
+         onEventUp(WINDOW_HIDING) { properties.remove(Window.keyWindowLayout) }
+         onEventUp(WINDOW_HIDING) { l.close() }
       }
 
-      p.onEventUp(WINDOW_HIDING) { l.close() }
       l.child = c
       c.focus()
 

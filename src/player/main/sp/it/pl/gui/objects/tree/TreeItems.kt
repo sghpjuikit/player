@@ -34,12 +34,13 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.window.stage.Window
-import sp.it.pl.gui.objects.window.stage.asWindowOrNull
+import sp.it.pl.gui.objects.window.stage.asAppWindow
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.OPEN_LAYOUT
 import sp.it.pl.layout.widget.WidgetUse.OPEN_STANDALONE
@@ -84,7 +85,6 @@ import java.io.File
 import java.nio.file.Path
 import java.util.ArrayList
 import java.util.Stack
-import kotlin.streams.asSequence
 import javafx.stage.Window as WindowFX
 
 private val logger = KotlinLogging.logger { }
@@ -106,8 +106,8 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is TreeItem<*> -> o
    is Widget -> WidgetItem(o)
    is WidgetFactory<*> -> SimpleTreeItem(o)
-   is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(WidgetSource.OPEN).asSequence().filter { it.info.group()==o }.sortedBy { it.name } })
-   is WidgetSource -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(o).asSequence().sortedBy { it.name } })
+   is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(OPEN).filter { it.info.group()==o }.sortedBy { it.name } })
+   is WidgetSource -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(o).sortedBy { it.name } })
    is Feature -> STreeItem<Any>(o, { APP.widgetManager.factories.getFactories().filter { it.hasFeature(o) }.sortedBy { it.nameGui() } })
    is Container<*> -> LayoutItem(o)
    is File -> FileTreeItem(o)
@@ -115,7 +115,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Image -> tree("Image", tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
    is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant.orNone()), tree("Image", o.image.orNone()), tree("Image file", o.iFile.orNone()))
    is Scene -> tree("Scene", o.root)
-   is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asWindowOrNull()?.layout).filterNotNull() })
+   is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asAppWindow()?.layout).filterNotNull() })
    is Window -> tree(o.stage)
    is PopOver<*> -> STreeItem(o, { seqOf(o.scene.root) })
    is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
@@ -148,7 +148,7 @@ fun treeApp(): TreeItem<Any> {
       ),
       tree("UI",
          tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
-         tree("Layouts", { APP.widgetManager.layouts.findAllActive().sortedBy { it.name } })
+         tree("Layouts", { APP.widgetManager.layouts.findAll(OPEN).sortedBy { it.name } })
       ),
       tree("Location", APP.location),
       tree("File system", File.listRoots().map { FileTreeItem(it) }),
@@ -249,7 +249,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o is PopOver<*> -> "Popup " + PopOver.active_popups.indexOf(o)
       o is PopupWindow -> "Popup (generic)"
       o is WindowFX -> {
-         val w = o.asWindowOrNull()
+         val w = o.asAppWindow()
          if (w==null) {
             "Window (generic)"
          } else {

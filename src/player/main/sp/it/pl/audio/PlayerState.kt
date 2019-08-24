@@ -15,7 +15,6 @@ import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.getOrSupply
 import java.util.ArrayList
 import java.util.UUID
-import kotlin.streams.asSequence
 
 /** State of player. */
 class PlayerState {
@@ -36,7 +35,7 @@ class PlayerState {
    fun serialize() {
       playlistId = PlaylistManager.active
 
-      val activePlaylists = APP.widgetManager.widgets.findAll(OPEN).asSequence()
+      val activePlaylists = APP.widgetManager.widgets.findAll(OPEN)
          .mapNotNull { (it.controller as? PlaylistFeature)?.playlist?.id }
          .toSet()
       playlists setTo PlaylistManager.playlists

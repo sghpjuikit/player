@@ -10,10 +10,15 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Skin
 import javafx.scene.control.Tooltip
+import javafx.scene.input.KeyCode.TAB
+import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
 import mu.KLogging
 import sp.it.pl.gui.objects.rating.Rating
+import sp.it.pl.gui.objects.window.stage.asLayout
 import sp.it.pl.gui.pane.ErrorPane
 import sp.it.pl.gui.pane.InfoPane
 import sp.it.pl.gui.pane.OverlayPane
@@ -46,14 +51,17 @@ import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
-import sp.it.util.functional.net
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullIntoWhile
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.setFontAsStyle
 import sp.it.util.units.millis
@@ -61,7 +69,6 @@ import java.io.File
 import java.net.MalformedURLException
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
-import kotlin.streams.asSequence
 import javafx.stage.Window as WindowFX
 import sp.it.pl.gui.pane.ActionPane as PaneA
 import sp.it.pl.gui.pane.ShortcutPane as PaneS
@@ -95,21 +102,21 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
 
    val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
    val focusChangedHandler: (Node?) -> Unit = { n ->
-      val window = n?.scene
-      if (n!=null)
-         APP.widgetManager.widgets.findAll(OPEN)
-            .filter { it.uiTemp?.root?.isAnyParentOf(n) ?: false }
-            .findAny()
-            .ifPresent { fw ->
-               APP.widgetManager.widgets.findAll(OPEN)
-                  .filter { w -> w!==fw && w.window.orNull()?.stage?.scene?.net { it===window } ?: false }
-                  .forEach { w -> w.focused.value = false }
-               fw.focused.value = true
-            }
+      val window = n?.scene?.window
+      if (n!=null && window!=null) {
+         val widgets = APP.widgetManager.widgets.findAll(OPEN).filter { it.window.orNull()===window }.toList()
+         widgets.find {
+            it.uiTemp?.root?.isAnyParentOf(n) ?: false
+         }.ifNotNull { fw ->
+            widgets.forEach { w -> if (w!==fw) w.focused.value = false }
+            fw.focused.value = true
+         }
+      }
    }
 
    init {
       initSkins()
+      observeWindowsAndSyncWidgetFocus()
    }
 
    /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
@@ -135,7 +142,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
    @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
    val snapDistance by cv(12.0)
    @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
-   val lockedLayout by cv(false) { SimpleBooleanProperty(it) }.attach { APP.actionStream("Layout lock"); println("lock") }
+   val lockedLayout by cv(false) { SimpleBooleanProperty(it) }.attach { APP.actionStream("Layout lock") }
 
    @IsConfig(name = "Table orientation", group = SU.Table.name, info = "Orientation of the table.")
    val tableOrient by cv(NodeOrientation.INHERIT)
@@ -184,11 +191,11 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
       set(v) {
          if (layoutMode.get()==v) return
          if (v) {
-            APP.widgetManager.layouts.findAllActive().forEach { it.show() }
+            APP.widgetManager.layouts.findAll(OPEN).forEach { it.show() }
             layoutMode.set(v)
          } else {
             layoutMode.set(v)
-            APP.widgetManager.layouts.findAllActive().forEach { it.hide() }
+            APP.widgetManager.layouts.findAll(OPEN).forEach { it.hide() }
             setZoomMode(false)
          }
          if (v) APP.actionStream(Actions.LAYOUT_MODE)
@@ -197,7 +204,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
    fun focusClickedWidget(e: MouseEvent) {
       val n = e.target as? Node
       if (n!=null)
-         APP.widgetManager.widgets.findAll(OPEN).asSequence()
+         APP.widgetManager.widgets.findAll(OPEN)
             .find { !it.focused.value && it.isLoaded && it.load().isAnyParentOf(n) }
             ?.focus()
    }
@@ -208,7 +215,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
 
    /** Loads/refreshes active layout.  */
    @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
-   fun loadLayout() = APP.widgetManager.layouts.findAllActive().forEach { it.load() }
+   fun loadLayout() = APP.widgetManager.layouts.findAll(OPEN).forEach { it.load() }
 
    /** Toggles layout controlling mode.  */
    @IsAction(name = "Reload skin", desc = "Reloads skin.", keys = "F7")
@@ -339,7 +346,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
    private fun initSkins() {
       skinsImpl setTo findSkins()
       monitorSkinFiles()
-      observeWindowsAndApplySkin()
+      observeWindowsAndSyncSkin()
    }
 
    private fun monitorSkinFiles() {
@@ -355,7 +362,37 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
       }
    }
 
-   private fun observeWindowsAndApplySkin() {
+   private fun observeWindowsAndSyncWidgetFocus() {
+      WindowFX.getWindows().onItemSyncWhile { window ->
+         window.sceneProperty().syncNonNullWhile { scene ->
+            val s1 = scene.focusOwnerProperty() attach { nv -> focusChangedHandler(nv) }
+            val s2 = scene.rootProperty() syncNonNullWhile { root ->
+               val ss1 = root.onEventUp(MOUSE_PRESSED) { e ->
+                  if (e.button==MouseButton.PRIMARY)
+                     APP.ui.focusClickedWidget(e)
+               }
+               val ss2 = root.onEventUp(KEY_PRESSED) { e ->
+                  if (e.code==TAB && e.isShortcutDown) {
+                     e.consume()
+
+                     val layout = window.asLayout()
+                     if (layout!=null) {
+                        if (e.isShiftDown)
+                           APP.widgetManager.widgets.selectPreviousWidget(layout)
+                        else
+                           APP.widgetManager.widgets.selectNextWidget(layout)
+                     }
+                  }
+               }
+               ss1 + ss2
+            }
+            s1 + s2
+         }
+      }
+      Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
+   }
+
+   private fun observeWindowsAndSyncSkin() {
       WindowFX.getWindows().onItemSyncWhile {
          it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { root ->
             val s2 = skin sync { root.applySkinGui(it) }

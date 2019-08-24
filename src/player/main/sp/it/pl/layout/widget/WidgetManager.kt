@@ -11,6 +11,7 @@ import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
 import sp.it.pl.gui.objects.window.stage.Window
+import sp.it.pl.gui.objects.window.stage.asLayout
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.Layout
@@ -34,7 +35,6 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
-import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.IsConfig
@@ -90,13 +90,11 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.WatchEvent.Kind
 import java.util.Optional
 import java.util.concurrent.TimeUnit
-import java.util.stream.Stream
 import javax.tools.ToolProvider
 import kotlin.math.ceil
 import kotlin.streams.asSequence
-import kotlin.streams.asStream
-import kotlin.streams.toList
 import kotlin.text.Charsets.UTF_8
+import javafx.stage.Window as WindowFX
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -450,20 +448,8 @@ class WidgetManager {
       @IsConfig(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
       val separateWidgets by cv(true)
 
-      /** Widgets that are not part of layout. */
-      private val standaloneWidgets: MutableList<Widget> = ArrayList()
-
-      fun initAsStandalone(widget: Widget) {
-         standaloneWidgets += widget
-         widget.onClose += { standaloneWidgets -= widget }
-      }
-
-      fun findAll(source: WidgetSource): Stream<Widget> = when (source) {
-         NONE -> Stream.empty()
-         OPEN_LAYOUT -> layouts.findAllActive().asStream().flatMap { it.allWidgets }
-         OPEN_STANDALONE -> standaloneWidgets.stream()
-         OPEN -> Stream.concat(findAll(OPEN_STANDALONE), findAll(OPEN_LAYOUT))
-      }
+      /** @return widgets based on search criteria */
+      fun findAll(source: WidgetSource): Sequence<Widget> = layouts.findAll(source).flatMap { it.allWidgets.asSequence() }
 
       /**
        * Returns widget fulfilling condition. Any widget can be returned (if it fulfills the condition), but:
@@ -613,30 +599,17 @@ class WidgetManager {
 
    inner class Layouts {
 
-      private val layoutsAvailable = ArrayList<String>()
-
       /** @return layout of focused window or null if no window focused */
       fun findActive(): Layout? = APP.windowManager.getFocused().orNull()?.layout
 
-      /** @return all Layouts in the application */
-      fun findAllActive(): Sequence<Layout> = APP.windowManager.windows.asSequence().mapNotNull { it.layout }
-
-      /** @return all names of all layouts available to the application, including serialized layouts in files. */
-      fun getAllNames(): Sequence<String> {
-         findPersisted()
-         return (findAllActive().map { it.name } + layoutsAvailable.asSequence()).distinct()
+      /** @return layouts based on search criteria */
+      fun findAll(source: WidgetSource): Sequence<Layout> = when (source) {
+         NONE -> sequenceOf()
+         OPEN_LAYOUT -> APP.windowManager.windows.asSequence().mapNotNull { it.layout }.filter { !it.isStandalone }
+         OPEN_STANDALONE -> WindowFX.getWindows().asSequence().mapNotNull { it.asLayout() }.filter { it.isStandalone }
+         OPEN -> findAll(OPEN_STANDALONE) + findAll(OPEN_LAYOUT)
       }
 
-      /** @return layouts found in layout folder and sets them as available layouts */
-      fun findPersisted() {
-         val dir = APP.location.user.layouts
-         if (!isValidatedDirectory(dir)) {
-            logger.error { "Layout directory=$dir not accessible" }
-            return
-         }
-
-         layoutsAvailable setTo dir.children().filter { it hasExtension "l" }.map { it.nameWithoutExtension }
-      }
    }
 
    /** Reified reference to a factory of widget with a feature, enabling convenient use of its feature */
@@ -752,10 +725,7 @@ enum class WidgetSource {
 /** Strategy for opening a new widget in ui. */
 @Suppress("ClassName")
 sealed class WidgetLoader: (Widget) -> Unit {
-   /**
-    * Does not load widget and leaves it upon the consumer to load and manage it appropriately.
-    * Note that widget loaded as standalone should first invoke [WidgetManager.Widgets.initAsStandalone].
-    */
+   /** Does not load widget and leaves it upon the consumer to load and manage it appropriately. */
    object CUSTOM: WidgetLoader() {
       override fun invoke(w: Widget) {}
    }
@@ -769,8 +739,6 @@ sealed class WidgetLoader: (Widget) -> Unit {
    /** Loads the widget as a standalone widget in a simplified layout of a new always on top fullscreen window. */
    object WINDOW_FULLSCREEN {
       operator fun invoke(screen: Screen): (Widget) -> Unit = { w ->
-         APP.widgetManager.widgets.initAsStandalone(w)
-
          val root = anchorPane()
          val window = Util.createFMNTStage(screen, false).apply {
             scene = Scene(root)
@@ -796,7 +764,6 @@ sealed class WidgetLoader: (Widget) -> Unit {
    /** Loads the widget as a standalone widget in a simplified layout of a new popup. */
    object POPUP: WidgetLoader() {
       override fun invoke(w: Widget) {
-         APP.widgetManager.widgets.initAsStandalone(w)
          APP.windowManager.showFloating(w)
       }
    }

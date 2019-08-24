@@ -164,7 +164,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
                     var wa = new WidgetUi(container, i, (Widget) c);
                     Icon lb = new Icon(VIEW_DASHBOARD, 12, layoutButtonTooltipText, () -> autoLayout(w));
-                    wa.getControls().header_buttons.getChildren().add(1,lb);
+                    wa.getControls().getIcons().getChildren().add(1,lb);
 
                     return wa;
                 }

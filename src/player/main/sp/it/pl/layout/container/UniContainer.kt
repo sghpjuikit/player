@@ -17,7 +17,7 @@ import sp.it.util.ui.setAnchors
 open class UniContainer: Container<ComponentUi> {
 
    protected var _child: Component? = null
-   protected var isStandalone = false
+   var isStandalone = false
 
    /** Equal to [getChildren]`.get(1)` and [addChild]`(1, newChild)`. */
    var child: Component?
@@ -40,7 +40,7 @@ open class UniContainer: Container<ComponentUi> {
          is Widget -> {
             ui = ui.takeIf { it is WidgetUi && it.widget===_child } ?: WidgetUi(this, 1, c).disposeUi().apply {
                if (isStandalone)
-                  setStandaloneStyle()
+                  setStandaloneStyle() // TODO: check parents recursively and apply to children recursively
             }
             ui.root
          }

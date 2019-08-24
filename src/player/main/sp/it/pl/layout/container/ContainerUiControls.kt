@@ -1,14 +1,11 @@
 package sp.it.pl.layout.container
 
-import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.input.DragEvent.DRAG_DONE
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.layout.AnchorPane
-import javafx.scene.layout.TilePane
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.layout.widget.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.main.APP
@@ -33,10 +30,8 @@ import sp.it.util.ui.removeFromParent
 import sp.it.util.units.millis
 
 class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControlsBase() {
-   val root = AnchorPane()
-   val icons = TilePane(4.0, 4.0)
    val disposer = Disposer()
-   val a = anim(250.millis) {
+   val anim = anim(250.millis) {
       root.opacity = it
       root.isMouseTransparent = it==0.0
       area.root.children.forEach { c ->
@@ -83,9 +78,9 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
          }
       }
 
-      a.applyAt(0.0)
-      disposer += { a.stop() }
-      disposer += { a.applyAt(0.0) }
+      anim.applyAt(0.0)
+      disposer += { anim.stop() }
+      disposer += { anim.applyAt(0.0) }
 
       area.root.layFullArea += root
       disposer += { root.removeFromParent() }
@@ -136,7 +131,4 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
 
    private fun Icon?.remExtraIcon() = this?.let(icons.children::remove)
 
-   companion object {
-      private fun icon(glyph: GlyphIcons?, tooltip: String) = Icon(glyph, -1.0, tooltip).styleclass("header-icon")
-   }
 }

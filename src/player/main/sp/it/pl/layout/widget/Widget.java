@@ -235,8 +235,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 				}
 			}
 		}
-
-		root.getProperties().put("widget", this);
 		return root;
 	}
 
@@ -529,7 +527,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public static void deserializeWidgetIO() {
 		Set<Input<?>> is = new HashSet<>();
 		Map<Output.Id,Output<?>> os = new HashMap<>();
-		APP.widgetManager.widgets.findAll(OPEN)
+
+		kotlin.streams.jdk8.StreamsKt.asStream(APP.widgetManager.widgets.findAll(OPEN))
 			.filter(w -> w.controller!=null)
 			.forEach(w -> {
 				w.controller.io.i.getInputs().forEach(is::add);

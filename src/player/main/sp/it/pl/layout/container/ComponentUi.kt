@@ -13,6 +13,7 @@ import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.main.AppAnimator
 import sp.it.util.access.ref.LazyR
 import sp.it.util.async.runLater
+import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
@@ -49,7 +50,7 @@ abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
       c.parent.addChild(c.indexInParent(), null)
       WidgetLoader.WINDOW(c)
 
-      val w = c.window.orNull()!!.stage
+      val w = c.window.orNull() ?: fail { "Can not detach invisible component" }
       w.showingProperty().sync1If({ it }) {
          runLater {
             val sizeNew = c.size()
@@ -121,9 +122,9 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
       isContainerMode = b
       controls.get().root.toFront()
-      controls.get().a.playFromDir(b)
+      controls.get().anim.playFromDir(b)
       if (!b) {
-          controls.get().a.onFinished = EventHandler {
+          controls.get().anim.onFinished = EventHandler {
               controls.get().disposer.invoke()
               controls = LazyR { buildControls() }
           }

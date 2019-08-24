@@ -23,6 +23,7 @@ import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.util.access.Values
+import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.EventReducer.toLast
@@ -435,8 +436,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Seeks player to position specified by percent value 0-1.  */
    fun seek(at: Double) {
       if (at<0 || at>1) throw IllegalArgumentException("Seek value must be 0-1")
-      seek(state.playback.duration.get().multiply(at))
-      if (state.playback.status.get()==PAUSED) player.pauseResume()
+      seek(state.playback.duration.value.multiply(at))
+      if (state.playback.status.value==PAUSED) player.pauseResume()
    }
 
    /** Seek forward by specified duration  */
@@ -455,13 +456,13 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Seek forward by small duration unit.  */
    @IsAction(name = "Seek forward", desc = "Seek playback forward by small duration unit.", keys = "ALT+D", repeat = true, global = true)
    fun seekForwardAbsolute() {
-      seek(state.playback.currentTime.get().add(seekUnitT))
+      seek(state.playback.currentTime.value.add(seekUnitT))
    }
 
    /** Seek forward by small fraction unit.  */
    @IsAction(name = "Seek forward (%)", desc = "Seek playback forward by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
    fun seekForwardRelative() {
-      val d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() + seekUnitP
+      val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() + seekUnitP
       seek(d min 1.0)
    }
 
@@ -475,13 +476,13 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Seek backward by small duration unit.  */
    @IsAction(name = "Seek backward", desc = "Seek playback backward by small duration unit.", keys = "ALT+A", repeat = true, global = true)
    fun seekBackwardAbsolute() {
-      seek(state.playback.currentTime.get().subtract(seekUnitT))
+      seek(state.playback.currentTime.value.subtract(seekUnitT))
    }
 
    /** Seek backward by small fraction unit.  */
    @IsAction(name = "Seek backward (%)", desc = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
    fun seekBackwardRelative() {
-      val d = state.playback.currentTime.get().toMillis()/state.playback.duration.get().toMillis() - seekUnitP
+      val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() - seekUnitP
       seek(d max 0.0)
    }
 
@@ -504,7 +505,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    fun getLoopMode(): PlayingSequence.LoopMode {
-      return state.playback.loopMode.get()
+      return state.playback.loopMode.value
    }
 
    @IsAction(name = "Toggle looping", desc = "Switch between playlist looping mode.", keys = "ALT+L")
@@ -528,7 +529,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Switches between on/off state for mute property.  */
    @IsAction(name = "Toggle mute", desc = "Switch mute on/off.", keys = "ALT+M")
    fun toggleMute() {
-      state.playback.mute.set(!state.playback.mute.get())
+      state.playback.mute.toggle()
    }
 
    /**

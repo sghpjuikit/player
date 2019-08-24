@@ -41,7 +41,7 @@ class WidgetUi: ComponentUiBase<Widget> {
    override val root = AnchorPane()
    @JvmField val contentRoot = AnchorPane()
    val controls: WidgetUiControls
-   private val content = AnchorPane()
+   val content = AnchorPane()
    private val disposer = Disposer()
    private var manualLoadPane: Placeholder? = null
 
@@ -132,8 +132,6 @@ class WidgetUi: ComponentUiBase<Widget> {
    fun isUnderLock(): Boolean = widget.lockedUnder.value
 
    fun toggleLocked() = widget.locked.toggle()
-
-   fun getContent() = content
 
    override fun show() = controls.show()
 

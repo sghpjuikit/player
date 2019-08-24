@@ -34,6 +34,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSuperclassOf
 import java.io.File
@@ -137,6 +138,7 @@ private class FileCF(c: Config<File>): ConfigField<File>(c) {
       val relativeTo = c.findConstraint<FileRelative>()?.to
 
       editor = FileTextField(fileType, relativeTo)
+      editor.focusedProperty() sync { editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !it) }
       editor.styleClass += STYLECLASS_TEXT_CONFIG_FIELD
       editor.onEventDown(KEY_PRESSED, ENTER) { it.consume() }
       editor.value = config.value

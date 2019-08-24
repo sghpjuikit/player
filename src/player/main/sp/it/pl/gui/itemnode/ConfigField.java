@@ -82,6 +82,7 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.syncBiFrom;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncFrom;
@@ -112,7 +113,7 @@ abstract public class ConfigField<T> {
     public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
     public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
     public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
-    private static final PseudoClass PC_TEXT_FIELD_FOCUS_FIX = PseudoClass.getPseudoClass("focused-fix");   // workaround for https://github.com/javafxports/openjdk-jfx/issues/364
+    public static final PseudoClass PC_TEXT_FIELD_FOCUS_FIX = PseudoClass.getPseudoClass("focused-fix");   // workaround for https://github.com/javafxports/openjdk-jfx/issues/364
     private static final double defBLayoutSize = 15.0;
     private static final double configRootSpacing = 5.0;
     private static Insets paddingNoDefB = new Insets(0.0, defBLayoutSize+configRootSpacing, 0.0, 0.0);
@@ -376,7 +377,7 @@ abstract public class ConfigField<T> {
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
     private static class GeneralCF<T> extends ConfigField<T> {
-        private final DecoratedTextField n = new DecoratedTextField();
+        private final DecoratedTextField editor = new DecoratedTextField();
         private final boolean isObservable;
         private final StackPane okB = new StackPane();
         private final LazyR<Icon> okI = new LazyR<>(() -> {
@@ -412,17 +413,17 @@ abstract public class ConfigField<T> {
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
 
-            n.focusedProperty().addListener((o, ov, nv) -> n.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv));
-            n.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
-            n.setPromptText(c.getGuiName());
-            n.setText(toS(getConfigValue()));
+            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.setPromptText(c.getGuiName());
+            editor.setText(toS(getConfigValue()));
 
             // refreshing value
-            n.focusedProperty().addListener((o,ov,nv) -> {
+            editor.focusedProperty().addListener((o, ov, nv) -> {
                 if (!nv)
                     refreshItem();
             });
-            n.addEventHandler(KEY_RELEASED, e -> {
+            editor.addEventHandler(KEY_RELEASED, e -> {
                 if (e.getCode()==ESCAPE) {
                     refreshItem();
                     e.consume();
@@ -430,14 +431,14 @@ abstract public class ConfigField<T> {
             });
 
             // applying value
-            n.textProperty().addListener((o,ov,nv)-> {
+            editor.textProperty().addListener((o, ov, nv)-> {
                 Try<T,String> t = getValid();
                 boolean applicable = getOr(t.map(v -> !Objects.equals(config.getValue(), v)), false);
                 showOkButton(!applyOnChange && applicable && t.isOk());
                 showWarnButton(t);
                 if (applyOnChange) apply(false);
             });
-            n.setOnKeyPressed(e -> {
+            editor.setOnKeyPressed(e -> {
                 if (e.getCode()==ENTER) {
                     apply(true);
                     e.consume();
@@ -449,23 +450,23 @@ abstract public class ConfigField<T> {
 
         @Override
         public Control getEditor() {
-            return n;
+            return editor;
         }
 
         @Override
         public void focusEditor() {
-            n.requestFocus();
-            n.selectAll();
+            editor.requestFocus();
+            editor.selectAll();
         }
 
         @Override
         public Try<T,String> get() {
-            return Config.convertValueFromString(config, n.getText());
+            return Config.convertValueFromString(config, editor.getText());
         }
 
         @Override
         public void refreshItem() {
-            n.setText(toS(getConfigValue()));
+            editor.setText(toS(getConfigValue()));
             showOkButton(false);
             showWarnButton(ok());
         }
@@ -485,13 +486,13 @@ abstract public class ConfigField<T> {
         }
 
         private void showOkButton(boolean val) {
-            n.left.setValue(val ? okI.get() : null);
+            editor.left.setValue(val ? okI.get() : null);
             okI.ifSet(it ->  it.setVisible(false));
         }
 
         private void showWarnButton(Try<?,String> value) {
             var shouldBeVisible = value.isError() && isEditableByUser.getValue();
-            n.right.setValue(shouldBeVisible ? warnI.get() : null);
+            editor.right.setValue(shouldBeVisible ? warnI.get() : null);
             warnI.ifSet(it -> it.setVisible(shouldBeVisible));
             warnTooltip.setText(getAny(value.map(v -> "")));
         }
@@ -629,7 +630,7 @@ abstract public class ConfigField<T> {
         }
     }
     private static class ShortcutCF extends ConfigField<Action> {
-        TextField txtF;
+        TextField editor;
         CheckIcon globB;
         HBox group;
         String t="";
@@ -646,25 +647,25 @@ abstract public class ConfigField<T> {
             globB.tooltip(globTooltip);
             globB.selected.addListener((o,ov,nv) -> apply(false));
 
-            txtF = new TextField();
-            txtF.focusedProperty().addListener((o, ov, nv) -> txtF.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv));
-            txtF.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
-            txtF.getStyleClass().add("shortcut-config-field");
-            txtF.setPromptText(computePromptText());
-            txtF.setOnKeyReleased(e -> {
+            editor = new TextField();
+            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.getStyleClass().add("shortcut-config-field");
+            editor.setPromptText(computePromptText());
+            editor.setOnKeyReleased(e -> {
                 KeyCode c = e.getCode();
                 // handle subtraction
                 if (c==TAB) {
                 } else if (c==BACK_SPACE || c==DELETE) {
-                    txtF.setPromptText("<none>");
-                    if (!txtF.getText().isEmpty()) txtF.setPromptText(computePromptText());
+                    editor.setPromptText("<none>");
+                    if (!editor.getText().isEmpty()) editor.setPromptText(computePromptText());
 
                     if (t.isEmpty()) {  // set back to empty
-                        txtF.setPromptText(computePromptText());
+                        editor.setPromptText(computePromptText());
                     } else {            // subtract one key
                         if (t.indexOf('+') == -1) t="";
                         else t=t.substring(0,t.lastIndexOf('+'));
-                        txtF.setText(t);
+                        editor.setText(t);
                     }
                 } else if (c==ENTER) {
                     apply(true);
@@ -673,20 +674,20 @@ abstract public class ConfigField<T> {
                 // handle addition
                 } else {
                     t += t.isEmpty() ? c.getName() : "+" + c.getName();
-                    txtF.setText(t);
+                    editor.setText(t);
                 }
                 e.consume();
             });
-            txtF.setEditable(false);
-            txtF.setTooltip(appTooltip(a.getInfo()));
-            txtF.focusedProperty().addListener((o,ov,nv) -> txtF.setText(a.getKeys()));
+            editor.setEditable(false);
+            editor.setTooltip(appTooltip(a.getInfo()));
+            editor.focusedProperty().addListener((o, ov, nv) -> editor.setText(a.getKeys()));
 
             runB = new Icon();
             runB.styleclass("config-shortcut-run-icon");
             runB.onClick(a);
             runB.tooltip(actTooltip);
 
-            group = new HBox(5, runB, globB, txtF);
+            group = new HBox(5, runB, globB, editor);
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
         }
@@ -705,8 +706,8 @@ abstract public class ConfigField<T> {
         public boolean hasUnappliedValue() {
             Action a = config.getValue();
             boolean sameglobal = globB.selected.getValue()==a.isGlobal();
-            boolean sameKeys = txtF.getText().equals(a.getKeys()) ||
-                    (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
+            boolean sameKeys = editor.getText().equals(a.getKeys()) ||
+                    (editor.getText().isEmpty() && editor.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
         }
 
@@ -718,13 +719,13 @@ abstract public class ConfigField<T> {
 
             Action a = config.getValue();
             boolean sameglobal = globB.selected.getValue()==a.isGlobal();
-            boolean sameKeys = txtF.getText().equals(a.getKeys()) ||
-                    (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
+            boolean sameKeys = editor.getText().equals(a.getKeys()) ||
+                    (editor.getText().isEmpty() && editor.getPromptText().equals(a.getKeys()));
 
             if (!sameglobal && !sameKeys)
-                a.set(globB.selected.getValue(), txtF.getText());
+                a.set(globB.selected.getValue(), editor.getText());
             else if (!sameKeys)
-                a.setKeys(txtF.getText());
+                a.setKeys(editor.getText());
             else if (!sameglobal)
                 a.setGlobal(globB.selected.getValue());
             else {
@@ -741,8 +742,8 @@ abstract public class ConfigField<T> {
         @Override
         public void refreshItem() {
             Action a = config.getValue();
-            txtF.setPromptText(a.getKeys());
-            txtF.setText("");
+            editor.setPromptText(a.getKeys());
+            editor.setText("");
             globB.selected.setValue(a.isGlobal());
         }
     }
@@ -752,6 +753,7 @@ abstract public class ConfigField<T> {
         private ColorCF(Config<Color> c) {
             super(c);
             refreshItem();
+            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.valueProperty().addListener((o,ov,nv) -> apply(false));
         }
@@ -772,6 +774,7 @@ abstract public class ConfigField<T> {
         private FontCF(Config<Font> c) {
             super(c);
             refreshItem();
+            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.setOnValueChange((ov, nv) -> apply(false));
         }
@@ -793,6 +796,7 @@ abstract public class ConfigField<T> {
         public EffectCF(Config<Effect> c, Class<? extends Effect> effectType) {
             super(c);
             editor = new EffectTextField(effectType);
+            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             refreshItem();
             editor.setOnValueChange((ov, nv) -> apply(false));

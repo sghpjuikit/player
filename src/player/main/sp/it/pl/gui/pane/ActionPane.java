@@ -116,7 +116,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 		// icons and descriptions
 		ScrollPane descriptionFullPane = layScrollVTextCenter(descFull);
-		StackPane infoPane = layStack(dataInfo,TOP_LEFT);
+		StackPane infoPane = layStack(layScrollVTextCenter(dataInfo),TOP_LEFT);
 		VBox descPane = layVertically(8, BOTTOM_CENTER, descTitle,descriptionFullPane);
 		HBox iconPaneSimple = layHorizontally(15,CENTER);
 		icons = iconPaneSimple.getChildren();
@@ -134,13 +134,17 @@ public class ActionPane extends OverlayPane<Object> {
 		// totalHeight - height_of_others - 2*spacing.
 		infoPane.setMinHeight(100);
 		infoPane.maxHeightProperty().bind(min(iconPane.heightProperty().multiply(0.3), 400));
+		iconBox.setMinHeight(100);
+		iconBox.maxHeightProperty().bind(iconPane.heightProperty().multiply(0.4).subtract(2*25));
 		descPane.setMinHeight(100);
 		descPane.maxHeightProperty().bind(min(iconPane.heightProperty().multiply(0.3), 400));
-		iconBox.maxHeightProperty().bind(iconPane.heightProperty().multiply(0.4).subtract(2*25));
+		descPane.setMouseTransparent(true);
 
 		// content
-		HBox content = layHorizontally(0, CENTER, tablePane,iconPane); // table is an optional left complement to iconPane
-			 content.setPadding(new Insets(0,50,0,50)); // top & bottom padding set differently, below
+		var contentSpacing = 20.0;
+		var content = layHorizontally(0, CENTER, tablePane,iconPane); // table is an optional left complement to iconPane
+			content.setPadding(new Insets(0,50,0,50)); // top & bottom padding set differently, below
+            content.setMinSize(300, infoPane.getMinHeight() + contentSpacing + iconBox.getMinHeight() + contentSpacing + descPane.getMinHeight());
 		tableContentGap = content.spacingProperty();
 		// iconPane and table complement each other horizontally, though iconPane is more
 		// important and should be wider & closer to center
@@ -160,7 +164,6 @@ public class ActionPane extends OverlayPane<Object> {
 //				resizeB, Pos.BOTTOM_RIGHT
 			)
 		);
-		getContent().setMinSize(300,200);
 		getContent().setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
 		// put some padding of the content from edge
@@ -168,8 +171,6 @@ public class ActionPane extends OverlayPane<Object> {
 		// getContent().maxWidthProperty().bind(widthProperty().multiply(CONTENT_SIZE_SCALE));
 		// getContent().maxHeightProperty().bind(heightProperty().multiply(CONTENT_SIZE_SCALE);
 
-		descPane.setMouseTransparent(true); // just in case
-		infoPane.setMouseTransparent(true); // same here
 		descTitle.setTextAlignment(TextAlignment.CENTER);
 		descFull.setTextAlignment(TextAlignment.JUSTIFY);
 		descriptionFullPane.maxWidthProperty().bind(min(400, iconPane.widthProperty()));
@@ -217,14 +218,6 @@ public class ActionPane extends OverlayPane<Object> {
 		failIfNotFxThread();
 
 		setData(data);
-
-		// Bug fix. We need to initialize the layout before it is visible or it may visually
-		// jump around as it does on its own.
-		// Cause: unknown, probably the many bindings we use...
-		// TODO: fix this
-		getContent().layout();
-		getContent().requestLayout();
-		getContent().autosize();
 
 		super.show();
 
@@ -293,7 +286,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 /* ---------- GRAPHICS ---------------------------------------------------------------------------------------------- */
 
-	private final Label dataInfo = new Label();
+	private final Text dataInfo = new Text();
 	private final Label descTitle = new Label();
 	private final Text descFull = new Text();
 	private final ObservableList<Node> icons;

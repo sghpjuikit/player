@@ -1,9 +1,9 @@
 package sp.it.util.type
 
 import sp.it.util.collections.map.KClassMap
+import sp.it.util.functional.asIs
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
-import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -64,7 +64,7 @@ class ClassName {
    companion object {
 
       private fun of(type: KClass<*>): String = when {
-         type.java.isAnonymousClass -> of(type.superclasses.first())  // anonymous classes have no human readable name, use superclass
+         type.java.isAnonymousClass -> of(type.java.superclass.asIs<Class<*>>().kotlin)  // anonymous classes have no human readable name, use superclass
          else -> type.simpleName ?: type.jvmName
       }
 

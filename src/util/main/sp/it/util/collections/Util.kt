@@ -24,7 +24,7 @@ fun <T> Set<T>.materialize() = toList()
 /** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): Class<*> {
    return asSequence().filterNotNull()
-      .map { it::class as KClass<*> }.distinct()
+      .map { it::class }.distinct()
       .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
       ?.java
       ?: Void::class.javaObjectType

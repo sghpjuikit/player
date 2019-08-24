@@ -1,6 +1,7 @@
 package sp.it.util.type
 
 import sp.it.util.dev.fail
+import sp.it.util.functional.recurse
 import java.lang.reflect.Array
 import java.lang.reflect.Field
 import java.lang.reflect.GenericArrayType
@@ -119,4 +120,15 @@ fun Type.flattenToRawTypes(): Sequence<Class<*>> = when {
 infix fun Any.nullify(property: KProperty<*>) {
    property.javaField?.isAccessible = true
    property.javaField?.set(this, null)
+}
+
+/** Returns sequence of class' all superclasses and interfaces in depth first declaration order. */
+fun KClass<*>.superKClasses(): Sequence<KClass<*>> = getSuperKClassesInc().drop(1)
+
+/** Returns sequence of this class, its all superclasses and interfaces in depth first declaration order. */
+fun KClass<*>.getSuperKClassesInc(): Sequence<KClass<*>> = when {
+   this==Nothing::class -> sequenceOf(Nothing::class)
+   this==Unit::class -> sequenceOf(Unit::class)
+   else -> java.recurse { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }
+   // recurse { it.superclasses }   // KClass.superclasses is bugged for anonymous Java classes
 }

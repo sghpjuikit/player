@@ -1,9 +1,8 @@
 package sp.it.util.collections.map.abstr
 
-import sp.it.util.functional.recurse
 import sp.it.util.type.Util.getSuperClassesInc
+import sp.it.util.type.getSuperKClassesInc
 import kotlin.reflect.KClass
-import kotlin.reflect.full.superclasses
 
 interface MapByKClass<E> {
 
@@ -55,7 +54,7 @@ interface MapByKClass<E> {
     * or null if no such mapping exists.
     */
    fun getElementOfSuper(key: KClass<*>): E? = null
-      ?: key.allSuperclassesOrdered.flatMap { getElementsOf(it).asSequence() }.firstOrNull()
+      ?: key.getSuperKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
 
    /**
     * Returns first element mapped to one of (in that order):
@@ -67,13 +66,9 @@ interface MapByKClass<E> {
     * or null if no such mapping exists.
     */
    fun getElementOfSuperV(key: KClass<*>): E? = null
-      ?: key.allSuperclassesOrdered.flatMap { getElementsOf(it).asSequence() }.firstOrNull()
+      ?: key.getSuperKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
       ?: getElementsOf(Nothing::class).firstOrNull()
       ?: getElementsOf(Void::class).firstOrNull()
 
-   companion object {
-      val KClass<*>.allSuperclassesOrdered: Sequence<KClass<*>>
-         get() = recurse { it.superclasses.sortedBy { if (it.java.isInterface) 2 else 1 } }
-   }
 }
 

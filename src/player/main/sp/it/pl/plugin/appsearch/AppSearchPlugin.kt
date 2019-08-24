@@ -199,7 +199,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
    @ExperimentalController(reason = "DirView widget could be improved to be fulfill this widget's purpose. Also needs better UX.")
    class AppLauncher(widget: Widget): SimpleController(widget) {
 
-      private val owner = APP.plugins.get(AppSearchPlugin::class.java)!!
+      private val owner = APP.plugins.getRaw<AppSearchPlugin>()!!
       private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 50.0, 50.0)
       private val imageLoader = GridFileThumbCell.Loader(oneTPExecutor())
       private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {

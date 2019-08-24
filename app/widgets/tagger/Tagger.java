@@ -90,6 +90,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.GridPane.REMAINING;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static org.atteo.evo.inflector.English.plural;
 import static sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
@@ -517,7 +518,10 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             consumer(items -> {
                 writing = false;
                 populate(items);
-                APP.plugins.use(Notifier.class, s -> s.showTextNotification(Widgets.SONG_TAGGER, "Tagging complete"));
+                APP.plugins.use(
+                    getKotlinClass(Notifier.class),
+                    consumer(s -> s.showTextNotification(Widgets.SONG_TAGGER, "Tagging complete"))
+                );
             })
         );
 

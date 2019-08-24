@@ -1,10 +1,6 @@
 package sp.it.pl.gui.objects.window.stage;
 
-import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef.HWND;
 import java.util.List;
-import java.util.UUID;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -17,20 +13,15 @@ import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import kotlin.Unit;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.util.math.P;
-import sp.it.util.system.Os;
-import static com.sun.jna.platform.win32.WinUser.GWL_STYLE;
 import static java.lang.Math.abs;
-import static javafx.stage.StageStyle.TRANSPARENT;
-import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
+import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.fixJavaFxNonDecoratedMinimization;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.reactive.UtilKt.syncC;
 
 /**
@@ -91,7 +82,7 @@ public class WindowBase {
 		if (owner!=null) s.initOwner(owner);
 		if (style!=null) s.initStyle(style);
 		s.setFullScreenExitHint("");
-		fixJavaFxNonDecoratedMinimization();
+		fixJavaFxNonDecoratedMinimization(s);
 
 		// window properties may change externally so let us take notice
 		syncC(s.xProperty(), v -> {
@@ -183,10 +174,6 @@ public class WindowBase {
 
 	public double getY() {
 		return s.getY();
-	}
-
-	public P getXY() {
-		return new P(getX(), getY());
 	}
 
 	public double getCenterX() {
@@ -641,6 +628,10 @@ public class WindowBase {
 		setSize(size.getX(), size.getY());
 	}
 
+	public P getSize() {
+		return new P(s.getWidth(), s.getHeight());
+	}
+
 	/**
 	 * Sets initial size and location by invoking the {@link #setSize} and
 	 * {@link #setXY(double, double)} method. The initial size values are primary screen
@@ -672,79 +663,6 @@ public class WindowBase {
 	/** Closes this window as to never show it visible again. */
 	public void close() {
 		s.close();
-	}
-
-	/**
-	 * Sets window always at bottom (opposite of always on top).<br/>
-	 * Windows only.
-	 *
-	 * @apiNote adjusts native window style. Based on: http://stackoverflow.com/questions/26972683/javafx-minimizing-undecorated-stage
-	 */
-	@SuppressWarnings("SpellCheckingInspection")
-	public void setNonInteractingOnBottom() {
-		if (!Os.WINDOWS.isCurrent()) return;
-
-		sync1If(s.showingProperty(), v -> v, v -> {
-			User32 user32 = User32.INSTANCE;
-			String titleOriginal = s.getTitle();
-			String titleUnique = UUID.randomUUID().toString();
-			s.setTitle(titleUnique);
-			HWND hwnd = user32.FindWindow(null, titleUnique);	// find native window by title
-			s.setTitle(titleOriginal);
-
-			// Prevent window from popping up
-			int WS_EX_NOACTIVATE = 0x08000000;  // https://msdn.microsoft.com/en-us/library/ff700543(v=vs.85).aspx
-			int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
-			int newStyle = oldStyle|WS_EX_NOACTIVATE;
-			user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
-
-			// Put the window on bottom
-			// http://stackoverflow.com/questions/527950/how-to-make-always-on-bottom-window
-			int SWP_NOSIZE = 0x0001;
-			int SWP_NOMOVE = 0x0002;
-			int SWP_NOACTIVATE = 0x0010;
-			int HWND_BOTTOM = 1;
-			user32.SetWindowPos(hwnd, new HWND(new Pointer(HWND_BOTTOM)), 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE);
-
-			return Unit.INSTANCE;
-		});
-	}
-
-	/**
-	 * Turns de-minimization on user click on taskbar on for {@link StageStyle#UNDECORATED} amd
-	 * {@link javafx.stage.StageStyle#TRANSPARENT}, for which this feature is bugged and does not work..<br/>
-	 * Windows only.
-	 *
-	 * @apiNote adjusts native window style.
-	 */
-	@SuppressWarnings("SpellCheckingInspection")
-	private void fixJavaFxNonDecoratedMinimization() {
-		if (s.getStyle()!=UNDECORATED && s.getStyle()!=TRANSPARENT) return;
-		if (!Os.WINDOWS.isCurrent()) return;
-
-		sync1If(s.showingProperty(), v -> v, v -> {
-			User32 user32 = User32.INSTANCE;
-			String titleOriginal = s.getTitle();
-			String titleUnique = UUID.randomUUID().toString();
-			s.setTitle(titleUnique);
-			HWND hwnd = user32.FindWindow(null, titleUnique);	// find native window by title
-			s.setTitle(titleOriginal);
-
-			int WS_MINIMIZEBOX = 0x00020000;
-			int oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE);
-			int newStyle = oldStyle|WS_MINIMIZEBOX;
-			user32.SetWindowLong(hwnd, GWL_STYLE, newStyle);
-
-			// redraw
-			int SWP_NOSIZE = 0x0001;
-			int SWP_NOMOVE = 0x0002;
-			int SWP_NOOWNERZORDER = 0x0200;
-			int SWP_FRAMECHANGED = 0x0020;
-			int SWP_NOZORDER = 0x0004;
-			user32.SetWindowPos(hwnd, null, 0, 0, 0, 0, SWP_FRAMECHANGED|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_NOOWNERZORDER);
-
-			return Unit.INSTANCE;
-		});
 	}
 
 	/** State of window maximization. */

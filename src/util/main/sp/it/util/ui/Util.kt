@@ -602,7 +602,7 @@ open class MenuBuilder<M,V>(val owner: M, val value: V) {
 
    /** Create and add to items new menu item with specified text and action. */
    @Dsl
-   inline fun item(text: String, graphics: Node? = null, crossinline action: (@Dsl MenuItem).(V) -> Unit) = this add MenuItem(text, graphics).apply { onAction = EventHandler { action(value) } }
+   inline fun item(text: String, graphics: Node? = null, crossinline action: @Dsl MenuItem.(V) -> Unit) = this add MenuItem(text, graphics).apply { onAction = EventHandler { action(value) } }
 
    /** Create and add to items new menu items with text and action derived from specified source. */
    @Dsl
@@ -679,7 +679,12 @@ var Region.maxSize: P
    }
 
 /** Position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
-val Window.xy get() = P(x, y)
+var Window.xy
+   get() = P(x, y)
+   set(value) {
+      x = value.x
+      y = value.y
+   }
 
 /** Size using [javafx.stage.Window.width] and [javafx.stage.Window.height] */
 var Window.size: P
@@ -698,8 +703,14 @@ val Window.centreX get() = x + width/2
 /** Window-relative y position of the centre of this window */
 val Window.centreY get() = y + height/2
 
+/** Left top corner of the bounds represented as point */
+val Rectangle2D.min get() = P(minX, minY)
+
+/** Bottom right corner of the bounds represented as point */
+val Rectangle2D.max get() = P(maxX, maxY)
+
 /** Size of the bounds represented as point */
-val Rectangle2D.size get() = P(width, height)
+val Rectangle2D.size get() = P(this.width, height)
 
 /** Rectangle-relative position of the centre of this rectangle */
 val Rectangle2D.centre get() = P(centreX, centreY)

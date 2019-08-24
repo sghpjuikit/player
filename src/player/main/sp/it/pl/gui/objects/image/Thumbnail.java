@@ -31,6 +31,7 @@ import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.dev.Dependency;
+import sp.it.util.math.P;
 import sp.it.util.ui.image.FitFrom;
 import sp.it.util.ui.image.ImageSize;
 import sp.it.util.ui.image.ImageStandardLoader;
@@ -173,25 +174,14 @@ public class Thumbnail {
 	private boolean isImgSmallerW = false;
 	private boolean isImgSmallerH = false;
 
-	/**
-	 * Constructor.
-	 * Use if you need  default thumbnail size and the image is expected to
-	 * change during life cycle.
-	 */
+	/** {@link sp.it.pl.gui.objects.image.Thumbnail#Thumbnail()}} using {@link javafx.scene.layout.Region#USE_COMPUTED_SIZE} */
 	public Thumbnail() {
 		this(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
 	}
 
-	/**
-	 * Use when you want to use default sized thumbnail no post-initial changes
-	 * of the image are expected. In other words situations, where thumbnail object
-	 * is viewed as immutable create-destroy type.
-	 *
-	 * @param img initial image, null if none
-	 */
-	public Thumbnail(Image img) {
-		this(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-		loadImage(img);
+	/** {@link sp.it.pl.gui.objects.image.Thumbnail#Thumbnail()}} using the specified size */
+	public Thumbnail(P size) {
+		this(size.getX(), size.getY());
 	}
 
 	/**

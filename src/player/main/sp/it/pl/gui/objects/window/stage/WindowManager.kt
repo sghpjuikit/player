@@ -411,7 +411,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
          } else {
             initialSize
          }
-         setSize(newSize min scrSize)
+         size = newSize min scrSize
          setXYToCenter(screen)
       }
    }

@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import javafx.collections.FXCollections.observableArrayList
+import mu.KotlinLogging
 import sp.it.pl.plugin.notif.Notifier
 import sp.it.util.async.runFX
 import sp.it.util.collections.ObservableListRO
@@ -53,5 +54,11 @@ object AppErrors {
 
 }
 
+private val logger = KotlinLogging.logger { }
+
 @ThreadSafe
-fun <R, E> Try<R, E>.ifErrorNotify(errorSupplier: (E) -> AppError) = ifError { AppErrors.push(errorSupplier(it)) }
+fun <R, E> Try<R, E>.ifErrorNotify(errorSupplier: (E) -> AppError) = ifError {
+   val e = errorSupplier(it)
+   if (it is Throwable) logger.error(it) { "Error occurred: ${e.textShort}" }
+   AppErrors.push(e)
+}

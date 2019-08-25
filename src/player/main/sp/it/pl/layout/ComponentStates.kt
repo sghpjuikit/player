@@ -9,7 +9,12 @@ import sp.it.pl.layout.container.UniContainer
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
+import sp.it.pl.main.ifErrorNotify
+import sp.it.util.async.runIO
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.properties.PropVal
+import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import java.io.File
 import java.util.UUID
@@ -20,10 +25,40 @@ private val json = APP.serializerJson.json
  * Creates a launcher for this component as given file. Launcher is a
  * file, opening which by this application opens this component with its
  * current settings.
+ *
+ * See [File.loadComponentFxwlJson]
  */
-fun Component.exportFxwl(file: File) = APP.serializerJson.toJson(toDb(), file)
+fun Component.exportFxwl(f: File) = runIO {
+   APP.serializerJson.toJson(toDb(), f).ifErrorNotify {
+      AppError(
+         "Unable to export component launcher for $name into $f.",
+         "Reason:\n${it.stacktraceAsString}"
+      )
+   }
+}
 
-fun File.loadComponentFxwlJson(): Component? = json.fromJson<ComponentDb>(this).ifError { it.printStackTrace() }.orNull()?.toDomain()
+/** Creates a launcher for this widget with default (no predefined) settings.  */
+fun Widget.exportFxwlDefault(f: File) = runIO {
+   f.writeTextTry(name).ifErrorNotify {
+      AppError(
+         "Unable to export default widget launcher for $name into $f.",
+         "Reason:\n${it.stacktraceAsString}"
+      )
+   }
+}
+
+/**
+ * Loads component launcher.
+ * See [Component.exportFxwl]
+ */
+fun File.loadComponentFxwlJson() = runIO {
+   json.fromJson<ComponentDb>(this).ifErrorNotify {
+      AppError(
+         "Unable to load component launcher from $this.",
+         "Reason:\n${it.stacktraceAsString}"
+      )
+   }.orNull()?.toDomain()
+}
 
 abstract class ComponentDb(
    val id: UUID = UUID.randomUUID(),

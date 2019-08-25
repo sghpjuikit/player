@@ -23,6 +23,7 @@ import sp.it.pl.gui.pane.SlowColAction
 import sp.it.pl.gui.pane.register
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.exportFxwl
+import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetUse.ANY
@@ -55,6 +56,7 @@ import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -342,7 +344,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Opens exported widget.",
          IconMD.IMPORT,
          { it hasExtension "fxwl" },
-         { it.loadComponentFxwlJson()?.let { APP.windowManager.launchComponent(it) } }
+         { it.loadComponentFxwlJson() ui { it.ifNotNull(APP.windowManager::launchComponent) } }
       )
    )
    ap.register<MultipleFiles>(

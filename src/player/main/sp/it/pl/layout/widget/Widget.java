@@ -47,7 +47,6 @@ import static java.util.Objects.deepEquals;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.file.properties.PropertiesKt.readProperties;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.filter;
@@ -328,12 +327,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	@Override
 	public File getUserLocation() {
 		return factory.getLocationUser();
-	}
-
-	/** Creates a launcher for this widget with default (no predefined) settings. */
-	public void exportFxwlDefault(File f) {
-		writeTextTry(f, name)
-			.ifErrorUse(e -> LOGGER.error("Unable to export widget launcher for {} into {}", name, f, e));
 	}
 
 	/**

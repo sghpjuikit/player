@@ -172,9 +172,10 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
          override fun hide() {
             super.hide()
-            c.exportFxwl(f)
-            c.close()
-            removeFromParent()
+            c.exportFxwl(f) ui {
+               c.close()
+               removeFromParent()
+            }
          }
       }
       op.display.value = OverlayPane.Display.SCREEN_OF_MOUSE

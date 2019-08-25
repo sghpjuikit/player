@@ -278,15 +278,12 @@ abstract class OverlayPane<in T>: StackPane() {
 
    fun ScreenGetter.animDo(op: OverlayPane<*>, x: Double) {
       if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
-         if (this!=Display.WINDOW && (op.displayBgr.get()==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.get()==ScreenBgrGetter.NONE)) {
+         if (this!=Display.WINDOW && (op.displayBgr.value==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.value==ScreenBgrGetter.NONE)) {
             op.stage!!.opacity = x
             op.opacityNode!!.opacity = 1 - x*0.5
             op.opacity = 1.0
             op.blurBack.height = 15.0*x*x
             op.blurBack.width = 15.0*x*x
-            // improves performance a lot with little demerit
-            // op.blurFront.height = 20*(1-x*x)
-            // op.blurFront.width = 20*(1-x*x)
             op.scaleX = 1 + 0.2*(1 - x)
             op.scaleY = 1 + 0.2*(1 - x)
          } else {
@@ -294,11 +291,8 @@ abstract class OverlayPane<in T>: StackPane() {
             op.opacity = x
             op.blurBack.height = 15.0*x*x
             op.blurBack.width = 15.0*x*x
-            // improves performance a lot with little demerit
-            // op.blurFront.height = 20*(1-x*x)
-            // op.blurFront.width = 20*(1-x*x)
-            op.scaleX = 1 + 2*(1 - x)
-            op.scaleY = 1 + 2*(1 - x)
+            op.scaleX = 1 + 1.5*(1 - x)
+            op.scaleY = 1 + 1.5*(1 - x)
          }
       }
    }
@@ -314,11 +308,11 @@ abstract class OverlayPane<in T>: StackPane() {
       if (this==Display.WINDOW) {
          op.setVisible(false)
       } else {
+         op.removeFromParent()
          op.stage!!.close()
          op.stage?.scene?.root?.asIf<Pane>()?.children?.clear()
          op.stage?.scene = null
          op.stage = null
-         op.removeFromParent()
       }
    }
 

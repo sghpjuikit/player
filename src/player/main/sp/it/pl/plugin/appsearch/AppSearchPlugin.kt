@@ -151,6 +151,16 @@ class AppSearchPlugin: PluginBase("App Search", false) {
       val c = APP.windowManager.instantiateComponent(f) ?: widgetFactory.create()
 
       val op = object: OverlayPane<Unit>() {
+
+         init {
+            onHidden += {
+               c.exportFxwl(f) ui {
+                  c.close()
+                  removeFromParent()
+               }
+            }
+         }
+
          override fun show(data: Unit) {
             val componentRoot = c.load() as Pane
             content = anchorPane {
@@ -170,13 +180,6 @@ class AppSearchPlugin: PluginBase("App Search", false) {
             super.show()
          }
 
-         override fun hide() {
-            super.hide()
-            c.exportFxwl(f) ui {
-               c.close()
-               removeFromParent()
-            }
-         }
       }
       op.display.value = OverlayPane.Display.SCREEN_OF_MOUSE
       op.displayBgr.value = APP.ui.viewDisplayBgr.value

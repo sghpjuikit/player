@@ -516,8 +516,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	public void setNplay(Stream<? extends Song> songs) {
 		noNull(songs);
-		clear();
-		addItems(songs.collect(toList()));
+		setAll(songs.map(Song::toPlaylist).collect(toList()));
 		playFirstItem();
 	}
 
@@ -533,8 +532,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	public void setNplayFrom(Stream<? extends Song> songs, int from) {
 		noNull(songs);
-		clear();
-		addItems(songs.collect(toList()));
+		setAll(songs.map(Song::toPlaylist).collect(toList()));
 		playItem(get(from));
 	}
 
@@ -641,7 +639,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		List<PlaylistSong> l = new ArrayList<>();
 		uris.forEach(uri -> l.add(new PlaylistSong(uri)));
 
-		addPlaylist(l, _at);
+		addPlaylistSongs(l, _at);
 	}
 
 	public void addItem(Song song) {
@@ -661,7 +659,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * Equivalent to {@code addPlaylist(map(songs, Song::toPlaylist), at);}
 	 */
 	public void addItems(Collection<? extends Song> songs, int at) {
-		addPlaylist(map(songs, Song::toPlaylist), at);
+		addPlaylistSongs(map(songs, Song::toPlaylist), at);
 	}
 
 	/**
@@ -672,7 +670,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * index >= size --> size (last song)
 	 * @throws NullPointerException when param null.
 	 */
-	public void addPlaylist(Collection<PlaylistSong> ps, int at) {
+	public void addPlaylistSongs(Collection<PlaylistSong> ps, int at) {
 		int _at = at;
 		if (_at<0) _at = 0;
 		if (_at>size()) _at = size();

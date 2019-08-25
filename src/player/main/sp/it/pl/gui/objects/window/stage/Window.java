@@ -12,7 +12,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -21,7 +20,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -67,10 +65,10 @@ import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCode.DOWN;
-import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.LEFT;
 import static javafx.scene.input.KeyCode.RIGHT;
 import static javafx.scene.input.KeyCode.UP;
+import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -83,6 +81,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static javafx.scene.paint.Color.rgb;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
@@ -150,24 +149,16 @@ public class Window extends WindowBase {
 
 	void initialize() {
 		getStage().setScene(new Scene(root));
-		getStage().getScene().setFill(Color.rgb(0, 0, 0, 0.01));
+		getStage().getScene().setFill(rgb(0, 0, 0, 0.01));
 
 		initClip(content);
 
 		// normally we would bind bgr size, but we will bind it more dynamically later
 		// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
 
-		// avoid some instances of not closing properly (like when OS requests closing the window)
-		s.setOnCloseRequest(e -> close());
-
-		// override default exit fullscreen on ESC key, as we overrode stage.setFullscreen() behavior
-		s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
-		s.addEventHandler(KEY_PRESSED, e -> {
-			if (e.getCode()==ESCAPE && isFullscreen()) {
-				setFullscreen(false);
-				e.consume();
-			}
-		});
+		s.setOnCloseRequest(e -> close()); // avoid window not closing properly sometimes (like when OS requests closing the window)
+		s.setFullScreenExitHint("");
+		s.setFullScreenExitKeyCombination(NO_MATCH);
 
 		// drag&drop
 		installDrag(

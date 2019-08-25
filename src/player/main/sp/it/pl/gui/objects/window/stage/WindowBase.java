@@ -16,12 +16,10 @@ import javafx.stage.StageStyle;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.util.math.P;
 import static java.lang.Math.abs;
-import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.fixJavaFxNonDecoratedMinimization;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.reactive.UtilKt.syncC;
 
 /**
@@ -81,7 +79,7 @@ public class WindowBase {
 	public WindowBase(Stage owner, StageStyle style) {
 		if (owner!=null) s.initOwner(owner);
 		if (style!=null) s.initStyle(style);
-		s.setFullScreenExitHint("");
+
 		fixJavaFxNonDecoratedMinimization(s);
 
 		// window properties may change externally so let us take notice
@@ -139,15 +137,8 @@ public class WindowBase {
 		deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
 		deMaxY = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
-		// we need to refresh maximized value so set it to NONE and back
-		Maximized m = MaxProp.get();
-		setMaximized(Maximized.NONE);
-		setMaximized(m);
-
-		// setFullscreen(FullProp.get()) produces a bug probably because the
-		// window is not yet ready. Delay execution. Avoid the whole process
-		// when the value is not true
-		if (FullProp.get()) runFX(millis(322), () -> setFullscreen(true));
+		if (FullProp.get()) s.setFullScreen(true);
+		if (MaxProp.get()!=NONE) applyMaximized();
 	}
 
 	/**
@@ -276,11 +267,13 @@ public class WindowBase {
 			deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();
 			deMaxY = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight();
 		}
-		// remember state
-		MaxProp.set(val);
 
-		// apply
-		switch (val) {
+		MaxProp.setValue(val);
+		applyMaximized();
+	}
+
+	private void applyMaximized() {
+		switch (MaxProp.getValue()) {
 			case ALL: maximizeAll(); break;
 			case LEFT: maximizeLeft(); break;
 			case RIGHT: maximizeRight(); break;

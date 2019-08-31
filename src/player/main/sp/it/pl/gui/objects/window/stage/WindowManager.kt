@@ -186,6 +186,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
          y = 0.0
          opacity = 0.0
          scene = Scene(anchorPane()) // allows child stages (e.g. popup) to receive key events
+         title = "${APP.name}-StageOwner"
          show()
       }
    }

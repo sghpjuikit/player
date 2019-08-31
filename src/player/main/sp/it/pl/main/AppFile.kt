@@ -10,6 +10,7 @@ import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
@@ -24,6 +25,8 @@ import kotlin.text.Charsets.UTF_16LE
 
 private val logger = KotlinLogging.logger { }
 
+fun File.isVideo() = mimeType().group==video
+
 /** Lowercase audio file extensions supported by this application. */
 val audioExtensions = setOf(
    "mp3",
@@ -31,7 +34,6 @@ val audioExtensions = setOf(
    "flac",
    "wav",
    "m4a",
-   "mp4",
    "spx",
    "snd",
    "aifc",
@@ -242,7 +244,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
                   .useLines { it.map { FastFile(it, true, false) }.toList() }
             } catch (e: Throwable) {
                logger.error(e) { "Failed to read files in $this using command $cmdDirs" }
-               listOf<FastFile>()
+               listOf()
             }
             val files = try {
                Runtime.getRuntime().exec(cmdFiles)
@@ -250,7 +252,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
                   .useLines { it.map { FastFile(it, false, true) }.toList() }
             } catch (e: Throwable) {
                logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
-               listOf<FastFile>()
+               listOf()
             }
 
             val cache = (dirs + files).toHashSet()

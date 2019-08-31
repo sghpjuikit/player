@@ -31,6 +31,7 @@ import static sp.it.pl.audio.tagging.SongReadingKt.read;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
+import static sp.it.pl.main.AppFileKt.isVideo;
 import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
@@ -153,6 +154,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	protected File getImage(File dir, String name) {
 		if (disposed) return null;
 		if (dir==null) return null;
+		if (name==null) return null;
 
 		for (String ext : getImageExtensionsRead()) {
 			File f = new File(dir, name + "." + ext);
@@ -228,7 +230,11 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						return ok(new LoadResult(null, coverToBe));
 					}
 				} else if (valType==FILE) {
-					if (isAudio(value)) {
+					if (isVideo(value)) {
+						var coverToBe = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
+						cover = coverToBe;
+						if (coverToBe!=null) return ok(new LoadResult(value, coverToBe));
+					} else if (isAudio(value)) {
 						var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
 						var coverToBe = c.isEmpty() ? null : c.getImage(size);
 						cover = coverToBe;
@@ -266,6 +272,14 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		} else {
 			if (coverFile==null && isImage(value)) {
 				coverFile = value;
+			}
+			if (coverFile==null && isVideo(value) && getHParent()!=null) {
+				var n = getNameWithoutExtensionOrRoot(value);
+				if (n.endsWith(")")) {
+					var i = n.lastIndexOf("(");
+					var coverName = i==-1 ? null : n.substring(0, i) + "(BQ)";
+					coverFile = getImage(value.getParentFile(), coverName);
+				}
 			}
 			if (coverFile==null && getCoverStrategy().useParentCoverIfNone) {
 				File i = getImage(value.getParentFile(), getNameWithoutExtensionOrRoot(value));

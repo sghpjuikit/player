@@ -2,13 +2,20 @@ package sp.it.util.ui.image
 
 import javafx.scene.image.Image
 import mu.KotlinLogging
+import sp.it.util.async.IO
+import sp.it.util.file.div
+import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
+import sp.it.util.functional.orNull
+import sp.it.util.system.runAsProgram
 import sp.it.util.ui.IconExtractor
 import sp.it.util.ui.image.ImageLoader.Params
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
+
 
 private val logger = KotlinLogging.logger {}
 
@@ -38,7 +45,13 @@ object ImageStandardLoader: ImageLoader {
    override fun invoke(p: Params): Image? {
       logger.debug { "Loading img $p" }
 
-      return when (p.mime.name) {
+      return if (p.mime.group==video) {
+         val tmpDir: File = File(System.getProperty("user.home")).absoluteFile
+         val tmpFile = tmpDir/"video-covers"/"${p.file.nameWithoutExtension}.png"
+         getThumb(p.file.absolutePath, tmpFile.absolutePath, p.size.width.toInt(), p.size.height.toInt(), 0, 0, 10f).map {
+            ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
+         }.orNull()
+      } else when (p.mime.name) {
          "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
          "application/x-msdownload",
          "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
@@ -86,4 +99,11 @@ object Image2PassLoader {
       }
    }
 
+}
+
+// TODO: move out
+fun getThumb(videoFilename: String, thumbFilename: String, width: Int, height: Int, hour: Int, min: Int, sec: Float) = run {
+   val ffmpeg = File("").absoluteFile/"ffmpeg"/"bin"/"ffmpeg.exe"
+   val args = arrayOf("-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss", "$hour:$min:$sec", "-f", "mjpeg", "-an", "\"$thumbFilename\"")
+   ffmpeg.runAsProgram(*args).then(IO) { it.map { it.waitFor(5, TimeUnit.SECONDS) } }.getDoneOrNull() ?: error("fff")
 }

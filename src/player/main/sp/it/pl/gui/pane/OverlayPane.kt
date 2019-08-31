@@ -22,10 +22,11 @@ import javafx.stage.Stage
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeButton
+import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
-import sp.it.util.async.runNew
+import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
@@ -331,9 +332,12 @@ enum class ScreenBgrGetter {
          NONE -> action(null)
          SCREEN_SHOT -> action(screen.makeScreenShot())
          SCREEN_BGR -> {
-            runNew {
-               val img = screen.getWallpaperFile()?.let { imgImplLoadFX(it, -1, -1, true) }
-               runFX { action(img) }
+            runIO {
+               null
+                  ?: APP.plugins.get<WallpaperPlugin>()?.wallpaperImage?.value
+                  ?: screen.getWallpaperFile()?.let { imgImplLoadFX(it, -1, -1, true) }
+            } ui {
+               action(it)
             }
          }
       }

@@ -38,6 +38,7 @@ import sp.it.pl.plugin.playcount.PlaycountIncrementer
 import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.plugin.tray.TrayPlugin
 import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
+import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
@@ -381,7 +382,8 @@ class App: Application(), GlobalConfigDelegator {
          AppSearchPlugin(),
          DirSearchPlugin(),
          ScreenRotator(),
-         Waifu2kPlugin()
+         Waifu2kPlugin(),
+         WallpaperPlugin()
       )
    }
 

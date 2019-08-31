@@ -10,9 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.StrokeType;
 import sp.it.pl.gui.objects.hierarchy.Item;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.util.JavaLegacy;
@@ -23,7 +21,6 @@ import sp.it.util.reactive.Disposer;
 import sp.it.util.ui.image.ImageSize;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.oneTPExecutor;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.FailKt.failIf;
@@ -166,20 +163,9 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 			})
 			.dur(millis(200));
 
-		// TODO: remove workaround for fuzzy edges & incorrect layout
-		// Problem: OS scaling will change width of the border, for non-integer widths it may produce visual artifacts
-		// Solution: We adjust width so it can only scale into integer values.
-		double BW = 1;
-		double dpiScalingFix = Math.rint(BW*APP.windowManager.screenMaxScaling)/APP.windowManager.screenMaxScaling;
-		BW *= dpiScalingFix;
 		Rectangle r = new Rectangle(1, 1);
+		r.getStyleClass().add("grid-cell-stroke");
 		r.setMouseTransparent(true);
-		r.setFill(null);
-		r.setStroke(Color.BLACK);
-		r.setStrokeType(StrokeType.INSIDE);
-		r.setStrokeWidth(BW);
-		r.setManaged(false);
-		r.setSmooth(false);
 
 		root = new Pane(thumb.getPane(), name, r) {
 			// Cell layout should be fast - gets called multiple times on grid resize.
@@ -190,7 +176,7 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 				thumb.getPane().resizeRelocate(x, y, w, h - th);
 				name.resizeRelocate(x, h - th, w, th);
 				r.setX(x);
-				r.setY(x);
+				r.setY(y);
 				r.setWidth(w);
 				r.setHeight(h);
 			}
@@ -199,8 +185,6 @@ public class GridFileThumbCell extends GridCell<Item,File> {
 		root.setMinSize(-1, -1);
 		root.setPrefSize(-1, -1);
 		root.setMaxSize(-1, -1);
-		Anim a = new Anim(x -> root.setTranslateY(-5*x*x)).dur(millis(200));
-		onDispose.plusAssign(syncC(thumb.getView().hoverProperty(), (nv) -> a.playFromDir(nv)));
 		root.setOnMouseClicked(e -> {
 			if (e.getButton()==PRIMARY && e.getClickCount()==2) {
 				onAction(getItem(), e.isShiftDown());

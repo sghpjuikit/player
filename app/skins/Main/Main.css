@@ -2538,10 +2538,26 @@ icon-info-icon {
     -fx-background-color: rgba(0,0,0,0.2);
 }
 
+.grid-cell:hover {
+    -fx-background-color: rgba(0,0,0,0.3);
+    -fx-background-insets: -1;
+    -fx-padding: -1;
+}
 .grid-cell:selected {
-    -fx-background-insets: -2;
     -fx-background-color: rgba(0,0,0,0.4);
+    -fx-background-insets: -2;
     -fx-padding: -2;
+}
+
+.grid-cell .grid-cell-stroke {
+    -fx-fill: null;
+    -fx-stroke: black;
+    -fx-stroke-width: 1;
+    -fx-stroke-type: OUTSIDE;
+}
+
+.grid-cell:selected .grid-cell-stroke {
+    -fx-stroke-width: 2;
 }
 
 /*

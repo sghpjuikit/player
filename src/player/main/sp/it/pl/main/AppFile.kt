@@ -244,7 +244,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
                   .useLines { it.map { FastFile(it, true, false) }.toList() }
             } catch (e: Throwable) {
                logger.error(e) { "Failed to read files in $this using command $cmdDirs" }
-               listOf()
+               listOf<FastFile>()
             }
             val files = try {
                Runtime.getRuntime().exec(cmdFiles)
@@ -252,7 +252,7 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
                   .useLines { it.map { FastFile(it, false, true) }.toList() }
             } catch (e: Throwable) {
                logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
-               listOf()
+               listOf<FastFile>()
             }
 
             val cache = (dirs + files).toHashSet()

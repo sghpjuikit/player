@@ -13,6 +13,7 @@ import javafx.stage.Screen
 import javafx.stage.Window
 import mu.KotlinLogging
 import sp.it.util.async.future.Fut
+import sp.it.util.async.runIO
 import sp.it.util.async.runNew
 import sp.it.util.dev.Blocks
 import sp.it.util.file.FileType
@@ -55,7 +56,7 @@ fun copyToSysClipboard(df: DataFormat, o: Any?) = o.ifNotNull { Clipboard.getSys
  */
 @JvmOverloads
 fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<Try<Process, Exception>> {
-   return runNew {
+   return runIO {
       val commandRaw = listOf(absolutePath, *arguments)
       val command = runAsProgramArgsTransformer(commandRaw)
       try {
@@ -78,7 +79,7 @@ fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit =
  */
 @JvmOverloads
 fun runCommand(command: String, then: (Process) -> Unit = {}): Fut<Try<Process, Exception>> {
-   return runNew {
+   return runIO {
       try {
          val process = Runtime.getRuntime().exec(command).apply(then)
          Try.ok(process)
@@ -102,7 +103,7 @@ fun File.browse() = toURI().browse()
  */
 fun URI.browse() {
    logger.info { "Browsing uri=$this" }
-   runNew {
+   runIO {
       toFileOrNull()
          .ifNotNull {
             if (Os.WINDOWS.isCurrent) {
@@ -137,7 +138,7 @@ fun URI.browse() {
  */
 fun File.edit() {
    logger.info { "Editing file=$this" }
-   runNew {
+   runIO {
       if (isDirectory) {
          open()
       } else {

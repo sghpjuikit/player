@@ -34,8 +34,8 @@ operator fun Executor.invoke(block: () -> Unit) = execute(block)
 @JvmField val FX = FxExecutor()
 @JvmField val FX_LATER = FxLaterExecutor()
 @JvmField val NEW = NewThreadExecutor()
+@JvmField val IO = IOExecutor()
 @JvmField val CURR = Executor { it() }
-@JvmField val IO: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))
 
 /**
  * Executes the specified block immediately on a new daemon thread.
@@ -102,6 +102,15 @@ class FxExecutor: Executor {
 /** Executes the specified block on fx thread using [Platform.runLater]. */
 class FxLaterExecutor: Executor {
    override fun execute(command: Runnable) = Platform.runLater(command)
+}
+
+/** Executes the specified block on thread in an IO thread pool or immediately if called on such thread. */
+class IOExecutor: Executor {
+   private val e: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))
+
+   override fun execute(it: Runnable) {
+      if (Thread.currentThread().name.startsWith("io-")) it() else e(it)
+   }
 }
 
 /** Sleeps currently executing thread for specified duration. When interrupted, returns.  */

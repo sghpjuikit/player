@@ -46,12 +46,13 @@ object ImageStandardLoader: ImageLoader {
       logger.debug { "Loading img $p" }
 
       return if (p.mime.group==video) {
-         val tmpDir: File = File(System.getProperty("user.home")).absoluteFile
+         val tmpDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
          val tmpFile = tmpDir/"video-covers"/"${p.file.nameWithoutExtension}.png"
          if (tmpFile.exists()) {
             ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
          } else {
-            getThumb(p.file.absolutePath, tmpFile.absolutePath, p.size.width.toInt(), p.size.height.toInt(), 0, 0, 10f).map {
+            tmpDir.mkdirs()
+            getThumb(p.file.absolutePath, tmpFile.absolutePath, 0, 0, 1f).map {
                ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
             }.orNull()
          }
@@ -105,8 +106,9 @@ object Image2PassLoader {
 
 }
 
+// TODO handle videos shorter than specified time
 // TODO: move out + handle errors
-fun getThumb(videoFilename: String, thumbFilename: String, width: Int, height: Int, hour: Int, min: Int, sec: Float) = run {
+fun getThumb(videoFilename: String, thumbFilename: String, hour: Int, min: Int, sec: Float) = run {
    val ffmpeg = File("").absoluteFile/"ffmpeg"/"bin"/"ffmpeg.exe"
    val args = arrayOf("-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss", "$hour:$min:$sec", "-f", "mjpeg", "-an", "\"$thumbFilename\"")
    ffmpeg.runAsProgram(*args).then(IO) { it.map { it.waitFor(5, TimeUnit.SECONDS) } }.getDoneOrNull() ?: error("fff")

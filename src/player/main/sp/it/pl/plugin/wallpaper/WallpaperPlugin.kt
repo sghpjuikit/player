@@ -19,6 +19,7 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cvn
 import sp.it.util.conf.only
 import sp.it.util.functional.asIf
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -44,11 +45,10 @@ class WallpaperPlugin: PluginBase("Wallpaper", false) {
    val wallpaperImage = wallpaperImageW.readOnly()
 
    @IsConfig(name = "Wallpaper file")
-   val wallpaperFile by cvn<File>(null).only(FILE).sync {
-      runIO { ImageStandardLoader(it) }.ui { wallpaperImageW.value = it }
-   }
+   val wallpaperFile by cvn<File>(null).only(FILE).sync { load() }
 
-   private val wallpaping = Subscribed {
+   private val wallpaperIsShowing = Subscribed {
+      load()
       Screen.getScreens().onItemSyncWhile { screen ->
          val screenSize = screen.bounds.size
          val root = stackPane()
@@ -66,7 +66,8 @@ class WallpaperPlugin: PluginBase("Wallpaper", false) {
             root.lay += Thumbnail(screenSize).apply {
                fitFrom.value = FitFrom.OUTSIDE
                wallpaperImageW sync ::loadImage on disposer
-               image.sync { if (it==null) close() else show() } on disposer
+               image sync { if (it==null) close() else show() } on disposer
+               disposer += { loadImage(null) }
             }.pane
 
             disposer += {
@@ -80,12 +81,14 @@ class WallpaperPlugin: PluginBase("Wallpaper", false) {
       }
    }
 
+   private fun load(): Unit = runIO { ImageStandardLoader(wallpaperFile.value) }.ui { wallpaperImageW.value = it }.toUnit()
+
    override fun isSupported() = Os.WINDOWS.isCurrent
 
-   override fun onStart() = wallpaping.subscribe()
+   override fun onStart() = wallpaperIsShowing.subscribe()
 
    override fun onStop() {
-      wallpaping.unsubscribe()
+      wallpaperIsShowing.unsubscribe()
       wallpaperImageW.value = null
    }
 

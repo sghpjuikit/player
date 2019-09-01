@@ -79,7 +79,7 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       img = imgFile
 
       onClose += root.sync1IfInScene {
-         thumb.loadImage(img)
+         thumb.loadFile(img)
          root.requestFocus()
       }
    }

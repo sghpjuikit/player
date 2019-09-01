@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javafx.scene.image.Image;
 import kotlin.sequences.Sequence;
 import kotlin.sequences.SequencesKt;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
 import sp.it.util.HierarchicalBase;
@@ -52,12 +53,12 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	private static final String COVER_STRATEGY_KEY = "coverStrategy";
 
-	public final FileType valType;
+	public final @NotNull FileType valType;
 	/** Children representing filtered files. Must not be accessed outside fx application thread. */
 	protected volatile List<Item> children = null;
 	/** All children files. Super set of {@link #children}. Must not be accessed outside fx application thread. */
 	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
-	private final AtomicReference<Fut<Try<LoadResult,Void>>> coverLoading = new AtomicReference<>(null);
+	public volatile Fut<Try<LoadResult,Void>> coverLoading = null;
 	public volatile Image cover = null;           // cover cache
 	public volatile File coverFile = null;        // cover file cache
 	private volatile boolean coverFile_loaded = false;
@@ -86,7 +87,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		children = null;
 		all_children = null;
 		cover = null;
-		coverLoading.set(null);
+		coverLoading = null;
 		disposed = true;
 	}
 
@@ -111,7 +112,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		coverFile_loaded = false;
 		loadProgress = 0;
 		lastScrollPosition = -1;
-		coverLoading.set(null);
+		coverLoading = null;
 	}
 
 	private void buildChildren() {
@@ -187,16 +188,17 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	@ThreadSafe
 	public boolean isLoadedCover() {
-		var f = coverLoading.get();
-		return f!=null && f.isDone();
+		var cl = coverLoading;
+		return cl!=null && cl.isDone();
 	}
 
 	public Try<LoadResult,Void> loadCover(ImageSize size) {
 		failIfFxThread();
 		if (disposed) return error();
 
-		if (coverLoading.get()!=null)
-			return coverLoading.get().getDone().toTry().getOrThrow();
+		var cl = coverLoading;
+		if (cl!=null)
+			return cl.getDone().toTry().getOrThrow();
 
 		Fut<Try<LoadResult,Void>> f = Fut.fut().then(IO, k -> {
 			File file = getCoverFile();
@@ -230,7 +232,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						return ok(new LoadResult(null, coverToBe));
 					}
 				} else if (valType==FILE) {
-					if (isVideo(value)) {
+					if (isVideo(value) && getCoverStrategy().useVideoFrameCover) {
 						var coverToBe = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
 						cover = coverToBe;
 						if (coverToBe!=null) return ok(new LoadResult(value, coverToBe));
@@ -254,11 +256,12 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			return error();
 		});
 
-		coverLoading.set(f);
+		coverLoading = f;
 		return f.getDone().toTry().getOrThrow();
 	}
 
 	// guaranteed to execute only once
+	@SuppressWarnings("ConstantConditions")
 	protected File getCoverFile() {
 		failIfFxThread();
 		if (disposed) return null;
@@ -273,6 +276,14 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			if (coverFile==null && isImage(value)) {
 				coverFile = value;
 			}
+			if (coverFile==null) {
+				File i = null;
+				if (i==null)
+					i = getImage(value.getParentFile(), getNameWithoutExtensionOrRoot(value));
+				if (i==null && parent!=null && getCoverStrategy().useParentCoverIfNone)
+					i = parent.getCoverFile();
+				coverFile = i;
+			}
 			if (coverFile==null && isVideo(value) && getHParent()!=null) {
 				var n = getNameWithoutExtensionOrRoot(value);
 				if (n.endsWith(")")) {
@@ -280,11 +291,6 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					var coverName = i==-1 ? null : n.substring(0, i) + "(BQ)";
 					coverFile = getImage(value.getParentFile(), coverName);
 				}
-			}
-			if (coverFile==null && getCoverStrategy().useParentCoverIfNone) {
-				File i = getImage(value.getParentFile(), getNameWithoutExtensionOrRoot(value));
-				if (i==null && parent!=null) coverFile = parent.getCoverFile();
-				else coverFile = i;
 			}
 		}
 
@@ -333,17 +339,19 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	public static class CoverStrategy {
-		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true, false);
+		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true, false, true);
 
 		public boolean useParentCoverIfNone;
 		public boolean useComposedDirCover;
 		/** Has no effect if {@link #useParentCoverIfNone} is true. */
 		public boolean useNativeIconIfNone;
+		public boolean useVideoFrameCover = true;
 
-		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone, boolean useNativeIconIfNone) {
+		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone, boolean useNativeIconIfNone, boolean useVideoFrameCover) {
 			this.useParentCoverIfNone = useParentCoverIfNone;
 			this.useComposedDirCover = useComposedDirCover;
 			this.useNativeIconIfNone = useNativeIconIfNone;
+			this.useVideoFrameCover = useVideoFrameCover;
 		}
 	}
 }

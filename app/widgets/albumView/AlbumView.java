@@ -432,7 +432,7 @@ public class AlbumView extends SimpleController {
 		private void setCoverLater(Album item) {
 			failIfNotFxThread();
 
-			thumb.loadImage((File) null); // prevent displaying old content before cover loads
+			thumb.loadFile(null);
 			setCoverLater.push(item);
 		}
 

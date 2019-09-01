@@ -13,7 +13,6 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -337,7 +336,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
             // supposed to run, which might not always be the same
             if (slideshow.isRunning()) slideshow.start();
             active_image = -1;
-            mainImage.loadImage(imgFile);
+            mainImage.loadFile(imgFile);
         }
     }
 
@@ -436,7 +435,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
                   t.setBorderToImage(!thums_rect.getValue());
                   t.setBackgroundVisible(thums_rect.getValue());
                   t.hoverable.set(true);
-                  t.loadImage(f);
+                  t.loadFile(f);
                   t.getPane().setOnMouseClicked( e -> {
                       if (e.getButton() == PRIMARY) {
                           setImage(images.indexOf(f));
@@ -467,12 +466,12 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         if (index >= images.size()) index = images.size()-1;
 
         if (index == -1) {
-            mainImage.loadImage((Image) null);
+            mainImage.loadFile(null);
             // this is unnecessary because we check the index for validity
             // also unwanted, sometimes this would erase our deserialized index
             //  active_image = -1;
         } else {
-            mainImage.loadImage(images.get(index));
+            mainImage.loadFile(images.get(index));
             active_image = index;
         }
     }

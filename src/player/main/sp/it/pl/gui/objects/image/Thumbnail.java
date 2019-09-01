@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -48,7 +47,7 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
-import static sp.it.util.async.AsyncKt.runNew;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.file.UtilKt.toFileOrNull;
 import static sp.it.util.functional.Util.ISNT0;
@@ -223,35 +222,32 @@ public class Thumbnail {
 		setImgA(img);
 	}
 
-	public void loadImage(Image img, File imageFile) {
-		loadImage(img);
-		this.imageFile = imageFile;
+	public void loadImage(Image img, File file) {
+		imageFile = file;
+		setImgA(img);
 	}
 
-	public void loadImage(File img) {
-		imageFile = img;
-		ImageSize size = calculateImageLoadSize();
-		Image c = getCached(img, size);
-		if (c!=null) {
-			setImgA(c);
+	public void loadFile(File img) {
+		if (img==null) {
+			loadImage(null, null);
 		} else {
-			if (Platform.isFxApplicationThread()) {
-				runNew(() -> ImageStandardLoader.INSTANCE.invoke(img, size))
-					.useBy(FX, this::setImgA);
+			imageFile = img;
+			ImageSize size = calculateImageLoadSize();
+			Image c = getCached(img, size);
+			if (c!=null) {
+				setImgA(c);
 			} else {
-				setImgA(ImageStandardLoader.INSTANCE.invoke(img, size));
+				runIO(() -> ImageStandardLoader.INSTANCE.invoke(img, size)).useBy(FX, this::setImgA);
 			}
 		}
 	}
 
-	public void loadImage(Cover img) {
-		imageFile = img==null ? null : img.getFile();
-		if (img==null) {
-			setImgA(null);
-		} else {
-			ImageSize size = calculateImageLoadSize();
-			Image i = img.getImage(size);
-			setImgA(i);
+	public void loadCover(Cover img) {
+		if (img==null)
+			loadImage(null, null);
+		else {
+			var size = calculateImageLoadSize();
+			runIO(() -> img.getImage(size)).useBy(FX, i -> loadImage(i, img.getFile()));
 		}
 	}
 

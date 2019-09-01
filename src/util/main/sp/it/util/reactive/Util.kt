@@ -19,7 +19,6 @@ import javafx.scene.image.ImageView
 import sp.it.util.async.runLater
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
-import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
 import sp.it.util.functional.net
 import sp.it.util.identityHashCode
@@ -327,9 +326,9 @@ fun Node.sync1IfInScene(block: () -> Unit): Subscription {
    return Subscription { disposer() }
 }
 
-fun sync1IfImageLoaded(image: Image, action: Runnable) = image.progressProperty().sync1If({ it.toDouble()==1.0 }) { action() }
+inline fun Image.sync1IfImageLoaded(crossinline block: () -> Unit) = progressProperty().sync1If({ it.toDouble()==1.0 }) { block() }
 
-fun doIfImageLoaded(imageView: ImageView, action: Consumer<Image>) = imageView.imageProperty().syncInto(Image::progressProperty) { p -> if (p==1.0) action(imageView.image) }
+inline fun ImageView.doIfImageLoaded(crossinline block: (Image?) -> Unit) = imageProperty().syncInto(Image::progressProperty) { if (it==1.0) block(image) }
 
 /**
  * Call specified block on every invalidation, using [Observable.addListener].

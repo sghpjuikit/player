@@ -322,8 +322,8 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
          override fun computeGraphics() {
             super.computeGraphics()
-            thumb.fitFrom.value = FitFrom.INSIDE
-            root install appTooltipForData { thumb.representant }
+            thumb!!.fitFrom.value = FitFrom.INSIDE
+            root install appTooltipForData { thumb!!.representant }
          }
 
          override fun computeName(item: Item) = item.value.parentDirOrRoot.name + " > " + item.value.name
@@ -345,7 +345,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
       private inner class TopItem: FItem(null, null, null) {
 
          init {
-            coverStrategy = CoverStrategy(false, false, true)
+            coverStrategy = CoverStrategy(false, false, true, true)
          }
 
          override fun childrenFiles() = owner.searchSourceApps/*.filter { !it.name.contains("unins", true) }*/.asSequence()

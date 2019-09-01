@@ -378,11 +378,11 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       override fun computeGraphics() {
          super.computeGraphics()
-         thumb.fitFrom syncFrom coverFitFrom on disposer
-         root install appTooltipForData { thumb.representant }
+         thumb!!.fitFrom syncFrom coverFitFrom on disposer
+         root install appTooltipForData { thumb!!.representant }
       }
 
-      override fun computeTask(r: Runnable) = onlyIfMatches(visitId, r)
+      override fun computeTask(r: () -> Unit) = onlyIfMatches(visitId, r)
 
       override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i, edit)
 
@@ -403,7 +403,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private inner class TopItem: FItem(null, null, null) {
 
       init {
-         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false)
+         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true)
       }
 
       override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) }

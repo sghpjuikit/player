@@ -14,7 +14,7 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.util.async.runIO
 import sp.it.util.identityHashCode
 import sp.it.util.ui.fxml.ConventionFxmlLoader
-import sp.it.util.ui.setAnchors
+import sp.it.util.ui.layFullArea
 
 /** Basic display for song information. */
 class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), SongReader {
@@ -38,8 +38,7 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
       if (showCover) {
          thumb = Thumbnail()
          thumb.borderVisible = true
-         coverContainer!!.children += thumb.pane
-         thumb.pane.setAnchors(0.0)
+         coverContainer!!.layFullArea += thumb.pane
       } else {
          thumb = null
          children -= coverContainer
@@ -65,9 +64,9 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
    private fun Thumbnail.loadCoverOf(data: Metadata) {
       val id = data.identityHashCode()
       runIO {
-         data.getCover(ANY).image
+         data.getCover(ANY)
       } ui {
-         if (dataId==id) loadImage(it)
+         if (dataId==id)loadCover(it)
       }
    }
 

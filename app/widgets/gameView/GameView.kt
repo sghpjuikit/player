@@ -250,8 +250,8 @@ class GameView(widget: Widget): SimpleController(widget) {
       override fun computeGraphics() {
          super.computeGraphics()
 
-         thumb.fitFrom syncFrom fitFrom
-         root install appTooltipForData { thumb.representant }
+         thumb!!.fitFrom syncFrom fitFrom
+         root install appTooltipForData { thumb!!.representant }
       }
 
       override fun onAction(i: Item, edit: Boolean) = viewGame(i.value)
@@ -406,7 +406,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          val g = Game(gFile)
          game = g
 
-         cover.loadImage(null as File?)
+         cover.loadFile(null)
          titleL.text = ""
          infoT.text = ""
          fileTree.root = null

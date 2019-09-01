@@ -546,7 +546,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         // empty previous content
         fields.forEach(TagField::emptyContent);
-        CoverV.loadImage((Image)null);
+        CoverV.loadImage(null);
         coverSuperContainer.setDisable(true);
         CoverL.setUserData(false);
         new_cover_file = null;
@@ -650,11 +650,11 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         new_cover_file = f!=null && isImageJaudiotagger(f) ? f : null;
         if (new_cover_file != null) {
-            CoverV.loadImage(new_cover_file);
+            CoverV.loadFile(new_cover_file);
             CoverL.setText(getSuffix(new_cover_file) + " "+(int)CoverV.getImage().getWidth()+"/"+(int)CoverV.getImage().getHeight());
             CoverL.setUserData(true);
         } else {
-            CoverV.loadImage((Image)null);
+            CoverV.loadImage(null);
             CoverL.setText(APP.getTextNoVal());
             CoverL.setUserData(true);
         }

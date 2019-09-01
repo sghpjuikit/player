@@ -6,7 +6,6 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
-import sp.it.util.ui.ContextMenuGenerator
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.controller.io.InOutput
@@ -26,6 +25,7 @@ import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.writeImage
+import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.async.runIO
 import sp.it.util.conf.Configurable
@@ -46,6 +46,7 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
+import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder
 import java.io.File
 import java.lang.reflect.Modifier
@@ -97,6 +98,9 @@ object CoreMenus: Core {
             }
             if (value.isImage()) {
                item("Fullscreen") { APP.actions.openImageFullscreen(it) }
+               APP.plugins.use<WallpaperPlugin> { w ->
+                  item("Use as wallpaper") { w.wallpaperFile.value = it }
+               }
             }
             item("Open (in associated program)") { it.open() }
             item("Edit (in associated editor)") { it.edit() }

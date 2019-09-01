@@ -48,9 +48,13 @@ object ImageStandardLoader: ImageLoader {
       return if (p.mime.group==video) {
          val tmpDir: File = File(System.getProperty("user.home")).absoluteFile
          val tmpFile = tmpDir/"video-covers"/"${p.file.nameWithoutExtension}.png"
-         getThumb(p.file.absolutePath, tmpFile.absolutePath, p.size.width.toInt(), p.size.height.toInt(), 0, 0, 10f).map {
+         if (tmpFile.exists()) {
             ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
-         }.orNull()
+         } else {
+            getThumb(p.file.absolutePath, tmpFile.absolutePath, p.size.width.toInt(), p.size.height.toInt(), 0, 0, 10f).map {
+               ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
+            }.orNull()
+         }
       } else when (p.mime.name) {
          "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
          "application/x-msdownload",
@@ -101,7 +105,7 @@ object Image2PassLoader {
 
 }
 
-// TODO: move out
+// TODO: move out + handle errors
 fun getThumb(videoFilename: String, thumbFilename: String, width: Int, height: Int, hour: Int, min: Int, sec: Float) = run {
    val ffmpeg = File("").absoluteFile/"ffmpeg"/"bin"/"ffmpeg.exe"
    val args = arrayOf("-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss", "$hour:$min:$sec", "-f", "mjpeg", "-an", "\"$thumbFilename\"")

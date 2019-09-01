@@ -168,8 +168,12 @@ public class GridView<T, F> extends Control {
 		return itemsSorted;
 	}
 
-	public Stream<GridCell<T,F>> getCellsShown() {
+	protected Stream<GridCell<T,F>> getCellsAll() {
 		return implGetSkin().getCells();
+	}
+
+	public Stream<GridCell<T,F>> getCellsShown() {
+		return implGetSkin().getCellsAll();
 	}
 
 	/**
@@ -369,7 +373,10 @@ public class GridView<T, F> extends Control {
 		@Override
 		public void cancel() {
 			super.cancel();
-			updateSearchStyleRowsNoReset();
+			getCellsAll().forEach(cell -> {
+				cell.pseudoClassStateChanged(PC_SEARCH_MATCH, false);
+				cell.pseudoClassStateChanged(PC_SEARCH_MATCH_NOT, false);
+			});
 		}
 
 		void updateSearchStyles() {

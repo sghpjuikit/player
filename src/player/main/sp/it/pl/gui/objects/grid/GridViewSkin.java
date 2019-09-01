@@ -216,6 +216,10 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		return flow.getCells();
 	}
 
+	public Stream<GridCell<T,F>> getCellsAll() {
+		return flow.getCellsAll();
+	}
+
 	/* ---------- SELECTION --------------------------------------------------------------------------------------------- */
 
 	@SuppressWarnings("unchecked")
@@ -390,6 +394,10 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			return visibleCells.stream();
 		}
 
+		public Stream<GridCell<T,F>> getCellsAll() {
+			return Stream.concat(visibleCells.stream(), cachedCells.stream()).distinct();
+		}
+
 		public double getPosition() {
 			return viewStart;
 		}
@@ -410,7 +418,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		private GridCell<T,F> createCell() {
 			GridView<T,F> grid = getSkinnable();
 			GridCell<T,F> cell = grid.cellFactory.getValue().call(grid);
-			cell.gridView.set(grid);
+			cell.getGridView().set(grid);
 			cell.addEventHandler(MOUSE_CLICKED, e -> {
 				if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) {
 					getSkinnable().implGetSkin().select(cell);

@@ -10,7 +10,7 @@ import sp.it.util.access.V
 open class GridCell<T, F>: IndexedCell<T>() {
 
    /** [GridView] this cell belongs to. */
-   @JvmField val gridView = V<GridView<T, F>?>(null)
+   val gridView = V<GridView<T, F>?>(null)
 
    init {
       styleClass += "grid-cell"

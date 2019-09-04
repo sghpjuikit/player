@@ -39,11 +39,8 @@ import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetUse.ANY
-import sp.it.pl.layout.widget.WidgetUse.OPEN_LAYOUT
-import sp.it.pl.layout.widget.WidgetUse.OPEN_STANDALONE
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
@@ -66,6 +63,7 @@ import sp.it.util.file.FileType
 import sp.it.util.file.children
 import sp.it.util.file.hasExtension
 import sp.it.util.file.nameOrRoot
+import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
@@ -75,6 +73,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
+import sp.it.util.text.nullIfBlank
 import sp.it.util.text.plural
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
@@ -106,8 +105,6 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is TreeItem<*> -> o
    is Widget -> WidgetItem(o)
    is WidgetFactory<*> -> SimpleTreeItem(o)
-   is Widget.Group -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(OPEN).filter { it.info.group()==o }.sortedBy { it.name } })
-   is WidgetSource -> STreeItem<Any>(o, { APP.widgetManager.widgets.findAll(o).sortedBy { it.name } })
    is Feature -> STreeItem<Any>(o, { APP.widgetManager.factories.getFactories().filter { it.hasFeature(o) }.sortedBy { it.nameGui() } })
    is Container<*> -> LayoutItem(o)
    is File -> FileTreeItem(o)
@@ -141,7 +138,7 @@ fun treeApp(): TreeItem<Any> {
          tree("Widgets",
             tree("Categories", Widget.Group.values().asList()),
             tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.nameGui() } }),
-            tree("Open", { seqOf(ANY, OPEN_LAYOUT, OPEN_STANDALONE) }),
+            tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
          ),
          tree("Plugins", { APP.plugins.getAll().sortedBy { it.name } })
@@ -251,7 +248,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o is WindowFX -> {
          val w = o.asAppWindow()
          if (w==null) {
-            "Window (generic)"
+            o.asIf<Stage>()?.title.nullIfBlank() ?: "Window (generic)"
          } else {
             var n = "Window " + APP.windowManager.windows.indexOf(w)
             if (w===APP.windowManager.getMain().orNull()) n += " (main)"

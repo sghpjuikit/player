@@ -7,6 +7,8 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.gui.objects.image.Thumbnail
+import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
@@ -218,6 +220,20 @@ object CoreMenus: Core {
                menuFor("Cover file", value.fsImageFile)
             if (value.representant!=null)
                menuFor(value.representant)
+         }
+         add<Widget.Group> {
+            item("Show open widget instances") { group ->
+               APP.ui.actionPane.orBuild.show(
+                  APP.widgetManager.widgets.findAll(WidgetSource.OPEN).filter { it.info.group()==group }.sortedBy { it.name }.toList()
+               )
+            }
+         }
+         add<WidgetSource> {
+            item("Show open widget instances") {
+               APP.ui.actionPane.orBuild.show(
+                  APP.widgetManager.widgets.findAll(it).sortedBy { it.name }.toList()
+               )
+            }
          }
          add<Input<*>> {
             menuFor("Value", value.value)

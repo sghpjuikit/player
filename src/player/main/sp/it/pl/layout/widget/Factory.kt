@@ -6,6 +6,7 @@ import sp.it.pl.layout.widget.controller.NoFactoryController
 import sp.it.pl.main.APP
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
+import sp.it.util.text.nullIfBlank
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
@@ -52,7 +53,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
       this.location = location
       this.locationUser = APP.location.user.widgets/location.nameOrRoot
       this.externalWidgetData = externalWidgetData
-      this.nameGui = if (i.name.isEmpty()) name else i.name
+      this.nameGui = i.name.nullIfBlank() ?: name
       this.description = i.description
       this.version = i.version
       this.author = i.author

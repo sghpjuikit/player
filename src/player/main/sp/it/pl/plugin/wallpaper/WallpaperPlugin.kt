@@ -13,6 +13,7 @@ import sp.it.pl.gui.objects.window.stage.setNonInteractingOnBottom
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.vn
+import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runIO
 import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.IsConfig
@@ -34,6 +35,7 @@ import sp.it.util.ui.min
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.xy
+import sp.it.util.units.millis
 import java.io.File
 
 class WallpaperPlugin: PluginBase("Wallpaper", false) {
@@ -63,10 +65,12 @@ class WallpaperPlugin: PluginBase("Wallpaper", false) {
             xy = screen.bounds.min
             setNonInteractingOnBottom()
 
+            val anim = anim(500.millis) { opacity = it*it }.applyNow()
+
             root.lay += Thumbnail(screenSize).apply {
                fitFrom.value = FitFrom.OUTSIDE
                wallpaperImageW sync ::loadImage on disposer
-               image sync { if (it==null) close() else show() } on disposer
+               image sync { if (it==null) anim.playCloseDo(::close) else anim.playDoOpen(::show) } on disposer
                disposer += { loadImage(null) }
             }.pane
 

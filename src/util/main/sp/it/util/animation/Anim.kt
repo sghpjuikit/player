@@ -161,6 +161,11 @@ open class Anim: Transition {
       playClose()
    }
 
+   fun playDoOpen(block: Block?) {
+      block?.invoke()
+      playOpen()
+   }
+
    fun playOpenDo(block: Block?) {
       onFinished = block?.let {
          EventHandler {

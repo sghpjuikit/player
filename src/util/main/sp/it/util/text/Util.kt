@@ -5,6 +5,12 @@ import sp.it.util.action.Action
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 
+/** @return this string or null if it is null or [String.isEmpty] */
+fun String?.nullIfEmpty() = this?.takeUnless { it.isEmpty() }
+
+/** @return this string or null if it is null or [String.isBlank] */
+fun String?.nullIfBlank() = this?.takeUnless { it.isBlank() }
+
 /** @return plural of this word if count is more than 1 or this word otherwise */
 fun String.plural(count: Int = 2) = org.atteo.evo.inflector.English.plural(this, count)
 

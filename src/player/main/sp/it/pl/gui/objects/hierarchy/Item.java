@@ -24,7 +24,7 @@ import sp.it.util.functional.Try;
 import sp.it.util.functional.TryKt;
 import sp.it.util.functional.Util;
 import sp.it.util.ui.IconExtractor;
-import sp.it.util.ui.image.Image2PassLoader;
+import sp.it.pl.image.Image2PassLoader;
 import sp.it.util.ui.image.ImageSize;
 import static java.util.stream.Collectors.toList;
 import static kotlin.streams.jdk8.StreamsKt.asStream;

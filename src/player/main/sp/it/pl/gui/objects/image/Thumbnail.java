@@ -33,7 +33,7 @@ import sp.it.util.dev.Dependency;
 import sp.it.util.math.P;
 import sp.it.util.ui.image.FitFrom;
 import sp.it.util.ui.image.ImageSize;
-import sp.it.util.ui.image.ImageStandardLoader;
+import sp.it.pl.image.ImageStandardLoader;
 import static java.lang.Double.min;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.DataFormat.FILES;

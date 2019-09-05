@@ -40,7 +40,7 @@ import sp.it.util.functional.TriConsumer;
 import sp.it.util.functional.Util;
 import sp.it.util.type.TypeToken;
 import sp.it.util.ui.Resolution;
-import sp.it.util.ui.image.Image2PassLoader;
+import sp.it.pl.image.Image2PassLoader;
 import sp.it.util.ui.image.ImageSize;
 import static albumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static java.util.stream.Collectors.toList;

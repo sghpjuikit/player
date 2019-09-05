@@ -10,6 +10,7 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle.UNDECORATED
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.window.stage.setNonInteractingOnBottom
+import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.vn
@@ -29,7 +30,6 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.system.Os
 import sp.it.util.ui.image.FitFrom
-import sp.it.util.ui.image.ImageStandardLoader
 import sp.it.util.ui.lay
 import sp.it.util.ui.min
 import sp.it.util.ui.size

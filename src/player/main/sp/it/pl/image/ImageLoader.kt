@@ -1,21 +1,37 @@
-package sp.it.util.ui.image
+package sp.it.pl.image
 
 import javafx.scene.image.Image
 import mu.KotlinLogging
+import sp.it.pl.image.ImageLoader.Params
+import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
+import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.withAppProgress
+import sp.it.util.async.FX
 import sp.it.util.async.IO
+import sp.it.util.async.runIO
+import sp.it.util.dev.fail
+import sp.it.util.dev.failIf
+import sp.it.util.dev.stacktraceAsString
+import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
+import sp.it.util.file.unzip
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.orNull
+import sp.it.util.system.Os
 import sp.it.util.system.runAsProgram
 import sp.it.util.ui.IconExtractor
-import sp.it.util.ui.image.ImageLoader.Params
+import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.image.imgImplLoadFX
+import sp.it.util.ui.image.loadImagePsd
 import java.io.File
 import java.io.IOException
+import java.net.URI
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
-
 
 private val logger = KotlinLogging.logger {}
 
@@ -47,7 +63,7 @@ object ImageStandardLoader: ImageLoader {
 
       return if (p.mime.group==video) {
          val tmpDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
-         val tmpFile = tmpDir/"video-covers"/"${p.file.nameWithoutExtension}.png"
+         val tmpFile = tmpDir/"${p.file.nameWithoutExtension}.png"
          if (tmpFile.exists()) {
             ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
          } else {
@@ -107,9 +123,57 @@ object Image2PassLoader {
 }
 
 // TODO handle videos shorter than specified time
-// TODO: move out + handle errors
-fun getThumb(videoFilename: String, thumbFilename: String, hour: Int, min: Int, sec: Float) = run {
-   val ffmpeg = File("").absoluteFile/"ffmpeg"/"bin"/"ffmpeg.exe"
+// TODO: handle errors
+private fun getThumb(videoFilename: String, thumbFilename: String, hour: Int, min: Int, sec: Float) = run {
+   val ffmpeg = ffmpeg.getDone().toTry().orNull() ?: fail { "ffmpeg not available" }
    val args = arrayOf("-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss", "$hour:$min:$sec", "-f", "mjpeg", "-an", "\"$thumbFilename\"")
-   ffmpeg.runAsProgram(*args).then(IO) { it.map { it.waitFor(5, TimeUnit.SECONDS) } }.getDoneOrNull() ?: error("fff")
+   ffmpeg.runAsProgram(*args).then(IO) { it.map { it.waitFor(5, TimeUnit.SECONDS) } }
+      .getDone().toTry().getOrSupply { error(it) }
+      .ifError { it.printStackTrace() }
+}
+
+private val ffmpeg by lazy {
+   val os = Os.current
+   val ffmpegDir = APP.location/"ffmpeg"
+   val ffmpegZip = ffmpegDir/"ffmpeg.zip"
+   val ffmpegBinary = when (os) {
+      Os.WINDOWS -> ffmpegDir/"bin"/"ffmpeg.exe"
+      Os.OSX -> ffmpegDir/"bin"/"ffmpeg"
+      else -> fail { "Video cover extraction using ffmpeg is not supported on $os" }
+   }
+   val ffmpegVersion = "ffmpeg-20190826-0821bc4-win64-static"
+   val ffmpegLink = URI(
+      when (os) {
+         Os.WINDOWS -> "https://ffmpeg.zeranoe.com/builds/win64/static/$ffmpegVersion.zip"
+         Os.OSX -> "https://ffmpeg.zeranoe.com/builds/macos64/static/$ffmpegVersion.zip"
+         else -> fail { "Video cover extraction using ffmpeg is not supported on $os" }
+      }
+   )
+   runIO {
+      fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
+
+      if (!ffmpegBinary.exists()) {
+         if (ffmpegDir.exists()) ffmpegDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler in=$ffmpegDir" }
+         saveFileAs(ffmpegLink.toString(), ffmpegZip)
+         ffmpegZip.unzip(ffmpegDir) { it.substringAfter("$ffmpegVersion/") }
+         ffmpegBinary.setExecutable(true).orFailIO { "Failed to make file=$ffmpegBinary executable" }
+         ffmpegZip.delete().orFailIO { "Failed to clean up downloaded file=$ffmpegZip" }
+      }
+
+      failIf(!ffmpegBinary.exists()) { "Kotlinc executable=$ffmpegBinary does not exist" }
+      failIf(!ffmpegBinary.canExecute()) { "Kotlinc executable=$ffmpegBinary must be executable" }
+      ffmpegBinary
+   }.withAppProgress("Obtaining ffmpeg").onDone(FX) {
+      it.toTry().ifErrorNotify {
+         AppError(
+            "Failed to obtain ffmpeg",
+            """
+               |ffmpeg version: $ffmpegVersion
+               |ffmpeg link: $ffmpegLink
+               |
+               | ${it.stacktraceAsString}
+            """.trimMargin()
+         )
+      }
+   }
 }

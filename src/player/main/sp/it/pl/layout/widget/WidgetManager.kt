@@ -61,7 +61,6 @@ import sp.it.util.file.hasExtension
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
-import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.toURLOrNull
 import sp.it.util.file.unzip
 import sp.it.util.functional.Try
@@ -147,18 +146,17 @@ class WidgetManager {
          else -> APP.location.kotlinc/"bin"/"kotlinc"
       }
       val kotlincZip = kotlincDir/kotlincZipName
-      val kotlincZipTarget = kotlincDir.also { failIf(!it.endsWith("kotlinc")) { "Kotlinc directory must end with 'kotlinc'" } }.parentDirOrRoot
       val kotlincLinkVersion = if (!kotlincUseExperimental) kotlinVersion else "1.3.31"
       val kotlincLink = URI("https://github.com/JetBrains/kotlin/releases/download/v$kotlincLinkVersion/$kotlincZipName")
       runIO {
          fun isCorrectVersion() = kotlincVersionFile.exists() && kotlincVersionFile.readText()==kotlincLink.toString()
          fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
 
-         if (!isCorrectVersion()) {
+         if (!isCorrectVersion() || !kotlincBinary.exists()) {
             if (kotlincDir.exists()) kotlincDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler in=$kotlincDir" }
-            if (!kotlincDir.exists()) kotlincDir.mkdirs().orFailIO { "Failed to create directory=$kotlincDir" }
+            kotlincDir.mkdirs()
             saveFileAs(kotlincLink.toString(), kotlincZip)
-            kotlincZip.unzip(kotlincZipTarget) { it.startsWith("kotlinc/").orFailIO { "Kotlinc zip entries must start with 'kotlinc'" }; it }
+            kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/");  }
             kotlincBinary.setExecutable(true).orFailIO { "Failed to make file=$kotlincBinary executable" }
             kotlincZip.delete().orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
             kotlincVersionFile.writeText(kotlincLink.toString())

@@ -214,10 +214,11 @@ public interface Util {
 	 */
 	static void saveFileAs(String url, File file) throws IOException {
 		if (file.exists()) file.delete();
+		if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
 		URL u = new URL(url);
 		try (
-				InputStream is = u.openStream();
-				OutputStream os = new FileOutputStream(file)) {
+			InputStream is = u.openStream();
+			OutputStream os = new FileOutputStream(file)) {
 			byte[] b = new byte[2048];
 			int length;
 			while ((length = is.read(b))>0)

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import javafx.scene.image.Image;
 import kotlin.sequences.Sequence;
 import kotlin.sequences.SequencesKt;
@@ -22,6 +21,7 @@ import sp.it.util.dev.ThreadSafe;
 import sp.it.util.file.FileType;
 import sp.it.util.file.UtilKt;
 import sp.it.util.functional.Try;
+import sp.it.util.functional.TryKt;
 import sp.it.util.functional.Util;
 import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.Image2PassLoader;
@@ -198,7 +198,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 		var cl = coverLoading;
 		if (cl!=null)
-			return cl.getDone().toTry().getOrThrow();
+			return TryKt.getOrSupply(cl.getDone().toTry(), e -> error(null));
 
 		Fut<Try<LoadResult,Void>> f = Fut.fut().then(IO, k -> {
 			File file = getCoverFile();
@@ -257,7 +257,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		});
 
 		coverLoading = f;
-		return f.getDone().toTry().getOrThrow();
+		return TryKt.getOrSupply(f.getDone().toTry(), e -> error(null));
 	}
 
 	// guaranteed to execute only once

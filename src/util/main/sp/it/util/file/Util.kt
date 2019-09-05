@@ -237,15 +237,21 @@ fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwabl
  * Optionally, zip entry path transformer can be used to transform the full entry paths to target-relative file paths.
  */
 @Blocks
-inline fun File.unzip(target: File, pathTransformer: (String) -> String = { it }) {
+fun File.unzip(target: File, pathTransformer: (String) -> String = { it }) {
    ZipFile(this).use { zip ->
       zip.entries().asSequence().forEach { entry ->
-         zip.getInputStream(entry).use { input ->
-            val f = target/pathTransformer(entry.name)
-            val fp = f.parentDirOrRoot
-            if (!fp.exists()) fp.mkdirs().ifFalse { fail { "Failed to create directory=$fp" } }
-            f.outputStream().use { output ->
-               input.copyTo(output)
+         val fName = pathTransformer(entry.name)
+         if (entry.isDirectory) {
+            val f = target/fName
+            if (!f.exists()) f.mkdirs().ifFalse { fail { "Failed to create directory=$f" } }
+         } else {
+            zip.getInputStream(entry).use { input ->
+               val f = target/fName
+               val fParent = f.parentDirOrRoot
+               if (!fParent.exists()) fParent.mkdirs().ifFalse { fail { "Failed to create directory=$fParent" } }
+               f.outputStream().use { output ->
+                  input.copyTo(output)
+               }
             }
          }
       }

@@ -154,7 +154,6 @@ class WidgetManager {
 
          if (!isCorrectVersion() || !kotlincBinary.exists()) {
             if (kotlincDir.exists()) kotlincDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler in=$kotlincDir" }
-            kotlincDir.mkdirs()
             saveFileAs(kotlincLink.toString(), kotlincZip)
             kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/");  }
             kotlincBinary.setExecutable(true).orFailIO { "Failed to make file=$kotlincBinary executable" }
@@ -477,7 +476,7 @@ class WidgetManager {
       /** Compiles specified .kt files into .class files. */
       private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
          try {
-            val kotlincFile = kotlinc.getDone().or { throw IOException("Failed to obtain Kotlin compiler", it) }
+            val kotlincFile = kotlinc.getDone().toTry().orNull() ?: fail { "Kotlin compiler not available" }
             val command = listOf(
                kotlincFile.relativeToApp(),
                "-d", compileDir.relativeToApp(),

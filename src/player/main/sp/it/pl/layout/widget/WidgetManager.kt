@@ -7,6 +7,7 @@ import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
+import javafx.scene.text.Text
 import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
@@ -24,14 +25,17 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
+import sp.it.pl.main.AppErrorAction
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.thenWithAppProgress
+import sp.it.pl.main.withAppProgress
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
+import sp.it.util.async.runIO
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
@@ -43,9 +47,13 @@ import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.dev.Idempotent
+import sp.it.util.dev.fail
+import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util.isValidatedDirectory
+import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.child
 import sp.it.util.file.children
 import sp.it.util.file.div
@@ -53,7 +61,9 @@ import sp.it.util.file.hasExtension
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
+import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.toURLOrNull
+import sp.it.util.file.unzip
 import sp.it.util.functional.Try
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.asArray
@@ -73,15 +83,19 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
+import sp.it.util.system.browse
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.Util
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.scrollText
 import sp.it.util.ui.stylesheetToggle
 import sp.it.util.units.seconds
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import java.lang.ProcessBuilder.Redirect
+import java.net.URI
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
@@ -115,6 +129,79 @@ class WidgetManager {
    private var classpathSeparator = Os.current.classpathSeparator
    private var initialized = false
    private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
+   private val kotlinc by lazy {
+      val os = Os.current
+      val kotlinVersion = "1.3.50"
+      val kotlincUseExperimental = widgets.useExperimentalKotlinCompiler
+      val kotlincDir = APP.location.kotlinc
+      val kotlincVersionFile = kotlincDir/"version"
+      val kotlincZipName = when {
+         !kotlincUseExperimental -> "kotlin-compiler-$kotlinVersion.zip"
+         os==Os.UNIX -> "experimental-kotlin-compiler-linux-x64.zip"
+         os==Os.OSX -> "experimental-kotlin-compiler-macos-x64.zip"
+         os==Os.WINDOWS -> "experimental-kotlin-compiler-windows-x64.zip"
+         else -> fail { "Unable to determine kotlinc version due to unfamiliar system=$os" }
+      }
+      val kotlincBinary = when (Os.current) {
+         Os.WINDOWS -> APP.location.kotlinc/"bin"/"kotlinc.bat"
+         else -> APP.location.kotlinc/"bin"/"kotlinc"
+      }
+      val kotlincZip = kotlincDir/kotlincZipName
+      val kotlincZipTarget = kotlincDir.also { failIf(!it.endsWith("kotlinc")) { "Kotlinc directory must end with 'kotlinc'" } }.parentDirOrRoot
+      val kotlincLinkVersion = if (!kotlincUseExperimental) kotlinVersion else "1.3.31"
+      val kotlincLink = URI("https://github.com/JetBrains/kotlin/releases/download/v$kotlincLinkVersion/$kotlincZipName")
+      runIO {
+         fun isCorrectVersion() = kotlincVersionFile.exists() && kotlincVersionFile.readText()==kotlincLink.toString()
+         fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
+
+         if (!isCorrectVersion()) {
+            if (kotlincDir.exists()) kotlincDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler in=$kotlincDir" }
+            if (!kotlincDir.exists()) kotlincDir.mkdirs().orFailIO { "Failed to create directory=$kotlincDir" }
+            saveFileAs(kotlincLink.toString(), kotlincZip)
+            kotlincZip.unzip(kotlincZipTarget) { it.startsWith("kotlinc/").orFailIO { "Kotlinc zip entries must start with 'kotlinc'" }; it }
+            kotlincBinary.setExecutable(true).orFailIO { "Failed to make file=$kotlincBinary executable" }
+            kotlincZip.delete().orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
+            kotlincVersionFile.writeText(kotlincLink.toString())
+         }
+
+         failIf(!isCorrectVersion()) { "Kotlinc has wrong version" }
+         failIf(!kotlincBinary.exists()) { "Kotlinc executable=$kotlincBinary does not exist" }
+         failIf(!kotlincBinary.canExecute()) { "Kotlinc executable=$kotlincBinary must be executable" }
+         kotlincBinary
+      }.withAppProgress("Obtaining Kotlin compiler").onDone(FX) {
+         it.toTry().ifErrorNotify {
+            AppError(
+               "Failed to obtain Kotlin compiler",
+               """
+                  |Kotlin version: $kotlinVersion
+                  |Kotlinc use experimental: $kotlincUseExperimental
+                  |Kotlinc version: $kotlincLinkVersion
+                  |Kotlinc link: $kotlincLink
+                  |
+                  | ${it.stacktraceAsString}
+               """.trimMargin(),
+               AppErrorAction("Download manually") {
+                  kotlincLink.browse()
+                  kotlincDir.browse()
+                  APP.windowManager.showFloating(
+                     "Setup Kotlin compiler",
+                     scrollText {
+                        Text("""
+                           |It is recommended to let the application set up the compiler, you may wish to check the exact error instead.
+                           |You may also wish to try ${if (kotlincUseExperimental) "disable" else "enable"} experimental version of the compiler in the settings and restart the application.
+                           |
+                           |If you still wish to set up the compiler manually, you need to:
+                           | * Download the compiler from $kotlincLink
+                           | * Extract the contents to $kotlincDir so there exists executable file $kotlincBinary
+                           | * Create file $kotlincVersionFile (no extension) and set its text content to the link, you obtained the compiler from 
+                        """.trimMargin())
+                     }
+                  )
+               }
+            )
+         }
+      }
+   }
 
    fun init() {
       if (initialized) return
@@ -392,12 +479,9 @@ class WidgetManager {
       /** Compiles specified .kt files into .class files. */
       private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
          try {
-            val compilerFile = when (Os.current) {
-               Os.UNIX -> APP.location/"kotlinc"/"bin"/"kotlinc"
-               else -> APP.location/"kotlinc"/"bin"/"kotlinc.bat"
-            }
+            val kotlincFile = kotlinc.getDone().or { throw IOException("Failed to obtain Kotlin compiler", it) }
             val command = listOf(
-               compilerFile.relativeToApp(),
+               kotlincFile.relativeToApp(),
                "-d", compileDir.relativeToApp(),
                "-jdk-home", APP.location.child("java").relativeToApp(),
                "-jvm-target", Runtime.version().feature().toString(),
@@ -435,6 +519,9 @@ class WidgetManager {
    }
 
    inner class Widgets: GlobalSubConfigDelegator("Widgets") {
+
+      @IsConfig(name = "Use experimental kotlin compiler", info = "This os-specific compiler is almost 5 times faster than standard kotlin compiler. Change requires restart.")
+      var useExperimentalKotlinCompiler by c(true)
 
       @IsConfig(name = "Auto-compilation supported", info = "On some system, this feature may be unsupported", editable = EditMode.NONE)
       val autoRecompileSupported by c(Os.WINDOWS.isCurrent)

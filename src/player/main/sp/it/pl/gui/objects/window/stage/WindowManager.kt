@@ -436,7 +436,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       }
    }
 
-   fun showFloating(content: Node, title: String): PopOver<*> {
+   fun showFloating(title: String, content: Node): PopOver<*> {
       return PopOver(content).apply {
          this.title.value = title
          this.isAutoFix = false

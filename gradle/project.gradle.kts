@@ -1,5 +1,4 @@
 
-import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import kotlin.text.Charsets.UTF_8
 
@@ -9,7 +8,6 @@ plugins {
    kotlin("jvm") version "1.3.50"
    application
    id("com.github.ben-manes.versions") version "0.20.0"
-   id("de.undercouch.download") version "3.4.3"
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code
@@ -198,56 +196,6 @@ tasks {
       linkLocation = dirJdk
    }
 
-   val kotlinc by creating(Download::class) {
-      group = "build setup"
-      description = "Downloads required version of the kotlin compiler"
-
-      val os = org.gradle.internal.os.OperatingSystem.current()
-      val useExperimentalKotlinc = "player.kotlinc.experimental".prjProp?.toBoolean() ?: true
-      val kotlincDir = dirApp/"kotlinc"
-      val kotlincVersionFile = kotlincDir/"version"
-      val kotlincZipName = when {
-         !useExperimentalKotlinc -> "kotlin-compiler-$kotlinVersion.zip"
-         os.isLinux -> "experimental-kotlin-compiler-linux-x64.zip"
-         os.isMacOsX -> "experimental-kotlin-compiler-macos-x64.zip"
-         os.isWindows -> "experimental-kotlin-compiler-windows-x64.zip"
-         else -> failIO { "Unable to determine kotlinc version due to unfamiliar system=$os" }
-      }
-      val kotlincBinary = kotlincDir/"bin"/"kotlinc"
-      val kotlincZip = kotlincDir/kotlincZipName
-      val kotlincLinkVersion = if (!useExperimentalKotlinc) kotlinVersion else "1.3.31"
-      val kotlincLink = "https://github.com/JetBrains/kotlin/releases/download/v$kotlincLinkVersion/$kotlincZipName"
-
-      doFirst {
-         println("Obtaining Kotlin compiler experimental=$useExperimentalKotlinc from=$kotlincLink")
-         if (kotlincDir.exists()) {
-            println("Deleting obsolete version of Kotlin compiler...")
-            kotlincDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler, location=$kotlincDir" }
-         }
-         if (!kotlincDir.exists()) {
-            kotlincDir.mkdirs().orFailIO { "Failed to create directory=$kotlincDir" }
-         }
-         println("Downloading...")
-      }
-
-      src(kotlincLink)
-      dest(kotlincDir)
-      setOnlyIf { !kotlincVersionFile.exists() || kotlincVersionFile.readText() != src.toString() }
-
-      doLast {
-         copy {
-            from(if (kotlincZipName.endsWith("zip")) zipTree(kotlincZip) else tarTree(kotlincZip)) {
-               eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray()) }
-               includeEmptyDirs = false
-            }
-            into(kotlincDir)
-         }
-         kotlincBinary.setExecutable(true).orFailIO { "Failed to make file=$kotlincBinary executable" }
-         kotlincZip.delete().orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
-         kotlincVersionFile.writeText(src.toString())
-      }
-   }
-
    val generateFileHierarchy by creating(FileHierarchyInfo::class) {
       group = "build setup"
       description = "Generates file hierarchy class and documentation"
@@ -259,7 +207,7 @@ tasks {
    }
 
    val jar by getting(Jar::class) {
-      dependsOn(copyLibs, kotlinc, generateFileHierarchy)
+      dependsOn(copyLibs, generateFileHierarchy)
       group = main
       destinationDirectory.set(dirApp)
       archiveFileName.set("PlayerFX.jar")

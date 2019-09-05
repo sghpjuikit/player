@@ -215,7 +215,7 @@ class App: Application(), GlobalConfigDelegator {
       val root = VmOptionsPane().apply {
          prefHeight = 600.scaleEM()
       }
-      windowManager.showFloating(root, "VM options").toUnit()
+      windowManager.showFloating("VM options", root).toUnit()
    }.readOnlyUnless(
       developerMode
    )

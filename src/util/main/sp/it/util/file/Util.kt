@@ -2,8 +2,10 @@ package sp.it.util.file
 
 import mu.KotlinLogging
 import sp.it.util.dev.Blocks
+import sp.it.util.dev.fail
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
+import sp.it.util.functional.ifFalse
 import sp.it.util.functional.runTry
 import java.io.File
 import java.io.FileFilter
@@ -12,6 +14,7 @@ import java.net.MalformedURLException
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Files
+import java.util.zip.ZipFile
 
 private val logger = KotlinLogging.logger { }
 
@@ -226,5 +229,25 @@ fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwabl
       }
    }.map {
       null
+   }
+}
+
+/**
+ * Unzips a zip file using [ZipFile] into the specified target directory, retaining the zip structure.
+ * Optionally, zip entry path transformer can be used to transform the full entry paths to target-relative file paths.
+ */
+@Blocks
+inline fun File.unzip(target: File, pathTransformer: (String) -> String = { it }) {
+   ZipFile(this).use { zip ->
+      zip.entries().asSequence().forEach { entry ->
+         zip.getInputStream(entry).use { input ->
+            val f = target/pathTransformer(entry.name)
+            val fp = f.parentDirOrRoot
+            if (!fp.exists()) fp.mkdirs().ifFalse { fail { "Failed to create directory=$fp" } }
+            f.outputStream().use { output ->
+               input.copyTo(output)
+            }
+         }
+      }
    }
 }

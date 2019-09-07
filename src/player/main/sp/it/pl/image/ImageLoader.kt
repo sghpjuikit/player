@@ -153,15 +153,15 @@ private val ffmpeg by lazy {
       fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
 
       if (!ffmpegBinary.exists()) {
-         if (ffmpegDir.exists()) ffmpegDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler in=$ffmpegDir" }
+         if (ffmpegDir.exists()) ffmpegDir.deleteRecursively().orFailIO { "Failed to remove ffmpeg in=$ffmpegDir" }
          saveFileAs(ffmpegLink.toString(), ffmpegZip)
          ffmpegZip.unzip(ffmpegDir) { it.substringAfter("$ffmpegVersion/") }
          ffmpegBinary.setExecutable(true).orFailIO { "Failed to make file=$ffmpegBinary executable" }
          ffmpegZip.delete().orFailIO { "Failed to clean up downloaded file=$ffmpegZip" }
       }
 
-      failIf(!ffmpegBinary.exists()) { "Kotlinc executable=$ffmpegBinary does not exist" }
-      failIf(!ffmpegBinary.canExecute()) { "Kotlinc executable=$ffmpegBinary must be executable" }
+      failIf(!ffmpegBinary.exists()) { "Ffmpeg executable=$ffmpegBinary does not exist" }
+      failIf(!ffmpegBinary.canExecute()) { "Ffmpeg executable=$ffmpegBinary must be executable" }
       ffmpegBinary
    }.withAppProgress("Obtaining ffmpeg").onDone(FX) {
       it.toTry().ifErrorNotify {

@@ -1,19 +1,37 @@
 package sp.it.pl.audio.playback
 
+import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_LEFT
+import javafx.geometry.Side
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
+import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Song
+import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.withAppProgress
+import sp.it.util.async.FX
 import sp.it.util.async.runFX
+import sp.it.util.async.runIO
 import sp.it.util.dev.fail
+import sp.it.util.dev.stacktraceAsString
+import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
+import sp.it.util.file.unzip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.system.Os
+import sp.it.util.ui.lay
+import sp.it.util.ui.text
+import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
@@ -26,13 +44,15 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.WindowsNativeDiscoveryStrat
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.io.File
+import java.io.IOException
+import java.net.URI
 import kotlin.math.roundToInt
 
 
 class VlcPlayer: GeneralPlayer.Play {
 
-   private var playerFactory: MediaPlayerFactory? = null
-   private var player: MediaPlayer? = null
+   @Volatile private var playerFactory: MediaPlayerFactory? = null
+   @Volatile private var player: MediaPlayer? = null
    private val d = Disposer()
 
    override fun play() {
@@ -65,16 +85,20 @@ class VlcPlayer: GeneralPlayer.Play {
    }
 
    override fun createPlayback(song: Song, state: PlaybackState, onOK: () -> Unit, onFail: (Boolean) -> Unit) {
-      val pf = playerFactory
-         ?: MediaPlayerFactory(
-            discoverVlc(listOf(APP.location/"vlc") + APP.audio.playerVlcLocations),
+      val pf = playerFactory ?: try {
+         MediaPlayerFactory(
+            discoverVlc(APP.audio.playerVlcLocations),
             "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access"
          )
+      } catch(e: Throwable) {
+         null
+      }
       playerFactory = pf
 
-      if (APP.audio.playerVlcLocation.value==null) {
-         logger.info { "Playback creation failed: No vlc discovered" }
+      if (pf==null || APP.audio.playerVlcLocation.value==null) {
+         logger.info { "Playback creation failed: Vlc not available" }
          onFail(true)
+         VlcSetup.askForDownload()
          return
       }
 
@@ -162,6 +186,80 @@ class VlcPlayer: GeneralPlayer.Play {
       playerFactory = null
    }
 
+   private object VlcSetup {
+      private var askForDownload = true
+
+      // TODO: document
+//      - (optionally) set up latest 64-bit `VLC` using one of:
+//      - make `app/vlc` contain/link to (optionally portable) installation of `VLC`
+//      This is the recommended way, as the application does not depend on external `VLC` version or location
+//      - let application discover your `VLC` automatically
+//      This requires `VLC` to be installed.
+//      Note that updating or changing this `VLC` may interfere with this application
+//      - add `VLC` location in application settings in `Settings > Playback > Vlc player locations`
+//      This is recommended if you do have `VLC` available, but not installed or integrated in your system
+//      Note that updating or changing this `VLC` may interfere with this application
+      fun askForDownload() {
+         if (!askForDownload) return
+         askForDownload = false
+         APP.windowManager.showFloating("Vlc Setup") { p ->
+            vBox(24.0, CENTER) {
+               lay += text("Viable Vlc player has not been found on the system")
+               lay += vBox(0.0, CENTER_LEFT) {
+                  lay += Icon(IconFA.CIRCLE).apply { isDisable = !Os.WINDOWS.isCurrent }
+                     .onClickDo {
+                        setup() ui { p.hide() }
+                     }
+                     .withText(Side.RIGHT, CENTER_LEFT, "I want this application to automatically download and set up private, local vlc (recommended)")
+                  lay += Icon(IconFA.CIRCLE)
+                     .onClickDo {
+                        p.hide()
+                     }
+                     .withText(Side.RIGHT, CENTER_LEFT, "I will install Vlc on my own")
+                  lay += Icon(IconFA.CIRCLE)
+                     .onClickDo {
+                        p.onEventDown(WINDOW_HIDDEN) {
+                           APP.actions.openSettings()
+                           // TODO: highlight proper settings
+                        }
+                        p.hide()
+                     }
+                     .withText(Side.RIGHT, CENTER_LEFT, "I already have Vlc")
+               }
+            }
+         }
+      }
+
+      private val setup by lazy {
+         runIO {
+            val os = Os.current
+            val vlcDir = APP.location/"vlc"
+            val vlcZip = vlcDir/"vlc.zip"
+            val vlcVersion = "3.0.8"
+            val vlcLink = URI(
+               when (os) {
+                  Os.WINDOWS -> "http://download.videolan.org/pub/videolan/vlc/3.0.8/win64/vlc-$vlcVersion-win64.zip"
+                  else -> fail { "Vlc auto-setup is not supported on $os" }
+               }
+            )
+
+            fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
+
+            if (vlcDir.exists()) vlcDir.deleteRecursively().orFailIO { "Failed to remove Vlc in=$vlcDir" }
+            saveFileAs(vlcLink.toString(), vlcZip)
+            vlcZip.unzip(vlcDir) { it.substringAfter("vlc-$vlcVersion/") }
+            vlcZip.delete().orFailIO { "Failed to clean up downloaded file=$vlcZip" }
+         }.withAppProgress("Obtaining Vlc").onDone(FX) {
+            it.toTry().ifErrorNotify {
+               AppError("Failed to obtain Vlc", "Reason: ${it.stacktraceAsString}")
+            }
+         }
+      }
+
+      fun setup() = setup
+
+   }
+
    companion object: KLogging() {
 
       private fun discoverVlc(locations: List<File>) = NativeDiscovery(
@@ -170,7 +268,10 @@ class VlcPlayer: GeneralPlayer.Play {
          OsxNativeDiscoveryStrategy().customize(locations),
          WindowsNativeDiscoveryStrategy().wrap(),
          LinuxNativeDiscoveryStrategy().wrap(),
-         OsxNativeDiscoveryStrategy().wrap()
+         OsxNativeDiscoveryStrategy().wrap(),
+         WindowsNativeDiscoveryStrategy().customize(listOf(APP.location/"vlc")),
+         LinuxNativeDiscoveryStrategy().customize(listOf(APP.location/"vlc")),
+         OsxNativeDiscoveryStrategy().customize(listOf(APP.location/"vlc"))
       )
 
       private fun NativeDiscoveryStrategy.wrap() = NativeDiscoveryStrategyWrapper(this)

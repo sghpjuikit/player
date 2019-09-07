@@ -13,46 +13,57 @@
 
 ## Installation bundle
 
-- Is `VLC` be bundled?
-No. It will be auto-discovered if proper version is installed on the operating system. Otherwise user has to set it up.
+- Is `VLC` be bundled?  
+No.  
+It will be auto-discovered if proper version is installed on the operating system.
+Otherwise user will be prompted to let the application setup `VLC` automatically or asked to do it on his own.
 
-- Does application without `VLC` set up support any playback?
-No. It could (using its internal `javafx.media` playback implementation), but at this point this feature is old and costly to support. Perhaps in the future.
+- Are (`Java`) libs bundled?  
+Yes.
+They have to be.
 
-- Are (`Java`) libs bundled?
-Yes. They have to be.
+- Is `Java` bundled?  
+No.  
+Perhaps in the future.
+Right now there are uncertainties regarding bundle size and licencing.
 
-- Is `Java` bundled?
-No. Perhaps in the future. Reason: it is too big for release bundle and I have no time to investigate licencing and `JDK` vs `JRE` stuff (the application needs `JDK` to run).
+- Is `javac` bundled?  
+No.  
+But it is bundled with `JDK`, so practically yes.
 
-- Is `javac` bundled?
-No. But it is bundled with `JDK`, so practically yes.
+- Is `Kotlin` bundled?  
+Yes.  
+It is just a lib.
 
-- Is `Kotlin` bundled?
-Yes. It is just a lib.
+- Is `kotlinc` bundled?  
+No.  
+It is automatically setup by the application.
 
-- Is `kotlinc` bundled?
-No. But it must be present, so we include a discovery/download mechanism to avoid bundling. There will be an `use experimental/native kotlinc` option, although right now `ekotlinc` has a bug and can not be used for our needs.
+- Are plugins bundled?  
+Yes.  
+Because no user supplied plugin support is not implemented yet, all plugins are provided internally in the `Player.jar`.
+In the future, some of them will become external/user modifiable.
 
-- Are plugins bundled?
-Yes. Because no user supplied plugin support is implemented yet, all plugins are provided internally in the `Player.jar`. In the future, some of them will become external/user modifiable.
+- Are widgets bundled?  
+Yes.  
+All are external/user modifiable.
+The application has proper API and UX to handle if user removes a widget (or all of them).
+Of course some are essential for proper functionality (e.g., `Playback`, `Playlist`).
 
-- Are widgets bundled?
-Yes. All are external/user modifiable. The application has proper API and UX to handle if user removes a widget (or all of them). Of course some are essential for proper functionality (e.g., `Playback`, `Playlist`).
+- Are templates be bundled?  
+Yes.  
+These are called initial templates. Some are in the `app/templates` directory, some are bundled internally in `Player.jar`.
 
-- Are templates be bundled?
-Yes. These are called initial templates. Some are in the `app/templates` directory, pure container types are provided internally in `Player.jar`.
-
-- What launchers are bundled?
-`.jar`, `.exe`, `.sh`. Maybe `.bat` in the future. All provide the same functionality.
+- What launchers are bundled?  
+`.jar`, console `.exe`, gui `.exe`, `.sh`. All provide the same functionality.
 
 And with that:
 
-- Is application be usable once user downloads it?
+- Is application be usable once user downloads it?  
 No, `JDK` is missing so it will not start at all. `VLC` is missing so playback will not be possible.
 
 - Is this application be portable?
-Yes, on all platforms. See _Privacy_ for details
+Yes, on all platforms. See [Privacy](#privacy-&-security) for details
 
 - Is there an installation wizzard to avoid extra installation steps?
 No. Perhaps in the future.
@@ -66,15 +77,6 @@ User installation steps necessary:
 - download an application release from [Github releases](https://github.com/sghpjuikit/player/releases)
 - set up `JDK`  
   Make `app/java` directory contain or link to `JDK` 11 or 12
-- set up latest 64-bit `VLC` using one of:
-  - make `app/vlc` contain/link to (optionally portable) installation of `VLC`   
-    This is the recommended way, as the application does not depend on external `VLC` version or location
-  - let application discover your `VLC` automatically   
-    This requires `VLC` to be installed.   
-    Note that updating or changing this `VLC` may interfere with this application
-  - add `VLC` location in application settings in `Settings > Playback > Vlc player locations`
-    This is recommended if you do have `VLC` available, but not installed or integrated in your system
-    Note that updating or changing this `VLC` may interfere with this application
   
 ## Uninstallation
 

@@ -180,8 +180,7 @@ class WidgetManager {
                AppErrorAction("Download manually") {
                   kotlincLink.browse()
                   kotlincDir.browse()
-                  APP.windowManager.showFloating(
-                     "Setup Kotlin compiler",
+                  APP.windowManager.showFloating("Setup Kotlin compiler") {
                      scrollText {
                         Text("""
                            |It is recommended to let the application set up the compiler, you may wish to check the exact error instead.
@@ -193,7 +192,7 @@ class WidgetManager {
                            | * Create file $kotlincVersionFile (no extension) and set its text content to the link, you obtained the compiler from 
                         """.trimMargin())
                      }
-                  )
+                  }
                }
             )
          }

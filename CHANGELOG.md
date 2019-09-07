@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Improve DirView cover loading performance
 - Improve video cover extraction performance (reuses output)
-- Implement File.setWallpaper action
+- Implement automatic setup for Vlc player
+- Implement automatic setup for Kotlin compiler
+- Implement automatic setup for ffmpeg compiler
+- Implement WallpaperPlugin File.setWallpaper action
+- Implement WallpaperPlugin start/changeWallpaper() animation
+- Implement WallpaperPlugin window hiding when no image
 ### Fix
 - Image loading blocks ui sometimes
 - GridView search style not discarded on cancel

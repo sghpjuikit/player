@@ -436,10 +436,11 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       }
    }
 
-   fun showFloating(title: String, content: Node): PopOver<*> {
-      return PopOver(content).apply {
+   fun <N: Node> showFloating(title: String, content: (PopOver<*>) -> N): PopOver<N> {
+      return PopOver<N>().apply {
          this.title.value = title
          this.isAutoFix = false
+         this.contentNode.value = content(this)
 
          val w = getActive().orNull() ?: fail { "No window open" }
          show(w.stage, w.centerX, w.centerY)

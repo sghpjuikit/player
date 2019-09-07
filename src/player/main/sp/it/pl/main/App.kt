@@ -61,7 +61,6 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.apply_
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
-import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.system.Os
@@ -212,10 +211,12 @@ class App: Application(), GlobalConfigDelegator {
 
    @C(name = "Manage VM options", info = "Manage Java virtual machine settings. Requires developer mode.")
    val manageVM by cr {
-      val root = VmOptionsPane().apply {
-         prefHeight = 600.scaleEM()
+      windowManager.showFloating("VM options") {
+         VmOptionsPane().apply {
+            prefHeight = 600.scaleEM()
+         }
       }
-      windowManager.showFloating("VM options", root).toUnit()
+      Unit
    }.readOnlyUnless(
       developerMode
    )

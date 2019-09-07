@@ -406,16 +406,21 @@ public class Icon extends StackPane {
 
 	@NotNull
 	public Pane withText(String text) {
-		return withText(text, Side.BOTTOM);
+		return withText(Side.BOTTOM, text);
 	}
 
 	@NotNull
-	public Pane withText(String text, Side side) {
+	public Pane withText(Side side, String text) {
+		return withText(side, Pos.CENTER, text);
+	}
+
+	@NotNull
+	public Pane withText(Side side, Pos alignment, String text) {
 		switch (side) {
-			case LEFT: return layHeaderLeft(10, Pos.CENTER, this, new Label(text));
-			case TOP: return layHeaderTop(5, Pos.CENTER, this, new Label(text));
-			case RIGHT: return layHeaderRight(10, Pos.CENTER, this, new Label(text));
-			case BOTTOM: return layHeaderBottom(5, Pos.CENTER, this, new Label(text));
+			case LEFT: return layHeaderLeft(10, alignment, this, new Label(text));
+			case TOP: return layHeaderTop(5, alignment, this, new Label(text));
+			case RIGHT: return layHeaderRight(10, alignment, this, new Label(text));
+			case BOTTOM: return layHeaderBottom(5, alignment, this, new Label(text));
 			default: throw new SwitchException(side);
 		}
 	}

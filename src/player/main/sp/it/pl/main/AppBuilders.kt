@@ -79,7 +79,7 @@ fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    }
 
 /** @return standardized icon associated with a form that invokes an action */
-fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(text, Side.RIGHT)
+fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(Side.RIGHT, text)
 
 @JvmOverloads
 fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (ProgressIndicator) -> Unit = {}) = Spinner().apply {

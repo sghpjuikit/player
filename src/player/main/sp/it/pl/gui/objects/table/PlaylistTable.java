@@ -80,7 +80,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	public PlaylistTable(Playlist playlist) {
 		super(PlaylistSong.class, NAME, playlist);
 
-		playlist.setTransformation(getItems());
+		playlist.setTransformationToItemsOf(getItems());
 
 		VBox.setVgrow(this, Priority.ALWAYS);
 

@@ -12,6 +12,7 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.util.collections.setTo
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.stacktraceAsString
+import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
 import java.util.ArrayList
 import java.util.UUID
@@ -36,7 +37,7 @@ class PlayerState {
       playlistId = PlaylistManager.active
 
       val activePlaylists = APP.widgetManager.widgets.findAll(OPEN)
-         .mapNotNull { (it.controller as? PlaylistFeature)?.playlist?.id }
+         .mapNotNull { it.controller.asIf<PlaylistFeature>()?.playlist?.id }
          .toSet()
       playlists setTo PlaylistManager.playlists
       playlists.removeIf { it.id !in activePlaylists }

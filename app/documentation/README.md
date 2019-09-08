@@ -172,6 +172,29 @@ Commercial use or use intended for illegal or malicious purposes is forbidden.
 
 ## Usage
 
+### Playback
+
+The application supports only single playback.
+
+### Playlists
+
+The application supports multiple playlists. These can be open and managed (used by widgets) simultaneously.
+However at most one playlist can be *active*, i.e. be source of playback.
+
+Widgets that implements `PlaylistFeature` (like the provided `Playlist` widget) can be bound to a (single) playlist.
+It is up to the widget when and how it creates and disposes of the playlist.
+
+Playlists that are not bound to a widget are called *dangling*.
+Dangling playlists may still be used and bound to widgets, but when application closes, any dangling playlist will be lost.
+
+`Playlist` widget will upon loading attempt to initialize playlist in order:
+- look for playlist it was bound to before
+- look for active (playing) dangling playlist
+- look for any dangling playlist
+- create new empty playlist
+
+This makes it possible to maintain playback even when `Playlist` widget is not open and also re-open the playlist if possible. 
+
 ### Reducing memory usage
 
 There are several application usage strategies for minimizing memory consumption

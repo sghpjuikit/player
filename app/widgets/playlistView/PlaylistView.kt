@@ -12,8 +12,9 @@ import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.gui.objects.table.PlaylistTable
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group
+import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.WidgetSource.*
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
-import sp.it.pl.layout.widget.WidgetUse.OPEN
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
@@ -34,6 +35,7 @@ import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.functional.asIf
 import sp.it.util.functional.net
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
@@ -41,7 +43,6 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.saveFile
-import sp.it.util.type.Util
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -51,8 +52,6 @@ import sp.it.util.units.toHMSMs
 import java.io.File
 import java.util.UUID
 import java.util.function.Consumer
-import java.util.function.UnaryOperator
-import kotlin.streams.asSequence
 import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 @Widget.Info(
@@ -83,7 +82,7 @@ import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 )
 class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
-   private val playlist = computeInitialPlaylist(widget.id)
+   override val playlist = computeInitialPlaylist(widget.id)
    private val table = PlaylistTable(playlist)
    private var outputSelected = io.o.create<PlaylistSong>("Selected", null)
    private var outputPlaying = io.o.create<PlaylistSong>("Playing", null)
@@ -116,10 +115,10 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          outputSelected.value?.let { ms.ifHasK(it.uri, Consumer { outputSelected.value = it.toPlaylist() }) }
       } on onClose
 
-      playVisible sync {
+      playVisible sync { pv ->
          playlist.setTransformation(
-            if (it) unOp { table.items.materialize() }
-            else unOp { it.asSequence().sortedWith(table.itemsComparator.value).toList() }
+            if (pv) { _: List<PlaylistSong> -> table.items.materialize().toList() }
+            else { it: List<PlaylistSong> -> it.asSequence().sortedWith(table.itemsComparator.value).toList() }
          )
       } on onClose
 
@@ -201,42 +200,29 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       return super.getFields()
    }
 
-   override fun getPlaylist() = playlist
-
    private fun computeInitialPlaylist(id: UUID) = null
       ?: PlaylistManager.playlists[id]
-      ?: getUnusedPlaylist(id).apply {
-         PlaylistManager.playlists.put(this)
+      ?: findDanglingPlaylist()?.copyDangling()
+      ?: Playlist(id).also { PlaylistManager.playlists += it }
+
+   private fun findDanglingPlaylists(): List<Playlist> {
+      val open = APP.widgetManager.widgets.findAll(OPEN).mapNotNull { it.controller.asIf<PlaylistFeature>()?.playlist }
+      return PlaylistManager.playlists.filter { it !in open }
+   }
+
+   private fun findDanglingPlaylist(): Playlist? = findDanglingPlaylists().let {
+      it.find { it.id==PlaylistManager.active } ?: it.firstOrNull()
+   }
+
+   private fun Playlist.copyDangling() = let { dp ->
+      val wasActive = dp.id==PlaylistManager.active
+      PlaylistManager.playlists -= dp
+      Playlist(id).apply {
+         addPlaylistSongs(dp, 0)
+         updatePlayingItem(dp.indexOfPlaying())
+         PlaylistManager.playlists += this
+         if (wasActive) PlaylistManager.active = id
       }
-
-   companion object {
-
-      private fun unOp(block: (List<PlaylistSong>) -> List<PlaylistSong>) = UnaryOperator<List<PlaylistSong>> { block(it) }
-
-      private infix fun <T> MutableList<T>.addToStart(item: T) = add(0, item)
-
-      private fun getUnusedPlaylist(id: UUID): Playlist {
-         val danglingPlaylists = ArrayList(PlaylistManager.playlists)
-         APP.widgetManager.widgets.findAll(OPEN.widgetFinder)
-            .filter { it.info.hasFeature(PlaylistFeature::class.java) }
-            .mapNotNull { (it.controller as PlaylistFeature?)?.playlist }
-            .forEach { danglingPlaylists.removeIf { playlist -> playlist.id==it.id } }
-
-         val danglingPlaylist: Playlist? = null
-            ?: danglingPlaylists.find { it.id==PlaylistManager.active }
-            ?: danglingPlaylists.firstOrNull()
-
-         if (danglingPlaylist!=null) {
-            PlaylistManager.playlists.remove(danglingPlaylist)
-
-            if (danglingPlaylist.id==PlaylistManager.active)
-               PlaylistManager.active = id
-            Util.setField(Playlist::class.java, danglingPlaylist, Playlist::id.name, id) // TODO: fix
-         }
-
-         return danglingPlaylist ?: Playlist(id)
-      }
-
    }
 
 }

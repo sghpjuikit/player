@@ -23,6 +23,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import kotlin.jvm.functions.Function1;
 import sp.it.pl.audio.Song;
 import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
@@ -89,17 +90,17 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	private UnaryOperator<List<PlaylistSong>> transformer = x -> x;
+	private Function1<? super List<PlaylistSong>, ? extends List<PlaylistSong>> transformer = x -> x;
 
 	private List<PlaylistSong> transform() {
-		return transformer.apply(this);
+		return transformer.invoke(this);
 	}
 
-	public void setTransformation(ObservableList<PlaylistSong> transformed) {
+	public void setTransformationToItemsOf(ObservableList<PlaylistSong> transformed) {
 		transformer = original -> transformed;
 	}
 
-	public void setTransformation(UnaryOperator<List<PlaylistSong>> transformer) {
+	public void setTransformation(Function1<? super List<PlaylistSong>, ? extends List<PlaylistSong>> transformer) {
 		this.transformer = transformer;
 	}
 

@@ -28,7 +28,7 @@ fun Window.installStartLayoutPlaceholder() {
 
    fun showStartLayoutPlaceholder() {
       var action = {}
-      val p = Placeholder(IconFA.FOLDER, "Start with a simple click\n\nIf you are 1st timer, choose ${ContainerPicker.choiceForTemplate} > ${initialTemplateFactory.nameGui()}") { action() }
+      val p = Placeholder(IconFA.FOLDER, "Start with a simple click\n\nIf you are 1st timer, choose ${ContainerPicker.choiceForTemplate} > ${initialTemplateFactory.name()}") { action() }
       action = {
          runFX(300.millis) {
             AppAnimator.closeAndDo(p) {

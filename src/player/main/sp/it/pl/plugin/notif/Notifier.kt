@@ -65,7 +65,7 @@ class Notifier: PluginBase("Notifications", true) {
    val graphics by cv("Normal").valuesIn {
       APP.widgetManager.factories.getFactories()
          .filter { it.hasFeature<SongReader>() }
-         .map { it.nameGui() }
+         .map { it.name() }
          .plus("Normal")
          .plus("Normal - no cover")
    } sync {

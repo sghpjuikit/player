@@ -402,8 +402,8 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Components - widgets") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
             Entry.SimpleEntry(
-               "Open widget ${it.nameGui()}",
-               { "Open widget ${it.nameGui()}\n\nOpens the widget in new window." },
+               "Open widget ${it.name()}",
+               { "Open widget ${it.name()}\n\nOpens the widget in new window." },
                { APP.windowManager.launchComponent(it.create()) }
             )
          }
@@ -411,13 +411,13 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Components - all") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { c ->
             Entry.SimpleEntry(
-               "Open widget ${c.nameGui()} (in new process)",
-               { "Open widget ${c.nameGui()}\n\nOpens the widget in new process." },
+               "Open widget ${c.name()} (in new process)",
+               { "Open widget ${c.name()}\n\nOpens the widget in new process." },
                {
                   val f = if (Os.WINDOWS.isCurrent) location.`playerfxc exe` else location.`playerfx sh`
                   f.runAsAppProgram(
-                     "Launching component ${c.nameGui()} in new process",
-                     "--singleton=false", "--stateless=true", "open-component", "\"${c.nameGui()}\""
+                     "Launching component ${c.name()} in new process",
+                     "--singleton=false", "--stateless=true", "open-component", "\"${c.name()}\""
                   )
                }
             )
@@ -426,8 +426,8 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Components - compile)") {
          widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null }.map {
             Entry.SimpleEntry(
-               "Recompile widget ${it.nameGui()}",
-               { "Recompile widget ${it.nameGui()} and reload all of its instances upon success" },
+               "Recompile widget ${it.name()}",
+               { "Recompile widget ${it.name()} and reload all of its instances upon success" },
                { it.externalWidgetData!!.scheduleCompilation() }
             )
          }

@@ -64,8 +64,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
       this.group = i.group
    }
 
-   override fun name() = name
-   override fun nameGui() = nameGui
+   override fun id() = name
+   override fun name() = nameGui
    override fun description() = description
    override fun version() = version
    override fun author() = author
@@ -85,7 +85,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
 /** Component factory that creates component programmatically using a supplier. */
 class TemplateFactory<C: Component>(private val name: String, private val supplier: () -> C): ComponentFactory<C> {
 
-   override fun nameGui() = name
+   override fun name() = name
 
    override fun create() = supplier()
 
@@ -103,7 +103,7 @@ class DeserializingFactory: ComponentFactory<Component> {
       this.nameGui = launcher.nameWithoutExtension
    }
 
-   override fun nameGui() = nameGui
+   override fun name() = nameGui
 
    override fun create() = APP.windowManager.instantiateComponent(launcher)!!
 
@@ -112,9 +112,9 @@ class DeserializingFactory: ComponentFactory<Component> {
 }
 
 class NoFactoryFactory(val name: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/name, null) {
-   override fun name() = name
+   override fun id() = name
 
-   override fun nameGui() = name
+   override fun name() = name
 
    override fun create(): Widget = Widget(name, this)
 

@@ -19,7 +19,7 @@ class WidgetPicker(private val mode: Mode): Picker<ComponentFactory<*>>() {
          }
          factories.filter { it.isUsableByUser() }
       }
-      textConverter = { it.nameGui() }
+      textConverter = { it.name() }
       infoConverter = { it.asIf<WidgetFactory<*>>()?.net { it.description() } ?: "" }
    }
 

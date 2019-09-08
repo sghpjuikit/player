@@ -134,7 +134,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
 
    @IsConfig(name = "Dock content", group = Settings.Ui.Dock.name, info = "Widget to use in dock.")
    val dockWidget by cv(PLAYBACK).valuesIn {
-      APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.nameGui() }
+      APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.name() }
    }
 
    @IsConfig(name = "Dock", group = Settings.Ui.Dock.name, info = "Whether application has docked window in the top of the screen.")
@@ -450,7 +450,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
    fun showFloating(c: Widget): PopOver<*> {
       val l = Layout.openStandalone(anchorPane())
       val p = PopOver(l.root).apply {
-         title.value = c.info.nameGui()
+         title.value = c.info.name()
          isAutoFix = false
          properties[Window.keyWindowLayout] = l
 

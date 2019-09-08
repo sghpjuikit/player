@@ -132,7 +132,7 @@ class FreeFormContainerDb(
 
 class WidgetDb @JvmOverloads constructor(
    id: UUID = UUID.randomUUID(),
-   val name: String = emptyWidgetFactory.name(),
+   val name: String = emptyWidgetFactory.id(),
    val preferred: Boolean = false,
    val forbidUse: Boolean = false,
    val uiName: String = emptyWidgetFactory.name(),

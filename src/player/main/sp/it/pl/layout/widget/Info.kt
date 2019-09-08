@@ -8,20 +8,19 @@ import kotlin.reflect.full.findAnnotation
 
 interface ComponentInfo {
 
-   // TODO: rename nameGu() to name() and name() to id() and remove finding factories by name
-   //       this needs to finally get cleaned up, its a giant mess causing trouble everywhere
+   // TODO:  remove finding factories by name
 
    /** @return name of the widget as displayed in ui */
-   fun nameGui(): String
+   fun name(): String
 
    /** @return component info as string */
-   fun toStr() = nameGui()
+   fun toStr() = name()
 
 }
 
 interface WidgetInfo: ComponentInfo {
 
-   fun name(): String
+   fun id(): String
 
    /** @return description of the widget */
    fun description(): String
@@ -70,7 +69,7 @@ interface WidgetInfo: ComponentInfo {
 
    override fun toStr(): String {
       val fs = getFeatures()
-      return "Component: Widget ${nameGui()}\n" +
+      return "Component: Widget ${name()}\n" +
          (if (description().isEmpty()) "" else "Info: ${description()}\n") +
          (if (notes().isEmpty()) "" else "${notes()}\n") +
          (if (howto().isEmpty()) "" else "${howto()}\n") +

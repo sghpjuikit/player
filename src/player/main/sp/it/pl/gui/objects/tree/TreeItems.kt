@@ -105,7 +105,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is TreeItem<*> -> o
    is Widget -> WidgetItem(o)
    is WidgetFactory<*> -> SimpleTreeItem(o)
-   is Feature -> STreeItem<Any>(o, { APP.widgetManager.factories.getFactories().filter { it.hasFeature(o) }.sortedBy { it.nameGui() } })
+   is Feature -> STreeItem<Any>(o, { APP.widgetManager.factories.getFactories().filter { it.hasFeature(o) }.sortedBy { it.name() } })
    is Container<*> -> LayoutItem(o)
    is File -> FileTreeItem(o)
    is Node -> NodeTreeItem(o)
@@ -137,7 +137,7 @@ fun treeApp(): TreeItem<Any> {
       tree("Behavior",
          tree("Widgets",
             tree("Categories", Widget.Group.values().asList()),
-            tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.nameGui() } }),
+            tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.name() } }),
             tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
          ),
@@ -238,7 +238,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o==null -> "<none>"
       o is Component -> o.name
       o is Plugin -> o.name
-      o is WidgetFactory<*> -> o.nameGui()
+      o is WidgetFactory<*> -> o.name()
       o::class.java.isEnum -> enumToHuman(o.toString())
       o is File -> o.nameOrRoot
       o is Node -> o.id?.trim().orEmpty() + ":" + APP.className.getOf(o) + (if (o.parent==null && o===o.scene?.root) " (root)" else "")

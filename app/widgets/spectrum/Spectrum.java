@@ -17,7 +17,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sin;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
 
 /**
@@ -39,7 +39,7 @@ public class Spectrum extends SimpleController {
 
 	public Spectrum(Widget widget) {
     	super(widget);
-		root.setPrefSize(scaleEM(400), scaleEM(400));
+		root.setPrefSize(getEmScaled(400), getEmScaled(400));
 
 		SpectrumNode n = new SpectrumNode();
         n.heightProperty().bind(root.heightProperty());

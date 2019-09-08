@@ -56,7 +56,7 @@ import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
 import static sp.it.pl.main.AppDragKt.hasImageFilesOrUrl;
 import static sp.it.pl.main.AppDragKt.installDrag;
-import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
@@ -159,7 +159,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
     public ImageViewer(Widget widget) {
         super(widget);
-        root.setPrefSize(scaleEM(400), scaleEM(400));
+        root.setPrefSize(getEmScaled(400), getEmScaled(400));
         root.getStylesheets().add(child(getLocation(), "skin.css").toURI().toASCIIString());
 
         fxmlLoaderForController(this).loadNoEx();

@@ -34,7 +34,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.audioExtensionFilter
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
@@ -114,7 +114,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
    private var lastAddDirLocation by cn<File>(APP.location.user).only(FileActor.DIRECTORY)
 
    init {
-      root.prefSize = 850.scaleEM() x 600.scaleEM()
+      root.prefSize = 850.emScaled x 600.emScaled
       root.consumeScrolling()
       root.lay += table.root
 

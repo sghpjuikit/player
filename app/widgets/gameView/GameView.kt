@@ -50,7 +50,7 @@ import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isImage
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
@@ -141,7 +141,7 @@ import kotlin.math.round
 )
 class GameView(widget: Widget): SimpleController(widget) {
 
-   private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {
+   private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
       onClose += { unsubscribe() }
       attach { applyCellSize() }
    }
@@ -163,7 +163,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    init {
-      root.prefSize = 1200.scaleEM() x 900.scaleEM()
+      root.prefSize = 1200.emScaled x 900.emScaled
       root.consumeScrolling()
 
       files.onChange { viewGames() } on onClose
@@ -236,10 +236,10 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-      grid.cellWidth.value = width.scaleEM()
-      grid.cellHeight.value = height.scaleEM() + cellTextHeight.value
-      grid.horizontalCellSpacing.value = 10.scaleEM()
-      grid.verticalCellSpacing.value = 10.scaleEM()
+      grid.cellWidth.value = width.emScaled
+      grid.cellHeight.value = height.emScaled + cellTextHeight.value
+      grid.horizontalCellSpacing.value = 10.emScaled
+      grid.verticalCellSpacing.value = 10.emScaled
       grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.value, it.valType) }
    }
 

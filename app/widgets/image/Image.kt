@@ -14,7 +14,7 @@ import sp.it.pl.main.getImageFile
 import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.access.toggleNext
 import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.IsConfig
@@ -51,7 +51,7 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
    private val fitFrom by cv(FitFrom.INSIDE)
 
    init {
-      root.prefSize = 400.scaleEM() x 400.scaleEM()
+      root.prefSize = 400.emScaled x 400.emScaled
 
       thumb.isBackgroundVisible = false
       thumb.borderVisible = false

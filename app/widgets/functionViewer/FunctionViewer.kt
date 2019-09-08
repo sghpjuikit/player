@@ -17,7 +17,7 @@ import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.access.V
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -71,7 +71,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
    private var updateCoord: (P) -> Unit = {}
 
    init {
-      root.prefSize = 500.scaleEM() x 500.scaleEM()
+      root.prefSize = 500.emScaled x 500.emScaled
       root.cursor = CROSSHAIR
       root.onEventDown(MOUSE_MOVED) {
          val size = root.size

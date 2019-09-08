@@ -12,7 +12,6 @@ import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.gui.objects.table.PlaylistTable
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group
-import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetSource.*
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -22,7 +21,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYLIST
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.access.OrV
 import sp.it.util.access.toggle
 import sp.it.util.async.runNew
@@ -105,7 +104,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
    var lastSavePlaylistLocation by cn<File>(APP.location.user).only(DIRECTORY)
 
    init {
-      root.prefSize = 450.scaleEM() x 600.scaleEM()
+      root.prefSize = 450.emScaled x 600.emScaled
       root.consumeScrolling()
 
       playlist.playingSong sync { outputPlaying.value = it } on onClose

@@ -72,7 +72,7 @@ fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    .onClick { e ->
       APP.actionStream("Info popup")
       helpPopOver(tooltipText()).apply {
-         contentNode.value.wrappingWidth = 400.scaleEM()
+         contentNode.value.wrappingWidth = 400.emScaled
          skinn.setTitleAsOnlyHeaderContent(false)
          showInCenterOf(e.source as Node)
       }

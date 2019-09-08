@@ -213,7 +213,7 @@ class App: Application(), GlobalConfigDelegator {
    val manageVM by cr {
       windowManager.showFloating("VM options") {
          VmOptionsPane().apply {
-            prefHeight = 600.scaleEM()
+            prefHeight = 600.emScaled
          }
       }
       Unit

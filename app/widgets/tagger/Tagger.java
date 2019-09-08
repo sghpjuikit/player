@@ -32,7 +32,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.effect.BoxBlur;
-import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -127,7 +126,7 @@ import static sp.it.pl.main.AppBuildersKt.formIcon;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
-import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppFileKt.isAudioEditable;
 import static sp.it.pl.main.AppFileKt.isImageJaudiotagger;
 import static sp.it.pl.main.AppKt.APP;
@@ -211,7 +210,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     public Tagger(Widget widget) {
         super(widget);
         root.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
-        root.setPrefSize(scaleEM(650), scaleEM(700));
+        root.setPrefSize(getEmScaled(650), getEmScaled(700));
 
         inputValue = io.i.create("Edit", new TypeToken<List<Song>>() {}.getType(), null, consumer(v -> read(v)));
 

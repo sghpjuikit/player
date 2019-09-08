@@ -26,7 +26,7 @@ import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.main.appTooltip
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
@@ -62,7 +62,7 @@ class ConfigSearch: AutoCompletion<Entry> {
       defaultStringConverter()
    ) {
       this.textField = textField
-      this.textField.prefWidth = 550.0.scaleEM() // affects the popup width
+      this.textField.prefWidth = 550.0.emScaled // affects the popup width
       this.history = history
 
       this.textField.onEventUp(KEY_PRESSED, CONTROL, UP) { history.up(this) }

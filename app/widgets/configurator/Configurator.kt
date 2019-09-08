@@ -20,7 +20,7 @@ import sp.it.pl.layout.widget.controller.fxmlLoaderForController
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
@@ -73,7 +73,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
 
    init {
-      root.prefSize = 800.scaleEM() x 600.scaleEM()
+      root.prefSize = 800.emScaled x 600.emScaled
       root.consumeScrolling()
 
 

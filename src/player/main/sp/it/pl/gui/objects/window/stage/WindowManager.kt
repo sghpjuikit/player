@@ -37,7 +37,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Settings
 import sp.it.pl.main.Widgets.PLAYBACK
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
@@ -424,7 +424,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
 
    fun <T> showSettings(c: Configurable<T>, n: Node) {
       val form = form(c).apply {
-         prefSize = 400.scaleEM() x 400.scaleEM()
+         prefSize = 400.emScaled x 400.emScaled
       }
       PopOver(form).apply {
          title.value = if (c is Component) "${c.name} Settings" else "Settings"

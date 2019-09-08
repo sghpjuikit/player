@@ -25,7 +25,7 @@ import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.infoIcon
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.SHORTCUT
@@ -123,7 +123,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       val p = area.contentRoot
       val showS = { e: MouseEvent ->
          if (!isShowingWeak && !area.isUnderLock() && !isShowing) {
-            val isIn = p.width - activatorW.scaleEM()<e.x && activatorH.scaleEM()>e.y
+            val isIn = p.width - activatorW.emScaled<e.x && activatorH.emScaled>e.y
             if (inside!=isIn) {
                inside = isIn
                if (isIn) showWeak()

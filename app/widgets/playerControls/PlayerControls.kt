@@ -34,10 +34,10 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Widgets.PLAYBACK
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.scaleEM
 import sp.it.util.access.toggle
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.IsConfig
@@ -49,13 +49,13 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
-import sp.it.util.ui.EM
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.units.toEM
 import sp.it.util.units.toHMSMs
 import java.io.File
 
@@ -119,7 +119,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val elapsedTime by cv(true)
 
    init {
-      root.prefSize = 850.scaleEM() x 200.scaleEM()
+      root.prefSize = 850.emScaled x 200.emScaled
 
       val ps = APP.audio.state.playback
 
@@ -154,7 +154,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          { e -> PlaylistManager.use { it.addItems(e.dragboard.getAudio()) } }
       )
 
-      root.heightProperty().map { it.toDouble()<100.0.scaleEM() } sync {
+      root.heightProperty().map { it.toDouble()<100.0.emScaled } sync {
          val layout: Layout = if (it) layoutSmall else layoutBig
          root.children setToOne layout.with(f2, f3, f4, muteB, seeker)
          f2.size(if (it) 12.0 else 24.0)
@@ -193,8 +193,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
                else -> IconFA.PLAY
             })
             f3.glyphOffsetX.value = when (newStatus) {
-               Status.PLAYING -> -APP.ui.font.value.size.EM*0.2
-               else -> APP.ui.font.value.size.EM*3.0
+               Status.PLAYING -> -APP.ui.font.value.size.toEM()*0.2
+               else -> APP.ui.font.value.size.toEM()*3.0
             }
          }
       }

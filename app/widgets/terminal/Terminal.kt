@@ -14,7 +14,7 @@ import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cvn
@@ -57,7 +57,7 @@ class Terminal(widget: Widget): SimpleController(widget) {
    }
 
    init {
-      root.prefSize = 600.scaleEM() x 500.scaleEM()
+      root.prefSize = 600.emScaled x 500.emScaled
       root.lay += tabPane
 
       com.kodedu.terminalfx.helper.ThreadHelper.daemonThread = true

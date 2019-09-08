@@ -6,7 +6,7 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
 import sp.it.util.reactive.consumeScrolling
@@ -31,7 +31,7 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
    private val area = TextArea()
 
    init {
-      root.prefSize = 500.scaleEM() x 500.scaleEM()
+      root.prefSize = 500.emScaled x 500.emScaled
       root.consumeScrolling()
 
       root.lay += area.apply {

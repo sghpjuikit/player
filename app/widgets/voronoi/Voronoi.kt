@@ -20,7 +20,7 @@ import mu.KLogging
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.Util.pyth
 import sp.it.util.access.V
 import sp.it.util.animation.Loop
@@ -64,7 +64,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    val displayed by cv(CellGenerator.CIRCLES) sync { canvas.displayedToBe = it }
 
    init {
-      root.prefSize = 850.scaleEM() x 600.scaleEM()
+      root.prefSize = 850.emScaled x 600.emScaled
 
       canvas.heightProperty() syncFrom root.heightProperty() on onClose
       canvas.widthProperty() syncFrom root.widthProperty() on onClose

@@ -15,6 +15,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.withAppProgress
 import sp.it.util.async.FX
 import sp.it.util.async.runFX
@@ -32,6 +33,7 @@ import sp.it.util.system.Os
 import sp.it.util.ui.lay
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
+import sp.it.util.units.em
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
@@ -203,7 +205,7 @@ class VlcPlayer: GeneralPlayer.Play {
          if (!askForDownload) return
          askForDownload = false
          APP.windowManager.showFloating("Vlc Setup") { p ->
-            vBox(24.0, CENTER) {
+            vBox(2.em.emScaled, CENTER) {
                lay += text("Viable Vlc player has not been found on the system")
                lay += vBox(0.0, CENTER_LEFT) {
                   lay += Icon(IconFA.CIRCLE).apply { isDisable = !Os.WINDOWS.isCurrent }

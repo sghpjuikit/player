@@ -39,7 +39,7 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.isPlaying
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
@@ -133,7 +133,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    private var selLastRestored = false
 
    init {
-      root.prefSize = 600.scaleEM() x 600.scaleEM()
+      root.prefSize = 600.emScaled x 600.emScaled
       root.consumeScrolling()
       root.lay += table.root
 

@@ -79,6 +79,7 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
+import sp.it.util.units.toEM
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -92,13 +93,13 @@ fun Color.alpha(opacity: Double): Color {
 /* ---------- ICON -------------------------------------------------------------------------------------------------- */
 
 @JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
-   val fontSize = iconSize?.let { it.EM } ?: 1.0
+   val fontSize = iconSize?.let { it.toEM() } ?: 1.0
    style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
    styleClass += "icon"
 }
 
 fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
-   val fontSize = iconSize?.let { it.EM } ?: 1.0
+   val fontSize = iconSize?.let { it.toEM() } ?: 1.0
    val s = icon.characterToString()
    val sb = StringBuilder(icons)
    for (i in 0 until icons) sb.append(s)
@@ -759,13 +760,6 @@ fun TextArea.setTextAlignment(alignment: TextAlignment) {
       true
    )
 }
-
-object EM {
-   fun toDouble() = 12.0
-}
-
-/** @return value in [EM] units */
-val Number.EM get() = toDouble()/sp.it.util.ui.EM.toDouble()
 
 /** Sets font, overriding css style. */
 fun Parent.setFontAsStyle(font: Font) {

@@ -30,19 +30,16 @@ import sp.it.pl.main.FileFilters
 import sp.it.pl.main.FileFlatter
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.withAppProgress
 import sp.it.util.Sort.ASCENDING
-import sp.it.util.Util
 import sp.it.util.Util.*
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.async.IO
 import sp.it.util.async.burstTPExecutor
-import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runIO
 import sp.it.util.async.threadFactory
@@ -137,7 +134,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
 
-   private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {
+   private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
       onClose += { unsubscribe() }
       attach { applyCellSize() }
    }
@@ -181,7 +178,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    )
 
    init {
-      root.prefSize = 1000.scaleEM() x 700.scaleEM()
+      root.prefSize = 1000.emScaled x 700.emScaled
 
       grid.search.field = FileField.PATH
       grid.primaryFilterField = FileField.NAME_FULL
@@ -334,10 +331,10 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    }
 
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-      grid.cellWidth.value = width.scaleEM()
-      grid.cellHeight.value = height.scaleEM() + cellTextHeight.value
-      grid.horizontalCellSpacing.value = 5.scaleEM()
-      grid.verticalCellSpacing.value = 5.scaleEM()
+      grid.cellWidth.value = width.emScaled
+      grid.cellHeight.value = height.emScaled + cellTextHeight.value
+      grid.horizontalCellSpacing.value = 5.emScaled
+      grid.verticalCellSpacing.value = 5.emScaled
       revisitCurrent()
    }
 

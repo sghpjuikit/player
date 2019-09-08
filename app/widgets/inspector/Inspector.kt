@@ -28,7 +28,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.util.collections.getElementType
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.functional.asIf
@@ -106,7 +106,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
    }
 
    init {
-      root.prefSize = 600.scaleEM() x 600.scaleEM()
+      root.prefSize = 600.emScaled x 600.emScaled
       root.consumeScrolling()
 
       root.lay += tree.apply {

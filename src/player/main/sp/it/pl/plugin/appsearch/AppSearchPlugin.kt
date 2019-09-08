@@ -35,7 +35,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.scaleEM
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.Sort
@@ -206,7 +206,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
       private val owner = APP.plugins.getRaw<AppSearchPlugin>()!!
       private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 50.0, 50.0)
       private val imageLoader = GridFileThumbCell.Loader(oneTPExecutor())
-      private val cellTextHeight = APP.ui.font.map { 20.0.scaleEM() }.apply {
+      private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
          onClose += { unsubscribe() }
          attach { applyCellSize() }
       }
@@ -221,7 +221,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
       var closeOnRightClick by c(false)
 
       init {
-         root.prefSize = 1000.scaleEM() x 700.scaleEM()
+         root.prefSize = 1000.emScaled x 700.emScaled
 
          grid.search.field = FileField.PATH
          grid.primaryFilterField = FileField.PATH
@@ -291,10 +291,10 @@ class AppSearchPlugin: PluginBase("App Search", false) {
       }
 
       private fun applyCellSize() {
-         grid.cellWidth.value = 300.scaleEM()
-         grid.cellHeight.value = 50.scaleEM() + cellTextHeight.value
-         grid.horizontalCellSpacing.value = 30.scaleEM()
-         grid.verticalCellSpacing.value = 15.scaleEM()
+         grid.cellWidth.value = 300.emScaled
+         grid.cellHeight.value = 50.emScaled + cellTextHeight.value
+         grid.horizontalCellSpacing.value = 30.emScaled
+         grid.verticalCellSpacing.value = 15.emScaled
          visit()
       }
 

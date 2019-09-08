@@ -61,7 +61,7 @@ import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.layout.Priority.SOMETIMES;
-import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layVertically;
 
@@ -258,7 +258,7 @@ public class FontSelectorDialog extends PopOver<VBox> {
 					if (empty) {
 						setText(null);
 					} else {
-						setFont(Font.font(family, scaleEM(12.0)));
+						setFont(Font.font(family, getEmScaled(12.0)));
 						setText(family);
 					}
 				}

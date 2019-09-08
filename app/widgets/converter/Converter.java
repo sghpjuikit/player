@@ -66,7 +66,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
-import static sp.it.pl.main.AppExtensionsKt.scaleEM;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
 import static sp.it.util.Util.capitalizeStrong;
@@ -151,7 +151,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
     public Converter(Widget widget) {
 	    super(widget);
-        root.setPrefSize(scaleEM(800), scaleEM(500));
+        root.setPrefSize(getEmScaled(800), getEmScaled(500));
 
         inputValue = io.i.create("Value", Object.class, null, consumer(v -> source.setAll(unpackData(v))));
 

@@ -419,9 +419,8 @@ class WidgetManager {
       private fun compile(): Try<Nothing?, String> {
          logger.info { "Widget=$widgetName compiling..." }
 
-         // TODO: enable. For some reason the delete-create fails sometimes (even though compilation can proceed fine without it), investigate & fix
-         if (compileDir.exists()) compileDir.deleteRecursively() //.ifFalse { return Try.error("Failed to delete $compileDir") }
-         compileDir.mkdirs() //.ifFalse { return Try.error("Failed to create $compileDir") }
+         if (compileDir.exists()) compileDir.deleteRecursively().ifFalse { return Try.error("Failed to delete $compileDir") }
+         if (!compileDir.exists()) compileDir.mkdirs().ifFalse { return Try.error("Failed to create $compileDir") }
 
          val srcFiles = findSrcFiles().toList()
          val hasKotlin = srcFiles.any { it hasExtension "kt" }
@@ -628,13 +627,13 @@ class WidgetManager {
       fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
       /** @return widget factory with the specified [WidgetFactory.id] or null if none */
-      fun getFactory(name: String): WidgetFactory<*>? = factoriesW[name]
+      fun getFactory(id: String): WidgetFactory<*>? = factoriesW[id]
 
       /** @return widget factory with the specified [WidgetFactory.name] or null if none */
-      fun getFactoryByGuiName(guiName: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.name()==guiName }.toOptional().toTry().mapError { guiName }
+      fun getFactoryByGuiName(name: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.name()==name }.toOptional().toTry().mapError { name }
 
       /** @return component factory with the specified [ComponentFactory.name] or null if none */
-      fun getComponentFactoryByGuiName(guiName: String): Try<ComponentFactory<*>, String> = getFactoryByGuiName(guiName).or { factoriesC[guiName].toOptional().toTry() }
+      fun getComponentFactoryByGuiName(name: String): Try<ComponentFactory<*>, String> = getFactoryByGuiName(name).or { factoriesC[name].toOptional().toTry() }
 
       /** @return all widget factories */
       fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()

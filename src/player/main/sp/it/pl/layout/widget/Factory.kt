@@ -96,18 +96,18 @@ class TemplateFactory<C: Component>(private val name: String, private val suppli
 /** Component factory that creates component by deserializing it from file. */
 class DeserializingFactory: ComponentFactory<Component> {
    val launcher: File
-   private val nameGui: String
+   private val name: String
 
    constructor(launcher: File) {
       this.launcher = launcher
-      this.nameGui = launcher.nameWithoutExtension
+      this.name = launcher.nameWithoutExtension
    }
 
-   override fun name() = nameGui
+   override fun name() = name
 
    override fun create() = APP.windowManager.instantiateComponent(launcher)!!
 
-   override fun toString() = "${javaClass.simpleName} $nameGui $launcher"
+   override fun toString() = "${javaClass.simpleName} $name $launcher"
 
 }
 

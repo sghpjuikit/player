@@ -145,9 +145,9 @@ class App: Application(), GlobalConfigDelegator {
    val appCommunicator = AppInstanceComm()
    /** Observable [System.out]. */
    val systemout = SystemOutListener()
-   /** Called just after this application is started (successfully) and fully initialized. Runs at most once. */
+   /** Called just after this application is started (successfully) and fully initialized. Runs at most once, on fx thread. */
    val onStarted = Disposer()
-   /** Called just before this application is stopped when it is fully still running. Runs at most once. */
+   /** Called just before this application is stopped when it is fully still running. Runs at most once, on fx thread. */
    val onStopping = Disposer()
    /** Application argument handler. */
    val parameterProcessor = AppCli()

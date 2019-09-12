@@ -19,6 +19,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.file
+import mu.KLogging
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.PlaylistFeature
@@ -150,7 +151,11 @@ class Cli: CliktCommand(
          ) {
             val name by argument(help = "Name of the component.")
 
-            override fun run() = APP.run1AppReady { APP.windowManager.launchComponent(name) }
+            override fun run() = APP.run1AppReady {
+               APP.windowManager.launchComponent(name) ?: run {
+                  logger.error { "Component $name not found" }
+               }
+            }
          },
          object: CliktCommand(
             name = "open-component-file",
@@ -171,6 +176,8 @@ class Cli: CliktCommand(
          }
       )
    }
+
+   companion object: KLogging()
 }
 
 private fun File.requireAbsolute() = require(isAbsolute) { "File must be absolute" }

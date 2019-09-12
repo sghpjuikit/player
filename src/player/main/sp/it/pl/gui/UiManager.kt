@@ -24,6 +24,7 @@ import sp.it.pl.gui.pane.InfoPane
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.ScreenBgrGetter
 import sp.it.pl.layout.widget.WidgetSource.OPEN
+import sp.it.pl.layout.widget.Widgets
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
 import sp.it.pl.main.initActionPane
@@ -51,7 +52,6 @@ import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
-import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
@@ -101,18 +101,6 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
    val additionalStylesheets = observableArrayList<File>()!!
 
    val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
-   val focusChangedHandler: (Node?) -> Unit = { n ->
-      val window = n?.scene?.window
-      if (n!=null && window!=null) {
-         val widgets = APP.widgetManager.widgets.findAll(OPEN).filter { it.window.orNull()===window }.toList()
-         widgets.find {
-            it.uiTemp?.root?.isAnyParentOf(n) ?: false
-         }.ifNotNull { fw ->
-            widgets.forEach { w -> if (w!==fw) w.focused.value = false }
-            fw.focused.value = true
-         }
-      }
-   }
 
    init {
       initSkins()
@@ -365,7 +353,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
    private fun observeWindowsAndSyncWidgetFocus() {
       WindowFX.getWindows().onItemSyncWhile { window ->
          window.sceneProperty().syncNonNullWhile { scene ->
-            val s1 = scene.focusOwnerProperty() attach { nv -> focusChangedHandler(nv) }
+            val s1 = scene.focusOwnerProperty() attach { Widgets.focusChangedHandler(it) }
             val s2 = scene.rootProperty() syncNonNullWhile { root ->
                val ss1 = root.onEventUp(MOUSE_PRESSED) { e ->
                   if (e.button==MouseButton.PRIMARY)

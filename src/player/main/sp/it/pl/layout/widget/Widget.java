@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
@@ -122,8 +124,11 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public final V<String> custom_name = new V<>("");
 
 	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false. */
-	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.APP)
-	public final V<Boolean> focused = new V<>(false); // TODO: make read-only
+	final ReadOnlyBooleanWrapper focusedImpl = new ReadOnlyBooleanWrapper(false);
+
+	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false. */
+	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.NONE)
+	public final ObservableValue<Boolean> focused = focusedImpl.getReadOnlyProperty();
 
 	/**
 	 * Whether this widget has been created from persisted state or normally by application/user.

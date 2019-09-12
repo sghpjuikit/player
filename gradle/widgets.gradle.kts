@@ -6,16 +6,16 @@ sourceSets {
    main {
       java.srcDir(".")
       java.exclude("**.class")
-      resources.setSrcDirs(listOf())
+      resources.setSrcDirs(listOf<Any>())
    }
    test {
-      java.setSrcDirs(listOf())
-      resources.setSrcDirs(listOf())
+      java.setSrcDirs(listOf<Any>())
+      resources.setSrcDirs(listOf<Any>())
    }
 }
 
 dependencies {
    compileOnly(rootProject)
    compileOnly(project(":util"))
-   compileOnly(files(projectDir.listFiles().filter { it.path.endsWith(".jar") }))
+   compileOnly(files(projectDir.listFiles().orEmpty().filter { it.path.endsWith(".jar") }))
 }

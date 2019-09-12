@@ -39,6 +39,7 @@ import sp.it.pl.plugin.screenrotator.ScreenRotator
 import sp.it.pl.plugin.tray.TrayPlugin
 import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
 import sp.it.pl.plugin.wallpaper.WallpaperPlugin
+import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
@@ -200,8 +201,17 @@ class App: Application(), GlobalConfigDelegator {
    @C(name = "Animation FPS", info = "Update frequency in Hz for performance-heavy animations.")
    var animationFps by c(60.0).between(10.0, 60.0)
 
-   @C(name = "Developer mode", info = "Unlock developer features.")
-   val developerMode by cv(false)
+   @C(
+      name = "Developer mode",
+      info = "Unlock developer features." +
+         "\n * widgets will not recompile when any library or application jar is modified after widget's source file" +
+         "\n * enables Java VM management" +
+         "\n * enables menu items that call object's methods using reflection" +
+         "\n * shows experimental widgets" +
+         "\n * shows class information about objects in object details" +
+         "\nCan be forced to true by starting the application with a `--dev` flag"
+   )
+   val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) }
 
    @C(group = "Settings", name = "Settings use default", info = "Set all settings to default values.")
    val actionSettingsReset by cr { configuration.toDefault() }

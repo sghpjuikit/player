@@ -34,6 +34,7 @@ import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
 
 class AppCli {
+   val cli = Cli()
 
    fun process(args: List<String>) {
       val allArgs = args.toMutableList()
@@ -42,7 +43,7 @@ class AppCli {
 
       if (APP.isInitialized.isOk) {
          try {
-            Cli().parse(allArgs)
+            cli.parse(allArgs)
          } catch (e: PrintHelpMessage) {
             echo(e.command.getFormattedHelp())
          } catch (e: PrintMessage) {
@@ -55,19 +56,21 @@ class AppCli {
             echo("Aborted!", err = true)
          }
       } else {
-         Cli().main(allArgs)
+         cli.main(allArgs)
       }
    }
 
 }
 
-private class Cli: CliktCommand(
+class Cli: CliktCommand(
    name = APP.name,
    invokeWithoutSubcommand = true,
    help = "${APP.name} application command-line interface"
 
 ) {
    val version = versionOption("Application version=${APP.version}, JDK version=${Runtime.version()}, Kotlin version=${KotlinVersion.CURRENT}")
+   val dev by option(help = "Forces development mode to 'true' regardless of the setting")
+      .flag()
    val stateless by option(help = "Whether application starts with a state. If true, state is not restored on start or stored on close")
       .convert { it.toBoolean() }.default(false)
    val singleton by option(help = "Whether application should close and delegate arguments if there is already running instance")

@@ -68,6 +68,7 @@ import sp.it.util.functional.andAlso
 import sp.it.util.functional.asArray
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.ifFalse
 import sp.it.util.functional.invoke
 import sp.it.util.functional.let_
 import sp.it.util.functional.or
@@ -305,9 +306,8 @@ class WidgetManager {
       private fun findAppLibFiles() = APP.location.child("lib").children().filterSourceJars()
 
       private fun getAppJarFile(): Sequence<String> {
-         val mainJarFile = APP.location/"PlayerFX.jar"
-         return if (mainJarFile.exists()) {
-            sequenceOf(mainJarFile.relativeToApp())
+         return if (APP.location.`playerfx jar`.exists()) {
+            sequenceOf(APP.location.`playerfx jar`.relativeToApp())
          } else {
             System.getProperty("java.class.path")
                .splitToSequence(classpathSeparator)
@@ -360,24 +360,21 @@ class WidgetManager {
       fun updateFactory() {
          val srcFile = findSrcFile()
          val srcFiles = findSrcFiles().toList()
-         val srcFilesKt = srcFiles.filter { it hasExtension "kt" }
-         val srcFilesJava = srcFiles.filter { it hasExtension "java" }
+         val srcFilesAvailable = srcFile!=null
          val classFile = findClassFile()
          val classFiles = findClassFiles().toList()
-         val classFilesKt = classFiles.filter { cf -> srcFilesKt.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
-         val classFilesJava = classFiles.filter { cf -> srcFilesJava.any { sf -> sf.nameWithoutExtension==cf.nameWithoutExtension } }
+         val dependencies = when {
+            APP.developerMode.value -> srcFiles
+            else -> srcFiles + computeClassPathElements().map { File(it) }.filterSourceJars().toList()
+         }
+         val classFilesAvailable = classFile.exists() && classFiles modifiedAfter dependencies
 
-         val srcFileAvailable = srcFile!=null
-         val classFileAvailableKt = classFilesKt modifiedAfter srcFilesKt
-         val classFileAvailableJava = classFilesJava modifiedAfter srcFilesJava
-         val classFileAvailable = classFile.exists() && classFileAvailableKt && classFileAvailableJava
+         logger.info { "Widget=$widgetName factory update, source files available=$srcFilesAvailable class files available=$classFilesAvailable" }
 
-         logger.info { "Widget=$widgetName factory update, source files available=$srcFileAvailable class files available=$classFileAvailable" }
-
-         if (classFileAvailable) {
+         if (classFilesAvailable) {
             val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, compileDir, findLibFiles())
             registerFactory(controllerType)
-         } else if (srcFileAvailable) {
+         } else if (srcFilesAvailable) {
             compileFx()
          }
       }

@@ -228,6 +228,7 @@ tasks {
       dependsOn(jar)  // the widgets need the jar on the classpath
       group = main
       workingDir = dirApp
+      args = listOf("--dev")
    }
 
    "build" {

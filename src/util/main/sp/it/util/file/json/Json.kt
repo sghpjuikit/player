@@ -22,12 +22,20 @@ import java.io.File
 import java.lang.reflect.GenericArrayType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.nio.charset.Charset
+import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Collections
+import java.util.Deque
 import java.util.Hashtable
 import java.util.LinkedList
+import java.util.NavigableSet
+import java.util.PriorityQueue
+import java.util.Queue
 import java.util.SortedSet
+import java.util.Stack
 import java.util.TreeMap
 import java.util.TreeSet
 import java.util.UUID
@@ -165,8 +173,9 @@ class Json {
             val isObject = type.objectInstance!=null
             val isAmbiguous = typeAs==Any::class || typeAs.isSealed || isObject || type!=typeAs
 
-            fun typeWitness() = "_type" to JsString(typeAliases.byType[type] ?: type.qualifiedName
-            ?: fail { "Unable to serialize instance of type=$type: Type has no fully qualified name" })
+            fun typeWitness() = "_type" to JsString(typeAliases.byType[type]
+               ?: type.qualifiedName
+               ?: fail { "Unable to serialize instance of type=$type: Type has no fully qualified name" })
 
             fun JsValue.withAmbiguity() = if (isAmbiguous) JsObject(mapOf("value" to this, typeWitness())) else this
 
@@ -204,10 +213,14 @@ class Json {
    inline fun <reified T> fromJson(file: File, charset: Charset = Charsets.UTF_8): Try<T?, Throwable> = runTry {
       val klaxonAst = Klaxon().parseJsonObject(file.bufferedReader(charset))
       val ast = fromKlaxonAST(klaxonAst)
-      fromJsonValue<T>(ast)
+      fromJsonValueImpl<T>(ast)
    }
 
-   inline fun <reified T> fromJsonValue(value: JsValue): T? = fromJsonValueImpl(typeLiteral<T>(), value) as T?
+   inline fun <reified T> fromJsonValue(value: JsValue): Try<T?, Throwable> = runTry { fromJsonValueImpl<T>(value) }
+
+   fun fromJsonValue(typeTargetJ: Type, value: JsValue): Try<Any?, Throwable> = runTry { fromJsonValueImpl(typeTargetJ, value) }
+
+   inline fun <reified T> fromJsonValueImpl(value: JsValue): T? = fromJsonValueImpl(typeLiteral<T>(), value) as T?
 
    fun fromJsonValueImpl(typeTargetJ: Type, value: JsValue): Any? {
       val typeJ = typeTargetJ.toRaw()
@@ -220,20 +233,57 @@ class Json {
             is JsNull -> null
             is JsTrue -> true
             is JsFalse -> false
-            is JsNumber -> value.value
+            is JsNumber -> {
+               when (typeK) {
+                  Any::class -> value.value
+                  Number::class -> value.value
+                  Byte::class -> value.value.toByte()
+                  Short::class -> value.value.toShort()
+                  Int::class -> value.value.toInt()
+                  Long::class -> value.value.toLong()
+                  Float::class -> value.value.toFloat()
+                  Double::class -> value.value.toDouble()
+                  BigInteger::class -> when {
+                     value.value is BigInteger -> value.value
+                     value.value is BigDecimal -> value.value.toBigInteger()
+                     else -> BigInteger.valueOf(value.value.toLong())
+                  }
+                  BigDecimal::class -> when {
+                     value.value is BigDecimal -> value.value.toBigInteger()
+                     else -> BigDecimal.valueOf(value.value.toDouble())
+                  }
+                  else -> fail { "Unsupported number type=$typeK" }
+               }
+            }
             is JsString -> {
                if (typeJ.isEnum) getEnumValue(typeJ, value.value)
                else value.value
             }
             is JsArray -> {
                when {
+                  typeK==Any::class -> value.value.map { fromJsonValueImpl(typeLiteral<Any>(), it) }
                   Collection::class.isSuperclassOf(typeK) -> {
                      val itemType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)
                         ?: typeLiteral<Any>()
                      val values = value.value.map { fromJsonValueImpl(itemType, it) }
                      when (typeK) {
-                        Set::class -> values.toSet()
+                        Set::class -> HashSet(values)
+                        MutableSet::class -> HashSet(values)
+                        HashSet::class -> HashSet(values)
+                        SortedSet::class -> TreeSet(values)
+                        NavigableSet::class -> TreeSet(values)
+                        TreeSet::class -> TreeSet(values)
                         List::class -> values
+                        MutableList::class -> ArrayList(values)
+                        LinkedList::class -> LinkedList(values)
+                        ArrayList::class -> ArrayList(values)
+                        Vector::class -> Vector(values)
+                        Vector::class -> Vector(values)
+                        Stack::class -> Stack<Any?>().apply { values.forEach { push(it) } }
+                        Queue::class -> ArrayDeque(values)
+                        Deque::class -> ArrayDeque(values)
+                        ArrayDeque::class -> ArrayDeque(values)
+                        PriorityQueue::class -> PriorityQueue(values)
                         else -> fail { "Unsupported collection type=$typeK" }
                      }
                   }
@@ -241,14 +291,14 @@ class Json {
                      val arrayType = typeTargetJ.asIf<GenericArrayType>()?.genericComponentType ?: typeLiteral<Any>()
                      value.value.map { fromJsonValueImpl(arrayType, it) }.toTypedArray()
                   }
-                  typeK===ByteArray::class -> value.value.mapNotNull { fromJsonValue<Byte>(it) }.toByteArray()
-                  typeK===CharArray::class -> value.value.mapNotNull { fromJsonValue<Char>(it) }.toCharArray()
-                  typeK===ShortArray::class -> value.value.mapNotNull { fromJsonValue<Short>(it) }.toShortArray()
-                  typeK===IntArray::class -> value.value.mapNotNull { fromJsonValue<Int>(it) }.toIntArray()
-                  typeK===LongArray::class -> value.value.mapNotNull { fromJsonValue<Long>(it) }.toLongArray()
-                  typeK===FloatArray::class -> value.value.mapNotNull { fromJsonValue<Float>(it) }.toFloatArray()
-                  typeK===DoubleArray::class -> value.value.mapNotNull { fromJsonValue<Double>(it) }.toDoubleArray()
-                  typeK===BooleanArray::class -> value.value.mapNotNull { fromJsonValue<Boolean>(it) }.toBooleanArray()
+                  typeK===ByteArray::class -> value.value.mapNotNull { fromJsonValueImpl<Byte>(it) }.toByteArray()
+                  typeK===CharArray::class -> value.value.mapNotNull { fromJsonValueImpl<Char>(it) }.toCharArray()
+                  typeK===ShortArray::class -> value.value.mapNotNull { fromJsonValueImpl<Short>(it) }.toShortArray()
+                  typeK===IntArray::class -> value.value.mapNotNull { fromJsonValueImpl<Int>(it) }.toIntArray()
+                  typeK===LongArray::class -> value.value.mapNotNull { fromJsonValueImpl<Long>(it) }.toLongArray()
+                  typeK===FloatArray::class -> value.value.mapNotNull { fromJsonValueImpl<Float>(it) }.toFloatArray()
+                  typeK===DoubleArray::class -> value.value.mapNotNull { fromJsonValueImpl<Double>(it) }.toDoubleArray()
+                  typeK===BooleanArray::class -> value.value.mapNotNull { fromJsonValueImpl<Boolean>(it) }.toBooleanArray()
                   else -> fail { "Unsupported collection type=$typeK" }
                }
             }

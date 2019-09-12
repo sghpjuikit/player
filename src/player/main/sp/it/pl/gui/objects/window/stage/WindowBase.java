@@ -18,7 +18,6 @@ import sp.it.util.math.P;
 import static java.lang.Math.abs;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.NONE;
-import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.fixJavaFxNonDecoratedMinimization;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.reactive.UtilKt.syncC;
 
@@ -79,8 +78,6 @@ public class WindowBase {
 	public WindowBase(Stage owner, StageStyle style) {
 		if (owner!=null) s.initOwner(owner);
 		if (style!=null) s.initStyle(style);
-
-		fixJavaFxNonDecoratedMinimization(s);
 
 		// window properties may change externally so let us take notice
 		syncC(s.xProperty(), v -> {

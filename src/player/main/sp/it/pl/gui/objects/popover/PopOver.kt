@@ -257,7 +257,7 @@ open class PopOver<N: Node>(): PopupControl() {
       skin = createDefaultSkin()
       initCloseWithOwner()
 
-      // TODO: fix on Linux/Mac and move out (along with WindowBase.fixJavaFxNonDecoratedMinimization)
+      // TODO: fix on Linux/Mac
       fun fixJavaFxPopupAlwaysOnTop() = showingProperty().sync1If({ it }) {
 
          when (Os.current) {

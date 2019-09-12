@@ -186,7 +186,7 @@ tasks {
    val copyLibs by creating(Sync::class) {
       group = "build"
       description = "Copies all libraries into the app dir"
-      from(configurations.compileClasspath)
+      from(configurations.compileClasspath, project(":util").configurations.compileClasspath)
       into(dirApp/"lib")
    }
 

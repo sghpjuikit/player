@@ -1,6 +1,5 @@
 package sp.it.pl.layout.container
 
-import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.Node
@@ -15,7 +14,7 @@ import java.util.HashMap
 class BiContainer: Container<BiContainerUi> {
 
    /** Orientation of this container. */
-   val orientation = SimpleObjectProperty(VERTICAL)
+   val orientation = v(VERTICAL)
    val position = v(0.5)
    val absoluteSize = v(0)
    val collapsed = v(0)

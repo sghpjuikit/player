@@ -334,6 +334,7 @@ public class Window extends WindowBase {
 		syncC(isMain, v -> mainB.tooltip(v
 			? "Main window\n\nThis window is main app window\nClosing it will close application."
 			: "Main window\n\nThis window is not main app window\nClosing it will not close application."));
+		mainB.setVisible(APP.isUiApp());
 
 		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, new Label(""), minB, maxB, closeB);
 		rightHeaderBox.setTranslateY(-4);

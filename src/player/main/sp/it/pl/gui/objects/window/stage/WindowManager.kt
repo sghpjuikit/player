@@ -17,7 +17,6 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.StageStyle.UTILITY
-import javafx.stage.WindowEvent
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Duration.ZERO
@@ -43,6 +42,8 @@ import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.async.future.Fut
+import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -51,10 +52,13 @@ import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.valuesIn
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.fail
+import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.file.hasExtension
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
@@ -66,12 +70,12 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncTo
-import sp.it.util.ui.Util.addEventHandler1Time
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.fxml.ConventionFxmlLoader
@@ -162,7 +166,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       }
       WindowFX.getWindows().onItemRemoved { w ->
          w.asAppWindow().ifNotNull {
-            if (it.isMain.value && !dockIsTogglingWindows) {
+            if (APP.isUiApp && it.isMain.value && !dockIsTogglingWindows) {
                APP.close()
             } else {
                windows -= it
@@ -191,15 +195,13 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       }
    }
 
-   fun create() = create(false)
-
-   fun create(canBeMain: Boolean) = create(null, UNDECORATED, canBeMain)
+   fun create(canBeMain: Boolean = APP.isUiApp) = create(null, UNDECORATED, canBeMain)
 
    fun create(owner: Stage?, style: StageStyle, canBeMain: Boolean): Window {
       val w = Window(owner, style)
 
       ConventionFxmlLoader(w.root, w).loadNoEx<Any>()
-      if (canBeMain && mainWindow==null) setAsMain(w)
+      if (mainWindow==null && APP.isUiApp && canBeMain) setAsMain(w)
 
       w.initialize()
 
@@ -224,7 +226,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
    }
 
    @IsAction(name = "Open new window", desc = "Opens new application window")
-   fun createWindow(): Window = createWindow(false)
+   fun createWindow(): Window = createWindow(APP.isUiApp)
 
    fun setAsMain(w: Window) {
       if (mainWindow===w) return
@@ -342,10 +344,12 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
    }
 
    fun serialize() {
+      failIfNotFxThread()
+
       // make sure directory is accessible
       val dir = APP.location.user.layouts.current
       if (!isValidatedDirectory(dir)) {
-         logger.error { "Serialization of windows and layouts failed. $dir not accessible." }
+         logger.error { "Serializing windows failed. $dir not accessible." }
          return
       }
 
@@ -369,25 +373,26 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       (if (isError) filesNew else filesOld).forEach { it.delete() }
    }
 
-   fun deserialize() {
-      val ws = mutableSetOf<Window>()
-      if (APP.isStateful) {
-         val dir = APP.location.user.layouts.current
-         if (isValidatedDirectory(dir)) {
-            val fs = dir.children().filter { it.path.endsWith(".ws") }.toList()
-            ws += fs.mapNotNull { APP.serializerJson.fromJson<WindowDb>(it).orNull()?.toDomain() }
-            logger.info { "Restored ${fs.size}/${ws.size} windows." }
-         } else {
-            logger.error { "Restoring windows/layouts failed: $dir not accessible." }
-            return
-         }
-      }
-
-      if (ws.isEmpty()) {
-         if (APP.isStateful)
-            createWindow(true)
+   @ThreadSafe
+   fun deserialize(): Fut<*> = runIO {
+      logger.info { "Deserializing windows." }
+      val dir = APP.location.user.layouts.current
+      if (isValidatedDirectory(dir)) {
+         val fs = dir.children().filter { it hasExtension "ws" }.toList()
+         val ws = fs.mapNotNull { APP.serializerJson.fromJson<WindowDb>(it).orNull() }
+         logger.info { "Deserialized ${fs.size}/${ws.size} windows." }
+         ws
       } else {
-         ws.forEach { w -> addEventHandler1Time<WindowEvent>(w.s, WINDOW_SHOWING) { w.update() } }
+         logger.error { "Deserializing windows failed: $dir not accessible." }
+         listOf()
+      }
+   } ui {
+      if (it.isEmpty()) {
+         createWindow(true)
+      } else {
+         val ws = it.map { it.toDomain() }
+         if (mainWindow==null) setAsMain(ws.first())
+         ws.forEach { w -> w.s.onEventDown1(WINDOW_SHOWING) { w.update() } }
          ws.forEach { it.show() }
          Widget.deserializeWidgetIO()
       }
@@ -486,7 +491,7 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       val isLauncherEmpty = launcher.useLines { it.count()==1 }
 
       return if (isLauncherEmpty) instantiateComponent(launcher.readTextTry().getOr(""))
-      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.toDomain()
+      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.toDomain()  // TODO: put this on IO thread
    }
 
    companion object: KLogging()

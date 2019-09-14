@@ -26,10 +26,34 @@ fun <T: Event> Window.onEventDown(eventType: EventType<T>, eventHandler: (T) -> 
    return Subscription { removeEventHandler(eventType, handler) }
 }
 
+/** Equivalent to [Window.addEventHandler], but the handler runs at most once. */
+fun <T: Event> Window.onEventDown1(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+   val handler = object: EventHandler<T> {
+      override fun handle(event: T) {
+         eventHandler(event)
+         removeEventHandler(eventType, this)
+      }
+   }
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventHandler(eventType, handler) }
+}
+
 /** Equivalent to [Window.addEventFilter]. */
 fun <T: Event> Window.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
    val handler = eventHandler.eh
    addEventFilter(eventType, handler)
+   return Subscription { removeEventFilter(eventType, handler) }
+}
+
+/** Equivalent to [Window.addEventFilter], but the handler runs at most once. */
+fun <T: Event> Window.onEventUp1(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+   val handler = object: EventHandler<T> {
+      override fun handle(event: T) {
+         eventHandler(event)
+         removeEventFilter(eventType, this)
+      }
+   }
+   addEventHandler(eventType, handler)
    return Subscription { removeEventFilter(eventType, handler) }
 }
 

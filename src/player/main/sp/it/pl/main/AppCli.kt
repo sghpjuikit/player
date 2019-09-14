@@ -72,7 +72,9 @@ class Cli: CliktCommand(
    val version = versionOption("Application version=${APP.version}, JDK version=${Runtime.version()}, Kotlin version=${KotlinVersion.CURRENT}")
    val dev by option(help = "Forces development mode to 'true' regardless of the setting")
       .flag()
-   val stateless by option(help = "Whether application starts with a state. If true, state is not restored on start or stored on close")
+   val uiless by option(help = "Whether application can run with no ui. If false, at least one window must be open and closing last one will close the app.")
+      .convert { it.toBoolean() }.default(false)
+   val stateless by option(help = "Whether application starts with a state. If true, state is not restored on start or stored on close.")
       .convert { it.toBoolean() }.default(false)
    val singleton by option(help = "Whether application should close and delegate arguments if there is already running instance")
       .convert { it.toBoolean() }.default(true)
@@ -91,6 +93,7 @@ class Cli: CliktCommand(
       if (!APP.isInitialized.isOk) {
          APP.isSingleton = singleton
          APP.isStateful *= !stateless
+         APP.isUiApp *= !uiless
       }
    }
 

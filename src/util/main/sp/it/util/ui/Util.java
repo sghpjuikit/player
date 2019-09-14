@@ -1,10 +1,8 @@
 package sp.it.util.ui;
 
 import java.util.List;
-import java.util.function.Consumer;
 import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -23,7 +21,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.jetbrains.annotations.Nullable;
 import sp.it.util.JavaLegacy;
 import sp.it.util.access.V;
@@ -306,16 +303,6 @@ public interface Util {
 		}));
 
 		return s;
-	}
-
-	static <E extends Event> void addEventHandler1Time(Window window, EventType<E> eType, Consumer<E> eHandler) {
-		window.addEventHandler(eType, new EventHandler<>() {
-			@Override
-			public void handle(E event) {
-				eHandler.accept(event);
-				window.removeEventHandler(eType, this);
-			}
-		});
 	}
 
 	static @Nullable ScrollBar getVScrollBar(ScrollPane scrollPane) {

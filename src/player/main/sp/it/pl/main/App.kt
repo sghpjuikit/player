@@ -134,6 +134,8 @@ class App: Application(), GlobalConfigDelegator {
    var isSingleton = true
    /** Whether application starts with a state. If false, state is not restored on start or stored on close. */
    var isStateful = true
+   /** Whether application forbids no windows. If true, at least one window must be open and closing last one will close the app. */
+   var isUiApp = true
    /** Whether application is initialized. Starts as error and transitions to ok in [App.start] if no error occurs. */
    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
       private set
@@ -293,7 +295,7 @@ class App: Application(), GlobalConfigDelegator {
          widgetManager.init()
          db.init()
          audio.initialize()
-         windowManager.deserialize()
+         if (isStateful) windowManager.deserialize()
       }.ifError {
          runLater {
             logger.error(it) { "Application failed to start" }

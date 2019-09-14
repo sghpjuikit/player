@@ -28,6 +28,7 @@ import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppSearch.Source
+import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
 import sp.it.pl.plugin.database.SongDb
@@ -387,17 +388,17 @@ class App: Application(), GlobalConfigDelegator {
       .toList()
 
    private fun PluginManager.initForApp() {
-      installPlugins(
-         TrayPlugin(),
-         Notifier(),
-         PlaycountIncrementer(),
-         LibraryPlugin(),
-         AppSearchPlugin(),
-         DirSearchPlugin(),
-         ScreenRotator(),
-         Waifu2kPlugin(),
-         WallpaperPlugin()
-      )
+      fun installIfMaster(plugin: () -> Plugin) = if (rank==MASTER) installPlugins(plugin()) else Unit
+
+      installIfMaster { TrayPlugin() }
+      installPlugins(Notifier())
+      installPlugins(PlaycountIncrementer())
+      installPlugins(LibraryPlugin())
+      installIfMaster { AppSearchPlugin() }
+      installIfMaster { DirSearchPlugin() }
+      installIfMaster { ScreenRotator() }
+      installIfMaster { Waifu2kPlugin() }
+      installIfMaster { WallpaperPlugin() }
    }
 
    private fun AppSearch.initForApp() {

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Improve DirView cover loading performance
 - Improve video cover extraction performance (reuses output)
+- Implement --dev developer mode argument option
+- Implement --uiless argument option
+- Implement ui less application mode
+- Implement widget recompilation when application jars are more recent
 - Implement automatic setup for Vlc player
 - Implement automatic setup for Kotlin compiler
 - Implement automatic setup for ffmpeg compiler
@@ -16,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement WallpaperPlugin start/changeWallpaper() animation
 - Implement WallpaperPlugin window hiding when no image
 ### Fix
+- Widgets launched as new process not closing application 
+- Widgets not recompiling when application jars have newer version
 - Image loading blocks ui sometimes
 - GridView search style not discarded on cancel
 

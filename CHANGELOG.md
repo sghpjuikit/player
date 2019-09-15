@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Avoid starting some plugins for SLAVE application instances
 - Improve DirView cover loading performance
 - Improve video cover extraction performance (reuses output)
+- Improve overlay animation performance and ux
 - Implement --dev developer mode argument option
 - Implement --uiless argument option
 - Implement ui less application mode
@@ -25,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Widgets not recompiling when application jars have newer version
 - Image loading blocks ui sometimes
 - GridView search style not discarded on cancel
+- Overlay settings change not taking effect
+- Overlay blur affecting content in some scenarios
 
 ## [v0.7.0]
 ### Added

@@ -19,12 +19,14 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
+import sp.it.pl.core.UiName
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeButton
 import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.Anim.Companion.mapTo01
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
@@ -48,13 +50,14 @@ import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.makeScreenShot
-import sp.it.util.ui.minus
 import sp.it.util.ui.pane
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.screenToLocal
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.toP
 import sp.it.util.units.millis
+import kotlin.math.abs
 
 /**
  * Pane laying 'above' standard content.
@@ -123,13 +126,28 @@ abstract class OverlayPane<in T>: StackPane() {
 
    /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
+   class OpAnim(sideEffect: (Double) -> Unit) {
+      var dir = true
+      private val animation by lazy { anim(sideEffect).intpl { it*it } }
+
+      fun applyAt0() = animation.applyAt(0.0)
+
+      fun show() {
+         dir = true
+         animation.dur(400.millis).playOpenDo(null)
+      }
+
+      fun hide(then: () -> Unit) {
+         dir = false
+         animation.dur(250.millis).playCloseDo { then() }
+      }
+   }
+
    private lateinit var displayUsedForShow: ScreenGetter // prevents inconsistency in start() and stop(), see use
-   private val animation by lazy { anim(APP.animationFps) { animDo(it) }.dur(200.millis).intpl { it*it } } // lowering fps can help on hd screens & low-end hardware
-   private val blurBack = BoxBlur(0.0, 0.0, 3)  // we need best possible quality
-   private val blurFront = BoxBlur(0.0, 0.0, 1) // we do not need quality, hence iterations==1
+   private val animation = OpAnim { animDo(it) }
+   private val blur = BoxBlur(15.0, 15.0, 3)
    private var opacityNode: Node? = null
-   private var blurFrontNode: Node? = null
-   private var blurBackNode: Node? = null
+   private var blurNode: Node? = null
    protected var stage: Stage? = null
 
 
@@ -148,7 +166,7 @@ abstract class OverlayPane<in T>: StackPane() {
    open fun hide() {
       if (isShown()) {
          properties -= IS_SHOWN
-         animation.playCloseDo { animEnd() }
+         animation.hide { animEnd() }
       }
    }
 
@@ -169,7 +187,7 @@ abstract class OverlayPane<in T>: StackPane() {
    }
 
    private fun animStart() {
-      displayUsedForShow = display.get()
+      displayUsedForShow = display.value
       displayUsedForShow.animStart(this)
    }
 
@@ -185,14 +203,18 @@ abstract class OverlayPane<in T>: StackPane() {
       fun computeScreen(): Screen
    }
 
-   enum class Display: ScreenGetter {
-      WINDOW, SCREEN_OF_WINDOW, SCREEN_OF_MOUSE, SCREEN_PRIMARY;
+   enum class Display(name: String): ScreenGetter, UiName {
+      WINDOW("Active window"),
+      SCREEN_OF_WINDOW("Screen of active window"),
+      SCREEN_OF_MOUSE("Screen containing mouse"),
+      SCREEN_PRIMARY("Primary screen");
+
+      override val uiName = name
 
       override fun computeScreen(): Screen = when (this) {
          WINDOW -> fail()
          SCREEN_PRIMARY -> Screen.getPrimary()
-         SCREEN_OF_WINDOW -> APP.windowManager.getActive().orNull()?.centre?.getScreen()
-            ?: SCREEN_OF_MOUSE.computeScreen()
+         SCREEN_OF_WINDOW -> APP.windowManager.getActive().orNull()?.centre?.getScreen() ?: SCREEN_OF_MOUSE.computeScreen()
          SCREEN_OF_MOUSE -> getScreenForMouse()
       }
    }
@@ -211,19 +233,12 @@ abstract class OverlayPane<in T>: StackPane() {
                op.isVisible = true
                op.requestFocus()     // 'bug fix' - we need focus or key events wont work
 
-               // blur can reduce animation performance
-               // - apply blur only on the content, it is generally smaller than this entire pane
-               // - decrease blur iteration count (we don not need super blur quality here)
-               // - decrease blur amount
-
                op.opacityNode = window.content
-               op.blurBackNode = window.root
-               if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
-               op.blurBackNode!!.effect = op.blurBack
-               op.blurFrontNode!!.effect = op.blurFront
+               op.blurNode = window.content
+               op.blurNode!!.effect = op.blur
 
                // start showing
-               op.animation.playOpenDo(null)
+               op.animation.show()
                op.onShown()
             },
             {
@@ -258,53 +273,48 @@ abstract class OverlayPane<in T>: StackPane() {
 
             // apply effects (will be updated in animation)
             op.opacityNode = contentImg
-            op.blurBackNode = contentImg
-            if (!op.children.isEmpty()) op.blurFrontNode = op.children[0]
-            op.blurBackNode!!.effect = op.blurBack
-            op.blurFrontNode!!.effect = op.blurFront
+            op.blurNode = contentImg
+            op.blurNode!!.effect = op.blur
 
-            op.animation.applyAt(0.0)
+            op.animation.applyAt0()
             op.stage!!.show()
             op.stage!!.requestFocus()
 
             // start showing
             // the preparation may cause an animation lag, hence delay a bit
             runFX(30.millis) {
-               op.animation.playOpenDo(null)
+               op.animation.show()
                op.onShown()
             }
          }
       }
    }
 
-   fun ScreenGetter.animDo(op: OverlayPane<*>, x: Double) {
+   fun ScreenGetter.animDo(op: OverlayPane<*>, it: Double) {
+      val x = if (!op.animation.dir) it else mapTo01(it, 0.0, 0.4)
+      val y = if (!op.animation.dir) it else mapTo01(it, 0.5, 1.0)
       if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
          if (this!=Display.WINDOW && (op.displayBgr.value==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.value==ScreenBgrGetter.NONE)) {
-            op.stage!!.opacity = x
-            op.opacityNode!!.opacity = 1 - x*0.5
             op.opacity = 1.0
-            op.blurBack.height = 15.0*x*x
-            op.blurBack.width = 15.0*x*x
-            op.scaleX = 1 + 0.2*(1 - x)
-            op.scaleY = 1 + 0.2*(1 - x)
+            op.stage?.opacity = x
          } else {
-            op.opacityNode!!.opacity = 1 - x*0.5
             op.opacity = x
-            op.blurBack.height = 15.0*x*x
-            op.blurBack.width = 15.0*x*x
-            op.scaleX = 1 + 1.5*(1 - x)
-            op.scaleY = 1 + 1.5*(1 - x)
+         }
+         op.opacityNode!!.opacity = 1 - x*0.5
+         op.content?.opacity = y*y
+         val b = 15.0*x*x
+         if (b==0.0 || b==15.0 || abs(op.blur.height - b) > 3.0) {
+            op.blur.height = b
+            op.blur.width = b
          }
       }
    }
 
    fun ScreenGetter.animEnd(op: OverlayPane<*>) {
       op.opacityNode!!.effect = null
-      op.blurFrontNode!!.effect = null
-      op.blurBackNode!!.effect = null
+      op.blurNode!!.effect = null
       op.opacityNode = null
-      op.blurFrontNode = null
-      op.blurBackNode = null
+      op.blurNode = null
       op.onHidden()
       if (this==Display.WINDOW) {
          op.setVisible(false)
@@ -363,7 +373,7 @@ private class PolarResize {
                   // drag by a resizable Node
                   if (dragActivator.containsMouse(it)) {
                      isActive = true
-                     offset = resizable.size - resizable.screenToLocal(it)
+                     offset = resizable.size - resizable.screenToLocal(it).toP()
                   }
                }
             }
@@ -374,7 +384,7 @@ private class PolarResize {
                   val n = it.source as Pane
                   if (it.x>=n.width - cornerSize && it.y>=n.height - cornerSize) {
                      isActive = true
-                     offset = resizable.size - resizable.screenToLocal(it)
+                     offset = resizable.size - resizable.screenToLocal(it).toP()
                   }
                }
             }

@@ -152,21 +152,21 @@ fun <T, P: OverlayPane<T>> P.initApp() = apply {
    APP.ui.viewDisplay syncTo display on d
    display sync { if (it is OverlayPane.Display) APP.ui.viewDisplay.value = it } on d
    displayBgr syncBiFrom APP.ui.viewDisplayBgr on d
-   onHidden += d
+   // onHidden += d  // TODO: this can only work if OverlayPane is one-use, which it isnt
 }
 
 fun ActionPane.initApp() = apply {
    val d = Disposer()
    (this as OverlayPane<*>).initApp()
    closeOnDone syncBiFrom APP.ui.viewCloseOnDone on d
-   onHidden += d
+   // onHidden += d
 }
 
 fun ShortcutPane.initApp() = apply {
    val d = Disposer()
    (this as OverlayPane<*>).initApp()
    hideEmptyShortcuts syncBiFrom APP.ui.viewHideEmptyShortcuts on d
-   onHidden += d
+   // onHidden += d
    onHidden += {
       APP.actionStream("Shortcuts")
    }

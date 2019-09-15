@@ -41,15 +41,15 @@ import sp.it.util.collections.map.ClassListMap;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
+import sp.it.util.functional.UtilKt;
 import sp.it.util.type.ClassName;
 import sp.it.util.type.InstanceDescription;
 import sp.it.util.type.InstanceName;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX_BLANK_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RESIZE_BOTTOM_RIGHT;
-import static java.util.stream.Collectors.collectingAndThen;
+import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.BOTTOM_CENTER;
 import static javafx.geometry.Pos.CENTER;
@@ -71,6 +71,7 @@ import static sp.it.pl.main.AppExtensionsKt.getUiName;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
 import static kotlin.streams.jdk8.StreamsKt.asStream;
+import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.NEW;
@@ -85,6 +86,8 @@ import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.ui.Util.layHeaderTopBottom;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layScrollVTextCenter;
@@ -176,6 +179,14 @@ public class ActionPane extends OverlayPane<Object> {
 		descriptionFullPane.maxWidthProperty().bind(min(400, iconPane.widthProperty()));
 
 		makeResizableByUser();
+		getOnShown().add(runnable(() -> {
+			dataInfo.setOpacity(0.0);
+			tablePane.setOpacity(0.0);
+			descFull.setOpacity(0.0);
+			descTitle.setOpacity(0.0);
+			iconPaneComplex.setOpacity(0.0);
+			runFX(millis(400.0), () -> setData(data));
+		}));
 	}
 
 	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
@@ -217,18 +228,9 @@ public class ActionPane extends OverlayPane<Object> {
 	protected void show() {
 		failIfNotFxThread();
 
-		setData(data);
-
+		setContentEmpty();
 		super.show();
-
-		// Reset content size to default (overrides previous user-defined size)
-		// Note, sometimes we need to delay this action, hence the runLater
-		runLater(() -> {
-			if (getParent()!=null) { // TODO: running this in a loop may be necessary
-				Bounds b = getParent().getLayoutBounds();
-				getContent().setPrefSize(b.getWidth() * CONTENT_SIZE_SCALE, b.getHeight() * CONTENT_SIZE_SCALE);
-			}
-		});
+		resizeContentToDefault();
 	}
 
 	@Override
@@ -352,7 +354,7 @@ public class ActionPane extends OverlayPane<Object> {
 	private void setDataInfo(Object data, boolean computed) {
 		dataInfo.setText(computeDataInfo(data, computed));
 		tablePane.getChildren().clear();
-		double gap = 0;
+		double gap = 0.0;
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
 			Collection<Object> items = (Collection) data;
 			Class itemType = getElementType(items);
@@ -368,7 +370,7 @@ public class ActionPane extends OverlayPane<Object> {
 				});
 				t.setColumnState(t.getDefaultColumnInfo());
 				tablePane.getChildren().setAll(t.getRoot());
-				gap = 70;
+				gap = 70.0;
 				table = t;
 				t.setItemsRaw(items);
 				t.getSelectedItems().addListener((Change<?> c) -> {
@@ -379,6 +381,22 @@ public class ActionPane extends OverlayPane<Object> {
 			}
 		}
 		tableContentGap.set(gap);
+	}
+	private void setContentEmpty() {
+		dataInfo.setText("");
+		tablePane.getChildren().clear();
+		tableContentGap.setValue(0.0);
+		descFull.setText("");
+		descTitle.setText("");
+		icons.clear();
+		hideCustomActionUi();
+	}
+
+	private void resizeContentToDefault() {
+		sp.it.util.reactive.UtilKt.sync1IfInScene(getContent(), runnable(() -> {
+			Bounds b = getLayoutBounds();
+			getContent().setPrefSize(b.getWidth() * CONTENT_SIZE_SCALE, b.getHeight() * CONTENT_SIZE_SCALE);
+		}));
 	}
 
 	// TODO: remove
@@ -426,39 +444,53 @@ public class ActionPane extends OverlayPane<Object> {
 			hideCustomActionUi();
 		}
 
-		stream(actionsData)
-			.sorted(by(a -> a.name))
-			.map(action -> {
-				Icon i = new Icon()
-					  .icon(action.icon)
-					  .styleclass(ICON_STYLECLASS)
-					  .onClick(e -> runAction(action, getData()));
+		var iconGlyphs = new ArrayList<Icon>();
+		var iconNodes = new ArrayList<Node>();
+		stream(actionsData).sorted(by(a -> a.name)).forEach(action -> {
+			Icon i = new Icon()
+				  .icon(action.icon)
+				  .styleclass(ICON_STYLECLASS)
+				  .onClick(e -> runAction(action, getData()));
 
-					 // Description is shown when mouse hovers
-					 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(action));
-					 i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
+				 // Description is shown when mouse hovers
+				 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(action));
+				 i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
 
-					 // Long descriptions require scrollbar, but because mouse hovers on icon, scrolling
-					 // is not possible. Hence we detect scrolling above mouse and pass it to the
-					 // scrollbar. A bit unintuitive, but works like a charm and description remains
-					 // fully readable.
-					 i.addEventHandler(ScrollEvent.ANY, e -> {
-						 descFull.getParent().getParent().fireEvent(e);
-						 e.consume();
-					 });
-				return i.withText(action.name);
-			})
-			.collect(collectingAndThen(toList(), icons::setAll));
+				 // Long descriptions require scrollbar, but because mouse hovers on icon, scrolling
+				 // is not possible. Hence we detect scrolling above mouse and pass it to the
+				 // scrollbar. A bit unintuitive, but works like a charm and description remains
+				 // fully readable.
+				 i.addEventHandler(ScrollEvent.ANY, e -> {
+					 descFull.getParent().getParent().fireEvent(e);
+					 e.consume();
+				 });
+			iconGlyphs.add(i);
+			iconNodes.add(i.withText(action.name));
+		});
+		icons.setAll(iconNodes);
 
-		// Animate - pop icons in parallel, but with increasing delay
-		// We do not want the total animation length be dependent on number of icons (by using
-		// absolute icon delay), rather we calculate the delay so total length remains the same.
-		Duration total = seconds(1);
+		// animate icons
+		Duration total = seconds(0.4);
 		double delayAbs = total.divide(icons.size()).toMillis(); // use for consistent total length
 		double delayRel = 200; // use for consistent frequency
 		double delay = delayAbs;
-		Interpolator intpl = new ElasticInterpolator();
-		animPar(icons, (i, icon) -> new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(intpl).delay(millis(350+i*delay)))
+		animPar(icons, (i, icon) ->
+				new Anim(at -> {
+					iconNodes.get(i).setOpacity(at);
+					setScaleXY(iconGlyphs.get(i), sqrt(at));
+				})
+				.dur(millis(500)).delay(millis(150+i*delay))
+			)
+			.play();
+		Anim.anim(millis(200), consumer(it -> {
+				dataInfo.setOpacity(it);
+				tablePane.setOpacity(it);
+				descFull.setOpacity(it);
+				descTitle.setOpacity(it);
+				iconPaneComplex.setOpacity(it);
+			}))
+			.delay(millis(100))
+			.intpl(x -> x*x)
 			.play();
 	}
 

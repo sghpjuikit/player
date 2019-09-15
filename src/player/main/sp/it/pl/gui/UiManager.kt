@@ -76,9 +76,15 @@ import sp.it.pl.main.Settings.Ui as SU
 
 class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
 
-   @IsConfig(name = "Display method", group = SU.View.name, info = "Area of content. Screen provides more space than window, but can get in the way of other apps.")
+   @IsConfig(
+      name = "Overlay area", group = SU.View.name,
+      info = "Covered area. Screen overlay provides more space than window, but it can disrupt work flow."
+   )
    val viewDisplay by cv(OverlayPane.Display.SCREEN_OF_MOUSE)
-   @IsConfig(name = "Display background", group = SU.View.name, info = "Content background")
+   @IsConfig(
+      name = "Overlay background", group = SU.View.name,
+      info = "Background image source.\nIgnored when `Overlay area` is `Active window`"
+   )
    val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR)
    @IsConfig(name = PaneA.CLOSE_ON_DONE_NAME, info = PaneA.CLOSE_ON_DONE_INFO, group = SU.View.Action.name)
    val viewCloseOnDone by cv(true)

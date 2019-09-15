@@ -47,7 +47,6 @@ import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.MainConfiguration
-import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
@@ -200,9 +199,6 @@ class App: Application(), GlobalConfigDelegator {
 
    @C(name = "Text for multi value", info = "Preferred text when multiple tag values per field. This value can be overridden.")
    var textManyVal by c("<multi>")
-
-   @C(name = "Animation FPS", info = "Update frequency in Hz for performance-heavy animations.")
-   var animationFps by c(60.0).between(10.0, 60.0)
 
    @C(
       name = "Developer mode",

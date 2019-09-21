@@ -70,7 +70,7 @@ class JavaFxPlayer: GeneralPlayer.Play {
             state.volume sync { v -> p.volume = linToLog(v.toDouble()) } on onDispose
             state.mute syncTo p.muteProperty() on onDispose
             state.rate syncTo p.rateProperty() on onDispose
-            p.onEndOfMedia = APP.audio.onPlaybackEnd
+            p.onEndOfMedia = Runnable { APP.audio.onPlaybackEnd }
 
             p.statusProperty().attach1If({ it==PLAYING || it==PAUSED || it==STOPPED }) {
                p.currentTimeProperty() syncTo state.currentTime on onDispose

@@ -176,7 +176,7 @@ class GeneralPlayer(state: PlayerState) {
    private fun doSeek(duration: Duration) {
       state.playback.realTimeImpl.syncRealTimeOnPreSeek()
       state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
-      state.playback.currentTime.attach1IfNonNull { APP.audio.onSeekDone.run() }
+      state.playback.currentTime.attach1IfNonNull { APP.audio.onSeekDone() }
       p?.seek(duration)
       state.playback.realTimeImpl.syncRealTimeOnPostSeek(duration)
    }

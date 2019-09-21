@@ -19,6 +19,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
+import javafx.stage.WindowEvent.WINDOW_SHOWN
 import sp.it.pl.core.UiName
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
@@ -27,7 +28,6 @@ import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
-import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
@@ -37,6 +37,7 @@ import sp.it.util.math.P
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.getWallpaperFile
@@ -223,7 +224,6 @@ abstract class OverlayPane<in T>: StackPane() {
       if (this==Display.WINDOW) {
          APP.windowManager.getActive().ifPresentOrElse(
             { window ->
-               // display overlay pane
                val root = window.root
                if (op !in root.children) {
                   root.children += op
@@ -237,7 +237,6 @@ abstract class OverlayPane<in T>: StackPane() {
                op.blurNode = window.content
                op.blurNode!!.effect = op.blur
 
-               // start showing
                op.animation.show()
                op.onShown()
             },
@@ -263,7 +262,6 @@ abstract class OverlayPane<in T>: StackPane() {
                scene = Scene(root)
             }
 
-            // display overlay pane
             if (op !in root.children) {
                root.children += op
                op.toFront()
@@ -271,21 +269,17 @@ abstract class OverlayPane<in T>: StackPane() {
             op.isVisible = true
             op.requestFocus()     // 'bug fix' - we need focus or key events wont work
 
-            // apply effects (will be updated in animation)
             op.opacityNode = contentImg
             op.blurNode = contentImg
             op.blurNode!!.effect = op.blur
 
             op.animation.applyAt0()
-            op.stage!!.show()
-            op.stage!!.requestFocus()
-
-            // start showing
-            // the preparation may cause an animation lag, hence delay a bit
-            runFX(30.millis) {
+            op.stage!!.onEventDown1(WINDOW_SHOWN) {
                op.animation.show()
                op.onShown()
             }
+            op.stage!!.show()
+            op.stage!!.requestFocus()
          }
       }
    }

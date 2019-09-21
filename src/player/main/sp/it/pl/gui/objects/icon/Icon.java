@@ -417,10 +417,10 @@ public class Icon extends StackPane {
 	@NotNull
 	public Pane withText(Side side, Pos alignment, String text) {
 		switch (side) {
-			case LEFT: return layHeaderLeft(10, alignment, this, new Label(text));
-			case TOP: return layHeaderTop(5, alignment, this, new Label(text));
-			case RIGHT: return layHeaderRight(10, alignment, this, new Label(text));
-			case BOTTOM: return layHeaderBottom(5, alignment, this, new Label(text));
+			case TOP: return layHeaderBottom(5, alignment, new Label(text), this);
+			case RIGHT: return layHeaderLeft(10, alignment, this, new Label(text));
+			case BOTTOM: return layHeaderTop(5, alignment, this, new Label(text));
+			case LEFT: return layHeaderRight(10, alignment, new Label(text), this);
 			default: throw new SwitchException(side);
 		}
 	}

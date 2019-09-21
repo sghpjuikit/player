@@ -48,11 +48,13 @@ import javafx.scene.layout.BorderStroke
 import javafx.scene.layout.BorderStrokeStyle
 import javafx.scene.layout.BorderWidths
 import javafx.scene.layout.CornerRadii
+import javafx.scene.layout.FlowPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
+import javafx.scene.layout.TilePane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.robot.Robot
@@ -288,6 +290,8 @@ inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*chil
 inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply(block)
 inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = StackPane(*children).apply { block() }
 inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply(block)
+inline fun tilePane(hgap: Double = 0.0, vgap: Double = 0.0, block: TilePane.() -> Unit = {}) = TilePane(hgap, vgap).apply(block)
+inline fun flowPane(hgap: Double = 0.0, vgap: Double = 0.0, block: FlowPane.() -> Unit = {}) = FlowPane(hgap, vgap).apply(block)
 inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply(block)

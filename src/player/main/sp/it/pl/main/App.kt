@@ -37,6 +37,7 @@ import sp.it.pl.plugin.library.LibraryPlugin
 import sp.it.pl.plugin.notif.Notifier
 import sp.it.pl.plugin.playcount.PlaycountIncrementer
 import sp.it.pl.plugin.screenrotator.ScreenRotator
+import sp.it.pl.plugin.startscreen.StartScreenPlugin
 import sp.it.pl.plugin.tray.TrayPlugin
 import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
 import sp.it.pl.plugin.wallpaper.WallpaperPlugin
@@ -395,6 +396,7 @@ class App: Application(), GlobalConfigDelegator {
       installIfMaster { ScreenRotator() }
       installIfMaster { Waifu2kPlugin() }
       installIfMaster { WallpaperPlugin() }
+      installIfMaster { StartScreenPlugin() }
    }
 
    private fun AppSearch.initForApp() {

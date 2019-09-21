@@ -1,5 +1,7 @@
 package sp.it.util;
 
+import com.sun.jna.Native;
+import com.sun.jna.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -48,4 +50,16 @@ public class JavaLegacy {
 		if (i!=null) Util.setField(i, "pixelaccessor", null);
 	}
 
+	public static void suspendWindows(boolean hibernate, boolean forceCritical, boolean disableWakeEvent) {
+		WindowsSuspend.SetSuspendState(hibernate, forceCritical, disableWakeEvent);
+	}
+
+	private static class WindowsSuspend {
+		public static native boolean SetSuspendState(boolean hibernate, boolean forceCritical, boolean disableWakeEvent);
+
+		static {
+			if (Platform.isWindows())
+				Native.register("powrprof");
+		}
+	}
 }

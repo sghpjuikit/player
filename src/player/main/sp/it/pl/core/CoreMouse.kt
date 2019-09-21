@@ -2,9 +2,11 @@ package sp.it.pl.core
 
 import javafx.geometry.Point2D
 import javafx.scene.robot.Robot
+import javafx.stage.Screen
 import sp.it.util.async.executor.FxTimer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.onChange
 import sp.it.util.units.div
 import sp.it.util.units.seconds
 import java.util.HashSet
@@ -35,6 +37,9 @@ object CoreMouse: Core {
       pulseUpdate()
       return Subscription { unsubscribe(action) }
    }
+
+   /** Observe (any) screen changes. */
+   fun observeScreens(block: () -> Unit): Subscription = Screen.getScreens().onChange { block() }
 
    private fun unsubscribe(s: Any) {
       positionSubscribers.remove(s)

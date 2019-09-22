@@ -1,6 +1,5 @@
 package sp.it.pl.audio.playback
 
-import javafx.scene.media.AudioSpectrumListener
 import javafx.scene.media.Media
 import javafx.scene.media.MediaException
 import javafx.scene.media.MediaPlayer
@@ -17,7 +16,6 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attach1If
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncTo
 
@@ -55,17 +53,6 @@ class JavaFxPlayer: GeneralPlayer.Play {
             player = p
 
             p.startTime = Duration.ZERO
-            p.audioSpectrumInterval = 0.01
-            p.audioSpectrumNumBands = 128
-            // p.audioSpectrumThreshold = ? what val is ok?
-            APP.audio.spectrumListeners.onChangeAndNow {
-               p.audioSpectrumListener = if (APP.audio.spectrumListeners.isEmpty()) {
-                  null
-               } else
-                  AudioSpectrumListener { d: Double, d1: Double, floats: FloatArray, floats1: FloatArray ->
-                  APP.audio.spectrumListeners.forEach { it.spectrumDataUpdate(d, d1, floats, floats1) }
-               }
-            } on onDispose
 
             state.volume sync { v -> p.volume = linToLog(v.toDouble()) } on onDispose
             state.mute syncTo p.muteProperty() on onDispose

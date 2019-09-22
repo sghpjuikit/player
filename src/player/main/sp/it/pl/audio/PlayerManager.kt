@@ -1,9 +1,7 @@
 package sp.it.pl.audio
 
-import javafx.collections.FXCollections.observableSet
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
-import javafx.scene.media.AudioSpectrumListener
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
@@ -139,13 +137,6 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
     * Set of time-specific actions that individually execute when song playback reaches point of handler's interest.
     */
    val onPlaybackAt: MutableList<PlayTimeHandler> = ArrayList()
-
-   /**
-    * Playing song spectrum distributor.
-    * Register listeners by adding it into collection. Adding listener multiple times has no
-    * effect.
-    */
-   val spectrumListeners = observableSet<AudioSpectrumListener>()
 
    fun initialize() {
       playingSong.onUpdate { _, n -> playing.i.value = n }

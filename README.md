@@ -201,8 +201,6 @@ Displays System.out in a TextArea, meant for developers
 Configurable icon bar/dock. User can add/remove custom icons executing some predefined.
 ##### FunctionViewer
 Plots custom mathematical function in a graph
-##### Spectrum
-Displays the audio spectrum of the playing song (doesn't work for flac and ogg). Looks nothing like the low-fps sample from Oracle. Uses Canvas and smooth 60FPS animation. Looks very cool. Yet its only 58 lines! Not really useful aside being a fancy visualisation though.
 
 ### Portability
 

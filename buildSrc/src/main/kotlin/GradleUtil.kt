@@ -9,6 +9,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.io.IOException
+import java.io.Serializable
 import java.nio.file.Files
 import java.nio.file.NotLinkException
 import java.nio.file.Paths
@@ -69,7 +70,7 @@ open class LinkJDK: AbstractTask() {
    }
 }
 
-open class FileHierarchyInfo: DefaultTask() {
+open class GenerateKtFileHierarchy: DefaultTask() {
    /** File describing the file hierarchy tree. Must have a single root. */
    @InputFile lateinit var inFileHierarchy: File
    /** Kotlin code that returns the java.io.File object representing the root of the file hierarchy. */
@@ -82,7 +83,7 @@ open class FileHierarchyInfo: DefaultTask() {
    @OutputFile lateinit var outFileHierarchy: File
 
    @TaskAction
-   fun generateInfo() {
+   fun generate() {
       val header = """
             @file:Suppress("RemoveRedundantBackticks", "unused", "ClassName", "ObjectPropertyName", "SpellCheckingInspection")
             
@@ -92,18 +93,18 @@ open class FileHierarchyInfo: DefaultTask() {
             
             /** [File] that always [isFile] and never [isDirectory]. */
             open class Fil(path: String): File(path) {
-               /** @return false */
-               override fun isDirectory() = false
-               /** @return true */
-               override fun isFile() = true
+            ${outIndent}/** @return false */
+            ${outIndent}override fun isDirectory() = false
+            ${outIndent}/** @return true */
+            ${outIndent}override fun isFile() = true
             }
             
             /** [File] that always [isDirectory] and never [isFile]. */
             open class Dir(path: String): File(path) {
-               /** @return true */
-               override fun isDirectory() = true
-               /** @return false */
-               override fun isFile() = false
+            ${outIndent}/** @return true */
+            ${outIndent}override fun isDirectory() = true
+            ${outIndent}/** @return false */
+            ${outIndent}override fun isFile() = false
             }
          """.trimIndent()
       val comments = ArrayList<String>()
@@ -177,3 +178,135 @@ open class FileHierarchyInfo: DefaultTask() {
       outFileHierarchy.setReadOnly().orFailIO { "Failed to make $outFileHierarchy read only" }
    }
 }
+
+open class GenerateKtSettings: DefaultTask() {
+   /** Settings hierarchy used as source for the output class file. */
+   @Input var settings: Setting.SettingRoot? = null
+   /** Package used for pakcage declaration of the output class file. */
+   @Input lateinit var outPackage: String
+   /** Exact indent used for indenting the output class file. */
+   @Input lateinit var outIndent: String
+   /** Output class file. Should be inside the project. */
+   @OutputFile lateinit var outFile: File
+
+   @TaskAction
+   fun generate() {
+      if (settings==null) {
+         if (outFile.exists()) outFile.delete().orFailIO { "Failed to delete $outFile" }
+         return
+      }
+
+      val header = """
+            @file:Suppress("RemoveRedundantBackticks", "unused", "ClassName", "ObjectPropertyName", "SpellCheckingInspection")
+            
+            package $outPackage
+            
+            import sp.it.util.conf.EditMode
+            
+            interface ConfigDefinition {
+            ${outIndent}/** Name of the config. */
+            ${outIndent}val configName: String
+            ${outIndent}/** Group of the config. */
+            ${outIndent}val configGroup: String
+            ${outIndent}/** Description of the config. */
+            ${outIndent}val configInfo: String
+            ${outIndent}/** Editability of the config. */
+            ${outIndent}val configEditable: EditMode
+            }
+         """.trimIndent()
+      val sb = StringBuilder("").appendln(header).appendln()
+
+      settings!!.writeClass(sb)
+
+      if (outFile.exists()) outFile.delete().orFailIO { "Failed to delete $outFile" }
+      outFile.writeText(sb.toString(), UTF_8)
+      outFile.setReadOnly().orFailIO { "Failed to make $outFile read only" }
+   }
+
+   private fun Setting.writeClass(sb: StringBuilder, depth: Int = 0) {
+      fun StringBuilder.appendIndent() = apply { repeat(depth) { append(outIndent) } }
+
+      when (this) {
+         is Setting.SettingRoot -> {
+            sb.appendIndent().appendln("/** Application settings hierarchy. */")
+            sb.appendIndent().appendln("object `${outFile.nameWithoutExtension.capitalize()}` {")
+            sb.appendln()
+            children.forEach { it.writeClass(sb, depth + 1) }
+            sb.appendIndent().appendln("}")
+         }
+         is Setting.SettingGroup -> {
+            sb.appendIndent().appendln("object `$name` {")
+            sb.appendIndent().appendln("${outIndent}/** Name of the group. */")
+            sb.appendIndent().appendln("${outIndent}const val name = \"$name\"")
+            sb.appendln()
+            children.forEach { it.writeClass(sb, depth + 1) }
+            sb.appendIndent().appendln("}")
+         }
+         is Setting.SettingConfig -> {
+            sb.appendIndent().appendln("object `$name`: ConfigDefinition {")
+            sb.appendIndent().appendln("${outIndent}/** Name of the config. Compile-time constant. */")
+            sb.appendIndent().appendln("${outIndent}const val name: String = \"$name\"")
+            sb.appendIndent().appendln("${outIndent}/** Description of the config. Compile-time constant. */")
+            sb.appendIndent().appendln("${outIndent}const val info: String = \"$info\"")
+            sb.appendIndent().appendln("${outIndent}/** Group of the config. Compile-time constant. */")
+            sb.appendIndent().appendln("${outIndent}const val group: String = \"$group\"")
+            sb.appendIndent().appendln("${outIndent}/** Editability of the config. Compile-time constant. */")
+            sb.appendIndent().appendln("${outIndent}val editable: EditMode = EditMode.$editable")
+            sb.appendIndent().appendln("${outIndent}/** Equivalent to [name]. */")
+            sb.appendIndent().appendln("${outIndent}override val configName = name")
+            sb.appendIndent().appendln("${outIndent}/** Equivalent to [group]. */")
+            sb.appendIndent().appendln("${outIndent}override val configGroup = group")
+            sb.appendIndent().appendln("${outIndent}/** Equivalent to [info]. */")
+            sb.appendIndent().appendln("${outIndent}override val configInfo = info")
+            sb.appendIndent().appendln("${outIndent}/** Equivalent to [editable]. */")
+            sb.appendIndent().appendln("${outIndent}override val configEditable = editable")
+            sb.appendIndent().appendln("}")
+         }
+      }
+
+   }
+}
+
+sealed class Setting(val name: String, val group: String): Serializable {
+
+   init {
+      if (name.isBlank()) throw AssertionError("Name can not be empty")
+   }
+
+   class SettingConfig(name: String, group: String, var info: String = "", var editable: EditMode = EditMode.USER): Setting(name, group)
+
+   open class SettingGroup(name: String, group: String, val children: MutableList<Setting> = ArrayList()): Setting(name, group) {
+
+      @Dsl
+      open operator fun String.invoke(block: @Dsl SettingGroup.() -> Unit) {
+         children += SettingGroup(this, "$group.$this").apply(block)
+      }
+
+      @Dsl
+      fun config(name: String, block: @Dsl SettingConfig.() -> Unit = {}) {
+         children += SettingConfig(name, group).apply(block)
+      }
+
+   }
+
+   class SettingRoot: SettingGroup("root", "group") {
+
+      @Dsl
+      override operator fun String.invoke(block: @Dsl SettingGroup.() -> Unit) {
+         children += SettingGroup(this, this).apply(block)
+      }
+
+   }
+
+   companion object {
+      fun root(block: @Dsl SettingRoot.() -> Unit) = SettingRoot().apply(block)
+   }
+
+}
+
+enum class EditMode { USER, APP, NONE }
+
+/** Denotes dsl. See [DslMarker]. */
+@DslMarker
+@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
+annotation class Dsl

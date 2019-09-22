@@ -181,7 +181,6 @@ dependencies {
 }
 
 tasks {
-   val main = "_Main"
 
    val copyLibs by creating(Sync::class) {
       group = "build"
@@ -196,7 +195,7 @@ tasks {
       linkLocation = dirJdk
    }
 
-   val generateFileHierarchy by creating(FileHierarchyInfo::class) {
+   val generateFileHierarchy by creating(GenerateKtFileHierarchy::class) {
       group = "build setup"
       description = "Generates file hierarchy class and documentation"
       inFileHierarchy = project.rootDir/"file-info"
@@ -206,37 +205,45 @@ tasks {
       outRootPath = """File("").absolutePath"""
    }
 
+   val generateSettings by creating(GenerateKtSettings::class) {
+      group = "build setup"
+      description = "Generates application settings class"
+      outFile = project.rootDir/"src"/"player"/"main"/"sp"/"it"/"pl"/"main"/"AppSettings.kt"
+      outPackage = "sp.it.pl.main"
+      outIndent = "   "
+      settings = appSetting
+   }
+
    val jar by getting(Jar::class) {
-      dependsOn(copyLibs, generateFileHierarchy)
-      group = main
+      dependsOn(copyLibs)
+      group = "build"
       destinationDirectory.set(dirApp)
       archiveFileName.set("PlayerFX.jar")
    }
 
-   "clean"(Delete::class) {
-      group = main
-      description = "Cleans up built dir, lib dir, user tmp dir and widget compilation output"
-      delete(
-         buildDir,
-         dirApp/"lib",
-         dirApp/"user"/"tmp",
-         dirApp.resolve("widgets").walkBottomUp().filter { it.path.endsWith("class") }.toList()
-      )
-   }
-
    "run"(JavaExec::class) {
       dependsOn(jar)  // the widgets need the jar on the classpath
-      group = main
       workingDir = dirApp
       args = listOf("--dev")
    }
 
    "build" {
       dependsOn(":widgets:build")
-      group = main
    }
 
-   getByName("compileKotlin").dependsOn(linkJdk)
+   "compileKotlin" {
+      dependsOn(linkJdk)
+   }
+
+   "clean"(Delete::class) {
+      description = "Cleans up built dir, lib dir, user tmp dir and widget compilation output"
+      delete(
+         buildDir,
+         dirApp/"lib",
+         dirApp/"user"/"tmp",
+         dirApp.resolve("widgets").listFiles().orEmpty().map { it/"out" }
+      )
+   }
 
 }
 

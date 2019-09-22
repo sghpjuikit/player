@@ -18,9 +18,10 @@ import sp.it.pl.main.IconWH
 import sp.it.pl.main.emScaled
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.JavaLegacy
-import sp.it.util.action.Action
+import sp.it.util.action.IsAction
 import sp.it.util.animation.Loop
-import sp.it.util.async.executor.FxTimer
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.conf.cr
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -48,6 +49,10 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
    private var mouseIn = false
    private var mouseXy = Point2D(0.0, 0.0)
 
+   @IsAction(name = "Toggle start screen", desc = "Toggle start screen on/off", global = true)
+   val overlayToggleVisible by cr {
+      if (overlay.isShown()) overlay.hide() else overlay.orBuild.show(Unit)
+   }
    val overlaySleepHandler = object: SystemSleepListener {
       override fun systemAwoke(e: SystemSleepEvent?) {}
       override fun systemAboutToSleep(e: SystemSleepEvent?) = overlay.hide()
@@ -57,17 +62,8 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
       override fun userSessionDeactivated(e: UserSessionEvent?) = overlay.hide()
    }
    private val overlayIsActive = Subscribed {
-      val timer = FxTimer.fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }
-      val action = Action(
-         "Toggle start screen",
-         { if (overlay.orNull?.isShown()==true) overlay.hide() else overlay.orBuild.show(Unit) },
-         "Toggle start screen on/off",
-         configurableGroupPrefix,
-         "",
-         true,
-         false
-      )
-      APP.configuration.collect(action)
+      val shower = fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }
+      APP.configuration.collect(overlayToggleVisible)
       Desktop.getDesktop().addAppEventListener(overlaySleepHandler)
       Desktop.getDesktop().addAppEventListener(overlayUserHandler)
 
@@ -81,12 +77,12 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
             mouseXy = it
             if (!moved) {
                mouseIn = corners.any { c -> it in c }
-               if (!wasMouseIn && mouseIn) timer.start()
+               if (!wasMouseIn && mouseIn) shower.start()
             }
          },
          Subscription {
-            timer.stop()
-            APP.configuration.drop(action)
+            shower.stop()
+            APP.configuration.drop(overlayToggleVisible)
             Desktop.getDesktop().addAppEventListener(overlaySleepHandler)
             Desktop.getDesktop().addAppEventListener(overlayUserHandler)
          }

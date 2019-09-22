@@ -218,12 +218,16 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
 
       fun String.orNull() = takeIf { it.isNotBlank() }
       val name = infoExt?.name?.orNull() ?: info?.name?.orNull() ?: property.name
-      val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull()
+      val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull() ?: Action.CONFIG_GROUP
       val keys = infoExt?.keys ?: ""
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false
 
-      return object: Action(name, Runnable { action() }, desc, group, keys, isGlobal, isContinuous, *constraints.toTypedArray()), RoProperty<ConfigDelegator, Action> {
+      val c = ValueConfig(Action.Data::class.java, name, name, Action.Data(isGlobal, keys), group, desc, EditMode.USER)
+      ref.configurableValueSource.initialize(c)
+      val cv = c.value
+
+      return object: Action(name, Runnable { action() }, desc, group, cv.keys, cv.isGlobal, isContinuous, *constraints.toTypedArray()), RoProperty<ConfigDelegator, Action> {
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = this
       }.registerConfig(ref)
    }

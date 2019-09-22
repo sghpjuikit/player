@@ -12,17 +12,24 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
+import org.jetbrains.annotations.NotNull;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.Constraint;
 import sp.it.util.conf.EditMode;
+import sp.it.util.file.properties.PropVal;
+import sp.it.util.file.properties.PropVal.PropVal1;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
+import static javafx.scene.input.KeyCombination.keyCombination;
 import static kotlin.text.StringsKt.contains;
 import static kotlin.text.StringsKt.replace;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.functional.TryKt.getOr;
+import static sp.it.util.functional.TryKt.runTry;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.UtilKt.orNull;
+import static sp.it.util.functional.UtilKt.runnable;
 
 /**
  * Behavior with a name and possible shortcut.
@@ -45,7 +52,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	private final String group;
 	private final boolean continuous;
 	private boolean global;
-	private KeyCombination keys = KeyCombination.NO_MATCH;
+	private KeyCombination keys = NO_MATCH;
 	private final String defaultKeys;
 	private final boolean defaultGlobal;
 	private Set<Constraint<Action>> constraints = null;
@@ -235,7 +242,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 			this.keys = NO_MATCH;   // disable shortcut for empty keys
 		} else {
 			try {
-				this.keys = KeyCombination.keyCombination(keys);
+				this.keys = keyCombination(keys);
 			} catch (Exception e) {
 				logger(Action.class).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name, keys, e);
 				this.keys = NO_MATCH;   // disable shortcut for wrong keys
@@ -288,9 +295,9 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		// TODO resolve or include all characters' conversions
 		String s = getKeys();
 		if (contains(s, "BACK_SLASH", true))
-			return KeyCombination.keyCombination(replace(s, "BACK_SLASH", "\\", true));
+			return keyCombination(replace(s, "BACK_SLASH", "\\", true));
 		else if (contains(s, "BACK_QUOTE", true))
-			return KeyCombination.keyCombination(replace(s, "BACK_QUOTE", "`", true));
+			return keyCombination(replace(s, "BACK_QUOTE", "`", true));
 		else
 			return keys;
 	}
@@ -305,6 +312,19 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	@Override
 	public void setValue(Action val) {
 		set(val.isGlobal(), val.getKeys());
+	}
+
+	@NotNull
+	@Override
+	public PropVal getValueAsProperty() {
+		return new PropVal1(new Action.Data(global, getKeys()).toString());
+	}
+
+	@Override
+	public void setValueAsProperty(@NotNull PropVal property) {
+		var s = property.getVal1();
+		var a = s==null ? null : Action.Data.fromString(s);
+		if (a!=null) set(a.isGlobal, a.keys);
 	}
 
 	@Override
@@ -380,44 +400,35 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		return hash;
 	}
 
-	@Deprecated // internal use only
-	private Action(boolean isGlobal, KeyCombination keys) {
-		this.name = null;
-		this.action = null;
-		this.info = null;
-		this.group = null;
-		this.continuous = false;
-		this.global = isGlobal;
-		this.keys = keys;
-		this.defaultGlobal = isGlobal;
-		this.defaultKeys = getKeys();
-	}
-
-	// TODO: remove
-	@Deprecated(forRemoval = true)
-	public static Action fromString(String str) {
-		int i = str.lastIndexOf(",");
-		if (i==-1) return null;
-		String s1 = str.substring(0, i);
-		String s2 = str.substring(i + 1, str.length());
-		boolean isGlobal = Boolean.parseBoolean(s1);
-		KeyCombination keys = s2.isEmpty() ? KeyCombination.NO_MATCH : KeyCodeCombination.valueOf(s2);
-		return new Action(isGlobal, keys);
-	}
-
-	@Deprecated // internal use
-	static Action from(Action a, String str) {
-		Action tmp = fromString(str);
-		if (tmp!=null) {
-			a.global = tmp.global;
-			a.keys = tmp.keys;
-		}
-		return a;
-	}
-
 	@Override
 	public String toString() {
 		return global + "," + getKeys();
 	}
 
+	public static class Data {
+		public final boolean isGlobal;
+		public final String keys;
+
+		public Data(boolean isGlobal, String keys) {
+			this.isGlobal = isGlobal;
+			this.keys = keys;
+		}
+
+		public KeyCombination getKeysAsKeyCombination() {
+			return keys.isEmpty() ? NO_MATCH : (KeyCombination) getOr(runTry(runnable(() -> KeyCodeCombination.valueOf(keys))), NO_MATCH);
+		}
+
+		@Override
+		public String toString() {
+			return isGlobal + "," + keys;
+		}
+
+		public static Data fromString(String str) {
+			int i = str.indexOf(",");
+			if (i==-1) return null;
+			var isGlobal = Boolean.parseBoolean(str.substring(0, i));
+			var keys = str.substring(i + 1);
+			return new Data(isGlobal, keys);
+		}
+	}
 }

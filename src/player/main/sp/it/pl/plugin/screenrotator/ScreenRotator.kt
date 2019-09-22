@@ -5,6 +5,7 @@ import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.action.Action
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cr
 import sp.it.util.dev.fail
@@ -18,40 +19,37 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
    private val programFile = getResource(PROGRAM_FILE_NAME)
    private val programHelpFile = getResource(PROGRAM_HELP_FILE_NAME)
    private val actions by lazy {
-      if (Os.WINDOWS.isCurrent)
-         setOf(
-            action(null, Dir.CW, "CTRL+ALT+DOWN"),
-            action(null, Dir.CW, "CTRL+ALT+RIGHT"),
-            action(null, Dir.CCW, "CTRL+ALT+UP"),
-            action(null, Dir.CCW, "CTRL+ALT+LEFT"),
-            action(1, Dir.CW, "CTRL+ALT+1"),
-            action(2, Dir.CW, "CTRL+ALT+2"),
-            action(3, Dir.CW, "CTRL+ALT+3"),
-            action(4, Dir.CW, "CTRL+ALT+4"),
-            action(1, Dir.CCW, "CTRL+SHIFT+ALT+1"),
-            action(2, Dir.CCW, "CTRL+SHIFT+ALT+2"),
-            action(3, Dir.CCW, "CTRL+SHIFT+ALT+3"),
-            action(4, Dir.CCW, "CTRL+SHIFT+ALT+4"),
-            Action(
-               "Start screen saver",
-               { startScreenSaver() },
-               "Starts screen saver if enabled. It can be stopped by moving the mouse. On some system that can open logon screen.",
-               configurableGroupPrefix,
-               "CTRL+SHIFT+ALT+L",
-               true, false
-            ),
-            Action(
-               "Turn off screens",
-               { turnScreens(false) },
-               "Turns off all screens. They can be turned on again by moving the mouse.",
-               configurableGroupPrefix,
-               "CTRL+SHIFT+ALT+K",
-               true,
-               false
-            )
-         )
-      else
-         setOf()
+      setOf(
+         action(null, Dir.CW, "CTRL+ALT+DOWN"),
+         action(null, Dir.CW, "CTRL+ALT+RIGHT"),
+         action(null, Dir.CCW, "CTRL+ALT+UP"),
+         action(null, Dir.CCW, "CTRL+ALT+LEFT"),
+         action(1, Dir.CW, "CTRL+ALT+1"),
+         action(2, Dir.CW, "CTRL+ALT+2"),
+         action(3, Dir.CW, "CTRL+ALT+3"),
+         action(4, Dir.CW, "CTRL+ALT+4"),
+         action(1, Dir.CCW, "CTRL+SHIFT+ALT+1"),
+         action(2, Dir.CCW, "CTRL+SHIFT+ALT+2"),
+         action(3, Dir.CCW, "CTRL+SHIFT+ALT+3"),
+         action(4, Dir.CCW, "CTRL+SHIFT+ALT+4"),
+         Action(
+            "Start screen saver",
+            { startScreenSaver() },
+            "Starts screen saver if enabled. It can be stopped by moving the mouse. On some system that can open logon screen.",
+            configurableGroupPrefix,
+            "CTRL+SHIFT+ALT+L",
+            true, false
+         ).forbidEdit(),
+         Action(
+            "Turn off screens",
+            { turnScreens(false) },
+            "Turns off all screens. They can be turned on again by moving the mouse.",
+            configurableGroupPrefix,
+            "CTRL+SHIFT+ALT+K",
+            true,
+            false
+         ).forbidEdit()
+      )
    }
 
    @IsConfig(name = "Open help", info = "Open technical usage help")
@@ -98,7 +96,7 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
       keys,
       true,
       false
-   )
+   ).forbidEdit()
 
    private fun indexOfScreenOfMouse(): Int {
       return if (Screen.getScreens().size==1) 1
@@ -131,6 +129,9 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
    companion object: KLogging() {
       private const val PROGRAM_FILE_NAME = "display.exe"
       private const val PROGRAM_HELP_FILE_NAME = "display.htm"
+
+      private fun Action.forbidEdit() = apply { addConstraints(Constraint.ReadOnlyIf(true)) }
+
    }
 
 }

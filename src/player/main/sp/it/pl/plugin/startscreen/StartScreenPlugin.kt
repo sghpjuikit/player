@@ -5,6 +5,7 @@ import javafx.geometry.Point2D
 import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
+import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
 import sp.it.pl.core.CoreMouse.observeMousePosition
 import sp.it.pl.core.CoreMouse.observeScreens
@@ -25,6 +26,7 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.system.Os
 import sp.it.util.ui.areaBy
+import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
@@ -58,7 +60,7 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
       val timer = FxTimer.fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }
       val action = Action(
          "Toggle start screen",
-         { if (overlay.orNull?.isShown()==false) overlay.orBuild.show(Unit) else overlay.hide() },
+         { if (overlay.orNull?.isShown()==true) overlay.hide() else overlay.orBuild.show(Unit) },
          "Toggle start screen on/off",
          configurableGroupPrefix,
          "",
@@ -100,7 +102,7 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
                lay += stackPane {
                   padding = Insets(60.emScaled)
 
-                  lay(BOTTOM_RIGHT) += vBox(0.0, BOTTOM_RIGHT) {
+                  lay(BOTTOM_RIGHT) += vBox(15.emScaled, BOTTOM_RIGHT) {
                      isFillWidth = false
 
                      var time = LocalDateTime.MIN
@@ -111,17 +113,27 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
                               update()
                         }
                      })
+                     onShown += { time = LocalDateTime.now() }
                      onShown += update
                      onShown += loop::start
                      onHidden += loop::stop
 
-                     lay += text {
-                        update += { text = "%d:%02d".format(time.hour%12, time.minute) }
-                        style += "-fx-font-size: 6em"
+                     lay += hBox(15.emScaled, BOTTOM_RIGHT) {
+                        lay += text {
+                           boundsType = VISUAL
+                           style += "-fx-font-size: 2em"
+                           update += { text = if (time.hour<12) "AM" else "PM" }
+                        }
+                        lay += text {
+                           boundsType = VISUAL
+                           style += "-fx-font-size: 6em"
+                           update += { text = "%d:%02d".format(time.hour%12, time.minute) }
+                        }
                      }
                      lay += text {
-                        update += { text = "%s, %s %d".format(time.dayOfWeek.getDisplayName(FULL, ENGLISH), time.month.getDisplayName(FULL, ENGLISH), time.dayOfMonth) }
+                        boundsType = VISUAL
                         style += "-fx-font-size: 2em"
+                        update += { text = "%s, %s %d".format(time.dayOfWeek.getDisplayName(FULL, ENGLISH), time.month.getDisplayName(FULL, ENGLISH), time.dayOfMonth) }
                      }
                   }
                   lay(TOP_RIGHT) += vBox(10, TOP_RIGHT) {

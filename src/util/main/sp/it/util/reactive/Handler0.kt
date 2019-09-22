@@ -1,11 +1,9 @@
 package sp.it.util.reactive
 
-import java.util.HashSet
-
 /** Set of functions taking 0 parameters. Use as a collection of handlers. */
-class Handler0: HashSet<() -> Unit>(2), () -> Unit {
+class Handler0: MutableSet<() -> Unit> by LinkedHashSet(2), () -> Unit {
 
-   /** Invokes all contained functions. */
+   /** Invokes all contained functions, in order they were put in. */
    override operator fun invoke() {
       forEach { it() }
       removeIf { it is RemovingF }

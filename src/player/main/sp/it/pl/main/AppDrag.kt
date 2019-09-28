@@ -155,7 +155,7 @@ fun Dragboard.setSongsAndFiles(items: List<Song>) {
  *
  * @return true iff contains at least 1 audio file or audio url or (any) directory
  */
-fun Dragboard.hasAudio(): Boolean = Df.SONGS in this || (hasFiles() && files.any { it.isDirectory || it.isAudio() }) || (hasUrl() && url.isAudio())
+fun Dragboard.hasAudio(): Boolean = Df.SONGS in this || (hasUrl() && url.isAudio()) || (hasFiles() && files.any { it.isAudio() || it.isDirectory })
 
 /** @return list of songs as specified in [Dragboard.hasAudio] */
 fun Dragboard.getAudio(): List<Song> = when {

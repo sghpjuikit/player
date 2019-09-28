@@ -29,7 +29,7 @@ rootProject.apply {
       name = "widgets"
       projectDir = file("app/widgets")
 
-      projectDir.listFiles().forEach {
+      projectDir.listFiles().orEmpty().forEach {
          include(":widgets:${it.name}")
          project(":widgets:${it.name}").apply {
             name = "widget-${it.name}"

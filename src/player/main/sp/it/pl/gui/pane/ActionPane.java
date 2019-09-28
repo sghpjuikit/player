@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javafx.animation.Interpolator;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -38,6 +37,7 @@ import sp.it.util.animation.Anim;
 import sp.it.util.animation.interpolator.ElasticInterpolator;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.ClassListMap;
+import sp.it.util.dev.DebugKt;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
@@ -60,6 +60,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
+import static kotlin.streams.jdk8.StreamsKt.asStream;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.gui.pane.GroupApply.FOR_ALL;
@@ -70,7 +71,6 @@ import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppExtensionsKt.getUiName;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
-import static kotlin.streams.jdk8.StreamsKt.asStream;
 import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.async.AsyncKt.FX;
@@ -496,8 +496,12 @@ public class ActionPane extends OverlayPane<Object> {
 
 	private void runAction(ActionData<?,?> action, Object data) {
 		if (!action.isLong) {
-			action.invoke(data);
-			doneHide(action);
+			try {
+				action.invoke(data);
+				doneHide(action);
+			} catch (Throwable e) {
+				DebugKt.logger(ActionPane.class).error("Running action={} failed", action.name, e);
+			}
 		} else {
 			fut(data)
 				.useBy(FX, it -> actionProgress.setProgress(-1))

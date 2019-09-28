@@ -41,6 +41,7 @@ import sp.it.util.action.ActionRegistrar
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runGet
+import sp.it.util.async.runIO
 import sp.it.util.async.runLater
 import sp.it.util.async.runNew
 import sp.it.util.conf.ConfigurableBase
@@ -75,6 +76,8 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 import kotlin.streams.toList
 
 @Suppress("RemoveExplicitTypeArguments")
@@ -352,6 +355,23 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMD.IMPORT,
          { it hasExtension "fxwl" },
          { it.loadComponentFxwlJson() ui { it.ifNotNull(APP.windowManager::launchComponent) } }
+      ),
+      FastColAction(
+         "Set created to last modified time",
+         "Sets created time to last modified time for the file. Useful after a file copy destroyed this value.",
+         IconFA.CLOCK_ALT,
+         {
+            it.forEach {
+               val p = it.toPath()
+               try {
+                  val time = Files.readAttributes(it.toPath(), BasicFileAttributes::class.java)?.lastModifiedTime()!!
+                  Files.setAttribute(p, "creationTime", time)
+               } catch (e: Throwable) {
+                  e.printStackTrace()
+//                  logger.error(e) { "Failed to change the creation time to last modified time file=$it" }
+               }
+            }
+         }
       )
    )
    ap.register<MultipleFiles>(
@@ -378,7 +398,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 
 @Suppress("UNCHECKED_CAST")
 private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, Collection<File>> = ComplexActionData(
-   { files -> fut(files).then { findAudio(it).toList() } },
+   { files -> runIO { findAudio(files).toList() } },
    { audioFiles ->
       val executed = v(false)
       val conf = object: ConfigurableBase<Boolean>() {

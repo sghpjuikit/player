@@ -34,14 +34,12 @@ import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
-import sp.it.util.animation.interpolator.ElasticInterpolator;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.ClassListMap;
 import sp.it.util.dev.DebugKt;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
-import sp.it.util.functional.UtilKt;
 import sp.it.util.type.ClassName;
 import sp.it.util.type.InstanceDescription;
 import sp.it.util.type.InstanceName;
@@ -76,7 +74,6 @@ import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.NEW;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.collections.UtilKt.collectionUnwrap;
 import static sp.it.util.collections.UtilKt.collectionWrap;
@@ -118,15 +115,22 @@ public class ActionPane extends OverlayPane<Object> {
 		getStyleClass().add(ROOT_STYLECLASS);
 
 		// icons and descriptions
-		ScrollPane descriptionFullPane = layScrollVTextCenter(descFull);
-		StackPane infoPane = layStack(layScrollVTextCenter(dataInfo),TOP_LEFT);
-		VBox descPane = layVertically(8, BOTTOM_CENTER, descTitle,descriptionFullPane);
-		HBox iconPaneSimple = layHorizontally(15,CENTER);
+		var descriptionFullPane = layScrollVTextCenter(descFull);
+		    descriptionFullPane.setId("descriptionFullPane");
+		var infoPane = layStack(layScrollVTextCenter(dataInfo),TOP_LEFT);
+			infoPane.setId("infoPane");
+		var descPane = layVertically(8, BOTTOM_CENTER, descTitle,descriptionFullPane);
+			descPane.setId("descPane");
+		var iconPaneSimple = layHorizontally(15,CENTER);
+			iconPaneSimple.setId("iconPaneSimple");
 		icons = iconPaneSimple.getChildren();
 
 		// content for icons and descriptions
-		StackPane iconBox = layStack(iconPaneComplex,CENTER, iconPaneSimple,CENTER);
-		StackPane iconPane = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
+		var iconBox = layStack(iconPaneComplex,CENTER, iconPaneSimple,CENTER);
+			iconBox.setId("iconBox");
+		var iconPane = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
+			iconPane.setId("iconPane");
+
 		// Minimal and maximal height of the 3 layout components. The heights should add
 		// up to full length (including the spacing of course). Sounds familiar? No, could not use
 		// VBox or StackPane as we need the icons to be always in the center.
@@ -138,10 +142,21 @@ public class ActionPane extends OverlayPane<Object> {
 		infoPane.setMinHeight(100);
 		infoPane.maxHeightProperty().bind(min(iconPane.heightProperty().multiply(0.3), 400));
 		iconBox.setMinHeight(100);
-		iconBox.maxHeightProperty().bind(iconPane.heightProperty().multiply(0.4).subtract(2*25));
+		// iconBox.maxHeightProperty().bind(iconPane.heightProperty().multiply(0.4).subtract(2*25));
 		descPane.setMinHeight(100);
 		descPane.maxHeightProperty().bind(min(iconPane.heightProperty().multiply(0.3), 400));
 		descPane.setMouseTransparent(true);
+		iconPaneComplex.getChildren().addListener((Change<?> e) -> {
+			var isSimple = iconPaneComplex.getChildren().isEmpty();
+			descPane.setVisible(isSimple);
+			iconBox.maxHeightProperty().unbind();
+			iconBox.maxHeightProperty().bind(
+				isSimple
+					? iconPane.heightProperty().multiply(0.4).subtract(2*25.0)
+					: iconPane.heightProperty().multiply(0.7).subtract(25.0)
+			);
+			StackPane.setAlignment(iconBox, isSimple ? CENTER : BOTTOM_CENTER);
+		});
 
 		// content
 		var contentSpacing = 20.0;
@@ -179,14 +194,6 @@ public class ActionPane extends OverlayPane<Object> {
 		descriptionFullPane.maxWidthProperty().bind(min(400, iconPane.widthProperty()));
 
 		makeResizableByUser();
-		getOnShown().add(runnable(() -> {
-			dataInfo.setOpacity(0.0);
-			tablePane.setOpacity(0.0);
-			descFull.setOpacity(0.0);
-			descTitle.setOpacity(0.0);
-			iconPaneComplex.setOpacity(0.0);
-			runFX(millis(400.0), () -> setData(data));
-		}));
 	}
 
 	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
@@ -231,6 +238,13 @@ public class ActionPane extends OverlayPane<Object> {
 		setContentEmpty();
 		super.show();
 		resizeContentToDefault();
+
+		dataInfo.setOpacity(0.0);
+		tablePane.setOpacity(0.0);
+		descFull.setOpacity(0.0);
+		descTitle.setOpacity(0.0);
+		iconPaneComplex.setOpacity(0.0);
+		runFX(millis(400.0), () -> setData(data));
 	}
 
 	@Override
@@ -296,6 +310,10 @@ public class ActionPane extends OverlayPane<Object> {
 	private final StackPane tablePane = new StackPane();
 	private FilteredTable<?> table;
 	private final StackPane iconPaneComplex = new StackPane();
+	{
+		iconPaneComplex.setId("iconPaneComplex");
+		tablePane.setId("tablePane");
+	}
 
 /* ---------- HELPER ------------------------------------------------------------------------------------------------ */
 
@@ -382,6 +400,7 @@ public class ActionPane extends OverlayPane<Object> {
 		}
 		tableContentGap.set(gap);
 	}
+
 	private void setContentEmpty() {
 		dataInfo.setText("");
 		tablePane.getChildren().clear();
@@ -436,6 +455,11 @@ public class ActionPane extends OverlayPane<Object> {
 		});
 
 		if (!showIcons) {
+			dataInfo.setOpacity(1.0);
+			tablePane.setOpacity(1.0);
+			descFull.setOpacity(1.0);
+			descTitle.setOpacity(1.0);
+			iconPaneComplex.setOpacity(1.0);
 			showCustomActionUi();
 			insteadIcons = null;
 			showIcons = true;
@@ -482,7 +506,7 @@ public class ActionPane extends OverlayPane<Object> {
 				.dur(millis(500)).delay(millis(150+i*delay))
 			)
 			.play();
-		Anim.anim(millis(200), consumer(it -> {
+		anim(millis(200), consumer(it -> {
 				dataInfo.setOpacity(it);
 				tablePane.setOpacity(it);
 				descFull.setOpacity(it);

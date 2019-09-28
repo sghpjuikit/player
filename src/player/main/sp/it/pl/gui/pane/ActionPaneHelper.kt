@@ -130,6 +130,7 @@ abstract class ActionData<C, T> {
          data
       }
    }
+
 }
 
 /** Action that executes synchronously - simply consumes the input. */

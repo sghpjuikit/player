@@ -224,7 +224,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          { }
       ).preventClosing { op ->
          ComplexActionData(
-            { songs -> fut(songs).then { it.mapNotNull { it.getFile() } } },
+            { songs -> fut(songs.mapNotNull { it.getFile() }) },
             addToLibraryConsumer(op).gui
          )
       },

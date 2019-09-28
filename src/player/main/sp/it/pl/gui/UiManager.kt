@@ -27,6 +27,7 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.Widgets
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
+import sp.it.pl.main.AppSettings
 import sp.it.pl.main.initActionPane
 import sp.it.pl.main.initApp
 import sp.it.util.access.Values
@@ -437,14 +438,18 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
 
 class LazyOverlayPane<OT, T: OverlayPane<OT>>(private val builder: () -> T) {
    private var pane: T? = null
+
    val orBuild: T
       get() {
          val p = pane ?: builder()
          pane = p
          return p
       }
+
    val orNull: T?
       get() = pane
 
+   fun isShown() = orNull?.isShown()==true
+   fun show(ot: OT) = orBuild.show(ot)
    fun hide() = pane?.hide() ?: Unit
 }

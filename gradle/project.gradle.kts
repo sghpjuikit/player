@@ -88,8 +88,9 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.1.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.3.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.3.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.3.2")
          implementation("org.jetbrains", "annotations", "17.0.0")
       }
 

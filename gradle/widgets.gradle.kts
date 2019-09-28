@@ -1,5 +1,13 @@
 plugins {
    kotlin("jvm")
+   idea
+}
+
+idea {
+   module {
+      inheritOutputDirs = false
+      outputDir = file("out")
+   }
 }
 
 sourceSets {

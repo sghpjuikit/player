@@ -83,11 +83,11 @@ app {
   widgets {
   }
   # File containing application source code and main class. Executed by java.exe when started.
-  PlayerFX.jar
+  SpitPlayer.jar
   # Windows executable file that opens this application as gui application.
-  PlayerFX.exe
+  SpitPlayerc.exe
   # Windows executable file that opens this application as console application.
-  PlayerFXc.exe
+  SpitPlayer.exe
   # Linux/Mac executable file that opens this application.
-  PlayerFX.sh
+  SpitPlayer.sh
 }

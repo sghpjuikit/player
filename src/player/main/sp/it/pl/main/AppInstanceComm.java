@@ -22,7 +22,7 @@ public class AppInstanceComm {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AppInstanceComm.class);
 	private static final int PORT = 1099;
-	private static final String REGISTRY_NAME = "PlayerFxCommunicatorServer";
+	private static final String REGISTRY_NAME = "SpitPlayerCommunicatorServer";
 
 	public final ArrayList<Consumer<? super List<String>>> onNewInstanceHandlers = new ArrayList<>();
 	private AppMediator appCommunicator;
@@ -37,7 +37,7 @@ public class AppInstanceComm {
 		try {
 			appCommunicator = new AppMediator();
 			rmiRegistry = LocateRegistry.createRegistry(PORT);
-			rmiRegistry.rebind("PlayerFxCommunicatorServer", appCommunicator);
+			rmiRegistry.rebind("SpitPlayerCommunicatorServer", appCommunicator);
 		} catch (RemoteException e) {
 			LOGGER.warn("App instance communicator failed to start", e);
 		}

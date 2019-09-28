@@ -1,4 +1,4 @@
-# PlayerFX User Guide
+# Spit Player User Guide
 
 - [Installation bundle](#installation-bundle)
 - [Installation](#installation)
@@ -86,27 +86,27 @@ User installation steps necessary:
 
 ##### Windows
 
-As gui application: open `./PlayerFX.exe` file   
-As console application: open `./PlayerFXc.exe` file
+As gui application: open `./SpitPlayer.exe` file   
+As console application: open `./SpitPlayerc.exe` file
 
-The difference between `./PlayerFX.exe` and `./PlayerFXc.exe` is that
-- `./PlayerFX.exe` launched from terminal/commandline does not wait for process end and shows no output (stdout/stderr).   
+The difference between `./SpitPlayer.exe` and `./SpitPlayerc.exe` is that
+- `./SpitPlayer.exe` launched from terminal/commandline does not wait for process end and shows no output (stdout/stderr).   
   Recommended to start the application normally, from file explorer or by shortcut.
-- `./PlayerFXc.exe` launched from outside terminal will open new commandline window
+- `./SpitPlayerc.exe` launched from outside terminal will open new commandline window
   Recommended to start the application from terminal, particularly to see its output or use its commands like help.
 
 From terminal (using bash):
 - `cd /drive-letter/path/to/application/directory`
-- `./PlayerFXc.exe` to launch the application as console application
-- for options and commands see help using `./PlayerFX.c -h` or `./PlayerFX.c --help`
+- `./SpitPlayerc.exe` to launch the application as console application
+- for options and commands see help using `./SpitPlayerc -h` or `./SpitPlayerc --help`
 
 ##### Linux
 
 From terminal:
 - `cd /path/to/application/directory`
-- `chmod +x PlayerFX.sh` to make the launcher executable
-- `./PlayerFX.sh` to launch the application
-- for options and commands see help using `./PlayerFX.c -h` or `./PlayerFX.c --help`
+- `chmod +x SpitPlayer.sh` to make the launcher executable
+- `./SpitPlayer.sh` to launch the application
+- for options and commands see help using `./SpitPlayer -h` or `./SpitPlayer --help`
 
 ## Stopping
 

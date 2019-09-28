@@ -109,7 +109,7 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    /** Name of this application. */
-   val name = "PlayerFX"
+   val name = "Spit Player"
    /** Version of this application. */
    val version = "0.7.0"
    /** Application code encoding. Useful for compilation during runtime. */
@@ -425,7 +425,7 @@ class App: Application(), GlobalConfigDelegator {
                "Open widget ${c.name()} (in new process)",
                { "Open widget ${c.name()}\n\nOpens the widget in new process." },
                {
-                  val f = if (Os.WINDOWS.isCurrent) location.`playerfxc exe` else location.`playerfx sh`
+                  val f = if (Os.WINDOWS.isCurrent) location.`spitplayerc exe` else location.`spitplayer sh`
                   f.runAsAppProgram(
                      "Launching component ${c.name()} in new process",
                      "--singleton=false", "--stateless=true", "open-component", "\"${c.name()}\""

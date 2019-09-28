@@ -514,69 +514,69 @@ object `AppLocation`: Dir(File("").absolutePath) {
       const val fileDescription: String = """Directory containing widgets - source files, class files and widget's resources."""
    
    }
-   /** File child [`PlayerFX jar`]. */
-   val `playerfx jar` = `PlayerFX jar`
+   /** File child [`SpitPlayer jar`]. */
+   val `spitplayer jar` = `SpitPlayer jar`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * File containing application source code and main class. Executed by java.exe when started.
     */
-   object `PlayerFX jar`: Fil(File("").absolutePath + separator + "PlayerFX.jar") {
+   object `SpitPlayer jar`: Fil(File("").absolutePath + separator + "SpitPlayer.jar") {
    
-      /** Same as [getName]. Compile-time constant. `PlayerFX.jar`.*/
-      const val fileName: String = """PlayerFX.jar"""
+      /** Same as [getName]. Compile-time constant. `SpitPlayer.jar`.*/
+      const val fileName: String = """SpitPlayer.jar"""
       /** Description of this file. Compile-time constant. Same as documentation for this object. */
       const val fileDescription: String = """File containing application source code and main class. Executed by java.exe when started."""
    
    }
 
-   /** File child [`PlayerFX exe`]. */
-   val `playerfx exe` = `PlayerFX exe`
+   /** File child [`SpitPlayerc exe`]. */
+   val `spitplayerc exe` = `SpitPlayerc exe`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * Windows executable file that opens this application as gui application.
     */
-   object `PlayerFX exe`: Fil(File("").absolutePath + separator + "PlayerFX.exe") {
+   object `SpitPlayerc exe`: Fil(File("").absolutePath + separator + "SpitPlayerc.exe") {
    
-      /** Same as [getName]. Compile-time constant. `PlayerFX.exe`.*/
-      const val fileName: String = """PlayerFX.exe"""
+      /** Same as [getName]. Compile-time constant. `SpitPlayerc.exe`.*/
+      const val fileName: String = """SpitPlayerc.exe"""
       /** Description of this file. Compile-time constant. Same as documentation for this object. */
       const val fileDescription: String = """Windows executable file that opens this application as gui application."""
    
    }
 
-   /** File child [`PlayerFXc exe`]. */
-   val `playerfxc exe` = `PlayerFXc exe`
+   /** File child [`SpitPlayer exe`]. */
+   val `spitplayer exe` = `SpitPlayer exe`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * Windows executable file that opens this application as console application.
     */
-   object `PlayerFXc exe`: Fil(File("").absolutePath + separator + "PlayerFXc.exe") {
+   object `SpitPlayer exe`: Fil(File("").absolutePath + separator + "SpitPlayer.exe") {
    
-      /** Same as [getName]. Compile-time constant. `PlayerFXc.exe`.*/
-      const val fileName: String = """PlayerFXc.exe"""
+      /** Same as [getName]. Compile-time constant. `SpitPlayer.exe`.*/
+      const val fileName: String = """SpitPlayer.exe"""
       /** Description of this file. Compile-time constant. Same as documentation for this object. */
       const val fileDescription: String = """Windows executable file that opens this application as console application."""
    
    }
 
-   /** File child [`PlayerFX sh`]. */
-   val `playerfx sh` = `PlayerFX sh`
+   /** File child [`SpitPlayer sh`]. */
+   val `spitplayer sh` = `SpitPlayer sh`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * Linux/Mac executable file that opens this application.
     */
-   object `PlayerFX sh`: Fil(File("").absolutePath + separator + "PlayerFX.sh") {
+   object `SpitPlayer sh`: Fil(File("").absolutePath + separator + "SpitPlayer.sh") {
    
-      /** Same as [getName]. Compile-time constant. `PlayerFX.sh`.*/
-      const val fileName: String = """PlayerFX.sh"""
+      /** Same as [getName]. Compile-time constant. `SpitPlayer.sh`.*/
+      const val fileName: String = """SpitPlayer.sh"""
       /** Description of this file. Compile-time constant. Same as documentation for this object. */
       const val fileDescription: String = """Linux/Mac executable file that opens this application."""
    

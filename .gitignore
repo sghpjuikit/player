@@ -6,7 +6,7 @@ app/lib
 app/jre
 app/java
 app/kotlinc
-app/PlayerFX.jar
+app/SpitPlayer.jar
 app/user
 app/vlc/
 app/widgets/**/*class

@@ -306,8 +306,8 @@ class WidgetManager {
       private fun findAppLibFiles() = APP.location.child("lib").children().filterSourceJars()
 
       private fun getAppJarFile(): Sequence<String> {
-         return if (APP.location.`playerfx jar`.exists()) {
-            sequenceOf(APP.location.`playerfx jar`.relativeToApp())
+         return if (APP.location.`spitplayer jar`.exists()) {
+            sequenceOf(APP.location.`spitplayer jar`.relativeToApp())
          } else {
             System.getProperty("java.class.path")
                .splitToSequence(classpathSeparator)

@@ -219,7 +219,7 @@ tasks {
       dependsOn(copyLibs)
       group = "build"
       destinationDirectory.set(dirApp)
-      archiveFileName.set("PlayerFX.jar")
+      archiveFileName.set("SpitPlayer.jar")
    }
 
    "run"(JavaExec::class) {
@@ -249,7 +249,7 @@ tasks {
 }
 
 application {
-   applicationName = "PlayerFX"
+   applicationName = "Spit Player"
    mainClassName = "sp.it.pl.main.AppKt"
    applicationDefaultJvmArgs = listOf(
       "-Dfile.encoding=UTF-8",

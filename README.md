@@ -1,5 +1,5 @@
 
-# ![icon](app/resources/icons/icon48.png) PlayerFX [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6/branch/master?svg=true)](https://ci.appveyor.com/project/Xerus2000/player) [![Travis Build Status](https://travis-ci.org/sghpjuikit/player.svg?branch=master)](https://travis-ci.org/sghpjuikit/player)
+# ![icon](app/resources/icons/icon48.png) Spit Player [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6/branch/master?svg=true)](https://ci.appveyor.com/project/Xerus2000/player) [![Travis Build Status](https://travis-ci.org/sghpjuikit/player.svg?branch=master)](https://travis-ci.org/sghpjuikit/player)
 
 - [What is this?](#what-is-this)
 - [Do I need this?](#do-i-need-this)
@@ -12,7 +12,7 @@
 
 ## What is this?
 
-**PlayerFX** is a desktop audio player and management application, with a modular ui/functionality capable of compiling and reloading its own parts.
+**Spit Player** is a desktop audio player and management application, with a modular ui/functionality capable of compiling and reloading its own parts.
 
 **Is this ready?** Yes and no. It is completely functional, but unprepared for release. An experimental release is due soon. This will mean no automatic updates, need to reimport the library, etc.
 
@@ -99,7 +99,7 @@ Tables:
 
 ### Audio tag editing
 
-PlayerFX supports reading & writing of song tags
+Spit Player supports reading & writing of song tags
 
 - individually
 - by group
@@ -317,8 +317,8 @@ Download link coming soon.
 
 - download zip
 - extract anywhere
-  - Windows: run PlayerFX.exe
-  - Linux: run bin/PlayerFX
+  - Windows: run `SpitPlayer.exe`
+  - Linux: run `bin/SpitPlayer`
 
 Starting the application for the first time will open a guide. It is recommended follow it to get the hang of the UX.
 

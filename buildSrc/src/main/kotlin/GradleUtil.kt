@@ -138,7 +138,7 @@ open class GenerateKtFileHierarchy: DefaultTask() {
                val isFile = !l.endsWith('{')
                val descDoc = descriptionLines.joinToString("\n") { " * $it" }
                val descVal = descriptionLines.map { it.trim() }.filter { it.isNotBlank() }.joinToString(" ")
-               val defName = if (hierarchy.isEmpty()) """`${name.capitalize()}Location`""" else """`${name.capitalize().replace('.', ' ')}`"""
+               val defName = if (hierarchy.isEmpty()) """`${name.capitalize()}Location`""" else """`${name.capitalize().replace('.', '_')}`"""
                val defType = if (isFile) "Fil" else "Dir"
                val defTypeName = if (isFile) "file" else "directory"
                val path = if (isRoot) paths.peek() else (paths + sequenceOf("\"$name\"")).joinToString(""" + separator + """)

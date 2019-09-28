@@ -49,7 +49,7 @@ class TrayPlugin: PluginBase("Tray", true) {
    private val onEnd = Disposer()
 
    private var tray: SystemTray? = null
-   private val trayIconImageDefault: File = APP.location.resources.icons.`icon24 png`
+   private val trayIconImageDefault: File = APP.location.resources.icons.icon24_png
    private var trayIconImage: File = trayIconImageDefault
    private var trayIcon: TrayIcon? = null
    private val onClickDefault: (MouseEvent) -> Unit = { APP.ui.toggleMinimize() }

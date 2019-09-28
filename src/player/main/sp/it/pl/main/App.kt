@@ -172,7 +172,7 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    // cores (always active, mostly singletons)
-   @JvmField val configuration = MainConfiguration.apply { rawAdd(location.user.`application properties`) }
+   @JvmField val configuration = MainConfiguration.apply { rawAdd(location.user.application_properties) }
    @JvmField val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
    @JvmField val env = CoreEnv.apply { init() }
    @JvmField val imageIo = CoreImageIO(locationTmp/"imageio")
@@ -217,7 +217,7 @@ class App: Application(), GlobalConfigDelegator {
    val actionSettingsReset by cr { configuration.toDefault() }
 
    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
-   val actionSettingsSave by cr { configuration.save(name, location.user.`application properties`) }
+   val actionSettingsSave by cr { configuration.save(name, location.user.application_properties) }
 
    @C(name = "Manage VM options", info = "Manage Java virtual machine settings. Requires developer mode.")
    val manageVM by cr {
@@ -354,7 +354,7 @@ class App: Application(), GlobalConfigDelegator {
       if (isInitialized.isOk) {
          if (rank==MASTER && isStateful) audio.state.serialize()
          if (rank==MASTER && isStateful) windowManager.serialize()
-         if (rank==MASTER) configuration.save(name, location.user.`application properties`)
+         if (rank==MASTER) configuration.save(name, location.user.application_properties)
       }
    }
 
@@ -425,7 +425,7 @@ class App: Application(), GlobalConfigDelegator {
                "Open widget ${c.name()} (in new process)",
                { "Open widget ${c.name()}\n\nOpens the widget in new process." },
                {
-                  val f = if (Os.WINDOWS.isCurrent) location.`spitplayerc exe` else location.`spitplayer sh`
+                  val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
                   f.runAsAppProgram(
                      "Launching component ${c.name()} in new process",
                      "--singleton=false", "--stateless=true", "open-component", "\"${c.name()}\""

@@ -130,15 +130,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
       /** Description of this file. Compile-time constant. Same as documentation for this object. */
       const val fileDescription: String = """Directory containing application resources."""
    
-      /** File child [`Moods txt`]. */
-      val `moods txt` = `Moods txt`
+      /** File child [`Moods_txt`]. */
+      val `moods_txt` = `Moods_txt`
       
       /**
        * Compile-time object representing file `File("").absolutePath/"resources"`, usable in annotations.
        * 
        * File containing predefined audio mood tag values. Value per line. UTF8.
        */
-      object `Moods txt`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.txt") {
+      object `Moods_txt`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.txt") {
       
          /** Same as [getName]. Compile-time constant. `moods.txt`.*/
          const val fileName: String = """moods.txt"""
@@ -162,15 +162,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          /** Description of this file. Compile-time constant. Same as documentation for this object. */
          const val fileDescription: String = """Directory containing application icons."""
       
-         /** File child [`Icon16 png`]. */
-         val `icon16 png` = `Icon16 png`
+         /** File child [`Icon16_png`]. */
+         val `icon16_png` = `Icon16_png`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 16px.
           */
-         object `Icon16 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon16.png") {
+         object `Icon16_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon16.png") {
          
             /** Same as [getName]. Compile-time constant. `icon16.png`.*/
             const val fileName: String = """icon16.png"""
@@ -179,15 +179,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          }
 
-         /** File child [`Icon24 png`]. */
-         val `icon24 png` = `Icon24 png`
+         /** File child [`Icon24_png`]. */
+         val `icon24_png` = `Icon24_png`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 24px.
           */
-         object `Icon24 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon24.png") {
+         object `Icon24_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon24.png") {
          
             /** Same as [getName]. Compile-time constant. `icon24.png`.*/
             const val fileName: String = """icon24.png"""
@@ -196,15 +196,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          }
 
-         /** File child [`Icon32 png`]. */
-         val `icon32 png` = `Icon32 png`
+         /** File child [`Icon32_png`]. */
+         val `icon32_png` = `Icon32_png`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 32px.
           */
-         object `Icon32 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon32.png") {
+         object `Icon32_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon32.png") {
          
             /** Same as [getName]. Compile-time constant. `icon32.png`.*/
             const val fileName: String = """icon32.png"""
@@ -213,15 +213,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          }
 
-         /** File child [`Icon48 png`]. */
-         val `icon48 png` = `Icon48 png`
+         /** File child [`Icon48_png`]. */
+         val `icon48_png` = `Icon48_png`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 48px.
           */
-         object `Icon48 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon48.png") {
+         object `Icon48_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon48.png") {
          
             /** Same as [getName]. Compile-time constant. `icon48.png`.*/
             const val fileName: String = """icon48.png"""
@@ -230,15 +230,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          }
 
-         /** File child [`Icon128 png`]. */
-         val `icon128 png` = `Icon128 png`
+         /** File child [`Icon128_png`]. */
+         val `icon128_png` = `Icon128_png`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 128px.
           */
-         object `Icon128 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon128.png") {
+         object `Icon128_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon128.png") {
          
             /** Same as [getName]. Compile-time constant. `icon128.png`.*/
             const val fileName: String = """icon128.png"""
@@ -247,15 +247,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          }
 
-         /** File child [`Icon256 png`]. */
-         val `icon256 png` = `Icon256 png`
+         /** File child [`Icon256_png`]. */
+         val `icon256_png` = `Icon256_png`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 256px.
           */
-         object `Icon256 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon256.png") {
+         object `Icon256_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon256.png") {
          
             /** Same as [getName]. Compile-time constant. `icon256.png`.*/
             const val fileName: String = """icon256.png"""
@@ -264,15 +264,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          }
 
-         /** File child [`Icon512 png`]. */
-         val `icon512 png` = `Icon512 png`
+         /** File child [`Icon512_png`]. */
+         val `icon512_png` = `Icon512_png`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 512px.
           */
-         object `Icon512 png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.png") {
+         object `Icon512_png`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.png") {
          
             /** Same as [getName]. Compile-time constant. `icon512.png`.*/
             const val fileName: String = """icon512.png"""
@@ -281,15 +281,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          
          }
 
-         /** File child [`Icon512 ico`]. */
-         val `icon512 ico` = `Icon512 ico`
+         /** File child [`Icon512_ico`]. */
+         val `icon512_ico` = `Icon512_ico`
          
          /**
           * Compile-time object representing file `File("").absolutePath/"resources"/"icons"`, usable in annotations.
           * 
           * Icon, 512px.
           */
-         object `Icon512 ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.ico") {
+         object `Icon512_ico`: Fil(File("").absolutePath + separator + "resources" + separator + "icons" + separator + "icon512.ico") {
          
             /** Same as [getName]. Compile-time constant. `icon512.ico`.*/
             const val fileName: String = """icon512.ico"""
@@ -464,15 +464,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
          const val fileDescription: String = """Directory for widget user data."""
       
       }
-      /** File child [`Application properties`]. */
-      val `application properties` = `Application properties`
+      /** File child [`Application_properties`]. */
+      val `application_properties` = `Application_properties`
       
       /**
        * Compile-time object representing file `File("").absolutePath/"user"`, usable in annotations.
        * 
        * File for application configuration.
        */
-      object `Application properties`: Fil(File("").absolutePath + separator + "user" + separator + "application.properties") {
+      object `Application_properties`: Fil(File("").absolutePath + separator + "user" + separator + "application.properties") {
       
          /** Same as [getName]. Compile-time constant. `application.properties`.*/
          const val fileName: String = """application.properties"""
@@ -514,15 +514,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
       const val fileDescription: String = """Directory containing widgets - source files, class files and widget's resources."""
    
    }
-   /** File child [`SpitPlayer jar`]. */
-   val `spitplayer jar` = `SpitPlayer jar`
+   /** File child [`SpitPlayer_jar`]. */
+   val `spitplayer_jar` = `SpitPlayer_jar`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * File containing application source code and main class. Executed by java.exe when started.
     */
-   object `SpitPlayer jar`: Fil(File("").absolutePath + separator + "SpitPlayer.jar") {
+   object `SpitPlayer_jar`: Fil(File("").absolutePath + separator + "SpitPlayer.jar") {
    
       /** Same as [getName]. Compile-time constant. `SpitPlayer.jar`.*/
       const val fileName: String = """SpitPlayer.jar"""
@@ -531,15 +531,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
    
    }
 
-   /** File child [`SpitPlayerc exe`]. */
-   val `spitplayerc exe` = `SpitPlayerc exe`
+   /** File child [`SpitPlayerc_exe`]. */
+   val `spitplayerc_exe` = `SpitPlayerc_exe`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * Windows executable file that opens this application as gui application.
     */
-   object `SpitPlayerc exe`: Fil(File("").absolutePath + separator + "SpitPlayerc.exe") {
+   object `SpitPlayerc_exe`: Fil(File("").absolutePath + separator + "SpitPlayerc.exe") {
    
       /** Same as [getName]. Compile-time constant. `SpitPlayerc.exe`.*/
       const val fileName: String = """SpitPlayerc.exe"""
@@ -548,15 +548,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
    
    }
 
-   /** File child [`SpitPlayer exe`]. */
-   val `spitplayer exe` = `SpitPlayer exe`
+   /** File child [`SpitPlayer_exe`]. */
+   val `spitplayer_exe` = `SpitPlayer_exe`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * Windows executable file that opens this application as console application.
     */
-   object `SpitPlayer exe`: Fil(File("").absolutePath + separator + "SpitPlayer.exe") {
+   object `SpitPlayer_exe`: Fil(File("").absolutePath + separator + "SpitPlayer.exe") {
    
       /** Same as [getName]. Compile-time constant. `SpitPlayer.exe`.*/
       const val fileName: String = """SpitPlayer.exe"""
@@ -565,15 +565,15 @@ object `AppLocation`: Dir(File("").absolutePath) {
    
    }
 
-   /** File child [`SpitPlayer sh`]. */
-   val `spitplayer sh` = `SpitPlayer sh`
+   /** File child [`SpitPlayer_sh`]. */
+   val `spitplayer_sh` = `SpitPlayer_sh`
    
    /**
     * Compile-time object representing file `File("").absolutePath`, usable in annotations.
     * 
     * Linux/Mac executable file that opens this application.
     */
-   object `SpitPlayer sh`: Fil(File("").absolutePath + separator + "SpitPlayer.sh") {
+   object `SpitPlayer_sh`: Fil(File("").absolutePath + separator + "SpitPlayer.sh") {
    
       /** Same as [getName]. Compile-time constant. `SpitPlayer.sh`.*/
       const val fileName: String = """SpitPlayer.sh"""

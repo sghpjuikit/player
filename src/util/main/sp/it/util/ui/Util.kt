@@ -12,6 +12,7 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Parent
+import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Control
@@ -65,6 +66,8 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.scene.text.TextAlignment
 import javafx.stage.Screen
+import javafx.stage.Stage
+import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.util.Callback
 import sp.it.util.dev.Dsl
@@ -285,6 +288,8 @@ fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(Borde
 /** @return [PseudoClass.getPseudoClass] */
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)
 
+inline fun stage(style: StageStyle = StageStyle.DECORATED, block: Stage.() -> Unit = {}) = Stage(style).apply(block)
+inline fun scene(root: Parent, block: Scene.() -> Unit = {}) = Scene(root).apply(block)
 inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply(block)
 inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply(block)
 inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply(block)

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Rename application to `Spit Player`
 - Avoid starting some plugins for SLAVE application instances
 - Improve DirView cover loading performance
 - Improve video cover extraction performance (reuses output)

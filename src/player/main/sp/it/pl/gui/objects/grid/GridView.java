@@ -169,11 +169,11 @@ public class GridView<T, F> extends Control {
 	}
 
 	protected Stream<GridCell<T,F>> getCellsAll() {
-		return implGetSkin().getCells();
+		return implGetSkin().getCellsAll();
 	}
 
 	public Stream<GridCell<T,F>> getCellsShown() {
-		return implGetSkin().getCellsAll();
+		return implGetSkin().getCells();
 	}
 
 	/**

@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
+import sp.it.util.access.V;
 import static java.lang.Math.max;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
@@ -16,7 +17,6 @@ import static javafx.scene.input.KeyCode.SPACE;
 import static javafx.scene.input.KeyCode.TAB;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
-import static javafx.util.Duration.millis;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /**
@@ -33,7 +33,7 @@ public abstract class Search {
 	public static final PseudoClass PC_SEARCH_MATCH_NOT = pseudoclass("searchmatchnot");
 
 	protected long searchTime = -1;
-	protected Duration searchTimeMax = millis(500);
+	protected final V<Duration> searchTimeMax = SearchAutoCancelable.Companion.getCancelQueryDelay();
 
 	/**
 	 * Text against which the records are being matched against.
@@ -77,7 +77,7 @@ public abstract class Search {
 		if (!letter.isEmpty()) {
 			// update scroll text
 			var now = System.currentTimeMillis();
-			var append = searchTime==-1 || now - searchTime<searchTimeMax.toMillis();
+			var append = searchTime==-1 || now - searchTime<searchTimeMax.getValue().toMillis();
 			var query = pressedKeyCode==BACK_SPACE
 				? removeLastChar(searchQuery.get())
 				: append

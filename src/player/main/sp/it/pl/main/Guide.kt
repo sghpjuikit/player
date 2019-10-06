@@ -32,12 +32,10 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runFX
 import sp.it.util.collections.setToOne
-import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.IsConfig
-import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.onEventDown
@@ -52,18 +50,13 @@ import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.times
 import java.util.ArrayList
+import sp.it.pl.main.AppSettings.plugins.guide as conf
 
-class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Plugin.name}.Guide") {
 
-   @IsConfig(name = "Hint", editable = EditMode.APP)
-   private var at by c(-1)
+class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.name) {
 
-   @IsConfig(name = "Show guide on app start", info = "Show guide when application starts. Default true, but when guide is shown, it is set to false so the guide will never appear again on its own.")
-   val firstTime by cv(true)
-
-   @IsAction(name = "Open guide", desc = "Resume or start the guide.")
-   private val openGuide by cr { open() }
-
+   private val firstTime by cv(true) def conf.showGuideOnAppStart
+   private val at by cv(-1) def conf.hint
    private var prevAt = -1
    private val guideTitleText = v("")
    private val guideText = v("")
@@ -72,6 +65,9 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
    private val popupContent: VBox by lazy { buildContent() }
    private val proceedAnim = anim(400.millis) { popupContent.opacity = -(it*it - 1) }
    val hints = Hints()
+
+   @IsAction(name = "Open guide", desc = "Resume or start the guide.")
+   private val openGuide by cr { open() }
 
    init {
       if (firstTime.value)
@@ -88,7 +84,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
             when (it.button) {
                PRIMARY, FORWARD -> goToNext()
                SECONDARY, BACK -> {
-                  if (hints[at].action=="Navigation") {
+                  if (hints[at.value].action=="Navigation") {
                      runFX(proceedAnim.cycleDuration*3.0) { goToNext() }
                      runFX(proceedAnim.cycleDuration*6.0) { goToNext() }
                   } else {
@@ -136,7 +132,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
 
    private fun proceed() {
       if (hints.isEmpty()) return
-      if (at<0 || at>=hints.size) at = 0
+      if (at.value<0 || at.value>=hints.size) at.value = 0
       proceedAnim.playOpenDoClose { proceedDo() }
       firstTime.set(false)
    }
@@ -146,12 +142,12 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
          hints[prevAt].onExit()
       }
 
-      val h = hints[at]
+      val h = hints[at.value]
 
       h.onEnter()
 
       popup.value.takeIf { !it.isShowing }?.show(ScreenPos.APP_CENTER)
-      guideTitleText.value = "${at + 1}/${hints.size}"
+      guideTitleText.value = "${at.value + 1}/${hints.size}"
       popup.value.title.value = if (h.action.isEmpty()) "Guide" else "Guide - ${h.action}"
 
       guideText.value = h.text()
@@ -165,9 +161,10 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
    }
 
    private fun handleAction(action: Any) {
-      if (hints[at].action==action) goToNext()
+      if (hints[at.value].action==action) goToNext()
    }
 
+   @IsAction(name = "Open guide", desc = "Resume or start the guide.")
    fun open() {
       proceed()
       guideEvents.invoke("Guide opening")
@@ -180,20 +177,20 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
    fun goToStart() {
       if (hints.isEmpty()) return
       prevAt = -1
-      at = 0
+      at.value = 0
       proceed()
    }
 
    fun goToPrevious() {
-      if (at==0) return
-      prevAt = at
-      at--
+      if (at.value==0) return
+      prevAt = at.value
+      at.value = at.value - 1
       proceed()
    }
 
    fun goToNext() {
-      prevAt = at
-      at++
+      prevAt = at.value
+      at.value = at.value + 1
       proceed()
    }
 
@@ -271,9 +268,9 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
             + "\n\nOne icon leads to the next hint.",
          {
             layH(
-               Icon(IconFA.WHEELCHAIR, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
-               Icon(IconMD.WALK, ICON_SIZE).onClick { it -> (it.source as Icon).isDisable = true },
-               Icon(IconMD.RUN, ICON_SIZE).onClick { _ -> runFX(1500.millis) { proceedIfActive() } }
+               Icon(IconFA.WHEELCHAIR, ICON_SIZE).onClickDo { (it.source as Icon).isDisable = true },
+               Icon(IconMD.WALK, ICON_SIZE).onClickDo { (it.source as Icon).isDisable = true },
+               Icon(IconMD.RUN, ICON_SIZE).onClickDo { runFX(1500.millis) { proceedIfActive() } }
             )
          }
       )
@@ -285,7 +282,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
                Icon(IconMD.GAMEPAD_VARIANT, ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right"),
                Icon(IconMD.HAND_POINTING_RIGHT, ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one."),
                Icon(IconFA.GRADUATION_CAP, ICON_SIZE).tooltip("Click to claim the trophy")
-                  .onClick { _ -> runFX(1000.millis) { proceedIfActive() } }
+                  .onClickDo { runFX(1000.millis) { proceedIfActive() } }
             )
          }
       )
@@ -382,16 +379,18 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator("${Settings.Pl
             + "\n\t• Left click: go 'down' - visit children"
             + "\n\nTry out container navigation:",
          {
-            layH(Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
-               val w = APP.windowManager.getActiveOrNew()
-               val i = w.topContainer.emptySpot
-               w.topContainer.ui.alignTab(i)
-               fut()
-                  .thenWait(1.seconds)
-                  .ui { w.topContainer.addChild(i, testControlContainer()) }
-                  .thenWait(1.seconds)
-                  .ui { APP.ui.isLayoutMode = true }
-            }.withText("Start"))
+            layH(
+               Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "").onClickDo {
+                  val w = APP.windowManager.getActiveOrNew()
+                  val i = w.topContainer.emptySpot
+                  w.topContainer.ui.alignTab(i)
+                  fut()
+                     .thenWait(1.seconds)
+                     .ui { w.topContainer.addChild(i, testControlContainer()) }
+                     .thenWait(1.seconds)
+                     .ui { APP.ui.isLayoutMode = true }
+               }.withText("Start")
+            )
          }
       )
       val h17_layoutLock = hint("Layout lock",

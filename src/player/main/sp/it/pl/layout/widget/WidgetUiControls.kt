@@ -24,8 +24,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
-import sp.it.pl.main.infoIcon
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.infoIcon
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.SHORTCUT
@@ -103,15 +103,15 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
       // build animations
       val blur = BoxBlur(0.0, 0.0, 1)
-      anim = anim(APP.ui.durationLM) {
+      anim = anim(APP.ui.layoutModeDuration) {
          root.opacity = it
          root.isVisible = it!=0.0
          root.isMouseTransparent = it!=1.0
 
-         blur.width = it*APP.ui.blurLM
-         blur.height = it*APP.ui.blurLM
-         area.content.effect = if (APP.ui.blurLayoutMode.value) blur else null
-         area.content.opacity = if (APP.ui.opacityLayoutMode.value) 1.0 - APP.ui.opacityLM*it else 1.0
+         blur.width = it*APP.ui.layoutModeBlurStrength
+         blur.height = it*APP.ui.layoutModeBlurStrength
+         area.content.effect = if (APP.ui.layoutModeBlur.value) blur else null
+         area.content.opacity = if (APP.ui.layoutModeOpacity.value) 1.0 - APP.ui.layoutModeOpacityStrength*it else 1.0
          area.content.isMouseTransparent = it==1.0
       }
 

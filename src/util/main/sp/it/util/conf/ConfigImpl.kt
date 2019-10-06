@@ -75,7 +75,7 @@ class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
 
    @Suppress("UNCHECKED_CAST")
    constructor(
-      valueType: Class<T>, name: String, c: IsConfig, constraints: Set<Constraint<OrValue<T>>>, property: OrV<T>, category: String
+      valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, property: OrV<T>, category: String
    ): super(
       OrValue::class.java as Class<OrValue<T>>, name, c, constraints, OrValue(property.override.value, property.real.value), category
    ) {

@@ -201,18 +201,8 @@ open class GenerateKtSettings: DefaultTask() {
             
             package $outPackage
             
+            import sp.it.util.conf.ConfigDefinition
             import sp.it.util.conf.EditMode
-            
-            interface ConfigDefinition {
-            ${outIndent}/** Name of the config. */
-            ${outIndent}val configName: String
-            ${outIndent}/** Group of the config. */
-            ${outIndent}val configGroup: String
-            ${outIndent}/** Description of the config. */
-            ${outIndent}val configInfo: String
-            ${outIndent}/** Editability of the config. */
-            ${outIndent}val configEditable: EditMode
-            }
          """.trimIndent()
       val sb = StringBuilder("").appendln(header).appendln()
 
@@ -224,43 +214,47 @@ open class GenerateKtSettings: DefaultTask() {
    }
 
    private fun Setting.writeClass(sb: StringBuilder, depth: Int = 0) {
-      fun StringBuilder.appendIndent() = apply { repeat(depth) { append(outIndent) } }
+      fun StringBuilder.appendIndentln(text: String) = apply {
+         repeat(depth) { append(outIndent) }
+         appendln(text)
+      }
+      fun defName(text: String) = text.split(" ").flatMap { it.split("-") }.joinToString("") { it.capitalize() }.decapitalize()
 
       when (this) {
          is Setting.SettingRoot -> {
-            sb.appendIndent().appendln("/** Application settings hierarchy. */")
-            sb.appendIndent().appendln("object `${outFile.nameWithoutExtension.capitalize()}` {")
+            sb.appendIndentln("/** Application settings hierarchy. */")
+            sb.appendIndentln("object ${outFile.nameWithoutExtension.replace(" ", "")} {")
             sb.appendln()
             children.forEach { it.writeClass(sb, depth + 1) }
-            sb.appendIndent().appendln("}")
+            sb.appendIndentln("}")
          }
          is Setting.SettingGroup -> {
-            sb.appendIndent().appendln("object `$name` {")
-            sb.appendIndent().appendln("${outIndent}/** Name of the group. */")
-            sb.appendIndent().appendln("${outIndent}const val name = \"$name\"")
+            sb.appendIndentln("object ${defName(name)} {")
+            sb.appendIndentln("${outIndent}/** Name of the group. */")
+            sb.appendIndentln("${outIndent}const val name = \"$name\"")
             sb.appendln()
             children.forEach { it.writeClass(sb, depth + 1) }
-            sb.appendIndent().appendln("}")
+            sb.appendIndentln("}")
          }
          is Setting.SettingConfig -> {
-            sb.appendIndent().appendln("object `$name`: ConfigDefinition {")
-            sb.appendIndent().appendln("${outIndent}/** Name of the config. Compile-time constant. */")
-            sb.appendIndent().appendln("${outIndent}const val name: String = \"$name\"")
-            sb.appendIndent().appendln("${outIndent}/** Description of the config. Compile-time constant. */")
-            sb.appendIndent().appendln("${outIndent}const val info: String = \"$info\"")
-            sb.appendIndent().appendln("${outIndent}/** Group of the config. Compile-time constant. */")
-            sb.appendIndent().appendln("${outIndent}const val group: String = \"$group\"")
-            sb.appendIndent().appendln("${outIndent}/** Editability of the config. Compile-time constant. */")
-            sb.appendIndent().appendln("${outIndent}val editable: EditMode = EditMode.$editable")
-            sb.appendIndent().appendln("${outIndent}/** Equivalent to [name]. */")
-            sb.appendIndent().appendln("${outIndent}override val configName = name")
-            sb.appendIndent().appendln("${outIndent}/** Equivalent to [group]. */")
-            sb.appendIndent().appendln("${outIndent}override val configGroup = group")
-            sb.appendIndent().appendln("${outIndent}/** Equivalent to [info]. */")
-            sb.appendIndent().appendln("${outIndent}override val configInfo = info")
-            sb.appendIndent().appendln("${outIndent}/** Equivalent to [editable]. */")
-            sb.appendIndent().appendln("${outIndent}override val configEditable = editable")
-            sb.appendIndent().appendln("}")
+            sb.appendIndentln("object ${defName(name)}: ConfigDefinition {")
+            sb.appendIndentln("${outIndent}/** Name of the config. Compile-time constant. */")
+            sb.appendIndentln("${outIndent}const val name: String = \"$name\"")
+            sb.appendIndentln("${outIndent}/** Description of the config. Compile-time constant. */")
+            sb.appendIndentln("${outIndent}const val info: String = \"$info\"")
+            sb.appendIndentln("${outIndent}/** Group of the config. Compile-time constant. */")
+            sb.appendIndentln("${outIndent}const val group: String = \"$group\"")
+            sb.appendIndentln("${outIndent}/** Editability of the config. Compile-time constant. */")
+            sb.appendIndentln("${outIndent}val editable: EditMode = EditMode.$editable")
+            sb.appendIndentln("${outIndent}/** Equivalent to [name]. */")
+            sb.appendIndentln("${outIndent}override val configName = name")
+            sb.appendIndentln("${outIndent}/** Equivalent to [group]. */")
+            sb.appendIndentln("${outIndent}override val configGroup = group")
+            sb.appendIndentln("${outIndent}/** Equivalent to [info]. */")
+            sb.appendIndentln("${outIndent}override val configInfo = info")
+            sb.appendIndentln("${outIndent}/** Equivalent to [editable]. */")
+            sb.appendIndentln("${outIndent}override val configEditable = editable")
+            sb.appendIndentln("}")
          }
       }
 

@@ -1,19 +1,20 @@
 package sp.it.pl.plugin
 
 import sp.it.pl.main.APP
-import sp.it.pl.main.Settings
 import sp.it.util.Locatable
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.dev.Idempotent
 import sp.it.util.file.div
+import sp.it.pl.main.AppSettings.plugins as conf
+
 
 /** Plugin is configurable start/stoppable component. */
 interface Plugin: Configurable<Any>, ConfigDelegator, GlobalConfigDelegator, Locatable {
 
    val name: String
-   override val configurableGroupPrefix get() = "${Settings.Plugin.name}.$name"
+   override val configurableGroupPrefix get() = "${conf.name}.$name"
    override val location get() = APP.location.plugins/name
    override val userLocation get() = APP.location.user.plugins/name
 

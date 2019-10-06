@@ -552,7 +552,7 @@ public class SwitchContainerUi implements ComponentUi {
         // if (d!=1) zoomScaleFactor.set(d);
         // play
         z1.stop();
-        z1.setDuration(APP.ui.getDurationLM());
+        z1.setDuration(APP.ui.getLayoutModeDuration());
         z1.setToX(d);
         z1.play();
         z2.stop();

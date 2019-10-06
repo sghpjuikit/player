@@ -15,7 +15,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.ScrollEvent;
@@ -23,7 +22,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import kotlin.Unit;
@@ -32,6 +30,7 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
+import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.async.future.Fut;
@@ -95,8 +94,6 @@ import static sp.it.util.ui.UtilKt.setScaleXY;
 /** Action chooser pane. Displays icons representing certain actions. */
 public class ActionPane extends OverlayPane<Object> {
 
-	public static final String CLOSE_ON_DONE_NAME = "Close when action ends";
-	public static final String CLOSE_ON_DONE_INFO = "Closes the chooser when action finishes running.";
 	private static final String ROOT_STYLECLASS = "action-pane";
 	private static final String ICON_STYLECLASS = "action-pane-action-icon";
 
@@ -219,7 +216,7 @@ public class ActionPane extends OverlayPane<Object> {
 	);
 	private final Icon hideI = new CheckIcon(closeOnDone)
 									.icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE)
-									.tooltip(CLOSE_ON_DONE_NAME +"\n\n"+ CLOSE_ON_DONE_INFO);
+									.tooltip(actionViewer.closeWhenActionEnds.name +"\n\n"+ actionViewer.closeWhenActionEnds.info);
 	private final ProgressIndicator dataProgress = appProgressIndicator();
 	public final ProgressIndicator actionProgress = appProgressIndicator();
 	private final HBox controls = layHorizontally(5,CENTER_RIGHT, actionProgress, dataProgress,hideI,helpI);

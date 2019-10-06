@@ -19,15 +19,22 @@ import javafx.scene.text.Font
 import mu.KLogging
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.gui.objects.window.stage.asLayout
+import sp.it.pl.gui.pane.ActionPane
 import sp.it.pl.gui.pane.ErrorPane
 import sp.it.pl.gui.pane.InfoPane
 import sp.it.pl.gui.pane.OverlayPane
+import sp.it.pl.gui.pane.OverlayPane.Display
 import sp.it.pl.gui.pane.ScreenBgrGetter
+import sp.it.pl.gui.pane.ShortcutPane
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.Widgets
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
-import sp.it.pl.main.AppSettings
+import sp.it.pl.main.AppSettings.ui.skin
+import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
+import sp.it.pl.main.AppSettings.ui.view.overlayArea
+import sp.it.pl.main.AppSettings.ui.view.overlayBackground
+import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts
 import sp.it.pl.main.initActionPane
 import sp.it.pl.main.initApp
 import sp.it.util.access.Values
@@ -37,11 +44,12 @@ import sp.it.util.collections.ObservableSetRO
 import sp.it.util.collections.project
 import sp.it.util.collections.setTo
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.IsConfig
+import sp.it.util.conf.appendInfo
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
+import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.values
@@ -71,92 +79,66 @@ import java.net.MalformedURLException
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import javafx.stage.Window as WindowFX
-import sp.it.pl.gui.pane.ActionPane as PaneA
-import sp.it.pl.gui.pane.ShortcutPane as PaneS
-import sp.it.pl.main.Settings.Ui as SU
+import sp.it.pl.main.AppSettings.ui as confUi
+import sp.it.pl.main.AppSettings.ui.image as confImage
+import sp.it.pl.main.AppSettings.ui.table as confTable
 
-class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
+class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
-   @IsConfig(
-      name = "Overlay area", group = SU.View.name,
-      info = "Covered area. Screen overlay provides more space than window, but it can disrupt work flow."
-   )
-   val viewDisplay by cv(OverlayPane.Display.SCREEN_OF_MOUSE)
-   @IsConfig(
-      name = "Overlay background", group = SU.View.name,
-      info = "Background image source.\nIgnored when `Overlay area` is `Active window`"
-   )
-   val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR)
-   @IsConfig(name = PaneA.CLOSE_ON_DONE_NAME, info = PaneA.CLOSE_ON_DONE_INFO, group = SU.View.Action.name)
-   val viewCloseOnDone by cv(true)
-   @IsConfig(name = PaneS.HIDE_EMPTY_NAME, info = PaneS.HIDE_EMPTY_INFO, group = SU.View.Shortcut.name)
-   val viewHideEmptyShortcuts by cv(true)
+   private val viewDisplayBgrInfo = "\nIgnored when `${overlayArea.name}` is `${Display.WINDOW.uiName}`"
+   private val skinsImpl = observableSet<SkinCss>()
 
    /** Action chooser and data info view. */
-   val actionPane = LazyOverlayPane { PaneA(APP.className, APP.instanceName, APP.instanceInfo).initApp().initActionPane() }
+   val actionPane = LazyOverlayPane { ActionPane(APP.className, APP.instanceName, APP.instanceInfo).initApp().initActionPane() }
    /** Error detail view. Usually used internally by [sp.it.pl.main.AppErrors]. */
    val errorPane = LazyOverlayPane { ErrorPane().initApp() }
    /** Shortcut bindings/keymap detail view. */
-   val shortcutPane = LazyOverlayPane { PaneS().initApp() }
+   val shortcutPane = LazyOverlayPane { ShortcutPane().initApp() }
    /** System/app info detail view. */
    val infoPane = LazyOverlayPane { InfoPane().initApp() }
-
-   private val skinsImpl = observableSet<SkinCss>()
-   /** Available application skins. Monitored and updated from disc. */
-   val skins = ObservableSetRO<SkinCss>(skinsImpl)
    /** Css files applied on top of [skin]. Can be used for clever stuff like applying generated css. */
    val additionalStylesheets = observableArrayList<File>()!!
-
-   val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
+   /** Available application skins. Monitored and updated from disc. */
+   val skins = ObservableSetRO<SkinCss>(skinsImpl)
+   /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
+   val skin by cv("Main").values(skins.project { it.name }) def confUi.skin
+   /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
+   val font by cv(Font.getDefault()) def confUi.font
 
    init {
       initSkins()
       observeWindowsAndSyncWidgetFocus()
    }
 
-   /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
-   @IsConfig(name = "Skin", info = "Application skin.")
-   val skin by cv("Main").values(skins.project { it.name })
+   val viewDisplay by cv(Display.SCREEN_OF_MOUSE) def overlayArea
+   val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR) def overlayBackground.appendInfo(viewDisplayBgrInfo)
+   val viewCloseOnDone by cv(true) def closeWhenActionEnds
+   val viewHideEmptyShortcuts by cv(true) def hideUnassignedShortcuts
 
-   /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
-   @IsConfig(name = "Font", info = "Application font.")
-   val font by cv(Font.getDefault())
+   /** Application layout mode. When true, ui editing controls are visible. */
+   val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
+   val layoutModeBlur by cv(false) def confUi.layoutModeBlurBgr
+   val layoutModeOpacity by cv(true) def confUi.layoutModeFadeBgr
+   var layoutModeOpacityStrength by c(1.0).between(0.0, 1.0).readOnlyUnless(layoutModeOpacity) def confUi.layoutModeFadeIntensity
+   var layoutModeBlurStrength by c(4.0).between(0.0, 20.0).readOnlyUnless(layoutModeBlur) def confUi.layoutModeBlurIntensity
+   var layoutModeDuration by c(250.millis) def confUi.layoutModeAnimLength
+   val layoutLocked by cv(false) { SimpleBooleanProperty(it) } attach { APP.actionStream("Layout lock") } def confUi.lockLayout
+   val snapping by cv(true) def confUi.snap
+   val snapDistance by cv(12.0) def confUi.snapActivationDistance
 
-   @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
-   val blurLayoutMode by cv(false)
-   @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
-   val opacityLayoutMode by cv(true)
-   @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.")
-   var opacityLM by c(1.0).between(0.0, 1.0).readOnlyUnless(opacityLayoutMode)
-   @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur effect intensity.")
-   var blurLM by c(4.0).between(0.0, 20.0).readOnlyUnless(blurLayoutMode)
-   @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
-   var durationLM by c(250.millis)
-   @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
-   val snapping by cv(true)
-   @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
-   val snapDistance by cv(12.0)
-   @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
-   val lockedLayout by cv(false) { SimpleBooleanProperty(it) }.attach { APP.actionStream("Layout lock") }
+   val tableOrient by cv(NodeOrientation.INHERIT) def confTable.tableOrientation
+   val tableZeropad by cv(false) def confTable.zeropadNumbers
+   val tableOrigIndex by cv(false) def confTable.searchShowOriginalIndex
+   val tableShowHeader by cv(true) def confTable.showTableHeader
+   val tableShowFooter by cv(true) def confTable.showTableControls
 
-   @IsConfig(name = "Table orientation", group = SU.Table.name, info = "Orientation of the table.")
-   val tableOrient by cv(NodeOrientation.INHERIT)
-   @IsConfig(name = "Zeropad numbers", group = SU.Table.name, info = "Adds 0s for number length consistency.")
-   val tableZeropad by cv(false)
-   @IsConfig(name = "Search show original index", group = SU.Table.name, info = "Show unfiltered table item index when filter applied.")
-   val tableOrigIndex by cv(false)
-   @IsConfig(name = "Show table header", group = SU.Table.name, info = "Show table header with columns.")
-   val tableShowHeader by cv(true)
-   @IsConfig(name = "Show table controls", group = SU.Table.name, info = "Show table controls at the bottom of the table. Displays menu bar and table content information")
-   val tableShowFooter by cv(true)
+   val thumbnailAnimDur by cv(100.millis) def confImage.thumbnailAnimDuration
 
-   @IsConfig(name = "Thumbnail anim duration", group = SU.Image.name, info = "Preferred hover scale animation duration for thumbnails.")
-   val thumbnailAnimDur by cv(100.millis)
-
-   @IsConfig(name = "Rating skin", info = "Rating ui component skin")
+   val ratingIconCount by cv(5).between(0, 10) def confUi.ratingIconAmount
+   val ratingIsPartial by cv(true) def confUi.ratingAllowPartial
    val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter {
       it?.simpleName ?: "<none> (App skin decides)"
-   } sync {
+   } def confUi.ratingSkin sync {
       val f = APP.locationTmp/"user-rating-skin.css"
       additionalStylesheets -= f
       it?.let {
@@ -166,11 +148,6 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
       }
    }
 
-   @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.")
-   val maxRating by cv(5).between(0, 10)
-
-   @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
-   val partialRating by cv(true)
 
    /**
     * Sets layout mode for all active components.
@@ -206,7 +183,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(SU.name) {
 
    /** Toggles lock to prevent user accidental layout change.  */
    @IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
-   fun toggleLayoutLocked() = lockedLayout.toggle()
+   fun toggleLayoutLocked() = layoutLocked.toggle()
 
    /** Loads/refreshes active layout.  */
    @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")

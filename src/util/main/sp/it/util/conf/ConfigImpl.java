@@ -56,12 +56,12 @@ public interface ConfigImpl {
 		/**
 		 * @throws NullPointerException if val parameter null. The wrapped value must no be null.
 		 */
-		ConfigBase(Class<T> type, String name, IsConfig c, T val, String category) {
-			this(type, name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable());
+		ConfigBase(Class<T> type, String name, ConfigDefinition c, T val, String category) {
+			this(type, name, c.getConfigName().isEmpty() ? name : c.getConfigName(), val, category, c.getConfigInfo(), c.getConfigEditable());
 		}
 
-		ConfigBase(Class<T> type, String name, IsConfig c, Set<Constraint<? super T>> constraints, T val, String category) {
-			this(type, name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable());
+		ConfigBase(Class<T> type, String name, ConfigDefinition c, Set<Constraint<? super T>> constraints, T val, String category) {
+			this(type, name, c.getConfigName().isEmpty() ? name : c.getConfigName(), val, category, c.getConfigInfo(), c.getConfigEditable());
 			this.constraints = constraints;
 		}
 
@@ -126,7 +126,7 @@ public interface ConfigImpl {
 		 * @param instance owner of the field or null if static
 		 */
 		@SuppressWarnings("unchecked")
-		FieldConfig(String name, IsConfig c, Set<Constraint<? super T>> constraints, Object instance, String category, MethodHandle getter, MethodHandle setter) {
+		FieldConfig(String name, ConfigDefinition c, Set<Constraint<? super T>> constraints, Object instance, String category, MethodHandle getter, MethodHandle setter) {
 			super((Class) getter.type().returnType(), name, c, constraints, getValueFromFieldMethodHandle(getter, instance), category);
 			this.getter = getter;
 			this.setter = setter;
@@ -162,7 +162,7 @@ public interface ConfigImpl {
 		 * @throws IllegalStateException if the property field is not final
 		 */
 		@SuppressWarnings("unchecked")
-		public PropertyConfig(Class<T> propertyType, String name, IsConfig c, Set<Constraint<? super T>> constraints, WritableValue<T> property, T defaultValue, String category) {
+		public PropertyConfig(Class<T> propertyType, String name, ConfigDefinition c, Set<Constraint<? super T>> constraints, WritableValue<T> property, T defaultValue, String category) {
 			super(propertyType, name, c, constraints, defaultValue, category);
 			value = property;
 
@@ -178,7 +178,7 @@ public interface ConfigImpl {
 		 * @throws IllegalStateException if the property field is not final
 		 */
 		@SuppressWarnings("unchecked")
-		public PropertyConfig(Class<T> propertyType, String name, IsConfig c, Set<Constraint<? super T>> constraints, WritableValue<T> property, String category) {
+		public PropertyConfig(Class<T> propertyType, String name, ConfigDefinition c, Set<Constraint<? super T>> constraints, WritableValue<T> property, String category) {
 			super(propertyType, name, c, constraints, property.getValue(), category);
 			value = property;
 
@@ -238,7 +238,7 @@ public interface ConfigImpl {
 		 * @throws IllegalStateException if the property field is not final
 		 */
 		@SuppressWarnings("unchecked")
-		public ReadOnlyPropertyConfig(Class<T> property_type, String name, IsConfig c, Set<Constraint<? super T>> constraints, ObservableValue<T> property, String category) {
+		public ReadOnlyPropertyConfig(Class<T> property_type, String name, ConfigDefinition c, Set<Constraint<? super T>> constraints, ObservableValue<T> property, String category) {
 			super(property_type, name, c, constraints, property.getValue(), category);
 			value = property;
 
@@ -291,9 +291,9 @@ public interface ConfigImpl {
 		private final List<T> defaultItems;
 
 		@SuppressWarnings("unchecked")
-		public ListConfig(String name, IsConfig c, ConfList<T> list, String category, Set<Constraint<? super T>> constraints) {
+		public ListConfig(String name, ConfigDefinition c, ConfList<T> list, String category, Set<Constraint<? super T>> constraints) {
 			super((Class) ObservableList.class, name, c, list.list, category);
-			failIf(isReadOnly(list.list)!=c.editable().isByNone());
+			failIf(isReadOnly(list.list)!=c.getConfigEditable().isByNone());
 
 			a = list;
 			defaultItems = isFixedSizeAndHasConfigurableItems() ? null : list(list.list);

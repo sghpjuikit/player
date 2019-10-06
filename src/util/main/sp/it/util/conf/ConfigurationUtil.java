@@ -21,6 +21,7 @@ import sp.it.util.conf.Constraint.IsConstraint;
 import sp.it.util.conf.OrPropertyConfig.OrValue;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static sp.it.util.conf.ConfigDefinitionKt.toDef;
 import static sp.it.util.conf.ConfigurationUtilKt.computeConfigGroup;
 import static sp.it.util.dev.FailKt.failIfFinal;
 import static sp.it.util.dev.FailKt.failIfNotFinal;
@@ -63,7 +64,7 @@ public class ConfigurationUtil {
 		if (a!=null) {
 			String group = computeConfigGroup(a, instance);
 			String name = f.getName();
-			c = createConfig(f, instance, name, a, group);
+			c = createConfig(f, instance, name, toDef(a), group);
 		}
 		return c;
 	}
@@ -74,13 +75,13 @@ public class ConfigurationUtil {
 		if (a!=null) {
 			String name = fieldNamePrefix + f.getName();
 			int modifiers = f.getModifiers();
-			c = createConfig(f, instance, name, a, group);
+			c = createConfig(f, instance, name, toDef(a), group);
 		}
 		return c;
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> Config<T> createConfig(Field f, T instance, String name, IsConfig annotation, String group) {
+	private static <T> Config<T> createConfig(Field f, T instance, String name, ConfigDefinition annotation, String group) {
 		Class<T> type = (Class) f.getType();
 		if (Config.class.isAssignableFrom(type)) {
 			return newFromConfig(f, instance);
@@ -88,7 +89,7 @@ public class ConfigurationUtil {
 			return newFromProperty(f, instance, name, annotation, group);
 		} else {
 			try {
-				if (annotation.editable()==EditMode.NONE) failIfNotFinal(f); else failIfFinal(f);
+				if (annotation.getConfigEditable()==EditMode.NONE) failIfNotFinal(f); else failIfFinal(f);
 				f.setAccessible(true);
 				MethodHandle getter = methodLookup.unreflectGetter(f);
 				MethodHandle setter = methodLookup.unreflectSetter(f);
@@ -101,7 +102,7 @@ public class ConfigurationUtil {
 	}
 
 	@SuppressWarnings({"unchecked", "Convert2Diamond"})
-	private static <T> Config<T> newFromProperty(Field f, T instance, String name, IsConfig annotation, String group) {
+	private static <T> Config<T> newFromProperty(Field f, T instance, String name, ConfigDefinition annotation, String group) {
 		try {
 			failIfNotFinal(f);
 			f.setAccessible(true);

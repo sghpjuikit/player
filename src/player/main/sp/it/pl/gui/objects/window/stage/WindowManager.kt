@@ -34,7 +34,6 @@ import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.Settings
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
 import sp.it.util.access.toggle
@@ -92,8 +91,10 @@ import java.io.File
 import java.util.HashSet
 import java.util.Optional
 import javafx.stage.Window as WindowFX
+import sp.it.pl.main.AppSettings.ui.dock as confDock
+import sp.it.pl.main.AppSettings.ui.window as confWindow
 
-class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
+class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    @JvmField var screenMaxScaling = 0.0
    /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */
@@ -127,21 +128,21 @@ class WindowManager: GlobalSubConfigDelegator(Settings.Ui.Window.name) {
       }
    }
 
-   @IsConfig(name = "Show delay", group = Settings.Ui.Dock.name, info = "Mouse hover time it takes for the dock to show.")
+   @IsConfig(name = "Show delay", group = confDock.name, info = "Mouse hover time it takes for the dock to show.")
    val dockHoverDelay by cv(700.millis)
 
-   @IsConfig(name = "Hide when inactive", group = Settings.Ui.Dock.name, info = "Hide dock when no mouse activity is detected.")
+   @IsConfig(name = "Hide when inactive", group = confDock.name, info = "Hide dock when no mouse activity is detected.")
    val dockHideInactive by cv(true)
 
-   @IsConfig(name = "Hide when inactive for", group = Settings.Ui.Dock.name, info = "Mouse away time it takes for the dock to hide.")
+   @IsConfig(name = "Hide when inactive for", group = confDock.name, info = "Mouse away time it takes for the dock to hide.")
    val dockHideInactiveDelay by cv(1500.millis).readOnlyUnless(dockHideInactive)
 
-   @IsConfig(name = "Dock content", group = Settings.Ui.Dock.name, info = "Widget to use in dock.")
+   @IsConfig(name = "Dock content", group = confDock.name, info = "Widget to use in dock.")
    val dockWidget by cv(PLAYBACK).valuesIn {
       APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.name() }
    }
 
-   @IsConfig(name = "Dock", group = Settings.Ui.Dock.name, info = "Whether application has docked window in the top of the screen.")
+   @IsConfig(name = "Dock", group = confDock.name, info = "Whether application has docked window in the top of the screen.")
    val dockShow by cv(false) sync { showDockImpl(it) }
 
    /** @return main window or null if no main window (only possible when no window is open) */

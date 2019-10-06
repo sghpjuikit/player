@@ -24,6 +24,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
+import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
 
 class ShortcutPane: OverlayPane<Collection<Action>>() {
 
@@ -41,7 +42,7 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
          lay += hBox(5, CENTER_RIGHT) {
             lay += CheckIcon(hideEmptyShortcuts)
                .icons(IconMD.CHECKBOX_BLANK_CIRCLE_OUTLINE, IconMD.CLOSE_CIRCLE_OUTLINE)
-               .tooltip("$HIDE_EMPTY_NAME\n\n$HIDE_EMPTY_INFO")
+               .tooltip("${hideUnassignedShortcuts1.name}\n\n${hideUnassignedShortcuts1.info}")
             lay += infoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")
          }
          lay(ALWAYS) += stackPane {
@@ -99,8 +100,6 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
    }
 
    companion object {
-      const val HIDE_EMPTY_NAME = "Hide unassigned shortcuts"
-      const val HIDE_EMPTY_INFO = "Displays only shortcuts that have keys assigned"
       private const val STYLECLASS = "shortcut-pane"
       private const val STYLECLASS_GROUP = "shortcut-pane-group-label"
    }

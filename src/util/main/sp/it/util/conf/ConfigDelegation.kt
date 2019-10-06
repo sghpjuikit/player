@@ -44,6 +44,9 @@ inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
 
+/** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
+infix fun <T: Any?, C: Conf<T>> C.def(def: ConfigDefinition) = apply { this.def = def }
+
 fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), Double.MAX_VALUE))
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(Double.MIN_VALUE, max.toDouble()))
@@ -185,12 +188,16 @@ interface ConfigPropertyDelegator<REF: ConfigDelegator, D: Any> {
 abstract class Conf<T: Any?> {
    protected var refSubstitute: Any? = null
    val constraints = HashSet<Constraint<T>>()
+   var def: ConfigDefinition? = null
 
    protected fun addAnnotationConstraints(type: Class<T>, property: KProperty<*>) {
       constraints += obtainConfigConstraints(type, property.annotations)
    }
 
-   protected fun KProperty<*>.obtainConfigMetadata() = findAnnotation<IsConfig>() ?: fail { "${IsConfig::class} annotation required for $this" }
+   protected fun KProperty<*>.obtainConfigMetadata() = null
+      ?: def
+      ?: findAnnotation<IsConfig>()?.toDef()
+      ?: fail { "${::def.name} definition or ${IsConfig::class} annotation required for $this" }
 
    protected fun validateValue(v: T) {
       constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }
@@ -209,7 +216,7 @@ abstract class Conf<T: Any?> {
 class ConfR(private val action: () -> Unit): Conf<Action>() {
    operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, Action> {
       property.makeAccessible()
-      val info = property.findAnnotation<IsConfig>()
+      val info = def ?: property.findAnnotation<IsConfig>()?.toDef()
       val infoExt = property.findAnnotation<IsAction>()
       val group = info.computeConfigGroup(ref)
 
@@ -217,8 +224,8 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
       failIf(!isFinal) { "Property must be immutable" }
 
       fun String.orNull() = takeIf { it.isNotBlank() }
-      val name = infoExt?.name?.orNull() ?: info?.name?.orNull() ?: property.name
-      val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull() ?: Action.CONFIG_GROUP
+      val name = infoExt?.name?.orNull() ?: info?.configName?.orNull() ?: property.name
+      val desc = infoExt?.desc?.orNull() ?: info?.configInfo?.orNull() ?: Action.CONFIG_GROUP
       val keys = infoExt?.keys ?: ""
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false
@@ -264,9 +271,9 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
       addAnnotationConstraints(type, property)
 
       val isFinal = property !is KMutableProperty
-      failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
+      failIf(isFinal xor (info.configEditable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.configEditable}" }
 
-      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.configEditable).addConstraints(constraints)
       ref.configurableValueSource.initialize(c)
       validateValue(c.value)
 
@@ -311,7 +318,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<Conf
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
-      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.configEditable).addConstraints(constraints)
       ref.configurableValueSource.initialize(c)
       validateValue(c.value)
 
@@ -353,9 +360,9 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
 
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
-      failIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
+      failIf(info.configEditable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
 
-      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
+      val c = ValueConfig(type, property.name, "", initialValue, group, "", info.configEditable).addConstraints(constraints)
       validateValue(c.value)
 
       return object: ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), RoProperty<ConfigDelegator, W> {

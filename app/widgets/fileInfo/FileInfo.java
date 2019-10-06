@@ -220,8 +220,8 @@ public class FileInfo extends SimpleController implements SongReader {
         rating.setContentDisplay(ContentDisplay.RIGHT);
 
         // bind rating to app configs
-        onClose.plusAssign(syncTo(APP.ui.getMaxRating(),rater.icons));
-        onClose.plusAssign(syncTo(APP.ui.getPartialRating(), rater.partialRating));
+        onClose.plusAssign(syncTo(APP.ui.getRatingIconCount(),rater.icons));
+        onClose.plusAssign(syncTo(APP.ui.getRatingIsPartial(), rater.partialRating));
         rater.editable.set(true);
         rater.onRatingEdited = consumer(it -> writeRating(data, it));
 

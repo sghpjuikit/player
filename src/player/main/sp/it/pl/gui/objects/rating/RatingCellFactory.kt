@@ -19,8 +19,8 @@ object RatingCellFactory: Callback<TableColumn<Metadata, Double?>, TableCell<Met
       init {
          contentDisplay = GRAPHIC_ONLY
          alignment = Pos.CENTER
-         r.icons syncFrom APP.ui.maxRating
-         r.partialRating syncFrom APP.ui.partialRating
+         r.icons syncFrom APP.ui.ratingIconCount
+         r.partialRating syncFrom APP.ui.ratingIsPartial
          r.editable.value = true
          if (c.userData==Metadata.Field.RATING)
             r.onRatingEdited = { c.tableView.items[index].writeRating(it) }

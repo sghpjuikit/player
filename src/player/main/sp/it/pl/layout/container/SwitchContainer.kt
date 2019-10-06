@@ -3,7 +3,6 @@ package sp.it.pl.layout.container
 import javafx.scene.Node
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.SwitchContainerDb
-import sp.it.pl.main.Settings
 import sp.it.util.access.v
 import sp.it.util.collections.filterNotNullValues
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -12,6 +11,7 @@ import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.reactive.syncFrom
 import java.util.HashMap
+import sp.it.pl.main.AppSettings.ui.tabs as conf
 
 class SwitchContainer: Container<SwitchContainerUi> {
 
@@ -59,7 +59,7 @@ class SwitchContainer: Container<SwitchContainerUi> {
 
    override fun toDb() = SwitchContainerDb(id, translate.value, loadType.value, locked.value, children.mapValues { it.value.toDb() }, properties)
 
-   companion object: GlobalSubConfigDelegator("${Settings.Ui.name}.Tabs") {
+   companion object: GlobalSubConfigDelegator(conf.name) {
 
       @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
          + " Tabs are always aligned. Seamless mode allows any tab position."

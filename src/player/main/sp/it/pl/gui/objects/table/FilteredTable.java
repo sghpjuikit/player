@@ -443,7 +443,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		private void updateSearchStyles() {
-			if (SearchAutoCancelable.Companion.isCancelable()) searchAutoCanceller.start(SearchAutoCancelable.Companion.getCancelActivityDelay());
+			if (SearchAutoCancelable.Companion.isCancelable().getValue())
+				searchAutoCanceller.start(SearchAutoCancelable.Companion.getCancelActivityDelay().getValue());
 			updateSearchStyleRowsNoReset();
 		}
 

@@ -161,8 +161,8 @@ public abstract class Component {
 		// cal when component parent changes
 		public void initLocked(Component p) {
 			unbind();
-			if (p==null) bind(locked.or(APP.ui.getLockedLayout()));
-			else bind(p.lockedUnder.or(locked).or(APP.ui.getLockedLayout()));
+			if (p==null) bind(locked.or(APP.ui.getLayoutLocked()));
+			else bind(p.lockedUnder.or(locked).or(APP.ui.getLayoutLocked()));
 		}
 
 		// call when cosing component

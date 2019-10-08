@@ -48,9 +48,9 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isImage
-import sp.it.pl.main.emScaled
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
@@ -64,6 +64,7 @@ import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.FX
 import sp.it.util.async.NEW
 import sp.it.util.async.burstTPExecutor
+import sp.it.util.async.runIO
 import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.async.threadFactory
@@ -72,10 +73,10 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.Constraint.FileActor.FILE
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIf
@@ -146,14 +147,10 @@ class GameView(widget: Widget): SimpleController(widget) {
       attach { applyCellSize() }
    }
 
-   @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-   val cellSize by cv(CellSize.NORMAL).uiNoOrder() attach { applyCellSize() }
-   @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-   val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
-   @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
-   val fitFrom by cv(OUTSIDE)
-   @IsConfig(name = "Location", info = "Location of the library.")
-   val files by cList<File>().only(DIRECTORY)
+   val cellSize by cv(CellSize.NORMAL).def(name = "Thumbnail size", info = "Size of the thumbnail.").uiNoOrder() attach { applyCellSize() }
+   val cellSizeRatio by cv(Resolution.R_1x1).def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.") attach { applyCellSize() }
+   val fitFrom by cv(OUTSIDE).def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   val files by cList<File>().def(name = "Location", info = "Location of the library.").only(DIRECTORY)
 
    val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 10.0, 10.0)
    val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("gameView-img-loader", true)))
@@ -357,12 +354,12 @@ class GameView(widget: Widget): SimpleController(widget) {
                               val exeFile = game.exeFile()
                               if (exeFile==null) {
                                  object: ConfigurableBase<Any?>() {
-                                    @IsConfig(name = "File") var file by c(game.location/"exe").only(FILE)
+                                    var file by c(game.location/"exe").only(FILE).def(name = "File", info = "Executable game launcher")
                                  }.configure("Set up launcher") {
                                     val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath + File.separator)
                                     val targetName = it.file.name
                                     val link = game.location/"play.bat"
-                                    runNew {
+                                    runIO {
                                        failIf(!it.file.exists()) { "Target file does not exist." }
                                        link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
                                     }.onDone(FX) {
@@ -411,7 +408,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          infoT.text = ""
          fileTree.root = null
 
-         runNew {
+         runIO {
             object {
                val title = g.name
                val location = FastFile(g.location.path, true, false)

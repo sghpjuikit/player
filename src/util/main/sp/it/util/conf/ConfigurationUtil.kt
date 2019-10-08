@@ -13,9 +13,9 @@ fun IsConfig?.computeConfigGroup(declaringRef: Any): String = this?.toDef().comp
 
 @Suppress("IfThenToElvis")
 fun ConfigDefinition?.computeConfigGroup(declaringRef: Any): String {
-   if (this!=null && configGroup.isNotBlank()) return configGroup
+   if (this!=null && group.isNotBlank()) return group
 
-   val groupSuffix = this?.configGroup?.takeIf { it.isNotBlank() }
+   val groupSuffix = this?.group?.takeIf { it.isNotBlank() }
    val groupPrefix = (declaringRef as? ConfigDelegator)
       ?.configurableGroupPrefix
       ?.apply { failIf(isBlank()) { "Configurable discriminant is empty" } }

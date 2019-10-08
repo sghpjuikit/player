@@ -216,7 +216,7 @@ public class ActionPane extends OverlayPane<Object> {
 	);
 	private final Icon hideI = new CheckIcon(closeOnDone)
 									.icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE)
-									.tooltip(actionViewer.closeWhenActionEnds.name +"\n\n"+ actionViewer.closeWhenActionEnds.info);
+									.tooltip(actionViewer.closeWhenActionEnds.cname +"\n\n"+ actionViewer.closeWhenActionEnds.cinfo);
 	private final ProgressIndicator dataProgress = appProgressIndicator();
 	public final ProgressIndicator actionProgress = appProgressIndicator();
 	private final HBox controls = layHorizontally(5,CENTER_RIGHT, actionProgress, dataProgress,hideI,helpI);

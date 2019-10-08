@@ -89,7 +89,7 @@ public class ConfigurationUtil {
 			return newFromProperty(f, instance, name, annotation, group);
 		} else {
 			try {
-				if (annotation.getConfigEditable()==EditMode.NONE) failIfNotFinal(f); else failIfFinal(f);
+				if (annotation.getEditable()==EditMode.NONE) failIfNotFinal(f); else failIfFinal(f);
 				f.setAccessible(true);
 				MethodHandle getter = methodLookup.unreflectGetter(f);
 				MethodHandle setter = methodLookup.unreflectSetter(f);

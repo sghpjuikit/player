@@ -57,11 +57,11 @@ public interface ConfigImpl {
 		 * @throws NullPointerException if val parameter null. The wrapped value must no be null.
 		 */
 		ConfigBase(Class<T> type, String name, ConfigDefinition c, T val, String category) {
-			this(type, name, c.getConfigName().isEmpty() ? name : c.getConfigName(), val, category, c.getConfigInfo(), c.getConfigEditable());
+			this(type, name, c.getName().isEmpty() ? name : c.getName(), val, category, c.getInfo(), c.getEditable());
 		}
 
 		ConfigBase(Class<T> type, String name, ConfigDefinition c, Set<Constraint<? super T>> constraints, T val, String category) {
-			this(type, name, c.getConfigName().isEmpty() ? name : c.getConfigName(), val, category, c.getConfigInfo(), c.getConfigEditable());
+			this(type, name, c.getName().isEmpty() ? name : c.getName(), val, category, c.getInfo(), c.getEditable());
 			this.constraints = constraints;
 		}
 
@@ -293,7 +293,7 @@ public interface ConfigImpl {
 		@SuppressWarnings("unchecked")
 		public ListConfig(String name, ConfigDefinition c, ConfList<T> list, String category, Set<Constraint<? super T>> constraints) {
 			super((Class) ObservableList.class, name, c, list.list, category);
-			failIf(isReadOnly(list.list)!=c.getConfigEditable().isByNone());
+			failIf(isReadOnly(list.list)!=c.getEditable().isByNone());
 
 			a = list;
 			defaultItems = isFixedSizeAndHasConfigurableItems() ? null : list(list.list);

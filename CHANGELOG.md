@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Audio Library import ui visibility and layout
 - Shortcuts settings not being applied after restart
 - GridView search style not discarded on cancel
+- GridView scrolling when selecting last row
 - Overlay settings change not taking effect
 - Overlay blur affecting content in some scenarios
 - Icon text layout

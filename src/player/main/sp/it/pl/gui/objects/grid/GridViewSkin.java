@@ -583,7 +583,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			GridCell<T,F> fvc = getFirstVisibleCell();
 			GridCell<T,F> lvc = getLastVisibleCell();
 
-			boolean isNoRow = fvc==null && lvc==null;
+			boolean isNoRow = fvc==null || lvc==null;
 			if (isNoRow) return;
 
 			int rowSize = computeMaxCellsInRow();
@@ -670,11 +670,11 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		}
 
 		public int computeMaxVisibleRowIndex() {
-			return (int) Math.ceil((viewStart + getHeight())/computeRowHeight());
+			return (int) Math.floor((viewStart + getHeight())/computeRowHeight());
 		}
 
 		public int computeMaxVisibleCellIndex() {
-			return -1 + computeMaxCellsInRow()*(computeMaxVisibleRowIndex() + 1);
+			return computeMaxCellsInRow()*(computeMaxVisibleRowIndex() + 1) - 1;
 		}
 
 		public int computeMaxVisibleCells() {

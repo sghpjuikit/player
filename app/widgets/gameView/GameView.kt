@@ -65,7 +65,6 @@ import sp.it.util.async.FX
 import sp.it.util.async.NEW
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.runIO
-import sp.it.util.async.runNew
 import sp.it.util.async.runOn
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
@@ -89,7 +88,6 @@ import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.readProperties
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.getOr
-import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
@@ -275,20 +273,25 @@ class GameView(widget: Widget): SimpleController(widget) {
       /** Properties. */
       val settings: Map<String, PropVal> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 
-      fun exeFile(): File? = null
-         ?: (location/"play.lnk").takeIf { it.exists() }
-         ?: (location/"play.bat").takeIf { it.exists() }
-         ?: settings["pathAbs"]?.val1?.net { File(it) }
-         ?: settings["path"]?.val1?.net { location/it }
+      fun exeFile(block: (File?) -> Unit) = runIO {
+         null
+            ?: (location/"play.lnk").takeIf { it.exists() }
+            ?: (location/"play.bat").takeIf { it.exists() }
+            ?: settings["pathAbs"]?.val1?.let { File(it) }?.takeIf { it.exists() }
+            ?: settings["path"]?.val1?.let { location/it }?.takeIf { it.exists() }
+      }.onDone(FX) {
+         block(it.toTry().orNull())
+      }
 
       fun play() {
-         val file = exeFile()
-         if (file==null) {
-            AppErrors.push("No launcher is set up.")
-         } else {
-            val arguments = settings["arguments"]?.valN.orEmpty().filter { it.isNotBlank() }
-            file.runAsProgram(*arguments.toTypedArray()) ui {
-               it.ifErrorNotify { AppError("Unable to launch program $file", "Reason: ${it.stacktraceAsString}") }
+         exeFile { exe ->
+            if (exe==null) {
+               AppErrors.push("No launcher is set up.")
+            } else {
+               val arguments = settings["arguments"]?.valN.orEmpty().filter { it.isNotBlank() }.toTypedArray()
+               exe.runAsProgram(*arguments) ui {
+                  it.ifErrorNotify { AppError("Unable to launch program $exe", "Reason: ${it.stacktraceAsString}") }
+               }
             }
          }
       }
@@ -345,29 +348,29 @@ class GameView(widget: Widget): SimpleController(widget) {
 
                            lay += IconFA.EDIT onClick {
                               val file = game.infoFile
-                              runNew {
+                              runIO {
                                  file.createNewFile()
                                  file.edit()
                               }
                            }
                            lay += IconFA.GAMEPAD onClick {
-                              val exeFile = game.exeFile()
-                              if (exeFile==null) {
-                                 object: ConfigurableBase<Any?>() {
-                                    var file by c(game.location/"exe").only(FILE).def(name = "File", info = "Executable game launcher")
-                                 }.configure("Set up launcher") {
-                                    val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath + File.separator)
-                                    val targetName = it.file.name
-                                    val link = game.location/"play.bat"
-                                    runIO {
-                                       failIf(!it.file.exists()) { "Target file does not exist." }
-                                       link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
-                                    }.onDone(FX) {
-                                       it.toTry().ifErrorNotify { AppError("Can not set up launcher $link", "Reason:\n${it.stacktraceAsString}") }
+                              game.exeFile { exe ->
+                                 if (exe==null)
+                                    object: ConfigurableBase<Any?>() {
+                                       var file by c(game.location/"exe").only(FILE).def(name = "File", info = "Executable game launcher")
+                                    }.configure("Set up launcher") {
+                                       val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath + File.separator)
+                                       val targetName = it.file.name
+                                       val link = game.location/"play.bat"
+                                       runIO {
+                                          failIf(!it.file.exists()) { "Target file does not exist." }
+                                          link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
+                                       }.onDone(FX) {
+                                          it.toTry().ifErrorNotify { AppError("Can not set up launcher $link", "Reason:\n${it.stacktraceAsString}") }
+                                       }
                                     }
-                                 }
-                              } else {
-                                 game.play()
+                                 else
+                                    game.play()
                               }
                            }
                            lay += IconFA.FOLDER onClick { game.location.open() }

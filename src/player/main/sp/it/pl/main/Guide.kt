@@ -18,8 +18,8 @@ import javafx.scene.input.TransferMode.COPY
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.popover.PopOver
-import sp.it.pl.gui.objects.popover.ScreenPos
+import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.layout.widget.initialTemplateFactory
@@ -107,14 +107,11 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.name) {
       }
    }
 
-   private fun buildPopup() = PopOver(popupContent).apply {
-      isAutoHide = false
-      isHideOnClick = false
-      isHideOnEscape = true
-      skinn.contentPadding = Insets(8.0)
-      arrowSize.value = 0.0
-      detached.value = true
-      onHiding = EventHandler { runFX(20.millis) { hints.h03_guideClose.proceedIfActive() } }
+   private fun buildPopup() = PopWindow().apply {
+      content.value = popupContent
+      isAutohide.value = false
+      isEscapeHide.value = true
+      onHiding += { runFX(20.millis) { hints.h03_guideClose.proceedIfActive() } }
       headerIcons += listOf(
          infoIcon("Guide info popup."
             + "\n\nThere are many others. If you see one for the first time, check it out."
@@ -146,7 +143,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.name) {
 
       h.onEnter()
 
-      popup.value.takeIf { !it.isShowing }?.show(ScreenPos.APP_CENTER)
+      popup.value.show(WINDOW_ACTIVE(CENTER))
       guideTitleText.value = "${at.value + 1}/${hints.size}"
       popup.value.title.value = if (h.action.isEmpty()) "Guide" else "Guide - ${h.action}"
 

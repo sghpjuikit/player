@@ -19,7 +19,6 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -30,8 +29,7 @@ import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.gui.itemnode.ConfigField;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.popover.ArrowLocation;
-import sp.it.pl.gui.objects.popover.PopOver;
+import sp.it.pl.gui.objects.window.popup.PopWindow;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.animation.Loop;
@@ -68,6 +66,7 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
 import static sp.it.pl.audio.tagging.SongWritingKt.write;
+import static sp.it.pl.gui.objects.window.NodeShow.DOWN_CENTER;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
@@ -498,13 +497,13 @@ public final class Seeker extends AnchorPane {
 		TextArea message;
 		Anim messageAnimation;
 		TextArea ta;                    // edit text area
-		PopOver<?> p, helpP;            // main & help popup
+		PopWindow p;
 		Icon helpB, prevB, nextB, editB, commitB, delB, cancelB; // popup controls
 		Anim hover = new Anim(millis(150), this::setScaleX).intpl(x -> 1 + 7*x);
 
 		private boolean can_hide = true;
 		private FxTimer delayerCloser = fxTimer(millis(200), 1, runnable(() -> {
-			if (can_hide) p.hideStrong();
+			if (can_hide) p.hide();
 			can_hide = true;
 		}));
 
@@ -530,7 +529,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		public void hidePopup() {
-			if (p!=null && p.isShowing()) p.hideStrong();
+			if (p!=null && p.isShowing()) p.hide();
 			else hover.playCloseDo(null);
 		}
 
@@ -552,7 +551,6 @@ public final class Seeker extends AnchorPane {
 				content.setPrefSize(300, 200);
 				content.setPadding(new Insets(10));
 				content.addEventHandler(Event.ANY, e -> { if (isEdited.getValue()) e.consume(); });
-				content.addEventHandler(KeyEvent.ANY, Event::consume);
 				content.autosize();
 				// buttons
 				editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
@@ -590,30 +588,21 @@ public final class Seeker extends AnchorPane {
 						+ "Escape : If editing cancel edit, else hide"
 				).size(11);
 				// popup
-				p = new PopOver<>(content);
-				p.getSkinn().setContentPadding(new Insets(10));
-				p.arrowLocation.set(ArrowLocation.TOP_CENTER);
-				syncC(isEdited, it -> p.setAutoHide(!it)); // breaks editing >> p.setAutoHide(true);
-				p.setHideOnEscape(true);
-				p.setHideOnClick(false); // will emulate on our own
-				p.setAutoFix(false);
-				p.setOnHidden(e -> {
+				p = new PopWindow();
+				p.getContent().setValue(content);
+				syncC(isEdited, it -> p.isAutohide().setValue(!it)); // breaks editing >> p.setAutoHide(true);
+				p.isEscapeHide().setValue(true);
+				p.getOnHidden().add(runnable(() -> {
 					if (isEdited.getValue()) cancelEdit();
 					hover.playCloseDo(just_created ? runnable(() -> Seeker.this.getChildren().remove(this)) : null);
-				});
-				p.title.setValue(toHMSMs(c.getTime()));
+				}));
+				p.getTitle().setValue(toHMSMs(c.getTime()));
 				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
 				content.setOnMouseClicked(e -> {
-					// if info popup is shown, close it and act as if content is mouse transparent to prevent any action
-					if (helpP!=null && helpP.isShowing()) {
-						helpP.hideStrong();
-						return;
-					}
-
 					if (isEdited.getValue()) return;
 
 					// otherwise handle click event
-					if (e.getClickCount()==1 && e.isStillSincePress() && p.isAutoHide())
+					if (e.getClickCount()==1 && e.isStillSincePress() && p.isAutohide().getValue())
 						// attempt to hide but only if click will not follow into double click
 						delayerCloser.start();
 					if (e.getClickCount()==2) {
@@ -627,7 +616,7 @@ public final class Seeker extends AnchorPane {
 			}
 
 			if (!p.isShowing()) {
-				p.showInCenterOf(this);
+				p.show(DOWN_CENTER.invoke(this));
 				messageAnimation.play();
 			}
 

@@ -34,8 +34,8 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.appTooltipForData
-import sp.it.pl.main.installDrag
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.installDrag
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.util.Sort

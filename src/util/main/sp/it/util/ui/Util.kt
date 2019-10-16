@@ -289,7 +289,7 @@ fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(Borde
 fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)
 
 inline fun stage(style: StageStyle = StageStyle.DECORATED, block: Stage.() -> Unit = {}) = Stage(style).apply(block)
-inline fun scene(root: Parent, block: Scene.() -> Unit = {}) = Scene(root).apply(block)
+inline fun scene(root: Parent = StackPane(), block: Scene.() -> Unit = {}) = Scene(root).apply(block)
 inline fun pane(block: Pane.() -> Unit = {}) = Pane().apply(block)
 inline fun pane(vararg children: Node, block: Pane.() -> Unit = {}) = Pane(*children).apply(block)
 inline fun stackPane(block: StackPane.() -> Unit = {}) = StackPane().apply(block)
@@ -419,12 +419,27 @@ class AnchorPaneLay(private val pane: AnchorPane): Lay {
    }
 }
 
+class BorderPaneLay(private val pane: BorderPane): Lay {
+
+   override fun plusAssign(child: Node) {
+      pane.children += child
+   }
+
+   operator fun invoke(alignment: Pos?): Lay = object: Lay {
+      override fun plusAssign(child: Node) {
+         pane.children += child
+         BorderPane.setAlignment(child, alignment)
+      }
+   }
+}
+
 val Pane.lay get() = PaneLay(this)
 val HBox.lay get() = HBoxLay(this)
 val VBox.lay get() = VBoxLay(this)
 val StackPane.lay get() = StackLay(this)
 val AnchorPane.lay get() = AnchorPaneLay(this)
 val AnchorPane.layFullArea get() = AnchorPaneLay(this)(0.0)
+val BorderPane.lay get() = BorderPaneLay(this)
 
 /** Convenience for [AnchorPane.getTopAnchor] & [AnchorPane.setTopAnchor]. */
 var Node.topAnchor: Double?
@@ -688,7 +703,7 @@ var Region.maxSize: P
       setMaxSize(v.x, v.y)
    }
 
-/** Position using [javafx.stage.Window.x] and [javafx.stage.Window.y] */
+/** Screen coordinates of position of this window */
 var Window.xy
    get() = P(x, y)
    set(value) {
@@ -696,7 +711,7 @@ var Window.xy
       y = value.y
    }
 
-/** Size using [javafx.stage.Window.width] and [javafx.stage.Window.height] */
+/** Screen of this window */
 var Window.size: P
    get() = P(width, height)
    set(value) {
@@ -704,13 +719,16 @@ var Window.size: P
       height = value.y
    }
 
-/** Window-relative position of the centre of this window */
+/** Screen coordinates of bounds */
+val Window.bounds: Rectangle2D get() = xy areaBy size
+
+/** Screen coordinates of the centre of this window */
 val Window.centre get() = P(centreX, centreY)
 
-/** Window-relative x position of the centre of this window */
+/** Screen x coordinate of the centre of this window */
 val Window.centreX get() = x + width/2
 
-/** Window-relative y position of the centre of this window */
+/** Screen y coordinate of the centre of this window */
 val Window.centreY get() = y + height/2
 
 /** Left top corner of the bounds represented as point */
@@ -719,8 +737,11 @@ val Rectangle2D.min get() = P(minX, minY)
 /** Bottom right corner of the bounds represented as point */
 val Rectangle2D.max get() = P(maxX, maxY)
 
+/** PositionLeft top corner of the bounds represented as point */
+val Rectangle2D.xy get() = min
+
 /** Size of the bounds represented as point */
-val Rectangle2D.size get() = P(this.width, height)
+val Rectangle2D.size get() = P(width, height)
 
 /** Rectangle-relative position of the centre of this rectangle */
 val Rectangle2D.centre get() = P(centreX, centreY)

@@ -1,5 +1,6 @@
 package sp.it.pl.plugin.notif
 
+import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
@@ -12,8 +13,7 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.nodeinfo.ItemInfo
 import sp.it.pl.gui.objects.Text
-import sp.it.pl.gui.objects.popover.ScreenPos
-import sp.it.pl.gui.objects.popover.ScreenUse
+import sp.it.pl.gui.objects.window.ShowArea
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
@@ -42,21 +42,17 @@ import sp.it.util.units.millis
 /** Provides notification functionality. */
 class Notifier: PluginBase("Notifications", true) {
    @IsConfig(name = "On playback status change")
-   var showStatusNotification by c(true)
+   var showStatusNotification by c(false)
    @IsConfig(name = "On playing song change")
    var showSongNotification by c(true)
    @IsConfig(name = "Autohide", info = "Whether notification hides on mouse click anywhere within the application", editable = EditMode.NONE)
    val notificationAutohide by c(false)
    @IsConfig(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
    var notificationDuration by c(2500.millis)
-   @IsConfig(name = "Animate", info = "Use animations on the notification")
-   var notificationAnimated by c(true)
-   @IsConfig(name = "Animation duration")
-   var notificationFadeTime = 250.millis
    @IsConfig(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
-   var notificationPos by c(ScreenPos.SCREEN_BOTTOM_RIGHT)
+   var notificationPos by c(Pos.BOTTOM_RIGHT)
    @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
-   var notificationScr by c(ScreenUse.APP_WINDOW)
+   var notificationScr by c(ShowArea.SCREEN_ACTIVE)
    @IsConfig(name = "On click left", info = "Left click action")
    val onClickL by cv("Show application") { VarAction(it) }
    @IsConfig(name = "On click right", info = "Right click action")
@@ -129,15 +125,11 @@ class Notifier: PluginBase("Notifications", true) {
       if (running) {
          with(n!!) {
             setContent(content, title)
-            isAutoHide = notificationAutohide
-            animated.value = notificationAnimated
-            animationDuration.value = notificationFadeTime
+            isAutohide.value = notificationAutohide
             duration = notificationDuration
-            focusOnShow.value = false
-            screenPreference = notificationScr
             rClickAction = onClickR.valueAsAction
             lClickAction = onClickL.valueAsAction
-            show(notificationPos)
+            show(notificationScr(notificationPos))
          }
       }
    }

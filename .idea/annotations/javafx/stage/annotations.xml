@@ -1,0 +1,5 @@
+<root>
+    <item name='javafx.stage.Window void centerOnScreen()'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>

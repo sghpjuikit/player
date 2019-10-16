@@ -5,7 +5,6 @@ import com.drew.imaging.ImageProcessingException
 import com.sun.tools.attach.VirtualMachine
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
-import javafx.scene.Node
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
@@ -23,8 +22,9 @@ import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.icon.IconInfo
-import sp.it.pl.gui.objects.popover.PopOver
-import sp.it.pl.gui.objects.popover.ScreenPos
+import sp.it.pl.gui.objects.window.ShowArea.SCREEN_ACTIVE
+import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.layout.widget.WidgetLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.widget.WidgetUse.NEW
@@ -141,7 +141,10 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          lay(ALWAYS) += stackPane(iconsView)
       }
 
-      PopOver(layout).show(ScreenPos.APP_CENTER)
+      PopWindow().apply {
+         content.value = layout
+         show(WINDOW_ACTIVE(CENTER))
+      }
       if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
    }
 
@@ -213,15 +216,12 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
    fun showSearchPosScreen() {
-      showSearch(ScreenPos.SCREEN_CENTER)
-   }
-
-   fun showSearch(pos: ScreenPos) {
-      val p = PopOver<Node>()
-      p.contentNode.value = APP.search.buildUi { p.hide() }
-      p.title.set("Search for an action or option")
-      p.isAutoHide = true
-      p.show(pos)
+      PopWindow().apply {
+         content.value = APP.search.buildUi { hide() }
+         title.value = "Search for an action or option"
+         isAutohide.value = true
+         show(SCREEN_ACTIVE(CENTER))
+      }
    }
 
    @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)

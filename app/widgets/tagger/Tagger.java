@@ -56,9 +56,8 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.image.ThumbnailWithAdd;
 import sp.it.pl.gui.objects.image.cover.Cover;
-import sp.it.pl.gui.objects.popover.NodePos;
-import sp.it.pl.gui.objects.popover.PopOver;
-import sp.it.pl.gui.objects.popover.ScreenPos;
+import sp.it.pl.gui.objects.window.NodeShow;
+import sp.it.pl.gui.objects.window.popup.PopWindow;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
@@ -120,6 +119,8 @@ import static sp.it.pl.audio.tagging.Metadata.Field.TRACK;
 import static sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL;
 import static sp.it.pl.audio.tagging.Metadata.Field.YEAR;
 import static sp.it.pl.gui.objects.image.cover.Cover.CoverSource.TAG;
+import static sp.it.pl.gui.objects.window.NodeShow.LEFT_CENTER;
+import static sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE;
 import static sp.it.pl.layout.widget.controller.SimpleControllerKt.fxmlLoaderForController;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.formIcon;
@@ -205,7 +206,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
     @IsConfig(name = "Field text alignment", info = "Alignment of the text in fields.")
     public final V<Pos> fieldTextAlignment = new V<>(CENTER_LEFT);
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public final V<NodePos> popupPos = moodF.getPickerPosition();
+    public final V<NodeShow> popupPos = moodF.getPickerPosition();
 
     public Tagger(Widget widget) {
         super(widget);
@@ -465,8 +466,9 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if (v!=null) {
-            PopOver<?> p = new PopOver<>(new Text(v.text));
-            p.show(ScreenPos.APP_CENTER);
+            PopWindow p = new PopWindow();
+            p.getContent().setValue(new Text(v.text));
+            p.show(WINDOW_ACTIVE.invoke(Pos.CENTER));
             return;
         }
 
@@ -862,9 +864,8 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
     private final static List<String> textFieldStyleClass = new ArrayList<>(new TextField().getStyleClass());
     private final static PseudoClass corrupt = pseudoclass("corrupt");
-    PopOver<?> helpP;
 
-    private PopOver<?> showItemsPopup() {
+    private void showItemsPopup() {
         // build popup
         ListView<Song> list = new ListView<>();
                        // factory is set dynamically
@@ -916,11 +917,11 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             + "    Drop items + CTRL : Adds to tagger."
         ).size(11);
         // build popup
-        PopOver<?> p = new PopOver<>(list);
-                   p.title.set("Active Items");
-                   p.getHeaderIcons().addAll(helpB);
-                   p.showInCenterOf(infoL);
-        return p;
+        PopWindow p = new PopWindow();
+        p.getContent().setValue(list);
+        p.getTitle().setValue("Active Items");
+        p.getHeaderIcons().addAll(helpB);
+        p.show(LEFT_CENTER.invoke(infoL));
     }
 
     private final EventHandler<DragEvent> drag_dropped_handler = e -> {

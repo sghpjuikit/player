@@ -32,7 +32,6 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.popover.PopOver
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.gui.objects.window.stage.asAppWindow
 import sp.it.pl.layout.Component
@@ -114,7 +113,6 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Scene -> tree("Scene", o.root)
    is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asAppWindow()?.layout).filterNotNull() })
    is Window -> tree(o.stage)
-   is PopOver<*> -> STreeItem(o, { seqOf(o.scene.root) })
    is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
    is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
@@ -243,8 +241,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o is File -> o.nameOrRoot
       o is Node -> o.id?.trim().orEmpty() + ":" + APP.className.getOf(o) + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
       o is Tooltip -> "Tooltip"
-      o is PopOver<*> -> "Popup " + PopOver.active_popups.indexOf(o)
-      o is PopupWindow -> "Popup (generic)"
+      o is PopupWindow -> "Popup"
       o is WindowFX -> {
          val w = o.asAppWindow()
          if (w==null) {

@@ -1765,33 +1765,22 @@ Text {
 
 /********************************* POPOVER *****************************************************************************
  * Custom popup window. Can display arrow pointing to some location and be 'detached'.
- * inherits: Control
- * pseudoclasses : detached - when detached from its location, no arrow
- *                 focused - focus follows focus of the parent window
- */
-.popover {}
-
-/*
  * Container for .bgr and .content
  * Rectangular, not in the popover shape. D not use for bgr coloring
+ *
  * inherits: StackPane
+ * pseudoclasses: pop-window-focused - focus follows focus of the parent window
  */
-.popover-root {
-    -fx-background-color: transparent;  /* null causes mouse events pass through transparent parts */
+.pop-window {
+    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-radius: 0.5em;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);;
+    -fx-border-width: 1;
+    -fx-border-radius: 0.5em;
 }
 
-/*
- * Bgr - bgr in the shape of the popover. The shape representing the whole popup area including 
- * the arrow. use for basic appearance like border or bgr styling.
- * inherits: Path
- */
-.popover-root > .bgr {
-    -fx-fill: -skin-popup-def-bgr-color;
-    -fx-text-fill: -skin-def-font-color;
-    -fx-stroke: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
-                /* -skin-def-font-color; */
-    -fx-stroke-width: 1;
-    /* radius is not styleable for now and is fixed to programmatic value */
+.pop-window:window-focused {
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 
 /*
@@ -1799,39 +1788,45 @@ Text {
  * Includes header, but not the arrow.
  * inherits: BorderPane
  */
-.popover-root > .content {
+.pop-window-content {
     -fx-padding: 1em 1.5em 1.5em 1.5em; /* 12 18 18 18 */
 }
 
 /* Popover header - rectangular area at the top of the content. */
-.popover-root > .content > .popover-header {
+.pop-window-header {
     -fx-padding: 0em 0em 1em 0em;   /* 0 0 12 0 */
 }
 
-/* Popover header title. */
-.popover-root > .content > .popover-header > .title  {
+/*
+ * Popover header - rectangular area at the top of the content.
+ * inherits: HBox
+ */
+.pop-window-header-icons {}
+
+/*
+ * Popover header title.
+ * inherits: Label
+ */
+.pop-window-title  {
     -fx-font-size: 1.083334em;  /* 13 */
     -fx-font-weight: bold;
     /*
     give title some space, for small popups the control buttons on the right
     easily become invasive when they come close to the title, looks ugly
     */
-    -fx-padding: 0 20 0 0;
+    -fx-padding: 0 2em 0 0;
 }
-
-/* note: more general tha popup - already defined above
- HBox containing buttons within a header
-.header-buttons {}*/
 
 /* Close button in the header*/
 .popover-close-button {
-    /* separate the close button from the rest a bit visually*/
-    /*-fx-padding: 0 0 0 5;*/ 
+    /* separate the close button from the rest a bit visually */
+    /* -fx-padding: 0 0 0 5; */
 }
 
+
 /******************************* HELP POPOVER **************************************************************************
- * Help popover, usually associated with a help icon. Acts mostly as a tooltip.
- * Has purely informative use. Provides basically no interaction.
+ * Help popover, usually associated with a help icon. Has purely informative use. Provides basically no interaction.
+ * inherits: .pop-window
  */
 .help-popover {}
 
@@ -1844,16 +1839,13 @@ Text {
 }
 
 /******************************* NOTIFICATION **************************************************************************
- * Application notification popover. Does not style notification content.
- * inherits: .popover
- * radius fixed to 0 programmatically
+ * Application notification popover.
+ * inherits: .pop-window
  */
-.notification {}
-
-.notification > .popover-root > .content > .popover-header {}
-
-.notification > .popover-root > .content > .popover-header > .title  {
-    -fx-font-weight: bold;
+.notification {
+    -fx-border-insets: 0.5em;
+    -fx-background-insets: 0.5em;
+    -fx-padding: 0.5em;
 }
 
 /***********************************************************************************************************************

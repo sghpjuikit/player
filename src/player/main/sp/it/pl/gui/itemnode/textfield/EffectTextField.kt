@@ -20,11 +20,11 @@ import javafx.scene.effect.Reflection
 import javafx.scene.effect.SepiaTone
 import javafx.scene.effect.Shadow
 import javafx.scene.input.MouseEvent
-import javafx.scene.layout.Region
 import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.picker.Picker
-import sp.it.pl.gui.objects.popover.PopOver
+import sp.it.pl.gui.objects.window.NodeShow.RIGHT_UP
+import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.uiName
@@ -69,12 +69,10 @@ class EffectTextField: ValueTextField<Effect> {
    }
 
    private fun openChooser(me: MouseEvent) {
-      PopOver<Region>().apply {
+      PopWindow().apply {
          title.value = "Effect"
-         arrowSize.value = 0.0
-         isAutoFix = true
-         isAutoHide = true
-         contentNode.value = Picker<EffectType>().apply {
+         isAutohide.value = true
+         content.value = Picker<EffectType>().apply {
             root.setPrefSize(300.0, 500.0)
             itemSupply = limitedToType
                ?.net { { sequenceOf(EffectType(limitedToType.kotlin), EffectType(null)) } }
@@ -89,7 +87,7 @@ class EffectTextField: ValueTextField<Effect> {
             buildContent()
          }.root
 
-         showInCenterOf(propB)
+         show(RIGHT_UP(propB))
       }
    }
 

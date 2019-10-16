@@ -18,28 +18,24 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.util.Duration;
 import kotlin.jvm.functions.Function1;
 import sp.it.pl.audio.Song;
 import sp.it.pl.gui.objects.form.Form;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.popover.PopOver;
-import sp.it.pl.gui.objects.popover.ScreenPos;
+import sp.it.pl.gui.objects.window.popup.PopWindow;
 import sp.it.pl.gui.objects.window.stage.WindowBase;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.ValueConfig;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.geometry.Pos.CENTER;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.form.Form.form;
-import static sp.it.pl.main.AppBuildersKt.helpPopOver;
+import static sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppFileKt.audioExtensionFilter;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppKt.APP;
@@ -54,7 +50,6 @@ import static sp.it.util.functional.Util.toS;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
-import static sp.it.util.system.EnvironmentKt.browse;
 import static sp.it.util.system.EnvironmentKt.chooseFile;
 import static sp.it.util.system.EnvironmentKt.chooseFiles;
 
@@ -745,54 +740,40 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	@SuppressWarnings({"Convert2Lambda", "unchecked"})
 	public void addOrEnqueueUrl(boolean add) {
-		// build content
 		String title = add ? "Add url song." : "Play url song.";
 		Config<URI> conf = new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title);
-		Form<?> form = form(conf,
-			consumer((Consumer) new Consumer<Config<URI>>() {
-			@Override
-			public void accept(Config<URI> url) {
-				if (add) {
-					addUri(url.getValue());
-				} else {
-					APP.audio.stop();
-					clear();
-					addUri(url.getValue());
-					playFirstItem();
+		Form<?> form = form(
+			conf,
+			consumer(
+				(Consumer) new Consumer<Config<URI>>() {
+					@Override
+					public void accept(Config<URI> url) {
+						if (add) {
+							addUri(url.getValue());
+						} else {
+							APP.audio.stop();
+							clear();
+							addUri(url.getValue());
+							playFirstItem();
+						}
+					}
 				}
-			}
-		}));
+			)
+		);
 
-		// build help content
-		String uri = "http://www.musicaddict.com";
-		Text t1 = new Text("Use direct url to a file, for example\n"
+		Icon infoB = infoIcon(
+			"Use direct url to a file, for example\n"
 				+ "a file on the web. The url is the\n"
 				+ "address to the file and should end \n"
 				+ "with file suffix like '.mp3'. Try\n"
-				+ "visiting: ");
-		Text t2 = new Text(uri);
-		// turn to hyperlink by assigning proper styleclass
-		t2.getStyleClass().add("hyperlink");
-		VBox cnt = new VBox(t1, t2);
-		cnt.setSpacing(8);
-		VBox.setMargin(t2, new Insets(0, 0, 0, 20));
-		Icon infoB = new Icon(INFO, 11, "Help");
-		infoB.setOnMouseClicked(e -> {
-			PopOver<Node> helpP = helpPopOver("").changeContentType();
-			helpP.contentNode.set(cnt);
-			helpP.contentNode.getValue().setOnMouseClicked(pe -> {
-				// open the uri in browser
-				browse(URI.create(uri));
-				pe.consume();
-			});
-			helpP.showInCenterOf(infoB);
-		});
+				+ "visiting: "
+		);
 
-		// build popup
-		PopOver<?> p = new PopOver<>(title, form);
+		PopWindow p = new PopWindow();
+		p.getTitle().setValue(title);
+		p.getContent().setValue(form);
 		p.getHeaderIcons().add(infoB);
-		p.show(ScreenPos.APP_CENTER);
-		p.detached.set(true);
+		p.show(WINDOW_ACTIVE.invoke(CENTER));
 	}
 
 }

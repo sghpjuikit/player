@@ -3,6 +3,7 @@ package sp.it.pl.gui.objects.window.stage
 import javafx.collections.FXCollections.observableArrayList
 import javafx.event.EventHandler
 import javafx.geometry.Insets
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
 import javafx.scene.Scene
@@ -17,14 +18,14 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.StageStyle.UTILITY
-import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Duration.ZERO
 import mu.KLogging
 import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.popover.PopOver
-import sp.it.pl.gui.objects.popover.ScreenPos.APP_CENTER
+import sp.it.pl.gui.objects.window.NodeShow.DOWN_CENTER
+import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.container.Layout
@@ -52,7 +53,6 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.valuesIn
 import sp.it.util.dev.ThreadSafe
-import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.children
@@ -184,15 +184,19 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    /** Create and open small invisible window with empty content, minimal decoration and no taskbar icon. */
    fun createStageOwner(): Stage {
+      return createStageOwnerNoShow().apply {
+         show()
+      }
+   }
+   fun createStageOwnerNoShow(): Stage {
       return Stage(UTILITY).apply {
          width = 10.0
          height = 10.0
          x = 0.0
          y = 0.0
          opacity = 0.0
-         scene = Scene(anchorPane()) // allows child stages (e.g. popup) to receive key events
+         scene = Scene(anchorPane { })
          title = "${APP.name}-StageOwner"
-         show()
       }
    }
 
@@ -217,7 +221,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       logger.debug { "Creating default window" }
 
       return create(canBeMain).apply {
-         setXYSizeInitial()
+         setXYScreenCenter()
          initLayout()
          update()
 
@@ -397,6 +401,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          ws.forEach { it.show() }
          Widget.deserializeWidgetIO()
       }
+      getActive().orNull()?.focus()
    }
 
    fun showWindow(c: Component): Window {
@@ -432,42 +437,35 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       val form = form(c).apply {
          prefSize = 400.emScaled x 400.emScaled
       }
-      PopOver(form).apply {
+      PopWindow().apply {
+         content.value = form
          title.value = if (c is Component) "${c.name} Settings" else "Settings"
-         arrowSize.value = 0.0 // auto-fix breaks the arrow position, turn off - sux
-         isAutoFix = true // we need auto-fix here, because the popup can get rather big
-         isAutoHide = true
-
-         showInCenterOf(n)
+         isAutohide.value = true
+         show(DOWN_CENTER(n))
       }
    }
 
-   fun <N: Node> showFloating(title: String, content: (PopOver<*>) -> N): PopOver<N> {
-      return PopOver<N>().apply {
-         this.title.value = title
-         this.isAutoFix = false
-         this.contentNode.value = content(this)
+   fun <N: Node> showFloating(title: String, content: (PopWindow) -> N): PopWindow = PopWindow().apply {
+      this.title.value = title
+      this.content.value = content(this)
 
-         val w = getActive().orNull() ?: fail { "No window open" }
-         show(w.stage, w.centerX, w.centerY)
-      }
+      show(WINDOW_ACTIVE(CENTER))
    }
 
-   fun showFloating(c: Widget): PopOver<*> {
+   fun showFloating(c: Widget): PopWindow {
       val l = Layout.openStandalone(anchorPane())
-      val p = PopOver(l.root).apply {
+      val p = PopWindow().apply {
+         content.value = l.root
          title.value = c.info.name()
-         isAutoFix = false
          properties[Window.keyWindowLayout] = l
-
-         onEventUp(WINDOW_HIDING) { properties.remove(Window.keyWindowLayout) }
-         onEventUp(WINDOW_HIDING) { l.close() }
+         onHiding += { properties -= Window.keyWindowLayout }
+         onHiding += { l.close() }
       }
 
       l.child = c
       c.focus()
 
-      p.show(APP_CENTER)
+      p.show(WINDOW_ACTIVE(CENTER))
       return p
    }
 

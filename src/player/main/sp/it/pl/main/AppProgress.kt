@@ -13,8 +13,8 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.popover.NodePos
-import sp.it.pl.gui.objects.popover.PopOver
+import sp.it.pl.gui.objects.window.NodeShow.RIGHT_UP
+import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.main.AppTask.State.ACTIVE
 import sp.it.pl.main.AppTask.State.DONE_CANCEL
 import sp.it.pl.main.AppTask.State.DONE_ERROR
@@ -213,17 +213,12 @@ object AppProgress {
             }
          }
       }
-      PopOver(layout).apply {
+      PopWindow().apply {
+         content.value = layout
          title.value = "Tasks"
-         detached.value = false
-         detachable.value = false
-         isHideOnEscape = false
-         arrowSize.value = 0.0
-         arrowIndent.value = 0.0
-         cornerRadius.value = 0.0
-         isAutoFix = false
-         isAutoHide = true
-         show(target, NodePos.RIGHT_UP)
+         isEscapeHide.value = true
+         isAutohide.value = true
+         show(RIGHT_UP(target))
       }
    }
 }

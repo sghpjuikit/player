@@ -628,11 +628,10 @@ public class WindowBase {
 	 * size divided by half and the location will be set so the window is
 	 * center aligned on the primary screen.
 	 */
-	public void setXYSizeInitial() {
+	public void setXYScreenCenter() {
 		double w = screen.getBounds().getWidth()/2;
 		double h = screen.getBounds().getHeight()/2;
-		setSize(w, h);
-		setXY(w/2, h/2);
+		setXYSize(w/2, h/2, w, h);
 	}
 
 	/** Sets the window visible and focuses it. */

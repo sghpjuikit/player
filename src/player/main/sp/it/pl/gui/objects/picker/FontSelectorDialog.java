@@ -56,7 +56,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import sp.it.pl.gui.objects.icon.Icon;
-import sp.it.pl.gui.objects.popover.PopOver;
+import sp.it.pl.gui.objects.window.popup.PopWindow;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
@@ -65,31 +65,32 @@ import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layVertically;
 
-public class FontSelectorDialog extends PopOver<VBox> {
+public class FontSelectorDialog {
 
 	private final FontPanel fontPanel;
 	private final Consumer<? super Font> onOk;
+	public final PopWindow popup = new PopWindow();
 
 	public FontSelectorDialog(Font initialFont, Consumer<? super Font> onOk) {
 		this.onOk = onOk==null ? font -> {} : onOk;
 
 		fontPanel = new FontPanel();
 		fontPanel.setFont(initialFont);
-		title.setValue("Select font");
+		popup.getTitle().setValue("Select font");
 
 		VBox layout = layVertically(10, Pos.CENTER,
 			fontPanel,
 			layHorizontally(15, Pos.CENTER,
 				new Icon(FontAwesomeIcon.CHECK, 22, "Select font", () -> {
-					hide();
-					onOk.accept(fontPanel.getFont());
+					popup.hide();
+					this.onOk.accept(fontPanel.getFont());
 				}).withText("Use"),
-				new Icon(FontAwesomeIcon.TIMES, 22, "Select font", this::hideStrong).withText("Cancel")
+				new Icon(FontAwesomeIcon.TIMES, 22, "Select font", popup::hide).withText("Cancel")
 			)
 		);
 		VBox.setVgrow(fontPanel, ALWAYS);
 		layout.setPadding(new Insets(15));
-		contentNode.set(layout);
+		popup.getContent().setValue(layout);
 	}
 
 /* ---------- HELPER CLASSES ---------------------------------------------------------------------------------------- */

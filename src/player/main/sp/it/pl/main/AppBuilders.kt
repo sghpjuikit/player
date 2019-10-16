@@ -2,7 +2,7 @@ package sp.it.pl.main
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.event.EventHandler
-import javafx.geometry.Insets
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Node
@@ -12,9 +12,10 @@ import javafx.scene.text.Font
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.popover.PopOver
-import sp.it.pl.gui.objects.popover.ScreenPos
 import sp.it.pl.gui.objects.spinner.Spinner
+import sp.it.pl.gui.objects.window.NodeShow.RIGHT_CENTER
+import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.interpolator.CircularInterpolator
@@ -25,6 +26,7 @@ import sp.it.util.async.future.Fut
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.ValueConfig
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.attachChanges
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
@@ -46,35 +48,32 @@ import java.util.concurrent.atomic.AtomicLong
  * Tip: Associate help popovers with buttons marked with question mark or similar icon.
  */
 @JvmOverloads
-fun helpPopOver(textContent: String, textTitle: String = "Help"): PopOver<Text> {
-   val t = Text(textContent).apply {
-      styleClass += "help-popover-text"
-      wrappingWithNatural.value = true
-   }
-   return PopOver(t).apply {
-      skinn.contentPadding = Insets(15.0)
+fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = PopWindow().apply {
       styleClass += "help-popover"
+      content.value = Text(textContent).apply {
+         styleClass += "help-popover-text"
+         wrappingWithNatural.value = true
+      }
       title.value = textTitle
-      isAutoHide = true
-      isHideOnClick = true
-      isAutoFix = true
+      isAutohide.value = true
+      isClickHide.value = true
       userResizable.value = false
-      detachable.value = false
+      focusOnShow.value = false
    }
-}
 
 /** @return standardized icon that opens a help popup with the specified text (eager) */
 fun infoIcon(tooltipText: String) = infoIcon { tooltipText }
 
 /** @return standardized icon that opens a help popup with the specified text (lazy)  */
+//fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION).tooltip(tooltipText())
 fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    .tooltip("Help")
    .onClick { e ->
       APP.actionStream("Info popup")
-      helpPopOver(tooltipText()).apply {
-         contentNode.value.wrappingWidth = 400.emScaled
-         skinn.setTitleAsOnlyHeaderContent(false)
-         showInCenterOf(e.source as Node)
+      helpPopup(tooltipText()).apply {
+         content.value.asIs<Text>().wrappingWidth = 400.emScaled
+         headerIconsVisible.value = false
+         show(RIGHT_CENTER(e.source as Node))
       }
    }
 
@@ -137,16 +136,17 @@ fun Font.rowHeight(): Double {
    return h.toDouble()
 }
 
-fun <T, C: Configurable<T>> C.configure(title: String, action: (C) -> Unit) {
-   lateinit var hidePopup: () -> Unit
-   val form = form(this) { action(it); hidePopup() }
-   val popup = PopOver(form)
-   hidePopup = { if (popup.isShowing) popup.hide() }
+fun <T, C: Configurable<T>> C.configure(titleText: String, action: (C) -> Unit) {
+   PopWindow().apply {
+      val form = form(this@configure) { action(it); if (isShowing) hide() }
 
-   popup.title.value = title
-   popup.isAutoHide = true
-   popup.show(ScreenPos.APP_CENTER)
-   popup.contentNode.value.focusFirstConfigField()
+      content.value = form
+      title.value = titleText
+      isAutohide.value = true
+      show(WINDOW_ACTIVE(CENTER))
+
+      form.focusFirstConfigField()
+   }
 }
 
 fun configureString(title: String, inputName: String, action: (String) -> Unit) {

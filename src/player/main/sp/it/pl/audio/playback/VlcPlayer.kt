@@ -6,7 +6,6 @@ import javafx.geometry.Side
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
-import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Song
@@ -14,8 +13,8 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.withAppProgress
 import sp.it.util.async.FX
 import sp.it.util.async.runFX
@@ -27,7 +26,6 @@ import sp.it.util.file.div
 import sp.it.util.file.unzip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.system.Os
 import sp.it.util.ui.lay
@@ -220,7 +218,7 @@ class VlcPlayer: GeneralPlayer.Play {
                      .withText(Side.RIGHT, CENTER_LEFT, "I will install Vlc on my own")
                   lay += Icon(IconFA.CIRCLE)
                      .onClickDo {
-                        p.onEventDown(WINDOW_HIDDEN) {
+                        p.onHidden += {
                            APP.actions.openSettings()
                            // TODO: highlight proper settings
                         }

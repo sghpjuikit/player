@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.Objects;
 import javafx.scene.image.Image;
 import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.util.ui.image.ImageSize;
 import sp.it.pl.image.ImageStandardLoader;
+import sp.it.util.ui.image.ImageSize;
 import static sp.it.util.dev.FailKt.noNull;
 
 /**

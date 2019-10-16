@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Wallpaper` plugin File.setWallpaper action
 - Implement `Wallpaper` plugin start/changeWallpaper() animation
 - Implement `Wallpaper` plugin window hiding when no image
+- Implement new popups
 ### Fix
 - Main window icon showing in ui-less application mode
 - Widgets launched as new process not closing application 
@@ -34,7 +35,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GridView scrolling when selecting last row
 - Overlay settings change not taking effect
 - Overlay blur affecting content in some scenarios
-- Icon text layout
+- Icon with text has wrong layout
+- popup window fixes
+    - popup does not receive focus on show not even when clicked
+    - popup not returning focus to previously focused OS window
+    - popup not resizable by OS
+    - popup initial size and position not correct sometimes
+    - hiding popups with ESCAPE closes only focused popup
+    - popup not handling key events sometimes (instead passing them to owner)
+    - popup focus style not having effect
+    - popup close throwing 'window already closed' exception
+    - certain popup properties not styleable
+    - help popups closing too eagerly
 ### Removed
 - experimental Spectrum widget
 - Terminal widget for its dependencies and maintenance overhead  

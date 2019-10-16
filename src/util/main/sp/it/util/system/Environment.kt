@@ -221,7 +221,10 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
             this.title = title
             this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
          }
+
+         w?.hasFileChooserOpen = true
          val f = c.showDialog(w)
+         w?.hasFileChooserOpen = false
          return if (f!=null) Try.ok(f) else Try.error()
       }
       FileType.FILE -> {
@@ -230,7 +233,9 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
             this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
             this.extensionFilters += extensions
          }
+         w?.hasFileChooserOpen = true
          val f = c.showOpenDialog(w)
+         w?.hasFileChooserOpen = false
          return if (f!=null) Try.ok(f) else Try.error()
       }
    }
@@ -242,7 +247,9 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
       this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
       this.extensionFilters += extensions
    }
+   w?.hasFileChooserOpen = true
    val fs = c.showOpenMultipleDialog(w)
+   w?.hasFileChooserOpen = false
    return if (fs!=null && fs.isNotEmpty()) Try.ok(fs) else Try.error()
 }
 
@@ -253,7 +260,9 @@ fun saveFile(title: String, initial: File? = null, initialName: String, w: Windo
       this.initialFileName = initialName
       this.extensionFilters += extensions
    }
+   w?.hasFileChooserOpen = true
    val f = c.showSaveDialog(w)
+   w?.hasFileChooserOpen = false
    return if (f!=null) Try.ok(f) else Try.error()
 }
 
@@ -323,3 +332,15 @@ fun File.isExecutable(): Boolean = when (Os.current) {
    Os.WINDOWS -> path.endsWith(".exe", true) || path.endsWith(".bat", true)
    else -> path.endsWith(".sh")
 }
+
+
+var Window.hasFileChooserOpen: Boolean
+   set(value) {
+      if (value) {
+         properties["no-auto-hide"] = Any()
+      } else {
+         properties -= "no-auto-hide"
+         requestFocus()
+      }
+   }
+   get() = "no-auto-hide" in properties

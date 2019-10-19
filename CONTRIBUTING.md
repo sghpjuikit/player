@@ -10,7 +10,7 @@
 - Clone the repository
 
 Optional, but recommended:
-- Set up Vlc (required for playback)  
+- Set up Vlc (required for playback) (Linux only)  
   64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
 - Set up JDK  
   To avoid version mismatch, it is recommended to not use system default and use [OpenJDK11](https://jdk.java.net/11/). Extract to [app/java](app/java) or use arbitrary location: create a `gradle.properties` file at project root with property: `org.gradle.java.home=/path/to/jdk`. [app/java](app/java) link will be created pointing to the directory.

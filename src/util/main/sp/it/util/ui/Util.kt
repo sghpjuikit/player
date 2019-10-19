@@ -148,7 +148,7 @@ fun Node.removeFromParent() {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T: Node> Node.lookupChildAt(at: Int): T = when(this) {
+fun <T: Node> Node.lookupChildAt(at: Int): T = when (this) {
    is Parent -> childrenUnmodifiable.getOrNull(at) as T
    else -> fail { "${this::class} can not have children" }
 }
@@ -611,9 +611,9 @@ infix fun Node.uninstall(tooltip: Tooltip) = Tooltip.uninstall(this, tooltip)
 /* ---------- MENU -------------------------------------------------------------------------------------------------- */
 
 @Dsl
-open class MenuBuilder<M,V>(val owner: M, val value: V) {
+open class MenuBuilder<M, V>(val owner: M, val value: V) {
 
-   open infix fun add(item: MenuItem) = when(owner) {
+   open infix fun add(item: MenuItem) = when (owner) {
       is ContextMenu -> owner.items += item
       is Menu -> owner.items += item
       is MutableList<*> -> owner.asIs<MutableList<MenuItem>>() += item
@@ -723,13 +723,25 @@ var Window.size: P
 val Window.bounds: Rectangle2D get() = xy areaBy size
 
 /** Screen coordinates of the centre of this window */
-val Window.centre get() = P(centreX, centreY)
+var Window.centre
+   get() = P(centreX, centreY)
+   set(value) {
+      xy = value - size/2.0
+   }
 
 /** Screen x coordinate of the centre of this window */
-val Window.centreX get() = x + width/2
+var Window.centreX
+   get() = x + width/2
+   set(value) {
+      x = value - width/2
+   }
 
 /** Screen y coordinate of the centre of this window */
-val Window.centreY get() = y + height/2
+var Window.centreY
+   get() = y + height/2
+   set(value) {
+      x = value - height/2
+   }
 
 /** ([MouseEvent.x],[MouseEvent.y]) */
 val MouseEvent.xy get() = P(x, y)

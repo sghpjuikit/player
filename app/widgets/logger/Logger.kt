@@ -7,8 +7,8 @@ import sp.it.pl.layout.widget.feature.TextDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.emScaled
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncFrom
@@ -26,8 +26,7 @@ import sp.it.util.ui.x
 )
 class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
-   @IsConfig(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
-   private val wrapText by cv(false)
+   private val wrapText by cv(false).def(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
    private val area = TextArea()
 
    init {

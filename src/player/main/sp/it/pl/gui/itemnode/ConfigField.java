@@ -13,7 +13,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -82,7 +81,6 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.syncBiFrom;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncFrom;
@@ -703,26 +701,20 @@ abstract public class ConfigField<T> {
         public boolean hasUnappliedValue() {
             Action a = config.getValue();
             boolean sameglobal = globB.selected.getValue()==a.isGlobal();
-            boolean sameKeys = editor.getText().equals(a.getKeys()) ||
-                    (editor.getText().isEmpty() && editor.getPromptText().equals(a.getKeys()));
+            boolean sameKeys = editor.getText().equals(a.getKeys()) || (editor.getText().isEmpty() && editor.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
         }
 
         @Override
         protected void apply(boolean b) {
-            // its pointless to make new Action just for this
-            // config.applyValue(get());
-            // rather operate on the Action manually
-
             Action a = config.getValue();
             boolean sameglobal = globB.selected.getValue()==a.isGlobal();
-            boolean sameKeys = editor.getText().equals(a.getKeys()) ||
-                    (editor.getText().isEmpty() && editor.getPromptText().equals(a.getKeys()));
+            boolean sameKeys = editor.getText().equals(a.getKeys()) || (editor.getText().isEmpty() && editor.getPromptText().equals(a.getKeys()));
 
             if (!sameglobal && !sameKeys)
-                a.set(globB.selected.getValue(), editor.getText());
+                a.set(globB.selected.getValue(), editor.getText()); // handle error as validation
             else if (!sameKeys)
-                a.setKeys(editor.getText());
+                a.setKeys(editor.getText()); // handle error as validation
             else if (!sameglobal)
                 a.setGlobal(globB.selected.getValue());
             else {

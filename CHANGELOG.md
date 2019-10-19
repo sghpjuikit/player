@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement automatic setup for Vlc player
 - Implement automatic setup for Kotlin compiler
 - Implement automatic setup for ffmpeg compiler
+- Implement `Screen Rotator` plugin dialog
 - Implement `Start Screen` plugin
 - Implement `Wallpaper` plugin File.setWallpaper action
 - Implement `Wallpaper` plugin start/changeWallpaper() animation

@@ -18,6 +18,7 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.plugin.Plugin
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
+import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.Util
@@ -57,6 +58,7 @@ fun ObjectFieldMap.initApp() {
    MetadataGroup.Field touch Unit
            ColumnField touch Unit
              FileField touch Unit
+             IconField touch Unit
    // @formatter:on
 }
 

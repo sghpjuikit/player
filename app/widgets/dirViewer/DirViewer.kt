@@ -3,7 +3,7 @@ package dirViewer
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS
 import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Insets
-import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.Label
 import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.ENTER
@@ -13,7 +13,6 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
-import javafx.scene.layout.StackPane
 import javafx.util.Callback
 import sp.it.pl.gui.objects.grid.GridFileThumbCell
 import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader
@@ -21,6 +20,7 @@ import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL
 import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.hierarchy.Item.CoverStrategy
+import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
@@ -28,12 +28,13 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.FileFilters
 import sp.it.pl.main.FileFlatter
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.appTooltipForData
-import sp.it.pl.main.installDrag
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.installDrag
 import sp.it.pl.main.withAppProgress
 import sp.it.util.Sort.ASCENDING
-import sp.it.util.Util.*
+import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggleNext
@@ -162,20 +163,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
    @IsConfig(name = "Show navigation", info = "Whether breadcrumb navigation bar is visible.")
    private val navigationVisible by cv(true)
-   private val navigationPane = StackPane()
-   private val navigation = Breadcrumbs<Item>(
-      {
-         when (it) {
-            is TopItem -> when (files.size) {
-               0 -> "No location"
-               1 -> files[0].absolutePath
-               else -> "Location".pluralUnit(files.size)
-            }
-            else -> it.value.name
-         }
-      },
-      { visit(it) }
-   )
+   private val navigation = Navigation()
 
    init {
       root.prefSize = 1000.emScaled x 700.emScaled
@@ -183,7 +171,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       grid.search.field = FileField.PATH
       grid.primaryFilterField = FileField.NAME_FULL
       grid.cellFactory.value = Callback { Cell() }
-      root.lay += layHeaderTop(0.0, Pos.CENTER_LEFT, navigationPane, grid)
+      root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
 
       grid.onEventDown(KEY_PRESSED, ENTER) {
          val si = grid.selectedItem.value
@@ -226,10 +214,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       coverUseParentCoverIfNone.attach { revisitCurrent() }
       fileFlatter attach { revisitCurrent() }
       filter attach { revisitCurrent() }
-      navigationVisible sync {
-         if (it) navigationPane.children.add(0, navigation)
-         else navigationPane.children -= navigation
-      }
+
       files.onChange { filesMaterialized = files.materialize() }
       files.onChange { revisitTop() }
       files.onChangeAndNow {
@@ -258,7 +243,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       visitId.incrementAndGet()
 
       item = dir
-      navigation.values setTo dir.traverse { it.parent }.toList().asReversed()
+      navigation.breadcrumbs.values setTo dir.traverse { it.parent }.toList().asReversed()
       lastVisited = dir.value
       val locationsMaterialized = filesMaterialized
       runIO {
@@ -407,6 +392,32 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       override fun getCoverFile() = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
 
+   }
+
+   private inner class Navigation: HBox() {
+      val upIcon = Icon(IconFA.CHEVRON_UP).onClickDo { visitUp() }
+      val breadcrumbs = Breadcrumbs<Item>(
+         {
+            when (it) {
+               is TopItem -> when (files.size) {
+                  0 -> "No location"
+                  1 -> files[0].absolutePath
+                  else -> "Location".pluralUnit(files.size)
+               }
+               else -> it.value.name
+            }
+         },
+         { visit(it) }
+      )
+
+      init {
+         spacing = 0.0
+         alignment = CENTER_LEFT
+         navigationVisible sync {
+            if (it) children setTo listOf(upIcon, breadcrumbs)
+            else children setToOne upIcon
+         }
+      }
    }
 
    private class Breadcrumbs<T>(converter: (T) -> String, onClick: (T) -> Unit): HBox() {

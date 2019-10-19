@@ -5,4 +5,6 @@ import javafx.stage.Window as WindowFX
 
 fun WindowFX.asAppWindow() = properties[Window.keyWindowAppWindow] as? Window
 
-fun WindowFX.asLayout() = properties[Window.keyWindowLayout] as? Layout
+fun WindowFX.asLayout() = null
+   ?: properties[Window.keyWindowLayout] as? Layout
+   ?: scene?.root?.properties?.get(Window.keyWindowLayout) as? Layout

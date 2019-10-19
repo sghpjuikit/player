@@ -71,6 +71,7 @@ import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scene
+import sp.it.util.ui.screenXy
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
@@ -220,7 +221,7 @@ open class PopWindow {
          visibleProperty() syncFrom userResizable
          initMouseDrag(
             P(),
-            { drag -> drag.data.setXY(window!!.width, window!!.height) },
+            { drag -> drag.data = window!!.size },
             { drag -> if (userResizable.value) window!!.size = drag.data + drag.diff }
          )
       }
@@ -246,17 +247,15 @@ open class PopWindow {
             }
          }
 
-         val dragStartWLocation = P()
-         val dragStartLocation = P()
-         val dragOffset = P()
+         var dragStartWLocation = P()
+         var dragStartLocation = P()
          onEventDown(MOUSE_PRESSED) {
-            dragStartWLocation.setXY(window!!.x, window!!.y)
-            dragStartLocation.setXY(it.screenX, it.screenY)
+            dragStartWLocation = window!!.xy
+            dragStartLocation = it.screenXy
          }
          onEventDown(MOUSE_DRAGGED) {
-            dragOffset.x = it.screenX - dragStartLocation.x
-            dragOffset.y = it.screenY - dragStartLocation.y
-            if (userMovable.value) window!!.xy = dragStartWLocation + dragOffset
+            if (userMovable.value)
+               window!!.xy = dragStartWLocation + it.screenXy - dragStartLocation
          }
 
          lay += contentP

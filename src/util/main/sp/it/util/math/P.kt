@@ -5,10 +5,12 @@ import kotlin.math.sqrt
 /** Mutable point. */
 data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0) {
 
-   fun setXY(x: Double, y: Double) {
-      this.x = x
-      this.y = y
-   }
+   var xy: P
+      get() = this
+      set(value) {
+         x = value.x
+         y = value.y
+      }
 
    fun distance(p: P) = distance(p.x, p.y)
 

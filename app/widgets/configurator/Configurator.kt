@@ -80,6 +80,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       fxmlLoaderForController(this).loadNoEx<Any>()
 
       configsRootPane.layFullArea += configsPane
+      configsRootPane.isFocusTraversable = true
 
       root.lay(TOP_LEFT) += hBox(10, TOP_RIGHT) {
          isPickOnBounds = false

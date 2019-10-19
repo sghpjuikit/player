@@ -731,6 +731,15 @@ val Window.centreX get() = x + width/2
 /** Screen y coordinate of the centre of this window */
 val Window.centreY get() = y + height/2
 
+/** ([MouseEvent.x],[MouseEvent.y]) */
+val MouseEvent.xy get() = P(x, y)
+
+/** ([MouseEvent.sceneX],[MouseEvent.sceneY]) */
+val MouseEvent.sceneXy get() = P(sceneX, sceneY)
+
+/** ([MouseEvent.screenX],[MouseEvent.screenY]) */
+val MouseEvent.screenXy get() = P(screenX, screenY)
+
 /** Left top corner of the bounds represented as point */
 val Rectangle2D.min get() = P(minX, minY)
 

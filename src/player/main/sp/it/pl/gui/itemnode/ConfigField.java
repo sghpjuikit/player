@@ -113,7 +113,6 @@ abstract public class ConfigField<T> {
     public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
     public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
     public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
-    public static final PseudoClass PC_TEXT_FIELD_FOCUS_FIX = PseudoClass.getPseudoClass("focused-fix");   // workaround for https://github.com/javafxports/openjdk-jfx/issues/364
     private static final double defBLayoutSize = 15.0;
     private static final double configRootSpacing = 5.0;
     private static Insets paddingNoDefB = new Insets(0.0, defBLayoutSize+configRootSpacing, 0.0, 0.0);
@@ -413,7 +412,6 @@ abstract public class ConfigField<T> {
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
 
-            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.setPromptText(c.getGuiName());
             editor.setText(toS(getConfigValue()));
@@ -648,7 +646,6 @@ abstract public class ConfigField<T> {
             globB.selected.addListener((o,ov,nv) -> apply(false));
 
             editor = new TextField();
-            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.getStyleClass().add("shortcut-config-field");
             editor.setPromptText(computePromptText());
@@ -753,7 +750,6 @@ abstract public class ConfigField<T> {
         private ColorCF(Config<Color> c) {
             super(c);
             refreshItem();
-            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.valueProperty().addListener((o,ov,nv) -> apply(false));
         }
@@ -774,7 +770,6 @@ abstract public class ConfigField<T> {
         private FontCF(Config<Font> c) {
             super(c);
             refreshItem();
-            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             editor.setOnValueChange((ov, nv) -> apply(false));
         }
@@ -796,7 +791,6 @@ abstract public class ConfigField<T> {
         public EffectCF(Config<Effect> c, Class<? extends Effect> effectType) {
             super(c);
             editor = new EffectTextField(effectType);
-            sync(editor.focusedProperty(), consumer(nv -> editor.pseudoClassStateChanged(PC_TEXT_FIELD_FOCUS_FIX, !nv)));
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             refreshItem();
             editor.setOnValueChange((ov, nv) -> apply(false));

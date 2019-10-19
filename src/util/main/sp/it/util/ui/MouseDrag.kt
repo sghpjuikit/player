@@ -13,10 +13,10 @@ import sp.it.util.reactive.onEventDown
  * @param <T> type of user data
  */
 class MouseDrag<T> {
-   @JvmField val data: T
-   @JvmField val start: P
-   @JvmField val diff: P
-   @JvmField var isDragging = false
+   var data: T
+   var start: P
+   var diff: P
+   var isDragging = false
 
    /**
     * Creates a mouse drag behavior.
@@ -32,15 +32,13 @@ class MouseDrag<T> {
       this.diff = P()
       node.onEventDown(MOUSE_PRESSED) { e ->
          isDragging = true
-         start.x = e.screenX
-         start.y = e.screenY
+         start = e.screenXy
          onStart(this)
          e.consume()
       }
       node.onEventDown(MOUSE_DRAGGED) { e ->
          if (isDragging) {
-            diff.x = e.screenX - start.x
-            diff.y = e.screenY - start.y
+            diff = e.screenXy - start
             onDrag(this)
          }
          e.consume()

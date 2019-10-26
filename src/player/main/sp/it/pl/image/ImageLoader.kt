@@ -86,7 +86,7 @@ object ImageStandardLoader: ImageLoader {
                null
             }
          }
-         "image/gif" -> {
+         "image/jpeg", "image/png", "image/gif" -> {
             val W = maxOf(0, p.size.width.toInt())
             val H = maxOf(0, p.size.height.toInt())
             val loadFullSize = W==0 && H==0

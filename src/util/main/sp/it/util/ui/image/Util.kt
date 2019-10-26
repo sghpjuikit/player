@@ -12,6 +12,8 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import java.awt.Dimension
 import java.io.File
 import java.io.IOException
@@ -127,8 +129,8 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
                w = iW
                h = iH
             }
-            val iRatio = iW.toDouble()/iH
-            val rRatio = w.toDouble()/h
+            val iRatio = iW.toDouble()/iH.toDouble()
+            val rRatio = w.toDouble()/h.toDouble()
             val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
             val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
 
@@ -170,15 +172,17 @@ fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
    return if (loadFullSize) {
       ImageFx(file.toURI().toString(), isFxThread)
    } else {
-      // find out real image file resolution
-      val dt = getImageDim(file)
-      val w = dt.map { d -> d.width }.getOr(Integer.MAX_VALUE)
-      val h = dt.map { d -> d.height }.getOr(Integer.MAX_VALUE)
-
-      // lets not surpass real size (javafx.scene.Image does that if we do not stop it)
-      val widthFin = minOf(W, w)
-      val heightFin = minOf(H, h)
-      ImageFx(file.toURI().toString(), widthFin.toDouble(), heightFin.toDouble(), true, true, isFxThread)
+      var requestedSize = (W x H) max (0 x 0)
+      val imageSize = getImageDim(file).map { it.width x it.height }.getOr(Integer.MAX_VALUE.x2)
+      if (requestedSize.x>imageSize.x || requestedSize.y>imageSize.y) {
+         requestedSize = imageSize
+      }
+      val iRatio = imageSize.x/imageSize.y
+      val rRatio = requestedSize.x/requestedSize.y
+      val neededSize = if (iRatio<rRatio) requestedSize.x.x2 / (1 x iRatio) else requestedSize.y.x2 * (iRatio x 1)
+      val sharpenSize = neededSize * 1.5
+      val finalSize = sharpenSize min imageSize // should not surpass real size (javafx.scene.Image would)
+      ImageFx(file.toURI().toString(), finalSize.x, finalSize.y, true, true, isFxThread)
    }
 }
 
@@ -186,34 +190,30 @@ fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
  * Returns image size in pixels or error if unable to find out.
  * Does i/o, but does not read whole image into memory.
  */
-fun getImageDim(f: File): Try<Dimension, Nothing?> {
+fun getImageDim(f: File): Try<Dimension, Throwable> {
    // see more at:
    // http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
    val suffix = getSuffix(f.toURI())
    val readers = ImageIO.getImageReadersBySuffix(suffix)
    if (readers.hasNext()) {
       val reader = readers.next()
-      try {
+      return runTry {
          ImageIO.createImageInputStream(f).use { stream ->
             reader.input = stream
             val ii = reader.minIndex // 1st image index
             val width = reader.getWidth(ii)
             val height = reader.getHeight(ii)
-            return Try.ok(Dimension(width, height))
+            Dimension(width, height)
          }
-      } catch (e: IOException) {
-         logger.warn(e) { "Problem finding out image size $f" }
-         return Try.error()
-      } catch (e: NullPointerException) {
-         // The TwelveMonkeys library seems to have a bug
-         logger.warn(e) { "Problem finding out image size $f" }
-         return Try.error()
-      } finally {
+      }.ifError {
+         logger.warn(it) { "Problem finding out image size $f" }
+         reader.dispose()
+      }.ifOk {
          reader.dispose()
       }
    } else {
       logger.warn { "No reader found for given file: $f" }
-      return Try.error()
+      return Try.error(RuntimeException("No reader found for given file: $f"))
    }
 
 }

@@ -49,6 +49,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.UtilKt.toFileOrNull;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.stream;
@@ -120,7 +121,7 @@ public class Thumbnail {
 			applyViewPort(imageView.getImage());
 
 			// resize thumbnail
-			if (fitFrom.get()==FitFrom.INSIDE) {
+			if (fitFrom.getValue()==FitFrom.INSIDE) {
 				imageView.setFitWidth(imgW);
 				imageView.setFitHeight(imgH);
 			} else {
@@ -275,6 +276,7 @@ public class Thumbnail {
 
 	// set asynchronously
 	private void setImgA(Image i) {
+		failIfNotFxThread();
 		loadId++;   // load next image
 		final long id = loadId; // expected id (must match when load finishes)
 		if (i==null) {

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Wallpaper` plugin start/changeWallpaper() animation
 - Implement `Wallpaper` plugin window hiding when no image
 - Implement new popups
+- Improve image loading performance for common formats dramatically
 ### Fix
 - Main window icon showing in ui-less application mode
 - Widgets launched as new process not closing application 

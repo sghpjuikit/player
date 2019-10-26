@@ -63,7 +63,7 @@ object ImageStandardLoader: ImageLoader {
 
       return if (p.mime.group==video) {
          val tmpDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
-         val tmpFile = tmpDir/"${p.file.nameWithoutExtension}.png"
+         val tmpFile = tmpDir/"${p.file.nameWithoutExtension}.jpg"
          if (tmpFile.exists()) {
             ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
          } else {

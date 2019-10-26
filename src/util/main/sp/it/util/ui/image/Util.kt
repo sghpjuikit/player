@@ -7,7 +7,6 @@ import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import mu.KotlinLogging
 import sp.it.util.dev.failIfFxThread
-import sp.it.util.file.Util.getSuffix
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
@@ -93,71 +92,68 @@ fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean
 private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean): ImageFx? {
    failIfFxThread()
 
-   return imageInputStream?.use { input ->
-      val readers = ImageIO.getImageReaders(input)
-      if (!readers.hasNext()) return null
+   val stream = imageInputStream ?: return null
+   val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return null
+   reader.input = stream
 
-      // negative values have same effect as 0, 0 loads image at its size
-      var w = maxOf(0, width.toInt())
-      var h = maxOf(0, height.toInt())
-      val loadFullSize = w==0 && h==0
-      val scale = !loadFullSize
-      val reader = readers.next()!!
-      reader.input = input
-      val ii = reader.minIndex
-      var i: ImageBf? = null
-         ?: run {
-            if (!loadFullSize) {
-               runTry {
-                  val thumbHas = imgImplHasThumbnail(reader, ii, file)
-                  val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
-                  val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
-                  val thumbUse = thumbHas && w<=thumbW && h<=thumbH
-                  if (thumbUse) {
-                     reader.readThumbnail(ii, 0)
-                  }
-               } orNull {
-                  logger.warn(it) { "Failed to read thumbnail for image=$file" }
-               }
-            }
-            null
-         }
-         ?: run {
-            val iW = reader.getWidth(ii)
-            val iH = reader.getHeight(ii)
-            if (w>iW || h>iH) {
-               w = iW
-               h = iH
-            }
-            val iRatio = iW.toDouble()/iH.toDouble()
-            val rRatio = w.toDouble()/h.toDouble()
-            val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
-            val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
-
-            val irp = reader.defaultReadParam.apply {
-               var px = 1
-               if (!highQuality && rW!=0 && rH!=0) {
-                  val sw = reader.getWidth(ii)/rW
-                  val sh = reader.getHeight(ii)/rH
-                  px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance
-               }
-               // max quality is px==1, but quality/performance ratio would suck
-               setSourceSubsampling(px, px, 0, 0)
-            }
-
+   // negative values have same effect as 0, 0 loads image at its size
+   var w = maxOf(0, width.toInt())
+   var h = maxOf(0, height.toInt())
+   val loadFullSize = w==0 && h==0
+   val scale = !loadFullSize
+   val ii = reader.minIndex
+   var i: ImageBf? = null
+      ?: run {
+         if (!loadFullSize) {
             runTry {
-               reader.read(ii, irp)
+               val thumbHas = imgImplHasThumbnail(reader, ii, file)
+               val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
+               val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
+               val thumbUse = thumbHas && w<=thumbW && h<=thumbH
+               if (thumbUse) {
+                  reader.readThumbnail(ii, 0)
+               }
             } orNull {
-               logger.warn(it) { "Failed to load image=$file" }
+               logger.warn(it) { "Failed to read thumbnail for image=$file" }
             }
          }
-      reader.dispose()
+         null
+      }
+      ?: run {
+         val iW = reader.getWidth(ii)
+         val iH = reader.getHeight(ii)
+         if (w>iW || h>iH) {
+            w = iW
+            h = iH
+         }
+         val iRatio = iW.toDouble()/iH.toDouble()
+         val rRatio = w.toDouble()/h.toDouble()
+         val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
+         val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
 
-      if (scale)
-         i = i?.toScaledDown(w, h)
+         val irp = reader.defaultReadParam.apply {
+            var px = 1
+            if (!highQuality && rW!=0 && rH!=0) {
+               val sw = reader.getWidth(ii)/rW
+               val sh = reader.getHeight(ii)/rH
+               px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance
+            }
+            // max quality is px==1, but quality/performance ratio would suck
+            setSourceSubsampling(px, px, 0, 0)
+         }
 
-      i?.toFX()
-   }
+         runTry {
+            reader.read(ii, irp)
+         } orNull {
+            logger.warn(it) { "Failed to load image=$file" }
+         }
+      }
+   reader.dispose()
+
+   if (scale)
+      i = i?.toScaledDown(w, h)
+
+   return i?.toFX()
 }
 
 /**
@@ -179,8 +175,8 @@ fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
       }
       val iRatio = imageSize.x/imageSize.y
       val rRatio = requestedSize.x/requestedSize.y
-      val neededSize = if (iRatio<rRatio) requestedSize.x.x2 / (1 x iRatio) else requestedSize.y.x2 * (iRatio x 1)
-      val sharpenSize = neededSize * 1.5
+      val neededSize = if (iRatio<rRatio) requestedSize.x.x2/(1 x iRatio) else requestedSize.y.x2*(iRatio x 1)
+      val sharpenSize = neededSize*1.5
       val finalSize = sharpenSize min imageSize // should not surpass real size (javafx.scene.Image would)
       ImageFx(file.toURI().toString(), finalSize.x, finalSize.y, true, true, isFxThread)
    }
@@ -191,31 +187,26 @@ fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
  * Does i/o, but does not read whole image into memory.
  */
 fun getImageDim(f: File): Try<Dimension, Throwable> {
-   // see more at:
-   // http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
-   val suffix = getSuffix(f.toURI())
-   val readers = ImageIO.getImageReadersBySuffix(suffix)
-   if (readers.hasNext()) {
-      val reader = readers.next()
-      return runTry {
-         ImageIO.createImageInputStream(f).use { stream ->
-            reader.input = stream
-            val ii = reader.minIndex // 1st image index
-            val width = reader.getWidth(ii)
-            val height = reader.getHeight(ii)
-            Dimension(width, height)
-         }
-      }.ifError {
-         logger.warn(it) { "Problem finding out image size $f" }
-         reader.dispose()
-      }.ifOk {
-         reader.dispose()
-      }
-   } else {
-      logger.warn { "No reader found for given file: $f" }
-      return Try.error(RuntimeException("No reader found for given file: $f"))
+   val stream = ImageIO.createImageInputStream(f) ?: return run {
+      logger.warn { "Problem finding out image size for $f, could not create image input stream" }
+      Try.error(RuntimeException("No reader found for $f"))
    }
-
+   val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return run {
+      logger.warn { "Problem finding out image size for $f, no image reader found" }
+      runTry { stream.close() }
+      Try.error(RuntimeException("No image reader found for $f"))
+   }
+   return runTry {
+      reader.input = stream
+      val ii = reader.minIndex // 1st image index
+      val width = reader.getWidth(ii)
+      val height = reader.getHeight(ii)
+      Dimension(width, height)
+   }.ifAny {
+      reader.dispose()
+   }.ifError {
+      logger.warn(it) { "Problem finding out image size for $f" }
+   }
 }
 
 /** @return new black image of specified size */

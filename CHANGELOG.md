@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GridView scrolling when selecting last row
 - Overlay settings change not taking effect
 - Overlay blur affecting content in some scenarios
+- Image size reading sometimes fail
 - Icon with text has wrong layout
 - popup window fixes
     - popup does not receive focus on show not even when clicked

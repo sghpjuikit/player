@@ -1,0 +1,8 @@
+<root>
+    <item name='javax.imageio.ImageIO javax.imageio.stream.ImageInputStream createImageInputStream(java.lang.Object)'>
+        <annotation name='org.jetbrains.annotations.Nullable'/>
+    </item>
+    <item name='javax.imageio.ImageIO javax.imageio.stream.ImageOutputStream createImageOutputStream(java.lang.Object)'>
+        <annotation name='org.jetbrains.annotations.Nullable'/>
+    </item>
+</root>

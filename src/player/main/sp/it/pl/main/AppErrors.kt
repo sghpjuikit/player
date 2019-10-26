@@ -3,6 +3,8 @@ package sp.it.pl.main
 import javafx.collections.FXCollections.observableArrayList
 import mu.KotlinLogging
 import sp.it.pl.plugin.notif.Notifier
+import sp.it.util.async.FX
+import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.dev.ThreadSafe
@@ -62,3 +64,9 @@ fun <R, E> Try<R, E>.ifErrorNotify(errorSupplier: (E) -> AppError) = ifError {
    if (it is Throwable) logger.error(it) { "Error occurred: ${e.textShort}" }
    AppErrors.push(e)
 }
+
+@ThreadSafe
+fun <E: Throwable> E.errorNotify(errorSupplier: (E) -> AppError) = also { Try.error(it).ifErrorNotify(errorSupplier) }
+
+@ThreadSafe
+fun <R> Fut<R>.onErrorNotify(errorSupplier: (Throwable) -> AppError) = onError(FX) { it.errorNotify(errorSupplier) }

@@ -6,6 +6,7 @@ import sp.it.pl.image.ImageLoader.Params
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.onErrorNotify
 import sp.it.pl.main.withAppProgress
 import sp.it.util.async.FX
 import sp.it.util.async.IO
@@ -19,7 +20,6 @@ import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
-import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.orNull
 import sp.it.util.system.Os
 import sp.it.util.system.runAsProgram
@@ -68,9 +68,11 @@ object ImageStandardLoader: ImageLoader {
             ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
          } else {
             tmpDir.mkdirs()
-            getThumb(p.file.absolutePath, tmpFile.absolutePath, 0, 0, 1f).map {
+            getThumb(p.file.absolutePath, tmpFile.absolutePath, 0, 0, 1f)
+            if (tmpFile.exists())
                ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
-            }.orNull()
+            else
+               null
          }
       } else when (p.mime.name) {
          "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
@@ -123,13 +125,12 @@ object Image2PassLoader {
 }
 
 // TODO handle videos shorter than specified time
-// TODO: handle errors
 private fun getThumb(videoFilename: String, thumbFilename: String, hour: Int, min: Int, sec: Float) = run {
    val ffmpeg = ffmpeg.getDone().toTry().orNull() ?: fail { "ffmpeg not available" }
    val args = arrayOf("-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss", "$hour:$min:$sec", "-f", "mjpeg", "-an", "\"$thumbFilename\"")
-   ffmpeg.runAsProgram(*args).then(IO) { it.map { it.waitFor(5, TimeUnit.SECONDS) } }
-      .getDone().toTry().getOrSupply { error(it) }
-      .ifError { it.printStackTrace() }
+   ffmpeg.runAsProgram(*args).then(IO) { it.waitFor(5, TimeUnit.SECONDS) }
+      .onErrorNotify { AppError("Failed to extract video cover of $videoFilename", "Reason: ${it.stacktraceAsString}") }
+      .getDone()
 }
 
 private val ffmpeg by lazy {

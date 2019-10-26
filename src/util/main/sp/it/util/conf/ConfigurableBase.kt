@@ -16,7 +16,7 @@ open class ConfigurableBase<T>: SimpleConfigValueStore<T>(), ConfigDelegator, Co
 
    companion object {
       private fun sample() {
-         object: ConfigurableBase<Boolean>() {
+         object: ConfigurableBase<Any>() {
             val orderCount by cv(10)
             val orderId by cv("myOrder")
          }

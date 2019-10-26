@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overlay blur affecting content in some scenarios
 - Image size reading sometimes fail
 - Icon with text has wrong layout
-- popup window fixes
+- Starting some processes blocked until application stopped
+- Popup window fixes
     - popup does not receive focus on show not even when clicked
     - popup not returning focus to previously focused OS window
     - popup not resizable by OS

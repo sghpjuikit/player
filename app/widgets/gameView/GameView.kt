@@ -51,6 +51,7 @@ import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isImage
+import sp.it.pl.main.onErrorNotify
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
@@ -259,9 +260,9 @@ class GameView(widget: Widget): SimpleController(widget) {
 
    private class Game(dir: File) {
       /** Directory representing the location where game metadata reside. Game's identity. */
-      val location = dir.absoluteFile!!
+      val location: File = dir.absoluteFile
       /** Name of the game. */
-      val name = location.name!!
+      val name: String = location.name
       /** Whether game does not require installation. */
       val isPortable: Boolean = false
       /** Location of the installation. */
@@ -289,8 +290,8 @@ class GameView(widget: Widget): SimpleController(widget) {
                AppErrors.push("No launcher is set up.")
             } else {
                val arguments = settings["arguments"]?.valN.orEmpty().filter { it.isNotBlank() }.toTypedArray()
-               exe.runAsProgram(*arguments) ui {
-                  it.ifErrorNotify { AppError("Unable to launch program $exe", "Reason: ${it.stacktraceAsString}") }
+               exe.runAsProgram(*arguments).onErrorNotify {
+                  AppError("Unable to launch program $exe", "Reason: ${it.stacktraceAsString}")
                }
             }
          }
@@ -452,7 +453,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
       object SteamQBuilder: WebSearchUriBuilder {
          override val name = "Steam"
-         override fun uri(q: String) = URI.create("https://store.steampowered.com/search/?term=$q")
+         override fun uri(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
       }
 
    }

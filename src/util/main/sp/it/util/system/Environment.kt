@@ -12,10 +12,12 @@ import javafx.stage.FileChooser
 import javafx.stage.Screen
 import javafx.stage.Window
 import mu.KotlinLogging
+import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO
 import sp.it.util.async.runNew
 import sp.it.util.dev.Blocks
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.FileType
 import sp.it.util.file.find1stExistingParentDir
 import sp.it.util.file.parentDirOrRoot
@@ -29,6 +31,7 @@ import sp.it.util.system.EnvironmentContext.runAsProgramArgsTransformer
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
+import java.lang.ProcessBuilder.Redirect.DISCARD
 import java.net.URI
 
 private val logger = KotlinLogging.logger { }
@@ -45,27 +48,30 @@ fun copyToSysClipboard(s: String?) = copyToSysClipboard(DataFormat.PLAIN_TEXT, s
 fun copyToSysClipboard(df: DataFormat, o: Any?) = o.ifNotNull { Clipboard.getSystemClipboard().setContent(mapOf(df to it)) }
 
 /**
- * Launches this file as an executable program as a separate process on a new thread and executes an action (on it)
- * right after it launches.
+ * Launches this file as an executable program as a separate process on an [IO].
+ * Executes an initializer block on the process right before [ProcessBuilder.start].
  * - working directory of the program will be set to the parent directory of its file
+ * - [ProcessBuilder.redirectOutput] and [ProcessBuilder.redirectError] is set to [DISCARD] unless overridden
  * - the program may start as a child process if otherwise not possible
  *
  * @param arguments arguments to run the program with
  * @param then block taking the program's process as parameter executing if the program executes
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
+@ThreadSafe
 @JvmOverloads
-fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<Try<Process, Exception>> {
+fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<Process> {
    return runIO {
       val commandRaw = listOf(absolutePath, *arguments)
       val command = runAsProgramArgsTransformer(commandRaw)
-      try {
-         val process = ProcessBuilder(command).directory(parentDirOrRoot).apply(then).start()
-         Try.ok(process)
-      } catch (e: IOException) {
-         logger.error(e) { "Failed to launch program $absolutePath" }
-         Try.error(e)
-      }
+      val process = ProcessBuilder(command)
+         .directory(parentDirOrRoot)
+         .redirectOutput(DISCARD).redirectError(DISCARD)
+         .apply(then)
+         .start()
+      process
+   }.onError(IO) {
+      logger.error(it) { "Failed to launch program $absolutePath" }
    }
 }
 

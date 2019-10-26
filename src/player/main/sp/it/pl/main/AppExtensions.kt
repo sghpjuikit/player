@@ -5,7 +5,7 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.layout.widget.isExperimental
-import sp.it.util.async.NEW
+import sp.it.util.async.IO
 import sp.it.util.async.runNew
 import sp.it.util.file.Util.isValidFile
 import sp.it.util.file.div
@@ -83,21 +83,16 @@ fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (Pr
 
    runAsProgram(*arguments) {
       it.redirectOutput(PIPE).redirectError(PIPE).apply(then)
-   }.onError(NEW) {
+   }.onError(IO) {
       doOnError(it, it.message)
-   }.onOk(NEW) {
-      it.ifError {
-         doOnError(it, it.message)
-      }
-      it.ifOk { p ->
-         var stdout = ""
-         var stderr = ""
-         runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
-         runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
-         val success = p.waitFor()
-         if (success!=0)
-            doOnError(null, stdout + stderr)
-      }
+   }.onOk(IO) { p ->
+      var stdout = ""
+      var stderr = ""
+      runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
+      runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
+      val success = p.waitFor()
+      if (success!=0)
+         doOnError(null, stdout + stderr)
    }
 }
 

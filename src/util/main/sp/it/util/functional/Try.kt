@@ -33,12 +33,9 @@ sealed class Try<out R, out E> {
    /** Invoke the specified action if error */
    inline fun ifError(action: (E) -> Unit) = apply { if (this is Error<E>) action(value) }
 
-   /** Invoke the specified action if success or the other specified action if error */
-   inline fun ifAny(actionOk: (R) -> Unit, actionError: (E) -> Unit) = apply {
-      when {
-         this is Ok<R> -> actionOk(value)
-         this is Error<E> -> actionError(value)
-      }
+   /** Invoke the specified action */
+   inline fun ifAny(action: () -> Unit) = apply {
+      action()
    }
 
    /** Legacy version of [ifOk] for Java taking a [Consumer]. */

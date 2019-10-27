@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javafx.scene.image.Image;
+import kotlin.Unit;
 import kotlin.sequences.Sequence;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
@@ -21,8 +22,6 @@ import sp.it.util.async.future.Fut;
 import sp.it.util.dev.ThreadSafe;
 import sp.it.util.file.FileType;
 import sp.it.util.file.UtilKt;
-import sp.it.util.functional.Try;
-import sp.it.util.functional.TryKt;
 import sp.it.util.functional.Util;
 import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.ImageSize;
@@ -33,15 +32,14 @@ import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppFileKt.isVideo;
-import static sp.it.util.async.AsyncKt.IO;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.FileType.DIRECTORY;
 import static sp.it.util.file.FileType.FILE;
 import static sp.it.util.file.UtilKt.getNameWithoutExtensionOrRoot;
-import static sp.it.util.functional.Try.Java.error;
-import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.ui.image.UtilKt.toBuffered;
 import static sp.it.util.ui.image.UtilKt.toFX;
 
@@ -58,7 +56,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	protected volatile List<Item> children = null;
 	/** All children files. Super set of {@link #children}. Must not be accessed outside fx application thread. */
 	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
-	public volatile Fut<Try<LoadResult,Void>> coverLoading = null;
+	public volatile Fut<Unit> coverLoading = null;
 	public volatile Image cover = null;           // cover cache
 	public volatile File coverFile = null;        // cover file cache
 	private volatile boolean coverFile_loaded = false;
@@ -192,15 +190,17 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return cl!=null && cl.isDone();
 	}
 
-	public Try<LoadResult,Void> loadCover(ImageSize size) {
+	public void loadCover(ImageSize size) {
 		failIfFxThread();
-		if (disposed) return error();
+		if (disposed) return;
 
 		var cl = coverLoading;
-		if (cl!=null)
-			return TryKt.getOrSupply(cl.getDone().toTry(), e -> error(null));
+		if (cl!=null) {
+			cl.getDone();
+			return;
+		}
 
-		Fut<Try<LoadResult,Void>> f = Fut.fut().then(IO, k -> {
+		var f = runIO(runnable(() -> {
 			File file = getCoverFile();
 			if (file==null) {
 				var strategy = getCoverStrategy();
@@ -226,38 +226,25 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 							JavaLegacy.destroyImage(img);
 							i++;
 						}
-
-						var coverToBe = toFX(imgFin);
-						cover = coverToBe;
-						return ok(new LoadResult(null, coverToBe));
+						cover = toFX(imgFin);
 					}
 				} else if (valType==FILE) {
 					if (isVideo(value) && getCoverStrategy().useVideoFrameCover) {
-						var coverToBe = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
-						cover = coverToBe;
-						if (coverToBe!=null) return ok(new LoadResult(value, coverToBe));
+						cover = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
 					} else if (isAudio(value)) {
 						var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
-						var coverToBe = c.isEmpty() ? null : c.getImage(size);
-						cover = coverToBe;
-						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
+						cover = c.isEmpty() ? null : c.getImage(size);
 					} else if (strategy.useNativeIconIfNone)  {
-						var coverToBe = IconExtractor.INSTANCE.getFileIcon(value);
-						cover = coverToBe;
-						if (coverToBe!=null) return ok(new LoadResult(null, coverToBe));
+						cover = IconExtractor.INSTANCE.getFileIcon(value);
 					}
 				}
 			} else {
-				var coverToBe = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
-				cover = coverToBe;
-				if (coverToBe!=null) return ok(new LoadResult(file, coverToBe));
+				cover = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
 			}
+		}));
 
-			return error();
-		});
-
-		coverLoading = f;
-		return TryKt.getOrSupply(f.getDone().toTry(), e -> error(null));
+		coverLoading =  f;
+		f.getDone();
 	}
 
 	// guaranteed to execute only once
@@ -326,16 +313,6 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	private static boolean file_exists(Item c, File f) {
 		return c!=null && f!=null && !c.disposed && c.all_children.contains(f.getPath().toLowerCase());
-	}
-
-	public static class LoadResult {
-		public final File file;
-		public final Image cover;
-
-		public LoadResult(File file, Image cover) {
-			this.file = file;
-			this.cover = cover;
-		}
 	}
 
 	public static class CoverStrategy {

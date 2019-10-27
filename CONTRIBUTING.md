@@ -10,7 +10,7 @@
 - Clone the repository
 
 Optional, but recommended:
-- Set up Vlc (required for playback)  
+- Set up Vlc (required for playback) (Linux only)  
   64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
 - Set up JDK  
   To avoid version mismatch, it is recommended to not use system default and use [OpenJDK11](https://jdk.java.net/11/). Extract to [app/java](app/java) or use arbitrary location: create a `gradle.properties` file at project root with property: `org.gradle.java.home=/path/to/jdk`. [app/java](app/java) link will be created pointing to the directory.
@@ -91,16 +91,11 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
 ### Logging
 
 ##### Mechanism
- - java: [slf4j](https://github.com/qos-ch/slf4j) + [logback](https://github.com/qos-ch/logback)
- - kotlin: [slf4j](https://github.com/qos-ch/slf4j) + [kotlin-logging](https://github.com/MicroUtils/kotlin-logging)
+[slf4j](https://github.com/qos-ch/slf4j) + [kotlin-logging](https://github.com/MicroUtils/kotlin-logging)
 
 ##### Obtain a logger instance
- - java:<br>
-   - old school: `private static final Logger LOGGER = LoggerFactory.getLogger(This.class);`<br>
-   - convenience method: `UtilKt.log(this)`, `UtilKt.log(this.getClass())`, `UtilKt.log(This.class)`
- - kotlin:<br>
-   - classes: `companion object: KLogging()`<br>
-   - top level functions: `private val logger = KotlinLogging.logger {}`
+ - classes: `companion object: KLogging()`<br>
+ - top level functions: `private val logger = KotlinLogging.logger {}`
 
 ##### Configuration
  - configured in [app/resources/log_configuration.xml](app/resources/log_configuration.xml)
@@ -108,8 +103,7 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
 
 ### Imports
  - use static imports where possible (enum types, utility methods, etc.)
- - no empty lines, just alphabetical sort
- - separate imports and static imports
+ - no empty lines, just alphabetical sort 
  - no package (star) imports
 
 ### Assertions
@@ -117,13 +111,12 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
  - always check method parameters for all required conditions, always document these in @param tags
  - do not use java assertions
  - use runtime exceptions (e.g. `java.lang.AssertionError`), Encouraged is the use of methods:
-   - `Objects.requireNonNull()`
    - `sp.it.util.dev.fail`
    - `sp.it.util.dev.failIf`
 
 ### Comments
  - always write javadoc for public elements, be as concise as possible, but describe and define full contract
- - no `/* */` comments
+ - never use `/* */` comments
  - avoid using `//` comments by using proper names and code structure and avoiding arbitrary/exceptional/edge cases 
 
 ## Skins
@@ -133,7 +126,7 @@ see [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scen
 Skins can depend on each other.
 
 The application automatically discovers the skins when it starts and monitors them for changes. 
-The skins are located in separate folders in [app/skins](/working%20dir/skins), 
+The skins are located in separate folders in [app/skins](/app/skins), 
 which also contains further instructions on how to create your own skin.
 
 Customize the appearance of the application by creating a new skin depending on the default skin and modifying what you want. 

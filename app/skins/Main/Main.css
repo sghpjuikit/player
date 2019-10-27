@@ -1438,9 +1438,11 @@ Text {
  * Icon
  * Text using glyph to make icon.
  * inherits: nothing
- * pseudoclasses: selected - used to achieve hover effect even when mouse is not hovering
- * properties: -glyph-name - String of the glyph
- *             -glyph-size - size
+ * pseudoclasses:
+ *   focused - when focusTraversible is true (default false) and if focused
+ * properties:
+ *   -glyph-name - String of the glyph
+ *   -glyph-size - size
  */
 .icon {
     -fx-fill: -skin-def-font-color;
@@ -1449,6 +1451,7 @@ Text {
     -glyph-gap: 12;
 }
 
+.icon:focused Text,
 .icon:hover {
     -fx-fill: -skin-def-font-color-hover;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);

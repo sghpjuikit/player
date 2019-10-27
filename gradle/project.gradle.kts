@@ -260,10 +260,6 @@ application {
       "-XX:+UseStringDeduplication",
       "-XX:+UseCompressedOops",
       *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
-      "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED",
-      "--add-opens", "javafx.controls/javafx.scene.control.skin=ALL-UNNAMED",
-      "--add-opens", "javafx.graphics/javafx.scene.image=ALL-UNNAMED",
-      "--add-opens", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
       "--illegal-access=permit"
    )
 }

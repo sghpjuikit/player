@@ -23,8 +23,8 @@ private val logger = KotlinLogging.logger {}
 /** @return whether user can use this factory, exactly: APP.developerMode || ![ComponentFactory.isExperimental] */
 fun ComponentFactory<*>.isUsableByUser() = APP.developerMode.value || !isExperimental()
 
-/** Returns value of this number of scaled [EM]s, ceil-ed to nearest integer, where scaled EM is current application font size */
-val Number.emScaled get() = ceil(toDouble()*APP.ui.font.value.size.toEM())
+/** Returns value of this number of scaled [sp.it.util.units.EM]s, ceil-ed to nearest integer, where scaled EM is current application font size */
+val Number.emScaled: Double get() = ceil(toDouble()*APP.ui.font.value.size.toEM())
 
 /**
  * Checks validity of a file to be a skin. True return file means the file

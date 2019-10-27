@@ -3,7 +3,7 @@ package sp.it.util.async.future
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.util.async.FX
-import sp.it.util.async.NEW
+import sp.it.util.async.IO
 import sp.it.util.async.future.Fut.Result.ResultFail
 import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
@@ -31,8 +31,8 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    /** @return future that waits for this to complete normally, invokes the specified block and returns its result */
    fun <R> then(executor: Executor = defaultExecutor, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
 
-   /** [use] which sleeps the specified duration on [NEW]. */
-   fun thenWait(time: Duration) = use(NEW) { sleep(time) }
+   /** [use] which sleeps the specified duration on [IO]. */
+   fun thenWait(time: Duration) = use(IO) { sleep(time) }
 
    /** [then] with [FX] executor. Intended for simple and declarative use of asynchronous computation from ui. */
    infix fun <R> ui(block: (T) -> R) = then(FX, block)

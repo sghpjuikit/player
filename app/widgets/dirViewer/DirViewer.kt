@@ -16,7 +16,6 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
 import javafx.util.Callback
 import sp.it.pl.gui.objects.grid.GridFileThumbCell
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader
 import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL
 import sp.it.pl.gui.objects.hierarchy.Item
@@ -42,19 +41,17 @@ import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runIO
-import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cList
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoOrder
@@ -101,7 +98,6 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import sp.it.util.units.minutes
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
@@ -122,54 +118,48 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          files setToOne it
    }
 
-   @IsConfig(name = "Location", info = "Root directories of the content.")
    private val files by cList<File>().only(FileActor.DIRECTORY)
-   private var filesMaterialized = files.materialize()
-   private val filesEmpty = v(true).apply {
-      files.onChangeAndNow { value = files.isEmpty() }
-   }
-   @IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
+      .def(name = "Location", info = "Root directories of the content.")
    private val fileFlatter by cv(FileFlatter.TOP_LVL)
+      .def(name = "Location joiner", info = "Merges location files into a virtual view.")
+   private var filesMaterialized = files.materialize()
+   private val filesEmpty = v(true).apply { files.onChangeAndNow { value = files.isEmpty() } }
 
-   @IsConfig(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
    private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover)
-   @IsConfig(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
+      .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
    private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
-   @IsConfig(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+      .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
    private val coverFitFrom by cv(FitFrom.OUTSIDE)
-   @IsConfig(name = "Thumbnail size", info = "Size of the thumbnail.")
-   private val cellSize by cv(NORMAL).uiNoOrder() attach { applyCellSize() }
-   @IsConfig(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-   private val cellSizeRatio by cv(Resolution.R_1x1) attach { applyCellSize() }
-
+      .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   private val cellSize by cv(NORMAL).uiNoOrder().attach { applyCellSize() }
+      .def(name = "Thumbnail size", info = "Size of the thumbnail.")
+   private val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
+      .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
       onClose += { unsubscribe() }
       attach { applyCellSize() }
    }
 
    private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 5.0, 5.0)
-   private val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("dirView-img-loader", true)))
-   private val visitId = AtomicLong(0)
+   private val itemVisitId = AtomicLong(0)
+   private var item: Item? = null
    private val placeholder = lazy {
       Placeholder(FOLDER_PLUS, "Click to explore directory") {
          chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window).ifOk { files setToOne it }
       }
    }
-   @IsConfig(name = "File filter", info = "Shows only directories and files passing the filter.")
    private val filter by cv(FileFilters.filterPrimary.name) { FileFilters.toEnumerableValue(it) }
-   @IsConfig(name = "Sort", info = "Sorting effect.")
-   private val sort by cv(ASCENDING) attach { applySort() }
-   @IsConfig(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
-   private val sortFile by cv(DIR_FIRST) attach { applySort() }
-   @IsConfig(name = "Sort seconds", info = "Sorting criteria.")
-   private val sortBy by cv(FileField.NAME.name()).values(FileField.all.map { it.name() } + "PATH_LIBRARY").uiConverter { enumToHuman(it) } attach { applySort() }
-   @IsConfig(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
+      .def(name = "File filter", info = "Shows only directories and files passing the filter.")
+   private val sort by cv(ASCENDING).attach { applySort() }
+      .def(name = "Sort", info = "Sorting effect.")
+   private val sortFile by cv(DIR_FIRST).attach { applySort() }
+      .def(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
+   private val sortBy by cv(FileField.NAME.name()).values(FileField.all.map { it.name() } + "PATH_LIBRARY").attach { applySort() }
+      .def(name = "Sort seconds", info = "Sorting criteria.").uiConverter { enumToHuman(it) }
    private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
+      .def(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
 
-   private var item: Item? = null   // item, children of which are displayed
-
-   @IsConfig(name = "Show navigation", info = "Whether breadcrumb navigation bar is visible.")
-   private val navigationVisible by cv(true)
+   private val navigationVisible by cv(true).def(name = "Show navigation", info = "Whether breadcrumb navigation bar is visible.")
    private val navigation = Navigation()
 
    init {
@@ -229,7 +219,6 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          else placeholder.orNull()?.hide()
       }
       onClose += { disposeItems() }
-      onClose += { imageLoader.shutdown() }
 
       root.sync1IfInScene {
          applyCellSize()
@@ -247,7 +236,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       item?.lastScrollPosition = grid.implGetSkin().position
       if (item===dir) return
       item?.takeIf { it.isHChildOf(dir) }?.disposeChildrenContent()
-      visitId.incrementAndGet()
+      itemVisitId.incrementAndGet()
 
       item = dir
       navigation.breadcrumbs.values setTo dir.traverse { it.parent }.toList().asReversed()
@@ -345,7 +334,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       return when (sortBy.value) {
          "PATH_LIBRARY" -> {
             val childByParent = items.associateWith { c -> locationsMaterialized.find { p -> p.isAnyParentOrSelfOf(c.value) }!! }
-            val pathByChild = items.associateWith { c -> c.value.path.substringAfter(childByParent[c]!!.path)  }
+            val pathByChild = items.associateWith { c -> c.value.path.substringAfter(childByParent[c]!!.path) }
             compareBy<Item> { 0 }
                .thenBy { it.valType }.inSort(sortFile.value.sort)
                .thenBy { pathByChild[it]!! }
@@ -360,7 +349,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private inner class Cell: GridFileThumbCell(imageLoader) {
+   private inner class Cell: GridFileThumbCell() {
       private val disposer = Disposer()
 
       override fun computeCellTextHeight() = cellTextHeight.value
@@ -371,7 +360,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          root install appTooltipForData { thumb!!.representant }
       }
 
-      override fun computeTask(r: () -> Unit) = onlyIfMatches(visitId, r)
+      override fun computeTask(r: () -> Unit) = onlyIfMatches(itemVisitId, r)
 
       override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i, edit)
 

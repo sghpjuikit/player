@@ -85,6 +85,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		children = null;
 		all_children = null;
 		cover = null;
+		coverFile = null;
+		coverFile_loaded = false;
 		coverLoading = null;
 		disposed = true;
 	}
@@ -108,9 +110,9 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		cover = null;
 		coverFile = null;
 		coverFile_loaded = false;
+		coverLoading = null;
 		loadProgress = 0;
 		lastScrollPosition = -1;
-		coverLoading = null;
 	}
 
 	private void buildChildren() {
@@ -186,69 +188,71 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	@ThreadSafe
 	public boolean isLoadedCover() {
+		failIfNotFxThread();
 		var cl = coverLoading;
 		return cl!=null && cl.isDone();
 	}
 
-	public void loadCover(ImageSize size) {
-		failIfFxThread();
-		if (disposed) return;
+	public Fut<Unit> loadCover(ImageSize size) {
+		if (disposed) {
+			var f = Fut.fut();
+			coverLoading = Fut.fut();
+			return f;
+		}
 
 		var cl = coverLoading;
 		if (cl!=null) {
-			cl.getDone();
-			return;
+			return cl;
+		} else {
+			var f = runIO(runnable(() -> {
+				File file = getCoverFile();
+				if (file==null) {
+					var strategy = getCoverStrategy();
+					if (valType==DIRECTORY) {
+						if (strategy.useComposedDirCover) {
+							var subCovers = (children==null ? Util.<Item>list() : list(children)).stream()
+								.filter(it -> it.valType==FILE)
+								.map(it -> it.getCoverFile())
+								.filter(it -> it!=null)
+								.limit(4)
+								.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
+								.filter(it -> it!=null)
+								.collect(toList());
+							var w = (int) size.width;
+							var h = (int) size.height;
+							var imgFin = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+							var imgFinGraphics = imgFin.getGraphics();
+							var i = 0;
+							for (Image img: subCovers) {
+								var bi = img==null ? null : toBuffered(img);
+								imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), null);
+								if (bi!=null) bi.flush();
+								JavaLegacy.destroyImage(img);
+								i++;
+							}
+							cover = toFX(imgFin);
+						}
+					} else if (valType==FILE) {
+						if (isVideo(value) && getCoverStrategy().useVideoFrameCover) {
+							cover = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
+						} else if (isAudio(value)) {
+							var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
+							cover = c.isEmpty() ? null : c.getImage(size);
+						} else if (strategy.useNativeIconIfNone)  {
+							cover = IconExtractor.INSTANCE.getFileIcon(value);
+						}
+					}
+				} else {
+					cover = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
+				}
+			}));
+
+			coverLoading = f;
+			return f;
 		}
 
-		var f = runIO(runnable(() -> {
-			File file = getCoverFile();
-			if (file==null) {
-				var strategy = getCoverStrategy();
-				if (valType==DIRECTORY) {
-					if (strategy.useComposedDirCover) {
-						var subCovers = (children==null ? Util.<Item>list() : list(children)).stream()
-							.filter(it -> it.valType==FILE)
-							.map(it -> it.getCoverFile())
-							.filter(it -> it!=null)
-							.limit(4)
-							.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
-							.filter(it -> it!=null)
-							.collect(toList());
-						var w = (int) size.width;
-						var h = (int) size.height;
-						var imgFin = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-						var imgFinGraphics = imgFin.getGraphics();
-						var i = 0;
-						for (Image img: subCovers) {
-							var bi = img==null ? null : toBuffered(img);
-							imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), null);
-							if (bi!=null) bi.flush();
-							JavaLegacy.destroyImage(img);
-							i++;
-						}
-						cover = toFX(imgFin);
-					}
-				} else if (valType==FILE) {
-					if (isVideo(value) && getCoverStrategy().useVideoFrameCover) {
-						cover = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
-					} else if (isAudio(value)) {
-						var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
-						cover = c.isEmpty() ? null : c.getImage(size);
-					} else if (strategy.useNativeIconIfNone)  {
-						cover = IconExtractor.INSTANCE.getFileIcon(value);
-					}
-				}
-			} else {
-				cover = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
-			}
-		}));
-
-		coverLoading =  f;
-		f.getDone();
 	}
 
-	// guaranteed to execute only once
-	@SuppressWarnings("ConstantConditions")
 	protected File getCoverFile() {
 		failIfFxThread();
 		if (disposed) return null;

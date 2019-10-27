@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Wallpaper` plugin window hiding when no image
 - Implement new popups
 - Improve image loading performance for common formats dramatically
+- Improve image loading performance
 ### Fix
 - Main window icon showing in ui-less application mode
 - Widgets launched as new process not closing application 
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shortcuts settings not being applied after restart
 - GridView search style not discarded on cancel
 - GridView scrolling when selecting last row
+- GridView cover size change throws exceptions
 - Overlay settings change not taking effect
 - Overlay blur affecting content in some scenarios
 - Image size reading sometimes fail

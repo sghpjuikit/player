@@ -26,7 +26,6 @@ import javafx.scene.text.TextAlignment.JUSTIFY
 import javafx.util.Callback
 import mu.KLogging
 import sp.it.pl.gui.objects.grid.GridFileThumbCell
-import sp.it.pl.gui.objects.grid.GridFileThumbCell.Loader
 import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.CellSize
 import sp.it.pl.gui.objects.hierarchy.Item
@@ -64,10 +63,8 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.FX
 import sp.it.util.async.NEW
-import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.runIO
 import sp.it.util.async.runOn
-import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
@@ -123,7 +120,6 @@ import sp.it.util.ui.typeText
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import sp.it.util.units.minutes
 import sp.it.util.units.times
 import java.io.File
 import java.net.URI
@@ -152,7 +148,6 @@ class GameView(widget: Widget): SimpleController(widget) {
    val files by cList<File>().def(name = "Location", info = "Location of the library.").only(DIRECTORY)
 
    val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 10.0, 10.0)
-   val imageLoader = Loader(burstTPExecutor(Runtime.getRuntime().availableProcessors()/2 max 1, 1.minutes, threadFactory("gameView-img-loader", true)))
    val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
       chooseFile("Choose directory", FileType.DIRECTORY, APP.locationHome, root.scene.window)
          .ifOk { files += it }
@@ -196,8 +191,6 @@ class GameView(widget: Widget): SimpleController(widget) {
          }
       }
 
-      onClose += { imageLoader.shutdown() }
-
       placeholder.show(root, files.isEmpty())
 
       root.sync1IfInScene {
@@ -239,7 +232,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.value, it.valType) }
    }
 
-   private inner class Cell: GridFileThumbCell(imageLoader) {
+   private inner class Cell: GridFileThumbCell() {
 
       override fun computeCellTextHeight() = cellTextHeight.value
 

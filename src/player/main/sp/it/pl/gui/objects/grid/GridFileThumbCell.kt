@@ -14,6 +14,9 @@ import sp.it.util.JavaLegacy
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.FX
+import sp.it.util.async.burstTPExecutor
+import sp.it.util.async.sleep
+import sp.it.util.async.threadFactory
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
@@ -31,6 +34,7 @@ import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import sp.it.util.units.millis
+import sp.it.util.units.minutes
 import java.io.File
 import java.util.concurrent.ExecutorService
 
@@ -38,13 +42,12 @@ import java.util.concurrent.ExecutorService
  * GridCell implementation for file using [sp.it.pl.gui.objects.hierarchy.Item]
  * that shows a thumbnail image. Supports asynchronous loading of thumbnails and loading animation.
  */
-open class GridFileThumbCell(imgLoader: Loader): GridCell<Item, File>() {
+open class GridFileThumbCell: GridCell<Item, File>() {
    protected lateinit var root: Pane
    protected lateinit var name: Label
    protected var thumb: Thumbnail? = null
    protected var imgLoadAnimation: Anim? = null
    private var imgLoadAnimationItem: Item? = null
-   protected val loader: Loader
    @Volatile protected var disposed = false
    private val onDispose = Disposer()
    @Volatile private var itemVolatile: Item? = null
@@ -52,8 +55,6 @@ open class GridFileThumbCell(imgLoader: Loader): GridCell<Item, File>() {
    @Volatile private var indexVolatile: Int = -1
 
    init {
-      loader = imgLoader
-
       parentProperty() sync { parentVolatile = it?.parent } on onDispose
    }
 
@@ -241,12 +242,18 @@ open class GridFileThumbCell(imgLoader: Loader): GridCell<Item, File>() {
          val size = computeThumbSize()
          failIf(size.width<=0 || size.height<=0)
 
-         loader.executorThumbs?.execute(computeTask {
+         loader.execute {
             if (!isInvalid(item, i)) {
-               item.loadCover(size)
-               item.coverLoading.onOk(FX) { setCoverPost(item, i, item.coverFile, item.cover) }
+               // Determines minimum loading time/max loading throughput
+               // Has a positive effect when hundreds of covers load at once
+               sleep(5)
+
+               // Executing this on FX thread would allow us avoid volatiles for invalid checks and futures
+               // I do not know which is better. Out of fear we will need thread-safety in the future, I'm using this approach
+               if (!isInvalid(item, i))
+                  item.loadCover(size).onOk(FX) { setCoverPost(item, i, item.coverFile, item.cover) }
             }
-         })
+         }
       }
    }
 
@@ -261,4 +268,7 @@ open class GridFileThumbCell(imgLoader: Loader): GridCell<Item, File>() {
       }
    }
 
+   companion object {
+      private val loader = burstTPExecutor(1, 1.minutes, threadFactory("dirView-img-loader", true))
+   }
 }

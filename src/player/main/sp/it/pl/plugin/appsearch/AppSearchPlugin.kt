@@ -44,7 +44,6 @@ import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
-import sp.it.util.async.oneTPExecutor
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runNew
@@ -205,7 +204,6 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
       private val owner = APP.plugins.getRaw<AppSearchPlugin>()!!
       private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 50.0, 50.0)
-      private val imageLoader = GridFileThumbCell.Loader(oneTPExecutor())
       private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
          onClose += { unsubscribe() }
          attach { applyCellSize() }
@@ -251,7 +249,6 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
          owner.searchSourceApps.onChange { visit() }
          onClose += { disposeItem() }
-         onClose += { imageLoader.shutdown() }
 
          root.sync1IfInScene {
             applyCellSize()
@@ -318,7 +315,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
             .thenBy(FileField.NAME.comparator<File> { it.inSort(Sort.ASCENDING).nullsLast() }) { it.value }
       }
 
-      private inner class Cell: GridFileThumbCell(imageLoader) {
+      private inner class Cell: GridFileThumbCell() {
 
          override fun computeGraphics() {
             super.computeGraphics()

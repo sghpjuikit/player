@@ -307,8 +307,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		}
 
 		if (root!=null) {
-			removeFromParent(root);
 			onNodeDispose(root);
+			removeFromParent(root);
 			root = null;
 		}
 

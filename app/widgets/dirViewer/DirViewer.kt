@@ -9,6 +9,7 @@ import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.BACK
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
@@ -39,6 +40,7 @@ import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
+import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.onlyIfMatches
@@ -81,9 +83,11 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.syncTo
 import sp.it.util.system.chooseFile
 import sp.it.util.system.edit
 import sp.it.util.system.open
+import sp.it.util.text.nameUi
 import sp.it.util.text.pluralUnit
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.Util.layHeaderTop
@@ -121,6 +125,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    @IsConfig(name = "Location", info = "Root directories of the content.")
    private val files by cList<File>().only(FileActor.DIRECTORY)
    private var filesMaterialized = files.materialize()
+   private val filesEmpty = v(true).apply {
+      files.onChangeAndNow { value = files.isEmpty() }
+   }
    @IsConfig(name = "Location joiner", info = "Merges location files into a virtual view.")
    private val fileFlatter by cv(FileFlatter.TOP_LVL)
 
@@ -217,8 +224,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       files.onChange { filesMaterialized = files.materialize() }
       files.onChange { revisitTop() }
-      files.onChangeAndNow {
-         if (files.isEmpty()) placeholder.value.show(root, true)
+      filesEmpty sync {
+         if (it) placeholder.value.show(root, true)
          else placeholder.orNull()?.hide()
       }
       onClose += { disposeItems() }
@@ -395,7 +402,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    }
 
    private inner class Navigation: HBox() {
-      val upIcon = Icon(IconFA.CHEVRON_UP).onClickDo { visitUp() }
+      val upIcon = Icon(IconFA.CHEVRON_UP).onClickDo { visitUp() }.tooltip("Go up (${PRIMARY.nameUi} or ${BACK_SPACE.nameUi})")
       val breadcrumbs = Breadcrumbs<Item>(
          {
             when (it) {
@@ -413,9 +420,9 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       init {
          spacing = 0.0
          alignment = CENTER_LEFT
-         navigationVisible sync {
-            if (it) children setTo listOf(upIcon, breadcrumbs)
-            else children setToOne upIcon
+         syncTo(filesEmpty, navigationVisible) { a, b ->
+            if (!a && b) children setTo listOf(upIcon, breadcrumbs)
+            else children.clear()
          }
       }
    }

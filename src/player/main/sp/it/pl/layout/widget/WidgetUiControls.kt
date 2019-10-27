@@ -35,7 +35,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
-import sp.it.util.text.getNamePretty
+import sp.it.util.text.nameUi
 import sp.it.util.ui.centre
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
@@ -92,7 +92,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
                |	Left click : Go to child
                |	Right click : Go to parent
                |	Drag : Drags widget to other area
-               |	Drag + ${SHORTCUT.getNamePretty()} : Detach widget
+               |	Drag + ${SHORTCUT.nameUi} : Detach widget
                |
                |${area.widget.info.toStr()}
             """.trimMargin()

@@ -105,7 +105,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.SubscriptionKt.on;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.syncC;
-import static sp.it.util.text.UtilKt.getNamePretty;
+import static sp.it.util.text.UtilKt.getNameUi;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.initClip;
@@ -300,7 +300,7 @@ public class Window extends WindowBase {
 			+ "\n\tMouse drag edge : Resize window."
 			+ "\n\tDouble header left click : Toggle maximized mode on/off."
 			+ "\n\tDouble header right click : Toggle hide header on/off."
-			+ "\n\t" + getNamePretty(ALT_GRAPH) + " : Toggle layout mode"
+			+ "\n\t" + getNameUi(ALT_GRAPH) + " : Toggle layout mode"
 			+ "\n\tContent right drag : drag tabs."
 		).styleclass("header-icon");
 		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");

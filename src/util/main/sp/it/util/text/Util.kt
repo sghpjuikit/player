@@ -1,6 +1,7 @@
 package sp.it.util.text
 
 import javafx.scene.input.KeyCode
+import javafx.scene.input.MouseButton
 import sp.it.util.action.Action
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -30,7 +31,19 @@ fun String.isPalindromeOrEmpty(): Boolean {
 fun keys(keys: String): String = keys.splitToSequence("+").map(::key).joinToString(" + ")
 
 /** @return pretty text representing the key, intended for UI */
-fun KeyCode.getNamePretty(): String = key(getName())
+val KeyCode.nameUi: String
+   get() = key(getName())
+
+/** @return pretty text representing the button, intended for UI */
+val MouseButton.nameUi: String
+   get() = when(this) {
+      MouseButton.PRIMARY -> "LMB"
+      MouseButton.MIDDLE -> "MMB"
+      MouseButton.SECONDARY -> "RMB"
+      MouseButton.FORWARD -> "FMB"
+      MouseButton.BACK -> "BMB"
+      MouseButton.NONE -> "NoMB"
+   }
 
 /** @return pretty text representing the keys, intended for UI */
 fun Action.getKeysPretty(): String = keys.let { if (it.isBlank()) it else keys(keys) }

@@ -23,7 +23,7 @@ import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
-import sp.it.util.text.getNamePretty
+import sp.it.util.text.nameUi
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.removeFromParent
@@ -58,7 +58,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             + "\n\tLeft click : Go to child"
             + "\n\tRight click : Go to parent"
             + "\n\tDrag : Drags widget to other area"
-            + "\n\tDrag + ${SHORTCUT.getNamePretty()} : Detach widget"
+            + "\n\tDrag + ${SHORTCUT.nameUi} : Detach widget"
          ).styleclass("header-icon")
 
          lay += icon(null, "Lock container's layout").onClickDo {

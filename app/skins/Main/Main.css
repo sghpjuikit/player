@@ -2191,17 +2191,19 @@ icon-info-icon {
     -fx-fill: null;
     -fx-stroke: -skin-def-font-color;
     -fx-stroke-line-cap: butt;
-    -fx-stroke-width: 0.15em;
+    -fx-stroke-width: 0.1em;
     -fx-stroke-type: inside;
 }
 .spinner-in {
-    -fx-pref-width: 0.6em;
-    -fx-pref-height: 0.6em;
+    -fx-opacity: 0.8;
+    -fx-pref-width: 0.8em;
+    -fx-pref-height: 0.8em;
+    -fx-stroke-width: 0.1em;
 }
 .spinner-out {
-    -fx-stroke-width: 0.1em;
-    -fx-pref-width: 1em;
-    -fx-pref-height: 1em;
+    -fx-stroke-width: 0.08em;
+    -fx-pref-width: 1.2em;
+    -fx-pref-height: 1.2em;
 }
 
 /********************************** MENU *******************************************************************************

@@ -9,6 +9,8 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.SkinBase
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Arc
+import javafx.scene.shape.Circle
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -19,6 +21,7 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
+import kotlin.math.abs
 
 /** Very simple custom [ProgressIndicator]. */
 class Spinner: ProgressIndicator {
@@ -37,29 +40,32 @@ class Spinner: ProgressIndicator {
       init {
          inner = stackPane {
             lay(BOTTOM_RIGHT) += Arc().apply {
-               length = 270.0
-               startAngle = 180.0
-               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() } on onDispose
-               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() } on onDispose
+               length = 360.0
+               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble()*0.5 } on onDispose
+               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble()*0.5 } on onDispose
                styleClass += "spinner"
                styleClass += "spinner-in"
             }
+            clip = Circle(0.0, 0.0, 15.0)
             styleClass += "spinner-in"
             maxSize = USE_PREF_SIZE x USE_PREF_SIZE
          }
          outer = stackPane {
             lay(Pos.TOP_LEFT) += Arc().apply {
-               length = 270.0
-               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble() } on onDispose
-               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble() } on onDispose
+               length = 360.0
+               this@stackPane.prefWidthProperty() sync { radiusX = it.toDouble()*0.5 } on onDispose
+               this@stackPane.prefWidthProperty() sync { radiusY = it.toDouble()*0.5 } on onDispose
                styleClass += "spinner"
                styleClass += "spinner-out"
             }
+            clip = Circle(0.0, 0.0, 15.0)
             styleClass += "spinner-out"
             maxSize = USE_PREF_SIZE x USE_PREF_SIZE
          }
 
-         inner.rotateProperty() sync { outer.rotate = 360.0 - it.toDouble() } on onDispose
+         inner.rotateProperty() sync { outer.rotate = 360.0 - it.toDouble()/2.0 } on onDispose
+         inner.rotateProperty() sync { inner.clip.asIs<Circle>().radius = inner.prefWidth*(0.8 + 0.3*abs(abs(it.toDouble()).rem(360.0) - 180.0)/180.0) } on onDispose
+         outer.rotateProperty() sync { outer.clip.asIs<Circle>().radius = outer.prefWidth*(0.8 + 0.3*abs(abs(it.toDouble()).rem(360.0) - 180.0)/180.0) } on onDispose
          children += stackPane(inner, outer)
 
          spinner.indeterminateProperty() attach { update() } on onDispose

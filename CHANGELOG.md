@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Image size reading sometimes fail
 - Icon with text has wrong layout
 - Starting some processes blocked until application stopped
+- Progress indicator not centered in certain sizes
 - Popup window fixes
     - popup does not receive focus on show not even when clicked
     - popup not returning focus to previously focused OS window

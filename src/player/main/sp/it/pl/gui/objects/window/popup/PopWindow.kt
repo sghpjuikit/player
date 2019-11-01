@@ -17,7 +17,6 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
-import javafx.scene.robot.Robot
 import javafx.stage.Popup
 import javafx.stage.Stage
 import javafx.stage.StageStyle.TRANSPARENT
@@ -61,7 +60,6 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.hasFileChooserOpen
 import sp.it.util.ui.borderPane
-import sp.it.util.ui.centre
 import sp.it.util.ui.hBox
 import sp.it.util.ui.initClip
 import sp.it.util.ui.initMouseDrag
@@ -76,7 +74,6 @@ import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.stage
-import sp.it.util.ui.toPoint2D
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
 
@@ -133,7 +130,6 @@ open class PopWindow {
    val isShowing get() = window?.isShowing ?: false
 
    private fun getRoot() = root
-   private val onShowAnimationDone = Handler0()
    private var ownerMWindow: Window? = null
    private val animation = lazy {
       anim {
@@ -286,9 +282,6 @@ open class PopWindow {
                      attachTo(windowOwner.focusedProperty(), focusedProperty()) { a, b -> stage.isAlwaysOnTop = a || b } on untilHiding
                   }
                }
-               fun onContentShown(block: () -> Unit) {
-                  if (animation.value.isRunning()) onShowAnimationDone.addSOnetime(block) else block()
-               }
                fun initAutohide() {
                   focusedProperty() attach {
                      if (!it && isAutohide.value) {
@@ -313,19 +306,7 @@ open class PopWindow {
                xy = show(stage)
 
                onIsShowing1st {
-                  onContentShown {
-                     runLater {
-                        with(Robot()) {
-                           val p = mousePosition
-                           mouseMove(centre.toPoint2D())
-                           contentP.isMouseTransparent = true
-                           mouseClick(PRIMARY)
-                           contentP.isMouseTransparent = false
-                           mouseMove(p)
-                        }
-                        initAutohide()
-                     }
-                  }
+                  initAutohide()
                }
             }
          } else {
@@ -371,7 +352,7 @@ open class PopWindow {
    private fun fadeIn() = animation.value.apply {
       applyNow()
       dur(animationDuration.value)
-      playOpenDo { onShowAnimationDone() }
+      playOpenDo { }
    }
 
    private fun fadeOut() = animation.value.apply {

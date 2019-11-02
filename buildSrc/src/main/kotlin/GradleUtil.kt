@@ -12,7 +12,6 @@ import java.io.IOException
 import java.io.Serializable
 import java.nio.file.Files
 import java.nio.file.NotLinkException
-import java.nio.file.Paths
 import java.util.Stack
 import kotlin.text.Charsets.UTF_8
 
@@ -30,13 +29,13 @@ val String.sysProp: String?
 open class LinkJDK: AbstractTask() {
    /** Location of the link to the JDK. */
    @Internal lateinit var linkLocation: File
-   /** JDK home as Path. */
-   @Internal val jdkPath = "java.home".sysProp?.let(Paths::get) ?: failIO { "Unable to find JDK: java.home not set" }
+   /** Location of the JDK. */
+   @Internal lateinit var jdkLocation: File
 
    init {
       this.onlyIf {
          try {
-            Files.readSymbolicLink(linkLocation.toPath())!=jdkPath
+            Files.readSymbolicLink(linkLocation.toPath())!=jdkLocation
          } catch (e: NotLinkException) {
             true
          } catch (e: java.nio.file.NoSuchFileException) {
@@ -51,15 +50,15 @@ open class LinkJDK: AbstractTask() {
    @TaskAction
    fun linkJdk() {
       linkLocation.delete() // delete invalid symbolic link
-      logger.info("Creating link at $linkLocation to $jdkPath...")
+      logger.info("Creating link at $linkLocation to $jdkLocation...")
       try {
-         Files.createSymbolicLink(linkLocation.toPath(), jdkPath)
+         Files.createSymbolicLink(linkLocation.toPath(), jdkLocation.toPath())
       } catch (e: Exception) {
-         logger.warn("Couldn't create a symbolic link at $linkLocation to $jdkPath: $e")
+         logger.warn("Couldn't create a symbolic link at $linkLocation to $jdkLocation: $e")
          val isWindows = "os.name".sysProp?.startsWith("Windows")==true
          if (isWindows) {
             logger.info("Trying to create a Windows junction instead...")
-            val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkLocation" "$jdkPath"""")
+            val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkLocation" "$jdkLocation"""")
             val exitValue = process.waitFor()
             if (exitValue==0 && linkLocation.exists()) logger.info("Successfully created junction!")
             else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }

@@ -1,4 +1,3 @@
-
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import kotlin.text.Charsets.UTF_8
 
@@ -16,33 +15,28 @@ val String.prjProp: String?
    get() = properties[this]?.toString()
 
 fun Project.tests(configuration: Test.() -> Unit) {
-   tasks {
-      test {
-         configuration()
-      }
-   }
+   tasks { test { configuration() } }
 }
 
 // ----- build block
 
 /** Working directory of the application */
 val dirApp = file("app")
+val dirJDKSystem = file("org.gradle.java.home".prjProp ?: failIO { "property 'org.gradle.java.home' not set up" })
 val dirJdk = dirApp/"java"
 val kotlinVersion: String by extra {
    buildscript.configurations["classpath"]
       .resolvedConfiguration.firstLevelModuleDependencies
       .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
 }
-val javaVersion = JavaVersion.current()
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_11, JavaVersion.VERSION_12).also {
-   if (javaVersion !in it) {
-      println("" +
-         "Java version $javaVersion can't be used.\n" +
-         "Set one of ${it.joinToString()} as system default or create a 'gradle.properties'" +
-         "file with 'org.gradle.java.home' pointing to a supported Java version.\n" +
+val javaSupportedVersions = arrayOf(JavaVersion.VERSION_12)
+val javaVersion = JavaVersion.current().also {
+   require(it in javaSupportedVersions) {
+      "" +
+         "Java version $it can't be used.\n" +
+         "Set one of ${javaSupportedVersions.joinToString()} in 'gradle.properties'" +
+         "file (in project directory) with 'org.gradle.java.home' pointing to a supported JDK version.\n" +
          "Currently org.gradle.java.home=${"org.gradle.java.home".prjProp}"
-      )
-      throw IllegalStateException("Invalid Java version: ${JavaVersion.current()}")
    }
 }
 
@@ -66,8 +60,6 @@ allprojects {
       kotlinOptions.verbose = true
       kotlinOptions.freeCompilerArgs += listOf(
          "-progressive",
-         //                "-Xuse-javac",
-         //                "-Xcompile-java",
          "-Xno-call-assertions",
          "-Xno-param-assertions",
          "-Xjvm-default=enable"
@@ -193,6 +185,7 @@ tasks {
    val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
+      jdkLocation = dirJDKSystem
       linkLocation = dirJdk
    }
 

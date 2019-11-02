@@ -9,11 +9,13 @@
 
 - Clone the repository
 
-Optional, but recommended:
-- Set up Vlc (required for playback) (Linux only)  
-  64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
 - Set up JDK  
-  To avoid version mismatch, it is recommended to not use system default and use [OpenJDK11](https://jdk.java.net/11/). Extract to [app/java](app/java) or use arbitrary location: create a `gradle.properties` file at project root with property: `org.gradle.java.home=/path/to/jdk`. [app/java](app/java) link will be created pointing to the directory.
+  To avoid version problems, it is required to specify JDK explicitly
+  - Download & install/extract [OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)
+  - Create a `gradle.properties` file at project
+  - Add property: `org.gradle.java.home=/path/to/jdk`.
+- Set up Vlc (Linux only)  
+  64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
 
 #### Intellij IDEA
 
@@ -21,30 +23,32 @@ Optional, but recommended:
 2) Import from external model -> Gradle 
 3) Check "Use auto-import"  
    Disable "Create separate module per source set"
-4) Run `git checkout .idea` in the Terminal to regain the codeStyles
-5) If you ever want to compile the project with IDEA itself (usually not needed), 
-   you need to add the command line parameters specified in [gradle/project.gradle.kts](gradle/project.gradle.kts)
-   in the IDEA settings for the Kotlin Compiler, Java Compiler & JVM
+4) Set `Project > Open Module Settings > Project > Project SDK` to the same JDK as set in gradle properties
+5) Optionally run `git checkout .idea` in the Terminal to regain the codeStyles
 6) Optionally enable external annotations and use those provided in [idea/annotations](idea/annotations)   
    This will provide project specific deprecations and null type-safety for numerous JDK APIs   
    For more information about this see [official documentation](https://www.jetbrains.com/help/idea/external-annotations.html)
    
 #### Properties
 
-- [gradle/wrapper/gradle-wrapper.properties](gradle/wrapper/gradle-wrapper.properties) shared project properties, specifies gradle version used
-- [gradle.properties](gradle.properties) local project properties, specifies optional language, build (gradle) and custom application run properties, which are:
+- [gradle/wrapper/gradle-wrapper.properties](gradle/wrapper/gradle-wrapper.properties)  
+  Shared project properties, specifies gradle version used
+- [gradle.properties](gradle.properties)  
+  Local project properties, specifies optional language, build (gradle) and custom application run properties, which are:
     - player.memoryMin=100m  // defines -Xms of the JVM of the application
     - player.memoryMax=3g  // defines -Xmx of the JVM of the application
     - player.buildDir=Z:/build  // build output directory
     - player.kotlinc.experimental=true  // whether fast experimental (native) or standard kotlinc is used to compile widgets, default true
     - player.jvmArgs= // custom JVM arguments
-- [settings.gradle.kts](settings.gradle.kts)    // shared project properties, defines gradle build configuration, like build files, etc.
-- [app/user/application.properties](app/user/application.properties) // local application properties, managed by application and editable through ui
+- [settings.gradle.kts](settings.gradle.kts)  
+  Shared project properties, defines gradle build configuration, like build files, etc.
+- [app/user/application.properties](app/user/application.properties)  
+  Local application properties, managed by application and editable through ui
 
 ## Running
 
-- `./gradlew run` compiles and runs the application
 - `./gradlew build` compiles the application and widgets
+- `./gradlew run` compiles and runs the application
 - `./gradlew clean` cleans temporary files
 
 For more tasks: `./gradlew tasks`
@@ -52,7 +56,7 @@ For more tasks: `./gradlew tasks`
 #### Debugging
 
 Use 'block current thread only' for breakpoints. 
-Due to mouse polling (using a native library), blocking all threads (like on a breakpoint) can cause freezes.
+Due to mouse polling (using a native library), blocking all threads (like on a breakpoint) will cause mouse freeze.
 
 ## Widgets
 

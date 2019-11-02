@@ -5,8 +5,7 @@ import mu.KLogging
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.runFX
-import sp.it.util.async.runNew
-import sp.it.util.async.threadFactory
+import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -27,6 +26,7 @@ import java.nio.file.WatchKey
 import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
+import kotlin.concurrent.thread
 
 /**
  *
@@ -143,7 +143,7 @@ class FileMonitor {
          try {
             fm.watchService = FileSystems.getDefault().newWatchService()
 
-            runNew {
+            runIO {
                fun reg(p: File) {
                   try {
                      when {
@@ -168,7 +168,7 @@ class FileMonitor {
 
                reg(fm.monitoredFileDir)
 
-               threadFactory("FileMonitor-${monitoredDir.path}", true).newThread {
+               thread(name = "FileMonitor-${monitoredDir.path}", isDaemon = true) {
                   var valid: Boolean
                   var watchKey: WatchKey
                   do {
@@ -176,9 +176,9 @@ class FileMonitor {
                         watchKey = fm.watchService.take()
                      } catch (e: InterruptedException) {
                         logger.error(e) { "Interrupted monitoring of directory ${fm.monitoredFileDir}" }
-                        return@newThread
+                        return@thread
                      } catch (e: ClosedWatchServiceException) {
-                        return@newThread
+                        return@thread
                      }
 
                      @Suppress("UNCHECKED_CAST")
@@ -199,7 +199,7 @@ class FileMonitor {
 
                      valid = watchKey.reset()
                   } while (valid)
-               }.start()
+               }
             }
 
          } catch (e: IOException) {

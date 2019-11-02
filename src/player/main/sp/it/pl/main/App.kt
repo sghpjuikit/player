@@ -50,7 +50,6 @@ import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
-import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.dev.fail

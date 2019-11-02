@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Rename application to `Spit Player`
-- Avoid starting some plugins for SLAVE application instances
-- Improve DirView cover loading performance
+- Reduced memory consumption (up to 30%) due to adopting AdoptOpenJDK with OpenJ9
+- Reduce application size (largely due to removal of javafx.web)
+- Faster startup for SLAVE instances (due to not starting some plugins)
 - Improve video cover extraction performance (reuses output)
 - Improve overlay animation performance and ux
 - Implement `--dev` developer mode argument option
@@ -55,10 +56,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - certain popup properties not styleable
     - help popups closing too eagerly
 ### Removed
-- experimental Spectrum widget
+- Experimental runtime JVM options editing
+- Experimental Spectrum widget
+- Experimental WebReader widget
 - Terminal widget for its dependencies and maintenance overhead  
   Standalone terminal applications can do a better job anyway
-- experimental WebReader widget
 
 ## [v0.7.0]
 ### Added

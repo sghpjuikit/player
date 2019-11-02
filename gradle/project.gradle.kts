@@ -255,10 +255,11 @@ application {
       "-Dfile.encoding=UTF-8",
       "-ms" + ("player.memoryMin".prjProp ?: "50m"),
       "-mx" + ("player.memoryMax".prjProp ?: "3g"),
-      "-XX:MinHeapFreeRatio=5",
-      "-XX:MaxHeapFreeRatio=10",
+      "-XX:MinHeapFreeRatio=5",  // Hotspot gc only
+      "-XX:MaxHeapFreeRatio=10",  // Hotspot gc only
       "-XX:+UseStringDeduplication",
       "-XX:+UseCompressedOops",
+      "-XX:+CompactStrings",  // OpenJ9 only
       *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
       "--illegal-access=permit"
    )

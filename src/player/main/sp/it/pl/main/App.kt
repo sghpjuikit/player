@@ -23,7 +23,6 @@ import sp.it.pl.gui.UiManager
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.window.stage.WindowManager
-import sp.it.pl.gui.pane.VmOptionsPane
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
@@ -218,18 +217,6 @@ class App: Application(), GlobalConfigDelegator {
 
    @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
    val actionSettingsSave by cr { configuration.save(name, location.user.application_properties) }
-
-   @C(name = "Manage VM options", info = "Manage Java virtual machine settings. Requires developer mode.")
-   val manageVM by cr {
-      windowManager.showFloating("VM options") {
-         VmOptionsPane().apply {
-            prefHeight = 600.emScaled
-         }
-      }
-      Unit
-   }.readOnlyUnless(
-      developerMode
-   )
 
    /** Manages ui. */
    @JvmField val ui = UiManager(location.skins)

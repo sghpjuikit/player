@@ -5,6 +5,9 @@ import javafx.stage.FileChooser
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.util.access.VarEnum
+import sp.it.util.file.FileType
+import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util
 import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.children
@@ -16,12 +19,12 @@ import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
 import sp.it.util.system.Os
+import sp.it.util.text.plural
 import sp.it.util.ui.image.toBuffered
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
 import kotlin.streams.asSequence
-import kotlin.text.Charsets.UTF_16LE
 
 private val logger = KotlinLogging.logger { }
 
@@ -234,27 +237,8 @@ enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<Fil
 
       fun File.walkDirsAndWithCover(): Sequence<File> {
          return if (isDirectory) {
-            val dir = this
-            val cmdDirs = """cmd /U /c dir /s /b /ad "${dir.absolutePath}" 2>nul"""
-            val cmdFiles = """cmd /U /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
-
-            val dirs = try {
-               Runtime.getRuntime().exec(cmdDirs)
-                  .inputStream.bufferedReader(UTF_16LE)
-                  .useLines { it.map { FastFile(it, true, false) }.toList() }
-            } catch (e: Throwable) {
-               logger.error(e) { "Failed to read files in $this using command $cmdDirs" }
-               listOf<FastFile>()
-            }
-            val files = try {
-               Runtime.getRuntime().exec(cmdFiles)
-                  .inputStream.bufferedReader(UTF_16LE)
-                  .useLines { it.map { FastFile(it, false, true) }.toList() }
-            } catch (e: Throwable) {
-               logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
-               listOf<FastFile>()
-            }
-
+            val dirs = windowsCmdDir(this, DIRECTORY)
+            val files = windowsCmdDir(this, FILE)
             val cache = (dirs + files).toHashSet()
             cache.asSequence().filter { it.isDirectory || it.hasCover(cache) }
          } else {
@@ -276,17 +260,7 @@ private fun File.asFileTree(): Sequence<File> =
    when (Os.current) {
       Os.WINDOWS -> {
          if (isDirectory) {
-            val dir = this
-            val cmdFiles = """cmd /U /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
-            try {
-               val files = Runtime.getRuntime().exec(cmdFiles)
-                  .inputStream.bufferedReader(UTF_16LE)
-                  .useLines { it.map { FastFile(it, false, true) }.toList() }
-               files.asSequence()
-            } catch (e: Throwable) {
-               logger.error(e) { "Failed to read files in $this using command $cmdFiles" }
-               sequenceOf<File>()
-            }
+            windowsCmdDir(this, FILE).asSequence()
          } else {
             sequenceOf(this)
          }
@@ -295,3 +269,22 @@ private fun File.asFileTree(): Sequence<File> =
          walk().filter(File::isFile)
       }
    }
+
+private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
+   val isFile = type==FILE
+   val isDir = type==DIRECTORY
+   val cmd = when(type) {
+      DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /ad "${dir.absolutePath}" 2>nul"""
+      FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
+   }
+
+   return try {
+      Runtime.getRuntime().exec(cmd)
+         .inputStream.bufferedReader(Charsets.UTF_8)
+         .useLines { it.map { FastFile(it, isDir, isFile) }.toList() }
+   } catch (e: Throwable) {
+      logger.error(e) { "Failed to read ${type.name.plural()} in $dir using command $cmd" }
+      listOf()
+   }
+
+}

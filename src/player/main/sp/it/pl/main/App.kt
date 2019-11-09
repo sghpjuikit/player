@@ -5,6 +5,7 @@ import com.sun.tools.attach.VirtualMachine
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.image.Image
+import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.PlayerManager
@@ -50,10 +51,13 @@ import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
 import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeTypes
@@ -65,6 +69,8 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.system.Os
 import sp.it.util.system.SystemOutListener
+import sp.it.util.system.chooseFile
+import sp.it.util.system.saveFile
 import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
@@ -75,7 +81,7 @@ import java.net.URI
 import java.net.URLConnection
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
-import sp.it.util.conf.IsConfig as C
+import sp.it.pl.main.AppSettings.app as conf
 
 lateinit var APP: App
 private val verify = File::verify
@@ -100,7 +106,7 @@ fun main(args: Array<String>) {
 
 /** Application. Represents the program. */
 class App: Application(), GlobalConfigDelegator {
-   override val configurableGroupPrefix = "General"
+   override val configurableGroupPrefix = conf.name
 
    init {
       APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
@@ -128,7 +134,7 @@ class App: Application(), GlobalConfigDelegator {
     * [MASTER] instance is the one that singleton [SLAVE]s delegate to.
     * [SLAVE] instance is partly read-only, mostly to avoid concurrent io.
     */
-   val rank = rankAtStart
+   val rank by c(rankAtStart) def conf.rank
    /** Whether application should close and delegate arguments if there is already running instance. */
    var isSingleton = true
    /** Whether application starts with a state. If false, state is not restored on start or stored on close. */
@@ -169,53 +175,73 @@ class App: Application(), GlobalConfigDelegator {
       }
    }
 
-   // cores (always active, mostly singletons)
-   @JvmField val configuration = MainConfiguration.apply { rawAdd(location.user.application_properties) }
-   @JvmField val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
-   @JvmField val env = CoreEnv.apply { init() }
-   @JvmField val imageIo = CoreImageIO(locationTmp/"imageio")
-   @JvmField val converter = CoreConverter().apply { init() }
-   @JvmField val serializerJson = CoreSerializerJson()
-   @JvmField val serializer = CoreSerializer
-   @JvmField val instances = CoreInstances
-   @JvmField val mimeTypes = MimeTypes
-   @JvmField val className = ClassName()
-   @JvmField val instanceName = InstanceName()
-   @JvmField val instanceInfo = InstanceDescription()
-   @JvmField val classFields = ObjectFieldMap.DEFAULT
-   @JvmField val contextMenus = CoreMenus
-   @JvmField val mouse = CoreMouse
-   @JvmField val functors = CoreFunctors
+   /** Configuration core. */
+   val configuration = MainConfiguration.apply { rawAdd(location.user.application_properties) }
+   /** Logging core. */
+   val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
+   /** Environment core. */
+   val env = CoreEnv.apply { init() }
+   /** Image I/O core. */
+   val imageIo = CoreImageIO(locationTmp/"imageio")
+   /** String-Object converter core. */
+   val converter = CoreConverter().apply { init() }
+   /** Json converter core. */
+   val serializerJson = CoreSerializerJson()
+   /** Single persistent storage per type core. */
+   val serializer = CoreSerializer
+   /** File mime type core. */
+   val mimeTypes = MimeTypes
+   /** Map of instances per type core. */
+   val instances = CoreInstances
+   /** Class to ui name core. */
+   val className = ClassName()
+   /** Instance to ui name core. */
+   val instanceName = InstanceName()
+   /** Instance to ui description core. */
+   val instanceInfo = InstanceDescription()
+   /** Instance description fields core. */
+   val classFields = ObjectFieldMap.DEFAULT
+   /** Context menus core. */
+   val contextMenus = CoreMenus
+   /** Mouse core. */
+   val mouse = CoreMouse
+   /** Object functions core. */
+   val functors = CoreFunctors
 
-   @C(name = "Level (console)", group = "Logging", info = "Logging level for logging to console")
-   val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
-
-   @C(name = "Level (file)", group = "Logging", info = "Logging level for logging to file")
-   val logLevelFile by cv(Level.WARN).values(logLevels).uiNoOrder() sync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
-
-   @C(name = "Text for no value", info = "Preferred text when no tag value for field. This value can be overridden.")
-   var textNoVal by c("<none>")
-
-   @C(name = "Text for multi value", info = "Preferred text when multiple tag values per field. This value can be overridden.")
-   var textManyVal by c("<multi>")
-
-   @C(
-      name = "Developer mode",
-      info = "Unlock developer features." +
-         "\n * widgets will not recompile when any library or application jar is modified after widget's source file" +
-         "\n * enables Java VM management" +
-         "\n * enables menu items that call object's methods using reflection" +
-         "\n * shows experimental widgets" +
-         "\n * shows class information about objects in object details" +
-         "\nCan be forced to true by starting the application with a `--dev` flag"
-   )
-   val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) }
-
-   @C(group = "Settings", name = "Settings use default", info = "Set all settings to default values.")
-   val actionSettingsReset by cr { configuration.toDefault() }
-
-   @C(group = "Settings", name = "Settings save", info = "Save all settings. Also invoked automatically when application closes")
-   val actionSettingsSave by cr { configuration.save(name, location.user.application_properties) }
+   /** Logging level for logging to standard output. */
+   val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() def conf.logging.`level(stdout)` sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
+   /** Logging level for logging to file. */
+   val logLevelFile by cv(Level.WARN).values(logLevels).uiNoOrder() def conf.logging.`level(file)` sync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
+   /** Developer mode. Enables certain features useful for developers or power users. */
+   val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) } def conf.developerMode
+   /** Action that calls [System.gc]. */
+   val actionCallGc by cr(conf.runGarbageCollector) { System.gc() }.readOnlyUnless(developerMode)
+   /** Action that persists [configuration] to default application properties file. */
+   val actionSettingsSave by cr(conf.settings.saveSettings) {
+      configuration.save(name, location.user.application_properties)
+   }
+   /** Action that persists [configuration] to user specified file. */
+   val actionSettingsSaveTo by cr(conf.settings.saveSettingsToFile) {
+      saveFile("Export settings", location.user.application_properties, "SpitPlayer", null, ExtensionFilter("Properties", "*.properties")).ifOk {
+         configuration.save(name, it)
+      }
+   }
+   /** Action that loads [configuration] to default values. */
+   val actionSettingsLoadDefault by cr(conf.settings.loadDefaultSettings) {
+      configuration.toDefault()
+   }
+   /** Action that re-loads [configuration] to values in default application properties file. */
+   val actionSettingsLoad by cr(conf.settings.loadSettings) {
+      configuration.rawAdd(location.user.application_properties);
+      configuration.rawSet()
+   }
+   /** Action that re-loads [configuration] to values in user specified file. */
+   val actionSettingsLoadFrom by cr(conf.settings.loadSettingsFromFile) {
+      chooseFile("Import settings", FILE, location.user.application_properties, null, ExtensionFilter("Properties", "*.properties")).ifOk {
+         configuration.rawAdd(it);
+         configuration.rawSet()
+      }
+   }
 
    /** Manages ui. */
    @JvmField val ui = UiManager(location.skins)
@@ -266,7 +292,7 @@ class App: Application(), GlobalConfigDelegator {
    override fun start(primaryStage: Stage) {
       isInitialized = runTry {
          plugins.initForApp()
-         configuration.gatherActions(APP.audio::class.java, null)
+         configuration.gatherActions(APP.audio)
          configuration.gatherActions(PlaylistManager::class.java, null)
          configuration.installActions(
             this,
@@ -301,7 +327,7 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    /** Starts this application normally if not yet started that way, otherwise has no effect. */
-   @IsAction(name = "Start app normally", desc = "Loads last application state if not yet loaded.")
+   @IsAction(name = conf.startNormally.cname, desc = conf.startNormally.cinfo)
    fun startNormally() {
       if (!isStateful) {
          isStateful = true
@@ -345,7 +371,7 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    /** Close this app normally. Causes invocation of [stop] as a result. */
-   @IsAction(name = "Close app", desc = "Closes this application.")
+   @IsAction(name = conf.close.cname, desc = conf.close.cinfo)
    fun close() {
       logger.info { "Closing application" }
 

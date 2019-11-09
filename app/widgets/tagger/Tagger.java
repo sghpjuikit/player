@@ -66,6 +66,7 @@ import sp.it.pl.layout.widget.controller.io.Input;
 import sp.it.pl.layout.widget.feature.SongReader;
 import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.main.AppProgress;
+import sp.it.pl.main.AppTexts;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.plugin.notif.Notifier;
 import sp.it.util.access.V;
@@ -284,7 +285,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         fields.add(new TagField(playcountF, PLAYCOUNT, isIntS));
         fields.add(new TagField(commentF, COMMENT));
         fields.add(new TagField(moodF, MOOD));
-        fields.add(new TagField(colorF, CUSTOM1, s -> APP.converter.general.isValid(Color.class, s)));
+        fields.add(new TagField(colorF, CUSTOM1, s -> APP.getConverter().general.isValid(Color.class, s)));
         fields.add(new TagField(custom1F, CUSTOM1));
         fields.add(new TagField(custom2F, CUSTOM2));
         fields.add(new TagField(custom3F, CUSTOM3));
@@ -298,7 +299,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         // associate color picker with custom1 field
         colorFPicker.disableProperty().bind(colorF.disabledProperty());
         colorFPicker.valueProperty().addListener((o,ov,nv) ->
-            colorF.setText(nv==null || nv==EMPTY_COLOR ? "" : APP.converter.general.toS(nv))
+            colorF.setText(nv==null || nv==EMPTY_COLOR ? "" : APP.getConverter().general.toS(nv))
         );
 
         // deselect text fields on click
@@ -600,9 +601,9 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
 
                     // handle cover separately
                     String coverInfoText = null;
-                    if (c==0) coverInfoText = APP.getTextNoVal();
+                    if (c==0) coverInfoText = AppTexts.INSTANCE.getTextNoVal();
                     if (c==1) coverInfoText = s;
-                    if (c==2) coverInfoText = APP.getTextManyVal();
+                    if (c==2) coverInfoText = AppTexts.INSTANCE.getTextManyVal();
                     CoverL.setText(coverInfoText);
                     CoverV.loadImage(c==1 ? co.getImage() : null);
 
@@ -656,7 +657,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
             CoverL.setUserData(true);
         } else {
             CoverV.loadImage(null);
-            CoverL.setText(APP.getTextNoVal());
+            CoverL.setText(AppTexts.INSTANCE.getTextNoVal());
             CoverL.setUserData(true);
         }
     }
@@ -756,7 +757,7 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
                 c.setUserData(true);
                 c.setText("");
                 c.setText("");
-                c.setText(Util.equalsAny(c.getPromptText(), APP.getTextNoVal(), APP.getTextManyVal())
+                c.setText(Util.equalsAny(c.getPromptText(), AppTexts.INSTANCE.getTextNoVal(), AppTexts.INSTANCE.getTextManyVal())
                                 ? "" : c.getPromptText());
                 c.setPromptText("");
                 c.selectAll();
@@ -816,14 +817,14 @@ public class Tagger extends SimpleController implements SongWriter, SongReader {
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if (f==CUSTOM1) {
-                Color c = orNull(APP.converter.general.ofS(Color.class,histogramS));
+                Color c = orNull(APP.getConverter().general.ofS(Color.class,histogramS));
                 colorFPicker.setValue(c==null ? EMPTY_COLOR : c);
                 colorF.setText("");
             }
 
-            if      (histogramI == 0)   c.setPromptText(APP.getTextNoVal());
+            if      (histogramI == 0)   c.setPromptText(AppTexts.INSTANCE.getTextNoVal());
             else if (histogramI == 1)   c.setPromptText(histogramS);
-            else if (histogramI == 2)   c.setPromptText(APP.getTextManyVal());
+            else if (histogramI == 2)   c.setPromptText(AppTexts.INSTANCE.getTextManyVal());
 
             // remember prompt text
             c.setId(c.getPromptText());

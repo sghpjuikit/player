@@ -1,6 +1,7 @@
 package sp.it.util.conf
 
 
+import sp.it.util.functional.toUnit
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.FIELD
 import kotlin.annotation.AnnotationTarget.LOCAL_VARIABLE
@@ -47,6 +48,8 @@ fun <T: Any?, C: Conf<T>> C.def(
 ) = apply {
    def = ConfigDef(name, info, group, editable)
 }
+
+fun <T: () -> Any?> cr(def: ConfigDefinition, action: T) = cr { action()?.toUnit() ?: Unit }.def(def)
 
 /**
  * Represents [ConfigDefinition] through [Conf.def].

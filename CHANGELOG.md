@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Wallpaper` plugin start/changeWallpaper() animation
 - Implement `Wallpaper` plugin window hiding when no image
 - Implement new popups
+- Implement application settings import/export/defaults actions
+- Improve application settings order/hierarchy
 - Improve image loading performance for common formats dramatically
 - Improve image loading performance
 ### Fix

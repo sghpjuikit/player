@@ -50,6 +50,7 @@ import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.valuesIn
 import sp.it.util.dev.ThreadSafe
@@ -91,7 +92,7 @@ import java.io.File
 import java.util.HashSet
 import java.util.Optional
 import javafx.stage.Window as WindowFX
-import sp.it.pl.main.AppSettings.ui.dock as confDock
+import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
 
 class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
@@ -127,23 +128,13 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          }
       }
    }
-
-   @IsConfig(name = "Show delay", group = confDock.name, info = "Mouse hover time it takes for the dock to show.")
-   val dockHoverDelay by cv(700.millis)
-
-   @IsConfig(name = "Hide when inactive", group = confDock.name, info = "Hide dock when no mouse activity is detected.")
-   val dockHideInactive by cv(true)
-
-   @IsConfig(name = "Hide when inactive for", group = confDock.name, info = "Mouse away time it takes for the dock to hide.")
-   val dockHideInactiveDelay by cv(1500.millis).readOnlyUnless(dockHideInactive)
-
-   @IsConfig(name = "Dock content", group = confDock.name, info = "Widget to use in dock.")
-   val dockWidget by cv(PLAYBACK).valuesIn {
+   val dockHoverDelay by cv(700.millis).def(confDock.showDelay)
+   val dockHideInactive by cv(true).def(confDock.hideOnIdle)
+   val dockHideInactiveDelay by cv(1500.millis).def(confDock.hideOnIdleDelay).readOnlyUnless(dockHideInactive)
+   val dockWidget by cv(PLAYBACK).def(confDock.content).valuesIn {
       APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.name() }
    }
-
-   @IsConfig(name = "Dock", group = confDock.name, info = "Whether application has docked window in the top of the screen.")
-   val dockShow by cv(false) sync { showDockImpl(it) }
+   val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
 
    /** @return main window or null if no main window (only possible when no window is open) */
    fun getMain(): Optional<Window> = Optional.ofNullable(mainWindow)

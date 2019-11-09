@@ -1,28 +1,96 @@
-val appSetting = Setting.root {
-   "General" {
-      config("Close app")
-      config("Developer mode")
-      config("Manage VM options")
-   }
-   "Logging" {
+import EditMode.APP
+import EditMode.NONE
 
+val appSetting = Setting.root {
+   "App" {
+      "Logging" {
+         config("Level (stdout)") {
+            info = "Logging level for logging to standard output"
+         }
+         config("Level (file)") {
+            info = "Logging level for logging to file"
+         }
+      }
+      "Settings" {
+         config("Save settings") {
+            info = "Saves settings to the default application properties file"
+         }
+         config("Save settings to file...") {
+            info = "Saves/exports settings to a file"
+         }
+         config("Load default settings") {
+            info = "Loads settings to default values. Discards all non-default settings."
+         }
+         config("Load settings") {
+            info = "Loads settings from default application properties file. Discards any unsaved settings."
+         }
+         config("Load settings from file...") {
+            info = "Loads/imports settings from default application properties file"
+         }
+      }
+      config("Rank") {
+         editable = NONE
+         info = "Rank of this application instance.\n" +
+            "User may wish to run certain components as separate processes. In order to make these lightweight and " +
+            "safe, certain features might be disabled or delegated to the primary application instance called `MASTER`.\n" +
+            "Other instances are called `SLAVE` instances. They can be thought of as single-purpose short-lived " +
+            "one-off programs.\n" +
+            "The rank is determined at instance start up. If no other instances (of any rank) are running, the instance " +
+            "becomes `MASTER`, otherwise it becomes `SLAVE`. The rank can not be specified at startup or changed later.\n" +
+            "Closing `MASTER` instance will not close `SLAVE` instances nor turn them into `MASTER` instance."
+      }
+      config("Developer mode") {
+         info = "Enables certain features. Can be forced to `true` by starting the application with a `--dev` flag.\n" +
+            "Features:" +
+            "\n  * Widgets will not recompile when application jars are modified (Prevents recompilation on every application build)" +
+            "\n  * Enables menu items that call object's methods using reflection" +
+            "\n  * Shows experimental widgets" +
+            "\n  * Shows class information about objects in object details"
+      }
+      config("Close") {
+         info = "Closes this application"
+      }
+      config("Start normally") {
+         info = "Loads last application state if not yet loaded"
+      }
+      config("Run garbage collector") {
+         info = "Run JVM garbage collector using 'System.gc()'. Requires developer mode enabled."
+      }
    }
    "Plugins" {
       "Guide" {
          config("Hint") {
             info = "Last viewed hint. Showed next time the guide opens."
-            editable = EditMode.APP
+            editable = APP
          }
          config("Show guide on app start") {
             info = "Show guide when application starts. Default true, but when guide is shown, it is set to false so the guide will never appear again on its own."
-            editable = EditMode.APP
+            editable = APP
          }
+      }
+      "Screen Dock" {
+         config("Enable") {
+            info = "Enable/disable this plugin. Whether application has docked window in the top of the screen"
+         }
+         config("Content") {
+            info = "Component displayed as content in the dock"
+         }
+         config("Show delay") {
+            info = "Mouse hover time it takes for the dock to show"
+         }
+         config("Hide on idle") {
+            info = "Hide dock when no mouse activity is detected"
+         }
+         config("Hide on idle delay") {
+            info = "Mouse away time it takes for the dock to hide"
+         }
+
       }
    }
    "Search" {
       config("Sources") {
          info = "Sources providing potential search results"
-         editable = EditMode.APP
+         editable = APP
       }
       config("Search algorithm") {
          info = "Algorithm for text matching."
@@ -124,9 +192,6 @@ val appSetting = Setting.root {
          }
       }
       "Window" {
-
-      }
-      "Dock" {
 
       }
    }

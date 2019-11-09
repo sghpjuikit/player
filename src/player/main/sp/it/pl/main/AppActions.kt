@@ -209,11 +209,6 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       showAll()
    }
 
-   @IsAction(name = "Run garbage collector", desc = "Runs java's garbage collector using 'System.gc()'.")
-   fun runGarbageCollector() {
-      System.gc()
-   }
-
    @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
    fun showSearchPosScreen() {
       PopWindow().apply {

@@ -520,7 +520,7 @@ public class MetadataWriter extends Song {
 
 	/** @param c the color to set */
 	public void setColor(Color c) {
-		setCustomField(TAG_ID_COLOR, APP.converter.general.toS(c));
+		setCustomField(TAG_ID_COLOR, APP.getConverter().general.toS(c));
 	}
 
 	/** @param tags tags to set */

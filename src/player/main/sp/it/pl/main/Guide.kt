@@ -53,7 +53,7 @@ import java.util.ArrayList
 import sp.it.pl.main.AppSettings.plugins.guide as conf
 
 
-class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.name) {
+class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.group) {
 
    private val firstTime by cv(true) def conf.showGuideOnAppStart
    private val at by cv(-1) def conf.hint

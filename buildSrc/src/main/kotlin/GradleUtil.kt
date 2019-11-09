@@ -217,7 +217,10 @@ open class GenerateKtSettings: DefaultTask() {
          repeat(depth) { append(outIndent) }
          appendln(text)
       }
-      fun defName(text: String) = text.split(" ").flatMap { it.split("-") }.joinToString("") { it.capitalize() }.decapitalize()
+      fun defName(text: String) = text.split(" ")
+         .flatMap { it.split("-") }.joinToString("") { it.capitalize() }
+         .decapitalize()
+         .let { "`${it.replace(".", "")}`" }
 
       when (this) {
          is Setting.SettingRoot -> {
@@ -238,11 +241,11 @@ open class GenerateKtSettings: DefaultTask() {
          is Setting.SettingConfig -> {
             sb.appendIndentln("object ${defName(name)}: ConfigDefinition {")
             sb.appendIndentln("${outIndent}/** Compile-time constant equivalent to [name]. */")
-            sb.appendIndentln("${outIndent}const val cname: String = \"$name\"")
+            sb.appendIndentln("${outIndent}const val cname: String = \"\"\"${name.replace("\n", "${'\n'}")}\"\"\"")
             sb.appendIndentln("${outIndent}/** Compile-time constant equivalent to [info]. */")
-            sb.appendIndentln("${outIndent}const val cinfo: String = \"$info\"")
+            sb.appendIndentln("${outIndent}const val cinfo: String = \"\"\"$info\"\"\"")
             sb.appendIndentln("${outIndent}/** Compile-time constant equivalent to [group]. */")
-            sb.appendIndentln("${outIndent}const val cgroup: String = \"$group\"")
+            sb.appendIndentln("${outIndent}const val cgroup: String = \"\"\"$group\"\"\"")
             sb.appendIndentln("${outIndent}/** Name of the config. */")
             sb.appendIndentln("${outIndent}override val name = cname")
             sb.appendIndentln("${outIndent}/** Group of the config. */")

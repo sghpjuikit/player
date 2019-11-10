@@ -28,12 +28,16 @@ import sp.it.util.conf.Constraint
 import sp.it.util.conf.ValueConfig
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.attachChanges
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncTo
+import sp.it.util.ui.label
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.text
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.sqrt
 
 /**
  * Creates simple help popover designed as a tooltip for help buttons.
@@ -80,9 +84,10 @@ fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
 /** @return standardized icon associated with a form that invokes an action */
 fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(Side.RIGHT, text)
 
+/** @return standardized progress indicator with start/finish animation and start/finish actions */
 @JvmOverloads
 fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (ProgressIndicator) -> Unit = {}) = Spinner().apply {
-   val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator()).applyNow()
+   val a = anim { setScaleXY(sqrt(it)) }.dur(500.millis).intpl(ElasticInterpolator()).applyNow()
    progressProperty() attachChanges { ov, nv ->
       if (ov.toDouble()==1.0) {
          onStart(this)
@@ -92,6 +97,12 @@ fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (P
          a.playCloseDo { onFinish(this) }
       }
    }
+}
+
+/** @return standardized progress indicator label with start/finish animation */
+fun appProgressIndicatorTitle(progressIndicator: ProgressIndicator) = label {
+   progressIndicator.scaleXProperty() syncTo scaleXProperty()
+   progressIndicator.scaleYProperty() syncTo scaleYProperty()
 }
 
 @JvmOverloads

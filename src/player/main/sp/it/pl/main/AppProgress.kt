@@ -60,8 +60,14 @@ import java.util.concurrent.Executor
 object AppProgress {
    private val tasksActive = ConcurrentHashMap<String, AppTask>()
    private val tasks = observableArrayList<AppTask>()!!
+   /** Overall progress value that is [ProgressIndicator.INDETERMINATE_PROGRESS] if [activeTaskCount] > `0` or `1.0` otherwise. */
    val progress = v(1.0)
-   val loop = Loop(Runnable { tasksActive.values.forEach { it.updateTimeActive() } }).start()
+   /** Number of active tasks. */
+   val activeTaskCount = v(0)
+   private val loop = Loop(Runnable {
+      activeTaskCount.value = tasksActive.size
+      tasksActive.values.forEach { it.updateTimeActive() } }
+   ).start()
 
    /**
     * The task starts as [SCHEDULED], immediately transitions to [ACTIVE] and completes on

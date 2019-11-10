@@ -11,7 +11,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -86,6 +85,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
+import static sp.it.pl.main.AppBuildersKt.appProgressIndicatorTitle;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.getAnyFut;
@@ -309,14 +309,9 @@ public class Window extends WindowBase {
 			.tooltip("Errors");
 		onChangeAndNow(AppErrors.INSTANCE.getHistory(), runnable(() -> errorB.setVisible(!AppErrors.INSTANCE.getHistory().isEmpty())));
 
-		leftHeaderBox.getChildren().addAll(
-			propB, runB, new Label(" "),
-			ltB, lockB, lmB, rtB, new Label(" "),
-			guideB, helpB, progB, errorB
-		);
+		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), guideB, helpB, progB, errorB);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
-
 
 		Icon miniB = new Icon(null, -1, "Toggle dock", () -> toggle(APP.windowManager.getDockShow())).styleclass("header-icon");
 		syncC(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
@@ -340,11 +335,12 @@ public class Window extends WindowBase {
 		rightHeaderBox.setTranslateY(-4);
 		initClip(rightHeaderBox, new Insets(4, 0, 4, 0));
 
-
-
-		ProgressIndicator x = appProgressIndicator();
-		x.progressProperty().bind(AppProgress.INSTANCE.getProgress());
-		leftHeaderBox.getChildren().add(x);
+		var progI = appProgressIndicator();
+		var progL = appProgressIndicatorTitle(progI);
+		AppProgress.INSTANCE.getProgress().syncC(v -> progI.setProgress(v));
+		AppProgress.INSTANCE.getActiveTaskCount().syncC(v -> { if (v>0) progL.setText(v + " running tasks..."); });
+		leftHeaderBox.getChildren().add(progI);
+		leftHeaderBox.getChildren().add(progL);
 
 		installStartLayoutPlaceholder(this);
 	}
@@ -498,31 +494,6 @@ public class Window extends WindowBase {
 	/** Set title alignment. */
 	public void setTitlePosition(Pos align) {
 		BorderPane.setAlignment(titleL, align);
-	}
-
-	/**
-	 * Creates new progress indicator in this window's header, and returns it.
-	 * Bind or set its progress value to show ongoing task's progress.
-	 * <ul>
-	 * <li> Set the the indicator's progress to -1, to indicate the task has
-	 * started. This will display the indicator.
-	 * <li> Stop the indicator by setting progress to 1, when your task finishes.
-	 * </ul>
-	 * Always do both on FX application thread.
-	 * <p/>
-	 * Multiple indicators are supported. Never use the same one for more than
-	 * one task/work.
-	 * <p/>
-	 * Indicator is disposed of automatically when progress is set to 1. Be sure
-	 * that the task finishes at some point!
-	 *
-	 * @return indicator
-	 */
-	public ProgressIndicator taskAdd() {
-		return appProgressIndicator(
-			consumer(pi -> leftHeaderBox.getChildren().add(pi)),
-			consumer(pi -> leftHeaderBox.getChildren().remove(pi))
-		);
 	}
 
 /* ---------- WINDOW MECHANICS -------------------------------------------------------------------------------------- */

@@ -62,6 +62,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_M
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -465,11 +466,11 @@ public class Window extends WindowBase {
 				animPar(
 					animPar(
 						forEachIStream(filter(leftHeaderBox.getChildren(), it -> it instanceof Icon), (i, icon) ->
-							new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
+							new Anim(at -> setScaleXY(icon, sqrt(at))).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
 					),
 					animPar(
 						forEachIRStream(rightHeaderBox.getChildren(), (i, icon) ->
-							new Anim(at -> setScaleXY(icon, at*at)).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
+							new Anim(at -> setScaleXY(icon, sqrt(at))).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
 					)
 				).play();
 			}

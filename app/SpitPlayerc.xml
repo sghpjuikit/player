@@ -3,7 +3,7 @@
   <dontWrapJar>true</dontWrapJar>
   <headerType>console</headerType>
   <jar>SpitPlayer.jar</jar>
-  <outfile>SpitPlayer.exe</outfile>
+  <outfile>SpitPlayerc.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
@@ -26,7 +26,7 @@
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
     <runtimeBits>64</runtimeBits>
-    <opt>-Xms50m -Xmx4g -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:+UseStringDeduplication -XX:+UseCompressedOops --add-opens=java.desktop/java.awt.font=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.util.stream=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=javafx.controls/javafx.scene.control=ALL-UNNAMED --add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED --add-opens=javafx.graphics/javafx.scene.image=ALL-UNNAMED --add-opens=javafx.graphics/com.sun.prism=ALL-UNNAMED -Dfile.encoding=UTF-8</opt>
+    <opt>-Xms50m -Xmx4g -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:+UseStringDeduplication -XX:+UseCompressedOops -Dfile.encoding=UTF-8 --illegal-access=permit</opt>
   </jre>
   <messages>
     <startupErr>An error occurred while starting the application.</startupErr>

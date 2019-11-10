@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename application to `Spit Player`
 - Reduced memory consumption (up to 30%) due to adopting AdoptOpenJDK with OpenJ9
 - Reduce application size (largely due to removal of javafx.web)
-- Faster startup for SLAVE instances (due to not starting some plugins)
-- Improve video cover extraction performance (reuses output)
-- Improve overlay animation performance and ux
 - Implement `--dev` developer mode argument option
 - Implement `--uiless` argument option
 - Implement ui less application mode
@@ -29,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement new popups
 - Implement application settings import/export/defaults actions
 - Improve application settings order/hierarchy
+- Improve SLAVE application startup (due to not starting some plugins)
+- Improve initial window showing performance
+- Improve video cover extraction performance (reuses previous output)
+- Improve overlay animation performance and ux
 - Improve image loading performance for common formats dramatically
 - Improve image loading performance
 ### Fix

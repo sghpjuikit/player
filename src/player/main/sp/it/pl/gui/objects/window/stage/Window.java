@@ -16,7 +16,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
@@ -84,7 +83,9 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
+import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.buildWindowLayout;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
+import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.lookupId;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicatorTitle;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
@@ -132,10 +133,12 @@ public class Window extends WindowBase {
 	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
 
 	/** Scene root. Assigned {@link #scWindow} styleclass. */
-	@FXML public StackPane root = new StackPane();
-	@FXML public StackPane back, backImage;
-	@FXML public AnchorPane front, content;
-	@FXML HBox rightHeaderBox;
+	public StackPane root = buildWindowLayout(consumer(this::border_onDragStart), consumer(this::border_onDragged), consumer(this::border_onDragEnd));
+	public StackPane back = lookupId(root, "back", StackPane.class);
+	public StackPane backImage = lookupId(root, "backImage", StackPane.class);
+	public AnchorPane front = lookupId(root, "front", AnchorPane.class);
+	public AnchorPane content = lookupId(root, "content", AnchorPane.class);
+	public HBox rightHeaderBox = lookupId(root, "rightHeaderBox", HBox.class);
 
 	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
 	/** Denotes whether this is main window. Closing main window closes the application. Only one window can be main. */
@@ -225,7 +228,7 @@ public class Window extends WindowBase {
 		});
 
 		// show header by hovering over a thin activator
-		header_activator.addEventFilter(MOUSE_ENTERED, e -> {
+		headerActivator.addEventFilter(MOUSE_ENTERED, e -> {
 			if (!_headerVisible)
 				applyHeaderVisible(true);
 		});
@@ -440,20 +443,21 @@ public class Window extends WindowBase {
 
 /* ---------- HEADER & BORDER --------------------------------------------------------------------------------------- */
 
-	@FXML private StackPane headerContainer;
-	@FXML private StackPane header;
-	@FXML private Pane header_activator;
-	@FXML private Label titleL;
-	@FXML private HBox leftHeaderBox;
+	private StackPane headerContainer = lookupId(root, "headerContainer", StackPane.class);
+	private StackPane header = lookupId(root, "header", StackPane.class);
+	private StackPane headerActivator = lookupId(root, "headerActivator", StackPane.class);
+	private Label titleL = lookupId(root, "titleL", Label.class);
+	private HBox leftHeaderBox = lookupId(root, "leftHeaderBox", HBox.class);
 	private boolean _headerVisible = true;
 
 	/** Whether header can be ever visible. Default true. */
 	public final V<Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
-	public final V<Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !isFullscreen()));
+	public final V<Boolean> isHeaderVisible = new V<>(true).initSyncC(v -> applyHeaderVisible(v && !isFullscreen()));
 
 	private void applyHeaderVisible(boolean headerOn) {
-		boolean hOn = headerOn && isHeaderAllowed.get();
+		var hOn = headerOn && isHeaderAllowed.get();
+		var isInitialized = s.isShowing();
 
 		headerContainer.setMinHeight(hOn ? USE_COMPUTED_SIZE : 0);
 		headerContainer.setPrefHeight(hOn ? USE_COMPUTED_SIZE : 0);
@@ -462,7 +466,7 @@ public class Window extends WindowBase {
 		if (hOn != _headerVisible) {
 			_headerVisible = headerOn;
 			header.setVisible(hOn);
-			if (hOn) {
+			if (hOn && isInitialized) {
 				animPar(
 					animPar(
 						forEachIStream(filter(leftHeaderBox.getChildren(), it -> it instanceof Icon), (i, icon) ->

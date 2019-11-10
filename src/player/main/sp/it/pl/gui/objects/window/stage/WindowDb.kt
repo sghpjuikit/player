@@ -12,6 +12,7 @@ class WindowDb(
    val h: Double = 400.0,
    val main: Boolean = false,
    val resizable: Boolean = true,
+   val headerVisible: Boolean = true,
    val minimized: Boolean = false,
    val fullscreen: Boolean = false,
    val onTop: Boolean = false,
@@ -27,6 +28,7 @@ class WindowDb(
       it.MaxProp.value = maximized
       it.FullProp.value = fullscreen
       it.resizable.value = resizable
+      it.isHeaderVisible.value = headerVisible
       it.isAlwaysOnTop = onTop
       it.initLayout(layout?.toDomain())
    }
@@ -39,6 +41,7 @@ class WindowDb(
          w.H.value,
          w.isMain.value,
          w.resizable.value,
+         w.isHeaderVisible.value,
          w.s.isIconified,
          w.fullscreen.value,
          w.alwaysOnTop.value,

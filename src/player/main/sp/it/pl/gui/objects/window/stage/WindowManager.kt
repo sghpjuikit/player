@@ -75,10 +75,8 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncTo
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
-import sp.it.util.ui.fxml.ConventionFxmlLoader
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
@@ -109,7 +107,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    @IsConfig(name = "Opacity", info = "Window opacity.")
    val windowOpacity by cv(1.0).between(0.0, 1.0)
 
-   @IsConfig(name = "Headerless", info = "Hides window header.")
+   @IsConfig(name = "Headerless", info = "Affects window header visibility for new windows.")
    val windowHeaderless by cv(false)
 
    private var dockIsTogglingWindows = false
@@ -196,12 +194,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    fun create(owner: Stage?, style: StageStyle, canBeMain: Boolean): Window {
       val w = Window(owner, style)
 
-      ConventionFxmlLoader(w.root, w).loadNoEx<Any>()
       if (mainWindow==null && APP.isUiApp && canBeMain) setAsMain(w)
 
       w.initialize()
 
-      windowHeaderless syncTo w.isHeaderVisible on w.onClose
+      w.isHeaderVisible.value = windowHeaderless.value
       w.stage.title = APP.name
       w.stage.icons setTo windowIcons
 

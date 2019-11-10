@@ -60,7 +60,7 @@ class SongDb {
       running = true
 
       moods = APP.location.resources.moods_txt.readTextTry().orNull().orEmpty().lineSequence().toSet()
-      runNew { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
+      runIO { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
    }
 
    fun stop() {

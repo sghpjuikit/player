@@ -348,7 +348,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
-		return stream(APP.classFields.get(filterType))
+		return stream(APP.getClassFields().get(filterType))
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))

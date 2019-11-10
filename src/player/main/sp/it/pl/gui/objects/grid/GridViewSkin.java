@@ -242,7 +242,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
-		return stream(APP.classFields.get(filterType))
+		return stream(APP.getClassFields().get(filterType))
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)

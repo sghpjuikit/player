@@ -607,7 +607,7 @@ public class Icon extends StackPane {
 	}
 
 	public Number convert(String sizeString) {
-		return getOr(APP.converter.general.ofS(Double.class, sizeString), DEFAULT_ICON_SIZE);
+		return getOr(APP.getConverter().general.ofS(Double.class, sizeString), DEFAULT_ICON_SIZE);
 	}
 
 }

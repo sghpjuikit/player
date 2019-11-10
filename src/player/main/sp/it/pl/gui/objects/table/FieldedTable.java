@@ -116,7 +116,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Returns all fields of this table. The fields are string representable.
 	 */
 	public List<ObjectField<T,?>> getFields() {
-		return stream(APP.classFields.get(type))
+		return stream(APP.getClassFields().get(type))
 			.filter(ObjectField::isTypeStringRepresentable)
 			.sorted(by(ObjectField::name))
 			.collect(toList());
@@ -126,7 +126,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Returns all fields of this table. The fields are string representable.
 	 */
 	public List<ObjectField<T,?>> getFieldsAll() {
-		return stream(APP.classFields.get(type))
+		return stream(APP.getClassFields().get(type))
 			.sorted(by(ObjectField::name))
 			.collect(toList());
 	}

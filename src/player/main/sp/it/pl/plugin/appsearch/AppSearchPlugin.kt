@@ -46,7 +46,6 @@ import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
-import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
@@ -117,7 +116,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
    private fun findApps() {
       val dirs = searchDirs.materialize()
-      runNew {
+      runIO {
          (dirs.asSequence().distinct().flatMap { findApps(it) } + startMenuPrograms())
             .filter { !it.name.equals("Desktop.ini", true) }
             .distinct()

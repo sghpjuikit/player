@@ -217,7 +217,7 @@ public interface Util {
 		if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
 		URL u = new URL(url);
 		try (
-			InputStream is = u.openStream();
+			InputStream is = u.openConnection().;
 			OutputStream os = new FileOutputStream(file)) {
 			byte[] b = new byte[2048];
 			int length;

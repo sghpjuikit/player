@@ -560,7 +560,7 @@ public class Window extends WindowBase {
 		if (e.getButton()!=PRIMARY || resizing.get()!=Resize.NONE) return;
 //        if (header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
 
-		mouseMonitor = APP.mouse.observeMouseVelocity(consumer(speed -> mouseSpeed = speed));
+		mouseMonitor = APP.getMouse().observeMouseVelocity(consumer(speed -> mouseSpeed = speed));
 		isMoving.set(true);
 		appX = e.getSceneX();
 		appY = e.getSceneY();

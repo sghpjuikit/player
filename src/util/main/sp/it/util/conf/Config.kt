@@ -141,7 +141,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
             for (v in config.enumerateValues())
                if (Parsers.DEFAULT.toS(v).equals(s, true)) return Try.ok(v)
 
-            return Try.error("Value does not correspond to any value of the enumeration.")
+            return Try.error("Value '$s' does not correspond to any value of the enumeration in ${config.group}.${config.name}")
          } else {
             return Parsers.DEFAULT.ofS(config.type, s)
          }

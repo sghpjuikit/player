@@ -41,6 +41,13 @@ import sp.it.util.units.millis
 
 /** Provides notification functionality. */
 class Notifier: PluginBase("Notifications", true) {
+
+   private val onStop = Disposer()
+   private var running = false
+   private var n: Notification? = null
+   private var songNotificationGui: Node? = null
+   private var songNotificationInfo: SongReader? = null
+
    @IsConfig(name = "On playback status change")
    var showStatusNotification by c(false)
    @IsConfig(name = "On playing song change")
@@ -93,11 +100,6 @@ class Notifier: PluginBase("Notifications", true) {
          )
       }
    }
-   private val onStop = Disposer()
-   private var running = false
-   private var n: Notification? = null
-   private var songNotificationGui: Node? = null
-   private var songNotificationInfo: SongReader? = null
 
    override fun start() {
       n = Notification()

@@ -502,8 +502,8 @@ abstract public class ConfigField<T> {
                     .collect(joining(", ", "[", "]"));
             } else {
                 return config.isEditable().isByUser()
-                    ? APP.converter.ui.toS(o)
-                    : APP.converter.general.toS(o);
+                    ? APP.getConverter().ui.toS(o)
+                    : APP.getConverter().general.toS(o);
             }
         }
 

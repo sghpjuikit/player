@@ -11,7 +11,7 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.v
 import sp.it.util.async.NEW
 import sp.it.util.async.runFX
-import sp.it.util.async.runNew
+import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.IsConfig
@@ -50,7 +50,7 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
    }
 
    private fun computeFiles() {
-      runNew {
+      runIO {
          val isCacheInvalid = !cacheFile.exists()
          if (isCacheInvalid) updateCache() else readCache()
       }

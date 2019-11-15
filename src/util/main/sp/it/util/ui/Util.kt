@@ -24,6 +24,7 @@ import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.SeparatorMenuItem
+import javafx.scene.control.SplitPane
 import javafx.scene.control.TableView
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
@@ -146,6 +147,9 @@ fun Node.removeFromParent() {
       is Pane -> p.children -= this
    }
 }
+
+@Suppress("UNCHECKED_CAST")
+fun <T: Node> Node.lookupId(id: String): T = lookup("#$id") as T? ?: fail { "No match for id=$id" }
 
 @Suppress("UNCHECKED_CAST")
 fun <T: Node> Node.lookupChildAt(at: Int): T = when (this) {
@@ -299,6 +303,7 @@ inline fun tilePane(hgap: Double = 0.0, vgap: Double = 0.0, block: TilePane.() -
 inline fun flowPane(hgap: Double = 0.0, vgap: Double = 0.0, block: FlowPane.() -> Unit = {}) = FlowPane(hgap, vgap).apply(block)
 inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
+inline fun splitPane(block: SplitPane.() -> Unit = {}) = SplitPane().apply(block)
 inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply(block)
 inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!
 inline fun scrollTextCenter(block: () -> Text) = Util.layScrollVTextCenter(block())!!
@@ -433,6 +438,20 @@ class BorderPaneLay(private val pane: BorderPane): Lay {
    }
 }
 
+class SplitPaneLay(private val pane: SplitPane): Lay {
+
+   override fun plusAssign(child: Node) {
+      pane.items += child
+   }
+
+   operator fun invoke(resizableWithParent: Boolean): Lay = object: Lay {
+      override fun plusAssign(child: Node) {
+         pane.items += child
+         SplitPane.setResizableWithParent(child, resizableWithParent)
+      }
+   }
+}
+
 val Pane.lay get() = PaneLay(this)
 val HBox.lay get() = HBoxLay(this)
 val VBox.lay get() = VBoxLay(this)
@@ -440,6 +459,7 @@ val StackPane.lay get() = StackLay(this)
 val AnchorPane.lay get() = AnchorPaneLay(this)
 val AnchorPane.layFullArea get() = AnchorPaneLay(this)(0.0)
 val BorderPane.lay get() = BorderPaneLay(this)
+val SplitPane.lay get() = SplitPaneLay(this)
 
 /** Convenience for [AnchorPane.getTopAnchor] & [AnchorPane.setTopAnchor]. */
 var Node.topAnchor: Double?

@@ -17,8 +17,8 @@ import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runIO
 import sp.it.util.conf.Constraint.FileActor.FILE
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cvn
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.functional.asIf
 import sp.it.util.functional.toUnit
@@ -45,12 +45,9 @@ class WallpaperPlugin: PluginBase("Wallpaper", false) {
    private val unfocusedOwner by lazy { APP.windowManager.createStageOwner() }
    private val wallpaperImageW = vn<Image>(null)
    val wallpaperImage = wallpaperImageW.readOnly()
-
-   @IsConfig(name = "Wallpaper file")
-   val wallpaperFile by cvn<File>(null).only(FILE).sync { load() }
+   val wallpaperFile by cvn<File>(null).only(FILE).def(name = "Wallpaper file") sync ::load
 
    private val wallpaperIsShowing = Subscribed {
-      load()
       Screen.getScreens().onItemSyncWhile { screen ->
          val screenSize = screen.bounds.size
          val root = stackPane()
@@ -85,7 +82,7 @@ class WallpaperPlugin: PluginBase("Wallpaper", false) {
       }
    }
 
-   private fun load(): Unit = runIO { ImageStandardLoader(wallpaperFile.value) }.ui { wallpaperImageW.value = it }.toUnit()
+   private fun load(f: File?) = runIO { ImageStandardLoader(f) }.ui { wallpaperImageW.value = it }.toUnit()
 
    override fun isSupported() = Os.WINDOWS.isCurrent
 

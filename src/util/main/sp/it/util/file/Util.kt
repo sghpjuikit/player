@@ -70,10 +70,10 @@ infix fun File.isParentOf(child: File) = child.parentFile==this
 infix fun File.isParentOrSelfOf(child: File) = child.parentFile==this
 
 /** @return true iff this is direct or indirect parent of the specified file */
-infix fun File.isAnyParentOf(child: File) = child.parent?.startsWith(path) ?: false
+infix fun File.isAnyParentOf(child: File) = child.toPath().startsWith(toPath()) && this != child
 
 /** @return true iff this is the same as or direct or indirect parent of the specified file */
-infix fun File.isAnyParentOrSelfOf(child: File) = child.path.startsWith(path)
+infix fun File.isAnyParentOrSelfOf(child: File) = child.toPath().startsWith(toPath())
 
 /** @return true iff this and the specified file have the same [File.getParentFile] */
 infix fun File.isSiblingOf(sibling: File) = parentFile==sibling.parentFile

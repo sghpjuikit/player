@@ -20,12 +20,13 @@
 #### Intellij IDEA
 
 1) Import Project -> Select project folder  
-2) Import from external model -> Gradle 
-3) Check "Use auto-import"  
+1) Import from external model -> Gradle 
+1) Check "Use auto-import"  
    Disable "Create separate module per source set"
-4) Set `Project > Open Module Settings > Project > Project SDK` to the same JDK as set in gradle properties
-5) Optionally run `git checkout .idea` in the Terminal to regain the codeStyles
-6) Optionally enable external annotations and use those provided in [idea/annotations](idea/annotations)   
+1) Set `Project > Open Module Settings > Project > Project SDK` to the same JDK as set in gradle properties
+1) `File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JVM` set to `Use Project JVM`
+1) Optionally run `git checkout .idea` in the Terminal to regain the codeStyles
+1) Optionally enable external annotations and use those provided in [idea/annotations](idea/annotations)   
    This will provide project specific deprecations and null type-safety for numerous JDK APIs   
    For more information about this see [official documentation](https://www.jetbrains.com/help/idea/external-annotations.html)
    

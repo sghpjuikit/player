@@ -347,12 +347,12 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		properties.clear();
 		properties.putAll(w.properties);
 
-		Util.setField(this, "id", w.id); // (nasty cheat) not sure if this 100% required
+		Util.setField(this, "id", w.id); // (nasty cheat) not sure if this 100% required    // TODO: fix
 		preferred.setValue(w.preferred.getValue());
 		forbid_use.setValue(w.forbid_use.getValue());
 		custom_name.setValue(w.custom_name.getValue());
-		loadType.set(w.loadType.get());
-		locked.set(w.locked.get());
+		loadType.setValue(w.loadType.getValue());
+		locked.setValue(w.locked.getValue());
 
 		// if this widget is loaded we apply state, otherwise its done when it loads
 		if (controller!=null)

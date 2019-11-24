@@ -69,6 +69,7 @@ import sp.it.util.functional.asArray
 import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifFalse
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.let_
 import sp.it.util.functional.or
@@ -766,22 +767,31 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
    APP.widgetManager.widgets.findAll(OPEN).asSequence()
       .filter { it.name==widgetFactory.id() || it.name==widgetFactory.name() }   // it.factory must not be used due to temporary factories in unrecognized widgets
       .materialize()
-      .forEach { widgetOld ->
+      .forEach {
+         val widgetOld = it
+         val widgetNew = widgetFactory.create().apply {
+            setStateFrom(widgetOld)
+         }
          val wasFocused = widgetOld.focused.value
-         val widgetNew = widgetFactory.create()
-         widgetNew.setStateFrom(widgetOld)
+         val widgetOldInputs = widgetOld.controller?.io?.i?.getInputs().orEmpty().associate { it.name to it.value }
+         fun Widget.restoreAuxiliaryState() {
+            failIf(controller==null)
+            controller.io.i.getInputs().forEach { i -> widgetOldInputs[i.name].ifNotNull { i.valueAny = it } }
+            if (wasFocused) focus()
+         }
+
          val p = widgetOld.parent
          if (p!=null) {
             val i = widgetOld.indexInParent()
             p.removeChild(i)
             p.addChild(i, widgetNew)
-            if (wasFocused) widgetNew.focus()
+            widgetNew.restoreAuxiliaryState()
          } else {
             val parent = widgetOld.graphics.parent
             val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
             widgetOld.close()
             parent?.asIf<Pane>()?.let { it.children.add(i, widgetNew.load()) }
-            if (wasFocused) widgetNew.focus()
+            widgetNew.restoreAuxiliaryState()
          }
       }
 }

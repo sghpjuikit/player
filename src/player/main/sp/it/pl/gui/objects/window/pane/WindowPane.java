@@ -16,12 +16,12 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import sp.it.pl.gui.objects.window.Resize;
 import sp.it.pl.gui.objects.window.stage.WindowBase.Maximized;
 import static java.lang.Math.abs;
 import static java.lang.Math.ceil;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
@@ -33,7 +33,7 @@ import static sp.it.pl.gui.objects.window.stage.WindowBase.Maximized.ALL;
 public class WindowPane {
 
 	public final AnchorPane owner;
-	public final AnchorPane root = new AnchorPane();
+	public final StackPane root = new StackPane();
 
 	private double _x = 100;
 	private double _y = 100;
@@ -74,26 +74,6 @@ public class WindowPane {
 			root.setLayoutY(v);
 		}
 	};
-	//    public final DoubleProperty w = new SimpleDoubleProperty(root.getWidth()){
-//        {
-//            bindBidirectional(root.prefWidthProperty());
-//        }
-//        @Override public void set(double nv) {
-//            int tmp = (int) ceil(nv);
-//            double v = tmp + tmp%2;
-//            super.set(v);
-//        }
-//    };
-//    public final DoubleProperty h = new SimpleDoubleProperty(root.getHeight()){
-//        {
-//            bindBidirectional(root.prefHeightProperty());
-//        }
-//        @Override public void set(double nv) {
-//            int tmp = (int) ceil(nv);
-//            double v = tmp + tmp%2;
-//            super.set(v);
-//        }
-//    };
 	public final DoubleProperty w = root.prefWidthProperty();
 	public final DoubleProperty h = root.prefHeightProperty();
 	public final BooleanProperty visible = root.visibleProperty();
@@ -167,13 +147,9 @@ public class WindowPane {
 
 	/**
 	 * Installs move by dragging on provided Node, usually root.
-	 * pane inside display. See positionable class for details.
-	 * Default moving behavior supports move by mouse drag by bgr and ctrl+right
-	 * click mouse drag anywhere
 	 */
 	public void moveOnDragOf(Node n) {
-		// remember coords on pressed
-		n.addEventHandler(DRAG_DETECTED, e -> {
+		n.addEventHandler(MOUSE_PRESSED, e -> {
 			e.consume();
 			if (maximized.get()==ALL || !movable.get() || e.getButton()!=PRIMARY)
 				return;
@@ -181,7 +157,6 @@ public class WindowPane {
 			startX = x.get() - e.getSceneX();
 			startY = y.get() - e.getSceneY();
 		});
-		// move on drag - right button + ctrl - whole window
 		n.addEventHandler(MOUSE_DRAGGED, e -> {
 			if (moving.get()) {
 				x.set(startX + e.getSceneX());
@@ -189,10 +164,10 @@ public class WindowPane {
 			}
 			e.consume();
 		});
-		// move on drag - left button - excluding content area
 		n.addEventHandler(MOUSE_RELEASED, e -> {
-			if (_moving.get())
+			if (_moving.get()) {
 				_moving.set(false);
+			}
 			e.consume();
 		});
 	}

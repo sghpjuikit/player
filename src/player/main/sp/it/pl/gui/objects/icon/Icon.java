@@ -27,7 +27,6 @@ import javafx.css.StyleableProperty;
 import javafx.css.converter.EffectConverter;
 import javafx.css.converter.PaintConverter;
 import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -201,9 +200,6 @@ public class Icon extends StackPane {
 	public Icon(GlyphIcons ico, double size, Action action) {
 		this(ico, size, action.getInfo(), action);
 	}
-
-	@FXML
-	public void init() {}
 
 	@Override
 	protected void layoutChildren() {

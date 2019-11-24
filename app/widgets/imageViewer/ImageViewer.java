@@ -10,9 +10,9 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.Pos;
+import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -42,6 +42,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.application.Platform.runLater;
+import static javafx.geometry.Pos.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -50,7 +51,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static sp.it.pl.layout.widget.Widget.Group.OTHER;
-import static sp.it.pl.layout.widget.controller.SimpleControllerKt.fxmlLoaderForController;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
@@ -112,8 +112,8 @@ import static sp.it.util.ui.UtilKt.setMinPrefMaxSize;
 @LegacyController
 public class ImageViewer extends SimpleController implements ImageDisplayFeature, ImagesDisplayFeature {
 
-    @FXML ScrollPane thumb_root;
-    @FXML TilePane thumb_pane;
+    private final ScrollPane thumb_root = new ScrollPane();
+    private final TilePane thumb_pane = new TilePane();
     private final Thumbnail mainImage = new Thumbnail();
     private ItemInfo itemPane;
     private Anim thumbAnim;
@@ -159,10 +159,20 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
 
     public ImageViewer(Widget widget) {
         super(widget);
+        root.getStyleClass().add("img-viewer-root");
         root.setPrefSize(getEmScaled(400), getEmScaled(400));
         root.getStylesheets().add(child(getLocation(), "skin.css").toURI().toASCIIString());
+        root.getChildren().add(thumb_root);
 
-        fxmlLoaderForController(this).loadNoEx();
+        thumb_root.setFitToWidth(true);
+        thumb_root.setHbarPolicy(ScrollBarPolicy.NEVER);
+        thumb_root.setContent(thumb_pane);
+
+        thumb_pane.getStyleClass().add("thumbnail-pane");
+        thumb_pane.setLayoutX(65.0);
+        thumb_pane.setLayoutY(44.0);
+        thumb_pane.setTileAlignment(TOP_LEFT);
+        thumb_pane.setPadding(new Insets(5.0));
 
         // main image
         mainImage.setBorderVisible(true);
@@ -170,7 +180,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         root.getChildren().add(mainImage.getPane());
 
         thumb_pane.getStyleClass().add("thumbnail-pane");
-        thumb_pane.setTileAlignment(Pos.TOP_LEFT);
+        thumb_pane.setTileAlignment(TOP_LEFT);
         thumb_pane.hgapProperty().bind(thumbGap);
         thumb_pane.vgapProperty().bind(thumbGap);
         root.getChildren().add(thumb_pane);
@@ -195,9 +205,9 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
              prevP.setMaxWidth(50);
              prevP.visibleProperty().bind(prevP.opacityProperty().isNotEqualTo(0));
         root.getChildren().add(prevP);
-        StackPane.setAlignment(prevP, Pos.CENTER_LEFT);
+        StackPane.setAlignment(prevP, CENTER_LEFT);
         root.getChildren().add(nextP);
-        StackPane.setAlignment(nextP, Pos.CENTER_RIGHT);
+        StackPane.setAlignment(nextP, CENTER_RIGHT);
 
         navAnim = new Anim(millis(300), p -> {
             prevP.setOpacity(p);
@@ -224,7 +234,6 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
         thumb_root.toFront();
 
         // thumbnails
-        root.getChildren().add(thumb_root);
         root.setOnMouseClicked( e -> {
             if (e.getButton()==SECONDARY && showThumbnails.getValue()) {
                 toggle(showThumbnails);
@@ -239,7 +248,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
                 e.consume();
             }
         });
-        // prevent scrollpane from preventing show thumbnails change
+        // prevent scrollPane from preventing show thumbnails change
         thumb_root.setOnMouseClicked(e -> {
             //if (e.getButton()==PRIMARY) {
                 toggle(showThumbnails);

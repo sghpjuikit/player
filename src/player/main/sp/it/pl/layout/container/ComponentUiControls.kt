@@ -4,7 +4,7 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.scene.Node
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
-import javafx.scene.input.TransferMode
+import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.TilePane
 import sp.it.pl.gui.objects.icon.Icon
@@ -39,7 +39,7 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
             e.consume()
          } else {
             if (area.component.parent !is FreeFormContainer) {
-               val db = root.startDragAndDrop(*TransferMode.ANY)
+               val db = root.startDragAndDrop(*ANY)
                db[Df.COMPONENT] = area.component
                root.pseudoClassStateChanged(WidgetUi.PSEUDOCLASS_DRAGGED, true)
                e.consume()

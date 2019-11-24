@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve overlay animation performance and ux
 - Improve image loading performance for common formats dramatically
 - Improve image loading performance
+- Improve `Tagger` widget UX
+- Improve `Tagger` reading performance
+- Display date & time in UI in human readable format
+
 ### Fix
 - Main window icon showing in ui-less application mode
 - Widgets launched as new process not closing application 
@@ -48,23 +52,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon with text has wrong layout
 - Starting some processes blocked until application stopped
 - Progress indicator not centered in certain sizes
+- Drag & Drop support for COPY/MOVE/LINK
+- Writing certain custom fields' values not working correctly
+- `Tagger` widget displaying wrong cover in rare cases
 - Popup window fixes
-    - popup does not receive focus on show not even when clicked
-    - popup not returning focus to previously focused OS window
-    - popup not resizable by OS
-    - popup initial size and position not correct sometimes
-    - hiding popups with ESCAPE closes only focused popup
-    - popup not handling key events sometimes (instead passing them to owner)
-    - popup focus style not having effect
-    - popup close throwing 'window already closed' exception
-    - certain popup properties not styleable
-    - help popups closing too eagerly
+  - popup does not receive focus on show not even when clicked
+  - popup not returning focus to previously focused OS window
+  - popup not resizable by OS
+  - popup initial size and position not correct sometimes
+  - hiding popups with ESCAPE closes only focused popup
+  - popup not handling key events sometimes (instead passing them to owner)
+  - popup focus style not having effect
+  - popup close throwing 'window already closed' exception
+  - certain popup properties not styleable
+  - help popups closing too eagerly
+  
 ### Removed
 - Experimental runtime JVM options editing
-- Experimental Spectrum widget
-- Experimental WebReader widget
+- Experimental `Spectrum` widget
+- Experimental `WebReader` widget
 - Terminal widget for its dependencies and maintenance overhead  
   Standalone terminal applications can do a better job anyway
+- javafx.web, javafx.fxml dependencies
 
 ## [v0.7.0]
 ### Added

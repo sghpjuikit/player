@@ -10,16 +10,16 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.getImageFile
 import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.emScaled
 import sp.it.util.access.toggleNext
 import sp.it.util.conf.Constraint.FileActor.FILE
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -45,10 +45,8 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
    val inputImg = io.i.create<File>("To display", null) { showImageImpl(it) }
 
    private val thumb = Thumbnail()
-   @IsConfig(name = "Custom image", info = "Image file to display.")
-   private var img by cn<File>(null).only(FILE)
-   @IsConfig(name = "Fit from", info = "Image fitting.")
-   private val fitFrom by cv(FitFrom.INSIDE)
+   private var img by cn<File>(null).only(FILE).def(name = "Custom image", info = "Image file to display.")
+   private val fitFrom by cv(FitFrom.INSIDE).def(name = "Fit from", info = "Image fitting.")
 
    init {
       root.prefSize = 400.emScaled x 400.emScaled

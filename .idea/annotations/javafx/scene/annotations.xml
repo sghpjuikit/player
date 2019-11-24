@@ -1,0 +1,5 @@
+<root>
+    <item name='javafx.scene.Node javafx.scene.Node lookup(java.lang.String)'>
+        <annotation name='org.jetbrains.annotations.Nullable'/>
+    </item>
+</root>

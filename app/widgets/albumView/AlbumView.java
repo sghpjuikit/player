@@ -12,7 +12,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import kotlin.Unit;
 import sp.it.pl.audio.playlist.PlaylistManager;
@@ -24,6 +23,7 @@ import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.cover.Cover;
+import sp.it.pl.image.Image2PassLoader;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
@@ -40,13 +40,13 @@ import sp.it.util.functional.TriConsumer;
 import sp.it.util.functional.Util;
 import sp.it.util.type.TypeToken;
 import sp.it.util.ui.Resolution;
-import sp.it.pl.image.Image2PassLoader;
 import sp.it.util.ui.image.ImageSize;
 import static albumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.TransferMode.ANY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Metadata.Field.ALBUM;
 import static sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE;
@@ -374,7 +374,7 @@ public class AlbumView extends SimpleController {
 			thumb.setDragEnabled(false);
 			thumb.getPane().setOnDragDetected(e -> {
 				if (e.getButton()==MouseButton.PRIMARY && view.selectedItem.get()!=null) {
-					Dragboard db = thumb.getPane().startDragAndDrop(TransferMode.COPY);
+					Dragboard db = thumb.getPane().startDragAndDrop(ANY);
 					if (thumb.getImage()!=null) db.setDragView(thumb.getImage());
 					setSongsAndFiles(db, filerListToSelectedNsort());
 				}

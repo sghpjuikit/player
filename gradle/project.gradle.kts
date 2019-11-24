@@ -95,12 +95,12 @@ allprojects {
             os.isWindows -> "win"
             else -> failIO { "Unable to determine javafx dependency classifier due to unfamiliar system=$os" }
          }
-         val jfxLibs = arrayOf("base", "controls", "graphics", "fxml", "media", "swing")
-         for (lib in jfxLibs) {
-            implementation("org.openjfx", "javafx-$lib", version, classifier = classifier)
+         listOf("base", "controls", "graphics", "media", "swing").forEach {
+            implementation("org.openjfx", "javafx-$it", version, classifier = classifier)
          }
          implementation("de.jensd", "fontawesomefx", "8.9")
       }
+
       "Logging" group {
          implementation("org.slf4j", "slf4j-api")
          implementation("org.slf4j", "jul-to-slf4j", "1.7.25")

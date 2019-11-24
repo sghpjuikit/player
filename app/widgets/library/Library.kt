@@ -10,7 +10,7 @@ import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
-import javafx.scene.input.TransferMode.COPY
+import javafx.scene.input.TransferMode.ANY
 import javafx.util.Callback
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -193,9 +193,10 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
             it.consume()
          }
       }
+
       table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
          if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
-            table.startDragAndDrop(COPY).setSongsAndFiles(table.selectedItemsCopy)
+            table.startDragAndDrop(*ANY).setSongsAndFiles(table.selectedItemsCopy)
             it.consume()
          }
       }

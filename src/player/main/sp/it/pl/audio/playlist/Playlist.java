@@ -33,7 +33,6 @@ import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.gui.objects.form.Form.form;
 import static sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppFileKt.audioExtensionFilter;
@@ -742,7 +741,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public void addOrEnqueueUrl(boolean add) {
 		String title = add ? "Add url song." : "Play url song.";
 		Config<URI> conf = new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title);
-		Form<?> form = form(
+		Form<?> form = Form.Companion.form(
 			conf,
 			consumer(
 				(Consumer) new Consumer<Config<URI>>() {

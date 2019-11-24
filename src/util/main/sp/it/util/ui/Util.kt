@@ -5,10 +5,12 @@ import javafx.css.PseudoClass
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Bounds
+import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
+import javafx.geometry.VPos
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Parent
@@ -49,12 +51,15 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.BorderStroke
 import javafx.scene.layout.BorderStrokeStyle
 import javafx.scene.layout.BorderWidths
+import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.CornerRadii
 import javafx.scene.layout.FlowPane
+import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
+import javafx.scene.layout.RowConstraints
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.TilePane
 import javafx.scene.layout.VBox
@@ -149,7 +154,13 @@ fun Node.removeFromParent() {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T: Node> Node.lookupId(id: String): T = lookup("#$id") as T? ?: fail { "No match for id=$id" }
+inline fun <reified T: Node> Node.lookupId(id: String): T = lookup("#$id").let {
+   when (it) {
+      null -> fail { "No match for id=$id" }
+      is T -> it
+      else -> fail { "No match for id=$id, ${it::class} is not ${T::class}" }
+   }
+}
 
 @Suppress("UNCHECKED_CAST")
 fun <T: Node> Node.lookupChildAt(at: Int): T = when (this) {
@@ -301,6 +312,9 @@ inline fun stackPane(vararg children: Node, block: StackPane.() -> Unit = {}) = 
 inline fun anchorPane(block: AnchorPane.() -> Unit = {}) = AnchorPane().apply(block)
 inline fun tilePane(hgap: Double = 0.0, vgap: Double = 0.0, block: TilePane.() -> Unit = {}) = TilePane(hgap, vgap).apply(block)
 inline fun flowPane(hgap: Double = 0.0, vgap: Double = 0.0, block: FlowPane.() -> Unit = {}) = FlowPane(hgap, vgap).apply(block)
+inline fun gridPane(block: (GridPane).() -> Unit = {}) = GridPane().apply(block)
+inline fun gridPaneRow(block: (RowConstraints).() -> Unit = {}) = RowConstraints().apply(block)
+inline fun gridPaneColumn(block: (ColumnConstraints).() -> Unit = {}) = ColumnConstraints().apply(block)
 inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
 inline fun splitPane(block: SplitPane.() -> Unit = {}) = SplitPane().apply(block)
@@ -452,6 +466,21 @@ class SplitPaneLay(private val pane: SplitPane): Lay {
    }
 }
 
+class GridPaneLay(private val pane: GridPane): Lay {
+
+   override fun plusAssign(child: Node) {
+      pane.children += child
+   }
+
+   operator fun invoke(row: Int, column: Int, rowSpan: Int = 1, colSpan: Int = 1, hAlignment: HPos = HPos.CENTER, vAlignment: VPos = VPos.CENTER): Lay = object: Lay {
+      override fun plusAssign(child: Node) {
+         pane.add(child, column, row, colSpan, rowSpan)
+         GridPane.setHalignment(child, hAlignment)
+         GridPane.setValignment(child, vAlignment)
+      }
+   }
+}
+
 val Pane.lay get() = PaneLay(this)
 val HBox.lay get() = HBoxLay(this)
 val VBox.lay get() = VBoxLay(this)
@@ -460,6 +489,7 @@ val AnchorPane.lay get() = AnchorPaneLay(this)
 val AnchorPane.layFullArea get() = AnchorPaneLay(this)(0.0)
 val BorderPane.lay get() = BorderPaneLay(this)
 val SplitPane.lay get() = SplitPaneLay(this)
+val GridPane.lay get() = GridPaneLay(this)
 
 /** Convenience for [AnchorPane.getTopAnchor] & [AnchorPane.setTopAnchor]. */
 var Node.topAnchor: Double?
@@ -821,8 +851,16 @@ fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!
 
 /* ---------- TEXT -------------------------------------------------------------------------------------------------- */
 
-/** Sets alignment of the text of this text area. */
-fun TextArea.setTextAlignment(alignment: TextAlignment) {
+/** Alignment of the text of this text area. */
+var TextArea.textAlignment: TextAlignment
+ get() = when {
+    pseudoClassStates.any { it.pseudoClassName=="align-left" } -> TextAlignment.LEFT
+    pseudoClassStates.any { it.pseudoClassName=="align-right" } -> TextAlignment.RIGHT
+    pseudoClassStates.any { it.pseudoClassName=="align-center" } -> TextAlignment.CENTER
+    pseudoClassStates.any { it.pseudoClassName=="align-justify" } -> TextAlignment.JUSTIFY
+    else -> TextAlignment.LEFT
+ }
+ set(alignment) {
    pseudoClassChanged("align-left", false)
    pseudoClassChanged("align-right", false)
    pseudoClassChanged("align-center", false)

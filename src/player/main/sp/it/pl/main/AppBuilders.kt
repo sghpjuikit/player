@@ -8,6 +8,8 @@ import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.text.Font
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.form.Form.Companion.form
@@ -28,7 +30,7 @@ import sp.it.util.conf.Constraint
 import sp.it.util.conf.ValueConfig
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.attachChanges
-import sp.it.util.reactive.sync
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.label
 import sp.it.util.ui.setScaleXY
@@ -82,7 +84,12 @@ fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    }
 
 /** @return standardized icon associated with a form that invokes an action */
-fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).withText(Side.RIGHT, text)
+fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).run {
+   isFocusTraversable = true
+   onEventDown(KEY_PRESSED, ENTER) { action() }
+
+   withText(Side.RIGHT, text)
+}
 
 /** @return standardized progress indicator with start/finish animation and start/finish actions */
 @JvmOverloads

@@ -7,11 +7,8 @@ import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
-import sp.it.util.file.div
-import sp.it.util.file.toURLOrNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
-import sp.it.util.ui.fxml.ConventionFxmlLoader
 import java.util.HashMap
 import kotlin.reflect.full.findAnnotation
 
@@ -83,8 +80,3 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
 
 /** Denotes [Controller] that requires manual config initialization. */
 annotation class LegacyController
-
-/** @return [ConventionFxmlLoader] with root [SimpleController.root], specified controller and location of fxml in widget's directory */
-fun fxmlLoaderForController(controller: SimpleController) = ConventionFxmlLoader(controller.root, controller).apply {
-   location = (controller.location/"${controller.javaClass.simpleName}.fxml").toURLOrNull()!!
-}

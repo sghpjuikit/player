@@ -242,12 +242,12 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         syncC(container.getShowHeaders(), it -> w.setHeaderVisible(it));
         syncC(container.getShowHeaders(), it -> {
             if (it) {
-                w.controls.getChildren().addAll(
+                w.rightHeaderBox.getChildren().addAll(
                     new Icon(VIEW_DASHBOARD, -1, autoLayoutTooltipText, () -> autoLayout(w)).styleclass("header-icon"),
                     new Icon(CLOSE, -1, "Close this component", () -> { container.removeChild(i); closeWindow(i); }).styleclass("header-icon")
                 );
             } else {
-                w.controls.getChildren().clear();
+                w.rightHeaderBox.getChildren().clear();
             }
         });
 

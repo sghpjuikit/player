@@ -5,7 +5,6 @@ import java.util.List;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.css.PseudoClass;
-import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -133,7 +132,7 @@ public class Window extends WindowBase {
 	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
 
 	/** Scene root. Assigned {@link #scWindow} styleclass. */
-	public StackPane root = buildWindowLayout(consumer(this::border_onDragStart), consumer(this::border_onDragged), consumer(this::border_onDragEnd));
+	public StackPane root = buildWindowLayout(consumer(this::borderDragStart), consumer(this::borderDragged), consumer(this::borderDragEnd));
 	public StackPane back = lookupId(root, "back", StackPane.class);
 	public StackPane backImage = lookupId(root, "backImage", StackPane.class);
 	public AnchorPane front = lookupId(root, "front", AnchorPane.class);
@@ -154,8 +153,6 @@ public class Window extends WindowBase {
 	void initialize() {
 		getStage().setScene(new Scene(root));
 		getStage().getScene().setFill(rgb(0, 0, 0, 0.01));
-
-		initClip(content);
 
 		// normally we would bind bgr size, but we will bind it more dynamically later
 		// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
@@ -604,8 +601,7 @@ public class Window extends WindowBase {
 
 	/*******************************    RESIZING  *********************************/
 
-	@FXML
-	private void border_onDragStart(MouseEvent e) {
+	private void borderDragStart(MouseEvent e) {
 		if (resizable.get()) {
 			double X = e.getSceneX();
 			double Y = e.getSceneY();
@@ -627,14 +623,7 @@ public class Window extends WindowBase {
 		e.consume();
 	}
 
-	@FXML
-	private void border_onDragEnd(MouseEvent e) {
-		if (isResizing.get()!=NONE) isResizing.set(NONE);
-		e.consume();
-	}
-
-	@FXML
-	private void border_onDragged(MouseEvent e) {
+	private void borderDragged(MouseEvent e) {
 		if (resizable.get()) {
 			Resize r = isResizing.get();
 			if (r==Resize.SE)
@@ -663,8 +652,8 @@ public class Window extends WindowBase {
 		e.consume();
 	}
 
-	@FXML
-	private void consumeMouseEvent(MouseEvent e) {
+	private void borderDragEnd(MouseEvent e) {
+		if (isResizing.get()!=NONE) isResizing.set(NONE);
 		e.consume();
 	}
 

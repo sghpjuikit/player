@@ -51,7 +51,7 @@
 .radio-button > .radio,
 .check-box > .box,
 /*.menu-button, */ /* enable this if you want menu button to look like normal button*/
-.color-picker.split-button > .color-picker-label{
+.color-picker.split-button > .color-picker-label {
    /* -fx-background-color:
         rgba(255, 255, 255, 0.08),
         rgba(0, 0, 0, 0.8),

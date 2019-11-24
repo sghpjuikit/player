@@ -14,7 +14,6 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -35,6 +34,7 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.TransferMode.ANY;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
@@ -236,7 +236,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		// drag&drop from
 		setOnDragDetected(e -> {
 			if (e.getButton()==PRIMARY && !e.isControlDown() && !getSelectedItems().isEmpty() && isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
-				Dragboard db = startDragAndDrop(TransferMode.COPY);
+				Dragboard db = startDragAndDrop(ANY);
 				setSongsAndFiles(db, getSelectedItemsCopy());
 			}
 			e.consume();

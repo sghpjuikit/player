@@ -43,5 +43,4 @@ fun handlerAccepting(acceptWhen: (DragEvent) -> Boolean, unless: (DragEvent) -> 
 }
 
 /** @return drag event handler that accepts drag with the specified conditions */
-@JvmOverloads
-fun handlerAccepting(cond: (DragEvent) -> Boolean, orConsume: Boolean = false) = handlerAccepting(cond, { orConsume })
+fun handlerAccepting(cond: (DragEvent) -> Boolean) = handlerAccepting(cond, { false })

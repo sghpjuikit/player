@@ -1,7 +1,8 @@
 package sp.it.pl.gui.nodeinfo
 
-import javafx.fxml.FXML
-import javafx.geometry.Pos
+import javafx.geometry.Insets
+import javafx.geometry.Pos.CENTER_LEFT
+import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
@@ -13,39 +14,50 @@ import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.util.async.runIO
 import sp.it.util.identityHashCode
-import sp.it.util.ui.fxml.ConventionFxmlLoader
+import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 
 /** Basic display for song information. */
-class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), SongReader {
+class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(15.0), SongReader {
 
-   @FXML private lateinit var indexL: Label
-   @FXML private lateinit var songL: Label
-   @FXML private lateinit var artistL: Label
-   @FXML private lateinit var ratingL: Label
-   @FXML private lateinit var albumL: Label
-   @FXML private var coverContainer: AnchorPane? = null
+   private val indexL = Label()
+   private val songL = Label()
+   private val artistL = Label()
+   private val ratingL = Label()
+   private val albumL = Label()
+   private var coverContainer = AnchorPane()
    private val rating = Rating()
    private val thumb: Thumbnail?
    private var dataId = null.identityHashCode()
 
    init {
-      ConventionFxmlLoader(this).loadNoEx<Any>()
+      padding = Insets(10.0)
+      lay += coverContainer
+      lay += vBox(5.0, CENTER_RIGHT) {
+         prefSize = -1 x -1
+
+         lay += indexL
+         lay += songL
+         lay += artistL
+         lay += ratingL
+         lay += albumL
+      }
+
 
       ratingL.graphic = rating
-      rating.alignment.value = Pos.CENTER_LEFT
+      rating.alignment.value = CENTER_LEFT
 
       if (showCover) {
          thumb = Thumbnail()
          thumb.borderVisible = true
          thumb.pane.prefSize = 200 x 200
-         coverContainer!!.layFullArea += thumb.pane
+         coverContainer.layFullArea += thumb.pane
       } else {
          thumb = null
          children -= coverContainer
-         coverContainer = null
       }
    }
 
@@ -69,7 +81,7 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(), Son
       runIO {
          data.getCover(ANY)
       } ui {
-         if (dataId==id)loadCover(it)
+         if (dataId==id) loadCover(it)
       }
    }
 

@@ -1,6 +1,7 @@
 package sp.it.pl.gui.objects.form
 
-import javafx.fxml.FXML
+import javafx.geometry.Insets
+import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.input.KeyCode.ENTER
@@ -8,6 +9,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.StackPane
+import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.util.access.v
@@ -16,9 +18,10 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
-import sp.it.util.ui.fxml.ConventionFxmlLoader
 import sp.it.util.ui.lay
+import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.x
 import java.util.function.Consumer
 
 /**
@@ -28,13 +31,13 @@ import java.util.function.Consumer
  */
 class Form<T>: AnchorPane {
 
-   @FXML private lateinit var buttonPane: BorderPane
-   @FXML private lateinit var okPane: StackPane
-   @FXML private lateinit var fieldsPane: StackPane
-   @FXML private lateinit var warnLabel: Label
+   private val buttonPane = BorderPane()
+   private val okPane = StackPane()
+   private val fieldsPane = StackPane()
+   private val warnLabel = Label()
    private val okB = Icon()
    private var fields = ConfigPane<T>()
-   private val anchorOk: Double
+   private val anchorOk = 90.0
    private val anchorWarn = 20.0
    /** Configurable object. */
    val configurable: Configurable<T>
@@ -48,9 +51,20 @@ class Form<T>: AnchorPane {
       onOK = on_OK ?: {}
       hasAction.value = on_OK!=null
 
-      ConventionFxmlLoader(this).loadNoEx<Any>()
+      padding = Insets(5.0)
+      lay(0, 0, anchorOk, 0) += fieldsPane
+      lay(null, 0, 0, 0) += buttonPane.apply {
+         prefHeight = 30.0
+         center = okPane.apply {
+            prefSize = 30 x 30
+            BorderPane.setAlignment(this, CENTER)
+         }
+         bottom = warnLabel.apply {
+            textAlignment = TextAlignment.CENTER
+            BorderPane.setAlignment(this, CENTER)
+         }
+      }
 
-      anchorOk = getBottomAnchor(fieldsPane)
       fieldsPane.lay += scrollPane {
          content = fields
          isFitToWidth = true
@@ -72,7 +86,6 @@ class Form<T>: AnchorPane {
       validate()
    }
 
-   @FXML
    fun ok() {
       validate().ifOk {
          fields.getConfigFields().forEach { it.apply() }
@@ -116,7 +129,6 @@ class Form<T>: AnchorPane {
        */
       @Suppress("UNCHECKED_CAST")
       @JvmOverloads
-      @JvmStatic
       fun <T, C: Configurable<T>> form(configurable: C, onOk: ((C) -> Unit)? = null) = Form(configurable, onOk?.let { { c: Configurable<T> -> onOk(c as C) } })
    }
 }

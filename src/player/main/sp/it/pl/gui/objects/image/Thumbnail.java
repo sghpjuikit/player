@@ -20,7 +20,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
@@ -43,6 +42,7 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.TransferMode.ANY;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
@@ -558,7 +558,7 @@ public class Thumbnail {
 						.collect(toList());
 
 				if (!files.isEmpty()) {
-					Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+					Dragboard db = root.startDragAndDrop(ANY);
 					if (getImage()!=null) db.setDragView(getImage());
 
 					HashMap<DataFormat,Object> c = new HashMap<>();

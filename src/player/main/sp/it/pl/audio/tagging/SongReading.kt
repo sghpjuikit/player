@@ -13,7 +13,6 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import java.util.ArrayList
-import java.util.function.BiConsumer
 import kotlin.streams.asSequence
 
 private val logger = KotlinLogging.logger { }
@@ -226,10 +225,10 @@ fun Song.Companion.removeMissingFromLibTask() = object: Task<Unit>() {
 }
 
 // TODO: remove
-fun <T> Task<T>.setOnDone(onEnd: BiConsumer<Boolean, T>) {
-   onSucceeded = EventHandler { onEnd.accept(true, value) }
-   onFailed = EventHandler { onEnd.accept(false, value) }
-   onCancelled = EventHandler { onEnd.accept(false, value) }
+fun <T> Task<T>.setOnDone(onEnd: (Boolean, T) -> Unit) {
+   onSucceeded = EventHandler { onEnd(true, value) }
+   onFailed = EventHandler { onEnd(false, value) }
+   onCancelled = EventHandler { onEnd(false, value) }
 }
 
 private operator fun StringBuilder.plusAssign(text: String) = append(text).toUnit()

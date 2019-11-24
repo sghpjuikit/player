@@ -34,7 +34,7 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?): ValueText
          type sync { b1.icon(if (it==FILE) IconFA.FILE else IconFA.FOLDER) }
       }
 
-      addEventHandler(DRAG_OVER, handlerAccepting({ it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } }))
+      addEventHandler(DRAG_OVER, handlerAccepting { it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } })
       addEventHandler(DRAG_DROPPED) { value = it.dragboard.files.find { constraint.isValid(it) } }
    }
 

@@ -137,7 +137,7 @@ class Metadata: Song, Serializable {
    /** Year as int or null if none */
    private var yearAsInt: Int? = null
 
-   /** Raw rating or -1 if empty */
+   /** Raw rating or null if none */
    private var rating: Int? = null
 
    /** Maximal raw rating value */
@@ -543,17 +543,17 @@ class Metadata: Song, Serializable {
    /** @return year as int or null if none */
    fun getYearAsInt(): Int? = yearAsInt
 
-   /** Rating in 0-1 value system or null if none */
+   /** @return raw rating or null if none */
+   fun getRating() = rating
+
+   /** @return maximal raw rating value supported by the current tag */
+   fun getRatingMax() = ratingMax
+
+   /** @return rating in 0-1 value system or null if none */
    fun getRatingPercent(): Double? = rating?.let { it/ratingMax.toDouble() }
 
-   /** Rating in 0-1 value system or 0 if none */
+   /** @return rating in 0-1 value system or 0 if none */
    fun getRatingPercentOr0() = getRatingPercent() ?: 0.0
-
-   /** @return the current rating value in 0-max value system or null if none */
-   fun getRatingToStars(max: Int): Double? = getRatingPercent()?.let { it*max }
-
-   /** @return the current rating value in 0-max value system or 0 if none */
-   fun getRatingToStarsOr0(max: Int) = getRatingToStars(max) ?: 0.0
 
    /** @return the playcount or null if none */
    fun getPlaycount() = playcount
@@ -790,7 +790,7 @@ class Metadata: Song, Serializable {
 
    class Field<T: Any>: ObjectFieldBase<Metadata, T> {
 
-      private constructor(type: KClass<T>, extractor: (Metadata) -> T?, name: String, description: String): super(type, extractor, name, description)
+      constructor(type: KClass<T>, extractor: (Metadata) -> T?, name: String, description: String): super(type, extractor, name, description)
 
       fun isAutoCompletable(): Boolean = this in AUTO_COMPLETABLE
 
@@ -800,12 +800,11 @@ class Metadata: Song, Serializable {
 
       override fun searchSupported(): Boolean = super.searchSupported() || this==FULLTEXT
 
-      override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean =
-         when (this) {
-            CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
-            FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
-            else -> super.searchMatch(matcher)
-         }
+      override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean = when (this) {
+         CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+         FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+         else -> super.searchMatch(matcher)
+      }
 
       fun getGroupedOf(): (Metadata) -> Any? = when (this) {
          FILESIZE -> { m -> GROUPS_FILESIZE[64 - java.lang.Long.numberOfLeadingZeros(m.fileSizeInB - 1)] }
@@ -821,6 +820,9 @@ class Metadata: Song, Serializable {
             RATING_RAW -> o.toString()
             RATING -> String.format("%.2f", o as Double)
             LENGTH -> (o as Duration).toHMSMs()
+            FIRST_PLAYED -> APP.converter.ui.toS(o)
+            LAST_PLAYED -> APP.converter.ui.toS(o)
+            ADDED_TO_LIBRARY -> APP.converter.ui.toS(o)
             else -> if (this===DISC || this===DISCS_TOTAL || this===TRACK || this===TRACKS_TOTAL || this===PLAYCOUNT) {
                if (getOf(EMPTY)==o) substitute
                else o.toString()
@@ -861,7 +863,8 @@ class Metadata: Song, Serializable {
          @F val YEAR = this + field({ it.getYear() }, "Year", "Year the album was published")
          @F val COVER = this + field({ it.readCoverFromTag() }, "Cover", "Cover of the song")
          @F val RATING = this + field({ it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
-         @F val RATING_RAW = this + field({ it.rating }, "Rating raw", "Song rating tag value. Depends on tag type")
+         @F val RATING_RAW = this + field({ it.getRating() }, "Rating (raw)", "Actual song rating value in tag. Maximal value depends on tag type")
+         @F val RATING_RAW_MAX = this + field({ it.getRatingMax() }, "Rating raw", "Maximal song rating value supported by current tag type")
          @F val PLAYCOUNT = this + field({ it.getPlaycount() }, "Playcount", "Number of times the song was played.")
          @F val CATEGORY = this + field({ it.category }, "Category", "Category of the song. Arbitrary")
          @F val COMMENT = this + field({ it.comment }, "Comment", "User comment of the song. Arbitrary")
@@ -871,11 +874,11 @@ class Metadata: Song, Serializable {
          @F val TAGS = this + field({ it.tags }, "Tags", "Tags associated with this song")
          @F val CHAPTERS = this + field({ it.getChapters() }, "Chapters", "Comments at specific time points of the song")
          @F val FULLTEXT = this + field({ it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
-         @F val CUSTOM1 = this + field({ it.custom1 }, "Custom1", "Custom field 1. Reserved for chapters.")
-         @F val CUSTOM2 = this + field({ it.custom2 }, "Custom2", "Custom field 2. Reserved for color.")
-         @F val CUSTOM3 = this + field({ it.custom3 }, "Custom3", "Custom field 3. Reserved for playback.")
+         @F val CUSTOM1 = this + field({ it.custom1 }, "Custom1", "Custom field 1")
+         @F val CUSTOM2 = this + field({ it.custom2 }, "Custom2", "Custom field 2. Reserved for field `Chapters`.")
+         @F val CUSTOM3 = this + field({ it.custom3 }, "Custom3", "Custom field 3")
          @F val CUSTOM4 = this + field({ it.custom4 }, "Custom4", "Custom field 4")
-         @F val CUSTOM5 = this + field({ it.custom5 }, "Custom5", "Custom field 5")
+         @F val CUSTOM5 = this + field({ it.custom5 }, "Custom5", "Custom field 5. Reserved for fields 'First played', 'Last played', 'Added to library'." )
          @F val FIRST_PLAYED = this + field({ it.getTimePlayedFirst() }, "First played", "Marks time the song was played the first time.")
          @F val LAST_PLAYED = this + field({ it.getTimePlayedLast() }, "Last played", "Marks time the song was played the last time.")
          @F val ADDED_TO_LIBRARY = this + field({ it.getTimeLibraryAdded() }, "Added to library", "Marks time the song was added to the library.")

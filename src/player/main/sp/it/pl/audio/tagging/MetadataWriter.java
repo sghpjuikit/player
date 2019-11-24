@@ -520,7 +520,7 @@ public class MetadataWriter extends Song {
 
 	/** @param c the color to set */
 	public void setColor(Color c) {
-		setCustomField(TAG_ID_COLOR, APP.getConverter().general.toS(c));
+		setCustomField(TAG_ID_COLOR, c==null ? null : APP.getConverter().general.toS(c));
 	}
 
 	/** @param tags tags to set */
@@ -709,12 +709,14 @@ public class MetadataWriter extends Song {
 	 * @param val value to set
 	 */
 	private void setCustomField(String id, String val) {
-		boolean isEmpty = val==null || val.isEmpty();	// TODO: unimplemented!!
+		boolean isEmpty = val==null || val.isEmpty();
 		String ov = tag.hasField(FieldKey.CUSTOM5) ? emptyOr(tag.getFirst(FieldKey.CUSTOM5)) : "";
-		List<String> tagfields = list(split(ov, String.valueOf(SEPARATOR_GROUP)));
-		tagfields.removeIf(tagfield -> tagfield.startsWith(id));
-		tagfields.add(id + val);
-		String nv = tagfields.stream().collect(joining(String.valueOf(SEPARATOR_GROUP)));
+
+		List<String> tagFields = list(split(ov, String.valueOf(SEPARATOR_GROUP)));
+		tagFields.removeIf(tagField -> tagField.startsWith(id));
+		if (!isEmpty) tagFields.add(id + val);
+
+		String nv = tagFields.stream().collect(joining(String.valueOf(SEPARATOR_GROUP)));
 		nv = SEPARATOR_GROUP + nv + SEPARATOR_GROUP;
 		setCustom5(nv);
 	}

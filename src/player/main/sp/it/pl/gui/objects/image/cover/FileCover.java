@@ -60,7 +60,7 @@ public class FileCover implements Cover {
 	public boolean equals(Object o) {
 		if (this==o) return true;
 
-		if (o!=null && o instanceof FileCover) {
+		if (o instanceof FileCover) {
 			FileCover other = (FileCover) o;
 			return file.equals(other.file);
 		}

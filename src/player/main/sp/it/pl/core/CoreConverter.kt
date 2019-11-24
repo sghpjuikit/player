@@ -11,7 +11,6 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
-import sp.it.util.functional.asIf
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
@@ -21,13 +20,18 @@ import sp.it.util.parsing.ConverterFX
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.StringSplitParser
+import sp.it.util.toLocalDateTime
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
 import java.io.File
 import java.net.URI
+import java.nio.file.attribute.FileTime
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.Year
+import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
 import java.time.DateTimeException as DTE
@@ -40,11 +44,20 @@ private typealias OBE = IndexOutOfBoundsException
 
 class CoreConverter: Core {
 
+   private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy MM dd HH:mm:ss")
+
    /** Default to/from string converter that uses per class registered converters. */
    @JvmField val general = Parsers.DEFAULT!!
    /** Default ui to string converter. Converts [UiName] or delegates to [general]. */
    @JvmField val ui = object: ConverterToString<Any?> {
-      override fun toS(o: Any?) = o?.asIf<UiName>()?.uiName ?: general.toS(o)
+      override fun toS(o: Any?) = when (o) {
+            is UiName -> o.uiName
+            is LocalDateTime -> o.format(dateTimeFormatter)
+            is LocalDate -> o.format(dateTimeFormatter)
+            is LocalTime -> o.format(dateTimeFormatter)
+            is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
+            else -> general.toS(o)
+      }
    }
    private val fx = ConverterFX()
 

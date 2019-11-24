@@ -55,7 +55,6 @@ import sp.it.util.units.uuid
 import java.io.File
 import java.net.URI
 import java.util.ArrayList
-import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
@@ -618,8 +617,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
       val task = Song.readTask(`is`)
       AppProgress.start(task)
-      task.setOnDone(BiConsumer { ok, m -> if (ok) refreshSongsWith(m) })
-      runNew(task)
+      task.setOnDone { ok, m -> if (ok) refreshSongsWith(m) }
+      runIO(task)
    }
 
    /** Singleton variant of [.refreshSongsWith].  */

@@ -39,6 +39,7 @@ import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.centre
 import sp.it.util.ui.hBox
+import sp.it.util.ui.initClip
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
@@ -174,6 +175,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
             id = "content"
             styleClass += "content"
             minSize = 0 x 0
+            initClip()
          }
       }
       lay(0, 0, null, 0) += stackPane {

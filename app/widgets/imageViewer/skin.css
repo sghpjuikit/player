@@ -1,18 +1,13 @@
-/* 
-    Document    : Skin for ImageViewer widget
-    Author      : Martin Polakovic
-    Year        : 2015
-*/
 
 /** 
  * Root of the widget.
  * pseudoclasses: theater
  */
-.imgviewer-root {
+.img-viewer-root {
     -fx-background-color: null;
 }
 
-.imgviewer-root:theater {
+.img-viewer-root:theater {
     -fx-background-color: black;
 }
 

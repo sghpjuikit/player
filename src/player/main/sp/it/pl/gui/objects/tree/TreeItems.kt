@@ -24,6 +24,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode
+import javafx.scene.input.TransferMode.*
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
 import mu.KotlinLogging
@@ -162,8 +163,7 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
             .map { it.value }
             .filterIsInstance<File>()
             .toList()
-         val mode = if (e.isShiftDown) TransferMode.MOVE else TransferMode.COPY
-         startDragAndDrop(mode).setContent(mapOf(DataFormat.FILES to items))
+         startDragAndDrop(*TransferMode.ANY).setContent(mapOf(DataFormat.FILES to items))
          e.consume()
       }
    }

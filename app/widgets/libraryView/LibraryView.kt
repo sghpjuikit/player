@@ -13,7 +13,7 @@ import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
-import javafx.scene.input.TransferMode.COPY
+import javafx.scene.input.TransferMode.ANY
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Callback
@@ -38,8 +38,8 @@ import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets
-import sp.it.pl.main.isPlaying
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.isPlaying
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
@@ -225,7 +225,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.onEventDown(KEY_PRESSED, DELETE) { APP.db.removeSongs(table.selectedItems.flatMap { it.grouped }) }
       table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
          if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
-            table.startDragAndDrop(COPY).setSongsAndFiles(filerSortInputList())
+            table.startDragAndDrop(*ANY).setSongsAndFiles(filerSortInputList())
             it.consume()
          }
       }
@@ -270,7 +270,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          it.cellFactory = t.cellFactory
          table.refreshColumn(it)
       }
-
 
       // update filters
       val f = fieldFilter.value

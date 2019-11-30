@@ -287,6 +287,7 @@ val Node.onNodeDispose: Disposer
  */
 fun Node.onNodeDispose() {
    properties["onDispose_7bccf7a3-bcae-42ca-a91d-9f95217b942c"].asIf<Disposer>()?.invoke()
+   if (this is ScrollPane) content = null // avoids `skin = null` calling `requestLayout()` and throwing exception
    if (this is Control) skin = null
    if (this is Parent) childrenUnmodifiable.forEach { it.onNodeDispose() }
 }

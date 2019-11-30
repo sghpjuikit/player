@@ -65,6 +65,7 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.apply_
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
+import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
 import sp.it.util.system.Os
@@ -75,6 +76,7 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
+import sp.it.util.ui.label
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URI
@@ -413,6 +415,19 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    private fun AppSearch.initForApp() {
+      sources += Source("Settings") {
+         data class Cat(val name: String, val path: String)
+         configuration.getFields().flatMap {
+            it.group.traverse { it.substringBeforeLast(".", "").takeIf { it.isNotEmpty() } }.asIterable()
+         }.toSet().asSequence().map {
+            Entry.of(
+               name = { "Open settings: ${it.substringAfterLast(".")}" },
+               searchText = { it.substringAfterLast(".") },
+               graphics = { label("Settings > " + it.replace(".", " > ")) },
+               run = { actions.openSettings(it) }
+            )
+         }
+      }
       sources += Source("Actions") {
          configuration.getFields()
             .filter { it.type==Action::class.javaObjectType && it.isEditableByUserRightNow() }
@@ -420,7 +435,7 @@ class App: Application(), GlobalConfigDelegator {
       }
       sources += Source("Skins") {
          ui.skins.asSequence().map {
-            Entry.of({ "Open skin: ${it.name}" }, graphicsΛ = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name }
+            Entry.of({ "Open skin: ${it.name}" }, graphics = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name }
          }
       }
       sources += Source("Components - widgets") {
@@ -447,7 +462,7 @@ class App: Application(), GlobalConfigDelegator {
             )
          }
       }
-      sources += Source("Components - compile)") {
+      sources += Source("Components - compile") {
          widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null }.map {
             Entry.SimpleEntry(
                "Recompile widget ${it.name()}",

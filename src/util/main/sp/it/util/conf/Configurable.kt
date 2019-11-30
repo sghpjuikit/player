@@ -27,7 +27,7 @@ interface Configurable<T> {
    /** @return all configs of this configurable */
    @Suppress("UNCHECKED_CAST")
    @JvmDefault
-   fun getFields(): Collection<Config<T>> = configsOf(javaClass, this) as Collection<Config<T>>
+   fun getFields(): Collection<Config<T>> = toConfigurableByReflect().getFields() as Collection<Config<T>>
 
    /** @return config with given [Config.name] or null if does not exist */
    @Suppress("UNCHECKED_CAST")
@@ -36,7 +36,7 @@ interface Configurable<T> {
       return try {
          val c = this.javaClass
          val f = Util.getField(c, name)
-         createConfig(c, f, this) as Config<T>?
+         createConfig(f, this) as Config<T>?
       } catch (e: NoSuchFieldException) {
          null
       } catch (e: SecurityException) {

@@ -7,6 +7,6 @@ import sp.it.util.conf.Configurable
 interface ConfiguringFeature {
 
    /** Display configs of the specified configurable object for user to edit. */
-   fun configure(configurable: Configurable<*>?)
+   fun configure(configurable: Configurable<*>?, groupToSelect: String? = null)
 
 }

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Wallpaper` plugin window hiding when no image
 - Implement new popups
 - Implement application settings import/export/defaults actions
+- Implement select settings group when opening setting from application search
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance
@@ -55,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drag & Drop support for COPY/MOVE/LINK
 - Writing certain custom fields' values not working correctly
 - `Tagger` widget displaying wrong cover in rare cases
+- Application search cell graphics layout
+- Application search empty tooltip visible
 - Popup window fixes
   - popup does not receive focus on show not even when clicked
   - popup not returning focus to previously focused OS window

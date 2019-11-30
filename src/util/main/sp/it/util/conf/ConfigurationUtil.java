@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import sp.it.util.access.OrV;
 import sp.it.util.conf.ConfigImpl.ConfigBase;
@@ -41,7 +41,7 @@ public class ConfigurationUtil {
 		noNull(instance);
 
 		return (List) stream(getAllFields(clazz))
-				.map(f -> createConfig(clazz, f, instance))
+				.map(f -> createConfig(f, instance))
 				.filter(ISNT0)
 				.collect(toList());
 	}
@@ -51,12 +51,12 @@ public class ConfigurationUtil {
 		noNull(instance);
 
 		return (List) stream(getAllFields(clazz))
-			.map(f -> createConfig(clazz, fieldNamePrefix, group, f, instance))
+			.map(f -> createConfig(fieldNamePrefix, group, f, instance))
 			.filter(ISNT0)
 			.collect(toList());
 	}
 
-	public static Config<?> createConfig(Class<?> cl, Field f, Object instance) {
+	public static Config<?> createConfig(Field f, Object instance) {
 		noNull(instance);
 
 		Config<?> c = null;
@@ -69,7 +69,7 @@ public class ConfigurationUtil {
 		return c;
 	}
 
-	private static Config<?> createConfig(Class<?> cl, String fieldNamePrefix, String group, Field f, Object instance) {
+	private static Config<?> createConfig(String fieldNamePrefix, String group, Field f, Object instance) {
 		Config<?> c = null;
 		IsConfig a = f.getAnnotation(IsConfig.class);
 		if (a!=null) {
@@ -85,7 +85,7 @@ public class ConfigurationUtil {
 		Class<T> type = (Class) f.getType();
 		if (Config.class.isAssignableFrom(type)) {
 			return newFromConfig(f, instance);
-		} else if (ConfList.class.isAssignableFrom(type) || WritableValue.class.isAssignableFrom(type) || ReadOnlyProperty.class.isAssignableFrom(type)) {
+		} else if (ConfList.class.isAssignableFrom(type) || WritableValue.class.isAssignableFrom(type) || ObservableValue.class.isAssignableFrom(type)) {
 			return newFromProperty(f, instance, name, annotation, group);
 		} else {
 			try {
@@ -123,8 +123,8 @@ public class ConfigurationUtil {
 				Set<Constraint<? super T>> constraints = constraintsOf(propertyType, f.getAnnotations());
 				return new PropertyConfig<T>(propertyType, name, annotation, constraints, property, group);
 			}
-			if (ReadOnlyProperty.class.isAssignableFrom(f.getType())) {
-				ReadOnlyProperty<T> property = (ReadOnlyProperty) f.get(instance);
+			if (ObservableValue.class.isAssignableFrom(f.getType())) {
+				ObservableValue<T> property = (ObservableValue) f.get(instance);
 				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
 				Set<Constraint<? super T>> constraints = constraintsOf(propertyType, f.getAnnotations());
 				return new ReadOnlyPropertyConfig<T>(propertyType, name, annotation, constraints, property, group);

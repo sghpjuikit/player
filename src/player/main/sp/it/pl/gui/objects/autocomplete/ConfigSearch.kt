@@ -31,6 +31,7 @@ import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Config
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSubclassOf
@@ -39,6 +40,7 @@ import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.uninstall
 import java.util.ArrayList
 
 class ConfigSearch: AutoCompletion<Entry> {
@@ -224,7 +226,7 @@ class ConfigSearch: AutoCompletion<Entry> {
 
       companion object {
 
-         fun of(nameΛ: () -> String, infoΛ: () -> String = { "" }, searchTextΛ: () -> String = nameΛ, graphicsΛ: () -> Node, runΛ: () -> Unit) = ΛEntry(nameΛ, infoΛ, searchTextΛ, graphicsΛ, runΛ)
+         fun of(name: () -> String, info: () -> String = { "" }, searchText: () -> String = name, graphics: () -> Node, run: () -> Unit) = ΛEntry(name, info, searchText, graphics, run)
 
          fun of(config: Config<*>) = ConfigEntry(config)
 
@@ -235,6 +237,7 @@ class ConfigSearch: AutoCompletion<Entry> {
       private val text = Label()
       private val configNodeRoot = stackPane()
       private val root = stackPane {
+         padding = Insets(0.0, 10.0, 0.0, 10.0)
          lay(CENTER_LEFT) += text
          lay(CENTER_RIGHT) += configNodeRoot
       }
@@ -247,8 +250,8 @@ class ConfigSearch: AutoCompletion<Entry> {
          text.prefWidthProperty() syncFrom root.widthProperty() - configNodeRoot.widthProperty() - 10
          text.minWidth = 200.0
          text.maxWidthProperty() syncFrom root.widthProperty() - 100
-         text.padding = Insets(5.0, 0.0, 0.0, 10.0)
-         root install rootTooltip
+         text.padding = Insets(2.5, 0.0, 2.5, 0.0)
+         rootTooltip.textProperty() attach { if (it.isNullOrBlank()) root uninstall rootTooltip else root install rootTooltip }
       }
 
       override fun updateItem(item: Entry?, empty: Boolean) {
@@ -259,8 +262,8 @@ class ConfigSearch: AutoCompletion<Entry> {
             graphic = null
          } else {
             graphic = root
-            rootTooltip.text = item.info
             text.text = item.name
+            rootTooltip.text = item.info
 
             val node = item.graphics
             if (node is HBox) node.alignment = CENTER_RIGHT

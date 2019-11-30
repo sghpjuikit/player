@@ -25,8 +25,8 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
-import sp.it.util.conf.c
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.toListConfigurable
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.recurse
@@ -62,7 +62,6 @@ import java.util.ArrayList
 class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 
    private val inputValue = io.i.create<Configurable<Any>>("To configure") { configure(it) }
-
 
    private val groups = TreeView<Name>()
    private val configsRoot = StackPane()
@@ -101,9 +100,8 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private var configSelectionAvoid = false
    private val appConfigurable = APP.configuration
 
-   @IsConfig(editable = EditMode.APP)
-   var showsAppSettings by c(true)
-
+   val showsAppSettings by cv(true).def(editable = EditMode.APP)
+   val selectedGroupPath by cv("").def(editable = EditMode.APP)
 
    init {
       root.prefSize = 800.emScaled x 600.emScaled
@@ -135,20 +133,21 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    fun defaults() = configs.forEach { it.value = it.defaultValue }
 
    fun refresh() {
-      if (showsAppSettings) configure(appConfigurable)
+      if (showsAppSettings.value) configure(appConfigurable)
       else refreshConfigs()
    }
 
-   override fun configure(configurable: Configurable<*>?) {
+   override fun configure(configurable: Configurable<*>?, groupToSelect: String?) {
       val configurableFields = configurable?.getFields().orEmpty()
 
-      showsAppSettings = configurable==appConfigurable
+      showsAppSettings.value = configurable==appConfigurable
       configs setTo configurableFields
       configSelectionAvoid = true
-      groups.isShowRoot = !showsAppSettings
+      groups.isShowRoot = !showsAppSettings.value
       groups.root = tree(Name.treeOfPaths("All", configurableFields.map { it.group }))
       groups.root.isExpanded = true
       configSelectionAvoid = false
+      storeAppSettingsSelection(groupToSelect)
       groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
    }
 
@@ -158,16 +157,17 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
    private fun refreshConfigs() = configsPane.getConfigFields().forEach { it.refreshItem() }
 
-   private fun storeAppSettingsSelection(item: TreeItem<Name>?) {
-      if (!showsAppSettings || configSelectionAvoid) return
-      val selectedGroupPath = item?.value?.pathUp ?: ""
-      appConfigurable.rawAdd(configSelectionName, PropVal1(selectedGroupPath))
+   private fun storeAppSettingsSelection(selection: String?) {
+      if (configSelectionAvoid) return
+      selectedGroupPath.value = selection ?: ""
+      if (showsAppSettings.value && selection!=null) appConfigurable.rawAdd(configSelectionName, PropVal1(selection))
    }
 
+   private fun storeAppSettingsSelection(item: TreeItem<Name>?) = storeAppSettingsSelection(item?.value?.pathUp)
+
    private fun restoreAppSettingsSelection(): TreeItem<Name>? {
-      if (!showsAppSettings) return null
-      val selectedGroupPath = appConfigurable.rawGetAll()[configSelectionName]?.val1
-      return groups.root.recurse { it.children }.find { it.value.pathUp==selectedGroupPath; }
+      val selection = if (showsAppSettings.value) appConfigurable.rawGetAll()[configSelectionName]?.val1 else selectedGroupPath.value
+      return groups.root.recurse { it.children }.find { it.value.pathUp==selection }
    }
 
 }

@@ -6,7 +6,6 @@ import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import sp.it.pl.gui.itemnode.ConfigField
 import sp.it.pl.gui.objects.Text
-import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
@@ -17,7 +16,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.ui.label
 
-class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
+class ConfigPane<T: Any?>: VBox {
    private var fields: List<ConfigField<*>> = listOf()
    private var needsLabel: Boolean = true
    private var inLayout = false
@@ -35,7 +34,7 @@ class ConfigPane<T: Any?>: VBox, ConfiguringFeature {
       configure(configs)
    }
 
-   override fun configure(configurable: Configurable<*>?) {
+   fun configure(configurable: Configurable<*>?) {
       needsLabel = configurable !is Config<*>
       fields = configurable?.getFields().orEmpty().asSequence()
          .sortedWith(configOrder)

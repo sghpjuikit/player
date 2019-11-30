@@ -129,7 +129,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
             val r = Runnable {
                try {
                   it.isAccessible = true
-                  it.invoke(instance)
+                  it(instance)
                } catch (e: IllegalAccessException) {
                   throw RuntimeException("Failed to run action=${a.name}", e)
                } catch (e: Throwable) {

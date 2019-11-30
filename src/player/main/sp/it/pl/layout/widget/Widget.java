@@ -91,8 +91,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public final WidgetFactory<?> factory;
 	protected Pane root;
 	protected Controller controller;
-	private HashMap<String,Config<Object>> configs = new HashMap<>();
-	Disposer onClose = new Disposer();
 
 	// Temporary workaround for bad design. Widget-Container-Controller-Area relationship is badly
 	// designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
@@ -135,6 +133,10 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	 * May be used for sensitive initialization, like setting default values that must not override user settings.
 	 */
 	public final boolean isDeserialized;
+	/** Invoked in {@link #close()}, after {@link #root} and {@link #controller} are disposed. */
+	final Disposer onClose = new Disposer();
+
+	private final Collection<Config<Object>> configs = Configurable.super.getFields();
 
 	public Widget(String name, WidgetFactory<?> factory) {
 		super(new WidgetDb());
@@ -387,26 +389,17 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public Config<Object> getField(String n) {
-		return configs.computeIfAbsent(n, this::getFieldImpl);
+		return firstNotNull(
+			() -> configs.stream().filter(it -> it.getName().equals(name)).findFirst().orElse(null),
+			() -> controller==null ? null : controller.getField(name)
+		);
 	}
 
 	@Override
 	public Collection<Config<Object>> getFields() {
-		getFieldsImpl().forEach(c -> configs.putIfAbsent(c.getName(), c));
-		return configs.values();
-	}
-
-	private Collection<Config<Object>> getFieldsImpl() {
-		var c = new ArrayList<>(Configurable.super.getFields());
+		var c = new ArrayList<Config<Object>>(configs);
 		if (controller!=null) c.addAll(controller.getFields());
 		return c;
-	}
-
-	private Config<Object> getFieldImpl(String name) {
-		return firstNotNull(
-			() -> Configurable.super.getField(name),
-			() -> controller==null ? null : controller.getField(name)
-		);
 	}
 
 	@SuppressWarnings("unchecked")

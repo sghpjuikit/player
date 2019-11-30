@@ -22,6 +22,7 @@ import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.hierarchy.Item.CoverStrategy
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.placeholder.Placeholder
+import sp.it.pl.gui.objects.placeholder.show
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -212,10 +213,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       files.onChange { filesMaterialized = files.materialize() }
       files.onChange { revisitTop() }
-      filesEmpty sync {
-         if (it) placeholder.value.show(root, true)
-         else placeholder.orNull()?.hide()
-      }
+      filesEmpty sync { placeholder.show(root, it) }
+      filesEmpty sync { grid.parent.isVisible = !it }
       onClose += { disposeItems() }
 
       root.sync1IfInScene {

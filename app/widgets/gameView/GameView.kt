@@ -33,6 +33,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.image.cover.FileCover
 import sp.it.pl.gui.objects.placeholder.Placeholder
+import sp.it.pl.gui.objects.placeholder.show
 import sp.it.pl.gui.objects.tree.buildTreeCell
 import sp.it.pl.gui.objects.tree.initTreeView
 import sp.it.pl.gui.objects.tree.tree
@@ -148,17 +149,16 @@ class GameView(widget: Widget): SimpleController(widget) {
    val files by cList<File>().def(name = "Location", info = "Location of the library.").only(DIRECTORY)
 
    val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 10.0, 10.0)
-   val placeholder = Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
-      chooseFile("Choose directory", FileType.DIRECTORY, APP.locationHome, root.scene.window)
-         .ifOk { files += it }
+   val placeholder = lazy {
+      Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
+         chooseFile("Choose directory", FileType.DIRECTORY, APP.locationHome, root.scene.window)
+            .ifOk { files += it }
+      }
    }
 
    init {
       root.prefSize = 1200.emScaled x 900.emScaled
       root.consumeScrolling()
-
-      files.onChange { viewGames() } on onClose
-      files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
 
       root.lay += grid.apply {
          search.field = FileField.PATH
@@ -191,6 +191,10 @@ class GameView(widget: Widget): SimpleController(widget) {
          }
       }
 
+
+      files.onChange { viewGames() } on onClose
+      files.onChange { grid.isVisible = !files.isEmpty() } on onClose
+      files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
       placeholder.show(root, files.isEmpty())
 
       root.sync1IfInScene {

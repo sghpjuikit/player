@@ -12,6 +12,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.icon.Icon
+import sp.it.util.functional.orNull
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
@@ -101,4 +102,10 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
       private const val STYLECLASS_ICON = "placeholder-pane-icon"
    }
 
+}
+
+/** Calls [Placeholder.show], preserving lazy semantics. */
+fun Lazy<Placeholder>.show(n: Node, visible: Boolean) {
+   if (visible) value.show(n, true)
+   else orNull()?.hide()
 }

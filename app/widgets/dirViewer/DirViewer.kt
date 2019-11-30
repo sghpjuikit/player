@@ -59,11 +59,9 @@ import sp.it.util.conf.values
 import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
-import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.functional.let_
 import sp.it.util.functional.nullsLast
-import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.inSort
@@ -113,9 +111,12 @@ import kotlin.math.round
 )
 class DirViewer(widget: Widget): SimpleController(widget) {
 
-   private val inputFile = io.i.create<File>("Root directory", null) {
-      if (it!=null && it.isDirectory && it.exists())
-         files setToOne it
+   private val inputFile = io.i.create<List<File>>("Root directory", listOf()) {
+      runIO {
+         it.orEmpty().mapNotNull { if (it.isDirectory) it else it.parentFile }.toSet().toList()
+      } ui {
+         files setTo it
+      }
    }
 
    private val files by cList<File>().only(FileActor.DIRECTORY)
@@ -200,11 +201,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       installDrag(
          root, FOLDER_PLUS, "Explore directory",
-         { e -> e.dragboard.hasFiles() },
-         { e ->
-            val fs = e.dragboard.files
-            files setTo if (fs.all { it.isDirectory }) fs else listOf(getCommonRoot(fs)!!)
-         }
+         { it.dragboard.hasFiles() },
+         { inputFile.value = it.dragboard.files }
       )
 
       coverLoadingUseComposedDirCover.attach { revisitCurrent() }
@@ -384,7 +382,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true)
       }
 
-      override fun childrenFiles() = fileFlatter.value.flatten(filesMaterialized).map { CachingFile(it) }
+      override fun childrenFiles() = filesMaterialized.filter { it.isDirectory && it.exists() }.let(fileFlatter.value.flatten).map { CachingFile(it) }
 
       override fun getCoverFile() = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
 

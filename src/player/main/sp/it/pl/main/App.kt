@@ -416,7 +416,6 @@ class App: Application(), GlobalConfigDelegator {
 
    private fun AppSearch.initForApp() {
       sources += Source("Settings") {
-         data class Cat(val name: String, val path: String)
          configuration.getFields().flatMap {
             it.group.traverse { it.substringBeforeLast(".", "").takeIf { it.isNotEmpty() } }.asIterable()
          }.toSet().asSequence().map {

@@ -215,7 +215,7 @@ class FileFilterValue(initialValue: String = FileFilters.filterPrimary.name, enu
    fun getValueAsFilter() = filter
 }
 
-enum class FileFlatter(@JvmField val flatten: (Collection<File>) -> Sequence<File>) {
+enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
    NONE({ it.asSequence().distinct() }),
    DIRS({
       it.asSequence().distinct()

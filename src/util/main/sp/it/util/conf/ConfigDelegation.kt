@@ -13,7 +13,6 @@ import sp.it.util.action.IsAction
 import sp.it.util.conf.ConfigImpl.ListConfig
 import sp.it.util.conf.ConfigImpl.PropertyConfig
 import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig
-import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
@@ -44,6 +43,7 @@ inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
 
+fun <T: Any, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
 fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), Double.MAX_VALUE))
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(Double.MIN_VALUE, max.toDouble()))
@@ -194,7 +194,7 @@ abstract class Conf<T: Any?> {
    protected fun KProperty<*>.obtainConfigMetadata() = null
       ?: def
       ?: findAnnotation<IsConfig>()?.toDef()
-      ?: fail { "${::def.name} definition or ${IsConfig::class} annotation required for $this" }
+      ?: ConfigDef(name)
 
    protected fun validateValue(v: T) {
       constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }

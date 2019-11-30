@@ -10,6 +10,7 @@ import sp.it.util.action.Action
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.Constraint
 import sp.it.util.functional.asIf
 import sp.it.util.math.clip
 import sp.it.util.math.max
@@ -37,6 +38,7 @@ class ConfigPane<T: Any?>: VBox {
    fun configure(configurable: Configurable<*>?) {
       needsLabel = configurable !is Config<*>
       fields = configurable?.getFields().orEmpty().asSequence()
+         .filter { it.findConstraint<Constraint.NoUi>()==null }
          .sortedWith(configOrder)
          .map {
             ConfigField.create(it).apply {

@@ -165,6 +165,8 @@ interface Constraint<in T> {
 
    object PreserveOrder: MarkerConstraint()
 
+   object NoUi: MarkerConstraint()
+
    class ValueSet<T>(val enumerator: () -> Collection<T>): MarkerConstraint()
 
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()

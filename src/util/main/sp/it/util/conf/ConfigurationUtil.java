@@ -141,7 +141,7 @@ public class ConfigurationUtil {
 			failIfNotFinal(f);
 			f.setAccessible(true);
 			Config<T> config = (Config<T>) f.get(instance);
-			((ConfigBase) config).constraints = constraintsOf(config.getType(), f.getAnnotations());
+			((ConfigBase) config).addConstraints(constraintsOf(config.getType(), f.getAnnotations()));
 			return config;
 		} catch (IllegalAccessException|SecurityException ex) {
 			throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());

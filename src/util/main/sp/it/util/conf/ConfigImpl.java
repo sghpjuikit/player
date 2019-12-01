@@ -41,7 +41,7 @@ public interface ConfigImpl {
 		private final String info;
 		private final EditMode editable;
 		private final T defaultValue;
-		Set<Constraint<? super T>> constraints;
+		private Set<Constraint<? super T>> constraints;
 
 		ConfigBase(Class<T> type, String name, String gui_name, T val, String category, String info, EditMode editable) {
 			this.type = unPrimitivize(type);
@@ -62,7 +62,7 @@ public interface ConfigImpl {
 
 		ConfigBase(Class<T> type, String name, ConfigDefinition c, Set<Constraint<? super T>> constraints, T val, String category) {
 			this(type, name, c.getName().isEmpty() ? name : c.getName(), val, category, c.getInfo(), c.getEditable());
-			this.constraints = constraints;
+			this.constraints = new HashSet<>(constraints);
 		}
 
 		@Override
@@ -299,7 +299,7 @@ public interface ConfigImpl {
 			defaultItems = isFixedSizeAndHasConfigurableItems() ? null : list(list.list);
 			toConfigurable = compose(list.toConfigurable, configurable -> {
 				if (configurable instanceof Config) {
-					((Config) configurable).addConstraints(constraints);
+					((Config) configurable).addConstraints(getConstraints());
 					if (!isEditable().isByUser()) ((Config) configurable).addConstraints(new ReadOnlyIf(true)); // fixes lack of editability propagation
 				}
 				return configurable;
@@ -318,7 +318,7 @@ public interface ConfigImpl {
 			toConfigurable = compose(list.toConfigurable, configurable -> {
 				// TODO: implement for every configurable & make sure there is no constraint duplication, use parentConfig constraint delegator
 				if (configurable instanceof Config) {
-					((Config) configurable).addConstraints(constraints);
+					((Config) configurable).addConstraints(getConstraints());
 					if (!isEditable().isByUser()) ((Config) configurable).addConstraints(new ReadOnlyIf(true)); // fixes lack of editability propagation
 				}
 				return configurable;

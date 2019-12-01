@@ -254,7 +254,7 @@ private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<Obs
                isSyntheticSetEvent = false
             }
          }
-         pane.configure(lc.toConfigurable.invoke(this.value))
+         pane.configure(lc.toConfigurable(this.value))
       }
 
       override fun getNode() = pane

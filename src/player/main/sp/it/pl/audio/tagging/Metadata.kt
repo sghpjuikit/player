@@ -606,7 +606,7 @@ class Metadata: Song, Serializable {
       }
    }
 
-   private fun readCoverFromTag(): Cover? = try {
+   private fun readCoverFromTag(): ImageCover? = try {
       readArtworkFromTag()?.let { ImageCover(it.imageOrNull, it.info ?: "") }
    } catch (e: IOException) {
       null
@@ -812,7 +812,10 @@ class Metadata: Song, Serializable {
          else -> { m -> getOf(m) }
       }
 
-      fun isFieldEmpty(m: Metadata): Boolean = getOf(m)==getOf(EMPTY)
+      fun isFieldEmpty(m: Metadata): Boolean = when(this) {
+         COVER -> m.readArtworkFromTag()==null
+         else -> getOf(m)==getOf(EMPTY)
+      }
 
       override fun toS(o: T?, substitute: String): String {
          if (o==null || ""==o) return substitute

@@ -5,9 +5,7 @@ import javafx.scene.image.Image
 import java.awt.image.BufferedImage
 import java.util.Objects
 
-/**
- * Denotes Cover represented by a [javafx.scene.image.Image] or [java.awt.image.BufferedImage].
- */
+/** Cover represented by a [javafx.scene.image.Image] or [java.awt.image.BufferedImage]. */
 class ImageCover: Cover {
    private val imageI: Image?
    private val imageB: BufferedImage?

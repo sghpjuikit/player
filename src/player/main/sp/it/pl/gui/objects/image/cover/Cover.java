@@ -2,6 +2,7 @@ package sp.it.pl.gui.objects.image.cover;
 
 import java.io.File;
 import javafx.scene.image.Image;
+import sp.it.util.dev.Blocks;
 import sp.it.util.ui.image.ImageSize;
 
 public interface Cover {
@@ -36,6 +37,7 @@ public interface Cover {
 	/**
 	 * Returns the cover image.
 	 */
+	@Blocks
 	Image getImage();
 
 	/**
@@ -46,11 +48,13 @@ public interface Cover {
 	 * @param height requested height
 	 * @return the cover image of at least requested size or smaller if the underlying image is smaller
 	 */
+	@Blocks
 	Image getImage(double width, double height);
 
 	/**
 	 * @see #getImage(double, double)
 	 */
+	@Blocks
 	default Image getImage(ImageSize size) {
 		return getImage(size.width, size.height);
 	}

@@ -86,6 +86,7 @@ import sp.it.pl.gui.objects.icon.CheckIcon
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.ThumbnailWithAdd
 import sp.it.pl.gui.objects.image.cover.Cover
+import sp.it.pl.gui.objects.image.cover.ImageCover
 import sp.it.pl.gui.objects.spinner.Spinner
 import sp.it.pl.gui.objects.window.NodeShow.LEFT_CENTER
 import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
@@ -295,7 +296,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          TextTagField(addedToLibraryF, ADDED_TO_LIBRARY, readOnly = true),
          TextTagField(tagsF, TAGS),
          TextTagField(lyricsA, LYRICS),
-         object: TagField<Cover>(COVER) {
+         object: TagField<ImageCover>(COVER) {
             val coverContainer: StackPane = scrollContent.lookupId("coverContainer")
 
             init {
@@ -320,10 +321,10 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
             override fun complete() {
                val s = state
-               coverV.loadImage(s.asIf<ReadState.Same<Cover>>()?.value?.image)
+               coverV.loadCover(s.asIf<ReadState.Same<Cover>>()?.value)
                coverDescriptionL.text = when (s) {
                   is ReadState.None -> ""
-                  is ReadState.Same<Cover?> -> s.value?.description ?: ""
+                  is ReadState.Same<ImageCover?> -> s.value?.description ?: ""
                   is ReadState.Multi -> AppTexts.textManyVal
                   else -> fail()
                }

@@ -328,7 +328,7 @@ public interface ConfigImpl {
 		}
 
 		public ListConfig(String name, ConfList<T> val) {
-			this(name, name, val, "", "", EditMode.USER);
+			this(name, name, val, "", "", isReadOnly(val.list) ? EditMode.NONE : EditMode.USER);
 		}
 
 		@Override

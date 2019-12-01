@@ -135,7 +135,7 @@ class WidgetDb @JvmOverloads constructor(
    val name: String = emptyWidgetFactory.id(),
    val preferred: Boolean = false,
    val forbidUse: Boolean = false,
-   val uiName: String = emptyWidgetFactory.name(),
+   val nameUi: String = emptyWidgetFactory.name(),
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,
    properties: Map<String, Any?> = mapOf(),

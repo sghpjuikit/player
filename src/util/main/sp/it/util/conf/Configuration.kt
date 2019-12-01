@@ -81,7 +81,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
          config.takeIf { it.type.isSubclassOf<Boolean>() && it.isEditable.isByUser }
             ?.let { it as Config<Boolean> }
             ?.let {
-               val name = "${it.guiName} - toggle"
+               val name = "${it.nameUi} - toggle"
                val description = "Toggles value ${it.name} between true/false"
                val r = Runnable { if (it.isEditableByUserRightNow()) it.toggle() }
                val a = Action(name, r, description, it.group, "", false, false)

@@ -24,7 +24,6 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode
-import javafx.scene.input.TransferMode.*
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
 import mu.KotlinLogging
@@ -47,7 +46,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
-import sp.it.pl.main.uiName
+import sp.it.pl.main.nameUi
 import sp.it.pl.plugin.Plugin
 import sp.it.util.HierarchicalBase
 import sp.it.util.Util.enumToHuman
@@ -118,9 +117,9 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
    is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
    is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
-   is List<*> -> STreeItem<Any?>("List of " + o.getElementType().uiName.plural(), { o.asSequence() }, { o.isEmpty() })
-   is Set<*> -> STreeItem<Any?>("Set of " + o.getElementType().uiName.plural(), { o.asSequence() }, { o.isEmpty() })
-   is Map<*, *> -> STreeItem<Any?>("Map of " + o.values.getElementType().uiName.plural(), { o.asSequence() }, { o.isEmpty() })
+   is List<*> -> STreeItem<Any?>("List of " + o.getElementType().nameUi.plural(), { o.asSequence() }, { o.isEmpty() })
+   is Set<*> -> STreeItem<Any?>("Set of " + o.getElementType().nameUi.plural(), { o.asSequence() }, { o.isEmpty() })
+   is Map<*, *> -> STreeItem<Any?>("Map of " + o.values.getElementType().nameUi.plural(), { o.asSequence() }, { o.isEmpty() })
    is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }

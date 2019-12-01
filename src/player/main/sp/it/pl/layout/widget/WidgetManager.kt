@@ -631,10 +631,10 @@ class WidgetManager {
       fun getFactory(id: String): WidgetFactory<*>? = factoriesW[id]
 
       /** @return widget factory with the specified [WidgetFactory.name] or null if none */
-      fun getFactoryByGuiName(name: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.name()==name }.toOptional().toTry().mapError { name }
+      fun getFactoryByNameUi(name: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.name()==name }.toOptional().toTry().mapError { name }
 
       /** @return component factory with the specified [ComponentFactory.name] or null if none */
-      fun getComponentFactoryByGuiName(name: String): Try<ComponentFactory<*>, String> = getFactoryByGuiName(name).or { factoriesC[name].toOptional().toTry() }
+      fun getComponentFactoryByNameUi(name: String): Try<ComponentFactory<*>, String> = getFactoryByNameUi(name).or { factoriesC[name].toOptional().toTry() }
 
       /** @return all widget factories */
       fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()

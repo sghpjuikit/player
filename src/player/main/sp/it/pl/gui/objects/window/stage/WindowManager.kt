@@ -468,7 +468,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    fun instantiateComponent(name: String): Component? {
       val f = null
-         ?: APP.widgetManager.factories.getComponentFactoryByGuiName(name).orNull()
+         ?: APP.widgetManager.factories.getComponentFactoryByNameUi(name).orNull()
          ?: APP.widgetManager.factories.getFactory(name)
       return f?.create()
    }

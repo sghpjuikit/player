@@ -85,7 +85,7 @@ import sp.it.pl.main.AppSettings.ui.table as confTable
 
 class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
-   private val viewDisplayBgrInfo = "\nIgnored when `${overlayArea.name}` is `${Display.WINDOW.uiName}`"
+   private val viewDisplayBgrInfo = "\nIgnored when `${overlayArea.name}` is `${Display.WINDOW.nameUi}`"
    private val skinsImpl = observableSet<SkinCss>()
 
    /** Action chooser and data info view. */

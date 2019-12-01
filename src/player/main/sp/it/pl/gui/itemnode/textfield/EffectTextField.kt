@@ -27,7 +27,7 @@ import sp.it.pl.gui.objects.window.NodeShow.RIGHT_UP
 import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
-import sp.it.pl.main.uiName
+import sp.it.pl.main.nameUi
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -42,7 +42,7 @@ class EffectTextField: ValueTextField<Effect> {
    private val limitedToType: Class<out Effect>?
 
    /** Creates effect editor which can edit an effect or create effect of any specified types or any type if no specified. */
-   constructor(effectType: Class<out Effect>? = null): super({ it::class.uiName }) {
+   constructor(effectType: Class<out Effect>? = null): super({ it::class.nameUi }) {
       styleClass += STYLECLASS
       typeB = Icon().apply {
          styleclass("effect-config-field-type-button")
@@ -131,7 +131,7 @@ class EffectTextField: ValueTextField<Effect> {
          this.type = type?.java
       }
 
-      fun name(): String = type?.uiName ?: "None"
+      fun name(): String = type?.nameUi ?: "None"
 
       fun instantiate(): Effect? = runTry {
          type?.getConstructor()?.newInstance()

@@ -20,7 +20,7 @@ import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.WindowEvent.WINDOW_SHOWN
-import sp.it.pl.core.UiName
+import sp.it.pl.core.NameUi
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeButton
@@ -204,13 +204,13 @@ abstract class OverlayPane<in T>: StackPane() {
       fun computeScreen(): Screen
    }
 
-   enum class Display(name: String): ScreenGetter, UiName {
+   enum class Display(name: String): ScreenGetter, NameUi {
       WINDOW("Active window"),
       SCREEN_OF_WINDOW("Screen of active window"),
       SCREEN_OF_MOUSE("Screen containing mouse"),
       SCREEN_PRIMARY("Primary screen");
 
-      override val uiName = name
+      override val nameUi = name
 
       override fun computeScreen(): Screen = when (this) {
          WINDOW -> fail()

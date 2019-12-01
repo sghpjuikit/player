@@ -13,7 +13,7 @@ class ValueConfig<V>: ConfigBase<V> {
 
    private var value: V
 
-   constructor(type: Class<V>, name: String, uiName: String, value: V, category: String, info: String, editable: EditMode): super(type, name, uiName, value, category, info, editable) {
+   constructor(type: Class<V>, name: String, nameUi: String, value: V, category: String, info: String, editable: EditMode): super(type, name, nameUi, value, category, info, editable) {
       this.value = value
    }
 

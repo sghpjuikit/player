@@ -208,7 +208,7 @@ abstract public class ConfigField<T> {
      * @return label describing this field
      */
     public Label buildLabel() {
-        Label l = new Label(config.getGuiName());
+        Label l = new Label(config.getNameUi());
 
         String tooltip_text = getTooltipText();
         if (!tooltip_text.isEmpty()) {
@@ -411,7 +411,7 @@ abstract public class ConfigField<T> {
             okB.setMaxSize(11, 11);
 
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
-            editor.setPromptText(c.getGuiName());
+            editor.setPromptText(c.getNameUi());
             editor.setText(toS(getConfigValue()));
 
             // refreshing value

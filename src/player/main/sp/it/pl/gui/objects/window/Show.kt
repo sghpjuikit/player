@@ -17,7 +17,7 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.stage.Screen
 import javafx.stage.Window
-import sp.it.pl.core.UiName
+import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
 import sp.it.util.functional.orNull
 import sp.it.util.math.P
@@ -31,7 +31,7 @@ import sp.it.util.ui.x
 
 data class Shower(val owner: Window?, val show: (Window) -> P)
 
-enum class ShowArea(override val uiName: String): UiName {
+enum class ShowArea(override val nameUi: String): NameUi {
    SCREEN_ACTIVE("Screen containing mouse"),
    SCREEN_PRIMARY("Main screen"),
    ALL_SCREENS("Rectangle of all screens"),

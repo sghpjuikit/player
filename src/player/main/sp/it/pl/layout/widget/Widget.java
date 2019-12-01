@@ -160,7 +160,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 			: null;
 		preferred.setValue(state.getPreferred());
 		forbid_use.setValue(state.getForbidUse());
-		custom_name.setValue(state.getUiName());
+		custom_name.setValue(state.getNameUi());
 		properties.putAll(state.getProperties());
 		getFieldsRaw().putAll(state.getSettings());
 		focused.addListener(computeFocusChangeHandler());

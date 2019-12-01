@@ -48,11 +48,11 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
    /** Name of this config. */
    abstract val name: String
 
+   /** Human readable [name]. Short, single line. */
+   abstract val nameUi: String
+
    /** Semantic category/group path using '.' separator. */
    abstract val group: String
-
-   /** Human readable [name]. Short, single line. */
-   abstract val guiName: String
 
    /** Human readable description. Potentially multiple lines. */
    abstract val info: String

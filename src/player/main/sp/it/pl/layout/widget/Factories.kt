@@ -36,8 +36,8 @@ val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.location.widgets/
 
 val initialTemplateFactory = TemplateFactory("Playback + Playlist") {
    BiContainer(VERTICAL).apply {
-      children += 1 to APP.widgetManager.factories.getFactoryByGuiName(Widgets.PLAYBACK).orNone().create()
-      children += 2 to APP.widgetManager.factories.getFactoryByGuiName(Widgets.PLAYLIST).orNone().create()
+      children += 1 to APP.widgetManager.factories.getFactoryByNameUi(Widgets.PLAYBACK).orNone().create()
+      children += 2 to APP.widgetManager.factories.getFactoryByNameUi(Widgets.PLAYLIST).orNone().create()
    }
 }
 

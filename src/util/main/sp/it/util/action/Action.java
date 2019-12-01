@@ -343,7 +343,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	@Override
-	public String getGuiName() {
+	public String getNameUi() {
 		return name;
 	}
 

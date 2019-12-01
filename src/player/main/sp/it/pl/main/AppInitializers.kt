@@ -1,6 +1,5 @@
 package sp.it.pl.main
 
-import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
@@ -28,6 +27,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncTo
+import sp.it.util.text.pluralUnit
 import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
@@ -101,8 +101,8 @@ fun InstanceName.initApp() {
    add(InOutput::class.java) { it.o.name }
    add(Collection::class.java) {
       val eType = getRawGenericPropertyType(it.javaClass)
-      val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else eType.uiName
-      it.size.toString() + " " + English.plural(eName, it.size)
+      val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else eType.nameUi
+      eName.pluralUnit(it.size)
    }
 }
 

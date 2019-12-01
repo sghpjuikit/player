@@ -66,7 +66,7 @@ public interface ConfigImpl {
 		}
 
 		@Override
-		public final String getGuiName() {
+		public final String getNameUi() {
 			return gui_name;
 		}
 

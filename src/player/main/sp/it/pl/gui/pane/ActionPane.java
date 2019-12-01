@@ -30,6 +30,7 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
+import sp.it.pl.main.AppExtensionsKt;
 import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
@@ -65,7 +66,7 @@ import static sp.it.pl.gui.pane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.GroupApply.NONE;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
-import static sp.it.pl.main.AppExtensionsKt.getUiName;
+import static sp.it.pl.main.AppExtensionsKt.getNameUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.util.animation.Anim.anim;
@@ -422,7 +423,7 @@ public class ActionPane extends OverlayPane<Object> {
 		Object d = computed ? data instanceof Fut ? ((Fut)data).getDoneOrNull() : data : null;
 
 		String dName = !computed ? "n/a" : instanceName.get(d);
-		String dKind = !computed ? "n/a" : getUiName(type) + (APP.getDeveloperMode().getValue() ? " (" + type + ")" : "");
+		String dKind = !computed ? "n/a" : getNameUi(type) + (APP.getDeveloperMode().getValue() ? " (" + type + ")" : "");
 		String dInfo = !computed ? "" : asStream(instanceDescription.get(d)).map(e -> e.getName() + ": " + e.getValue()).sorted().collect(joining("\n"));
 		return "Data: " + dName + "\n" +
 			   "Type: " + dKind +

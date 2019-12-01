@@ -198,7 +198,7 @@ class ConfigSearch: AutoCompletion<Entry> {
       }
 
       class ConfigEntry constructor(private val config: Config<*>): Entry {
-         override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.guiName}"
+         override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.nameUi}"
          override val searchText = if (config is Action) name + config.keys else name
          override val info by lazy { "$name\n\n${config.info}" }
          override val graphics by lazy {

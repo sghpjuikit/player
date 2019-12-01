@@ -48,10 +48,10 @@ class CoreConverter: Core {
 
    /** Default to/from string converter that uses per class registered converters. */
    @JvmField val general = Parsers.DEFAULT!!
-   /** Default ui to string converter. Converts [UiName] or delegates to [general]. */
+   /** Default ui to string converter. Converts [NameUi] or delegates to [general]. */
    @JvmField val ui = object: ConverterToString<Any?> {
       override fun toS(o: Any?) = when (o) {
-            is UiName -> o.uiName
+            is NameUi -> o.nameUi
             is LocalDateTime -> o.format(dateTimeFormatter)
             is LocalDate -> o.format(dateTimeFormatter)
             is LocalTime -> o.format(dateTimeFormatter)
@@ -144,7 +144,7 @@ class CoreConverter: Core {
 
 }
 
-interface UiName {
+interface NameUi {
    /** Human readable name of this object displayed in user interface. */
-   val uiName: String
+   val nameUi: String
 }

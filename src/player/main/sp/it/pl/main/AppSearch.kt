@@ -2,7 +2,7 @@ package sp.it.pl.main
 
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
-import sp.it.pl.core.UiName
+import sp.it.pl.core.NameUi
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
@@ -52,5 +52,5 @@ class AppSearch: GlobalSubConfigDelegator(conf.name) {
       return tf
    }
 
-   class Source(override val uiName: String, source: Src): Src by source, UiName
+   class Source(override val nameUi: String, source: Src): Src by source, NameUi
 }

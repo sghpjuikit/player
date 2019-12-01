@@ -25,7 +25,7 @@ class ConfigPane<T: Any?>: VBox {
    val configOrder = compareBy<Config<*>> { 0 }
       .thenBy { it.group.toLowerCase() }
       .thenBy { if (it.type==Action::javaClass) 1.0 else -1.0 }
-      .thenBy { it.guiName.toLowerCase() }
+      .thenBy { it.nameUi.toLowerCase() }
 
    constructor(): super(5.0) {
       styleClass += "form-config-pane"
@@ -51,13 +51,13 @@ class ConfigPane<T: Any?>: VBox {
       children setTo fields.asSequence().flatMap {
          sequenceOf(
             when {
-               needsLabel -> label(it.config.guiName) {
+               needsLabel -> label(it.config.nameUi) {
                   styleClass += "form-config-pane-config-name"
                }
                else -> null
             },
             when {
-               it.config.info.isEmpty() || it.config.guiName==it.config.info -> null
+               it.config.info.isEmpty() || it.config.nameUi==it.config.info -> null
                else -> Text(it.config.info).apply {
                   isManaged = false
                   styleClass += "form-config-pane-config-description"

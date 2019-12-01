@@ -57,11 +57,11 @@ fun Song.isPlaying(): Boolean = same(APP.audio.playingSong.value)
 fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value
 
 /** @return ui name of this class, using [App.className].[sp.it.util.type.ClassName.get] */
-val KClass<*>.uiName: String
+val KClass<*>.nameUi: String
    get() = APP.className[this]
 
 /** @return ui name of this class, using [App.className].[sp.it.util.type.ClassName.get] */
-val Class<*>.uiName: String
+val Class<*>.nameUi: String
    get() = APP.className[this.kotlin]
 
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */

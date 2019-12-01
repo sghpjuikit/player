@@ -193,12 +193,9 @@ object FileFilters {
    }
 
    /** @return filter with specified name or primary filter if no such filter */
-   @JvmStatic
    fun getOrPrimary(name: String) = filters.find { it.name==name } ?: filterPrimary
 
    /** @return enumerable string value enumerating all available predicate names */
-   @JvmStatic
-   @JvmOverloads
    fun toEnumerableValue(initialValue: String = FileFilters.filterPrimary.name) = FileFilterValue(initialValue, filters.map { it.name })
 }
 

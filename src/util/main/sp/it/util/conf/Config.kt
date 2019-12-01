@@ -22,6 +22,7 @@ import sp.it.util.functional.invoke
 import sp.it.util.parsing.Parsers
 import sp.it.util.type.Util.getEnumConstants
 import sp.it.util.type.Util.isEnum
+import sp.it.util.type.isSubclassOf
 import sp.it.util.type.toRaw
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -150,7 +151,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
       /**
        * Creates config for value. Attempts in order:
        *  *  [forProperty]
-       *  *  create [ListConfig] if the value is [javafx.collections.ObservableList]
+       *  *  create [ListConfig] if the type is subtype of [javafx.collections.ObservableList]
        *  *  wraps the value in [sp.it.util.access.V] and calls [forProperty]
        */
       @Suppress("UNCHECKED_CAST")
@@ -158,15 +159,16 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
       fun <T> forValue(type: Type, name: String, value: Any?): Config<T> = null
          ?: forPropertyImpl(type.toRaw(), name, value) as Config<T>?
          ?: run {
-            when (value) {
-               value is ObservableList<*> -> {
+            val typeRaw = type.toRaw()
+            when {
+               typeRaw.isSubclassOf<ObservableList<*>>() -> {
                   val itemType: Class<*> = when (type) {
                      is ParameterizedType -> type.actualTypeArguments.firstOrNull()?.toRaw() ?: Any::class.java
                      else -> Any::class.java
                   }
                   ListConfig(name, ConfList(itemType as Class<T>, true, value as ObservableList<T>)) as Config<T>
                }
-               else -> forProperty(type.toRaw(), name, V(value)) as Config<T>
+               else -> forProperty(typeRaw, name, V(value)) as Config<T>
             }
          }
 

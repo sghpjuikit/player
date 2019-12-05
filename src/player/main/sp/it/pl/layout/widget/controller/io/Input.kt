@@ -1,6 +1,6 @@
 package sp.it.pl.layout.widget.controller.io
 
-import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
@@ -94,7 +94,7 @@ open class Input<T>: Put<T?> {
    @Suppress("UNCHECKED_CAST")
    @Idempotent
    fun bindAllIdentical() {
-      val allWidgets = APP.widgetManager.widgets.findAll(WidgetSource.OPEN).toList()
+      val allWidgets = APP.widgetManager.widgets.findAll(OPEN).toList()
       val outputs = getSources().mapTo(HashSet()) { o -> o.id to allWidgets.find { o in it.controller.io.o.getOutputs() }?.factory }
       outputs.forEach { (id, factory) ->
          allWidgets.asSequence()

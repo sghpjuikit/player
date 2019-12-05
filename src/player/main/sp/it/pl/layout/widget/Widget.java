@@ -304,8 +304,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 			c.close();
 
-			is.forEach(i -> i.setValue(null));
-			os.forEach(o -> o.setValue(null));
+			is.forEach(i -> i.dispose());
+			os.forEach(o -> o.dispose());
 		}
 
 		if (root!=null) {
@@ -424,7 +424,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
 			getController().io.i.getInputs().forEach(i ->
-				properties.put("io" + i.name, toS(i.getSources(), o -> o.id.toString(), ":"))
+				properties.put("io" + i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
 			);
 		} else {
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are

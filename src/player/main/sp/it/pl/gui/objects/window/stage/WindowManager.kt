@@ -279,7 +279,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.setContent(content)
          mw.onClose += dockWidget sync {
             mw.s.asLayout()?.child?.close()
-            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it, NEW(CUSTOM)).orNull()
+            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it, NEW(CUSTOM))
          }
          mw.onClose += {
             mw.s.asLayout()?.child?.close()

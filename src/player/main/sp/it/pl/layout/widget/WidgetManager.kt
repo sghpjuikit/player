@@ -103,7 +103,6 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.WatchEvent.Kind
-import java.util.Optional
 import java.util.concurrent.TimeUnit
 import javax.tools.ToolProvider
 import kotlin.math.ceil
@@ -540,9 +539,9 @@ class WidgetManager {
        *
        * @param filter condition the widget must fulfill
        * @param source where and how the widget will be found/constructed
-       * @return optional of widget fulfilling condition or empty if not available
+       * @return widget fulfilling condition or null othewrwise
        */
-      fun find(filter: (WidgetInfo) -> Boolean, source: WidgetUse): Optional<Widget> {
+      fun find(filter: (WidgetInfo) -> Boolean, source: WidgetUse): Widget? {
 
          val preferred by lazy {
             factories.getFactories()
@@ -558,7 +557,7 @@ class WidgetManager {
             .filter { if (preferred==null) true else it.info.name()==preferred }
             .toList()
 
-         val out: Widget? = null
+         return null
             ?: widgets.find { it.preferred.value }
             ?: widgets.firstOrNull()
             ?: run {
@@ -573,12 +572,10 @@ class WidgetManager {
                   null
                }
             }
-
-         return Optional.ofNullable(out)
       }
 
       /** Equivalent to: `find({ it.name()==name || it.nameGui()==name }, source, ignore)` */
-      fun find(name: String, source: WidgetUse): Optional<Widget> =
+      fun find(name: String, source: WidgetUse): Widget? =
          find({ it.id()==name || it.name()==name }, source)
 
       /**
@@ -586,7 +583,7 @@ class WidgetManager {
        * Controller is returned only if the widget is/has been loaded without any errors.
        */
       fun <F> use(feature: Class<F>, source: WidgetUse, action: (F) -> Unit) =
-         find({ it.hasFeature(feature) }, source).filterIsControllerInstance(feature).ifPresent(action)
+         find({ it.hasFeature(feature) }, source).focusWithWindow().filterIsControllerInstance(feature).ifNotNull(action).toUnit()
 
       /** Equivalent to: `use(T::class.java, source, action)` */
       inline fun <reified T> use(source: WidgetUse, noinline action: (T) -> Unit) =
@@ -594,10 +591,10 @@ class WidgetManager {
 
       /** Equivalent to: `find(cond, source).ifPresent(action)` */
       fun use(cond: (WidgetInfo) -> Boolean, source: WidgetUse, action: (Widget) -> Unit) =
-         find(cond, source).ifPresent(action)
+         find(cond, source).focusWithWindow().ifNotNull(action).toUnit()
 
       fun use(name: String, source: WidgetUse, action: (Widget) -> Unit) =
-         find(name, source).ifPresent(action)
+         find(name, source).focusWithWindow().ifNotNull(action).toUnit()
 
       /** Select next widget or the first if no selected among the widgets in the specified window. */
       fun selectNextWidget(root: Container<*>) {
@@ -643,11 +640,11 @@ class WidgetManager {
       fun getComponentFactories(): Sequence<ComponentFactory<*>> = (factoriesC.asSequence() + getFactories()).distinct()
 
       //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
-      inline fun <reified FEATURE> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class.java).asSequence()
+      inline fun <reified FEATURE> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class.java)
 
       //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
       fun <FEATURE> getFactoriesWith(feature: Class<FEATURE>) =
-         factoriesW.streamV().filter { it.hasFeature(feature) }.map { FactoryRef<FEATURE>(it) }!!
+         factoriesW.streamV().asSequence().filter { it.hasFeature(feature) }.map { FactoryRef<FEATURE>(it) }
 
       /**
        * Register the specified factory.
@@ -697,11 +694,11 @@ class WidgetManager {
       fun name() = factory.name()
 
       @Suppress("UNCHECKED_CAST")
-      fun use(source: WidgetUse, action: (FEATURE) -> Unit) = widgets
+      fun <R> use(source: WidgetUse, action: (FEATURE) -> Unit) = widgets
          .find(name(), source)
-         .filterIsControllerInstance(factory.controllerType)
-         .map { it as FEATURE }  // if controller is factory.controllerType then it is also FEATURE
-         .ifPresent(action)
+         .focusWithWindow()
+         .filterIsControllerInstance(factory.controllerType as Class<FEATURE>)
+         .ifNotNull(action).toUnit()
    }
 
    companion object: KLogging() {
@@ -727,15 +724,15 @@ class WidgetManager {
          (libFiles + compileDir).map { it.toURI().toURL() }.asArray() let_ ::URLClassLoader
       }
 
-      private fun <R> Optional<Widget>.filterIsControllerInstance(type: Class<R>): Optional<R> =
-         map { it.controller }.filter(type::isInstance).map { type.cast(it) }
+      private fun Widget?.focusWithWindow() = this?.apply { window.orNull()?.requestFocus(); focus(); }
+
+      private fun <R> Widget?.filterIsControllerInstance(type: Class<R>): R? = this?.controller.takeIf(type::isInstance)?.let(type::cast)
 
       private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()
 
       private fun Collection<File>.lastModifiedMin() = asSequence().map { it.lastModified() }.min()
 
-      private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax()
-         ?: 0)>=(that.lastModifiedMax() ?: 0)
+      private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0)>=(that.lastModifiedMax() ?: 0)
 
       private fun File.relativeToApp() = relativeTo(APP.location).path
 

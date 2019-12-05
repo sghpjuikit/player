@@ -268,7 +268,7 @@ object CoreMenus: Core {
    private inline fun <reified W> MenuBuilder<*, *>.widgetItems(crossinline action: (W) -> Unit) = items(
       source = APP.widgetManager.factories.getFactoriesWith<W>(),
       text = { it.name() },
-      action = { it.use(NO_LAYOUT) { action(it) } }
+      action = { it.use<W>(NO_LAYOUT) { action(it) } }
    )
 
    @Dsl

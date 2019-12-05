@@ -239,7 +239,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Shows songs in a table.",
          IconMA.COLLECTIONS,
          { songs ->
-            APP.widgetManager.widgets.find(Widgets.SONG_TABLE, NEW).ifPresent {
+            APP.widgetManager.widgets.find(Widgets.SONG_TABLE, NEW).ifNotNull {
                it.controller.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
             }
          }
@@ -249,7 +249,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Group songs in a table.",
          IconMA.COLLECTIONS,
          { songs ->
-            APP.widgetManager.widgets.find(Widgets.SONG_GROUP_TABLE, NEW).ifPresent {
+            APP.widgetManager.widgets.find(Widgets.SONG_GROUP_TABLE, NEW).ifNotNull {
                it.controller.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
             }
          }

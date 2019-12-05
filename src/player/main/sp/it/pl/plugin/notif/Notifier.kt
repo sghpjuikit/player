@@ -29,6 +29,8 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.valuesIn
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
@@ -85,19 +87,18 @@ class Notifier: PluginBase("Notifications", true) {
             songNotificationGui = ii
             (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
          }
-         else -> APP.widgetManager.widgets.find(it, NEW(CUSTOM)).ifPresentOrElse(
-            { wf ->
+         else -> APP.widgetManager.widgets.find(it, NEW(CUSTOM))
+            .ifNotNull { wf ->
                songNotificationGui = wf.load()
                songNotificationInfo = wf.controller as SongReader
                (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
-            },
-            {
+            }
+            .ifNull {
                val ii = ItemInfo(true)
                songNotificationInfo = ii
                songNotificationGui = ii
                (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
             }
-         )
       }
    }
 

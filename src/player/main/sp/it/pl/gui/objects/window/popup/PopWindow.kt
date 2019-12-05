@@ -374,7 +374,7 @@ open class PopWindow {
 
       fun Window.asPopWindow(): PopWindow? = properties["popWindow"]?.asIf()
 
-      fun Window.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup)?.toUnit() ?: Unit
+      fun Window.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
 
       fun Window.isFocusedChild(): Boolean = Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true || hasFileChooserOpen
 

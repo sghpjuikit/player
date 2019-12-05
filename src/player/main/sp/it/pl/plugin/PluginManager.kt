@@ -40,7 +40,7 @@ class PluginManager {
    inline fun <reified P: Plugin> getRaw() = getRaw(P::class)
 
    /** Invokes the action with the running plugin of the type specified by the argument or does nothing if no such instance */
-   inline fun <P: Plugin> use(type: KClass<P>, action: (P) -> Unit): Unit = get(type).ifNotNull(action)?.toUnit() ?: Unit
+   inline fun <P: Plugin> use(type: KClass<P>, action: (P) -> Unit): Unit = get(type).ifNotNull(action).toUnit()
 
    /** Invokes the action with the running plugin of the type specified by the generic type argument or does nothing if no such instance. */
    inline fun <reified P: Plugin> use(noinline action: (P) -> Unit) = use(P::class, action)

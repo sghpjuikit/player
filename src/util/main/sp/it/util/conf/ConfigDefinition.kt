@@ -49,7 +49,7 @@ fun <T: Any?, C: Conf<T>> C.def(
    def = ConfigDef(name, info, group, editable)
 }
 
-fun <T: () -> Any?> cr(def: ConfigDefinition, action: T) = cr { action()?.toUnit() ?: Unit }.def(def)
+fun <T: () -> Any?> cr(def: ConfigDefinition, action: T) = cr { action().toUnit() }.def(def)
 
 /**
  * Represents [ConfigDefinition] through [Conf.def].

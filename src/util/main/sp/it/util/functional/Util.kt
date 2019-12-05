@@ -45,7 +45,7 @@ operator fun Runnable.invoke() = run()
 operator fun EventReducer<Void>.invoke() = push(null)
 
 /** @return [Unit] effectively ignoring this value */
-fun Any.toUnit() = Unit
+fun Any?.toUnit() = Unit
 
 /** @return result of function composition `this * then` */
 infix fun <A, B, C> ((A) -> B).compose(then: (B) -> C): (A) -> C = { then(this(it)) }

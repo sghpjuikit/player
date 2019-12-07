@@ -349,7 +349,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private inner class Cell: GridFileThumbCell() {
       private val disposer = Disposer()
 
-      override fun computeCellTextHeight() = cellTextHeight.value
+      override fun computeCellTextHeight(): Double = cellTextHeight.value
 
       override fun computeGraphics() {
          super.computeGraphics()

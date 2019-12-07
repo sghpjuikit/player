@@ -43,7 +43,7 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
 
    @Dependency("fromString")
    override fun toString(): String {
-      if (v==NA) return NAString
+      if (v==VALUE_NA) return VALUE_NA_S
       val eb = v/Ei.toDouble()
       if (eb>=1) return String.format("%.2f EiB", eb)
       val pb = v/Pi.toDouble()
@@ -76,27 +76,33 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
       /** `1024^6` */
       const val Ei = Ti*Mi
       /** `0` */
-      const val MIN: Long = 0
+      const val VALUE_MIN: Long = 0
       /** `2^63-1` */
-      const val MAX = java.lang.Long.MAX_VALUE
+      const val VALUE_MAX = java.lang.Long.MAX_VALUE
       /** Not available value. */
-      const val NA: Long = -1
+      const val VALUE_NA: Long = -1
       /** Not available string value. */
-      const val NAString = "Unknown"
+      const val VALUE_NA_S = "Unknown"
+
+      /** FileSize of [VALUE_NA] */
+      val UNKNOWN = FileSize(VALUE_NA)
 
       /** @return file size of this file in bytes */
       fun File.sizeInB(): Long {
          val l = length()
-         return if (l==0L) NA else l
+         return if (l==0L) VALUE_NA else l
       }
 
       /** @return file size of this file */
       fun File.size() = FileSize(this)
 
+      /** @return file size (unlike constructor optimized using [UNKNOWN]]) */
+      fun fromValue(value: Long): FileSize = if (value==VALUE_NA) UNKNOWN else FileSize(value)
+
       @Dependency("toString")
       @JvmStatic
       fun fromString(s: String): Try<FileSize, Throwable> {
-         if (s==NAString) return Try.ok(FileSize(NA))
+         if (s==VALUE_NA_S) return Try.ok(UNKNOWN)
 
          var v = s
          var unit: Long = 1

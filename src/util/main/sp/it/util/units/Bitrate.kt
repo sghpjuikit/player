@@ -18,7 +18,7 @@ data class Bitrate(
    /** @return true iff this represents constant bitrate */
    fun isConstant() = !isVariable()
 
-   override fun compareTo(other: Bitrate) = Integer.compare(value, other.value)
+   override fun compareTo(other: Bitrate) = value.compareTo(other.value)
 
    /** For example: "~320 kbps" or "N/A". */
    @Dependency("fromString")
@@ -34,10 +34,16 @@ data class Bitrate(
       private const val VALUE_S_VARIABLE = "~"
       private const val UNIT = "kbps"
 
+      /** Bitrate of [VALUE_NA] */
+      val UNKNOWN = Bitrate(VALUE_NA)
+
+      /** @return file size (unlike constructor optimized using [UNKNOWN]]) */
+      fun fromValue(value: Int): Bitrate = if (value==VALUE_NA) UNKNOWN else Bitrate(value)
+
       @Dependency("toString")
       @JvmStatic
       fun fromString(s: String): Try<Bitrate, Throwable> {
-         if (VALUE_S_NA==s) return Try.ok(Bitrate(VALUE_NA))
+         if (VALUE_S_NA==s) return Try.ok(UNKNOWN)
 
          return try {
             var v = s
@@ -46,7 +52,7 @@ data class Bitrate(
             if (v.endsWith(UNIT)) v = v.substring(0, v.length - UNIT.length)
             v = v.trim()
 
-            Try.ok(if (v.isEmpty()) Bitrate(VALUE_NA) else Bitrate(v.toInt()))
+            Try.ok(if (v.isEmpty()) UNKNOWN else Bitrate(v.toInt()))
          } catch (e: IndexOutOfBoundsException) {
             Try.error(e)
          } catch (e: NumberFormatException) {

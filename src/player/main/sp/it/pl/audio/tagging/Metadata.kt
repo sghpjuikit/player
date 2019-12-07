@@ -456,7 +456,7 @@ class Metadata: Song, Serializable {
 
    override fun getFilename(): String = if (isEmpty()) "" else super.getFilename()
 
-   override fun getFileSize() = FileSize(fileSizeInB)
+   override fun getFileSize() = FileSize.fromValue(fileSizeInB)
 
    /** @return file size in bytes or -1 if unknown */
    fun getFileSizeInB() = fileSizeInB
@@ -465,7 +465,7 @@ class Metadata: Song, Serializable {
    fun getEncodingType() = encodingType
 
    /** @return bitrate or null if unknown */
-   fun getBitrate(): Bitrate? = Bitrate(bitrate)
+   fun getBitrate(): Bitrate = Bitrate.fromValue(bitrate)
 
    /** @return encoder or empty String if not available */
    fun getEncoder() = encoder

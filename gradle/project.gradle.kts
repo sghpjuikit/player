@@ -1,3 +1,5 @@
+
+import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import kotlin.text.Charsets.UTF_8
 
@@ -179,6 +181,7 @@ tasks {
       description = "Copies all libraries into the app dir"
       from(configurations.compileClasspath, project(":util").configurations.compileClasspath)
       into(dirApp/"lib")
+      duplicatesStrategy = EXCLUDE
    }
 
    val linkJdk by creating(LinkJDK::class) {

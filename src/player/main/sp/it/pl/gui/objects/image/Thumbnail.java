@@ -25,7 +25,6 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.Unit;
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu;
-import sp.it.pl.gui.objects.image.cover.Cover;
 import sp.it.pl.image.ImageStandardLoader;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;

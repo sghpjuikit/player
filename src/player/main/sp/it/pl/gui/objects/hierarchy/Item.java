@@ -13,7 +13,7 @@ import kotlin.sequences.Sequence;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.SimpleSong;
-import sp.it.pl.gui.objects.image.cover.Cover.CoverSource;
+import sp.it.pl.gui.objects.image.Cover.CoverSource;
 import sp.it.pl.image.Image2PassLoader;
 import sp.it.util.HierarchicalBase;
 import sp.it.util.JavaLegacy;

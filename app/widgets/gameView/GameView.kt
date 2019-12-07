@@ -31,7 +31,7 @@ import sp.it.pl.gui.objects.grid.GridView.CellSize
 import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.image.cover.FileCover
+import sp.it.pl.gui.objects.image.FileCover
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.gui.objects.placeholder.show
 import sp.it.pl.gui.objects.tree.buildTreeCell
@@ -267,7 +267,9 @@ class GameView(widget: Widget): SimpleController(widget) {
       /** Readme file. */
       val infoFile = location/"play-howto.md"
       /** Cover. */
-      val cover by lazy { FileCover(location.findImage("cover_big") ?: location.findImage("cover"), "") }
+      val cover by lazy {
+         FileCover(location.findImage("cover_big") ?: location.findImage("cover"))
+      }
       /** Properties. */
       val settings: Map<String, PropVal> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 

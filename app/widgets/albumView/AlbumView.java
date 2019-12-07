@@ -22,7 +22,7 @@ import sp.it.pl.gui.objects.grid.GridCell;
 import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
 import sp.it.pl.gui.objects.image.Thumbnail;
-import sp.it.pl.gui.objects.image.cover.Cover;
+import sp.it.pl.gui.objects.image.Cover;
 import sp.it.pl.image.Image2PassLoader;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;

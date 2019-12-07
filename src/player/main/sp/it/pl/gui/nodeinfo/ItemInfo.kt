@@ -9,7 +9,7 @@ import javafx.scene.layout.HBox
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.image.cover.Cover.CoverSource.ANY
+import sp.it.pl.gui.objects.image.Cover.CoverSource.ANY
 import sp.it.pl.gui.objects.rating.Rating
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.util.async.runIO

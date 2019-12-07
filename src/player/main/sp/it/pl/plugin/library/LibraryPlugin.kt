@@ -16,11 +16,9 @@ import sp.it.util.async.future.runGet
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
-import sp.it.util.conf.EditMode.NONE
-import sp.it.util.conf.IsConfig
-import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.file.FileMonitor
@@ -40,11 +38,10 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 
 class LibraryPlugin: PluginBase("Song Library", true) {
 
-   @IsConfig(
+   private val sourceDirs by cList<File>().only(DIRECTORY).def(
       name = "Location",
       info = "Locations to find audio. Directories will be scanned recursively to unlimited depth."
    )
-   private val sourceDirs by cList<File>().only(DIRECTORY)
    private val sourceDirsChangeHandler = Subscribed {
       sourceDirs.forEach { handleLocationAdded(it) }
       Subscription(
@@ -53,21 +50,16 @@ class LibraryPlugin: PluginBase("Song Library", true) {
       )
    }
 
-   @IsConfig(
+   val updateOnStart by cv(false).def(
       name = "Update on start",
-      info = "Update entire library from disc when this plugin starts (which also happens when application starts). " +
-         "May incur significant performance cost on the system"
+      info = "Update entire library from disc when this plugin starts (which also happens when application starts). May incur significant performance cost on the system"
    )
-   val updateOnStart by cv(false)
 
-   @IsConfig(name = "Monitoring supported", info = "On some system, this file monitoring may be unsupported", editable = NONE)
-   val dirMonitoringSupported by c(Os.WINDOWS.isCurrent)
-
-   @IsConfig(
+   val dirMonitoringSupported = Os.WINDOWS.isCurrent
+   val dirMonitoringEnabled by cv(false).readOnlyUnless(dirMonitoringSupported).def(
       name = "Monitor files",
-      info = "Monitor all locations recursively and automatically add/remove added/removed songs to/from library."
+      info = "Monitor all locations recursively and automatically update library by adding/removing songs. On some system, file may be unsupported and disabled."
    )
-   val dirMonitoringEnabled by cv(false).readOnlyUnless(dirMonitoringSupported)
 
    private val dirMonitors = HashMap<File, FileMonitor>()
    private val dirMonitoring = Subscribed {

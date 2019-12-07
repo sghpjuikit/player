@@ -39,13 +39,11 @@ import sp.it.util.async.runIO
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
-import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
-import sp.it.util.conf.readOnlyUnless
+import sp.it.util.conf.def
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -341,7 +339,7 @@ class WidgetManager {
                file hasExtension "class" -> Unit
                else -> {
                   logger.info { "Widget=$widgetName source file=${file.name} changed $type" }
-                  if (widgets.autoRecompile.value && widgets.autoRecompileSupported)
+                  if (widgets.autoRecompile.value)
                      scheduleCompilation()
                }
             }
@@ -512,20 +510,14 @@ class WidgetManager {
 
    inner class Widgets: GlobalSubConfigDelegator("Widgets") {
 
-      @IsConfig(name = "Use experimental kotlin compiler", info = "This os-specific compiler is almost 5 times faster than standard kotlin compiler. Change requires restart.")
       var useExperimentalKotlinCompiler by c(true)
-
-      @IsConfig(name = "Auto-compilation supported", info = "On some system, this feature may be unsupported", editable = EditMode.NONE)
-      val autoRecompileSupported by c(Os.WINDOWS.isCurrent)
-
-      @IsConfig(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
-      val autoRecompile by cv(true).readOnlyUnless(autoRecompileSupported)
-
-      @IsConfig(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
+         .def(name = "Use experimental kotlin compiler", info = "This os-specific compiler is almost 5 times faster than standard kotlin compiler. Change requires restart.")
+      val autoRecompile by cv(true)
+         .def(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
       val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
-
-      @IsConfig(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
+         .def(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
       val separateWidgets by cv(true)
+         .def(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
 
       /** @return widgets based on search criteria */
       fun findAll(source: WidgetSource): Sequence<Widget> = layouts.findAll(source).flatMap { it.allWidgets.asSequence() }

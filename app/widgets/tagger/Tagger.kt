@@ -181,11 +181,7 @@ typealias Converter = (String) -> String
 )
 class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
-   val inputValue = io.i.create<List<Song>>("Edit", null) {
-      println("inpu changed ${it?.size}")
-
-      read(it)
-   }
+   val inputValue = io.i.create<List<Song>>("Edit", null) { read(it) }
 
    val coverV = ThumbnailWithAdd(IconFA.PLUS, "Change cover")
    val descriptionL = Label()
@@ -324,12 +320,11 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                coverV.loadCover(s.asIf<ReadState.Same<Cover>>()?.value)
                coverDescriptionL.text = when (s) {
                   is ReadState.None -> ""
-                  is ReadState.Same<ImageCover?> -> s.value?.description ?: ""
+                  is ReadState.Same<ImageCover?> -> s.value?.getDescription() ?: ""
                   is ReadState.Multi -> AppTexts.textManyVal
                   else -> fail()
                }
             }
-
          }
       )
 
@@ -364,7 +359,6 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       ratingPF.setOnKeyReleased { updateRatingRaw() }
       ratingPF.setOnMousePressed { updateRatingRaw() }
 
-      populate(null)
       read(inputValue.value)
    }
 
@@ -380,28 +374,26 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
     * If song is [Metadata], reading is skipped.
     */
    override fun read(songsToRead: List<Song>?) {
-      if (songsToRead!=null && inputValue.value==songsToRead) return
       inputValue.value = songsToRead
-      if (songsToRead==null) return
 
-      val unique = MapSet(songsToRead) { it.uri }  // remove duplicates
+      val unique = MapSet(songsToRead.orEmpty()) { it.uri }  // remove duplicates
       allSongs setTo unique
-      if (readingAddMode) add(unique, false) else set(unique)
+      if (readingAddMode) readAdd(unique, false) else readSet(unique)
    }
 
    fun readFromDisc(songsToRead: List<Song> = allSongs) = read(songsToRead.map { it.toSimple() })
 
-   private fun set(set: Collection<Song>) {
+   private fun readSet(songsToSet: Set<Song>) {
       metadatas.clear()
-      if (set.isEmpty()) {
+      if (songsToSet.isEmpty()) {
          showProgressReading()
-         populate(metadatas.materialize())
+         populate(listOf())
       } else {
-         add(set, true)
+         readAdd(songsToSet, true)
       }
    }
 
-   private fun add(added: Collection<Song>, readAll: Boolean) {
+   private fun readAdd(added: Set<Song>, readAll: Boolean) {
       if (added.isEmpty()) return
 
       showProgressReading()
@@ -432,7 +424,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       runIO(task)
    }
 
-   private operator fun rem(songsToRemove: Collection<Song>) {
+   private fun readRem(songsToRemove: Set<Song>) {
       if (songsToRemove.isEmpty()) return
 
       showProgressReading()
@@ -496,7 +488,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       )
    }
 
-   private fun populate(songsToPopulate: List<Metadata>?) {
+   private fun populate(songsToPopulate: List<Metadata>) {
       if (writing) {
          hideProgress()
          return
@@ -509,7 +501,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
       fields.forEach { it.clearContent() }
 
-      if (songsToPopulate==null || songsToPopulate.isEmpty()) {
+      if (songsToPopulate.isEmpty()) {
          infoL.text = "No songs loaded"
          infoL.graphic = null
          hideProgress()
@@ -705,9 +697,9 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      // avoid nulls & respect lock
                      if (song!=null) {
                         if (cb.selected.value)
-                           add(listOf(song), false)
+                           readAdd(setOf(song), false)
                         else
-                           rem(listOf(song))
+                           readRem(setOf(song))
                      }
                   }
                }

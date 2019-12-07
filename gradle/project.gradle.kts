@@ -254,7 +254,7 @@ application {
       "-XX:MaxHeapFreeRatio=10",  // Hotspot gc only
       "-XX:+UseStringDeduplication",
       "-XX:+UseCompressedOops",
-//      "-XX:+CompactStrings",  // OpenJ9 only
+      "-XX:+CompactStrings",  // OpenJ9 only
       *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
       "--illegal-access=permit"
    )

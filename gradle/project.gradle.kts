@@ -109,9 +109,8 @@ allprojects {
       }
 
       "Audio" group {
-         implementation("uk.co.caprica", "vlcj", "4.0.6")
-         implementation("de.u-mass", "lastfm-java", "0.1.2")
-         implementation("com.github.goxr3plus", "Jaudiotagger", "2.2.7")
+         implementation("uk.co.caprica", "vlcj", "4.2.0")
+         implementation("org.bitbucket.ijabz", "jaudiotagger", "85d7c6b")
       }
 
       "Native" group {
@@ -146,7 +145,7 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.3.2")
+         testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.4.0")
       }
 
    }

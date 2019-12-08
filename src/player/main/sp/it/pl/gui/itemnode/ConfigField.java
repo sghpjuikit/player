@@ -763,7 +763,7 @@ abstract public class ConfigField<T> {
             super(c);
             refreshItem();
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
-            editor.setOnValueChange((ov, nv) -> apply(false));
+            editor.getOnValueChange().add(consumer(it -> apply(false)));
         }
 
         @Override public Control getEditor() {
@@ -785,7 +785,7 @@ abstract public class ConfigField<T> {
             editor = new EffectTextField(effectType);
             editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
             refreshItem();
-            editor.setOnValueChange((ov, nv) -> apply(false));
+            editor.getOnValueChange().add(consumer(it -> apply(false)));
         }
 
         @Override public Control getEditor() {

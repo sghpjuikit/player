@@ -8,6 +8,9 @@ import javafx.scene.text.FontWeight
 import javafx.util.Duration
 import sp.it.pl.gui.UiManager.SkinCss
 import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.main.AppTexts
+import sp.it.pl.main.nameUi
+import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
@@ -48,9 +51,12 @@ class CoreConverter: Core {
 
    /** Default to/from string converter that uses per class registered converters. */
    @JvmField val general = Parsers.DEFAULT!!
-   /** Default ui to string converter. Converts [NameUi] or delegates to [general]. */
+   /** Default ui to string converter. */
    @JvmField val ui = object: ConverterToString<Any?> {
       override fun toS(o: Any?) = when (o) {
+            null -> AppTexts.textNoVal
+            is Class<*> -> o.nameUi
+            is KClass<*> -> o.nameUi
             is NameUi -> o.nameUi
             is LocalDateTime -> o.format(dateTimeFormatter)
             is LocalDate -> o.format(dateTimeFormatter)
@@ -63,6 +69,7 @@ class CoreConverter: Core {
 
    override fun init() {
       general.init()
+      FileField.toSConverter = ui
    }
 
    @Suppress("RemoveExplicitTypeArguments")

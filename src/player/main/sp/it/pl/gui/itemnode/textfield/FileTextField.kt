@@ -4,7 +4,6 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.util.access.toggleNext
 import sp.it.util.access.v
@@ -19,7 +18,7 @@ import sp.it.util.ui.drag.handlerAccepting
 import java.io.File
 
 /** Text field for [File] with file/dir constraint, drag & drop and picker. Supports relative files. */
-class FileTextField(val constraint: FileActor, val relativeTo: File?): ValueTextField<File>({ APP.converter.ui.toS(it) }) {
+class FileTextField(val constraint: FileActor, val relativeTo: File?): ValueTextField<File>() {
    private val type = v(if (constraint==FileActor.FILE) FILE else DIRECTORY)
 
    init {
@@ -40,7 +39,7 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?): ValueText
 
    override fun onDialogAction() {
       val title = if (type.value==DIRECTORY) "Choose directory" else "Choose file"
-      chooseFile(title, type.value, vl, scene.window).ifOk {
+      chooseFile(title, type.value, value, scene.window).ifOk {
          value = relativeTo?.takeIf { p -> p.isAnyParentOrSelfOf(it) }?.let { p -> it.relativeTo(p) } ?: it
       }
    }

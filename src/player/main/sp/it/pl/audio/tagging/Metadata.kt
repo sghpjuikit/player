@@ -32,6 +32,7 @@ import sp.it.pl.gui.objects.image.FileCover
 import sp.it.pl.gui.objects.image.ImageCover
 import sp.it.pl.main.APP
 import sp.it.pl.main.isImage
+import sp.it.pl.main.toUi
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.Blocks
@@ -816,9 +817,9 @@ class Metadata: Song, Serializable {
             RATING_RAW -> o.toString()
             RATING -> String.format("%.2f", o as Double)
             LENGTH -> (o as Duration).toHMSMs()
-            FIRST_PLAYED -> APP.converter.ui.toS(o)
-            LAST_PLAYED -> APP.converter.ui.toS(o)
-            ADDED_TO_LIBRARY -> APP.converter.ui.toS(o)
+            FIRST_PLAYED -> o.toUi()
+            LAST_PLAYED -> o.toUi()
+            ADDED_TO_LIBRARY -> o.toUi()
             else -> if (this===DISC || this===DISCS_TOTAL || this===TRACK || this===TRACKS_TOTAL || this===PLAYCOUNT) {
                if (getOf(EMPTY)==o) substitute
                else o.toString()

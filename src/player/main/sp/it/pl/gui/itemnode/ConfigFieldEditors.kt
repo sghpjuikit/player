@@ -13,7 +13,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.gui.itemnode.textfield.FileTextField
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
 import sp.it.pl.gui.pane.ConfigPane
-import sp.it.pl.main.APP
+import sp.it.pl.main.toUi
 import sp.it.util.Util.enumToHuman
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
@@ -37,7 +37,6 @@ import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSuperclassOf
 import java.io.File
-import java.util.function.BiConsumer
 
 open class EnumerableCF<T>: ConfigField<T> {
    protected val n: ComboBox<T>
@@ -46,7 +45,7 @@ open class EnumerableCF<T>: ConfigField<T> {
    @JvmOverloads
    constructor(c: Config<T>, enumeration: Collection<T> = c.enumerateValues()): super(c) {
       val converter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter
-         ?: { enumToHuman(APP.converter.ui.toS(it)) }
+         ?: { enumToHuman(it.toUi()) }
 
       n = ImprovedComboBox(converter)
       n.styleClass += "combobox-field-config"
@@ -142,7 +141,7 @@ private class FileCF(c: Config<File>): ConfigField<File>(c) {
       editor.value = config.value
 
       v?.attach { editor.value = it }
-      editor.onValueChange = BiConsumer { _, _ -> apply(false) }
+      editor.onValueChange += { apply(false) }
    }
 
    override fun getEditor() = editor

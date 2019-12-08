@@ -64,6 +64,12 @@ val KClass<*>.nameUi: String
 val Class<*>.nameUi: String
    get() = APP.className[this.kotlin]
 
+/** @return result of [sp.it.pl.core.CoreConverter.ui].[sp.it.util.parsing.ConverterToString.toS] */
+fun <T> T?.toUi(): String = APP.converter.ui.toS(this)
+
+/** @return result of [sp.it.pl.core.CoreConverter.general].[sp.it.util.parsing.ConverterToString.toS] */
+fun <T> T?.toS(): String = APP.converter.general.toS(this)
+
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */
 fun App.run1AppReady(block: () -> Unit) {
    if (isInitialized.isOk) {

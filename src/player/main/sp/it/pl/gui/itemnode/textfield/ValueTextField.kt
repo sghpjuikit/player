@@ -1,13 +1,13 @@
 package sp.it.pl.gui.itemnode.textfield
 
-import javafx.beans.value.WritableValue
 import javafx.scene.control.TextField
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
-import sp.it.util.functional.invoke
+import sp.it.pl.main.APP
+import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.onEventDown
-import java.util.function.BiConsumer
+import kotlin.properties.Delegates.observable
 
 /**
  * Customized [TextField] that displays a nullable object value. Normally a non-editable text
@@ -18,44 +18,33 @@ import java.util.function.BiConsumer
  *
  * @param <T> type of the value
  */
-abstract class ValueTextField<T>: DecoratedTextField, WritableValue<T> {
+abstract class ValueTextField<T>(textValueConverter: (T?) -> String = APP.converter.ui::toS): DecoratedTextField() {
 
-   constructor(textValueConverter: (T) -> String): super() {
-      this.textValueConverter = textValueConverter
+   /** Behavior executing when value changes. */
+   val onValueChange = Handler1<T?>()
+   /** Value to string converter. */
+   val textValueConverter = textValueConverter
+   /** Value. */
+   var value by observable<T?>(null) { _, ov, nv ->
+      if (ov!=nv) {
+         text = textValueConverter(nv)
+         promptText = text
+         onValueChange(nv)
+      }
+   }
 
+   init {
       styleClass += STYLECLASS
       isEditable = false
-      text = nullText
-      promptText = nullText
+      text = textValueConverter(null)
+      promptText = text
 
       right.value = ArrowDialogButton().apply {
          onEventDown(MOUSE_CLICKED, PRIMARY) { onDialogAction() }
       }
    }
 
-   /** Value. */
-   protected var vl: T? = null
-   /** Behavior executing when value changes. */
-   var onValueChange: BiConsumer<T?, T?> = BiConsumer { _, _ -> }
-   /** Value to string converter. */
-   private val textValueConverter: (T) -> String
-   /** No value text. */
-   private val nullText = "<none>"
-
-   override fun setValue(value: T?) {
-      if (vl==value) return
-
-      val valueOld = vl
-      vl = value
-      text = value?.let { textValueConverter(it) } ?: nullText
-      promptText = text
-      onValueChange(valueOld, value)
-   }
-
-   /** @return currently displayed value */
-   override fun getValue(): T? = vl
-
-   /** Behavior to be executed on dialog button click. Should invoke of an [.setValue]. */
+   /** Behavior to be executed on dialog button click. Normally, on success it sets [value]. */
    protected abstract fun onDialogAction()
 
    companion object {

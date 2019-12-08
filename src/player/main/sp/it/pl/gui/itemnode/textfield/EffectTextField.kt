@@ -27,7 +27,7 @@ import sp.it.pl.gui.objects.window.NodeShow.RIGHT_UP
 import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
-import sp.it.pl.main.nameUi
+import sp.it.pl.main.toUi
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -42,8 +42,11 @@ class EffectTextField: ValueTextField<Effect> {
    private val limitedToType: Class<out Effect>?
 
    /** Creates effect editor which can edit an effect or create effect of any specified types or any type if no specified. */
-   constructor(effectType: Class<out Effect>? = null): super({ it::class.nameUi }) {
+   constructor(effectType: Class<out Effect>? = null): super() {
       styleClass += STYLECLASS
+      isEditable = false
+      limitedToType = if (effectType==Effect::class.java) null else effectType
+
       typeB = Icon().apply {
          styleclass("effect-config-field-type-button")
          tooltip(typeTooltip)
@@ -51,22 +54,17 @@ class EffectTextField: ValueTextField<Effect> {
       }
       propB = Icon().apply {
          styleclass("effect-config-field-conf-button")
+         isDisable = value==null
          tooltip(propTooltip)
          onClickDo { openProperties(it) }
       }
-      limitedToType = if (effectType==Effect::class.java) null else effectType
-      isEditable = false
+      onValueChange += {
+         propB.isDisable = value==null
+      }
       right.value = layHorizontally(5.0, CENTER, typeB, propB)
-
-      value = null    // initialize value & graphics
    }
 
    override fun onDialogAction() {}
-
-   override fun setValue(value: Effect?) {
-      propB.isDisable = value==null
-      super.setValue(value)
-   }
 
    private fun openChooser(me: MouseEvent) {
       PopWindow().apply {
@@ -77,7 +75,7 @@ class EffectTextField: ValueTextField<Effect> {
             itemSupply = limitedToType
                ?.net { { sequenceOf(EffectType(limitedToType.kotlin), EffectType(null)) } }
                ?: { EFFECT_TYPES.asSequence() }
-            textConverter = { it.name() }
+            textConverter = { it.name }
             onCancel = { hide() }
             onSelect = {
                value = it.instantiate()
@@ -92,7 +90,7 @@ class EffectTextField: ValueTextField<Effect> {
    }
 
    private fun openProperties(me: MouseEvent) {
-      vl?.let { APP.windowManager.showSettings(it.toConfigurableFx(), me) }
+      value?.let { APP.windowManager.showSettings(it.toConfigurableFx(), me) }
       me.consume()
    }
 
@@ -122,16 +120,11 @@ class EffectTextField: ValueTextField<Effect> {
       )
    }
 
-   class EffectType {
+   class EffectType(type: KClass<out Effect>?) {
 
       /** Effect type. Null represents no effect.  */
-      val type: Class<out Effect>?
-
-      constructor(type: KClass<out Effect>?) {
-         this.type = type?.java
-      }
-
-      fun name(): String = type?.nameUi ?: "None"
+      val type = type?.java
+      val name = type?.toUi() ?: "None"
 
       fun instantiate(): Effect? = runTry {
          type?.getConstructor()?.newInstance()

@@ -12,6 +12,8 @@ import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.localDateTimeFromMillis
+import sp.it.util.parsing.ConverterToString
+import sp.it.util.parsing.Parsers
 import sp.it.util.units.FileSize
 import java.io.File
 import java.io.FileNotFoundException
@@ -36,9 +38,15 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
 
    private constructor(name: String, description: String, type: KClass<T>, extractor: (File) -> T?): super(type, extractor, name, description)
 
-   override fun toS(o: T?, substitute: String) = o?.toString() ?: substitute
+   override fun toS(o: T?, substitute: String) = if (o==null) substitute else toSConverter.toS(o)
+
+   override fun cWidth(): Double = 160.0
 
    companion object: ObjectFieldRegistry<File, FileField<*>>(File::class) {
+      var toSConverter: ConverterToString<Any?> = object: ConverterToString<Any?> {
+         override fun toS(o: Any?) = Parsers.DEFAULT.toS(o)
+      }
+
       val PATH = this + FileField("Path", "Path", String::class) { it.path }
       val NAME = this + FileField("Name", "Name", String::class) { it.nameWithoutExtensionOrRoot }
       val NAME_FULL = this + FileField("Filename", "Filename", String::class) { it.nameOrRoot }

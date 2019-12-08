@@ -1,6 +1,5 @@
 package sp.it.pl.gui.itemnode.textfield
 
-import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.MOOD
 import sp.it.pl.gui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.gui.objects.picker.MoodPicker
@@ -13,7 +12,7 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 
 /** Text field for audio mood tagging values with a picker and auto-completion. */
-class MoodItemNode: ValueTextField<String>({ APP.converter.general.toS(it) }) {
+class MoodItemNode: ValueTextField<String>() {
 
    /** The position for the picker to show on. */
    val pickerPosition = v(RIGHT_CENTER)
@@ -29,7 +28,7 @@ class MoodItemNode: ValueTextField<String>({ APP.converter.general.toS(it) }) {
    override fun onDialogAction() {
       PopWindow().apply {
          isAutohide.value = true
-         content.value = MoodPicker().apply {
+         content.value = MoodPicker().run {
             root.prefSize = 500.emScaled x 300.emScaled
             onCancel = { hide() }
             onSelect = {
@@ -37,7 +36,9 @@ class MoodItemNode: ValueTextField<String>({ APP.converter.general.toS(it) }) {
                hide()
             }
             buildContent()
-         }.root
+
+            root
+         }
 
          show(pickerPosition.value.invoke(this@MoodItemNode))
       }

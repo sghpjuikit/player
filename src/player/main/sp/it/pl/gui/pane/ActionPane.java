@@ -17,20 +17,21 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumnBase;
+import javafx.scene.control.skin.TableViewSkinBase;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import kotlin.Unit;
-import javafx.scene.text.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
-import sp.it.pl.main.AppExtensionsKt;
 import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
@@ -56,6 +57,8 @@ import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.layout.Priority.NEVER;
+import static javafx.scene.layout.Priority.SOMETIMES;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static kotlin.streams.jdk8.StreamsKt.asStream;
@@ -158,7 +161,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 		// content
 		var contentSpacing = 20.0;
-		var content = layHorizontally(0, CENTER, tablePane,iconPane); // table is an optional left complement to iconPane
+		var content = layHorizontally(0, CENTER, tablePane,iconPane);
 			content.setPadding(new Insets(0,50,0,50)); // top & bottom padding set differently, below
             content.setMinSize(300, infoPane.getMinHeight() + contentSpacing + iconBox.getMinHeight() + contentSpacing + descPane.getMinHeight());
 		tableContentGap = content.spacingProperty();
@@ -370,7 +373,8 @@ public class ActionPane extends OverlayPane<Object> {
 	private void setDataInfo(Object data, boolean computed) {
 		dataInfo.setText(computeDataInfo(data, computed));
 		tablePane.getChildren().clear();
-		double gap = 0.0;
+		var gap = 0.0;
+		var priority = NEVER;
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
 			Collection<Object> items = (Collection) data;
 			Class itemType = getElementType(items);
@@ -387,6 +391,7 @@ public class ActionPane extends OverlayPane<Object> {
 				t.setColumnState(t.getDefaultColumnInfo());
 				tablePane.getChildren().setAll(t.getRoot());
 				gap = 70.0;
+				priority = SOMETIMES;
 				table = t;
 				t.setItemsRaw(items);
 				t.getSelectedItems().addListener((Change<?> c) -> {
@@ -396,6 +401,7 @@ public class ActionPane extends OverlayPane<Object> {
 				});
 			}
 		}
+		HBox.setHgrow(tablePane, priority);
 		tableContentGap.set(gap);
 	}
 

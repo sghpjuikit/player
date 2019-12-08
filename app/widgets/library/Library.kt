@@ -36,9 +36,11 @@ import sp.it.pl.main.Widgets
 import sp.it.pl.main.audioExtensionFilter
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.setSongsAndFiles
+import sp.it.pl.main.showConfirmation
 import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.async.runNew
+import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
@@ -60,6 +62,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.chooseFile
 import sp.it.util.system.chooseFiles
+import sp.it.util.text.pluralUnit
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -136,10 +139,14 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
          item("Add directory") { addDirectory() }
       }
       table.menuRemove.dsl {
-         item("Remove selected songs from library") { APP.db.removeSongs(table.selectedItems) }
-         item("Remove all shown songs from library") { APP.db.removeSongs(table.items) }
-         item("Remove all songs from library") { APP.db.removeSongs(table.items) }
-         item("Remove missing songs from library") { removeInvalid() }
+         item("Remove selected songs from library") { removeSongs(table.selectedItems) }
+         item("Remove all shown songs from library") { removeSongs(table.items) }
+         item("Remove all songs from library") { APP.db.removeAllSongs() }
+         item("Remove missing songs from library") {
+            val task = Song.removeMissingFromLibTask()
+            runNew(task)
+            AppProgress.start(task)
+         }
       }
 
       // set up table columns
@@ -189,7 +196,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       }
       table.onEventDown(KEY_PRESSED, DELETE, false) {
          if (!table.selectionModel.isEmpty) {
-            APP.db.removeSongs(table.selectedItems)
+            removeSongs(table.selectedItems)
             it.consume()
          }
       }
@@ -239,10 +246,15 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       }
    }
 
-   private fun removeInvalid() {
-      val task = Song.removeMissingFromLibTask()
-      runNew(task)
-      AppProgress.start(task)
+   fun removeSongs(songs: List<Song>) {
+      if (songs.isEmpty()) {
+         showConfirmation("No songs to remove - selection is empty") {}
+      } else {
+         val songsM = songs.materialize()
+         showConfirmation("Are you sure you want to remove ${"song".pluralUnit(songs.size)} from library?") {
+            APP.db.removeSongs(songsM)
+         }
+      }
    }
 
    companion object {

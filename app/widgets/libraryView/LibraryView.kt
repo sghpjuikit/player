@@ -17,6 +17,7 @@ import javafx.scene.input.TransferMode.ANY
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Callback
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.CATEGORY
@@ -25,6 +26,7 @@ import sp.it.pl.audio.tagging.MetadataGroup.Companion.ungroup
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.AVG_RATING
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
+import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
 import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
@@ -37,15 +39,18 @@ import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppProgress
 import sp.it.pl.main.Widgets
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.isPlaying
 import sp.it.pl.main.setSongsAndFiles
+import sp.it.pl.main.showConfirmation
 import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.runNew
+import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
@@ -62,8 +67,9 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
+import sp.it.util.text.pluralUnit
+import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
-import sp.it.util.ui.menuItem
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.x
@@ -215,11 +221,16 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
 
       // add menu items
-      table.menuRemove.items.addAll(
-         menuItem("Remove selected groups from library") { APP.db.removeSongs(ungroup(table.selectedItems)) },
-         menuItem("Remove playing group from library") { APP.db.removeSongs(ungroup(table.items.filter { it.isPlaying() })) },
-         menuItem("Remove all groups from library") { APP.db.removeSongs(ungroup(table.items)) }
-      )
+      table.menuRemove.dsl {
+         item("Remove songs in selected groups from library") { removeSongs(ungroup(table.selectedItems)) }
+         item("Remove songs in all shown groups from library") { removeSongs(ungroup(table.items)) }
+         item("Remove all songs from library") { APP.db.removeAllSongs() }
+         item("Remove missing songs from library") {
+            val task = Song.removeMissingFromLibTask()
+            runNew(task)
+            AppProgress.start(task)
+         }
+      }
 
       table.onEventDown(KEY_PRESSED, ENTER) { playSelected() }
       table.onEventDown(KEY_PRESSED, DELETE) { APP.db.removeSongs(table.selectedItems.flatMap { it.grouped }) }
@@ -355,6 +366,16 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       outputSelectedGroup.value = table.selectedItemsCopy
    }
 
+   fun removeSongs(songs: Set<Song>) {
+      if (songs.isEmpty()) {
+         showConfirmation("No songs to remove - selection is empty") {}
+      } else {
+         val songsM = songs.materialize()
+         showConfirmation("Are you sure you want to remove ${"song".pluralUnit(songs.size)} from library?") {
+            APP.db.removeSongs(songsM)
+         }
+      }
+   }
    companion object {
       private val pcPlaying = pseudoclass("played")
       private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }

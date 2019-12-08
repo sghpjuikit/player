@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement new popups
 - Implement application settings import/export/defaults actions
 - Implement select settings group when opening setting from application search
+- Implement confirmation popup for remove songs from library
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance

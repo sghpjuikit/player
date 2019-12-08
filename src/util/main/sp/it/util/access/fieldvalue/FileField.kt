@@ -5,6 +5,7 @@ import com.drew.imaging.ImageProcessingException
 import com.drew.metadata.Schema
 import com.drew.metadata.xmp.XmpDirectory
 import mu.KotlinLogging
+import sp.it.util.dev.Blocks
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.nameWithoutExtensionOrRoot
@@ -42,7 +43,7 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
       val NAME = this + FileField("Name", "Name", String::class) { it.nameWithoutExtensionOrRoot }
       val NAME_FULL = this + FileField("Filename", "Filename", String::class) { it.nameOrRoot }
       val EXTENSION = this + FileField("Extension", "Extension", String::class) { it.extension }
-      val SIZE = this + FileField("Size", "Size", FileSize::class) { FileSize(it) }
+      val SIZE = this + FileField("Size", "Size", FileSize::class) { if (it is CachingFile) it.fileSize else it.readFileSize() }
       val TIME_ACCESSED = this + FileField("Time Accessed", "Time Accessed", FileTime::class) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
       val TIME_MODIFIED = this + FileField("Time Modified", "Time Modified", LocalDateTime::class) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
       val TIME_CREATED = this + FileField("Time Created", "Time Created", FileTime::class) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
@@ -55,20 +56,28 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
 
 /** File implementation that provides additional lazy properties */
 class CachingFile(f: File): File(f.path) {
-   /** Time this file was last accessed or null if unable to find out */
+   /** Time this file was last accessed or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeAccessed: FileTime? by lazy { readTimeAccessed() }
-   /** Time this file was last modified or null if unable to find out */
+   /** Time this file was last modified or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeModified: LocalDateTime? by lazy { readTimeModified() }
-   /** Time this file was created or null if unable to find out. */
+   /** Time this file was created or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeCreated: FileTime? by lazy { readTimeCreated() }
-   /** The minimum of [timeCreated] and [timeModified] or null if unable to find out. */
+   /** The minimum of [timeCreated] and [timeModified] or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeMinOfCreatedModified: FileTime? by lazy { readTimeMinOfCreatedAndModified() }
+   /** The size of the file. Lazy. Blocks on first invocation. */
+   val fileSize: FileSize by lazy { readFileSize() }
 }
 
+@Blocks
+private fun File.readFileSize(): FileSize = FileSize(this)
+
+@Blocks
 private fun File.readTimeAccessed(): FileTime? = readBasicFileAttributes()?.lastAccessTime()
 
+@Blocks
 private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTimeFromMillis()
 
+@Blocks
 private fun File.readTimeCreated(): FileTime? =
    when (this.mimeType().name) {
       "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
@@ -79,11 +88,13 @@ private fun File.readTimeCreated(): FileTime? =
       }
    }
 
+@Blocks
 private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()
    ?.run {
       minOf(creationTime(), lastModifiedTime())
    }
 
+@Blocks
 private fun File.readBasicFileAttributes(): BasicFileAttributes? =
    try {
       Files.readAttributes(toPath(), BasicFileAttributes::class.java)

@@ -36,6 +36,7 @@ import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.util.Util.enumToHuman
+import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.animation.Anim.Companion.anim
@@ -43,16 +44,14 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runGet
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
-import sp.it.util.async.runNew
 import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
-import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.Try
@@ -78,7 +77,6 @@ import sp.it.util.units.millis
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
-import kotlin.streams.toList
 
 @Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
@@ -313,7 +311,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Looks for files recursively in the the data.",
          IconMD.FILE_FIND,
          // TODO: make fully configurable, recursion depth lvl, filtering, ...
-         ap.converting { fs -> Try.ok(getFilesR(fs, Integer.MAX_VALUE).toList()) }
+         ap.converting { fs -> Try.ok(FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()) }
       ),
       SlowColAction<File>(
          "Add to library",
@@ -398,17 +396,14 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 
 @Suppress("UNCHECKED_CAST")
 private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, Collection<File>> = ComplexActionData(
-   { files -> runIO { findAudio(files).toList() } },
+   { files -> runIO { findAudio(files).map { CachingFile(it) }.toList() } },
    { audioFiles ->
       val executed = v(false)
       val conf = object: ConfigurableBase<Boolean>() {
-         @IsConfig(name = "Make files writable if read-only", group = "1")
-         val makeWritable by cv(true).readOnlyIf(executed)
-         @IsConfig(name = "Edit in ${Widgets.SONG_TAGGER}", group = "2")
-         val editInTagger by cv(false)
-         @IsConfig(name = "Edit only added files", group = "3")
-         val editOnlyAdded by cv(false).readOnlyUnless(editInTagger)
-         @IsConfig(name = "Enqueue in playlist", group = "4") val enqueue by cv(false)
+         val makeWritable by cv(true).readOnlyIf(executed).def(name = "Make files writable if read-only", group = "1")
+         val editInTagger by cv(false).def(name = "Edit in ${Widgets.SONG_TAGGER}", group = "2")
+         val editOnlyAdded by cv(false).readOnlyUnless(editInTagger).def(name = "Edit only added files", group = "3")
+         val enqueue by cv(false).def(name = "Enqueue in playlist", group = "4")
       }
       val task = Song.addToLibTask(audioFiles.map { SimpleSong(it) })
       val info = object: Any() {
@@ -445,7 +440,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                   content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1 - it)*(1 - it)
                }.play()
 
-               runNew {
+               runIO {
                   if (conf.makeWritable.value) audioFiles.forEach { it.setWritable(true) }
                   task.runGet().toTry().orNull()
                }.ui { result ->

@@ -271,8 +271,8 @@ private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
    val isFile = type==FILE
    val isDir = type==DIRECTORY
    val cmd = when(type) {
-      DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /ad "${dir.absolutePath}" 2>nul"""
-      FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /a-d "${dir.absolutePath}" 2>nul"""
+      DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /ad "${dir.absolutePath}" 2>nul"""
+      FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /a-d "${dir.absolutePath}" 2>nul"""
    }
 
    return try {

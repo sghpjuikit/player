@@ -49,6 +49,7 @@ import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.executor.EventReducer
+import sp.it.util.async.runIO
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -219,7 +220,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          )
       }
 
-
       // add menu items
       table.menuRemove.dsl {
          item("Remove songs in selected groups from library") { removeSongs(ungroup(table.selectedItems)) }
@@ -300,7 +300,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       if (list==null) return
 
       val f = fieldFilter.value
-      runNew {
+      runIO {
          listOf(MetadataGroup.groupOf(f, list)) + MetadataGroup.groupsOf(f, list).toList()
       } ui {
          if (it.isNotEmpty()) {

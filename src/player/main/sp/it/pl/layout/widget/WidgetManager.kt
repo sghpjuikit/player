@@ -327,6 +327,7 @@ class WidgetManager {
                   logger.info { "Widget=$widgetName skin file=${file.name}} changed $type" }
                   widgets.findAll(OPEN)
                      .filter { it.name==widgetName }
+                     .filter { it.isLoaded }
                      .forEach {
                         val root = it.root
                         val skinUrl = skinFile.toURLOrNull()?.toExternalForm()
@@ -756,15 +757,18 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
    WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
    APP.widgetManager.widgets.findAll(OPEN).asSequence()
       .filter { it.name==widgetFactory.id() || it.name==widgetFactory.name() }   // it.factory must not be used due to temporary factories in unrecognized widgets
+      .filter { it.isLoaded }
       .materialize()
       .forEach {
          val widgetOld = it
          val widgetNew = widgetFactory.create().apply {
             setStateFrom(widgetOld)
+            forceLoading = true
          }
          val wasFocused = widgetOld.focused.value
-         val widgetOldInputs = widgetOld.controller?.io?.i?.getInputs().orEmpty().associate { it.name to it.value }
+         val widgetOldInputs = widgetOld.controller.io.i.getInputs().associate { it.name to it.value }
          fun Widget.restoreAuxiliaryState() {
+            forceLoading = false
             failIf(controller==null)
             controller.io.i.getInputs().forEach { i -> widgetOldInputs[i.name].ifNotNull { i.valueAny = it } }
             if (wasFocused) focus()

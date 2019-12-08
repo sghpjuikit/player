@@ -20,3 +20,10 @@ object Widgets {
       }
    }
 }
+
+var Widget.forceLoading: Boolean
+   get() = "forceLoading" in properties
+   set(value) {
+      if (value) properties["forceLoading"] = Any()
+      else properties -= "forceLoading"
+   }

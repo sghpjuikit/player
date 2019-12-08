@@ -33,13 +33,13 @@ import sp.it.util.ui.removeFromParent
  */
 class WidgetUi: ComponentUiBase<Widget> {
    /** Container this ui is associated with. */
-   @JvmField val container: Container<*>
+   val container: Container<*>
    /** Index of the child in the [container] */
-   @JvmField val index: Int
+   val index: Int
    /** Widget this ui is associated with. Equivalent to [component]. */
    val widget: Widget
    override val root = AnchorPane()
-   @JvmField val contentRoot = AnchorPane()
+   val contentRoot = AnchorPane()
    val controls: WidgetUiControls
    val content = AnchorPane()
    private val disposer = Disposer()
@@ -88,11 +88,11 @@ class WidgetUi: ComponentUiBase<Widget> {
       if (APP.ui.isLayoutMode) show() else hide()
    }
 
-   private fun loadWidget(forceLoading: Boolean = false) {
+   private fun loadWidget() {
       disposer()
 
       when {
-         widget.isLoaded || forceLoading || widget.loadType.value==AUTOMATIC -> {
+         widget.isLoaded || widget.forceLoading || widget.loadType.value==AUTOMATIC -> {
             manualLoadPane?.hide()
             manualLoadPane = null
 
@@ -142,7 +142,11 @@ class WidgetUi: ComponentUiBase<Widget> {
       content.styleClass.clear()
    }
 
-   private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") { loadWidget(true) }.apply {
+   private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") {
+      widget.forceLoading = true
+      loadWidget()
+      widget.forceLoading = false
+   }.apply {
       styleClass += "widget-ui-load-placeholder"
       info.text = "Unfold ${widget.custom_name.value} (LMB)"
    }

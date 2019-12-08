@@ -94,7 +94,7 @@ open class Input<T>: Put<T?> {
    @Suppress("UNCHECKED_CAST")
    @Idempotent
    fun bindAllIdentical() {
-      val allWidgets = APP.widgetManager.widgets.findAll(OPEN).toList()
+      val allWidgets = APP.widgetManager.widgets.findAll(OPEN).filter { it.isLoaded }.toList()
       val outputs = getSources().mapTo(HashSet()) { o -> o.id to allWidgets.find { o in it.controller.io.o.getOutputs() }?.factory }
       outputs.forEach { (id, factory) ->
          allWidgets.asSequence()

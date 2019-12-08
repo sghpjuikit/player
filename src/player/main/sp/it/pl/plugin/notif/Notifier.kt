@@ -141,7 +141,7 @@ class Notifier: PluginBase("Notifications", true) {
    fun showTextNotification(error: AppError) {
          val root = vBox(10.0, CENTER_LEFT) {
             lay += Text(error.textShort).apply {
-               wrappingWithNatural.value = true
+               wrappingWithNatural.subscribe()
             }
             lay += hyperlink("Click to show full details") {
                onEventDown(MOUSE_CLICKED, PRIMARY) { AppErrors.showDetailForLastError() }
@@ -161,7 +161,7 @@ class Notifier: PluginBase("Notifications", true) {
       if (running) {
          val root = stackPane {
             lay += Text(contentText).apply {
-               wrappingWithNatural.value = true
+               wrappingWithNatural.subscribe()
             }
          }
 

@@ -15,6 +15,7 @@ import sp.it.pl.main.AppError
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.showFloating
 import sp.it.pl.main.withAppProgress
 import sp.it.util.async.FX
 import sp.it.util.async.runFX
@@ -202,7 +203,7 @@ class VlcPlayer: GeneralPlayer.Play {
       fun askForDownload() {
          if (!askForDownload) return
          askForDownload = false
-         APP.windowManager.showFloating("Vlc Setup") { p ->
+         showFloating("Vlc Setup") { p ->
             vBox(2.em.emScaled, CENTER) {
                lay += text("Viable Vlc player has not been found on the system")
                lay += vBox(0.0, CENTER_LEFT) {

@@ -27,6 +27,7 @@ import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrorAction
 import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.pl.main.withAppProgress
 import sp.it.util.access.Values
@@ -179,7 +180,7 @@ class WidgetManager {
                AppErrorAction("Download manually") {
                   kotlincLink.browse()
                   kotlincDir.browse()
-                  APP.windowManager.showFloating("Setup Kotlin compiler") {
+                  showFloating("Setup Kotlin compiler") {
                      scrollText {
                         Text("""
                            |It is recommended to let the application set up the compiler, you may wish to check the exact error instead.

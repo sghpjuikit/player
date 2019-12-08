@@ -261,7 +261,7 @@ open class PopWindow {
 
    fun show(shower: Shower) = show(shower.owner, shower.show)
 
-   fun show(windowOwner: Window? = null, show: (Window) -> P) {
+   fun show(windowOwner: Window? = null, shower: (Window) -> P) {
       runFX(100.millis) {
          ownerMWindow = windowOwner
 
@@ -303,7 +303,7 @@ open class PopWindow {
                show()
                requestFocus()
                sizeToScene()
-               xy = show(stage)
+               xy = shower(stage)
 
                onIsShowing1st {
                   initAutohide()
@@ -326,9 +326,9 @@ open class PopWindow {
                content += root
 
                if (animated.value) fadeIn()
-               this.show(windowOwner ?: UNFOCUSED_OWNER)
+               show(windowOwner ?: UNFOCUSED_OWNER)
                sizeToScene()
-               xy = show(this)
+               xy = shower(this)
             }
          }
       }

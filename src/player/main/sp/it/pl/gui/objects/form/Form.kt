@@ -4,20 +4,17 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
-import javafx.scene.input.KeyCode.ENTER
-import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
-import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.ConfigPane
+import sp.it.pl.main.okIcon
 import sp.it.util.access.v
 import sp.it.util.conf.Configurable
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
@@ -35,7 +32,7 @@ class Form<T>: AnchorPane {
    private val okPane = StackPane()
    private val fieldsPane = StackPane()
    private val warnLabel = Label()
-   private val okB = Icon()
+   private val okB = okIcon { ok() }
    private var fields = ConfigPane<T>()
    private val anchorOk = 90.0
    private val anchorWarn = 20.0
@@ -72,15 +69,13 @@ class Form<T>: AnchorPane {
          hbarPolicy = AS_NEEDED
       }
       okPane.lay += okB
+
       showOkButton(hasAction.value)
 
       fields.configure(configurable)
       val observer = Consumer<Any> { validate() }
       fields.getConfigFields().forEach { it.observer = observer }
 
-      okB.styleclass("form-ok-button")
-      okB.onClickDo { ok() }
-      fieldsPane.onEventDown(KEY_PRESSED, ENTER) { ok() }
       fieldsPane.consumeScrolling()
 
       validate()

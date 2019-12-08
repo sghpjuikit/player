@@ -433,13 +433,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun <N: Node> showFloating(title: String, content: (PopWindow) -> N): PopWindow = PopWindow().apply {
-      this.title.value = title
-      this.content.value = content(this)
-
-      show(WINDOW_ACTIVE(CENTER))
-   }
-
    fun showFloating(c: Widget): PopWindow {
       val l = Layout.openStandalone(anchorPane())
       val p = PopWindow().apply {

@@ -11,6 +11,8 @@ import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.text.Font
+import javafx.scene.text.TextAlignment
+import javafx.scene.text.TextBoundsType
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
@@ -33,9 +35,11 @@ import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.label
+import sp.it.util.ui.lay
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.text
+import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import java.util.concurrent.atomic.AtomicLong
@@ -55,17 +59,17 @@ import kotlin.math.sqrt
  */
 @JvmOverloads
 fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = PopWindow().apply {
-      styleClass += "help-popover"
-      content.value = Text(textContent).apply {
-         styleClass += "help-popover-text"
-         wrappingWithNatural.value = true
-      }
-      title.value = textTitle
-      isAutohide.value = true
-      isClickHide.value = true
-      userResizable.value = false
-      focusOnShow.value = false
+   styleClass += "help-popover"
+   content.value = Text(textContent).apply {
+      styleClass += "help-popover-text"
+      wrappingWithNatural.subscribe()
    }
+   title.value = textTitle
+   isAutohide.value = true
+   isClickHide.value = true
+   userResizable.value = false
+   focusOnShow.value = false
+}
 
 /** @return standardized icon that opens a help popup with the specified text (eager) */
 fun infoIcon(tooltipText: String) = infoIcon { tooltipText }
@@ -152,6 +156,40 @@ fun Font.rowHeight(): Double {
    var h = (size*1.5).toLong()  // decimal number helps pixel alignment
    h = if (h%2==0L) h else h + 1   // even number helps layout symmetry
    return h.toDouble()
+}
+
+fun okIcon(action: () -> Unit) = Icon().apply {
+   id = "okButton"
+   styleclass("form-ok-button")
+   onClickDo { action() }
+   onEventDown(KEY_PRESSED, ENTER) { action() }
+   isFocusTraversable = true
+}
+
+fun <N: Node> showFloating(title: String, content: (PopWindow) -> N): PopWindow = PopWindow().apply {
+   this.title.value = title
+   this.content.value = content(this)
+
+   show(WINDOW_ACTIVE(CENTER))
+}
+
+fun showConfirmation(text: String, action: () -> Unit) {
+   PopWindow().apply {
+      content.value = vBox(0, CENTER) {
+         lay += Text(text).apply {
+            boundsType = TextBoundsType.LOGICAL_VERTICAL_CENTER
+            textAlignment = TextAlignment.CENTER
+            wrappingWithNatural.subscribe()
+         }
+         lay += okIcon { action(); if (isShowing) hide() }
+
+         applyCss()
+      }
+      headerVisible.value = false
+      isAutohide.value = true
+
+      show(WINDOW_ACTIVE(CENTER))
+   }
 }
 
 fun <T, C: Configurable<T>> C.configure(titleText: String, action: (C) -> Unit) {

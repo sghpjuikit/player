@@ -25,7 +25,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import kotlin.Unit;
-import sp.it.pl.gui.objects.Text;
+import javafx.scene.text.Text;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.table.FilteredTable;

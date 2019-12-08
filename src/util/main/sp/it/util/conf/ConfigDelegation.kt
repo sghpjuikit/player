@@ -43,7 +43,7 @@ inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
 
-fun <T: Any, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
+fun <T: Any?, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
 fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), Double.MAX_VALUE))
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(Double.MIN_VALUE, max.toDouble()))

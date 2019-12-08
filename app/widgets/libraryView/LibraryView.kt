@@ -55,9 +55,10 @@ import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.noUi
 import sp.it.util.conf.values
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
@@ -112,31 +113,27 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    private val outputSelectedGroup = io.o.create("Selected", listOf<MetadataGroup>())
    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
 
-   @IsConfig(name = "Table orientation", info = "Orientation of the table.")
    val tableOrient by cv(NodeOrientation.INHERIT) { OrV(APP.ui.tableOrient) }
-   @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+      .def(name = "Table orientation", info = "Orientation of the table.")
    val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
-   @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+      .def(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
    val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
-   @IsConfig(name = "Show table header", info = "Show table header with columns.")
+      .def(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
    val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
-   @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+      .def(name = "Show table header", info = "Show table header with columns.")
    val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-   @IsConfig(name = "Field")
-   val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.all.filter { it.isTypeStringRepresentable() }) attach {
-      applyData()
-   }
+      .def(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+   val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.all.filter { it.isTypeStringRepresentable() })
+      .def(name = "Field", info = "Field by which the table groups the songs") attach {
+         applyData()
+      }
 
-   // restoring selection if table items change, we want to preserve as many
-   // selected items as possible - when selection changes, we select all items
-   // (previously selected) that are still in the table
+   // restoring selection if table items change, we want to preserve as many selected items as possible - when selection
+   // changes, we select all items (previously selected) that are still in the table
    private var selIgnore = false
    private var selOld = setOf<Any?>()
-   // restoring selection from previous session, we serialize string
-   // representation and try to restore when application runs again
-   // we restore only once
-   @IsConfig(name = "Last selected", editable = EditMode.APP)
-   private var selLast by c("null")
+   // restoring selection from previous session, we serialize string representation and try to restore when application runs again we restore only once
+   private var selLast by c("null").noUi().def(name = "Last selected", editable = EditMode.APP)
    private var selLastRestored = false
 
    init {

@@ -44,9 +44,10 @@ import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
@@ -101,20 +102,20 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
    private val outputSelected = io.o.create<Metadata>("Selected", null)
    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
-   @IsConfig(name = "Table orientation", info = "Orientation of the table.")
    val tableOrient by cv(NodeOrientation.INHERIT) { OrV(APP.ui.tableOrient) }
-   @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+      .def(name = "Table orientation", info = "Orientation of the table.")
    val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
-   @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+      .def(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
    val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
-   @IsConfig(name = "Show table header", info = "Show table header with columns.")
+      .def(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
    val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
-   @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+      .def(name = "Show table header", info = "Show table header with columns.")
    val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-   @IsConfig(name = "Last add songs browse location", editable = EditMode.APP)
-   private var lastAddFilesLocation by cn<File>(APP.location.user).only(FileActor.ANY)
-   @IsConfig(name = "Last add directory browse location", editable = EditMode.APP)
-   private var lastAddDirLocation by cn<File>(APP.location.user).only(FileActor.DIRECTORY)
+      .def(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+   private var lastAddFilesLocation by cn<File>(APP.location.user).only(FileActor.ANY).noUi()
+      .def(name = "Last add songs browse location", editable = EditMode.APP)
+   private var lastAddDirLocation by cn<File>(APP.location.user).only(FileActor.DIRECTORY).noUi()
+      .def(name = "Last add directory browse location", editable = EditMode.APP)
 
    init {
       root.prefSize = 850.emScaled x 600.emScaled

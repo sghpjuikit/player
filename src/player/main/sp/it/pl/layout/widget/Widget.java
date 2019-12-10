@@ -388,7 +388,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 /******************************************************************************/
 
 	@Override
-	public Config<Object> getField(String n) {
+	public Config<Object> getField(String name) {
 		return firstNotNull(
 			() -> configs.stream().filter(it -> it.getName().equals(name)).findFirst().orElse(null),
 			() -> controller==null ? null : controller.getField(name)

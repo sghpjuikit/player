@@ -75,6 +75,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.getScreenForMouse
@@ -105,7 +106,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    private val windowIcons by lazy { APP.getIcons() }
 
    @IsConfig(name = "Opacity", info = "Window opacity.")
-   val windowOpacity by cv(1.0).between(0.0, 1.0)
+   val windowOpacity by cv(1.0).between(0.1, 1.0)
 
    @IsConfig(name = "Headerless", info = "Affects window header visibility for new windows.")
    val windowHeaderless by cv(false)
@@ -198,6 +199,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       w.initialize()
 
+      w.stage.opacityProperty() syncFrom windowOpacity on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value
       w.stage.title = APP.name
       w.stage.icons setTo windowIcons

@@ -760,7 +760,7 @@ class Metadata: Song, Serializable {
 
       private fun Metadata.loadAsInt(tag: Tag, field: FieldKey): Int? = loadAsString(tag, field)?.toIntOrNull()
 
-      // use this to get comment, not getField(COMMENT); because it is bugged
+      // TODO remove
       private fun loadComment(tag: Tag): String {
          // there is a bug where getField(Comment) returns CUSTOM1 field, this is workaround
          // this is how COMMENT field look like:

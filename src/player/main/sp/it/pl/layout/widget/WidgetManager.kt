@@ -63,6 +63,7 @@ import sp.it.util.file.isParentOf
 import sp.it.util.file.toURLOrNull
 import sp.it.util.file.unzip
 import sp.it.util.functional.Try
+import sp.it.util.functional.and
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.asArray
 import sp.it.util.functional.asIf
@@ -292,7 +293,7 @@ class WidgetManager {
 
       fun findSrcFiles() = widgetDir.children().filter { it.hasExtension("java", "kt") }
 
-      fun findClassFile() = compileDir/widgetName.decapitalize()/"$widgetName.class"
+      fun findClassFile() = (compileDir/widgetName.decapitalize()/"$widgetName.class").takeIf { it.exists() }
 
       fun findClassFiles() = compileDir.walk().filter { it hasExtension "class" }
 
@@ -367,7 +368,7 @@ class WidgetManager {
             APP.developerMode.value -> srcFiles
             else -> srcFiles + computeClassPathElements().map { File(it) }.filterSourceJars().toList()
          }
-         val classFilesAvailable = classFile.exists() && classFiles modifiedAfter dependencies
+         val classFilesAvailable = classFile!=null && classFiles modifiedAfter dependencies
 
          logger.info { "Widget=$widgetName factory update, source files available=$srcFilesAvailable class files available=$classFilesAvailable" }
 
@@ -411,6 +412,14 @@ class WidgetManager {
             it.toTry()
                .ifError { logger.error(it) { "Widget $widgetName failed to compile" } }
                .getOrSupply { Try.error(it.message ?: "Unspecified error") }
+               .and {
+                  if (findClassFile()==null) {
+                     logger.error { "Widget $widgetName was compiled, but the class file was not found. Does the class name match widget name?" }
+                     Try.error("Invalid compilation result. Does the class name match widget name?")
+                  } else {
+                     Try.ok()
+                  }
+               }
                .ifOk { updateFactory() }
                .ifErrorNotify { AppError("Widget $widgetName failed to compile", "Reason: $it") }
          }

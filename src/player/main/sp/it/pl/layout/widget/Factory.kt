@@ -25,8 +25,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    val location: File
    val locationUser: File
    val externalWidgetData: ExternalWidgetFactoryData?
+   private val id: String
    private val name: String
-   private val nameGui: String
    private val description: String
    private val version: String
    private val author: String
@@ -48,12 +48,12 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
     */
    constructor(controllerType: KClass<C>, location: File, externalWidgetData: ExternalWidgetFactoryData?) {
       val i: Widget.Info = controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
-      this.name = controllerType.simpleName ?: controllerType.jvmName
+      this.id = controllerType.simpleName ?: controllerType.jvmName
       this.controllerType = controllerType.java
       this.location = location
       this.locationUser = APP.location.user.widgets/location.nameOrRoot
       this.externalWidgetData = externalWidgetData
-      this.nameGui = i.name.nullIfBlank() ?: name
+      this.name = i.name.nullIfBlank() ?: id
       this.description = i.description
       this.version = i.version
       this.author = i.author
@@ -64,8 +64,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
       this.group = i.group
    }
 
-   override fun id() = name
-   override fun name() = nameGui
+   override fun id() = id
+   override fun name() = name
    override fun description() = description
    override fun version() = version
    override fun author() = author
@@ -76,9 +76,9 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    override fun group() = group
    override fun type() = controllerType
 
-   override fun create(): Widget = Widget(name, this)
+   override fun create(): Widget = Widget(this)
 
-   override fun toString() = "${javaClass.simpleName} $name $nameGui $controllerType"
+   override fun toString() = "${javaClass.simpleName} $id $name $controllerType"
 
 }
 
@@ -111,16 +111,16 @@ class DeserializingFactory: ComponentFactory<Component> {
 
 }
 
-class NoFactoryFactory(val name: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/name, null) {
-   override fun id() = name
+class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId, null) {
+   override fun id() = factoryId
 
-   override fun name() = name
+   override fun name() = factoryId
 
-   override fun create(): Widget = Widget(name, this)
+   override fun create(): Widget = Widget(this)
 
    fun createController(widget: Widget) = NoFactoryController(widget)
 
-   override fun toString() = "${javaClass.simpleName} $name"
+   override fun toString() = "${javaClass.simpleName} $factoryId"
 }
 
 /** Marks [Controller]/[Widget] as unfit for production use. */

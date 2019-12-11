@@ -1,6 +1,6 @@
 {
   "forbidUse": false,
-  "name": "LibraryView",
+  "factoryId": "LibraryView",
   "preferred": false,
   "settings": {
     "fieldfilter": "Album",

@@ -1,6 +1,6 @@
 {
   "forbidUse": false,
-  "name": "Library",
+  "factoryId": "Library",
   "preferred": false,
   "settings": {
     "lastadddirlocation": "C:\\Users\\Uranium\\Documents\\GitHub\\player\\app\\user",

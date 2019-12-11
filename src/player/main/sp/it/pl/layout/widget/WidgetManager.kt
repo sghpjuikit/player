@@ -373,7 +373,7 @@ class WidgetManager {
          logger.info { "Widget=$widgetName factory update, source files available=$srcFilesAvailable class files available=$classFilesAvailable" }
 
          if (classFilesAvailable) {
-            val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile, compileDir, findLibFiles())
+            val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile!!, compileDir, findLibFiles())
             registerFactory(controllerType)
          } else if (srcFilesAvailable) {
             compileFx()
@@ -628,7 +628,7 @@ class WidgetManager {
       fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
       /** @return widget factory with the specified [WidgetFactory.id] or null if none */
-      fun getFactory(id: String): WidgetFactory<*>? = factoriesW[id]
+      fun getFactory(factoryId: String): WidgetFactory<*>? = factoriesW[factoryId]
 
       /** @return widget factory with the specified [WidgetFactory.name] or null if none */
       fun getFactoryByNameUi(name: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.name()==name }.toOptional().toTry().mapError { name }

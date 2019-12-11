@@ -76,10 +76,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 
-	// Name of the widget. Permanent. Same as factory name. Used solely for deserialization (to find
-	// appropriate factory)
-	private final String name;
-
+	/** Id of the factory */
+	private final String factoryId;
 	/**
 	 * Factory that produced this widget.
 	 * <p/>
@@ -138,11 +136,11 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	private final Collection<Config<Object>> configs = Configurable.super.getFields();
 
-	public Widget(String name, WidgetFactory<?> factory) {
+	public Widget(WidgetFactory<?> factory) {
 		super(new WidgetDb());
-		this.name = name;
+		this.factoryId = factory.id();
 		this.factory = factory;
-		custom_name.setValue(name);
+		custom_name.setValue(factory.name());
 		focused.addListener(computeFocusChangeHandler());
 		isDeserialized = false;
 	}
@@ -150,10 +148,10 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public Widget(WidgetDb state) {
 		super(state);
 
-		name = state.getName();
+		factoryId = state.getFactoryId();
 		factory = firstNotNull(
-			() -> APP.widgetManager.factories.getFactory(name),
-			() -> new NoFactoryFactory(name)
+			() -> APP.widgetManager.factories.getFactory(factoryId),
+			() -> new NoFactoryFactory(factoryId)
 		);
 		controller = factory instanceof NoFactoryFactory
 			? ((NoFactoryFactory) factory).createController(this)
@@ -174,7 +172,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public String getName() {
-		return name;
+		return factoryId;
 	}
 
 	public Pane getGraphics() {
@@ -237,7 +235,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 					LoadErrorController c = new LoadErrorController(this);
 					root = c.loadFirstTime();
 					controller = c;
-					LOGGER.error("Widget={} graphics creation failed.", name, e);
+					LOGGER.error("Widget={} graphics creation failed.", factoryId, e);
 				}
 			}
 		}
@@ -291,7 +289,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public void close() {
-		LOGGER.info("Widget=" + name + " closing");
+		LOGGER.info("Widget=" + factoryId + " closing");
 
 		if (controller!=null) {
 			Controller c = controller;
@@ -411,7 +409,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public String toString() {
-		return getClass() + " " + name;
+		return getClass() + " " + factoryId;
 	}
 
 /****************************** SERIALIZATION *********************************/
@@ -440,7 +438,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		var props = new HashMap<>(properties);
 		var configs = getFieldsRaw();
 		props.remove("configs");
-		return new WidgetDb(id, name, preferred.getValue(), forbid_use.getValue(), custom_name.getValue(), loadType.getValue(), locked.getValue(), props, configs);
+		return new WidgetDb(id, factoryId, preferred.getValue(), forbid_use.getValue(), custom_name.getValue(), loadType.getValue(), locked.getValue(), props, configs);
 	}
 
 	public static F1<Config<?>,String> configToRawKeyMapper = it -> it.getName().replace(' ', '_').toLowerCase();

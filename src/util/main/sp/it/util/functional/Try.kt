@@ -108,7 +108,6 @@ sealed class Try<out R, out E> {
 inline fun <R> runTry(block: () -> R): Try<R, Throwable> = try {
    Try.ok(block())
 } catch (e: Throwable) {
-   if (e is VirtualMachineError || e is ThreadDeath || e is InterruptedException || e is LinkageError) throw e
    Try.error(e)
 }
 

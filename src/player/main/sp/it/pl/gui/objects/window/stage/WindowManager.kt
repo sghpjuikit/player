@@ -200,7 +200,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       w.isHeaderVisible.value = windowHeaderless.value
       w.stage.title = APP.name
-      w.stage.icons setTo windowIcons
+      //w.stage.icons setTo windowIcons
 
       return w
    }

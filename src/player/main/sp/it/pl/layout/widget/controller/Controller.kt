@@ -2,19 +2,24 @@ package sp.it.pl.layout.widget.controller
 
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.IO
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.isCompiling
+import sp.it.pl.main.APP
 import sp.it.pl.main.appProgressIndicator
 import sp.it.util.Locatable
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.conf.Configurable
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
+import sp.it.util.ui.hyperlink
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.setScaleXY
@@ -86,6 +91,9 @@ class LoadErrorController(widget: Widget): SimpleController(widget) {
       root.lay += vBox(5, CENTER) {
          lay += label("Widget ${widget.name} failed to load properly")
          lay += compileInfoUi()
+         lay += hyperlink("Recompile") {
+            onEventDown(MOUSE_CLICKED, PRIMARY) { APP.widgetManager.factories.recompile(widget.factory) }
+         }
       }
    }
 }

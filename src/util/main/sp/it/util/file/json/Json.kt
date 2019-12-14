@@ -15,6 +15,8 @@ import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.Parsers
+import sp.it.util.type.Util
+import sp.it.util.type.Util.isEnum
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.toRaw
 import sp.it.util.type.typeLiteral
@@ -256,7 +258,7 @@ class Json {
                }
             }
             is JsString -> {
-               if (typeJ.isEnum) getEnumValue(typeJ, value.value)
+               if (isEnum(typeJ)) getEnumValue(typeJ, value.value)
                else value.value
             }
             is JsArray -> {

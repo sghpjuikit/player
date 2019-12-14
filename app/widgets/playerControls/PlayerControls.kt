@@ -33,7 +33,7 @@ import sp.it.pl.layout.widget.feature.PlaybackFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.Widgets.PLAYBACK
+import sp.it.pl.main.Widgets.PLAYBACK_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
@@ -60,7 +60,7 @@ import sp.it.util.units.toHMSMs
 import java.io.File
 
 @Widget.Info(
-   name = PLAYBACK,
+   name = PLAYBACK_NAME,
    author = "Martin Polakovic",
    howto = "Playback actions:\n"
       + "    Control Playback\n"

@@ -150,19 +150,19 @@ class Cli: CliktCommand(
          },
          object: CliktCommand(
             name = "open-component",
-            help = "Open the specified application component (widget or template)."
+            help = "Open the application component (widget or template) specified by its `factoryId`."
          ) {
-            val name by argument(help = "Name of the component.")
+            val factoryId by argument(help = "Name of the component.")
 
             override fun run() = APP.run1AppReady {
-               APP.windowManager.launchComponent(name) ?: run {
-                  logger.error { "Component $name not found" }
+               APP.windowManager.launchComponent(factoryId) ?: run {
+                  logger.error { "Component with $factoryId not available" }
                }
             }
          },
          object: CliktCommand(
             name = "open-component-file",
-            help = "Open the specified application component (widget or template)."
+            help = "Open the application component (widget or template) specified by launcher file."
          ) {
             val file by argument(
                help = """

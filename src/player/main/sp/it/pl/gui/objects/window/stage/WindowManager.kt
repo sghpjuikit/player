@@ -29,8 +29,10 @@ import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.container.Layout
+import sp.it.pl.layout.widget.NoFactoryFactory
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
+import sp.it.pl.layout.widget.WidgetManager.FactoryRef
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.main.APP
@@ -61,7 +63,6 @@ import sp.it.util.file.div
 import sp.it.util.file.hasExtension
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
-import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.P
@@ -130,8 +131,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    val dockHoverDelay by cv(700.millis).def(confDock.showDelay)
    val dockHideInactive by cv(true).def(confDock.hideOnIdle)
    val dockHideInactiveDelay by cv(1500.millis).def(confDock.hideOnIdleDelay).readOnlyUnless(dockHideInactive)
-   val dockWidget by cv(PLAYBACK).def(confDock.content).valuesIn {
-      APP.widgetManager.factories.getFactoriesWith<HorizontalDock>().map { it.name() }
+   val dockWidget by cv<FactoryRef<*>>(PLAYBACK).def(confDock.content).valuesIn {
+      APP.widgetManager.factories.getFactoriesWith<HorizontalDock>()
    }
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
 
@@ -281,7 +282,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.setContent(content)
          mw.onClose += dockWidget sync {
             mw.s.asLayout()?.child?.close()
-            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it, NEW(CUSTOM))
+            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it.id, NEW(CUSTOM)) ?: NoFactoryFactory(it.id).create()
          }
          mw.onClose += {
             mw.s.asLayout()?.child?.close()
@@ -439,7 +440,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       val l = Layout.openStandalone(anchorPane())
       val p = PopWindow().apply {
          content.value = l.root
-         title.value = c.info.name()
+         title.value = c.custom_name.value
          properties[Window.keyWindowLayout] = l
          onHiding += { properties -= Window.keyWindowLayout }
          onHiding += { l.close() }
@@ -452,28 +453,28 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       return p
    }
 
-   fun launchComponent(name: String): Component? = instantiateComponent(name)?.apply(::launchComponent)
+   /** Create, show and return component specified by the specified factoryId. */
+   fun launchComponent(factoryId: String): Component? = instantiateComponent(factoryId)?.apply { showWindow(this) }
 
-   fun launchComponent(launcher: File): Component? = instantiateComponent(launcher)?.apply(::launchComponent)
+   /** Create, show and return component specified by its launcher file. */
+   fun launchComponent(launcher: File): Component? = instantiateComponent(launcher)?.apply { showWindow(this) }
 
-   fun launchComponent(c: Component) {
-      if (windows.isEmpty()) getActiveOrNew().setContent(c)
-      else showWindow(c)
-   }
-
-   fun instantiateComponent(name: String): Component? {
+   /** Create component specified by its factoryId. */
+   fun instantiateComponent(factoryId: String): Component? {
       val f = null
-         ?: APP.widgetManager.factories.getComponentFactoryByNameUi(name).orNull()
-         ?: APP.widgetManager.factories.getFactory(name)
+         ?: APP.widgetManager.factories.getComponentFactoryByName(factoryId)
+         ?: APP.widgetManager.factories.getFactory(factoryId).orNull()
       return f?.create()
    }
 
+   /** Create component specified by the launcher file. */
+   // TODO: put this on IO thread and reuse File.loadComponentFxwlJson()?
    fun instantiateComponent(launcher: File): Component? {
       if (!launcher.exists()) return null
-      val isLauncherEmpty = launcher.useLines { it.count()==1 }
+      val launcherContainsName = launcher.useLines { it.count()==1 }
 
-      return if (isLauncherEmpty) instantiateComponent(launcher.readTextTry().getOr(""))
-      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.toDomain()  // TODO: put this on IO thread
+      return if (launcherContainsName) launcher.readTextTry().orNull()?.let(::instantiateComponent)
+      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.toDomain()
    }
 
    companion object: KLogging()

@@ -34,6 +34,7 @@ import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.main.Widgets.SONG_TAGGER
 import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
@@ -125,18 +126,18 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open widget",
          "Open file chooser to open an exported widget",
          IconMA.WIDGETS,
-         ap.converting {
+         {
             chooseFile("Open widget...", FILE, APP.location.user.layouts, ap.scene?.window, ExtensionFilter("Component", "*.fxwl"))
-               .map { APP.windowManager.launchComponent(it) }
+               .ifOk { APP.windowManager.launchComponent(it) }
          }
       ),
       FastAction(
          "Open skin",
          "Open file chooser to find a skin",
          IconMA.BRUSH,
-         ap.converting {
+         {
             chooseFile("Open skin...", FILE, APP.location.skins, ap.scene?.window, ExtensionFilter("Skin", "*.css"))
-               .map { APP.ui.setSkin(it) }
+               .ifOk { APP.ui.setSkin(it) }
          }
       ),
       FastAction(
@@ -237,7 +238,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Shows songs in a table.",
          IconMA.COLLECTIONS,
          { songs ->
-            APP.widgetManager.widgets.find(Widgets.SONG_TABLE, NEW).ifNotNull {
+            APP.widgetManager.widgets.find(Widgets.SONG_TABLE_NAME, NEW).ifNotNull {
                it.controller.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
             }
          }
@@ -247,7 +248,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Group songs in a table.",
          IconMA.COLLECTIONS,
          { songs ->
-            APP.widgetManager.widgets.find(Widgets.SONG_GROUP_TABLE, NEW).ifNotNull {
+            APP.widgetManager.widgets.find(Widgets.SONG_GROUP_TABLE_NAME, NEW).ifNotNull {
                it.controller.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
             }
          }
@@ -352,7 +353,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Opens exported widget.",
          IconMD.IMPORT,
          { it hasExtension "fxwl" },
-         { it.loadComponentFxwlJson() ui { it.ifNotNull(APP.windowManager::launchComponent) } }
+         { it.loadComponentFxwlJson() ui { it.ifNotNull { APP.windowManager.showWindow(it) } } }
       ),
       FastColAction(
          "Set created to last modified time",
@@ -401,7 +402,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
       val executed = v(false)
       val conf = object: ConfigurableBase<Boolean>() {
          val makeWritable by cv(true).readOnlyIf(executed).def(name = "Make files writable if read-only", group = "1")
-         val editInTagger by cv(false).def(name = "Edit in ${Widgets.SONG_TAGGER}", group = "2")
+         val editInTagger by cv(false).def(name = "Edit in ${Widgets.SONG_TAGGER_NAME}", group = "2")
          val editOnlyAdded by cv(false).readOnlyUnless(editInTagger).def(name = "Edit only added files", group = "3")
          val enqueue by cv(false).def(name = "Enqueue in playlist", group = "4")
       }
@@ -446,7 +447,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                }.ui { result ->
                   if (result!=null) {
                      if (conf.editInTagger.value) {
-                        val tagger = APP.widgetManager.factories.getFactoryByNameUi(Widgets.SONG_TAGGER).orNull()?.create()
+                        val tagger = APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNull()?.create()
                         val songs = if (conf.editOnlyAdded.value) result.converted else result.all
                         if (tagger!=null) {
                            anim(500.millis) {

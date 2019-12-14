@@ -1,15 +1,25 @@
 package sp.it.pl.main
 
+import sp.it.pl.layout.widget.WidgetManager.FactoryRef
+
 object Widgets {
-   const val APP_LAUNCHER = "AppLauncher"
-   const val CONVERTER = "Converter"
-   const val INSPECTOR = "Tree inspector"
-   const val SONG_GROUP_TABLE = "Song Group Table"
-   const val SONG_TABLE = "Song Table"
-   const val SONG_TAGGER = "Song Tagger"
-   const val LOGGER = "Logger"
-   const val PLAYBACK = "Playback"
-   const val PLAYLIST = "Playlist"
+   const val CONVERTER_NAME = "Converter"
+   const val INSPECTOR_NAME = "Tree inspector"
+   const val SONG_GROUP_TABLE_NAME = "Song Group Table"
+   const val SONG_TABLE_NAME = "Song Table"
+   const val SONG_TAGGER_NAME = "Song Tagger"
+   const val LOGGER_NAME = "Logger"
+   const val PLAYBACK_NAME = "Playback"
+   const val PLAYLIST_NAME = "Playlist"
+
+   val CONVERTER = FactoryRef(CONVERTER_NAME, "Converter")
+   val INSPECTOR = FactoryRef(INSPECTOR_NAME, "Inspector")
+   val SONG_GROUP_TABLE = FactoryRef(SONG_GROUP_TABLE_NAME, "LibraryView")
+   val SONG_TABLE = FactoryRef(SONG_TABLE_NAME, "Library")
+   val SONG_TAGGER = FactoryRef(SONG_TAGGER_NAME, "Tagger")
+   val LOGGER = FactoryRef(LOGGER_NAME, "Logger")
+   val PLAYBACK = FactoryRef(PLAYBACK_NAME, "PlayerControls")
+   val PLAYLIST = FactoryRef(PLAYLIST_NAME, "PlaylistView")
 }
 
 object Actions {

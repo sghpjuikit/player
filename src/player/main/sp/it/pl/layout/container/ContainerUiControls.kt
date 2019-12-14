@@ -61,18 +61,18 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             + "\n\tDrag + ${SHORTCUT.nameUi} : Detach widget"
          ).styleclass("header-icon")
 
-         lay += icon(null, "Lock container's layout").onClickDo {
+         lay += icon(null, "Lock container's layout") {
             area.container.locked.toggle()
             APP.actionStream("Widget layout lock")
          }.apply {
             area.container.locked sync { icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
 
-         lay += icon(IconFA.GAVEL, "Actions\n\nDisplay additional action for this container.").onClickDo {
+         lay += icon(IconFA.GAVEL, "Actions\n\nDisplay additional action for this container.") {
             APP.ui.actionPane.orBuild.show(area.container)
          }
 
-         lay += icon(IconFA.TIMES, "Close widget").onClickDo {
+         lay += icon(IconFA.TIMES, "Close widget") {
             area.container.close()
             APP.actionStream("Close widget")
          }

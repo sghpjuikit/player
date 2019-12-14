@@ -39,7 +39,7 @@ fun Component.exportFxwl(f: File) = runIO {
 
 /** Creates a launcher for this widget with default (no predefined) settings.  */
 fun Widget.exportFxwlDefault(f: File) = runIO {
-   f.writeTextTry(name).ifErrorNotify {
+   f.writeTextTry(factory.id).ifErrorNotify {
       AppError(
          "Unable to export default widget launcher for $name into $f.",
          "Reason:\n${it.stacktraceAsString}"
@@ -132,10 +132,10 @@ class FreeFormContainerDb(
 
 class WidgetDb @JvmOverloads constructor(
    id: UUID = UUID.randomUUID(),
-   val factoryId: String = emptyWidgetFactory.id(),
+   val factoryId: String = emptyWidgetFactory.id,
    val preferred: Boolean = false,
    val forbidUse: Boolean = false,
-   val nameUi: String = emptyWidgetFactory.name(),
+   val nameUi: String = emptyWidgetFactory.name,
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,
    properties: Map<String, Any?> = mapOf(),

@@ -18,7 +18,7 @@ import sp.it.util.ui.x
 
 @Widget.Info(
    author = "Martin Polakovic",
-   name = Widgets.LOGGER,
+   name = Widgets.LOGGER_NAME,
    description = "Displays console output by listening to System.out, which contains application logging.",
    version = "1.0.0",
    year = "2015",

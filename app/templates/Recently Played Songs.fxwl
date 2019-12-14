@@ -11,7 +11,7 @@
     "tableshowfooter": "true",
     "tableorient": "INHERIT"
   },
-  "nameUi": "Library",
+  "nameUi": "Recently Played Songs",
   "id": "21dab3b5-a97d-4500-a7fd-1b72469ab245",
   "loading": "AUTOMATIC",
   "locked": false,

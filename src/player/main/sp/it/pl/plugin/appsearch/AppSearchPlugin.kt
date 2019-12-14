@@ -54,6 +54,7 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.file.FileType
 import sp.it.util.file.div
@@ -88,20 +89,13 @@ import java.util.concurrent.atomic.AtomicLong
 
 class AppSearchPlugin: PluginBase("App Search", false) {
 
-   @IsConfig(name = "Location", info = "Locations to find applications in.")
-   private val searchDirs by cList<File>().only(DIRECTORY)
-
-   @IsConfig(name = "Search depth")
-   private val searchDepth by cv(Int.MAX_VALUE)
-
-   @IsConfig(name = "Re-scan apps")
-   private val searchDo by cr { findApps() }
-
+   private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find applications in.")
+   private val searchDepth by cv(Int.MAX_VALUE).def(name = "Search depth")
+   private val searchDo by cr { findApps() }.def(name = "Re-scan apps")
    private val searchSourceApps = observableArrayList<File>()
    private val searchSource = Source("$name plugin - Applications") { searchSourceApps.asSequence().map { it.toRunApplicationEntry() } }
-
-   private val widgetFactory = WidgetFactory(AppLauncher::class, APP.location.widgets/"AppLauncher", null)
-
+   /** Application launcher widget factory. Registered only when this plugin is running. */
+   val widgetFactory = WidgetFactory(AppLauncher::class, APP.location.widgets/"AppLauncher")
 
    override fun onStart() {
       APP.search.sources += searchSource
@@ -192,7 +186,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
    @Widget.Info(
       author = "Martin Polakovic",
-      name = Widgets.APP_LAUNCHER,
+      name = "App launcher",
       description = "Application menu and launcher",
       version = "0.8.0",
       year = "2016",

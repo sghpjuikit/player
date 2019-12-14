@@ -6,7 +6,8 @@ import javafx.scene.layout.Pane
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.main.APP
-import sp.it.pl.main.Widgets
+import sp.it.pl.main.Widgets.PLAYBACK
+import sp.it.pl.main.Widgets.PLAYLIST
 import sp.it.util.conf.Config
 import sp.it.util.file.div
 
@@ -32,12 +33,12 @@ class EmptyWidget(widget: Widget): Controller(widget) {
 
 }
 
-val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.location.widgets/"Empty", null)
+val emptyWidgetFactory = WidgetFactory(EmptyWidget::class, APP.location.widgets/"emptyWidget")
 
 val initialTemplateFactory = TemplateFactory("Playback + Playlist") {
    BiContainer(VERTICAL).apply {
-      children += 1 to APP.widgetManager.factories.getFactoryByNameUi(Widgets.PLAYBACK).orNone().create()
-      children += 2 to APP.widgetManager.factories.getFactoryByNameUi(Widgets.PLAYLIST).orNone().create()
+      children += 1 to APP.widgetManager.factories.getFactory(PLAYBACK.id).orNone().create()
+      children += 2 to APP.widgetManager.factories.getFactory(PLAYLIST.id).orNone().create()
    }
 }
 

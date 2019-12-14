@@ -99,7 +99,7 @@ import static sp.it.util.ui.Util.layVertically;
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
     author = "Martin Polakovic",
-    name = Widgets.CONVERTER,
+    name = Widgets.CONVERTER_NAME,
     description = "Transformation utility. Capable of transforming objects "
         + "and chaining the transforming functions. Capable of text manipulation, file renaming and "
         + "audio tagging.",

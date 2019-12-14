@@ -24,9 +24,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    val controllerType: Class<C>
    val location: File
    val locationUser: File
-   val externalWidgetData: ExternalWidgetFactoryData?
-   private val id: String
-   private val name: String
+   private val idImpl: String
+   private val nameImpl: String
    private val description: String
    private val version: String
    private val author: String
@@ -36,24 +35,23 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    private val notes: String
    private val group: Widget.Group
 
-   /** Whether this factory will be preferred over others of the same group. */
+   /** Whether this factory will be preferred on widget `find and create` requests. */
    var isPreferred = false
 
-   /** Whether this factory will be ignored on widget requests. */
+   /** Whether this factory will be ignored on widget `find and create` requests. */
    var isIgnored = false
 
    /**
     * @param controllerType of the controller of the widget this factory will create
     * @param location parent directory of the widget
     */
-   constructor(controllerType: KClass<C>, location: File, externalWidgetData: ExternalWidgetFactoryData?) {
+   constructor(controllerType: KClass<C>, location: File) {
       val i: Widget.Info = controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
-      this.id = controllerType.simpleName ?: controllerType.jvmName
       this.controllerType = controllerType.java
       this.location = location
       this.locationUser = APP.location.user.widgets/location.nameOrRoot
-      this.externalWidgetData = externalWidgetData
-      this.name = i.name.nullIfBlank() ?: id
+      this.idImpl = controllerType.simpleName ?: controllerType.jvmName
+      this.nameImpl = i.name.nullIfBlank() ?: idImpl
       this.description = i.description
       this.version = i.version
       this.author = i.author
@@ -64,8 +62,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
       this.group = i.group
    }
 
-   override fun id() = id
-   override fun name() = name
+   override val id get() = idImpl
+   override val name get() = nameImpl
    override fun description() = description
    override fun version() = version
    override fun author() = author
@@ -83,44 +81,26 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
 }
 
 /** Component factory that creates component programmatically using a supplier. */
-class TemplateFactory<C: Component>(private val name: String, private val supplier: () -> C): ComponentFactory<C> {
-
-   override fun name() = name
-
+class TemplateFactory<C: Component>(override val name: String, private val supplier: () -> C): ComponentFactory<C> {
    override fun create() = supplier()
-
    override fun toString() = "${javaClass.simpleName} $name"
-
 }
 
 /** Component factory that creates component by deserializing it from file. */
-class DeserializingFactory: ComponentFactory<Component> {
-   val launcher: File
-   private val name: String
-
-   constructor(launcher: File) {
-      this.launcher = launcher
-      this.name = launcher.nameWithoutExtension
-   }
-
-   override fun name() = name
+class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
+   override val name = launcher.nameWithoutExtension
 
    override fun create() = APP.windowManager.instantiateComponent(launcher)!!
-
    override fun toString() = "${javaClass.simpleName} $name $launcher"
-
 }
 
-class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId, null) {
-   override fun id() = factoryId
-
-   override fun name() = factoryId
+class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapitalize()) {
+   override val id = factoryId
+   override val name = factoryId
 
    override fun create(): Widget = Widget(this)
-
-   fun createController(widget: Widget) = NoFactoryController(widget)
-
    override fun toString() = "${javaClass.simpleName} $factoryId"
+   fun createController(widget: Widget) = NoFactoryController(widget)
 }
 
 /** Marks [Controller]/[Widget] as unfit for production use. */

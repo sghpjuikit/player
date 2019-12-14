@@ -84,9 +84,9 @@ import sp.it.pl.gui.itemnode.textfield.MoodItemNode
 import sp.it.pl.gui.objects.autocomplete.AutoCompletion
 import sp.it.pl.gui.objects.icon.CheckIcon
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.image.ThumbnailWithAdd
 import sp.it.pl.gui.objects.image.Cover
 import sp.it.pl.gui.objects.image.ImageCover
+import sp.it.pl.gui.objects.image.ThumbnailWithAdd
 import sp.it.pl.gui.objects.spinner.Spinner
 import sp.it.pl.gui.objects.window.NodeShow.LEFT_CENTER
 import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
@@ -165,7 +165,7 @@ typealias Predicate = (String) -> Boolean
 typealias Converter = (String) -> String
 
 @Widget.Info(
-   name = Widgets.SONG_TAGGER,
+   name = Widgets.SONG_TAGGER_NAME,
    author = "Martin Polakovic",
    howto = "Available actions:\n"
    + "    Drag cover away : Removes cover\n"
@@ -483,7 +483,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          { songs ->
             writing = false
             populate(songs)
-            APP.plugins.use<Notifier> { it.showTextNotification(Widgets.SONG_TAGGER, "Tagging complete") }
+            APP.plugins.use<Notifier> { it.showTextNotification(Widgets.SONG_TAGGER_NAME, "Tagging complete") }
          }
       )
    }

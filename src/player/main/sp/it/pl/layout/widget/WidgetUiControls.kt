@@ -7,6 +7,8 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Label
 import javafx.scene.effect.BoxBlur
 import javafx.scene.input.DragEvent.DRAG_DONE
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
@@ -72,11 +74,11 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          prefRows = 1
          prefColumns = 10
 
-         val closeB = icon(IconFA.TIMES, closeIconText).onClickDo { close() }
-         val actB = icon(IconFA.GAVEL, actIconText).onClickDo { APP.ui.actionPane.orBuild.show(area.widget) }
-         propB = icon(IconFA.COGS, propIconText).onClickDo { settings() }
-         lockB = icon(null, lockIconText).onClickDo { toggleLocked(); APP.actionStream("Widget layout lock") }
-         absB = icon(IconFA.LINK, absIconText).onClickDo { toggleAbsSize(); updateAbsB() }
+         val closeB = icon(IconFA.TIMES, closeIconText) { close() }
+         val actB = icon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
+         propB = icon(IconFA.COGS, propIconText) { settings() }
+         lockB = icon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
+         absB = icon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
          val loadB = CheckIcon().apply {
             styleclass("header-icon")
             tooltip("Switch between automatic or manual widget loading.")
@@ -89,12 +91,12 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
                |Controls for managing widget.
                |
                |Available actions:
-               |	Left click : Go to child
-               |	Right click : Go to parent
+               |	${PRIMARY.nameUi} : Go to child
+               |	${SECONDARY.nameUi} click : Go to parent
                |	Drag : Drags widget to other area
                |	Drag + ${SHORTCUT.nameUi} : Detach widget
                |
-               |${area.widget.info.toStr()}
+               |${area.widget.factory.summaryUi}
             """.trimMargin()
          }.styleclass("header-icon")
 

@@ -45,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Widgets not recompiling when application jars have newer version
 - Widget infinite recompilation when compiling invalid class
 - Widget type id & widget name used interchangeably
+- Widget compilation not showed in ui sometimes
+- Widget factory removed when file with the same name as widget directory is removed from widgets directory
+- Widget not reloading after factory becomes available sometimes
+- Widget's technical name displayed instead of user defined name in ui sometimes
 - Image size reading sometimes fail
 - Image loading blocks ui sometimes
 - Audio Library import ui visibility and layout

@@ -224,7 +224,7 @@ object CoreMenus: Core {
          add<Widget.Group> {
             item("Show open widget instances") { group ->
                APP.ui.actionPane.orBuild.show(
-                  APP.widgetManager.widgets.findAll(WidgetSource.OPEN).filter { it.info.group()==group }.sortedBy { it.name }.toList()
+                  APP.widgetManager.widgets.findAll(WidgetSource.OPEN).filter { it.factory.group()==group }.sortedBy { it.name }.toList()
                )
             }
          }
@@ -265,10 +265,10 @@ object CoreMenus: Core {
    }
 
    @Dsl
-   private inline fun <reified W> MenuBuilder<*, *>.widgetItems(crossinline action: (W) -> Unit) = items(
+   private inline fun <reified W: Any> MenuBuilder<*, *>.widgetItems(crossinline action: (W) -> Unit) = items(
       source = APP.widgetManager.factories.getFactoriesWith<W>(),
-      text = { it.name() },
-      action = { it.use<W>(NO_LAYOUT) { action(it) } }
+      text = { it.name },
+      action = { it.use(NO_LAYOUT) { action(it) } }
    )
 
    @Dsl

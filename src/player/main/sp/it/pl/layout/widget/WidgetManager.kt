@@ -11,6 +11,7 @@ import javafx.scene.text.Text
 import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
+import sp.it.pl.core.NameUi
 import sp.it.pl.gui.objects.window.stage.Window
 import sp.it.pl.gui.objects.window.stage.asLayout
 import sp.it.pl.layout.Component
@@ -72,7 +73,6 @@ import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.let_
-import sp.it.util.functional.or
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toOptional
@@ -106,6 +106,7 @@ import java.nio.file.WatchEvent.Kind
 import java.util.concurrent.TimeUnit
 import javax.tools.ToolProvider
 import kotlin.math.ceil
+import kotlin.reflect.KClass
 import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
@@ -120,11 +121,11 @@ class WidgetManager {
    /** Public API for widget management. */
    @JvmField val widgets = Widgets()
    /** All component factories by their name. */
-   private val factoriesC = MapSet<String, ComponentFactory<*>> { it.name() }
+   private val factoriesC = MapSet<String, ComponentFactory<*>> { it.name }
    /** All widget factories by their name. */
-   private val factoriesW = MapSet<String, WidgetFactory<*>> { it.id() }
+   private val factoriesW = MapSet<String, WidgetFactory<*>> { it.id }
    /** All widget directories by their name. */
-   private val monitors = MapSet<String, WidgetMonitor> { it.widgetName }
+   private val monitors = MapSet<File, WidgetMonitor> { it.widgetDir }
    /** Separates entries of a java classpath argument, passed to JVM. */
    private var classpathSeparator = Os.current.classpathSeparator
    private var initialized = false
@@ -215,42 +216,43 @@ class WidgetManager {
       // external factories
       val dirW = APP.location.widgets
       if (!isValidatedDirectory(dirW)) {
-         logger.error { "External widgets registration failed: $dirW is not a valid directory." }
+         logger.error { "External widgets registration failed: $dirW is not a valid directory" }
       } else {
          dirW.children().filter { it.isDirectory }.forEach { widgetDir ->
-            val name = widgetDir.nameWithoutExtension.capitalize()
-            monitors.computeIfAbsent(name) { WidgetMonitor(name, widgetDir) }.updateFactory()
+            monitors.computeIfAbsent(widgetDir) { WidgetMonitor(it) }.updateFactory()
          }
 
          FileMonitor.monitorDirectory(dirW, true) { type, f ->
             when {
                dirW==f -> Unit
                dirW isParentOf f -> {
-                  val name = f.nameWithoutExtension.capitalize()
                   if (type===ENTRY_CREATE) {
                      if (f.isDirectory) {
-                        monitors.computeIfAbsent(name) { WidgetMonitor(name, f) }.updateFactory()
+                        monitors.computeIfAbsent(f) { WidgetMonitor(it) }.updateFactory()
                      }
                   }
                   if (type===ENTRY_DELETE) {
-                     monitors[name]?.dispose()
+                     monitors[f]?.dispose()
                   }
                }
-               else -> monitors.find { it.widgetDir isAnyParentOf f }?.handleResourceChange(type, f)
+               else -> {
+                  monitors.find { it.widgetDir isAnyParentOf f }?.handleResourceChange(type, f)
+               }
             }
          }
       }
 
-      // external factories for .fxwl widgets - serialized widgets
-      val dirL = APP.location.user.layouts
-      val dirLinitial = APP.location.templates
-      if (!isValidatedDirectory(dirL)) {
-         logger.error { "External .fxwl widgets registration failed." }
+      // external factories for .fxwl components
+      val lDir = APP.location.user.layouts
+      val lDirInitial = APP.location.templates
+      if (!isValidatedDirectory(lDir) && !isValidatedDirectory(lDirInitial)) {
+         logger.error { "External .fxwl widgets registration failed: $lDir or $lDirInitial is not a valid directory" }
       } else {
-         dirLinitial.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
-         dirL.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
+         listOf(lDirInitial, lDir).forEach {
+            it.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
+         }
 
-         FileMonitor.monitorDirectory(dirL, true, { it hasExtension "fxwl" }) { type, f ->
+         FileMonitor.monitorDirectory(lDir, true, { it hasExtension "fxwl" }) { type, f ->
             if (type===ENTRY_CREATE) {
                registerFactory(DeserializingFactory(f))
             }
@@ -263,7 +265,6 @@ class WidgetManager {
          }
       }
 
-      factoriesC.forEach { logger.info { "Registered widget=${it.name()}" } }
       initialized = true
    }
 
@@ -281,10 +282,11 @@ class WidgetManager {
       factoriesC -= factory
    }
 
-   private inner class WidgetMonitor constructor(val widgetName: String, val widgetDir: File): ExternalWidgetFactoryData {
+   private inner class WidgetMonitor constructor(val widgetDir: File) {
+      val widgetName = widgetDir.name.capitalize()
       val skinFile = widgetDir/"skin.css"
       val compileDir = widgetDir/"out"
-      override val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
+      val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
 
       /** @return primary source file (either Kotlin or Java) or null if none exists */
       fun findSrcFile() = null
@@ -327,7 +329,7 @@ class WidgetManager {
                file==skinFile -> {
                   logger.info { "Widget=$widgetName skin file=${file.name}} changed $type" }
                   widgets.findAll(OPEN)
-                     .filter { it.name==widgetName }
+                     .filter { it.factory.id==widgetName }
                      .filter { it.isLoaded }
                      .forEach {
                         val root = it.root
@@ -351,10 +353,9 @@ class WidgetManager {
 
       @Idempotent
       fun dispose() {
-         factories.factoriesInCompilation -= widgetName
+         factories.factoriesInCompilation -= widgetDir
          factoriesW.removeKey(widgetName)
-         factoriesC.removeKey(widgetName)
-         monitors.removeKey(widgetName)
+         monitors.removeKey(widgetDir)
       }
 
       @Suppress("ConstantConditionIf")
@@ -393,7 +394,7 @@ class WidgetManager {
                   logger.warn { "Widget $widgetName failed to register factory, class $type in $widgetDir does not implement ${Controller::class}" }
                } else {
                   val widgetType = (type as Class<Controller>).kotlin
-                  val widgetFactory = WidgetFactory(widgetType, widgetDir, this)
+                  val widgetFactory = WidgetFactory(widgetType, widgetDir)
                   registerFactory(widgetFactory)
                   if (initialized) widgetFactory.reloadAllOpen()
                }
@@ -404,11 +405,11 @@ class WidgetManager {
          failIfNotFxThread()
          if (APP.rank==SLAVE) return
 
-         factories.factoriesInCompilation += widgetName
+         factories.factoriesInCompilation += widgetDir
          fut().thenWithAppProgress(compilerThread, "Compiling $widgetName") {
             compile()
          }.onDone(FX) {
-            factories.factoriesInCompilation -= widgetName
+            factories.factoriesInCompilation -= widgetDir
             it.toTry()
                .ifError { logger.error(it) { "Widget $widgetName failed to compile" } }
                .getOrSupply { Try.error(it.message ?: "Unspecified error") }
@@ -542,7 +543,7 @@ class WidgetManager {
        *
        * @param filter condition the widget must fulfill
        * @param source where and how the widget will be found/constructed
-       * @return widget fulfilling condition or null othewrwise
+       * @return widget fulfilling condition or null otherwise
        */
       fun find(filter: (WidgetInfo) -> Boolean, source: WidgetUse): Widget? {
 
@@ -551,35 +552,31 @@ class WidgetManager {
                .filter(filter)
                .filter { !it.isIgnored }
                .filter { it.isPreferred }
-               .firstOrNull()?.name()
+               .toSet()
          }
 
          val widgets = widgets.findAll(source.widgetFinder)
-            .filter { filter(it.info) }
             .filter { !it.forbid_use.value }
-            .filter { if (preferred==null) true else it.info.name()==preferred }
+            .filter { filter(it.factory) }
             .toList()
 
          return null
-            ?: widgets.find { it.preferred.value }
+            ?: widgets.firstOrNull { it.preferred.value }
+            ?: widgets.firstOrNull { it.factory in preferred }
             ?: widgets.firstOrNull()
             ?: run {
                if (source is WidgetUse.NewAnd) {
-                  factories.getFactories()
-                     .filter(filter)
-                     .filter { !it.isIgnored }
-                     .filter { if (preferred==null) true else it.name()==preferred }
-                     .firstOrNull()
-                     ?.create()?.also(source.layouter)
+                  val f = preferred.firstOrNull() ?: factories.getFactories().firstOrNull { !it.isIgnored && filter(it) }
+                  f?.create()?.also(source.layouter)
                } else {
                   null
                }
             }
       }
 
-      /** Equivalent to: `find({ it.name()==name || it.nameGui()==name }, source, ignore)` */
+      /** Equivalent to: `find({ it.id()==name || it.name()==name }, source, ignore)` */
       fun find(name: String, source: WidgetUse): Widget? =
-         find({ it.id()==name || it.name()==name }, source)
+         find({ it.id==name || it.name==name }, source)
 
       /**
        * Roughly equivalent to: `find({ it.hasFeature(feature) }, source, ignore)`, but with type safety.
@@ -620,21 +617,19 @@ class WidgetManager {
    inner class Factories {
 
       /** Factories that are waiting to be compiled or are being compiled. */
-      val factoriesInCompilation = observableArrayList<String>()!!
-
-      fun recompile(factory: WidgetFactory<*>) = monitors[factory.id()]?.scheduleCompilation()
+      val factoriesInCompilation = observableArrayList<File>()!!
 
       /** @return all features implemented by at least one widget */
       fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
 
       /** @return widget factory with the specified [WidgetFactory.id] or null if none */
-      fun getFactory(factoryId: String): WidgetFactory<*>? = factoriesW[factoryId]
+      fun getFactory(factoryId: String): Try<WidgetFactory<*>, String> = factoriesW[factoryId].toOptional().toTry { factoryId }
 
       /** @return widget factory with the specified [WidgetFactory.name] or null if none */
-      fun getFactoryByNameUi(name: String): Try<WidgetFactory<*>, String> = factoriesW.find { it.name()==name }.toOptional().toTry().mapError { name }
+      fun getFactoryByName(name: String): WidgetFactory<*>? = factoriesW.find { it.name==name }
 
       /** @return component factory with the specified [ComponentFactory.name] or null if none */
-      fun getComponentFactoryByNameUi(name: String): Try<ComponentFactory<*>, String> = getFactoryByNameUi(name).or { factoriesC[name].toOptional().toTry() }
+      fun getComponentFactoryByName(name: String): ComponentFactory<*>? = getFactoryByName(name) ?: factoriesC[name]
 
       /** @return all widget factories */
       fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
@@ -643,11 +638,11 @@ class WidgetManager {
       fun getComponentFactories(): Sequence<ComponentFactory<*>> = (factoriesC.asSequence() + getFactories()).distinct()
 
       //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
-      inline fun <reified FEATURE> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class.java)
+      inline fun <reified FEATURE: Any> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class)
 
       //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
-      fun <FEATURE> getFactoriesWith(feature: Class<FEATURE>) =
-         factoriesW.streamV().asSequence().filter { it.hasFeature(feature) }.map { FactoryRef<FEATURE>(it) }
+      fun <FEATURE: Any> getFactoriesWith(feature: KClass<FEATURE>) =
+         factoriesW.streamV().asSequence().filter { it.hasFeature(feature) }.map { FactoryRef(it, feature) }
 
       /**
        * Register the specified factory.
@@ -664,16 +659,17 @@ class WidgetManager {
       }
 
       /**
-       * Register the specified factory.
-       *
-       * The factory will be immediately removed both for programmatic use and UI.
-       * Component instances produced by the factory will continue to run.
+       * Unregister the specified factory.
        * Must be called from FX thread.
        */
       fun unregister(factory: ComponentFactory<*>) {
          failIfNotFxThread()
 
          unregisterFactory(factory)
+      }
+
+      fun recompile(factory: WidgetFactory<*>) {
+         monitors[factory.location]?.scheduleCompilation()
       }
    }
 
@@ -692,21 +688,26 @@ class WidgetManager {
 
    }
 
-   /** Reified reference to a factory of widget with a feature, enabling convenient use of its feature */
-   inner class FactoryRef<out FEATURE>(private val factory: WidgetFactory<*>) {
-      fun name() = factory.name()
+   /** Lazy reified reference to a factory of widget with a feature, enabling convenient use of its feature */
+   class FactoryRef<out FEATURE: Any> private constructor(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
+      override val nameUi = name
 
-      @Suppress("UNCHECKED_CAST")
-      fun <R> use(source: WidgetUse, action: (FEATURE) -> Unit) = widgets
-         .find(name(), source)
-         .focusWithWindow()
-         .filterIsControllerInstance(factory.controllerType as Class<FEATURE>)
-         .ifNotNull(action).toUnit()
+      fun use(source: WidgetUse, action: (FEATURE) -> Unit) {
+         APP.widgetManager.widgets
+            .find(id, source)
+            .focusWithWindow()
+            .filterIsControllerInstance(feature.javaObjectType)
+            .ifNotNull(action).toUnit()
+      }
+
+      companion object {
+         operator fun <FEATURE: Any>invoke(factory: WidgetFactory<*>, feature: KClass<FEATURE>) = FactoryRef(factory.name, factory.id, feature)
+
+         operator fun invoke(name: String, id: String): FactoryRef<*> = FactoryRef(name, id, Any::class)
+      }
    }
 
    companion object: KLogging() {
-
-      fun WidgetFactory<*>.scheduleCompilation() = APP.widgetManager.monitors[name()]!!.scheduleCompilation()
 
       /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
       private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Try<Class<*>, Throwable> {
@@ -753,10 +754,11 @@ class WidgetManager {
 /** Reified version of [WidgetInfo.hasFeature] */
 inline fun <reified F> WidgetInfo.hasFeature() = hasFeature(F::class)
 
-fun Try<ComponentFactory<*>, String>.orNone(): ComponentFactory<*> = getOrSupply { NoFactoryFactory(it) }
+/** @return the factory or [NoFactoryFactory] with [NoFactoryFactory.factoryId] set to the error value */
+fun Try<WidgetFactory<*>, String>.orNone(): WidgetFactory<*> = getOrSupply { NoFactoryFactory(it) }
 
 fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
-   fun isCompiling() = APP.widgetManager.factories.factoriesInCompilation.any { it==id() || it==name() }
+   fun isCompiling() = APP.widgetManager.factories.factoriesInCompilation.any { location==it }
    return v(isCompiling()).apply {
       APP.widgetManager.factories.factoriesInCompilation.onChange { value = isCompiling() } on disposer
    }
@@ -765,7 +767,7 @@ fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
 fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
    WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
    APP.widgetManager.widgets.findAll(OPEN).asSequence()
-      .filter { it.name==widgetFactory.id() || it.name==widgetFactory.name() }   // it.factory must not be used due to temporary factories in unrecognized widgets
+      .filter { it.factory.id==widgetFactory.id }
       .filter { it.isLoaded }
       .materialize()
       .forEach {
@@ -797,10 +799,6 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             widgetNew.restoreAuxiliaryState()
          }
       }
-}
-
-interface ExternalWidgetFactoryData {
-   val scheduleCompilation: EventReducer<Void>
 }
 
 /** Source for widgets when looking for a widget. */

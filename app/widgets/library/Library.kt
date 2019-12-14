@@ -76,7 +76,7 @@ import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 @Info(
    author = "Martin Polakovic",
-   name = Widgets.SONG_TABLE,
+   name = Widgets.SONG_TABLE_NAME,
    description = "Provides access to database.",
    howto = "Available actions:\n" +
       "    Song left click : Selects item\n" +

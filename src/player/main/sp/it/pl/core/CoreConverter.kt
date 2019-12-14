@@ -10,6 +10,7 @@ import sp.it.pl.gui.UiManager.SkinCss
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.nameUi
+import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
@@ -24,6 +25,7 @@ import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.StringSplitParser
 import sp.it.util.toLocalDateTime
+import sp.it.util.type.Util.isEnum
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
@@ -62,7 +64,7 @@ class CoreConverter: Core {
             is LocalDate -> o.format(dateTimeFormatter)
             is LocalTime -> o.format(dateTimeFormatter)
             is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
-            else -> general.toS(o)
+            else -> if(isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
    }
    private val fx = ConverterFX()

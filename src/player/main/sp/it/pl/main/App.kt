@@ -440,33 +440,33 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Components - widgets") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
             Entry.SimpleEntry(
-               "Open widget ${it.name()}",
-               { "Open widget ${it.name()}\n\nOpens the widget in new window." },
-               { APP.windowManager.launchComponent(it.create()) }
+               "Open widget ${it.name}",
+               { "Open widget ${it.name}\n\nOpens the widget in new window." },
+               { APP.windowManager.showWindow(it.create()) }
             )
          }
       }
       sources += Source("Components - all") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { c ->
             Entry.SimpleEntry(
-               "Open widget ${c.name()} (in new process)",
-               { "Open widget ${c.name()}\n\nOpens the widget in new process." },
+               "Open widget ${c.name} (in new process)",
+               { "Open widget ${c.name}\n\nOpens the widget in new process." },
                {
                   val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
                   f.runAsAppProgram(
-                     "Launching component ${c.name()} in new process",
-                     "--singleton=false", "--stateless=true", "open-component", "\"${c.name()}\""
+                     "Launching component ${c.name} in new process",
+                     "--singleton=false", "--stateless=true", "open-component", "\"${c.name}\""
                   )
                }
             )
          }
       }
       sources += Source("Components - compile") {
-         widgetManager.factories.getFactories().filter { it.isUsableByUser() && it.externalWidgetData!=null }.map {
+         widgetManager.factories.getFactories().filter { it.isUsableByUser() }.map {
             Entry.SimpleEntry(
-               "Recompile widget ${it.name()}",
-               { "Recompile widget ${it.name()} and reload all of its instances upon success" },
-               { it.externalWidgetData!!.scheduleCompilation() }
+               "Recompile widget ${it.name}",
+               { "Recompile widget ${it.name} and reload all of its instances upon success" },
+               { widgetManager.factories.recompile(it) }
             )
          }
       }

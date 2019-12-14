@@ -47,6 +47,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
 import static kotlin.io.FilesKt.deleteRecursively;
+import static sp.it.pl.layout.widget.WidgetManagerKt.orNone;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.file.properties.PropertiesKt.readProperties;
@@ -76,8 +77,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
 
-	/** Id of the factory */
-	private final String factoryId;
 	/**
 	 * Factory that produced this widget.
 	 * <p/>
@@ -106,13 +105,12 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	 */
 	public ComponentUi uiTemp;
 
-	/** Whether this widget will be preferred over other widgets in widget lookup. */
-	@IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "
-			+ "for widget, preferred one will be selected. ")
+	/** Whether this factory will be preferred on widget `find and create` requests. */
+	@IsConfig(name = "Is preferred", info = "Prefer this widget on `find and create`. ")
 	public final V<Boolean> preferred = new V<>(false);
 
-	/** Whether whether this widget will not be included in widget lookup. */
-	@IsConfig(name = "Is ignored", info = "Ignore this widget if there is a request.")
+	/** Whether this factory will be ignored on widget `find and create` requests. */
+	@IsConfig(name = "Is ignored", info = "Ignore this widget on `find and create`.")
 	public final V<Boolean> forbid_use = new V<>(false);
 
 	/** Name displayed in gui. Customizable. Default is component type name. */
@@ -132,15 +130,14 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	 */
 	public final boolean isDeserialized;
 	/** Invoked in {@link #close()}, after {@link #root} and {@link #controller} are disposed. */
-	final Disposer onClose = new Disposer();
+	public final Disposer onClose = new Disposer();
 
 	private final Collection<Config<Object>> configs = Configurable.super.getFields();
 
 	public Widget(WidgetFactory<?> factory) {
 		super(new WidgetDb());
-		this.factoryId = factory.id();
 		this.factory = factory;
-		custom_name.setValue(factory.name());
+		custom_name.setValue(factory.getName());
 		focused.addListener(computeFocusChangeHandler());
 		isDeserialized = false;
 	}
@@ -148,11 +145,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public Widget(WidgetDb state) {
 		super(state);
 
-		factoryId = state.getFactoryId();
-		factory = firstNotNull(
-			() -> APP.widgetManager.factories.getFactory(factoryId),
-			() -> new NoFactoryFactory(factoryId)
-		);
+		factory = orNone(APP.widgetManager.factories.getFactory(state.getFactoryId()));
 		controller = factory instanceof NoFactoryFactory
 			? ((NoFactoryFactory) factory).createController(this)
 			: null;
@@ -172,7 +165,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public String getName() {
-		return factoryId;
+		return custom_name.getValue();
 	}
 
 	public Pane getGraphics() {
@@ -235,7 +228,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 					LoadErrorController c = new LoadErrorController(this);
 					root = c.loadFirstTime();
 					controller = c;
-					LOGGER.error("Widget={} graphics creation failed.", factoryId, e);
+					LOGGER.error("Widget={} graphics creation failed.", factory.getId(), e);
 				}
 			}
 		}
@@ -289,7 +282,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public void close() {
-		LOGGER.info("Widget=" + factoryId + " closing");
+		LOGGER.info("Widget=" + factory.getId() + " closing");
 
 		if (controller!=null) {
 			Controller c = controller;
@@ -315,11 +308,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		ios.removeIf(io -> io.widget==this);
 
 		onClose.invoke();
-	}
-
-	/** @return factory information about this widget */
-	public WidgetInfo getInfo() {
-		return factory;
 	}
 
 	@NotNull
@@ -409,7 +397,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public String toString() {
-		return getClass() + " " + factoryId;
+		return getClass() + " " + factory.getId();
 	}
 
 /****************************** SERIALIZATION *********************************/
@@ -438,7 +426,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		var props = new HashMap<>(properties);
 		var configs = getFieldsRaw();
 		props.remove("configs");
-		return new WidgetDb(id, factoryId, preferred.getValue(), forbid_use.getValue(), custom_name.getValue(), loadType.getValue(), locked.getValue(), props, configs);
+		return new WidgetDb(id, factory.getId(), preferred.getValue(), forbid_use.getValue(), custom_name.getValue(), loadType.getValue(), locked.getValue(), props, configs);
 	}
 
 	public static F1<Config<?>,String> configToRawKeyMapper = it -> it.getName().replace(' ', '_').toLowerCase();

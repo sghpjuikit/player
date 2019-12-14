@@ -68,6 +68,9 @@ fun <T> Optional<T>.orNull(): T? = orElse(null)
 /** @return ok with the value of this optional or error if this is empty optional */
 fun <T: Any> Optional<T>.toTry(): Try<T, Nothing?> = map { Try.ok(it) }.orNull() ?: Try.error()
 
+/** @return ok with the value of this optional or error with the supplied value if this is empty optional */
+fun <T: Any, E> Optional<T>.toTry(error: () -> E): Try<T, E> = map { Try.ok(it) }.orNull() ?: Try.error(error())
+
 /** Equivalent to [Optional.ofNullable]. */
 fun <T: Any> T?.toOptional(): Optional<T> = Optional.ofNullable(this)
 

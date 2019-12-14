@@ -87,7 +87,7 @@ private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, Table
 @Suppress("UNCHECKED_CAST")
 @Info(
    author = "Martin Polakovic",
-   name = Widgets.SONG_GROUP_TABLE,
+   name = Widgets.SONG_GROUP_TABLE_NAME,
    description = "Provides database filtering.",
    howto = "Available actions:\n" +
       "    Song left click : Selects item\n" +

@@ -56,7 +56,7 @@ import javafx.stage.Window as WindowFX
 
 @Widget.Info(
    author = "Martin Polakovic",
-   name = Widgets.INSPECTOR,
+   name = Widgets.INSPECTOR_NAME,
    description = "Inspects hierarchy of all application information. Includes windows, widgets, " +
       "file system and more. Allows editing if possible.",
    howto = ""

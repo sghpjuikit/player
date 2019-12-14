@@ -152,7 +152,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
 
         String w1n = w1==null ? "null" : w1.getName();
         String w2n = w2==null ? "null" : w2.getName();
-        getLogger(Container.class).info("Swapping widgets {} and {}", w1n,w2n);
+        getLogger(Container.class).info("Swapping widgets {} and {}", w1n, w2n);
 
         c1.addChild(i1, w2);
         c2.addChild(i2, w1);

@@ -26,7 +26,7 @@ import static sp.it.util.reactive.UtilKt.syncC;
 
 @Info(
     author = "Martin Polakovic",
-    name = "IconBox",
+    name = "IconBar",
     description = "Provides button with customizable action.",
     howto = "Available actions:\n" +
             "    Button click : execute action",

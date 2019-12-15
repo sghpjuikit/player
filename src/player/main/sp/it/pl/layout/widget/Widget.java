@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ChangeListener;
@@ -42,7 +43,6 @@ import sp.it.util.conf.IsConfig;
 import sp.it.util.file.properties.PropVal;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.reactive.Disposer;
-import sp.it.util.type.Util;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
@@ -134,12 +134,13 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	private final Collection<Config<Object>> configs = Configurable.super.getFields();
 
-	public Widget(WidgetFactory<?> factory) {
-		super(new WidgetDb());
+	public Widget(UUID id, WidgetFactory<?> factory, boolean isDeserialized) {
+		super(new WidgetDb(id));
+
 		this.factory = factory;
 		custom_name.setValue(factory.getName());
 		focused.addListener(computeFocusChangeHandler());
-		isDeserialized = false;
+		this.isDeserialized = isDeserialized;
 	}
 
 	public Widget(WidgetDb state) {
@@ -335,7 +336,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		properties.clear();
 		properties.putAll(w.properties);
 
-		Util.setField(this, "id", w.id); // (nasty cheat) not sure if this 100% required    // TODO: fix
 		preferred.setValue(w.preferred.getValue());
 		forbid_use.setValue(w.forbid_use.getValue());
 		custom_name.setValue(w.custom_name.getValue());

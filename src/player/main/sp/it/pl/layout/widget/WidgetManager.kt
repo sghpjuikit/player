@@ -772,7 +772,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
       .materialize()
       .forEach {
          val widgetOld = it
-         val widgetNew = widgetFactory.create().apply {
+         val widgetNew = widgetFactory.createRecompiled(widgetOld.id).apply {
             setStateFrom(widgetOld)
             forceLoading = true
          }

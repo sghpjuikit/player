@@ -8,6 +8,7 @@ import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
 import sp.it.util.text.nullIfBlank
 import java.io.File
+import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.jvmName
@@ -74,7 +75,9 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    override fun group() = group
    override fun type() = controllerType
 
-   override fun create(): Widget = Widget(this)
+   override fun create(): Widget = Widget(UUID.randomUUID(), this, true)
+
+   fun createRecompiled(id: UUID): Widget = Widget(id, this, false)
 
    override fun toString() = "${javaClass.simpleName} $id $name $controllerType"
 
@@ -98,8 +101,8 @@ class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController
    override val id = factoryId
    override val name = factoryId
 
-   override fun create(): Widget = Widget(this)
    override fun toString() = "${javaClass.simpleName} $factoryId"
+
    fun createController(widget: Widget) = NoFactoryController(widget)
 }
 

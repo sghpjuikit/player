@@ -669,7 +669,7 @@ class WidgetManager {
       }
 
       fun recompile(factory: WidgetFactory<*>) {
-         monitors[factory.location]?.scheduleCompilation()
+         monitors[factory.location]?.scheduleCompilation?.invoke()
       }
    }
 

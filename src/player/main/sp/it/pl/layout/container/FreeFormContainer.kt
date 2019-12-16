@@ -9,6 +9,7 @@ import java.util.HashMap
 
 class FreeFormContainer: Container<FreeFormContainerUi> {
 
+   override val name = "FreeFormContainer"
    val showHeaders = v(true)
    private val children = HashMap<Int, Component>()
 
@@ -18,8 +19,6 @@ class FreeFormContainer: Container<FreeFormContainerUi> {
       children += state.children.mapValues { it.value?.toDomain() }.filterNotNullValues()
       setChildrenParents()
    }
-
-   override fun getName() = "FreeFormContainer"
 
    override fun getChildren(): Map<Int, Component> = children
 

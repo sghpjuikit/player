@@ -16,7 +16,6 @@ import sp.it.util.async.runLater
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.functional.asIf
-import sp.it.util.functional.orNull
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1If
 import sp.it.util.ui.pseudoClassChanged
@@ -47,10 +46,10 @@ abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
       val c = component
       val sizeOld = c.size()
 
-      c.parent.addChild(c.indexInParent(), null)
+      c.parent!!.addChild(c.indexInParent(), null)
       WidgetLoader.WINDOW(c)
 
-      val w = c.window.orNull() ?: fail { "Can not detach invisible component" }
+      val w = c.window ?: fail { "Can not detach invisible component" }
       w.showingProperty().sync1If({ it }) {
          runLater {
             val sizeNew = c.size()
@@ -67,7 +66,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
    final override val root: AnchorPane
    val container: C
-   var controls = LazyR<ContainerUiControls> { buildControls() }
+   var controls = LazyR { buildControls() }
    var isLayoutMode = false
    var isContainerMode = false
 

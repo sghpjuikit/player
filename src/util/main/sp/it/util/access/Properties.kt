@@ -2,6 +2,7 @@ package sp.it.util.access
 
 import javafx.beans.InvalidationListener
 import javafx.beans.binding.Bindings
+import javafx.beans.binding.BooleanBinding
 import javafx.beans.binding.DoubleBinding
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.DoubleProperty
@@ -117,6 +118,19 @@ operator fun ObservableValue<Boolean>.times(other: ObservableValue<Boolean>) = v
    this@times sync { value = it && other.value }
    other sync { value = this@times.value && it }
 }
+
+@Experimental("uses WeakReference and may behave unexpectedly")
+fun and(vararg values: ObservableValue<Boolean>): BooleanBinding = object: BooleanBinding() {
+   init { bind(*values) }
+   override fun computeValue() = values.any { it.value }
+}
+
+@Experimental("uses WeakReference and may behave unexpectedly")
+fun or(vararg values: ObservableValue<Boolean>): BooleanBinding = object: BooleanBinding() {
+   init { bind(*values) }
+   override fun computeValue() = values.none { it.value }
+}
+
 
 /** @return observable value that never changes and is always set to the specified value */
 fun <T> vAlways(v: T): ObservableValue<T> = AlwaysProperty(v)

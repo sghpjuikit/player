@@ -613,7 +613,7 @@ public class SwitchContainerUi implements ComponentUi {
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.hide(); });
     }
 
-    private class TabPane extends AnchorPane {
+    private static class TabPane extends AnchorPane {
         final int index;
         ComponentUi ui;
 

@@ -42,7 +42,7 @@ import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.reactive.UtilKt.syncTo;
 import static sp.it.util.ui.Util.setAnchor;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "SameParameterValue"})
 public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
     public static final String autoLayoutTooltipText = "Auto-layout\n\nResize components to maximize used space.";
@@ -67,7 +67,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         BooleanProperty isEmptySpace = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> isEmptySpace.set(isEmptySpace(e)));
         rt.setOnMouseClicked(e -> {
-            if (!isContainerMode() && (APP.ui.isLayoutMode() || !container.lockedUnder.get())) {
+            if (!isContainerMode() && (APP.ui.isLayoutMode() || !container.lockedUnder.getValue())) {
                 isEmptySpace.set(isEmptySpace.get() && isEmptySpace(e));
                 if (e.getButton()==PRIMARY && isEmptySpace.get() && !any_window_resizing) {
                     addEmptyWindowAt(e.getX(),e.getY());
@@ -213,7 +213,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
     private FfWindow buildWindow(int i, Component cm) {
         FfWindow w = new FfWindow(rt);
-        w.root.getStyleClass().add("freeflowcontainer-window");
+        w.root.getStyleClass().add("free-form-container-window");
         w.offscreenFixOn.set(false);
 
         // initial size/pos
@@ -295,8 +295,8 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             double wr = w.x.get();
             double ht = w.y.get()+w.h.get();
             double hb = w.y.get();
-            boolean intheway = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
-            if (intheway) {
+            boolean inTheWay = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
+            if (inTheWay) {
                 if (wl<x && wl>b.a) b.a = wl;
                 if (wr>x && wr<b.b) b.b = wr;
             }
@@ -328,8 +328,8 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             double wr = w.x.get();
             double ht = w.y.get()+w.h.get();
             double hb = w.y.get();
-            boolean intheway = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
-            if (intheway) {
+            boolean inTheWay = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
+            if (inTheWay) {
                 if (wl<x && wl>b.a) b.a = wl;
                 if (wr>x && wr<b.b) b.b = wr;
             }
@@ -338,7 +338,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         return new BoundingBox(b.a,b.c,b.b-b.a,b.d-b.c);
     }
 
-    /** Optimal size/position strategy returning centeraligned 3rd of window size
+    /** Optimal size/position strategy returning center-aligned 3rd of window size
       dimensions. */
     TupleM4 bestRecSimple(double x, double y) {
         return new TupleM4(x/rt.getWidth()-1/6d, y/rt.getHeight()-1/6d, 1/3d, 1/3d);

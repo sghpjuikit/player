@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.WidgetDb;
 import sp.it.pl.layout.container.ComponentUi;
-import sp.it.pl.layout.container.Container;
 import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.LoadErrorController;
@@ -88,14 +87,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public final WidgetFactory<?> factory;
 	protected Pane root;
 	protected Controller controller;
-
-	// Temporary workaround for bad design. Widget-Container-Controller-Area relationship is badly
-	// designed. This particular problem: Area can contain not yet loaded widget. Thus, we cant
-	// use controller (null) to obtain area.
-	//
-	// I think this is the best and most painless way to wire widget with area & container (parent)
-	// All the pseudo wiring through Controller is pure chaos.
-	public Container parentTemp;
 
 	/**
 	 * Graphics this widget is loaded in. It is responsibility of the caller of the {@link #load()} to set this
@@ -171,17 +162,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	public Pane getGraphics() {
 		return root;
-	}
-
-	/**
-	 * Null if not loaded, otherwise never null - widgets can only reside within a {@link sp.it.pl.layout.container.Container}
-	 * parent.
-	 * <p/>
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Container<?> getParent() {
-		return parentTemp;
 	}
 
 	/**
@@ -284,6 +264,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	@Override
 	public void close() {
 		LOGGER.info("Widget=" + factory.getId() + " closing");
+		super.close();
 
 		if (controller!=null) {
 			Controller c = controller;

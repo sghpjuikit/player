@@ -94,7 +94,7 @@ fun InstanceName.initApp() {
    add(Metadata::class.java) { it.getTitleOrEmpty() }
    add(MetadataGroup::class.java) { it.getValueS("<none>") }
    add(Plugin::class.java) { it.name }
-   add(Component::class.java) { it.exportName }
+   add(Component::class.java) { it.name }
    add(Feature::class.java) { "Feature" }
    add(Input::class.java) { it.name }
    add(Output::class.java) { it.name }
@@ -131,7 +131,7 @@ fun InstanceDescription.initApp() {
       "Name" info it.name
    }
    Component::class describe {
-      "Name" info it.exportName
+      "Name" info it.name
    }
    Metadata::class describe { m ->
       Metadata.Field.all.asSequence()

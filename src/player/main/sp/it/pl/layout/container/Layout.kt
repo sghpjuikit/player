@@ -6,10 +6,10 @@ import sp.it.pl.layout.RootContainerDb
 
 class Layout: UniContainer {
 
+   override val name = "Layout"
+
    @JvmOverloads
    constructor(state: RootContainerDb = RootContainerDb()): super(state.toUni())
-
-   override fun getName() = "Layout"
 
    /**
     * @param parentPane root node to load the layout into.

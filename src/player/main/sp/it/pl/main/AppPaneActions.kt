@@ -158,7 +158,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             "as if it were a standalone application.",
          IconMD.EXPORT,
          { w ->
-            saveFile("Export to...", APP.location.user.layouts, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
+            saveFile("Export to...", APP.location.user.layouts, w.name, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
                .ifOk { w.exportFxwl(it) }
          }
       )
@@ -171,7 +171,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             "as if it were a standalone application. ",
          IconMD.EXPORT,
          { w ->
-            saveFile("Export to...", APP.location.user.layouts, w.exportName, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
+            saveFile("Export to...", APP.location.user.layouts, w.name, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
                .ifOk { w.exportFxwlDefault(it) }
          }
       ),
@@ -311,7 +311,6 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Find files",
          "Looks for files recursively in the the data.",
          IconMD.FILE_FIND,
-         // TODO: make fully configurable, recursion depth lvl, filtering, ...
          ap.converting { fs -> Try.ok(FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()) }
       ),
       SlowColAction<File>(

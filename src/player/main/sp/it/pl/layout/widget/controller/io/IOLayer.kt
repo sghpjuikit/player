@@ -33,8 +33,8 @@ import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
-import sp.it.pl.main.set
 import sp.it.pl.main.nameUi
+import sp.it.pl.main.set
 import sp.it.util.Util.pyth
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -82,6 +82,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.withSign
 import kotlin.properties.Delegates.observable
+import kotlin.streams.asSequence
 
 private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, T>
 
@@ -334,7 +335,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
       xNodes().forEach { it.graphics.isVisible = false }
 
-      switchContainerUi.container.rootParent.allWidgets.filter { it?.controller!=null }.forEach { w ->
+      switchContainerUi.container.rootParent?.allWidgets?.asSequence().orEmpty().filter { it?.controller!=null }.forEach { w ->
          val c = w.controller
          val ins = c.io.i.getInputs().mapNotNull { inputNodes[it] }
          val ons = c.io.o.getOutputs().mapNotNull { outputNodes[it] }

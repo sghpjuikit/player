@@ -91,7 +91,7 @@ class LoadErrorController(widget: Widget): SimpleController(widget) {
       root.lay += vBox(5, CENTER) {
          lay += label("Widget ${widget.name} failed to load properly")
          lay += compileInfoUi()
-         lay += hyperlink("Recompile") {
+         lay += hyperlink("Reload") {
             onEventDown(MOUSE_CLICKED, PRIMARY) { APP.widgetManager.factories.recompile(widget.factory) }
          }
       }

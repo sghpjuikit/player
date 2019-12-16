@@ -234,7 +234,7 @@ public class Comet extends SimpleController {
 	final Canvas canvas_bgr = new Canvas();
 	final GraphicsContext gc = canvas.getGraphicsContext2D(); // draws canvas game graphics on canvas
 	final GraphicsContext gc_bgr = canvas_bgr.getGraphicsContext2D(); // draws canvas game graphics on bgr canvas
-	final Text message = new Text();
+	final Text message = new Text(null);
 	final Game game = new Game();
 
 	public Comet(Widget widget) {

@@ -753,7 +753,7 @@ interface Utils {
 	}
 	/** Mission details help pane. */
 	class MissionPane extends OverlayPane<Mission> {
-		private final Text text = new Text();
+		private final Text text = new Text(null);
 		private final Icon helpI = infoIcon("Mission details");
 
 		public MissionPane() {

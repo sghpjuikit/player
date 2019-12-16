@@ -15,6 +15,7 @@ import sp.it.pl.main.AppSettings.ui.tabs as conf
 
 class SwitchContainer: Container<SwitchContainerUi> {
 
+   override val name = "SwitchContainer"
    val translate = v(0.0)
    private val children = HashMap<Int, Component>()
 
@@ -24,8 +25,6 @@ class SwitchContainer: Container<SwitchContainerUi> {
       children += state.children.mapValues { it.value?.toDomain() }.filterNotNullValues()
       setChildrenParents()
    }
-
-   override fun getName() = "SwitchContainer"
 
    override fun getChildren(): Map<Int, Component> = children
 

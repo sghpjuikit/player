@@ -53,23 +53,11 @@ import static sp.it.util.functional.Util.stream;
  */
 public abstract class Container<G extends ComponentUi> extends Component implements AltState {
 
-    protected AnchorPane root;
-    private Container parent;
+    private AnchorPane rootImpl;
     public G ui;
 
     public Container(ComponentDb state) {
         super(state);
-    }
-
-    @Override
-    public Container getParent() {
-        return parent;
-    }
-
-    // TODO: make private
-    public void setParent(Container c) {
-        parent = c;
-        lockedUnder.initLocked(c);
     }
 
     /*
@@ -84,8 +72,8 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
     public void setParentRec() {
         for (Component c: getChildren().values()) {
             if (c instanceof Container) {
-                ((Container)c).setParent(this);
-                ((Container)c).setParentRec();
+                ((Container<?>) c).setParent(this);
+                ((Container<?>) c).setParentRec();
             }
         }
     }
@@ -201,7 +189,6 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
      *
      * @return widgets
      */
-    @SuppressWarnings("unchecked")
     public Stream<Widget> getAllWidgets() {
         List<Widget> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
@@ -239,7 +226,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
      * @return the result of the call to {@link #load()}
      */
     public Node load(AnchorPane parentPane){
-        root = parentPane;
+        rootImpl = parentPane;
         return load();
     }
 
@@ -269,14 +256,13 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
      */
     @Override
     public void close() {
+        super.close();
+
         getAllWidgets().collect(toList()).forEach(Widget::close);   // TODO: fix some widgets closing twice
 
-        if (parent!=null) {
-            // remove from layout graph
-            parent.removeChild(this);
-            lockedUnder.dispose();
-            // remove from scene graph if attached to it
-            removeGraphicsFromSceneGraph();
+        if (getParent()!=null) {
+            getParent().removeChild(this);   // remove from layout graph
+            removeGraphicsFromSceneGraph(); // remove from scene graph if attached to it
         } else {
             // remove all children
             list(getChildren().keySet()).forEach(this::removeChild);
@@ -288,7 +274,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
     }
 
     private void removeGraphicsFromSceneGraph() {
-        if (ui!=null) root.getChildren().remove(ui.getRoot());
+        if (ui!=null) rootImpl.getChildren().remove(ui.getRoot());
     }
 
 	private void disposeGraphics() {
@@ -296,22 +282,20 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
     }
 
     /**
+     * Returns the root.
+     *
      * Set the root of this container. The container is attached to the scene
      * graph through this root. The root is parent node of all the nodes of
      * this container (including its children).
-     */
-    public void setRoot(AnchorPane rootPane) {
-        root = rootPane;
-    }
-
-    /**
-     * Returns the root.
      *
      * @return the root or null if none.
-     * @see #getRoot()
      */
     public AnchorPane getRoot() {
-        return root;
+        return rootImpl;
+    }
+
+    public AnchorPane root() {
+        return rootImpl;
     }
 
     @Override
@@ -331,7 +315,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
     protected final void setChildrenParents() {
         getChildren().values().forEach(it -> {
             if (it instanceof Container<?>)
-                ((Container) it).setParent(this);
+                ((Container<?>) it).setParent(this);
         });
     }
 }

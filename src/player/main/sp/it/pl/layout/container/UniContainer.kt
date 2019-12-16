@@ -16,29 +16,28 @@ import sp.it.util.ui.setAnchors
 /** [Container] containing one child spanning entire area. */
 open class UniContainer: Container<ComponentUi> {
 
-   protected var _child: Component? = null
+   override val name = "UniContainer"
    var isStandalone = false
+   private var childImpl: Component? = null
 
    /** Equal to [getChildren]`.get(1)` and [addChild]`(1, newChild)`. */
    var child: Component?
-      get() = _child
+      get() = childImpl
       set(w) = addChild(1, w)
 
    constructor(state: UniContainerDb = UniContainerDb()): super(state) {
-      _child = state.child?.toDomain()
+      childImpl = state.child?.toDomain()
       setChildrenParents()
    }
 
-   override fun getName() = "UniContainer"
-
    override fun load(): Node {
-      val n = when (val c = _child) {
+      val n = when (val c = child) {
          is Container<*> -> {
             ui = null.disposeUi()
             c.load(root)
          }
          is Widget -> {
-            ui = ui.takeIf { it is WidgetUi && it.widget===_child } ?: WidgetUi(this, 1, c).disposeUi().apply {
+            ui = ui.takeIf { it is WidgetUi && it.widget===child } ?: WidgetUi(this, 1, c).disposeUi().apply {
                if (isStandalone)
                   setStandaloneStyle() // TODO: check parents recursively and apply to children recursively
             }
@@ -57,7 +56,7 @@ open class UniContainer: Container<ComponentUi> {
       return n
    }
 
-   override fun getChildren(): Map<Int, Component?> = if (_child==null) mapOf() else mapOf(1 to _child)
+   override fun getChildren(): Map<Int, Component?> = if (child==null) mapOf() else mapOf(1 to child)
 
    /**
     * @param index null does nothing, value other than 1 throws exception
@@ -67,14 +66,14 @@ open class UniContainer: Container<ComponentUi> {
       failIf(index!=1) { "Index=$index must be 1" }
 
       if (c is Container<*>) c.parent = this
-      _child = c
+      childImpl = c
       load()
       setParentRec()
    }
 
-   override fun indexOf(c: Component): Int? = if (c===_child) 1 else null
+   override fun indexOf(c: Component): Int? = if (c===child) 1 else null
 
-   override fun getEmptySpot(): Int? = if (_child===null) 1 else null
+   override fun getEmptySpot(): Int? = if (child===null) 1 else null
 
    private fun <T> T.disposeUi() = apply { if (ui is Layouter || ui is WidgetUi) ui.dispose() }
 

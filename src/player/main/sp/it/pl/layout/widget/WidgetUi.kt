@@ -16,7 +16,6 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
-import sp.it.util.access.toggle
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -56,7 +55,7 @@ class WidgetUi: ComponentUiBase<Widget> {
       this.container = container
       this.index = index
       this.widget = widget
-      this.widget.parentTemp = this.container
+      this.widget.parent = container
       this.widget.uiTemp = this
 
       root.id = "widget-ui"
@@ -104,9 +103,6 @@ class WidgetUi: ComponentUiBase<Widget> {
             // put controls to new widget
             widget.custom_name syncTo controls.title.textProperty() on disposer
             controls.propB.isDisable = widget.getFields().isEmpty()
-
-            // workaround code
-            widget.lockedUnder.initLocked(container)
             widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
          widget.loadType.value==MANUAL -> {
@@ -117,9 +113,6 @@ class WidgetUi: ComponentUiBase<Widget> {
                // put controls to new widget
                widget.custom_name syncTo controls.title.textProperty() on disposer
                controls.propB.isDisable = widget.getFields().isEmpty()
-
-               // workaround code
-               widget.lockedUnder.initLocked(container)
                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
 
                manualLoadPane = buildManualLoadPane()
@@ -128,10 +121,6 @@ class WidgetUi: ComponentUiBase<Widget> {
          }
       }
    }
-
-   fun isUnderLock(): Boolean = widget.lockedUnder.value
-
-   fun toggleLocked() = widget.locked.toggle()
 
    override fun show() = controls.show()
 

@@ -728,7 +728,7 @@ class WidgetManager {
          (libFiles + compileDir).map { it.toURI().toURL() }.asArray() let_ ::URLClassLoader
       }
 
-      private fun Widget?.focusWithWindow() = this?.apply { window.orNull()?.requestFocus(); focus(); }
+      private fun Widget?.focusWithWindow() = this?.apply { window?.requestFocus(); focus(); }
 
       private fun <R> Widget?.filterIsControllerInstance(type: Class<R>): R? = this?.controller.takeIf(type::isInstance)?.let(type::cast)
 
@@ -833,7 +833,7 @@ sealed class WidgetLoader: (Widget) -> Unit {
          val root = anchorPane()
          val window = Util.createFMNTStage(screen, false).apply {
             scene = Scene(root)
-            onEventUp(WINDOW_HIDING) { w.rootParent.close() }
+            onEventUp(WINDOW_HIDING) { w.rootParent?.close() }
          }
 
          root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }

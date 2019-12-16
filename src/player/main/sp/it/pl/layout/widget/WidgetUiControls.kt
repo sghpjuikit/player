@@ -28,6 +28,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.infoIcon
+import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.SHORTCUT
@@ -124,7 +125,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       var inside = false
       val p = area.contentRoot
       val showS = { e: MouseEvent ->
-         if (!isShowingWeak && !area.isUnderLock() && !isShowing) {
+         if (!isShowingWeak && !area.widget.lockedUnder.value && !isShowing) {
             val isIn = p.width - activatorW.emScaled<e.x && activatorH.emScaled>e.y
             if (inside!=isIn) {
                inside = isIn
@@ -150,7 +151,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       root.onEventDown(DRAG_DONE) { root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false) }
    }
 
-   private fun toggleLocked() = area.toggleLocked()
+   private fun toggleLocked() = area.widget.locked.toggle()
 
    private fun settings() = APP.windowManager.showSettings(area.widget, propB)
 

@@ -13,6 +13,7 @@ import java.util.HashMap
 /** [Container] containing two children split vertically or horizontally. */
 class BiContainer: Container<BiContainerUi> {
 
+   override val name = "BiContainer"
    /** Orientation of this container. */
    val orientation = v(VERTICAL)
    val position = v(0.5)
@@ -30,8 +31,6 @@ class BiContainer: Container<BiContainerUi> {
    }
 
    constructor(o: Orientation): this(BiContainerDb(orientation = o))
-
-   override fun getName() = "BiContainer"
 
    override fun load(): Node {
       ui = ui ?: BiContainerUi(this)

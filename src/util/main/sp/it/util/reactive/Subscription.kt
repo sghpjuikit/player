@@ -1,8 +1,9 @@
 package sp.it.util.reactive
 
+import sp.it.util.type.nullify
+
 interface Subscription {
 
-   // TODO: figure out if Subscription should be one-time by design (this would also help with mem leaks)
    fun unsubscribe()
 
    companion object {
@@ -28,21 +29,34 @@ interface Subscription {
    }
 
    private class Uni(private val s: () -> Unit): Subscription {
+      private var invoked = false
+
       override fun unsubscribe() {
-         s()
+         if (!invoked) s()
+         invoked = true
+         nullify(::s)
       }
    }
 
    private class Bi(private val s1: Subscription, private val s2: Subscription): Subscription {
+      private var invoked = false
+
       override fun unsubscribe() {
-         s1.unsubscribe()
-         s2.unsubscribe()
+         if (!invoked) s1.unsubscribe()
+         if (!invoked) s2.unsubscribe()
+         invoked = true
+         nullify(::s1)
+         nullify(::s2)
       }
    }
 
    private class Multi(private val subscriptions: Array<out Subscription>): Subscription {
+      private var invoked = false
+
       override fun unsubscribe() {
-         subscriptions.forEach { it.unsubscribe() }
+         if (!invoked) subscriptions.forEach { it.unsubscribe() }
+         invoked = true
+         nullify(::subscriptions)
       }
    }
 

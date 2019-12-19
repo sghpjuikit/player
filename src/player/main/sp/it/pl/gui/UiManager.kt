@@ -85,9 +85,6 @@ import sp.it.pl.main.AppSettings.ui.table as confTable
 
 class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
-   private val viewDisplayBgrInfo = "\nIgnored when `${overlayArea.name}` is `${Display.WINDOW.nameUi}`"
-   private val skinsImpl = observableSet<SkinCss>()
-
    /** Action chooser and data info view. */
    val actionPane = LazyOverlayPane { ActionPane(APP.className, APP.instanceName, APP.instanceInfo).initApp().initActionPane() }
    /** Error detail view. Usually used internally by [sp.it.pl.main.AppErrors]. */
@@ -99,19 +96,28 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    /** Css files applied on top of [skin]. Can be used for clever stuff like applying generated css. */
    val additionalStylesheets = observableArrayList<File>()!!
    /** Available application skins. Monitored and updated from disc. */
+   private val skinsImpl = observableSet<SkinCss>()
+
+   /** Available application skins. Monitored and updated from disc. */
    val skins = ObservableSetRO<SkinCss>(skinsImpl)
+
+   init {
+      skinsImpl setTo findSkins()
+   }
+
    /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
    val skin by cv("Main").values(skins.project { it.name }) def confUi.skin
    /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
    val font by cv(Font.getDefault()) def confUi.font
 
    init {
-      initSkins()
+      monitorSkinFiles()
+      observeWindowsAndSyncSkin()
       observeWindowsAndSyncWidgetFocus()
    }
 
    val viewDisplay by cv(Display.SCREEN_OF_MOUSE) def overlayArea
-   val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR) def overlayBackground.appendInfo(viewDisplayBgrInfo)
+   val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR) def overlayBackground.appendInfo("\nIgnored when `${overlayArea.name}` is `${Display.WINDOW.nameUi}`")
    val viewCloseOnDone by cv(true) def closeWhenActionEnds
    val viewHideEmptyShortcuts by cv(true) def hideUnassignedShortcuts
 
@@ -313,12 +319,6 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
          .filter { (_, file) -> file==cssFile }.findAny()
          .orElseGet { registerSkin(SkinCss(cssFile)) }
       setSkin(s)
-   }
-
-   private fun initSkins() {
-      skinsImpl setTo findSkins()
-      monitorSkinFiles()
-      observeWindowsAndSyncSkin()
    }
 
    private fun monitorSkinFiles() {

@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve `Tagger` widget UX
 - Improve `Tagger` reading performance
 - Display date & time in UI in human readable format
+- Hide technical settings from UI & avoid persisting computed settings
 
 ### Fix
 - Main window icon showing in ui-less application mode
@@ -68,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Tagger` widget displaying wrong cover in rare cases
 - Application search cell graphics layout
 - Application search empty tooltip visible
+- Application skin setting not restored properly
+- Application rating skin not allowing null value sometimes
 - Popup window fixes
   - popup does not receive focus on show not even when clicked
   - popup not returning focus to previously focused OS window
@@ -81,12 +84,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - help popups closing too eagerly
   
 ### Removed
-- Experimental runtime JVM options editing
-- Experimental `Spectrum` widget
-- Experimental `WebReader` widget
-- Terminal widget for its dependencies and maintenance overhead  
-  Standalone terminal applications can do a better job anyway
-- javafx.web, javafx.fxml dependencies
+- Runtime JVM options editing. Was experimental and proved unnecessary/complicated.
+- `Spectrum` widget. Was experimental and incomplete
+- `WebReader` widget. Was experimental and proved incomplete
+- `Terminal` widget for its dependencies and maintenance overhead. Standalone terminal applications can do a better job.
+- Dependencies: javafx.web, javafx.fxml
+- Annotation support for Config constraints, use delegated configurable properties and ConfigDefinition instead
 
 ## [v0.7.0]
 ### Added

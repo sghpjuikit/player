@@ -11,8 +11,9 @@ import sp.it.util.access.TypedValue
 import sp.it.util.access.V
 import sp.it.util.access.vAlways
 import sp.it.util.conf.ConfigImpl.ListConfig
-import sp.it.util.conf.ConfigImpl.PropertyConfig
-import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig
+import sp.it.util.conf.Constraint.NoPersist
+import sp.it.util.conf.Constraint.ReadOnlyIf
+import sp.it.util.conf.Constraint.ValueSet
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal
@@ -60,7 +61,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
    /** Editability. This can be further restricted with constraints. */
    abstract val isEditable: EditMode
 
-   fun isNotEditableRightNow() = constraints.asSequence().any { it is Constraint.ReadOnlyIf && it.condition.value }
+   fun isNotEditableRightNow() = constraints.asSequence().any { it is ReadOnlyIf && it.condition.value }
 
    fun isEditableByUserRightNow() = isEditable.isByUser && !isNotEditableRightNow()
 
@@ -68,7 +69,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
       return if (!isEditable.isByUser) {
          vAlways(false)
       } else {
-         val readOnlyIfs = findConstraints<Constraint.ReadOnlyIf>().map { it.condition }.toList()
+         val readOnlyIfs = findConstraints<ReadOnlyIf>().map { it.condition }.toList()
          if (readOnlyIfs.isEmpty())
             vAlways(true)
          else
@@ -80,6 +81,8 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
             }
       }
    }
+
+   fun isPersistable() = isEditable.isByApp && !isNotEditableRightNow() && findConstraint<NoPersist>()==null
 
    /** Limits put on this value or markers that signify certain treatment of it. */
    abstract val constraints: Set<Constraint<T>>
@@ -117,7 +120,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
 
    protected val valueEnumerator: Enumerator<T>? by lazy {
       null
-         ?: findConstraint<Constraint.ValueSet<T>>()?.let { values -> Enumerator { values.enumerator() } }
+         ?: findConstraint<ValueSet<T>>()?.let { values -> Enumerator { values.enumerator() } }
          ?: valueEnumerator2nd
          ?: if (!isEnum(type)) null else Enumerator { getEnumConstants<T>(type).toList() }
    }
@@ -162,11 +165,13 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
             val typeRaw = type.toRaw()
             when {
                typeRaw.isSubclassOf<ObservableList<*>>() -> {
+                  val valueTyped = value as ObservableList<T>
+                  val def = ConfigDef(name, "", "", editable = if (ListConfig.isReadOnly(valueTyped)) EditMode.NONE else EditMode.USER)
                   val itemType: Class<*> = when (type) {
                      is ParameterizedType -> type.actualTypeArguments.firstOrNull()?.toRaw() ?: Any::class.java
                      else -> Any::class.java
                   }
-                  ListConfig(name, ConfList(itemType as Class<T>, true, value as ObservableList<T>)) as Config<T>
+                  ListConfig(name, def, ConfList(itemType as Class<T>, true, valueTyped), "", setOf(), setOf()) as Config<T>
                }
                else -> forProperty(typeRaw, name, V(value)) as Config<T>
             }
@@ -194,13 +199,17 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
          ?: fail { "Property $name must be WritableValue or ReadOnlyValue, but is ${property?.javaClass}" }
 
       @Suppress("UNCHECKED_CAST")
-      private fun <T> forPropertyImpl(type: Class<T>, name: String, property: Any?): Config<T>? = when (property) {
-         is Config<*> -> property as Config<T>
-         is ConfList<*> -> ListConfig(name, property) as Config<T>
-         is OrV<*> -> OrPropertyConfig(type, name, property as OrV<T>) as Config<T>
-         is WritableValue<*> -> PropertyConfig<T>(type, name, property as WritableValue<T>, "")
-         is ObservableValue<*> -> ReadOnlyPropertyConfig<T>(type, name, property as ObservableValue<T>, "")
-         else -> null
+      private fun <T> forPropertyImpl(type: Class<T>, name: String, property: Any?): Config<T>? {
+         val def = ConfigDef(name, "", group = "", editable = EditMode.USER)
+         return when (property) {
+            is Config<*> -> property as Config<T>
+            is ConfList<*> -> ListConfig(name, def.copy(editable = if (ListConfig.isReadOnly(property.list)) EditMode.NONE else EditMode.USER), property, "", setOf(), setOf()) as Config<T>
+            is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), property as OrV<T>, group = "") as Config<T>
+            is WritableValue<*> -> PropertyConfig(type, name, def, setOf(), property as WritableValue<T>, group = "")
+            is ObservableValue<*> -> ReadOnlyPropertyConfig(type, name, def, setOf(), property as ObservableValue<T>, group = "")
+            else -> null
+         }
       }
+
    }
 }

@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Set;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.css.CssMetaData;
 import javafx.css.SimpleStyleableObjectProperty;
 import javafx.css.StyleConverter;
@@ -65,7 +63,6 @@ import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.animation.Anim.mapTo01;
 import static sp.it.util.functional.TryKt.getOr;
-import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getEnumConstants;
 import static sp.it.util.type.Util.getFieldValue;
@@ -102,7 +99,7 @@ public class Icon extends StackPane {
 
 	/** Collection of all glyphs types. */
 	@SuppressWarnings("unchecked")
-	public static Set<Class<GlyphIcons>> GLYPH_TYPES = (Set) setRO(
+	public static Set<Class<GlyphIcons>> GLYPH_TYPES = (Set) Set.of(
 		FontAwesomeIcon.class,
 		WeatherIcon.class,
 		MaterialDesignIcon.class,
@@ -132,7 +129,6 @@ public class Icon extends StackPane {
 	private final Text node = new Text();
 	public DoubleProperty glyphOffsetX = node.translateXProperty();
 	public DoubleProperty glyphOffsetY = node.translateYProperty();
-	private StringProperty glyphStyle = new SimpleStringProperty(""); // needed as setStyle() is final in javafx.scene.text.Text
 	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GLYPHS.keyMapper.invoke(ADJUST));
 	private boolean isGlyphSetProgrammatically = false;
 	private final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
@@ -161,7 +157,6 @@ public class Icon extends StackPane {
 		setId("icon");
 		this.size.addListener((o, ov, nv) -> updateSize());
 		gap.addListener((o, ov, nv) -> updateSize());
-		glyphStyle.addListener((o, ov, nv) -> updateStyle());
 		icon.addListener((o, ov, nv) -> updateIcon());
 
 		node.setId("icon-text");
@@ -339,7 +334,6 @@ public class Icon extends StackPane {
 		getStyleClass().add(s);
 		updateIcon();
 		updateSize();
-		updateStyle();
 		return this;
 	}
 
@@ -421,7 +415,7 @@ public class Icon extends StackPane {
 		}
 	}
 
-	GlyphIcons glyph = null;    // cache
+	private GlyphIcons glyph = null;    // cache
 
 	public GlyphIcons getGlyph() {
 		String n = getGlyphName();
@@ -440,17 +434,6 @@ public class Icon extends StackPane {
 
 	private ObjectProperty<Paint> fillProperty() {
 		return node.fillProperty();
-	}
-
-	private StringProperty glyphStyleProperty() {
-		if (glyphStyle==null) {
-			glyphStyle = new SimpleStringProperty("");
-		}
-		return glyphStyle;
-	}
-
-	private String getGlyphStyle() {
-		return glyphStyleProperty().getValue();
 	}
 
 	private String getGlyphName() { return icon.getValue(); }
@@ -488,10 +471,6 @@ public class Icon extends StackPane {
 		Font f = new Font(i.getFontFamily().replace("\'", ""), node.getFont().getSize());
 		node.setFont(f);
 		node.setText(i.characterToString());
-	}
-
-	private void updateStyle() {
-		setStyle(getGlyphStyle());
 	}
 
 	@SuppressWarnings("unchecked")

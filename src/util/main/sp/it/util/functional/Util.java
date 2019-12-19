@@ -25,7 +25,6 @@ import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -34,19 +33,14 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Functors.F2;
-import sp.it.util.functional.Functors.FEC;
 import sp.it.util.functional.Functors.FP;
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.EMPTY_SET;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
 
@@ -72,27 +66,6 @@ public interface Util {
 	/** Comparator returning 0. Produces no order change. */
 	@SuppressWarnings("ComparatorMethodParameterNotUsed")
 	Comparator<Object> SAME = (a,b) -> 0;
-
-	/**
-	 * Returns true if the arguments are equal to each other and false otherwise.
-	 * If any argument is null, false is returned.
-	 * Otherwise, equality is determined by using the equals method of the first argument.
-	 */
-	@SuppressWarnings("PointlessNullCheck")
-	static boolean equalNonNull(Object a, Object b) {
-		return a!=null && b!=null && a.equals(b);
-	}
-
-	/**
-	 * Returns true if the arguments are equal to each other and false otherwise.
-	 * If both arguments are null, true is returned and if exactly one argument is null, false is
-	 * returned.
-	 * Otherwise, equality is determined by using the equals method of the first argument.
-	 */
-	@SuppressWarnings("EqualsReplaceableByObjectsCall")
-	static boolean equalNull(Object a, Object b) {
-		return a==b || (a!=null && a.equals(b));
-	}
 
 	static <E> boolean is(E o, E a) {
 		return o==a;
@@ -289,53 +262,7 @@ public interface Util {
 
 /* ---------- SUPPLIERS --------------------------------------------------------------------------------------------- */
 
-	/** Faster alternative to {@link #firstNotNull(java.lang.Object...) }. */
-	static <O> O firstNotNull(O o1, O o2) {
-		return o1!=null ? o1 : o2;
-	}
-
-	/** Faster alternative to {@link #firstNotNull(java.lang.Object...) }. */
-	static <O> O firstNotNull(O o1, O o2, O o3) {
-		return o1!=null ? o1 : o2!=null ? o2 : o3;
-	}
-
-
-	/** Returns the first non null object or null if all null. */
-	@SafeVarargs
-	static <O> O firstNotNull(O... objects) {
-		for (O o : objects)
-			if (o!=null) return o;
-		return null;
-	}
-
-	/** Faster alternative to {@link #firstNotNull(java.util.function.Supplier...) }. */
-	static <I> I firstNotNull(Supplier<I> supplier1, Supplier<I> supplier2) {
-		I i = supplier1.get();
-		if (i!=null) return i;
-		return supplier2.get();
-	}
-
-	/** Faster alternative to {@link #firstNotNull(java.util.function.Supplier...) }. */
-	static <I> I firstNotNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3) {
-		I i = supplier1.get();
-		if (i!=null) return i;
-		i = supplier2.get();
-		if (i!=null) return i;
-		return supplier3.get();
-	}
-
-	/** Faster alternative to {@link #firstNotNull(java.util.function.Supplier...) }. */
-	static <I> I firstNotNull(Supplier<I> supplier1, Supplier<I> supplier2, Supplier<I> supplier3, Supplier<I> supplier4) {
-		I i = supplier1.get();
-		if (i!=null) return i;
-		i = supplier2.get();
-		if (i!=null) return i;
-		i = supplier3.get();
-		if (i!=null) return i;
-		return supplier4.get();
-	}
-
-	/** Returns the first supplied non null value or null if all null by iterating the suppliers. */
+	/** Returns the first supplied non null value or null if all supplied values are null. */
 	@SafeVarargs
 	static <I> I firstNotNull(Supplier<I>... suppliers) {
 		for (Supplier<I> s : suppliers) {
@@ -446,18 +373,6 @@ public interface Util {
 		return o;
 	}
 
-	/**
-	 * Creates map which remaps all elements to different key, using key mapper
-	 * function.
-	 *
-	 * @return new map containing all elements mapped to transformed keys
-	 */
-	static <K1, K2, V> Map<K2,V> mapKeys(Map<K1,V> m, Function<? super K1, ? extends K2> f) {
-		Map<K2,V> o = new HashMap<>();
-		m.forEach((key, val) -> o.put(f.apply(key), val));
-		return o;
-	}
-
 /* ---------- FOR --------------------------------------------------------------------------------------------------- */
 
 	/** Functional equivalent of a for loop. */
@@ -470,28 +385,6 @@ public interface Util {
 	static <I> void forEach(I[] items, Consumer<? super I> action) {
 		for (I item : items)
 			action.accept(item);
-	}
-
-	/**
-	 * Functional equivalent of a for loop. After each (last included) cycle the thread sleeps for
-	 * given period. If thread interrupts, the cycle ends immediately.
-	 * <p/>
-	 * The cycle will also end if action in any cycle throws {@link InterruptedException}. Use it
-	 * instead of the {@code break} expression.
-	 *
-	 * @param period time for thread to wait after each loop. If negative or 0, no waiting occurs.
-	 * @param items items to execute action for, the order of execution will be the same as if using normal for loop
-	 * @param action action that executes once per item. It can throw exception to signal loop break
-	 */
-	static <T> void forEachAfter(long period, Collection<T> items, FEC<T,InterruptedException> action) {
-		for (T item : items) {
-			try {
-				action.apply(item);
-				if (period>0) Thread.sleep(period);
-			} catch (InterruptedException ex) {
-				break;
-			}
-		}
 	}
 
 	/** Loops over both lists simultaneously. Must be of the same size. */
@@ -746,39 +639,6 @@ public interface Util {
 		return elements;
 	}
 
-	/**
-	 * Equivalent, but optimized version of {@link #setRO(Object[])}.
-	 */
-	@SuppressWarnings("unchecked")
-	static <T> Set<T> setRO() {
-		return EMPTY_SET;
-	}
-
-	/**
-	 * Equivalent, but optimized version of {@link #setRO(Object[])}.
-	 */
-	static <T> Set<T> setRO(T t) {
-		return singleton(t);
-	}
-
-	/**
-	 * Returns unmodifiable set containing specified elements.
-	 * Optimized:
-	 * <ul>
-	 * <li> if zero parameters - {@link Collections#EMPTY_SET}
-	 * <li> if 1 parameters - {@link Collections#singleton(java.lang.Object)}
-	 * <li> else parameters - {@link Collections#unmodifiableSet(java.util.Set)} using a new {@link java.util.HashSet}
-	 * </ul>
-	 */
-	@SuppressWarnings("unchecked")
-	@SafeVarargs
-	static <T> Set<T> setRO(T... ts) {
-		int size = ts.length;
-		if (size==0) return EMPTY_SET;
-		if (size==1) return singleton(ts[0]);
-		else return stream(ts).collect(collectingAndThen(toSet(), Collections::unmodifiableSet));
-	}
-
 	@SafeVarargs
 	static <T> Set<T> set(T... ts) {
 		HashSet<T> s = new HashSet<>(ts.length);
@@ -885,13 +745,6 @@ public interface Util {
 		for (int i = 0; i<a.length; i++)
 			builder.accept(zipper.apply(a[i], b[i]));
 		return builder.build();
-	}
-
-	/** @return stream equivalent to a for loop */
-	static <T> Stream<T> stream(T seed, Predicate<T> cond, UnaryOperator<T> op) {
-		Stream.Builder<T> b = Stream.builder();
-		for (T t = seed; cond.test(t); t = op.apply(t)) b.accept(t);
-		return b.build();
 	}
 
 	/** Creates stream of {@link Integer} in range from-to inclusive. */

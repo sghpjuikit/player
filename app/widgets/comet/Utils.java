@@ -125,7 +125,6 @@ import static sp.it.util.functional.Util.forEachWithI;
 import static sp.it.util.functional.Util.range;
 import static sp.it.util.functional.Util.repeat;
 import static sp.it.util.functional.Util.set;
-import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.syncC;
@@ -1055,7 +1054,7 @@ interface Utils {
 
 		@SuppressWarnings("unchecked")
 		<T extends O> Set<T> get(Class<T> c) {
-			return (Set<T>) m.getOrDefault(c,setRO());
+			return (Set<T>) m.getOrDefault(c, Set.of());
 		}
 
 		void clear() {

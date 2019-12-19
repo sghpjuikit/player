@@ -689,7 +689,7 @@ class WidgetManager {
    }
 
    /** Lazy reified reference to a factory of widget with a feature, enabling convenient use of its feature */
-   class FactoryRef<out FEATURE: Any> private constructor(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
+   data class FactoryRef<out FEATURE: Any> constructor(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
       override val nameUi = name
 
       fun use(source: WidgetUse, action: (FEATURE) -> Unit) {
@@ -699,6 +699,9 @@ class WidgetManager {
             .filterIsControllerInstance(feature.javaObjectType)
             .ifNotNull(action).toUnit()
       }
+
+      /** @return reference to a factory of a widget derived from this but with the specified [feature] */
+      inline fun <reified FEATURE2: Any> withFeature() = FactoryRef(name, id, FEATURE2::class)
 
       companion object {
          operator fun <FEATURE: Any>invoke(factory: WidgetFactory<*>, feature: KClass<FEATURE>) = FactoryRef(factory.name, factory.id, feature)
@@ -795,7 +798,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             val parent = widgetOld.graphics.parent
             val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
             widgetOld.close()
-            parent?.asIf<Pane>()?.let { it.children.add(i, widgetNew.load()) }
+            parent.asIf<Pane?>()?.let { it.children.add(i, widgetNew.load()) }
             widgetNew.restoreAuxiliaryState()
          }
       }

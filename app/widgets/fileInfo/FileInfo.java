@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -32,7 +33,8 @@ import sp.it.util.access.V;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.EventReducer.HandlerLast;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.ConfigImpl.PropertyConfig;
+import sp.it.util.conf.ConfigDef;
+import sp.it.util.conf.PropertyConfig;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
 import static java.lang.Double.max;
@@ -150,7 +152,7 @@ public class FileInfo extends SimpleController implements SongReader {
     );
     private final LField rating = fields.get(12);
     private final Map<String,Config<Boolean>> fieldConfigs = fields.stream()
-        .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, "Show " + f.name, f.visibleConfig, "FileInfo","Show this field", EditMode.USER))
+        .map(f -> new PropertyConfig<>(Boolean.class, "show_"+f.name, new ConfigDef("Show " + f.name, "Show field " + f.name, "", EditMode.USER), Set.of(), f.visibleConfig, ""))
         .collect(toMap(c -> c.getName(), c -> c));
     private Output<Metadata> data_out = io.o.create("Displayed", Metadata.class, Metadata.EMPTY);
     private Metadata data = Metadata.EMPTY;

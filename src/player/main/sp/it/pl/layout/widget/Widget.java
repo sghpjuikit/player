@@ -196,12 +196,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 			} else {
 				try {
 					root = controller.loadFirstTime();
-					// we cant call this as parent is injected after this method returns
-					// in WidgetUi
-					// lockedUnder.init();
 
-					Class<?> cc = controller.getClass();
-					boolean isLegacy = cc.isAnnotationPresent(LegacyController.class);
+					boolean isLegacy = controller.getClass().isAnnotationPresent(LegacyController.class);
 					if (isLegacy) restoreConfigs();
 
 					updateIO();
@@ -224,25 +220,19 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	private Controller instantiateController() {
 		restoreDefaultConfigs();
 
-		// instantiate controller
 		Class<Controller> cc = (Class) factory.getControllerType();
 		LOGGER.info("Instantiating widget controller " + cc);
-		Controller c = firstNotNull(
-			() -> {
-				try {
-					Constructor<Controller> ccc = cc.getDeclaredConstructor(Widget.class);
-					LOGGER.debug("Instantiating widget controller using 1 arg constructor");
-					return ccc.newInstance(this);
-				} catch (NoSuchMethodException e) {
-					return null;
-				} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
-					LOGGER.error("Instantiating widget controller failed {}", cc, e);
-					return null;
-				}
-			}
-		);
 
-		return c;
+		try {
+			Constructor<Controller> ccc = cc.getDeclaredConstructor(Widget.class);
+			LOGGER.debug("Instantiating widget controller using 1 arg constructor");
+			return ccc.newInstance(this);
+		} catch (NoSuchMethodException e) {
+			return null;
+		} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
+			LOGGER.error("Instantiating widget controller failed {}", cc, e);
+			return null;
+		}
 	}
 
 	/**
@@ -431,9 +421,11 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		var configsRaw = getFieldsRaw();
 		if (!configsRaw.isEmpty()) {
 			getFields().forEach(c -> {
-				String key = configToRawKeyMapper.apply(c);
-				if (configsRaw.containsKey(key)) {
-					c.setValueAsProperty(configsRaw.get(key));
+				if (c.isPersistable()) {
+					String key = configToRawKeyMapper.apply(c);
+					if (configsRaw.containsKey(key)) {
+						c.setValueAsProperty(configsRaw.get(key));
+					}
 				}
 			});
 

@@ -2,9 +2,6 @@ package sp.it.util.conf
 
 import sp.it.util.dev.failIf
 import sp.it.util.functional.net
-import sp.it.util.type.Util.unPrimitivize
-import sp.it.util.type.isSuperclassOf
-import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.jvmName
 
 object MainConfiguration: Configuration()
@@ -30,18 +27,6 @@ fun ConfigDefinition?.computeConfigGroup(declaringRef: Any): String {
       declaringRef::class.net { it.simpleName ?: it.jvmName }
    }
 }
-
-@Suppress("UNCHECKED_CAST")
-fun <T> obtainConfigConstraints(configType: Class<T>, annotations: List<Annotation>): Sequence<Constraint<T>> =
-   annotations.asSequence()
-      .filter {
-         it.annotationClass.findAnnotation<Constraint.IsConstraint>()?.value?.isSuperclassOf(unPrimitivize(configType))
-            ?: false
-      }
-      .map { Constraints.toConstraint<T>(it) } +
-      Constraints.IMPLICIT_CONSTRAINTS
-         .getElementsOfSuper(configType).asSequence()
-         .map { constraint -> constraint as Constraint<T> }
 
 fun obtainConfigId(configName: String, configGroup: String) = "$configName.$configGroup".replace(' ', '_').toLowerCase()
 

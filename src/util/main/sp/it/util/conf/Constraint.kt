@@ -7,19 +7,9 @@ import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
 import sp.it.util.access.vAlways
-import sp.it.util.collections.map.ClassListMap
-import sp.it.util.collections.map.ClassMap
-import sp.it.util.conf.Constraint.Declaration.EXPLICIT
-import sp.it.util.conf.Constraint.Declaration.IMPLICIT
-import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNot
 import sp.it.util.functional.Try
-import sp.it.util.type.Util.getGenericInterface
 import java.io.File
-import kotlin.annotation.AnnotationRetention.RUNTIME
-import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.findAnnotation
 
 interface Constraint<in T> {
 
@@ -29,78 +19,6 @@ interface Constraint<in T> {
 
    fun validate(value: T?): Try<Nothing?, String> = if (isValid(value)) Try.ok() else Try.error(message())
 
-   @MustBeDocumented
-   @Retention(RUNTIME)
-   @Target(AnnotationTarget.CLASS, AnnotationTarget.FILE)
-   annotation class DeclarationType(val value: Declaration = EXPLICIT)
-
-   enum class Declaration {
-      IMPLICIT, EXPLICIT
-   }
-
-
-   /* ---------- ANNOTATIONS ------------------------------------------------------------------------------------------- */
-
-   @MustBeDocumented
-   @Retention(RUNTIME)
-   @Target(AnnotationTarget.ANNOTATION_CLASS)
-   annotation class IsConstraint(val value: KClass<*>)
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(Any::class)
-   annotation class ConstraintBy(val value: KClass<out Constraint<*>>)
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(File::class)
-   annotation class FileType(val value: FileActor = FileActor.ANY)
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(Number::class)
-   annotation class Min(val value: Double)
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(Number::class)
-   annotation class Max(val value: Double)
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(Number::class)
-   annotation class MinMax(val min: Double, val max: Double)
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(String::class)
-   annotation class NonEmpty
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(String::class)
-   annotation class Length(val min: Int, val max: Int)
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(Any::class)
-   annotation class NonNull
-
-   @MustBeDocumented
-   @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-   @Retention(RUNTIME)
-   @IsConstraint(Collection::class)
-   annotation class NonNullElements
-
-   /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
    /** Denotes type of [java.io.File]. For example to decide between file and directory chooser. */
    enum class FileActor constructor(private val condition: (File) -> Boolean, private val message: String): Constraint<File?> {
@@ -139,7 +57,6 @@ interface Constraint<in T> {
       override fun message() = "Text must be at least $min and at most$max characters long"
    }
 
-   @DeclarationType(IMPLICIT)
    object DurationNonNegative: Constraint<Duration> {
       override fun isValid(value: Duration?): Boolean {
          return value==null || value.greaterThanOrEqualTo(Duration.ZERO)
@@ -165,7 +82,11 @@ interface Constraint<in T> {
 
    object PreserveOrder: MarkerConstraint()
 
+   /** Avoid showing the config in ui. */
    object NoUi: MarkerConstraint()
+
+   /** Avoid persisting the config. Use for 'computed' configs. Configs with [Config.isEditable]==[EditMode.NONE] are not persistent by default. */
+   object NoPersist: MarkerConstraint()
 
    class ValueSet<T>(val enumerator: () -> Collection<T>): MarkerConstraint()
 
@@ -190,57 +111,4 @@ interface Constraint<in T> {
       override fun message() = "Is disabled"
    }
 
-}
-
-/* ---------- ANNOTATION -> IMPLEMENTATION MAPPING ------------------------------------------------------------------ */
-
-class Constraints {
-
-
-   companion object {
-      private val MAPPER = ClassMap<(Annotation) -> Constraint<*>>()
-      val IMPLICIT_CONSTRAINTS: ClassListMap<Constraint<*>> = ClassListMap({ o -> getGenericInterface(o.javaClass, 0, 0) })
-
-      private val INIT = object {
-         init {
-            register<Constraint.FileType> { it.value }
-            register<Constraint.Min> { Constraint.NumberMinMax(it.value, Double.MAX_VALUE) }
-            register<Constraint.Max> { Constraint.NumberMinMax(Double.MIN_VALUE, it.value) }
-            register<Constraint.MinMax> { Constraint.NumberMinMax(it.min, it.max) }
-            register<Constraint.NonEmpty> { Constraint.StringNonEmpty() }
-            register<Constraint.Length> { Constraint.StringLength(it.min, it.max) }
-            register<Constraint.NonNullElements> { Constraint.HasNonNullElements }
-            register<Constraint.NonNull> { Constraint.ObjectNonNull }
-            register<Constraint.ConstraintBy> { it.value.instantiate() }
-            registerByType<Duration, Constraint.DurationNonNegative>()
-         }
-      }
-
-      @Suppress("UNCHECKED_CAST")
-      private inline fun <reified CA: Annotation> register(noinline constraintFactory: (CA) -> Constraint<*>) {
-         val type = CA::class.java
-
-         CA::class.findAnnotation<Constraint.IsConstraint>() ?: fail {
-            "${Constraint::class} must be annotated by ${Constraint.IsConstraint::class}"
-         }
-
-         MAPPER[type] = (constraintFactory as (Annotation) -> Constraint<*>)
-      }
-
-      private inline fun <reified T, reified C: Constraint<T>> registerByType() {
-         C::class.findAnnotation<Constraint.DeclarationType>()?.let {
-            if (it.value==IMPLICIT) {
-               IMPLICIT_CONSTRAINTS.accumulate(T::class.java, C::class.instantiate())
-            }
-         }
-      }
-
-      @Suppress("UNCHECKED_CAST")
-      @JvmStatic fun <X> toConstraint(a: Annotation): Constraint<X> {
-         return MAPPER[a.annotationClass.java]!!.invoke(a) as Constraint<X>
-      }
-
-      private fun <T: Any> KClass<T>.instantiate(): T = objectInstance ?: createInstance()
-
-   }
 }

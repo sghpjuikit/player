@@ -238,10 +238,10 @@ inline infix fun <T, R> T.let_(block: (T) -> R): R = let(block)
 inline infix fun <T> T.apply_(block: T.() -> Unit): T = apply(block)
 
 /** @return this as instance of the specified type (equivalent to this as T) */
-inline fun <reified T: Any> Any?.asIs(): T = this as T
+inline fun <reified T> Any?.asIs(): T = this as T
 
 /** @return this as instance of the specified type (equivalent to this as? T) */
-inline fun <reified T: Any> Any?.asIf(): T? = this as? T
+inline fun <reified T> Any?.asIf(): T? = this as? T
 
 /** Invokes the block if this is the specified type. */
 inline fun <reified T> Any?.ifIs(block: (T) -> Unit) = apply { if (this is T) block(this) }

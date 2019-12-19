@@ -36,7 +36,7 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
          }
 
          override fun initialize(config: Config<*>) {
-            if (config.isEditable.isByApp) {
+            if (config.isPersistable()) {
                val key = Widget.configToRawKeyMapper(config)
                val source = widget.fieldsRaw
                if (source.containsKey(key))

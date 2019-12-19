@@ -27,7 +27,6 @@ import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.TryKt.runTry;
 import static sp.it.util.functional.Util.list;
-import static sp.it.util.functional.Util.setRO;
 import static sp.it.util.functional.UtilKt.orNull;
 import static sp.it.util.functional.UtilKt.runnable;
 
@@ -364,7 +363,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 
 	@Override
 	public Set<Constraint<Action>> getConstraints() {
-		return constraints==null ? setRO() : constraints;
+		return constraints==null ? Set.of() : constraints;
 	}
 
 	@SuppressWarnings("unchecked")

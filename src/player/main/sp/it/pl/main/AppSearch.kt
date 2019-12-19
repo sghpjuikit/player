@@ -10,6 +10,7 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.cList
 import sp.it.util.conf.def
+import sp.it.util.conf.noPersist
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
@@ -19,7 +20,7 @@ import sp.it.pl.main.AppSettings.search as conf
 private typealias Src = () -> Sequence<ConfigSearch.Entry>
 
 class AppSearch: GlobalSubConfigDelegator(conf.name) {
-   val sources by cList<Source>() def conf.sources
+   val sources by cList<Source>().def(conf.sources).noPersist()
    val history = ConfigSearch.History()
 
 

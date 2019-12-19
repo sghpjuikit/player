@@ -372,7 +372,7 @@ open class PopWindow {
 
       fun Window.hideFixed() = apply { if (isShowing && properties["wasShown"] == true) hide() }
 
-      fun Window.asPopWindow(): PopWindow? = properties["popWindow"]?.asIf()
+      fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
 
       fun Window.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
 

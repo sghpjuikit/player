@@ -32,7 +32,6 @@ import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.widget.NoFactoryFactory
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
-import sp.it.pl.layout.widget.WidgetManager.FactoryRef
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.main.APP
@@ -131,8 +130,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    val dockHoverDelay by cv(700.millis).def(confDock.showDelay)
    val dockHideInactive by cv(true).def(confDock.hideOnIdle)
    val dockHideInactiveDelay by cv(1500.millis).def(confDock.hideOnIdleDelay).readOnlyUnless(dockHideInactive)
-   val dockWidget by cv<FactoryRef<*>>(PLAYBACK).def(confDock.content).valuesIn {
+   private val dockWidgetInitialValue = PLAYBACK.withFeature<HorizontalDock>()
+   val dockWidget by cv(dockWidgetInitialValue).def(confDock.content).valuesIn {
       APP.widgetManager.factories.getFactoriesWith<HorizontalDock>()
+         .filter { it.id == dockWidgetInitialValue.id }
+         .plus(dockWidgetInitialValue) // add if not available
    }
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
 

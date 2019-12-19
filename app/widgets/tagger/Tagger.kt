@@ -473,7 +473,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             if (custom3F.committable) w.setCustom3(custom3F.text)
             if (custom4F.committable) w.setCustom4(custom4F.text)
             // if (custom5F.committable) w.setCustom5(custom5F.text)
-            if (tagsF.committable) w.setTags(noDups<String>(split(tagsF.text.replace(", ", ","), ",")))
+            if (tagsF.committable) w.setTags(tagsF.text.replace(", ", ",").split(",").toSet())
             // if ((boolean)playedFirstF.getUserData())  w.setPla(playedFirstF.getText());
             // if ((boolean)playedLastF.getUserData())   w.setCustom1(playedLastF.getText());
             // if ((boolean)addedToLibF.getUserData())   w.setCustom1(addedToLibF.getText());
@@ -689,7 +689,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          cellFactory = Callback {
             object: ListCell<Song>() {
                private var cb = CheckIcon()
-   
+
                init {
                   // allow user to de/activate item
                   cb.setOnMouseClicked {
@@ -703,10 +703,10 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      }
                   }
                }
-   
+
                public override fun updateItem(song: Song?, empty: Boolean) {
                   super.updateItem(song, empty)
-   
+
                   if (empty || song==null) {
                      text = null
                      graphic = null
@@ -717,7 +717,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      pseudoClassChanged("corrupt", unTaggable)
                      cb.selected.value = !unTaggable
                      cb.isDisable = unTaggable
-   
+
                      if (graphic==null) graphic = cb
                   }
                }
@@ -727,7 +727,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          addEventHandler(DRAG_OVER, handlerAccepting { it.dragboard.hasAudio() })
          addEventHandler(DRAG_DROPPED, dragDroppedHandler)
       }
-      
+
       val helpB = infoIcon(
          "List of all items in the tagger. Highlights non-taggable items. Taggable songs "
             + "can be unselected filtered.\n\n"
@@ -735,7 +735,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             + "    Drag & drop songs : Clears tagger and adds to tagger.\n"
             + "    Drag & drop songs (MOVE) : Adds to tagger."
       ).size(11.0)
-      
+
       PopWindow().apply {
          content.value = list
          title.value = "Active Items"

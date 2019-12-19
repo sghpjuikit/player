@@ -59,10 +59,10 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
          SplitPane.setResizableWithParent(root2, i!=2)
 
          container.absoluteSize.value = i
-         ui1?.asIf<WidgetUi>()?.controls?.updateAbsB()
-         ui2?.asIf<WidgetUi>()?.controls?.updateAbsB()
-         container.children[1]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
-         container.children[2]?.asIf<Container<*>>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
+         ui1.asIf<WidgetUi?>()?.controls?.updateAbsB()
+         ui2.asIf<WidgetUi?>()?.controls?.updateAbsB()
+         container.children[1].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
+         container.children[2].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
       }
    var collapsed: Int
       get() = container.collapsed.value

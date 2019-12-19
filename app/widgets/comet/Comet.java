@@ -96,7 +96,6 @@ import sp.it.util.access.V;
 import sp.it.util.access.VarEnum;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Configurable;
-import sp.it.util.conf.Constraint;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.FixedConfList;
 import sp.it.util.conf.IsConfig;
@@ -453,8 +452,8 @@ public class Comet extends SimpleController {
 
 	@IsConfig
 	final V<Color> devCanvasFadeColor = new V<>(Color.BLACK).initAttachC(c -> game.colors.canvasFade = color(c, game.colors.canvasFade.getOpacity()));
-	@IsConfig @Constraint.MinMax(min=0, max=0.1)
-	final V<Double> devCanvasFadeOpacity = new V<>(0.05).initAttachC(c -> game.colors.canvasFade = color(game.colors.canvasFade, c));
+	@IsConfig(info = "Clipped to min=0, max=0.1")
+	final V<Double> devCanvasFadeOpacity = new V<>(0.05).initAttachC(c -> game.colors.canvasFade = color(game.colors.canvasFade, clip(0, c, 0.1)));
 	@IsConfig
 	final V<Effect> devCanvasBgrEffect = new V<Effect>(new Glow(0.3)).initAttachC(e -> gc_bgr.getCanvas().setEffect(e));
 	@IsConfig

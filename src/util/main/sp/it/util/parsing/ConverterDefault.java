@@ -81,8 +81,6 @@ public class ConverterDefault extends Converter {
 	public final String stringNull = "<NULL>";
 	/** Default to string parser, which calls objects toString() or returns null constant. */
 	public final Function<Object,String> defaultTos = o -> o==null ? stringNull : o.toString();
-	/** Default from string parser. Always returns null. */
-	public final Function<String,Try<Object,String>> defaultFromS = o -> error("Object has no from-text converter");
 
     private final ClassMap<Function<? super Object,Try<String,String>>> parsersToS = new ClassMap<>();
     private final ClassMap<Function<? super String,Try<Object,String>>> parsersFromS = new ClassMap<>();
@@ -125,7 +123,7 @@ public class ConverterDefault extends Converter {
     public <T> String toS(T o) {
         if (o==null) return stringNull;
         String s = orNull(((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o));
-        return firstNotNull(s, stringNull);
+        return s!=null ? s : stringNull;
     }
 
     @SuppressWarnings("unchecked")
@@ -143,7 +141,7 @@ public class ConverterDefault extends Converter {
         return (Function) firstNotNull(
             () -> parsersFromS.getElementOfSuper(c),
             () -> buildOfSParser(c),
-            () -> defaultFromS
+            () -> o -> error("Type " + c + " has no associated from-text converter")
         );
     }
 

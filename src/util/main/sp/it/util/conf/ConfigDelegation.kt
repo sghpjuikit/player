@@ -8,11 +8,10 @@ import javafx.collections.ObservableList
 import sp.it.util.access.V
 import sp.it.util.access.v
 import sp.it.util.access.vn
+import sp.it.util.access.vx
 import sp.it.util.action.Action
 import sp.it.util.action.IsAction
 import sp.it.util.conf.ConfigImpl.ListConfig
-import sp.it.util.conf.ConfigImpl.PropertyConfig
-import sp.it.util.conf.ConfigImpl.ReadOnlyPropertyConfig
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
@@ -34,7 +33,7 @@ fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
 fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).but(Constraint.ObjectNonNull)
 fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
 fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
-fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
+fun <T: Any?> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).but(Constraint.ObjectNonNull)
@@ -42,14 +41,18 @@ inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
 
 /** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
+fun <T: Any?, C: ConfL<T>> C.butElement(vararg restrictions: Constraint<T>) = apply { elementConstraints += restrictions }
 
 fun <T: Any?, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
+fun <T: Any?, C: Conf<T>> C.noPersist() = but(Constraint.NoPersist)
 fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), Double.MAX_VALUE))
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(Double.MIN_VALUE, max.toDouble()))
 fun <T: Number, C: Conf<T>> C.between(min: T, max: T) = but(Constraint.NumberMinMax(min.toDouble(), max.toDouble()))
 fun <T: File?, C: Conf<T>> C.only(type: Constraint.FileActor) = but(type)
+fun <T: File?, C: ConfL<T>> C.only(type: Constraint.FileActor) = butElement(type)
 fun <T: File?, C: Conf<T>> C.relativeTo(relativeTo: File) = but(Constraint.FileRelative(relativeTo))
+fun <T: File?, C: ConfL<T>> C.relativeTo(relativeTo: File) = butElement(Constraint.FileRelative(relativeTo))
 fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: Boolean) = but(Constraint.ReadOnlyIf(condition))
 fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: ObservableValue<Boolean>) = but(Constraint.ReadOnlyIf(condition, false))
 fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: Boolean) = but(Constraint.ReadOnlyIf(!condition))
@@ -86,7 +89,7 @@ fun <T: Any?, C: Conf<T>> C.uiNoOrder() = but(Constraint.PreserveOrder)
  *
  * Nullability of this config is respected and reflected by nullability of the elements in the value range. I.e., if
  * this config is nullable, the collection may contain null value. However it is responsibility of the caller, hence
- * even of this config is nullable it may not give user the option to select null.
+ * even if this config is nullable it may not give user the option to select null if the enumerator does not contain it.
  *
  * @param enumerator value range supplier
  */
@@ -187,10 +190,6 @@ abstract class Conf<T: Any?> {
    val constraints = HashSet<Constraint<T>>()
    var def: ConfigDefinition? = null
 
-   protected fun addAnnotationConstraints(type: Class<T>, property: KProperty<*>) {
-      constraints += obtainConfigConstraints(type, property.annotations)
-   }
-
    protected fun KProperty<*>.obtainConfigMetadata() = null
       ?: def
       ?: findAnnotation<IsConfig>()?.toDef()
@@ -237,27 +236,28 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
    }
 }
 
-class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<T>() {
+class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<ObservableList<T>>() {
+   val elementConstraints = HashSet<Constraint<T>>()
+
    operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, ObservableList<T>> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
       val group = info.computeConfigGroup(ref)
-      addAnnotationConstraints(type, property)
 
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
       val list = ConfList(type, isNullable)
-      val c = ListConfig(property.name, info, list, group, constraints)
+      val c = ListConfig(property.name, info, list, group, constraints, elementConstraints)
       ref.configurableValueSource.initialize(c)
 
-      return object: ListConfig<T>(property.name, info, list, group, constraints), RoProperty<ConfigDelegator, ObservableList<T>> {
+      return object: ListConfig<T>(property.name, info, list, group, constraints, elementConstraints), RoProperty<ConfigDelegator, ObservableList<T>> {
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = list.list
       }.registerConfig(ref)
    }
 }
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "UsePropertyAccessSyntax")
 class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
 
    operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RwProperty<ConfigDelegator, T> {
@@ -265,7 +265,6 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
       val info = property.obtainConfigMetadata()
       val type = property.returnType.javaType as Class<T>
       val group = info.computeConfigGroup(ref)
-      addAnnotationConstraints(type, property)
 
       val isFinal = property !is KMutableProperty
       failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
@@ -274,11 +273,9 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
       ref.configurableValueSource.initialize(c)
       validateValue(c.value)
 
-      return object: PropertyConfig<T>(type, property.name, info, constraints, vn(c.value), initialValue, group), RwProperty<ConfigDelegator, T> {
+      return object: PropertyConfig<T>(type, property.name, info, constraints, vx<T>(c.value), initialValue, group), RwProperty<ConfigDelegator, T> {
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = getValue()
-         override fun setValue(thisRef: ConfigDelegator, property: KProperty<*>, value: T) {
-            setValue(value)
-         }
+         override fun setValue(thisRef: ConfigDelegator, property: KProperty<*>, value: T) = setValue(value)
       }.registerConfig(ref)
    }
 }
@@ -310,7 +307,6 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<Conf
       val info = property.obtainConfigMetadata()
       val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
       val group = info.computeConfigGroup(ref)
-      addAnnotationConstraints(type, property)
 
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
@@ -353,7 +349,6 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
       val info = property.obtainConfigMetadata()
       val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
       val group = info.computeConfigGroup(ref)
-      addAnnotationConstraints(type, property)
 
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }

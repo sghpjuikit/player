@@ -1,11 +1,16 @@
 package sp.it.util.conf
 
+import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import sp.it.util.access.EnumerableValue
 import sp.it.util.access.OrV
 import sp.it.util.conf.ConfigImpl.ConfigBase
 import sp.it.util.conf.OrPropertyConfig.OrValue
 import sp.it.util.file.properties.PropVal
+import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
+import java.lang.reflect.Field
+import java.util.function.Supplier
 
 
 /** [Config] wrapping a value. Not observable. */
@@ -13,7 +18,7 @@ class ValueConfig<V>: ConfigBase<V> {
 
    private var value: V
 
-   constructor(type: Class<V>, name: String, nameUi: String, value: V, category: String, info: String, editable: EditMode): super(type, name, nameUi, value, category, info, editable) {
+   constructor(type: Class<V>, name: String, nameUi: String, value: V, group: String, info: String, editable: EditMode): super(type, name, nameUi, value, group, info, editable) {
       this.value = value
    }
 
@@ -43,8 +48,8 @@ class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
     * @param getter defines [getValue]
     */
    constructor(
-      type: Class<T>, name: String, gui_name: String, setter: (T) -> Unit, getter: () -> T, category: String, info: String, editable: EditMode
-   ): super(type, name, gui_name, getter(), category, info, editable) {
+      type: Class<T>, name: String, gui_name: String, setter: (T) -> Unit, getter: () -> T, group: String, info: String, editable: EditMode
+   ): super(type, name, gui_name, getter(), group, info, editable) {
       this.getter = getter
       this.setter = setter
    }
@@ -68,28 +73,81 @@ class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
 
 }
 
+/** [Config] backed by [Field] and an object instance. Can wrap both static or instance fields. */
+@Suppress("UNCHECKED_CAST")
+open class FieldConfig<T> (
+   name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, private val instance: Any?, group: String, private val field: Field
+): ConfigBase<T>(field.type as Class<T>, name, c, constraints, field.value<T>(instance), group) {
+
+   override fun getValue(): T = field.value(instance)
+
+   override fun setValue(value: T) {
+      runTry {
+         field.isAccessible = true
+         field.set(instance, value)
+      }.mapError {
+         RuntimeException("Error setting config field $name to $field", it)
+      }.orThrow
+   }
+
+   companion object {
+      private fun <T> Field.value(instance: Any?): T = runTry {
+         isAccessible = true
+         get(instance) as T
+      }.mapError {
+         RuntimeException("Error getting config field $name from $this", it)
+      }.orThrow
+   }
+}
+
+@Suppress("UNCHECKED_CAST")
+open class PropertyConfig<T> @JvmOverloads constructor(
+   valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: WritableValue<T>, defaultValue: T = property.value, group: String
+): ConfigBase<T>(valueType, name, c, constraints, defaultValue, group) {
+
+   init {
+      if (this.property is EnumerableValue<*>)
+         valueEnumerator2nd = Supplier {
+            (this.property as EnumerableValue<T>).enumerateValues()
+         }
+   }
+
+   override fun getValue(): T = property.value
+
+   override fun setValue(value: T) {
+      property.value = value
+   }
+
+}
+
+@Suppress("UNCHECKED_CAST")
+open class ReadOnlyPropertyConfig<T>(
+   valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
+): ConfigBase<T>(valueType, name, c, constraints, property.value, group) {
+
+   init {
+      if (property is EnumerableValue<*>)
+         valueEnumerator2nd = Supplier {
+            (property as EnumerableValue<T>).enumerateValues()
+         }
+   }
+
+   override fun getValue(): T = property.value
+
+   override fun setValue(value: T) {}
+
+}
+
 /** [Config] backed by [OrV] and of [OrValue] type. Observable. */
-class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
+open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    val property: OrV<T>
    val valueType: Class<T>
 
    @Suppress("UNCHECKED_CAST")
    constructor(
-      valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, property: OrV<T>, category: String
+      valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, property: OrV<T>, group: String
    ): super(
-      OrValue::class.java as Class<OrValue<T>>, name, c, constraints, OrValue(property.override.value, property.real.value), category
-   ) {
-      this.property = property
-      this.valueType = valueType
-   }
-
-   constructor(valueType: Class<T>, name: String, property: OrV<T>): this(valueType, name, name, property, "", "", EditMode.USER)
-
-   @Suppress("UNCHECKED_CAST")
-   constructor(
-      valueType: Class<T>, name: String, gui_name: String, property: OrV<T>, category: String, info: String, editable: EditMode
-   ): super(
-      OrValue::class.java as Class<OrValue<T>>, name, gui_name, OrValue(property.override.value, property.real.value), category, info, editable
+      OrValue::class.java as Class<OrValue<T>>, name, c, constraints, OrValue(property.override.value, property.real.value), group
    ) {
       this.property = property
       this.valueType = valueType

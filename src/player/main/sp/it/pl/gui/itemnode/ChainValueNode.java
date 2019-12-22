@@ -1,5 +1,6 @@
 package sp.it.pl.gui.itemnode;
 
+import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -19,6 +20,7 @@ import kotlin.jvm.functions.Function1;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.util.access.V;
+import sp.it.util.reactive.Handler0;
 import sp.it.util.reactive.Handler1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
@@ -38,15 +40,17 @@ import static sp.it.util.functional.Util.repeat;
  * @param <C> type of chained. This chain will be made of links of chained of exactly this type, either provided
  * manually or constructed using factory.
  */
-public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends ValueNode<VAL> {
+public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL> extends ValueNode<REDUCED_VAL> {
 
-	private static final Tooltip addTooltip = appTooltip("Add");
-	private static final Tooltip remTooltip = appTooltip("Remove");
+	private static final Tooltip addTooltip = appTooltip("Add new item after this item");
+	private static final Tooltip remTooltip = appTooltip("Remove this item");
+	private static final Tooltip remAllTooltip = appTooltip("Remove all items");
 	private static final Tooltip onTooltip = appTooltip("Enable. Disabled elements will not be in the list.");
 
-	protected final VBox root = new VBox();
+	protected final VBox rootLinks = new VBox();
+	protected final VBox root = new VBox(rootLinks);
 	@SuppressWarnings("unchecked")
-	protected final ObservableList<Link> chain = (ObservableList) root.getChildren();
+	protected final ObservableList<Link> chain = (ObservableList) rootLinks.getChildren();
 	public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
 	public final V<Boolean> editable = new V<>(true);
 	protected Supplier<C> chainedFactory; // final
@@ -55,33 +59,36 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 	protected BiPredicate<Integer,VAL> isHomogeneous = (i, v) -> false;
 	public final Handler1<Link> onUserItemAdded = new Handler1<>();
 	public final Handler1<Link> onUserItemRemoved = new Handler1<>();
+	public final Handler0 onUserItemsCleared = new Handler0();
 	public final Handler1<Link> onUserItemEnabled = new Handler1<>();
 	public final Handler1<Link> onUserItemDisabled = new Handler1<>();
 
 	/** Creates unlimited chain of 1 initial chained element. */
-	public ChainValueNode(VAL initialValue) {
+	public ChainValueNode(REDUCED_VAL initialValue) {
 		super(initialValue);
 		editable.attachC(it -> chain.forEach(Link::updateIcons));
+		editable.attachC(it -> root.getChildren().stream().filter(i -> i instanceof ChainValueNode.NullLink).map(k -> (ChainValueNode.NullLink) k).forEach(j -> j.updateIcons()));
 	}
 
 	/** Creates unlimited chain of 1 initial chained element. */
-	public ChainValueNode(VAL initialValue, Supplier<C> chainedFactory) {
+	public ChainValueNode(REDUCED_VAL initialValue, Supplier<C> chainedFactory) {
 		this(1, initialValue, chainedFactory);
 	}
 
 	/** Creates unlimited chain of i initial chained elements. */
-	public ChainValueNode(int i, VAL initialValue, Supplier<C> chainedFactory) {
-		this(i, Integer.MAX_VALUE, initialValue, chainedFactory);
+	public ChainValueNode(int initialLength, REDUCED_VAL initialValue, Supplier<C> chainedFactory) {
+		this(initialLength, Integer.MAX_VALUE, initialValue, chainedFactory);
 	}
 
 	/** Creates limited chain of i initial chained elements. */
-	public ChainValueNode(int len, int max_len, VAL initialValue, Supplier<C> chainedFactory) {
+	public ChainValueNode(int initialLength, int maxChainLength, REDUCED_VAL initialValue, Supplier<C> chainedFactory) {
 		this(initialValue);
 
-		maxChainLength.set(max_len);
+		this.maxChainLength.addListener((o,ov,nv) -> failIf(nv.intValue()<=0, () -> "Max chain length must be > 0"));
+		this.maxChainLength.set(maxChainLength);
 		this.chainedFactory = chainedFactory;
-		growTo(len);
-		maxChainLength.addListener((o, ov, nv) -> {
+		growTo(initialLength);
+		this.maxChainLength.addListener((o, ov, nv) -> {
 			if (nv.intValue()<ov.intValue())
 				shrinkTo(nv.intValue());
 		});
@@ -110,6 +117,21 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 		} else {
 			return null;
 		}
+	}
+
+	public void setHeaderVisible(boolean visible) {
+		if (visible && !isHeaderVisible()) {
+			root.getChildren().add(0, new NullLink());
+			chain.forEach(Link::updateIcons);
+		}
+		if (!visible && isHeaderVisible()) {
+			root.getChildren().remove(0);
+			chain.forEach(Link::updateIcons);
+		}
+	}
+
+	public boolean isHeaderVisible() {
+		return !root.getChildren().isEmpty() && root.getChildren().get(0) instanceof ChainValueNode.NullLink;
 	}
 
 	/**
@@ -177,12 +199,10 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 		changeValue(reduce(getValues()));
 	}
 
-	abstract protected VAL reduce(Stream<VAL> values);
+	abstract protected REDUCED_VAL reduce(Stream<VAL> values);
 
 	public VAL getValueAt(int i) {
-		return i>=0 && i<chain.size() && chain.get(i).chained!=null && chain.get(i).chained.getVal()!=null
-				? chain.get(i).chained.getVal()
-				: null;
+		return i>=0 && i<chain.size() && chain.get(i).chained!=null ? chain.get(i).chained.getVal() : null;
 	}
 
 	/** Return individual chained values that are enabled and non null. */
@@ -229,7 +249,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 		}
 
 		/** @return position index within the chain from 0 to chain.size() */
-		public final int getIndex() {
+		public int getIndex() {
 			var i =  chain.indexOf(this);
 			return i==-1 ? initialIndex : i;
 		}
@@ -238,7 +258,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 			int i = getIndex();
 			boolean h = isHomogeneous();
 
-			rem.setDisable(h && i==0);
+			rem.setDisable(h && i==0 && root.getChildren().size()!=2);
 			add.setDisable(h && i>=maxChainLength.get()-1);
 			setDisable(!h);
 
@@ -283,39 +303,53 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 		}
 	}
 
-	public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN> {
+	public class NullLink extends HBox {
+		private final Icon rem = new Icon(MINUS, 13);
+		private final Icon add = new Icon(PLUS, 13);
+
+		public NullLink() {
+			setSpacing(5);
+			setPadding(new Insets(0, 0, 0, 5));
+			setAlignment(CENTER_LEFT);
+			getChildren().addAll(rem, add);
+			rem.setOnMouseClicked(e -> { onClear(); onUserItemsCleared.invoke(); });
+			add.setOnMouseClicked(e -> { onUserItemAdded.invoke(addChained(getIndex() + 1)); });
+			rem.tooltip(remAllTooltip);
+			add.tooltip(addTooltip);
+			updateIcons();
+		}
+
+		public int getIndex() {
+			return -1;
+		}
+
+		public void updateIcons() {
+			if (editable.getValue()) getChildren().setAll(rem, add);
+			else getChildren().clear();
+		}
+
+		public void onClear() {
+			chain.clear();
+			growTo1();
+			generateValue();
+		}
+	}
+
+	public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN,List<V>> {
 
 		public ListConfigField(Supplier<IN> chainedFactory) {
-			super(null, chainedFactory);
+			this(0, chainedFactory);
+		}
+
+		public ListConfigField(int initialLength, Supplier<IN> chainedFactory) {
+			super(initialLength, List.of(), chainedFactory);
 			inconsistent_state = false;
 			generateValue();
 		}
 
-		public ListConfigField(int length, Supplier<IN> chainedFactory) {
-			super(length, null, chainedFactory);
-			inconsistent_state = false;
-			generateValue();
-		}
-
 		@Override
-		protected void generateValue() {
-			changeValue(null);
-		}
-
-		@Override
-		protected void changeValue(V nv) {
-			setValue(nv);
-			onItemChange.accept(nv);
-		}
-
-		@Override
-		public V getVal() {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		protected V reduce(Stream<V> values) {
-			throw new UnsupportedOperationException("Not supported yet.");
+		protected List<V> reduce(Stream<V> values) {
+			return values.collect(toList());
 		}
 
 	}

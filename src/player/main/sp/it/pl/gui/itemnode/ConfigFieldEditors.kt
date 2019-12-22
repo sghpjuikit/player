@@ -177,6 +177,7 @@ private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<
 
    init {
       chain = ListConfigField(0) { ConfigurableField(lc.a.itemFactory?.invoke()) }
+      chain.isHeaderVisible = true
       chain.editable syncFrom when {
          lc.a.itemFactory is FailFactory -> vAlways(false)
          else -> !chain.getNode().disableProperty()
@@ -191,6 +192,11 @@ private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<
       chain.onUserItemRemoved += {
          isSyntheticLinkEvent = true
          list -= it.chained.getVal()
+         isSyntheticLinkEvent = false
+      }
+      chain.onUserItemsCleared += {
+         isSyntheticLinkEvent = true
+         list.clear()
          isSyntheticLinkEvent = false
       }
       chain.onUserItemEnabled += {
@@ -214,7 +220,6 @@ private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<
             chain.chain.find { it.chained.getVal()==it }?.let { chain.chain.remove(it) }
       }
 
-      chain.growTo1()
    }
 
    private fun isNullableOk(it: T?) = lc.a.isNullable || it!=null

@@ -13,7 +13,7 @@ import static sp.it.util.functional.Util.IS;
 /**
  * Chained filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
  */
-public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> extends ChainValueNode<Predicate<T>,FieldedPredicateItemNode<T,F>> {
+public class FieldedPredicateChainItemNode<T, F extends ObjectField<T,Object>> extends ChainValueNode<Predicate<T>, FieldedPredicateItemNode<T,F>, Predicate<T>> {
 
 	protected Supplier<PredicateData<F>> supplier;
 	protected final List<PredicateData<F>> data = new ArrayList<>();

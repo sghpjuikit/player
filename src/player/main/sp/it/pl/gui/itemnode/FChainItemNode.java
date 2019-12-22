@@ -39,7 +39,7 @@ import static sp.it.util.functional.Util.IDENTITY;
  * consumers (no output) functions. They can be anywhere within the chain.
  * </ul>
  */
-public class FChainItemNode extends ChainValueNode<F1<? super Object, ? extends Object>, FItemNode<Object,Object>> {
+public class FChainItemNode extends ChainValueNode<F1<? super Object, ? extends Object>, FItemNode<Object,Object>, F1<? super Object, Object>> {
 
 	private final Function<Class,PrefList<PF<? super Object, ?>>> fp;
 	private Class type_in = Void.class;
@@ -158,8 +158,8 @@ public class FChainItemNode extends ChainValueNode<F1<? super Object, ? extends 
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected F1<? super Object, Object> reduce(Stream<F1<? super Object, ?>> ƒs) {
-		return ƒs.map(ƒ -> ((F1) ƒ).wrap(handleNullIn, handleNullOut))
+	protected F1<? super Object, Object> reduce(Stream<F1<? super Object, ?>> fs) {
+		return fs.map(f -> ((F1) f).wrap(handleNullIn, handleNullOut))
 				.reduce(F1::andThen)
 				.orElse(x -> x);
 	}

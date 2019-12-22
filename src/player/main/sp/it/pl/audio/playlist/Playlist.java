@@ -29,6 +29,7 @@ import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.ValueConfig;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER;
@@ -45,7 +46,6 @@ import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.file.FileType.DIRECTORY;
 import static sp.it.util.file.Util.getFilesR;
 import static sp.it.util.functional.Util.map;
-import static sp.it.util.functional.Util.toS;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
@@ -676,7 +676,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 	@Override
 	public String toString() {
-		return "Playlist: " + id + " " + toS(this);
+		var postfix = size()>10 ? ", ..." : "";
+		return "Playlist id=" + id + " size=" + size() + " items=" + stream().limit(10).map(it -> it.toString()).collect(joining(", ")) + postfix;
 	}
 
 	// TODO: move methods to PlaylistManager
@@ -689,8 +690,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		chooseFiles(
 				"Choose Audio Files",
 			APP.audio.getBrowse(),
-				APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
-				audioExtensionFilter()
+			APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
+			audioExtensionFilter()
 		).ifOkUse(files -> {
 			APP.audio.setBrowse(files.get(0).getParentFile());
 					List<URI> queue = new ArrayList<>();
@@ -716,7 +717,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 						"Choose Audio Files From Directory Tree",
 						DIRECTORY,
 			APP.audio.getBrowse(),
-						APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
+			APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
 		).ifOkUse(dir -> {
 			APP.audio.setBrowse(dir);
 					List<URI> queue = new ArrayList<>();

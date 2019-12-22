@@ -187,7 +187,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
 
       table.defaultColumnInfo   // trigger menu initialization
-      table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
+      table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
 
       table.onEventDown(KEY_PRESSED, ENTER, false) {
          if (!table.selectionModel.isEmpty) {

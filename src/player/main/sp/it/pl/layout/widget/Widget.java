@@ -45,6 +45,7 @@ import sp.it.util.reactive.Disposer;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.deepEquals;
+import static java.util.stream.Collectors.joining;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orNone;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
@@ -55,7 +56,6 @@ import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.split;
-import static sp.it.util.functional.Util.toS;
 import static sp.it.util.ui.UtilKt.findParent;
 import static sp.it.util.ui.UtilKt.onNodeDispose;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -381,7 +381,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
 			getController().io.i.getInputs().forEach(i ->
-				properties.put("io" + i.getName(), toS(i.getSources(), o -> o.id.toString(), ":"))
+				properties.put("io" + i.getName(), i.getSources().stream().map(o -> o.id.toString()).collect(joining(":")))
 			);
 		} else {
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are

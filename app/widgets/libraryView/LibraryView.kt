@@ -62,6 +62,7 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.values
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
@@ -202,7 +203,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
 
       table.defaultColumnInfo   // trigger menu initialization
-      table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
+      table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
 
       // column context menu - add group by menu
       val fieldMenu = Menu("Group by")

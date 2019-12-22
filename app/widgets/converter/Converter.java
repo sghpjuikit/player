@@ -88,7 +88,6 @@ import static sp.it.util.functional.Util.mapSlice;
 import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.streamBi;
-import static sp.it.util.functional.Util.toS;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.math.UtilKt.max;
 import static sp.it.util.math.UtilKt.min;
@@ -501,7 +500,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             super("Write file", Void.class, 1, list("Contents"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data -> {
                 var file = new File(loc.get(), nam.get()+"."+ext.get());
-                var text = toS(data.get("Contents"),"\n");
+                var text = String.join("\n", data.get("Contents"));
                 writeTextTry(file, text);
             };
         }

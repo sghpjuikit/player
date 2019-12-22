@@ -8,6 +8,7 @@ import javafx.scene.text.FontWeight
 import javafx.util.Duration
 import sp.it.pl.gui.UiManager.SkinCss
 import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.gui.objects.table.TableColumnInfo
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.nameUi
 import sp.it.util.Util.enumToHuman
@@ -99,8 +100,11 @@ class CoreConverter: Core {
       addT<FileSize>(toS, { FileSize.fromString(it).orMessage() })
       addT<StrExF>(toS, { StrExF.fromString(it).orMessage() })
       addT<NofX>(toS, { NofX.fromString(it).orMessage() })
+      addT<TableColumnInfo>(toS, { TableColumnInfo.fromString(it).orMessage() })
+      addT<TableColumnInfo.ColumnInfo>(toS, { TableColumnInfo.ColumnInfo.fromString(it).orMessage() })
+      addT<TableColumnInfo.ColumnSortInfo>(toS, { TableColumnInfo.ColumnSortInfo.fromString(it).orMessage() })
       addT<Font>(
-         { String.format("%s, %s", it.name, it.size) },
+         { "${it.name}, ${it.size}" },
          tryF(NFE::class, OBE::class) {
             val i = it.indexOf(',')
             val name = it.substring(0, i)

@@ -11,8 +11,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
+import static java.util.stream.Collectors.joining;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.TryKt.runTry;
 import static sp.it.util.functional.Util.list;
@@ -152,7 +154,8 @@ public interface Parsers {
                 }
             };
         } catch (NoSuchMethodException|SecurityException e) {
-            throw new RuntimeException("Converter cant find constructor suitable for parsing " + type + " with parameters" + sp.it.util.functional.Util.toS(", ", params), e);
+            var paramS = Stream.of(params).map(it -> it.toString()).collect(joining(", "));
+            throw new RuntimeException("Converter cant find constructor suitable for parsing type=" + type + " with parameters=" + paramS, e);
         }
     }
 

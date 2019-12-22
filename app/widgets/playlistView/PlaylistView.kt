@@ -36,6 +36,7 @@ import sp.it.util.conf.only
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.asIf
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -133,7 +134,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.footerVisible syncFrom tableShowFooter on onClose
       table.scrollToPlaying syncFrom scrollToPlaying on onClose
       table.defaultColumnInfo   // trigger menu initialization
-      table.columnState = widget.properties.getS("columns")?.net(ColumnState::fromString) ?: table.defaultColumnInfo
+      table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
+
       table.filterPane.buttonAdjuster.value = { i ->
          i.onClickDo { playVisible.toggle() }
          playVisible sync {

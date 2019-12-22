@@ -215,7 +215,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			defColInfo.columns.addAll(map(getFields(), colStateFact));
 			// insert index column state manually
 			defColInfo.columns.removeIf(f -> f.name.equals(ColumnField.INDEX.name()));
-			defColInfo.columns.forEach(t -> t.position++);
+			defColInfo.columns.forEach(t -> t.position++);  //TODO: position should be immutable
 			defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
 			// leave sort order empty
 

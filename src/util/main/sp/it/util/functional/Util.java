@@ -39,7 +39,6 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
@@ -143,12 +142,6 @@ public interface Util {
 	}
 
 /* ---------- COLLECTORS -------------------------------------------------------------------------------------------- */
-
-	/**
-	 * Simple Collector concatenating Strings to coma separated list (CSList)
-	 * by delimiter ", ".
-	 */
-	Collector<CharSequence,?,String> toCSList = Collectors.joining(", ");
 
 	/** Collector returning the minimum element. */
 	static <V, C extends Comparable<? super C>> Collector<V,?,Optional<V>> minBy(F1<? super V,C> by) {
@@ -273,77 +266,6 @@ public interface Util {
 	}
 
 /* ---------- COLLECTION -> OBJECT ------------------------------------------------------------------------------ */
-
-	/**
-	 * Converts array to string, joining string representations of the
-	 * elements by separator.
-	 *
-	 * @param a array
-	 * @param m element to string mapper
-	 * @param s delimiter/separator
-	 * @return s separated representation of the array
-	 */
-	static <T> String toS(T[] a, Function<? super T, ? extends String> m, String s) {
-		return Stream.of(a).map(m).collect(joining(s));
-	}
-
-	/**
-	 * Converts array to string, joining string representations of the
-	 * elements by ', '.
-	 *
-	 * @param a array
-	 * @return comma separated string representation of the array
-	 */
-	@SafeVarargs
-	static <T> String toS(String s, T... a) {
-		return stream(a).map(Objects::toString).collect(joining(s));
-	}
-
-	/**
-	 * Converts collection to string, joining string representations of the
-	 * elements by separator
-	 *
-	 * @param c collection
-	 * @param m element to string mapper
-	 * @param s delimiter/separator
-	 * @return s separated representation of the collection
-	 */
-	static <T> String toS(Collection<? extends T> c, Function<? super T, ? extends String> m, String s) {
-		return c.stream().map(m).collect(joining(s));
-	}
-
-	/**
-	 * Joins collection of strings to string using delimiter
-	 *
-	 * @param c collection
-	 * @param s delimiter/separator
-	 * @return s separated representation of the collection
-	 */
-	static String toS(Collection<? extends String> c, String s) {
-		return c.stream().collect(joining(s));
-	}
-
-	/**
-	 * Converts collection to string, joining string representations of the
-	 * elements by ', '.
-	 *
-	 * @param c collection
-	 * @param m element to string mapper
-	 * @return comma separated string representation of the objects in the collection
-	 */
-	static <T> String toS(Collection<? extends T> c, Function<? super T, ? extends String> m) {
-		return c.stream().map(m).collect(toCSList);
-	}
-
-	/**
-	 * Equivalent to {@link #toS(java.util.Collection, java.util.function.Function)}.
-	 *
-	 * @param c collection
-	 * @return comma separated string representations of the objects in the collection
-	 */
-	static <T> String toS(Collection<? extends T> c) {
-		return c.stream().map(Objects::toString).collect(toCSList);
-	}
 
 	/**
 	 * Checks whether all elements of the list are equal by some property

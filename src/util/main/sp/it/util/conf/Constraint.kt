@@ -75,7 +75,7 @@ interface Constraint<in T> {
       override fun message() = "All items of the list must be non null"
    }
 
-   object ObjectNonNull: Constraint<Any> {
+   object ObjectNonNull: Constraint<Any?> {
       override fun isValid(value: Any?) = value!=null
       override fun message() = "Value must not be null"
    }
@@ -92,7 +92,7 @@ interface Constraint<in T> {
 
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
-   class ReadOnlyIf(val condition: ObservableValue<Boolean>): Constraint<Any> {
+   class ReadOnlyIf(val condition: ObservableValue<Boolean>): Constraint<Any?> {
       constructor(condition: ObservableValue<Boolean>, unless: Boolean): this(
          object: BooleanBinding() {
             init {

@@ -10,6 +10,7 @@ import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
+import sp.it.util.dev.fail
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.Functors.PF
@@ -26,7 +27,7 @@ import java.util.function.Supplier
  * @param <I> type of function input
  * @param <O> type of function output
  */
-class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueNode<F1<in I, out O>?>(null) {
+class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueNode<F1<in I, out O>>(throwingF()) {
    private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
    private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
    private val configs = ArrayList<ConfigField<*>>()
@@ -57,8 +58,6 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
       root.lay(ALWAYS) += paramB
    }
 
-   override fun getVal() = super.getVal()!!
-
    override fun getNode() = root
 
    override fun focus() = configs.firstOrNull()?.focusEditor() ?: Unit
@@ -83,6 +82,8 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
    }
 
    companion object {
+
+      private fun throwingF() = F1<Any?, Nothing> { fail { "Initial function value. Must not be invoked" } }
 
       private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
 

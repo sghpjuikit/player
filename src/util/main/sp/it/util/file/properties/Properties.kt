@@ -22,17 +22,21 @@ sealed class PropVal {
    abstract val val1: String?
    /** Transform value to multi-value. Single-value is wrapped in a list. */
    abstract val valN: List<String>
+   /** Number of values: single-value returns 1, multi-value 0-N. */
+   abstract fun size(): Int
 
    /** Property value with a cardinality 1. */
    class PropVal1(val value: String): PropVal() {
       override val val1: String get() = value
       override val valN get() = listOf(value)
+      override fun size() = 1
    }
 
    /** Property value with a cardinality N. */
    class PropValN(val value: List<String>): PropVal() {
-      override val val1 get() = value.first()
+      override val val1 get() = value.firstOrNull()
       override val valN get() = value
+      override fun size() = value.size
    }
 }
 

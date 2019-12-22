@@ -41,7 +41,7 @@ import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.ConfigImpl.ListConfig;
+import sp.it.util.conf.ListConfig;
 import sp.it.util.conf.PropertyConfig;
 import sp.it.util.conf.ReadOnlyPropertyConfig;
 import sp.it.util.conf.Configurable;
@@ -133,8 +133,8 @@ abstract public class ConfigField<T> {
         put(ObservableList.class, config -> {
             if (config instanceof ListConfig) {
                 return Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType)
-                    ? new PaginatedObservableListCF(config)
-                    : new ObservableListCF<>(config);
+                    ? new PaginatedObservableListCF((ListConfig) config)
+                    : new ObservableListCF<>((ListConfig) config);
             } else {
                 return new GeneralCF<>(config);
             }
@@ -839,9 +839,9 @@ abstract public class ConfigField<T> {
             configPane
         );
 
-        public PaginatedObservableListCF(Config<ObservableList<Configurable<?>>> c) {
+        public PaginatedObservableListCF(ListConfig<Configurable<?>> c) {
             super(c);
-            lc = (ListConfig<Configurable<?>>) c;
+            lc = c;
             next();
         }
 

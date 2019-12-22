@@ -10,24 +10,23 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField
 import sp.it.pl.gui.itemnode.textfield.FileTextField
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.main.toUi
-import sp.it.util.Util.enumToHuman
+import sp.it.util.access.vAlways
 import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.Config
-import sp.it.util.conf.ConfigImpl
-import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.Constraint.FileRelative
-import sp.it.util.conf.Constraint.HasNonNullElements
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.PreserveOrder
 import sp.it.util.conf.Constraint.UiConverter
+import sp.it.util.conf.ListConfig
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.by
-import sp.it.util.functional.invoke
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
@@ -35,7 +34,6 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.syncFrom
-import sp.it.util.type.isSuperclassOf
 import java.io.File
 
 open class EnumerableCF<T>: ConfigField<T> {
@@ -160,33 +158,29 @@ private class KeyCodeCF: EnumerableCF<KeyCode> {
       n.onKeyReleased = EventHandler { it.consume() }
       n.onKeyTyped = EventHandler { it.consume() }
       n.onEventUp(ANY) {
-         // Note that in case of UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any
-         // which cause selection change) the KEY_PRESSED event will not get fired!
-         //
-         // Hence we set the value in case of key event of any type. This causes the value to
-         // be set twice, but should be all right since the value is the same anyway.
+         // UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any which cause selection change) do not fire
+         // KEY_PRESSED event. Hence set the KeyEvent.ANY. Causes the value to be set twice, but that's idempotent
          n.value = it.code
-
          it.consume()
       }
    }
 
 }
 
-private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<ObservableList<T>>(c) {
-
-   private val lc = c as ConfigImpl.ListConfig<T>
-   private val chain: ChainValueNode.ListConfigField<T, ConfigurableField>
+private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<T>>(c) {
+   private val lc = c
+   private val list = lc.a.list
+   private val chain: ListConfigField<T?, ConfigurableField>
    private var isSyntheticLinkEvent = false
    private var isSyntheticListEvent = false
    private var isSyntheticSetEvent = false
-   private val isNullable = c.findConstraint<HasNonNullElements>()==null
-   private val list = lc.a.list
 
    init {
-
-      chain = ChainValueNode.ListConfigField<T, ConfigurableField>(0) { ConfigurableField(lc.a.itemType, lc.a.factory()) }
-      chain.editable syncFrom !chain.getNode().disableProperty()
+      chain = ListConfigField(0) { ConfigurableField(lc.a.itemFactory?.invoke()) }
+      chain.editable syncFrom when {
+         lc.a.itemFactory is FailFactory -> vAlways(false)
+         else -> !chain.getNode().disableProperty()
+      }
 
       // bind list to chain
       chain.onUserItemAdded += {
@@ -213,7 +207,7 @@ private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<Obs
       // bind chain to list
       list.onItemSync {
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
-            chain.addChained(ConfigurableField(lc.a.itemType, it))
+            chain.addChained(ConfigurableField(it))
       }
       list.onItemRemoved {
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
@@ -223,7 +217,7 @@ private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<Obs
       chain.growTo1()
    }
 
-   private fun isNullableOk(it: T?) = isNullable || it!=null
+   private fun isNullableOk(it: T?) = lc.a.isNullable || it!=null
 
    override fun getEditor() = chain.getNode()
 
@@ -231,33 +225,23 @@ private class ObservableListCF<T>(c: Config<ObservableList<T>>): ConfigField<Obs
 
    override fun refreshItem() {}
 
-   private inner class ConfigurableField(private val type: Class<T>, value: T?): ValueNode<T?>(value) {
-      private val pane = ConfigPane<T>()
-
-      // TODO: improve, as is it can return wrong value
-      val isAddableType: Boolean
-         get() {
-            if (Configurable::class.isSuperclassOf(type)) return false
-            val configs = pane.getConfigFields()
-            if (configs.size!=1) return false
-            val config1Type = configs[0].config.type
-            return config1Type==type
-         }
+   private inner class ConfigurableField(initialValue: T?): ValueNode<T?>(initialValue) {
+      private val pane = ConfigPane<T?>()
 
       init {
          pane.onChange = Runnable {
-            if (isAddableType && !isSyntheticListEvent && !isSyntheticLinkEvent) {
+            if (lc.a.isSimpleItemType && !isSyntheticListEvent && !isSyntheticLinkEvent) {
                isSyntheticSetEvent = true
                list setTo chain.chain.map { it.chained.getVal() }.filter { isNullableOk(it) }
                isSyntheticSetEvent = false
             }
          }
-         pane.configure(lc.toConfigurable(this.value))
+         pane.configure(lc.toConfigurable(value))
       }
 
       override fun getNode() = pane
 
-      override fun getVal() = if (isAddableType) pane.getConfigFields()[0].configValue else value
+      override fun getVal(): T? = if (lc.a.isSimpleItemType) pane.getConfigFields()[0].configValue else value
 
    }
 }

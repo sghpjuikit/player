@@ -8,7 +8,7 @@ import java.util.function.Consumer
 abstract class ItemNode<out T> {
 
    /** @return current value */
-   abstract fun getVal(): T?
+   abstract fun getVal(): T
 
    /** @return the root node */
    abstract fun getNode(): Node
@@ -18,10 +18,10 @@ abstract class ItemNode<out T> {
 }
 
 /** Item node which directly holds the value. */
-abstract class ValueNodeBase<T: Any?>(initialValue: T): ItemNode<T>() {
-   @JvmField protected var value: T = initialValue
+abstract class ValueNodeBase<T>(initialValue: T): ItemNode<T>() {
+   protected var value: T = initialValue
 
-   override fun getVal() = value
+   override fun getVal(): T = value
 }
 
 /** Item node which directly holds the value and fires value change events. */

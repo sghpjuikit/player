@@ -61,7 +61,6 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 	/** Creates unlimited chain of 1 initial chained element. */
 	public ChainValueNode(VAL initialValue) {
 		super(initialValue);
-		editable.attachC(it -> System.out.println("editable " + it));
 		editable.attachC(it -> chain.forEach(Link::updateIcons));
 	}
 
@@ -305,7 +304,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>> extends Valu
 
 		@Override
 		protected void changeValue(V nv) {
-			value = nv;
+			setValue(nv);
 			onItemChange.accept(nv);
 		}
 

@@ -6,7 +6,6 @@ import java.util.Set;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import sp.it.util.access.OrV;
-import sp.it.util.conf.ConfigImpl.ListConfig;
 import static java.util.stream.Collectors.toList;
 import static sp.it.util.conf.ConfigDefinitionKt.toDef;
 import static sp.it.util.conf.ConfigurationUtilKt.computeConfigGroup;

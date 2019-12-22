@@ -2,20 +2,67 @@ package sp.it.util.conf
 
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import javafx.collections.ObservableList
 import sp.it.util.access.EnumerableValue
 import sp.it.util.access.OrV
+import sp.it.util.collections.materialize
+import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.ConfigImpl.ConfigBase
+import sp.it.util.conf.Constraint.HasNonNullElements
+import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.OrPropertyConfig.OrValue
+import sp.it.util.dev.fail
+import sp.it.util.dev.failIf
 import sp.it.util.file.properties.PropVal
+import sp.it.util.file.properties.PropVal.PropVal1
+import sp.it.util.file.properties.PropVal.PropValN
+import sp.it.util.functional.asIs
+import sp.it.util.functional.compose
 import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
+import sp.it.util.type.Util
 import java.lang.reflect.Field
+import java.util.HashSet
 import java.util.function.Supplier
 
+interface ConfigImpl {
+
+   abstract class ConfigBase<T> constructor(
+      type: Class<T>,
+      override val name: String,
+      override val nameUi: String,
+      override val defaultValue: T,
+      override val group: String,
+      override val info: String,
+      override val isEditable: EditMode
+   ): Config<T>() {
+
+      private val typeImpl: Class<T> = Util.unPrimitivize(type)
+      private var constraintsImpl: HashSet<Constraint<T>>? = null
+
+      override val constraints
+         get() = constraintsImpl.orEmpty()
+
+      constructor(type: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, `val`: T, group: String): this(type, name, if (c.name.isEmpty()) name else c.name, `val`, group, c.info, c.editable) {
+         constraintsImpl = if (constraints.isEmpty()) null else HashSet(constraints)
+      }
+
+      override fun getType(): Class<T> = typeImpl
+
+      @SafeVarargs
+      override fun addConstraints(vararg constraints: Constraint<T>): ConfigBase<T> {
+         if (constraintsImpl==null) constraintsImpl = constraints.toHashSet()
+         else constraintsImpl!!.addAll(constraints)
+         return this
+      }
+   }
+
+}
 
 /** [Config] wrapping a value. Not observable. */
 class ValueConfig<V>: ConfigBase<V> {
-
    private var value: V
 
    constructor(type: Class<V>, name: String, nameUi: String, value: V, group: String, info: String, editable: EditMode): super(type, name, nameUi, value, group, info, editable) {
@@ -39,7 +86,6 @@ class ValueConfig<V>: ConfigBase<V> {
 
 /** [Config] that does not store value, instead uses the getter and setter which provide/accept it. Not observable. */
 class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
-
    private val setter: (T) -> Unit
    private val getter: () -> T
 
@@ -75,7 +121,7 @@ class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
 
 /** [Config] backed by [Field] and an object instance. Can wrap both static or instance fields. */
 @Suppress("UNCHECKED_CAST")
-open class FieldConfig<T> (
+open class FieldConfig<T>(
    name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, private val instance: Any?, group: String, private val field: Field
 ): ConfigBase<T>(field.type as Class<T>, name, c, constraints, field.value<T>(instance), group) {
 
@@ -161,7 +207,7 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    }
 
    override var valueAsProperty: PropVal
-      get() = PropVal.PropValN(
+      get() = PropValN(
          listOf(
             Parsers.DEFAULT.toS(property.override.value),
             Parsers.DEFAULT.toS(property.real.value)
@@ -182,4 +228,71 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
       }
 
    data class OrValue<T>(val override: Boolean, val value: T)
+}
+
+
+@Suppress("UNCHECKED_CAST")
+open class ListConfig<T>(
+   name: String, def: ConfigDefinition, @JvmField val a: ConfList<T>, group: String, constraints: Set<Constraint<ObservableList<T>>>, elementConstraints: Set<Constraint<T>>
+): ConfigBase<ObservableList<T>>(ObservableList::class.java as Class<ObservableList<T>>, name, def, constraints, a.list, group) {
+
+   val toConfigurable: (T?) -> Configurable<*>
+   private val defaultItems: List<T>?
+
+   // TODO: support multi-value
+   override var valueAsProperty: PropVal
+      get() = PropValN(
+         value.map {
+            a.itemToConfigurable(it).getFields().joinToString(";") {
+               it.valueAsProperty.val1 ?: fail { "Config $name supports only single-value within multi value" }
+            }
+         }
+      )
+      set(property) {
+         val isFixedSizeAndHasConfigurableItems = isFixedSizeAndHasConfigurableItems
+         a.list setTo property.valN.asSequence()
+            .mapIndexed { i, s ->
+               val item = if (isFixedSizeAndHasConfigurableItems) a.list[i] else a.itemFactory?.invoke()
+               val configs = a.itemToConfigurable(item).getFields().toList().materialize()
+               val values = s.split(";")
+               if (configs.size==values.size)
+                  (configs zip values).forEach { (c, v) -> c.valueAsProperty = PropVal1(v) }
+
+               (if (a.isSimpleItemType) configs[0].value as T else item)
+            }
+            .filter(if (a.isNullable) { _ -> true } else { it -> it!=null })
+      }
+
+   private val isFixedSizeAndHasConfigurableItems: Boolean = a.itemFactory===FailFactory
+
+   init {
+      failIf(isReadOnly(a.list)!=def.editable.isByNone)
+
+      defaultItems = if (isFixedSizeAndHasConfigurableItems) null else a.list.materialize()
+      toConfigurable = a.itemToConfigurable.compose { configurable ->
+         if (configurable is Config<*>) {
+            val config = configurable.asIs<Config<T>>()
+            config.addConstraints(elementConstraints)
+            if (!a.isNullable) config.addConstraints(ObjectNonNull)
+            if (!isEditable.isByUser) config.addConstraints(ReadOnlyIf(true))
+         }
+         configurable
+      }
+
+      if (!a.isNullable) addConstraints(HasNonNullElements)
+   }
+
+   override fun getValue() = a.list
+
+   override fun setValue(value: ObservableList<T>) {}
+
+   override fun setValueToDefault() {
+      if (isFixedSizeAndHasConfigurableItems)
+         a.list setTo defaultItems.orEmpty()
+   }
+
+   companion object {
+      internal fun isReadOnly(list: ObservableList<*>): Boolean = list.javaClass.simpleName.toLowerCase().contains("unmodifiable")
+   }
+
 }

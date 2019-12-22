@@ -70,9 +70,8 @@ fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Conf
 fun Any.toConfigurableFx(): Configurable<*> {
    val cs = ArrayList<Config<Any?>>()
    forEachJavaFXProperty(this) { p, name, type -> cs.add(Config.forValue(type, name, p)) }
-   return ListConfigurable(cs)
+   return cs.toListConfigurable()
 }
 
 /** @return configurable wrapping this list */
-@Suppress("UNCHECKED_CAST")
-fun <T> Collection<Config<out T>>.toListConfigurable(): ListConfigurable<*> = ListConfigurable(this as Collection<Config<T>>)
+fun <T> Collection<Config<out T>>.toListConfigurable() = ListConfigurable.heterogeneous(this)

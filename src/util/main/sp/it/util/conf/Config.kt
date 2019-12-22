@@ -10,7 +10,6 @@ import sp.it.util.access.OrV
 import sp.it.util.access.TypedValue
 import sp.it.util.access.V
 import sp.it.util.access.vAlways
-import sp.it.util.conf.ConfigImpl.ListConfig
 import sp.it.util.conf.Constraint.NoPersist
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.ValueSet

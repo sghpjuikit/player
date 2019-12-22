@@ -4,6 +4,7 @@ package sp.it.util.conf
 
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
 import sp.it.util.access.V
 import sp.it.util.access.v
@@ -11,7 +12,6 @@ import sp.it.util.access.vn
 import sp.it.util.access.vx
 import sp.it.util.action.Action
 import sp.it.util.action.IsAction
-import sp.it.util.conf.ConfigImpl.ListConfig
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
@@ -37,10 +37,12 @@ fun <T: Any?> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).but(Constraint.ObjectNonNull)
-inline fun <reified T: Any?> cList(): ConfL<T> = ConfL(T::class.java, null is T)
+inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(T::class.java, null is T, observableArrayList(*initialItems)))
+inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(T::class.java, itemFactory, itemToConfigurable, null is T, *initialItems))
 
-/** Adds the specified constraint for this [Config], which allows value restriction and fine-grained behavior. */
+/** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
+/** Adds the specified constraint for elements of the list of this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: ConfL<T>> C.butElement(vararg restrictions: Constraint<T>) = apply { elementConstraints += restrictions }
 
 fun <T: Any?, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
@@ -236,7 +238,7 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
    }
 }
 
-class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<ObservableList<T>>() {
+class ConfL<T: Any?>(val list: ConfList<T>): Conf<ObservableList<T>>() {
    val elementConstraints = HashSet<Constraint<T>>()
 
    operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, ObservableList<T>> {
@@ -247,7 +249,6 @@ class ConfL<T: Any?>(val type: Class<T>, val isNullable: Boolean): Conf<Observab
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
-      val list = ConfList(type, isNullable)
       val c = ListConfig(property.name, info, list, group, constraints, elementConstraints)
       ref.configurableValueSource.initialize(c)
 

@@ -2,41 +2,36 @@ package sp.it.util.conf
 
 import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
-import sp.it.util.type.isSuperclassOf
-import java.util.function.Supplier
+import sp.it.util.conf.ConfList.Companion.FailFactory
+import sp.it.util.dev.fail
 
-private typealias ConfFactory<T> = (T) -> Configurable<*>
+private typealias ItemToConf<T> = (T) -> Configurable<*>
+private typealias ItemFac<T> = () -> T
 
 /** [ObservableList] wrapper that provides element type and factory information for user editable lists. */
-open class ConfList<T>(
+open class ConfList<T> private constructor(
    @JvmField val itemType: Class<T>,
-   @JvmField val factory: Supplier<out T?>,
-   @JvmField val toConfigurable: ConfFactory<T>,
+   @JvmField val itemFactory: ItemFac<T>?,
+   @JvmField val itemToConfigurable: ItemToConf<T?>,
    @JvmField val isNullable: Boolean,
    @JvmField val list: ObservableList<T>
 ) {
+   val isSimpleItemType: Boolean = itemFactory==null
 
-   constructor(itemType: Class<T>, isNullable: Boolean): this(itemType, NullFactory, computeDefaultToConfigurable<T>(itemType), isNullable)
+   constructor(itemType: Class<T>, isNullable: Boolean, items: ObservableList<T> = observableArrayList<T>()):
+      this(itemType, null, computeSimpleItemToConfigurable<T>(itemType), isNullable, items)
 
-   constructor(itemType: Class<T>, isNullable: Boolean, items: ObservableList<T>): this(itemType, NullFactory, computeDefaultToConfigurable<T>(itemType), isNullable, items)
+   @Suppress("UNCHECKED_CAST")
+   constructor(itemType: Class<T>, itemFactory: ItemFac<T>?, itemToConfigurable: ItemToConf<T>, isNullable: Boolean, vararg items: T):
+      this(itemType, itemFactory, { if (!isNullable && it==null) fail { "Must not be null" }; itemToConfigurable(it as T) }, isNullable, observableArrayList<T>(*items))
 
-   @SafeVarargs
-   constructor(itemType: Class<T>, factory: Supplier<out T?>, toConfigurable: ConfFactory<T>, isNullable: Boolean, vararg items: T): this(itemType, factory, toConfigurable, isNullable, observableArrayList<T>(*items))
-
-   @Suppress("ObjectLiteralToLambda")
    companion object {
 
-      @JvmField val FailFactory = object: Supplier<Nothing?> {
-         override fun get() = null
-      }
-      @JvmField val NullFactory = object: Supplier<Nothing?> {
-         override fun get() = null
+      object FailFactory: () -> Nothing {
+         override fun invoke() = fail { "Marking factory. Must not be invoked" }
       }
 
-      private fun <T> computeDefaultToConfigurable(itemType: Class<T>): ConfFactory<T> = when {
-         Configurable::class.isSuperclassOf(itemType) -> { it -> it as Configurable<*> }
-         else -> { it -> Config.forValue<T>(itemType, "Item", it as Any?) }
-      }
+      private fun <T> computeSimpleItemToConfigurable(itemType: Class<T>): ItemToConf<T?> = { Config.forValue<T>(itemType, "Item", it) }
    }
 }
 

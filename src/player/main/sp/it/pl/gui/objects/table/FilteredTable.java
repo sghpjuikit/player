@@ -331,7 +331,6 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				g.setData(THIS.getData());
 				return g;
 			});
-			maxChainLength.setValue(3);
 			setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
 			onItemChange = filterList::setPredicate;
 			setData(getFilterPredicates(filterType));

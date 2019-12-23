@@ -67,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drag & Drop support for COPY/MOVE/LINK
 - Writing certain custom fields' values not working correctly
 - `Tagger` widget displaying wrong cover in rare cases
+- View filter not working in some cases
+- View filter closing instead of focusing on Ctrl+F
 - Application search cell graphics layout
 - Application search empty tooltip visible
 - Application skin setting not restored properly

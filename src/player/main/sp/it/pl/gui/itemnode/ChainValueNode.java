@@ -55,7 +55,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	public final V<Boolean> editable = new V<>(true);
 	protected Supplier<C> chainedFactory; // final
 	protected boolean homogeneous = true;
-	public boolean inconsistent_state = true;
+	public boolean inconsistentState = true;
 	protected BiPredicate<Integer,VAL> isHomogeneous = (i, v) -> false;
 	public final Handler1<Link> onUserItemAdded = new Handler1<>();
 	public final Handler1<Link> onUserItemRemoved = new Handler1<>();
@@ -93,7 +93,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 				shrinkTo(nv.intValue());
 		});
 		chain.addListener((Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
-		inconsistent_state = false;
+		inconsistentState = false;
 	}
 
 	public Link addChained() {
@@ -173,6 +173,11 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		}
 	}
 
+	public void convergeTo(int n) {
+		shrinkTo(n);
+		growTo(n);
+	}
+
 	public int length() {
 		return chain.size();
 	}
@@ -194,8 +199,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			chain.get(chain.size() - 1).chained.focus();
 	}
 
-	protected void generateValue() {
-		if (inconsistent_state) return;
+	protected final void generateValue() {
+		if (inconsistentState) return;
 		changeValue(reduce(getValues()));
 	}
 
@@ -343,7 +348,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 		public ListConfigField(int initialLength, Supplier<IN> chainedFactory) {
 			super(initialLength, List.of(), chainedFactory);
-			inconsistent_state = false;
+			inconsistentState = false;
 			generateValue();
 		}
 

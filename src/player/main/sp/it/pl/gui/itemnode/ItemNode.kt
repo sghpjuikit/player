@@ -5,30 +5,26 @@ import sp.it.util.functional.invoke
 import java.util.function.Consumer
 
 /** Graphics with a value, usually an ui editor. */
-abstract class ItemNode<out T> {
+interface ItemNode<out T> {
 
    /** @return current value */
-   abstract fun getVal(): T
+   fun getVal(): T
 
    /** @return the root node */
-   abstract fun getNode(): Node
+   fun getNode(): Node
 
    /** Focuses this node's content, usually a primary input field. */
-   open fun focus() {}
+   fun focus() {}
 }
 
-/** Item node which directly holds the value. */
-abstract class ValueNodeBase<T>(initialValue: T): ItemNode<T>() {
+/** Item node which directly holds the value */
+abstract class ValueNode<T: Any?>(initialValue: T): ItemNode<T> {
    protected var value: T = initialValue
-
-   override fun getVal(): T = value
-}
-
-/** Item node which directly holds the value and fires value change events. */
-abstract class ValueNode<T: Any?>(initialValue: T): ValueNodeBase<T>(initialValue) {
 
    /** Value change handler invoked when value changes, consuming the new value. */
    @JvmField var onItemChange: Consumer<T> = Consumer {}
+
+   override fun getVal(): T = value
 
    /** Sets value & fires itemChange if available. Internal use only. */
    protected open fun changeValue(nv: T) {

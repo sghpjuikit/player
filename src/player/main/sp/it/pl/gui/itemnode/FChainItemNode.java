@@ -105,7 +105,7 @@ public class FChainItemNode extends ChainValueNode<F1<? super Object, ? extends 
 		chain.addListener((ListChangeListener.Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
 		maxChainLength.set(max_len);
 
-		inconsistent_state = false;
+		inconsistentState = false;
 		generateValue();
 	}
 

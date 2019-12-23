@@ -13,7 +13,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -21,7 +20,6 @@ import javafx.scene.control.IndexedCell;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Skin;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -947,7 +945,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		@SuppressWarnings("unchecked")
 		private Filter(Class<F> filterType, FilteredList<T> filterList) {
 			super(THIS -> {
-				FieldedPredicateItemNode<F,ObjectField<F,Object>> g = new FieldedPredicateItemNode<>(in -> Functors.pool.getIO(in, Boolean.class), in -> Functors.pool.getPrefIO(in, Boolean.class));
+				var g = new FieldedPredicateItemNode<F,ObjectField<F,Object>>(in -> Functors.pool.getIO(in, Boolean.class), in -> Functors.pool.getPrefIO(in, Boolean.class));
 				g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
 				g.setData(THIS.getData());
 				return g;
@@ -956,32 +954,9 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			setData(getFilterPredicates(filterType));
 			onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
 
-			EventHandler<KeyEvent> filterKeyHandler = e -> {
-				KeyCode k = e.getCode();
-				// CTRL+F -> toggle filter
-				if (k==KeyCode.F && e.isShortcutDown()) {
-					filterVisible.set(!filterVisible.get());
-					if (!filterVisible.get()) GridViewSkin.this.flow.requestFocus();
-					e.consume();
-					return;
-				}
-
-				if (e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
-				// ESC, filter not focused -> close filter
-				if (k==ESCAPE) {
-					if (filterVisible.get()) {
-						if (isEmpty()) {
-							filterVisible.set(false);
-							GridViewSkin.this.flow.requestFocus();
-						} else {
-							clear();
-						}
-						e.consume();
-					}
-				}
-			};
+			var filterKeyHandler = buildToggleOnKeyHandler(filterVisible, GridViewSkin.this.flow);
 			getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
-			getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
+			getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // filter would ignore first key stroke when filter turns visible
 		}
 	}
 

@@ -118,7 +118,7 @@ public class AlbumView extends SimpleController {
 		// update filters of VALUE type, we must wat until skin has been built
 		sync1If(view.skinProperty(), v -> v!=null, skin -> {
 			Metadata.Field<String> f = ALBUM;
-			view.implGetSkin().filter.inconsistent_state = true;
+			view.implGetSkin().filter.inconsistentState = true;
 			view.implGetSkin().filter.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
 			view.implGetSkin().filter.setData(map(MetadataGroup.Field.Companion.getAll(), mgf -> new PredicateData<ObjectField<MetadataGroup,Object>>(mgf.toString(f), mgf.getType(f), (MetadataGroup.Field) mgf)));
 			view.implGetSkin().filter.shrinkTo(0);

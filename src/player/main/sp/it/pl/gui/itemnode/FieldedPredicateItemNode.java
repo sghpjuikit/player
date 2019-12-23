@@ -140,8 +140,8 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		inconsistentState = true;
 		if (config!=null) config.clear();
 		inconsistentState = false;
-		empty = true;
 		changeValue((Predicate<V>) IS);
+		empty = true;
 	}
 
 	@SuppressWarnings("unchecked")

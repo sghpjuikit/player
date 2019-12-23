@@ -13,8 +13,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -24,7 +22,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -113,6 +111,14 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		syncSize(menuSelected.getItems(), consumer(size -> menuSelected.setDisable(size==0)));
 		syncSize(menuOrder.getItems(), consumer(size -> menuOrder.setDisable(size==0)));
 
+		// selecting
+		root.addEventHandler(KEY_PRESSED, e -> {
+			if (e.getCode()==KeyCode.ESCAPE) {
+				getSelectionModel().clearSelection();
+				e.consume();
+			}
+		});
+
 		// searching
 		search.setColumn(mainField);
 		searchQueryLabel.textProperty().bind(search.searchQuery);
@@ -122,41 +128,11 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		primaryFilterField = mainField;
 		filterPane = new Filter(type, filteredItems);
 		filterPane.getNode().setVisible(false);
-		EventHandler<KeyEvent> filterKeyHandler = e -> {
-			KeyCode k = e.getCode();
-			// CTRL+F -> toggle filter
-			if (k==KeyCode.F && e.isShortcutDown()) {
-				filterVisible.set(!filterVisible.get());
-				if (!filterVisible.get()) requestFocus();
-				e.consume();
-				return;
-			}
-
-			// ESC -> close filter
-			if (e.getCode()==KeyCode.ESCAPE) {
-				// clear & hide filter on single ESC
-				// searchBox.clear();
-				// setFilterVisible(false);
-
-				// clear filter on 1st, hide on 2nd
-				if (filterVisible.get()) {
-					if (filterPane.isEmpty()) {
-						filterVisible.set(false);
-						requestFocus();
-					} else {
-						filterPane.clear();
-					}
-				} else {
-					getSelectionModel().clearSelection();
-				}
-				e.consume();
-			}
-		};
+		var filterKeyHandler = filterPane.buildToggleOnKeyHandler(filterVisible, this);
 		filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
-		root.addEventHandler(KEY_PRESSED, filterKeyHandler); // even filter would cause ignoring first key stroke when filter turns visible
+		root.addEventHandler(KEY_PRESSED, filterKeyHandler);  // filter would ignore first key stroke when filter turns visible
 
-		// TODO: fix the overkill
-		root.addEventFilter(Event.ANY, e -> {
+		root.addEventFilter(ScrollEvent.ANY, e -> {
 			if (search.isActive())
 				search.updateSearchStyles();
 		});
@@ -323,7 +299,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		@SuppressWarnings("unchecked")
 		public Filter(Class<T> filterType, FilteredList<T> filterList) {
 			super(THIS -> {
-				FieldedPredicateItemNode<T,ObjectField<T,Object>> g = new FieldedPredicateItemNode<>(
+				var g = new FieldedPredicateItemNode<T,ObjectField<T,Object>>(
 					in -> Functors.pool.getIO(in, Boolean.class),
 					in -> Functors.pool.getPrefIO(in, Boolean.class)
 				);

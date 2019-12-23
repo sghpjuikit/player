@@ -14,6 +14,7 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.Functors.PF
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
@@ -60,7 +61,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
 
    override fun getNode() = root
 
-   override fun focus() = configs.firstOrNull()?.focusEditor() ?: Unit
+   override fun focus() = configs.firstOrNull()?.focusEditor().toUnit()
 
    fun getTypeIn(): Class<*> = fCB.value?.`in` ?: Void::class.java
 

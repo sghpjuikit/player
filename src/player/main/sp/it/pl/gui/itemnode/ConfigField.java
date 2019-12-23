@@ -452,7 +452,6 @@ abstract public class ConfigField<T> {
         @Override
         public void focusEditor() {
             editor.requestFocus();
-            editor.selectAll();
         }
 
         @Override

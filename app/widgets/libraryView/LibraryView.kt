@@ -61,7 +61,6 @@ import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.values
 import sp.it.util.functional.invoke
-import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -76,6 +75,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.x
+import java.util.function.Supplier
 import kotlin.streams.toList
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
@@ -282,14 +282,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
       // update filters
       val f = fieldFilter.value
-      table.filterPane.inconsistent_state = true
-      table.filterPane.setPrefTypeSupplier { PredicateData.ofField(VALUE) }
+      table.filterPane.inconsistentState = true
+      table.filterPane.prefTypeSupplier = Supplier { PredicateData.ofField(VALUE) }
       table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
-      if (table.filterVisible.value) {
-         table.filterPane.shrinkTo(0)
-         table.filterPane.growTo1()
-         table.filterPane.clear()
-      }
+      table.filterPane.clear()
       if (refreshItems) setItems(inputItems.value)
    }
 

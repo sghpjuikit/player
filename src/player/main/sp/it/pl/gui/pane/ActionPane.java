@@ -17,8 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumnBase;
-import javafx.scene.control.skin.TableViewSkinBase;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -478,7 +476,7 @@ public class ActionPane extends OverlayPane<Object> {
 			Icon i = new Icon()
 				  .icon(action.icon)
 				  .styleclass(ICON_STYLECLASS)
-				  .onClick(e -> runAction(action, getData()));
+				  .action(e -> runAction(action, getData()));
 
 				 // Description is shown when mouse hovers
 				 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(action));

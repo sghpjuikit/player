@@ -10,7 +10,6 @@ import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.Slider
 import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
@@ -65,7 +64,7 @@ import java.io.File
    howto = "Playback actions:\n"
       + "    Control Playback\n"
       + "    Drop audio files : Adds or plays the files\n"
-      + "    Left click : Seek - move playback to seeked position\n"
+      + "    Left click : Seek - move playback to seek position\n"
       + "    Mouse drag : Seek (on release)\n"
       + "    Right click : Cancel seek\n"
       + "    Add button left click : Opens file chooser and plays files\n"
@@ -99,7 +98,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val f4 = IconFA.FAST_FORWARD.icon(24.0) { PlaylistManager.playNextItem() }
    val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { APP.audio.seekForward(seekType.value) }
    val muteB = IconFA.VOLUME_UP.icon(12.0) { APP.audio.toggleMute() }
-   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.toggleLoopMode(it) }
+   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.toggleLoopMode() }
    val playbackButtons = listOf(f1, f2, f3, f4, f5, seeker)
    private var lastCurrentTimeS: Double? = null
    private var lastRemainingTimeS: Double? = null
@@ -249,7 +248,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    }
 
    companion object {
-      fun GlyphIcons.icon(size: Double, block: (MouseEvent) -> Unit) = Icon(this, size).onClickDo(block)
+      fun GlyphIcons.icon(size: Double, block: (Icon) -> Unit) = Icon(this, size).onClickDo(block)
    }
 
    interface Layout {

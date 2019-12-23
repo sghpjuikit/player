@@ -298,19 +298,19 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             Icon applyI = new Icon(OctIcon.DATABASE)
                     .tooltip("Set as input\n\nSet transformed (visible) data as input. The original data will be lost."
                             + (isMain ? "\n\nThis edit area is main, so the new input data will update the available actions." : ""))
-                    .onClick(() -> setData(output)); // this will update applier if it is main
+                    .action(() -> setData(output)); // this will update applier if it is main
             Icon remI = new Icon(MINUS)
                     .tooltip("Remove\n\nRemove this edit area.")
-                    .onClick(() -> tas.remove(this));
+                    .action(() -> tas.remove(this));
             Icon addI = new Icon(PLUS)
                     .tooltip("Add\n\nCreate new edit area with no data.")
-                    .onClick(() -> tas.add(tas.indexOf(this)+1, new EditArea()));
+                    .action(() -> tas.add(tas.indexOf(this)+1, new EditArea()));
             Icon copyI = new Icon(ANGLE_DOUBLE_RIGHT)
                     .tooltip("Copy data\n\nCopy transformed (visible) data into new edit area."
                             + "\n\nManual text changes will be ignored unless the type of transformation output is "
                             + "text. Use a transformation to text to achieve that."
                             + "")
-                    .onClick(() -> {
+                    .action(() -> {
                         EditArea t = new EditArea();
                         t.setData(output);
                         tas.add(tas.indexOf(this)+1,t);

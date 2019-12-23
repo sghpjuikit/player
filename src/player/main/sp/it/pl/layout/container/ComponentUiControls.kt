@@ -48,6 +48,6 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
       }
    }
 
-   protected fun icon(glyph: GlyphIcons?, tooltip: String, action: (MouseEvent) -> Unit = {}) = Icon(glyph, -1.0, tooltip).styleclass("header-icon").onClickDo(action)
+   protected fun headerIcon(glyph: GlyphIcons?, tooltip: String, action: (Icon) -> Unit = {}) = Icon(glyph, -1.0, tooltip).styleclass("header-icon").onClickDo(action)
 
 }

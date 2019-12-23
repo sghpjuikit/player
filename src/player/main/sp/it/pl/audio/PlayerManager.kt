@@ -28,7 +28,6 @@ import sp.it.util.async.executor.EventReducer.toLast
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
-import sp.it.util.async.runNew
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
@@ -501,14 +500,6 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    @IsAction(name = "Toggle looping", desc = "Switch between playlist looping mode.", keys = "ALT+L")
    fun toggleLoopMode() {
       setLoopMode(Values.next(getLoopMode()))
-   }
-
-   fun toggleLoopMode(e: MouseEvent) {
-      when (e.button) {
-         MouseButton.PRIMARY -> setLoopMode(Values.next(getLoopMode()))
-         MouseButton.SECONDARY -> setLoopMode(Values.previous(getLoopMode()))
-         else -> Unit
-      }
    }
 
    fun setLoopMode(mode: PlayingSequence.LoopMode) {

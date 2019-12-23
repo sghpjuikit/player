@@ -40,7 +40,6 @@ public class CheckIcon extends Icon {
 		styleclass(STYLECLASS);
 		syncC(selected, v -> pseudoClassStateChanged(selectedPC, v));
 
-		setFocusTraversable(true);
 		addEventHandler(MOUSE_CLICKED, e -> {
 			selected.setValue(!selected.getValue());
 			e.consume();

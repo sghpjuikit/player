@@ -381,7 +381,7 @@ abstract public class ConfigField<T> {
             var i = new Icon();
             i.styleclass(STYLECLASS_CONFIG_FIELD_OK_BUTTON);
             i.tooltip(okTooltip);
-            i.onClick(() -> apply(true));
+            i.action(() -> apply(true));
             okB.getChildren().setAll(i);
             return i;
         });
@@ -678,7 +678,7 @@ abstract public class ConfigField<T> {
 
             runB = new Icon();
             runB.styleclass("config-shortcut-run-icon");
-            runB.onClick(a);
+            runB.action(a);
             runB.tooltip(actTooltip);
 
             group = new HBox(5, runB, globB, editor);

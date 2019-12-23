@@ -24,7 +24,7 @@ import static sp.it.pl.gui.objects.window.Resize.SW;
 import static sp.it.pl.gui.objects.window.Resize.W;
 import static sp.it.pl.gui.objects.window.pane.PaneWindowControlsUtilKt.buildWindowLayout;
 import static sp.it.pl.gui.objects.window.pane.PaneWindowControlsUtilKt.lookupId;
-import static sp.it.pl.main.AppBuildersKt.resizeButton;
+import static sp.it.pl.main.AppBuildersKt.resizeIcon;
 import static sp.it.util.collections.UtilKt.setToOne;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.syncC;
@@ -69,7 +69,7 @@ public class PaneWindowControls extends WindowPane {
 				.forEach(b -> b.setMouseTransparent(!it))
 		);
 
-		var resizeB = resizeButton();
+		var resizeB = resizeIcon();
 		initMouseDrag(
 			resizeB,
 			new P(),

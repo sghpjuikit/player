@@ -25,7 +25,6 @@ import sp.it.util.conf.Constraint
 import sp.it.util.conf.cr
 import sp.it.util.conf.def
 import sp.it.util.dev.fail
-import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.system.Os
 import sp.it.util.system.open
@@ -127,15 +126,13 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
 
                lay += vBox(2.em, CENTER) {
                   lay += Icon(IconMA.ROTATE_LEFT, 8.em).apply {
-                     isFocusTraversable = true
-                     onClickOrEnter { rotateScreen(scene.window.screen, Dir.CCW) }
+                     onClickDo { rotateScreen(scene.window.screen, Dir.CCW) }
                      root.onEventUp(KEY_PRESSED, Key.UP) { requestFocus() }
                   }
                   lay += hBox(2.em, CENTER) {
                      lay += Icon(IconMD.BORDER_LEFT, 8.em).apply {
                         isDisable = Screen.getScreens().size==1
-                        isFocusTraversable = true
-                        onClickOrEnter { scene.window.centre = previous(Screen.getScreens(), scene.window.screen).bounds.centre }
+                        onClickDo { scene.window.centre = previous(Screen.getScreens(), scene.window.screen).bounds.centre }
                         root.onEventUp(KEY_PRESSED, Key.LEFT) { requestFocus() }
                      }
                      lay += vBox(0.em, BOTTOM_CENTER) {
@@ -156,14 +153,12 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
                      }
                      lay += Icon(IconMD.BORDER_RIGHT, 8.em).apply {
                         isDisable = Screen.getScreens().size==1
-                        isFocusTraversable = true
-                        onClickOrEnter { scene.window.centre = previous(Screen.getScreens(), scene.window.screen).bounds.centre }
+                        onClickDo { scene.window.centre = previous(Screen.getScreens(), scene.window.screen).bounds.centre }
                         root.onEventUp(KEY_PRESSED, Key.RIGHT) { requestFocus() }
                      }
                   }
                   lay += Icon(IconMA.ROTATE_RIGHT, 8.em).apply {
-                     isFocusTraversable = true
-                     onClickOrEnter { rotateScreen(scene.window.screen, Dir.CW) }
+                     onClickDo { rotateScreen(scene.window.screen, Dir.CW) }
                      root.onEventUp(KEY_PRESSED, Key.DOWN) { requestFocus() }
                   }
                }
@@ -209,11 +204,6 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
       private const val PROGRAM_HELP_FILE_NAME = "display.htm"
 
       private fun Action.forbidEdit() = apply { addConstraints(Constraint.ReadOnlyIf(true)) }
-
-      private fun Icon.onClickOrEnter(block: () -> Unit) {
-         onClickDo { block() }
-         onEventDown(KEY_PRESSED, Key.ENTER) { block() }
-      }
    }
 
 }

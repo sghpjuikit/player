@@ -225,7 +225,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
       val h00_intro = hint("Intro",
          "Hi, this is guide for this application. It will show you around. " + "\n\nBut first let's play some music.",
          {
-            layH(Icon(IconFA.MUSIC, ICON_SIZE, null) { _ ->
+            layH(Icon(IconFA.MUSIC, ICON_SIZE, null) {
                val c = APP.windowManager.getActiveOrNew().switchPane.container
                val w = initialTemplateFactory.create()
                c.addChild(c.emptySpot, w)
@@ -265,8 +265,8 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
             + "\n\nOne icon leads to the next hint.",
          {
             layH(
-               Icon(IconFA.WHEELCHAIR, ICON_SIZE).onClickDo { (it.source as Icon).isDisable = true },
-               Icon(IconMD.WALK, ICON_SIZE).onClickDo { (it.source as Icon).isDisable = true },
+               Icon(IconFA.WHEELCHAIR, ICON_SIZE).onClickDo { it.isDisable = true },
+               Icon(IconMD.WALK, ICON_SIZE).onClickDo { it.isDisable = true },
                Icon(IconMD.RUN, ICON_SIZE).onClickDo { runFX(1500.millis) { proceedIfActive() } }
             )
          }
@@ -278,8 +278,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
             layH(
                Icon(IconMD.GAMEPAD_VARIANT, ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right"),
                Icon(IconMD.HAND_POINTING_RIGHT, ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one."),
-               Icon(IconFA.GRADUATION_CAP, ICON_SIZE).tooltip("Click to claim the trophy")
-                  .onClickDo { runFX(1000.millis) { proceedIfActive() } }
+               Icon(IconFA.GRADUATION_CAP, ICON_SIZE).tooltip("Click to claim the trophy").onClickDo { runFX(1000.millis) { proceedIfActive() } }
             )
          }
       )
@@ -467,7 +466,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
             + "\n\nBelow you can start a tutorial and see the drag behavior by dragging '2' or '3' onto the test UI",
          {
             layH(
-               Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") { _ ->
+               Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") {
                   val wd = APP.windowManager.getActiveOrNew()
                   val i = wd.topContainer.emptySpot
                   wd.topContainer.ui.alignTab(i)

@@ -424,9 +424,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun showSettings(c: Configurable<*>, e: MouseEvent) = showSettings(c, e.source as Node)
-
-   fun <T> showSettings(c: Configurable<T>, n: Node) {
+   fun <T> showSettings(c: Configurable<T>, atNode: Node) {
       val form = form(c).apply {
          prefSize = 400.emScaled x 400.emScaled
       }
@@ -434,7 +432,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          content.value = form
          title.value = if (c is Component) "${c.name} Settings" else "Settings"
          isAutohide.value = true
-         show(DOWN_CENTER(n))
+         show(DOWN_CENTER(atNode))
       }
    }
 

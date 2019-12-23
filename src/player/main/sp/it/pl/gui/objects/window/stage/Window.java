@@ -304,9 +304,10 @@ public class Window extends WindowBase {
 			+ "\n\t" + getNameUi(ALT_GRAPH) + " : Toggle layout mode"
 			+ "\n\tContent right drag : drag tabs."
 		).styleclass("header-icon");
-		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4).onClick(e -> AppProgress.INSTANCE.showTasks((Node) e.getTarget())).tooltip("Progress & Tasks");
+		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
+			.action(i -> AppProgress.INSTANCE.showTasks(i)).tooltip("Progress & Tasks");
 		Icon errorB = new Icon(FontAwesomeIcon.WARNING, -1).styleclass("header-icon")
-			.onClick(e -> AppErrors.INSTANCE.showDetailForLastError())
+			.action(() -> AppErrors.INSTANCE.showDetailForLastError())
 			.tooltip("Errors");
 		onChangeAndNow(AppErrors.INSTANCE.getHistory(), runnable(() -> errorB.setVisible(!AppErrors.INSTANCE.getHistory().isEmpty())));
 
@@ -325,7 +326,7 @@ public class Window extends WindowBase {
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
 		Icon closeB = new Icon(CLOSE, -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
-			.onClick(() -> APP.windowManager.setAsMain(this));
+			.action(() -> APP.windowManager.setAsMain(this));
 		syncC(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
 		syncC(isMain, v -> mainB.tooltip(v
 			? "Main window\n\nThis window is main app window\nClosing it will close application."
@@ -334,6 +335,7 @@ public class Window extends WindowBase {
 
 		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, new Label(""), minB, maxB, closeB);
 		rightHeaderBox.setTranslateY(-4);
+		rightHeaderBox.getChildren().forEach(i -> i.setFocusTraversable(false));
 		initClip(rightHeaderBox, new Insets(4, 0, 4, 0));
 
 		var progI = appProgressIndicator();
@@ -342,6 +344,7 @@ public class Window extends WindowBase {
 		AppProgress.INSTANCE.getActiveTaskCount().syncC(v -> { if (v>0) progL.setText(v + " running tasks..."); });
 		leftHeaderBox.getChildren().add(progI);
 		leftHeaderBox.getChildren().add(progL);
+		leftHeaderBox.getChildren().forEach(i -> i.setFocusTraversable(false));
 
 		installStartLayoutPlaceholder(this);
 	}

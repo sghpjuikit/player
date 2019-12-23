@@ -19,7 +19,6 @@ import javafx.scene.effect.PerspectiveTransform
 import javafx.scene.effect.Reflection
 import javafx.scene.effect.SepiaTone
 import javafx.scene.effect.Shadow
-import javafx.scene.input.MouseEvent
 import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.picker.Picker
@@ -50,13 +49,13 @@ class EffectTextField: ValueTextField<Effect> {
       typeB = Icon().apply {
          styleclass("effect-config-field-type-button")
          tooltip(typeTooltip)
-         onClickDo { openChooser(it) }
+         onClickDo(::openChooser)
       }
       propB = Icon().apply {
          styleclass("effect-config-field-conf-button")
          isDisable = value==null
          tooltip(propTooltip)
-         onClickDo { openProperties(it) }
+         onClickDo(::openProperties)
       }
       onValueChange += {
          propB.isDisable = value==null
@@ -66,7 +65,7 @@ class EffectTextField: ValueTextField<Effect> {
 
    override fun onDialogAction() {}
 
-   private fun openChooser(me: MouseEvent) {
+   private fun openChooser(i: Icon) {
       PopWindow().apply {
          title.value = "Effect"
          isAutohide.value = true
@@ -79,7 +78,7 @@ class EffectTextField: ValueTextField<Effect> {
             onCancel = { hide() }
             onSelect = {
                value = it.instantiate()
-               openProperties(me)
+               openProperties(i)
                hide()
             }
             buildContent()
@@ -89,9 +88,8 @@ class EffectTextField: ValueTextField<Effect> {
       }
    }
 
-   private fun openProperties(me: MouseEvent) {
-      value?.let { APP.windowManager.showSettings(it.toConfigurableFx(), me) }
-      me.consume()
+   private fun openProperties(i: Icon) {
+      value?.let { APP.windowManager.showSettings(it.toConfigurableFx(), i) }
    }
 
    companion object: KLogging() {

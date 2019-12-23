@@ -61,18 +61,18 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             + "\n\tDrag + ${SHORTCUT.nameUi} : Detach widget"
          ).styleclass("header-icon")
 
-         lay += icon(null, "Lock container's layout") {
+         lay += headerIcon(null, "Lock container's layout") {
             area.container.locked.toggle()
             APP.actionStream("Widget layout lock")
          }.apply {
             area.container.locked sync { icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
 
-         lay += icon(IconFA.GAVEL, "Actions\n\nDisplay additional action for this container.") {
+         lay += headerIcon(IconFA.GAVEL, "Actions\n\nDisplay additional action for this container.") {
             APP.ui.actionPane.orBuild.show(area.container)
          }
 
-         lay += icon(IconFA.TIMES, "Close widget") {
+         lay += headerIcon(IconFA.TIMES, "Close widget") {
             area.container.close()
             APP.actionStream("Close widget")
          }
@@ -112,7 +112,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       val c = area.container.parent
       if (c is BiContainer) {
          val isAbs = c.absoluteSize.value==area.container.indexInParent()!!
-         absB = icon(if (isAbs) IconFA.UNLINK else IconFA.LINK, "Resize container proportionally").addExtraIcon().onClickDo {
+         absB = headerIcon(if (isAbs) IconFA.UNLINK else IconFA.LINK, "Resize container proportionally").addExtraIcon().onClickDo {
             c.ui.toggleAbsoluteSizeFor(area.container.indexInParent()!!)
          }
       } else {
@@ -121,7 +121,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
 
       autoLayoutB.remExtraIcon()
       if (c is FreeFormContainer) {
-         autoLayoutB = icon(IconMD.VIEW_DASHBOARD, FreeFormContainerUi.autoLayoutTooltipText).addExtraIcon().onClickDo {
+         autoLayoutB = headerIcon(IconMD.VIEW_DASHBOARD, FreeFormContainerUi.autoLayoutTooltipText).addExtraIcon().onClickDo {
             c.ui.autoLayout(area.container)
          }
       }

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.css.CssMetaData;
@@ -24,7 +25,6 @@ import javafx.css.Styleable;
 import javafx.css.StyleableProperty;
 import javafx.css.converter.EffectConverter;
 import javafx.css.converter.PaintConverter;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -42,6 +42,7 @@ import javafx.scene.text.Text;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 import sp.it.util.access.V;
 import sp.it.util.access.ref.LazyR;
@@ -57,6 +58,7 @@ import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
@@ -146,14 +148,14 @@ public class Icon extends StackPane {
 	}
 
 	public Icon(GlyphIcons i, double size) {
-		this(i, size, null, (EventHandler<MouseEvent>) null);
+		this(i, size, null, (Function1<Icon,Unit>) null);
 	}
 
 	public Icon(GlyphIcons i, double size, String tooltip) {
-		this(i, size, tooltip, (EventHandler<MouseEvent>) null);
+		this(i, size, tooltip, (Function1<Icon,Unit>) null);
 	}
 
-	public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
+	public Icon(GlyphIcons i, double size, String tooltip, Function1<Icon,Unit> onClick) {
 		setId("icon");
 		this.size.addListener((o, ov, nv) -> updateSize());
 		gap.addListener((o, ov, nv) -> updateSize());
@@ -166,7 +168,7 @@ public class Icon extends StackPane {
 		if (size!=-1) size(size);
 		if (i!=null) icon(i);
 		tooltip(tooltip);
-		onClick(onClick);
+		onClickDo(onClick);
 		node.setCache(false);
 		node.setSmooth(true);
 		node.setFontSmoothingType(FontSmoothingType.GRAY);
@@ -174,6 +176,7 @@ public class Icon extends StackPane {
 		node.setFocusTraversable(false);
 		node.setManaged(false);
 		getChildren().add(node);
+		setFocusTraversable(true);
 
 		// mouse hover animation
 		// unfortunately, when effects such as drop shadow are enabled, this hover does not work properly
@@ -189,7 +192,7 @@ public class Icon extends StackPane {
 
 	public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
 		this(ico, size, tooltip);
-		onClick(onClick);
+		action(onClick);
 	}
 
 	public Icon(GlyphIcons ico, double size, Action action) {
@@ -341,35 +344,12 @@ public class Icon extends StackPane {
 		return styleclass("embedded-icon");
 	}
 
-	/**
-	 * Installs on left mouse click behavior that consumes mouse event, using {@code setOnMouseClicked(action);}.
-	 * <p/>
-	 * When action is invoked the mouse event will be automatically consumed as well.
-	 *
-	 * @return this
-	 */
-	public final @NotNull Icon onClick(EventHandler<MouseEvent> action) {
-		setOnMouseClicked(action==null ? null : e -> {
-			if (e.getButton()==PRIMARY) {
-				action.handle(e);
-				e.consume();
-			}
-		});
-
-		return this;
-	}
 
 	/**
-	 * Installs on left mouse click behavior that consumes mouse event, using {@code setOnMouseClicked(action);}.
-	 * <p/>
-	 * When action is invoked the mouse event will be automatically consumed as well.
-	 * <p/>
-	 * If action is {@link Action}, tooltip is set, with text set to {@link Action#getInfo()}.
-	 *
-	 * @param action to execute on left mouse click or null to set no action
+	 * Installs action for left mouse click and ENTER press. The events will be consumed.
 	 * @return this
 	 */
-	public final @NotNull Icon onClick(Runnable action) {
+	public final @NotNull Icon action(@Nullable Runnable action) {
 		if (click_runnable!=null && getTooltip()!=null) Tooltip.uninstall(this, getTooltip());
 
 		if (action instanceof Action) {
@@ -381,17 +361,35 @@ public class Icon extends StackPane {
 			tooltip(title + keys + "\n\n" + body);
 		}
 		click_runnable = action;
-		return onClick(action==null ? null : e -> {
+		return action(action==null ? null : i -> action.run());
+	}
+
+	/**
+	 * Installs action for left mouse click and ENTER press. The events will be consumed.
+	 * @return this
+	 */
+	public final @NotNull Icon action(@Nullable Consumer<? super Icon> action) {
+		return onClickDo(action==null ? null : i -> { action.accept(i); return Unit.INSTANCE; });
+	}
+
+	/**
+	 * Installs action for left mouse click and ENTER press. The events will be consumed.
+	 * @return this
+	 */
+	public final @NotNull Icon onClickDo(@Nullable Function1<Icon,Unit> action) {
+		setOnMouseClicked(action==null ? null : e -> {
 			if (e.getButton()==PRIMARY) {
-				action.run();
+				action.invoke(this);
 				e.consume();
 			}
 		});
-	}
-
-	/** Kotlin version of {@link #onClick(javafx.event.EventHandler)}. */
-	public final @NotNull Icon onClickDo(Function1<MouseEvent,Unit> action) {
-		return onClick(action==null ? null : action::invoke);
+		setOnKeyPressed(action==null ? null : e -> {
+			if (e.getCode()==ENTER) {
+				action.invoke(this);
+				e.consume();
+			}
+		});
+		return this;
 	}
 
 	@NotNull

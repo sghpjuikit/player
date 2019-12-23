@@ -8,8 +8,6 @@ import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
-import javafx.scene.input.KeyCode.ENTER
-import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
@@ -32,7 +30,6 @@ import sp.it.util.conf.Constraint
 import sp.it.util.conf.ValueConfig
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.attachChanges
-import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -78,20 +75,18 @@ fun infoIcon(tooltipText: String) = infoIcon { tooltipText }
 //fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION).tooltip(tooltipText())
 fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    .tooltip("Help")
-   .onClick { e ->
+   .action { i ->
       APP.actionStream("Info popup")
       helpPopup(tooltipText()).apply {
          content.value.asIs<Text>().wrappingWidth = 400.emScaled
          headerIconsVisible.value = false
-         show(RIGHT_CENTER(e.source as Node))
+         show(RIGHT_CENTER(i))
       }
    }
 
 /** @return standardized icon associated with a form that invokes an action */
-fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).onClick(action).run {
-   isFocusTraversable = true
-   onEventDown(KEY_PRESSED, ENTER) { action() }
-
+fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).run {
+   action(action)
    withText(Side.RIGHT, text)
 }
 
@@ -146,9 +141,10 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
    "Data: $dName\nType: $dKind$dInfo"
 }
 
-fun resizeButton(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {
+fun resizeIcon(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {
    cursor = Cursor.SE_RESIZE
    isAnimated.value = false
+   isFocusTraversable = false
    styleclass("resize-content-icon")
 }
 
@@ -158,12 +154,10 @@ fun Font.rowHeight(): Double {
    return h.toDouble()
 }
 
-fun okIcon(action: () -> Unit) = Icon().apply {
+fun okIcon(action: (Icon) -> Unit) = Icon().apply {
    id = "okButton"
    styleclass("form-ok-button")
-   onClickDo { action() }
-   onEventDown(KEY_PRESSED, ENTER) { action() }
-   isFocusTraversable = true
+   onClickDo(action)
 }
 
 fun <N: Node> showFloating(title: String, content: (PopWindow) -> N): PopWindow = PopWindow().apply {

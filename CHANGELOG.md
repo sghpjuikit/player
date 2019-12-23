@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve `Tagger` reading performance
 - Display date & time in UI in human readable format
 - Hide technical settings from UI & avoid persisting computed settings
+- Icon focusable using TAB and invokable using ENTER
 
 ### Fix
 - Main window icon showing in ui-less application mode

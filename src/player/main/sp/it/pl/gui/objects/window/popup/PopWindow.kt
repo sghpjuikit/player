@@ -31,7 +31,7 @@ import sp.it.pl.gui.objects.window.Shower
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.resizeButton
+import sp.it.pl.main.resizeIcon
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -171,15 +171,20 @@ open class PopWindow {
          alignment = CENTER_RIGHT
 
          val closeB = Icon(IconFA.TIMES_CIRCLE, 11.0).onClickDo { this@PopWindow.hide() }.apply {
+            isFocusTraversable = false
             styleclass("popover-close-button")
             tooltip("Close\n\nClose this popup and its content.")
          }
          val pinB = Icon(null, 11.0).onClickDo { isAutohide.toggle() }.apply {
-            tooltip("Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.")
+            isFocusTraversable = false
             isAutohide sync { icon(if (it) IconMD.PIN else IconMD.PIN_OFF) }
+            tooltip("Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.")
          }
 
-         fun updateIcons() = children setTo (if (isAutohide.value) headerIcons + pinB else headerIcons + listOf(pinB, closeB))
+         fun updateIcons() {
+            headerIcons.forEach { it.isFocusTraversable = false }
+            children setTo (if (isAutohide.value) headerIcons + pinB else headerIcons + listOf(pinB, closeB))
+         }
          headerIcons.onChange { updateIcons() }
          isAutohide attach { updateIcons() }
          updateIcons()
@@ -212,7 +217,7 @@ open class PopWindow {
          topProperty() syncFrom headerVisible.map { if (it) header else null }
       }
 
-      val resizeB = resizeButton().apply {
+      val resizeB = resizeIcon().apply {
          padding = Insets(15.0)
          visibleProperty() syncFrom userResizable
          initMouseDrag(

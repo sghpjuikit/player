@@ -18,7 +18,6 @@ import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.StackPane
@@ -30,8 +29,8 @@ import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.CellSize
 import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.image.FileCover
+import sp.it.pl.gui.objects.image.Thumbnail
 import sp.it.pl.gui.objects.placeholder.Placeholder
 import sp.it.pl.gui.objects.placeholder.show
 import sp.it.pl.gui.objects.tree.buildTreeCell
@@ -238,7 +237,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
    private inner class Cell: GridFileThumbCell() {
 
-      override fun computeCellTextHeight() = cellTextHeight.value
+      override fun computeCellTextHeight() = cellTextHeight.value!!
 
       override fun computeGraphics() {
          super.computeGraphics()
@@ -346,14 +345,14 @@ class GameView(widget: Widget): SimpleController(widget) {
                         lay(TOP_RIGHT, Insets(100.0, 0.0, 0.0, 0.0)) += vBox(20.0, TOP_CENTER) {
                            minPrefMaxWidth = 200.0
 
-                           lay += IconFA.EDIT onClick {
+                           lay += IconFA.EDIT icon {
                               val file = game.infoFile
                               runIO {
                                  file.createNewFile()
                                  file.edit()
                               }
                            }
-                           lay += IconFA.GAMEPAD onClick {
+                           lay += IconFA.GAMEPAD icon {
                               game.exeFile { exe ->
                                  if (exe==null)
                                     object: ConfigurableBase<Any?>() {
@@ -373,9 +372,9 @@ class GameView(widget: Widget): SimpleController(widget) {
                                     game.play()
                               }
                            }
-                           lay += IconFA.FOLDER onClick { game.location.open() }
-                           lay += IconMD.WIKIPEDIA onClick { WikipediaQBuilder(game.name).browse() }
-                           lay += IconMD.STEAM onClick { SteamQBuilder(game.name).browse() }
+                           lay += IconFA.FOLDER icon { game.location.open() }
+                           lay += IconMD.WIKIPEDIA icon { WikipediaQBuilder(game.name).browse() }
+                           lay += IconMD.STEAM icon { SteamQBuilder(game.name).browse() }
 
                            animated += children
                         }
@@ -436,8 +435,6 @@ class GameView(widget: Widget): SimpleController(widget) {
 
    companion object: KLogging() {
 
-      private const val ICON_SIZE = 40.0
-
       private fun File.findImage(imageName: String) = children().find {
          val filename = it.name
          val i = filename.lastIndexOf('.')
@@ -448,9 +445,9 @@ class GameView(widget: Widget): SimpleController(widget) {
          }
       }
 
-      private infix fun GlyphIcons.onClick(block: (MouseEvent) -> Unit) = Icon(this).size(ICON_SIZE).onClickDo(block)
+      private infix fun GlyphIcons.icon(block: (Icon) -> Unit) = Icon(this).size(40.0).onClickDo(block)
 
-      object SteamQBuilder: WebSearchUriBuilder {
+      private object SteamQBuilder: WebSearchUriBuilder {
          override val name = "Steam"
          override fun uri(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
       }

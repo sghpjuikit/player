@@ -12,6 +12,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
 import sp.it.util.units.millis
@@ -26,26 +27,28 @@ class AppSearch: GlobalSubConfigDelegator(conf.name) {
 
    fun buildUi(onAutoCompleted: (ConfigSearch.Entry) -> Unit = {}): Node {
       val tf = DecoratedTextField().apply {
-         val clearB = Icon().also {
-            it.styleClass += "search-clear-button"
-            it.opacity = 0.0
-            it.onEventDown(MOUSE_RELEASED) { clear() }
-            it.managedProperty() syncFrom editableProperty()
-            it.visibleProperty() syncFrom editableProperty()
+         styleClass += "search"
+         val isEmpty = textProperty().map { it.isNullOrBlank() }
+
+         right.value = Icon().also { i ->
+            i.styleClass += "search-clear-button"
+            i.opacity = 0.0
+            i.onEventDown(MOUSE_RELEASED) { clear() }
+            i.managedProperty() syncFrom editableProperty()
+            i.visibleProperty() syncFrom editableProperty()
+            i.disableProperty() syncFrom isEmpty
+
+            val fade = anim(200.millis) { i.opacity = it }.applyNow()
+            isEmpty attach { fade.playFromDir(!it) }
          }
-         val signB = Icon().also {
+         left.value = Icon().also {
             it.styleclass("search-icon-sign")
             it.isMouseTransparent = true
+            it.isFocusTraversable = false
          }
-         val fade = anim(200.millis) { clearB.opacity = it }.applyNow()
-
-         styleClass += "search"
-         right.value = clearB
-         left.value = signB
-         textProperty() attach { fade.playFromDir(!it.isNullOrBlank()) }
       }
 
-      ConfigSearch(tf, history, { sources.asSequence().flatMap { it() } }).apply {
+      ConfigSearch(tf, history) { sources.asSequence().flatMap { it() } }.apply {
          this.hideOnSuggestion.value = true
          this.onAutoCompleted += onAutoCompleted
       }

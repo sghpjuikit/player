@@ -23,7 +23,7 @@ import javafx.stage.WindowEvent.WINDOW_SHOWN
 import sp.it.pl.core.NameUi
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
-import sp.it.pl.main.resizeButton
+import sp.it.pl.main.resizeIcon
 import sp.it.pl.plugin.wallpaper.WallpaperPlugin
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -119,7 +119,7 @@ abstract class OverlayPane<in T>: StackPane() {
       }
       onEventDown(KeyEvent.ANY) { it.consume() }  // user should not be able to interact with UI below
 
-      resizeB = resizeButton().apply {
+      resizeB = resizeIcon().apply {
          cursor = Cursor.SE_RESIZE
          isVisible = false
       }

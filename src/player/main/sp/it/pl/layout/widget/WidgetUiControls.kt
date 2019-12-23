@@ -75,11 +75,11 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          prefRows = 1
          prefColumns = 10
 
-         val closeB = icon(IconFA.TIMES, closeIconText) { close() }
-         val actB = icon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
-         propB = icon(IconFA.COGS, propIconText) { settings() }
-         lockB = icon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
-         absB = icon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
+         val closeB = headerIcon(IconFA.TIMES, closeIconText) { close() }
+         val actB = headerIcon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
+         propB = headerIcon(IconFA.COGS, propIconText) { APP.windowManager.showSettings(area.widget, it) }
+         lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
+         absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
          val loadB = CheckIcon().apply {
             styleclass("header-icon")
             tooltip("Switch between automatic or manual widget loading.")
@@ -152,8 +152,6 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    }
 
    private fun toggleLocked() = area.widget.locked.toggle()
-
-   private fun settings() = APP.windowManager.showSettings(area.widget, propB)
 
    private fun close() = AppAnimator.closeAndDo(area.contentRoot) { area.container.removeChild(area.index) }
 

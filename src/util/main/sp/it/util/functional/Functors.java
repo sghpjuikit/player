@@ -373,31 +373,27 @@ public interface Functors {
 
 		@Override
 		default FP<I> negate() {
-			// we should retain the predicate identity if possible. Of course it can be leveraged
-			// only if unique predicates are used, not dynamically created ones, e.g. (o -> o==null)
 			if (this==IS0) return (FP) ISNT0;
 			else if (this==ISNT0) return (FP) IS0;
-			else if (this==IS) return (FP) IS;
-			else if (this==ISNT) return (FP) ISNT;
+			else if (this==IS) return (FP) ISNT;
+			else if (this==ISNT) return (FP) IS;
 			return i -> !apply(i);
 		}
 
 		@Override
 		default FP<I> and(Predicate<? super I> p) {
-			// we should retain the predicate identity if possible
 			if (this==p) return this;
 			else if ((this==IS0 && p==ISNT0) || (this==ISNT0 && p==IS0)) return (FP) ISNT;
 			else if (p==ISNT || this==ISNT) return (FP) ISNT;
-			return i -> apply(i) && apply(i);
+			return i -> apply(i) && p.test(i);
 		}
 
 		@Override
 		default FP<I> or(Predicate<? super I> p) {
-			// we should retain the predicate identity if possible
 			if (this==p) return this;
 			else if ((this==IS0 && p==ISNT0) || (this==ISNT0 && p==IS0)) return (FP) IS;
 			else if (this==IS || p==IS) return (FP) IS;
-			return i -> apply(i) || apply(i);
+			return i -> apply(i) || p.test(i);
 		}
 
 	}

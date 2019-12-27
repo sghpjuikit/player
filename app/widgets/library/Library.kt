@@ -218,9 +218,9 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
    }
 
-   override fun getFields(): Collection<Config<Any?>> {
+   override fun getConfigs(): Collection<Config<Any?>> {
       widget.properties["columns"] = table.columnState.toString()
-      return super.getFields()
+      return super.getConfigs()
    }
 
    override fun read(items: List<Song>?) {

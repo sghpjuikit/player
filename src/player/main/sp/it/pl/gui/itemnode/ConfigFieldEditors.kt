@@ -10,7 +10,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField
+import sp.it.pl.gui.itemnode.ChainValueNode.ListChainValueNode
 import sp.it.pl.gui.itemnode.textfield.FileTextField
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox
 import sp.it.pl.gui.pane.ConfigPane
@@ -36,7 +36,7 @@ import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.syncFrom
 import java.io.File
 
-open class EnumerableCF<T>: ConfigField<T> {
+open class EnumerableCE<T>: ConfigEditor<T> {
    protected val n: ComboBox<T>
    protected var suppressChanges = false
 
@@ -121,7 +121,7 @@ open class EnumerableCF<T>: ConfigField<T> {
    override fun getEditor() = n
 }
 
-private class FileCF(c: Config<File>): ConfigField<File>(c) {
+private class FileCE(c: Config<File>): ConfigEditor<File>(c) {
    private var editor: FileTextField
    private var isObservable: Boolean = false
    private val isNullable = c.findConstraint<ObjectNonNull>()==null
@@ -133,7 +133,7 @@ private class FileCF(c: Config<File>): ConfigField<File>(c) {
       val relativeTo = c.findConstraint<FileRelative>()?.to
 
       editor = FileTextField(fileType, relativeTo)
-      editor.styleClass += STYLECLASS_TEXT_CONFIG_FIELD
+      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onEventDown(KEY_PRESSED, ENTER) { it.consume() }
       editor.value = config.value
 
@@ -151,7 +151,7 @@ private class FileCF(c: Config<File>): ConfigField<File>(c) {
    }
 }
 
-private class KeyCodeCF: EnumerableCF<KeyCode> {
+private class KeyCodeCE: EnumerableCE<KeyCode> {
 
    constructor(c: Config<KeyCode>): super(c) {
       n.onKeyPressed = EventHandler { it.consume() }
@@ -167,16 +167,16 @@ private class KeyCodeCF: EnumerableCF<KeyCode> {
 
 }
 
-private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<T>>(c) {
+private class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) {
    private val lc = c
    private val list = lc.a.list
-   private val chain: ListConfigField<T?, ConfigurableField>
+   private val chain: ListChainValueNode<T?, ConfigurableEditor>
    private var isSyntheticLinkEvent = false
    private var isSyntheticListEvent = false
    private var isSyntheticSetEvent = false
 
    init {
-      chain = ListConfigField(0) { ConfigurableField(lc.a.itemFactory?.invoke()) }
+      chain = ListChainValueNode(0) { ConfigurableEditor(lc.a.itemFactory?.invoke()) }
       chain.isHeaderVisible = true
       chain.editable syncFrom when {
          lc.a.itemFactory is FailFactory -> vAlways(false)
@@ -213,7 +213,7 @@ private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<
       // bind chain to list
       list.onItemSync {
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
-            chain.addChained(ConfigurableField(it))
+            chain.addChained(ConfigurableEditor(it))
       }
       list.onItemRemoved {
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
@@ -230,7 +230,7 @@ private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<
 
    override fun refreshItem() {}
 
-   private inner class ConfigurableField(initialValue: T?): ValueNode<T?>(initialValue) {
+   private inner class ConfigurableEditor(initialValue: T?): ValueNode<T?>(initialValue) {
       private val pane = ConfigPane<T?>()
 
       init {
@@ -246,7 +246,7 @@ private class ObservableListCF<T>(c: ListConfig<T>): ConfigField<ObservableList<
 
       override fun getNode() = pane
 
-      override fun getVal(): T? = if (lc.a.isSimpleItemType) pane.getConfigFields()[0].configValue else value
+      override fun getVal(): T? = if (lc.a.isSimpleItemType) pane.getConfigEditors()[0].configValue else value
 
    }
 }

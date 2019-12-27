@@ -13,7 +13,7 @@ import javafx.scene.shape.Line
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
-import sp.it.pl.gui.itemnode.ConfigField
+import sp.it.pl.gui.itemnode.ConfigEditor
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -61,7 +61,7 @@ private typealias Num = Double
 class FunctionViewer(widget: Widget): SimpleController(widget) {
    private val function = v(StrExF.fromString("x").orThrow).apply { attach { plotAnimated(it) } }
    private var functionPlotted = function.value as Fun
-   private val functionConfigField = ConfigField.create(Config.forProperty(StrExF::class.java, "Function", function))
+   private val functionEditor = ConfigEditor.create(Config.forProperty(StrExF::class.java, "Function", function))
    private val xMin = v(-1.0).apply { attach { plot() } }
    private val xMax = v(1.0).apply { attach { plot() } }
    private val yMin = v(-1.0).apply { attach { plot() } }
@@ -131,16 +131,16 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          lay(0, null, null, 0) += vBox(5) {
             isFillWidth = false
 
-            lay += functionConfigField.toHBox()
-            lay += xMin.toConfigField("xMin").toHBox()
-            lay += xMax.toConfigField("xMax").toHBox()
-            lay += yMin.toConfigField("yMin").toHBox()
-            lay += yMax.toConfigField("yMax").toHBox()
+            lay += functionEditor.toHBox()
+            lay += xMin.createEditor("xMin").toHBox()
+            lay += xMax.createEditor("xMax").toHBox()
+            lay += yMin.createEditor("yMin").toHBox()
+            lay += yMax.createEditor("yMax").toHBox()
          }
       }
    }
 
-   override fun focus() = functionConfigField.focusEditor()
+   override fun focus() = functionEditor.focusEditor()
 
    fun plot(f: Fun = functionPlotted) {
       functionPlotted = f
@@ -248,12 +248,12 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
    companion object {
 
-      fun ConfigField<*>.toHBox() = hBox(5, CENTER) {
+      fun ConfigEditor<*>.toHBox() = hBox(5, CENTER) {
          lay += buildLabel().apply { alignment = CENTER_RIGHT; prefWidth = 100.0 }
          lay += buildNode()
       }
 
-      fun V<Double>.toConfigField(name: String) = ConfigField.create(Config.forProperty(Num::class.java, name, this))
+      fun V<Double>.createEditor(name: String) = ConfigEditor.create(Config.forProperty(Num::class.java, name, this))
 
       val Double.precise: Double get() = roundToInt().toDouble()
 

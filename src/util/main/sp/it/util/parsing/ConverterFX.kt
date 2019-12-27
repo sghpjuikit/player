@@ -27,7 +27,7 @@ class ConverterFX: Converter() {
                values64.split(delimiter1).forEach { value64 ->
                   if (value64.count { it==delimiter2 }==1) {
                      val (cName64, cValues64) = value64.split2(delimiter2)
-                     val field = c.getField(cName64.fromBase64())
+                     val field = c.getConfig(cName64.fromBase64())
                      field?.valueAsProperty = PropValN(cValues64.split(delimiter3).map { it.fromBase64() })
                   } else {
                      Try.error("$delimiter2 must appear exactly once per value, but value=$value64")
@@ -51,7 +51,7 @@ class ConverterFX: Converter() {
       null -> Parsers.DEFAULT.stringNull
       else -> {
          val v = o as Any
-         val values = v.toConfigurableFx().getFields().joinToString(delimiter1) {
+         val values = v.toConfigurableFx().getConfigs().joinToString(delimiter1) {
             it.name.toBase64() + delimiter2 + it.valueAsProperty.valN.joinToString(delimiter3) { it.toBase64() }
          }
          v::class.java.name.toBase64() + delimiter1 + values

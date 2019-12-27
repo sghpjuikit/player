@@ -50,6 +50,7 @@ import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orNone;
 import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.conf.ConfigurableKt.toConfigurableByReflect;
 import static sp.it.util.file.properties.PropertiesKt.readProperties;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.filter;
@@ -123,7 +124,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	/** Invoked in {@link #close()}, after {@link #root} and {@link #controller} are disposed. */
 	public final Disposer onClose = new Disposer();
 
-	private final Collection<Config<Object>> configs = Configurable.super.getFields();
+	@SuppressWarnings("unchecked")
+	private final Collection<Config<Object>> configs = (Collection) toConfigurableByReflect(this).getConfigs();
 
 	public Widget(UUID id, WidgetFactory<?> factory, boolean isDeserialized) {
 		super(new WidgetDb(id));
@@ -345,17 +347,17 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 /******************************************************************************/
 
 	@Override
-	public Config<Object> getField(String name) {
+	public Config<Object> getConfig(String name) {
 		return firstNotNull(
 			() -> configs.stream().filter(it -> it.getName().equals(name)).findFirst().orElse(null),
-			() -> controller==null ? null : controller.getField(name)
+			() -> controller==null ? null : controller.getConfig(name)
 		);
 	}
 
 	@Override
-	public Collection<Config<Object>> getFields() {
-		var c = new ArrayList<Config<Object>>(configs);
-		if (controller!=null) c.addAll(controller.getFields());
+	public Collection<Config<Object>> getConfigs() {
+		var c = new ArrayList<>(configs);
+		if (controller!=null) c.addAll(controller.getConfigs());
 		return c;
 	}
 
@@ -414,13 +416,13 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		if (controller==null) return;
 
 		var configsRaw = getFieldsRaw();
-		controller.getFields().forEach(c -> configsRaw.put(configToRawKeyMapper.apply(c), c.getValueAsProperty()));
+		controller.getConfigs().forEach(c -> configsRaw.put(configToRawKeyMapper.apply(c), c.getValueAsProperty()));
 	}
 
 	private void restoreConfigs() {
 		var configsRaw = getFieldsRaw();
 		if (!configsRaw.isEmpty()) {
-			getFields().forEach(c -> {
+			getConfigs().forEach(c -> {
 				if (c.isPersistable()) {
 					String key = configToRawKeyMapper.apply(c);
 					if (configsRaw.containsKey(key)) {
@@ -440,7 +442,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		Predicate<Config<Object>> nonDefault = f -> ((Class) f.getType())==ObservableList.class || !deepEquals(f.getValue(), f.getDefaultValue());
 		File configFile = new File(getUserLocation(), "default.properties");
 		Configuration configuration = new Configuration(configToRawKeyMapper);
-		configuration.collect(filter(getFields(), nonDefault));
+		configuration.collect(filter(getConfigs(), nonDefault));
 		configuration.save("Custom default widget settings", configFile);
 	}
 

@@ -131,9 +131,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
       "Config $name is not enumerable, because $type not enumerable."
    }
 
-   override fun getField(name: String) = takeIf { it.name==name }
+   override fun getConfig(name: String) = takeIf { it.name==name }
 
-   override fun getFields() = listOf(this)
+   override fun getConfigs() = listOf(this)
 
    companion object: KLogging() {
 

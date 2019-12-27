@@ -63,8 +63,8 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private val inputValue = io.i.create<Configurable<Any>>("To configure") { configure(it) }
 
    private val groups = TreeView<Name>()
-   private val configsRoot = StackPane()
-   private val configsPane = ConfigPane<Any>()
+   private val editorsRoot = StackPane()
+   private val editorsPane = ConfigPane<Any>()
    private val subroot = stackPane {
       lay += splitPane {
          setDividerPositions(0.25)
@@ -76,7 +76,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
             SplitPane.setResizableWithParent(this, false)
          }
          lay(true) += stackPane {
-            id = "configs"
+            id = "editors"
             padding = Insets(10.0)
 
             lay += scrollPane {
@@ -84,11 +84,11 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
                prefSize = -1 x -1
                vbarPolicy = ScrollBarPolicy.AS_NEEDED
 
-               content = configsRoot.apply {
+               content = editorsRoot.apply {
                   prefSize = -1 x -1
                   isFocusTraversable = true
 
-                  lay += configsPane
+                  lay += editorsPane
                }
             }
          }
@@ -126,7 +126,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    /** Set and apply values. */
-   fun apply() = configsPane.getConfigFields().forEach { it.apply() }
+   fun apply() = editorsPane.getConfigEditors().forEach { it.apply() }
 
    /** Set default app settings. */
    fun defaults() = configs.forEach { it.value = it.defaultValue }
@@ -137,7 +137,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    override fun configure(configurable: Configurable<*>?, groupToSelect: String?) {
-      val configurableFields = configurable?.getFields().orEmpty()
+      val configurableFields = configurable?.getConfigs().orEmpty()
 
       showsAppSettings = configurable==appConfigurable
       configs setTo configurableFields
@@ -150,11 +150,11 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
    }
 
-   private fun showConfigs(group: Name?) = configsPane.configure(
+   private fun showConfigs(group: Name?) = editorsPane.configure(
       configs.filter { it.group==group?.pathUp }.toListConfigurable()
    )
 
-   private fun refreshConfigs() = configsPane.getConfigFields().forEach { it.refreshItem() }
+   private fun refreshConfigs() = editorsPane.getConfigEditors().forEach { it.refreshItem() }
 
    private fun storeAppSettingsSelection(selection: String?) {
       if (configSelectionAvoid) return

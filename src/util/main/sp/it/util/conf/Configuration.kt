@@ -31,10 +31,10 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)
 
    @Suppress("UNCHECKED_CAST")
-   override fun getField(name: String): Config<Any?> = configs.find { it.name==name } as Config<Any?>
+   override fun getConfig(name: String): Config<Any?> = configs.find { it.name==name } as Config<Any?>
 
    @Suppress("UNCHECKED_CAST")
-   override fun getFields(): Collection<Config<Any?>> = configs as Collection<Config<Any?>>
+   override fun getConfigs(): Collection<Config<Any?>> = configs as Collection<Config<Any?>>
 
    /**
     * Returns raw key-value ([java.lang.String]) pairs representing the serialized configs.
@@ -63,7 +63,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun rawRem(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, _) -> rawRemProperty(name) }
 
-   fun <C> collect(c: Configurable<C>): Unit = collect(c.getFields())
+   fun <C> collect(c: Configurable<C>): Unit = collect(c.getConfigs())
 
    fun <C> collect(c: Collection<Config<C>>): Unit = c.forEach(::collect)
 
@@ -155,13 +155,13 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
 
-   /** Changes all config fields to their default value and applies them  */
-   fun toDefault() = getFields().forEach { it.setValueToDefault() }
+   /** Changes all configs to their default value and applies them  */
+   fun toDefault() = getConfigs().forEach { it.setValueToDefault() }
 
    /**
     * Saves configuration to the file. The file is created if it does not exist,
     * otherwise it is completely overwritten.
-    * Loops through Configuration fields and stores them all into file.
+    * Loops through configs and stores them all into file.
     */
    fun save(title: String, file: File) {
       val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
@@ -175,12 +175,10 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    /**
     * Loads previously saved configuration file and set its values for this.
     *
-    * Attempts to load all configuration fields from file. Fields might not be
-    * read either through I/O error or parsing errors. Parsing errors are
-    * recoverable, meaning corrupted fields will be ignored.
-    * Default values will be used for all unread fields.
+    * Attempts to load all configs from file. Configs might not be read either through I/O error or parsing errors.
+    * Parsing errors will be ignored.
     *
-    * If field of given name does not exist it will be ignored as well.
+    * If config of given name does not exist it will be ignored as well.
     */
    fun rawSet() {
       properties.forEach { (key, value) ->

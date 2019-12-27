@@ -86,7 +86,7 @@ import org.gamepad4j.IControllerListener;
 import org.gamepad4j.StickID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.itemnode.ConfigEditor;
 import sp.it.pl.gui.objects.Text;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.layout.widget.Widget;
@@ -95,7 +95,7 @@ import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.util.access.V;
 import sp.it.util.access.VarEnum;
 import sp.it.util.animation.Anim;
-import sp.it.util.conf.Configurable;
+import sp.it.util.conf.ConfigurableByReflect;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.FixedConfList;
 import sp.it.util.conf.IsConfig;
@@ -273,7 +273,7 @@ public class Comet extends SimpleController {
 		// layout
 		root.getChildren().add(layAnchor(
 			layHorizontally(20,CENTER_LEFT,
-				ConfigField.createForProperty(GameMode.class, "Mode", mode).buildNode().getChildren().get(0),
+				ConfigEditor.createForProperty(GameMode.class, "Mode", mode).buildNode().getChildren().get(0),
 				new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
 				new Icon(MaterialDesignIcon.NUMERIC_2_BOX_OUTLINE,15,"Start 2 player game",() -> game.start(2)),
 				new Icon(MaterialDesignIcon.NUMERIC_3_BOX_OUTLINE,15,"Start 3 player game",() -> game.start(3)),
@@ -1296,7 +1296,7 @@ public class Comet extends SimpleController {
 	}
 
 	/** Game player. Survives game sessions. */
-	public class Player implements LO, Configurable<Object> {
+	public class Player implements LO, ConfigurableByReflect {
 		@IsConfig(editable = EditMode.APP) public final V<Integer> id = new V<>(null);
 		@IsConfig public final V<String> name = new V<>("");
 		@IsConfig public final V<Color> color = new V<>(Color.WHITE);
@@ -1344,11 +1344,11 @@ public class Comet extends SimpleController {
 				energy.set(rocket.energy);
 
 			if (alive) {
-				if (game.pressedKeys.contains(keyLeft.get())) isInputLeft |= true;
-				if (game.pressedKeys.contains(keyRight.get())) isInputRight |= true;
-				if (game.pressedKeys.contains(keyThrust.get())) isInputThrust |= true;
-				if (game.pressedKeys.contains(keyFire.get())) isInputFire |= true;
-				if (game.pressedKeys.contains(keyAbility.get())) isInputAbility |= true;
+				isInputLeft |= game.pressedKeys.contains(keyLeft.get());
+				isInputRight |= game.pressedKeys.contains(keyRight.get());
+				isInputThrust |= game.pressedKeys.contains(keyThrust.get());
+				isInputFire |= game.pressedKeys.contains(keyFire.get());
+				isInputAbility |= game.pressedKeys.contains(keyAbility.get());
 			}
 			doInputs();
 		}

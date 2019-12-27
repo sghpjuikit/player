@@ -19,6 +19,7 @@ import sp.it.util.action.IsAction
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.math.max
 import sp.it.util.math.min
@@ -30,21 +31,21 @@ import java.util.ArrayList
 /** Playcount incrementing service. */
 class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
 
-   @IsConfig(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-   val whenStrategy by cv(ON_TIME) attach { applyStrategy() }
-   @IsConfig(name = "Increment at percent", info = "Percent at which playcount is incremented.")
-   val whenPercent by cv(0.4).between(0.0, 1.0).readOnlyUnless(whenStrategy.map { it.needsPercent() }) attach { applyStrategy() }
-   @IsConfig(name = "Increment at time", info = "Time at which playcount is incremented.")
-   val whenTime by cv(seconds(5.0)).readOnlyUnless(whenStrategy.map { it.needsTime() }) attach { applyStrategy() }
-   @IsConfig(name = "Show notification (schedule)", info = "Shows notification when playcount incrementing is scheduled.")
+   val whenStrategy by cv(ON_TIME)
+      .def(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.") attach { applyStrategy() }
+   val whenPercent by cv(0.4).between(0.0, 1.0).readOnlyUnless(whenStrategy.map { it.needsPercent() })
+      .def(name = "Increment at percent", info = "Percent at which playcount is incremented.") attach { applyStrategy() }
+   val whenTime by cv(seconds(5.0)).readOnlyUnless(whenStrategy.map { it.needsTime() })
+      .def(name = "Increment at time", info = "Time at which playcount is incremented.") attach { applyStrategy() }
    val showNotificationSchedule by cv(false)
-   @IsConfig(name = "Show notification (update)", info = "Shows notification when playcount is incremented.")
+      .def(name = "Show notification (schedule)", info = "Shows notification when playcount incrementing is scheduled.")
    val showNotificationUpdate by cv(false)
-   @IsConfig(name = "Delay writing", info = "Delays editing tag until different song starts playing." +
+      .def(name = "Show notification (update)", info = "Shows notification when playcount is incremented.")
+   val delay by cv(true)
+      .def(name = "Delay writing", info = "Delays editing tag until different song starts playing." +
       "\n\n* May improve playback experience." +
       "\n\n* Reduces consecutive updates to a single update."
    )
-   val delay by cv(true)
 
    private val queue = ArrayList<Metadata>()
    private val incrementer = { increment() }

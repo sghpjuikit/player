@@ -63,7 +63,6 @@ import sp.it.util.file.div
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
 import sp.it.util.functional.apply_
-import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
@@ -416,7 +415,7 @@ class App: Application(), GlobalConfigDelegator {
 
    private fun AppSearch.initForApp() {
       sources += Source("Settings") {
-         configuration.getFields().flatMap {
+         configuration.getConfigs().flatMap {
             it.group.traverse { it.substringBeforeLast(".", "").takeIf { it.isNotEmpty() } }.asIterable()
          }.toSet().asSequence().map {
             Entry.of(
@@ -428,7 +427,7 @@ class App: Application(), GlobalConfigDelegator {
          }
       }
       sources += Source("Actions") {
-         configuration.getFields()
+         configuration.getConfigs()
             .filter { it.type==Action::class.javaObjectType && it.isEditableByUserRightNow() }
             .asSequence().map { Entry.of(it) }
       }

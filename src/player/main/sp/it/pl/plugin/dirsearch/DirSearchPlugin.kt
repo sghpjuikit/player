@@ -8,15 +8,15 @@ import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
-import sp.it.util.access.v
 import sp.it.util.async.NEW
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.writeTextTry
@@ -26,14 +26,9 @@ import java.util.concurrent.atomic.AtomicLong
 
 class DirSearchPlugin: PluginBase("Dir Search", false) {
 
-   @IsConfig(name = "Location", info = "Locations to find directories in.")
-   private val searchDirs by cList<File>().only(DIRECTORY)
-
-   @IsConfig(name = "Search depth")
-   private val searchDepth = v(2)
-
-   @IsConfig(name = "Re-index", info = "Update cache")
-   private val searchDo by cr { updateCache() }
+   private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find directories in.")
+   private val searchDepth by cv(2).def(name = "Search depth")
+   private val searchDo by cr { updateCache() }.def(name = "Re-index", info = "Update cache")
 
    private val cacheFile = getUserResource("dirs.txt")
    private val cacheUpdate = AtomicLong(0)

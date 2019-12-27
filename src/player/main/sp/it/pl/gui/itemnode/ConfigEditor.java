@@ -94,7 +94,7 @@ import static sp.it.util.ui.Util.layHorizontally;
  * type of configuration into consideration. For example
  * for boolean CheckBox control will be used, for enum ComboBox etc...
  */
-abstract public class ConfigField<T> {
+abstract public class ConfigEditor<T> {
 
     private static final Tooltip okTooltip = appTooltip("Apply value");
     private static final Tooltip warnTooltip = appTooltip("Erroneous value");
@@ -107,49 +107,48 @@ abstract public class ConfigField<T> {
     private static final Tooltip overTooltip = appTooltip("Override value"
             + "\n\nUses specified value if true or inherited value if false.");
 
-    public static final String STYLECLASS_CONFIG_FIELD_PROCEED_BUTTON = "config-field-proceed-button";
-    public static final String STYLECLASS_CONFIG_FIELD_OK_BUTTON = "config-field-ok-button";
-    public static final String STYLECLASS_CONFIG_FIELD_WARN_BUTTON = "config-field-warn-button";
-    public static final String STYLECLASS_TEXT_CONFIG_FIELD = "text-field-config";
+    public static final String STYLECLASS_CONFIG_EDITOR_OK_BUTTON = "config-editor-ok-button";
+    public static final String STYLECLASS_CONFIG_EDITOR_WARN_BUTTON = "config-editor-warn-button";
+    public static final String STYLECLASS_TEXT_CONFIG_EDITOR = "text-config-editor";
     private static final double defBLayoutSize = 15.0;
     private static final double configRootSpacing = 5.0;
     private static Insets paddingNoDefB = new Insets(0.0, defBLayoutSize+configRootSpacing, 0.0, 0.0);
     private static Insets paddingWithDefB = Insets.EMPTY;
 
     @SuppressWarnings("unchecked")
-    private static Map<Class<?>,F1<Config,ConfigField>> CF_BUILDERS = new HashMap<>() {{
-        put(boolean.class, BoolCF::new);
-        put(Boolean.class, BoolCF::new);
-        put(String.class, GeneralCF::new);
-        put(Action.class, ShortcutCF::new);
-        put(Color.class, ColorCF::new);
-        put(File.class, FileCF::new);
-        put(Font.class, FontCF::new);
-        put(OrValue.class, config -> config instanceof OrPropertyConfig ? new OrCF((OrPropertyConfig) config) : new GeneralCF(config));
-        put(Effect.class, config -> new EffectCF(config, Effect.class));
-        put(Charset.class, charset -> new EnumerableCF<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
-        put(KeyCode.class, KeyCodeCF::new);
-        put(Configurable.class, ConfigurableCF::new);
+    private static Map<Class<?>,F1<Config,ConfigEditor>> CF_BUILDERS = new HashMap<>() {{
+        put(boolean.class, BoolCE::new);
+        put(Boolean.class, BoolCE::new);
+        put(String.class, GeneralCE::new);
+        put(Action.class, ShortcutCE::new);
+        put(Color.class, ColorCE::new);
+        put(File.class, FileCE::new);
+        put(Font.class, FontCE::new);
+        put(OrValue.class, config -> config instanceof OrPropertyConfig ? new OrCE((OrPropertyConfig) config) : new GeneralCE(config));
+        put(Effect.class, config -> new EffectCE(config, Effect.class));
+        put(Charset.class, charset -> new EnumerableCE<>(charset, list(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)));
+        put(KeyCode.class, KeyCodeCE::new);
+        put(Configurable.class, ConfigurableCE::new);
         put(ObservableList.class, config -> {
             if (config instanceof ListConfig) {
                 return Configurable.class.isAssignableFrom(((ListConfig)config).a.itemType)
-                    ? new PaginatedObservableListCF((ListConfig) config)
-                    : new ObservableListCF<>((ListConfig) config);
+                    ? new PaginatedObservableListCE((ListConfig) config)
+                    : new ObservableListCE<>((ListConfig) config);
             } else {
-                return new GeneralCF<>(config);
+                return new GeneralCE<>(config);
             }
         });
-        EffectTextField.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectCF(config, t)));
+        EffectTextField.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectCE(config, t)));
     }};
 
     /** @return config field best suited for the specified config */
     @SuppressWarnings("unchecked")
-    public static <T> @NotNull ConfigField<T> create(Config<T> config) {
+    public static <T> @NotNull ConfigEditor<T> create(Config<T> config) {
         Config c = config;
-        ConfigField cf;
-        if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeCF(c) : new EnumerableCF(c);
-        else if (isMinMax(c)) cf = new SliderCF(c);
-        else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralCF::new).apply(c);
+        ConfigEditor cf;
+        if (c.isTypeEnumerable()) cf = c.getType()==KeyCode.class ? new KeyCodeCE(c) : new EnumerableCE(c);
+        else if (isMinMax(c)) cf = new SliderCE(c);
+        else cf = CF_BUILDERS.computeIfAbsent(c.getType(), key -> GeneralCE::new).apply(c);
 
         syncFrom(cf.getEditor().disableProperty(), not(cf.isEditableByUser));
 
@@ -160,7 +159,7 @@ abstract public class ConfigField<T> {
         return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l -> l.getClass()==NumberMinMax.class);
     }
 
-    public static <T> ConfigField<T> createForProperty(Class<T> type, String name, Object property) {
+    public static <T> ConfigEditor<T> createForProperty(Class<T> type, String name, Object property) {
         return create(Config.forProperty(type, name, property));
     }
 
@@ -183,7 +182,7 @@ abstract public class ConfigField<T> {
     private Anim defBA;
     public final ObservableValue<Boolean> isEditableByUser;
 
-    protected ConfigField(Config<T> config) {
+    protected ConfigEditor(Config<T> config) {
         this.config = config;
         this.isEditableByUser = config.isEditableByUserRightNowProperty();
     }
@@ -237,7 +236,7 @@ abstract public class ConfigField<T> {
      */
     public final HBox buildNode(boolean managedControl) {
         HBox root = new HBox(configRootSpacing);
-        root.getStyleClass().add("config-field");
+        root.getStyleClass().add("config-editor");
         root.setMinSize(0,20);   // min height actually required to get consistent look
         root.setPrefSize(-1,-1); // support variable content height
         root.setMaxSize(-1,-1);  // support variable content height
@@ -250,7 +249,7 @@ abstract public class ConfigField<T> {
                     if (defB==null && isEditableByUser.getValue()) {
                         defB = new Icon(null, -1, null, this::setNapplyDefault);
                         defB.tooltip(defTooltip);
-                        defB.styleclass("config-field-default-button");
+                        defB.styleclass("config-editor-default-button");
                         defB.setManaged(false);
                         defB.setOpacity(0);
 
@@ -373,13 +372,13 @@ abstract public class ConfigField<T> {
 
 /* ---------- IMPLEMENTATIONS --------------------------------------------------------------------------------------- */
 
-    private static class GeneralCF<T> extends ConfigField<T> {
+    private static class GeneralCE<T> extends ConfigEditor<T> {
         private final DecoratedTextField editor = new DecoratedTextField();
         private final boolean isObservable;
         private final StackPane okB = new StackPane();
         private final LazyR<Icon> okI = new LazyR<>(() -> {
             var i = new Icon();
-            i.styleclass(STYLECLASS_CONFIG_FIELD_OK_BUTTON);
+            i.styleclass(STYLECLASS_CONFIG_EDITOR_OK_BUTTON);
             i.tooltip(okTooltip);
             i.action(() -> apply(true));
             okB.getChildren().setAll(i);
@@ -387,12 +386,12 @@ abstract public class ConfigField<T> {
         });
         private final LazyR<Icon> warnI = new LazyR<>(() -> {
             var i = new Icon();
-            i.styleclass(STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
+            i.styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON);
             i.tooltip(warnTooltip);
             return i;
         });
 
-        private GeneralCF(Config<T> c) {
+        private GeneralCE(Config<T> c) {
             super(c);
 
             ObservableValue<T> obv = getObservableValue(c);
@@ -410,7 +409,7 @@ abstract public class ConfigField<T> {
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
 
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_EDITOR);
             editor.setPromptText(c.getNameUi());
             editor.setText(toS(getConfigValue()));
 
@@ -507,18 +506,18 @@ abstract public class ConfigField<T> {
         }
 
     }
-    private static class BoolCF extends ConfigField<Boolean> {
+    private static class BoolCE extends ConfigEditor<Boolean> {
         protected final CheckIcon graphics;
         private final boolean isObservable;
 
-        private BoolCF(Config<Boolean> c) {
+        private BoolCE(Config<Boolean> c) {
             super(c);
 
             ObservableValue<Boolean> v = getObservableValue(c);
             isObservable = v!=null;
 
             graphics = new CheckIcon();
-            graphics.styleclass("boolean-config-field");
+            graphics.styleclass("boolean-config-editor");
             graphics.selected.setValue(config.getValue());
             if (isObservable) v.addListener((o,ov,nv) -> graphics.selected.setValue(nv));
             graphics.selected.addListener((o,ov,nv) -> config.setValue(nv));
@@ -540,20 +539,20 @@ abstract public class ConfigField<T> {
                 graphics.selected.setValue(config.getValue());
         }
     }
-    private static class OrBoolCF extends BoolCF {
-        private OrBoolCF(Config<Boolean> c) {
+    private static class OrBoolCE extends BoolCE {
+        private OrBoolCE(Config<Boolean> c) {
             super(c);
-            graphics.styleclass("override-config-field");
+            graphics.styleclass("override-config-editor");
             graphics.tooltip(overTooltip);
         }
     }
-    private static class SliderCF extends ConfigField<Number> {
+    private static class SliderCE extends ConfigEditor<Number> {
         private final Slider slider;
         private final Label cur, min, max;
         private final HBox box;
         private final boolean isObservable;
 
-        private SliderCF(Config<Number> c) {
+        private SliderCE(Config<Number> c) {
             super(c);
 
             ObservableValue<Number> v = getObservableValue(c);
@@ -569,7 +568,7 @@ abstract public class ConfigField<T> {
             max = new Label(String.valueOf(range.getMax()));
 
             slider = new Slider(range.getMin(),range.getMax(),val);
-            slider.getStyleClass().add("slider-config-field");
+            slider.getStyleClass().add("slider-config-editor");
             cur = new Label(computeLabelText());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
@@ -624,7 +623,7 @@ abstract public class ConfigField<T> {
             return getOr(getValid().map(Object::toString), "");
         }
     }
-    private static class ShortcutCF extends ConfigField<Action> {
+    private static class ShortcutCE extends ConfigEditor<Action> {
         TextField editor;
         CheckIcon globB;
         HBox group;
@@ -632,7 +631,7 @@ abstract public class ConfigField<T> {
         Action a;
         Icon runB;
 
-        private ShortcutCF(Config<Action> con) {
+        private ShortcutCE(Config<Action> con) {
             super(con);
             a = con.getValue();
 
@@ -643,8 +642,8 @@ abstract public class ConfigField<T> {
             globB.selected.addListener((o,ov,nv) -> apply(false));
 
             editor = new TextField();
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
-            editor.getStyleClass().add("shortcut-config-field");
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_EDITOR);
+            editor.getStyleClass().add("shortcut-config-editor");
             editor.setPromptText(computePromptText());
             editor.setOnKeyReleased(e -> {
                 KeyCode c = e.getCode();
@@ -735,13 +734,13 @@ abstract public class ConfigField<T> {
             globB.selected.setValue(a.isGlobal());
         }
     }
-    private static class ColorCF extends ConfigField<Color> {
+    private static class ColorCE extends ConfigEditor<Color> {
         private ColorPicker editor = new ColorPicker();
 
-        private ColorCF(Config<Color> c) {
+        private ColorCE(Config<Color> c) {
             super(c);
             refreshItem();
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_EDITOR);
             editor.valueProperty().addListener((o,ov,nv) -> apply(false));
         }
 
@@ -755,13 +754,13 @@ abstract public class ConfigField<T> {
             editor.setValue(config.getValue());
         }
     }
-    private static class FontCF extends ConfigField<Font> {
+    private static class FontCE extends ConfigEditor<Font> {
         private FontTextField editor = new FontTextField();
 
-        private FontCF(Config<Font> c) {
+        private FontCE(Config<Font> c) {
             super(c);
             refreshItem();
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_EDITOR);
             editor.getOnValueChange().add(consumer(it -> apply(false)));
         }
 
@@ -775,14 +774,14 @@ abstract public class ConfigField<T> {
             editor.setValue(config.getValue());
         }
     }
-    private static class EffectCF extends ConfigField<Effect> {
+    private static class EffectCE extends ConfigEditor<Effect> {
 
         private final EffectTextField editor;
 
-        public EffectCF(Config<Effect> c, Class<? extends Effect> effectType) {
+        public EffectCE(Config<Effect> c, Class<? extends Effect> effectType) {
             super(c);
             editor = new EffectTextField(effectType);
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_FIELD);
+            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_EDITOR);
             refreshItem();
             editor.getOnValueChange().add(consumer(it -> apply(false)));
         }
@@ -804,10 +803,10 @@ abstract public class ConfigField<T> {
             });
         }
     }
-    private static class ConfigurableCF extends ConfigField<Configurable<?>> {
+    private static class ConfigurableCE extends ConfigEditor<Configurable<?>> {
         private final ConfigPane<Object> configPane = new ConfigPane<>();
 
-        private ConfigurableCF(Config<Configurable<?>> c) {
+        private ConfigurableCE(Config<Configurable<?>> c) {
             super(c);
             configPane.configure(c.getValue());
         }
@@ -826,7 +825,7 @@ abstract public class ConfigField<T> {
         public void refreshItem() {}
     }
 
-    private static class PaginatedObservableListCF extends ConfigField<ObservableList<Configurable<?>>> {
+    private static class PaginatedObservableListCE extends ConfigEditor<ObservableList<Configurable<?>>> {
 
         private int at = -1;
         private final ListConfig<Configurable<?>> lc;
@@ -838,7 +837,7 @@ abstract public class ConfigField<T> {
             configPane
         );
 
-        public PaginatedObservableListCF(ListConfig<Configurable<?>> c) {
+        public PaginatedObservableListCE(ListConfig<Configurable<?>> c) {
             super(c);
             lc = c;
             next();
@@ -875,15 +874,15 @@ abstract public class ConfigField<T> {
         @Override
         public void refreshItem() {}
     }
-    private static class OrCF<T> extends ConfigField<OrValue<T>> {
+    private static class OrCE<T> extends ConfigEditor<OrValue<T>> {
         final FlowPane root = new FlowPane(5,5);
 
-        public OrCF(OrPropertyConfig<T> c) {
+        public OrCE(OrPropertyConfig<T> c) {
             super(c);
             OrV<T> orV = c.getProperty();
 
             var op = new SimpleBooleanProperty(c.getDefaultValue().getOverride());
-            var oc = new OrBoolCF(Config.forProperty(Boolean.class, "Override", op));
+            var oc = new OrBoolCE(Config.forProperty(Boolean.class, "Override", op));
             syncBiFrom(orV.override, op);
 
             var vp = new SimpleObjectProperty<>(c.getDefaultValue().getValue());

@@ -147,7 +147,7 @@ fun treeApp(): TreeItem<Any> {
       ),
       tree("Location", APP.location),
       tree("File system", File.listRoots().map { FileTreeItem(it) }),
-      tree(Name.treeOfPaths("Settings", APP.configuration.getFields().map { it.group }))
+      tree(Name.treeOfPaths("Settings", APP.configuration.getConfigs().map { it.group }))
    )
 }
 

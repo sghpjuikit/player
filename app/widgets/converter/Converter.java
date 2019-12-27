@@ -25,8 +25,8 @@ import javafx.scene.layout.VBox;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.SongReadingKt;
-import sp.it.pl.gui.itemnode.ChainValueNode.ListConfigField;
-import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.itemnode.ChainValueNode.ListChainValueNode;
+import sp.it.pl.gui.itemnode.ConfigEditor;
 import sp.it.pl.gui.itemnode.ListAreaNode;
 import sp.it.pl.gui.itemnode.ValueNode;
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
@@ -509,11 +509,11 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public Node getNode() {
             return layVertically(5,TOP_CENTER,
                 layHorizontally(5,CENTER_LEFT,
-                    ConfigField.create(Config.forProperty(String.class, "File name", nam)).buildNode(),
+                    ConfigEditor.create(Config.forProperty(String.class, "File name", nam)).buildNode(),
                     new Label("."),
-                    ConfigField.create(Config.forProperty(String.class, "Extension", ext)).buildNode()
+                    ConfigEditor.create(Config.forProperty(String.class, "Extension", ext)).buildNode()
                 ),
-                ConfigField.create(Config.forProperty(File.class, "Location", loc)).buildNode()
+                ConfigEditor.create(Config.forProperty(File.class, "Location", loc)).buildNode()
             );
         }
     }
@@ -546,12 +546,12 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         @Override
         public Node getNode() {
-            Node n = ConfigField.create(Config.forProperty(File.class, "Location", loc)).buildNode();
+            Node n = ConfigEditor.create(Config.forProperty(File.class, "Location", loc)).buildNode();
             use_loc.syncC(v -> n.setDisable(!v));
             return layVertically(5,TOP_CENTER,
                 layHorizontally(5,CENTER_LEFT,
                     new Label("In directory"),
-                    ConfigField.create(Config.forProperty(Boolean.class, "In directory", use_loc)).buildNode()
+                    ConfigEditor.create(Config.forProperty(Boolean.class, "In directory", use_loc)).buildNode()
                 ),
                 n
             );
@@ -570,22 +570,22 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     private class InPane extends ValueNode<In> {
         V<String> name;
         V<EditArea> input;
-        ConfigField<String> configFieldA;
-        ConfigField<EditArea> configFieldB;
+        ConfigEditor<String> configEditorA;
+        ConfigEditor<EditArea> configEditorB;
         HBox root;
 
         InPane(F0<? extends Collection<? extends String>> actions) {
             super(null);
             name = new VarEnum<>(actions.get().stream().findFirst().orElse(null), actions);
             input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
-            configFieldA = ConfigField.create(Config.forProperty(String.class, "", name));
-            configFieldB = ConfigField.create(Config.forProperty(EditArea.class, "", input));
-            root = new HBox(5, configFieldA.buildNode(), configFieldB.buildNode());
+            configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name));
+            configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input));
+            root = new HBox(5, configEditorA.buildNode(), configEditorB.buildNode());
         }
 
         @Override
         public In getVal() {
-            return new In(configFieldA.getConfigValue(), configFieldB.getConfigValue());
+            return new In(configEditorA.getConfigValue(), configEditorB.getConfigValue());
         }
 
         @Override
@@ -617,15 +617,15 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
 
         public Stream<In> values() {
-            return ins.getConfigFields().stream().map(c -> new In(c.config.getName(),c.getConfigValue()));
+            return ins.getConfigEditors().stream().map(c -> new In(c.config.getName(),c.getConfigValue()));
         }
 
     }
     private class InsComplex implements Ins {
-        ListConfigField<In, InPane> ins;
+        ListChainValueNode<In, InPane> ins;
 
         InsComplex(Act<?> a) {
-            ins = new ListConfigField<>(() -> new InPane(a.names));
+            ins = new ListChainValueNode<>(() -> new InPane(a.names));
             ins.maxChainLength.set(a.max);
         }
 

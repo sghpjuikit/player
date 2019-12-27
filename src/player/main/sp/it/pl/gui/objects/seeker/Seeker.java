@@ -27,7 +27,7 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.gui.itemnode.ConfigField;
+import sp.it.pl.gui.itemnode.ConfigEditor;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.popup.PopWindow;
 import sp.it.util.access.V;
@@ -660,7 +660,7 @@ public final class Seeker extends AnchorPane {
 			Tooltip warnTooltip = appTooltip();
 			Icon warnB = new Icon();
 				 warnB.size(11);
-				 warnB.styleclass(ConfigField.STYLECLASS_CONFIG_FIELD_WARN_BUTTON);
+				 warnB.styleclass(ConfigEditor.STYLECLASS_CONFIG_EDITOR_WARN_BUTTON);
 				 warnB.tooltip(warnTooltip);
 			syncC(ta.textProperty(), text -> {
 				Try<String,String> result = validateChapterText(text);

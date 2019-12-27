@@ -1,8 +1,8 @@
 package sp.it.util.conf
 
 import sp.it.util.conf.ConfigurationUtil.configsOf
-import sp.it.util.conf.ConfigurationUtil.createConfig
 import sp.it.util.dev.fail
+import sp.it.util.functional.asIs
 import sp.it.util.type.Util
 import sp.it.util.type.Util.forEachJavaFXProperty
 import java.util.ArrayList
@@ -16,53 +16,75 @@ import java.util.ArrayList
  * Object can implement [Configurable] or be converted to it (e.g. [toConfigurableByReflect]). There is also choice to
  * use delegated configurable properties (e.g. [c], [cv], [cvn], etc).
  *
- * This interface provides default implementation using reflection using [IsConfig], where configs are recomputed on
- * access as needed.
- *
  * @param <T> parameter specifying generic parameter of the configs. Useful if all of the configs have the same generic
  * type argument.
  */
 interface Configurable<T> {
 
    /** @return all configs of this configurable */
-   @Suppress("UNCHECKED_CAST")
-   @JvmDefault
-   fun getFields(): Collection<Config<T>> = toConfigurableByReflect().getFields() as Collection<Config<T>>
+   fun getConfigs(): Collection<Config<T>>
 
    /** @return config with given [Config.name] or null if does not exist */
-   @Suppress("UNCHECKED_CAST")
+   fun getConfig(name: String): Config<T>?
+
+   /** @return config with given [Config.name] or throw exception if does not exist */
    @JvmDefault
-   fun getField(name: String): Config<T>? {
+   fun getConfigOrThrow(name: String): Config<T> = getConfig(name) ?: fail { "Config field '$name' not found." }
+
+   companion object {
+      val EMPTY = EmptyConfigurable
+   }
+}
+
+/** Configurable with no configs. */
+object EmptyConfigurable: Configurable<Nothing> {
+   override fun getConfigs(): Collection<Config<Nothing>> = listOf()
+   override fun getConfig(name: String): Nothing? = null
+}
+
+/** Configurable using reflection using [IsConfig], where configs are recomputed on every access. */
+interface ConfigurableByReflect: Configurable<Any?> {
+
+   @JvmDefault
+   override fun getConfigs(): Collection<Config<Any?>> = toConfigurableByReflect().getConfigs().asIs()
+
+   @JvmDefault
+   override fun getConfig(name: String): Config<Any?>? {
       return try {
-         val c = this.javaClass
-         val f = Util.getField(c, name)
-         createConfig(f, this) as Config<T>?
+         ConfigurationUtil.createConfig(Util.getField(javaClass, name), this).asIs()
       } catch (e: NoSuchFieldException) {
          null
       } catch (e: SecurityException) {
          null
       }
    }
+}
 
-   /** @return config with given [Config.name] or throw exception if does not exist */
-   @JvmDefault
-   fun getFieldOrThrow(name: String): Config<T> = getField(name) ?: fail { "Config field '$name' not found." }
+/** [Configurable] backed by [List]. Hence [getConfigs] retains the order. */
+class ListConfigurable<T> private constructor(private val configs: List<Config<T>>): Configurable<T> {
+
+   override fun getConfigs() = configs
+
+   override fun getConfig(name: String) = configs.find { name==it.name }
 
    companion object {
 
-      /** Configurable with no fields. */
-      val EMPTY: Configurable<Nothing> = object: Configurable<Nothing> {
-         override fun getFields(): Collection<Config<Nothing>> = listOf()
-         override fun getField(name: String): Nothing? = null
-      }
+      @Suppress("UNCHECKED_CAST")
+      fun <T> heterogeneous(configs: Collection<Config<out T>>): ListConfigurable<*> = ListConfigurable(configs.toList() as List<Config<T>>)
+
+      fun <T> heterogeneous(vararg configs: Config<out T>): ListConfigurable<*> = heterogeneous(configs.toList())
+
+      fun <T> homogeneous(configs: Collection<Config<T>>): ListConfigurable<T> = ListConfigurable(configs.toList())
+
+      fun <T> homogeneous(vararg configs: Config<T>): ListConfigurable<T> = homogeneous(configs.toList())
 
    }
 }
 
-/** @return configurable of configs representing all fields marked [IsConfig] */
+/** @return configurable of configs representing all configs marked [IsConfig] */
 fun Any.toConfigurableByReflect(): Configurable<*> = configsOf(javaClass, this).toListConfigurable()
 
-/** @return configurable of configs representing all fields marked [IsConfig] */
+/** @return configurable of configs representing all configs marked [IsConfig] */
 fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Configurable<*> =
    configsOf(javaClass, fieldNamePrefix, category, this).toListConfigurable()
 

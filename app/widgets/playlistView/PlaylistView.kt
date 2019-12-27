@@ -35,7 +35,6 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.only
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.asIf
-import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
@@ -196,9 +195,9 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       }
    }
 
-   override fun getFields(): Collection<Config<Any?>> {
+   override fun getConfigs(): Collection<Config<Any?>> {
       widget.properties["columns"] = table.columnState.toString()
-      return super.getFields()
+      return super.getConfigs()
    }
 
    private fun computeInitialPlaylist(id: UUID) = null

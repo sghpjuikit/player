@@ -47,12 +47,12 @@ class EffectTextField: ValueTextField<Effect> {
       limitedToType = if (effectType==Effect::class.java) null else effectType
 
       typeB = Icon().apply {
-         styleclass("effect-config-field-type-button")
+         styleclass("effect-config-editor-type-button")
          tooltip(typeTooltip)
          onClickDo(::openChooser)
       }
       propB = Icon().apply {
-         styleclass("effect-config-field-conf-button")
+         styleclass("effect-config-editor-conf-button")
          isDisable = value==null
          tooltip(propTooltip)
          onClickDo(::openProperties)

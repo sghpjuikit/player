@@ -33,7 +33,7 @@ class Form<T>: AnchorPane {
    private val fieldsPane = StackPane()
    private val warnLabel = Label()
    private val okB = okIcon { ok() }
-   private var fields = ConfigPane<T>()
+   private var editorsPane = ConfigPane<T>()
    private val anchorOk = 90.0
    private val anchorWarn = 20.0
    /** Configurable object. */
@@ -63,7 +63,7 @@ class Form<T>: AnchorPane {
       }
 
       fieldsPane.lay += scrollPane {
-         content = fields
+         content = editorsPane
          isFitToWidth = true
          vbarPolicy = AS_NEEDED
          hbarPolicy = AS_NEEDED
@@ -72,9 +72,9 @@ class Form<T>: AnchorPane {
 
       showOkButton(hasAction.value)
 
-      fields.configure(configurable)
+      editorsPane.configure(configurable)
       val observer = Consumer<Any> { validate() }
-      fields.getConfigFields().forEach { it.observer = observer }
+      editorsPane.getConfigEditors().forEach { it.observer = observer }
 
       fieldsPane.consumeScrolling()
 
@@ -83,15 +83,15 @@ class Form<T>: AnchorPane {
 
    fun ok() {
       validate().ifOk {
-         fields.getConfigFields().forEach { it.apply() }
+         editorsPane.getConfigEditors().forEach { it.apply() }
          if (hasAction.value) onOK.invoke(configurable)
       }
    }
 
-   fun focusFirstConfigField() = fields.focusFirstConfigField()
+   fun focusFirstConfigEditor() = editorsPane.focusFirstConfigEditor()
 
    private fun validate(): Try<*, *> {
-      val values = fields.getConfigFields().asSequence().map { it.value }
+      val values = editorsPane.getConfigEditors().asSequence().map { it.value }
       val validation: Try<*, *> = values.reduce { a, b -> a and b } ?: Try.ok()
       showWarnButton(validation)
       return validation

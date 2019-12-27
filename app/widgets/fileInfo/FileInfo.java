@@ -241,17 +241,17 @@ public class FileInfo extends SimpleController implements SongReader {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Config<Object>> getFields() {
-        Collection<Config<Object>> c = list(super.getFields());
+    public Collection<Config<Object>> getConfigs() {
+        Collection<Config<Object>> c = list(super.getConfigs());
         c.addAll((Collection) fieldConfigs.values());
         return c;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Config<Object> getField(String n) {
+    public Config<Object> getConfig(String n) {
         return Optional.ofNullable((Config) fieldConfigs.get(n))
-                       .orElseGet(() -> super.getField(n));
+                       .orElseGet(() -> super.getConfig(n));
     }
 
     @Override

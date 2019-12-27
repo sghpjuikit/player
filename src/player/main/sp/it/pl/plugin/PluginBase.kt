@@ -4,16 +4,15 @@ import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppErrors
 import sp.it.pl.main.run1AppReady
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.dev.Idempotent
 import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.functional.ifFalse
 
 abstract class PluginBase(override val name: String, isEnabledByDefault: Boolean): Plugin {
 
-   @IsConfig(name = "Enable", info = "Enable/disable this plugin")
-   private val enabled by cv(isEnabledByDefault) sync { APP.run1AppReady { enable(it) } }
+   private val enabled by cv(isEnabledByDefault).def(name = "Enable", info = "Enable/disable this plugin") sync { APP.run1AppReady { enable(it) } }
    private var isRunning = false
 
    private fun enable(isToBeRunning: Boolean) {

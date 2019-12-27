@@ -14,6 +14,7 @@ import sp.it.util.action.Action
 import sp.it.util.action.IsAction
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.type.InstanceMap
@@ -139,19 +140,17 @@ interface ConfigDelegator {
       get() = null
 
    /** Config register and value provider. By default common value store. */
-   @JvmDefault
    val configurableValueSource: ConfigValueSource
 }
 
 /** Implementation of [ConfigDelegator] with [MainConfiguration] as [configurableValueSource]. */
 interface GlobalConfigDelegator: ConfigDelegator {
-   @JvmDefault
    override val configurableValueSource
       get() = configuration
 }
 
 /** [GlobalConfigDelegator] with [ConfigDelegator.configurableGroupPrefix] supplied at creation time. */
-open class GlobalSubConfigDelegator(override val configurableGroupPrefix: String? = null): ConfigDelegator, GlobalConfigDelegator
+open class GlobalSubConfigDelegator(override val configurableGroupPrefix: String? = null): GlobalConfigDelegator
 
 interface ConfigValueSource {
    fun register(config: Config<*>)
@@ -169,16 +168,15 @@ interface ConfigValueSource {
       open class SimpleConfigValueStore<T>: ConfigValueSource, Configurable<T> {
          private val configs = ArrayList<Config<T>>()
 
-         override fun getField(name: String): Config<T>? = configs.find { it.name==name }
+         override fun getConfig(name: String): Config<T>? = configs.find { it.name==name }
 
-         override fun getFields() = configs
+         override fun getConfigs() = configs
 
          override fun initialize(config: Config<*>) {}
 
-         override fun register(config: Config<*>) {
-            @Suppress("UNCHECKED_CAST")
-            configs += config as Config<T>
-         }
+         @Suppress("UNCHECKED_CAST")
+         override fun register(config: Config<*>) = configs.add(config as Config<T>).toUnit()
+
       }
    }
 }

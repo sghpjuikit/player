@@ -23,7 +23,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
-import sp.it.pl.gui.itemnode.ConfigField
+import sp.it.pl.gui.itemnode.ConfigEditor
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
@@ -208,7 +208,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                      textAlignment = TextAlignment.RIGHT
                   }
                }
-               config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigField.create(config).editor
+               config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigEditor.create(config).editor
                else -> null
             }
          }

@@ -7,6 +7,8 @@ import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
+import sp.it.util.conf.toConfigurableByReflect
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import java.util.HashMap
@@ -55,14 +57,14 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
       io.dispose()
    }
 
-   override fun getField(name: String) = configs.initializeLegacyConfigs().values.find { it.name==name }
+   override fun getConfig(name: String) = configs.initializeLegacyConfigs().values.find { it.name==name }
 
-   override fun getFields(): Collection<Config<Any?>> = configs.initializeLegacyConfigs().values
+   override fun getConfigs(): Collection<Config<Any?>> = configs.initializeLegacyConfigs().values
 
    private fun <T> T.initializeLegacyConfigs() = apply {
       if (hasLegacyConfigs && !isLegacyConfigsInitialized) {
          isLegacyConfigsInitialized = true
-         configs.putAll(super.getFields().associateBy(Widget.configToRawKeyMapper))
+         configs.putAll(this@SimpleController.toConfigurableByReflect().getConfigs().associateBy(Widget.configToRawKeyMapper).asIs())
       }
    }
 

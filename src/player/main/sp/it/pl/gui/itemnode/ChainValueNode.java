@@ -340,13 +340,13 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		}
 	}
 
-	public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN,List<V>> {
+	public static class ListChainValueNode<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN,List<V>> {
 
-		public ListConfigField(Supplier<IN> chainedFactory) {
+		public ListChainValueNode(Supplier<IN> chainedFactory) {
 			this(0, chainedFactory);
 		}
 
-		public ListConfigField(int initialLength, Supplier<IN> chainedFactory) {
+		public ListChainValueNode(int initialLength, Supplier<IN> chainedFactory) {
 			super(initialLength, List.of(), chainedFactory);
 			inconsistentState = false;
 			generateValue();

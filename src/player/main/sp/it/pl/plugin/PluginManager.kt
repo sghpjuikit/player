@@ -17,7 +17,7 @@ class PluginManager {
    /** Install the specified plugins. */
    private fun installPlugins(plugin: Plugin) {
       val type = plugin::class
-      failIf(plugins.containsKey(type)) { "There already is plugin instance of type=$type" }
+      failIf(type in plugins) { "There already is plugin instance of type=$type" }
 
       plugins[type] = plugin
       APP.configuration.installActions(plugin)

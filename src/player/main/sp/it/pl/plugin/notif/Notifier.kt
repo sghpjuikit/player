@@ -28,6 +28,7 @@ import sp.it.util.conf.EditMode
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.valuesIn
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
@@ -50,24 +51,25 @@ class Notifier: PluginBase("Notifications", true) {
    private var songNotificationGui: Node? = null
    private var songNotificationInfo: SongReader? = null
 
-   @IsConfig(name = "On playback status change")
    var showStatusNotification by c(false)
-   @IsConfig(name = "On playing song change")
+      .def(name = "On playback status change")
    var showSongNotification by c(true)
-   @IsConfig(name = "Autohide", info = "Whether notification hides on mouse click anywhere within the application", editable = EditMode.NONE)
+      .def(name = "On playing song change")
    val notificationAutohide by c(false)
-   @IsConfig(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
+      .def(name = "Autohide", info = "Whether notification hides on mouse click anywhere within the application", editable = EditMode.NONE)
    var notificationDuration by c(2500.millis)
-   @IsConfig(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
+      .def(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
    var notificationPos by c(Pos.BOTTOM_RIGHT)
-   @IsConfig(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
+      .def(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
    var notificationScr by c(ShowArea.SCREEN_ACTIVE)
-   @IsConfig(name = "On click left", info = "Left click action")
+      .def(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
    val onClickL by cv("Show application") { VarAction(it) }
-   @IsConfig(name = "On click right", info = "Right click action")
+      .def(name = "On click left", info = "Left click action")
    val onClickR by cv("Notification hide") { VarAction(it) }
-   @IsConfig(name = "Playback change graphics")
-   val graphics by cv("Normal").valuesIn {
+      .def(name = "On click right", info = "Right click action")
+   val graphics by cv("Normal").def(
+      name = "Playback change graphics"
+   ).valuesIn {
       APP.widgetManager.factories.getFactories()
          .filter { it.hasFeature<SongReader>() }
          .map { it.name }

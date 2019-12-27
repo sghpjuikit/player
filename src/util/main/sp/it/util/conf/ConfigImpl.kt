@@ -243,7 +243,7 @@ open class ListConfig<T>(
    override var valueAsProperty: PropVal
       get() = PropValN(
          value.map {
-            a.itemToConfigurable(it).getFields().joinToString(";") {
+            a.itemToConfigurable(it).getConfigs().joinToString(";") {
                it.valueAsProperty.val1 ?: fail { "Config $name supports only single-value within multi value" }
             }
          }
@@ -253,7 +253,7 @@ open class ListConfig<T>(
          a.list setTo property.valN.asSequence()
             .mapIndexed { i, s ->
                val item = if (isFixedSizeAndHasConfigurableItems) a.list[i] else a.itemFactory?.invoke()
-               val configs = a.itemToConfigurable(item).getFields().toList().materialize()
+               val configs = a.itemToConfigurable(item).getConfigs().toList().materialize()
                val values = s.split(";")
                if (configs.size==values.size)
                   (configs zip values).forEach { (c, v) -> c.valueAsProperty = PropVal1(v) }

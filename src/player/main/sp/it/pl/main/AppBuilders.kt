@@ -195,7 +195,7 @@ fun <T, C: Configurable<T>> C.configure(titleText: String, action: (C) -> Unit) 
       isAutohide.value = true
       show(WINDOW_ACTIVE(CENTER))
 
-      form.focusFirstConfigField()
+      form.focusFirstConfigEditor()
    }
 }
 

@@ -102,7 +102,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
             // put controls to new widget
             widget.custom_name syncTo controls.title.textProperty() on disposer
-            controls.propB.isDisable = widget.getFields().isEmpty()
+            controls.propB.isDisable = widget.getConfigs().isEmpty()
             widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
          widget.loadType.value==MANUAL -> {
@@ -112,7 +112,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
                // put controls to new widget
                widget.custom_name syncTo controls.title.textProperty() on disposer
-               controls.propB.isDisable = widget.getFields().isEmpty()
+               controls.propB.isDisable = widget.getConfigs().isEmpty()
                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
 
                manualLoadPane = buildManualLoadPane()

@@ -17,9 +17,9 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.util.async.runAwt
 import sp.it.util.async.runFX
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
@@ -39,12 +39,9 @@ import java.io.IOException
 class TrayPlugin: PluginBase("Tray", true) {
 
    private var tooltipText = APP.name
-   @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
-   val tooltipShow by cv(true)
-   @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
-   val showPlayingInTooltip by cv(true)
-   @IsConfig(name = "Is supported", editable = EditMode.NONE)
-   private val supported by c(SystemTray.isSupported())
+   val tooltipShow by cv(true).def(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
+   val showPlayingInTooltip by cv(true).def(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
+   private val supported by c(SystemTray.isSupported()).def(name = "Is supported", editable = EditMode.NONE)
    private var running = false
    private val onEnd = Disposer()
 

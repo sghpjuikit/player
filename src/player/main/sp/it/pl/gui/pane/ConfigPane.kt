@@ -4,7 +4,7 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
-import sp.it.pl.gui.itemnode.ConfigField
+import sp.it.pl.gui.itemnode.ConfigEditor
 import sp.it.pl.gui.objects.Text
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
@@ -18,7 +18,7 @@ import sp.it.util.math.min
 import sp.it.util.ui.label
 
 class ConfigPane<T: Any?>: VBox {
-   private var fields: List<ConfigField<*>> = listOf()
+   private var editors: List<ConfigEditor<*>> = listOf()
    private var needsLabel: Boolean = true
    private var inLayout = false
    var onChange: Runnable? = null
@@ -37,18 +37,18 @@ class ConfigPane<T: Any?>: VBox {
 
    fun configure(configurable: Configurable<*>?) {
       needsLabel = configurable !is Config<*>
-      fields = configurable?.getFields().orEmpty().asSequence()
+      editors = configurable?.getConfigs().orEmpty().asSequence()
          .filter { it.findConstraint<Constraint.NoUi>()==null }
          .sortedWith(configOrder)
          .map {
-            ConfigField.create(it).apply {
+            ConfigEditor.create(it).apply {
                onChange = this@ConfigPane.onChange
             }
          }
          .toList()
 
       alignment = CENTER_LEFT
-      children setTo fields.asSequence().flatMap {
+      children setTo editors.asSequence().flatMap {
          sequenceOf(
             when {
                needsLabel -> label(it.config.nameUi) {
@@ -98,9 +98,9 @@ class ConfigPane<T: Any?>: VBox {
    override fun computeMaxHeight(width: Double) = Double.MAX_VALUE
 
    @Suppress("UNCHECKED_CAST")
-   fun getConfigFields(): List<ConfigField<T>> = fields as List<ConfigField<T>>
+   fun getConfigEditors(): List<ConfigEditor<T>> = editors as List<ConfigEditor<T>>
 
-   fun getConfigValues(): List<T> = getConfigFields().map { it.configValue }
+   fun getConfigValues(): List<T> = getConfigEditors().map { it.configValue }
 
-   fun focusFirstConfigField() = fields.firstOrNull()?.focusEditor()
+   fun focusFirstConfigEditor() = editors.firstOrNull()?.focusEditor()
 }

@@ -31,7 +31,7 @@ import java.util.function.Supplier
 class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueNode<F1<in I, out O>>(throwingF()) {
    private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
    private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
-   private val configs = ArrayList<ConfigField<*>>()
+   private val editors = ArrayList<ConfigEditor<*>>()
    private val fCB: ComboBox<PF<in I, out O>>
    private var inconsistentState = false
 
@@ -43,11 +43,11 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
       fCB.items setTo functions.asSequence().sortedBy { it.name }
       fCB.value = functions.preferredOrFirst
       fCB.valueProperty() sync { function ->
-         configs.clear()
+         editors.clear()
          paramB.children.clear()
          function.parameters.forEachIndexed { i, p ->
-            val editor = p.toConfig { generateValue() }.toConfigField()
-            configs += editor
+            val editor = p.toConfig { generateValue() }.createEditor()
+            editors += editor
             paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
          }
          generateValue()
@@ -61,7 +61,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
 
    override fun getNode() = root
 
-   override fun focus() = configs.firstOrNull()?.focusEditor().toUnit()
+   override fun focus() = editors.firstOrNull()?.focusEditor().toUnit()
 
    fun getTypeIn(): Class<*> = fCB.value?.`in` ?: Void::class.java
 
@@ -70,14 +70,14 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
    private fun generateValue() {
       if (inconsistentState) return
       val functionRaw = fCB.value
-      val parameters = configs.map { it.configValue }
+      val parameters = editors.map { it.configValue }
       val function = functionRaw.toF1(parameters)
       changeValue(function)
    }
 
    fun clear() {
       inconsistentState = true
-      configs.forEach { it.setNapplyDefault() }
+      editors.forEach { it.setNapplyDefault() }
       inconsistentState = false
       generateValue()
    }
@@ -86,7 +86,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
 
       private fun throwingF() = F1<Any?, Nothing> { fail { "Initial function value. Must not be invoked" } }
 
-      private fun <T> Config<T>.toConfigField() = ConfigField.create(this)
+      private fun <T> Config<T>.createEditor() = ConfigEditor.create(this)
 
       private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
          val a = vx(defaultValue).apply { attach { onChange(it) } }

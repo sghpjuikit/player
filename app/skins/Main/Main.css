@@ -1925,7 +1925,7 @@ Text {
  * Config field ui, containing the editor and stuff like default button.
  * inherits: HBox
  */
-.config-field {
+.config-editor {
     -fx-min-height: 2em;
 }
 
@@ -1933,10 +1933,10 @@ Text {
  * Text box for configuring objects, e.g. in settings.
  * inherits: .text-field
  */
-.text-field-config,
-.text-field-config:hover,
-.text-field-config:focused,
-.text-field-config:focused:hover,
+.text-config-editor,
+.text-config-editor:hover,
+.text-config-editor:focused,
+.text-config-editor:focused:hover,
 .combobox-field-config > .list-cell,
 .combobox-field-config:hover > .list-cell,
 .combobox-field-config:focused > .list-cell,
@@ -1948,14 +1948,14 @@ Text {
 
 /**
  * Ok icon used in config fields to apply change.
- * inherits: .text-field, .text-field-config
+ * inherits: .text-field, .text-config-editor
  */
-.shortcut-config-field,
-.shortcut-config-field:readonly,
-.shortcut-config-field:hover,
-.shortcut-config-field:readonly:hover,
-.shortcut-config-field:focused,
-.shortcut-config-field:readonly:focused {
+.shortcut-config-editor,
+.shortcut-config-editor:readonly,
+.shortcut-config-editor:hover,
+.shortcut-config-editor:readonly:hover,
+.shortcut-config-editor:focused,
+.shortcut-config-editor:readonly:focused {
     -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-value-font-color;
 }
@@ -1963,30 +1963,30 @@ Text {
 /**
  * inherits: .check-icon
  */
-.boolean-config-field Text,
-.boolean-config-field: hover Text {
+.boolean-config-editor Text,
+.boolean-config-editor: hover Text {
     -fx-fill: -skin-value-font-color;
 }
 
 /**
  * inherits: .slider
  */
-.slider-config-field .thumb,
-.slider-config-field .thumb:hover,
-.slider-config-field .thumb:armed,
-.slider-config-field:focused .thumb,
-.slider-config-field:focused .thumb:hover,
-.slider-config-field:focused .thumb:armed,
-.slider-config-field:hover .thumb {
+.slider-config-editor .thumb,
+.slider-config-editor .thumb:hover,
+.slider-config-editor .thumb:armed,
+.slider-config-editor:focused .thumb,
+.slider-config-editor:focused .thumb:hover,
+.slider-config-editor:focused .thumb:armed,
+.slider-config-editor:hover .thumb {
     -fx-fill: -skin-value-font-color;
     -fx-text-fill: -skin-value-font-color;
     -fx-background-color: -skin-value-font-color;
 }
 
-.override-config-field {
+.override-config-editor {
     -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK_OUTLINE";
 }
-.override-config-field:selected {
+.override-config-editor:selected {
     -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK";
 }
 
@@ -2002,13 +2002,13 @@ Text {
 }
 
 /* Effect type chooser button for effect config field. */
-.effect-config-field-type-button {
+.effect-config-editor-type-button {
     -glyph-name: "MaterialDesignIcon.AUTO_FIX";
     -glyph-size: 0.66667em; /* 8 */
 }
 
 /* Effect properties button for effect config field. */
-.effect-config-field-conf-button {
+.effect-config-editor-conf-button {
     -glyph-name: "FontAwesomeIcon.GEAR";
     -glyph-size: 0.66667em; /* 8 */
 }
@@ -2017,7 +2017,7 @@ Text {
  * Ok icon used in config fields to apply change.
  * inherits: .icon
  */
-.config-field-ok-button {
+.config-editor-ok-button {
     -glyph-name: "FontAwesomeIcon.CHECK";
 }
 
@@ -2025,17 +2025,17 @@ Text {
  * Warn icon used in config fields to signal erroneous input.
  * inherits: .icon
  */
-.config-field-warn-button,
-.config-field-warn-button Text,
-.config-field-warn-button:hover,
-.config-field-warn-button:hover Text {
+.config-editor-warn-button,
+.config-editor-warn-button Text,
+.config-editor-warn-button:hover,
+.config-editor-warn-button:hover Text {
     -glyph-name: "FontAwesomeIcon.EXCLAMATION_TRIANGLE";
     -glyph-size: 0.66667em; /* 8 */
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 
-.config-field-default-button {
+.config-editor-default-button {
     -glyph-name: "FontAwesomeIcon.RECYCLE";
     -glyph-size: 0.66667em; /* 8 */
     -fx-background-color: transparent;
@@ -2043,10 +2043,10 @@ Text {
     -fx-text-fill: -skin-def-font-color;
     -fx-translate-y: 1; /* fix vertical alignment*/
 }
-.config-field-default-button:pressed:hover {
+.config-editor-default-button:pressed:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
-.config-field-default-button:hover {
+.config-editor-default-button:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
@@ -2063,7 +2063,7 @@ Text {
 }
 
 /*
- * Layout for .config-field. Inherently LEFT aligned.
+ * Layout for .config-editor. Inherently LEFT aligned.
  * inherits: VBox
  */
 .form-config-pane {

@@ -1,6 +1,5 @@
 package sp.it.util.functional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -17,10 +16,6 @@ import kotlin.jvm.functions.Function3;
 import kotlin.jvm.functions.Function4;
 import kotlin.jvm.functions.Function5;
 import kotlin.jvm.functions.Function6;
-import sp.it.util.access.V;
-import sp.it.util.conf.AccessConfig;
-import sp.it.util.conf.Config;
-import sp.it.util.conf.Configurable;
 import sp.it.util.dev.SwitchException;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IDENTITY;
@@ -31,10 +26,9 @@ import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.isAny;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
-import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.type.Util.unPrimitivize;
 
-@SuppressWarnings({"unchecked", "unused","NonAsciiCharacters"})
+@SuppressWarnings({"unchecked", "unused"})
 public interface Functors {
 
 	FunctorPool pool = new FunctorPool();
@@ -398,48 +392,6 @@ public interface Functors {
 
 	}
 
-	/**
-	 * Function throwing an exception.
-	 * <p/>
-	 * Due to the signature, it is impossible to extend {@link Consumer}
-	 */
-	@FunctionalInterface
-	interface F1E<I, O, E extends Throwable> extends L, IO<I,O> {
-		O apply(I i) throws E;
-
-		default F1E<I,O,E> onEx(O or, Class<?>... ecs) {
-			return i -> {
-				try {
-					return apply(i);
-				} catch (Throwable e) {
-					for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
-					throw e;
-				}
-			};
-		}
-	}
-
-	/**
-	 * {@link Consumer} which throws an exception.
-	 * <p/>
-	 * Consumer version of {@link sp.it.util.functional.Functors.F1E}, so lambda expression does not need to return void (null)
-	 * at the end
-	 */
-	// this class is ~pointless, although now lambda does not have to return null like in case of F1E,
-	// but now the some method takes parameter of this class. Which will prevent
-	// other F1E from being used!
-	@FunctionalInterface
-	interface FEC<I, E extends Throwable> extends F1E<I,Void,E> {
-
-		@Override
-		default Void apply(I i) throws E {
-			accept(i);
-			return null;
-		}
-
-		void accept(I i) throws E;
-	}
-
 	@FunctionalInterface
 	interface F2<I, I2, O> extends L, IO<I,O>, BiFunction<I,I2,O>, Function2<I,I2,O> {
 		@Override
@@ -775,26 +727,6 @@ public interface Functors {
 		public O apply(I t, Object... ps) {
 			return f.apply(t, ps);
 		}
-	}
-
-	class CF<I, O> implements F1<I,O>, Configurable<Object> {
-
-		final PF<I,O> pf;
-		private final List<Config<Object>> cs = new ArrayList<>();
-
-		public CF(PF<I,O> pf) {
-			this.pf = pf;
-			pf.getParameters().forEach(p -> {
-				V<Object> a = new V<>(p.defaultValue);
-				cs.add(new AccessConfig(p.type, p.name, p.description, consumer(a::setValue), a::getValue));
-			});
-		}
-
-		@Override
-		public O apply(I queryParam) {
-			return pf.apply(queryParam, cs.stream().map(Config::getValue).toArray());
-		}
-
 	}
 
 	class TypeAwareF<I, O> implements F1<I,O> {

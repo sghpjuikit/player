@@ -7,12 +7,11 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence;
 import sp.it.util.access.V;
 import sp.it.util.action.IsAction;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.conf.Configurable;
 import sp.it.util.functional.Functors.F1;
 import static sp.it.util.functional.Util.listRO;
 
 /** Manages playlists. */
-public class PlaylistManager implements Configurable {
+public class PlaylistManager {
 
 	public static final MapSet<UUID,Playlist> playlists = new MapSet<>(p -> p.id);
 	public static UUID active = null;

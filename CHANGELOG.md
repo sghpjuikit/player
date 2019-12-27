@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Wallpaper` plugin window hiding when no image
 - Implement new popups
 - Implement application settings import/export/defaults actions
+- Implement application settings filter
 - Implement select settings group when opening setting from application search
 - Implement confirmation popup for remove songs from library
 - Improve application settings order/hierarchy
@@ -63,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overlay settings change not taking effect
 - Overlay blur affecting content in some scenarios
 - Icon with text has wrong layout
+- Check icon with one icon not distinguishing on/off state
 - Starting some processes blocked until application stopped
 - Progress indicator not centered in certain sizes
 - Drag & Drop support for COPY/MOVE/LINK
@@ -70,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Tagger` widget displaying wrong cover in rare cases
 - View filter not working in some cases
 - View filter closing instead of focusing on Ctrl+F
+- Search text field clear button showing incorrectly sometimes
 - Application search cell graphics layout
 - Application search empty tooltip visible
 - Application skin setting not restored properly

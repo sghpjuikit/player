@@ -26,13 +26,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import sp.it.pl.gui.itemnode.FieldedPredicateChainItemNode;
-import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.objects.grid.GridView.CellGap;
 import sp.it.pl.gui.objects.grid.GridView.Search;
 import sp.it.pl.gui.objects.grid.GridView.SelectionOn;
 import sp.it.util.access.fieldvalue.ObjectField;
-import sp.it.util.functional.Functors;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.SubscriptionKt;
 import sp.it.util.reactive.UtilKt;
@@ -942,14 +940,8 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F,Object>> {
 
-		@SuppressWarnings("unchecked")
 		private Filter(Class<F> filterType, FilteredList<T> filterList) {
-			super(THIS -> {
-				var g = new FieldedPredicateItemNode<F,ObjectField<F,Object>>(in -> Functors.pool.getIO(in, Boolean.class), in -> Functors.pool.getPrefIO(in, Boolean.class));
-				g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
-				g.setData(THIS.getData());
-				return g;
-			});
+			super();
 			setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
 			setData(getFilterPredicates(filterType));
 			onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));

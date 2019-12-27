@@ -8,7 +8,6 @@ import javafx.scene.input.KeyCode.F
 import javafx.scene.input.KeyEvent
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.util.access.fieldvalue.ObjectField
-import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.asIs
 import sp.it.util.ui.isAnyParentOf
@@ -20,9 +19,16 @@ import java.util.stream.Stream
 import kotlin.streams.asSequence
 
 /** [ObjectField] [Predicate] chain. */
-open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any>>(
-   chainedFactory: F1<FieldedPredicateChainItemNode<T, F>, FieldedPredicateItemNode<T, F>>
+open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>(
+   chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F>
 ): ChainValueNode<Predicate<T>, FieldedPredicateItemNode<T, F>, Predicate<T>>(0, MAX_VALUE, IS.asIs(), null) {
+
+   constructor(): this({
+      FieldedPredicateItemNode<T, F>().apply {
+         setPrefTypeSupplier(it.prefTypeSupplier)
+         setData(it.data)
+      }
+   })
 
    var prefTypeSupplier: Supplier<PredicateData<F>>? = null
       set(supplier) {

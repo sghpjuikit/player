@@ -30,14 +30,12 @@ import javafx.util.Callback;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import sp.it.pl.gui.itemnode.FieldedPredicateChainItemNode;
-import sp.it.pl.gui.itemnode.FieldedPredicateItemNode;
 import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.nodeinfo.TableInfo;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ObjectField;
-import sp.it.util.functional.Functors;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
@@ -296,17 +294,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T,Object>> {
 
-		@SuppressWarnings("unchecked")
 		public Filter(Class<T> filterType, FilteredList<T> filterList) {
-			super(THIS -> {
-				var g = new FieldedPredicateItemNode<T,ObjectField<T,Object>>(
-					in -> Functors.pool.getIO(in, Boolean.class),
-					in -> Functors.pool.getPrefIO(in, Boolean.class)
-				);
-				g.setPrefTypeSupplier(THIS.getPrefTypeSupplier());
-				g.setData(THIS.getData());
-				return g;
-			});
+			super();
 			setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
 			onItemChange = filterList::setPredicate;
 			setData(getFilterPredicates(filterType));

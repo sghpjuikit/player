@@ -9,11 +9,13 @@ import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-import javafx.util.Callback;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.gui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.collections.list.PrefList;
+import sp.it.util.functional.Functors;
 import sp.it.util.functional.Functors.PF;
 import sp.it.util.functional.Util;
 import static java.util.stream.Collectors.toList;
@@ -71,7 +73,15 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private boolean empty = true;
 
 	@SuppressWarnings("unchecked")
-	public FieldedPredicateItemNode(Callback<Class,PrefList<PF<Object,Boolean>>> predicatePool, Callback<Class,PF<Object,Boolean>> prefPredicatePool) {
+	public FieldedPredicateItemNode() {
+		this(
+			in -> Functors.pool.getIO(in, Boolean.class),
+			in -> Functors.pool.getPrefIO(in, Boolean.class)
+		);
+	}
+
+	@SuppressWarnings("unchecked")
+	public FieldedPredicateItemNode(Function1<Class,PrefList<PF<Object,Boolean>>> predicatePool, Function1<Class,PF<Object,Boolean>> prefPredicatePool) {
 		super((Predicate) IS);
 
 		root.setAlignment(CENTER_LEFT);
@@ -79,7 +89,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		typeCB.valueProperty().addListener((o, ov, nv) -> {
 			if (inconsistentState) return;
 			if (config!=null) root.getChildren().remove(config.getNode());
-			config = new FItemNode(() -> predicatePool.call(nv.type));
+			config = new FItemNode(() -> predicatePool.invoke(nv.type));
 			root.getChildren().add(config.getNode());
 			HBox.setHgrow(config.getNode(), ALWAYS);
 			config.onItemChange = v -> generatePredicate();
@@ -90,8 +100,9 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	}
 
 	/** Set initially selected value. Supplier can be null and return null, in which case 1st value is selected. */
-	public void setPrefTypeSupplier(Supplier<PredicateData<F>> initialValueSupplier) {
-		prefTypeSupplier = initialValueSupplier;
+	@SuppressWarnings("unchecked")
+	public void setPrefTypeSupplier(Supplier<? extends PredicateData<F>> initialValueSupplier) {
+		prefTypeSupplier = (Supplier) initialValueSupplier;
 	}
 
 	/**
@@ -105,7 +116,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	 * <p/>
 	 * If there is no object to pass, use null.
 	 */
-	public void setData(List<PredicateData<F>> classes) {
+	public void setData(List<? extends PredicateData<F>> classes) {
 		List<PredicateData<F>> cs = stream(classes).sorted(by(pd -> pd.name)).collect(toList());
 		inconsistentState = true;
 		typeCB.getItems().setAll(cs);
@@ -172,6 +183,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		public final Class type;
 		public final T value;
 
+		@NotNull
 		public static <V, T> PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
 			return new PredicateData<>(field.name(), field.getType(), field);
 		}

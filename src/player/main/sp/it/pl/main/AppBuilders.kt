@@ -8,6 +8,8 @@ import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
@@ -15,6 +17,7 @@ import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.spinner.Spinner
+import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.pl.gui.objects.window.NodeShow.RIGHT_CENTER
 import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.gui.objects.window.popup.PopWindow
@@ -29,7 +32,11 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.ValueConfig
 import sp.it.util.functional.asIs
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
+import sp.it.util.reactive.map
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -152,6 +159,35 @@ fun Font.rowHeight(): Double {
    var h = (size*1.5).toLong()  // decimal number helps pixel alignment
    h = if (h%2==0L) h else h + 1   // even number helps layout symmetry
    return h.toDouble()
+}
+
+fun searchTextField() = DecoratedTextField().apply {
+   id = "search-text-field"
+   styleClass += "search"
+   val isEmpty = textProperty().map { it.isNullOrBlank() }
+
+   onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
+      if (text.isNullOrEmpty()) {
+         it.consume()
+         clear()
+      }
+   }
+
+   left.value = Icon().also { i ->
+      i.styleclass("search-icon-sign")
+      i.isMouseTransparent = true
+      i.isFocusTraversable = false
+   }
+   right.value = Icon().also { i ->
+      i.styleClass += "search-clear-button"
+      i.isFocusTraversable = false
+      i.opacity = 0.0
+      i.onClickDo { clear() }
+      i.visibleProperty() syncFrom editableProperty()
+
+      val fade = anim(200.millis) { i.opacity = it }.applyNow()
+      isEmpty attach { fade.playFromDir(!it) }
+   }
 }
 
 fun okIcon(action: (Icon) -> Unit) = Icon().apply {

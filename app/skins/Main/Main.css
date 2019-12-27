@@ -1490,7 +1490,7 @@ Text {
     opacity: 1;
 }
 .check-icon-disabling:selected {
-    opacity: 0.4; /* imitate disabled style, should be consistent with it */
+    -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
 }
 
 /** 

@@ -20,11 +20,14 @@ import sp.it.util.reactive.sync
 import sp.it.util.type.InstanceMap
 import sp.it.util.type.Util.getRawGenericPropertyType
 import java.io.File
+import kotlin.reflect.KCallable
+import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
+import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.javaType
 import kotlin.properties.ReadOnlyProperty as RoProperty
 import kotlin.properties.ReadWriteProperty as RwProperty
@@ -158,12 +161,14 @@ interface ConfigValueSource {
 
    companion object {
 
-      fun empty() = object: ConfigValueSource {
+      fun empty() = EmptyConfigValueSource
+
+      fun <T> simple() = SimpleConfigValueStore<T>()
+
+      object EmptyConfigValueSource: ConfigValueSource {
          override fun initialize(config: Config<*>) {}
          override fun register(config: Config<*>) {}
       }
-
-      fun <T> simple() = SimpleConfigValueStore<T>()
 
       open class SimpleConfigValueStore<T>: ConfigValueSource, Configurable<T> {
          private val configs = ArrayList<Config<T>>()
@@ -199,9 +204,10 @@ abstract class Conf<T: Any?> {
       constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }
    }
 
-   protected fun KProperty<*>.makeAccessible() = apply {
+   protected fun KCallable<*>.makeAccessible() = apply {
       isAccessible = true
-      javaField?.isAccessible = true
+      if (this is KProperty<*>) javaField?.isAccessible = true
+      if (this is KFunction<*>) javaMethod?.isAccessible = true
    }
 
    protected fun <CFGT, CFG: Config<CFGT>> CFG.registerConfig(ref: ConfigDelegator) = apply {
@@ -210,7 +216,7 @@ abstract class Conf<T: Any?> {
 }
 
 class ConfR(private val action: () -> Unit): Conf<Action>() {
-   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, Action> {
+   operator fun provideDelegate(ref: ConfigDelegator, property: KCallable<*>): RoProperty<ConfigDelegator, Action> {
       property.makeAccessible()
       val info = def ?: property.findAnnotation<IsConfig>()?.toDef()
       val infoExt = property.findAnnotation<IsAction>()
@@ -221,7 +227,7 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
 
       fun String.orNull() = takeIf { it.isNotBlank() }
       val name = infoExt?.name?.orNull() ?: info?.name?.orNull() ?: property.name
-      val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull() ?: Action.CONFIG_GROUP
+      val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull() ?: ""
       val keys = infoExt?.keys ?: ""
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false

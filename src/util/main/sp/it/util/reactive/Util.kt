@@ -79,18 +79,33 @@ infix fun <O> ObservableValue<O>.sync(block: (O) -> Unit): Subscription {
 /** Java convenience method equivalent to [sync]. */
 fun <O> ObservableValue<O>.syncC(block: Consumer<in O>) = sync(block.kt)
 
-/** Sets a disposable block to be fired immediately and on every value change. */
-infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscription {
-   var inner = Subscription()
-   val outer = sync {
-      inner.unsubscribe()
-      inner = block(it)
+/** Sets a disposable block to be fired on every value change. The block is disposed on the next change. */
+infix fun <O> ObservableValue<O>.attachWhile(block: (O) -> Subscription): Subscription {
+   val inner = Disposer()
+   val outer = attach {
+      inner()
+      inner += block(it)
    }
    return outer + inner
 }
 
-/** Sets a disposable block to be fired immediately and on every non null value change. */
-infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscription) = syncWhile {
+/** Sets a disposable block to be fired on every non null value change. The block is disposed on the next change (null or not). */
+infix fun <O: Any> ObservableValue<O?>.attachNonNullWhile(block: (O) -> Subscription) = attachWhile { it ->
+   it?.net(block).orEmpty()
+}
+
+/** Sets a disposable block to be fired immediately and on every value change. The block is disposed on the next change. */
+infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscription {
+   val inner = Disposer()
+   val outer = sync {
+      inner()
+      inner += block(it)
+   }
+   return outer + inner
+}
+
+/** Sets a disposable block to be fired immediately and on every non null value change. The block is disposed on the next change (null or not). */
+infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscription) = syncWhile { it ->
    it?.net(block).orEmpty()
 }
 
@@ -354,6 +369,26 @@ fun Observable.onChange(block: () -> Unit): Subscription {
 fun Observable.onChangeAndNow(block: () -> Unit): Subscription {
    block()
    return onChange(block)
+}
+
+/** Sets a disposable block to be on every change. The block is disposed on the next change. */
+infix fun Observable.attachWhile(block: () -> Subscription): Subscription {
+   val inner = Disposer()
+   val outer = onChange {
+      inner()
+      inner += block()
+   }
+   return outer + inner
+}
+
+/** Sets a disposable block to be fired immediately and on every change. The block is disposed on the next change. */
+infix fun Observable.syncWhile(block: () -> Subscription): Subscription {
+   val inner = Disposer()
+   val outer = onChangeAndNow {
+      inner()
+      inner += block()
+   }
+   return outer + inner
 }
 
 /** Call specified block every time an item is added to this list passing it as argument */

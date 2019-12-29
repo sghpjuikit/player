@@ -6,6 +6,7 @@ import com.sun.jna.Pointer
 import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser.GWL_STYLE
+import com.sun.jna.platform.win32.WinUser.SMTO_NORMAL
 import javafx.event.Event
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
@@ -87,8 +88,8 @@ fun Window.installStartLayoutPlaceholder() {
 }
 
 /**
- * Sets window always at bottom (opposite of always on top).<br></br>
- * Windows only.
+ * Sets window to be non-interactive and always at bottom (opposite of always on top).
+ * Windows only, no-op on other platforms.
  *
  * @apiNote adjusts native window style. Based on: http://stackoverflow.com/questions/26972683/javafx-minimizing-undecorated-stage
  */
@@ -98,6 +99,7 @@ fun Stage.setNonInteractingOnBottom() {
 
    showingProperty().sync1If({ it }) {
       val user32 = User32.INSTANCE
+
       val titleOriginal = title
       val titleUnique = UUID.randomUUID().toString()
       title = titleUnique
@@ -109,7 +111,6 @@ fun Stage.setNonInteractingOnBottom() {
       val oldStyle = user32.GetWindowLong(hwnd, GWL_STYLE)
       val newStyle = oldStyle or WS_EX_NOACTIVATE
       user32.SetWindowLong(hwnd, GWL_STYLE, newStyle)
-
       // Put the window on bottom
       // http://stackoverflow.com/questions/527950/how-to-make-always-on-bottom-window
       val SWP_NOSIZE = 0x0001
@@ -117,6 +118,54 @@ fun Stage.setNonInteractingOnBottom() {
       val SWP_NOACTIVATE = 0x0010
       val HWND_BOTTOM = 1
       user32.SetWindowPos(hwnd, WinDef.HWND(Pointer(HWND_BOTTOM.toLong())), 0, 0, 0, 0, SWP_NOSIZE or SWP_NOMOVE or SWP_NOACTIVATE)
+   }
+}
+
+/**
+ * Sets window to be non-interactive and always at the bottom, behind the icons.
+ * Windows only, no-op on other platforms.
+ *
+ * Closing this window will make its last graphics to remain visible until wallpaper is repainted.
+ *
+ * @apiNote adjusts native window style. Based on: https://www.codeproject.com/articles/856020/draw-behind-desktop-icons-in-windows-plus
+ */
+@Suppress("LocalVariableName", "SpellCheckingInspection", "UNUSED_ANONYMOUS_PARAMETER")
+fun Stage.setNonInteractingProgmanOnBottom() {
+   if (!Os.WINDOWS.isCurrent) return
+
+   showingProperty().sync1If({ it }) {
+      val user32 = User32.INSTANCE
+
+      val titleOriginal = title
+      val titleUnique = UUID.randomUUID().toString()
+      title = titleUnique
+      val hwnd = user32.FindWindow(null, titleUnique)   // find native window by title
+      title = titleOriginal
+
+      // Fetch the Progman window
+      val progman = user32.FindWindow("Progman", null)
+
+      // Send 0x052C to Progman
+      // This message directs Progman to spawn a WorkerW behind the desktop icons. If it is already there, nothing happens.
+      val result: WinDef.DWORDByReference? = null
+      user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, result);
+
+      // Get WorkerW window
+      var workerW: WinDef.HWND? = null
+      user32.EnumWindows(
+         { tophandle, topparamhandle ->
+            val p = user32.FindWindowEx(tophandle, null, "SHELLDLL_DefView", null)
+            if (p!=null) {
+               workerW = user32.FindWindowEx(null, tophandle, "WorkerW", null)
+            }
+            true
+         },
+         null
+      )
+
+      // Set WorkerW as parent
+      if (hwnd!=null && workerW!=null)
+         user32.SetParent(hwnd, workerW)
    }
 }
 

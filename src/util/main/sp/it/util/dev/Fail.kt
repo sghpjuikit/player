@@ -7,6 +7,9 @@ import java.lang.reflect.Modifier
 /** Throw runtime exception with the specified message. */
 inline fun fail(message: () -> String = { "" }): Nothing = throw AssertionError(message())
 
+/** Throw runtime exception with the specified message and cause. */
+inline fun fail(cause:Throwable, message: () -> String = { "" }): Nothing = throw AssertionError(message(), cause)
+
 /** Throw runtime exception with the specified message if specified condition is true. */
 @JvmOverloads
 inline fun failIf(condition: Boolean, message: () -> String = { "" }) {

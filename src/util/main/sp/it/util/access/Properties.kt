@@ -49,6 +49,9 @@ operator fun IntegerProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 operator fun ObservableBooleanValue.getValue(thisRef: Any, property: KProperty<*>) = get()
 operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, value: Boolean) = set(value)
 
+/** @return this property as a read-only property */
+fun <T> Property<T>.readOnly(): ObservableValue<T> = this
+
 /** Sets value to negated value of current value. */
 fun WritableValue<Boolean>.toggle() {
    value = !value

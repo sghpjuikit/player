@@ -85,11 +85,11 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
          lay(NEVER) += hBox(0, CENTER_RIGHT) {
             id = "header"
 
-            lay += CheckIcon(filterActions).icons(IconFA.COMPRESS)
+            lay += CheckIcon(filterActions).icons(IconFA.COMPRESS).tooltip("No shortcuts\n\nHide shortcuts and action editors as they get in the way.")
             lay += filterTextField
-            lay += Icon(IconFA.RECYCLE, 13.0, "Set all to default").onClickDo { defaults() }
+            lay += Icon(IconFA.RECYCLE, 13.0).onClickDo { defaults() }.tooltip("Default\n\nSet all editors to default values")
             lay += Icon().blank()
-            lay += Icon(IconFA.HOME, 13.0, "App settings").onClickDo { configure(appConfigurable) }
+            lay += Icon(IconFA.HOME, 13.0).onClickDo { configure(appConfigurable) }.tooltip("App settings\n\nHide current settings and Visit application settings")
             lay += Icon().blank()
          }
          lay(ALWAYS) += splitPane {
@@ -163,7 +163,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    fun configureFiltered(groupToSelect: String? = groups.selectionModel.selectedItem?.value?.pathUp) {
-      configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && (it.type!=Action::class.java) xor filterActions.value }
+      configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && (it.type!=Action::class.java || !filterActions.value) }
       configSelectionAvoid = true
       groups.isShowRoot = !showsAppSettings
       groups.root = tree(Name.treeOfPaths("All", configsFiltered.map { it.group }))

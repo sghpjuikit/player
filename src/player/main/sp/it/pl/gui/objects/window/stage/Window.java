@@ -349,6 +349,16 @@ public class Window extends WindowBase {
 		installStartLayoutPlaceholder(this);
 	}
 
+	public Subscription addLeftHeaderIcon(Icon icon) {
+		leftHeaderBox.getChildren().add(8, icon.size(null).styleclass("header-icon"));
+		return Subscription.Companion.invoke(runnable(() -> leftHeaderBox.getChildren().remove(icon)));
+	}
+
+	public Subscription addRightHeaderIcon(Icon icon) {
+		leftHeaderBox.getChildren().add(2, icon.size(null).styleclass("header-icon"));
+		return Subscription.Companion.invoke(runnable(() -> leftHeaderBox.getChildren().remove(icon)));
+	}
+
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
 
 	private Layout layout;

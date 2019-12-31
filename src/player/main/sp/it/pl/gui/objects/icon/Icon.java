@@ -238,15 +238,15 @@ public class Icon extends StackPane {
 		return this;
 	}
 
-	public Icon size(double s) {
+	public Icon size(@Nullable Number s) {
 //		isGlyphSizeSetProgrammatically = true;
-		setGlyphSize(s);
+		setGlyphSize(s==null ? s : s.doubleValue());
 		return this;
 	}
 
-	public Icon gap(double g) {
+	public Icon gap(@Nullable Number s) {
 		isGlyphGapSetProgrammatically = true;
-		setGlyphGap(g);
+		setGlyphGap(s==null ? s : s.doubleValue());
 		return this;
 	}
 

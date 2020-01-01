@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.waifu2k
+package sp.it.pl.plugin.impl
 
 import sp.it.pl.main.AppError
 import sp.it.pl.main.configure

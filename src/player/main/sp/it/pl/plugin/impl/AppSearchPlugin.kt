@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.appsearch
+package sp.it.pl.plugin.impl
 
 import com.sun.jna.Native
 import com.sun.jna.platform.win32.Shell32

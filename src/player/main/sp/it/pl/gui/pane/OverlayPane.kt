@@ -24,7 +24,7 @@ import sp.it.pl.core.NameUi
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
-import sp.it.pl.plugin.wallpaper.WallpaperChanger
+import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01

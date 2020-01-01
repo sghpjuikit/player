@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.tray
+package sp.it.pl.plugin.impl
 
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.MouseButton.BACK

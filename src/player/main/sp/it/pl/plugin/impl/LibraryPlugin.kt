@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.library
+package sp.it.pl.plugin.impl
 
 import mu.KLogging
 import sp.it.pl.audio.SimpleSong
@@ -10,7 +10,6 @@ import sp.it.pl.main.findAudio
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.plugin.notif.Notifier
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.runGet
 import sp.it.util.async.runIO

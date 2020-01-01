@@ -2,7 +2,7 @@ package sp.it.pl.main
 
 import javafx.collections.FXCollections.observableArrayList
 import mu.KotlinLogging
-import sp.it.pl.plugin.notif.Notifier
+import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.async.FX
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX

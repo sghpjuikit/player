@@ -27,7 +27,7 @@ import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.writeImage
-import sp.it.pl.plugin.wallpaper.WallpaperChanger
+import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.async.runIO
 import sp.it.util.conf.Configurable

@@ -35,7 +35,7 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.Widgets.SONG_TAGGER
-import sp.it.pl.plugin.wallpaper.WallpaperChanger
+import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v

@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.guide
+package sp.it.pl.plugin.impl
 
 import javafx.event.EventHandler
 import javafx.geometry.Insets

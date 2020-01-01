@@ -112,7 +112,7 @@ import sp.it.pl.main.infoIcon
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.isAudioEditable
 import sp.it.pl.main.isImageJaudiotagger
-import sp.it.pl.plugin.notif.Notifier
+import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.async.runIO

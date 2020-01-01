@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.notif
+package sp.it.pl.plugin.impl
 
 import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT

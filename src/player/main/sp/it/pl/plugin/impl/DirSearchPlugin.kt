@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.dirsearch
+package sp.it.pl.plugin.impl
 
 import mu.KLogging
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch

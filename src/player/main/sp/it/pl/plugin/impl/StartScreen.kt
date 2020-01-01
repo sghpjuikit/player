@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.startscreen
+package sp.it.pl.plugin.impl
 
 import javafx.geometry.Insets
 import javafx.geometry.Point2D

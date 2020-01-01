@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.wallpaper
+package sp.it.pl.plugin.impl
 
 import javafx.scene.Scene
 import javafx.scene.image.Image

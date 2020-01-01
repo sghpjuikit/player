@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.playcount
+package sp.it.pl.plugin.impl
 
 import javafx.util.Duration.seconds
 import sp.it.pl.audio.playback.PlayTimeHandler
@@ -8,14 +8,13 @@ import sp.it.pl.audio.tagging.write
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.plugin.notif.Notifier
-import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.MANUAL
-import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_END
-import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_PERCENT
-import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_START
-import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME
-import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
-import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
+import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.MANUAL
+import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_END
+import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_PERCENT
+import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_START
+import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME
+import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
+import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
 import sp.it.util.action.IsAction
 import sp.it.util.conf.between
 import sp.it.util.conf.cv

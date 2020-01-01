@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.database
+package sp.it.pl.plugin.impl
 
 import mu.KLogging
 import sp.it.pl.audio.MetadatasDB
@@ -13,7 +13,6 @@ import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrorAction
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.withAppProgress
-import sp.it.pl.plugin.library.LibraryPlugin
 import sp.it.util.access.v
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX

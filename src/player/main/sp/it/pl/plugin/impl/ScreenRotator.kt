@@ -1,4 +1,4 @@
-package sp.it.pl.plugin.screenrotator
+package sp.it.pl.plugin.impl
 
 import javafx.geometry.Insets
 import javafx.geometry.Pos.BOTTOM_CENTER

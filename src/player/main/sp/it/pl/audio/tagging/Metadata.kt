@@ -761,18 +761,16 @@ class Metadata: Song, Serializable {
       private fun Metadata.loadAsInt(tag: Tag, field: FieldKey): Int? = loadAsString(tag, field)?.toIntOrNull()
 
       // TODO remove
-      private fun loadComment(tag: Tag): String {
+      private fun loadComment(tag: Tag): String? {
          // there is a bug where getField(Comment) returns CUSTOM1 field, this is workaround
-         // this is how COMMENT field look like:
-         //      Language="English"; Text="example";
-         // this is how CUSTOM fields look like:
-         //      Language="Media Monkey Format"; Description="Songs-DB_Custom5"; Text="example";
-         if (!tag.hasField(FieldKey.COMMENT)) return ""
+         // this is how COMMENT field look like: Language="English"; Text="example";
+         // this is how CUSTOM fields look like: Language="Media Monkey Format"; Description="Songs-DB_Custom5"; Text="example";
+         if (!tag.hasField(FieldKey.COMMENT)) return null
 
          // get index of comment within all comment-type tags
          val fields = tag.getFields(FieldKey.COMMENT)
-         val i = fields.indexOfFirst { !it.toString().contains("Description") }
-         return if (i>-1) tag.getValue(FieldKey.COMMENT, i) else ""
+         val i = fields.indexOfFirst { "Description" !in it.toString() }
+         return if (i>-1) tag.getValue(FieldKey.COMMENT, i) else null
       }
 
       @Suppress("UNCHECKED_CAST")

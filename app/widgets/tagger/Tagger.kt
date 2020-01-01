@@ -9,6 +9,7 @@ import javafx.geometry.VPos
 import javafx.scene.Cursor.HAND
 import javafx.scene.Node
 import javafx.scene.control.ColorPicker
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS
@@ -26,6 +27,7 @@ import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseDragEvent.DRAG_DETECTED
 import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
@@ -80,6 +82,7 @@ import sp.it.pl.audio.tagging.Metadata.Field.Companion.YEAR
 import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
+import sp.it.pl.core.CoreMenus
 import sp.it.pl.gui.itemnode.textfield.MoodItemNode
 import sp.it.pl.gui.objects.autocomplete.AutoCompletion
 import sp.it.pl.gui.objects.icon.CheckIcon
@@ -117,11 +120,10 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
-import sp.it.util.file.Util.getSuffix
 import sp.it.util.file.div
-import sp.it.util.functional.Util.noDups
-import sp.it.util.functional.Util.split
+import sp.it.util.file.type.mimeType
 import sp.it.util.functional.asIf
+import sp.it.util.functional.getOr
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -134,10 +136,12 @@ import sp.it.util.ui.borderPane
 import sp.it.util.ui.containsMouse
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.drag.handlerAccepting
+import sp.it.util.ui.dsl
 import sp.it.util.ui.gridPane
 import sp.it.util.ui.gridPaneColumn
 import sp.it.util.ui.gridPaneRow
 import sp.it.util.ui.hBox
+import sp.it.util.ui.image.getImageDim
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.listView
@@ -225,17 +229,97 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    val tagsF: DTextField = grid.lookupId("tagsF")
    val moodF: MoodItemNode = grid.lookupId("moodF")
    val lyricsA: TextArea = scrollContent.lookupId("lyricsA")
-   val coverDescriptionL: Label = scrollContent.lookupId("coverDescriptionL")
-   val coverEmptyL: Label = scrollContent.lookupId("coverEmptyL")
-   var newCoverFile: File? = null
    val infoL: Label = root.lookupId("infoL")
    val placeholder: StackPane = subroot.lookupId("placeholder")
    val allSongs = observableArrayList<Song>()!!
    val metadatas = mutableListOf<Metadata>()   // currently in gui active
-   val fields: List<TagField<*>>
+   val fields: List<TagField<*,*>>
    var writing = false    // prevents external data change during writing
    var readingAddMode = false
    val validators = mutableListOf<Validation>()
+
+   val coverField = object: TagField<ImageCover, File?>(COVER, false) {
+      val coverContainer: StackPane = scrollContent.lookupId("coverContainer")
+      val coverDescriptionL: Label = scrollContent.lookupId("coverDescriptionL")
+      override var outputValue: File? = null
+
+      init {
+         coverV.onFileDropped = { it ui ::outputValueTo }
+         coverV.setContextMenuOn(false)
+         coverV.pane.onEventDown(MOUSE_CLICKED, SECONDARY) {
+            ContextMenu().apply {
+               dsl {
+                  item("Add new cover") { coverV.doSelectFile() }
+                  if (canBeRemoved) item("Remove cover") { outputValueTo(null) }
+                  if (canBeReverted) item("Keep original cover") { outputValueToOriginal() }
+                  separator()
+               }
+               items += CoreMenus.menuItemBuilders[coverV.ContextMenuData()]
+               show(coverV.pane, it.screenX, it.screenY)
+            }
+         }
+         coverV.pane.onEventDown(DRAG_DETECTED) { coverV.pane.startFullDrag() }
+         root.onEventUp(MOUSE_DRAG_RELEASED) {
+            if (it.gestureSource==coverV.pane && !coverV.pane.containsMouse(it)) {
+               outputValueTo(null)
+            }
+         }
+      }
+
+      override fun clearContent() {
+         coverV.loadImage(null)
+         coverContainer.isDisable = true
+         outputValue = null
+         committable = false
+      }
+
+      override fun setEditable(v: Boolean) {
+         coverContainer.isDisable = !v
+      }
+
+      override fun complete() {
+         val s = state
+         outputValue = null
+         coverV.loadCover(s.asIf<ReadState.Same<Cover>>()?.value)
+         coverDescriptionL.text = when (s) {
+            is ReadState.None -> ""
+            is ReadState.Same<ImageCover?> -> s.value?.description ?: ""
+            is ReadState.Multi -> AppTexts.textManyVal
+            else -> fail()
+         }
+      }
+
+      private val canBeRemoved: Boolean
+         get() = (!committable && state !is ReadState.None) || (committable && outputValue!=null)
+
+      private val canBeReverted: Boolean
+         get() = committable
+
+      private fun outputValueToOriginal() {
+         complete()
+         committable = false
+      }
+
+      private fun outputValueTo(newCover: File?) {
+         if (isEmpty) return
+
+         val f = newCover?.takeIf { it.isImageJaudiotagger() }
+         outputValue = f
+         committable = true
+
+         if (f==null) {
+            coverV.loadImage(null)
+            coverDescriptionL.text = ""
+         } else {
+            coverV.loadFile(f)
+            coverDescriptionL.text = "${f.mimeType().name} computing size..."
+            runIO { getImageDim(f) } ui {
+               if (outputValue==f)
+                  coverDescriptionL.text = f.mimeType().name + it.map { " ${it.width}x${it.height}" }.getOr("")
+            }
+         }
+      }
+   }
 
    val isEmpty: Boolean
       get() = allSongs.isEmpty()
@@ -263,69 +347,36 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       val isHexColor = { it: String -> it.startsWith("0x") && APP.converter.general.isValid<Color>(it) }
 
       fields = listOf(
-         TextTagField(titleF, TITLE),
-         TextTagField(albumF, ALBUM),
-         TextTagField(artistF, ARTIST),
-         TextTagField(albumArtistF, ALBUM_ARTIST),
-         TextTagField(composerF, COMPOSER),
-         TextTagField(publisherF, PUBLISHER),
-         TextTagField(trackF, TRACK, valCond = isIntS),
-         TextTagField(tracksTotalF, TRACKS_TOTAL, valCond = isIntS),
-         TextTagField(discF, DISC, valCond = isIntS),
-         TextTagField(discsTotalF, DISCS_TOTAL, valCond = isIntS),
-         TextTagField(genreF, GENRE),
-         TextTagField(categoryF, CATEGORY),
-         TextTagField(yearF, YEAR, valCond = isPastYearS),
-         TextTagField(ratingF, RATING_RAW_OF, readOnly = true),
-         TextTagField(ratingPF, RATING, valCond = isBetween0And1, uiConverter = { it.padEnd(5, '0').substring(0, 5) }),
-         TextTagField(playcountF, PLAYCOUNT, valCond = isIntS),
-         TextTagField(commentF, COMMENT),
-         TextTagField(moodF, MOOD),
-         TextTagField(colorF, COLOR, valCond = isHexColor),
-         TextTagField(custom1F, CUSTOM1),
-         TextTagField(custom2F, CUSTOM2, readOnly = true),
-         TextTagField(custom3F, CUSTOM3),
-         TextTagField(custom4F, CUSTOM4),
-         TextTagField(custom5F, CUSTOM5, readOnly = true),
-         TextTagField(playedFirstF, FIRST_PLAYED, readOnly = true),
-         TextTagField(playedLastF, LAST_PLAYED, readOnly = true),
-         TextTagField(addedToLibraryF, ADDED_TO_LIBRARY, readOnly = true),
-         TextTagField(tagsF, TAGS),
-         TextTagField(lyricsA, LYRICS),
-         object: TagField<ImageCover>(COVER) {
-            val coverContainer: StackPane = scrollContent.lookupId("coverContainer")
-
-            init {
-               coverV.pane.onEventDown(DRAG_DETECTED) { coverV.pane.startFullDrag() }
-               root.onEventUp(MOUSE_DRAG_RELEASED) { e ->
-                  if (e.gestureSource==coverV.pane && !coverV.pane.containsMouse(e)) {
-                     addImg(null)
-                  }
-               }
-            }
-
-            override fun clearContent() {
-               coverV.loadImage(null)
-               coverContainer.isDisable = true
-               coverDescriptionL.committable = false
-               newCoverFile = null
-            }
-
-            override fun setEditable(v: Boolean) {
-               coverContainer.isDisable = !v
-            }
-
-            override fun complete() {
-               val s = state
-               coverV.loadCover(s.asIf<ReadState.Same<Cover>>()?.value)
-               coverDescriptionL.text = when (s) {
-                  is ReadState.None -> ""
-                  is ReadState.Same<ImageCover?> -> s.value?.description ?: ""
-                  is ReadState.Multi -> AppTexts.textManyVal
-                  else -> fail()
-               }
-            }
-         }
+         TextTagField(TITLE, titleF),
+         TextTagField(ALBUM, albumF),
+         TextTagField(ARTIST, artistF),
+         TextTagField(ALBUM_ARTIST, albumArtistF),
+         TextTagField(COMPOSER, composerF),
+         TextTagField(PUBLISHER, publisherF),
+         TextTagField(TRACK, trackF, valCond = isIntS),
+         TextTagField(TRACKS_TOTAL, tracksTotalF, valCond = isIntS),
+         TextTagField(DISC, discF, valCond = isIntS),
+         TextTagField(DISCS_TOTAL, discsTotalF, valCond = isIntS),
+         TextTagField(GENRE, genreF),
+         TextTagField(CATEGORY, categoryF),
+         TextTagField(YEAR, yearF, valCond = isPastYearS),
+         TextTagField(RATING_RAW_OF, ratingF, readOnly = true),
+         TextTagField(RATING, ratingPF, valCond = isBetween0And1, uiConverter = { it.padEnd(5, '0').substring(0, 5) }),
+         TextTagField(PLAYCOUNT, playcountF, valCond = isIntS),
+         TextTagField(COMMENT, commentF),
+         TextTagField(MOOD, moodF),
+         TextTagField(COLOR, colorF, valCond = isHexColor),
+         TextTagField(CUSTOM1, custom1F),
+         TextTagField(CUSTOM2, custom2F, readOnly = true),
+         TextTagField(CUSTOM3, custom3F),
+         TextTagField(CUSTOM4, custom4F),
+         TextTagField(CUSTOM5, custom5F, readOnly = true),
+         TextTagField(FIRST_PLAYED, playedFirstF, readOnly = true),
+         TextTagField(LAST_PLAYED, playedLastF, readOnly = true),
+         TextTagField(ADDED_TO_LIBRARY, addedToLibraryF, readOnly = true),
+         TextTagField(TAGS, tagsF),
+         TextTagField(LYRICS, lyricsA),
+         coverField
       )
 
       // deselect text fields on click
@@ -478,7 +529,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             // if ((boolean)playedLastF.getUserData())   w.setCustom1(playedLastF.getText());
             // if ((boolean)addedToLibF.getUserData())   w.setCustom1(addedToLibF.getText());
             if (lyricsA.committable) w.setLyrics(lyricsA.text)
-            if (coverDescriptionL.committable) w.setCover(newCoverFile)
+            if (coverField.committable) w.setCover(coverField.outputValue)
          },
          { songs ->
             writing = false
@@ -548,28 +599,16 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       scrollContent.opacity = 1.0
    }
 
-   private fun addImg(f: File?) {
-      if (isEmpty) return
-
-      newCoverFile = if (f!=null && f.isImageJaudiotagger()) f else null
-      if (newCoverFile!=null) {
-         coverV.loadFile(newCoverFile)
-         coverDescriptionL.text = getSuffix(newCoverFile) + " " + coverV.getImage().width.toInt() + "/" + coverV.getImage().height.toInt()
-         coverDescriptionL.committable = true
-      } else {
-         coverV.loadImage(null)
-         coverDescriptionL.text = ""
-         coverDescriptionL.committable = true
-      }
-   }
-
    inner class TextTagField<T: Any>(
+      f: Metadata.Field<T>,
       private val c: TextInputControl,
-      private val f: Metadata.Field<T>,
-      private val readOnly: Boolean = false,
+      readOnly: Boolean = false,
       valCond: Predicate? = null,
       private val uiConverter: Converter = { it }
-   ): TagField<T>(f) {
+   ): TagField<T, String>(f, readOnly) {
+
+      override val outputValue: String
+         get() = c.text
 
       init {
          c.minSize = 0 x 0
@@ -932,8 +971,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                         prefSize = 200.emScaled x 200.emScaled
 
                         center = coverV.apply {
-                           onFileDropped = { it ui { addImg(it) } }
-                           onHighlight = { coverEmptyL.isVisible = !it }
+                           onHighlight = { parent.parent.lookupId<Label>("coverEmptyL").isVisible = !it }
                            view.fitHeight = 200.emScaled
                            view.fitWidth = 200.emScaled
                         }.pane.apply {
@@ -1044,8 +1082,10 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          }
    }
 
-   abstract class TagField<T: Any>(private val f: Metadata.Field<T>) {
-      var state: ReadState<T?> = ReadState.Init
+   abstract class TagField<I: Any, O: Any?>(val f: Metadata.Field<I>, val readOnly: Boolean = false) {
+      var state: ReadState<I?> = ReadState.Init
+      var committable = false
+      abstract val outputValue: O
 
       abstract fun clearContent()
 
@@ -1064,7 +1104,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          if (s is ReadState.None && !f.isFieldEmpty(m))
             state = ReadState.Multi
 
-         if (s is ReadState.Same<T?> && s.value!=f.getOf(m))
+         if (s is ReadState.Same<I?> && s.value!=f.getOf(m))
             state = ReadState.Multi
       }
 

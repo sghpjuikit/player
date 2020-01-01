@@ -41,14 +41,8 @@ class ThumbnailWithAdd @JvmOverloads constructor(dragIcon: GlyphIcons = DETAILS,
       root.onEventDown(DRAG_OVER) { if (it.dragboard.hasImageFileOrUrl()) onHighlight(true) }
       root.onEventDown(DRAG_EXITED) { onHighlight(false) }
 
-      // add image on click
-      root.onEventDown(MOUSE_CLICKED, PRIMARY) {
-         chooseFile("Select image to add to tag", FILE, APP.location, root.scene.window).ifOk {
-            onFileDropped(fut(it))
-         }
-      }
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) { doSelectFile() }
 
-      // drag&drop
       installDrag(
          root, dragIcon, dragDescription,
          { e -> e.dragboard.hasImageFileOrUrl() },
@@ -68,6 +62,12 @@ class ThumbnailWithAdd @JvmOverloads constructor(dragIcon: GlyphIcons = DETAILS,
       else DragPane.PANE.ifSet { it.hide() }
 
       onHighlight(v)
+   }
+
+   fun doSelectFile() {
+      chooseFile("Select image file", FILE, APP.location, root.scene.window).ifOk {
+         onFileDropped(fut(it))
+      }
    }
 
 }

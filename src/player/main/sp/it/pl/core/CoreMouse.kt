@@ -39,7 +39,7 @@ object CoreMouse: Core {
    }
 
    /** Observe (any) screen changes. */
-   fun observeScreens(block: () -> Unit): Subscription = Screen.getScreens().onChange { block() }
+   fun observeScreens(block: () -> Unit): Subscription = Screen.getScreens().onChange(block)
 
    private fun unsubscribe(s: Any) {
       positionSubscribers.remove(s)

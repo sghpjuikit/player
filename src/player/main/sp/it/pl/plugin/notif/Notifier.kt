@@ -4,16 +4,21 @@ import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.Pane
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
+import javafx.util.Duration
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.gui.nodeinfo.ItemInfo
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.window.ShowArea
+import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
@@ -22,10 +27,12 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.VarAction
 import sp.it.util.action.IsAction
+import sp.it.util.async.executor.FxTimer
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -36,18 +43,21 @@ import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
 import sp.it.util.ui.hyperlink
 import sp.it.util.ui.lay
+import sp.it.util.ui.minSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
+import sp.it.util.ui.x
 import sp.it.util.units.millis
+import sp.it.util.units.seconds
 
 /** Provides notification functionality. */
-class Notifier: PluginBase("Notifications", true) {
+class Notifier: PluginBase() {
 
    private val onStop = Disposer()
-   private var running = false
-   private var n: Notification? = null
+   private var n = Notification()
    private var songNotificationGui: Node? = null
    private var songNotificationInfo: SongReader? = null
 
@@ -111,72 +121,57 @@ class Notifier: PluginBase("Notifications", true) {
          if (it==PAUSED || it==PLAYING || it==STOPPED)
             playbackChange(it)
       }
-      running = true
    }
-
-   override fun isRunning(): Boolean = running
 
    override fun stop() {
-      running = false
       onStop()
-      n?.hideImmediately()
-      n = null
+      n.hideImmediately()
    }
-
-   override fun isSupported(): Boolean = true
 
    /** Show notification for custom content. */
    fun showNotification(title: String, content: Node) {
-      if (running) {
-         with(n!!) {
-            setContent(content, title)
-            isAutohide.value = notificationAutohide
-            duration = notificationDuration
-            rClickAction = onClickR.valueAsAction
-            lClickAction = onClickL.valueAsAction
-            show(notificationScr(notificationPos))
-         }
-      }
+      n.setContent(content, title)
+      n.isAutohide.value = notificationAutohide
+      n.duration = notificationDuration
+      n.rClickAction = onClickR.valueAsAction
+      n.lClickAction = onClickL.valueAsAction
+      n.show(notificationScr(notificationPos))
    }
 
    /** Show notification displaying given text. */
    fun showTextNotification(error: AppError) {
-         val root = vBox(10.0, CENTER_LEFT) {
-            lay += Text(error.textShort).apply {
-               wrappingWithNatural.subscribe()
-            }
-            lay += hyperlink("Click to show full details") {
-               onEventDown(MOUSE_CLICKED, PRIMARY) { AppErrors.showDetailForLastError() }
-            }
-            lay += supplyIf(error.action!=null) {
-               hyperlink(error.action!!.name) {
-                  onEventDown(MOUSE_CLICKED, PRIMARY) { error.action.action() }
-               }
+      val root = vBox(10.0, CENTER_LEFT) {
+         lay += Text(error.textShort).apply {
+            wrappingWithNatural.subscribe()
+         }
+         lay += hyperlink("Click to show full details") {
+            onEventDown(MOUSE_CLICKED, PRIMARY) { AppErrors.showDetailForLastError() }
+         }
+         lay += supplyIf(error.action!=null) {
+            hyperlink(error.action!!.name) {
+               onEventDown(MOUSE_CLICKED, PRIMARY) { error.action.action() }
             }
          }
+      }
 
-         showNotification("Error", root)
+      showNotification("Error", root)
    }
 
    /** Show notification displaying given text. */
    fun showTextNotification(title: String, contentText: String) {
-      if (running) {
-         val root = stackPane {
-            lay += Text(contentText).apply {
-               wrappingWithNatural.subscribe()
-            }
+      val root = stackPane {
+         lay += Text(contentText).apply {
+            wrappingWithNatural.subscribe()
          }
-
-         showNotification(title, root)
       }
+
+      showNotification(title, root)
    }
 
    /** Hide notification if showing, otherwise does nothing. */
-   @IsAction(name = "Notification hide")
+   @IsAction(name = "Notification hide", desc = "Hide notification if it is showing")
    fun hideNotification() {
-      if (running) {
-         n?.hide()
-      }
+      n.hide()
    }
 
    @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
@@ -200,6 +195,53 @@ class Notifier: PluginBase("Notifications", true) {
 
          showNotification(title, i)
       }
+   }
+
+   companion object: PluginInfo {
+      override val name = "Notifications"
+      override val description = "Provides a general purpose corner notification"
+      override val isSupported = true
+      override val isEnabledByDefault = true
+   }
+}
+
+/** Notification popup. */
+class Notification: PopWindow() {
+   private val closer = FxTimer.fxTimer(5.seconds, 1, ::hide)
+   private val root = stackPane()
+   /** Executes on left mouse click. Default does nothing. */
+   var lClickAction = {}
+   /** Executes on right mouse click. Default does nothing. */
+   var rClickAction = {}
+   /** Time this notification will remain visible. Default 5 seconds. */
+   var duration: Duration
+      get() = closer.period
+      set(duration) {
+         closer.period = duration
+      }
+
+   init {
+      userResizable.value = false
+      userMovable.value = false
+      isEscapeHide.value = false
+      isAutohide.value = false
+      headerIconsVisible.value = false
+      focusOnShow.value = false
+      styleClass += "notification"
+      onShown += { closer.start() }
+      content.value = root.apply {
+         minSize = 150 x 70
+         onEventDown(MOUSE_CLICKED, PRIMARY) { lClickAction() }
+         onEventDown(MOUSE_CLICKED, SECONDARY) { rClickAction() }
+         onEventUp(MOUSE_ENTERED) { closer.pause() }
+         onEventUp(MOUSE_EXITED) { closer.unpause() }
+      }
+   }
+
+   fun setContent(content: Node, titleText: String) {
+      headerVisible.value = titleText.isNotEmpty()
+      title.value = titleText
+      root.children setToOne content
    }
 
 }

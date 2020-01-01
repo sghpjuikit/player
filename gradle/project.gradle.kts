@@ -116,7 +116,7 @@ allprojects {
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform")
+         implementation("net.java.dev.jna", "jna-platform", "5.5.0")
          implementation("com.1stleg", "jnativehook", "2.1.0")
       }
 

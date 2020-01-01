@@ -13,15 +13,14 @@ import sp.it.pl.gui.LazyOverlayPane
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
-import sp.it.pl.main.APP
 import sp.it.pl.main.IconWH
 import sp.it.pl.main.emScaled
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.util.JavaLegacy
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Loop
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.conf.cr
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -44,26 +43,21 @@ import java.time.LocalDateTime
 import java.time.format.TextStyle.FULL
 import java.util.Locale.ENGLISH
 
-class StartScreenPlugin: PluginBase("Start Screen", false) {
+class StartScreen: PluginBase() {
    private var corners = screenCorners()
    private var mouseIn = false
    private var mouseXy = Point2D(0.0, 0.0)
 
-   @IsAction(name = "Toggle start screen", desc = "Toggle start screen on/off", global = true)
-   val overlayToggleVisible by cr {
-      if (overlay.isShown()) overlay.hide() else overlay.orBuild.show(Unit)
-   }
-   val overlaySleepHandler = object: SystemSleepListener {
+   private val overlaySleepHandler = object: SystemSleepListener {
       override fun systemAwoke(e: SystemSleepEvent?) {}
       override fun systemAboutToSleep(e: SystemSleepEvent?) = overlay.hide()
    }
-   val overlayUserHandler = object: UserSessionListener {
+   private val overlayUserHandler = object: UserSessionListener {
       override fun userSessionActivated(e: UserSessionEvent?) {}
       override fun userSessionDeactivated(e: UserSessionEvent?) = overlay.hide()
    }
    private val overlayIsActive = Subscribed {
       val shower = fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }
-      APP.configuration.collect(overlayToggleVisible)
       Desktop.getDesktop().addAppEventListener(overlaySleepHandler)
       Desktop.getDesktop().addAppEventListener(overlayUserHandler)
 
@@ -71,20 +65,19 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
          observeScreens {
             corners = screenCorners()
          },
-         observeMousePosition {
-            val moved = it!=mouseXy
+         observeMousePosition { mp ->
+            val moved = mp!=mouseXy
             val wasMouseIn = mouseIn
-            mouseXy = it
+            mouseXy = mp
             if (!moved) {
-               mouseIn = corners.any { c -> it in c }
+               mouseIn = corners.any { mp in it }
                if (!wasMouseIn && mouseIn) shower.start()
             }
          },
          Subscription {
             shower.stop()
-            APP.configuration.drop(overlayToggleVisible)
-            Desktop.getDesktop().addAppEventListener(overlaySleepHandler)
-            Desktop.getDesktop().addAppEventListener(overlayUserHandler)
+            Desktop.getDesktop().removeAppEventListener(overlaySleepHandler)
+            Desktop.getDesktop().removeAppEventListener(overlayUserHandler)
          }
       )
    }
@@ -150,21 +143,26 @@ class StartScreenPlugin: PluginBase("Start Screen", false) {
             }
          }
 
-         override fun show(data: Unit) {
-            super.show()
-         }
+         override fun show(data: Unit) = super.show()
 
       }
    }
 
-   override fun isSupported() = Os.WINDOWS.isCurrent
+   override fun start() = overlayIsActive.subscribe()
 
-   override fun onStart() = overlayIsActive.subscribe()
+   override fun stop() = overlayIsActive.unsubscribe()
 
-   override fun onStop() = overlayIsActive.unsubscribe()
+   @IsAction(name = "Toggle start screen", desc = "Toggle start screen on/off", global = true)
+   fun overlayToggleVisible() = if (overlay.isShown()) overlay.hide() else overlay.orBuild.show(Unit)
 
    private fun screenCorners() = Screen.getScreens().map {
       it.bounds.let { it.maxX x it.minY } areaBy (-20 x 20)
    }
 
+   companion object: PluginInfo {
+      override val name = "Start Screen"
+      override val description = "Provides start screen overlay similar to the one in Windows 8"
+      override val isSupported = Os.WINDOWS.isCurrent
+      override val isEnabledByDefault = false
+   }
 }

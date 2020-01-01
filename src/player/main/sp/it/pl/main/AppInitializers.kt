@@ -14,7 +14,7 @@ import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.Feature
-import sp.it.pl.plugin.Plugin
+import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
@@ -74,7 +74,7 @@ fun ClassName.initApp() {
    "Playlist Song" alias PlaylistSong::class
     "Library Song" alias Metadata::class
       "Song Group" alias MetadataGroup::class
-          "Plugin" alias Plugin::class
+          "Plugin" alias PluginBase::class
           "Widget" alias Widget::class
        "Container" alias Container::class
            "Input" alias Input::class
@@ -93,7 +93,7 @@ fun InstanceName.initApp() {
    add(PlaylistSong::class.java) { it.getTitle() }
    add(Metadata::class.java) { it.getTitleOrEmpty() }
    add(MetadataGroup::class.java) { it.getValueS("<none>") }
-   add(Plugin::class.java) { it.name }
+   add(PluginBase::class.java) { it.name }
    add(Component::class.java) { it.name }
    add(Feature::class.java) { "Feature" }
    add(Input::class.java) { it.name }

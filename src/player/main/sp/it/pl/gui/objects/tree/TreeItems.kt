@@ -47,7 +47,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.main.nameUi
-import sp.it.pl.plugin.Plugin
+import sp.it.pl.plugin.PluginBase
 import sp.it.util.HierarchicalBase
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.toggle
@@ -139,7 +139,7 @@ fun treeApp(): TreeItem<Any> {
             tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
          ),
-         tree("Plugins", { APP.plugins.getAll().sortedBy { it.name } })
+         tree("Plugins", { APP.plugins.getAll().sortedBy { it.info.name } })
       ),
       tree("UI",
          tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
@@ -183,7 +183,7 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
                      val removedI = getRow(removed)
                      val remainingSelection = selectionModel.selectedIndices.filter { it!=removedI && !removed.isAnyParentOf(getTreeItem(it)) }
                      when {
-                        !remainingSelection.isEmpty() -> remainingSelection
+                        remainingSelection.isNotEmpty() -> remainingSelection
                         else -> {
                            val i = null
                               ?: removed.previousSibling()?.let { getRow(it) }    // try preceding
@@ -234,7 +234,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    private fun computeText(o: Any?): String = when {
       o==null -> "<none>"
       o is Component -> o.name
-      o is Plugin -> o.name
+      o is PluginBase -> o.name
       o is WidgetFactory<*> -> o.name
       o::class.java.isEnum -> enumToHuman(o.toString())
       o is File -> o.nameOrRoot

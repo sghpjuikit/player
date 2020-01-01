@@ -7,6 +7,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.plugin.notif.Notifier
 import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.MANUAL
 import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_END
@@ -16,59 +17,53 @@ import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TI
 import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
 import sp.it.pl.plugin.playcount.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
 import sp.it.util.action.IsAction
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.math.max
 import sp.it.util.math.min
-import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.map
 import sp.it.util.units.times
 import java.util.ArrayList
 
 /** Playcount incrementing service. */
-class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
+class PlaycountIncrementer: PluginBase() {
 
    val whenStrategy by cv(ON_TIME)
-      .def(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.") attach { applyStrategy() }
+      .def(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.") attach { initStrategy() }
    val whenPercent by cv(0.4).between(0.0, 1.0).readOnlyUnless(whenStrategy.map { it.needsPercent() })
-      .def(name = "Increment at percent", info = "Percent at which playcount is incremented.") attach { applyStrategy() }
+      .def(name = "Increment at percent", info = "Percent at which playcount is incremented.") attach { initStrategy() }
    val whenTime by cv(seconds(5.0)).readOnlyUnless(whenStrategy.map { it.needsTime() })
-      .def(name = "Increment at time", info = "Time at which playcount is incremented.") attach { applyStrategy() }
+      .def(name = "Increment at time", info = "Time at which playcount is incremented.") attach { initStrategy() }
    val showNotificationSchedule by cv(false)
       .def(name = "Show notification (schedule)", info = "Shows notification when playcount incrementing is scheduled.")
    val showNotificationUpdate by cv(false)
       .def(name = "Show notification (update)", info = "Shows notification when playcount is incremented.")
    val delay by cv(true)
       .def(name = "Delay writing", info = "Delays editing tag until different song starts playing." +
-      "\n\n* May improve playback experience." +
-      "\n\n* Reduces consecutive updates to a single update."
-   )
+         "\n\n* May improve playback experience." +
+         "\n\n* Reduces consecutive updates to a single update."
+      )
 
    private val queue = ArrayList<Metadata>()
    private val incrementer = { increment() }
-   private var incHandler: PlayTimeHandler = at({it}, {})
-   private var running = false
-   private val onStop = Disposer()
+   private var incHandler: PlayTimeHandler = at({ it }, {})
+   private val plyingSongIncrementer = Subscribed {
+      APP.audio.playingSong.onChange { ov, _ -> if (!ov.isEmpty()) incrementQueued(ov) }
+   }
 
    override fun start() {
-      applyStrategy()
-      onStop += APP.audio.playingSong.onChange { ov, _ -> if (!ov.isEmpty()) incrementQueued(ov) }
-      running = true
+      initStrategy()
+      plyingSongIncrementer.subscribe()
    }
-
-   override fun isRunning() = running
 
    override fun stop() {
-      running = false
-      applyStrategy()
-      onStop()
-      queue.distinctBy { it.uri }.forEach { incrementQueued(it) }
+      plyingSongIncrementer.unsubscribe()
+      disposeStrategy()
+      queue.distinctBy { it.uri }.forEach(::incrementQueued)
    }
-
-   override fun isSupported() = true
 
    /** Manually increments playcount of currently playing song. According to [delay] now or schedules it for later. */
    @IsAction(name = "Increment playcount", desc = "Manually increments number of times the song has been played by one.")
@@ -89,26 +84,25 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
       }
    }
 
-   private fun applyStrategy() {
-      removeOld()
-      if (!running) return
+   private fun initStrategy() {
+      disposeStrategy()
 
       when (whenStrategy.value) {
          ON_PERCENT -> {
             incHandler = at({ total -> total*whenPercent.value }, incrementer)
-            APP.audio.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt += incHandler
          }
          ON_TIME -> {
             incHandler = at({ total -> whenTime.value min total*0.8 }, incrementer)
-            APP.audio.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt += incHandler
          }
          ON_TIME_AND_PERCENT -> {
             incHandler = at({ total -> whenTime.value max total*whenPercent.value }, incrementer)
-            APP.audio.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt += incHandler
          }
          ON_TIME_OR_PERCENT -> {
             incHandler = at({ total -> whenTime.value min total*whenPercent.value }, incrementer)
-            APP.audio.onPlaybackAt.add(incHandler)
+            APP.audio.onPlaybackAt += incHandler
          }
          ON_START -> APP.audio.onPlaybackStart += incrementer
          ON_END -> APP.audio.onPlaybackEnd += incrementer
@@ -116,7 +110,7 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
       }
    }
 
-   private fun removeOld() {
+   private fun disposeStrategy() {
       APP.audio.onPlaybackAt -= incHandler
       APP.audio.onPlaybackEnd -= incrementer
       APP.audio.onPlaybackStart -= incrementer
@@ -156,4 +150,10 @@ class PlaycountIncrementer: PluginBase("Playcount Incrementer", false) {
       fun needsPercent() = this==ON_PERCENT || this==ON_TIME_OR_PERCENT || this==ON_TIME_AND_PERCENT
    }
 
+   companion object: PluginInfo {
+      override val name = "Playcount Incrementer"
+      override val description = "Provides configurable automatic incrementing of song playcount"
+      override val isSupported = true
+      override val isEnabledByDefault = false
+   }
 }

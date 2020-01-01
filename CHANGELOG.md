@@ -23,8 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Screen Rotator` plugin dialog
 - Implement `Start Screen` plugin
 - Implement `Wallpaper` plugin File.setWallpaper action
-- Implement `Wallpaper` plugin start/changeWallpaper() animation
-- Implement `Wallpaper` plugin window hiding when no image
+- Implement `Wallpaper` plugin to retain wallpaper when application closes
 - Implement new popups
 - Implement application settings import/export/defaults actions
 - Implement application settings filter
@@ -70,6 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drag & Drop support for COPY/MOVE/LINK
 - Writing certain custom fields' values not working correctly
 - `Tagger` widget displaying wrong cover in rare cases
+- `Tagger` widget displaying wrong cover size cases
+- Song `COMMENT` field never reading as `<none>`
 - View filter not working in some cases
 - View filter closing instead of focusing on Ctrl+F
 - Search text field clear button showing incorrectly sometimes
@@ -77,6 +78,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Application search empty tooltip visible
 - Application skin setting not restored properly
 - Application rating skin not allowing null value sometimes
+- Plugin fixes
+  - Non running plugins are instantiated
+  - `Waiffu2k` plugin waiffu2k binary config is not persisted
+  - `Guide` is now a plugin and can be disabled completely
 - Popup window fixes
   - popup does not receive focus on show not even when clicked
   - popup not returning focus to previously focused OS window

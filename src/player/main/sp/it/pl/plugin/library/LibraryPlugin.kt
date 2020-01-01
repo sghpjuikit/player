@@ -9,14 +9,15 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.findAudio
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.plugin.notif.Notifier
-import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.runGet
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.cList
+import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
@@ -31,12 +32,12 @@ import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
 import sp.it.util.system.Os
-import sp.it.util.text.plural
+import sp.it.util.text.pluralUnit
 import java.io.File
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 
-class LibraryPlugin: PluginBase("Song Library", true) {
+class LibraryPlugin: PluginBase() {
 
    private val sourceDirs by cList<File>().only(DIRECTORY).def(
       name = "Location",
@@ -53,6 +54,10 @@ class LibraryPlugin: PluginBase("Song Library", true) {
    val updateOnStart by cv(false).def(
       name = "Update on start",
       info = "Update entire library from disc when this plugin starts (which also happens when application starts). May incur significant performance cost on the system"
+   )
+   val updateLibrary by cr { updateLibrary() }.def(
+      name = "Update",
+      info = "Remove non-existent songs and add new songs from location"
    )
 
    val dirMonitoringSupported = Os.WINDOWS.isCurrent
@@ -75,12 +80,12 @@ class LibraryPlugin: PluginBase("Song Library", true) {
    private val toBeRemoved = HashSet<File>()
    private val update = EventReducer.toLast<Void>(2000.0) { updateLibraryFromEvents() }
 
-   override fun onStart() {
+   override fun start() {
       dirMonitoring.subscribe()
       if (updateOnStart.value) updateLibrary()
    }
 
-   override fun onStop() {
+   override fun stop() {
       dirMonitoring.unsubscribe()
       dirMonitors.values.forEach { it.stop() }
       dirMonitors.clear()
@@ -130,7 +135,7 @@ class LibraryPlugin: PluginBase("Song Library", true) {
       APP.plugins.use<Notifier> {
          it.showTextNotification(
             "Library file change",
-            "Some song files in library changed\n\tAdded: ${toAdd.size of "file"}\n\tRemoved: ${toRem.size of "file"}"
+            "Some song files in library changed\n\tAdded: ${"file".pluralUnit(toAdd.size)}\n\tRemoved: ${"file".pluralUnit(toRem.size)}"
          )
       }
 
@@ -140,7 +145,6 @@ class LibraryPlugin: PluginBase("Song Library", true) {
       }.withAppProgress("Updating song library from detected changes")
    }
 
-   @IsAction(name = "Update", desc = "Remove non-existent songs and add new songs from location")
    fun updateLibrary() {
       val dirs = sourceDirs.materialize()
       runIO {
@@ -150,8 +154,11 @@ class LibraryPlugin: PluginBase("Song Library", true) {
       }.withAppProgress("Updating song library from disk")
    }
 
-   companion object: KLogging() {
-      private infix fun Int.of(word: String) = "${this} ${word.plural(this)}"
+   companion object: KLogging(), PluginInfo {
+      override val name = "Song Library"
+      override val description = "Provides library location settings along with song library updating and monitoring"
+      override val isSupported = true
+      override val isEnabledByDefault = true
    }
 
 }

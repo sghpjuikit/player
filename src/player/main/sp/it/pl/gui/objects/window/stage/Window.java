@@ -46,7 +46,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GRADUATION_CAP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE_ALT;
@@ -292,7 +291,6 @@ public class Window extends WindowBase {
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
 		on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE)), onClose);
-		Icon guideB = new Icon(GRADUATION_CAP, -1, ActionRegistrar.get("Open guide")).styleclass("header-icon");
 		Icon helpB = infoIcon("Available actions:"
 			+ "\n\tHeader icons : Providing custom functionalities. See tooltips."
 			+ "\n\tHeader buttons : Providing window control. See tooltips."
@@ -311,7 +309,7 @@ public class Window extends WindowBase {
 			.tooltip("Errors");
 		onChangeAndNow(AppErrors.INSTANCE.getHistory(), runnable(() -> errorB.setVisible(!AppErrors.INSTANCE.getHistory().isEmpty())));
 
-		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), guideB, helpB, progB, errorB);
+		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), helpB, progB, errorB);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 

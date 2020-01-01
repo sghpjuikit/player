@@ -1,4 +1,4 @@
-package sp.it.pl.main
+package sp.it.pl.plugin.guide
 
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -24,6 +24,16 @@ import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.layout.widget.initialTemplateFactory
 import sp.it.pl.layout.widget.testControlContainer
+import sp.it.pl.main.APP
+import sp.it.pl.main.Actions
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
+import sp.it.pl.main.getText
+import sp.it.pl.main.hasText
+import sp.it.pl.main.infoIcon
+import sp.it.pl.main.installDrag
+import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.v
 import sp.it.util.action.ActionManager
 import sp.it.util.action.ActionRegistrar
@@ -32,13 +42,11 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runFX
 import sp.it.util.collections.setToOne
-import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.functional.orNull
-import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.text.keys
 import sp.it.util.ui.Util.layHorizontally
@@ -48,30 +56,44 @@ import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
-import sp.it.util.units.times
 import java.util.ArrayList
 import sp.it.pl.main.AppSettings.plugins.guide as conf
 
 
-class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.group) {
+class Guide: PluginBase() {
+
+   override val configurableGroupPrefix = null
 
    private val firstTime by cv(true) def conf.showGuideOnAppStart
    private val at by cv(-1) def conf.hint
    private var prevAt = -1
+   private val events = APP.actionStream
    private val guideTitleText = v("")
    private val guideText = v("")
-   private val guideEvents = guideEvents.apply { add { handleAction(it) } }
    private val popup = lazy { buildPopup() }
    private val popupContent: VBox by lazy { buildContent() }
    private val proceedAnim = anim(400.millis) { popupContent.opacity = -(it*it - 1) }
+   private val eventConsumer = { event: Any -> if (hints[at.value].action==event) goToNext() }
+   private val iconInjector = APP.windowManager.windows.onItemSyncWhile {
+      val icon = Icon(IconFA.GRADUATION_CAP, -1.0).onClickDo { open() }
+      it.addLeftHeaderIcon(icon)
+   }
    val hints = Hints()
 
-   @IsAction(name = "Open guide", desc = "Resume or start the guide.")
-   private val openGuide by cr { open() }
+   override fun start() {
+      events += eventConsumer
 
-   init {
-      if (firstTime.value)
-         APP.onStarted += { runFX(3000.millis) { open() } }
+      if (firstTime.value) {
+         firstTime.value = false
+         runFX(3000.millis) {
+            open()
+         }
+      }
+   }
+
+   override fun stop() {
+      events -= eventConsumer
+      iconInjector.unsubscribe()
    }
 
    private fun buildContent() = vBox(25) {
@@ -83,14 +105,7 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
          if (it.isStillSincePress) {
             when (it.button) {
                PRIMARY, FORWARD -> goToNext()
-               SECONDARY, BACK -> {
-                  if (hints[at.value].action=="Navigation") {
-                     runFX(proceedAnim.cycleDuration*3.0) { goToNext() }
-                     runFX(proceedAnim.cycleDuration*6.0) { goToNext() }
-                  } else {
-                     goToPrevious()
-                  }
-               }
+               SECONDARY, BACK -> goToPrevious()
                else -> Unit
             }
          }
@@ -131,7 +146,6 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
       if (hints.isEmpty()) return
       if (at.value<0 || at.value>=hints.size) at.value = 0
       proceedAnim.playOpenDoClose { proceedDo() }
-      firstTime.set(false)
    }
 
    private fun proceedDo() {
@@ -157,14 +171,10 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
       popupContent.requestFocus()
    }
 
-   private fun handleAction(action: Any) {
-      if (hints[at.value].action==action) goToNext()
-   }
-
    @IsAction(name = "Open guide", desc = "Resume or start the guide.")
    fun open() {
       proceed()
-      guideEvents.invoke("Guide opening")
+      events.invoke("Guide opening")
    }
 
    fun close() {
@@ -198,10 +208,15 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
       val onEnter: () -> Unit = {},
       val onExit: () -> Unit = {}
    ) {
-      fun proceedIfActive() = guideEvents(action)
+      fun proceedIfActive() = events(action)
    }
 
-   companion object {
+   companion object: PluginInfo {
+      override val name = conf.name
+      override val description = "Provides tip hints to master the application UX"
+      override val isSupported = true
+      override val isEnabledByDefault = true
+
       private const val ICON_SIZE = 40.0
       private const val STYLECLASS_TEXT = "guide-text"
 
@@ -241,10 +256,10 @@ class Guide(guideEvents: Handler1<Any>): GlobalSubConfigDelegator(conf.hint.grou
             + "\n\nClick anywhere on this guide."
       )
       val h02_guideNav = hint("Navigation",
-         "Navigation with mouse buttons is used across the entire app. Remember:\n"
+         "Navigation with mouse buttons is used across the entire app::\n"
             + "\n\t• Left click: go next"
             + "\n\t• Right click: go back"
-            + "\n\nTry going back by right-clicking anywhere on this guide"
+            + "\n\nTry going to different hint with a mouse click. Click anywhere inside the guide."
       )
       val h03_guideClose = hint("Guide closing",
          "Know your ESCAPE. It will help you. With what? Completing this guide. "

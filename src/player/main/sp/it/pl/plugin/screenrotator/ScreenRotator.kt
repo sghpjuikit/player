@@ -11,20 +11,18 @@ import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import mu.KLogging
 import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.window.ShowArea
+import sp.it.pl.gui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.gui.objects.window.popup.PopWindow
-import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.Values.previous
-import sp.it.util.action.Action
+import sp.it.util.action.IsAction
 import sp.it.util.async.runIO
-import sp.it.util.conf.Constraint
-import sp.it.util.conf.cr
-import sp.it.util.conf.def
 import sp.it.util.dev.fail
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.onEventUp
 import sp.it.util.system.Os
 import sp.it.util.system.open
@@ -35,85 +33,52 @@ import sp.it.util.ui.screen
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.em
-import java.io.IOException
 import javafx.scene.input.KeyCode as Key
 
-class ScreenRotator: PluginBase("Screen Rotator", true) {
-
+class ScreenRotator: PluginBase() {
    private val programFile = getResource(PROGRAM_FILE_NAME)
    private val programHelpFile = getResource(PROGRAM_HELP_FILE_NAME)
-   private val actions by lazy {
-      setOf(
-         Action(
-            "Rotate screen",
-            { showRotateScreenDialog() },
-            "Show 'Rotate Screen' dialog.",
-            configurableGroupPrefix,
-            "ALT+Semicolon",
-            true, false
-         ),
-         Action(
-            "Start screen saver",
-            { startScreenSaver() },
-            "Starts screen saver if enabled. It can be stopped by moving the mouse. On some system that can open logon screen.",
-            configurableGroupPrefix,
-            "CTRL+SHIFT+ALT+L",
-            true, false
-         ).forbidEdit(),
-         Action(
-            "Turn off screens",
-            { turnScreens(false) },
-            "Turns off all screens. They can be turned on again by moving the mouse.",
-            configurableGroupPrefix,
-            "CTRL+SHIFT+ALT+K",
-            true,
-            false
-         ).forbidEdit()
-      )
-   }
 
-   private val openHelpDo by cr { openHelp() }.def(name = "Open help", info = "Open technical usage help")
-
-   override fun isSupported() = Os.WINDOWS.isCurrent
-
-   override fun onStart() = APP.configuration.collect(actions)
-
-   override fun onStop() = APP.configuration.drop(actions)
-
+   @IsAction(name = "Open help", desc = "Open technical usage help")
    fun openHelp() = programHelpFile.open()
+
+   @IsAction(name = "Turn off screens", desc = "Turns off all screens. They can be turned on again by moving the mouse", global = true, keys = "CTRL+SHIFT+ALT+K")
+   fun turnScreensOff() = turnScreens(false)
 
    fun turnScreens(on: Boolean) {
       runIO {
-         try {
+         runTry {
             ProcessBuilder(programFile.path, if (on) "/power:on" else "/power:off").directory(userLocation).start()
-         } catch (e: IOException) {
-            logger.error(e) { "Failed to rotate display" }
+         }.ifError {
+            logger.error(it) { "Failed turn screens ${if (on) "on" else "off"}" }
          }
       }
    }
 
+   @IsAction(name = "Start screen saver", desc = "Starts screen saver if enabled. It can be stopped by moving the mouse. On some system this can open logon screen", global = true, keys = "CTRL+SHIFT+ALT+L")
    fun startScreenSaver() {
       runIO {
-         try {
+         runTry {
             ProcessBuilder(programFile.path, "/power:saver").directory(userLocation).start()
-         } catch (e: IOException) {
-            logger.error(e) { "Failed to rotate display" }
+         }.ifError {
+            logger.error(it) { "Failed to start screen saver" }
          }
       }
    }
 
    fun rotateScreen(screen: Screen, direction: Dir) {
       runIO {
-         val scr = indexOfScreen(screen)
-         try {
+         runTry {
+            val scr = indexOfScreen(screen)
             ProcessBuilder(programFile.path, "/rotate:${direction.command}", "/device:$scr").directory(userLocation).start()
-         } catch (e: IOException) {
-            logger.error(e) { "Failed to rotate display" }
+         }.ifError {
+            logger.error(it) { "Failed to rotate display" }
          }
       }
    }
 
-   private fun showRotateScreenDialog() {
+   @IsAction(name = "Rotate screen", desc = "Show 'Rotate Screen' dialog", global = true, keys = "ALT+Semicolon")
+   fun showRotateScreenDialog() {
       PopWindow().apply {
          userResizable.value = false
          userMovable.value = false
@@ -125,7 +90,7 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
                padding = Insets(10.em)
 
                lay += vBox(2.em, CENTER) {
-                  lay += Icon(IconMA.ROTATE_LEFT, 8.em).apply {
+                  lay += Icon(IconMA.SCREEN_ROTATION, 8.em).apply {
                      onClickDo { rotateScreen(scene.window.screen, Dir.CCW) }
                      root.onEventUp(KEY_PRESSED, Key.UP) { requestFocus() }
                   }
@@ -157,14 +122,15 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
                         root.onEventUp(KEY_PRESSED, Key.RIGHT) { requestFocus() }
                      }
                   }
-                  lay += Icon(IconMA.ROTATE_RIGHT, 8.em).apply {
+                  lay += Icon(IconMA.SCREEN_ROTATION, 8.em).apply {
+                     scaleX = -1.0
                      onClickDo { rotateScreen(scene.window.screen, Dir.CW) }
                      root.onEventUp(KEY_PRESSED, Key.DOWN) { requestFocus() }
                   }
                }
             }
          }
-         show(ShowArea.SCREEN_ACTIVE(CENTER))
+         show(SCREEN_ACTIVE(CENTER))
       }
    }
 
@@ -199,11 +165,14 @@ class ScreenRotator: PluginBase("Screen Rotator", true) {
       CCW("ccw", "counter-clockwise")
    }
 
-   companion object: KLogging() {
+   companion object: KLogging(), PluginInfo {
+      override val name = "Screen Rotator"
+      override val description = "Provides actions to turn on screen saver, sleep displays or rotate any screen using convenient visual aid"
+      override val isSupported = Os.WINDOWS.isCurrent
+      override val isEnabledByDefault = false
+
       private const val PROGRAM_FILE_NAME = "display.exe"
       private const val PROGRAM_HELP_FILE_NAME = "display.htm"
-
-      private fun Action.forbidEdit() = apply { addConstraints(Constraint.ReadOnlyIf(true)) }
    }
 
 }

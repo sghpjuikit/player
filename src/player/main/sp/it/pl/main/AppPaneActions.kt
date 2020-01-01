@@ -35,7 +35,7 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.Widgets.SONG_TAGGER
-import sp.it.pl.plugin.wallpaper.WallpaperPlugin
+import sp.it.pl.plugin.wallpaper.WallpaperChanger
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
@@ -269,8 +269,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       SlowAction(
          "Print raw  metadata", "Prints all image metadata to console.",
          IconMA.IMAGE_ASPECT_RATIO,
-         { it.isImage() && APP.plugins.get<WallpaperPlugin>()!=null },
-         { f -> APP.plugins.use<WallpaperPlugin> { it.wallpaperFile.value = f } }
+         { it.isImage() && APP.plugins.get<WallpaperChanger>()!=null },
+         { f -> APP.plugins.use<WallpaperChanger> { it.wallpaperFile.value = f } }
       ),
       FastAction(
          "Print raw  metadata", "Prints all audio metadata to console.",

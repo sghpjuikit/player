@@ -156,10 +156,10 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       root.heightProperty().map { it.toDouble()<100.0.emScaled } sync {
          val layout: Layout = if (it) layoutSmall else layoutBig
          root.children setToOne layout.with(f2, f3, f4, muteB, seeker)
-         f2.size(if (it) 12.0 else 24.0)
-         f3.size(if (it) 12.0 else 48.0)
-         f3.gap(if (it) 12.0 else 36.0)
-         f4.size(if (it) 12.0 else 24.0)
+         f2.size(if (it) 12 else 24)
+         f3.size(if (it) 12 else 48)
+         f3.gap(if (it) 12 else 36)
+         f4.size(if (it) 12 else 24)
       } on onClose
    }
 

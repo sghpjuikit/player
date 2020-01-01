@@ -84,10 +84,7 @@ class SongDb {
                "Failed to load song library.",
                "Don't worry. Your data is not lost. You will only need to reimport your songs.\n\nExact problem:\n${it.stacktraceAsString}",
                AppErrorAction("Update Library") {
-                  APP.plugins.getRaw<LibraryPlugin>().ifNotNull {
-                     if (!it.isRunning()) it.start()
-                     if (it.isRunning()) it.updateLibrary()
-                  }
+                  APP.plugins.getOrStart<LibraryPlugin>()?.updateLibrary()
                }
             )
       }

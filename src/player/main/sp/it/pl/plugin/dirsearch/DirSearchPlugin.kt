@@ -8,13 +8,14 @@ import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
+import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.cList
-import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
@@ -24,23 +25,22 @@ import sp.it.util.system.browse
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
-class DirSearchPlugin: PluginBase("Dir Search", false) {
+class DirSearchPlugin: PluginBase() {
 
    private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find directories in.")
    private val searchDepth by cv(2).def(name = "Search depth")
-   private val searchDo by cr { updateCache() }.def(name = "Re-index", info = "Update cache")
 
    private val cacheFile = getUserResource("dirs.txt")
    private val cacheUpdate = AtomicLong(0)
    private var searchSourceDirs = listOf<File>()
    private val searchSource = Source("$name plugin - Directories") { searchSourceDirs.asSequence().map { it.toOpenDirEntry() } }
 
-   override fun onStart() {
+   override fun start() {
       APP.search.sources += searchSource
       computeFiles()
    }
 
-   override fun onStop() {
+   override fun stop() {
       APP.search.sources -= searchSource
    }
 
@@ -60,6 +60,7 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
       }
    }
 
+   @IsAction(name = "Re-index", desc = "Update directory index")
    private fun updateCache() {
       runFX { searchDirs.materialize() }
          .then(NEW) { dirs ->
@@ -96,6 +97,10 @@ class DirSearchPlugin: PluginBase("Dir Search", false) {
          .onFail { file, e -> logger.warn(e) { "Couldn't not properly read/access file=$file" } }
          .maxDepth(searchDepth.value)
 
-   companion object: KLogging()
-
+   companion object: KLogging(), PluginInfo {
+      override val name = "Dir Search"
+      override val description = "Provides directory search capability to application search"
+      override val isSupported = true
+      override val isEnabledByDefault = false
+   }
 }

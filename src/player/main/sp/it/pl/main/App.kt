@@ -28,19 +28,19 @@ import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppSearch.Source
-import sp.it.pl.plugin.Plugin
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.appsearch.AppSearchPlugin
 import sp.it.pl.plugin.database.SongDb
 import sp.it.pl.plugin.dirsearch.DirSearchPlugin
+import sp.it.pl.plugin.guide.Guide
 import sp.it.pl.plugin.library.LibraryPlugin
 import sp.it.pl.plugin.notif.Notifier
 import sp.it.pl.plugin.playcount.PlaycountIncrementer
 import sp.it.pl.plugin.screenrotator.ScreenRotator
-import sp.it.pl.plugin.startscreen.StartScreenPlugin
-import sp.it.pl.plugin.tray.TrayPlugin
-import sp.it.pl.plugin.waifu2k.Waifu2kPlugin
-import sp.it.pl.plugin.wallpaper.WallpaperPlugin
+import sp.it.pl.plugin.startscreen.StartScreen
+import sp.it.pl.plugin.tray.Tray
+import sp.it.pl.plugin.waifu2k.Waifu2k
+import sp.it.pl.plugin.wallpaper.WallpaperChanger
 import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
@@ -49,6 +49,7 @@ import sp.it.util.async.runLater
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.c
+import sp.it.util.conf.collectActionsOf
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -247,8 +248,6 @@ class App: Application(), GlobalConfigDelegator {
 
    /** Manages ui. */
    @JvmField val ui = UiManager(location.skins)
-   /** Guide containing tips and useful information. */
-   @JvmField val guide = Guide(actionStream)
    /** Application search */
    @JvmField val search = AppSearch()
    /** Manages persistence and in-memory storage. */
@@ -294,15 +293,13 @@ class App: Application(), GlobalConfigDelegator {
    override fun start(primaryStage: Stage) {
       isInitialized = runTry {
          plugins.initForApp()
-         configuration.gatherActions(APP.audio)
-         configuration.gatherActions(PlaylistManager::class.java, null)
-         configuration.installActions(
-            this,
-            ui,
-            actions,
-            windowManager,
-            audio
-         )
+         collectActionsOf(APP.audio)
+         collectActionsOf(PlaylistManager::class.java, null)
+         collectActionsOf(this)
+         collectActionsOf(ui)
+         collectActionsOf(actions)
+         collectActionsOf(windowManager)
+         collectActionsOf(audio)
 
          widgetManager.init()
          db.init()
@@ -346,7 +343,7 @@ class App: Application(), GlobalConfigDelegator {
       onStopping()
 
       // app
-      plugins.getAll().forEach { if (it.isRunning()) it.stop() }
+      plugins.getAll().forEach { it.stop() }
       audio.dispose()
       db.stop()
       ActionManager.stopActionListening()
@@ -399,18 +396,17 @@ class App: Application(), GlobalConfigDelegator {
       .toList()
 
    private fun PluginManager.initForApp() {
-      fun installIfMaster(plugin: () -> Plugin) = if (rank==MASTER) installPlugins(plugin()) else Unit
-
-      installIfMaster { TrayPlugin() }
-      installPlugins(Notifier())
-      installPlugins(PlaycountIncrementer())
-      installPlugins(LibraryPlugin())
-      installIfMaster { AppSearchPlugin() }
-      installIfMaster { DirSearchPlugin() }
-      installIfMaster { ScreenRotator() }
-      installIfMaster { Waifu2kPlugin() }
-      installIfMaster { WallpaperPlugin() }
-      installIfMaster { StartScreenPlugin() }
+      installPlugin<Tray>()
+      installPlugin<Guide>()
+      installPlugin<Notifier>()
+      installPlugin<PlaycountIncrementer>()
+      installPlugin<LibraryPlugin>()
+      installPlugin<AppSearchPlugin>()
+      installPlugin<DirSearchPlugin>()
+      installPlugin<ScreenRotator>()
+      installPlugin<Waifu2k>()
+      installPlugin<WallpaperChanger>()
+      installPlugin<StartScreen>()
    }
 
    private fun AppSearch.initForApp() {

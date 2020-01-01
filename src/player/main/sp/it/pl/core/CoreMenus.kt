@@ -27,7 +27,7 @@ import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.writeImage
-import sp.it.pl.plugin.wallpaper.WallpaperPlugin
+import sp.it.pl.plugin.wallpaper.WallpaperChanger
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.async.runIO
 import sp.it.util.conf.Configurable
@@ -80,6 +80,7 @@ object CoreMenus: Core {
                   items(
                      v::class.java.methods.asSequence()
                         .filter { Modifier.isPublic(it.modifiers) && !Modifier.isStatic(it.modifiers) }
+                        .filter { it.name!="notify" || it.name!="notifyAll" || it.name!="wait" }
                         .sortedBy { it.name }
                         .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
                      { it.name },
@@ -100,7 +101,7 @@ object CoreMenus: Core {
             }
             if (value.isImage()) {
                item("Fullscreen") { APP.actions.openImageFullscreen(it) }
-               APP.plugins.use<WallpaperPlugin> { w ->
+               APP.plugins.use<WallpaperChanger> { w ->
                   item("Use as wallpaper") { w.wallpaperFile.value = it }
                }
             }
@@ -209,8 +210,8 @@ object CoreMenus: Core {
                         parentPopup.ownerWindow,
                         imageWriteExtensionFilter()
                      ).ifOk { f ->
-                        writeImage(it.image, f).ifErrorNotify { e ->
-                           AppError("Saving image $f failed", "Reason: ${e.stacktraceAsString}")
+                        writeImage(it.image, f).ifErrorNotify {
+                           AppError("Saving image $f failed", "Reason: ${it.stacktraceAsString}")
                         }
                      }
                   }

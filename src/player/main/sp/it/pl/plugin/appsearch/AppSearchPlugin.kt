@@ -32,12 +32,12 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.Widgets
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.util.Sort
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
@@ -52,7 +52,6 @@ import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
-import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
@@ -87,27 +86,28 @@ import sp.it.util.units.millis
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
-class AppSearchPlugin: PluginBase("App Search", false) {
+class AppSearchPlugin: PluginBase() {
 
    private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find applications in.")
    private val searchDepth by cv(Int.MAX_VALUE).def(name = "Search depth")
-   private val searchDo by cr { findApps() }.def(name = "Re-scan apps")
    private val searchSourceApps = observableArrayList<File>()
    private val searchSource = Source("$name plugin - Applications") { searchSourceApps.asSequence().map { it.toRunApplicationEntry() } }
+
    /** Application launcher widget factory. Registered only when this plugin is running. */
    val widgetFactory = WidgetFactory(AppLauncher::class, APP.location.widgets/"AppLauncher")
 
-   override fun onStart() {
+   override fun start() {
       APP.search.sources += searchSource
       findApps()
       APP.widgetManager.factories.register(widgetFactory)
    }
 
-   override fun onStop() {
+   override fun stop() {
       APP.widgetManager.factories.unregister(widgetFactory)
       APP.search.sources -= searchSource
    }
 
+   @IsAction(name = "Re-index", desc = "Updates application executables index")
    private fun findApps() {
       val dirs = searchDirs.materialize()
       runIO {
@@ -195,7 +195,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
    @ExperimentalController(reason = "DirView widget could be improved to be fulfill this widget's purpose. Also needs better UX.")
    class AppLauncher(widget: Widget): SimpleController(widget) {
 
-      private val owner = APP.plugins.getRaw<AppSearchPlugin>()!!
+      private val owner = APP.plugins.getRaw<AppSearchPlugin>()?.plugin!!
       private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 50.0, 50.0)
       private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
          onClose += { unsubscribe() }
@@ -318,7 +318,7 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
          override fun computeName(item: Item) = item.value.parentDirOrRoot.name + " > " + item.value.name
 
-         override fun computeCellTextHeight() = cellTextHeight.value
+         override fun computeCellTextHeight() = cellTextHeight.value!!
 
          override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i)
 
@@ -346,7 +346,11 @@ class AppSearchPlugin: PluginBase("App Search", false) {
 
    }
 
-   companion object: KLogging() {
+   companion object: KLogging(), PluginInfo {
+      override val name = "App Search"
+      override val description = "Provides application search/start capability to application search as well as application launcher widget"
+      override val isSupported = true
+      override val isEnabledByDefault = false
 
       fun File.getPortableAppExe(type: FileType) = if (type==FileType.DIRECTORY) File(this, "$name.exe") else null
 

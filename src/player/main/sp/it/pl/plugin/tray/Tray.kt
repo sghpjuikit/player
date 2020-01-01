@@ -14,15 +14,14 @@ import mu.KLogging
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginInfo
 import sp.it.util.async.runAwt
 import sp.it.util.async.runFX
-import sp.it.util.conf.EditMode
-import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
-import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.syncFalse
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.createImageBlack
@@ -35,16 +34,17 @@ import java.awt.event.MouseAdapter
 import java.io.File
 import java.io.IOException
 
-/** Provides tray facilities, such as tray icon, tray tooltip, tray click actions or tray bubble notification. */
-class TrayPlugin: PluginBase("Tray", true) {
+class Tray: PluginBase() {
 
+   val tooltipVisible by cv(true).def(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
+   val tooltipShowPlaying by cv(true).def(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
    private var tooltipText = APP.name
-   val tooltipShow by cv(true).def(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
-   val showPlayingInTooltip by cv(true).def(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
-   private val supported by c(SystemTray.isSupported()).def(name = "Is supported", editable = EditMode.NONE)
-   private var running = false
-   private val onEnd = Disposer()
-
+   private val tooltipPlayingSongUpdater = Subscribed {
+      APP.audio.playingSong.onUpdate { _, song ->
+         if (tooltipShowPlaying.value)
+            setTooltipText(song.getTitle()?.let { "${APP.name} - $it" })
+      }
+   }
    private var tray: SystemTray? = null
    private val trayIconImageDefault: File = APP.location.resources.icons.icon24_png
    private var trayIconImage: File = trayIconImageDefault
@@ -61,14 +61,13 @@ class TrayPlugin: PluginBase("Tray", true) {
          menuItem("Settings") { APP.actions.openSettings() },
          menuItem("New window") { APP.windowManager.createWindow() },
          menuItem("Play/pause") { APP.audio.pauseResume() },
-         menuItem("Disable tray") { stop() },
+         menuItem("Disable tray") { APP.plugins.getRaw<Tray>()?.stop() },
          menuItem("Exit") { APP.close() }
       )
    }
 
-   override fun start() {
-      if (!supported) return
 
+   override fun start() {
       val cm = ContextMenu().apply {
          isAutoFix = true
          consumeAutoHidingEvents = false
@@ -84,7 +83,6 @@ class TrayPlugin: PluginBase("Tray", true) {
       contextMenuOwner = cmOwner
       contextMenu = cm
 
-      // build tray
       runAwt {
          tray = SystemTray.getSystemTray().apply {
             val image = loadBufferedImage(trayIconImage)
@@ -132,32 +130,20 @@ class TrayPlugin: PluginBase("Tray", true) {
          }
       }
 
-      onEnd += APP.audio.playingSong.onUpdate { _, it ->
-         if (showPlayingInTooltip.value)
-            setTooltipText(it.getTitle()?.let { "${APP.name} - $it" })
-      }
-
-      running = true
+      tooltipPlayingSongUpdater.subscribe()
    }
 
-   override fun isRunning() = running
-
    override fun stop() {
-      running = false
-
+      tooltipPlayingSongUpdater.unsubscribe()
       contextMenu = null
       contextMenuOwner?.close()
       contextMenuOwner = null
-
-      onEnd()
 
       runAwt {
          tray?.remove(trayIcon)
          tray = null
       }
    }
-
-   override fun isSupported() = supported
 
    /**
     * Sets the tooltip string for this tray icon. The tooltip is displayed
@@ -166,17 +152,13 @@ class TrayPlugin: PluginBase("Tray", true) {
     * Null or empty text shows application name.
     */
    fun setTooltipText(text: String?) {
-      if (!running || !supported) return
-
       tooltipText = text?.takeIf { it.isNotBlank() } ?: APP.name
-      val t = text.takeIf { tooltipShow.value }
+      val t = text.takeIf { tooltipVisible.value }
       runAwt { trayIcon?.toolTip = t }
    }
 
    /** Equivalent to: `showNotification(caption,text,NONE)`.  */
    fun showNotification(caption: String, text: String) {
-      if (!running || !supported) return
-
       runAwt { trayIcon?.displayMessage(caption, text, TrayIcon.MessageType.NONE) }
    }
 
@@ -188,15 +170,11 @@ class TrayPlugin: PluginBase("Tray", true) {
     * @param type - an enum indicating the message type
     */
    fun showNotification(caption: String, text: String, type: TrayIcon.MessageType) {
-      if (!running || !supported) return
-
       runAwt { trayIcon?.displayMessage(caption, text, type) }
    }
 
    /** Set tray icon. Null sets default icon. */
    fun setIcon(img: File?): Try<Nothing?, IOException> {
-      if (!running || !supported) return Try.ok()
-
       trayIconImage = img ?: trayIconImageDefault
       return if (trayIcon!=null) {
          loadBufferedImage(trayIconImage)
@@ -215,5 +193,10 @@ class TrayPlugin: PluginBase("Tray", true) {
       onClick = action ?: onClickDefault
    }
 
-   companion object: KLogging()
+   companion object: KLogging(), PluginInfo {
+      override val name = "Tray"
+      override val description = "Provides OS tray facilities, such as tray icon, tray tooltip, tray click action or bubble notification"
+      override val isSupported get() = SystemTray.isSupported()
+      override val isEnabledByDefault = true
+   }
 }

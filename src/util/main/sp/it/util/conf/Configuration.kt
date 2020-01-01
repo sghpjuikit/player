@@ -3,9 +3,7 @@ package sp.it.util.conf
 import sp.it.util.access.toggle
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
-import sp.it.util.action.IsAction
 import sp.it.util.collections.mapset.MapSet
-import sp.it.util.dev.failIf
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.Property
 import sp.it.util.file.properties.readProperties
@@ -15,11 +13,7 @@ import sp.it.util.functional.orNull
 import sp.it.util.type.isSubclassOf
 import java.io.File
 import java.lang.invoke.MethodHandles
-import java.lang.reflect.Modifier.isStatic
-import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
-import java.util.stream.Stream
-import kotlin.streams.asSequence
 
 /** Persistable [Configurable]. */
 open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" }): Configurable<Any?> {
@@ -51,9 +45,13 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun rawContains(config: Config<*>): Boolean = properties.containsKey(configToRawKeyMapper(config))
 
+   fun rawAdd(configurable: Configurable<*>): Unit = configurable.getConfigs().forEach(::rawAdd)
+
+   fun rawAdd(config: Config<*>): Unit = run { properties[configToRawKeyMapper(config)] = config.valueAsProperty }
+
    fun rawAdd(name: String, value: PropVal) = properties.put(name, value)
 
-   fun rawAdd(properties: Map<String, PropVal>) = this.properties.putAll(properties)
+   fun rawAdd(props: Map<String, PropVal>): Unit = properties.putAll(props)
 
    fun rawAdd(file: File) = file.readProperties().orNull().orEmpty().forEach { (name, value) -> rawAdd(name, value) }
 
@@ -97,50 +95,6 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
       }
    }
 
-   fun installActions(vararg os: Any) {
-      os.asSequence().flatMap {
-         when (it) {
-            is Sequence<*> -> it
-            is Stream<*> -> it.asSequence()
-            is Optional<*> -> it.stream().asSequence()
-            is Array<*> -> os.asSequence()
-            is Collection<*> -> it.asSequence()
-            else -> sequenceOf(it)
-         }
-      }.filterNotNull().forEach {
-         gatherActions(it)
-      }
-   }
-
-   fun gatherActions(o: Any) {
-      gatherActions(o.javaClass, o)
-   }
-
-   fun <T: Any> gatherActions(type: Class<T>, instance: T?) {
-      val useStatic = instance!=null
-      type.declaredMethods.asSequence()
-         .filter { isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
-         .map {
-            failIf(it.parameters.isNotEmpty()) { "Action method=$it must have 0 parameters" }
-
-            val a = it.getAnnotation(IsAction::class.java)
-            val c = it.getAnnotation(IsConfig::class.java)
-            val group = instance?.let { c.computeConfigGroup(it) }
-            val r = Runnable {
-               try {
-                  it.isAccessible = true
-                  it(instance)
-               } catch (e: IllegalAccessException) {
-                  throw RuntimeException("Failed to run action=${a.name}", e)
-               } catch (e: Throwable) {
-                  throw RuntimeException("Failed to run action=${a.name}", e)
-               }
-            }
-            Action(a, group, r)
-         }
-         .forEach { collect(it) }
-   }
-
    fun <T> drop(config: Config<T>) {
       configs.remove(config)
 
@@ -150,10 +104,9 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
       }
    }
 
-   @SafeVarargs
-   fun <T> drop(vararg configs: Config<T>) = configs.forEach { drop(it) }
+   fun <C> drop(c: Configurable<C>): Unit = c.getConfigs().forEach(::drop)
 
-   fun <T> drop(configs: Collection<Config<T>>) = configs.forEach { drop(it) }
+   fun <T> drop(configs: Collection<Config<T>>) = configs.forEach(::drop)
 
    /** Changes all configs to their default value and applies them  */
    fun toDefault() = getConfigs().forEach { it.setValueToDefault() }
@@ -187,6 +140,10 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
             c.valueAsProperty = value
       }
    }
+
+   fun <C> rawSet(c: Configurable<C>): Unit = c.getConfigs().forEach(::rawSet)
+
+   fun <T> rawSet(configs: Collection<Config<T>>) = configs.forEach(::rawSet)
 
    fun rawSet(c: Config<*>) {
       if (c.isPersistable()) {

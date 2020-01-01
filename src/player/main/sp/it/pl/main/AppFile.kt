@@ -5,6 +5,7 @@ import javafx.stage.FileChooser
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.util.access.VarEnum
+import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
@@ -18,11 +19,11 @@ import sp.it.util.file.type.MimeTypes
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
+import sp.it.util.functional.runTry
 import sp.it.util.system.Os
 import sp.it.util.text.plural
 import sp.it.util.ui.image.toBuffered
 import java.io.File
-import java.io.IOException
 import javax.imageio.ImageIO
 import kotlin.streams.asSequence
 
@@ -146,22 +147,17 @@ fun File.isImageWrite() = extension.toLowerCase() in imageExtensionsWrite
 fun imageWriteExtensionFilter() = FileChooser.ExtensionFilter("Image files", imageExtensionsWrite.map { "*.$it" })
 
 /** Saves specified image to a specified file. */
-fun writeImage(img: Image, file: File): Try<Nothing?, Exception> {
-   return if (!file.isImageWrite()) {
-      logger.error { "Could not save image to file=$file. Format=${file.extension} not supported." }
-      Try.error(UnsupportedOperationException("Format=${file.extension} not supported"))
-   } else try {
-      val i = img.toBuffered()
-      if (i==null)
-         Try.error(UnsupportedOperationException("Format=${file.extension} not supported"))
-      else {
-         ImageIO.write(i, file.extension, file)
-         Try.ok()
-      }
-   } catch (e: IOException) {
-      logger.error(e) { "Could not save image to file=$file" }
-      Try.error(e)
-   }
+fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
+   failIf(!file.isImageWrite()) { "Format=${file.extension} not supported" }
+
+   val i = img.toBuffered()
+   failIf(i==null) { "Format=${file.extension} not supported" }
+
+   val format = file.extension.toLowerCase()
+   val noWriter = !ImageIO.write(i, format, file)
+   failIf(noWriter) { "No image writer for format: $format" }
+}.ifError {
+   logger.error(it) { "Could not save image to file=$file" }
 }
 
 /**
@@ -270,7 +266,7 @@ private fun File.asFileTree(): Sequence<File> =
 private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
    val isFile = type==FILE
    val isDir = type==DIRECTORY
-   val cmd = when(type) {
+   val cmd = when (type) {
       DIRECTORY -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /ad "${dir.absolutePath}" 2>nul"""
       FILE -> """cmd.exe /c chcp 65001 > nul & cmd /c dir /s /b /on /a-d "${dir.absolutePath}" 2>nul"""
    }

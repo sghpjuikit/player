@@ -9,8 +9,6 @@ import javafx.scene.input.DragEvent
 import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
 import javafx.scene.input.Dragboard
-import javafx.scene.input.MouseEvent
-import javafx.scene.input.TransferMode
 import javafx.stage.Window
 import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong

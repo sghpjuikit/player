@@ -66,7 +66,7 @@ class PlaycountIncrementer: PluginBase() {
    }
 
    /** Manually increments playcount of currently playing song. According to [delay] now or schedules it for later. */
-   @IsAction(name = "Increment playcount", desc = "Manually increments number of times the song has been played by one.")
+   @IsAction(name = "Increment playcount", info = "Manually increments number of times the song has been played by one.")
    fun increment() {
       val m = APP.audio.playingSong.value
       if (!m.isEmpty() && m.isFileBased()) {

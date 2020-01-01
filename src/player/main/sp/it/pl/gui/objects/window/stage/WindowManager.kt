@@ -223,7 +223,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   @IsAction(name = "Open new window", desc = "Opens new application window")
+   @IsAction(name = "Open new window", info = "Opens new application window")
    fun createWindow(): Window = createWindow(APP.isUiApp)
 
    fun setAsMain(w: Window) {
@@ -233,7 +233,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       mainWindow?.let { it.isMainImpl.value = true }
    }
 
-   @IsAction(name = "Close active window", keys = "CTRL+W", desc = "Opens new application window")
+   @IsAction(name = "Close active window", keys = "CTRL+W", info = "Opens new application window")
    private fun closeActiveWindow() {
       getActive().orNull()?.close()
    }

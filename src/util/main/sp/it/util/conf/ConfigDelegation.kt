@@ -227,7 +227,7 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
 
       fun String.orNull() = takeIf { it.isNotBlank() }
       val name = infoExt?.name?.orNull() ?: info?.name?.orNull() ?: property.name
-      val desc = infoExt?.desc?.orNull() ?: info?.info?.orNull() ?: ""
+      val desc = infoExt?.info?.orNull() ?: info?.info?.orNull() ?: ""
       val keys = infoExt?.keys ?: ""
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false

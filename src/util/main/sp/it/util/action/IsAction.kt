@@ -27,7 +27,7 @@ annotation class IsAction(
     * tooltips.
     * Default "".
     */
-   val desc: String = "",
+   val info: String = "",
    /**
     * Key combination for shortcut of the action.
     * Default "".

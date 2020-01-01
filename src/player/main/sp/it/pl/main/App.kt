@@ -326,7 +326,7 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    /** Starts this application normally if not yet started that way, otherwise has no effect. */
-   @IsAction(name = conf.startNormally.cname, desc = conf.startNormally.cinfo)
+   @IsAction(name = conf.startNormally.cname, info = conf.startNormally.cinfo)
    fun startNormally() {
       if (!isStateful) {
          isStateful = true
@@ -370,7 +370,7 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    /** Close this app normally. Causes invocation of [stop] as a result. */
-   @IsAction(name = conf.close.cname, desc = conf.close.cinfo)
+   @IsAction(name = conf.close.cname, info = conf.close.cinfo)
    fun close() {
       logger.info { "Closing application" }
 

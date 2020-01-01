@@ -73,22 +73,22 @@ import java.net.URISyntaxException
 
 class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
-   @IsAction(name = "Open on Github", desc = "Opens Github page for this application. For developers.")
+   @IsAction(name = "Open on Github", info = "Opens Github page for this application. For developers.")
    fun openAppGithubPage() {
       APP.githubUri.browse()
    }
 
-   @IsAction(name = "Open app directory", desc = "Opens directory from which this application is running from.")
+   @IsAction(name = "Open app directory", info = "Opens directory from which this application is running from.")
    fun openAppLocation() {
       APP.location.open()
    }
 
-   @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
+   @IsAction(name = "Open css guide", info = "Opens css reference guide. For developers.")
    fun openCssGuide() {
       URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
    }
 
-   @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
+   @IsAction(name = "Open icon viewer", info = "Opens application icon browser. For developers.")
    fun openIconViewer() {
       val iconSize = 120.0
       val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
@@ -148,7 +148,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
    }
 
-   @IsAction(name = "Open settings", desc = "Opens application settings.")
+   @IsAction(name = "Open settings", info = "Opens application settings.")
    fun openSettings() {
       openSettings(null)
    }
@@ -157,27 +157,27 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       APP.widgetManager.widgets.use<ConfiguringFeature>(NO_LAYOUT) { it.configure(APP.configuration, groupToSelect) }
    }
 
-   @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
+   @IsAction(name = "Open app actions", info = "Actions specific to whole application.")
    fun openActions() {
       APP.ui.actionPane.orBuild.show(APP)
    }
 
-   @IsAction(name = "Open...", desc = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
+   @IsAction(name = "Open...", info = "Display all possible open actions.", keys = "CTRL+SHIFT+O", global = true)
    fun openOpen() {
       APP.ui.actionPane.orBuild.show(AppOpen)
    }
 
-   @IsAction(name = "Show shortcuts", desc = "Display all available shortcuts.", keys = "COMMA")
+   @IsAction(name = "Show shortcuts", info = "Display all available shortcuts.", keys = "COMMA")
    fun showShortcuts() {
       APP.ui.shortcutPane.orBuild.show(ActionRegistrar.getActions())
    }
 
-   @IsAction(name = "Show system info", desc = "Display system information.")
+   @IsAction(name = "Show system info", info = "Display system information.")
    fun showSysInfo() {
       APP.ui.infoPane.orBuild.show(Unit)
    }
 
-   @IsAction(name = "Show overlay", desc = "Display screen overlay.")
+   @IsAction(name = "Show overlay", info = "Display screen overlay.")
    fun showOverlay() {
       val overlays = ArrayList<OverlayPane<Unit>>()
       fun <T> List<T>.forEachDelayed(block: (T) -> Unit) = forEachIndexed { i, it -> runFX(200.millis*i) { block(it) } }
@@ -213,7 +213,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       showAll()
    }
 
-   @IsAction(name = "Search", desc = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
+   @IsAction(name = "Search", info = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
    fun showSearchPosScreen() {
       PopWindow().apply {
          content.value = APP.search.buildUi { hide() }
@@ -223,21 +223,21 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   @IsAction(name = "Run system command", desc = "Runs command just like in a system's shell's command line.", global = true)
+   @IsAction(name = "Run system command", info = "Runs command just like in a system's shell's command line.", global = true)
    fun runCommand() {
       configureString("Run system command", "Command") {
          runCommand(it)
       }
    }
 
-   @IsAction(name = "Run as app argument", desc = "Equivalent of launching this application with the command as a parameter.")
+   @IsAction(name = "Run as app argument", info = "Equivalent of launching this application with the command as a parameter.")
    fun runAppCommand() {
       configureString("Run app command", "Command") {
          APP.parameterProcessor.process(listOf(it))
       }
    }
 
-   @IsAction(name = "Open web search", desc = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
+   @IsAction(name = "Open web search", info = "Opens website or search engine result for given phrase", keys = "CTRL + SHIFT + W", global = true)
    fun openWebBar() {
       configureString("Open on web...", "Website or phrase") {
          val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
@@ -250,7 +250,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   @IsAction(name = "Open web dictionary", desc = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
+   @IsAction(name = "Open web dictionary", info = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
    fun openDictionary() {
       configureString("Look up in dictionary...", "Word") {
          URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()

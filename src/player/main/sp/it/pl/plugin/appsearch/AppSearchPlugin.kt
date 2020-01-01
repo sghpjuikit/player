@@ -107,7 +107,7 @@ class AppSearchPlugin: PluginBase() {
       APP.search.sources -= searchSource
    }
 
-   @IsAction(name = "Re-index", desc = "Updates application executables index")
+   @IsAction(name = "Re-index", info = "Updates application executables index")
    private fun findApps() {
       val dirs = searchDirs.materialize()
       runIO {
@@ -137,7 +137,7 @@ class AppSearchPlugin: PluginBase() {
       { runAsProgram() }
    )
 
-   @IsAction(name = "Open program launcher", desc = "Opens program launcher widget", keys = "CTRL+P")
+   @IsAction(name = "Open program launcher", info = "Opens program launcher widget", keys = "CTRL+P")
    fun openLauncher() {
       val f = userLocation/"MainProgramLauncher.fxwl"
       val c = APP.windowManager.instantiateComponent(f) ?: widgetFactory.create()

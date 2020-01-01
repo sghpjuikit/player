@@ -23,7 +23,7 @@ class Waifu2k: PluginBase() {
 
    val waiffuDir by cvn<File>(null).only(FILE).def(name = "Waifu binary")
 
-   @IsAction(name = "Scale image (waiffu2k)", desc = "Scales an image using waiffu2k")
+   @IsAction(name = "Scale image (waiffu2k)", info = "Scales an image using waiffu2k")
    private fun showUpscaleForm() {
       object: ConfigurableBase<Any>() {
          val source by cvn<File>(null).only(FILE).def(name = "Source", group = "1")

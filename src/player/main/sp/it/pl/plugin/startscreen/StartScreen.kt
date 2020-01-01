@@ -152,7 +152,7 @@ class StartScreen: PluginBase() {
 
    override fun stop() = overlayIsActive.unsubscribe()
 
-   @IsAction(name = "Toggle start screen", desc = "Toggle start screen on/off", global = true)
+   @IsAction(name = "Toggle start screen", info = "Toggle start screen on/off", global = true)
    fun overlayToggleVisible() = if (overlay.isShown()) overlay.hide() else overlay.orBuild.show(Unit)
 
    private fun screenCorners() = Screen.getScreens().map {

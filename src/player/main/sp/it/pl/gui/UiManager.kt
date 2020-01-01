@@ -188,28 +188,28 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    /** Toggles lock to prevent user accidental layout change.  */
-   @IsAction(name = "Toggle layout lock", desc = "Lock/unlock layout.", keys = "F4")
+   @IsAction(name = "Toggle layout lock", info = "Lock/unlock layout.", keys = "F4")
    fun toggleLayoutLocked() = layoutLocked.toggle()
 
    /** Loads/refreshes active layout.  */
-   @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
+   @IsAction(name = "Reload layout", info = "Reload layout.", keys = "F6")
    fun loadLayout() = APP.widgetManager.layouts.findAll(OPEN).forEach { it.load() }
 
    /** Toggles layout controlling mode.  */
-   @IsAction(name = "Reload skin", desc = "Reloads skin.", keys = "F7")
+   @IsAction(name = "Reload skin", info = "Reloads skin.", keys = "F7")
    fun reloadSkin() {
       logger.info("Reloading skin={}", skin.value)
       applySkin(skin.value)
    }
 
-   @IsAction(name = "Show application", desc = "Equal to switching minimized mode.", global = true)
+   @IsAction(name = "Show application", info = "Equal to switching minimized mode.", global = true)
    fun minimizeFocusTrue() {
       val anyM = APP.windowManager.windows.any { it.isMinimized }
       val anyF = APP.windowManager.windows.any { it.focused.value }
       if (anyM || !anyF) APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
    }
 
-   @IsAction(name = "Show/Hide application", desc = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
+   @IsAction(name = "Show/Hide application", info = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
    fun toggleMinimizeFocus() {
       val anyM = APP.windowManager.windows.any { it.isMinimized }
       val anyF = APP.windowManager.windows.any { it.focused.value }
@@ -217,13 +217,13 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       else APP.windowManager.windows.forEach { it.isMinimized = false; it.focus() }
    }
 
-   @IsAction(name = "Show all windows", desc = "Shows all application windows.", global = true)
+   @IsAction(name = "Show all windows", info = "Shows all application windows.", global = true)
    fun showApp() = APP.windowManager.windows.forEach { it.isMinimized = false }
 
-   @IsAction(name = "Hide all windows", desc = "Hides all application windows.", global = true)
+   @IsAction(name = "Hide all windows", info = "Hides all application windows.", global = true)
    fun hideApp() = APP.windowManager.windows.forEach { it.isMinimized = true }
 
-   @IsAction(name = "Show/hide all windows", desc = "Shows/hides all application windows.", global = true)
+   @IsAction(name = "Show/hide all windows", info = "Shows/hides all application windows.", global = true)
    fun toggleMinimize() {
       val m = APP.windowManager.windows.any { it.isMinimized }
       APP.windowManager.windows.forEach {
@@ -232,30 +232,30 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       }
    }
 
-   @IsAction(name = "Maximize window", desc = "Switch maximized mode.", keys = "F11")
+   @IsAction(name = "Maximize window", info = "Switch maximized mode.", keys = "F11")
    fun toggleMaximize() = APP.windowManager.getActive().orNull()?.toggleMaximize()
 
-   @IsAction(name = "Loop maximized state", desc = "Switch to different maximized window states.", keys = "F3")
+   @IsAction(name = "Loop maximized state", info = "Switch to different maximized window states.", keys = "F3")
    fun toggleMaximizedState() = APP.windowManager.getActive().orNull()?.let { it.isMaximized = Values.next(it.isMaximized) }
 
-   @IsAction(name = "Fullscreen", desc = "Switch fullscreen mode.", keys = "F12")
+   @IsAction(name = "Fullscreen", info = "Switch fullscreen mode.", keys = "F12")
    fun toggleFullscreen() = APP.windowManager.getActive().orNull()?.toggleFullscreen()
 
-   @IsAction(name = "Layout align", desc = "Aligns layout of the active window", keys = "ALT+UP")
+   @IsAction(name = "Layout align", info = "Aligns layout of the active window", keys = "ALT+UP")
    fun tabAlign() = APP.windowManager.getActive().orNull()?.switchPane?.alignTabs()
 
-   @IsAction(name = "Layout move left", desc = "Moves layout of the active window to the left.", keys = "ALT+LEFT")
+   @IsAction(name = "Layout move left", info = "Moves layout of the active window to the left.", keys = "ALT+LEFT")
    fun tabPrevious() = APP.windowManager.getActive().orNull()?.switchPane?.alignLeftTab()
 
-   @IsAction(name = "Layout move right", desc = "Moves layout of the active window to the right.", keys = "ALT+RIGHT")
+   @IsAction(name = "Layout move right", info = "Moves layout of the active window to the right.", keys = "ALT+RIGHT")
    fun tabNext() = APP.windowManager.getActive().orNull()?.switchPane?.alignRightTab()
 
-   @IsAction(name = Actions.LAYOUT_MODE, desc = "Shows/hides layout overlay.", keys = "F8")
+   @IsAction(name = Actions.LAYOUT_MODE, info = "Shows/hides layout overlay.", keys = "F8")
    fun toggleLayoutMode() {
       isLayoutMode = !layoutMode.get()
    }
 
-   @IsAction(name = "Layout zoom in/out", desc = "Toggles layout zoom in/out.")
+   @IsAction(name = "Layout zoom in/out", info = "Toggles layout zoom in/out.")
    fun toggleZoomMode() = APP.windowManager.getActive().orNull()?.switchPane?.toggleZoom()
 
    fun setLayoutNzoom(v: Boolean) {
@@ -269,7 +269,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    fun setZoomMode(v: Boolean) = APP.windowManager.getActive().orNull()?.switchPane?.zoom(v)
 
-   @IsAction(name = "Layout zoom overlay in/out", desc = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
+   @IsAction(name = "Layout zoom overlay in/out", info = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
    fun toggleLayoutNzoom() {
       setLayoutNzoom(!layoutMode.value)
    }

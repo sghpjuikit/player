@@ -169,12 +169,12 @@ class Notifier: PluginBase() {
    }
 
    /** Hide notification if showing, otherwise does nothing. */
-   @IsAction(name = "Notification hide", desc = "Hide notification if it is showing")
+   @IsAction(name = "Notification hide", info = "Hide notification if it is showing")
    fun hideNotification() {
       n.hide()
    }
 
-   @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
+   @IsAction(name = "Notify now playing", info = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
    fun showNowPlayingNotification() = songChange(APP.audio.playingSong.value)
 
    private fun songChange(m: Metadata) {

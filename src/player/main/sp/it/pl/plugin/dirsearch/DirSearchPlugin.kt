@@ -60,7 +60,7 @@ class DirSearchPlugin: PluginBase() {
       }
    }
 
-   @IsAction(name = "Re-index", desc = "Update directory index")
+   @IsAction(name = "Re-index", info = "Update directory index")
    private fun updateCache() {
       runFX { searchDirs.materialize() }
          .then(NEW) { dirs ->

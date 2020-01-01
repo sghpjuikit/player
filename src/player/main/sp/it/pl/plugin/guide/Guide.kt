@@ -171,7 +171,7 @@ class Guide: PluginBase() {
       popupContent.requestFocus()
    }
 
-   @IsAction(name = "Open guide", desc = "Resume or start the guide.")
+   @IsAction(name = "Open guide", info = "Resume or start the guide.")
    fun open() {
       proceed()
       events.invoke("Guide opening")

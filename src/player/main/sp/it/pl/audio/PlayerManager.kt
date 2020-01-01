@@ -1,7 +1,5 @@
 package sp.it.pl.audio
 
-import javafx.scene.input.MouseButton
-import javafx.scene.input.MouseEvent
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
@@ -394,25 +392,25 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /** Resumes player, if file is being played. Otherwise does nothing.  */
-   @IsAction(name = "Resume", desc = "Resumes playback, if file is being played.", global = true)
+   @IsAction(name = "Resume", info = "Resumes playback, if file is being played.", global = true)
    fun resume() {
       player.resume()
    }
 
    /** Pauses player, if already paused, does nothing.  */
-   @IsAction(name = "Pause", desc = "Pauses playback, if file is being played.", global = true)
+   @IsAction(name = "Pause", info = "Pauses playback, if file is being played.", global = true)
    fun pause() {
       player.pause()
    }
 
    /** Pauses/resumes player, if file is being played. Otherwise does nothing.  */
-   @IsAction(name = "Pause/resume", desc = "Pauses/resumes playback, if file is being played.", keys = "ALT+S", global = true)
+   @IsAction(name = "Pause/resume", info = "Pauses/resumes playback, if file is being played.", keys = "ALT+S", global = true)
    fun pauseResume() {
       player.pauseResume()
    }
 
    /** Stops player.  */
-   @IsAction(name = "Stop", desc = "Stops playback.", keys = "ALT+F", global = true)
+   @IsAction(name = "Stop", info = "Stops playback.", keys = "ALT+F", global = true)
    fun stop() {
       player.stop()
    }
@@ -430,7 +428,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /** Seek forward by specified duration  */
-   @IsAction(name = "Seek to beginning", desc = "Seek playback to beginning.", keys = "ALT+R", global = true)
+   @IsAction(name = "Seek to beginning", info = "Seek playback to beginning.", keys = "ALT+R", global = true)
    fun seekZero() {
       seek(0.0)
    }
@@ -443,13 +441,13 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /** Seek forward by small duration unit.  */
-   @IsAction(name = "Seek forward", desc = "Seek playback forward by small duration unit.", keys = "ALT+D", repeat = true, global = true)
+   @IsAction(name = "Seek forward", info = "Seek playback forward by small duration unit.", keys = "ALT+D", repeat = true, global = true)
    fun seekForwardAbsolute() {
       seek(state.playback.currentTime.value.add(seekUnitT))
    }
 
    /** Seek forward by small fraction unit.  */
-   @IsAction(name = "Seek forward (%)", desc = "Seek playback forward by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
+   @IsAction(name = "Seek forward (%)", info = "Seek playback forward by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
    fun seekForwardRelative() {
       val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() + seekUnitP
       seek(d min 1.0)
@@ -463,32 +461,32 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /** Seek backward by small duration unit.  */
-   @IsAction(name = "Seek backward", desc = "Seek playback backward by small duration unit.", keys = "ALT+A", repeat = true, global = true)
+   @IsAction(name = "Seek backward", info = "Seek playback backward by small duration unit.", keys = "ALT+A", repeat = true, global = true)
    fun seekBackwardAbsolute() {
       seek(state.playback.currentTime.value.subtract(seekUnitT))
    }
 
    /** Seek backward by small fraction unit.  */
-   @IsAction(name = "Seek backward (%)", desc = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
+   @IsAction(name = "Seek backward (%)", info = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
    fun seekBackwardRelative() {
       val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() - seekUnitP
       seek(d max 0.0)
    }
 
    /** Seek forward by specified duration  */
-   @IsAction(name = "Seek to end", desc = "Seek playback to end.", global = true)
+   @IsAction(name = "Seek to end", info = "Seek playback to end.", global = true)
    fun seekEnd() {
       seek(1.0)
    }
 
    /** Increment volume by elementary unit.  */
-   @IsAction(name = "Volume up", desc = "Increment volume by elementary unit.", keys = "CTRL+SHIFT+2", repeat = true, global = true)
+   @IsAction(name = "Volume up", info = "Increment volume by elementary unit.", keys = "CTRL+SHIFT+2", repeat = true, global = true)
    fun volumeInc() {
       state.playback.volume.incByStep()
    }
 
    /** Decrement volume by elementary unit.  */
-   @IsAction(name = "Volume down", desc = "Decrement volume by elementary unit.", keys = "CTRL+SHIFT+1", repeat = true, global = true)
+   @IsAction(name = "Volume down", info = "Decrement volume by elementary unit.", keys = "CTRL+SHIFT+1", repeat = true, global = true)
    fun volumeDec() {
       state.playback.volume.decByStep()
    }
@@ -497,7 +495,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       return state.playback.loopMode.value
    }
 
-   @IsAction(name = "Toggle looping", desc = "Switch between playlist looping mode.", keys = "ALT+L")
+   @IsAction(name = "Toggle looping", info = "Switch between playlist looping mode.", keys = "ALT+L")
    fun toggleLoopMode() {
       setLoopMode(Values.next(getLoopMode()))
    }
@@ -508,7 +506,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /** Switches between on/off state for mute property.  */
-   @IsAction(name = "Toggle mute", desc = "Switch mute on/off.", keys = "ALT+M")
+   @IsAction(name = "Toggle mute", info = "Switch mute on/off.", keys = "ALT+M")
    fun toggleMute() {
       state.playback.mute.toggle()
    }
@@ -525,31 +523,31 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /** Rate playing song 0/5.  */
-   @IsAction(name = "Rate playing 0/5", desc = "Rate currently playing song 0/5.", keys = "ALT+BACK_QUOTE", global = true)
+   @IsAction(name = "Rate playing 0/5", info = "Rate currently playing song 0/5.", keys = "ALT+BACK_QUOTE", global = true)
    fun rate0() = ratePlaying(0.0)
 
    /** Rate playing song 1/5.  */
-   @IsAction(name = "Rate playing 1/5", desc = "Rate currently playing song 1/5.", keys = "ALT+1", global = true)
+   @IsAction(name = "Rate playing 1/5", info = "Rate currently playing song 1/5.", keys = "ALT+1", global = true)
    fun rate1() = ratePlaying(0.2)
 
    /** Rate playing song 2/5.  */
-   @IsAction(name = "Rate playing 2/5", desc = "Rate currently playing song 2/5.", keys = "ALT+2", global = true)
+   @IsAction(name = "Rate playing 2/5", info = "Rate currently playing song 2/5.", keys = "ALT+2", global = true)
    fun rate2() = ratePlaying(0.4)
 
    /** Rate playing song 3/5.  */
-   @IsAction(name = "Rate playing 3/5", desc = "Rate currently playing song 3/5.", keys = "ALT+3", global = true)
+   @IsAction(name = "Rate playing 3/5", info = "Rate currently playing song 3/5.", keys = "ALT+3", global = true)
    fun rate3() = ratePlaying(0.6)
 
    /** Rate playing song 4/5.  */
-   @IsAction(name = "Rate playing 4/5", desc = "Rate currently playing song 4/5.", keys = "ALT+4", global = true)
+   @IsAction(name = "Rate playing 4/5", info = "Rate currently playing song 4/5.", keys = "ALT+4", global = true)
    fun rate4() = ratePlaying(0.8)
 
    /** Rate playing song 5/5.  */
-   @IsAction(name = "Rate playing 5/5", desc = "Rate currently playing song 5/5.", keys = "ALT+5", global = true)
+   @IsAction(name = "Rate playing 5/5", info = "Rate currently playing song 5/5.", keys = "ALT+5", global = true)
    fun rate5() = ratePlaying(1.0)
 
    /** Explore current song directory - opens file browser for its location.  */
-   @IsAction(name = "Explore current song directory", desc = "Explore current song directory.", keys = "ALT+V", global = true)
+   @IsAction(name = "Explore current song directory", info = "Explore current song directory.", keys = "ALT+V", global = true)
    fun openPlayedLocation() {
       if (PlaylistManager.active==null) return
       val i = PlaylistManager.use<PlaylistSong>( { it.playing }, null)

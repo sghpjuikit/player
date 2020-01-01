@@ -39,10 +39,10 @@ class ScreenRotator: PluginBase() {
    private val programFile = getResource(PROGRAM_FILE_NAME)
    private val programHelpFile = getResource(PROGRAM_HELP_FILE_NAME)
 
-   @IsAction(name = "Open help", desc = "Open technical usage help")
+   @IsAction(name = "Open help", info = "Open technical usage help")
    fun openHelp() = programHelpFile.open()
 
-   @IsAction(name = "Turn off screens", desc = "Turns off all screens. They can be turned on again by moving the mouse", global = true, keys = "CTRL+SHIFT+ALT+K")
+   @IsAction(name = "Turn off screens", info = "Turns off all screens. They can be turned on again by moving the mouse", global = true, keys = "CTRL+SHIFT+ALT+K")
    fun turnScreensOff() = turnScreens(false)
 
    fun turnScreens(on: Boolean) {
@@ -55,7 +55,7 @@ class ScreenRotator: PluginBase() {
       }
    }
 
-   @IsAction(name = "Start screen saver", desc = "Starts screen saver if enabled. It can be stopped by moving the mouse. On some system this can open logon screen", global = true, keys = "CTRL+SHIFT+ALT+L")
+   @IsAction(name = "Start screen saver", info = "Starts screen saver if enabled. It can be stopped by moving the mouse. On some system this can open logon screen", global = true, keys = "CTRL+SHIFT+ALT+L")
    fun startScreenSaver() {
       runIO {
          runTry {
@@ -77,7 +77,7 @@ class ScreenRotator: PluginBase() {
       }
    }
 
-   @IsAction(name = "Rotate screen", desc = "Show 'Rotate Screen' dialog", global = true, keys = "ALT+Semicolon")
+   @IsAction(name = "Rotate screen", info = "Show 'Rotate Screen' dialog", global = true, keys = "ALT+Semicolon")
    fun showRotateScreenDialog() {
       PopWindow().apply {
          userResizable.value = false

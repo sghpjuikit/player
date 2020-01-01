@@ -57,7 +57,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	private Set<Constraint<Action>> constraints = null;
 
 	public Action(IsAction a, String group, Runnable action) {
-		this(a.name(), action, a.desc(), group, a.keys(), a.global(), a.repeat());
+		this(a.name(), action, a.info(), group, a.keys(), a.global(), a.repeat());
 	}
 
 	public Action(String name, Runnable action, String info, String group, String keys) {

@@ -156,7 +156,9 @@ abstract public class ConfigEditor<T> {
     }
 
     public static boolean isMinMax(Config<?> c) {
-        return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l -> l.getClass()==NumberMinMax.class);
+        return Number.class.isAssignableFrom(c.getType()) && c.getConstraints().stream().anyMatch(l ->
+            l.getClass()==NumberMinMax.class && ((NumberMinMax) l).isClosed()
+        );
     }
 
     public static <T> ConfigEditor<T> createForProperty(Class<T> type, String name, Object property) {

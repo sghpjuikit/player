@@ -7,6 +7,8 @@ import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
 import sp.it.util.access.vAlways
+import sp.it.util.dev.fail
+import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNot
 import sp.it.util.functional.Try
 import java.io.File
@@ -32,14 +34,22 @@ interface Constraint<in T> {
 
    class FileRelative(val to: File): MarkerConstraint()
 
-   class NumberMinMax(val min: Double, val max: Double): Constraint<Number> {
+   class NumberMinMax(val min: Double?, val max: Double?): Constraint<Number> {
 
       init {
-         failIfNot(max>min) { "Max value must be greater than min value" }
+         failIf(min==null && max==null) { "Min and max can not both be null" }
+         failIf(min!=null && max!=null && max<min) { "Max value must be greater than or equal to min value" }
       }
 
-      override fun isValid(value: Number?) = value==null || value.toDouble() in min..max
-      override fun message() = "Number must be in range $min - $max"
+      fun isClosed() = min!=null && max!=null
+
+      override fun isValid(value: Number?) = value==null || ((min==null || value.toDouble()>=min) && (max==null || value.toDouble()<=max))
+      override fun message() = when {
+         isClosed() -> "Number must be in range $min - $max"
+         min!=null -> "Number must be at least $min"
+         max!=null -> "Number must be at most $max"
+         else -> fail()
+      }
    }
 
    class StringNonEmpty: Constraint<String> {

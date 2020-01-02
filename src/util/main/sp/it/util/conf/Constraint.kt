@@ -88,6 +88,9 @@ interface Constraint<in T> {
    /** Avoid persisting the config. Use for 'computed' configs. Configs with [Config.isEditable]==[EditMode.NONE] are not persistent by default. */
    object NoPersist: MarkerConstraint()
 
+   /** Use save file chooser in ui, allowing to define files that do not exist. */
+   object FileOut: MarkerConstraint()
+
    class ValueSet<T>(val enumerator: () -> Collection<T>): MarkerConstraint()
 
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()

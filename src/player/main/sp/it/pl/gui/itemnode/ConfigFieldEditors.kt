@@ -19,12 +19,14 @@ import sp.it.util.access.vAlways
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.Config
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.Constraint.FileRelative
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.PreserveOrder
 import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.ListConfig
+import sp.it.util.file.FilePickerType
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.by
 import sp.it.util.reactive.attach
@@ -131,8 +133,9 @@ private class FileCE(c: Config<File>): ConfigEditor<File>(c) {
       isObservable = v!=null
       val fileType = c.findConstraint<FileActor>() ?: FileActor.ANY
       val relativeTo = c.findConstraint<FileRelative>()?.to
+      val pickerType = if (c.findConstraint<Constraint.FileOut>()!=null) FilePickerType.IN else FilePickerType.OUT
 
-      editor = FileTextField(fileType, relativeTo)
+      editor = FileTextField(fileType, relativeTo, pickerType)
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onEventDown(KEY_PRESSED, ENTER) { it.consume() }
       editor.value = config.value

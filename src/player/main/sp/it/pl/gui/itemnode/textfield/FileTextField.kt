@@ -8,17 +8,19 @@ import sp.it.pl.main.IconFA
 import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.conf.Constraint.FileActor
+import sp.it.util.file.FilePickerType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.reactive.sync
 import sp.it.util.system.chooseFile
+import sp.it.util.system.saveFile
 import sp.it.util.ui.Util.layHorizontally
 import sp.it.util.ui.drag.handlerAccepting
 import java.io.File
 
 /** Text field for [File] with file/dir constraint, drag & drop and picker. Supports relative files. */
-class FileTextField(val constraint: FileActor, val relativeTo: File?): ValueTextField<File>() {
+class FileTextField(val constraint: FileActor, val relativeTo: File?, val pickerType: FilePickerType = FilePickerType.IN): ValueTextField<File>() {
    private val type = v(if (constraint==FileActor.FILE) FILE else DIRECTORY)
 
    init {
@@ -38,8 +40,11 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?): ValueText
    }
 
    override fun onDialogAction() {
-      val title = if (type.value==DIRECTORY) "Choose directory" else "Choose file"
-      chooseFile(title, type.value, value, scene.window).ifOk {
+      if (type.value==FILE && pickerType==FilePickerType.OUT) {
+         saveFile(if (type.value==DIRECTORY) "Choose directory" else "Choose file", value, "name.extension", scene.window)
+      } else {
+         chooseFile("Define file", type.value, value, scene.window)
+      }.ifOk {
          value = relativeTo?.takeIf { p -> p.isAnyParentOrSelfOf(it) }?.let { p -> it.relativeTo(p) } ?: it
       }
    }

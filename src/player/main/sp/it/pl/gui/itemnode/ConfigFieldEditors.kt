@@ -133,7 +133,7 @@ private class FileCE(c: Config<File>): ConfigEditor<File>(c) {
       isObservable = v!=null
       val fileType = c.findConstraint<FileActor>() ?: FileActor.ANY
       val relativeTo = c.findConstraint<FileRelative>()?.to
-      val pickerType = if (c.findConstraint<Constraint.FileOut>()!=null) FilePickerType.IN else FilePickerType.OUT
+      val pickerType = if (c.findConstraint<Constraint.FileOut>()==null) FilePickerType.IN else FilePickerType.OUT
 
       editor = FileTextField(fileType, relativeTo, pickerType)
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR

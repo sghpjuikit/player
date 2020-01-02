@@ -41,9 +41,9 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?, val picker
 
    override fun onDialogAction() {
       if (type.value==FILE && pickerType==FilePickerType.OUT) {
-         saveFile(if (type.value==DIRECTORY) "Choose directory" else "Choose file", value, "name.extension", scene.window)
+         saveFile("Define file", value, "name.extension", scene.window)
       } else {
-         chooseFile("Define file", type.value, value, scene.window)
+         chooseFile(if (type.value==DIRECTORY) "Choose directory" else "Choose file", type.value, value, scene.window)
       }.ifOk {
          value = relativeTo?.takeIf { p -> p.isAnyParentOrSelfOf(it) }?.let { p -> it.relativeTo(p) } ?: it
       }

@@ -26,6 +26,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfNonNull
 import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
@@ -63,7 +64,7 @@ class WallpaperChanger: PluginBase() {
             Screen.getScreens().forEach { screen ->
                root.lay(screen.bounds.minY - b.minY, null, null, screen.bounds.minX - b.minX) += Thumbnail(screen.bounds.size).run {
                   fitFrom.value = FitFrom.OUTSIDE
-                  wallpaperImageW.sync1IfNonNull(::loadImage) on disposer
+                  wallpaperImageW sync { if (it!=null) loadImage(it) } on disposer
                   onEventDown(WINDOW_HIDDEN) { loadImage(null) }
 
                   pane

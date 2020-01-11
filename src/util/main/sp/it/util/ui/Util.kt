@@ -272,12 +272,18 @@ val Node.onNodeDispose: Disposer
    get() = properties.getOrPut("onDispose_7bccf7a3-bcae-42ca-a91d-9f95217b942c") { Disposer() } as Disposer
 
 /**
+ * Disposer called in [Node.onNodeDispose] or null if it hasn't been initialized yet.
+ */
+val Node.onNodeDisposeOrNull: Disposer?
+   get() = properties["onDispose_7bccf7a3-bcae-42ca-a91d-9f95217b942c"].asIf()
+
+/**
  * Disposes of this node, with the intention of it and all it's children to never again be used in the scene graph.
  *
  * If a disposer is initialized, it will be invoked. Use [Node.onNodeDispose] property to access, initialize and add
  * subscriptions to the underlying disposer.
  *
- * If this is [Control], [Control.skin] will be set to null (which will invoke [javafx.scene.control.Skin.dispose])
+ * If this is [Control], [javafx.scene.control.Skin.dispose] will be invoked on its skin.
  *
  * If this is [Parent], this function will be invoked on each item in [Parent.getChildrenUnmodifiable]. Disposal
  * is recursive, in a top-down depth-first traversal.
@@ -286,9 +292,15 @@ val Node.onNodeDispose: Disposer
  * developer to call it appropriately, but one may wish to call it immediately after a call to [Node.removeFromParent].
  */
 fun Node.onNodeDispose() {
-   properties["onDispose_7bccf7a3-bcae-42ca-a91d-9f95217b942c"].asIf<Disposer>()?.invoke()
-   if (this is ScrollPane) content = null // avoids `skin = null` calling `requestLayout()` and throwing exception
-   if (this is Control) skin = null
+   onNodeDisposeOrNull?.invoke()
+   if (this is SplitPane) {
+      items.forEach { it.onNodeDispose() }
+   }
+   if (this is ScrollPane) {
+      content?.onNodeDispose()
+      content = null // avoids `skin = null` calling `requestLayout()` and throwing exception
+   }
+   if (this is Control) skin?.dispose()
    if (this is Parent) childrenUnmodifiable.forEach { it.onNodeDispose() }
 }
 

@@ -4,10 +4,8 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import sp.it.util.reactive.Subscription;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
@@ -39,17 +37,7 @@ public class CheckIcon extends Icon {
 
 		styleclass(STYLECLASS);
 		syncC(selected, v -> pseudoClassStateChanged(selectedPC, v));
-
-		addEventHandler(MOUSE_CLICKED, e -> {
-			selected.setValue(!selected.getValue());
-			e.consume();
-		});
-		addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-			if (e.getCode()==KeyCode.ENTER || e.getCode()==KeyCode.SPACE) {
-				selected.setValue(!selected.getValue());
-				e.consume();
-			}
-		});
+		onClickDo(consumer(i -> selected.setValue(!selected.getValue())));
 	}
 
 	/** Sets normal and selected icons. Overrides icon css values. */

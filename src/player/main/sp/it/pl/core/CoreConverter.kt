@@ -58,6 +58,7 @@ class CoreConverter: Core {
    @JvmField val ui = object: ConverterToString<Any?> {
       override fun toS(o: Any?) = when (o) {
             null -> AppTexts.textNoVal
+            is Boolean -> if (o) "yes" else "no"
             is Class<*> -> o.nameUi
             is KClass<*> -> o.nameUi
             is NameUi -> o.nameUi

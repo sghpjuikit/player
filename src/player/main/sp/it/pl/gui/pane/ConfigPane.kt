@@ -2,6 +2,7 @@ package sp.it.pl.gui.pane
 
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
+import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import sp.it.pl.gui.itemnode.ConfigEditor
@@ -16,9 +17,11 @@ import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.ui.label
+import sp.it.util.ui.onNodeDispose
 
 class ConfigPane<T: Any?>: VBox {
    private var editors: List<ConfigEditor<*>> = listOf()
+   private var editorNodes: List<Node> = listOf()
    private var needsLabel: Boolean = true
    private var inLayout = false
    var onChange: Runnable? = null
@@ -36,6 +39,7 @@ class ConfigPane<T: Any?>: VBox {
    }
 
    fun configure(configurable: Configurable<*>?) {
+      alignment = CENTER_LEFT
       needsLabel = configurable !is Config<*>
       editors = configurable?.getConfigs().orEmpty().asSequence()
          .filter { it.findConstraint<Constraint.NoUi>()==null }
@@ -46,10 +50,9 @@ class ConfigPane<T: Any?>: VBox {
             }
          }
          .toList()
-
-      alignment = CENTER_LEFT
-      children setTo editors.asSequence().flatMap {
-         sequenceOf(
+      editorNodes.forEach { it.onNodeDispose() }
+      editorNodes = editors.flatMap {
+         listOfNotNull(
             when {
                needsLabel -> label(it.config.nameUi) {
                   styleClass += "form-config-pane-config-name"
@@ -65,7 +68,8 @@ class ConfigPane<T: Any?>: VBox {
             },
             it.buildNode()
          )
-      }.filterNotNull()
+      }
+      children setTo editorNodes
    }
 
    // overridden because we have un-managed nodes description nodes would cause wrong width

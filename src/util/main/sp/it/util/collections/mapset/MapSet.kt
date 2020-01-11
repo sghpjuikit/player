@@ -1,8 +1,6 @@
 package sp.it.util.collections.mapset
 
-import sp.it.util.functional.invoke
 import java.util.HashMap
-import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.collections.MutableMap.MutableEntry
@@ -13,7 +11,7 @@ import kotlin.collections.MutableMap.MutableEntry
  * **This class is *not* a general-purpose `Set` implementation!  While this class implements the `Set` interface, it
  * intentionally violates `Set's` general contract, which mandates the use of the `equals` method when comparing
  * objects. This class is designed for use only in cases wherein reference-equality
- * semantics are required. Developer should be careful to not pass it as such (e.g. by returning
+ * semantics are required. Developer should be careful when passing it as such (e.g. by returning
  * it from a method with a [Set] only signature.**
  *
  * The underlying map hashing the elements by key is [HashMap] by default,
@@ -21,7 +19,7 @@ import kotlin.collections.MutableMap.MutableEntry
  *
  * Similarly to other sets, this can be used to easily filter duplicates from
  * collection, but leveraging arbitrary element identity.
- * Use like this: `new MapSet<K,E>(e -> e.identity(), elements)`
+ * Use like this: `new MapSet<KEY,ELEMENT>({ it.identity() }, elements)`
  */
 class MapSet<K: Any, E: Any>: MutableSet<E> {
 
@@ -70,9 +68,9 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
    /** Equivalent to [containsValue]. */
    override fun contains(element: E) = containsValue(element)
 
-   fun containsKey(key: K): Boolean = m.containsKey(key)
+   fun containsKey(key: K): Boolean = key in m
 
-   fun containsValue(element: E): Boolean = m.containsKey(keyMapper(element))
+   fun containsValue(element: E): Boolean = keyMapper(element) in m
 
    /** Equivalent to [containsAllValues]. */
    override fun containsAll(elements: Collection<E>) = containsAllValues(elements)
@@ -85,11 +83,11 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
 
    operator fun get(key: K): E? = m[key]
 
-   operator fun get(key: K, key2: K): E? = if (m.containsKey(key)) m[key] else get(key2)
+   operator fun get(key: K, key2: K): E? = if (key in m) m[key] else get(key2)
 
    fun getOr(key: K, or: E): E = m.getOrDefault(key, or)
 
-   fun getOrSupply(key: K, or: Supplier<E>): E = if (m.containsKey(key)) m[key]!! else or.get()
+   fun getOrSupply(key: K, or: Supplier<E>): E = if (key in m) m[key]!! else or.get()
 
    /** Equivalent to [removeValue]. */
    override fun remove(element: E) = removeValue(element)
@@ -129,7 +127,7 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
    /** Adds item to this keymap if not yet contained. Element identity is obtained using [keyMapper]. */
    override fun add(element: E): Boolean {
       val k = keyMapper(element)
-      if (m.containsKey(k)) return false
+      if (k in m) return false
       m[k] = element
       return true
    }
@@ -162,7 +160,7 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
     */
    infix fun put(element: E): Boolean {
       val k = keyMapper(element)
-      val e = !m.containsKey(k)
+      val e = k !in m
       m[k] = element
       return e
    }
@@ -190,12 +188,12 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
    /** @return elements */
    fun streamV(): Stream<E> = m.values.stream()
 
-   fun ifHasK(k: K, action: Consumer<E>) {
+   fun ifHasK(k: K, action: (E) -> Unit) {
       if (containsKey(k))
          action(m[k]!!)
    }
 
-   fun ifHasE(element: E, action: Consumer<E>) = ifHasK(keyMapper(element), action)
+   fun ifHasE(element: E, action: (E) -> Unit) = ifHasK(keyMapper(element), action)
 
    fun computeIfAbsent(key: K, mappingFunction: (K) -> E) = m.computeIfAbsent(key, mappingFunction)
 

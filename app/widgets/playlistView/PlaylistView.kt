@@ -50,7 +50,6 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import java.util.UUID
-import java.util.function.Consumer
 import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
 
 @Widget.Info(
@@ -110,8 +109,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       playlist.playingSong sync { outputPlaying.value = it } on onClose
       playlist.duration attach { table.items_info.updateText() } on onClose
       APP.audio.onSongRefresh { ms ->
-         outputPlaying.value?.let { ms.ifHasK(it.uri, Consumer { outputPlaying.value = it.toPlaylist() }) }
-         outputSelected.value?.let { ms.ifHasK(it.uri, Consumer { outputSelected.value = it.toPlaylist() }) }
+         outputPlaying.value?.let { ms.ifHasK(it.uri) { outputPlaying.value = it.toPlaylist() } }
+         outputSelected.value?.let { ms.ifHasK(it.uri) { outputSelected.value = it.toPlaylist() } }
       } on onClose
 
       playVisible sync { pv ->

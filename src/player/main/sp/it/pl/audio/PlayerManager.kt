@@ -52,7 +52,6 @@ import sp.it.util.units.uuid
 import java.io.File
 import java.net.URI
 import java.util.ArrayList
-import java.util.function.Consumer
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
@@ -670,14 +669,14 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          runFX {
             // update all playlist songs referring to this updated metadata
             PlaylistManager.playlists.forEach {
-               it.forEach { song -> mm.ifHasK(song.uri, Consumer { song.update(it) }) }
+               it.forEach { song -> mm.ifHasK(song.uri) { song.update(it) } }
                it.durationUpdater.push(null)
             }
 
             // refresh playing song data
-            mm.ifHasE(playingSong.value, Consumer { playingSong.update(it) })
+            mm.ifHasE(playingSong.value) { playingSong.update(it) }
 
-            if (playing.i.value!=null) mm.ifHasE(playing.i.value!!, Consumer { playing.i.value = it })
+            if (playing.i.value!=null) mm.ifHasE(playing.i.value!!) { playing.i.value = it }
 
             // refresh rest
             refreshHandlers.forEach { it(mm) }

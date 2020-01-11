@@ -93,8 +93,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		super(type);
 
 		allItems = noNull(backing_list);
-		filteredItems = new FilteredList<>(allItems);
-		sortedItems = new SortedList<>(filteredItems);
+		filteredItems = allItems.filtered(null);
+		sortedItems = filteredItems.sorted(null);
 		itemsPredicate = filteredItems.predicateProperty();
 
 		setItems(sortedItems);

@@ -51,6 +51,7 @@ class Waifu2k: PluginBase() {
       override val name = "Waifu2k"
       override val description = "Provides action to scale image using waiffu2k AI. See https://github.com/nagadomi/waifu2x"
       override val isSupported = Os.WINDOWS.isCurrent
+      override val isSingleton = false
       override val isEnabledByDefault = false
    }
 }

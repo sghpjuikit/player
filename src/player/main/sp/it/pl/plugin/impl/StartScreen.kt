@@ -163,6 +163,7 @@ class StartScreen: PluginBase() {
       override val name = "Start Screen"
       override val description = "Provides start screen overlay similar to the one in Windows 8"
       override val isSupported = Os.WINDOWS.isCurrent
+      override val isSingleton = true
       override val isEnabledByDefault = false
    }
 }

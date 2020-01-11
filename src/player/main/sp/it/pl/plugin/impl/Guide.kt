@@ -215,6 +215,7 @@ class Guide: PluginBase() {
       override val name = conf.name
       override val description = "Provides tip hints to master the application UX"
       override val isSupported = true
+      override val isSingleton = false
       override val isEnabledByDefault = true
 
       private const val ICON_SIZE = 40.0

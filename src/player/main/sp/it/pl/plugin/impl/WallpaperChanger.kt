@@ -101,6 +101,7 @@ class WallpaperChanger: PluginBase() {
       override val name = "Wallpaper"
       override val description = "Provides the ability to change wallpaper until OS shutdown. Also improves screen overlay effect performance."
       override val isSupported = Os.WINDOWS.isCurrent
+      override val isSingleton = true
       override val isEnabledByDefault = false
 
       fun largestScreenSize() = Screen.getScreens().map { ImageSize(it.bounds.width, it.bounds.height) }.maxBy { it.width*it.height }

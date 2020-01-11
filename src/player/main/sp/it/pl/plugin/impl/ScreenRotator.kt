@@ -169,6 +169,7 @@ class ScreenRotator: PluginBase() {
       override val name = "Screen Rotator"
       override val description = "Provides actions to turn on screen saver, sleep displays or rotate any screen using convenient visual aid"
       override val isSupported = Os.WINDOWS.isCurrent
+      override val isSingleton = false
       override val isEnabledByDefault = false
 
       private const val PROGRAM_FILE_NAME = "display.exe"

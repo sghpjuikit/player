@@ -197,6 +197,7 @@ class Tray: PluginBase() {
       override val name = "Tray"
       override val description = "Provides OS tray facilities, such as tray icon, tray tooltip, tray click action or bubble notification"
       override val isSupported get() = SystemTray.isSupported()
+      override val isSingleton = true
       override val isEnabledByDefault = true
    }
 }

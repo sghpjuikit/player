@@ -101,6 +101,7 @@ class DirSearchPlugin: PluginBase() {
       override val name = "Dir Search"
       override val description = "Provides directory search capability to application search"
       override val isSupported = true
+      override val isSingleton = true
       override val isEnabledByDefault = false
    }
 }

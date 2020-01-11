@@ -350,6 +350,7 @@ class AppSearchPlugin: PluginBase() {
       override val name = "App Search"
       override val description = "Provides application search/start capability to application search as well as application launcher widget"
       override val isSupported = true
+      override val isSingleton = true
       override val isEnabledByDefault = false
 
       fun File.getPortableAppExe(type: FileType) = if (type==FileType.DIRECTORY) File(this, "$name.exe") else null

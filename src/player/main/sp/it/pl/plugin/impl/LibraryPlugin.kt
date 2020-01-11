@@ -157,6 +157,7 @@ class LibraryPlugin: PluginBase() {
       override val name = "Song Library"
       override val description = "Provides library location settings along with song library updating and monitoring"
       override val isSupported = true
+      override val isSingleton = false
       override val isEnabledByDefault = true
    }
 

@@ -153,6 +153,7 @@ class PlaycountIncrementer: PluginBase() {
       override val name = "Playcount Incrementer"
       override val description = "Provides configurable automatic incrementing of song playcount"
       override val isSupported = true
+      override val isSingleton = false
       override val isEnabledByDefault = false
    }
 }

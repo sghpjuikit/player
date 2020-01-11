@@ -36,18 +36,19 @@ import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
 import sp.it.pl.gui.pane.ConfigPane;
+import sp.it.pl.plugin.PluginManager;
 import sp.it.util.access.OrV;
 import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.ListConfig;
-import sp.it.util.conf.PropertyConfig;
-import sp.it.util.conf.ReadOnlyPropertyConfig;
 import sp.it.util.conf.Configurable;
 import sp.it.util.conf.Constraint.NumberMinMax;
+import sp.it.util.conf.ListConfig;
 import sp.it.util.conf.OrPropertyConfig;
 import sp.it.util.conf.OrPropertyConfig.OrValue;
+import sp.it.util.conf.PropertyConfig;
+import sp.it.util.conf.ReadOnlyPropertyConfig;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import sp.it.util.functional.TryKt;
@@ -138,6 +139,7 @@ abstract public class ConfigEditor<T> {
                 return new GeneralCE<>(config);
             }
         });
+        put(PluginManager.class, config -> new PluginsCE(config));
         EffectTextField.EFFECT_TYPES.stream().map(et -> et.getType()).filter(t -> t!=null).forEach(t -> put(t, config -> new EffectCE(config, t)));
     }};
 

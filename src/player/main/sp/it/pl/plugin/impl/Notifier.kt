@@ -201,6 +201,7 @@ class Notifier: PluginBase() {
       override val name = "Notifications"
       override val description = "Provides a general purpose corner notification"
       override val isSupported = true
+      override val isSingleton = false
       override val isEnabledByDefault = true
    }
 }

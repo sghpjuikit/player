@@ -16,6 +16,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
 import sp.it.pl.main.infoIcon
+import sp.it.pl.main.toUi
 import sp.it.util.Named
 import sp.it.util.named
 import sp.it.util.reactive.consumeScrolling
@@ -112,20 +113,20 @@ class InfoPane: OverlayPane<Unit>() {
       val p = ProcessHandle.current()
       val pInfo = p.info()
       ps.group("process") += listOf(
-         "pid" named p.pid().toString(),
+         "pid" named p.pid().toUi(),
          "arguments" named pInfo.arguments().map { it.joinToString(", ") }.orElse(""),
          "command" named pInfo.command().orElse(""),
          "commandline" named pInfo.commandLine().orElse(""),
-         "start time" named pInfo.startInstant().map { it.toLocalDateTime().toString() }.orElse(""),
+         "start time" named pInfo.startInstant().map { it.toLocalDateTime().toUi() }.orElse(""),
          "running time" named pInfo.totalCpuDuration().map { it.javafx.toHMSMs() }.orElse(""),
          "user" named pInfo.user().orElse("")
       )
       ps.group("java") += "vm.arguments" named APP.fetchVMArguments().joinToString(" ")
       ps.group("kotlin") += listOf(
-         "version" named KotlinVersion.CURRENT.toString()
+         "version" named KotlinVersion.CURRENT.toUi()
       )
       ps.group("app") += listOf(
-         "version" named APP.version,
+         "version" named APP.version.toUi(),
          "location" named APP.location.path
       )
 

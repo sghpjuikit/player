@@ -5,7 +5,6 @@ import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.ObservableList
 import mu.KLogging
-import sp.it.util.access.EnumerableValue
 import sp.it.util.access.OrV
 import sp.it.util.access.TypedValue
 import sp.it.util.access.V
@@ -37,7 +36,7 @@ private typealias Enumerator<T> = Supplier<Collection<T>>
  *
  * @param <T> type of value of this config
  */
-abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, EnumerableValue<T> {
+abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T> {
 
    abstract override fun getValue(): T
 
@@ -121,13 +120,19 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T>, Enum
       null
          ?: findConstraint<ValueSet<T>>()?.let { values -> Enumerator { values.enumerator() } }
          ?: valueEnumerator2nd
-         ?: if (!isEnum(type)) null else Enumerator { getEnumConstants<T>(type).toList() }
+         ?: if (!isEnum(type)) null else {
+            if (findConstraint<Constraint.ObjectNonNull>()!=null) {
+               Enumerator { getEnumConstants<T>(type).toList() }
+            } else {
+               Enumerator { getEnumConstants<T>(type).toList() + (null as T) }
+            }
+         }
    }
 
    val isTypeEnumerable: Boolean
       get() = valueEnumerator!=null
 
-   override fun enumerateValues(): Collection<T> = valueEnumerator?.invoke() ?: fail {
+   fun enumerateValues(): Collection<T> = valueEnumerator?.invoke() ?: fail {
       "Config $name is not enumerable, because $type not enumerable."
    }
 

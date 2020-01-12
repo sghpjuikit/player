@@ -1493,6 +1493,21 @@ Text {
     -fx-opacity: 0.4; /* imitate disabled style, should be consistent with it */
 }
 
+/**
+ * Toggle icon - indeterminate checkbox
+ * inherits: .icon
+ * pseudoclasses: selected, null
+ */
+.null-check-icon {
+   -glyph-name: "FontAwesomeIcon.TOGGLE_OFF";
+}
+.null-check-icon:selected {
+   -glyph-name: "FontAwesomeIcon.TOGGLE_ON";
+}
+.null-check-icon:null {
+   -glyph-name: "MaterialIcon.DO_NOT_DISTURB";
+}
+
 /** 
  * Check icon used to negate filter predicates
  * inherits: .check-icon
@@ -1961,7 +1976,7 @@ Text {
 }
 
 /**
- * inherits: .check-icon
+ * inherits: .null-check-icon
  */
 .boolean-config-editor Text,
 .boolean-config-editor: hover Text {

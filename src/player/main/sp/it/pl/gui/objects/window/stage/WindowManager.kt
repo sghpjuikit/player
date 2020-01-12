@@ -7,6 +7,7 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
 import javafx.scene.Scene
+import javafx.scene.image.Image
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
@@ -46,6 +47,7 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.IsConfig
@@ -103,7 +105,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    @JvmField var dockWindow: Window? = null
    /** Main application window, see [sp.it.pl.gui.objects.window.stage.Window.isMain]. */
    private var mainWindow: Window? = null
-   private val windowIcons by lazy { APP.getIcons() }
+   /** 128x128 icon of the application */
+   private val windowIcon by lazy { Image(File("resources/icons/icon128.png").toURI().toString()) }
 
    @IsConfig(name = "Opacity", info = "Window opacity.")
    val windowOpacity by cv(1.0).between(0.1, 1.0)
@@ -205,7 +208,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       w.stage.opacityProperty() syncFrom windowOpacity on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value
       w.stage.title = APP.name
-      w.stage.icons setTo windowIcons
+      w.stage.icons setToOne windowIcon
 
       return w
    }

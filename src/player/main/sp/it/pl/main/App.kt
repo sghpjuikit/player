@@ -386,14 +386,8 @@ class App: Application(), GlobalConfigDelegator {
    /** @return number of instances of this application (including this one) running at this moment */
    fun getInstances(): Int = VirtualMachine.list().count { App::class.java.packageName in it.displayName() }
 
-   /** @return image of the icon of the application */
+   /** @return largest (512x512) image of the icon of the application */
    fun getIcon(): Image = Image(File("icon512.png").toURI().toString())
-
-   /** @return images of the icon of the application in all possible sizes */
-   fun getIcons(): List<Image> = sequenceOf(16, 24, 32, 48, 128, 256, 512)
-      .map { File("resources/icons/icon$it.png").toURI().toString() }
-      .map { Image(it) }
-      .toList()
 
    private fun PluginManager.initForApp() {
       installPlugin<Tray>()

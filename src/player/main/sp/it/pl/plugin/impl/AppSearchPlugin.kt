@@ -248,7 +248,7 @@ class AppSearchPlugin: PluginBase() {
          }
       }
 
-      override fun focus() = grid.skinProperty().attach1IfNonNull { grid.implGetSkin().requestFocus() }.toUnit()
+      override fun focus() = grid.skinProperty().attach1IfNonNull { grid.requestFocus() }.toUnit()
 
       private fun visit() {
          disposeItem()

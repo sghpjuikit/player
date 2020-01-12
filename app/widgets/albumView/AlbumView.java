@@ -133,7 +133,7 @@ public class AlbumView extends SimpleController {
 
 	@Override
 	public void focus() {
-		attach1IfNonNull(view.skinProperty(), consumer(skin -> view.implGetSkin().requestFocus()));
+		attach1IfNonNull(view.skinProperty(), consumer(skin -> view.requestFocus()));
 	}
 
 	void applyCellSize() {

@@ -250,7 +250,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       }
    }
 
-   override fun focus() = grid.skinProperty().attach1IfNonNull { grid.implGetSkin().requestFocus() }.toUnit()
+   override fun focus() = grid.skinProperty().attach1IfNonNull { grid.requestFocus() }.toUnit()
 
    /** Visits top/root item. Rebuilds entire hierarchy. */
    private fun revisitTop() {

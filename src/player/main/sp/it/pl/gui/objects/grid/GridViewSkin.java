@@ -125,9 +125,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		attach(grid.parentProperty(), p -> {
 			if (p!=null) flow.rebuildCells();
 		});
-		attach(grid.focusedProperty(), v -> {
-			if (v) flow.requestFocus();
-		});
 		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCells())), onDispose);
 
 		// TODO: remove (this fixes initial layout not showing content correctly, root of the problem is unknownm applyCss partially fixes the issue)
@@ -141,7 +138,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		filter = new Filter(grid.type, grid.itemsFiltered);
 
 		// selection
-		flow.addEventHandler(KEY_PRESSED, e -> {
+		grid.addEventHandler(KEY_PRESSED, e -> {
 			KeyCode c = e.getCode();
 			if (c.isNavigationKey()) {
 				if (grid.selectOn.contains(SelectionOn.KEY_PRESS)) {
@@ -162,11 +159,10 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 				}
 			}
 		});
-		flow.addEventHandler(MOUSE_CLICKED, e -> {
+		grid.addEventHandler(MOUSE_CLICKED, e -> {
 			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) selectNone();
-			flow.requestFocus();
 		});
-		flow.addEventFilter(SCROLL, e -> {
+		grid.addEventFilter(SCROLL, e -> {
 			// Select hovered cell (if enabled)
 			// Newly created cells that 'appear' right under mouse cursor will not receive hover event
 			// Normally we would update the selection after the cells get updated, but that happens also on regular
@@ -195,11 +191,6 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 	}
 
 	/* ---------- FILTER ------------------------------------------------------------------------------------------------ */
-
-	// TODO: improve API
-	public void requestFocus() {
-		flow.requestFocus();
-	}
 
 	@Override
 	public GridView<T,F> getSkinnable() {
@@ -329,7 +320,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 		selectedC.requestFocus();
 		selectedC.updateSelected(true);
 		grid.selectedItem.set(c.getItem());
-		flow.requestFocus();
+		grid.requestFocus();
 	}
 
 	/**
@@ -449,7 +440,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 
 		@Override
 		protected void layoutChildren() {
-			boolean wasFocused = isFocused();
+			boolean wasFocused = skin.grid.isFocused();
 			double w = getWidth();
 			double h = getHeight();
 
@@ -563,7 +554,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 				}
 			}
 			if (wasFocused)
-				requestFocus();
+				skin.grid.requestFocus();
 		}
 
 		void dispose() {

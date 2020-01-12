@@ -48,6 +48,7 @@ import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.main.nameUi
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginBox
 import sp.it.util.HierarchicalBase
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.toggle
@@ -235,6 +236,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o==null -> "<none>"
       o is Component -> o.name
       o is PluginBase -> o.name
+      o is PluginBox<*> -> o.info.name
       o is WidgetFactory<*> -> o.name
       o::class.java.isEnum -> enumToHuman(o.toString())
       o is File -> o.nameOrRoot

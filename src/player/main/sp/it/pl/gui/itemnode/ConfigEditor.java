@@ -16,7 +16,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -30,8 +29,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.gui.itemnode.textfield.EffectTextField;
-import sp.it.pl.gui.itemnode.textfield.FontTextField;
 import sp.it.pl.gui.objects.icon.CheckIcon;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.textfield.DecoratedTextField;
@@ -168,7 +167,7 @@ abstract public class ConfigEditor<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected static <T> ObservableValue<T> getObservableValue(Config<T> c) {
+    protected static <T> @Nullable ObservableValue<T> getObservableValue(Config<T> c) {
         return c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
                    ? (ObservableValue)((PropertyConfig)c).getProperty()
                    : c instanceof ReadOnlyPropertyConfig
@@ -510,46 +509,6 @@ abstract public class ConfigEditor<T> {
         }
 
     }
-    private static class BoolCE extends ConfigEditor<Boolean> {
-        protected final CheckIcon graphics;
-        private final boolean isObservable;
-
-        private BoolCE(Config<Boolean> c) {
-            super(c);
-
-            ObservableValue<Boolean> v = getObservableValue(c);
-            isObservable = v!=null;
-
-            graphics = new CheckIcon();
-            graphics.styleclass("boolean-config-editor");
-            graphics.selected.setValue(config.getValue());
-            if (isObservable) v.addListener((o,ov,nv) -> graphics.selected.setValue(nv));
-            graphics.selected.addListener((o,ov,nv) -> config.setValue(nv));
-        }
-
-        @Override
-        public CheckIcon getEditor() {
-            return graphics;
-        }
-
-        @Override
-        public Try<Boolean,String> get() {
-            return ok(graphics.selected.getValue());
-        }
-
-        @Override
-        public void refreshItem() {
-            if (!isObservable)
-                graphics.selected.setValue(config.getValue());
-        }
-    }
-    private static class OrBoolCE extends BoolCE {
-        private OrBoolCE(Config<Boolean> c) {
-            super(c);
-            graphics.styleclass("override-config-editor");
-            graphics.tooltip(overTooltip);
-        }
-    }
     private static class SliderCE extends ConfigEditor<Number> {
         private final Slider slider;
         private final Label cur, min, max;
@@ -736,46 +695,6 @@ abstract public class ConfigEditor<T> {
             editor.setPromptText(a.getKeys());
             editor.setText("");
             globB.selected.setValue(a.isGlobal());
-        }
-    }
-    private static class ColorCE extends ConfigEditor<Color> {
-        private ColorPicker editor = new ColorPicker();
-
-        private ColorCE(Config<Color> c) {
-            super(c);
-            refreshItem();
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_EDITOR);
-            editor.valueProperty().addListener((o,ov,nv) -> apply(false));
-        }
-
-        @Override public Control getEditor() {
-            return editor;
-        }
-        @Override public Try<Color,String> get() {
-            return ok(editor.getValue());
-        }
-        @Override public void refreshItem() {
-            editor.setValue(config.getValue());
-        }
-    }
-    private static class FontCE extends ConfigEditor<Font> {
-        private FontTextField editor = new FontTextField();
-
-        private FontCE(Config<Font> c) {
-            super(c);
-            refreshItem();
-            editor.getStyleClass().add(STYLECLASS_TEXT_CONFIG_EDITOR);
-            editor.getOnValueChange().add(consumer(it -> apply(false)));
-        }
-
-        @Override public Control getEditor() {
-            return editor;
-        }
-        @Override public Try<Font,String> get() {
-            return ok(editor.getValue());
-        }
-        @Override public void refreshItem() {
-            editor.setValue(config.getValue());
         }
     }
     private static class EffectCE extends ConfigEditor<Effect> {

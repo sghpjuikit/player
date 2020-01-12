@@ -1,6 +1,7 @@
 package sp.it.pl.core
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.geometry.Insets
 import javafx.scene.effect.Effect
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
@@ -134,6 +135,12 @@ class CoreConverter: Core {
                if (name==null || typeIn==null || typeOut==null) null
                else Functors.pool.getPF(name, typeIn, typeOut)
             }
+         }
+      )
+      addT<Insets>(
+         { "${it.top} ${it.right} ${it.bottom} ${it.left}" },
+         tryF(Throwable::class) {
+            it.split(" ").let { Insets(it[0].toDouble(), it[1].toDouble(), it[2].toDouble(), it[3].toDouble()) }
          }
       )
       addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })

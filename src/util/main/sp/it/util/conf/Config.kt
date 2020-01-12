@@ -10,6 +10,7 @@ import sp.it.util.access.TypedValue
 import sp.it.util.access.V
 import sp.it.util.access.vAlways
 import sp.it.util.conf.Constraint.NoPersist
+import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.ValueSet
 import sp.it.util.dev.Experimental
@@ -116,12 +117,13 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T> {
 
    protected var valueEnumerator2nd: Enumerator<T>? = null
 
+   @Suppress("UNCHECKED_CAST")
    protected val valueEnumerator: Enumerator<T>? by lazy {
       null
          ?: findConstraint<ValueSet<T>>()?.let { values -> Enumerator { values.enumerator() } }
          ?: valueEnumerator2nd
          ?: if (!isEnum(type)) null else {
-            if (findConstraint<Constraint.ObjectNonNull>()!=null) {
+            if (findConstraint<ObjectNonNull>()!=null) {
                Enumerator { getEnumConstants<T>(type).toList() }
             } else {
                Enumerator { getEnumConstants<T>(type).toList() + (null as T) }

@@ -343,7 +343,7 @@ class App: Application(), GlobalConfigDelegator {
       onStopping()
 
       // app
-      plugins.getAll().forEach { it.stop() }
+      plugins.plugins.forEach { it.stop() }
       audio.dispose()
       db.stop()
       ActionManager.stopActionListening()

@@ -139,7 +139,7 @@ fun treeApp(): TreeItem<Any> {
             tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
          ),
-         tree("Plugins", { APP.plugins.getAll().sortedBy { it.info.name } })
+         tree("Plugins", APP.plugins.pluginsObservable.sorted { a,b -> a.info.name.compareTo(b.info.name) })
       ),
       tree("UI",
          tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),

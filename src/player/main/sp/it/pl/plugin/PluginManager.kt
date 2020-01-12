@@ -1,7 +1,6 @@
 package sp.it.pl.plugin
 
 import javafx.collections.FXCollections.observableArrayList
-import javafx.collections.ObservableList
 import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.MASTER
@@ -40,7 +39,10 @@ import kotlin.reflect.jvm.jvmName
 
 class PluginManager: GlobalConfigDelegator {
    private var settings by c(this).noPersist().def(name = "Plugins", info = "Manage application plugins", group = "Plugin management")
-   private val plugins = observableArrayList<PluginBox<*>>()
+   /** All installed plugins */
+   val plugins: Sequence<PluginBox<*>> get() = pluginsObservable.materialize().asSequence()
+   /** All installed plugins */
+   val pluginsObservable = observableArrayList<PluginBox<*>>()!!
 
    /** Install the specified plugins. */
    inline fun <reified P: PluginBase> installPlugin(): Unit = installPlugin(P::class)
@@ -51,16 +53,10 @@ class PluginManager: GlobalConfigDelegator {
 
       val plugin = PluginBox(type)
       if (APP.rank==MASTER || !plugin.info.isSingleton)
-         plugins += plugin
+         pluginsObservable += plugin
    }
 
-   /** @return all installed plugins */
-   fun getAll(): Sequence<PluginBox<*>> = plugins.materialize().asSequence()
-
-   /** @return all installed plugins */
-   fun getAllObservable(): ObservableList<PluginBox<*>> = plugins
-
-   operator fun <P: PluginBase> contains(type: KClass<P>) = plugins.any { it.type==type }
+   operator fun <P: PluginBase> contains(type: KClass<P>) = pluginsObservable.any { it.type==type }
 
    /** @return running plugin of the type specified by the argument or null if no such instance */
    fun <P: PluginBase> get(type: KClass<P>): P? = getRaw(type)?.plugin
@@ -69,7 +65,7 @@ class PluginManager: GlobalConfigDelegator {
    inline fun <reified P: PluginBase> get(): P? = get(P::class)
 
    /** @return plugin of the type specified by the argument or null if no such instance */
-   fun <P: PluginBase> getRaw(type: KClass<P>): PluginBox<P>? = plugins.find { it.type==type }.asIs()
+   fun <P: PluginBase> getRaw(type: KClass<P>): PluginBox<P>? = pluginsObservable.find { it.type==type }.asIs()
 
    /** @return plugin of the type specified by the generic type argument if no such instance */
    inline fun <reified P: PluginBase> getRaw(): PluginBox<P>? = getRaw(P::class)

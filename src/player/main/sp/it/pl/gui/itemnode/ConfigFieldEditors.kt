@@ -301,7 +301,7 @@ private class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c
                selectionModel.selectionMode = SINGLE
                selectionModel.selectedItemProperty() sync { pluginInfo.plugin = it }
                d += { selectionModel.clearSelection() }
-               items = sp.it.pl.main.APP.plugins.getAllObservable().sorted { a, b -> a.info.name.compareTo(b.info.name) }
+               items = sp.it.pl.main.APP.plugins.pluginsObservable.sorted { a, b -> a.info.name.compareTo(b.info.name) }
                d += { items = null }
             }
             lay(ALWAYS) += pluginInfo

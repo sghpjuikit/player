@@ -70,14 +70,14 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
    private fun generateValue() {
       if (inconsistentState) return
       val functionRaw = fCB.value
-      val parameters = editors.map { it.configValue }
+      val parameters = editors.map { it.config.value }
       val function = functionRaw.toF1(parameters)
       changeValue(function)
    }
 
    fun clear() {
       inconsistentState = true
-      editors.forEach { it.setNapplyDefault() }
+      editors.forEach { it.refreshDefaultValue() }
       inconsistentState = false
       generateValue()
    }

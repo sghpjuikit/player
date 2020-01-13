@@ -67,6 +67,7 @@ class CoreConverter: Core {
             is LocalDate -> o.format(dateTimeFormatter)
             is LocalTime -> o.format(dateTimeFormatter)
             is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
+            is Effect -> o::class.nameUi
             else -> if(isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
    }

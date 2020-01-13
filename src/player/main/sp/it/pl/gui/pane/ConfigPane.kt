@@ -6,6 +6,7 @@ import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import sp.it.pl.gui.itemnode.ConfigEditor
+import sp.it.pl.gui.itemnode.ConfigEditor
 import sp.it.pl.gui.objects.Text
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
@@ -104,7 +105,7 @@ class ConfigPane<T: Any?>: VBox {
    @Suppress("UNCHECKED_CAST")
    fun getConfigEditors(): List<ConfigEditor<T>> = editors as List<ConfigEditor<T>>
 
-   fun getConfigValues(): List<T> = getConfigEditors().map { it.configValue }
+   fun getConfigValues(): List<T> = getConfigEditors().map { it.config.value }
 
    fun focusFirstConfigEditor() = editors.firstOrNull()?.focusEditor()
 }

@@ -13,13 +13,11 @@ import sp.it.pl.main.okIcon
 import sp.it.util.access.v
 import sp.it.util.conf.Configurable
 import sp.it.util.functional.Try
-import sp.it.util.functional.and
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.x
-import java.util.function.Consumer
 
 /**
  * [sp.it.util.conf.Configurable] editor. Has optional submit button.
@@ -72,9 +70,9 @@ class Form<T>: AnchorPane {
 
       showOkButton(hasAction.value)
 
+      val observer = Runnable { validate() }
       editorsPane.configure(configurable)
-      val observer = Consumer<Any> { validate() }
-      editorsPane.getConfigEditors().forEach { it.observer = observer }
+      editorsPane.getConfigEditors().forEach { it.onChange = observer }
 
       fieldsPane.consumeScrolling()
 
@@ -83,25 +81,25 @@ class Form<T>: AnchorPane {
 
    fun ok() {
       validate().ifOk {
-         editorsPane.getConfigEditors().forEach { it.apply() }
-         if (hasAction.value) onOK.invoke(configurable)
+         if (hasAction.value) onOK(configurable)
       }
    }
 
    fun focusFirstConfigEditor() = editorsPane.focusFirstConfigEditor()
 
    private fun validate(): Try<*, *> {
-      val values = editorsPane.getConfigEditors().asSequence().map { it.value }
-      val validation: Try<*, *> = values.reduce { a, b -> a and b } ?: Try.ok()
+      val validation = editorsPane.getConfigEditors().asSequence()
+         .map { e -> e.getValid().mapError { "${e.config.nameUi}: $it" } }
+         .find { it.isError } ?: Try.ok()
       showWarnButton(validation)
       return validation
    }
 
-   private fun showWarnButton(validation: Try<*, *>) {
+   private fun showWarnButton(validation: Try<*, String>) {
       okB.isMouseTransparent = validation.isError
       buttonPane.bottom = if (validation.isOk) null else warnLabel
       updateAnchor()
-      warnLabel.text = if (validation.isError) "Form contains wrong data" else ""
+      warnLabel.text = if (validation.isError) "Form contains wrong data: ${validation.errorOrThrow}" else ""
    }
 
    private fun showOkButton(visible: Boolean) {

@@ -64,6 +64,7 @@ import sp.it.util.file.children
 import sp.it.util.file.hasExtension
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
@@ -75,7 +76,6 @@ import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
 import sp.it.util.text.nullIfBlank
 import sp.it.util.text.plural
-import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.isAnyParentOf
@@ -173,7 +173,7 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
    rootProperty() syncNonNullWhile { root ->
       Subscription(
          root.onEventDown(SELECTION_DISTURBED_CLEAR) {
-            val childStack = properties.computeIfAbsent(SELECTION_DISTURBED_STACK_KEY) { Stack<Unit>() } as Stack<Unit>
+            val childStack: Stack<Unit> = properties.getOrPut(SELECTION_DISTURBED_STACK_KEY) { Stack<Unit>() }.asIs()
             childStack.push(Unit)
 
             if (childStack.size==1) {
@@ -200,7 +200,7 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
             }
          },
          root.onEventDown(SELECTION_DISTURBED_RESTORE) {
-            val childStack = properties[SELECTION_DISTURBED_STACK_KEY] as Stack<Unit>
+            val childStack: Stack<Unit> = properties[SELECTION_DISTURBED_STACK_KEY].asIs()
             childStack.pop()
 
             if (properties[SELECTION_DISTURBED_KEY]!=null && childStack.isEmpty()) {
@@ -441,6 +441,6 @@ fun <T> TreeItem<T>.disposeIfDisposable() {
    if (this is DisposableTreeItem) {
       dispose()
    } else {
-      getFieldValue<ObservableList<TreeItem<T>>?>(this, "children")?.forEach { it.disposeIfDisposable() }
+      children?.forEach { it.disposeIfDisposable() }
    }
 }

@@ -2029,14 +2029,6 @@ Text {
 }
 
 /*
- * Ok icon used in config fields to apply change.
- * inherits: .icon
- */
-.config-editor-ok-button {
-    -glyph-name: "FontAwesomeIcon.CHECK";
-}
-
-/*
  * Warn icon used in config fields to signal erroneous input.
  * inherits: .icon
  */

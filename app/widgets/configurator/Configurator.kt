@@ -6,6 +6,8 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
+import javafx.scene.input.KeyCode.F
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.StackPane
@@ -21,6 +23,7 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.searchTextField
 import sp.it.util.access.v
@@ -34,11 +37,14 @@ import sp.it.util.conf.toListConfigurable
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.net
 import sp.it.util.functional.recurse
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.propagateESCAPE
+import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.text.nullIfBlank
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.hBox
@@ -52,7 +58,6 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import java.util.ArrayList
 
-@Suppress("MemberVisibilityCanBePrivate")
 @Widget.Info(
    author = "Martin Polakovic",
    name = "Settings",
@@ -87,6 +92,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
             lay += CheckIcon(filterActions).icons(IconFA.COMPRESS).tooltip("No shortcuts\n\nHide shortcuts and action editors as they get in the way.")
             lay += filterTextField
+            lay += Icon(IconMA.CANCEL, 13.0).onClickDo { refresh() }.tooltip("Refresh\n\nSet all editors to actual values")
             lay += Icon(IconFA.RECYCLE, 13.0).onClickDo { defaults() }.tooltip("Default\n\nSet all editors to default values")
             lay += Icon().blank()
             lay += Icon(IconFA.HOME, 13.0).onClickDo { configure(appConfigurable) }.tooltip("App settings\n\nHide current settings and Visit application settings")
@@ -132,6 +138,13 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    init {
       root.prefSize = 800.emScaled x 600.emScaled
       root.consumeScrolling()
+      root.onEventDown(KEY_PRESSED, F, consume = false) {
+         if (it.isShortcutDown) {
+            filterTextField.requestFocus()
+            filterTextField.selectAll()
+            it.consume()
+         }
+      }
       root.lay += subroot
 
       groups.selectionModel.selectionMode = SINGLE
@@ -145,12 +158,12 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       refresh()
    }
 
-   /** Set and apply values. */
-   fun apply() = editorsPane.getConfigEditors().forEach { it.apply() }
+   override fun focus() = root.sync1IfInScene { groups.requestFocus() }.toUnit()
 
-   /** Set default app settings. */
+   /** Set all editors to default values. */
    fun defaults() = configs.forEach { it.value = it.defaultValue }
 
+   /** Set all editors to actual values. */
    fun refresh() {
       if (showsAppSettings) configure(appConfigurable)
       else refreshConfigs()
@@ -177,7 +190,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       configsFiltered.filter { it.group==group?.pathUp }.toListConfigurable()
    )
 
-   private fun refreshConfigs() = editorsPane.getConfigEditors().forEach { it.refreshItem() }
+   private fun refreshConfigs() = editorsPane.getConfigEditors().forEach { it.refreshValue() }
 
    private fun storeAppSettingsSelection(selection: String?) {
       if (configSelectionAvoid) return

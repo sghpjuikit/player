@@ -57,6 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Image loading blocks ui sometimes
 - Audio Library import ui visibility and layout
 - Shortcuts settings not being applied after restart
+- Settings editors not applying value sometimes
+- Settings editors not showing correct value for some observables
+- Settings editors not showing correct warning tooltip text sometimes
+- Settings editors UX
+- GridView focus not applied properly sometimes
 - GridView search style not discarded on cancel
 - GridView scrolling when selecting last row
 - GridView cover size change throws exceptions
@@ -81,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugin fixes
   - Non running plugins are instantiated
   - `Waiffu2k` plugin waiffu2k binary config is not persisted
+  - `Waiffu2k` plugin scaling coefficient not configurable
   - `Guide` is now a plugin and can be disabled completely
 - Popup window fixes
   - popup does not receive focus on show not even when clicked

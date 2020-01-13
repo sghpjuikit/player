@@ -27,6 +27,19 @@ sealed class Try<out R, out E> {
          is Error<E> -> fail { "Can not get result of an Error Try, has value=$value" }
       }
 
+   /** @return the error value if error or throw an exception if ok */
+   val errorOrThrow: E
+      get() = when (this) {
+         is Ok<R> -> fail { "Can not get result of an Ok Try, has value=$value" }
+         is Error<E> -> value
+      }
+
+   /** @return error if this is ok or ok if this is error */
+   fun switch(): Try<E, R> = when (this) {
+      is Ok<R> -> error(value)
+      is Error<E> -> ok(value)
+   }
+
    /** Invoke the specified action if success */
    inline fun ifOk(action: (R) -> Unit) = apply { if (this is Ok<R>) action(value) }
 

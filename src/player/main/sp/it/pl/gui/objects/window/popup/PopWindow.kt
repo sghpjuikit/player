@@ -304,10 +304,10 @@ open class PopWindow {
 
                if (animated.value) fadeIn()
                owner.asIs<Stage>().show()
-               owner.asIs<Stage>().requestFocus()
                show()
-               requestFocus()
                sizeToScene()
+               owner.asIs<Stage>().requestFocus()
+               requestFocus()
                xy = shower(stage)
 
                onIsShowing1st {

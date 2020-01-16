@@ -6,7 +6,6 @@ import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import sp.it.pl.gui.itemnode.ConfigEditor
-import sp.it.pl.gui.itemnode.ConfigEditor
 import sp.it.pl.gui.objects.Text
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo

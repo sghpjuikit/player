@@ -114,8 +114,8 @@ private val globTooltip = appTooltip("Global shortcut"
    + "the same shortcut, usually the one that was first started will work properly.")
 private val overTooltip = appTooltip("Override value\n\nUses specified value if true or inherited value if false.")
 
-private const val STYLECLASS_CONFIG_EDITOR_WARN_BUTTON = "config-editor-warn-button"
 private const val STYLECLASS_TEXT_CONFIG_EDITOR = "text-config-editor"
+const val STYLECLASS_CONFIG_EDITOR_WARN_BUTTON = "config-editor-warn-button"
 
 
 private fun <T> getObservableValue(c: Config<T>): ObservableValue<T>? = when {

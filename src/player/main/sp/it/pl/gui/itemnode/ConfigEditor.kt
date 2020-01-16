@@ -222,7 +222,8 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
    companion object {
 
       private val CF_BUILDERS = HashMap<Class<*>, (Config<*>) -> ConfigEditor<*>>().apply {
-         put(Boolean::class.java) { BoolCE(it.asIs()) }
+         put(Boolean::class.javaObjectType) { BoolCE(it.asIs()) }
+         put(Boolean::class.javaPrimitiveType!!) { BoolCE(it.asIs()) }
          put(String::class.java) { GeneralCE(it) }
          put(Action::class.java) { ShortcutCE(it.asIs()) }
          put(Color::class.java) { ColorCE(it.asIs()) }

@@ -79,12 +79,16 @@ class PlaycountIncrementer: PluginBase() {
          if (delay.value) {
             queue += m
             if (showNotificationSchedule.value)
-               APP.plugins.use<Notifier> { it.showTextNotification("Playcount", "Song playcount incrementing scheduled") }
+               APP.plugins.use<Notifier> {
+                  it.showTextNotification("Playcount", "Song\n${m.titleOrFilename}\nplaycount incrementing scheduled")
+               }
          } else {
             val pc = 1 + m.getPlaycountOr0()
             m.write({ it.setPlaycount(pc) }) {
                if (it.isOk && showNotificationUpdate.value)
-                  APP.plugins.use<Notifier> { it.showTextNotification("Playcount", "Song playcount incremented by 1 to: $pc") }
+                  APP.plugins.use<Notifier> {
+                     it.showTextNotification("Playcount", "Song\n${m.titleOrFilename}\nplaycount incremented by 1 to: $pc")
+                  }
             }
          }
       }
@@ -129,7 +133,9 @@ class PlaycountIncrementer: PluginBase() {
          val pc = by + m.getPlaycountOr0()
          m.write({ it.setPlaycount(pc) }) {
             if (it.isOk && showNotificationUpdate.value)
-               APP.plugins.use<Notifier> { it.showTextNotification("Song playcount incremented by: $by to: $pc", "Playcount") }
+               APP.plugins.use<Notifier> {
+                  it.showTextNotification("Song\n${m.titleOrFilename}\nplaycount incremented by: $by to: $pc", "Playcount")
+               }
          }
       }
    }
@@ -162,5 +168,7 @@ class PlaycountIncrementer: PluginBase() {
       override val isSupported = true
       override val isSingleton = false
       override val isEnabledByDefault = false
+
+      val Metadata.titleOrFilename: String get() = getTitle() ?: getFilename()
    }
 }

@@ -14,11 +14,17 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
 import javafx.scene.media.MediaPlayer.Status
+import javafx.scene.media.MediaPlayer.Status.PLAYING
+import javafx.scene.media.MediaPlayer.Status.UNKNOWN
 import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playback.VolumeProperty
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
 import sp.it.pl.gui.objects.icon.Icon
@@ -181,18 +187,18 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
 
    private fun statusChanged(newStatus: Status?) {
       when (newStatus) {
-         null, Status.UNKNOWN -> {
+         null, UNKNOWN -> {
             playbackButtons.forEach { it.isDisable = true }
             f3.icon(IconFA.PLAY)
          }
          else -> {
             playbackButtons.forEach { it.isDisable = false }
             f3.icon(when (newStatus) {
-               Status.PLAYING -> IconFA.PAUSE
+               PLAYING -> IconFA.PAUSE
                else -> IconFA.PLAY
             })
             f3.glyphOffsetX.value = when (newStatus) {
-               Status.PLAYING -> -APP.ui.font.value.size.toEM()*0.2
+               PLAYING -> -APP.ui.font.value.size.toEM()*0.2
                else -> APP.ui.font.value.size.toEM()*3.0
             }
          }
@@ -202,16 +208,16 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    private fun loopModeChanged(looping: LoopMode) {
       if (loopB.tooltip==null) loopB.tooltip("ignoredText")
       loopB.tooltip.text = when (looping) {
-         LoopMode.OFF -> "Loop mode: off"
-         LoopMode.PLAYLIST -> "Loop mode: playlist"
-         LoopMode.SONG -> "Loop mode: song"
-         LoopMode.RANDOM -> "Loop mode: random"
+         OFF -> "Loop mode: off"
+         PLAYLIST -> "Loop mode: playlist"
+         SONG -> "Loop mode: song"
+         RANDOM -> "Loop mode: random"
       }
       loopB.icon(when (looping) {
-         LoopMode.OFF -> IconMD.REPEAT_OFF
-         LoopMode.PLAYLIST -> IconMD.REPEAT
-         LoopMode.SONG -> IconMD.REPEAT_ONCE
-         LoopMode.RANDOM -> IconFA.RANDOM
+         OFF -> IconMD.REPEAT_OFF
+         PLAYLIST -> IconMD.REPEAT
+         SONG -> IconMD.REPEAT_ONCE
+         RANDOM -> IconFA.RANDOM
       })
    }
 

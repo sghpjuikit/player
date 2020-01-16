@@ -27,7 +27,6 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.gui.itemnode.ConfigEditor;
 import sp.it.pl.gui.objects.icon.Icon;
 import sp.it.pl.gui.objects.window.popup.PopWindow;
 import sp.it.util.access.V;
@@ -66,6 +65,7 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
 import static sp.it.pl.audio.tagging.SongWritingKt.write;
+import static sp.it.pl.gui.itemnode.ConfigFieldEditorsKt.STYLECLASS_CONFIG_EDITOR_WARN_BUTTON;
 import static sp.it.pl.gui.objects.window.NodeShow.DOWN_CENTER;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
@@ -660,7 +660,7 @@ public final class Seeker extends AnchorPane {
 			Tooltip warnTooltip = appTooltip();
 			Icon warnB = new Icon();
 				 warnB.size(11);
-				 warnB.styleclass(ConfigEditor.STYLECLASS_CONFIG_EDITOR_WARN_BUTTON);
+				 warnB.styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON);
 				 warnB.tooltip(warnTooltip);
 			syncC(ta.textProperty(), text -> {
 				Try<String,String> result = validateChapterText(text);

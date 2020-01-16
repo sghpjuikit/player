@@ -16,6 +16,7 @@ import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME
 import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_AND_PERCENT
 import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_TIME_OR_PERCENT
 import sp.it.util.action.IsAction
+import sp.it.util.async.runFX
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -24,6 +25,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.map
+import sp.it.util.units.millis
 import sp.it.util.units.times
 import java.util.ArrayList
 
@@ -50,7 +52,12 @@ class PlaycountIncrementer: PluginBase() {
    private val incrementer = { increment() }
    private var incHandler: PlayTimeHandler = at({ it }, {})
    private val plyingSongIncrementer = Subscribed {
-      APP.audio.playingSong.onChange { ov, _ -> if (!ov.isEmpty()) incrementQueued(ov) }
+      APP.audio.playingSong.onChange { ov, _ ->
+         if (!ov.isEmpty()) runFX(200.millis) {
+            if (it.isSubscribed)
+               incrementQueued(ov)
+         }
+      }
    }
 
    override fun start() {

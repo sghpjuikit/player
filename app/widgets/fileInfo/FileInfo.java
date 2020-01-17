@@ -167,7 +167,7 @@ public class FileInfo extends SimpleController implements SongReader {
         // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
         onClose.plusAssign(APP.audio.onSongRefresh(consumer(refreshed -> {
             if (!dataReading.hasEventsQueued())
-                refreshed.ifHasE(data, this::read);
+                refreshed.ifHasE(data, consumer(this::read));
         })));
 
         cover.getPane().setDisable(true);

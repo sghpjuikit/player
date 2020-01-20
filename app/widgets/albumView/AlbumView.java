@@ -21,8 +21,8 @@ import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.gui.objects.grid.GridCell;
 import sp.it.pl.gui.objects.grid.GridView;
 import sp.it.pl.gui.objects.grid.GridView.CellSize;
-import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.gui.objects.image.Cover;
+import sp.it.pl.gui.objects.image.Thumbnail;
 import sp.it.pl.image.Image2PassLoader;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
@@ -65,7 +65,6 @@ import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
-import static sp.it.util.reactive.UtilKt.attach1IfNonNull;
 import static sp.it.util.reactive.UtilKt.sync1If;
 
 @SuppressWarnings("WeakerAccess")
@@ -133,7 +132,7 @@ public class AlbumView extends SimpleController {
 
 	@Override
 	public void focus() {
-		attach1IfNonNull(view.skinProperty(), consumer(skin -> view.requestFocus()));
+		view.requestFocus();
 	}
 
 	void applyCellSize() {

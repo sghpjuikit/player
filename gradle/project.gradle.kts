@@ -89,7 +89,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "14-ea+4"
+         val version = "14-ea+7"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -128,7 +128,7 @@ allprojects {
 
       "Image" group {
          implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.2")
+         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.4.3")
          imageIO("bmp")
          imageIO("jpeg")
          imageIO("iff")
@@ -147,7 +147,7 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.4.0")
+         testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.4.2")
       }
 
    }

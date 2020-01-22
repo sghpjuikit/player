@@ -39,7 +39,7 @@ interface ConfigImpl {
       override val isEditable: EditMode
    ): Config<T>() {
 
-      private val typeImpl: Class<T> = Util.unPrimitivize(type)
+      override val type: Class<T> = Util.unPrimitivize(type)
       private var constraintsImpl: HashSet<Constraint<T>>? = null
 
       override val constraints
@@ -48,8 +48,6 @@ interface ConfigImpl {
       constructor(type: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, `val`: T, group: String): this(type, name, if (c.name.isEmpty()) name else c.name, `val`, group, c.info, c.editable) {
          constraintsImpl = if (constraints.isEmpty()) null else HashSet(constraints)
       }
-
-      override fun getType(): Class<T> = typeImpl
 
       @SafeVarargs
       override fun addConstraints(vararg constraints: Constraint<T>): ConfigBase<T> {

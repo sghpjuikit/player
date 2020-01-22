@@ -6,7 +6,6 @@ import javafx.beans.value.WritableValue
 import javafx.collections.ObservableList
 import mu.KLogging
 import sp.it.util.access.OrV
-import sp.it.util.access.TypedValue
 import sp.it.util.access.V
 import sp.it.util.access.vAlways
 import sp.it.util.conf.Constraint.NoPersist
@@ -37,13 +36,11 @@ private typealias Enumerator<T> = Supplier<Collection<T>>
  *
  * @param <T> type of value of this config
  */
-abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T> {
+abstract class Config<T>: WritableValue<T>, Configurable<T> {
 
    abstract override fun getValue(): T
 
    abstract override fun setValue(value: T)
-
-   abstract override fun getType(): Class<T>
 
    /** Name of this config. */
    abstract val name: String
@@ -59,6 +56,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, TypedValue<T> {
 
    /** Editability. This can be further restricted with constraints. */
    abstract val isEditable: EditMode
+
+   /** Name of this config. */
+   abstract val type: Class<T>
 
    fun isNotEditableRightNow() = constraints.asSequence().any { it is ReadOnlyIf && it.condition.value }
 

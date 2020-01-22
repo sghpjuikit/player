@@ -70,7 +70,6 @@ import sp.it.util.math.P
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
@@ -171,11 +170,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          }
       }
 
-      val computeMaxUsedScaling = {
+      APP.mouse.observeScreensAndNow {
          screenMaxScaling = Screen.getScreens().asSequence().map { it.outputScaleX max it.outputScaleY }.max() ?: 1.0
       }
-      computeMaxUsedScaling()
-      Screen.getScreens().onChange { computeMaxUsedScaling() }
    }
 
    /** Create and open small invisible window with empty content, minimal decoration and no taskbar icon. */
@@ -257,13 +254,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             resizable.value = true
             isAlwaysOnTop = true
 
-            fun updateSizeAndPos() {
+            setSize(Screen.getPrimary().bounds.width, 40.0)
+            APP.mouse.observeScreensAndNow {
                val s = Screen.getPrimary()
                setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height)
-            }
-            Screen.getScreens().onChange { updateSizeAndPos() } on onClose
-            setSize(Screen.getPrimary().bounds.width, 40.0)
-            updateSizeAndPos()
+            } on onClose
          }
          val content = borderPane {
             center = stackPane {

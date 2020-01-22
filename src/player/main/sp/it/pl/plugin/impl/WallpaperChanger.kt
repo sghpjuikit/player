@@ -28,7 +28,6 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfNonNull
-import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.image.FitFrom
@@ -46,7 +45,7 @@ class WallpaperChanger: PluginBase() {
    val wallpaperFile by cvn<File>(null).only(FILE).def(name = "Wallpaper file") sync ::load
 
    private val wallpaperIsShowing = Subscribed {
-      Screen.getScreens().syncWhile {
+      APP.mouse.observeScreensAndNow {
          val disposer = Disposer()
 
          // An all-screen window displaying the wallpaper image in a positioned thumbnail per each screen

@@ -438,6 +438,11 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			requestLayout();
 		}
 
+		void rebuildCellsNow() {
+			needsRebuildCells = true;
+			layoutChildren();
+		}
+
 		@Override
 		protected void layoutChildren() {
 			boolean wasFocused = skin.grid.isFocused();
@@ -636,7 +641,7 @@ public class GridViewSkin<T, F> implements Skin<GridView> {
 			double newY = clip(minY, to, maxY);
 			if (viewStart!=newY) {
 				viewStart = newY;
-				rebuildCells();
+				rebuildCellsNow();
 			}
 		}
 

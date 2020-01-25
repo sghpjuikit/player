@@ -19,10 +19,14 @@ import javafx.scene.control.Slider
 import javafx.scene.control.TextField
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.ALT
 import javafx.scene.input.KeyCode.BACK_SPACE
+import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.META
+import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyCode.UNDEFINED
 import javafx.scene.input.KeyEvent.ANY
@@ -94,6 +98,7 @@ import sp.it.util.reactive.orEmpty
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncWhile
+import sp.it.util.system.Os
 import sp.it.util.text.nullIfBlank
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -687,31 +692,38 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
       globB.tooltip(globTooltip)
       globB.selected attach { applyShortcut() }
 
-      tf.styleClass.add(STYLECLASS_TEXT_CONFIG_EDITOR)
-      tf.styleClass.add("shortcut-config-editor")
+      tf.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      tf.styleClass += "shortcut-config-editor"
       tf.promptText = computePromptText()
-      tf.setOnKeyReleased {
-         when (it.code) {
+      tf.onEventUp(KEY_RELEASED) { e ->
+         when (e.code) {
             TAB -> {}
             BACK_SPACE, DELETE -> {
-               tf.promptText = "<none>"
-               if (tf.text.isNotEmpty()) tf.promptText = computePromptText()
-
-               if (t.isEmpty()) {  // set back to empty
-                  tf.promptText = computePromptText()
-               } else {            // subtract one key
-                  t = if (t.indexOf('+')==-1) "" else t.substring(0, t.lastIndexOf('+'))
+               if (tf.text.isEmpty()) {
+                  refreshValue()
+               } else {
+                  t = ""
                   tf.text = t
+                  tf.promptText = "<none>"
                }
             }
             ENTER -> applyShortcut()
             ESCAPE -> refreshValue()
             else -> {
-               t += if (t.isEmpty()) it.code.getName() else "+" + it.code.getName()
-               tf.text = t
+               if (!e.code.isModifierKey) {
+                  val keys = listOfNotNull(
+                     CONTROL.takeIf { e.isControlDown || (Os.WINDOWS.isCurrent && e.isShortcutDown) },
+                     ALT.takeIf { e.isAltDown },
+                     SHIFT.takeIf { e.isShiftDown },
+                     META.takeIf { e.isMetaDown || (Os.OSX.isCurrent && e.isShortcutDown) },
+                     e.code
+                  )
+                  t = keys.joinToString("+")
+                  tf.text = t
+               }
             }
          }
-         it.consume()
+         e.consume()
       }
       tf.isEditable = false
       tf.tooltip = appTooltip(config.value.info)
@@ -745,9 +757,8 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
    override fun get() = Try.ok(config.value)
 
    override fun refreshValue() {
-      val a = config.value
-      tf.promptText = a.keys
+      tf.promptText = computePromptText()
       tf.text = ""
-      globB.selected.value = a.isGlobal
+      globB.selected.value = config.value.isGlobal
    }
 }

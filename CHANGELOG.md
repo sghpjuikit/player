@@ -40,7 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve `Tagger` reading performance
 - Display date & time in UI in human readable format
 - Hide technical settings from UI & avoid persisting computed settings
-- Icon focusable using TAB and invokable using ENTER
+- Icons are focusable using TAB and invokable using ENTER
+- Popup close button has been removed and pin button UX improved
 
 ### Fix
 - Main window icon showing in ui-less application mode
@@ -63,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Settings editors UX
 - GridView focus not applied properly sometimes
 - GridView search style not discarded on cancel
+- GridView search sometimes not selecting proper item
 - GridView scrolling when selecting last row
 - GridView cover size change throws exceptions
 - Overlay settings change not taking effect
@@ -88,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Waiffu2k` plugin waiffu2k binary config is not persisted
   - `Waiffu2k` plugin scaling coefficient not configurable
   - `Guide` is now a plugin and can be disabled completely
+- JavaFX Screen.getScreens fires invalid events with no screens
 - Popup window fixes
   - popup does not receive focus on show not even when clicked
   - popup not returning focus to previously focused OS window

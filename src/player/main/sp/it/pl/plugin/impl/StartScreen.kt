@@ -7,8 +7,6 @@ import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
-import sp.it.pl.core.CoreMouse.observeMousePosition
-import sp.it.pl.core.CoreMouse.observeScreens
 import sp.it.pl.gui.LazyOverlayPane
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.OverlayPane
@@ -24,6 +22,7 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.onChange
 import sp.it.util.system.Os
 import sp.it.util.ui.areaBy
 import sp.it.util.ui.hBox
@@ -42,6 +41,7 @@ import java.awt.desktop.UserSessionListener
 import java.time.LocalDateTime
 import java.time.format.TextStyle.FULL
 import java.util.Locale.ENGLISH
+import sp.it.pl.core.CoreMouse as sys
 
 class StartScreen: PluginBase() {
    private var corners = screenCorners()
@@ -62,10 +62,10 @@ class StartScreen: PluginBase() {
       Desktop.getDesktop().addAppEventListener(overlayUserHandler)
 
       Subscription(
-         observeScreens {
+         sys.screens.onChange {
             corners = screenCorners()
          },
-         observeMousePosition { mp ->
+         sys.observeMousePosition { mp ->
             val moved = mp!=mouseXy
             val wasMouseIn = mouseIn
             mouseXy = mp

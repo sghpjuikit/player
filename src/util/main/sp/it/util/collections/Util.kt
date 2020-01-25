@@ -68,7 +68,7 @@ infix fun <T> MutableCollection<T>.setToOne(element: T) {
       this setTo listOf(element)
 }
 
-/** @return read only observable list that maintains the elements from this list mapped using the specified mapper */
+/** @return read-only observable list that maintains the elements from this list mapped using the specified mapper */
 fun <T, R, LIST> LIST.project(mapper: (T) -> R): ObservableListRO<R> where LIST: List<T>, LIST: Observable {
    val outBacking = observableArrayList<R>()
    outBacking setTo map(mapper)
@@ -76,7 +76,7 @@ fun <T, R, LIST> LIST.project(mapper: (T) -> R): ObservableListRO<R> where LIST:
    return ObservableListRO(outBacking)
 }
 
-/** @return read only observable set that maintains the elements from this set mapped using the specified mapper */
+/** @return read-only observable set that maintains the elements from this set mapped using the specified mapper */
 fun <T, R, SET> SET.project(mapper: (T) -> R): ObservableSetRO<R> where SET: Set<T>, SET: Observable {
    val outBacking = observableSet<R>()
    outBacking setTo map(mapper)
@@ -84,7 +84,7 @@ fun <T, R, SET> SET.project(mapper: (T) -> R): ObservableSetRO<R> where SET: Set
    return ObservableSetRO(outBacking)
 }
 
-/** Type safe [ObservableList] implemented by delegation as [List] that is [Observable]. */
+/** Type safe read-only [ObservableList] implemented by delegation as [List] that is [Observable]. */
 class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list, Observable {
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = list.addListener(listener)
@@ -92,13 +92,17 @@ class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list,
    fun removeListener(listener: ListChangeListener<in T>) = list.removeListener(listener)
 }
 
-/** Type safe [ObservableSet] implemented by delegation as [Set] that is [Observable]. */
+/** Type safe read-only [ObservableSet] implemented by delegation as [Set] that is [Observable]. */
 class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Observable {
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = set.addListener(listener)
    fun addListener(listener: SetChangeListener<in T>) = set.addListener(listener)
    fun removeListener(listener: SetChangeListener<in T>) = set.removeListener(listener)
 }
+
+fun <T> ObservableList<T>.readOnly() = ObservableListRO<T>(this)
+
+fun <T> ObservableSet<T>.readOnly() = ObservableSetRO<T>(this)
 
 /** Returns a map containing all key-value pairs with not null keys. */
 @Suppress("UNCHECKED_CAST")

@@ -5,6 +5,7 @@ import javafx.scene.input.MouseButton
 import sp.it.util.action.Action
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.system.Os
 
 /** @return this string or null if it is null or [String.isEmpty] */
 fun String?.nullIfEmpty() = this?.takeUnless { it.isEmpty() }
@@ -32,7 +33,22 @@ fun keys(keys: String): String = keys.splitToSequence("+").map(::key).joinToStri
 
 /** @return pretty text representing the key, intended for UI */
 val KeyCode.nameUi: String
-   get() = key(getName())
+   get() = key(resolved?.getName() ?: "<none>")
+
+/** @return key representing this key on the current OS */
+val KeyCode.resolved: KeyCode?
+   get() = when(this) {
+      KeyCode.META -> when (Os.current) {
+         Os.OSX -> KeyCode.ALT
+         else -> KeyCode.WINDOWS
+      }
+      KeyCode.SHORTCUT -> when (Os.current) {
+         Os.OSX -> KeyCode.COMMAND
+         else -> KeyCode.WINDOWS
+      }
+      KeyCode.UNDEFINED -> null
+      else -> this
+   }
 
 /** @return pretty text representing the button, intended for UI */
 val MouseButton.nameUi: String

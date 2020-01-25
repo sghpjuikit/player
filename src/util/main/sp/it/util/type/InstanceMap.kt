@@ -3,6 +3,7 @@ package sp.it.util.type
 import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
 import sp.it.util.collections.ObservableListRO
+import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
 import java.lang.reflect.Type
 
@@ -23,7 +24,7 @@ open class InstanceMap {
    inline fun <reified T: Any> addInstances(vararg instances: T) = addInstances(typeLiteral<T>(), instances.toList())
 
    /** @return read only observable list of instances of the type represented by the flattened list of specified classes */
-   fun <T> getInstances(type: List<Class<*>>): ObservableListRO<T> = ObservableListRO(at(type))
+   fun <T> getInstances(type: List<Class<*>>): ObservableListRO<T> = at<T>(type).readOnly()
 
    /** @return read only observable list of instances of the specified type */
    fun <T> getInstances(type: Type): ObservableListRO<T> = getInstances(type.flattenToRawTypes().toList())
@@ -42,8 +43,8 @@ open class InstanceMap {
       val isNullable = null is T
       return if (isNullable) {
          val out = observableArrayList<T>(list + (null as T))
-         list.addListener { out setTo (list + (null as T)) }
-         ObservableListRO(out)
+         list.addListener { out setTo (list + (null as T)) }   // TODO: provide disposing mechanism or use WeakListener
+         out.readOnly()
       } else {
          list
       }

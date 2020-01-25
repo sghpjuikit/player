@@ -40,8 +40,8 @@ import sp.it.pl.main.initApp
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
-import sp.it.util.collections.ObservableSetRO
 import sp.it.util.collections.project
+import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.appendInfo
@@ -99,7 +99,7 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    private val skinsImpl = observableSet<SkinCss>()
 
    /** Available application skins. Monitored and updated from disc. */
-   val skins = ObservableSetRO<SkinCss>(skinsImpl)
+   val skins = skinsImpl.readOnly()
 
    init {
       skinsImpl setTo findSkins()

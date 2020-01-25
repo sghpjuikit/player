@@ -392,12 +392,14 @@ infix fun Observable.syncWhile(block: () -> Subscription): Subscription {
 }
 
 /** Call specified block every time an item is added to this list passing it as argument */
-fun <T> ObservableList<T>.onItemAdded(block: (T) -> Unit): Subscription {
+fun <T> ObservableList<T>.onItemAdded(block: (T) -> Unit): Subscription = onItemsAdded { it.forEach(block) }
+
+/** Call specified block every time 1-N items is added to this list passing the added items as argument */
+fun <T> ObservableList<T>.onItemsAdded(block: (List<T>) -> Unit): Subscription {
    val l = ListChangeListener<T> {
       while (it.next()) {
-         if (!it.wasPermutated() && !it.wasUpdated()) {
-            if (it.wasAdded()) it.addedSubList.forEach(block)
-         }
+         if (!it.wasPermutated() && !it.wasUpdated() && it.wasAdded())
+            block(it.addedSubList)
       }
    }
    addListener(l)
@@ -413,7 +415,7 @@ fun <T> ObservableSet<T>.onItemAdded(block: (T) -> Unit): Subscription {
    return Subscription { removeListener(l) }
 }
 
-/** Call specified block every time an item is added to this map passing it as argument */
+/** Call specified block every time 1-N items is removed from this list passing the removed items as argument */
 fun <K, V> ObservableMap<K, V>.onItemAdded(block: (K, V) -> Unit): Subscription {
    val l = MapChangeListener<K, V> {
       if (it.wasAdded()) block(it.key, it.valueAdded)
@@ -423,12 +425,14 @@ fun <K, V> ObservableMap<K, V>.onItemAdded(block: (K, V) -> Unit): Subscription 
 }
 
 /** Call specified block every time an item is removed from this list passing it as argument */
-fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription {
+fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription = onItemsRemoved { it.forEach(block) }
+
+/** Call specified block every time 1-N items is removed from this list passing the removed items as argument */
+fun <T> ObservableList<T>.onItemsRemoved(block: (List<T>) -> Unit): Subscription {
    val l = ListChangeListener<T> {
       while (it.next()) {
-         if (!it.wasPermutated() && !it.wasUpdated()) {
-            if (it.wasRemoved()) it.removed.forEach(block)
-         }
+         if (!it.wasPermutated() && !it.wasUpdated() && it.wasRemoved())
+            block(it.removed)
       }
    }
    addListener(l)

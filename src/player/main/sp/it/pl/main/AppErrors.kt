@@ -6,7 +6,7 @@ import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.async.FX
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
-import sp.it.util.collections.ObservableListRO
+import sp.it.util.collections.readOnly
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.functional.Try
 import sp.it.util.functional.ifNotNull
@@ -19,7 +19,7 @@ object AppErrors {
 
    private val historyImpl = observableArrayList<AppError>()
    /** Mutable read-only view of error queue. Must be accessed from fx application thread. */
-   val history = ObservableListRO<AppError>(historyImpl)
+   val history = historyImpl.readOnly()
 
    @ThreadSafe
    fun push(textShort: String, textFull: String) = push(AppError(textShort, textFull))

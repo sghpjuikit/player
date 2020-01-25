@@ -70,6 +70,7 @@ import sp.it.util.math.P
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
@@ -170,7 +171,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          }
       }
 
-      APP.mouse.observeScreensAndNow {
+      APP.mouse.screens.onChangeAndNow {
          screenMaxScaling = Screen.getScreens().asSequence().map { it.outputScaleX max it.outputScaleY }.max() ?: 1.0
       }
    }
@@ -255,7 +256,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             isAlwaysOnTop = true
 
             setSize(Screen.getPrimary().bounds.width, 40.0)
-            APP.mouse.observeScreensAndNow {
+            APP.mouse.screens.onChangeAndNow {
                val s = Screen.getPrimary()
                setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height)
             } on onClose

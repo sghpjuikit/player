@@ -1,15 +1,16 @@
 package sp.it.pl.core
 
+import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Point2D
 import javafx.scene.robot.Robot
 import javafx.stage.Screen
 import sp.it.util.async.executor.FxTimer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.reactive.Handler0
+import sp.it.util.collections.readOnly
+import sp.it.util.collections.setTo
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onChange
-import sp.it.util.reactive.plus
 import sp.it.util.units.div
 import sp.it.util.units.seconds
 import java.util.HashSet
@@ -42,30 +43,17 @@ object CoreMouse: Core {
    }
 
    // Screen.getScreens() uses clear+add instead of setAll and produces invalid events with no screens
+   private val screensImpl = observableArrayList<Screen>()
    private var screensWereEmpty = false
-   private val screenObservers = Handler0()
    private val screenObserver = Subscribed {
-      val screens = Screen.getScreens()
-      screens.onChange {
-         val screensAreEmpty = screens.isEmpty()
-         if (!screensAreEmpty || screensWereEmpty) screenObservers()
+      val allScreens = Screen.getScreens()
+      allScreens.onChange {
+         val screensAreEmpty = allScreens.isEmpty()
+         if (!screensAreEmpty || screensWereEmpty) screensImpl setTo allScreens
          screensWereEmpty = screensAreEmpty
       }
    }
-
-   /** Sets a block to be fired immediately and on every screen change. */
-   fun observeScreensAndNow(block: () -> Unit): Subscription {
-      block()
-      return observeScreens(block)
-   }
-
-   /** Sets a block to be fired on every screen change. */
-   fun observeScreens(block: () -> Unit): Subscription {
-      if (screenObservers.isEmpty()) screenObserver.subscribe()
-      return screenObservers.addS(block) + {
-         if (screenObservers.isEmpty()) screenObserver.unsubscribe()
-      }
-   }
+   val screens = screensImpl.readOnly()
 
    private fun unsubscribe(s: Any) {
       positionSubscribers.remove(s)

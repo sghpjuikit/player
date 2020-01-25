@@ -26,6 +26,7 @@ import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.stage.WindowEvent.WINDOW_SHOWN
+import sp.it.pl.gui.objects.icon.CheckIcon
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.window.Shower
 import sp.it.pl.main.APP
@@ -170,15 +171,20 @@ open class PopWindow {
          styleClass += "pop-window-header-icons"
          alignment = CENTER_RIGHT
 
-         val closeB = Icon(IconFA.TIMES_CIRCLE, 11.0).onClickDo { this@PopWindow.hide() }.apply {
+         val closeB = Icon(IconFA.TIMES_CIRCLE).apply {
             isFocusTraversable = false
+            styleclass("header-icon")
             styleclass("popover-close-button")
             tooltip("Close\n\nClose this popup and its content.")
+            onClickDo { this@PopWindow.hide() }
          }
-         val pinB = Icon(null, 11.0).onClickDo { isAutohide.toggle() }.apply {
+         val pinB = CheckIcon().apply {
             isFocusTraversable = false
-            isAutohide sync { icon(if (it) IconMD.PIN else IconMD.PIN_OFF) }
+            styleclass("header-icon")
             tooltip("Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.")
+            icons(IconMD.PIN)
+            onClickDo { isAutohide.toggle() }
+            selected syncFrom isAutohide
          }
 
          fun updateIcons() {

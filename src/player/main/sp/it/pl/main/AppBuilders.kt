@@ -167,7 +167,7 @@ fun searchTextField() = DecoratedTextField().apply {
    val isEmpty = textProperty().map { it.isNullOrBlank() }
 
    onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
-      if (text.isNullOrEmpty()) {
+      if (!text.isNullOrEmpty()) {
          it.consume()
          clear()
       }

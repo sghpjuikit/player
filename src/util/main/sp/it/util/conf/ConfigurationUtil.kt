@@ -63,7 +63,7 @@ fun <T: Any> ConfigDelegator.collectActionsOf(type: Class<T>, instance: T?) {
             }
             Unit
          }.provideDelegate(
-            this,
+            if (instance is ConfigDelegator) instance else this,
             m.kotlinFunction!!
          )
       }

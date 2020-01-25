@@ -416,8 +416,8 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 
    init {
       chain.isHeaderVisible = true
-      chain.editable syncFrom when {
-         lc.a.itemFactory is FailFactory -> vAlways(false)
+      chain.editable syncFrom when (lc.a.itemFactory) {
+         is FailFactory -> vAlways(false)
          else -> !editor.disableProperty()
       }
 
@@ -449,13 +449,13 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       }
 
       // bind chain to list
-      disposer += list.onItemSync {
+      disposer += list.onItemSync { item ->
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
-            chain.addChained(ConfigurableEditor(it))
+            chain.addChained(ConfigurableEditor(item))
       }
-      disposer += list.onItemRemoved {
+      disposer += list.onItemRemoved { item ->
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
-            chain.chain.find { it.chained.getVal()==it }?.let { chain.chain.remove(it) }
+            chain.chain.find { it.chained.getVal()==item }?.let { chain.chain.remove(it) }
       }
 
    }
@@ -511,7 +511,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                selectionModel.selectionMode = SINGLE
                selectionModel.selectedItemProperty() sync { pluginInfo.plugin = it }
                d += { selectionModel.clearSelection() }
-               items = sp.it.pl.main.APP.plugins.pluginsObservable.sorted { a, b -> a.info.name.compareTo(b.info.name) }
+               items = APP.plugins.pluginsObservable.sorted { a, b -> a.info.name.compareTo(b.info.name) }
                d += { items = null }
             }
             lay(ALWAYS) += pluginInfo

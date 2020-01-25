@@ -279,11 +279,9 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 		public void onRem() {
 			chain.remove(this);
-			if (chain.isEmpty()) {
-				growTo1();
-			} else {
-				generateValue();
-			}
+
+			if (!isHeaderVisible() && chain.isEmpty()) growTo1();
+			else generateValue();
 		}
 
 		private boolean isHomogeneous() {
@@ -335,8 +333,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 		public void onClear() {
 			chain.clear();
-			growTo1();
-			generateValue();
+			if (!isHeaderVisible()) growTo1();
+			else generateValue();
 		}
 	}
 

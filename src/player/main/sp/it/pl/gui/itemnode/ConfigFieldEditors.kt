@@ -12,11 +12,11 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.scene.Node
 import javafx.scene.control.ColorPicker
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.Slider
-import javafx.scene.control.TextField
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT
@@ -29,6 +29,8 @@ import javafx.scene.input.KeyCode.META
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyCode.UNDEFINED
+import javafx.scene.input.KeyCombination.NO_MATCH
+import javafx.scene.input.KeyCombination.keyCombination
 import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
@@ -60,6 +62,7 @@ import sp.it.pl.plugin.PluginManager
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.action.Action
+import sp.it.util.action.ActionRegistrar
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.Config
@@ -86,6 +89,7 @@ import sp.it.util.functional.getAny
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -100,6 +104,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.text.nullIfBlank
+import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -680,34 +685,24 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 }
 
 class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
-   private val tf = TextField()
-   private val globB = CheckIcon()
-   private var t = ""
-   private var runB: Icon
-   override val editor: HBox
+   override val editor = DecoratedTextField()
+   private var globB = CheckIcon()
+   private val warnI = lazy {
+      Icon().apply {
+         styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
+         tooltip(warnTooltip)
+      }
+   }
 
    init {
-      globB.styleclass("config-shortcut-global-icon")
-      globB.selected.value = config.value.isGlobal
-      globB.tooltip(globTooltip)
-      globB.selected attach { applyShortcut() }
-
-      tf.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      tf.styleClass += "shortcut-config-editor"
-      tf.promptText = computePromptText()
-      tf.onEventUp(KEY_RELEASED) { e ->
+      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      editor.styleClass += "shortcut-config-editor"
+      editor.isEditable = false
+      editor.focusedProperty() attach { refreshValue() }
+      editor.onEventDown(KEY_RELEASED) { e ->
          when (e.code) {
             TAB -> {}
-            BACK_SPACE, DELETE -> {
-               if (tf.text.isEmpty()) {
-                  refreshValue()
-               } else {
-                  t = ""
-                  tf.text = t
-                  tf.promptText = "<none>"
-               }
-            }
-            ENTER -> applyShortcut()
+            BACK_SPACE, DELETE -> applyShortcut("")
             ESCAPE -> refreshValue()
             else -> {
                if (!e.code.isModifierKey) {
@@ -718,47 +713,71 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
                      META.takeIf { e.isMetaDown || (Os.OSX.isCurrent && e.isShortcutDown) },
                      e.code
                   )
-                  t = keys.joinToString("+")
-                  tf.text = t
+                  applyShortcut(keys.joinToString("+"))
                }
             }
          }
          e.consume()
       }
-      tf.isEditable = false
-      tf.tooltip = appTooltip(config.value.info)
-      tf.focusedProperty() attach { tf.text = config.value.keys }
-
-      runB = Icon()
-      runB.styleclass("config-shortcut-run-icon")
-      runB.action(config.value)
-      runB.tooltip(actTooltip)
-
-      editor = HBox(5.0, runB, globB, tf)
-      editor.alignment = CENTER_LEFT
-      editor.padding = Insets.EMPTY
+      editor.promptText = null.toUi()
+      editor.text = computePromptText()
+      editor.contextMenu = ContextMenu().dsl {
+         item("Clear") { applyShortcut("") }
+      }
+      editor.left.value = hBox(5, CENTER_LEFT) {
+         lay += Icon().apply {
+            styleclass("config-shortcut-run-icon")
+            action(config.value)
+            tooltip(actTooltip)
+         }
+         lay += globB.apply {
+            styleclass("config-shortcut-global-icon")
+            selected.value = config.value.isGlobal
+            tooltip(globTooltip)
+            selected attach { applyShortcut(config.value.keys) }
+         }
+      }
    }
 
-   private fun computePromptText(): String = config.value.keys.nullIfBlank().toUi()
+   private fun applyShortcut(newKeys: String) {
+      editor.text = newKeys
 
-   private fun applyShortcut() {
-      val a = config.value
-      val sameGlobal = globB.selected.value==a.isGlobal
-      val sameKeys = tf.text==a.keys || tf.text.isEmpty() && tf.promptText==a.keys
-
-      when {
-         !sameGlobal && !sameKeys -> a.set(globB.selected.value, tf.text) // handle error as validation
-         !sameKeys -> a.keys = tf.text // handle error as validation
-         !sameGlobal -> a.isGlobal = globB.selected.value
+      val action = config.value
+      val sameGlobal = globB.selected.value==action.isGlobal
+      val sameKeys = newKeys==action.keys
+      if (!sameGlobal || !sameKeys) {
+         runTry {
+            if (newKeys.isBlank()) NO_MATCH
+            else keyCombination(newKeys)
+         }.mapError { it.message ?: "Unknown error" }.and { keys ->
+            val isUsed = ActionRegistrar.getActions().find { it!==action && it.keyCombination!=NO_MATCH && it.keyCombination==keys }
+            if (isUsed==null) Try.ok() else Try.error("Shortcut $newKeys already in use by '${isUsed.group}.${isUsed.nameUi}'")
+         }.ifOk {
+            action.set(globB.selected.value, newKeys)
+            refreshValue()
+         }.ifError {
+            showWarnButton(Try.error(it))
+         }
+      } else {
+         refreshValue()
       }
-      refreshValue()
    }
 
    override fun get() = Try.ok(config.value)
 
+   private fun computePromptText(): String = config.value.keys.nullIfBlank().toUi()
+
    override fun refreshValue() {
-      tf.promptText = computePromptText()
-      tf.text = ""
+      editor.text = computePromptText()
       globB.selected.value = config.value.isGlobal
+      showWarnButton(Try.ok())
    }
+
+   private fun showWarnButton(value: Try<*, String>) {
+      val shouldBeVisible = value.isError && isEditableByUser.value
+      this.editor.right.value = if (shouldBeVisible) warnI.value else null
+      warnI.orNull()?.isVisible = shouldBeVisible
+      warnTooltip.text = value.map { "" }.getAny()
+   }
+
 }

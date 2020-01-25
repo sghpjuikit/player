@@ -121,6 +121,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	 * @return the key combination for shortcut of this action or "" if no valid value.
 	 */
 	public String getKeys() {
+		if (keys==NO_MATCH) return "";
 		String s = keys.getName();
 		s = s.replaceAll("'", "");      // we need to replace ''' characters
 		s = s.replaceAll(" ", "_");     // we need to replace ' ' characters

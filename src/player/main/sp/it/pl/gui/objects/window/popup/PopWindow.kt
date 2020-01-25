@@ -27,10 +27,8 @@ import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.stage.WindowEvent.WINDOW_SHOWN
 import sp.it.pl.gui.objects.icon.CheckIcon
-import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.window.Shower
 import sp.it.pl.main.APP
-import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.resizeIcon
 import sp.it.util.access.toggle
@@ -52,7 +50,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
@@ -142,7 +140,6 @@ open class PopWindow {
    }
 
    init {
-
       stage = stage(TRANSPARENT) {
          initOwner(APP.windowManager.createStageOwnerNoShow())
          owner.initFixHide()
@@ -171,29 +168,20 @@ open class PopWindow {
          styleClass += "pop-window-header-icons"
          alignment = CENTER_RIGHT
 
-         val closeB = Icon(IconFA.TIMES_CIRCLE).apply {
-            isFocusTraversable = false
-            styleclass("header-icon")
-            styleclass("popover-close-button")
-            tooltip("Close\n\nClose this popup and its content.")
-            onClickDo { this@PopWindow.hide() }
-         }
          val pinB = CheckIcon().apply {
             isFocusTraversable = false
             styleclass("header-icon")
+            styleclass("pop-window-pin-button")
             tooltip("Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.")
             icons(IconMD.PIN)
             onClickDo { isAutohide.toggle() }
             selected syncFrom isAutohide
          }
 
-         fun updateIcons() {
-            headerIcons.forEach { it.isFocusTraversable = false }
-            children setTo (if (isAutohide.value) headerIcons + pinB else headerIcons + listOf(pinB, closeB))
+         headerIcons.onChangeAndNow {
+            children setTo (headerIcons + pinB)
+            children.forEach { it.isFocusTraversable = false }
          }
-         headerIcons.onChange { updateIcons() }
-         isAutohide attach { updateIcons() }
-         updateIcons()
       }
 
       header = borderPane {

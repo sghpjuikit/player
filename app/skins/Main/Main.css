@@ -1781,10 +1781,8 @@ Text {
  */
 .auto-complete-popup > .list-view {}
 
-/********************************* POPOVER *****************************************************************************
- * Custom popup window. Can display arrow pointing to some location and be 'detached'.
- * Container for .bgr and .content
- * Rectangular, not in the popover shape. D not use for bgr coloring
+/********************************* POP-WINDOW **************************************************************************
+ * Custom popup window.
  *
  * inherits: StackPane
  * pseudoclasses: pop-window-focused - focus follows focus of the parent window
@@ -1836,27 +1834,27 @@ Text {
 }
 
 /* Close button in the header*/
-.popover-close-button {
-    /* separate the close button from the rest a bit visually */
+.pop-window-pin-button {
+    /* separate the pin button from the rest a bit visually */
     /* -fx-padding: 0 0 0 5; */
 }
 
 /******************************* HELP POPOVER **************************************************************************
- * Help popover, usually associated with a help icon. Has purely informative use. Provides basically no interaction.
+ * Help pop-window, usually associated with a help icon. Has purely informative use. Provides basically no interaction.
  * inherits: .pop-window
  */
-.help-popover {}
+.help-pop-window {}
 
 /*
- * Text of the help popover
+ * Text of the help-pop-window
  * inherits: .text
  */
-.help-popover-text {
+.help-pop-window-text {
     -fx-text-alignment: justify;
 }
 
 /******************************* NOTIFICATION **************************************************************************
- * Application notification popover.
+ * Application notification pop-window.
  * inherits: .pop-window
  */
 .notification {

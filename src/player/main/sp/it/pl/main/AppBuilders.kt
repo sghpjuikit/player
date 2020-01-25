@@ -50,22 +50,22 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
 
 /**
- * Creates simple help popover designed as a tooltip for help buttons.
+ * Creates simple help popup designed as a tooltip for help buttons.
  *
- * The popover is
+ * The popup is
  * * not detached
  * * not detachable
  * * hide on click true,
  * * autohide true
  * * not userResizable
  *
- * Tip: Associate help popovers with buttons marked with question mark or similar icon.
+ * Tip: Associate help popups with buttons marked with question mark or similar icon.
  */
 @JvmOverloads
 fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = PopWindow().apply {
-   styleClass += "help-popover"
+   styleClass += "help-pop-window"
    content.value = Text(textContent).apply {
-      styleClass += "help-popover-text"
+      styleClass += "help-pop-window-text"
       wrappingWithNatural.subscribe()
    }
    title.value = textTitle

@@ -76,6 +76,7 @@ import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
 import sp.it.util.text.nullIfBlank
 import sp.it.util.text.plural
+import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.isAnyParentOf
@@ -441,6 +442,7 @@ fun <T> TreeItem<T>.disposeIfDisposable() {
    if (this is DisposableTreeItem) {
       dispose()
    } else {
-      children?.forEach { it.disposeIfDisposable() }
+      // children?.forEach { it.disposeIfDisposable() }   // Causes Stackoverflow or something and hangs application
+      getFieldValue<ObservableList<TreeItem<T>>?>(this, "children")?.forEach { it.disposeIfDisposable() }
    }
 }

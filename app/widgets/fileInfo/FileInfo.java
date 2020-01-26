@@ -260,8 +260,8 @@ public class FileInfo extends SimpleController implements SongReader {
     }
 
     @Override
-    public void read(List<? extends Song> items) {
-        read(items.isEmpty() ? null : items.get(0));
+    public void read(List<? extends Song> songs) {
+        read(songs.isEmpty() ? null : songs.get(0));
     }
 
     private void setValue(Song i) {

@@ -350,7 +350,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     }
 
     @Override
-    public void showImages(Collection<File> imgFiles) {
+    public void showImages(Collection<? extends File> imgFiles) {
         if (imgFiles.isEmpty()) return;
 
         showImage(imgFiles.stream().findFirst().orElse(null));

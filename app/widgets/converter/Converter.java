@@ -252,8 +252,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     }
 
     @Override
-    public void read(List<? extends Song> items) {
-        inputValue.setValue(map(items, Song::toMeta));
+    public void read(List<? extends Song> songs) {
+        inputValue.setValue(map(songs, Song::toMeta));
     }
 
     @Override
@@ -441,7 +441,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             if (!l.isEmpty()) actCB.setValue(l.get(0));
         }
     }
-    private class Act<Y> {
+    private static class Act<Y> {
         String name;
         int max = MAX_VALUE;
         F0<List<String>> names;
@@ -491,7 +491,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             return actionPartial!=null;
         }
     }
-    private class WriteFileAct extends Act<Void> {
+    private static class WriteFileAct extends Act<Void> {
         V<String> nam = new V<>("new_file");
         V<String> ext = new V<>("txt");
         V<File> loc = new V<>(APP.getLocation());
@@ -517,7 +517,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             );
         }
     }
-    private class ActCreateDirs extends Act<Void> {
+    private static class ActCreateDirs extends Act<Void> {
         V<Boolean> use_loc = new V<>(false);
         V<File> loc = new V<>(APP.getLocationHome());
 
@@ -558,7 +558,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
     }
 
-    private class In {
+    private static class In {
         public String name;
         public EditArea ta;
 

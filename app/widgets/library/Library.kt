@@ -223,9 +223,8 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       return super.getConfigs()
    }
 
-   override fun read(items: List<Song>?) {
-      if (items==null) return
-      table.setItemsRaw(items.map { it.toMeta() })
+   override fun read(songs: List<Song>) {
+      table.setItemsRaw(songs.map { it.toMeta() })
    }
 
    fun setItems(items: List<Metadata>?) {

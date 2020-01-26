@@ -21,7 +21,7 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 
 /** Basic display for song information. */
-class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(15.0), SongReader {
+class ItemInfo(showCover: Boolean = true): HBox(15.0), SongReader {
 
    private val indexL = Label()
    private val songL = Label()
@@ -61,9 +61,9 @@ class ItemInfo @JvmOverloads constructor(showCover: Boolean = true): HBox(15.0),
       }
    }
 
-   override fun read(songs: List<Song>) = read(songs.firstOrNull() ?: Metadata.EMPTY)
+   override fun read(songs: List<Song>) = read(songs.firstOrNull())
 
-   override fun read(m: Song) = setValue(m.toMeta())
+   override fun read(song: Song?) = setValue(song?.toMeta() ?: Metadata.EMPTY)
 
    /** Displays metadata information. */
    fun setValue(m: Metadata) {

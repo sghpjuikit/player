@@ -487,6 +487,10 @@ class WidgetManager {
                "-d", compileDir.relativeToApp(),
                "-jdk-home", APP.location.child("java").relativeToApp(),
                "-jvm-target", Runtime.version().feature().toString(),
+               "-progressive",
+               "-Xno-call-assertions",
+               "-Xno-param-assertions",
+               "-Xjvm-default=enable",
                "-cp", computeClassPath(),
                kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
             )

@@ -153,24 +153,6 @@ class SongDb {
    }
 
    @ThreadSafe
-   fun songToMeta(song: Song, action: (Metadata) -> Unit) {
-      if (song.same(APP.audio.playingSong.value)) {
-         action(APP.audio.playingSong.value)
-         return
-      }
-
-      APP.db.songsById[song.id]
-         .ifNotNull { action(it) }
-         .ifNull {
-            runIO {
-               song.read()
-            } ui {
-               action(it)
-            }
-         }
-   }
-
-   @ThreadSafe
    fun removeInvalidSongs(): Fut<Unit> {
       return runNew {
          Song.removeMissingFromLibTask().run()

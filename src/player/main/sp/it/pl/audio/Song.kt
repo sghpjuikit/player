@@ -102,7 +102,7 @@ abstract class Song {
    /** @return true iff the provided uri equals to that of this song */
    fun same(r: URI?): Boolean = r!=null && r==uri
 
-   /** @return metadata representation of this song (no io) */
+   /** @return metadata representation of this song (without reading it explicitly, so content may be missing) */
    open fun toMeta() = Metadata(this)
 
    /** @return playlist song representation of this song */

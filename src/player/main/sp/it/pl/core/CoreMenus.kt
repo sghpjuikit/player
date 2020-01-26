@@ -26,6 +26,7 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
+import sp.it.pl.main.toMetadata
 import sp.it.pl.main.writeImage
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.web.SearchUriBuilder
@@ -173,7 +174,7 @@ object CoreMenus: Core {
                }
          }
          add<PlaylistSongGroup> {
-            item("Play songs") { it.playlist.playItem(it.songs[0]) }
+            item("Play songs") { it.playlist.playItem(it.songs.firstOrNull()) }
             item("Remove songs") { it.playlist.removeAll(it.songs) }
             menu("Show in") {
                widgetItems<SongReader> {
@@ -195,7 +196,7 @@ object CoreMenus: Core {
                items(
                   APP.instances.getInstances<SearchUriBuilder>().asSequence(),
                   { "in ${it.name}" },
-                  { APP.db.songToMeta(value.songs[0]) { i -> it(i.getAlbumOrEmpty()).browse() } }
+                  { uriBuilder -> value.songs.firstOrNull()?.toMetadata { uriBuilder(it.getAlbumOrEmpty()).browse() } }
                )
             }
          }

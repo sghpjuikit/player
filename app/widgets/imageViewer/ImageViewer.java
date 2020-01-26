@@ -57,6 +57,7 @@ import static sp.it.pl.main.AppDragKt.hasImageFileOrUrl;
 import static sp.it.pl.main.AppDragKt.hasImageFilesOrUrl;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
+import static sp.it.pl.main.AppExtensionsKt.toMetadata;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
@@ -366,7 +367,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
             itemPane.setValue(Metadata.EMPTY);
             var s = inputLocationOf.getValue();
             if (s!=null)
-                APP.db.songToMeta(s, consumer(itemPane::setValue));
+                toMetadata(s, consumer(itemPane::setValue));
         }
     }
 
@@ -531,7 +532,7 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
             itemPane.setValue(Metadata.EMPTY);
             var s = inputLocationOf.getValue();
             if (s!=null)
-                APP.db.songToMeta(s, consumer(itemPane::setValue));
+                toMetadata(s, consumer(itemPane::setValue));
         }
 
         slideshow_on.setValue(v ? false : slideshow_on.getValue());

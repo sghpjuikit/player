@@ -2,14 +2,20 @@ package sp.it.pl.main
 
 import mu.KotlinLogging
 import sp.it.pl.audio.Song
+import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
+import sp.it.pl.audio.tagging.read
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.layout.widget.isExperimental
 import sp.it.util.async.IO
+import sp.it.util.async.runIO
 import sp.it.util.async.runNew
+import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidFile
 import sp.it.util.file.div
 import sp.it.util.file.nameWithoutExtensionOrRoot
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.system.runAsProgram
 import sp.it.util.units.toEM
 import java.io.File
@@ -52,6 +58,32 @@ fun File.isValidWidgetFile(): Boolean {
 
 /** @return true iff this song is [Song.same] as the song that is currently playing */
 fun Song.isPlaying(): Boolean = same(APP.audio.playingSong.value)
+
+/** @return metadata representation of this song (content will be read if it hasn't been read before, and may be outdated) */
+fun Song.toMetadata(action: (Metadata) -> Unit) {
+   failIfNotFxThread()
+
+   when {
+      this is Metadata -> {
+         action(this)
+      }
+      same(APP.audio.playingSong.value) -> {
+         action(APP.audio.playingSong.value)
+      }
+      else -> {
+         APP.db.songsById[id]
+            .ifNotNull { action(it) }
+            .ifNull {
+               runIO {
+                  read()
+               } ui {
+                  action(it)
+               }
+            }
+      }
+   }
+
+}
 
 /** @return true iff any songs contained in this group [Song.isPlaying] */
 fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value

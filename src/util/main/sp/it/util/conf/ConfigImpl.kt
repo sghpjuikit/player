@@ -1,7 +1,10 @@
 package sp.it.util.conf
 
+import javafx.beans.InvalidationListener
+import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
 import sp.it.util.access.EnumerableValue
 import sp.it.util.access.OrV
@@ -20,12 +23,16 @@ import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
+import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.Util
 import java.lang.reflect.Field
 import java.util.HashSet
 import java.util.function.Supplier
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 interface ConfigImpl {
 
@@ -232,7 +239,7 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
 @Suppress("UNCHECKED_CAST")
 open class ListConfig<T>(
    name: String, def: ConfigDefinition, @JvmField val a: ConfList<T>, group: String, constraints: Set<Constraint<ObservableList<T>>>, elementConstraints: Set<Constraint<T>>
-): ConfigBase<ObservableList<T>>(ObservableList::class.java as Class<ObservableList<T>>, name, def, constraints, a.list, group) {
+): ConfigBase<ObservableList<T>>(ObservableList::class.java.asIs(), name, def, constraints, a.list, group) {
 
    val toConfigurable: (T?) -> Configurable<*>
    private val defaultItems: List<T>?
@@ -293,4 +300,60 @@ open class ListConfig<T>(
       internal fun isReadOnly(list: ObservableList<*>): Boolean = list.javaClass.simpleName.toLowerCase().contains("unmodifiable")
    }
 
+}
+
+class CheckListConfig<T, S: Boolean?>(
+   name: String,
+   def: ConfigDefinition,
+   defaultValue: CheckList<T, S>,
+   group: String,
+   constraints: Set<Constraint<CheckList<T, S>>>
+): ConfigBase<CheckList<T, S>>(
+   CheckList::class.java.asIs(),
+   name,
+   def,
+   constraints,
+   defaultValue,
+   group
+), ReadOnlyProperty<ConfigDelegator, CheckList<T, S>> {
+   override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): CheckList<T, S> = value
+   override fun getValue(): CheckList<T, S> = defaultValue
+   override fun setValue(value: CheckList<T, S>) {}
+   override fun setValueToDefault() = value.selections setTo value.selectionsInitial
+
+   @Suppress("UNCHECKED_CAST")
+   override var valueAsProperty: PropVal
+      get() = PropValN(
+         value.selections.map { Parsers.DEFAULT.toS(it) }
+      )
+      set(v) {
+         if (value.all.size==v.size()) {
+            value.selections setTo v.valN.mapIndexed { i, text ->
+               Parsers.DEFAULT.ofS(Boolean::class.java as Class<S>, text)
+                  .ifError { logger.warn(it) { "Unable to set config=$name element=$i from=$text" } }
+                  .orNull() ?: value.selections[i]
+            }
+         } else {
+            logger.warn { "Unable to set config=$name from=$v: element count mismatch" }
+         }
+      }
+}
+
+class CheckList<out T, S: Boolean?> private constructor(val isNullable: Boolean, val all: List<T>, val selectionsInitial: List<S>): Observable {
+   val selections = observableArrayList<S>(selectionsInitial)!!.apply {
+      onChangeAndNow {
+         failIf(all.size!=size) { "Selections and elements counts must always be the same " }
+      }
+   }
+
+   fun forEach(block: (Pair<T, S>) -> Unit): Unit = (all zip selections).forEach(block)
+   fun forEachIndexed(block: (Triple<Int, T, S>) -> Unit): Unit = all.indices.forEach { block(Triple(it, all[it], selections[it])) }
+   fun selected(s: S): List<T> = all.filterIndexed { i, _ -> selections[i]==s }
+   override fun addListener(listener: InvalidationListener?) = selections.addListener(listener)
+   override fun removeListener(listener: InvalidationListener?) = selections.removeListener(listener)
+
+   companion object {
+      fun <T> nonNull(elements: List<T>, selections: List<Boolean> = Array(elements.size) { true }.toList()) = CheckList(false, elements, selections)
+      fun <T> nullable(elements: List<T>, selections: List<Boolean?> = Array(elements.size) { true }.toList()) = CheckList(true, elements, selections)
+   }
 }

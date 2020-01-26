@@ -43,6 +43,8 @@ fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?)
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).but(Constraint.ObjectNonNull)
 inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(T::class.java, null is T, observableArrayList(*initialItems)))
 inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(T::class.java, itemFactory, itemToConfigurable, null is T, *initialItems))
+inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T,Boolean> = ConfCheckL(CheckList.nonNull(initialItems.toList()))
+inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T,S>): ConfCheckL<T,S> = ConfCheckL(checkList)
 
 /** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
@@ -260,6 +262,23 @@ class ConfL<T: Any?>(val list: ConfList<T>): Conf<ObservableList<T>>() {
       return object: ListConfig<T>(property.name, info, list, group, constraints, elementConstraints), RoProperty<ConfigDelegator, ObservableList<T>> {
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = list.list
       }.registerConfig(ref)
+   }
+}
+
+class ConfCheckL<T: Any?, S: Boolean?>(val list: CheckList<T,S>): Conf<CheckList<T,S>>() {
+
+   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, CheckList<T,S>> {
+      property.makeAccessible()
+      val info = property.obtainConfigMetadata()
+      val group = info.computeConfigGroup(ref)
+
+      val isFinal = property !is KMutableProperty
+      failIf(!isFinal) { "Property must be immutable" }
+
+      val c = CheckListConfig(property.name, info, list, group, constraints)
+      ref.configurableValueSource.initialize(c)
+
+      return CheckListConfig(property.name, info, list, group, constraints).registerConfig(ref)
    }
 }
 

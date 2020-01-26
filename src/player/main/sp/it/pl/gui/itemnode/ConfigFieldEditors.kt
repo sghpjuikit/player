@@ -7,6 +7,7 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
 import javafx.event.EventHandler
 import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
@@ -64,6 +65,8 @@ import sp.it.util.access.vAlways
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.collections.setTo
+import sp.it.util.conf.CheckList
+import sp.it.util.conf.CheckListConfig
 import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
@@ -78,6 +81,7 @@ import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.ReadOnlyPropertyConfig
+import sp.it.util.conf.ValueConfig
 import sp.it.util.dev.failCase
 import sp.it.util.file.FilePickerType
 import sp.it.util.functional.Try
@@ -497,6 +501,34 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       override fun getVal(): T? = if (lc.a.isSimpleItemType) pane.getConfigEditors()[0].config.value else value
 
    }
+}
+
+@Suppress("UNCHECKED_CAST")
+class CheckListCE<T,S: Boolean?>(c: CheckListConfig<T,S>): ConfigEditor<CheckList<T,S>>(c) {
+
+   override val editor = vBox(0, CENTER_LEFT) {
+      c.value.forEachIndexed { (i, element, selection) ->
+         lay += hBox(0, CENTER_LEFT) {
+            lay += NullCheckIcon().apply {
+               selected.value = selection
+               selected attach { c.value.selections[i] = it as S }
+               styleclass("boolean-config-editor")
+               onClickDo {
+                  selected.value = when (selected.value) {
+                     null -> true
+                     true -> false
+                     false -> if (c.value.isNullable) null else true
+                  }
+               }
+            }
+            lay += label(element.toUi())
+         }
+      }
+   }
+
+   override fun get(): Try<CheckList<T, S>, String> = Try.ok(config.value)
+
+   override fun refreshValue() {}
 }
 
 class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {

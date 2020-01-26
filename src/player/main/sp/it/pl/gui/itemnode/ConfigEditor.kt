@@ -23,6 +23,9 @@ import sp.it.util.access.not
 import sp.it.util.action.Action
 import sp.it.util.animation.Anim
 import sp.it.util.async.runFX
+import sp.it.util.collections.map.ClassMap
+import sp.it.util.conf.CheckList
+import sp.it.util.conf.CheckListConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint.NumberMinMax
@@ -46,7 +49,6 @@ import java.nio.charset.StandardCharsets.UTF_16
 import java.nio.charset.StandardCharsets.UTF_16BE
 import java.nio.charset.StandardCharsets.UTF_16LE
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.HashMap
 
 private val defTooltip = appTooltip("Default value")
 private const val defBLayoutSize = 15.0
@@ -65,6 +67,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
    val isEditableByUser = config.isEditableByUserRightNowProperty()
    var onChange: Runnable? = null
    private var inconsistentState = false
+
    /** Use to get the control node for setting and displaying the value to attach it to a scene graph. */
    abstract val editor: Node
 
@@ -221,7 +224,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
 
    companion object {
 
-      private val CF_BUILDERS = HashMap<Class<*>, (Config<*>) -> ConfigEditor<*>>().apply {
+      private val editorBuilders = ClassMap<(Config<*>) -> ConfigEditor<*>?>().apply {
          put(Boolean::class.javaObjectType) { BoolCE(it.asIs()) }
          put(Boolean::class.javaPrimitiveType!!) { BoolCE(it.asIs()) }
          put(String::class.java) { GeneralCE(it) }
@@ -229,7 +232,12 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          put(Color::class.java) { ColorCE(it.asIs()) }
          put(File::class.java) { FileCE(it.asIs()) }
          put(Font::class.java) { FontCE(it.asIs()) }
-         put(OrValue::class.java) { if (it is OrPropertyConfig<*>) OrCE(it) else GeneralCE(it) }
+         put(OrValue::class.java) {
+            when (it) {
+               is OrPropertyConfig<*> -> OrCE(it)
+               else -> null
+            }
+         }
          put(Effect::class.java) { EffectCE(it.asIs(), Effect::class.java) }
          put(Charset::class.java) { EnumerableCE(it.asIs(), listOf(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)) }
          put(KeyCode::class.java) { KeyCodeCE(it.asIs()) }
@@ -240,7 +248,13 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
                   it.a.itemType.isSubclassOf<Configurable<*>>() -> PaginatedObservableListCE(it.asIs())
                   else -> ObservableListCE(it)
                }
-               else -> GeneralCE(it)
+               else -> null
+            }
+         }
+         put(CheckList::class.java) {
+            when (it) {
+               is CheckListConfig<*, *> -> CheckListCE<Any?, Boolean?>(it.asIs())
+               else -> null
             }
          }
          put(PluginManager::class.java) { PluginsCE(it.asIs()) }
@@ -252,25 +266,23 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
 
       @JvmStatic
       fun <T> create(config: Config<T>): ConfigEditor<T> {
-         val cf: ConfigEditor<*> = when {
-            config.isTypeEnumerable -> when {
-               config.type==KeyCode::class.java -> KeyCodeCE(config.asIs())
+         fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && constraints.any { it is NumberMinMax && it.isClosed() }
+
+         return when {
+            config.isTypeEnumerable -> when (config.type) {
+               KeyCode::class.java -> KeyCodeCE(config.asIs())
                else -> EnumerableCE(config)
             }
-            config.isMinMax() -> SliderCE(config.asIs())
-            else -> {
-               (CF_BUILDERS[config.type] ?: { GeneralCE(it) })(config)
+            config.isMinMax() -> {
+               SliderCE(config.asIs())
             }
-         }
-
-         cf.editor.disableProperty() syncFrom cf.isEditableByUser.not() on cf.editor.onNodeDispose
-         return cf.asIs()
+            else -> {
+               editorBuilders[config.type]?.invoke(config) ?: GeneralCE(config)
+            }
+         }.apply {
+            editor.disableProperty() syncFrom isEditableByUser.not() on editor.onNodeDispose
+         }.asIs()
       }
-
-      @JvmStatic
-      fun <T> createForProperty(type: Class<T>, name: String, property: Any): ConfigEditor<T> = create(Config.forProperty(type, name, property))
-
-      private fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && constraints.any { it is NumberMinMax && it.isClosed() }
 
    }
 

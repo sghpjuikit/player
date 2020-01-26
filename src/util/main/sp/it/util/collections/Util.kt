@@ -85,7 +85,7 @@ fun <T, R, SET> SET.project(mapper: (T) -> R): ObservableSetRO<R> where SET: Set
 }
 
 /** Type safe read-only [ObservableList] implemented by delegation as [List] that is [Observable]. */
-class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list, Observable {
+class ObservableListRO<out T>(private val list: ObservableList<T>): List<T> by list, Observable {
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = list.addListener(listener)
    fun addListener(listener: ListChangeListener<in T>) = list.addListener(listener)
@@ -93,16 +93,16 @@ class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list,
 }
 
 /** Type safe read-only [ObservableSet] implemented by delegation as [Set] that is [Observable]. */
-class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Observable {
+class ObservableSetRO<out T>(private val set: ObservableSet<T>): Set<T> by set, Observable {
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = set.addListener(listener)
    fun addListener(listener: SetChangeListener<in T>) = set.addListener(listener)
    fun removeListener(listener: SetChangeListener<in T>) = set.removeListener(listener)
 }
 
-fun <T> ObservableList<T>.readOnly() = ObservableListRO<T>(this)
+fun <T> ObservableList<T>.readOnly() = ObservableListRO(this)
 
-fun <T> ObservableSet<T>.readOnly() = ObservableSetRO<T>(this)
+fun <T> ObservableSet<T>.readOnly() = ObservableSetRO(this)
 
 /** Returns a map containing all key-value pairs with not null keys. */
 @Suppress("UNCHECKED_CAST")

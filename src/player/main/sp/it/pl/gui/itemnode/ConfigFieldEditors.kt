@@ -1,5 +1,6 @@
 package sp.it.pl.gui.itemnode
 
+import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
@@ -7,10 +8,10 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
 import javafx.event.EventHandler
 import javafx.geometry.Insets
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
+import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ColorPicker
 import javafx.scene.control.ContextMenu
@@ -54,12 +55,17 @@ import sp.it.pl.gui.objects.icon.NullCheckIcon
 import sp.it.pl.gui.objects.textfield.DecoratedTextField
 import sp.it.pl.gui.pane.ConfigPane
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginManager
+import sp.it.util.access.EnumerableValue
+import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.action.Action
@@ -81,7 +87,6 @@ import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.ReadOnlyPropertyConfig
-import sp.it.util.conf.ValueConfig
 import sp.it.util.dev.failCase
 import sp.it.util.file.FilePickerType
 import sp.it.util.functional.Try
@@ -95,6 +100,7 @@ import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
@@ -504,26 +510,72 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 }
 
 @Suppress("UNCHECKED_CAST")
-class CheckListCE<T,S: Boolean?>(c: CheckListConfig<T,S>): ConfigEditor<CheckList<T,S>>(c) {
+class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckList<T, S>>(c) {
+   private val list = c.value
+   private val possibleValues = if (list.isNullable) listOf(true, false, null) else listOf(true, false)
+   private val checkIcons = list.all.mapIndexed { i, _ ->
+      NullCheckIcon().apply {
+         selected.value = list.selections[i]
+         selected attach { list.selections[i] = it as S }
+         selected attach { updateSuperIcon() }
+         styleclass("boolean-config-editor")
+         icons(IconMA.CHECK_BOX, IconMA.CHECK_BOX_OUTLINE_BLANK, IconMA.DO_NOT_DISTURB)
+         onClickDo {
+            selected.value = when (selected.value) {
+               null -> true
+               true -> false
+               false -> if (list.isNullable) null else true
+            }
+         }
+      }
+   }
+   private val noSuperIconUpdate = Suppressor()
+   private val superIcon = Icon(null).apply {
+      styleclass("boolean-config-editor")
+      onClickDo {
+         val nextValue = when {
+            checkIcons.isEmpty() || isIndeterminate() -> true
+            else -> Values.next(possibleValues, checkIcons.first().selected.value)
+         }
+         noSuperIconUpdate.suppressing {
+            list.selections setTo list.selections.map { nextValue as S }
+            checkIcons.forEach { it.selected.value = nextValue }
+         }
+         updateSuperIcon()
+      }
+   }
+
+   init {
+      updateSuperIcon()
+   }
 
    override val editor = vBox(0, CENTER_LEFT) {
-      c.value.forEachIndexed { (i, element, selection) ->
+      lay += superIcon
+      list.all.forEachIndexed { i, element ->
          lay += hBox(0, CENTER_LEFT) {
-            lay += NullCheckIcon().apply {
-               selected.value = selection
-               selected attach { c.value.selections[i] = it as S }
-               styleclass("boolean-config-editor")
-               onClickDo {
-                  selected.value = when (selected.value) {
-                     null -> true
-                     true -> false
-                     false -> if (c.value.isNullable) null else true
-                  }
-               }
-            }
+            padding = Insets(0.0, 0.0, 0.0, 5.0.emScaled)
+            lay += checkIcons[i]
             lay += label(element.toUi())
          }
       }
+   }
+
+   private fun isIndeterminate() = checkIcons.groupBy { it.selected.value }.size!=1
+
+   private fun updateSuperIcon(): Unit = noSuperIconUpdate.suppressed {
+      superIcon.icon(
+         when {
+            checkIcons.isEmpty() -> IconMA.INDETERMINATE_CHECK_BOX
+            isIndeterminate() -> IconFA.QUESTION
+            else -> {
+               when (checkIcons.first().selected.value) {
+                  null -> IconMA.DO_NOT_DISTURB
+                  true -> IconMD.CHECKBOX_MULTIPLE_MARKED
+                  false -> IconMD.CHECKBOX_MULTIPLE_BLANK_OUTLINE
+               }
+            }
+         } as GlyphIcons
+      )
    }
 
    override fun get(): Try<CheckList<T, S>, String> = Try.ok(config.value)

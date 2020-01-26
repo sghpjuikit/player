@@ -353,7 +353,7 @@ class CheckList<out T, S: Boolean?> private constructor(val isNullable: Boolean,
    override fun removeListener(listener: InvalidationListener?) = selections.removeListener(listener)
 
    companion object {
-      fun <T> nonNull(elements: List<T>, selections: List<Boolean> = Array(elements.size) { true }.toList()) = CheckList(false, elements, selections)
-      fun <T> nullable(elements: List<T>, selections: List<Boolean?> = Array(elements.size) { true }.toList()) = CheckList(true, elements, selections)
+      fun <T> nonNull(elements: List<T>, selections: List<Boolean> = elements.map { true }) = CheckList(false, elements, selections)
+      fun <T> nullable(elements: List<T>, selections: List<Boolean?> = elements.map { true }) = CheckList(true, elements, selections)
    }
 }

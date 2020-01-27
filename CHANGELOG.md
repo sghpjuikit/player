@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement application settings filter
 - Implement select settings group when opening setting from application search
 - Implement confirmation popup for remove songs from library
+- Implement padding settings editor
+- Implement checklist settings editor
+- Implement 0 length support for chain settings editor
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance
@@ -38,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve image loading performance
 - Improve `Tagger` widget UX
 - Improve `Tagger` reading performance
+- Improve `FileInfo`
+    - use checklist to select which fields to display
+    - improves UX by adjusting layout automatically depending on visible fields (unifies cover & rating with other fields)
 - Display date & time in UI in human readable format
 - Hide technical settings from UI & avoid persisting computed settings
 - Icons are focusable using TAB and invokable using ENTER

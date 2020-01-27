@@ -38,6 +38,7 @@ public class ImageFlowPane extends Pane {
 	}
 
 	public void setImage(Thumbnail i) {
+		if (image==i) return;
 		if (image!=null) getChildren().remove(image.getPane());
 		image = i;
 		if (image!=null) {
@@ -48,6 +49,7 @@ public class ImageFlowPane extends Pane {
 	}
 
 	public void setContent(Pane i) {
+		if (content==i) return;
 		if (content!=null) getChildren().remove(content);
 		content = i;
 		if (i!=null) getChildren().add(i);
@@ -56,24 +58,28 @@ public class ImageFlowPane extends Pane {
 
 	/** Set image visibility. Default true. */
 	public void setImageVisible(boolean b) {
+		if (showImage==b) return;
 		showImage = b;
 		requestLayout();
 	}
 
 	/** Set content visibility. Default true. */
 	public void setContentVisible(boolean val) {
+		if (showContent==val) return;
 		showContent = val;
 		requestLayout();
 	}
 
 	/** Set gap between image and content. */
 	public void setGap(double g) {
+		if (gap==g) return;
 		gap = g;
 		requestLayout();
 	}
 
 	/** Set minimal size of the content. Default 0. */
 	public void setMinContentSize(double w, double h) {
+		if (minContentWidth==w && minContentHeight==h) return;
 		minContentWidth = w;
 		minContentHeight = h;
 		requestLayout();

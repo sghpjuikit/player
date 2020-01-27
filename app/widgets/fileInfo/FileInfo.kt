@@ -67,6 +67,7 @@ import sp.it.util.file.Util.copyFiles
 import sp.it.util.math.max
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -374,5 +375,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          { it.dragboard.hasAudio() },
          { it.dragboard.getAudio().firstOrNull()?.let { read(it) } }
       )
+
+      root.sync1IfInScene { dataIn.bindDefaultIf1stLoad(APP.audio.playing.o) } on onClose
    }
 }

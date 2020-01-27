@@ -75,9 +75,9 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    override fun group() = group
    override fun type() = controllerType
 
-   override fun create(): Widget = Widget(UUID.randomUUID(), this, true)
+   override fun create(): Widget = Widget(UUID.randomUUID(), this, false)
 
-   fun createRecompiled(id: UUID): Widget = Widget(id, this, false)
+   fun createRecompiled(id: UUID): Widget = Widget(id, this, true)
 
    override fun toString() = "${javaClass.simpleName} $id $name $controllerType"
 

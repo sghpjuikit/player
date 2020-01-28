@@ -38,6 +38,7 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
+import sp.it.util.collections.setToOne
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
@@ -79,12 +80,45 @@ import sp.it.util.units.millis
 open class PopWindow {
 
    private var window: Window? = null
-   private val stage: Stage
+   private val stage by lazy {
+      stage(TRANSPARENT) {
+         initOwner(APP.windowManager.createStageOwnerNoShow())
+         owner.initFixHide()
+         initPopWindow(this@PopWindow)
+         titleProperty() syncFrom this@PopWindow.title
+         resizableProperty() syncFrom userResizable
+
+         onEventUp(WINDOW_SHOWING) { onShowing() }
+         onEventUp(WINDOW_SHOWN) { onShown() }
+         onEventUp(WINDOW_HIDING) { onHiding() }
+         onEventUp(WINDOW_HIDDEN) { onHidden() }
+
+         scene = scene {
+            fill = Color.TRANSPARENT
+         }
+      }
+   }
+   private val popup by lazy {
+      Popup().apply {
+         isAutoFix = true
+         autoHideProperty() syncFrom isAutohide
+         hideOnEscapeProperty() syncFrom isEscapeHide
+         initPopWindow(this@PopWindow)
+
+         onEventUp(WINDOW_SHOWING) { onShowing() }
+         onEventUp(WINDOW_SHOWN) { onShown() }
+         onEventUp(WINDOW_HIDING) { onHiding() }
+         onEventUp(WINDOW_HIDDEN) { onHidden() }
+      }
+   }
    private var root: StackPane
    private val contentP: BorderPane
    private val titleL: Label
    private val header: BorderPane
+   private val whileActive = Disposer()
 
+   /** Handlers called just after this popup was shown. Called even when it was already showing. */
+   val onContentShown = Handler0()
    /** Handlers called just before this popup was shown. */
    val onShowing = Handler0()
    /** Handlers called just after this popup was shown. */
@@ -140,23 +174,6 @@ open class PopWindow {
    }
 
    init {
-      stage = stage(TRANSPARENT) {
-         initOwner(APP.windowManager.createStageOwnerNoShow())
-         owner.initFixHide()
-         initPopWindow(this@PopWindow)
-         titleProperty() syncFrom this@PopWindow.title
-         resizableProperty() syncFrom userResizable
-
-         onEventUp(WINDOW_SHOWING) { onShowing() }
-         onEventUp(WINDOW_SHOWN) { onShown() }
-         onEventUp(WINDOW_HIDING) { onHiding() }
-         onEventUp(WINDOW_HIDDEN) { onHidden() }
-
-         scene = scene {
-            fill = Color.TRANSPARENT
-         }
-      }
-
       titleL = label {
          styleClass += "pop-window-title"
 
@@ -227,8 +244,6 @@ open class PopWindow {
          minPrefMaxWidth = Pane.USE_COMPUTED_SIZE
          minPrefMaxHeight = Pane.USE_COMPUTED_SIZE
 
-         stage.focusedProperty() sync { pseudoClassChanged("window-focused", it) }
-
          onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
             if (isEscapeHide.value) {
                hide()
@@ -261,6 +276,7 @@ open class PopWindow {
    fun show(shower: Shower) = show(shower.owner, shower.show)
 
    fun show(windowOwner: Window? = null, shower: (Window) -> P) {
+      whileActive()
       runFX(100.millis) {
          ownerMWindow = windowOwner
 
@@ -270,15 +286,15 @@ open class PopWindow {
 
                fun initHideWithOwner() {
                   if (windowOwner!=null) {
-                     windowOwner.onEventUp(WINDOW_HIDING) { if (isShowing) hideImmediately() } on untilHiding
-                     windowOwner.onEventUp(WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on untilHiding
+                     windowOwner.onEventUp(WINDOW_HIDING) { if (isShowing) hideImmediately() } on whileActive
+                     windowOwner.onEventUp(WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on whileActive
                   }
                }
                fun initZOrder() {
                   if (windowOwner==null) {
                      isAlwaysOnTop = true
                   } else {
-                     attachTo(windowOwner.focusedProperty(), focusedProperty()) { a, b -> stage.isAlwaysOnTop = a || b } on untilHiding
+                     attachTo(windowOwner.focusedProperty(), focusedProperty()) { a, b -> stage.isAlwaysOnTop = a || b } on whileActive
                   }
                }
                fun initAutohide() {
@@ -289,12 +305,14 @@ open class PopWindow {
                               this@PopWindow.hide()
                         }
                      }
-                  } on untilHiding
+                  } on whileActive
                }
 
                scene.root = root
+               focusedProperty() sync { root.pseudoClassChanged("window-focused", it) } on whileActive
                initHideWithOwner()
                initZOrder()
+               onEventUp1(WINDOW_SHOWN) { onContentShown() }
 
                if (animated.value) fadeIn()
                owner.asIs<Stage>().show()
@@ -303,38 +321,30 @@ open class PopWindow {
                owner.asIs<Stage>().requestFocus()
                requestFocus()
                xy = shower(stage)
+               onContentShown()
 
                onIsShowing1st {
                   initAutohide()
                }
             }
          } else {
-            Popup().apply {
+            popup.apply {
                window = this
 
-               isAutoFix = true
-               autoHideProperty() syncFrom isAutohide on untilHiding
-               hideOnEscapeProperty() syncFrom isEscapeHide on untilHiding
-               initPopWindow(this@PopWindow)
-
-               onEventUp(WINDOW_SHOWING) { onShowing() } on untilHiding
-               onEventUp(WINDOW_SHOWN) { onShown() } on untilHiding
-               onEventUp(WINDOW_HIDING) { onHiding() } on untilHiding
-               onEventUp(WINDOW_HIDDEN) { onHidden() } on untilHiding
-
-               content += root
+               content setToOne root
 
                if (animated.value) fadeIn()
                show(windowOwner ?: UNFOCUSED_OWNER)
                sizeToScene()
                xy = shower(this)
+               onContentShown()
             }
          }
       }
    }
 
 
-   /** Hides this popup. If is animated, the hiding animation is started, otherwise happens immediately. */
+   /** Hides this popup. If is [animated], the hiding animation is started, otherwise happens immediately. */
    fun hide() {
       if (!isShowing) return
       if (animated.value) fadeOut()
@@ -344,8 +354,10 @@ open class PopWindow {
    /** Hides this popup immediately. Use when the hiding animation is not desired (regardless the [animated] value). */
    fun hideImmediately() {
       if (!isShowing) return
-      if (focusOnShow.value) stage.owner.hideFixed()
+      window.asIf<Stage>()?.owner?.hideFixed()
       window?.hide()
+      window = null
+      whileActive()
    }
 
    private fun fadeIn() = animation.value.apply {
@@ -383,10 +395,7 @@ open class PopWindow {
 
       fun Window.onIsShowing1st(block: () -> Unit) = if (isShowing) block() else onEventDown1(WINDOW_SHOWN) { block() }.toUnit()
 
-      val Window.untilHiding: Disposer
-         get() = properties.getOrPut("untilHidingDisposer") { Disposer().apply { onEventUp1(WINDOW_HIDING) { this() } } }.asIs()
-
-      private val UNFOCUSED_OWNER = APP.windowManager.createStageOwnerNoShow().apply { show() }
+      private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwnerNoShow().apply { show() } }
 
    }
 

@@ -44,6 +44,10 @@ import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.orNull
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.text.toStrings
+import sp.it.util.type.VType
+import sp.it.util.type.isSubclassOf
+import sp.it.util.type.raw
+import sp.it.util.type.type
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.FileSize.Companion.sizeInB
@@ -57,7 +61,6 @@ import java.time.DateTimeException
 import java.time.LocalDateTime
 import java.time.Year
 import kotlin.math.pow
-import kotlin.reflect.KClass
 import kotlin.jvm.JvmField as F
 
 /**
@@ -611,7 +614,7 @@ class Metadata: Song, Serializable {
       null
    }
 
-   private fun readArtworkFromTag(): Artwork? = getFile()?.let { it.readAudioFile().orNull() }?.tag?.firstArtwork
+   private fun readArtworkFromTag(): Artwork? = getFile()?.readAudioFile()?.orNull()?.tag?.firstArtwork
 
    /** @return the cover image file on a file system or null if this song is not file based */
    private fun readCoverFromDir(): Cover? {
@@ -676,9 +679,9 @@ class Metadata: Song, Serializable {
 
    fun getMainField(): Field<*> = Field.TITLE
 
-   private fun <T: Any> getField(field: Field<T>): T? = field.getOf(this)
+   private fun <T> getField(field: Field<T>): T = field.getOf(this)
 
-   fun <T: Any> getFieldS(f: Field<T>, no_val: String): String {
+   fun <T> getFieldS(f: Field<T>, no_val: String): String {
       val o = getField(f)
       return if (f.getOf(EMPTY)==o) no_val else f.toS(o, no_val)
    }
@@ -775,14 +778,14 @@ class Metadata: Song, Serializable {
 
       @Suppress("UNCHECKED_CAST")
       private val FIELDS_FULLTEXT: List<Field<String>> = Field.all.asSequence()
-         .filter { String::class.java==it.type }
+         .filter { it.type.raw.isSubclassOf<String>() }
          .map { it as Field<String> }
          .toList()
    }
 
-   class Field<T: Any>: ObjectFieldBase<Metadata, T> {
+   class Field<T>: ObjectFieldBase<Metadata, T> {
 
-      constructor(type: KClass<T>, extractor: (Metadata) -> T?, name: String, description: String): super(type, extractor, name, description)
+      constructor(type: VType<T>, extractor: (Metadata) -> T, name: String, description: String): super(type, extractor, name, description)
 
       fun isAutoCompletable(): Boolean = this in AUTO_COMPLETABLE
 
@@ -793,8 +796,8 @@ class Metadata: Song, Serializable {
       override fun searchSupported(): Boolean = super.searchSupported() || this==FULLTEXT
 
       override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean = when (this) {
-         CHAPTERS -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
-         FULLTEXT -> { m -> getOf(m)?.strings?.any(matcher) ?: false }
+         CHAPTERS -> { m -> getOf(m).strings.any(matcher) }
+         FULLTEXT -> { m -> getOf(m).strings.any(matcher) }
          else -> super.searchMatch(matcher)
       }
 
@@ -878,8 +881,8 @@ class Metadata: Song, Serializable {
          @F val LAST_PLAYED = this + field({ it.getTimePlayedLast() }, "Last played", "Marks time the song was played the last time.")
          @F val ADDED_TO_LIBRARY = this + field({ it.getTimeLibraryAdded() }, "Added to library", "Marks time the song was added to the library.")
 
-         private inline fun <reified T: Any> field(noinline extractor: (Metadata) -> T?, name: String, description: String) =
-            Field(T::class, extractor, name, description)
+         private inline fun <reified T> field(noinline extractor: (Metadata) -> T, name: String, description: String) =
+            Field(type(), extractor, name, description)
 
          private val AUTO_COMPLETABLE = setOf<Field<*>>(
             ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD

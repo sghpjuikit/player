@@ -39,7 +39,6 @@ import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.Sort
-import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
@@ -304,7 +303,7 @@ class AppSearchPlugin: PluginBase() {
             it.value.sortedBy { FileField.NAME_FULL.getOf(it) }
          }
          return compareBy<Item> { 0 }
-            .thenBy { byParent[it.value.parent]?.takeIf { it.size>1 }?.let { it.first() } ?: it.value }
+            .thenBy { byParent[it.value.parent]?.takeIf { it.size>1 }?.first() ?: it.value }
             .thenBy(FileField.NAME.comparator<File> { it.inSort(Sort.ASCENDING).nullsLast() }) { it.value }
       }
 

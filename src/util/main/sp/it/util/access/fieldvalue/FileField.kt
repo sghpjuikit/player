@@ -14,6 +14,8 @@ import sp.it.util.file.type.mimeType
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
+import sp.it.util.type.VType
+import sp.it.util.type.type
 import sp.it.util.units.FileSize
 import java.io.File
 import java.io.FileNotFoundException
@@ -29,36 +31,36 @@ import java.time.format.DateTimeParseException
 import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
-import kotlin.reflect.KClass
 import kotlin.text.Charsets.UTF_8
 
 private val logger = KotlinLogging.logger { }
 
-class FileField<T: Any>: ObjectFieldBase<File, T> {
+class FileField<T>: ObjectFieldBase<File, T> {
 
-   private constructor(name: String, description: String, type: KClass<T>, extractor: (File) -> T?): super(type, extractor, name, description)
+   private constructor(name: String, description: String, type: VType<T>, extractor: (File) -> T): super(type, extractor, name, description)
 
    override fun toS(o: T?, substitute: String) = if (o==null) substitute else toSConverter.toS(o)
 
    override fun cWidth(): Double = 160.0
 
+   @Suppress("RemoveExplicitTypeArguments")
    companion object: ObjectFieldRegistry<File, FileField<*>>(File::class) {
       var toSConverter: ConverterToString<Any?> = object: ConverterToString<Any?> {
          override fun toS(o: Any?) = Parsers.DEFAULT.toS(o)
       }
 
-      val PATH = this + FileField("Path", "Path", String::class) { it.path }
-      val NAME = this + FileField("Name", "Name", String::class) { it.nameWithoutExtensionOrRoot }
-      val NAME_FULL = this + FileField("Filename", "Filename", String::class) { it.nameOrRoot }
-      val EXTENSION = this + FileField("Extension", "Extension", String::class) { it.extension }
-      val SIZE = this + FileField("Size", "Size", FileSize::class) { if (it is CachingFile) it.fileSize else it.readFileSize() }
-      val TIME_ACCESSED = this + FileField("Time Accessed", "Time Accessed", FileTime::class) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
-      val TIME_MODIFIED = this + FileField("Time Modified", "Time Modified", LocalDateTime::class) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
-      val TIME_CREATED = this + FileField("Time Created", "Time Created", FileTime::class) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
-      val TYPE = this + FileField("Type", "Type", FileType::class) { FileType(it) }
-      val MIME = this + FileField("Mime Type", "Mime Type", MimeType::class) { it.mimeType() }
-      val MIME_GROUP = this + FileField("Mime Group", "Mime Group", String::class) { it.mimeType().group }
-      val IS_HIDDEN = this + FileField("Is hidden", "Is hidden", Boolean::class) { if (it.isAbsolute && it.name.isEmpty()) false else it.isHidden } // File::isHidden gives true for roots, hence the check
+      val PATH = this + FileField("Path", "Path", type<String>()) { it.path }
+      val NAME = this + FileField("Name", "Name", type<String>()) { it.nameWithoutExtensionOrRoot }
+      val NAME_FULL = this + FileField("Filename", "Filename", type<String>()) { it.nameOrRoot }
+      val EXTENSION = this + FileField("Extension", "Extension", type<String>()) { it.extension }
+      val SIZE = this + FileField("Size", "Size", type<FileSize>()) { if (it is CachingFile) it.fileSize else it.readFileSize() }
+      val TIME_ACCESSED = this + FileField("Time Accessed", "Time Accessed", type<FileTime?>()) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
+      val TIME_MODIFIED = this + FileField("Time Modified", "Time Modified", type<LocalDateTime?>()) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
+      val TIME_CREATED = this + FileField("Time Created", "Time Created", type<FileTime?>()) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
+      val TYPE = this + FileField("Type", "Type", type<FileType>()) { FileType(it) }
+      val MIME = this + FileField("Mime Type", "Mime Type", type<MimeType>()) { it.mimeType() }
+      val MIME_GROUP = this + FileField("Mime Group", "Mime Group", type<String>()) { it.mimeType().group }
+      val IS_HIDDEN = this + FileField("Is hidden", "Is hidden", type<Boolean>()) { if (it.isAbsolute && it.name.isEmpty()) false else it.isHidden } // File::isHidden gives true for roots, hence the check
    }
 
 }
@@ -67,12 +69,16 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
 class CachingFile(f: File): File(f.path) {
    /** Time this file was last accessed or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeAccessed: FileTime? by lazy { readTimeAccessed() }
+
    /** Time this file was last modified or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeModified: LocalDateTime? by lazy { readTimeModified() }
+
    /** Time this file was created or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeCreated: FileTime? by lazy { readTimeCreated() }
+
    /** The minimum of [timeCreated] and [timeModified] or null if unable to find out. Lazy. Blocks on first invocation. */
    val timeMinOfCreatedModified: FileTime? by lazy { readTimeMinOfCreatedAndModified() }
+
    /** The size of the file. Lazy. Blocks on first invocation. */
    val fileSize: FileSize by lazy { readFileSize() }
    private val isDirectory = super.isDirectory()

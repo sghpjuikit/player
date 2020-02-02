@@ -4,14 +4,17 @@ import javafx.util.Duration
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.failCase
+import sp.it.util.functional.asIs
+import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.raw
+import sp.it.util.type.type
 import sp.it.util.units.FileSize
 import sp.it.util.units.RangeYear
 import sp.it.util.units.toHMSMs
 import java.util.ArrayList
 import java.util.HashSet
 import java.util.stream.Stream
-import kotlin.reflect.KClass
 import kotlin.streams.asSequence
 
 /** Group of [Metadata] by some [Metadata.Field] providing some group data. */
@@ -65,16 +68,16 @@ class MetadataGroup {
 
    override fun toString() = "$field: $value, items: $itemCount, albums: $albumCount, length: ${getLength()}, size: ${getFileSize()}, avgRating: $avgRating, wighted rating: $weighRating, year: $year"
 
-   class Field<T: Any>: ObjectFieldBase<MetadataGroup, T> {
+   class Field<T>: ObjectFieldBase<MetadataGroup, T> {
 
-      private constructor(type: KClass<T>, extractor: (MetadataGroup) -> T?, name: String, description: String): super(type, extractor, name, description)
+      private constructor(type: VType<T>, extractor: (MetadataGroup) -> T, name: String, description: String): super(type, extractor, name, description)
 
       fun toString(group: MetadataGroup): String = toString(group.field)
 
       fun toString(field: Metadata.Field<*>): String = if (this===VALUE) field.toString() else toString()
 
       @Suppress("UNCHECKED_CAST")
-      fun getType(field: Metadata.Field<*>): Class<out T> = if (this===VALUE) field.type as Class<out T> else type
+      fun getMFType(field: Metadata.Field<*>): VType<T> = if (this===VALUE) field.type.asIs() else type
 
       override fun toS(o: T?, substitute: String): String {
          return when (this) {
@@ -101,15 +104,16 @@ class MetadataGroup {
 
       override fun cWidth(): Double = if (this===VALUE) 250.0 else 70.0
 
+      @Suppress("RemoveExplicitTypeArguments")
       companion object: ObjectFieldRegistry<MetadataGroup, Field<*>>(MetadataGroup::class) {
-         @JvmField val VALUE = this + Field(Any::class, { it.value }, "Value", "Song field to group by")
-         @JvmField val ITEMS = this + Field(Long::class, { it.itemCount }, "Items", "Number of songs in the group")
-         @JvmField val ALBUMS = this + Field(Long::class, { it.albumCount }, "Albums", "Number of albums in the group")
-         @JvmField val LENGTH = this + Field(Duration::class, { it.getLength() }, "Length", "Total length of the group")
-         @JvmField val SIZE = this + Field(FileSize::class, { it.getFileSize() }, "Size", "Total file size of the group")
-         @JvmField val AVG_RATING = this + Field(Double::class, { it.avgRating }, "Avg rating", "Average rating of the group = sum(rating)/items")
-         @JvmField val W_RATING = this + Field(Double::class, { it.weighRating }, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items")
-         @JvmField val YEAR = this + Field(RangeYear::class, { it.year }, "Year", "Year or years of songs in the group")
+         @JvmField val VALUE = this + Field(type<Any>(), { it.value }, "Value", "Song field to group by")
+         @JvmField val ITEMS = this + Field(type<Long>(), { it.itemCount }, "Items", "Number of songs in the group")
+         @JvmField val ALBUMS = this + Field(type<Long>(), { it.albumCount }, "Albums", "Number of albums in the group")
+         @JvmField val LENGTH = this + Field(type<Duration>(), { it.getLength() }, "Length", "Total length of the group")
+         @JvmField val SIZE = this + Field(type<FileSize>(), { it.getFileSize() }, "Size", "Total file size of the group")
+         @JvmField val AVG_RATING = this + Field(type<Double>(), { it.avgRating }, "Avg rating", "Average rating of the group = sum(rating)/items")
+         @JvmField val W_RATING = this + Field(type<Double>(), { it.weighRating }, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items")
+         @JvmField val YEAR = this + Field(type<RangeYear>(), { it.year }, "Year", "Year or years of songs in the group")
 
          @JvmStatic override fun valueOf(text: String) = super.valueOf(text) ?: VALUE
       }
@@ -132,14 +136,12 @@ class MetadataGroup {
             .map { (key, value) -> MetadataGroup(f, false, key, value) }
       }
 
-      @JvmStatic
       fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 
-      @JvmStatic
       fun ungroup(groups: Stream<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 
       // TODO: this may need some work"
-      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.isSubclassOf<String>()) "" else null
+      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.raw.isSubclassOf<String>()) "" else null
 
    }
 }

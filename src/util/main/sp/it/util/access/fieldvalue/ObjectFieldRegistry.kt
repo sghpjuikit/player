@@ -3,6 +3,7 @@ package sp.it.util.access.fieldvalue
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.functional.Functors
 import sp.it.util.type.ObjectFieldMap
+import sp.it.util.type.rawJ
 import kotlin.reflect.KClass
 
 /**
@@ -55,7 +56,7 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
       allImpl += f
 
       ObjectFieldMap.DEFAULT.add(type.java, all)
-      Functors.pool.add(f.name(), type.java, f.type as Class<Any>, { f.getOf(it) })
+      Functors.pool.add(f.name(), type.java, f.type.rawJ, { f.getOf(it) })
    }
 
    /** @return field with the specified [ObjectField.name] or null if none */

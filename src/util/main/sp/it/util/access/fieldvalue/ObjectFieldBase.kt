@@ -1,29 +1,15 @@
 package sp.it.util.access.fieldvalue
 
-import kotlin.reflect.KClass
+import sp.it.util.type.VType
 
-abstract class ObjectFieldBase<V, T: Any>: ObjectField<V, T> {
-
-   private val name: String
+abstract class ObjectFieldBase<V, T>(
+   override val type: VType<T>,
+   private val extractor: (V) -> T,
+   private val name: String,
    private val description: String
-   private val type: Class<T>
-   private val extractor: (V) -> T?
-
-   constructor(type: KClass<T>, extractor: (V) -> T?, name: String, description: String) {
-      this.name = name
-      this.description = description
-      this.type = type.java
-      this.extractor = extractor
-   }
-
+): ObjectField<V, T> {
    override fun name() = name
-
    override fun description() = description
-
-   override fun getType() = type
-
    override fun getOf(value: V) = extractor(value)
-
    override fun toString() = name
-
 }

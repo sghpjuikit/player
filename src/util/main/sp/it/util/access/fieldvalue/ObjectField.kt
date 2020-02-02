@@ -1,15 +1,17 @@
 package sp.it.util.access.fieldvalue
 
-import sp.it.util.access.TypedValue
 import sp.it.util.functional.Util.by
 import sp.it.util.functional.nullsLast
+import sp.it.util.type.VType
+import sp.it.util.type.isSubclassOf
+import sp.it.util.type.rawJ
 import java.util.Comparator
 
 /**
  * @param <V> type of value this field extracts from
  * @param <T> type of this field and the type of the extracted value
  */
-interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
+interface ObjectField<V, T>: StringGetter<V> {
 
    /**
     * Returns whether this value has human readable string representation. This
@@ -28,7 +30,10 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
     */
    fun isTypeStringRepresentable(): Boolean = true
 
-   fun getOf(value: V): T?
+   /** type of the value (not class of this object) */
+   val type: VType<T>
+
+   fun getOf(value: V): T
 
    override fun getOfS(value: V, substitute: String): String = toS(getOf(value), substitute)
 
@@ -56,10 +61,10 @@ interface ObjectField<V, T>: TypedValue<T>, StringGetter<V> {
     */
    @Suppress("UNCHECKED_CAST")
    fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<V?> {
-      return if (Comparable::class.java.isAssignableFrom(type))
-         by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
-      else
-         sp.it.util.functional.Util.SAME as Comparator<V?>
+      return when {
+         type.rawJ.isSubclassOf<Comparable<*>>() -> by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
+         else -> sp.it.util.functional.Util.SAME as Comparator<V?>
+      }
    }
 
    fun <C: Comparable<C>> comparator(): Comparator<V?> = comparator<C> { it.nullsLast() }

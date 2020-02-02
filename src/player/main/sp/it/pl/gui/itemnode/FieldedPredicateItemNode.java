@@ -28,6 +28,7 @@ import static sp.it.util.functional.Util.ISNT;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.type.TypeTokenKt.getRawJ;
 
 /**
  * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
@@ -180,12 +181,12 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 
 	public static class PredicateData<T> {
 		public final String name;
-		public final Class type;
+		public final Class<?> type;
 		public final T value;
 
 		@NotNull
 		public static <V, T> PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
-			return new PredicateData<>(field.name(), field.getType(), field);
+			return new PredicateData<>(field.name(), getRawJ(field.getType()), field);
 		}
 
 		public PredicateData(String name, Class type, T value) {

@@ -60,6 +60,7 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.values
+import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.consumeScrolling
@@ -70,6 +71,8 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
 import sp.it.util.text.pluralUnit
+import sp.it.util.type.raw
+import sp.it.util.type.rawJ
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -174,7 +177,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                   } as CellFactory<Any?>
                   else -> CellFactory {
                      table.buildDefaultCell(mgf as ObjectField<in MetadataGroup, Any?>).apply {
-                        alignment = if (mgf.getType(mf)==String::class.java) CENTER_LEFT else CENTER_RIGHT
+                        alignment = if (mgf.getMFType(mf).raw==String::class) CENTER_LEFT else CENTER_RIGHT
                      }
                   }
                }
@@ -284,7 +287,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       val f = fieldFilter.value
       table.filterPane.inconsistentState = true
       table.filterPane.prefTypeSupplier = Supplier { PredicateData.ofField(VALUE) }
-      table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getType(f), it as ObjectField<MetadataGroup, Any>) }
+      table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getMFType(f).rawJ, it as ObjectField<MetadataGroup, Any>) }
       table.filterPane.clear()
       if (refreshItems) setItems(inputItems.value)
    }

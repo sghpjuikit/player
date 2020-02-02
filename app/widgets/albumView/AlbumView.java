@@ -66,6 +66,7 @@ import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync1If;
+import static sp.it.util.type.TypeTokenKt.getRawJ;
 
 @SuppressWarnings("WeakerAccess")
 @Widget.Info(
@@ -119,7 +120,7 @@ public class AlbumView extends SimpleController {
 			Metadata.Field<String> f = ALBUM;
 			view.implGetSkin().filter.inconsistentState = true;
 			view.implGetSkin().filter.setPrefTypeSupplier(() -> PredicateData.ofField(VALUE));
-			view.implGetSkin().filter.setData(map(MetadataGroup.Field.Companion.getAll(), mgf -> new PredicateData<ObjectField<MetadataGroup,Object>>(mgf.toString(f), mgf.getType(f), (MetadataGroup.Field) mgf)));
+			view.implGetSkin().filter.setData(map(MetadataGroup.Field.Companion.getAll(), mgf -> new PredicateData<ObjectField<MetadataGroup,Object>>(mgf.toString(f), getRawJ(mgf.getMFType(f)), (MetadataGroup.Field) mgf)));
 			view.implGetSkin().filter.shrinkTo(0);
 			view.implGetSkin().filter.growTo1();
 			view.implGetSkin().filter.clear();

@@ -18,6 +18,8 @@ import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.orNull
 import sp.it.util.identityHashCode
+import sp.it.util.type.VType
+import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
 import java.net.URI
 import kotlin.reflect.KClass
@@ -184,9 +186,9 @@ class PlaylistSong: Song {
       it.isCorruptCached = isCorruptCached
    }
 
-   class Field<T: Any>: ObjectFieldBase<PlaylistSong, T> {
+   class Field<T>: ObjectFieldBase<PlaylistSong, T> {
 
-      private constructor(type: KClass<T>, name: String, description: String, extractor: (PlaylistSong) -> T?): super(type, extractor, name, description)
+      private constructor(type: VType<T>, name: String, description: String, extractor: (PlaylistSong) -> T): super(type, extractor, name, description)
 
       override fun toS(o: T?, substitute: String): String {
          return when (this) {
@@ -201,13 +203,14 @@ class PlaylistSong: Song {
 
       override fun cVisible(): Boolean = this===NAME || this===LENGTH
 
+      @Suppress("RemoveExplicitTypeArguments")
       companion object: ObjectFieldRegistry<PlaylistSong, Field<*>>(PlaylistSong::class) {
-         @JvmField val NAME = this + Field(String::class, "Name", "'Song artist' - 'Song title'") { it.name }
-         @JvmField val TITLE = this + Field(String::class, "Title", "Song title") { it.title }
-         @JvmField val ARTIST = this + Field(String::class, "Artist", "Song artist") { it.artist }
-         @JvmField val LENGTH = this + Field(Duration::class, "Time", "Song length") { it.time }
-         @JvmField val PATH = this + Field(String::class, "Path", "Song file path") { it.getPathAsString() }
-         @JvmField val FORMAT = this + Field(AudioFileFormat::class, "Format", "Song file type") { it.getFormat() }
+         @JvmField val NAME = this + Field(type<String>(), "Name", "'Song artist' - 'Song title'") { it.name }
+         @JvmField val TITLE = this + Field(type<String>(), "Title", "Song title") { it.title }
+         @JvmField val ARTIST = this + Field(type<String>(), "Artist", "Song artist") { it.artist }
+         @JvmField val LENGTH = this + Field(type<Duration>(), "Time", "Song length") { it.time }
+         @JvmField val PATH = this + Field(type<String>(), "Path", "Song file path") { it.getPathAsString() }
+         @JvmField val FORMAT = this + Field(type<AudioFileFormat>(), "Format", "Song file type") { it.getFormat() }
       }
 
    }

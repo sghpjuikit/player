@@ -45,6 +45,7 @@ import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.type.TypeTokenKt.getRawJ;
 import static sp.it.util.type.Util.invokeMethodP0;
 
 /**
@@ -346,8 +347,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 				setText(rowItem==null  ? "" : f.toS(rowItem, item, ""));
 			}
 		};
-		cell.setAlignment(f.getType()==String.class ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
-		cell.setTextAlignment(f.getType()==String.class ? TextAlignment.LEFT : TextAlignment.RIGHT);
+		cell.setAlignment(getRawJ(f.getType())==String.class ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
+		cell.setTextAlignment(getRawJ(f.getType())==String.class ? TextAlignment.LEFT : TextAlignment.RIGHT);
 		cell.setPadding(Insets.EMPTY);
 		return cell;
 	}

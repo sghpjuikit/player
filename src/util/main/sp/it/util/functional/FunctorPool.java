@@ -25,7 +25,6 @@ import static sp.it.util.type.Util.unPrimitivize;
 
 @SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "unchecked"})
 public class FunctorPool {
-
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor
 	private final PrefListMap<PF,Class<?>> fsI = new PrefListMap<>(pf -> pf.in);
 	private final PrefListMap<PF,Class<?>> fsO = new PrefListMap<>(pf -> pf.out);

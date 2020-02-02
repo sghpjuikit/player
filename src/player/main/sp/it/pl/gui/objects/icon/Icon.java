@@ -25,13 +25,14 @@ import javafx.css.Styleable;
 import javafx.css.StyleableProperty;
 import javafx.css.converter.EffectConverter;
 import javafx.css.converter.PaintConverter;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -60,6 +61,9 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
@@ -181,13 +185,17 @@ public class Icon extends StackPane {
 		// mouse hover animation
 		// unfortunately, when effects such as drop shadow are enabled, this hover does not work properly
 		// hoverProperty().addListener((o, ov, nv) -> select(nv));
-		addEventHandler(MouseEvent.MOUSE_EXITED, e -> select(false));
-		addEventHandler(MouseEvent.MOUSE_ENTERED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
-		addEventHandler(MouseEvent.MOUSE_MOVED, e -> select(e.getX()>0 && e.getX()<getPrefWidth() && e.getY()>0 && e.getY()<getPrefHeight()));
+		addEventHandler(MOUSE_EXITED, e -> select(false));
+		addEventHandler(MOUSE_ENTERED, e -> select(iconBounds().contains(e.getX(), e.getY())));
+		addEventHandler(MOUSE_MOVED, e -> select(iconBounds().contains(e.getX(), e.getY())));
 
 		focusedProperty().addListener((o,ov,nv) -> {
 			if (isAnimated.get()) ra.get(this, Ahover).playFromDir(nv);
 		});
+	}
+
+	private Bounds iconBounds() {
+		return new BoundingBox((getLayoutBounds().getWidth()-getPrefWidth())/2.0, (getLayoutBounds().getHeight()-getPrefHeight())/2.0, 0.0, getPrefWidth(), getPrefHeight(), 0.0);
 	}
 
 	public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {

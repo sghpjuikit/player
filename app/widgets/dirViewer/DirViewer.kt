@@ -4,7 +4,6 @@ import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS
 import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
-import javafx.scene.control.Label
 import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -61,15 +60,14 @@ import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.isAnyParentOrSelfOf
+import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.let_
 import sp.it.util.functional.nullsLast
-import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.inSort
 import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
@@ -147,7 +145,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private var item: Item? = null
    private val placeholder = lazy {
       Placeholder(FOLDER_PLUS, "Click to explore directory") {
-         chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window).ifOk { files setToOne it }
+         prodUserToSetupLocation()
       }
    }
    private val filter by cv(FileFilters.filterPrimary.name) { FileFilters.toEnumerableValue(it) }
@@ -346,6 +344,8 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       }
    }
 
+   private fun prodUserToSetupLocation() = chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window).ifOk { files setToOne it }
+
    private inner class Cell: GridFileThumbCell() {
       private val disposer = Disposer()
 
@@ -392,15 +392,17 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       val breadcrumbs = Breadcrumbs<Item>(
          {
             when (it) {
-               is TopItem -> when (files.size) {
-                  0 -> "No location"
-                  1 -> files[0].absolutePath
+               is TopItem -> when {
+                  files.isEmpty() -> "No location"
                   else -> "Location".pluralUnit(files.size)
                }
-               else -> it.value.name
+               else -> it.value.nameOrRoot
             }
          },
-         { visit(it) }
+         {
+            if (it is TopItem && files.isEmpty()) prodUserToSetupLocation()
+            else visit(it)
+         }
       )
 
       init {
@@ -421,19 +423,14 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          spacing = 10.0
 
          values.onChange {
-            val cs = mutableListOf<Label>()
-            values.forEach { value ->
-               cs += label(converter(value)) {
+            children setTo values.map { value ->
+               label(converter(value)) {
                   val a = anim(150.millis) { setScaleXYByTo(it, 0.0, 5.0) }.intpl { it*it }
                   onHoverOrDragStart { a.playOpen() }
                   onHoverOrDragEnd { a.playClose() }
                   onEventDown(MOUSE_CLICKED) { onClick(value) }
                }
-               cs += label(">")
-            }
-            if (cs.isNotEmpty()) cs.removeAt(cs.size - 1)
-
-            children setTo cs
+            }.flatMap { listOf(it, label(">")) }.dropLast(1)
          }
       }
 

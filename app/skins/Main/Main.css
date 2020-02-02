@@ -2574,6 +2574,27 @@ icon-info-icon {
     -fx-opacity: 0.4;
 }
 
+/***************************** GRID FILE THUMB CELL ***************************
+ * inherits: .grid-cell
+ */
+.grid-file-thumb-cell {}
+
+/***************************** GRID FILE ICON CELL ****************************
+ * inherits: .grid-cell
+ */
+.grid-file-icon-cell,
+.grid-file-icon-cell:hover,
+.grid-file-icon-cell:selected {
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-background-color: null;
+}
+
+.grid-file-icon-cell .icon {
+    -fx-background-color: rgba(0,0,0,0);
+    -glyph-gap: 0;
+}
+
 /***************************** FONT PICKER DIALOG *****************************
  * Font picker dialog
  * inherits: .dialog

@@ -19,6 +19,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.type.InstanceMap
 import sp.it.util.type.Util.getRawGenericPropertyType
+import sp.it.util.type.type
 import java.io.File
 import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction
@@ -37,12 +38,12 @@ fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
 fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).but(Constraint.ObjectNonNull)
 fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
 fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
-fun <T: Any?> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
+fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).but(Constraint.ObjectNonNull)
-inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(T::class.java, null is T, observableArrayList(*initialItems)))
-inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(T::class.java, itemFactory, itemToConfigurable, null is T, *initialItems))
+inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems)))
+inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems))
 inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T,Boolean> = ConfCheckL(CheckList.nonNull(initialItems.toList()))
 inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T,S>): ConfCheckL<T,S> = ConfCheckL(checkList)
 
@@ -382,7 +383,7 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
       val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
       validateValue(c.value)
 
-      return object: ReadOnlyPropertyConfig<T>(type, property.name, info, constraints, v(c.value), group), RoProperty<ConfigDelegator, W> {
+      return object: PropertyConfigRO<T>(type, property.name, info, constraints, v(c.value), group), RoProperty<ConfigDelegator, W> {
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
    }

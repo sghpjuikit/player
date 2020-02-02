@@ -61,7 +61,7 @@ private typealias Num = Double
 class FunctionViewer(widget: Widget): SimpleController(widget) {
    private val function = v(StrExF.fromString("x").orThrow).apply { attach { plotAnimated(it) } }
    private var functionPlotted = function.value as Fun
-   private val functionEditor = ConfigEditor.create(Config.forProperty(StrExF::class.java, "Function", function))
+   private val functionEditor = ConfigEditor.create(Config.forProperty<StrExF>("Function", function))
    private val xMin = v(-1.0).apply { attach { plot() } }
    private val xMax = v(1.0).apply { attach { plot() } }
    private val yMin = v(-1.0).apply { attach { plot() } }
@@ -253,7 +253,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          lay += buildNode()
       }
 
-      fun V<Double>.createEditor(name: String) = ConfigEditor.create(Config.forProperty(Num::class.java, name, this))
+      fun V<Double>.createEditor(name: String) = ConfigEditor.create(Config.forProperty<Num>(name, this))
 
       val Double.precise: Double get() = roundToInt().toDouble()
 

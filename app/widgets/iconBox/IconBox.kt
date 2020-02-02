@@ -38,8 +38,8 @@ class IconBox(widget: Widget): SimpleController(widget), HorizontalDock {
       { Icon(BUS) },
       { icon ->
          ListConfigurable.heterogeneous(
-            Config.forProperty(GlyphIcons::class.java, "Icon", VarEnum(icon.glyph, Icon.GLYPHS).apply { attach { icon.icon(it) } }),
-            Config.forProperty(String::class.java, "Action", VarAction(icon.onClickAction) { icon.action(it) })
+            Config.forProperty<GlyphIcons>("Icon", VarEnum(icon.glyph, Icon.GLYPHS).apply { attach { icon.icon(it) } }),
+            Config.forProperty<String>("Action", VarAction(icon.onClickAction) { icon.action(it) })
          )
       }
    ).def(name = "Icons", info = "List of icons to show")

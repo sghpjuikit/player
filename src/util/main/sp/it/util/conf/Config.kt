@@ -6,8 +6,8 @@ import javafx.beans.value.WritableValue
 import javafx.collections.ObservableList
 import mu.KLogging
 import sp.it.util.access.OrV
-import sp.it.util.access.V
 import sp.it.util.access.vAlways
+import sp.it.util.access.vx
 import sp.it.util.conf.Constraint.NoPersist
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.ReadOnlyIf
@@ -17,14 +17,17 @@ import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.parsing.Parsers
 import sp.it.util.type.Util.getEnumConstants
 import sp.it.util.type.Util.isEnum
+import sp.it.util.type.VType
+import sp.it.util.type.getFirstGenericArgument
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.toRaw
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
+import sp.it.util.type.jvmErasure
+import sp.it.util.type.rawJ
+import sp.it.util.type.type
 import java.util.function.Supplier
 
 private typealias Enumerator<T> = Supplier<Collection<T>>
@@ -76,6 +79,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
                init {
                   bind(*readOnlyIfs.toTypedArray())
                }
+
                override fun computeValue() = readOnlyIfs.none { it.value }
             }
       }
@@ -163,23 +167,20 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
        *  *  create [ListConfig] if the type is subtype of [javafx.collections.ObservableList]
        *  *  wraps the value in [sp.it.util.access.V] and calls [forProperty]
        */
-      @Suppress("UNCHECKED_CAST")
-      @JvmStatic
-      fun <T> forValue(type: Type, name: String, value: Any?): Config<T> = null
-         ?: forPropertyImpl(type.toRaw(), name, value) as Config<T>?
+      fun <T> forValue(type: VType<T>, name: String, value: Any?): Config<T> = null
+         ?: forPropertyImpl(type, name, value)
          ?: run {
-            val typeRaw = type.toRaw()
+            val typeRaw = type.rawJ
             when {
                typeRaw.isSubclassOf<ObservableList<*>>() -> {
-                  val valueTyped = value as ObservableList<T>
-                  val def = ConfigDef(name, "", "", editable = if (ListConfig.isReadOnly(valueTyped)) EditMode.NONE else EditMode.USER)
-                  val itemType: Class<*> = when (type) {
-                     is ParameterizedType -> type.actualTypeArguments.firstOrNull()?.toRaw() ?: Any::class.java
-                     else -> Any::class.java
-                  }
-                  ListConfig(name, def, ConfList(itemType as Class<T>, true, valueTyped), "", setOf(), setOf()) as Config<T>
+                  val valueTyped = value as ObservableList<*>
+                  // TODO: use variance to get readOnly
+                  val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, valueTyped)) EditMode.NONE else EditMode.USER
+                  val def = ConfigDef(name, "", "", editable = isReadOnly)
+                  val itemType: VType<*> = getFirstGenericArgument(type.type)?.let { VType<Any?>(it) } ?: type<Any?>()
+                  ListConfig(name, def, ConfList(itemType, valueTyped.asIs()), "", setOf(), setOf()).asIs()
                }
-               else -> forProperty(typeRaw, name, V(value)) as Config<T>
+               else -> forProperty(type, name, vx(value))
             }
          }
 
@@ -194,28 +195,38 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
        * @param property underlying property for the config. The property must be instance of any of:
        *  *  [Config]
        *  *  [ConfList]
+       *  *  [OrV]
        *  *  [WritableValue]
        *  *  [ObservableValue]
        *
        * so standard javafx properties will all work. If not instance of any of the above, runtime exception will be thrown.
        */
-      @JvmStatic
-      fun <T> forProperty(type: Class<T>, name: String, property: Any?): Config<T> = null
+      fun <T> forProperty(type: VType<T>, name: String, property: Any?): Config<T> = null
          ?: forPropertyImpl(type, name, property)
          ?: fail { "Property $name must be WritableValue or ReadOnlyValue, but is ${property?.javaClass}" }
 
-      @Suppress("UNCHECKED_CAST")
-      private fun <T> forPropertyImpl(type: Class<T>, name: String, property: Any?): Config<T>? {
+      inline fun <reified T> forProperty(name: String, property: Any?): Config<T> = forProperty(type(), name, property)
+
+      @JvmStatic
+      @JvmOverloads
+      fun <T> forProperty(type: Class<T>, name: String, property: Any?, isNullable: Boolean = true): Config<T> = forProperty(VType(type, isNullable), name, property)
+
+      private fun <T> forPropertyImpl(type: VType<T>, name: String, property: Any?): Config<T>? {
          val def = ConfigDef(name, "", group = "", editable = EditMode.USER)
          return when (property) {
-            is Config<*> -> property as Config<T>
-            is ConfList<*> -> ListConfig(name, def.copy(editable = if (ListConfig.isReadOnly(property.list)) EditMode.NONE else EditMode.USER), property, "", setOf(), setOf()) as Config<T>
-            is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), property as OrV<T>, group = "") as Config<T>
-            is WritableValue<*> -> PropertyConfig(type, name, def, setOf(), property as WritableValue<T>, group = "")
-            is ObservableValue<*> -> ReadOnlyPropertyConfig(type, name, def, setOf(), property as ObservableValue<T>, group = "")
+            is Config<*> -> property.asIs()
+            is ConfList<*> -> {
+               val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, property.list)) EditMode.NONE else EditMode.USER
+               ListConfig(name, def.copy(editable = isReadOnly), property, "", setOf(), setOf()).asIs()
+            }
+            is OrV<*> -> OrPropertyConfig(type.rawJ, name, def, setOf(), property.asIs(), group = "").asIs()
+            is WritableValue<*> -> PropertyConfig(type.rawJ, name, def, setOf(), property.asIs(), group = "")
+            is ObservableValue<*> -> PropertyConfigRO(type.rawJ, name, def, setOf(), property.asIs(), group = "")
             else -> null
+         }?.apply {
+            if (!type.isNullable)
+               addConstraints(ObjectNonNull)
          }
       }
-
    }
 }

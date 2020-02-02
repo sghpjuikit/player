@@ -39,6 +39,7 @@ import sp.it.util.functional.invoke
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.raw
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.units.millis
 import java.io.File
@@ -245,7 +246,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          put(ObservableList::class.java) {
             when (it) {
                is ListConfig<*> -> when {
-                  it.a.itemType.isSubclassOf<Configurable<*>>() -> PaginatedObservableListCE(it.asIs())
+                  it.a.itemType.raw.isSubclassOf<Configurable<*>>() -> PaginatedObservableListCE(it.asIs())
                   else -> ObservableListCE(it)
                }
                else -> null

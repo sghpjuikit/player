@@ -461,7 +461,7 @@ public class Comet extends SimpleController {
 	final V<PlayerSpawn> spawning = new V<>(PlayerSpawn.CIRCLE);
 	final ObservableList<Integer> gamepadIds = FXCollections.observableArrayList();
 	@IsConfig(name = "Players")
-	final FixedConfList<Player> PLAYERS = new FixedConfList<>(Player.class,
+	final FixedConfList<Player> PLAYERS = new FixedConfList<>(Player.class, false,
 		new Player(1, Color.CORNFLOWERBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
 		new Player(2, Color.GREY, KeyCode.M, KeyCode.UP, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.N, PLAYER_ABILITY_INITIAL),
 		new Player(3, Color.GREEN, KeyCode.T, KeyCode.G, KeyCode.F, KeyCode.H, KeyCode.R, PLAYER_ABILITY_INITIAL),

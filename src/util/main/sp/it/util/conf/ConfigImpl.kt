@@ -32,6 +32,7 @@ import java.lang.reflect.Field
 import java.util.HashSet
 import java.util.function.Supplier
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 interface ConfigImpl {
@@ -172,7 +173,7 @@ open class PropertyConfig<T> @JvmOverloads constructor(
 }
 
 @Suppress("UNCHECKED_CAST")
-open class ReadOnlyPropertyConfig<T>(
+open class PropertyConfigRO<T>(
    valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
 ): ConfigBase<T>(valueType, name, c, constraints, property.value, group) {
 
@@ -271,7 +272,7 @@ open class ListConfig<T>(
    private val isFixedSizeAndHasConfigurableItems: Boolean = a.itemFactory===FailFactory
 
    init {
-      failIf(isReadOnly(a.list)!=def.editable.isByNone)
+      failIf(isReadOnly(null, a.list)!=def.editable.isByNone)
 
       defaultItems = if (isFixedSizeAndHasConfigurableItems) null else a.list.materialize()
       toConfigurable = a.itemToConfigurable.compose { configurable ->
@@ -296,8 +297,11 @@ open class ListConfig<T>(
          a.list setTo defaultItems.orEmpty()
    }
 
+   @Suppress("SimplifyBooleanWithConstants")
    companion object {
-      internal fun isReadOnly(list: ObservableList<*>): Boolean = list.javaClass.simpleName.toLowerCase().contains("unmodifiable")
+      internal fun isReadOnly(type: KClass<*>?, list: ObservableList<*>?): Boolean = false
+         || type?.java?.simpleName?.contains("unmodifiable", true)==true
+         || list?.javaClass?.simpleName?.contains("unmodifiable", true)==true
    }
 
 }

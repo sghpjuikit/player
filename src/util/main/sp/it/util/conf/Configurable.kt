@@ -4,7 +4,8 @@ import sp.it.util.conf.ConfigurationUtil.configsOf
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
 import sp.it.util.type.Util
-import sp.it.util.type.Util.forEachJavaFXProperty
+import sp.it.util.type.VType
+import sp.it.util.type.forEachJavaFXProperty
 import java.util.ArrayList
 
 /**
@@ -91,7 +92,7 @@ fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Conf
 /** @return configurable of configs representing all javafx properties of this object */
 fun Any.toConfigurableFx(): Configurable<*> {
    val cs = ArrayList<Config<Any?>>()
-   forEachJavaFXProperty(this) { p, name, type -> cs.add(Config.forValue(type, name, p)) }
+   forEachJavaFXProperty(this) { p, name, type -> cs.add(Config.forValue(VType(type), name, p)) }
    return cs.toListConfigurable()
 }
 

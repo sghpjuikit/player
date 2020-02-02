@@ -211,7 +211,10 @@ fun showConfirmation(text: String, action: () -> Unit) {
             textAlignment = TextAlignment.CENTER
             wrappingWithNatural.subscribe()
          }
-         lay += okIcon { action(); if (isShowing) hide() }
+         lay += okIcon {
+            action()
+            if (isShowing) hide()
+         }
 
          applyCss()
       }
@@ -222,9 +225,12 @@ fun showConfirmation(text: String, action: () -> Unit) {
    }
 }
 
-fun <T, C: Configurable<T>> C.configure(titleText: String, action: (C) -> Unit) {
+fun <C: Configurable<*>> C.configure(titleText: String, action: (C) -> Unit) {
    PopWindow().apply {
-      val form = form(this@configure) { action(it); if (isShowing) hide() }
+      val form = form(this@configure) {
+         action(it)
+         if (isShowing) hide()
+      }
 
       content.value = form
       title.value = titleText

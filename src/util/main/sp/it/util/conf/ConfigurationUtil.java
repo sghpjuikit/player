@@ -19,21 +19,19 @@ import static sp.it.util.type.Util.getRawGenericPropertyType;
 
 public class ConfigurationUtil {
 
-	@SuppressWarnings("unchecked")
-	public static List<Config<Object>> configsOf(Class<?> clazz, Object instance) {
+	public static List<Config<?>> configsOf(Class<?> clazz, Object instance) {
 		noNull(instance);
 
-		return (List) stream(getAllFields(clazz))
+		return stream(getAllFields(clazz))
 				.map(f -> createConfig(f, instance))
 				.filter(ISNT0)
 				.collect(toList());
 	}
 
-	@SuppressWarnings("unchecked")
-	public static List<Config<Object>> configsOf(Class<?> clazz, String fieldNamePrefix, String group, Object instance) {
+	public static List<Config<?>> configsOf(Class<?> clazz, String fieldNamePrefix, String group, Object instance) {
 		noNull(instance);
 
-		return (List) stream(getAllFields(clazz))
+		return stream(getAllFields(clazz))
 			.map(f -> createConfig(fieldNamePrefix, group, f, instance))
 			.filter(ISNT0)
 			.collect(toList());
@@ -65,7 +63,7 @@ public class ConfigurationUtil {
 
 	@SuppressWarnings("unchecked")
 	private static <T> Config<T> createConfig(Field f, T instance, String name, ConfigDefinition def, String group) {
-		Class<T> type = (Class) f.getType();
+		Class<T> type = (Class<T>) f.getType();
 		if (Config.class.isAssignableFrom(type)) {
 			return newFromConfig(f, instance);
 		} else if (ConfList.class.isAssignableFrom(type) || WritableValue.class.isAssignableFrom(type) || ObservableValue.class.isAssignableFrom(type)) {
@@ -83,23 +81,23 @@ public class ConfigurationUtil {
 			failIfNotFinal(f);
 			f.setAccessible(true);
 			if (ConfList.class.isAssignableFrom(f.getType())) {
-				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
-				return (Config<T>) new ListConfig<T>(name, def, (ConfList) f.get(instance), group, Set.of(), Set.of());
+				Class<T> propertyType = (Class<T>) getRawGenericPropertyType(f.getGenericType());
+				return (Config<T>) new ListConfig<Object>(name, def, (ConfList<Object>) f.get(instance), group, Set.of(), Set.of());
 			}
 			if (OrV.class.isAssignableFrom(f.getType())) {
-				OrV<T> property = (OrV) f.get(instance);
-				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
+				OrV<T> property = (OrV<T>) f.get(instance);
+				Class<T> propertyType = (Class<T>) getRawGenericPropertyType(f.getGenericType());
 				return (Config<T>) new OrPropertyConfig<T>(propertyType, name, def, Set.of(), property, group);
 			}
 			if (WritableValue.class.isAssignableFrom(f.getType())) {
-				WritableValue<T> property = (WritableValue) f.get(instance);
-				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
+				WritableValue<T> property = (WritableValue<T>) f.get(instance);
+				Class<T> propertyType = (Class<T>) getRawGenericPropertyType(f.getGenericType());
 				return new PropertyConfig<T>(propertyType, name, def, Set.of(), property, group);
 			}
 			if (ObservableValue.class.isAssignableFrom(f.getType())) {
-				ObservableValue<T> property = (ObservableValue) f.get(instance);
-				Class<T> propertyType = getRawGenericPropertyType(f.getGenericType());
-				return new ReadOnlyPropertyConfig<T>(propertyType, name, def, Set.of(), property, group);
+				ObservableValue<T> property = (ObservableValue<T>) f.get(instance);
+				Class<T> propertyType = (Class<T>) getRawGenericPropertyType(f.getGenericType());
+				return new PropertyConfigRO<T>(propertyType, name, def, Set.of(), property, group);
 			}
 			throw new IllegalArgumentException("Wrong class");
 		} catch (IllegalAccessException|SecurityException e) {

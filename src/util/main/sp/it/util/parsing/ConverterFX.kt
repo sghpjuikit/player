@@ -43,7 +43,7 @@ class ConverterFX: Converter() {
          }
       } catch (e: Exception) {
          logger.warn(e) { "Parsing failed, class=$type text=$text" }
-         Try.error(e.message ?: "")
+         Try.error(e.message ?: "Unknown error")
       }
    }
 

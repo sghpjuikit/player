@@ -13,6 +13,7 @@ import sp.it.pl.main.okIcon
 import sp.it.util.access.v
 import sp.it.util.conf.Configurable
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -120,8 +121,7 @@ class Form<T>: AnchorPane {
        * @param onOk on submit action (taking the configurable as input parameter) or null if none. Submit button is
        * only visible if there is an action to execute.
        */
-      @Suppress("UNCHECKED_CAST")
       @JvmOverloads
-      fun <T, C: Configurable<T>> form(configurable: C, onOk: ((C) -> Unit)? = null) = Form(configurable, onOk?.let { { c: Configurable<T> -> onOk(c as C) } })
+      fun <C: Configurable<*>> form(configurable: C, onOk: ((C) -> Unit)? = null) = Form(configurable, onOk.asIf())
    }
 }

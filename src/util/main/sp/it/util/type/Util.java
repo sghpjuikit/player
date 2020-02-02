@@ -6,7 +6,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
@@ -14,32 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiConsumer;
-import javafx.beans.Observable;
-import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.MapChangeListener;
-import javafx.geometry.HPos;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.geometry.VPos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.functional.Functors.F1;
-import sp.it.util.functional.TriConsumer;
-import static kotlin.text.StringsKt.substringBeforeLast;
-import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.type.UtilKt.toRaw;
 
@@ -48,138 +23,6 @@ import static sp.it.util.type.UtilKt.toRaw;
  */
 @SuppressWarnings({"unused", "unchecked"})
 public interface Util {
-
-	/**
-	 * Execute action for each observable value representing a javafx property of an object o.
-	 * Additional provided arguments are name of the property and its non-erased generic type.
-	 * Javafx properties are obtained from public nameProperty() methods using reflection.
-	 */
-	@SuppressWarnings({"UnnecessaryLocalVariable", "ConstantConditions", "SpellCheckingInspection"})
-	static void forEachJavaFXProperty(Object o, TriConsumer<Observable,String,Type> action) {
-		// Standard JavaFX Properties
-		for (Method method : o.getClass().getMethods()) {
-			String methodName = method.getName();
-			boolean isPublished = !Modifier.isStatic(method.getModifiers()) && !methodName.startsWith("impl");
-			if (isPublished) {
-				String propertyName = null;
-				if (Observable.class.isAssignableFrom(method.getReturnType())) {
-					try {
-						propertyName = methodName;
-						propertyName = substringBeforeLast(propertyName, "Property", propertyName);
-						propertyName = kotlin.text.StringsKt.substringAfter(propertyName, "get", propertyName);
-						propertyName = kotlin.text.StringsKt.decapitalize(propertyName);
-						method.setAccessible(true);
-						Observable observable = (Observable) method.invoke(o);
-
-						if (observable instanceof Property && ((Property) observable).isBound()) {
-							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
-							rop.bind((Property) observable);
-							observable = rop.getReadOnlyProperty();
-						}
-
-						Type propertyType = getGenericPropertyType(method.getGenericReturnType());
-						if (observable!=null && propertyName!=null && propertyType!=null) {
-							action.accept(observable, propertyName, propertyType);
-						} else {
-							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyType);
-						}
-
-					} catch (IllegalAccessException|InvocationTargetException e) {
-						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
-					}
-				}
-			}
-		}
-		// Extended JavaFX Properties as exposed fields
-		for (Field field : o.getClass().getFields()) {
-			String fieldName = field.getName();
-			boolean isPublished = !Modifier.isStatic(field.getModifiers()) && !fieldName.startsWith("impl");
-			if (isPublished) {
-				String propertyName = fieldName;
-				if (Observable.class.isAssignableFrom(field.getType())) {
-					try {
-						field.setAccessible(true);
-						Observable observable = (Observable) field.get(o);
-
-						if (observable instanceof Property && ((Property) observable).isBound()) {
-							ReadOnlyObjectWrapper<Object> rop = new ReadOnlyObjectWrapper<>();
-							rop.bind((Property) observable);
-							observable = rop.getReadOnlyProperty();
-						}
-
-						Type propertyType = getGenericPropertyType(field.getGenericType());
-						if (observable!=null && propertyName!=null && propertyType!=null) {
-							action.accept(observable, propertyName, propertyType);
-						} else {
-							logger(Util.class).warn("Is null property='{}' propertyName={} propertyType={}", observable, propertyName, propertyType);
-						}
-
-					} catch (IllegalAccessException e) {
-						logger(Util.class).error("Could not obtain property '{}' from object", propertyName);
-					}
-				}
-			}
-		}
-
-		// add synthetic javafx layout properties for nodes in scene graph
-		var child = o instanceof Node ? (Node) o : null;
-		var parent = o instanceof Node ? ((Node) o).getParent() : null;
-		if (parent instanceof StackPane) {
-			action.accept(paneProperty(parent, child, Pos.class, "stackpane-alignment", StackPane::getAlignment, StackPane::setAlignment), "L: Alignment", Pos.class);
-			action.accept(paneProperty(parent, child, Insets.class, "stackpane-margin", StackPane::getMargin, StackPane::setMargin), "L: Margin", Insets.class);
-		}
-		if (parent instanceof AnchorPane) {
-			action.accept(paneProperty(parent, child, Double.class, "pane-top-anchor", AnchorPane::getTopAnchor, AnchorPane::setTopAnchor), "L: Anchor (top)", Double.class);
-			action.accept(paneProperty(parent, child, Double.class, "pane-right-anchor", AnchorPane::getRightAnchor, AnchorPane::setRightAnchor), "L: Anchor (right)", Double.class);
-			action.accept(paneProperty(parent, child, Double.class, "pane-bottom-anchor", AnchorPane::getBottomAnchor, AnchorPane::setBottomAnchor), "L: Anchor (bottom)", Double.class);
-			action.accept(paneProperty(parent, child, Double.class, "pane-left-anchor", AnchorPane::getLeftAnchor, AnchorPane::setLeftAnchor), "L: Anchor (left)", Double.class);
-		}
-		if (parent instanceof VBox) {
-			action.accept(paneProperty(parent, child, Priority.class, "vbox-vgrow", VBox::getVgrow, VBox::setVgrow), "L: VGrow", Priority.class);
-			action.accept(paneProperty(parent, child, Insets.class, "vbox-margin", VBox::getMargin, VBox::setMargin), "L: Margin", Insets.class);
-		}
-		if (parent instanceof HBox) {
-			action.accept(paneProperty(parent, child, Priority.class, "hbox-vgrow", HBox::getHgrow, HBox::setHgrow), "L: HGrow", Priority.class);
-			action.accept(paneProperty(parent, child, Insets.class, "hbox-margin", HBox::getMargin, HBox::setMargin), "L: Margin", Insets.class);
-		}
-		if (parent instanceof FlowPane) {
-			action.accept(paneProperty(parent, child, Insets.class, "flowpane-margin", FlowPane::getMargin, FlowPane::setMargin), "L: Margin", Insets.class);
-		}
-		if (parent instanceof BorderPane) {
-			action.accept(paneProperty(parent, child, Pos.class, "borderpane-alignment", BorderPane::getAlignment, BorderPane::setAlignment), "L: Alignment", Pos.class);
-			action.accept(paneProperty(parent, child, Insets.class, "borderpane-margin", BorderPane::getMargin, BorderPane::setMargin), "L: Margin", Insets.class);
-		}
-		if (parent instanceof GridPane) {
-			action.accept(paneProperty(parent, child, Integer.class, "gridpane-column", GridPane::getColumnIndex, GridPane::setColumnIndex), "L: Column index", Integer.class);
-			action.accept(paneProperty(parent, child, Integer.class, "gridpane-column-span", GridPane::getColumnSpan, GridPane::setColumnSpan), "L: Column span", Integer.class);
-			action.accept(paneProperty(parent, child, Integer.class, "gridpane-row", GridPane::getRowIndex, GridPane::setRowIndex), "L: Row index", Integer.class);
-			action.accept(paneProperty(parent, child, Integer.class, "gridpane-row-span", GridPane::getRowSpan, GridPane::setRowSpan), "L: Row span", Integer.class);
-			action.accept(paneProperty(parent, child, VPos.class, "gridpane-valignment", GridPane::getValignment, GridPane::setValignment), "L: Valignment", VPos.class);
-			action.accept(paneProperty(parent, child, HPos.class, "gridpane-halignment", GridPane::getHalignment, GridPane::setHalignment), "L: Halignment", HPos.class);
-			action.accept(paneProperty(parent, child, Priority.class, "gridpane-vgrow", GridPane::getVgrow, GridPane::setVgrow), "L: Vgrow", Priority.class);
-			action.accept(paneProperty(parent, child, Priority.class, "gridpane-hgrow", GridPane::getHgrow, GridPane::setHgrow), "L: Hgrow", Priority.class);
-			action.accept(paneProperty(parent, child, Insets.class, "gridpane-margin", HBox::getMargin, HBox::setMargin), "L: Margin", Insets.class);
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <T> Observable paneProperty(Parent parent, Node child, Class<T> type, String key, F1<Node,T> getter, BiConsumer<Node, T> setter) {
-		return new SimpleObjectProperty<>(getter.apply(child)) {
-			{
-				child.getProperties().addListener((MapChangeListener.Change<?,?> v) -> {
-					if (v.getKey().equals(key)) {
-						super.setValue((T) v.getValueAdded());
-					}
-				});
-			}
-
-			@Override
-			public void setValue(T v) {
-				super.setValue(v);
-				setter.accept(child, v);
-			}
-		};
-	}
 
 /* ---------- REFLECTION - FIELD ------------------------------------------------------------------------------------ */
 
@@ -389,7 +232,7 @@ public interface Util {
 	 * @return exact generic type of {@link javafx.beans.property.Property} represented by the specified type
 	 */
 	// TODO: remove? use getGenericPropertyType where possible
-	static Class getRawGenericPropertyType(Type t) {
+	static Class<?> getRawGenericPropertyType(Type t) {
 		if (t instanceof Class<?>) {
 			boolean isProperty = ObservableValue.class.isAssignableFrom((Class<?>) t);
 			if (!isProperty) return unPrimitivize((Class<?>) t);
@@ -480,7 +323,7 @@ public interface Util {
 	}
 
 	// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
-	private static Type getGenericPropertyTypeImpl(Type t) {
+	static Type getGenericPropertyTypeImpl(Type t) {
 		if (t instanceof ParameterizedType) {
 			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
 			return genericTypes.length==0 ? null : genericTypes[0];
@@ -503,19 +346,6 @@ public interface Util {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Returns i-th generic parameter of the class starting from 0.
-	 * Same as {@link #getGenericClass(Class, int)} but for interfaces.
-	 *
-	 * @param type class to get generic parameter of
-	 * @param i index of the interface
-	 * @param p index of the parameter
-	 * @return i-th generic parameter of the class starting from 0.
-	 */
-	static Class getGenericInterface(Class type, int i, int p) {
-		return (Class) ((ParameterizedType) type.getGenericInterfaces()[i]).getActualTypeArguments()[p];
 	}
 
 	/**

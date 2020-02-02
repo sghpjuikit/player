@@ -39,7 +39,6 @@
     - player.memoryMin=100m  // defines -Xms of the JVM of the application
     - player.memoryMax=3g  // defines -Xmx of the JVM of the application
     - player.buildDir=Z:/build  // build output directory
-    - player.kotlinc.experimental=true  // whether fast experimental (native) or standard kotlinc is used to compile widgets, default true
     - player.jvmArgs= // custom JVM arguments
 - [settings.gradle.kts](settings.gradle.kts)  
   Shared project properties, defines gradle build configuration, like build files, etc.

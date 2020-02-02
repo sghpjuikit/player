@@ -60,11 +60,15 @@ allprojects {
    tasks.withType<KotlinCompile> {
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
+      kotlinOptions.includeRuntime = true
+      kotlinOptions.noStdlib = false
+      kotlinOptions.noReflect = false
       kotlinOptions.freeCompilerArgs += listOf(
          "-progressive",
          "-Xno-call-assertions",
          "-Xno-param-assertions",
-         "-Xjvm-default=enable"
+         "-Xjvm-default=enable",
+         "-Xuse-experimental=kotlin.Experimental"
       )
       kotlinOptions.javaParameters = true
       kotlinOptions.jdkHome = dirJdk.path

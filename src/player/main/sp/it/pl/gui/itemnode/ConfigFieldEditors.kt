@@ -11,7 +11,6 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
-import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ColorPicker
 import javafx.scene.control.ContextMenu
@@ -64,7 +63,6 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginManager
-import sp.it.util.access.EnumerableValue
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
@@ -86,7 +84,7 @@ import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
-import sp.it.util.conf.ReadOnlyPropertyConfig
+import sp.it.util.conf.PropertyConfigRO
 import sp.it.util.dev.failCase
 import sp.it.util.file.FilePickerType
 import sp.it.util.functional.Try
@@ -140,7 +138,7 @@ const val STYLECLASS_CONFIG_EDITOR_WARN_BUTTON = "config-editor-warn-button"
 
 private fun <T> getObservableValue(c: Config<T>): ObservableValue<T>? = when {
    c is PropertyConfig<T> && c.property is ObservableValue<*> -> c.property.asIs<ObservableValue<T>>()
-   c is ReadOnlyPropertyConfig<T> -> c.property
+   c is PropertyConfigRO<T> -> c.property
    else -> null
 }
 
@@ -183,8 +181,8 @@ class OrBoolCE(c: Config<Boolean?>): BoolCE(c) {
 
 class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrPropertyConfig.OrValue<T>>(c) {
    override val editor = FlowPane(5.0, 5.0)
-   private val oCE = create(Config.forProperty(Boolean::class.java, "Override", c.property.override))
-   private val vCE = create(Config.forProperty(c.valueType, "", c.property.real))
+   private val oCE = create(Config.forProperty<Boolean>("Override", c.property.override))
+   private val vCE = create(Config.forProperty(c.valueType, "", c.property.real, c.findConstraint<ObjectNonNull>()==null))
 
    init {
       c.property.override sync { vCE.editor.isDisable = !it } on editor.onNodeDispose

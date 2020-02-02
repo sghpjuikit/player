@@ -58,6 +58,7 @@ class FileField<T: Any>: ObjectFieldBase<File, T> {
       val TYPE = this + FileField("Type", "Type", FileType::class) { FileType(it) }
       val MIME = this + FileField("Mime Type", "Mime Type", MimeType::class) { it.mimeType() }
       val MIME_GROUP = this + FileField("Mime Group", "Mime Group", String::class) { it.mimeType().group }
+      val IS_HIDDEN = this + FileField("Is hidden", "Is hidden", Boolean::class) { if (it.isAbsolute && it.name.isEmpty()) false else it.isHidden } // File::isHidden gives true for roots, hence the check
    }
 
 }
@@ -74,6 +75,12 @@ class CachingFile(f: File): File(f.path) {
    val timeMinOfCreatedModified: FileTime? by lazy { readTimeMinOfCreatedAndModified() }
    /** The size of the file. Lazy. Blocks on first invocation. */
    val fileSize: FileSize by lazy { readFileSize() }
+   private val isDirectory = super.isDirectory()
+   override fun isDirectory() = isDirectory
+   private val isFile = if (isDirectory) false else super.isFile()
+   override fun isFile() = isFile
+   private val isHidden = super.isHidden()
+   override fun isHidden() = isHidden
 }
 
 @Blocks

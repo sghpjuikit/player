@@ -119,10 +119,12 @@ fun InstanceDescription.initApp() {
          val fs = FileSize(f)
          "Size" info ("" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else ""))
          "Format" info f.name.substringAfterLast('.', "<none>")
+         FileField.MIME.name() info FileField.MIME.getOfS(f, "n/a")
       }
 
       FileField.TIME_CREATED.name() info FileField.TIME_CREATED.getOfS(f, "n/a")
       FileField.TIME_MODIFIED.name() info FileField.TIME_MODIFIED.getOfS(f, "n/a")
+      FileField.IS_HIDDEN.name() info FileField.IS_HIDDEN.getOfS(f, "n/a")
 
       if (f.isImage())
          "Resolution" info getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")

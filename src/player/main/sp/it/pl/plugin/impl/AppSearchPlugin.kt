@@ -356,9 +356,7 @@ class AppSearchPlugin: PluginBase() {
       fun File.getPortableAppExe(type: FileType) = if (type==FileType.DIRECTORY) File(this, "$name.exe") else null
 
       fun startMenuPrograms(): Sequence<File> = when (Os.current) {
-         Os.WINDOWS -> windowsAppDataDirectory.walk()
-            .filter { '.' in it.name && !it.name.contains("uninstall", true) }
-            .map { CachingFile(it) }
+         Os.WINDOWS -> windowsAppDataDirectory.walk().filter { '.' in it.name && !it.name.contains("uninstall", true) }
          else -> sequenceOf()
       }
 

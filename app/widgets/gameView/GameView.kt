@@ -205,7 +205,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    override fun focus() = grid.requestFocus()
 
    private fun viewGames() {
-      runOn(NEW) {
+      runIO {
          files.asSequence()
             .distinct()
             .flatMap { it.children() }

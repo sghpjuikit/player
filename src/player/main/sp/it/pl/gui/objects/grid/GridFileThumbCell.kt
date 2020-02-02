@@ -21,6 +21,7 @@ import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
+import sp.it.util.file.nameOrRoot
 import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.doIfImageLoaded
@@ -55,11 +56,12 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    @Volatile private var indexVolatile: Int = -1
 
    init {
+      styleClass += "grid-file-thumb-cell"
       parentProperty() sync { parentVolatile = it?.parent } on onDispose
    }
 
    protected open fun computeName(item: Item): String = when (item.valType) {
-      FileType.DIRECTORY -> item.value.name
+      FileType.DIRECTORY -> item.value.nameOrRoot
       FileType.FILE -> item.value.nameWithoutExtensionOrRoot
    }
 

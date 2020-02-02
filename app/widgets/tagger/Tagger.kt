@@ -132,6 +132,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.text.pluralUnit
+import sp.it.util.type.type
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.containsMouse
 import sp.it.util.ui.createIcon
@@ -185,7 +186,7 @@ typealias Converter = (String) -> String
 )
 class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
-   val inputValue = io.i.create<List<Song>>("Edit", null) { read(it) }
+   val inputValue = io.i.create<List<Song>>("Edit", listOf()) { read(it.orEmpty()) }
 
    val coverV = ThumbnailWithAdd(IconFA.PLUS, "Change cover")
    val descriptionL = Label()
@@ -238,7 +239,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    var readingAddMode = false
    val validators = mutableListOf<Validation>()
 
-   val coverField = object: TagField<ImageCover, File?>(COVER, false) {
+   val coverField = object: TagField<ImageCover?, File?>(COVER, false) {
       val coverContainer: StackPane = scrollContent.lookupId("coverContainer")
       val coverDescriptionL: Label = scrollContent.lookupId("coverDescriptionL")
       override var outputValue: File? = null
@@ -410,7 +411,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       ratingPF.setOnKeyReleased { updateRatingRaw() }
       ratingPF.setOnMousePressed { updateRatingRaw() }
 
-      read(inputValue.value)
+      read(inputValue.value.orEmpty())
    }
 
    private fun updateRatingRaw() = runTry {
@@ -424,10 +425,10 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
     * Reads metadata on the specified songs and fills the data for tagging.
     * If song is [Metadata], reading is skipped.
     */
-   override fun read(songsToRead: List<Song>?) {
-      inputValue.value = songsToRead
+   override fun read(songs: List<Song>) {
+      inputValue.value = songs
 
-      val unique = MapSet(songsToRead.orEmpty()) { it.uri }  // remove duplicates
+      val unique = MapSet(songs) { it.uri }  // remove duplicates
       allSongs setTo unique
       if (readingAddMode) readAdd(unique, false) else readSet(unique)
    }
@@ -599,7 +600,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       scrollContent.opacity = 1.0
    }
 
-   inner class TextTagField<T: Any>(
+   inner class TextTagField<T>(
       f: Metadata.Field<T>,
       private val c: TextInputControl,
       readOnly: Boolean = false,
@@ -1037,7 +1038,9 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
    companion object {
 
-      private val RATING_RAW_OF = Metadata.Field(String::class, { "${it.getRating() ?: AppTexts.textNoVal}/${it.getRatingMax()}" }, "Rating (raw)", "Song rating value in tag. Maximal value depends on tag type")
+      private val RATING_RAW_OF = Metadata.Field(type(), "Rating (raw)", "Song rating value in tag. Maximal value depends on tag type") {
+         "${it.getRating() ?: AppTexts.textNoVal}/${it.getRatingMax()}"
+      }
 
       private fun Label.computeIdFromText() = text.split(" ").joinToString("") { it.capitalize() }.decapitalize() + "L"
 
@@ -1082,7 +1085,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          }
    }
 
-   abstract class TagField<I: Any, O: Any?>(val f: Metadata.Field<I>, val readOnly: Boolean = false) {
+   abstract class TagField<I, O>(val f: Metadata.Field<I>, val readOnly: Boolean = false) {
       var state: ReadState<I?> = ReadState.Init
       var committable = false
       abstract val outputValue: O
@@ -1117,7 +1120,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       /** No value in all songs */
       object None: ReadState<Nothing>()
       /** Same value in all songs */
-      data class Same<T>(val value: T?): ReadState<T>()
+      data class Same<T>(val value: T): ReadState<T>()
       /** Multiple value in all songs */
       object Multi: ReadState<Nothing?>()
    }

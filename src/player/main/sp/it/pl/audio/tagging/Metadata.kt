@@ -785,7 +785,7 @@ class Metadata: Song, Serializable {
 
    class Field<T>: ObjectFieldBase<Metadata, T> {
 
-      constructor(type: VType<T>, extractor: (Metadata) -> T, name: String, description: String): super(type, extractor, name, description)
+      constructor(type: VType<T>, name: String, description: String, extractor: (Metadata) -> T): super(type, extractor, name, description)
 
       fun isAutoCompletable(): Boolean = this in AUTO_COMPLETABLE
 
@@ -882,7 +882,7 @@ class Metadata: Song, Serializable {
          @F val ADDED_TO_LIBRARY = this + field({ it.getTimeLibraryAdded() }, "Added to library", "Marks time the song was added to the library.")
 
          private inline fun <reified T> field(noinline extractor: (Metadata) -> T, name: String, description: String) =
-            Field(type(), extractor, name, description)
+            Field(type(), name, description, extractor)
 
          private val AUTO_COMPLETABLE = setOf<Field<*>>(
             ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD

@@ -11,7 +11,6 @@ import sp.it.util.reactive.on
 class RatingSkinNumber(r: Rating): SkinBase<Rating>(r) {
 
    private val label = Label()
-   private var ratingOld = r.rating.value
    private val onDispose = Disposer()
 
    init {
@@ -24,7 +23,7 @@ class RatingSkinNumber(r: Rating): SkinBase<Rating>(r) {
 
    private fun update() {
       val v = skinnable.rating.value?.let { if (skinnable.partialRating.value) it.toInt().toDouble() else it }
-      label.text = "%.2f".format(v)
+      label.text = if (v==null) "" else "%.2f".format(v)
    }
 
    override fun dispose() {

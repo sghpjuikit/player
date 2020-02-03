@@ -60,9 +60,6 @@ allprojects {
    tasks.withType<KotlinCompile> {
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
-      kotlinOptions.includeRuntime = true
-      kotlinOptions.noStdlib = false
-      kotlinOptions.noReflect = false
       kotlinOptions.freeCompilerArgs += listOf(
          "-progressive",
          "-Xno-call-assertions",

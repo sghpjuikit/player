@@ -250,7 +250,7 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
          slider.value = config.value.toDouble()
    }
 
-   private fun computeLabelText(): String = getValid().map { it.toString() }.getOr("")
+   private fun computeLabelText(): String = getValid().map { it.toUi() }.getOr("")
 
 }
 

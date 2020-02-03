@@ -12,20 +12,15 @@ import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.TextAlignment;
 import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.gui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.util.Sort;
@@ -38,6 +33,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
+import static sp.it.pl.gui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.dev.FailKt.noNull;
@@ -45,7 +41,6 @@ import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.type.TypeTokenKt.getRawJ;
 import static sp.it.util.type.Util.invokeMethodP0;
 
 /**
@@ -85,15 +80,14 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public final Menu columnVisibleMenu = new Menu("Columns");
 	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
-	@SuppressWarnings("unchecked")
 	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
 
 		setColumnFactory(f -> {
 			TableColumn<T,Object> c = new TableColumn<>(f.name());
-			c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));
-			c.setCellFactory(col -> buildDefaultCell(f));
+			c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
+			c.setCellFactory(col -> buildFieldedCell(f));
 			return c;
 		});
 
@@ -326,34 +320,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		updateComparator(null);
 	}
 
-/* --------------------- CELL FACTORY ------------------------------------------------------------------------------- */
-
-	/**
-	 * Use as cell factory for columns created in column factory.
-	 * <p/>
-	 * This cell factory
-	 * <ul>
-	 * <li> sets text using {@link ObjectField#toS(Object, String)}
-	 * <li> sets alignment to CENTER_LEFT for Strings and CENTER_RIGHT otherwise
-	 * </ul>
-	 */
-	public <X> TableCell<T,X> buildDefaultCell(ObjectField<? super T,X> f) {
-		TableCell<T,X> cell = new TableCell<>() {
-			@Override
-			protected void updateItem(X item, boolean empty) {
-				super.updateItem(item, empty);
-				TableRow<T> row = empty ? null : getTableRow();
-				T rowItem = row==null ? null : row.getItem();
-				setText(rowItem==null  ? "" : f.toS(rowItem, item, ""));
-			}
-		};
-		cell.setAlignment(getRawJ(f.getType())==String.class ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
-		cell.setTextAlignment(getRawJ(f.getType())==String.class ? TextAlignment.LEFT : TextAlignment.RIGHT);
-		cell.setPadding(Insets.EMPTY);
-		return cell;
-	}
-
-	/*********************************** PRIVATE **********************************/
+/* --------------------- UTIL --------------------------------------------------------------------------------------- */
 
 	// sort order -> comparator, never null
 	@SuppressWarnings({"unchecked", "unused", "ConstantConditions"})

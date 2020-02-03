@@ -2,7 +2,6 @@ package library
 
 import javafx.geometry.NodeOrientation
 import javafx.scene.control.SelectionMode.MULTIPLE
-import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.input.KeyCode.DELETE
@@ -24,6 +23,7 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
+import sp.it.pl.gui.objects.table.buildFieldedCell
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
@@ -51,6 +51,7 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
+import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -153,10 +154,9 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       // set up table columns
       table.setColumnFactory { field ->
          TableColumn<Metadata, Any?>(field.name()).apply {
-            @Suppress("UNCHECKED_CAST")
             cellFactory = when (field) {
-               RATING -> RatingCellFactory as Callback<TableColumn<Metadata, Any?>, TableCell<Metadata, Any?>>
-               else -> Callback { table.buildDefaultCell(field) }
+               RATING -> RatingCellFactory.asIs()
+               else -> Callback { field.buildFieldedCell() }
             }
             cellValueFactory = Callback { it.value?.net { PojoV(field.getOf(it)) } }
          }

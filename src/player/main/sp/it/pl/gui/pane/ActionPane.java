@@ -60,6 +60,7 @@ import static javafx.scene.layout.Priority.SOMETIMES;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static kotlin.streams.jdk8.StreamsKt.asStream;
+import static sp.it.pl.gui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.gui.pane.GroupApply.FOR_ALL;
@@ -382,7 +383,7 @@ public class ActionPane extends OverlayPane<Object> {
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
 					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));
-					c.setCellFactory(col -> (TableCell) t.buildDefaultCell(f));
+					c.setCellFactory(col -> (TableCell) buildFieldedCell(f));
 					c.setResizable(true);
 					return (TableColumn)c;
 				});

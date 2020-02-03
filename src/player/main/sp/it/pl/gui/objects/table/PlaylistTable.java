@@ -40,6 +40,7 @@ import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
+import static sp.it.pl.gui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.installDrag;
@@ -95,7 +96,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 				? new PropertyValueFactory<>(f.name().toLowerCase())
 				: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
 			);
-			c.setCellFactory(column -> buildDefaultCell(f));
+			c.setCellFactory(column -> buildFieldedCell(f));
 			c.setResizable(true);
 			return c;
 		});

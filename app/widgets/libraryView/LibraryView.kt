@@ -33,6 +33,7 @@ import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.rating.RatingCellFactory
 import sp.it.pl.gui.objects.table.FilteredTable
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
+import sp.it.pl.gui.objects.table.buildFieldedCell
 import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
@@ -71,6 +72,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
 import sp.it.util.text.pluralUnit
+import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
 import sp.it.util.ui.dsl
@@ -88,7 +90,6 @@ private typealias Metadatas = List<Metadata>
 private typealias MetadataGroups = List<MetadataGroup>
 private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, TableCell<MetadataGroup, T>>
 
-@Suppress("UNCHECKED_CAST")
 @Info(
    author = "Martin Polakovic",
    name = Widgets.SONG_GROUP_TABLE_NAME,
@@ -157,12 +158,11 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MgField.valueOf(name).name() }
       table.setColumnFactory { f ->
          if (f is MgField<*>) {
-            val mgf = f as MgField<*>
             val mf = fieldFilter.value
-            TableColumn<MetadataGroup, Any>(mgf.toString(mf)).apply {
-               cellValueFactory = Callback { it.value?.let { PojoV(mgf.getOf(it)) } }
-               cellFactory = when (mgf) {
-                  AVG_RATING -> RatingCellFactory as CellFactory<Any?>
+            TableColumn<MetadataGroup, Any>(f.toString(mf)).apply {
+               cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
+               cellFactory = when (f) {
+                  AVG_RATING -> RatingCellFactory.asIs()
                   W_RATING -> CellFactory<Double?> {
                      object: TableCell<MetadataGroup, Double?>() {
                         init {
@@ -174,10 +174,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                            text = if (empty) null else String.format("%.2f", item)
                         }
                      }
-                  } as CellFactory<Any?>
+                  }.asIs()
                   else -> CellFactory {
-                     table.buildDefaultCell(mgf as ObjectField<in MetadataGroup, Any?>).apply {
-                        alignment = if (mgf.getMFType(mf).raw==String::class) CENTER_LEFT else CENTER_RIGHT
+                     f.buildFieldedCell().apply {
+                        alignment = if (f.getMFType(mf).raw.isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
                      }
                   }
                }
@@ -185,7 +185,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          } else {
             TableColumn<MetadataGroup, Any>(f.name()).apply {
                cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
-               cellFactory = Callback { table.buildDefaultCell(f) }
+               cellFactory = Callback { f.buildFieldedCell() }
             }
          }
       }
@@ -287,7 +287,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       val f = fieldFilter.value
       table.filterPane.inconsistentState = true
       table.filterPane.prefTypeSupplier = Supplier { PredicateData.ofField(VALUE) }
-      table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getMFType(f).rawJ, it as ObjectField<MetadataGroup, Any>) }
+      table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getMFType(f).rawJ, it.asIs<ObjectField<MetadataGroup, Any?>>()) }
       table.filterPane.clear()
       if (refreshItems) setItems(inputItems.value)
    }

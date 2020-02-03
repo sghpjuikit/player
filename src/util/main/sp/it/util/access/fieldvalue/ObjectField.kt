@@ -11,7 +11,7 @@ import java.util.Comparator
  * @param <V> type of value this field extracts from
  * @param <T> type of this field and the type of the extracted value
  */
-interface ObjectField<V, T>: StringGetter<V> {
+interface ObjectField<in V, out T>: StringGetter<V> {
 
    /**
     * Returns whether this value has human readable string representation. This
@@ -47,7 +47,7 @@ interface ObjectField<V, T>: StringGetter<V> {
     * Used as string converter for fielded values. For example in tables.
     * When the object signifies empty value, a substitute is returned.
     */
-   fun toS(o: T?, substitute: String): String
+   fun toS(o: @UnsafeVariance T?, substitute: String): String
 
    /**
     * Returns a comparator comparing by the value extracted by this field or [sp.it.util.functional.Util.SAME] if
@@ -60,16 +60,16 @@ interface ObjectField<V, T>: StringGetter<V> {
     * @param comparatorTransformer function that transforms the underlying null-unsafe comparator into null-safe one
     */
    @Suppress("UNCHECKED_CAST")
-   fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<V?> {
+   fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<@UnsafeVariance V?> {
       return when {
          type.rawJ.isSubclassOf<Comparable<*>>() -> by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
          else -> sp.it.util.functional.Util.SAME as Comparator<V?>
       }
    }
 
-   fun <C: Comparable<C>> comparator(): Comparator<V?> = comparator<C> { it.nullsLast() }
+   fun <C: Comparable<C>> comparator(): Comparator<@UnsafeVariance V?> = comparator<C> { it.nullsLast() }
 
-   fun toS(v: V, o: T?, substitute: String): String = toS(o, substitute)
+   fun toS(v: V, o: @UnsafeVariance T?, substitute: String): String = toS(o, substitute)
 
    fun isTypeFilterable(): Boolean = true
 

@@ -62,6 +62,8 @@ import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.values
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.consumeScrolling
@@ -198,8 +200,15 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                if (!row.isSelected)
                   t.selectionModel.clearAndSelect(row.index)
 
-               contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerSortInputList()))
-               contextMenuInstance.show(table, e)
+               t.selectionModel.selectedItems.takeIf { it.size==1 }?.first()
+                  .ifNotNull {
+                     contextMenuInstance.setItemsFor(it)
+                     contextMenuInstance.show(table, e)
+                  }
+                  .ifNull {
+                     contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerSortInputList()))
+                     contextMenuInstance.show(table, e)
+                  }
             }
          }
       }

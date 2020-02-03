@@ -52,6 +52,7 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmName
+import kotlin.reflect.jvm.kotlinFunction
 import kotlin.reflect.typeOf
 
 private val logger = KotlinLogging.logger {}
@@ -183,7 +184,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
       val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
       if (isPublished) {
          var propertyName: String? = null
-         if (method.returnType.isSubtypeOf<Observable>()) {
+         if (method.returnType.raw.isSubclassOf<Observable>()) {
             try {
                propertyName = methodName
                propertyName = propertyName.substringBeforeLast("Property", propertyName)
@@ -214,7 +215,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
       val fieldName = field.name
       val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
       if (isPublished) {
-         if (field.returnType.isSubtypeOf<Observable>()) {
+         if (field.returnType.raw.isSubclassOf<Observable>()) {
             try {
                field.isAccessible = true
                var observable = field.getter.call(o) as Observable?

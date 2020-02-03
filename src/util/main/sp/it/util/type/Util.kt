@@ -52,7 +52,6 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmName
-import kotlin.reflect.jvm.kotlinFunction
 import kotlin.reflect.typeOf
 
 private val logger = KotlinLogging.logger {}
@@ -148,10 +147,10 @@ fun Type.toRaw(): Class<*> = let { type ->
  *
  * @return sequence of classes representing the specified type and its generic type arguments
  */
-fun Type.flattenToRawTypes(): Sequence<Class<*>> = when {
-   this is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
-   this is ParameterizedType -> sequenceOf(toRaw()) + actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
-   this is Class<*> -> sequenceOf(this)
+fun Type.flattenToRawTypes(): Sequence<Class<*>> = when (this) {
+   is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
+   is ParameterizedType -> sequenceOf(toRaw()) + actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
+   is Class<*> -> sequenceOf(this)
    else -> throw Exception(toString())
 }
 
@@ -241,40 +240,40 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
    if (o is Node) {
       when (o.parent) {
          is StackPane -> {
-            action(paneProperty(o,"stackpane-alignment", StackPane::getAlignment, StackPane::setAlignment), "L: Alignment", Pos::class.createType(nullable = true))
-            action(paneProperty(o,"stackpane-margin", StackPane::getMargin, StackPane::setMargin), "L: Margin", Insets::class.createType(nullable = true))
+            action(paneProperty(o,"stackpane-alignment", StackPane::getAlignment, StackPane::setAlignment), "L: Alignment", type<Pos?>().type)
+            action(paneProperty(o,"stackpane-margin", StackPane::getMargin, StackPane::setMargin), "L: Margin", type<Insets?>().type)
          }
          is AnchorPane -> {
-            action(paneProperty(o,"pane-top-anchor", AnchorPane::getTopAnchor, AnchorPane::setTopAnchor), "L: Anchor (top)", Double::class.createType(nullable = true))
-            action(paneProperty(o,"pane-right-anchor", AnchorPane::getRightAnchor, AnchorPane::setRightAnchor), "L: Anchor (right)", Double::class.createType(nullable = true))
-            action(paneProperty(o,"pane-bottom-anchor", AnchorPane::getBottomAnchor, AnchorPane::setBottomAnchor), "L: Anchor (bottom)", Double::class.createType(nullable = true))
-            action(paneProperty(o,"pane-left-anchor", AnchorPane::getLeftAnchor, AnchorPane::setLeftAnchor), "L: Anchor (left)", Double::class.createType(nullable = true))
+            action(paneProperty(o,"pane-top-anchor", AnchorPane::getTopAnchor, AnchorPane::setTopAnchor), "L: Anchor (top)", type<Double?>().type)
+            action(paneProperty(o,"pane-right-anchor", AnchorPane::getRightAnchor, AnchorPane::setRightAnchor), "L: Anchor (right)", type<Double?>().type)
+            action(paneProperty(o,"pane-bottom-anchor", AnchorPane::getBottomAnchor, AnchorPane::setBottomAnchor), "L: Anchor (bottom)", type<Double?>().type)
+            action(paneProperty(o,"pane-left-anchor", AnchorPane::getLeftAnchor, AnchorPane::setLeftAnchor), "L: Anchor (left)", type<Double?>().type)
          }
          is VBox -> {
-            action(paneProperty(o,"vbox-vgrow", VBox::getVgrow, VBox::setVgrow), "L: VGrow", Priority::class.createType(nullable = true))
-            action(paneProperty(o,"vbox-margin", VBox::getMargin, VBox::setMargin), "L: Margin", Insets::class.createType(nullable = true))
+            action(paneProperty(o,"vbox-vgrow", VBox::getVgrow, VBox::setVgrow), "L: VGrow", type<Priority?>().type)
+            action(paneProperty(o,"vbox-margin", VBox::getMargin, VBox::setMargin), "L: Margin", type<Insets?>().type)
          }
          is HBox -> {
-            action(paneProperty(o,"hbox-vgrow", HBox::getHgrow, HBox::setHgrow), "L: HGrow", Priority::class.createType(nullable = true))
-            action(paneProperty(o,"hbox-margin", HBox::getMargin, HBox::setMargin), "L: Margin", Insets::class.createType(nullable = true))
+            action(paneProperty(o,"hbox-vgrow", HBox::getHgrow, HBox::setHgrow), "L: HGrow", type<Priority?>().type)
+            action(paneProperty(o,"hbox-margin", HBox::getMargin, HBox::setMargin), "L: Margin", type<Insets?>().type)
          }
          is FlowPane -> {
-            action(paneProperty(o,"flowpane-margin", FlowPane::getMargin, FlowPane::setMargin), "L: Margin", Insets::class.createType(nullable = true))
+            action(paneProperty(o,"flowpane-margin", FlowPane::getMargin, FlowPane::setMargin), "L: Margin", type<Insets?>().type)
          }
          is BorderPane -> {
-            action(paneProperty(o,"borderpane-alignment", BorderPane::getAlignment, BorderPane::setAlignment), "L: Alignment", Pos::class.createType(nullable = true))
-            action(paneProperty(o,"borderpane-margin", BorderPane::getMargin, BorderPane::setMargin), "L: Margin", Insets::class.createType(nullable = true))
+            action(paneProperty(o,"borderpane-alignment", BorderPane::getAlignment, BorderPane::setAlignment), "L: Alignment", type<Pos?>().type)
+            action(paneProperty(o,"borderpane-margin", BorderPane::getMargin, BorderPane::setMargin), "L: Margin", type<Insets?>().type)
          }
          is GridPane -> {
-            action(paneProperty(o,"gridpane-column", GridPane::getColumnIndex, GridPane::setColumnIndex), "L: Column index", Int::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-column-span", GridPane::getColumnSpan, GridPane::setColumnSpan), "L: Column span", Int::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-row", GridPane::getRowIndex, GridPane::setRowIndex), "L: Row index", Int::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-row-span", GridPane::getRowSpan, GridPane::setRowSpan), "L: Row span", Int::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-valignment", GridPane::getValignment, GridPane::setValignment), "L: Valignment", VPos::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-halignment", GridPane::getHalignment, GridPane::setHalignment), "L: Halignment", HPos::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-vgrow", GridPane::getVgrow, GridPane::setVgrow), "L: Vgrow", Priority::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-hgrow", GridPane::getHgrow, GridPane::setHgrow), "L: Hgrow", Priority::class.createType(nullable = true))
-            action(paneProperty(o,"gridpane-margin", HBox::getMargin, HBox::setMargin), "L: Margin", Insets::class.createType(nullable = true))
+            action(paneProperty(o,"gridpane-column", GridPane::getColumnIndex, GridPane::setColumnIndex), "L: Column index", type<Int?>().type)
+            action(paneProperty(o,"gridpane-column-span", GridPane::getColumnSpan, GridPane::setColumnSpan), "L: Column span", type<Int?>().type)
+            action(paneProperty(o,"gridpane-row", GridPane::getRowIndex, GridPane::setRowIndex), "L: Row index", type<Int?>().type)
+            action(paneProperty(o,"gridpane-row-span", GridPane::getRowSpan, GridPane::setRowSpan), "L: Row span", type<Int?>().type)
+            action(paneProperty(o,"gridpane-valignment", GridPane::getValignment, GridPane::setValignment), "L: Valignment", type<VPos?>().type)
+            action(paneProperty(o,"gridpane-halignment", GridPane::getHalignment, GridPane::setHalignment), "L: Halignment", type<HPos?>().type)
+            action(paneProperty(o,"gridpane-vgrow", GridPane::getVgrow, GridPane::setVgrow), "L: Vgrow", type<Priority?>().type)
+            action(paneProperty(o,"gridpane-hgrow", GridPane::getHgrow, GridPane::setHgrow), "L: Hgrow", type<Priority?>().type)
+            action(paneProperty(o,"gridpane-margin", HBox::getMargin, HBox::setMargin), "L: Margin", type<Insets?>().type)
          }
       }
    }

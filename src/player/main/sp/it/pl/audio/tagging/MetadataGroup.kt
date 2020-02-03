@@ -123,7 +123,7 @@ class MetadataGroup {
    companion object {
 
       @JvmStatic
-      fun groupOfUnrelated(ms: Collection<Metadata>) = MetadataGroup(Metadata.Field.ALBUM, true, null, ms)
+      fun groupOfUnrelated(ms: Collection<Metadata>) = MetadataGroup(Metadata.Field.PATH, true, null, ms)
 
       @JvmStatic
       fun groupOf(f: Metadata.Field<*>, ms: Collection<Metadata>) = MetadataGroup(f, true, getAllValue(f), ms)

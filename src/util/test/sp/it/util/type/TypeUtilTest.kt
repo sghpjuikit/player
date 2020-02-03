@@ -15,9 +15,11 @@ import javafx.scene.Node
 import javafx.scene.input.DragEvent
 import javafx.scene.layout.Pane
 import sp.it.util.collections.ObservableListRO
+import sp.it.util.collections.stackOf
 import sp.it.util.dev.fail
 import sp.it.util.dev.printIt
 import sp.it.util.functional.asIs
+import sp.it.util.type.Util.getAllMethods
 import sp.it.util.type.Util.getRawGenericPropertyType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -104,12 +106,12 @@ class TypeUtilTest: FreeSpec({
          }
       }
 
-      KClass::traverseToSuper.name {
-         Int::class.traverseToSuper(Int::class) shouldBe Stack(Int::class)
-         Int::class.traverseToSuper(Any::class) shouldBe Stack(Int::class, Number::class, Any::class)
-         Int::class.traverseToSuper(Comparable::class) shouldBe Stack(Int::class, Comparable::class)
-         Int::class.traverseToSuper(Long::class) shouldBe Stack()
-         FilteredList::class.traverseToSuper(List::class) shouldBe Stack(
+      KClass<*>::traverseToSuper.name {
+         Int::class.traverseToSuper(Int::class) shouldBe stackOf(Int::class)
+         Int::class.traverseToSuper(Any::class) shouldBe stackOf(Int::class, Number::class, Any::class)
+         Int::class.traverseToSuper(Comparable::class) shouldBe stackOf(Int::class, Comparable::class)
+         Int::class.traverseToSuper(Long::class) shouldBe stackOf()
+         FilteredList::class.traverseToSuper(List::class) shouldBe stackOf(
             FilteredList::class,
             TransformationList::class,
             ObservableListBase::class,
@@ -262,7 +264,7 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection = when (val c = cla
             ?: fail { "Not found $this $i" }
          else -> {
             val st = c.allSupertypes
-            val stack = c.traverseToSuper(argType)
+            //val stack = c.traverseToSuper(argType)
             st.find { it.classifier==argType }?.arguments?.getOrNull(i)
                ?.let {
                   when (it.variance) {

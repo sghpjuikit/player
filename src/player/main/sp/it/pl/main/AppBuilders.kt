@@ -28,6 +28,7 @@ import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.animation.interpolator.CircularInterpolator
 import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.async.FX
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.conf.Configurable
@@ -230,23 +231,28 @@ fun showConfirmation(text: String, action: () -> Unit) {
    }
 }
 
-fun <C: Configurable<*>> C.configure(titleText: String, action: (C) -> Unit) {
+fun <C: Configurable<*>> C.configure(titleText: String, action: (C) -> Any?) {
    PopWindow().apply {
       val form = form(this@configure) {
-         action(it)
-         if (isShowing) hide()
+         val result = action(it)
+         if (result is Fut<*>) {
+            val progressIndicator = appProgressIndicator({ headerIcons += it }, { headerIcons -= it })
+            result.withProgress(progressIndicator)
+         } else {
+            if (isShowing) hide()
+         }
       }
 
       content.value = form
       title.value = titleText
-      isAutohide.value = true
+      isAutohide.value = false
       show(WINDOW_ACTIVE(CENTER))
 
       form.focusFirstConfigEditor()
    }
 }
 
-fun configureString(title: String, inputName: String, action: (String) -> Unit) {
+fun configureString(title: String, inputName: String, action: (String) -> Any?) {
    ValueConfig(String::class.java, inputName, "", "")
       .addConstraints(Constraint.StringNonEmpty())
       .configure(title) { action(it.value) }

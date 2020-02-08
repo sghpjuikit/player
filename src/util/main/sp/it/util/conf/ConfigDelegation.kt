@@ -33,15 +33,15 @@ import kotlin.reflect.jvm.javaType
 import kotlin.properties.ReadOnlyProperty as RoProperty
 import kotlin.properties.ReadWriteProperty as RwProperty
 
-fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).but(Constraint.ObjectNonNull)
+fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).nonNull()
 fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
-fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).but(Constraint.ObjectNonNull)
-fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
-fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).but(Constraint.ObjectNonNull)
+fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).nonNull()
+fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).nonNull()
+fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).nonNull()
 fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
-fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).but(Constraint.ObjectNonNull)
+fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
 inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems)))
 inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems))
 inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T,Boolean> = ConfCheckL(CheckList.nonNull(initialItems.toList()))
@@ -54,6 +54,7 @@ fun <T: Any?, C: ConfL<T>> C.butElement(vararg restrictions: Constraint<T>) = ap
 
 fun <T: Any?, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
 fun <T: Any?, C: Conf<T>> C.noPersist() = but(Constraint.NoPersist)
+fun <T: Any?, C: Conf<T>> C.nonNull() = but(Constraint.ObjectNonNull)
 fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), null))
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(null, max.toDouble()))

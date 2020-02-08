@@ -32,7 +32,6 @@ import sp.it.pl.gui.objects.table.FilteredTable;
 import sp.it.pl.gui.objects.table.ImprovedTable.PojoV;
 import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.util.access.V;
-import sp.it.util.animation.Anim;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.ClassListMap;
 import sp.it.util.dev.DebugKt;
@@ -58,7 +57,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.layout.Priority.SOMETIMES;
 import static javafx.util.Duration.millis;
-import static javafx.util.Duration.seconds;
 import static kotlin.streams.jdk8.StreamsKt.asStream;
 import static sp.it.pl.gui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.pl.gui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
@@ -66,13 +64,13 @@ import static sp.it.pl.gui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.gui.pane.GroupApply.FOR_ALL;
 import static sp.it.pl.gui.pane.GroupApply.FOR_EACH;
 import static sp.it.pl.gui.pane.GroupApply.NONE;
+import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppExtensionsKt.getNameUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.util.animation.Anim.anim;
-import static sp.it.util.animation.Anim.animPar;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.NEW;
 import static sp.it.util.async.AsyncKt.runFX;
@@ -497,18 +495,11 @@ public class ActionPane extends OverlayPane<Object> {
 		icons.setAll(iconNodes);
 
 		// animate icons
-		Duration total = seconds(0.4);
-		double delayAbs = total.divide(icons.size()).toMillis(); // use for consistent total length
-		double delayRel = 200; // use for consistent frequency
-		double delay = delayAbs;
-		animPar(icons, (i, icon) ->
-				new Anim(at -> {
-					iconNodes.get(i).setOpacity(at);
-					setScaleXY(iconGlyphs.get(i), sqrt(at));
-				})
-				.dur(millis(500)).delay(millis(150+i*delay))
-			)
-			.play();
+		animShowNodes(icons, (i, node, at) -> {
+			iconNodes.get(i).setOpacity(at);
+			setScaleXY(iconGlyphs.get(i), sqrt(at));
+			return Unit.INSTANCE;
+		}).play();
 		anim(millis(200), consumer(it -> {
 				dataInfo.setOpacity(it);
 				tablePane.setOpacity(it);

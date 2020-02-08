@@ -1,6 +1,7 @@
 package sp.it.pl.main
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.animation.ParallelTransition
 import javafx.event.EventHandler
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Side
@@ -23,6 +24,7 @@ import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.animation.interpolator.CircularInterpolator
 import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
@@ -44,8 +46,11 @@ import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
+import sp.it.util.units.div
 import sp.it.util.units.millis
+import sp.it.util.units.plus
 import sp.it.util.units.seconds
+import sp.it.util.units.times
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
 
@@ -245,6 +250,26 @@ fun configureString(title: String, inputName: String, action: (String) -> Unit) 
    ValueConfig(String::class.java, inputName, "", "")
       .addConstraints(Constraint.StringNonEmpty())
       .configure(title) { action(it.value) }
+}
+
+@Suppress("UNUSED_VARIABLE")
+fun animShowNodes(nodes: List<Node>, block: (Int, Node, Double) -> Unit): ParallelTransition {
+   val total = 0.4.seconds
+   val delayAbs = total/nodes.size // use for consistent total length
+   val delayRel = 200.0.millis // use for consistent frequency
+   return animPar(nodes) { i, node ->
+      anim {
+         block(i, node, it)
+         node.opacity = it
+      }.apply {
+         dur(0.5.seconds)
+         delay(150.millis + delayAbs*i)
+      }
+   }
+}
+fun animShowNodes(nodes: List<Node>) = animShowNodes(nodes) { _, node, at ->
+   node.opacity = at
+   node.setScaleXY(sqrt(at))
 }
 
 abstract class AnimationBuilder {

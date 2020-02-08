@@ -34,8 +34,6 @@ import sp.it.pl.main.Df;
 import sp.it.util.access.V;
 import sp.it.util.action.ActionManager;
 import sp.it.util.action.ActionRegistrar;
-import sp.it.util.animation.Anim;
-import sp.it.util.animation.interpolator.ElasticInterpolator;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.Subscription;
@@ -59,7 +57,6 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_M
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
-import static java.lang.Math.sqrt;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -84,6 +81,7 @@ import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.buildWindowLayout;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.lookupId;
+import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicatorTitle;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
@@ -94,11 +92,9 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.access.Values.next;
 import static sp.it.util.access.Values.previous;
-import static sp.it.util.animation.Anim.animPar;
+import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.filter;
-import static sp.it.util.functional.Util.forEachIRStream;
-import static sp.it.util.functional.Util.forEachIStream;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -110,7 +106,6 @@ import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.initClip;
 import static sp.it.util.ui.UtilKt.pseudoclass;
-import static sp.it.util.ui.UtilKt.setScaleXY;
 
 /** Window for application. */
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -475,16 +470,8 @@ public class Window extends WindowBase {
 			_headerVisible = headerOn;
 			header.setVisible(hOn);
 			if (hOn && isInitialized) {
-				animPar(
-					animPar(
-						forEachIStream(filter(leftHeaderBox.getChildren(), it -> it instanceof Icon), (i, icon) ->
-							new Anim(at -> setScaleXY(icon, sqrt(at))).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
-					),
-					animPar(
-						forEachIRStream(rightHeaderBox.getChildren(), (i, icon) ->
-							new Anim(at -> setScaleXY(icon, sqrt(at))).dur(millis(500)).intpl(new ElasticInterpolator()).delay(millis(i*45)))
-					)
-				).play();
+				animShowNodes(filter(leftHeaderBox.getChildren(), it -> it instanceof Icon)).play();
+				animShowNodes(filter(rightHeaderBox.getChildren(), it -> it instanceof Icon)).play();
 			}
 		}
 	}

@@ -102,9 +102,6 @@ object CoreMenus: Core {
             }
             if (value.isImage()) {
                item("Fullscreen") { APP.actions.openImageFullscreen(it) }
-               APP.plugins.use<WallpaperChanger> { w ->
-                  item("Use as wallpaper") { w.wallpaperFile.value = it }
-               }
             }
             item("Open (in associated program)") { it.open() }
             item("Edit (in associated editor)") { it.edit() }

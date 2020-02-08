@@ -12,6 +12,7 @@ import sp.it.pl.gui.objects.window.ShowArea
 import sp.it.pl.gui.objects.window.stage.setNonInteractingProgmanOnBottom
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.main.APP
+import sp.it.pl.main.isImage
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.readOnly
@@ -45,7 +46,15 @@ class WallpaperChanger: PluginBase() {
    private val wallpaperImageW = vn<Image>(null)
    val wallpaperImage = wallpaperImageW.readOnly()
    val wallpaperFile by cvn<File>(null).only(FILE).def(name = "Wallpaper file") sync ::load
-
+   val menuItemInjector = Subscribed {
+      APP.contextMenus.menuItemBuilders.add<File> {
+         if (value.isImage()) {
+            item("Use as wallpaper") {
+               wallpaperFile.value = it
+            }
+         }
+      }
+   }
    private val wallpaperIsShowing = Subscribed {
       APP.mouse.screens.syncWhile {
          val disposer = Disposer()
@@ -93,9 +102,13 @@ class WallpaperChanger: PluginBase() {
       }
    }
 
-   override fun start() = wallpaperIsShowing.subscribe()
+   override fun start() {
+      wallpaperIsShowing.subscribe()
+      menuItemInjector.subscribe()
+   }
 
    override fun stop() {
+      menuItemInjector.unsubscribe()
       wallpaperIsShowing.unsubscribe()
       wallpaperImageW.value = null
    }

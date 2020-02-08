@@ -42,10 +42,10 @@ class Form<T>: AnchorPane {
    /** Denotes whether there is an action that user can execute. */
    val hasAction = v(false)
 
-   private constructor(c: Configurable<T>, on_OK: ((Configurable<T>) -> Unit)?): super() {
+   private constructor(c: Configurable<T>, onOk: ((Configurable<T>) -> Unit)?): super() {
       configurable = c
-      onOK = on_OK ?: {}
-      hasAction.value = on_OK!=null
+      onOK = onOk ?: {}
+      hasAction.value = onOk!=null
 
       padding = Insets(5.0)
       lay(0, 0, anchorOk, 0) += fieldsPane
@@ -89,9 +89,14 @@ class Form<T>: AnchorPane {
    fun focusFirstConfigEditor() = editorsPane.focusFirstConfigEditor()
 
    private fun validate(): Try<*, *> {
-      val validation = editorsPane.getConfigEditors().asSequence()
-         .map { e -> e.getValid().mapError { "${e.config.nameUi}: $it" } }
-         .find { it.isError } ?: Try.ok()
+      val validation = run {
+         editorsPane.getConfigEditors().asSequence()
+            .map { e -> e.getValid().mapError { "${e.config.nameUi}: $it" } }
+            .find { it.isError }
+      } ?: run {
+         if (configurable is Validated) configurable.isValid()
+         else Try.ok()
+      }
       showWarnButton(validation)
       return validation
    }
@@ -124,4 +129,9 @@ class Form<T>: AnchorPane {
       @JvmOverloads
       fun <C: Configurable<*>> form(configurable: C, onOk: ((C) -> Unit)? = null) = Form(configurable, onOk.asIf())
    }
+}
+
+/** Marks [Configurable] that has additional validation to do before invoking [Form].[Form.onOK]. */
+interface Validated {
+   fun isValid(): Try<*, String>
 }

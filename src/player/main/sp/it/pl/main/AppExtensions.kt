@@ -8,8 +8,10 @@ import sp.it.pl.audio.tagging.read
 import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.layout.widget.isExperimental
 import sp.it.util.async.IO
+import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO
 import sp.it.util.async.runNew
+import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidFile
 import sp.it.util.file.div
@@ -111,26 +113,27 @@ fun App.run1AppReady(block: () -> Unit) {
    }
 }
 
-/** Invokes [File.runAsProgram] and if error occurs logs and reports using [AppErrors]. */
-fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}) {
+/** Invokes [File.runAsProgram] and if error occurs logs and reports using [AppErrors]. Returns process result (stdout) or error. */
+fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<String> {
    fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
    fun doOnError(e: Throwable?, text: String?) {
       logger.error(e) { "$actionName failed.\n${text.wrap()}" }
       AppErrors.push("$actionName failed.", text.wrap())
    }
 
-   runAsProgram(*arguments) {
+   return runAsProgram(*arguments) {
       it.redirectOutput(PIPE).redirectError(PIPE).apply(then)
    }.onError(IO) {
       doOnError(it, it.message)
-   }.onOk(IO) { p ->
+   }.then(IO) { p ->
       var stdout = ""
       var stderr = ""
       runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
       runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
       val success = p.waitFor()
-      if (success!=0)
-         doOnError(null, stdout + stderr)
+      if (success!=0) doOnError(null, stdout + stderr)
+      if (success!=0) fail { "Process failed and returned $success" }
+      stdout
    }
 }
 

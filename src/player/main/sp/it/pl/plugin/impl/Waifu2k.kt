@@ -33,7 +33,7 @@ class Waifu2k: PluginBase() {
       }.apply {
          source attach {
             if (destination.value==null)
-               destination.value = it!!.resolveSibling("${it.nameWithoutExtension}-scaled2x(waifu2x).${it.extension}")
+               destination.value = it!!.resolveSibling("${it.nameWithoutExtension}-scaled${scale}x(waifu2x).${it.extension}")
          }
       }.configure("Upscale image (waifu2k)...") { c ->
          waiffuDir.value?.runAsProgram(

@@ -34,8 +34,8 @@ import sp.it.util.async.runIO
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.dev.Dsl
@@ -111,9 +111,9 @@ object CoreMenus: Core {
             item("Delete from disc") { it.recycle() }
             item("Copy as ...") { f ->
                object: ConfigurableBase<Any?>() {
-                  @IsConfig(name = "File") val file by cv(APP.location).only(DIRECTORY)
-                  @IsConfig(name = "Overwrite") val overwrite by cv(false)
-                  @IsConfig(name = "On error") val onError by cv(OnErrorAction.SKIP)
+                  val file by cv(APP.location).only(DIRECTORY).def(name = "File")
+                  val overwrite by cv(false).def(name = "Overwrite")
+                  val onError by cv(OnErrorAction.SKIP).def(name = "On error")
                }.configure("Copy as...") {
                   f.copyRecursively(it.file.value/f.name, it.overwrite.value) { _, e ->
                      logger.warn(e) { "File copy failed" }

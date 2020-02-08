@@ -37,21 +37,23 @@ private val logger = KotlinLogging.logger {}
 
 interface ImageLoader {
 
+   operator fun invoke(file: File?, size: ImageSize) = invoke(file, size, false)
+
    /**
     * Loads image file with requested size (aspect ratio remains unaffected).
     *
     * @param file file to load.
-    * @param size requested size. Size of <=0 requests original image size. Size > original will be clipped.
-    * @return loaded image or null if file null or not a valid image source.
+    * @param size requested size. Size of <=0 requests original image size. Size > original will be scaled down.
+    * @param scaleExact if true, size < original will be scaled up
     * @throws IllegalArgumentException when on fx thread
     */
-   operator fun invoke(file: File?, size: ImageSize) = if (file==null) null else invoke(Params(file, size, file.mimeType()))
+   operator fun invoke(file: File?, size: ImageSize, scaleExact: Boolean) = if (file==null) null else invoke(Params(file, size, file.mimeType(), scaleExact))
 
    operator fun invoke(file: File?) = invoke(file, ImageSize(0.0, 0.0))
 
    operator fun invoke(p: Params): Image?
 
-   data class Params(val file: File, val size: ImageSize, val mime: MimeType)
+   data class Params(val file: File, val size: ImageSize, val mime: MimeType, val scaleExact: Boolean = false)
 
 }
 
@@ -61,40 +63,36 @@ object ImageStandardLoader: ImageLoader {
    override fun invoke(p: Params): Image? {
       logger.debug { "Loading img $p" }
 
-      return if (p.mime.group==video) {
-         val tmpDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
-         val tmpFile = tmpDir/"${p.file.nameWithoutExtension}.jpg"
-         if (tmpFile.exists()) {
-            ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
-         } else {
-            tmpDir.mkdirs()
-            getThumb(p.file.absolutePath, tmpFile.absolutePath, 0, 0, 1f)
-            if (tmpFile.exists())
-               ImageStandardLoader(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
-            else
-               null
-         }
-      } else when (p.mime.name) {
-         "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, true)
-         "application/x-msdownload",
-         "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
-         "application/x-kra" -> {
-            try {
-               ZipFile(p.file)
-                  .let { it.getInputStream(it.getEntry("mergedimage.png")) }
-                  ?.let { loadImagePsd(p.file, it, p.size.width, p.size.height, false) }
-            } catch (e: IOException) {
-               logger.error(e) { "Unable to load image from ${p.file}" }
-               null
+      return when (p.mime.group) {
+         video -> {
+            val tmpDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
+            val tmpFile = tmpDir/"${p.file.nameWithoutExtension}.jpg"
+            if (tmpFile.exists()) {
+               this(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
+            } else {
+               tmpDir.mkdirs()
+               getThumb(p.file.absolutePath, tmpFile.absolutePath, 0, 0, 1f)
+               if (tmpFile.exists()) this(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
+               else null
             }
          }
-         "image/jpeg", "image/png", "image/gif" -> {
-            val W = maxOf(0, p.size.width.toInt())
-            val H = maxOf(0, p.size.height.toInt())
-            val loadFullSize = W==0 && H==0
-            imgImplLoadFX(p.file, W, H, loadFullSize)
+         else -> when (p.mime.name) {
+            "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = true, scaleExact = p.scaleExact)
+            "application/x-msdownload",
+            "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
+            "application/x-kra" -> {
+               try {
+                  ZipFile(p.file)
+                     .let { it.getInputStream(it.getEntry("mergedimage.png")) }
+                     ?.let { loadImagePsd(p.file, it, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact) }
+               } catch (e: IOException) {
+                  logger.error(e) { "Unable to load image from ${p.file}" }
+                  null
+               }
+            }
+            "image/jpeg", "image/png", "image/gif" -> imgImplLoadFX(p.file, p.size, p.scaleExact)
+            else -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact)
          }
-         else -> loadImagePsd(p.file, p.size.width, p.size.height, false)
       }
    }
 }
@@ -106,7 +104,7 @@ object Image2PassLoader {
          logger.debug { "Loading LQ img $p" }
 
          return when (p.mime.name) {
-            "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, false)
+            "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact)
             else -> ImageStandardLoader(p)
          }
       }

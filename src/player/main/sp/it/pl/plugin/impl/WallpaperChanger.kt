@@ -87,7 +87,7 @@ class WallpaperChanger: PluginBase() {
 
    private fun load(f: File?) {
       runIO {
-         ImageStandardLoader(f, largestScreenSize())
+         ImageStandardLoader(f, largestScreenSize(), true)
       } ui { image ->
          wallpaperImageW.value = image
       }

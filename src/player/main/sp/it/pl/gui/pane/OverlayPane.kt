@@ -49,6 +49,7 @@ import sp.it.util.ui.containsMouse
 import sp.it.util.ui.getScreen
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.makeScreenShot
 import sp.it.util.ui.pane
@@ -339,7 +340,7 @@ enum class ScreenBgrGetter {
             runIO {
                null
                   ?: APP.plugins.get<WallpaperChanger>()?.wallpaperImage?.value
-                  ?: screen.getWallpaperFile()?.let { imgImplLoadFX(it, -1, -1, true) }
+                  ?: screen.getWallpaperFile()?.let { imgImplLoadFX(it, ImageSize(-1.0, -1.0), true) }
             } ui {
                action(it)
             }

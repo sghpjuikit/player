@@ -1,16 +1,16 @@
-@file:Suppress("unused")
-
 package sp.it.util.ui.image
 
 import com.twelvemonkeys.image.ResampleOp
 import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import mu.KotlinLogging
+import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.math.max
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import java.awt.Dimension
@@ -32,21 +32,34 @@ fun ImageBf.toFX(to: ImageWr? = null) = SwingFXUtils.toFXImage(this, to)!!
 @JvmOverloads
 fun ImageFx.toBuffered(to: ImageBf? = null): ImageBf? = SwingFXUtils.fromFXImage(this, to)
 
-/** Scales image down to requested size. Size must not be 0. */
-private fun ImageBf.toScaledDown(W: Int, H: Int): ImageBf {
-   return if (width<=W || height<=H) {
-      this
-   } else {
-      val iW = width
-      val iH = height
-      val iRatio = iW.toDouble()/iH
-      val rRatio = W.toDouble()/H
-      val rW = if (iRatio<rRatio) W else (H*iRatio).toInt()
-      val rH = if (iRatio<rRatio) (W/iRatio).toInt() else H
-      val imgScaled = ResampleOp(rW, rH).filter(this, null)
-      flush()
-      imgScaled
+/** Scales image to requested size. Size must not be 0. */
+private fun ImageBf.toScaledDown(W: Int, H: Int, down: Boolean, up: Boolean): ImageBf = when {
+   !down && !up -> this
+   down && up -> {
+      val isNecessary = width!=W || height!=H
+      if (isNecessary) {
+         val imgScaled = ResampleOp(W, H).filter(this, null)
+         flush()
+         imgScaled
+      } else {
+         this
+      }
    }
+   up || down -> {
+      val isNecessary = (up && width>=W && height>=H) || (down && width<=W && height<=H)
+      if (isNecessary) {
+         val iRatio = width.toDouble()/height
+         val rRatio = W.toDouble()/H
+         val rW = if (iRatio<rRatio) W else (H*iRatio).toInt()
+         val rH = if (iRatio<rRatio) (W/iRatio).toInt() else H
+         val imgScaled = ResampleOp(rW, rH).filter(this, null)
+         flush()
+         imgScaled
+      } else {
+         this
+      }
+   }
+   else -> failCase(up to down)
 }
 
 /** Returns true if the image has at least 1 embedded thumbnail of any size.  */
@@ -69,38 +82,20 @@ fun loadBufferedImage(file: File): Try<ImageBf, IOException> {
    }
 }
 
-fun loadImageThumb(file: File?, width: Double, height: Double): ImageFx? {
-   if (file==null) return null
+fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(inS), width, height, highQuality, scaleExact)
 
-   // negative values have same effect as 0, 0 loads image at its size
-   val w = maxOf(0, width.toInt())
-   val h = maxOf(0, height.toInt())
-   val loadFullSize = w==0 && h==0
+fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(file), width, height, highQuality, scaleExact)
 
-   // psd special case
-   return if (!file.path.endsWith(".psd", true)) {
-      imgImplLoadFX(file, w, h, loadFullSize)
-   } else {
-      loadImagePsd(file, width, height, false)
-   }
-}
-
-fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, highQuality: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(inS), width, height, highQuality)
-
-fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(file), width, height, highQuality)
-
-private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean): ImageFx? {
+private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean): ImageFx? {
    failIfFxThread()
 
    val stream = imageInputStream ?: return null
    val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return null
    reader.input = stream
 
-   // negative values have same effect as 0, 0 loads image at its size
-   var w = maxOf(0, width.toInt())
-   var h = maxOf(0, height.toInt())
+   var w = 0 max width.toInt()
+   var h = 0 max height.toInt()
    val loadFullSize = w==0 && h==0
-   val scale = !loadFullSize
    val ii = reader.minIndex
    var i: ImageBf? = null
       ?: run {
@@ -150,35 +145,43 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
       }
    reader.dispose()
 
-   if (scale)
-      i = i?.toScaledDown(w, h)
+   if (!loadFullSize)
+      i = i?.toScaledDown(w, h, down = true, up = scaleExact)
 
    return i?.toFX()
 }
 
 /**
- * Loads image file into a javaFx's [Image].
+ * Loads image file into a javaFx's [ImageFx].
  *
- * The image loading executes on background thread if called on
- * [javafx.application.Platform.isFxApplicationThread] or current thread otherwise, so to not block or
- * overwhelm the fx ui thread.
+ * The image loading executes on background thread if called on [javafx.application.Platform.isFxApplicationThread] or
+ * current thread otherwise.
  */
-fun imgImplLoadFX(file: File, W: Int, H: Int, loadFullSize: Boolean): ImageFx {
+fun imgImplLoadFX(file: File, size: ImageSize, scaleExact: Boolean = false): ImageFx {
+   val rW = 0.0 max size.width
+   val rH = 0.0 max size.height
+   val loadFullSize = rW==0.0 && rH==0.0
    val isFxThread = Platform.isFxApplicationThread()
-   return if (loadFullSize) {
-      ImageFx(file.toURI().toString(), isFxThread)
-   } else {
-      var requestedSize = (W x H) max (0 x 0)
-      val imageSize = getImageDim(file).map { it.width x it.height }.getOr(Integer.MAX_VALUE.x2)
-      if (requestedSize.x>imageSize.x || requestedSize.y>imageSize.y) {
-         requestedSize = imageSize
+   return when {
+      loadFullSize -> ImageFx(file.toURI().toString(), isFxThread)
+      scaleExact -> {
+         val imageSize = getImageDim(file).map { it.width x it.height }.getOr(Integer.MAX_VALUE.x2)
+         val requestedSize = rW x rH
+         val iRatio = imageSize.x/imageSize.y
+         val rRatio = requestedSize.x/requestedSize.y
+         val finalSize = if (iRatio<rRatio) requestedSize.x.x2/(1 x iRatio) else requestedSize.y.x2*(iRatio x 1)
+         ImageFx(file.toURI().toString(), finalSize.x, finalSize.y, true, true, isFxThread)
       }
-      val iRatio = imageSize.x/imageSize.y
-      val rRatio = requestedSize.x/requestedSize.y
-      val neededSize = if (iRatio<rRatio) requestedSize.x.x2/(1 x iRatio) else requestedSize.y.x2*(iRatio x 1)
-      val sharpenSize = neededSize*1.5
-      val finalSize = sharpenSize min imageSize // should not surpass real size (javafx.scene.Image would)
-      ImageFx(file.toURI().toString(), finalSize.x, finalSize.y, true, true, isFxThread)
+      else -> {
+         val imageSize = getImageDim(file).map { it.width x it.height }.getOr(Integer.MAX_VALUE.x2)
+         val requestedSize = if (rW>imageSize.x || rH>imageSize.y) imageSize else rW x rH
+         val iRatio = imageSize.x/imageSize.y
+         val rRatio = requestedSize.x/requestedSize.y
+         val neededSize = if (iRatio<rRatio) requestedSize.x.x2/(1 x iRatio) else requestedSize.y.x2*(iRatio x 1)
+         val sharpenSize = neededSize*1.5
+         val finalSize = sharpenSize min imageSize // should not surpass real size (javafx.scene.Image would)
+         ImageFx(file.toURI().toString(), finalSize.x, finalSize.y, true, true, isFxThread)
+      }
    }
 }
 

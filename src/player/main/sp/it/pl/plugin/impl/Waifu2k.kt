@@ -63,7 +63,7 @@ class Waifu2k: PluginBase() {
          }
       }.configure("Upscale image (waifu2k)...") { c ->
          waiffuDir.value?.runAsAppProgram(
-            "Upscale image ${c.source}",
+            """Upscale image "${c.source.value?.absolutePath}"""",
             "-i \"" + c.source.value!!.absolutePath + "\"",
             "-o \"" + c.destination.value!!.absolutePath + "\"",
             "-m scale",

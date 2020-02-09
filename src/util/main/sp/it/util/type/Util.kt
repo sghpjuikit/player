@@ -161,10 +161,10 @@ infix fun Any.nullify(property: KProperty<*>) {
 }
 
 /** Returns sequence of class' all superclasses and interfaces in depth first declaration order. */
-fun KClass<*>.superKClasses(): Sequence<KClass<*>> = getSuperKClassesInc().drop(1)
+fun KClass<*>.superKClasses(): Sequence<KClass<*>> = superKClassesInc().drop(1)
 
 /** Returns sequence of this class, its all superclasses and interfaces in depth first declaration order. */
-fun KClass<*>.getSuperKClassesInc(): Sequence<KClass<*>> = when {
+fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when {
    this==Nothing::class -> sequenceOf(Nothing::class)
    this==Unit::class -> sequenceOf(Unit::class)
    else -> java.recurse { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }

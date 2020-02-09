@@ -1,7 +1,7 @@
 package sp.it.util.collections.map.abstr
 
 import sp.it.util.type.Util.getSuperClassesInc
-import sp.it.util.type.getSuperKClassesInc
+import sp.it.util.type.superKClassesInc
 import kotlin.reflect.KClass
 
 interface MapByKClass<E> {
@@ -34,7 +34,6 @@ interface MapByKClass<E> {
     *
     * or empty list if no such mapping exists.
     *
-    *
     * Note: Void.class is useful for mapping objects based on their generic
     * type.
     */
@@ -54,7 +53,7 @@ interface MapByKClass<E> {
     * or null if no such mapping exists.
     */
    fun getElementOfSuper(key: KClass<*>): E? = null
-      ?: key.getSuperKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
+      ?: key.superKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
 
    /**
     * Returns first element mapped to one of (in that order):
@@ -66,7 +65,7 @@ interface MapByKClass<E> {
     * or null if no such mapping exists.
     */
    fun getElementOfSuperV(key: KClass<*>): E? = null
-      ?: key.getSuperKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
+      ?: key.superKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
       ?: getElementsOf(Nothing::class).firstOrNull()
       ?: getElementsOf(Void::class).firstOrNull()
 

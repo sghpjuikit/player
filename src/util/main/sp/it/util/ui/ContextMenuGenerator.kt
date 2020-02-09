@@ -4,11 +4,12 @@ import javafx.scene.control.MenuItem
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementType
+import sp.it.util.collections.insertEvery
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.dev.fail
-import sp.it.util.functional.asIf
 import sp.it.util.functional.net
 import sp.it.util.reactive.Subscription
+import sp.it.util.type.superKClassesInc
 import kotlin.reflect.KClass
 
 private typealias MenuOwner = Any
@@ -50,19 +51,24 @@ class ContextMenuGenerator {
 
    inline fun <reified T: Any> addMany(noinline items: ListMenuOwnerBlock<Collection<T>>) = addMany(T::class, items)
 
-   operator fun get(value: Any?): Sequence<MenuItem> {
-      val valueSingle = value?.let { collectionUnwrap(it) }
-      val valueMulti = value?.let { collectionWrap(value) }?.takeUnless { it.isEmpty() }
+   operator fun get(value: Any?): Sequence<MenuItem> = when (value) {
+      null -> {
+         mNull.asSequence().flatMap { it(value) }
+      }
+      else -> {
+         val valueSingle = collectionUnwrap(value)
+         val valueMulti = collectionWrap(value).takeUnless { it.isEmpty() }
 
-      val items1 = valueSingle?.net { mSingle.getElementsOfSuperV(it::class) } ?: mNull.asSequence()
+         val items1 = valueSingle?.net { it::class.superKClassesInc().associateWith { mSingle[it].orEmpty() } } ?: mapOf()
+         val itemsNType = valueMulti?.getElementType()?.kotlin
+         val itemsN = itemsNType?.net { it.superKClassesInc().associateWith { mMany[it].orEmpty() } } ?: mapOf()
 
-      val itemsNType = valueMulti.asIf<Collection<*>>()?.getElementType()?.kotlin
-      val itemsN = itemsNType?.net { mMany.getElementsOfSuperV(it) } ?: sequenceOf()
-
-      return (items1.asSequence() + itemsN.asSequence())
-         .map { it(value) }
-         .flatMap { sequenceOf(menuSeparator()) + it }
-         .drop(1)
+         (items1.keys+itemsN.keys).asSequence()
+            .map { items1[it].orEmpty() + itemsN[it].orEmpty() }.filter { it.isNotEmpty() }
+            .map { it.asSequence().flatMap { it(value) }.sortedBy { it.text } }
+            .insertEvery(1) { sequenceOf(menuSeparator()) }
+            .flatten()
+      }
    }
 
 }

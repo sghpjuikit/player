@@ -43,6 +43,7 @@ import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runIO
+import sp.it.util.collections.insertEvery
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
@@ -430,7 +431,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
                   onHoverOrDragEnd { a.playClose() }
                   onEventDown(MOUSE_CLICKED) { onClick(value) }
                }
-            }.flatMap { listOf(it, label(">")) }.dropLast(1)
+            }.asSequence().insertEvery(1) { label(">") }
          }
       }
 

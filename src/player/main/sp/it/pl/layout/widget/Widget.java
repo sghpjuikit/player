@@ -13,11 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
@@ -438,11 +436,9 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public void storeDefaultConfigs() {
 		if (!isLoaded()) throw new AssertionError("Must be loaded to export default configs");
 
-		@SuppressWarnings("RedundantCast")
-		Predicate<Config<Object>> nonDefault = f -> ((Class) f.getType())==ObservableList.class || !deepEquals(f.getValue(), f.getDefaultValue());
 		File configFile = new File(getUserLocation(), "default.properties");
 		Configuration configuration = new Configuration(configToRawKeyMapper);
-		configuration.collect(filter(getConfigs(), nonDefault));
+		configuration.collect(filter(getConfigs(), f -> !deepEquals(f.getValue(), f.getDefaultValue())));
 		configuration.save("Custom default widget settings", configFile);
 	}
 

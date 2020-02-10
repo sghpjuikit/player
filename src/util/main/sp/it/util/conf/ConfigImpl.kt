@@ -240,10 +240,9 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
 @Suppress("UNCHECKED_CAST")
 open class ListConfig<T>(
    name: String, def: ConfigDefinition, @JvmField val a: ConfList<T>, group: String, constraints: Set<Constraint<ObservableList<T>>>, elementConstraints: Set<Constraint<T>>
-): ConfigBase<ObservableList<T>>(ObservableList::class.java.asIs(), name, def, constraints, a.list, group) {
+): ConfigBase<ObservableList<T>>(ObservableList::class.java.asIs(), name, def, constraints, observableArrayList(a.list.materialize()), group) {
 
    val toConfigurable: (T?) -> Configurable<*>
-   private val defaultItems: List<T>?
 
    // TODO: support multi-value
    override var valueAsProperty: PropVal
@@ -274,7 +273,6 @@ open class ListConfig<T>(
    init {
       failIf(isReadOnly(null, a.list)!=def.editable.isByNone)
 
-      defaultItems = if (isFixedSizeAndHasConfigurableItems) null else a.list.materialize()
       toConfigurable = a.itemToConfigurable.compose { configurable ->
          if (configurable is Config<*>) {
             val config = configurable.asIs<Config<T>>()
@@ -290,12 +288,12 @@ open class ListConfig<T>(
 
    override fun getValue() = a.list
 
-   override fun setValue(value: ObservableList<T>) {}
-
-   override fun setValueToDefault() {
-      if (isFixedSizeAndHasConfigurableItems)
-         a.list setTo defaultItems.orEmpty()
+   fun setValue(value: List<T>) {
+      if (value!==a.list)
+         a.list setTo value
    }
+
+   override fun setValue(value: ObservableList<T>) = setValue(value as List<T>)
 
    @Suppress("SimplifyBooleanWithConstants")
    companion object {

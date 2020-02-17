@@ -29,6 +29,7 @@ import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.ValueConfig;
+import sp.it.util.type.VType;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -259,8 +260,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 					newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
 				}
 			} else if (by<0) {
-				for (int i = 0; i<blocks.size(); i++) {
-					newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
+				for (List<Integer> block : blocks) {
+					newSelected.addAll(moveItemsByBlock(block, by));
 				}
 			}
 		} catch (IndexOutOfBoundsException e) {
@@ -280,8 +281,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 				}
 
 			} else if (by<0) {
-				for (int i = 0; i<indexes.size(); i++) {
-					int ii = indexes.get(i);
+				for (int ii : indexes) {
 					Collections.swap(this, ii, ii + by);
 					newSelected.add(ii + by);
 				}
@@ -738,14 +738,13 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 *
 	 * @param add true to add songs, false to clear playlist and play songs
 	 */
-	@SuppressWarnings({"Convert2Lambda", "unchecked"})
+	@SuppressWarnings({"Convert2Lambda"})
 	public void addOrEnqueueUrl(boolean add) {
 		String title = add ? "Add url song." : "Play url song.";
-		Config<URI> conf = new ValueConfig<>(URI.class, "Url", URI.create("http://www.example.com"), title);
+		Config<URI> conf = new ValueConfig<>(new VType<>(URI.class, false), "Url", URI.create("http://www.example.com"), title);
 		Form<?> form = Form.Companion.form(
 			conf,
-			consumer(
-				(Consumer) new Consumer<Config<URI>>() {
+			consumer(new Consumer<>() {
 					@Override
 					public void accept(Config<URI> url) {
 						if (add) {

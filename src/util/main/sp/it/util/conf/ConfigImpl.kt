@@ -23,22 +23,32 @@ import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
 import sp.it.util.reactive.onChangeAndNow
-import sp.it.util.type.Util
-import java.lang.reflect.Field
+import sp.it.util.type.VType
+import sp.it.util.type.isPlatformType
+import sp.it.util.type.rawJ
+import sp.it.util.type.type
 import java.util.HashSet
 import java.util.function.Supplier
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection.Companion.covariant
+import kotlin.reflect.KTypeProjection.Companion.invariant
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.withNullability
+import kotlin.reflect.jvm.isAccessible
 
 interface ConfigImpl {
 
    abstract class ConfigBase<T> constructor(
-      type: Class<T>,
+      override val type: VType<T>,
       override val name: String,
       override val nameUi: String,
       override val defaultValue: T,
@@ -47,13 +57,12 @@ interface ConfigImpl {
       override val isEditable: EditMode
    ): Config<T>() {
 
-      override val type: Class<T> = Util.unPrimitivize(type)
       private var constraintsImpl: HashSet<Constraint<T>>? = null
 
       override val constraints
          get() = constraintsImpl.orEmpty()
 
-      constructor(type: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, `val`: T, group: String): this(type, name, if (c.name.isEmpty()) name else c.name, `val`, group, c.info, c.editable) {
+      constructor(type: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, `val`: T, group: String): this(type, name, if (c.name.isEmpty()) name else c.name, `val`, group, c.info, c.editable) {
          constraintsImpl = if (constraints.isEmpty()) null else HashSet(constraints)
       }
 
@@ -71,11 +80,11 @@ interface ConfigImpl {
 class ValueConfig<V>: ConfigBase<V> {
    private var value: V
 
-   constructor(type: Class<V>, name: String, nameUi: String, value: V, group: String, info: String, editable: EditMode): super(type, name, nameUi, value, group, info, editable) {
+   constructor(type: VType<V>, name: String, nameUi: String, value: V, group: String, info: String, editable: EditMode): super(type, name, nameUi, value, group, info, editable) {
       this.value = value
    }
 
-   constructor(type: Class<V>, name: String, value: V, info: String): super(type, name, name, value, "", info, EditMode.USER) {
+   constructor(type: VType<V>, name: String, value: V, info: String): super(type, name, name, value, "", info, EditMode.USER) {
       this.value = value
    }
 
@@ -100,7 +109,7 @@ class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
     * @param getter defines [getValue]
     */
    constructor(
-      type: Class<T>, name: String, gui_name: String, setter: (T) -> Unit, getter: () -> T, group: String, info: String, editable: EditMode
+      type: VType<T>, name: String, gui_name: String, setter: (T) -> Unit, getter: () -> T, group: String, info: String, editable: EditMode
    ): super(type, name, gui_name, getter(), group, info, editable) {
       this.getter = getter
       this.setter = setter
@@ -111,7 +120,7 @@ class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
     * @param getter defines [getValue]
     */
    constructor(
-      type: Class<T>, name: String, description: String, setter: (T) -> Unit, getter: () -> T
+      type: VType<T>, name: String, description: String, setter: (T) -> Unit, getter: () -> T
    ): super(type, name, name, getter(), "", description, EditMode.USER) {
       this.getter = getter
       this.setter = setter
@@ -125,37 +134,42 @@ class AccessConfig<T>: ConfigBase<T>, WritableValue<T> {
 
 }
 
-/** [Config] backed by [Field] and an object instance. Can wrap both static or instance fields. */
-@Suppress("UNCHECKED_CAST")
+/** [Config] backed by [KProperty] and an object instance. Can wrap both static or instance fields. */
 open class FieldConfig<T>(
-   name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, private val instance: Any?, group: String, private val field: Field
-): ConfigBase<T>(field.type as Class<T>, name, c, constraints, field.value<T>(instance), group) {
+   type: VType<T>, name: String, def: ConfigDefinition, constraints: Set<Constraint<T>>, private val instance: Any?, group: String, private val property: KProperty<T>
+): ConfigBase<T>(
+   // type can not be obtained from property, as it could be platform type and have ambiguous nullability
+   type, name, def, constraints, property.getter.call(instance), group
+) {
 
-   override fun getValue(): T = field.value(instance)
+   override fun getValue(): T {
+      return runTry {
+         property.isAccessible = true
+         property.getter.isAccessible = true
+         property.getter.call(instance)
+      }.getOrSupply {
+         fail(it) { "Error getting config $group.$name's property $property value" }
+      }
+   }
 
    override fun setValue(value: T) {
-      runTry {
-         field.isAccessible = true
-         field.set(instance, value)
-      }.mapError {
-         RuntimeException("Error setting config field $name to $field", it)
-      }.orThrow
+      if (property is KMutableProperty<T>) {
+         runTry {
+            property.isAccessible = true
+            property.setter.isAccessible = true
+            property.setter.call(instance, value)
+         }.getOrSupply {
+            fail(it) { "Error setting config $group.$name's property $property value" }
+         }
+      }
    }
 
-   companion object {
-      private fun <T> Field.value(instance: Any?): T = runTry {
-         isAccessible = true
-         get(instance) as T
-      }.mapError {
-         RuntimeException("Error getting config field $name from $this", it)
-      }.orThrow
-   }
 }
 
 @Suppress("UNCHECKED_CAST")
-open class PropertyConfig<T> @JvmOverloads constructor(
-   valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: WritableValue<T>, defaultValue: T = property.value, group: String
-): ConfigBase<T>(valueType, name, c, constraints, defaultValue, group) {
+open class PropertyConfig<T>(
+   valueType: VType<T>, name: String, def: ConfigDefinition, constraints: Set<Constraint<T>>, val property: WritableValue<T>, defaultValue: T = property.value, group: String
+): ConfigBase<T>(valueType, name, def, constraints, defaultValue, group) {
 
    init {
       if (this.property is EnumerableValue<*>)
@@ -174,7 +188,7 @@ open class PropertyConfig<T> @JvmOverloads constructor(
 
 @Suppress("UNCHECKED_CAST")
 open class PropertyConfigRO<T>(
-   valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
+   valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
 ): ConfigBase<T>(valueType, name, c, constraints, property.value, group) {
 
    init {
@@ -193,13 +207,13 @@ open class PropertyConfigRO<T>(
 /** [Config] backed by [OrV] and of [OrValue] type. Observable. */
 open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    val property: OrV<T>
-   val valueType: Class<T>
+   val valueType: VType<T>
 
-   @Suppress("UNCHECKED_CAST")
    constructor(
-      valueType: Class<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, property: OrV<T>, group: String
+      valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, property: OrV<T>, group: String
    ): super(
-      OrValue::class.java as Class<OrValue<T>>, name, c, constraints, OrValue(property.override.value, property.real.value), group
+      VType(OrValue::class.createType(listOf(invariant(valueType.type)))),
+      name, c, constraints, OrValue(property.override.value, property.real.value), group
    ) {
       this.property = property
       this.valueType = valueType
@@ -225,7 +239,7 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
             Parsers.DEFAULT.ofS(Boolean::class.javaObjectType, s[0])
                .ifOk { property.override.value = it }
                .ifError { logger.warn(it) { "Unable to set config=$name override value (Boolean.class) from text='${s[0]}'" } }
-            Parsers.DEFAULT.ofS(valueType, s[1])
+            Parsers.DEFAULT.ofS(valueType.rawJ, s[1])
                .ifOk { property.real.value = it }
                .ifError { logger.warn(it) { "Unable to set config=$name real value ($valueType) from text='${s[0]}'" } }
          } else {
@@ -239,8 +253,11 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
 
 @Suppress("UNCHECKED_CAST")
 open class ListConfig<T>(
-   name: String, def: ConfigDefinition, @JvmField val a: ConfList<T>, group: String, constraints: Set<Constraint<ObservableList<T>>>, elementConstraints: Set<Constraint<T>>
-): ConfigBase<ObservableList<T>>(ObservableList::class.java.asIs(), name, def, constraints, observableArrayList(a.list.materialize()), group) {
+   name: String, def: ConfigDefinition, val a: ConfList<T>, group: String, constraints: Set<Constraint<ObservableList<T>>>, elementConstraints: Set<Constraint<T>>
+): ConfigBase<ObservableList<T>>(
+   VType(ObservableList::class.createType(nullable = false, arguments = listOf(invariant(a.itemType.type)))),
+   name, def, constraints, observableArrayList(a.list.materialize()), group
+) {
 
    val toConfigurable: (T?) -> Configurable<*>
 
@@ -311,7 +328,12 @@ class CheckListConfig<T, S: Boolean?>(
    group: String,
    constraints: Set<Constraint<CheckList<T, S>>>
 ): ConfigBase<CheckList<T, S>>(
-   CheckList::class.java.asIs(),
+   VType(
+      CheckList::class.createType(arguments = listOf(
+         covariant(defaultValue.elementType.type),
+         invariant(defaultValue.checkType.type))
+      )
+   ),
    name,
    def,
    constraints,
@@ -341,7 +363,12 @@ class CheckListConfig<T, S: Boolean?>(
       }
 }
 
-class CheckList<out T, S: Boolean?> private constructor(val isNullable: Boolean, val all: List<T>, val selectionsInitial: List<S>): Observable {
+class CheckList<out T, S: Boolean?> private constructor(
+   val checkType: VType<S>,
+   val elementType: VType<T>,
+   val all: List<T>,
+   val selectionsInitial: List<S>
+): Observable {
    val selections = observableArrayList<S>(selectionsInitial)!!.apply {
       onChangeAndNow {
          failIf(all.size!=size) { "Selections and elements counts must always be the same " }
@@ -355,7 +382,9 @@ class CheckList<out T, S: Boolean?> private constructor(val isNullable: Boolean,
    override fun removeListener(listener: InvalidationListener?) = selections.removeListener(listener)
 
    companion object {
-      fun <T> nonNull(elements: List<T>, selections: List<Boolean> = elements.map { true }) = CheckList(false, elements, selections)
-      fun <T> nullable(elements: List<T>, selections: List<Boolean?> = elements.map { true }) = CheckList(true, elements, selections)
+      fun <T> nonNull(elementType: VType<T>, elements: List<T>, selections: List<Boolean> = elements.map { true })
+         = CheckList(type(), elementType, elements, selections)
+      fun <T> nullable(elementType: VType<T>, elements: List<T>, selections: List<Boolean?> = elements.map { true })
+         = CheckList(type(), elementType, elements, selections)
    }
 }

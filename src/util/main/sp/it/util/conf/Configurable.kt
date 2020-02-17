@@ -1,12 +1,11 @@
 package sp.it.util.conf
 
-import sp.it.util.conf.ConfigurationUtil.configsOf
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
-import sp.it.util.type.Util
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
 import java.util.ArrayList
+import kotlin.reflect.full.memberProperties
 
 /**
  * Defines object that can be configured.
@@ -51,13 +50,8 @@ interface ConfigurableByReflect: Configurable<Any?> {
 
    @JvmDefault
    override fun getConfig(name: String): Config<Any?>? {
-      return try {
-         ConfigurationUtil.createConfig(Util.getField(javaClass, name), this).asIs()
-      } catch (e: NoSuchFieldException) {
-         null
-      } catch (e: SecurityException) {
-         null
-      }
+      val property = this::class.memberProperties.find { it.name==name } ?: return null
+      return annotatedConfig(property, this).asIs()
    }
 }
 
@@ -70,8 +64,7 @@ class ListConfigurable<T> private constructor(private val configs: List<Config<T
 
    companion object {
 
-      @Suppress("UNCHECKED_CAST")
-      fun <T> heterogeneous(configs: Collection<Config<out T>>): ListConfigurable<*> = ListConfigurable(configs.toList() as List<Config<T>>)
+      fun <T> heterogeneous(configs: Collection<Config<out T>>): ListConfigurable<*> = ListConfigurable(configs.toList().asIs<List<Config<T>>>())
 
       fun <T> heterogeneous(vararg configs: Config<out T>): ListConfigurable<*> = heterogeneous(configs.toList())
 
@@ -83,11 +76,10 @@ class ListConfigurable<T> private constructor(private val configs: List<Config<T
 }
 
 /** @return configurable of configs representing all configs marked [IsConfig] */
-fun Any.toConfigurableByReflect(): Configurable<*> = configsOf(javaClass, this).toListConfigurable()
+fun Any.toConfigurableByReflect(): Configurable<*> = annotatedConfigs(this).toListConfigurable()
 
 /** @return configurable of configs representing all configs marked [IsConfig] */
-fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Configurable<*> =
-   configsOf(javaClass, fieldNamePrefix, category, this).toListConfigurable()
+fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Configurable<*> = annotatedConfigs(fieldNamePrefix, category, this).toListConfigurable()
 
 /** @return configurable of configs representing all javafx properties of this object */
 fun Any.toConfigurableFx(): Configurable<*> {

@@ -24,8 +24,8 @@ import sp.it.pl.main.emScaled
 import sp.it.util.Util.pyth
 import sp.it.util.access.V
 import sp.it.util.animation.Loop
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.functional.runTry
 import sp.it.util.math.clip
 import sp.it.util.math.min
@@ -59,9 +59,7 @@ import kotlin.streams.asSequence
 class Voronoi(widget: Widget): SimpleController(widget) {
 
    private val canvas = RenderNode()
-
-   @IsConfig(name = "Displayed")
-   val displayed by cv(CellGenerator.CIRCLES) sync { canvas.displayedToBe = it }
+   val displayed by cv(CellGenerator.CIRCLES).def(name = "Displayed") sync { canvas.displayedToBe = it }
 
    init {
       root.prefSize = 850.emScaled x 600.emScaled

@@ -18,6 +18,7 @@ import sp.it.util.conf.Constraint;
 import sp.it.util.conf.EditMode;
 import sp.it.util.file.properties.PropVal;
 import sp.it.util.file.properties.PropVal.PropVal1;
+import sp.it.util.type.VType;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static javafx.scene.input.KeyCombination.keyCombination;
 import static kotlin.text.StringsKt.contains;
@@ -328,8 +329,8 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	@Override
-	public Class<Action> getType() {
-		return Action.class;
+	public VType<Action> getType() {
+		return new VType<>(Action.class, false);
 	}
 
 	@Override

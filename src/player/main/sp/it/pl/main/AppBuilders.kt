@@ -33,6 +33,7 @@ import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.ValueConfig
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.attach
@@ -41,6 +42,7 @@ import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
+import sp.it.util.type.type
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.setScaleXY
@@ -143,7 +145,7 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
    val dName = APP.instanceName.get(it)
-   val dKind = (if (it==null) Nothing::class else it::class).let { it.nameUi + if (APP.developerMode.value) " (${it::class})" else "" }
+   val dKind = (if (it==null) Nothing::class else it::class).let { it.toUi() + if (APP.developerMode.value) " (${it::class})" else "" }
    val dInfo = APP.instanceInfo[it]
       .map { "${it.name}: ${it.value}" }
       .sorted()
@@ -253,9 +255,9 @@ fun <C: Configurable<*>> C.configure(titleText: String, action: (C) -> Any?) {
 }
 
 fun configureString(title: String, inputName: String, action: (String) -> Any?) {
-   ValueConfig(String::class.java, inputName, "", "")
-      .addConstraints(Constraint.StringNonEmpty())
-      .configure(title) { action(it.value) }
+   ValueConfig(type(), inputName, "", "").addConstraints(StringNonEmpty()).configure(title) {
+      action(it.value)
+   }
 }
 
 @Suppress("UNUSED_VARIABLE")

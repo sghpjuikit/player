@@ -141,7 +141,7 @@ class MetadataGroup {
       fun ungroup(groups: Stream<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
 
       // TODO: this may need some work"
-      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.raw.isSubclassOf<String>()) "" else null
+      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.isSubclassOf<String>()) "" else null
 
    }
 }

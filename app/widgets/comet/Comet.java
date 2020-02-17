@@ -258,10 +258,10 @@ public class Comet extends SimpleController {
 		// player stats
 		double G = 10; // padding
 		StackPane playerStats = layStack(
-			layHorizontally(G,TOP_LEFT,     createPlayerStat(PLAYERS.list.get(0)),createPlayerStat(PLAYERS.list.get(4))),TOP_LEFT,
-			layHorizontally(G,TOP_RIGHT,    createPlayerStat(PLAYERS.list.get(5)),createPlayerStat(PLAYERS.list.get(1))),TOP_RIGHT,
-			layHorizontally(G,BOTTOM_LEFT,  createPlayerStat(PLAYERS.list.get(2)),createPlayerStat(PLAYERS.list.get(6))),BOTTOM_LEFT,
-			layHorizontally(G,BOTTOM_RIGHT, createPlayerStat(PLAYERS.list.get(7)),createPlayerStat(PLAYERS.list.get(3))),BOTTOM_RIGHT
+			layHorizontally(G,TOP_LEFT,     createPlayerStat(PLAYERS.getList().get(0)),createPlayerStat(PLAYERS.getList().get(4))),TOP_LEFT,
+			layHorizontally(G,TOP_RIGHT,    createPlayerStat(PLAYERS.getList().get(5)),createPlayerStat(PLAYERS.getList().get(1))),TOP_RIGHT,
+			layHorizontally(G,BOTTOM_LEFT,  createPlayerStat(PLAYERS.getList().get(2)),createPlayerStat(PLAYERS.getList().get(6))),BOTTOM_LEFT,
+			layHorizontally(G,BOTTOM_RIGHT, createPlayerStat(PLAYERS.getList().get(7)),createPlayerStat(PLAYERS.getList().get(3))),BOTTOM_RIGHT
 		);
 		playerStats.setPadding(new Insets(G,0,G,G));
 		playerStats.setMouseTransparent(true);
@@ -455,7 +455,7 @@ public class Comet extends SimpleController {
 	final V<Color> devCanvasFadeColor = new V<>(Color.BLACK).initAttachC(c -> game.colors.canvasFade = color(c, game.colors.canvasFade.getOpacity()));
 	@IsConfig(info = "Clipped to min=0, max=0.1")
 	final V<Double> devCanvasFadeOpacity = new V<>(0.05).initAttachC(c -> game.colors.canvasFade = color(game.colors.canvasFade, clip(0, c, 0.1)));
-	@IsConfig
+	@IsConfig(nullable = true)
 	final V<Effect> devCanvasBgrEffect = new V<Effect>(new Glow(0.3)).initAttachC(e -> gc_bgr.getCanvas().setEffect(e));
 	@IsConfig
 	final V<PlayerSpawn> spawning = new V<>(PlayerSpawn.CIRCLE);
@@ -812,7 +812,7 @@ public class Comet extends SimpleController {
 				isInitialized = true;
 			}
 
-			players.addAll(listF(player_count,PLAYERS.list::get));
+			players.addAll(listF(player_count,PLAYERS.getList()::get));
 			players.forEach(Player::reset);
 			gamepads.start();
 
@@ -1298,7 +1298,7 @@ public class Comet extends SimpleController {
 
 	/** Game player. Survives game sessions. */
 	public class Player implements LO, ConfigurableByReflect {
-		@IsConfig(editable = EditMode.APP) public final V<Integer> id = new V<>(null);
+		@IsConfig(editable = EditMode.APP, nullable = true) public final V<Integer> id = new V<>(null);
 		@IsConfig public final V<String> name = new V<>("");
 		@IsConfig public final V<Color> color = new V<>(Color.WHITE);
 		@IsConfig public final V<KeyCode> keyFire = new V<>(KeyCode.W);
@@ -1308,7 +1308,7 @@ public class Comet extends SimpleController {
 		@IsConfig public final V<KeyCode> keyAbility = new V<>(KeyCode.Q);
 		@IsConfig public final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
 
-		@IsConfig final VarEnum<Integer> gamepadId = new VarEnum<Integer>(null, gamepadIds);
+		@IsConfig(nullable = true) final VarEnum<Integer> gamepadId = new VarEnum<Integer>(null, gamepadIds);
 		boolean isInputLeft, isInputRight, isInputFire, isInputFireOnce, isInputThrust, isInputAbility;
 		boolean wasInputLeft, wasInputRight, wasInputFire, wasInputFireOnce, wasInputThrust, wasInputAbility;
 		boolean wasGamepadLeft, wasGamepadRight, wasGamepadFire;

@@ -15,11 +15,10 @@ import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.Parsers
-import sp.it.util.type.Util
 import sp.it.util.type.Util.isEnum
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.toRaw
-import sp.it.util.type.typeLiteral
+import sp.it.util.type.jType
 import java.io.File
 import java.lang.reflect.GenericArrayType
 import java.lang.reflect.ParameterizedType
@@ -162,7 +161,7 @@ class Json {
       }
    }
 
-   inline fun <reified T: Any> toJsonValue(value: T?): JsValue = toJsonValue(typeLiteral<T>(), value)
+   inline fun <reified T: Any> toJsonValue(value: T?): JsValue = toJsonValue(jType<T>(), value)
 
    fun toJsonValue(typeAsJava: Type, value: Any?): JsValue {
       return when (value) {
@@ -185,8 +184,8 @@ class Json {
                is Number -> JsNumber(value).withAmbiguity()
                is String -> JsString(value).withAmbiguity()
                is Enum<*> -> JsString(value.name).withAmbiguity()
-               is Collection<*> -> JsArray(value.map { toJsonValue(typeLiteral<Any>(), it) })   // TODO: preserve collection/map type
-               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { it.value.let { toJsonValue(typeLiteral<Any>(), it) } })
+               is Collection<*> -> JsArray(value.map { toJsonValue(jType<Any>(), it) })   // TODO: preserve collection/map type
+               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { it.value.let { toJsonValue(jType<Any>(), it) } })
                else -> {
                   val converter = converters.byType.getElementOfSuper(value::class.javaObjectType)
                      .asIf<JsConverter<Any>>()
@@ -222,7 +221,7 @@ class Json {
 
    fun fromJsonValue(typeTargetJ: Type, value: JsValue): Try<Any?, Throwable> = runTry { fromJsonValueImpl(typeTargetJ, value) }
 
-   inline fun <reified T> fromJsonValueImpl(value: JsValue): T? = fromJsonValueImpl(typeLiteral<T>(), value) as T?
+   inline fun <reified T> fromJsonValueImpl(value: JsValue): T? = fromJsonValueImpl(jType<T>(), value) as T?
 
    fun fromJsonValueImpl(typeTargetJ: Type, value: JsValue): Any? {
       val typeJ = typeTargetJ.toRaw()
@@ -263,10 +262,10 @@ class Json {
             }
             is JsArray -> {
                when {
-                  typeK==Any::class -> value.value.map { fromJsonValueImpl(typeLiteral<Any>(), it) }
+                  typeK==Any::class -> value.value.map { fromJsonValueImpl(jType<Any>(), it) }
                   Collection::class.isSuperclassOf(typeK) -> {
                      val itemType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)
-                        ?: typeLiteral<Any>()
+                        ?: jType<Any>()
                      val values = value.value.map { fromJsonValueImpl(itemType, it) }
                      when (typeK) {
                         Set::class -> HashSet(values)
@@ -290,7 +289,7 @@ class Json {
                      }
                   }
                   typeK===Array<Any?>::class -> {
-                     val arrayType = typeTargetJ.asIf<GenericArrayType>()?.genericComponentType ?: typeLiteral<Any>()
+                     val arrayType = typeTargetJ.asIf<GenericArrayType>()?.genericComponentType ?: jType<Any>()
                      value.value.map { fromJsonValueImpl(arrayType, it) }.toTypedArray()
                   }
                   typeK===ByteArray::class -> value.value.mapNotNull { fromJsonValueImpl<Byte>(it) }.toByteArray()
@@ -322,7 +321,7 @@ class Json {
                      val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()
                         ?: String::class.java
                      val mapValueType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(1)
-                        ?: typeLiteral<Any>()
+                        ?: jType<Any>()
                      value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
                   }
                   else -> {

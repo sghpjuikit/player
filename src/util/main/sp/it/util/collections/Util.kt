@@ -8,7 +8,12 @@ import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableSet
 import javafx.collections.SetChangeListener
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.onChange
+import sp.it.util.type.VType
+import sp.it.util.type.raw
+import sp.it.util.type.type
 import sp.it.util.type.union
 import java.util.Stack
 import kotlin.reflect.KClass
@@ -24,10 +29,20 @@ fun <T> Set<T>.materialize() = toList()
 
 /** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): Class<*> {
-   return asSequence().filterNotNull()
-      .map { it::class }.distinct()
-      .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
-      ?.java
+   return null
+      // Try obtaining exact type by inspecting the class
+      ?: run {
+         runTry {
+            this::class.supertypes.find { it.classifier==Collection::class }?.arguments?.getOrNull(0)?.type?.raw?.java
+         }.orNull()
+      }
+      // Find lowest common element type
+      ?: run {
+         asSequence().filterNotNull()
+            .map { it::class }.distinct()
+            .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
+            ?.java
+      }
       ?: Void::class.javaObjectType
 }
 

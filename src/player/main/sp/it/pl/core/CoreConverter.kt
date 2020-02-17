@@ -10,8 +10,9 @@ import javafx.util.Duration
 import sp.it.pl.gui.UiManager.SkinCss
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.table.TableColumnInfo
+import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
-import sp.it.pl.main.nameUi
+import sp.it.pl.main.toUi
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.functional.Functors
@@ -60,14 +61,14 @@ class CoreConverter: Core {
       override fun toS(o: Any?) = when (o) {
             null -> AppTexts.textNoVal
             is Boolean -> if (o) "yes" else "no"
-            is Class<*> -> o.nameUi
-            is KClass<*> -> o.nameUi
+            is Class<*> -> APP.className[o.kotlin]
+            is KClass<*> -> APP.className[o]
             is NameUi -> o.nameUi
             is LocalDateTime -> o.format(dateTimeFormatter)
             is LocalDate -> o.format(dateTimeFormatter)
             is LocalTime -> o.format(dateTimeFormatter)
             is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
-            is Effect -> o::class.nameUi
+            is Effect -> o::class.toUi()
             else -> if(isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
    }

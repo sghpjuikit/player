@@ -6,7 +6,7 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.isSuperclassOf
 import sp.it.util.type.toRaw
-import sp.it.util.type.typeLiteral
+import sp.it.util.type.jType
 import java.lang.reflect.Type
 import java.util.HashMap
 import java.util.UUID
@@ -30,7 +30,7 @@ class IO(private val id: UUID) {
 
       @Suppress("UNCHECKED_CAST")
       @JvmOverloads
-      inline fun <reified T> create(name: String, initialValue: T? = null, noinline action: (T?) -> Unit) = create(name, typeLiteral<T?>(), initialValue, action)
+      inline fun <reified T> create(name: String, initialValue: T? = null, noinline action: (T?) -> Unit) = create(name, jType<T?>(), initialValue, action)
 
       @Suppress("UNCHECKED_CAST")
       @JvmOverloads
@@ -70,7 +70,7 @@ class IO(private val id: UUID) {
 
    inner class Outputs {
 
-      inline fun <reified T> create(name: String, value: T?): Output<T?> = create(name, typeLiteral<T?>(), value)
+      inline fun <reified T> create(name: String, value: T?): Output<T?> = create(name, jType<T?>(), value)
 
       @Suppress("UNCHECKED_CAST")
       fun <T> create(name: String, type: Type, value: T?): Output<T?> {
@@ -108,7 +108,7 @@ class IO(private val id: UUID) {
 
    inner class InOutputs {
 
-      inline fun <T: Any, reified R> mapped(output: Input<T?>, name: String, noinline mapper: (R) -> T?) = mapped(output, name, typeLiteral<R>(), mapper)
+      inline fun <T: Any, reified R> mapped(output: Input<T?>, name: String, noinline mapper: (R) -> T?) = mapped(output, name, jType<R>(), mapper)
 
       fun <T: Any, R> mapped(input: Input<T?>, name: String, type: Type, mapper: (R) -> T?): Input<R?> {
          val io = InOutput<R>(id, name, type)
@@ -120,7 +120,7 @@ class IO(private val id: UUID) {
          return io.i
       }
 
-      inline fun <T: Any, reified R> mapped(output: Output<T?>, name: String, noinline mapper: (T) -> R?) = mapped(output, name, typeLiteral<R>(), mapper)
+      inline fun <T: Any, reified R> mapped(output: Output<T?>, name: String, noinline mapper: (T) -> R?) = mapped(output, name, jType<R>(), mapper)
 
       fun <T: Any, R> mapped(output: Output<T?>, name: String, type: Type, mapper: (T) -> R?): Output<R?> {
          val io = InOutput<R>(id, name, type)

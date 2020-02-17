@@ -90,14 +90,6 @@ fun Song.toMetadata(action: (Metadata) -> Unit) {
 /** @return true iff any songs contained in this group [Song.isPlaying] */
 fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value
 
-/** @return ui name of this class, using [App.className].[sp.it.util.type.ClassName.get] */
-val KClass<*>.nameUi: String
-   get() = APP.className[this]
-
-/** @return ui name of this class, using [App.className].[sp.it.util.type.ClassName.get] */
-val Class<*>.nameUi: String
-   get() = APP.className[this.kotlin]
-
 /** @return result of [sp.it.pl.core.CoreConverter.ui].[sp.it.util.parsing.ConverterToString.toS] */
 fun <T> T?.toUi(): String = APP.converter.ui.toS(this)
 

@@ -8,9 +8,9 @@ import sp.it.util.action.ActionRegistrar.hotkeys
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.dev.fail
 import sp.it.util.functional.orNull
@@ -23,8 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 
-   @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
-   val keyManageLayout by c(ALT_GRAPH)
+   val keyManageLayout by c(ALT_GRAPH).def(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
 
    // @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
    // private val isMediaShortcutsSupported by c(true)
@@ -39,13 +38,17 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
     *
     * @return true iff global shortcuts are supported at running platform
     */
-   @IsConfig(name = "Global shortcuts supported", editable = NONE, info = "Whether global shortcuts are supported on this system")
-   val isGlobalShortcutsSupported by c(true)
-
-   @IsConfig(name = "Global shortcuts enabled", info = "Allows using the shortcuts even if application is not focused.")
-   val globalShortcutsEnabled by cv(true) {
-      v(it && isGlobalShortcutsSupported)
-   }.readOnlyUnless(isGlobalShortcutsSupported) sync {
+   val isGlobalShortcutsSupported by c(true).def(
+      name = "Global shortcuts supported",
+      editable = NONE,
+      info = "Whether global shortcuts are supported on this system"
+   )
+   val globalShortcutsEnabled by cv(true) { v(it && isGlobalShortcutsSupported) }
+      .readOnlyUnless(isGlobalShortcutsSupported)
+      .def(
+         name = "Global shortcuts enabled",
+         info = "Allows using the shortcuts even if application is not focused."
+      ) sync {
       if (isGlobalShortcutsSupported) {
          if (it) {
             startGlobalListening()

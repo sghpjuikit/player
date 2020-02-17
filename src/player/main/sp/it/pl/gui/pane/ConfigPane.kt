@@ -16,6 +16,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.type.raw
 import sp.it.util.ui.label
 import sp.it.util.ui.onNodeDispose
 
@@ -27,7 +28,7 @@ class ConfigPane<T: Any?>: VBox {
    var onChange: Runnable? = null
    val configOrder = compareBy<Config<*>> { 0 }
       .thenBy { it.group.toLowerCase() }
-      .thenBy { if (it.type==Action::javaClass) 1.0 else -1.0 }
+      .thenBy { if (it.type.raw==Action::class) 1.0 else -1.0 }
       .thenBy { it.nameUi.toLowerCase() }
 
    constructor(): super(5.0) {

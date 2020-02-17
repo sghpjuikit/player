@@ -46,7 +46,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
-import sp.it.pl.main.nameUi
+import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginBox
 import sp.it.util.HierarchicalBase
@@ -119,9 +119,9 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
    is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
    is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
-   is List<*> -> STreeItem<Any?>("List of " + o.getElementType().nameUi.plural(), { o.asSequence() }, { o.isEmpty() })
-   is Set<*> -> STreeItem<Any?>("Set of " + o.getElementType().nameUi.plural(), { o.asSequence() }, { o.isEmpty() })
-   is Map<*, *> -> STreeItem<Any?>("Map of " + o.values.getElementType().nameUi.plural(), { o.asSequence() }, { o.isEmpty() })
+   is List<*> -> STreeItem<Any?>("List of " + o.getElementType().toUi().plural(), { o.asSequence() }, { o.isEmpty() })
+   is Set<*> -> STreeItem<Any?>("Set of " + o.getElementType().toUi().plural(), { o.asSequence() }, { o.isEmpty() })
+   is Map<*, *> -> STreeItem<Any?>("Map of " + o.values.getElementType().toUi().plural(), { o.asSequence() }, { o.isEmpty() })
    is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }

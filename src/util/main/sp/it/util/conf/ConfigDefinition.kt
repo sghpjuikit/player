@@ -63,7 +63,9 @@ annotation class IsConfig(
    val name: String = "",
    val info: String = "",
    val group: String = "",
-   val editable: EditMode = EditMode.USER
+   val editable: EditMode = EditMode.USER,
+   /** Has effect only in Java when using [toConfigurableByReflect] */
+   val nullable: Boolean = false
 )
 
 /** @return [ConfigDefinition] represented by this annotation */

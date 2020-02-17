@@ -46,6 +46,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.propagateESCAPE
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.text.nullIfBlank
+import sp.it.util.type.raw
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
@@ -176,7 +177,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    }
 
    fun configureFiltered(groupToSelect: String? = groups.selectionModel.selectedItem?.value?.pathUp) {
-      configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && (it.type!=Action::class.java || !filterActions.value) }
+      configsFiltered setTo configs.filter { filter.value?.invoke(it)!=false && (it.type.raw!=Action::class || !filterActions.value) }
       configSelectionAvoid = true
       groups.isShowRoot = !showsAppSettings
       groups.root = tree(Name.treeOfPaths("All", configsFiltered.map { it.group }))

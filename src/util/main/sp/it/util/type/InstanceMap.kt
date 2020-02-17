@@ -21,7 +21,7 @@ open class InstanceMap {
    fun <T: Any> addInstances(type: Type, instances: Collection<T>) = addInstances(type.flattenToRawTypes().toList(), instances)
 
    /** Add instances of the type represented by the specified generic type argument. */
-   inline fun <reified T: Any> addInstances(vararg instances: T) = addInstances(typeLiteral<T>(), instances.toList())
+   inline fun <reified T: Any> addInstances(vararg instances: T) = addInstances(jType<T>(), instances.toList())
 
    /** @return read only observable list of instances of the type represented by the flattened list of specified classes */
    fun <T> getInstances(type: List<Class<*>>): ObservableListRO<T> = at<T>(type).readOnly()
@@ -39,7 +39,7 @@ open class InstanceMap {
     */
    @Suppress("UNCHECKED_CAST")
    inline fun <reified T: Any?> getInstances(): ObservableListRO<T> {
-      val list = getInstances<T>(typeLiteral<T>())
+      val list = getInstances<T>(jType<T>())
       val isNullable = null is T
       return if (isNullable) {
          val out = observableArrayList<T>(list + (null as T))

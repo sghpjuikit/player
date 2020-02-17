@@ -29,9 +29,9 @@ import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.asIf
@@ -85,22 +85,22 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
    private var outputSelected = io.o.create<PlaylistSong>("Selected", null)
    private var outputPlaying = io.o.create<PlaylistSong>("Playing", null)
 
-   @IsConfig(name = "Table orientation", info = "Orientation of the table.")
    val tableOrient by cv(INHERIT) { OrV(APP.ui.tableOrient) }
-   @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+      .def(name = "Table orientation", info = "Orientation of the table.")
    val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
-   @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+      .def(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
    val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
-   @IsConfig(name = "Show table header", info = "Show table header with columns.")
+      .def(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
    val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
-   @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+      .def(name = "Show table header", info = "Show table header with columns.")
    val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-   @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
+      .def(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
    val scrollToPlaying by cv(true)
-   @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
+      .def(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
    val playVisible by cv(false)
-   @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.", editable = EditMode.APP)
+      .def(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
    var lastSavePlaylistLocation by cn<File>(APP.location.user).only(DIRECTORY)
+      .def(name = "Default browse location", info = "Opens this location for file dialogs.", editable = EditMode.APP)
 
    init {
       root.prefSize = 450.emScaled x 600.emScaled

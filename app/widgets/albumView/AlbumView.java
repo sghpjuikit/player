@@ -66,7 +66,7 @@ import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync1If;
-import static sp.it.util.type.TypeTokenKt.getRawJ;
+import static sp.it.util.type.TypesKt.getRawJ;
 
 @SuppressWarnings("WeakerAccess")
 @Widget.Info(

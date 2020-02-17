@@ -1,10 +1,10 @@
-package sp.it.util.type;
+package sp.it.util.type
 
 import io.kotlintest.data.forall
-import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec
 import io.kotlintest.tables.row
+import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableListBase
 import javafx.collections.ObservableMap
@@ -19,17 +19,15 @@ import sp.it.util.collections.stackOf
 import sp.it.util.dev.fail
 import sp.it.util.dev.printIt
 import sp.it.util.functional.asIs
-import sp.it.util.type.Util.getAllMethods
-import sp.it.util.type.Util.getRawGenericPropertyType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.AbstractList
-import java.util.Stack
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KVariance
 import kotlin.reflect.KVariance.IN
 import kotlin.reflect.KVariance.INVARIANT
@@ -44,7 +42,7 @@ import kotlin.reflect.jvm.javaType
 class TypeUtilTest: FreeSpec({
    "Method" - {
 
-      ::getRawGenericPropertyType.name {
+      KType::javaFxPropertyType.name {
 
          val o1 = Pane()
          val o2 = object: Any() {
@@ -75,7 +73,7 @@ class TypeUtilTest: FreeSpec({
             rowProp<List<*>>(o2::f3),
             rowProp<List<*>>(o2::f4)
          ) { property, type ->
-            getRawGenericPropertyType(property) shouldBe type
+            property.javaFxPropertyType shouldBe type.type
          }
       }
 
@@ -120,15 +118,49 @@ class TypeUtilTest: FreeSpec({
          )
       }
 
-      ::getFirstGenericArgument.name {
+      KType::argOf.name {
          open class Covariant<out T>
          open class Invariant<T>
          open class Contravariant<in T>
+
          class SubCovariant: Covariant<Int>()
          class SubInvariant: Invariant<Int>()
          class SubContravariant: Contravariant<Int>()
          class SubArrayList: ArrayList<Int?>()
 
+         open class X1<T>
+         open class X2<R, E>: X1<E>()
+         open class X3<W>: X2<Int, W>()
+
+         open class Y1<Z, T>
+         open class Y2<R, T>: Y1<Double, R>()
+         open class Y31<T>: Y2<Int, T>()
+         open class Y32<T>: Y2<Int?, T>()
+
+         @Suppress("UNREACHABLE_CODE")
+         class MyList<W>: TransformationList<W, W>(null) {
+            override val size = fail()
+            override fun get(index: Int) = fail()
+            override fun getSourceIndex(index: Int) = fail()
+            override fun getViewIndex(index: Int) = fail()
+            override fun sourceChanged(c: ListChangeListener.Change<out W>?) = fail()
+         }
+         type<MyList<Int>>().type.raw.traverseToSuper(List::class).printIt()
+         type<MyList<Int>>().type.let { listOf(it) + it.raw.allSupertypes }.printIt()
+         type<MyList<Int>>().type.argOf(List::class, 0).printIt()
+         println("--")
+         @Suppress("UNREACHABLE_CODE")
+         class MyListInt: TransformationList<Int, Int>(null) {
+            override val size = fail()
+            override fun get(index: Int) = fail()
+            override fun getSourceIndex(index: Int) = fail()
+            override fun getViewIndex(index: Int) = fail()
+            override fun sourceChanged(c: ListChangeListener.Change<out Int>?) = fail()
+         }
+         type<MyListInt>().type.raw.traverseToSuper(List::class).printIt()
+         type<MyListInt>().type.let { listOf(it) + it.raw.allSupertypes }.printIt()
+         type<MyListInt>().type.argOf(List::class, 0).printIt()
+         println("--")
 
          List::class.printIt()
          MutableList::class.printIt()
@@ -154,8 +186,20 @@ class TypeUtilTest: FreeSpec({
          ::mmm.returnType.classifier.asIs<KClass<*>>().typeParameters.printIt()
 
          forall(
+            // supertypes argument lookup
+            xxx<Y31<Long>, Y1<*, *>, Int>(1, INVARIANT),
+            xxx<Y32<Long>, Y1<*, *>, Int?>(1, INVARIANT),
+
+            // supertypes parameter resolution
+            xxx<X3<Int>, X1<*>, Int>(0, INVARIANT),
+            xxx<X3<Int?>, X1<*>, Int?>(0, INVARIANT),
+
             // star projection should be retained (in Nothing == * == out Any?)
             xxx<Invariant<*>, Invariant<*>, Any?>(0, null),
+
+            // star projection should be normalized
+            xxx<Invariant<in Nothing>, Invariant<*>, Any?>(0, null),
+            xxx<Invariant<out Any?>, Invariant<*>, Any?>(0, null),
 
             // invariant declaration + invariant site = invariant
             xxx<Invariant<Int>, Invariant<*>, Int>(0, INVARIANT),
@@ -168,6 +212,11 @@ class TypeUtilTest: FreeSpec({
             // contravariant declaration + (any site) = contravariant
             xxx<Contravariant<Int>, Contravariant<*>, Int>(0, IN),
 
+            // borderline star projection should not be star projection
+            // xxx<Invariant<in Nothing?>, Invariant<*>, Nothing?>(0, IN), // TODO: enable (does not compile in 1.3.60)
+            xxx<Invariant<out Any>, Invariant<*>, Any>(0, OUT),
+
+            // variance is preserved in simple subclassing
             xxx<SubInvariant, Invariant<*>, Int>(0, INVARIANT),
             xxx<SubCovariant, Covariant<*>, Int>(0, IN),
             xxx<SubContravariant, Contravariant<*>, Int>(0, OUT),
@@ -200,92 +249,81 @@ class TypeUtilTest: FreeSpec({
 
             // test map read/write
          ) { i, o ->
-            i.first.type.argOf(i.second.jvmErasure, i.third) shouldBe (if (o.second == null) KTypeProjection.STAR else KTypeProjection(o.second, o.first.type))
+            fun KTypeProjection.toSimpleString(): String = when (this) {
+               STAR -> "*"
+               else -> variance!!.name + " " + this.type
+            }
+
+            val a1 = i.first.type.argOf(i.second.jvmErasure, i.third)
+            val a2 = if (o.second==null) STAR else KTypeProjection(o.second, o.first.type)
+            a1.toSimpleString() shouldBe a2.toSimpleString()
          }
       }
    }
 })
 
-private inline fun <reified T: Any> rowProp(property: KFunction<Any?>) = row(property.returnType.javaType, T::class.javaObjectType)
+private inline fun <reified T: Any> rowProp(property: KFunction<Any?>) = row(property.returnType, type<T>())
 private inline fun <reified TYPE, reified ARG, reified SHOULD> xxx(i: Int, variance: KVariance?) = row(Triple(type<TYPE>(), type<ARG>(), i), type<SHOULD>() to variance)
 
 fun mmm(): MutableList<Int>? = null
-fun mmms(): MutableList<*>? = null
-fun fgat(t: KType): KType? = when (val c = t.classifier) {
-   is KTypeParameter -> c.upperBounds.firstOrNull()
-   is KClass<*> -> null
-      ?: t.arguments.firstOrNull()?.let {
-         when (it.variance) {
-            IN, OUT, null -> it
-            INVARIANT -> KTypeProjection(c.typeParameters.first().variance, it.type)
-         }
-      }?.type
-      ?: run {
-         Util.getGenericPropertyTypeImpl(t.javaType)?.toRaw()?.kotlin?.createType(nullable = true)
-      }
-   else -> null
-}
 
-fun fgav(t: KType): Any? = when (val c = t.classifier) {
-   is KTypeParameter -> c.upperBounds.firstOrNull()
-   is KClass<*> -> null
-      ?: t.arguments.firstOrNull()?.let {
-         when (it.variance) {
-            IN, OUT, INVARIANT, null -> it
-         }
-      }?.variance
-      ?: Util.getGenericPropertyTypeImpl(t.javaType)?.toRaw()?.kotlin?.createType(nullable = true)
-   else -> null
-}
-
-inline fun <reified T> KType.argOf(i: Int): KTypeProjection = argOf(type<T>().jvmErasure, i)
-
-fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection = when (val c = classifier) {
-   is KTypeParameter -> fail { "Type parameter not a candidate $this $i" }
-   is KClass<*> -> {
-      val argument = when (c) {
-         argType -> arguments.getOrNull(i)
-            ?.let {
-               when (it.variance) {
-                  IN, OUT, null -> it
-                  INVARIANT -> when {
-                     argType.isSubclassOf<Iterable<*>>() -> {
-                        if (this.toString().startsWith("kotlin.collections.Mutable")) it
-                        else it.copy(variance = OUT)
-                     }
-                     argType.isSubclassOf<Map<*,*>>() && i==1 -> {
-                        if (this.toString().startsWith("kotlin.collections.Mutable")) it
-                        else it.copy(variance = OUT)
-                     }
-                     else -> it
-                  }
-               }
-            }
-            ?: fail { "Not found $this $i" }
-         else -> {
-            val st = c.allSupertypes
-            //val stack = c.traverseToSuper(argType)
-            st.find { it.classifier==argType }?.arguments?.getOrNull(i)
+/**
+ * Because `in Nothing` and `out Any?` and `*` are equal, the result is normalized to `*`, i.e [KTypeProjection.STAR].
+ */
+fun KType.argOf2(argType: KClass<*>, i: Int): KTypeProjection {
+   return when (val c = classifier) {
+      is KTypeParameter -> fail { "Type parameter not a candidate $this $i" }
+      is KClass<*> -> {
+         val argument = when (c) {
+            argType -> arguments.getOrNull(i)
                ?.let {
                   when (it.variance) {
                      IN, OUT, null -> it
-                     INVARIANT -> it //KTypeProjection(c.typeParameters.get().variance, it.type)
+                     INVARIANT -> when {
+                        argType.isSubclassOf<Iterable<*>>() -> {
+                           if (this.toString().startsWith("kotlin.collections.Mutable")) it
+                           else it.copy(variance = OUT)
+                        }
+                        argType.isSubclassOf<Map<*, *>>() && i==1 -> {
+                           if (this.toString().startsWith("kotlin.collections.Mutable")) it
+                           else it.copy(variance = OUT)
+                        }
+                        else -> it
+                     }
                   }
                }
-               ?: fail { "Not found $argType $i" }
+               ?: fail { "Not found $this $i" }
+            else -> {
+               val st = c.allSupertypes
+               //val stack = c.traverseToSuper(argType)
+               st.find { it.classifier==argType }?.arguments?.getOrNull(i)
+                  ?.let {
+                     when (it.variance) {
+                        IN, OUT, null -> it
+                        INVARIANT -> it //KTypeProjection(c.typeParameters.get().variance, it.type)
+                     }
+                  }
+                  ?.let {
+                     when (val at = it.type?.classifier) {
+                        is KTypeParameter -> {
+                           val argumentI = raw.typeParameters.indexOfFirst { it.name==at.name }
+                           val argument = arguments[argumentI]
+                           argument
+                        }
+                        else -> it
+                     }
+                  }
+                  ?: fail { "Not found $argType $i" }
+            }
          }
+         argument
       }
-      argument
+      else -> fail { "Unknown error" }
+   }.let {
+      when {
+         it.variance==OUT && it.type==Any::class.createType(nullable = true) -> STAR
+         it.variance==IN && it.type==Nothing::class.createType(nullable = false) -> STAR
+         else -> it
+      }
    }
-   else -> fail { "Unknown error" }
-}
-
-fun KClass<*>.traverseToSuper(s: KClass<*>, stack: Stack<KClass<*>> = Stack()): Stack<KClass<*>> {
-   stack.push(this)
-   superclasses.forEach {
-      if (stack.peek()==s) return stack
-      it.traverseToSuper(s, stack)
-   }
-   if (stack.peek()!=s) stack.pop()
-   return stack
 }

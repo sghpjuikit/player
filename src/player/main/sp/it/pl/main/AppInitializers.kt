@@ -32,7 +32,6 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
-import sp.it.util.type.Util.getRawGenericPropertyType
 import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
 import java.io.File
@@ -86,6 +85,7 @@ fun ClassName.initApp() {
 }
 
 fun InstanceName.initApp() {
+   add(Any::class.java) { "object" }
    add(Void::class.java) { "<none>" }
    add(File::class.java) { it.path }
    add(App::class.java) { "This application" }
@@ -100,8 +100,8 @@ fun InstanceName.initApp() {
    add(Output::class.java) { it.name }
    add(InOutput::class.java) { it.o.name }
    add(Collection::class.java) {
-      val eType = getRawGenericPropertyType(it.javaClass)
-      val eName = if (eType==it.javaClass || eType==null || eType==Any::class.java) "Item" else eType.nameUi
+      val eType = it::class.supertypes.find { it.classifier==Collection::class }?.arguments?.getOrNull(0)?.type
+      val eName = eType?.toUi() ?: "Item"
       eName.pluralUnit(it.size)
    }
 }

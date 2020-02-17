@@ -50,7 +50,6 @@ import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -108,11 +107,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** 128x128 icon of the application */
    private val windowIcon by lazy { Image(File("resources/icons/icon128.png").toURI().toString()) }
 
-   @IsConfig(name = "Opacity", info = "Window opacity.")
-   val windowOpacity by cv(1.0).between(0.1, 1.0)
-
-   @IsConfig(name = "Headerless", info = "Affects window header visibility for new windows.")
-   val windowHeaderless by cv(false)
+   val windowOpacity by cv(1.0).between(0.1, 1.0).def(name = "Opacity", info = "Window opacity.")
+   val windowHeaderless by cv(false).def(name = "Headerless", info = "Affects window header visibility for new windows.")
 
    private var dockIsTogglingWindows = false
    private var dockHiddenWindows = ArrayList<Window>()

@@ -48,7 +48,6 @@ import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
@@ -201,14 +200,10 @@ class AppSearchPlugin: PluginBase() {
          attach { applyCellSize() }
       }
 
+      var closeOnProgramOpened by c(false).def(name = "Close on launch", info = "Close this widget when it launches a program.")
+      var closeOnRightClick by c(false).def(name = "Close on right click", info = "Close this widget when right click is detected.")
       private val visitId = AtomicLong(0)
       private var item: Item? = null   // item, children of which are displayed
-
-      @IsConfig(name = "Close on launch", info = "Close this widget when it launches a program.")
-      var closeOnProgramOpened by c(false)
-
-      @IsConfig(name = "Close on right click", info = "Close this widget when right click is detected.")
-      var closeOnRightClick by c(false)
 
       init {
          root.prefSize = 1000.emScaled x 700.emScaled

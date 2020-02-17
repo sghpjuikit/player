@@ -179,7 +179,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                   }.asIs()
                   else -> CellFactory {
                      f.buildFieldedCell().apply {
-                        alignment = if (f.getMFType(mf).raw.isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
+                        alignment = if (f.getMFType(mf).isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
                      }
                   }
                }

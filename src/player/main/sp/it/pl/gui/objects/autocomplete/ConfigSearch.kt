@@ -35,6 +35,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.jvmErasure
 import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay

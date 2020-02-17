@@ -62,7 +62,7 @@ interface ObjectField<in V, out T>: StringGetter<V> {
    @Suppress("UNCHECKED_CAST")
    fun <C: Comparable<C>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<@UnsafeVariance V?> {
       return when {
-         type.rawJ.isSubclassOf<Comparable<*>>() -> by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
+         type.isSubclassOf<Comparable<*>>() -> by<V, C>({ o -> getOf(o) as C? }, comparatorTransformer)
          else -> sp.it.util.functional.Util.SAME as Comparator<V?>
       }
    }

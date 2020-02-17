@@ -17,6 +17,7 @@ import sp.it.util.functional.Functors.PF
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
+import sp.it.util.type.VType
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import java.util.ArrayList
@@ -90,7 +91,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
 
       private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
          val a = vx(defaultValue).apply { attach { onChange(it) } }
-         return AccessConfig<T>(type, name, description, { a.value = it }, { a.value })
+         return AccessConfig(VType(type, true), name, description, { a.value = it }, { a.value })
       }
 
    }

@@ -11,6 +11,8 @@ import sp.it.util.file.properties.writeProperties
 import sp.it.util.functional.compose
 import sp.it.util.functional.orNull
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.jvmErasure
+import sp.it.util.type.raw
 import java.io.File
 import java.lang.invoke.MethodHandles
 import java.util.concurrent.ConcurrentHashMap
@@ -119,7 +121,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
    fun save(title: String, file: File) {
       val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
       val propsCfg = configs.asSequence()
-         .filter { it.type!=Void::class.java }
+         .filter { it.type.raw in setOf(Void::class, Unit::class, Nothing::class) }
          .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueAsProperty, c.info) } }
 
       file.writeProperties(title, (propsRaw + propsCfg).values)

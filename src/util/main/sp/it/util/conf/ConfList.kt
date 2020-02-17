@@ -11,13 +11,13 @@ private typealias ItemFac<T> = () -> T
 
 /** [ObservableList] wrapper that provides element type and factory information for user editable lists. */
 open class ConfList<T> private constructor(
-   @JvmField val itemType: VType<T>,
-   @JvmField val itemFactory: ItemFac<T>?,
-   @JvmField val itemToConfigurable: ItemToConf<T?>,
-   @JvmField val list: ObservableList<T>
+   val itemType: VType<T>,
+   val itemFactory: ItemFac<T>?,
+   val itemToConfigurable: ItemToConf<T?>,
+   val list: ObservableList<T>
 ) {
-   @JvmField val isNullable = itemType.type.isMarkedNullable
-   @JvmField val isSimpleItemType = itemFactory==null
+   val isNullable = itemType.type.isMarkedNullable
+   val isSimpleItemType = itemFactory==null
 
    constructor(itemType: VType<T>, items: ObservableList<T> = observableArrayList<T>()):
       this(itemType, null, computeSimpleItemToConfigurable<T>(itemType), items)

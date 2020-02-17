@@ -6,25 +6,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javafx.beans.value.ObservableValue;
 import sp.it.util.collections.mapset.MapSet;
 import static sp.it.util.functional.Util.list;
-import static sp.it.util.type.UtilKt.toRaw;
 
-/**
- * Reflection utility methods.
- */
-@SuppressWarnings({"unused", "unchecked"})
 public interface Util {
-
-/* ---------- REFLECTION - FIELD ------------------------------------------------------------------------------------ */
 
 	@SuppressWarnings("unchecked")
 	static <T> T getValueFromFieldMethodHandle(MethodHandle mh, Object instance) {
@@ -41,14 +30,14 @@ public interface Util {
 	 * Equivalent to union of declared fields of the class and all its superclasses.
 	 */
 	@SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
-	static List<Field> getAllFields(Class clazz) {
+	static List<Field> getAllFields(Class<?> clazz) {
 		List<Field> fields = new ArrayList<>();
 
 		// get all fields of the class (but not inherited fields)
 		fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 
 		// get super class' fields recursively
-		Class superClazz = clazz.getSuperclass();
+		Class<?> superClazz = clazz.getSuperclass();
 		if (superClazz!=null) fields.addAll(getAllFields(superClazz));
 
 		// get interface' fields recursively
@@ -62,7 +51,7 @@ public interface Util {
 	 * Returns all declared methods of the class including private, static and inherited ones.
 	 * Equivalent to union of declared methods of the class and all its superclasses.
 	 */
-	static List<Method> getAllMethods(Class clazz) {
+	static List<Method> getAllMethods(Class<?> clazz) {
 		List<Method> methods = new ArrayList<>();
 
 		if (clazz.isInterface()) {
@@ -85,7 +74,7 @@ public interface Util {
 		}
 
 		// get super class' methods
-		Class superClazz = clazz.getSuperclass();
+		Class<?> superClazz = clazz.getSuperclass();
 		if (superClazz!=null) methods.addAll(getAllMethods(superClazz));
 
 		MapSet<String,Method> ms = new MapSet<>(m -> m.getName());
@@ -93,8 +82,6 @@ public interface Util {
 
 		return list(ms);
 	}
-
-/* ---------- REFLECTION - ANNOTATION ------------------------------------------------------------------------------- */
 
 	/** Finds all declared methods in the class that are annotated by annotation of specified type. */
 	static <A extends Annotation> Method getMethodAnnotated(Class<?> type, Class<A> ca) {
@@ -170,182 +157,17 @@ public interface Util {
 	@SuppressWarnings("unchecked")
 	static <T> Class<T> unPrimitivize(Class<T> c) {
 		if (c.isPrimitive()) {
-			if (c.equals(boolean.class)) return (Class) Boolean.class;
-			if (c.equals(int.class)) return (Class) Integer.class;
-			if (c.equals(float.class)) return (Class) Float.class;
-			if (c.equals(double.class)) return (Class) Double.class;
-			if (c.equals(long.class)) return (Class) Long.class;
-			if (c.equals(byte.class)) return (Class) Byte.class;
-			if (c.equals(short.class)) return (Class) Short.class;
-			if (c.equals(char.class)) return (Class) Character.class;
-			if (c.equals(void.class)) return (Class) Void.class;
+			if (c.equals(boolean.class)) return (Class<T>) Boolean.class;
+			if (c.equals(int.class)) return (Class<T>) Integer.class;
+			if (c.equals(float.class)) return (Class<T>) Float.class;
+			if (c.equals(double.class)) return (Class<T>) Double.class;
+			if (c.equals(long.class)) return (Class<T>) Long.class;
+			if (c.equals(byte.class)) return (Class<T>) Byte.class;
+			if (c.equals(short.class)) return (Class<T>) Short.class;
+			if (c.equals(char.class)) return (Class<T>) Character.class;
+			if (c.equals(void.class)) return (Class<T>) Void.class;
 		}
 		return c;
-	}
-
-	/**
-	 * Returns i-th generic parameter of the field starting from 0.
-	 * For example {@code Integer for List<Integer>}
-	 *
-	 * @param field field to get generic parameter of
-	 * @return i-th generic parameter of the field starting from 0.
-	 */
-	static Class getGenericType(Field field, int i) {
-		ParameterizedType pType = (ParameterizedType) field.getGenericType();
-		return (Class<?>) pType.getActualTypeArguments()[i];
-	}
-
-	/**
-	 * Returns i-th generic parameter of the class starting from 0.
-	 * For example Integer for class {@code IntegerList extends List<Integer>}
-	 * <p/>
-	 * Will NOT work on variables, using getClass() method on them.
-	 *
-	 * @param type class to get generic parameter of
-	 * @param i index of the parameter
-	 * @return i-th generic parameter of the class starting from 0.
-	 */
-	static Class getGenericClass(Class type, int i) {
-		return (Class) ((ParameterizedType) type.getGenericSuperclass()).getActualTypeArguments()[i];
-	}
-
-	/**
-	 * Intended use case: discovering the generic type of a javafx property in the runtime
-	 * using reflection on parent object's {@link java.lang.reflect.Field} or {@link java.lang.reflect.Method} return
-	 * type.
-	 * <p/>
-	 * This works around java's type erasure and makes it possible to determine exact property type
-	 * even when property value is null or when the value is subtype of the property's generic type.
-	 * <p/>
-	 * Returns generic type of a {@link javafx.beans.property.Property} - usually the 1st generic
-	 * parameter type of the first generic superclass or interface the provided type inherits from or
-	 * implements.
-	 * <p/>
-	 * If type is:
-	 * <ul>
-	 *     <li/> primitive class, its boxed type is returned
-	 *     <li/> class that does not inherit {@link javafx.beans.property.Property}, the class is returned as is
-	 *     <li/> otherwise type of the property is returned
-	 * </ul>
-	 * In other words: this method makes the property wrapper transparent.
-	 *
-	 * @return exact generic type of {@link javafx.beans.property.Property} represented by the specified type
-	 */
-	// TODO: remove? use getGenericPropertyType where possible
-	static Class<?> getRawGenericPropertyType(Type t) {
-		if (t instanceof Class<?>) {
-			boolean isProperty = ObservableValue.class.isAssignableFrom((Class<?>) t);
-			if (!isProperty) return unPrimitivize((Class<?>) t);
-		}
-
-		if (t instanceof ParameterizedType) {
-			Type rawType = ((ParameterizedType) t).getRawType();
-			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return toRaw(t);
-		}
-
-		if (t instanceof WildcardType) {
-			var wt = (WildcardType) t;
-			Type rawType = wt.getLowerBounds().length==0 ? wt.getUpperBounds()[0] : wt.getLowerBounds()[0];
-			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return toRaw(t);
-		}
-
-		Class<?> gpt = getRawGenericPropertyTypeImpl(t);
-
-		// Workaround for number properties returning Number.class, due to implementing Property<Number>.
-		if (gpt==Number.class) {
-			String typename = t.getTypeName();
-			if (typename.contains("Double")) return Double.class;
-			if (typename.contains("Integer")) return Integer.class;
-			if (typename.contains("Float")) return Float.class;
-			if (typename.contains("Long")) return Double.class;
-		}
-
-		return gpt;
-	}
-
-	// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
-	private static Class<?> getRawGenericPropertyTypeImpl(Type t) {
-		if (t instanceof ParameterizedType) {
-			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
-			return genericTypes.length==0 ? null : toRaw(genericTypes[0]);
-		}
-		if (t instanceof Class) {
-			// recursively traverse class hierarchy until we find ParameterizedType and return result if not null.
-			Type supertype = ((Class) t).getGenericSuperclass();
-			Class output = null;
-			if (supertype!=null && supertype!=Object.class)
-				output = getRawGenericPropertyTypeImpl(supertype);
-			if (output!=null) return output;
-
-			// else try interfaces
-			Type[] superinterfaces = ((Class) t).getGenericInterfaces();
-			for (Type superinterface : superinterfaces) {
-				if (superinterface instanceof ParameterizedType) {
-					output = getRawGenericPropertyTypeImpl(superinterface);
-					if (output!=null) return output;
-				}
-			}
-		}
-		return null;
-	}
-
-	static Type getGenericPropertyType(Type t) {
-		if (t instanceof Class<?>) {
-			boolean isProperty = ObservableValue.class.isAssignableFrom((Class<?>) t);
-			if (!isProperty) return unPrimitivize((Class<?>) t);
-		}
-		if (t instanceof ParameterizedType) {
-			Type rawType = ((ParameterizedType) t).getRawType();
-			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return t;
-		}
-		if (t instanceof WildcardType) {
-			var wt = (WildcardType) t;
-			Type rawType = wt.getLowerBounds().length==0 ? wt.getUpperBounds()[0] : wt.getLowerBounds()[0];
-			boolean isProperty = rawType instanceof Class<?> && ObservableValue.class.isAssignableFrom((Class<?>) rawType);
-			if (!isProperty) return t;
-		}
-
-		Type gpt = getGenericPropertyTypeImpl(t);
-
-		// Workaround for number properties returning Number.class, due to implementing Property<Number>.
-		if (gpt==Number.class) {
-			String typename = t.getTypeName();
-			if (typename.contains("Double")) return Double.class;
-			if (typename.contains("Integer")) return Integer.class;
-			if (typename.contains("Float")) return Float.class;
-			if (typename.contains("Long")) return Double.class;
-		}
-
-		return gpt;
-	}
-
-	// TODO: handle types defining generic property type indirectly, like: X extends Property<T>
-	static Type getGenericPropertyTypeImpl(Type t) {
-		if (t instanceof ParameterizedType) {
-			Type[] genericTypes = ((ParameterizedType) t).getActualTypeArguments();
-			return genericTypes.length==0 ? null : genericTypes[0];
-		}
-		if (t instanceof Class) {
-			// recursively traverse class hierarchy until we find ParameterizedType and return result if not null.
-			Type supertype = ((Class) t).getGenericSuperclass();
-			Type output = null;
-			if (supertype!=null && supertype!=Object.class)
-				output = getGenericPropertyTypeImpl(supertype);
-			if (output!=null) return output;
-
-			// else try interfaces
-			Type[] superinterfaces = ((Class) t).getGenericInterfaces();
-			for (Type superinterface : superinterfaces) {
-				if (superinterface instanceof ParameterizedType) {
-					output = getGenericPropertyTypeImpl(superinterface);
-					if (output!=null) return output;
-				}
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -354,7 +176,7 @@ public interface Util {
 	 * @implSpec the field can be declared in the class or any of its superclasses as opposed to standard reflection
 	 * behavior which checks only the specified class
 	 */
-	static Field getField(Class c, String n) throws NoSuchFieldException {
+	static Field getField(Class<?> c, String n) throws NoSuchFieldException {
 		// get all fields of the class (but not inherited fields)
 		Field f = null;
 		try {
@@ -406,7 +228,7 @@ public interface Util {
 	 * @implSpec the field can be declared in the class or any of its super classes as opposed to standard reflection
 	 * behavior which checks only the specified class
 	 */
-	static void setField(Class c, Object o, String name, Object v) {
+	static void setField(Class<?> c, Object o, String name, Object v) {
 		try {
 			Field f = getField(c, name);
 			f.setAccessible(true);

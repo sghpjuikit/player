@@ -12,9 +12,9 @@ import javafx.beans.value.ChangeListener as CListener
 
 /** Value with a parent and a switch to optionally use the parent's value. */
 class OrV<T>: ObservableValue<T>, WritableValue<T> {
-   @JvmField val parent: Property<T>
-   @JvmField val real: OProperty<T>
-   @JvmField val override: BProperty
+   val parent: Property<T>
+   val real: OProperty<T>
+   val override: BProperty
    private val current: OProperty<T>
 
    constructor(parentValue: Property<T>, initialValue: T = parentValue.value, overrideValue: Boolean = false) {

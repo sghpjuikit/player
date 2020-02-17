@@ -20,8 +20,8 @@ import sp.it.util.type.rawJ
 fun <T, X> ObjectField<T, X>.buildFieldedCell(): TableCell<T, X> = let { f ->
       object: TableCell<T, X>() {
          init {
-            alignment = if (f.type.rawJ.isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
-            textAlignment = if (f.type.jvmErasure.isSubclassOf<String>()) LEFT else RIGHT
+            alignment = if (f.type.isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
+            textAlignment = if (f.type.isSubclassOf<String>()) LEFT else RIGHT
             padding = Insets.EMPTY
          }
 

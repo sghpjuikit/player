@@ -5,7 +5,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec
 import io.kotlintest.tables.row
 import sp.it.util.type.toRaw
-import sp.it.util.type.typeLiteral
+import sp.it.util.type.jType
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -120,4 +120,4 @@ class JsonTest: FreeSpec({
 
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
 private infix fun Any?.shouldBeInstance(type: Type) = type.toRaw().isInstance(this) shouldBe true
-private inline fun <reified T: Any> arg() = row(typeLiteral<T>())
+private inline fun <reified T: Any> arg() = row(jType<T>())

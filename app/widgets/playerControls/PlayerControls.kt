@@ -45,8 +45,8 @@ import sp.it.pl.main.hasAudio
 import sp.it.pl.main.installDrag
 import sp.it.util.access.toggle
 import sp.it.util.collections.setToOne
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.cv
+import sp.it.util.conf.def
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
@@ -112,16 +112,11 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    private val layoutSmall = LayoutSmall()
    private val layoutBig = LayoutBig()
 
-   @IsConfig(name = "Seek type", info = "Forward/backward buttons seek by time (absolute) or fraction of total duration (relative).")
-   val seekType by cv(Seek.RELATIVE)
-   @IsConfig(name = "Chapters show", info = "Display chapter marks on seeker.")
-   val showChapters by cv(POPUP_SHARED) { dv -> seeker.chapterDisplayMode.apply { value = dv } }
-   @IsConfig(name = "Chapter open on", info = "Opens chapter also when mouse hovers over them.")
-   val showChapOnHover by cv(HOVER) { dv -> seeker.chapterDisplayActivation.apply { value = dv } }
-   @IsConfig(name = "Snap seeker to chapters", info = "Enable snapping to chapters during dragging.")
-   val snapToChap by cv(false) { dv -> seeker.chapterSnap.apply { value = dv } }
-   @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
-   val elapsedTime by cv(true)
+   val seekType by cv(Seek.RELATIVE).def(name = "Seek type", info = "Forward/backward buttons seek by time (absolute) or fraction of total duration (relative).")
+   val showChapters by cv(POPUP_SHARED) { dv -> seeker.chapterDisplayMode.apply { value = dv } }.def(name = "Chapters show", info = "Display chapter marks on seeker.")
+   val showChapOnHover by cv(HOVER) { dv -> seeker.chapterDisplayActivation.apply { value = dv } }.def(name = "Chapter open on", info = "Opens chapter also when mouse hovers over them.")
+   val snapToChap by cv(false) { dv -> seeker.chapterSnap.apply { value = dv } }.def(name = "Snap seeker to chapters", info = "Enable snapping to chapters during dragging.")
+   val elapsedTime by cv(true).def(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
 
    init {
       root.prefSize = 850.emScaled x 200.emScaled

@@ -38,10 +38,10 @@ class EffectTextField: ValueTextField<Effect> {
 
    private val typeB: Icon
    private val propB: Icon
-   private val limitedToType: Class<out Effect>?
+   private val limitedToType: KClass<out Effect>?
 
    /** Creates effect editor which can edit an effect or create effect of any specified types or any type if no specified. */
-   constructor(effectType: Class<out Effect>? = null): super() {
+   constructor(effectType: KClass<out Effect>? = null): super() {
       styleClass += STYLECLASS
       isEditable = false
       limitedToType = if (effectType==Effect::class.java) null else effectType
@@ -72,7 +72,7 @@ class EffectTextField: ValueTextField<Effect> {
          content.value = Picker<EffectType>().apply {
             root.setPrefSize(300.0, 500.0)
             itemSupply = limitedToType
-               ?.net { { sequenceOf(EffectType(limitedToType.kotlin), EffectType(null)) } }
+               ?.net { { sequenceOf(EffectType(limitedToType), EffectType(null)) } }
                ?: { EFFECT_TYPES.asSequence() }
             textConverter = { it.name }
             onCancel = { hide() }
@@ -96,7 +96,7 @@ class EffectTextField: ValueTextField<Effect> {
       const val STYLECLASS = "effect-text-field"
       private val typeTooltip = appTooltip("Choose type of effect")
       private val propTooltip = appTooltip("Configure effect")
-      @JvmField val EFFECT_TYPES = listOf(
+      val EFFECT_TYPES = listOf(
          EffectType(Blend::class),
          EffectType(Bloom::class),
          EffectType(BoxBlur::class),
@@ -121,11 +121,11 @@ class EffectTextField: ValueTextField<Effect> {
    class EffectType(type: KClass<out Effect>?) {
 
       /** Effect type. Null represents no effect.  */
-      val type = type?.java
+      val type = type
       val name = type?.toUi() ?: "None"
 
       fun instantiate(): Effect? = runTry {
-         type?.getConstructor()?.newInstance()
+         type?.java?.getConstructor()?.newInstance()
       }.ifError {
          logger.error(it) { "Config could not instantiate effect" }
       }.orNull()

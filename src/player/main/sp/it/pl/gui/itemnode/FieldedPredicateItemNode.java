@@ -28,7 +28,7 @@ import static sp.it.util.functional.Util.ISNT;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.type.TypeTokenKt.getRawJ;
+import static sp.it.util.type.TypesKt.getRawJ;
 
 /**
  * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.

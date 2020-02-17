@@ -1,7 +1,7 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.util.type.toRaw
-import sp.it.util.type.typeLiteral
+import sp.it.util.type.jType
 import java.lang.reflect.Type
 import java.util.UUID
 
@@ -31,7 +31,7 @@ class InOutput<T>: XPut<T?> {
       @JvmStatic
       operator fun <T> invoke(id: UUID, name: String, type: Type): InOutput<T?> = InOutput(id, name, type)
 
-      inline operator fun <reified T: Any> invoke(id: UUID, name: String): InOutput<T?> = invoke(id, name, typeLiteral<T>())
+      inline operator fun <reified T: Any> invoke(id: UUID, name: String): InOutput<T?> = invoke(id, name, jType<T>())
    }
 
 }

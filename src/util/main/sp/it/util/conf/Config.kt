@@ -23,11 +23,12 @@ import sp.it.util.parsing.Parsers
 import sp.it.util.type.Util.getEnumConstants
 import sp.it.util.type.Util.isEnum
 import sp.it.util.type.VType
-import sp.it.util.type.getFirstGenericArgument
+import sp.it.util.type.argOf
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
 import sp.it.util.type.rawJ
 import sp.it.util.type.type
+import sp.it.util.type.typeResolved
 import java.util.function.Supplier
 
 private typealias Enumerator<T> = Supplier<Collection<T>>
@@ -61,7 +62,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    abstract val isEditable: EditMode
 
    /** Name of this config. */
-   abstract val type: Class<T>
+   abstract val type: VType<T>
 
    fun isNotEditableRightNow() = constraints.asSequence().any { it is ReadOnlyIf && it.condition.value }
 
@@ -126,11 +127,11 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
       null
          ?: findConstraint<ValueSet<T>>()?.let { values -> Enumerator { values.enumerator() } }
          ?: valueEnumerator2nd
-         ?: if (!isEnum(type)) null else {
-            if (findConstraint<ObjectNonNull>()!=null) {
-               Enumerator { getEnumConstants<T>(type).toList() }
+         ?: if (!isEnum(type.rawJ)) null else {
+            if (type.isNullable) {
+               Enumerator { getEnumConstants<T>(type.rawJ).toList() + (null as T) }
             } else {
-               Enumerator { getEnumConstants<T>(type).toList() + (null as T) }
+               Enumerator { getEnumConstants<T>(type.rawJ).toList() }
             }
          }
    }
@@ -157,7 +158,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
 
             return Try.error("Value '$s' does not correspond to any value of the enumeration in ${config.group}.${config.name}")
          } else {
-            return Parsers.DEFAULT.ofS(config.type, s)
+            return Parsers.DEFAULT.ofS(config.type.rawJ, s)
          }
       }
 
@@ -170,14 +171,13 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
       fun <T> forValue(type: VType<T>, name: String, value: Any?): Config<T> = null
          ?: forPropertyImpl(type, name, value)
          ?: run {
-            val typeRaw = type.rawJ
             when {
-               typeRaw.isSubclassOf<ObservableList<*>>() -> {
+               type.isSubclassOf<ObservableList<*>>() -> {
                   val valueTyped = value as ObservableList<*>
                   // TODO: use variance to get readOnly
                   val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, valueTyped)) EditMode.NONE else EditMode.USER
                   val def = ConfigDef(name, "", "", editable = isReadOnly)
-                  val itemType: VType<*> = getFirstGenericArgument(type.type)?.let { VType<Any?>(it) } ?: type<Any?>()
+                  val itemType: VType<*> = VType<Any?>(type.type.argOf(ObservableList::class, 0).typeResolved)
                   ListConfig(name, def, ConfList(itemType, valueTyped.asIs()), "", setOf(), setOf()).asIs()
                }
                else -> forProperty(type, name, vx(value))
@@ -209,7 +209,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
 
       @JvmStatic
       @JvmOverloads
-      fun <T> forProperty(type: Class<T>, name: String, property: Any?, isNullable: Boolean = true): Config<T> = forProperty(VType(type, isNullable), name, property)
+      fun <T> forProperty(type: Class<T>, name: String, property: Any?, isNullable: Boolean = false): Config<T> = forProperty(VType(type, isNullable), name, property)
 
       private fun <T> forPropertyImpl(type: VType<T>, name: String, property: Any?): Config<T>? {
          val def = ConfigDef(name, "", group = "", editable = EditMode.USER)
@@ -219,9 +219,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
                val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, property.list)) EditMode.NONE else EditMode.USER
                ListConfig(name, def.copy(editable = isReadOnly), property, "", setOf(), setOf()).asIs()
             }
-            is OrV<*> -> OrPropertyConfig(type.rawJ, name, def, setOf(), property.asIs(), group = "").asIs()
-            is WritableValue<*> -> PropertyConfig(type.rawJ, name, def, setOf(), property.asIs(), group = "")
-            is ObservableValue<*> -> PropertyConfigRO(type.rawJ, name, def, setOf(), property.asIs(), group = "")
+            is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), property.asIs(), group = "").asIs()
+            is WritableValue<*> -> PropertyConfig(type, name, def, setOf(), property.asIs(), group = "")
+            is ObservableValue<*> -> PropertyConfigRO(type, name, def, setOf(), property.asIs(), group = "")
             else -> null
          }?.apply {
             if (!type.isNullable)

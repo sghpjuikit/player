@@ -112,6 +112,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.text.nullIfBlank
+import sp.it.util.type.raw
 import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -123,6 +124,7 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import java.io.File
+import kotlin.reflect.KClass
 
 private val warnTooltip = appTooltip("Erroneous value")
 private val actTooltip = appTooltip("Run action")
@@ -146,7 +148,6 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
    final override val editor = NullCheckIcon()
    private val v = getObservableValue(c)
    private val isObservable = v!=null
-   private val isNullable = c.findConstraint<ObjectNonNull>()==null
    private val disposer = editor.onNodeDispose
 
    init {
@@ -155,7 +156,7 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
          editor.selected.value = when (editor.selected.value) {
             null -> true
             true -> false
-            false -> if (isNullable) null else true
+            false -> if (c.type.isNullable) null else true
          }
       }
       editor.selected.value = c.value
@@ -182,7 +183,7 @@ class OrBoolCE(c: Config<Boolean?>): BoolCE(c) {
 class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrPropertyConfig.OrValue<T>>(c) {
    override val editor = FlowPane(5.0, 5.0)
    private val oCE = create(Config.forProperty<Boolean>("Override", c.property.override))
-   private val vCE = create(Config.forProperty(c.valueType, "", c.property.real, c.findConstraint<ObjectNonNull>()==null))
+   private val vCE = create(Config.forProperty(c.valueType, "", c.property.real))
 
    init {
       c.property.override sync { vCE.editor.isDisable = !it } on editor.onNodeDispose
@@ -219,7 +220,7 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
 
       editor.alignment = CENTER_LEFT
       editor.spacing = 5.0
-      if (config.type in setOf<Any>(Int::class.javaObjectType, Short::class.javaObjectType, Long::class.javaObjectType)) {
+      if (config.type.raw in setOf<Any>(Int::class, Short::class, Long::class)) {
          editor.children.add(0, cur)
          slider.majorTickUnit = 1.0
          slider.isSnapToTicks = true
@@ -236,13 +237,13 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
       v?.attach { slider.value = it.toDouble() }.orEmpty() on editor.onNodeDispose
    }
 
-   override fun get(): Try<Number, String> = when (config.type) {
-      Int::class.javaObjectType -> Try.ok(slider.value.toInt())
-      Double::class.javaObjectType -> Try.ok(slider.value)
-      Float::class.javaObjectType -> Try.ok(slider.value.toFloat())
-      Long::class.javaObjectType -> Try.ok(slider.value.toLong())
-      Short::class.javaObjectType -> Try.ok(slider.value.toShort())
-      else -> failCase(config.type)
+   override fun get(): Try<Number, String> = when (config.type.raw) {
+      Int::class -> Try.ok(slider.value.toInt())
+      Double::class -> Try.ok(slider.value)
+      Float::class -> Try.ok(slider.value.toFloat())
+      Long::class -> Try.ok(slider.value.toLong())
+      Short::class -> Try.ok(slider.value.toShort())
+      else -> failCase(config.type.raw)
    }
 
    override fun refreshValue() {
@@ -322,7 +323,6 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
    private val relativeTo = c.findConstraint<FileRelative>()?.to
    private val pickerType = if (c.findConstraint<FileOut>()==null) FilePickerType.IN else FilePickerType.OUT
    private var isObservable = v!=null
-   private val isNullable = c.findConstraint<ObjectNonNull>()==null
    override var editor = FileTextField(fileType, relativeTo, pickerType)
 
    init {
@@ -333,7 +333,7 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
       v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
    }
 
-   override fun get() = if (isNullable || editor.value!=null) Try.ok(editor.value) else Try.error(ObjectNonNull.message())
+   override fun get() = if (config.type.isNullable || editor.value!=null) Try.ok(editor.value) else Try.error(ObjectNonNull.message())
 
    override fun refreshValue() {
       if (!isObservable)
@@ -402,7 +402,7 @@ class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    }
 }
 
-class EffectCE(c: Config<Effect?>, effectType: Class<out Effect>): ConfigEditor<Effect?>(c) {
+class EffectCE(c: Config<Effect?>, effectType: KClass<out Effect>): ConfigEditor<Effect?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
    override val editor = EffectTextField(effectType)
@@ -510,7 +510,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 @Suppress("UNCHECKED_CAST")
 class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckList<T, S>>(c) {
    private val list = c.value
-   private val possibleValues = if (list.isNullable) listOf(true, false, null) else listOf(true, false)
+   private val possibleValues = if (list.checkType.isNullable) listOf(true, false, null) else listOf(true, false)
    private val checkIcons = list.all.mapIndexed { i, _ ->
       NullCheckIcon().apply {
          selected.value = list.selections[i]
@@ -522,7 +522,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
             selected.value = when (selected.value) {
                null -> true
                true -> false
-               false -> if (list.isNullable) null else true
+               false -> if (list.checkType.isNullable) null else true
             }
          }
       }

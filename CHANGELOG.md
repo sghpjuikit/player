@@ -64,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Image loading blocks ui sometimes
 - Audio Library import ui visibility and layout
 - Shortcuts settings not being applied after restart
+- Settings editors for complex values not understanding exact type (JVM erasure)
+- Settings editors general null support
 - Settings editors not applying value sometimes
 - Settings editors not showing correct value for some observables
 - Settings editors not showing correct warning tooltip text sometimes

@@ -30,12 +30,12 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.IsConfig
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
@@ -60,45 +60,25 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    val state = PlayerState.deserialize()
    private val player = GeneralPlayer(state)
 
-   @IsConfig(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
-   var continuePlaybackOnStart by c(true)
-
-   @IsConfig(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
-   var continuePlaybackPaused by c(false)
-
-   @IsConfig(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
-   var seekUnitT by c(4.seconds)
-
-   @IsConfig(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
-   var seekUnitP by c(0.05).between(0.0, 1.0)
-
-   @IsConfig(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
-   val playerInfo by cvro("<none>") { player.pInfo }
-
-   @IsConfig(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback",  editable = EditMode.APP)
-   val playerVlcLocation by cvn<String>(null)
-
+   var continuePlaybackOnStart by c(true).def(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
+   var continuePlaybackPaused by c(false).def(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
+   var seekUnitT by c(4.seconds).def(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
+   var seekUnitP by c(0.05).between(0.0, 1.0).def(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
+   val playerInfo by cvro("<none>") { player.pInfo }.def(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
+   val playerVlcLocation by cvn<String>(null).def(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback",  editable = EditMode.APP)
    val playerVlcLocationsRelativeTo = APP.location
-
-   @IsConfig(
+   val playerVlcLocations by cList<File>().only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo).def(
       name = "Vlc player locations",
       info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location." +
          "\n\nRequires application restart to take effect."
    )
-   val playerVlcLocations by cList<File>().only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo)
 
-   @IsConfig(name = "Last browse location")
-   var browse by c<File>(APP.location.user).only(DIRECTORY)
-
-   @IsConfig(name = "Last playlist export location")
-   var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY)
-
-   @IsConfig(
+   var browse by c<File>(APP.location.user).only(DIRECTORY).def(name = "Last browse location")
+   var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY).def(name = "Last playlist export location")
+   var readOnly by c(true).def(
       name = "No song modification",
-      info = "Disallow all song modifications by this application." +
-         "\n\nWhen true, app will be unable to change any song metadata"
+      info = "Disallow all song modifications by this application.\n\nWhen true, app will be unable to change any song metadata"
    )
-   var readOnly by c(true)
 
    var startTime: Duration? = null
    var postActivating = false // this prevents onTime handlers to reset after playback activation the suspension-activation should undergo as if it never happen

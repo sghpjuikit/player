@@ -18,8 +18,10 @@ import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.type.InstanceMap
-import sp.it.util.type.Util.getRawGenericPropertyType
+import sp.it.util.type.VType
+import sp.it.util.type.argOf
 import sp.it.util.type.type
+import sp.it.util.type.typeResolved
 import java.io.File
 import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction
@@ -29,7 +31,6 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaMethod
-import kotlin.reflect.jvm.javaType
 import kotlin.properties.ReadOnlyProperty as RoProperty
 import kotlin.properties.ReadWriteProperty as RwProperty
 
@@ -42,10 +43,10 @@ fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
-inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems)))
-inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems))
-inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T,Boolean> = ConfCheckL(CheckList.nonNull(initialItems.toList()))
-inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T,S>): ConfCheckL<T,S> = ConfCheckL(checkList)
+inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems))).nonNull()
+inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems)).nonNull()
+inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T,Boolean> = ConfCheckL(CheckList.nonNull(type(), initialItems.toList())).nonNull()
+inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T,S>): ConfCheckL<T,S> = ConfCheckL(checkList).nonNull()
 
 /** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
@@ -237,7 +238,7 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false
 
-      val c = ValueConfig(Action.Data::class.java, name, name, Action.Data(isGlobal, keys), group, desc, EditMode.USER)
+      val c = ValueConfig(type(), name, name, Action.Data(isGlobal, keys), group, desc, EditMode.USER)
       ref.configurableValueSource.initialize(c)
       val cv = c.value
 
@@ -284,13 +285,12 @@ class ConfCheckL<T: Any?, S: Boolean?>(val list: CheckList<T,S>): Conf<CheckList
    }
 }
 
-@Suppress("UNCHECKED_CAST", "UsePropertyAccessSyntax")
 class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
 
    operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RwProperty<ConfigDelegator, T> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
-      val type = property.returnType.javaType as Class<T>
+      val type = VType<T>(property.returnType)
       val group = info.computeConfigGroup(ref)
 
       val isFinal = property !is KMutableProperty
@@ -300,14 +300,14 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
       ref.configurableValueSource.initialize(c)
       validateValue(c.value)
 
-      return object: PropertyConfig<T>(type, property.name, info, constraints, vx<T>(c.value), initialValue, group), RwProperty<ConfigDelegator, T> {
+      return object: PropertyConfig<T>(type, property.name, info, constraints, vx(c.value), initialValue, group), RwProperty<ConfigDelegator, T> {
+         @Suppress("UsePropertyAccessSyntax")
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = getValue()
          override fun setValue(thisRef: ConfigDelegator, property: KProperty<*>, value: T) = setValue(value)
       }.registerConfig(ref)
    }
 }
 
-@Suppress("UNCHECKED_CAST")
 class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
    private val initialValue: T
    private var v: (T) -> W
@@ -332,7 +332,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<Conf
    override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
-      val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
+      val type = VType<T>(property.returnType.argOf(WritableValue::class, 0).typeResolved)
       val group = info.computeConfigGroup(ref)
 
       val isFinal = property !is KMutableProperty
@@ -343,6 +343,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<Conf
       validateValue(c.value)
 
       return object: PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), RoProperty<ConfigDelegator, W> {
+         @Suppress("UNCHECKED_CAST")
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
    }
@@ -374,7 +375,7 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
    override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
-      val type = getRawGenericPropertyType(property.returnType.javaType) as Class<T>
+      val type = VType<T>(property.returnType.argOf(ObservableValue::class, 0).typeResolved)
       val group = info.computeConfigGroup(ref)
 
       val isFinal = property !is KMutableProperty

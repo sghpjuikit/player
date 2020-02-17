@@ -76,6 +76,7 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
+import sp.it.util.type.raw
 import sp.it.util.ui.label
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -417,7 +418,7 @@ class App: Application(), GlobalConfigDelegator {
       }
       sources += Source("Actions") {
          configuration.getConfigs()
-            .filter { it.type==Action::class.javaObjectType && it.isEditableByUserRightNow() }
+            .filter { it.type.raw==Action::class && it.isEditableByUserRightNow() }
             .asSequence().map { Entry.of(it) }
       }
       sources += Source("Skins") {

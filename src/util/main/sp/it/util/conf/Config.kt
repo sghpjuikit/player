@@ -223,9 +223,6 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
             is WritableValue<*> -> PropertyConfig(type, name, def, setOf(), property.asIs(), group = "")
             is ObservableValue<*> -> PropertyConfigRO(type, name, def, setOf(), property.asIs(), group = "")
             else -> null
-         }?.apply {
-            if (!type.isNullable)
-               addConstraints(ObjectNonNull)
          }
       }
    }

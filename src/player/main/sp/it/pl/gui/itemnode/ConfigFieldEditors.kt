@@ -32,6 +32,7 @@ import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyCode.UNDEFINED
 import javafx.scene.input.KeyCombination.NO_MATCH
 import javafx.scene.input.KeyCombination.keyCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
@@ -478,7 +479,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 
    }
 
-   private fun isNullableOk(it: T?) = lc.a.isNullable || it!=null
+   private fun isNullableOk(it: T?) = lc.a.itemType.isNullable || it!=null
 
    override fun get() = Try.ok(config.value)
 
@@ -714,6 +715,8 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    override val editor = DecoratedTextField()
    val obv = getObservableValue(c)
    private val isObservable = obv!=null
+   private var isNullEvent = Suppressor()
+   private var isNull = config.value==null
    private val warnI = lazy {
       Icon().apply {
          styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
@@ -737,19 +740,54 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
       // applying value
       editor.textProperty() attach {
-         showWarnButton(getValid())
-         apply()
+         if (!isNullEvent.isSuppressed) {
+            if (isNull) isNull = false // cancel null mode on text change
+            showWarnButton(getValid())
+            apply()
+         }
       }
       editor.onEventDown(KEY_PRESSED, ENTER) { apply() }
+
+      // null state toggle
+      fun handleNullEvent(e: KeyEvent) {
+         if (config.type.isNullable) {
+            if (isNull) {
+               editor.text = "" // invokes text change and cancels null mode
+               e.consume()
+            } else {
+               if (editor.text.isEmpty()) {
+                  isNullEvent.suppressing {
+                     isNull = true
+                     editor.text = null.toUi()
+                     showWarnButton(getValid())
+                     apply()
+                     e.consume()
+                  }
+               }
+            }
+         }
+      }
+      editor.onEventUp(KEY_PRESSED, BACK_SPACE, false, ::handleNullEvent)
+      editor.onEventUp(KEY_PRESSED, DELETE, false, ::handleNullEvent)
+      editor.onEventUp(KEY_PRESSED) {
+         if (isNull && it.code!=BACK_SPACE && it.code!=DELETE) {
+            isNullEvent.suppressing {
+               editor.text = ""
+               // not consuming handles event natively & invokes text change and cancels null mode
+            }
+         }
+      }
 
       isEditableByUser sync { showWarnButton(getValid()) } on editor.onNodeDispose
    }
 
-   override fun get(): Try<T, String> = Config.convertValueFromString(config, editor.text)
+   @Suppress("UNCHECKED_CAST")
+   override fun get(): Try<T, String> = if (isNull) Try.ok(null as T) else Config.convertValueFromString(config, editor.text)
 
    override fun refreshValue() {
+      isNull = config.value==null
       editor.text = toS(config.value)
-      showWarnButton(Try.ok())
+      showWarnButton(getValid())
    }
 
    private fun showWarnButton(value: Try<*, String>) {
@@ -760,9 +798,10 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    private fun toS(o: Any?): String = when (o) {
+      null -> o.toUi()
       is Collection<*> -> o.joinToString(", ", "[", "]") { it.toUi() }
       is Map<*, *> -> o.entries.joinToString(", ", "[", "]") { it.key.toUi() + " -> " + it.value.toUi() }
-      else -> if (config.isEditable.isByUser) o.toUi() else o.toS()
+      else -> if (config.isEditable.isByUser) o.toS() else o.toUi()
    }
 }
 

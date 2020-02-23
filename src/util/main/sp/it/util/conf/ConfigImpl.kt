@@ -282,7 +282,7 @@ open class ListConfig<T>(
 
                (if (a.isSimpleItemType) configs[0].value as T else item)
             }
-            .filter(if (a.isNullable) { _ -> true } else { it -> it!=null })
+            .filter(if (a.itemType.isNullable) { _ -> true } else { it -> it!=null })
       }
 
    private val isFixedSizeAndHasConfigurableItems: Boolean = a.itemFactory===FailFactory
@@ -294,13 +294,10 @@ open class ListConfig<T>(
          if (configurable is Config<*>) {
             val config = configurable.asIs<Config<T>>()
             config.addConstraints(elementConstraints)
-            if (!a.isNullable) config.addConstraints(ObjectNonNull)
             if (!isEditable.isByUser) config.addConstraints(ReadOnlyIf(true))
          }
          configurable
       }
-
-      if (!a.isNullable) addConstraints(HasNonNullElements)
    }
 
    override fun getValue() = a.list

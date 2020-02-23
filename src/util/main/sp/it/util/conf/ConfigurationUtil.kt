@@ -5,7 +5,6 @@ import javafx.beans.value.WritableValue
 import mu.KotlinLogging
 import sp.it.util.access.OrV
 import sp.it.util.action.IsAction
-import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIs
@@ -113,10 +112,6 @@ private fun <T: Any> annotatedConfig(p: KProperty<*>, instance: T, name: String,
       val type = p.returnType
       val typeRaw = p.returnType.raw
       fun KType.resolveNullability(): KType = if (isPlatformType) withNullability(def.nullable) else this
-      fun Config<*>.postProcess(): Config<T> = let {
-         if (!this.type.isNullable) addConstraints(ObjectNonNull)
-         it.asIs()
-      }
       when {
          typeRaw.isSubclassOf<Config<*>>() -> {
             failIf(!isFinal) { "Property must be immutable" }
@@ -124,21 +119,21 @@ private fun <T: Any> annotatedConfig(p: KProperty<*>, instance: T, name: String,
             val config = p.getter.call(instance) as Config<T>
             failIf(def.nullable!=config.type.isNullable) { "Config nullability must match @${IsConfig::class.jvmName} nullability" }
 
-            config.postProcess()
+            config
          }
          typeRaw.isSubclassOf<OrV<*>>() -> {
             failIf(!isFinal) { "Property must be immutable" }
 
             val property = p.getter.call(instance) as OrV<T>
             val propertyType = type.argOf(OrV::class, 0).typeResolved.resolveNullability()
-            OrPropertyConfig(VType(propertyType), name, def.toDef(), setOf(), property, group).postProcess()
+            OrPropertyConfig(VType(propertyType), name, def.toDef(), setOf(), property, group).asIs()
          }
          typeRaw.isSubclassOf<WritableValue<*>>() -> {
             failIf(!isFinal) { "Property must be immutable" }
 
             val property = p.getter.call(instance) as WritableValue<T>
             val propertyType = type.argOf(WritableValue::class, 0).typeResolved.resolveNullability()
-            PropertyConfig(VType(propertyType), name, def.toDef(), setOf(), property, property.value, group).postProcess()
+            PropertyConfig(VType(propertyType), name, def.toDef(), setOf(), property, property.value, group).asIs()
          }
          typeRaw.isSubclassOf<ObservableValue<*>>() -> {
             failIf(!isFinal) { "Property must be immutable" }
@@ -146,26 +141,26 @@ private fun <T: Any> annotatedConfig(p: KProperty<*>, instance: T, name: String,
 
             val property = p.getter.call(instance) as ObservableValue<T>
             val propertyType = type.argOf(ObservableValue::class, 0).typeResolved.resolveNullability()
-            PropertyConfigRO(VType(propertyType), name, def.toDef(), setOf(), property, group).postProcess()
+            PropertyConfigRO(VType(propertyType), name, def.toDef(), setOf(), property, group).asIs()
          }
          typeRaw.isSubclassOf<ConfList<*>>() -> {
             failIf(!isFinal) { "Property must be immutable" }
             failIf(def.nullable) { "Config nullability must be false" }
 
             val list = p.getter.call(instance) as ConfList<Any?>
-            ListConfig(name, def.toDef(), list, group, setOf(), setOf()).postProcess()
+            ListConfig(name, def.toDef(), list, group, setOf(), setOf()).asIs()
          }
          typeRaw.isSubclassOf<CheckList<*, *>>() -> {
             failIf(!isFinal) { "Property must be immutable" }
 
             val list = p.getter.call(instance) as CheckList<*, *>
-            CheckListConfig(name, def.toDef(), list, group, setOf()).postProcess()
+            CheckListConfig(name, def.toDef(), list, group, setOf()).asIs()
          }
          else -> {
             failIf(isFinal xor (def.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${def.editable}" }
 
             val propertyType = type.resolveNullability()
-            FieldConfig(VType<T>(propertyType), name, def.toDef(), setOf(), instance, group, p.asIs()).postProcess()
+            FieldConfig(VType<T>(propertyType), name, def.toDef(), setOf(), instance, group, p.asIs()).asIs()
          }
       }
    }.getOrSupply {

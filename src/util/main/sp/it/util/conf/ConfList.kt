@@ -16,7 +16,6 @@ open class ConfList<T> private constructor(
    val itemToConfigurable: ItemToConf<T?>,
    val list: ObservableList<T>
 ) {
-   val isNullable = itemType.type.isMarkedNullable
    val isSimpleItemType = itemFactory==null
 
    constructor(itemType: VType<T>, items: ObservableList<T> = observableArrayList<T>()):
@@ -24,7 +23,7 @@ open class ConfList<T> private constructor(
 
    @Suppress("UNCHECKED_CAST")
    constructor(itemType: VType<T>, itemFactory: ItemFac<T>?, itemToConfigurable: ItemToConf<T>, vararg items: T):
-      this(itemType, itemFactory, { if (!itemType.type.isMarkedNullable && it==null) fail { "Must not be null" }; itemToConfigurable(it as T) }, observableArrayList<T>(*items))
+      this(itemType, itemFactory, { if (!itemType.isNullable && it==null) fail { "Must not be null" }; itemToConfigurable(it as T) }, observableArrayList<T>(*items))
 
    companion object {
 

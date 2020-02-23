@@ -29,6 +29,7 @@ import sp.it.util.conf.CheckListConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint.NumberMinMax
+import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.OrPropertyConfig.OrValue
@@ -40,7 +41,6 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
-import sp.it.util.type.raw
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.units.millis
 import java.io.File
@@ -78,6 +78,8 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
    fun getConfigValue(): T = config.value
 
    fun getValid(): Try<T, String> = get().and { v ->
+      if (!config.type.isNullable) ObjectNonNull.validate(v) else Try.ok()
+   }.and { v ->
       config.constraints.map { it.validate(v) }.find { it.isError } ?: Try.ok()
    }
 
@@ -113,7 +115,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
    @JvmOverloads
    fun buildNode(managedControl: Boolean = true): HBox {
       val root = HBox(configRootSpacing)
-      root.styleClass.add("config-editor")
+      root.styleClass += "config-editor"
       root.setMinSize(0.0, 20.0)   // min height actually required to get consistent look
       root.setPrefSize(-1.0, -1.0) // support variable content height
       root.setMaxSize(-1.0, -1.0)  // support variable content height

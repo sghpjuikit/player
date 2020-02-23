@@ -18,6 +18,7 @@ import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
+import sp.it.util.functional.compose
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
 import sp.it.util.functional.runTry
@@ -27,6 +28,7 @@ import sp.it.util.parsing.ConverterFX
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.StringSplitParser
+import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.Util.isEnum
 import sp.it.util.units.Bitrate
@@ -49,6 +51,7 @@ import java.util.regex.PatternSyntaxException as PSE
 private typealias NFE = NumberFormatException
 private typealias IAE = IllegalArgumentException
 private typealias OBE = IndexOutOfBoundsException
+private typealias FromS<T> = (String) -> Try<T,String>
 
 class CoreConverter: Core {
 
@@ -83,13 +86,14 @@ class CoreConverter: Core {
    private fun ConverterDefault.init() = apply {
 
       val toS: (Any) -> String = defaultTos::invoke
+      fun <T: Number> FromS<T>.numberMessage(): FromS<T> = this compose { it.mapError { "Not a number" + it.nullIfBlank()?.let { ": $it" } } }
 
       addP<Boolean>(toS, { it.toBoolean() })
-      addT<Int>(toS, tryF(NFE::class) { it.toInt() })
-      addT<Double>(toS, tryF(NFE::class) { it.toDouble() })
-      addT<Short>(toS, tryF(NFE::class) { it.toShort() })
-      addT<Long>(toS, tryF(NFE::class) { it.toLong() })
-      addT<Float>(toS, tryF(NFE::class) { it.toFloat() })
+      addT<Int>(toS, tryF(NFE::class) { it.toInt() }.numberMessage() )
+      addT<Double>(toS, tryF(NFE::class) { it.toDouble()}.numberMessage())
+      addT<Short>(toS, tryF(NFE::class) { it.toShort() }.numberMessage())
+      addT<Long>(toS, tryF(NFE::class) { it.toLong() }.numberMessage())
+      addT<Float>(toS, tryF(NFE::class) { it.toFloat() }.numberMessage())
       addT<Char>(toS, tryF(OBE::class) { it[0] })
       addT<Byte>(toS, tryF(NFE::class) { it.toByte() })
       addP<String>({ it }, { it })
@@ -152,10 +156,10 @@ class CoreConverter: Core {
    private inline fun <reified T: Any> ConverterDefault.addP(noinline to: (T) -> String, noinline of: (String) -> T?) =
       addParserAsF(T::class.javaObjectType, to, of)
 
-   private inline fun <reified T: Any> ConverterDefault.addT(noinline to: (T) -> String, noinline of: (String) -> Try<T?, String>) =
+   private inline fun <reified T: Any> ConverterDefault.addT(noinline to: (T) -> String, noinline of: FromS<T?>) =
       addParser(T::class.javaObjectType, to, of)
 
-   private fun <I, O> tryF(vararg ecs: KClass<*>, f: (I) -> O): (I) -> Try<O, String> = {
+   private fun <O> tryF(vararg ecs: KClass<*>, f: (String) -> O): FromS<O> = {
       runTry {
          f(it)
       }.mapError { e ->

@@ -9,7 +9,7 @@ interface Suppressed {
    }
 
    operator fun plus(suppressed: Suppressed) = object: Suppressed {
-      override val isSuppressed = this@Suppressed.isSuppressed || suppressed.isSuppressed
+      override val isSuppressed get() = this@Suppressed.isSuppressed || suppressed.isSuppressed
    }
 }
 

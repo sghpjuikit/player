@@ -77,6 +77,12 @@ class TypeUtilTest: FreeSpec({
          }
       }
 
+      KType::isPlatformType.name {
+        Node::getScene.returnType.toString().endsWith("!") shouldBe true
+        Node::getScene.returnType.isPlatformType shouldBe true
+        String::length.returnType.isPlatformType shouldBe false
+      }
+
       Type::toRaw.name {
          class X
 
@@ -118,6 +124,21 @@ class TypeUtilTest: FreeSpec({
          )
       }
 
+      KType::argOf.name + " preconditions" {
+         List::class.toString() shouldBe "class kotlin.collections.List"
+         MutableList::class.toString() shouldBe "class kotlin.collections.List"
+         type<List<*>>().type.toString() shouldBe "kotlin.collections.List<kotlin.Any?>"
+         type<MutableList<*>>().type.toString() shouldBe "kotlin.collections.List<out kotlin.Any?>"
+
+         List::class.isSubclassOf<MutableList<*>>() shouldBe true
+         List::class.isSubclassOf(MutableList::class) shouldBe true
+         MutableList::class.isSubclassOf<List<*>>() shouldBe true
+         MutableList::class.isSubclassOf(List::class) shouldBe true
+
+         List::class.allSupertypes.toString shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
+         MutableList::class.allSupertypes.toString shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
+         ArrayList::class.allSupertypes.toString shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
+      }
       KType::argOf.name {
          open class Covariant<out T>
          open class Invariant<T>
@@ -149,6 +170,7 @@ class TypeUtilTest: FreeSpec({
          type<MyList<Int>>().type.let { listOf(it) + it.raw.allSupertypes }.printIt()
          type<MyList<Int>>().type.argOf(List::class, 0).printIt()
          println("--")
+
          @Suppress("UNREACHABLE_CODE")
          class MyListInt: TransformationList<Int, Int>(null) {
             override val size = fail()
@@ -160,22 +182,8 @@ class TypeUtilTest: FreeSpec({
          type<MyListInt>().type.raw.traverseToSuper(List::class).printIt()
          type<MyListInt>().type.let { listOf(it) + it.raw.allSupertypes }.printIt()
          type<MyListInt>().type.argOf(List::class, 0).printIt()
+
          println("--")
-
-         List::class.printIt()
-         MutableList::class.printIt()
-         type<List<*>>().type.printIt()
-         type<MutableList<*>>().type.printIt()
-         List::class.isSubclassOf<MutableList<*>>().printIt()
-         List::class.isSubclassOf(MutableList::class).printIt()
-         MutableList::class.isSubclassOf<List<*>>().printIt()
-         MutableList::class.isSubclassOf(List::class).printIt()
-
-         List::class.allSupertypes.printIt()
-         MutableList::class.allSupertypes.printIt()
-         ArrayList::class.allSupertypes.printIt()
-
-         println("mmm")
          ::mmm.returnType.printIt()
          ::mmm.returnType.classifier.printIt()
          ::mmm.returnType.classifier.asIs<KClass<*>>().printIt()
@@ -266,64 +274,3 @@ private inline fun <reified T: Any> rowProp(property: KFunction<Any?>) = row(pro
 private inline fun <reified TYPE, reified ARG, reified SHOULD> xxx(i: Int, variance: KVariance?) = row(Triple(type<TYPE>(), type<ARG>(), i), type<SHOULD>() to variance)
 
 fun mmm(): MutableList<Int>? = null
-
-/**
- * Because `in Nothing` and `out Any?` and `*` are equal, the result is normalized to `*`, i.e [KTypeProjection.STAR].
- */
-fun KType.argOf2(argType: KClass<*>, i: Int): KTypeProjection {
-   return when (val c = classifier) {
-      is KTypeParameter -> fail { "Type parameter not a candidate $this $i" }
-      is KClass<*> -> {
-         val argument = when (c) {
-            argType -> arguments.getOrNull(i)
-               ?.let {
-                  when (it.variance) {
-                     IN, OUT, null -> it
-                     INVARIANT -> when {
-                        argType.isSubclassOf<Iterable<*>>() -> {
-                           if (this.toString().startsWith("kotlin.collections.Mutable")) it
-                           else it.copy(variance = OUT)
-                        }
-                        argType.isSubclassOf<Map<*, *>>() && i==1 -> {
-                           if (this.toString().startsWith("kotlin.collections.Mutable")) it
-                           else it.copy(variance = OUT)
-                        }
-                        else -> it
-                     }
-                  }
-               }
-               ?: fail { "Not found $this $i" }
-            else -> {
-               val st = c.allSupertypes
-               //val stack = c.traverseToSuper(argType)
-               st.find { it.classifier==argType }?.arguments?.getOrNull(i)
-                  ?.let {
-                     when (it.variance) {
-                        IN, OUT, null -> it
-                        INVARIANT -> it //KTypeProjection(c.typeParameters.get().variance, it.type)
-                     }
-                  }
-                  ?.let {
-                     when (val at = it.type?.classifier) {
-                        is KTypeParameter -> {
-                           val argumentI = raw.typeParameters.indexOfFirst { it.name==at.name }
-                           val argument = arguments[argumentI]
-                           argument
-                        }
-                        else -> it
-                     }
-                  }
-                  ?: fail { "Not found $argType $i" }
-            }
-         }
-         argument
-      }
-      else -> fail { "Unknown error" }
-   }.let {
-      when {
-         it.variance==OUT && it.type==Any::class.createType(nullable = true) -> STAR
-         it.variance==IN && it.type==Nothing::class.createType(nullable = false) -> STAR
-         else -> it
-      }
-   }
-}

@@ -54,6 +54,7 @@ data class VType<out T>(/** Kotlin type representing this type */ val type: KTyp
    constructor(c: Class<T>, isNullable: Boolean): this(c.asIs<Class<Any>>().kotlin.createType(nullable = isNullable))
 
    val isNullable = type.isMarkedNullable
+   override fun toString() = type.toString()
 }
 
 /** @return raw class representing this type also called erased type ([KType.jvmErasure]) */

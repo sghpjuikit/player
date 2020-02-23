@@ -123,7 +123,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public final Disposer onClose = new Disposer();
 
 	@SuppressWarnings("unchecked")
-	private final Collection<Config<Object>> configs = (Collection) toConfigurableByReflect(this).getConfigs();
+	private final Configurable<Object> configs = (Configurable) toConfigurableByReflect(this);
 
 	public Widget(UUID id, WidgetFactory<?> factory, boolean isDeserialized) {
 		super(new WidgetDb(id));
@@ -347,14 +347,14 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	@Override
 	public Config<Object> getConfig(String name) {
 		return firstNotNull(
-			() -> configs.stream().filter(it -> it.getName().equals(name)).findFirst().orElse(null),
+			() -> configs.getConfig(name),
 			() -> controller==null ? null : controller.getConfig(name)
 		);
 	}
 
 	@Override
 	public Collection<Config<Object>> getConfigs() {
-		var c = new ArrayList<>(configs);
+		var c = new ArrayList<Config<Object>>(configs.getConfigs());
 		if (controller!=null) c.addAll(controller.getConfigs());
 		return c;
 	}

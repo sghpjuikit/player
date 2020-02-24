@@ -55,6 +55,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    /** Semantic category/group path using '.' separator. */
    abstract val group: String
 
+   /** Human readable [group]. Short, single line. */
+   val groupUi: String get() = group.split(".").joinToString(" > ")
+
    /** Human readable description. Potentially multiple lines. */
    abstract val info: String
 

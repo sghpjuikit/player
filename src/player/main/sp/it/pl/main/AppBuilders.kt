@@ -3,7 +3,10 @@ package sp.it.pl.main
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.animation.ParallelTransition
 import javafx.event.EventHandler
+import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.TOP_CENTER
+import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Node
@@ -14,6 +17,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
+import javafx.scene.text.TextFlow
 import sp.it.pl.gui.objects.Text
 import sp.it.pl.gui.objects.form.Form.Companion.form
 import sp.it.pl.gui.objects.icon.Icon
@@ -28,14 +32,14 @@ import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.animation.interpolator.CircularInterpolator
 import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
-import sp.it.util.async.FX
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.conf.Configurable
-import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.ValueConfig
+import sp.it.util.dev.Dsl
 import sp.it.util.functional.asIs
+import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.map
@@ -43,6 +47,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.type
+import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.setScaleXY
@@ -50,6 +55,7 @@ import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.util.units.div
+import sp.it.util.units.em
 import sp.it.util.units.millis
 import sp.it.util.units.plus
 import sp.it.util.units.seconds
@@ -103,6 +109,21 @@ fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
 fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).run {
    action(action)
    withText(Side.RIGHT, text)
+}
+
+data class BulletBuilder(val icon: Icon = Icon(IconFA.CIRCLE), var description: String? = null)
+
+inline fun bullet(text: String, block: @Dsl BulletBuilder.() -> Unit = {}) = hBox(1.em.emScaled, TOP_LEFT) {
+   val bb = BulletBuilder().apply(block)
+   lay += bb.icon
+   lay += vBox(2.em.emScaled,) {
+      lay += text(text)
+      lay += supplyIf(bb.description!=null) {
+         TextFlow().apply {
+            children += text(bb.description!!)
+         }
+      }
+   }
 }
 
 /** @return standardized progress indicator with start/finish animation and start/finish actions */

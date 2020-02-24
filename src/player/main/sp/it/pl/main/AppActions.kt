@@ -33,6 +33,7 @@ import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
+import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.Util.urlEncodeUtf8
@@ -213,7 +214,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       showAll()
    }
 
-   @IsAction(name = "Search", info = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
+   @IsAction(name = APP_SEARCH, info = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
    fun showSearchPosScreen() {
       PopWindow().apply {
          content.value = APP.search.buildUi { hide() }

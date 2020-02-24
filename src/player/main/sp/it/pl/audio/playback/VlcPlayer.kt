@@ -1,30 +1,33 @@
 package sp.it.pl.audio.playback
 
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.CENTER_LEFT
-import javafx.geometry.Side
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Song
-import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.APP
+import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.main.AppError
-import sp.it.pl.main.IconFA
+import sp.it.pl.main.bullet
+import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.showFloating
+import sp.it.pl.main.toUi
 import sp.it.pl.main.withAppProgress
+import sp.it.util.action.ActionRegistrar
 import sp.it.util.async.FX
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.conf.Config
 import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
 import sp.it.util.file.unzip
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -48,6 +51,7 @@ import java.io.File
 import java.io.IOException
 import java.net.URI
 import kotlin.math.roundToInt
+import kotlin.reflect.jvm.isAccessible
 
 
 class VlcPlayer: GeneralPlayer.Play {
@@ -91,7 +95,7 @@ class VlcPlayer: GeneralPlayer.Play {
             discoverVlc(APP.audio.playerVlcLocations),
             "--quiet", "--intf=dummy", "--novideo", "--no-metadata-network-access"
          )
-      } catch(e: Throwable) {
+      } catch (e: Throwable) {
          null
       }
       playerFactory = pf
@@ -187,45 +191,60 @@ class VlcPlayer: GeneralPlayer.Play {
       playerFactory = null
    }
 
-   private object VlcSetup {
+   object VlcSetup {
       private var askForDownload = true
+      private val vlcConfig = APP.audio::playerVlcLocations.let { it.isAccessible = true; it.getDelegate().asIs<Config<*>>() }
+      private val vlcSetupAction = APP.audio.playerVlcShowSetup
 
-      // TODO: document
-//      - (optionally) set up latest 64-bit `VLC` using one of:
-//      - make `app/vlc` contain/link to (optionally portable) installation of `VLC`
-//      This is the recommended way, as the application does not depend on external `VLC` version or location
-//      - let application discover your `VLC` automatically
-//      This requires `VLC` to be installed.
-//      Note that updating or changing this `VLC` may interfere with this application
-//      - add `VLC` location in application settings in `Settings > Playback > Vlc player locations`
-//      This is recommended if you do have `VLC` available, but not installed or integrated in your system
-//      Note that updating or changing this `VLC` may interfere with this application
       fun askForDownload() {
          if (!askForDownload) return
          askForDownload = false
+         configureSetup()
+      }
+
+      fun configureSetup() {
          showFloating("Vlc Setup") { p ->
             vBox(2.em.emScaled, CENTER) {
                lay += text("Viable Vlc player has not been found on the system")
-               lay += vBox(0.0, CENTER_LEFT) {
-                  lay += Icon(IconFA.CIRCLE).apply { isDisable = !Os.WINDOWS.isCurrent }
-                     .onClickDo {
-                        setup() ui { p.hide() }
+               lay += bullet("Let application download and set up private, local Vlc (recommended)") {
+                  description = "This application will download and set up a portable version of the Vlc player in" +
+                     " ${APP.location.vlc.absolutePath}. This is the recommended way, as the application does not" +
+                     " depend on external Vlc version or location."
+
+                  icon.isDisable = !Os.WINDOWS.isCurrent
+                  icon.onClickDo {
+                     setup() ui { p.hide() }
+                  }
+               }
+               lay += bullet("I have a custom Vlc available") {
+                  description = "Add 64-bit Vlc location in application settings in `${vlcConfig.groupUi}`." +
+                     " Use this option, if you do have Vlc available, but not installed or integrated in your system." +
+                     "  This is not recommended, as application playback functionality would depend on or share the Vlc" +
+                     " application, which could cause problems.\n" +
+                     " Note that moving, updating or changing this Vlc may interfere with this application."
+
+                  icon.onClickDo {
+                     p.hide()
+                     p.onHidden += {
+                        vlcConfig.configure("Vlc Setup") {}
                      }
-                     .withText(Side.RIGHT, CENTER_LEFT, "I want this application to automatically download and set up private, local vlc (recommended)")
-                  lay += Icon(IconFA.CIRCLE)
-                     .onClickDo {
-                        p.hide()
-                     }
-                     .withText(Side.RIGHT, CENTER_LEFT, "I will install Vlc on my own")
-                  lay += Icon(IconFA.CIRCLE)
-                     .onClickDo {
-                        p.onHidden += {
-                           APP.actions.openSettings()
-                           // TODO: highlight proper settings
-                        }
-                        p.hide()
-                     }
-                     .withText(Side.RIGHT, CENTER_LEFT, "I already have Vlc")
+                  }
+               }
+               lay += bullet("I already have Vlc installed") {
+                  description = "This requires 64-bit `VLC` to be properly installed. The installation will be discovered automatically." +
+                     " This is not recommended, as application playback functionality would depend on or share the Vlc" +
+                     " application, which could cause problems.\n" +
+                     " Note that moving, updating or changing this Vlc may interfere with this application.\n\n"
+                  icon.onClickDo {
+                     p.hide()
+                  }
+               }
+               lay += bullet("Not now...'") {
+                  description = "You can open this setup again anytime using ${ActionRegistrar[APP_SEARCH].toUi()} " +
+                     "and invoking ${vlcSetupAction.toUi()}"
+                  icon.onClickDo {
+                     p.hide()
+                  }
                }
             }
          }
@@ -267,12 +286,12 @@ class VlcPlayer: GeneralPlayer.Play {
          WindowsNativeDiscoveryStrategy().customize(locations),
          LinuxNativeDiscoveryStrategy().customize(locations),
          OsxNativeDiscoveryStrategy().customize(locations),
-         WindowsNativeDiscoveryStrategy().wrap(),
-         LinuxNativeDiscoveryStrategy().wrap(),
-         OsxNativeDiscoveryStrategy().wrap(),
          WindowsNativeDiscoveryStrategy().customize(listOf(APP.location/"vlc")),
          LinuxNativeDiscoveryStrategy().customize(listOf(APP.location/"vlc")),
-         OsxNativeDiscoveryStrategy().customize(listOf(APP.location/"vlc"))
+         OsxNativeDiscoveryStrategy().customize(listOf(APP.location/"vlc")),
+         WindowsNativeDiscoveryStrategy().wrap(),
+         LinuxNativeDiscoveryStrategy().wrap(),
+         OsxNativeDiscoveryStrategy().wrap()
       )
 
       private fun NativeDiscoveryStrategy.wrap() = NativeDiscoveryStrategyWrapper(this)

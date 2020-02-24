@@ -62,7 +62,7 @@ val MouseButton.nameUi: String
    }
 
 /** @return pretty text representing the keys, intended for UI */
-fun Action.getKeysPretty(): String = keys.let { if (it.isBlank()) it else keys(keys) }
+fun Action.keysUi(): String = keys.let { if (it.isBlank()) it else keys(keys) }
 
 private fun key(key: String): String = null
    ?: prettyKeys[key.trim().toUpperCase()]

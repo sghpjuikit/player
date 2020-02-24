@@ -15,6 +15,7 @@ import sp.it.pl.main.AppTexts
 import sp.it.pl.main.toUi
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
+import sp.it.util.action.Action
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
@@ -28,6 +29,7 @@ import sp.it.util.parsing.ConverterFX
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.StringSplitParser
+import sp.it.util.text.keysUi
 import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.Util.isEnum
@@ -67,6 +69,7 @@ class CoreConverter: Core {
             is Class<*> -> APP.className[o.kotlin]
             is KClass<*> -> APP.className[o]
             is NameUi -> o.nameUi
+            is Action -> "${o.nameUi} (${o.keysUi()})"
             is LocalDateTime -> o.format(dateTimeFormatter)
             is LocalDate -> o.format(dateTimeFormatter)
             is LocalTime -> o.format(dateTimeFormatter)

@@ -343,11 +343,11 @@ inline fun textField(text: String = "", block: TextField.() -> Unit = {}) = Text
 inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextArea(text).apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
-inline fun menuSeparator(block: (SeparatorMenuItem).() -> Unit = {}) = SeparatorMenuItem().apply(block)
-inline fun <T> listView(block: (ListView<T>).() -> Unit = {}) = ListView<T>().apply(block)
-inline fun <T> tableView(block: (TableView<T>).() -> Unit = {}) = TableView<T>().apply(block)
-inline fun <T> treeView(block: (TreeView<T>).() -> Unit = {}) = TreeView<T>().apply(block)
-inline fun <T> treeTableView(block: (TreeTableView<T>).() -> Unit = {}) = TreeTableView<T>().apply(block)
+inline fun menuSeparator(block: SeparatorMenuItem.() -> Unit = {}) = SeparatorMenuItem().apply(block)
+inline fun <T> listView(block: ListView<T>.() -> Unit = {}) = ListView<T>().apply(block)
+inline fun <T> tableView(block: TableView<T>.() -> Unit = {}) = TableView<T>().apply(block)
+inline fun <T> treeView(block: TreeView<T>.() -> Unit = {}) = TreeView<T>().apply(block)
+inline fun <T> treeTableView(block: TreeTableView<T>.() -> Unit = {}) = TreeTableView<T>().apply(block)
 inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
    object: ListCell<T>() {
       @Suppress("PROTECTED_CALL_FROM_PUBLIC_INLINE")

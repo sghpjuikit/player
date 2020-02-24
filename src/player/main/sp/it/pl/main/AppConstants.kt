@@ -24,6 +24,7 @@ object Widgets {
 
 object Actions {
    const val LAYOUT_MODE = "Layout overlay in/out"
+   const val APP_SEARCH = "Search"
 }
 
 object Ui {

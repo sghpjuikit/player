@@ -6,6 +6,7 @@ import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
+import sp.it.pl.audio.playback.VlcPlayer
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.sequence.PlayingSequence
@@ -33,6 +34,7 @@ import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
+import sp.it.util.conf.cr
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
@@ -71,6 +73,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       name = "Vlc player locations",
       info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location." +
          "\n\nRequires application restart to take effect."
+   )
+   val playerVlcShowSetup by cr { VlcPlayer.VlcSetup.configureSetup() }.def(
+      name ="Vlc player setup",
+      info = "Shows convenient options for initial Vlc setup"
    )
 
    var browse by c<File>(APP.location.user).only(DIRECTORY).def(name = "Last browse location")

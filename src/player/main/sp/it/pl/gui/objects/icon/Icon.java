@@ -364,7 +364,7 @@ public class Icon extends StackPane {
 			Action a = (Action) action;
 			String title = a.getName();
 			String body = a.getInfo();
-			String keysRaw = UtilKt.getKeysPretty(a);
+			String keysRaw = UtilKt.keysUi(a);
 			String keys = keysRaw.isEmpty() ? keysRaw : " (" + keysRaw + ")";
 			tooltip(title + keys + "\n\n" + body);
 		}

@@ -12,8 +12,6 @@ import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.ConfigImpl.ConfigBase
-import sp.it.util.conf.Constraint.HasNonNullElements
-import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.OrPropertyConfig.OrValue
 import sp.it.util.dev.fail
@@ -29,7 +27,6 @@ import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.VType
-import sp.it.util.type.isPlatformType
 import sp.it.util.type.rawJ
 import sp.it.util.type.type
 import java.util.HashSet
@@ -38,11 +35,9 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
-import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection.Companion.covariant
 import kotlin.reflect.KTypeProjection.Companion.invariant
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 
 interface ConfigImpl {
@@ -366,7 +361,7 @@ class CheckList<out T, S: Boolean?> private constructor(
    val all: List<T>,
    val selectionsInitial: List<S>
 ): Observable {
-   val selections = observableArrayList<S>(selectionsInitial)!!.apply {
+   val selections = observableArrayList(selectionsInitial)!!.apply {
       onChangeAndNow {
          failIf(all.size!=size) { "Selections and elements counts must always be the same " }
       }
@@ -379,9 +374,7 @@ class CheckList<out T, S: Boolean?> private constructor(
    override fun removeListener(listener: InvalidationListener?) = selections.removeListener(listener)
 
    companion object {
-      fun <T> nonNull(elementType: VType<T>, elements: List<T>, selections: List<Boolean> = elements.map { true })
-         = CheckList(type(), elementType, elements, selections)
-      fun <T> nullable(elementType: VType<T>, elements: List<T>, selections: List<Boolean?> = elements.map { true })
-         = CheckList(type(), elementType, elements, selections)
+      fun <T> nonNull(elementType: VType<T>, elements: List<T>, selections: List<Boolean> = elements.map { true }): CheckList<T, Boolean> = CheckList(type(), elementType, elements, selections)
+      fun <T> nullable(elementType: VType<T>, elements: List<T>, selections: List<Boolean?> = elements.map { true }): CheckList<T, Boolean?> = CheckList(type(), elementType, elements, selections)
    }
 }

@@ -116,7 +116,7 @@ data class BulletBuilder(val icon: Icon = Icon(IconFA.CIRCLE), var description: 
 inline fun bullet(text: String, block: @Dsl BulletBuilder.() -> Unit = {}) = hBox(1.em.emScaled, TOP_LEFT) {
    val bb = BulletBuilder().apply(block)
    lay += bb.icon
-   lay += vBox(2.em.emScaled,) {
+   lay += vBox(2.em.emScaled) {
       lay += text(text)
       lay += supplyIf(bb.description!=null) {
          TextFlow().apply {

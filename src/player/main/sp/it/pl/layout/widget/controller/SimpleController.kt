@@ -7,6 +7,7 @@ import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
+import sp.it.util.conf.collectActionsOf
 import sp.it.util.conf.toConfigurableByReflect
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
@@ -62,9 +63,12 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
    override fun getConfigs(): Collection<Config<Any?>> = configs.initializeLegacyConfigs().values
 
    private fun <T> T.initializeLegacyConfigs() = apply {
-      if (hasLegacyConfigs && !isLegacyConfigsInitialized) {
+      if (!isLegacyConfigsInitialized) {
          isLegacyConfigsInitialized = true
-         configs.putAll(this@SimpleController.toConfigurableByReflect().getConfigs().associateBy(Widget.configToRawKeyMapper).asIs())
+         collectActionsOf(this@SimpleController)
+         if (hasLegacyConfigs) {
+            configs.putAll(this@SimpleController.toConfigurableByReflect().getConfigs().associateBy(Widget.configToRawKeyMapper).asIs())
+         }
       }
    }
 

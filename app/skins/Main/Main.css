@@ -2311,7 +2311,7 @@ icon-info-icon {
 .iolink {
     -fx-opacity: 0.5;
     -fx-stroke: -skin-def-font-color;
-    -fx-stroke-width: 2;
+    -fx-stroke-width: 0.125em;
     -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
 }
 
@@ -2319,7 +2319,7 @@ icon-info-icon {
 .iolink:highlighted {
     -fx-opacity: 1;
     -fx-stroke: -fx-focus-color;
-    -fx-stroke-width: 2;
+    -fx-stroke-width: 0.125em;;
 }
 
 .iolink:disabled {

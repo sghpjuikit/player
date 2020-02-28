@@ -113,7 +113,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		this.grid = control;
 		this.flow = new Flow<>(this);
 
-		attach(grid.cellFactory, e -> flow.rebuildCells());
+		attach(grid.cellFactory, e -> flow.disposeAndRebuildCells());
 		attach(grid.cellHeight, e -> flow.rebuildCells());
 		attach(grid.cellWidth, e -> flow.rebuildCells());
 		attach(grid.cellGap, e -> flow.rebuildCells());
@@ -356,6 +356,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		private final FlowScrollBar scrollbar;
 		private final Scrolled root;
 		private double viewStart = 0;
+		private boolean needsRemoveCachedCells = false;
 		private boolean needsRebuildCells = true;
 		private double scrollSpeedMultiplier = 3;
 
@@ -432,6 +433,11 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			return cell;
 		}
 
+		void disposeAndRebuildCells() {
+			needsRemoveCachedCells = true;
+			rebuildCells();
+		}
+
 		void rebuildCells() {
 			needsRebuildCells = true;
 			requestLayout();
@@ -475,6 +481,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			// update cells
 			if (needsRebuildCells) {
 				needsRebuildCells = false;
+				if (needsRemoveCachedCells) {
+					needsRemoveCachedCells = false;
+					visibleCells.forEach(cell -> cell.update(-1, null, false));
+					visibleCells.clear();
+					cachedCells.clear();
+				}
 				int indexStart = computeMinVisibleCellIndex();
 				int indexEnd = min(itemsAllCount - 1, computeMaxVisibleCellIndex());
 				int itemCount = indexEnd - indexStart + 1;

@@ -128,7 +128,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
    }
 
    fun updateIcon(i: Item) {
-      icon.scale(1.5)
+      icon.scale(1.125)
       icon.isFocusTraversable = false
       icon.opacity = if (FileField.IS_HIDDEN.getOf(i.value)) 0.4 else 1.0
       icon.size(gridView.value?.let { it.cellHeight.value min (it.cellHeight.value - computeCellTextHeight()) } ?: 50.0)

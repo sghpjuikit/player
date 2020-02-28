@@ -426,7 +426,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       PopWindow().apply {
          content.value = form
          title.value = if (c is Component) "${c.name} Settings" else "Settings"
-         isAutohide.value = true
          show(DOWN_CENTER(atNode))
       }
    }

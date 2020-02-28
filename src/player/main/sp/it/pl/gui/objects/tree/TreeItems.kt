@@ -78,6 +78,7 @@ import sp.it.util.text.nullIfBlank
 import sp.it.util.text.plural
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
+import sp.it.util.type.type
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.root
@@ -101,6 +102,7 @@ private class TreeSelectionRestoreEvent(target: EventTarget): Event(null, target
 private fun Any?.orNone(): Any = this ?: "<none>"
 private fun <T> seqOf(vararg elements: T) = elements.asSequence()
 
+@ExperimentalUnsignedTypes
 @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
 fun <T> tree(o: T): TreeItem<T> = when (o) {
    is TreeItem<*> -> o
@@ -119,8 +121,20 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
    is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
    is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
-   is List<*> -> STreeItem<Any?>("List of " + o.getElementType().toUi().plural(), { o.asSequence() }, { o.isEmpty() })
-   is Set<*> -> STreeItem<Any?>("Set of " + o.getElementType().toUi().plural(), { o.asSequence() }, { o.isEmpty() })
+   is BooleanArray -> STreeItem<Any>(type<Array<BooleanArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is ByteArray -> STreeItem<Any>(type<Array<ByteArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is UByteArray -> STreeItem<Any>(type<Array<UByteArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is ShortArray -> STreeItem<Any>(type<Array<ShortArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is IntArray -> STreeItem<Any>(type<Array<IntArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is UIntArray -> STreeItem<Any>(type<Array<UIntArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is LongArray -> STreeItem<Any>(type<Array<LongArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is ULongArray -> STreeItem<Any>(type<Array<ULongArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is DoubleArray -> STreeItem<Any>(type<Array<DoubleArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is FloatArray -> STreeItem<Any>(type<Array<FloatArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is CharArray -> STreeItem<Any>(type<Array<CharArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
+   is Array<*> -> STreeItem<Any?>("Array<" + o.toList().getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
+   is List<*> -> STreeItem<Any?>("List<" + o.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
+   is Set<*> -> STreeItem<Any?>("Set<" + o.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is Map<*, *> -> STreeItem<Any?>("Map of " + o.values.getElementType().toUi().plural(), { o.asSequence() }, { o.isEmpty() })
    is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)

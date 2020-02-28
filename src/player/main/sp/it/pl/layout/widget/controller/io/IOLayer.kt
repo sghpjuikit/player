@@ -781,7 +781,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       @Suppress("UNCHECKED_CAST")
       private fun Input<*>.bindAny(output: Output<*>) = (this as Input<Any?>).bind(output as Output<Any?>)
 
-      private fun <T> Put<T>.xPutToStr(): String = "${typeAsStr()} : $name\n${APP.instanceName[value]}"
+      private fun <T> Put<T>.xPutToStr(): String = "$name : ${typeAsStr()}\n${APP.instanceName[value]}"
 
       private fun <T> Put<T>.typeAsStr(): String {
          val t = typeRaw

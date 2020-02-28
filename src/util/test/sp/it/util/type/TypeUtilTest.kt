@@ -135,9 +135,9 @@ class TypeUtilTest: FreeSpec({
          MutableList::class.isSubclassOf<List<*>>() shouldBe true
          MutableList::class.isSubclassOf(List::class) shouldBe true
 
-         List::class.allSupertypes.toString shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
-         MutableList::class.allSupertypes.toString shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
-         ArrayList::class.allSupertypes.toString shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
+         List::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
+         MutableList::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
+         ArrayList::class.allSupertypes.toString() shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
       }
       KType::argOf.name {
          open class Covariant<out T>

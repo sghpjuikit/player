@@ -333,6 +333,7 @@ public class GridView<T, F> extends Control {
 	/** Predefined cell sizes. */
 	public enum CellSize {
 		SMALL(80),
+		SMALLER(120),
 		NORMAL(160),
 		LARGE(240),
 		VERY_LARGE(400),

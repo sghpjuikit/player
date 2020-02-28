@@ -33,6 +33,8 @@ import sp.it.util.text.keysUi
 import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.Util.isEnum
+import sp.it.util.type.VType
+import sp.it.util.type.isPlatformType
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
@@ -46,6 +48,9 @@ import java.time.Year
 import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KVariance
 import java.time.DateTimeException as DTE
 import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
@@ -68,6 +73,22 @@ class CoreConverter: Core {
             is Boolean -> if (o) "yes" else "no"
             is Class<*> -> APP.className[o.kotlin]
             is KClass<*> -> APP.className[o]
+            is KTypeProjection -> when (o) {
+               KTypeProjection.STAR -> "*"
+               else -> {
+                  val v = when(o.variance!!) {
+                     KVariance.INVARIANT -> ""
+                     KVariance.IN -> "in "
+                     KVariance.OUT -> "out "
+                  }
+                  v + o.type.toUi()
+               }
+            }
+            is KType -> {
+               val suffix = when { o.isPlatformType -> "!"; o.isMarkedNullable -> "?"; else -> "" }
+               o.classifier.toUi() + o.arguments.joinToString(", ") { it.toUi() }.nullIfBlank()?.let{ "<$it>" }.orEmpty() + suffix
+            }
+            is VType<*> -> o.type.toUi()
             is NameUi -> o.nameUi
             is Action -> "${o.nameUi} (${o.keysUi()})"
             is LocalDateTime -> o.format(dateTimeFormatter)

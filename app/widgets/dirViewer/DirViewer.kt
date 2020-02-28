@@ -14,6 +14,8 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
 import javafx.util.Callback
+import sp.it.pl.gui.objects.grid.GridCell
+import sp.it.pl.gui.objects.grid.GridFileIconCell
 import sp.it.pl.gui.objects.grid.GridFileThumbCell
 import sp.it.pl.gui.objects.grid.GridView
 import sp.it.pl.gui.objects.grid.GridView.CellSize.NORMAL
@@ -53,6 +55,7 @@ import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
@@ -126,16 +129,18 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    private var filesMaterialized = files.materialize()
    private val filesEmpty = v(true).apply { files.onChangeAndNow { value = files.isEmpty() } }
 
-   private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover)
-      .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
-   private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone)
-      .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
-   private val coverFitFrom by cv(FitFrom.OUTSIDE)
-      .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
    private val cellSize by cv(NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    private val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
+   private val coverOn by cv(true)
+      .def(name = "Thumbnail", info = "Display thumbnail instead of simple icon.")
+   private val coverFitFrom by cv(FitFrom.OUTSIDE).readOnlyUnless(coverOn)
+      .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover).readOnlyUnless(coverOn)
+      .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
+   private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone).readOnlyUnless(coverOn)
+      .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
    private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
       onClose += { unsubscribe() }
       attach { applyCellSize() }
@@ -168,7 +173,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       grid.search.field = FileField.PATH
       grid.primaryFilterField = FileField.NAME_FULL
-      grid.cellFactory.value = Callback { Cell() }
+      grid.cellFactory syncFrom coverOn.map { Callback<GridView<Item,File>,GridCell<Item,File>> { _ -> if (it) Cell() else IconCell() } }
       grid.selectedItem sync { outputSelected.value = it?.value }
       root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
 
@@ -206,6 +211,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          { inputFile.value = it.dragboard.files }
       )
 
+      coverOn.attach { revisitCurrent() }
       coverLoadingUseComposedDirCover.attach { revisitCurrent() }
       coverUseParentCoverIfNone.attach { revisitCurrent() }
       fileFlatter attach { revisitCurrent() }
@@ -246,7 +252,6 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       ) ui {
          grid.itemsRaw setTo it
          grid.implGetSkin().position = dir.lastScrollPosition max 0.0
-         grid.requestFocus()
       }
    }
 
@@ -347,6 +352,19 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    }
 
    private fun prodUserToSetupLocation() = chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window).ifOk { files setToOne it }
+
+   private inner class IconCell: GridFileIconCell() {
+
+      override fun onAction(i: Item, edit: Boolean) = doubleClickItem(i, edit)
+
+      override fun computeCellTextHeight(): Double = cellTextHeight.value
+
+      override fun computeGraphics() {
+         super.computeGraphics()
+         root install appTooltipForData { item?.value }
+      }
+
+   }
 
    private inner class Cell: GridFileThumbCell() {
       private val disposer = Disposer()

@@ -3,6 +3,7 @@ package sp.it.pl.layout.widget
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.util.type.isSuperclassOf
 import kotlin.reflect.KClass
+import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.findAnnotation
 
 interface ComponentInfo {
@@ -47,10 +48,7 @@ interface WidgetInfo: ComponentInfo {
    fun type(): Class<*>
 
    /** @return all features the widget's controller implements */
-   fun getFeatures() = type().interfaces.asSequence()
-      .mapNotNull { it.kotlin.findAnnotation<Feature>() }
-      .distinct()
-      .toList()
+   fun getFeatures() = type().kotlin.allSuperclasses.mapNotNull { it.findAnnotation<Feature>() }
 
    /** @return true iff widget's controller implements given feature */
    fun hasFeature(feature: Feature) = hasFeature(feature.type)

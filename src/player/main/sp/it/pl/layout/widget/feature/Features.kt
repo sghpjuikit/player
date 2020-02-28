@@ -21,7 +21,7 @@ interface ConfiguringFeature {
    type = FileExplorerFeature::class
 )
 interface FileExplorerFeature {
-   /** Explores file in the file system hierarchy.  */
+   /** Explores file in the file system hierarchy. */
    fun exploreFile(file: File)
 
    /**

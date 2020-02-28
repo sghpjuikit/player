@@ -13,6 +13,7 @@ import sp.it.util.access.vx
 import sp.it.util.action.Action
 import sp.it.util.action.IsAction
 import sp.it.util.dev.failIf
+import sp.it.util.file.FileType
 import sp.it.util.functional.asIf
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
@@ -61,8 +62,10 @@ fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDo
 fun <T: Number, C: Conf<T>> C.max(max: T) = but(Constraint.NumberMinMax(null, max.toDouble()))
 fun <T: Number, C: Conf<T>> C.between(min: T, max: T) = but(Constraint.NumberMinMax(min.toDouble(), max.toDouble()))
 fun <T: File?, C: Conf<T>> C.uiOut() = but(Constraint.FileOut)
+fun <T: File?, C: Conf<T>> C.only(type: FileType) = but(Constraint.FileActor(type))
 fun <T: File?, C: Conf<T>> C.only(type: Constraint.FileActor) = but(type)
 fun <T: File?, C: Conf<T>> C.relativeTo(relativeTo: File) = but(Constraint.FileRelative(relativeTo))
+fun <T: File?, C: ConfL<T>> C.only(type: FileType) = butElement(Constraint.FileActor(type))
 fun <T: File?, C: ConfL<T>> C.only(type: Constraint.FileActor) = butElement(type)
 fun <T: File?, C: ConfL<T>> C.relativeTo(relativeTo: File) = butElement(Constraint.FileRelative(relativeTo))
 fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: Boolean) = but(Constraint.ReadOnlyIf(condition))

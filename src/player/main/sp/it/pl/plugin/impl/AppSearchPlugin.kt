@@ -47,13 +47,13 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
-import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.file.FileType
+import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.div
 import sp.it.util.file.isParentOrSelfOf
 import sp.it.util.file.parentDirOrRoot
@@ -347,7 +347,7 @@ class AppSearchPlugin: PluginBase() {
       override val isSingleton = true
       override val isEnabledByDefault = false
 
-      fun File.getPortableAppExe(type: FileType) = if (type==FileType.DIRECTORY) File(this, "$name.exe") else null
+      fun File.getPortableAppExe(type: FileType) = if (type==DIRECTORY) File(this, "$name.exe") else null
 
       fun startMenuPrograms(): Sequence<File> = when (Os.current) {
          Os.WINDOWS -> windowsAppDataDirectory.walk().filter { '.' in it.name && !it.name.contains("uninstall", true) }

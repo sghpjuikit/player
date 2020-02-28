@@ -28,7 +28,6 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.mapset.MapSet
-import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
@@ -42,6 +41,7 @@ import sp.it.util.conf.only
 import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.functional.Functors.F.f
 import sp.it.util.math.max
 import sp.it.util.math.min
@@ -67,7 +67,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    var seekUnitT by c(4.seconds).def(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
    var seekUnitP by c(0.05).between(0.0, 1.0).def(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
    val playerInfo by cvro("<none>") { player.pInfo }.def(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
-   val playerVlcLocation by cvn<String>(null).def(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback",  editable = EditMode.APP)
+   val playerVlcLocation by cvn<String>(null).def(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback", editable = EditMode.APP)
    val playerVlcLocationsRelativeTo = APP.location
    val playerVlcLocations by cList<File>().only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo).def(
       name = "Vlc player locations",
@@ -75,7 +75,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          "\n\nRequires application restart to take effect."
    )
    val playerVlcShowSetup by cr { VlcPlayer.VlcSetup.configureSetup() }.def(
-      name ="Vlc player setup",
+      name = "Vlc player setup",
       info = "Shows convenient options for initial Vlc setup"
    )
 

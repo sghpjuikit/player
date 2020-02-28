@@ -102,7 +102,7 @@ private class TreeSelectionRestoreEvent(target: EventTarget): Event(null, target
 private fun Any?.orNone(): Any = this ?: "<none>"
 private fun <T> seqOf(vararg elements: T) = elements.asSequence()
 
-@ExperimentalUnsignedTypes
+@UseExperimental(ExperimentalUnsignedTypes::class)
 @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
 fun <T> tree(o: T): TreeItem<T> = when (o) {
    is TreeItem<*> -> o

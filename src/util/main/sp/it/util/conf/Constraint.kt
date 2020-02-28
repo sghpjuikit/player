@@ -10,6 +10,7 @@ import sp.it.util.access.vAlways
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNot
+import sp.it.util.file.FileType
 import sp.it.util.functional.Try
 import java.io.File
 
@@ -30,6 +31,15 @@ interface Constraint<in T> {
 
       override fun isValid(value: File?) = value==null || condition(value)
       override fun message() = message
+
+      companion object {
+         /** @return constraint to the specified type or [ANY] if null */
+         operator fun invoke(type: FileType?): FileActor = when (type) {
+            null -> ANY
+            FileType.FILE -> FILE
+            FileType.DIRECTORY -> DIRECTORY
+         }
+      }
    }
 
    class FileRelative(val to: File): MarkerConstraint()

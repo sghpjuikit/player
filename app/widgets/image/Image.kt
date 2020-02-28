@@ -16,11 +16,11 @@ import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
 import sp.it.util.access.toggleNext
-import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
+import sp.it.util.file.FileType.FILE
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene

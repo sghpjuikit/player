@@ -47,7 +47,6 @@ import sp.it.util.collections.insertEvery
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
-import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cList
 import sp.it.util.conf.cn
@@ -119,7 +118,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private val files by cList<File>().only(FileActor.DIRECTORY)
+   private val files by cList<File>().only(DIRECTORY)
       .def(name = "Location", info = "Root directories of the content.")
    private val fileFlatter by cv(FileFlatter.TOP_LVL)
       .def(name = "Location joiner", info = "Merges location files into a virtual view.")
@@ -157,7 +156,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       .def(name = "Sort first", info = "Group directories and files - files first, last or no separation.")
    private val sortBy by cv(FileField.NAME.name()).values(FileField.all.map { it.name() } + "PATH_LIBRARY").attach { applySort() }
       .def(name = "Sort seconds", info = "Sorting criteria.").uiConverter { enumToHuman(it) }
-   private var lastVisited by cn<File>(null).only(FileActor.DIRECTORY)
+   private var lastVisited by cn<File>(null).only(DIRECTORY)
       .def(name = "Last visited", info = "Last visited item.", editable = EditMode.APP)
 
    private val navigationVisible by cv(true).def(name = "Show navigation", info = "Whether breadcrumb navigation bar is visible.")

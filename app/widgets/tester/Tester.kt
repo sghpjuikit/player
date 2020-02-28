@@ -8,6 +8,7 @@ import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.main.APP
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
@@ -16,13 +17,20 @@ import sp.it.util.access.vn
 import sp.it.util.access.vx
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.FileActor.ANY
+import sp.it.util.conf.Constraint.FileActor.DIRECTORY
+import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.c
 import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cList
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
+import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
+import sp.it.util.conf.uiOut
+import sp.it.util.file.FileType
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
@@ -93,8 +101,14 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `Int_simple_null` by cn<Int>(null)
          val `Int_observe` by cv<Int>(0)
          val `Int_observe_null` by cvn<Int>(null)
+         var `File_simple` by c<File>(APP.location.spitplayer_exe)
          var `File_simple_null` by cn<File>(null)
+         var `File_observe` by c<File>(APP.location.spitplayer_exe)
          val `File_observe_null` by cvn<File>(null)
+         var `File_observe_only_file_save` by c<File>(APP.location.spitplayer_exe).only(FILE).uiOut()
+         var `File_observe_only_file` by c<File>(APP.location.spitplayer_exe).only(FILE)
+         var `File_observe_only_dir` by c<File>(APP.location).only(DIRECTORY)
+         var `File_observe_only_any` by c<File>(APP.location).only(ANY)
          var `Font_simple_null` by cn<Font>(null)
          val `Font_observe_null` by cvn<Font>(null)
          var `Color_simple_null` by cn<Color>(null)

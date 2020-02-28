@@ -42,7 +42,6 @@ import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
-import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
@@ -113,9 +112,9 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       .def(name = "Show table header", info = "Show table header with columns.")
    val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
       .def(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
-   private var lastAddFilesLocation by cn<File>(APP.location.user).only(FileActor.ANY).noUi()
+   private var lastAddFilesLocation by cn<File>(APP.location.user).noUi()
       .def(name = "Last add songs browse location", editable = EditMode.APP)
-   private var lastAddDirLocation by cn<File>(APP.location.user).only(FileActor.DIRECTORY).noUi()
+   private var lastAddDirLocation by cn<File>(APP.location.user).only(DIRECTORY).noUi()
       .def(name = "Last add directory browse location", editable = EditMode.APP)
 
    init {

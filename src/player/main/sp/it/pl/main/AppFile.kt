@@ -6,6 +6,7 @@ import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.util.access.VarEnum
 import sp.it.util.dev.failIf
+import sp.it.util.file.FastFile
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
@@ -242,13 +243,6 @@ enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
       it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }
    }),
    ALL({ it.asSequence().distinct().flatMap { it.asFileTree() } });
-}
-
-fun File.toFast(type: FileType) = FastFile(path, type==DIRECTORY, type==FILE)
-
-class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {
-   override fun isDirectory(): Boolean = isDir
-   override fun isFile(): Boolean = isFil
 }
 
 private fun File.asFileTree(): Sequence<File> =

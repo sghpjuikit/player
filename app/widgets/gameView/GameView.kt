@@ -42,7 +42,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
-import sp.it.pl.main.FastFile
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltipForData
@@ -62,14 +61,10 @@ import sp.it.util.access.togglePrevious
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.FX
-import sp.it.util.async.NEW
 import sp.it.util.async.runIO
-import sp.it.util.async.runOn
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.Constraint.FileActor.DIRECTORY
-import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
@@ -79,12 +74,15 @@ import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIf
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType
+import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.readProperties
 import sp.it.util.file.readTextTry
+import sp.it.util.file.toFast
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
@@ -150,7 +148,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 10.0, 10.0)
    val placeholder = lazy {
       Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
-         chooseFile("Choose directory", FileType.DIRECTORY, APP.locationHome, root.scene.window)
+         chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window)
             .ifOk { files += it }
       }
    }
@@ -212,7 +210,7 @@ class GameView(widget: Widget): SimpleController(widget) {
             .map { CachingFile(it) }
             .filter { it.isDirectory && !it.isHidden }
             .sortedBy { it.name }
-            .map { FItem(null, it, FileType.DIRECTORY) }
+            .map { FItem(null, it, DIRECTORY) }
             .materialize()
       }.ui {
          grid.itemsRaw setTo it
@@ -415,7 +413,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          runIO {
             object {
                val title = g.name
-               val location = FastFile(g.location.path, true, false)
+               val location = g.location.toFast(DIRECTORY)
                val info = g.infoFile.readTextTry().getOr("")
                val coverImage = g.cover.getImage(cover.calculateImageLoadSize())
                val triggerLoading = g.settings

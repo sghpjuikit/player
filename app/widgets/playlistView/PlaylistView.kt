@@ -27,12 +27,12 @@ import sp.it.util.access.toggle
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
-import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
+import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull

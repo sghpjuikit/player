@@ -9,13 +9,13 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.action.IsAction
 import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.min
 import sp.it.util.conf.only
 import sp.it.util.conf.uiOut
+import sp.it.util.file.FileType.FILE
 import sp.it.util.functional.Try
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.syncTo

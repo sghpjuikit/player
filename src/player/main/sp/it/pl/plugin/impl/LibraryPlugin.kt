@@ -14,7 +14,6 @@ import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.runGet
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
-import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
@@ -23,6 +22,7 @@ import sp.it.util.conf.only
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.FileMonitor.Companion.monitorDirectory
+import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.functional.invoke
 import sp.it.util.reactive.Subscribed

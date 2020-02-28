@@ -19,8 +19,10 @@ import sp.it.util.async.runNew
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.FileType
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.find1stExistingParentDir
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.toFast
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
@@ -229,18 +231,18 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
          }
 
          w?.hasFileChooserOpen = true
-         val f = c.showDialog(w)
+         val f = c.showDialog(w)?.toFast(type)
          w?.hasFileChooserOpen = false
          return if (f!=null) Try.ok(f) else Try.error()
       }
-      FileType.FILE -> {
+      FILE -> {
          val c = FileChooser().apply {
             this.title = title
             this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
             this.extensionFilters += extensions
          }
          w?.hasFileChooserOpen = true
-         val f = c.showOpenDialog(w)
+         val f = c.showOpenDialog(w)?.toFast(type)
          w?.hasFileChooserOpen = false
          return if (f!=null) Try.ok(f) else Try.error()
       }
@@ -254,7 +256,7 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
       this.extensionFilters += extensions
    }
    w?.hasFileChooserOpen = true
-   val fs = c.showOpenMultipleDialog(w)
+   val fs = c.showOpenMultipleDialog(w)?.map { it.toFast(FILE) }
    w?.hasFileChooserOpen = false
    return if (fs!=null && fs.isNotEmpty()) Try.ok(fs) else Try.error()
 }
@@ -267,7 +269,7 @@ fun saveFile(title: String, initial: File? = null, initialName: String, w: Windo
       this.extensionFilters += extensions
    }
    w?.hasFileChooserOpen = true
-   val f = c.showSaveDialog(w)
+   val f = c.showSaveDialog(w)?.toFast(FILE)
    w?.hasFileChooserOpen = false
    return if (f!=null) Try.ok(f) else Try.error()
 }

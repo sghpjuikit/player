@@ -18,10 +18,10 @@ import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.readOnly
 import sp.it.util.access.vn
 import sp.it.util.async.runIO
-import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
+import sp.it.util.file.FileType.FILE
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed

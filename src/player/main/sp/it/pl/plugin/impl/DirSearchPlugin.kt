@@ -14,12 +14,12 @@ import sp.it.util.async.NEW
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
-import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.dev.failIfFxThread
+import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.writeTextTry
 import sp.it.util.system.browse
 import java.io.File

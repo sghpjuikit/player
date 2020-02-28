@@ -34,6 +34,7 @@ import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
+import sp.it.util.collections.collectionUnwrap
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.ValueConfig
@@ -165,9 +166,11 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 }
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
-   val dName = APP.instanceName.get(it)
-   val dKind = (if (it==null) Nothing::class else it::class).let { it.toUi() + if (APP.developerMode.value) " (${it::class})" else "" }
-   val dInfo = APP.instanceInfo[it]
+   val d = collectionUnwrap(it)
+   val dName = APP.instanceName.get(d)
+   val dClass = if (d==null) Nothing::class else d::class
+   val dKind = dClass.let { it.toUi() + if (APP.developerMode.value) " ($it)" else "" }
+   val dInfo = APP.instanceInfo[d]
       .map { "${it.name}: ${it.value}" }
       .sorted()
       .joinToString("\n")

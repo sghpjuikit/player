@@ -8,13 +8,14 @@ import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableSet
 import javafx.collections.SetChangeListener
+import sp.it.util.functional.Try
+import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.onChange
-import sp.it.util.type.VType
 import sp.it.util.type.raw
-import sp.it.util.type.type
 import sp.it.util.type.union
+import java.util.Optional
 import java.util.Stack
 import kotlin.reflect.KClass
 
@@ -58,6 +59,9 @@ fun collectionUnwrap(o: Any?): Any? = when (o) {
          else -> o
       }
    }
+   is Optional<*> -> o.orNull()
+   is Try<*, *> -> o.getOr(o)
+   is Result<*> -> o.getOrDefault(o)
    else -> o
 }
 
@@ -68,7 +72,7 @@ fun <T> stackOf(vararg elements: T): Stack<T> = elements.toCollection(Stack())
 fun <T> tabulate(size: Int, element: (Int) -> T) = (0 until size).asSequence().drop(1).map(element)
 
 /** @return sequence containing the computed element after every nth element (specified in original sequence order) */
-fun <T, T1:T, T2:T> Sequence<T1>.insertEvery(nth: Int, prefix: Boolean = false, suffix: Boolean = false, element: () -> T2): Sequence<T> = sequence {
+fun <T, T1: T, T2: T> Sequence<T1>.insertEvery(nth: Int, prefix: Boolean = false, suffix: Boolean = false, element: () -> T2): Sequence<T> = sequence {
    if (prefix) yield(element())
    this@insertEvery.forEachIndexed { i, it ->
       if (i%nth==0 && i>0) yield(element())
@@ -138,8 +142,8 @@ fun <T> ObservableSet<T>.readOnly() = ObservableSetRO(this)
 
 /** Returns a map containing all key-value pairs with not null keys. */
 @Suppress("UNCHECKED_CAST")
-fun <K: Any,V> Map<K?,V>.filterNotNullKeys(): Map<K,V> = filterKeys { it != null } as Map<K,V>
+fun <K: Any, V> Map<K?, V>.filterNotNullKeys(): Map<K, V> = filterKeys { it!=null } as Map<K, V>
 
 /** Returns a map containing all key-value pairs with not null values. */
 @Suppress("UNCHECKED_CAST")
-fun <K: Any,V> Map<K,V?>.filterNotNullValues(): Map<K,V> = filterValues { it != null } as Map<K,V>
+fun <K: Any, V> Map<K, V?>.filterNotNullValues(): Map<K, V> = filterValues { it!=null } as Map<K, V>

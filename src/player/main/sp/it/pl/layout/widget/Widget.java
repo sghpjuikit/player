@@ -8,10 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ChangeListener;
@@ -28,8 +25,6 @@ import sp.it.pl.layout.widget.controller.Controller;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.LoadErrorController;
 import sp.it.pl.layout.widget.controller.io.IOLayer;
-import sp.it.pl.layout.widget.controller.io.Input;
-import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.util.Locatable;
 import sp.it.util.access.V;
 import sp.it.util.conf.Config;
@@ -46,15 +41,11 @@ import static java.util.Objects.deepEquals;
 import static java.util.stream.Collectors.joining;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orNone;
-import static sp.it.pl.layout.widget.WidgetSource.OPEN;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.conf.ConfigurableKt.toConfigurableByReflect;
 import static sp.it.util.file.properties.PropertiesKt.readProperties;
-import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.firstNotNull;
-import static sp.it.util.functional.Util.map;
-import static sp.it.util.functional.Util.split;
 import static sp.it.util.ui.UtilKt.findParent;
 import static sp.it.util.ui.UtilKt.onNodeDispose;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -151,8 +142,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 		properties.entrySet().stream()
 			.filter(e -> e.getKey().startsWith("io"))
-			.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
-			.forEach(ios::add);
+			.map(e -> new WidgetIo(this, e.getKey().substring(2), (String) e.getValue()))
+			.forEach(WidgetIoManager.INSTANCE.ios::add);
 	}
 
 	@Override
@@ -277,7 +268,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 			root = null;
 		}
 
-		ios.removeIf(io -> io.widget==this);
+		WidgetIoManager.INSTANCE.ios.removeIf(it -> it.widget==this);
 
 		onClose.invoke();
 	}
@@ -319,8 +310,8 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 		properties.entrySet().stream()
 			.filter(e -> e.getKey().startsWith("io"))
-			.map(e -> new IO(this, e.getKey().substring(2), (String) e.getValue()))
-			.forEach(ios::add);
+			.map(e -> new WidgetIo(this, e.getKey().substring(2), (String) e.getValue()))
+			.forEach(WidgetIoManager.INSTANCE.ios::add);
 
 		if (controller!=null)
 			updateIO();
@@ -381,7 +372,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		// If widget is loaded, we serialize inputs & outputs
 		if (isLoaded) {
 			getController().io.i.getInputs().forEach(i ->
-				properties.put("io" + i.getName(), i.getSources().stream().map(o -> o.id.toString()).collect(joining(":")))
+				properties.put("io" + i.getName(), i.getSources().stream().map(o -> o.getId().toString()).collect(joining(":")))
 			);
 		} else {
 			// Otherwise we still have the deserialized inputs/outputs leave them as they are
@@ -457,46 +448,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	/******************************************************************************/
 
-	static class IO {
-		public final Widget widget;
-		public final String input_name;
-		public final List<Output.Id> outputs_ids = new ArrayList<>();
-
-		IO(Widget widget, String name, String outputs) {
-			this.widget = widget;
-			this.input_name = name;
-			this.outputs_ids.addAll(map(split(outputs, ":", x -> x), Output.Id::fromString));
-		}
-	}
-
-	static final ArrayList<IO> ios = new ArrayList<>();
-
-	@SuppressWarnings({"UseBulkOperation", "unchecked"})
-	public static void deserializeWidgetIO() {
-		Set<Input<?>> is = new HashSet<>();
-		Map<Output.Id,Output<?>> os = new HashMap<>();
-
-		kotlin.streams.jdk8.StreamsKt.asStream(APP.widgetManager.widgets.findAll(OPEN))
-			.filter(w -> w.controller!=null)
-			.forEach(w -> {
-				w.controller.io.i.getInputs().forEach(is::add);
-				w.controller.io.o.getOutputs().forEach(o -> os.put(o.id, o));
-			});
-		IOLayer.allInoutputs.forEach(io -> os.put(io.o.id, io.o));
-
-		ios.forEach(io -> {
-			if (io.widget.controller==null) return;
-			Input i = io.widget.controller.io.i.getInputRaw(io.input_name);
-			if (i==null) return;
-			io.outputs_ids.stream().map(os::get).filter(ISNT0).forEach(i::bind);
-		});
-
-		IOLayer.allInoutputs.forEach(io -> is.remove(io.i));
-		IOLayer.allInoutputs.forEach(io -> os.remove(io.o.id));
-		IOLayer.allInputs.addAll(is);
-		IOLayer.allOutputs.addAll(os.values());
-	}
-
 	// called when widget is loaded/closed (or rather, when inputs or outputs are created/removed)
 	// we need to create i/o nodes and i/o connections
 	private void updateIO() {
@@ -505,7 +456,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		// because we do not know which bind to this widget
 		IOLayer.allInputs.addAll(controller.io.i.getInputs());
 		IOLayer.allOutputs.addAll(controller.io.o.getOutputs());
-		deserializeWidgetIO();
+		WidgetIoManager.INSTANCE.requestWidgetIOUpdate();
 	}
 
 	/** Widget metadata. Passed from code to program. Use on controller class. */

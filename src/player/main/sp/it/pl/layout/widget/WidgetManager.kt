@@ -772,7 +772,9 @@ fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
 }
 
 fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
+   failIfNotFxThread()
    WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
+
    APP.widgetManager.widgets.findAll(OPEN).asSequence()
       .filter { it.factory.id==widgetFactory.id }
       .filter { it.isLoaded }
@@ -802,7 +804,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             val parent = widgetOld.graphics.parent
             val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
             widgetOld.close()
-            parent.asIf<Pane?>()?.let { it.children.add(i, widgetNew.load()) }
+            parent.asIf<Pane?>()?.children?.add(i, widgetNew.load())
             widgetNew.restoreAuxiliaryState()
          }
       }

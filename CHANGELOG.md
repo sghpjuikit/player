@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Start Screen` plugin
 - Implement `Wallpaper` plugin File.setWallpaper action
 - Implement `Wallpaper` plugin to retain wallpaper when application closes
+- Implement `Dir Viewer` icon cell & option to toggle thumbnails/icons
 - Implement new popups
 - Implement application settings import/export/defaults actions
 - Implement application settings filter
@@ -62,6 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Widget not reloading after factory becomes available sometimes
 - Widget's technical name displayed instead of user defined name in ui sometimes
 - Widget inputs not rebound correctly on recompilation
+- Widget inputs not rebound correctly on fxwl loading due to duplicated id 
+- Widget inputs applied too extensively during widget loading
 - Image size reading sometimes fail
 - Image loading blocks ui sometimes
 - Audio Library import ui visibility and layout

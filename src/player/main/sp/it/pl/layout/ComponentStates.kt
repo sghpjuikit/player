@@ -57,10 +57,48 @@ fun File.loadComponentFxwlJson() = runIO {
          "Unable to load component launcher from $this.",
          "Reason:\n${it.stacktraceAsString}"
       )
-   }.orNull()?.toDomain()
+   }.orNull()?.deduplicateIds()?.toDomain()
 }
 
-abstract class ComponentDb(
+/** Regenerates component ids to avoid duplicates when loading same component multiple times. This is always necessary. */
+fun ComponentDb.deduplicateIds(): ComponentDb {
+   val ids = mutableMapOf<UUID, UUID>()
+   fun UUID.dd() = ids.getOrPut(this) { UUID.randomUUID() }
+   fun UUID.ddOrSame() = ids[this] ?: this
+   fun Map<String, Any?>.dd() = mapValues { (k, v) ->
+      if (k.startsWith("io") && v is String) {
+         v.split(":").joinToString(":") {
+            v.substringBeforeLast(",") + "," + UUID.fromString(v.substringAfterLast(",")).ddOrSame().toString()
+         }
+      } else {
+         v
+      }
+   }
+
+   fun ComponentDb.dd(): ComponentDb = when (this) {
+      is NoComponentDb -> this
+      is RootContainerDb -> RootContainerDb(id.dd(), loading, locked, child?.dd(), properties)
+      is SwitchContainerDb -> SwitchContainerDb(id.dd(), translate, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is UniContainerDb -> UniContainerDb(id.dd(), loading, locked, child?.dd(), properties)
+      is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is FreeFormContainerDb -> FreeFormContainerDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
+      is WidgetDb -> WidgetDb(id.dd(), factoryId, preferred, forbidUse, nameUi, loading, locked, properties)
+   }
+
+   fun ComponentDb.dd2(): ComponentDb = when (this) {
+      is NoComponentDb -> this
+      is RootContainerDb -> RootContainerDb(id, loading, locked, child?.dd2(), properties)
+      is SwitchContainerDb -> SwitchContainerDb(id, translate, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is UniContainerDb -> UniContainerDb(id, loading, locked, child?.dd2(), properties)
+      is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is FreeFormContainerDb -> FreeFormContainerDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
+      is WidgetDb -> WidgetDb(id, factoryId, preferred, forbidUse, nameUi, loading, locked, properties.dd())
+   }
+
+   return this.dd().dd2()
+}
+
+sealed class ComponentDb(
    val id: UUID = UUID.randomUUID(),
    val loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    val locked: Boolean = false,

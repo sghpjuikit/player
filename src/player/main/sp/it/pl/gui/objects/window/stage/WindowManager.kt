@@ -30,8 +30,10 @@ import sp.it.pl.gui.objects.window.popup.PopWindow
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.container.Layout
+import sp.it.pl.layout.deduplicateIds
 import sp.it.pl.layout.widget.NoFactoryFactory
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetIoManager
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.HorizontalDock
@@ -387,7 +389,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          if (mainWindow==null) setAsMain(ws.first())
          ws.forEach { w -> w.s.onEventDown1(WINDOW_SHOWING) { w.update() } }
          ws.forEach { it.show() }
-         Widget.deserializeWidgetIO()
+         WidgetIoManager.requestWidgetIOUpdate()
       }
       getActive().orNull()?.focus()
    }
@@ -468,7 +470,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       val launcherContainsName = launcher.useLines { it.count()==1 }
 
       return if (launcherContainsName) launcher.readTextTry().orNull()?.let(::instantiateComponent)
-      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.toDomain()
+      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.deduplicateIds()?.toDomain()
    }
 
    companion object: KLogging()

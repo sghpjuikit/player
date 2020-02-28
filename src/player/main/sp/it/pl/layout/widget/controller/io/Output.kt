@@ -5,8 +5,7 @@ import java.util.Objects
 import java.util.UUID
 
 class Output<T>: Put<T?> {
-
-   @JvmField val id: Id
+   val id: Id
 
    constructor(id: UUID, name: String, c: Class<T?>): super(c, name, null) {
       this.id = Id(id, name)
@@ -39,19 +38,17 @@ class Output<T>: Put<T?> {
 
    override fun hashCode() = 5*89 + Objects.hashCode(this.id)
 
-   data class Id(@JvmField val ownerId: UUID, @JvmField val name: String) {
+   data class Id(val ownerId: UUID, val name: String) {
 
       override fun toString() = "$name,$ownerId"
 
       companion object {
-
-         @JvmStatic fun fromString(s: String): Id {
+         fun fromString(s: String): Id {
             val i = s.lastIndexOf(",")
             val n = s.substring(0, i)
             val u = UUID.fromString(s.substring(i + 1, s.length))
             return Id(u, n)
          }
-
       }
 
    }

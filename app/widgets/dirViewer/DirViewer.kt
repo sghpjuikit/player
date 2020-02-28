@@ -110,6 +110,7 @@ import kotlin.math.round
 )
 class DirViewer(widget: Widget): SimpleController(widget) {
 
+   private val outputSelected = io.o.create<File>("Selected", null)
    private val inputFile = io.i.create<List<File>>("Root directory", listOf()) {
       runIO {
          it.orEmpty().mapNotNull { if (it.isDirectory) it else it.parentFile }.toSet().toList()
@@ -168,6 +169,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       grid.search.field = FileField.PATH
       grid.primaryFilterField = FileField.NAME_FULL
       grid.cellFactory.value = Callback { Cell() }
+      grid.selectedItem sync { outputSelected.value = it?.value }
       root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
 
       grid.onEventDown(KEY_PRESSED, ENTER) {

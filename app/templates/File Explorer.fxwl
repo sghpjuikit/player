@@ -1,0 +1,90 @@
+{
+  "absoluteSize": 1,
+  "children": {
+    "1": {
+      "factoryId": "FavLocations",
+      "forbidUse": false,
+      "nameUi": "Favourite Locations",
+      "preferred": false,
+      "settings": {
+        "refresh": "false,",
+        "locations": []
+      },
+      "id": "7ab409f1-9474-486f-bf98-f1086e91a1dd",
+      "loading": "AUTOMATIC",
+      "locked": false,
+      "properties": {},
+      "_type": "widget"
+    },
+    "2": {
+      "absoluteSize": 2,
+      "children": {
+        "1": {
+          "factoryId": "DirViewer",
+          "forbidUse": false,
+          "nameUi": "Dir Viewer",
+          "preferred": false,
+          "settings": {
+            "fileflatter": "TOP_LVL",
+            "coverloadingusecomposeddircover": "true",
+            "sort": "ASCENDING",
+            "sortfile": "DIR_FIRST",
+            "cellsizeratio": "R_1x1",
+            "filter": "File - all",
+            "coverfitfrom": "OUTSIDE",
+            "lastvisited": "<NULL>",
+            "coveron": "false",
+            "files": [],
+            "sortby": "Name",
+            "navigationvisible": "true",
+            "cellsize": "NORMAL",
+            "coveruseparentcoverifnone": "true"
+          },
+          "id": "4a8a102f-a87b-4e93-8407-b5539df1a89b",
+          "loading": "AUTOMATIC",
+          "locked": false,
+          "properties": {
+            "ioRoot directory": {
+              "value": "Selected,7ab409f1-9474-486f-bf98-f1086e91a1dd",
+              "_type": "string"
+            }
+          },
+          "_type": "widget"
+        },
+        "2": {
+          "factoryId": "ObjectInfo",
+          "forbidUse": false,
+          "nameUi": "Object Info",
+          "preferred": false,
+          "settings": {},
+          "id": "df22f6fd-6fd0-44f8-a277-513e475a65d7",
+          "loading": "AUTOMATIC",
+          "locked": false,
+          "properties": {
+            "ioTo display": {
+              "value": "Selected,4a8a102f-a87b-4e93-8407-b5539df1a89b",
+              "_type": "string"
+            }
+          },
+          "_type": "widget"
+        }
+      },
+      "collapsed": 0,
+      "orientation": "VERTICAL",
+      "position": 0.7229114971050455,
+      "id": "ae77521f-9173-4c4b-b6c7-e842219f2c31",
+      "loading": "AUTOMATIC",
+      "locked": false,
+      "properties": {},
+      "_type": "bi-container"
+    }
+  },
+  "collapsed": 0,
+  "orientation": "HORIZONTAL",
+  "position": 0.1860737273259216,
+  "id": "ca6f0cc7-d699-4184-b21b-7c508ad66bcb",
+  "loading": "AUTOMATIC",
+  "locked": false,
+  "properties": {},
+  "_type": "bi-container"
+}

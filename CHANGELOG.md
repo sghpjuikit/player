@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement application header progress indicator title showing running task count
 - Implement `Object Info` widget
 - Implement `Favourite Locations` widget
+- Implement `File Explorer` composed widget (exported layout)
 - Implement `Screen Rotator` plugin dialog
 - Implement `Start Screen` plugin
 - Implement `Wallpaper` plugin File.setWallpaper action

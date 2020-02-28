@@ -4,8 +4,10 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
+import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.main.IconFA
@@ -124,6 +126,10 @@ open class GridFileIconCell: GridCell<Item, File>() {
                it.consume()
             }
          }
+         onEventDown(MOUSE_CLICKED, SECONDARY) {
+            globalContextMenu.setItemsFor(item?.value)
+            globalContextMenu.show(root, it)
+         }
       }
    }
 
@@ -145,5 +151,9 @@ open class GridFileIconCell: GridCell<Item, File>() {
       }
       icon.icon(glyph)
       imgLoadAnimation?.playOpenFrom(item?.loadProgress ?: 0.0)
+   }
+
+   companion object {
+      private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
    }
 }

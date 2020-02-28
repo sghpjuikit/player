@@ -244,6 +244,8 @@ enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
    ALL({ it.asSequence().distinct().flatMap { it.asFileTree() } });
 }
 
+fun File.toFast(type: FileType) = FastFile(path, type==DIRECTORY, type==FILE)
+
 class FastFile(path: String, private val isDir: Boolean, private val isFil: Boolean): File(path) {
    override fun isDirectory(): Boolean = isDir
    override fun isFile(): Boolean = isFil

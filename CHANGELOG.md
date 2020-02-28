@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement automatic setup for Kotlin compiler
 - Implement automatic setup for ffmpeg compiler
 - Implement application header progress indicator title showing running task count
+- Implement `Object Info` widget
 - Implement `Screen Rotator` plugin dialog
 - Implement `Start Screen` plugin
 - Implement `Wallpaper` plugin File.setWallpaper action

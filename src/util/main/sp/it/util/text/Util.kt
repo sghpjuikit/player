@@ -3,6 +3,7 @@ package sp.it.util.text
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
 import sp.it.util.action.Action
+import sp.it.util.dev.failIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
@@ -103,3 +104,21 @@ private val prettyKeys = mapOf(
    "EJECT" to "\u23CF",
    "POWER" to "\u233D"
 )
+
+/** @return tuple of elements split by the specified delimiter from this string or exception if not 2 results */
+fun String.split2(delimiter: String, ignoreCase: Boolean = false): Pair<String, String> =
+   split(delimiter, ignoreCase = ignoreCase).let {
+      failIf(it.size!=2) { "Array by $delimiter must have 2 elements, but is $it" }
+      it[0] to it[1]
+   }
+
+/** @return triple of elements split by the specified delimiter from this string or exception if not 3 results */
+fun String.split3(delimiter: String, ignoreCase: Boolean = false): Triple<String, String, String> =
+   split(delimiter, ignoreCase = ignoreCase).let {
+      failIf(it.size!=3) { "Array by $delimiter must have 3 elements, but is $it" }
+      Triple(it[0], it[1], it[2])
+   }
+
+/** Same as Java's [String.split] with limit -1 (which is unsupported in Kotlin), i.e., trims empty elements */
+fun String.splitTrimmed(delimiter: String, ignoreCase: Boolean = false): List<String> =
+   split(delimiter, ignoreCase = ignoreCase).dropWhile { it.isEmpty() }.dropLastWhile { it.isEmpty() }

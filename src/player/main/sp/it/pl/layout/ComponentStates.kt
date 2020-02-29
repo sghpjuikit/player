@@ -16,6 +16,7 @@ import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
+import sp.it.util.text.splitTrimmed
 import java.io.File
 import java.util.UUID
 
@@ -67,7 +68,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
    fun UUID.ddOrSame() = ids[this] ?: this
    fun Map<String, Any?>.dd() = mapValues { (k, v) ->
       if (k.startsWith("io") && v is String) {
-         v.split(":").joinToString(":") {
+         v.splitTrimmed(":").joinToString(":") {
             v.substringBeforeLast(",") + "," + UUID.fromString(v.substringAfterLast(",")).ddOrSame().toString()
          }
       } else {
@@ -82,7 +83,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is UniContainerDb -> UniContainerDb(id.dd(), loading, locked, child?.dd(), properties)
       is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
-      is WidgetDb -> WidgetDb(id.dd(), factoryId, preferred, forbidUse, nameUi, loading, locked, properties)
+      is WidgetDb -> WidgetDb(id.dd(), factoryId, preferred, forbidUse, nameUi, loading, locked, properties, settings)
    }
 
    fun ComponentDb.dd2(): ComponentDb = when (this) {
@@ -92,7 +93,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is UniContainerDb -> UniContainerDb(id, loading, locked, child?.dd2(), properties)
       is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
-      is WidgetDb -> WidgetDb(id, factoryId, preferred, forbidUse, nameUi, loading, locked, properties.dd())
+      is WidgetDb -> WidgetDb(id, factoryId, preferred, forbidUse, nameUi, loading, locked, properties.dd(), settings)
    }
 
    return this.dd().dd2()

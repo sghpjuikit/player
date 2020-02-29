@@ -8,6 +8,7 @@ import sp.it.pl.main.APP
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.asIs
+import sp.it.util.text.splitTrimmed
 import java.util.ArrayList
 import kotlin.reflect.jvm.jvmName
 
@@ -52,7 +53,7 @@ class WidgetIo {
    constructor(widget: Widget, input_name: String, outputs: String) {
       this.widget = widget
       this.inputName = input_name
-      this.outputsIds = outputs.split(":").map { Output.Id.fromString(it) }
+      this.outputsIds = outputs.splitTrimmed(":").map { Output.Id.fromString(it) }
    }
 
    override fun toString() = "${this::class.jvmName} ${widget.name}.$inputName -> $outputsIds"

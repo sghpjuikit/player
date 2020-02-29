@@ -1,13 +1,15 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.util.collections.materialize
+import sp.it.util.type.VType
+import sp.it.util.type.nullable
 import java.util.Objects
 import java.util.UUID
 
 class Output<T>: Put<T?> {
    val id: Id
 
-   constructor(id: UUID, name: String, c: Class<T?>): super(c, name, null) {
+   constructor(id: UUID, name: String, type: VType<T>): super(type.nullable(), name, null) {
       this.id = Id(id, name)
    }
 

@@ -11,6 +11,7 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.isSupertypeOf
+import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.typeOf
@@ -54,8 +55,15 @@ data class VType<out T>(/** Kotlin type representing this type */ val type: KTyp
    constructor(c: Class<T>, isNullable: Boolean): this(c.asIs<Class<Any>>().kotlin.createType(nullable = isNullable))
 
    val isNullable = type.isMarkedNullable
+
    override fun toString() = type.toString()
 }
+
+/** @return nullable version of this type */
+fun <T> VType<T>.nullable(): VType<T?> = VType(type.withNullability(true))
+
+/** @return notnull version of this type */
+fun <T: Any> VType<T?>.notnull(): VType<T> = VType(type.withNullability(false))
 
 /** @return raw class representing this type also called erased type ([KType.jvmErasure]) */
 val <T> VType<T>.jvmErasure: KClass<*> get() = type.jvmErasure

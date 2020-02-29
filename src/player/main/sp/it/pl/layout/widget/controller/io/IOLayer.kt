@@ -774,24 +774,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       @Suppress("UNCHECKED_CAST")
       private fun Input<*>.bindAny(output: Output<*>) = (this as Input<Any?>).bind(output as Output<Any?>)
 
-      private fun <T> Put<T>.xPutToStr(): String = "$name : ${typeAsStr()}\n${APP.instanceName[value]}"
-
-      private fun <T> Put<T>.typeAsStr(): String {
-         val t = typeRaw
-         return if (t!=null) {
-            val c = t.toRaw()
-            when {
-               Collection::class.isSuperclassOf(c) -> {
-                  val elementType = t.asIs<ParameterizedType>().actualTypeArguments[0].toRaw()
-                  val elementTypeName = elementType.toUi().plural()
-                  "List of $elementTypeName"
-               }
-               else -> c.toUi()
-            }
-         } else {
-            type.toUi()
-         }
-      }
+      private fun <T> Put<T>.xPutToStr(): String = "$name : ${type.toUi()}\n${APP.instanceName[value]}"
 
       private fun Node.interact(doLayout: Boolean, noMouse: Boolean, noPick: Boolean) {
          isManaged = doLayout

@@ -38,7 +38,7 @@ import sp.it.util.conf.IsConfig;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.TriConsumer;
 import sp.it.util.functional.Util;
-import sp.it.util.type.TypeToken;
+import sp.it.util.type.VType;
 import sp.it.util.ui.Resolution;
 import sp.it.util.ui.image.ImageSize;
 import static albumView.AlbumView.AnimateOn.IMAGE_CHANGE_1ST_TIME;
@@ -89,9 +89,9 @@ public class AlbumView extends SimpleController {
 	@IsConfig(name = "Animate thumbs on", info = "Determines when the thumbnail image transition is played.")
 	final V<AnimateOn> animateThumbOn = new V<>(IMAGE_CHANGE_1ST_TIME);
 
-	final Output<MetadataGroup> out_sel = io.o.create("Selected Album", MetadataGroup.class, null);
-	final Output<List<Metadata>> out_sel_met = io.o.create("Selected", new TypeToken<List<Metadata>>() {}.getType(), listRO());
-	final Input<List<Metadata>> in_items = io.i.create("To display", new TypeToken<List<Metadata>>() {}.getType(), listRO(), consumer(this::setItems));
+	final Output<MetadataGroup> out_sel = io.o.create("Selected Album", new VType<>(MetadataGroup.class, true), null);
+	final Output<List<Metadata>> out_sel_met = io.o.create("Selected", new VType<List<Metadata>>((Class) List.class, false), listRO());
+	final Input<List<Metadata>> in_items = io.i.create("To display", new VType<List<Metadata>>((Class) List.class, false), consumer(this::setItems));
 	final GridView<Album,MetadataGroup> view = new GridView<>(MetadataGroup.class, a -> a.items, cellSize.get().width, cellSize.get().width*cellSizeRatio.get().ratio +CELL_TEXT_HEIGHT, 5, 5);
 	final ExecutorService executorThumbs = oneTPExecutor();
 	final ExecutorService executorImage = oneTPExecutor(); // 2 threads perform better, but cause bugs

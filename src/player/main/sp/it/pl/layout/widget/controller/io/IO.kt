@@ -3,13 +3,14 @@ package sp.it.pl.layout.widget.controller.io
 import sp.it.util.dev.failIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
-import sp.it.util.type.isSubclassOf
-import sp.it.util.type.isSuperclassOf
-import sp.it.util.type.toRaw
-import sp.it.util.type.jType
-import java.lang.reflect.Type
+import sp.it.util.type.VType
+import sp.it.util.type.raw
+import sp.it.util.type.type
 import java.util.HashMap
 import java.util.UUID
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
 
 class IO(private val id: UUID) {
    @JvmField val o = Outputs()
@@ -30,15 +31,14 @@ class IO(private val id: UUID) {
 
       @Suppress("UNCHECKED_CAST")
       @JvmOverloads
-      inline fun <reified T> create(name: String, initialValue: T? = null, noinline action: (T?) -> Unit) = create(name, jType<T?>(), initialValue, action)
+      inline fun <reified T> create(name: String, initialValue: T? = null, noinline action: (T?) -> Unit) = create(name, type(), initialValue, action)
 
       @Suppress("UNCHECKED_CAST")
       @JvmOverloads
-      fun <T> create(name: String, type: Type, initialValue: T? = null, action: (T?) -> Unit): Input<T?> {
+      fun <T> create(name: String, type: VType<T>, initialValue: T? = null, action: (T?) -> Unit): Input<T?> {
          failIf(mi[name]!=null) { "Input $name already exists" }
 
-         val i: Input<T?> = Input(name, type.toRaw() as Class<T?>, initialValue, action)
-         i.typeRaw = type
+         val i: Input<T?> = Input(name, type, initialValue, action)
          mi[name] = i
          return i
       }
@@ -46,17 +46,17 @@ class IO(private val id: UUID) {
       fun getInputRaw(name: String): Input<*>? = mi[name]
 
       @Suppress("UNCHECKED_CAST")
-      fun <T> findInput(type: Class<T>, name: String): Input<T?>? {
+      fun <T: Any> findInput(type: KClass<T>, name: String): Input<T?>? {
          val i = mi[name]
-         if (i!=null && !type.isSubclassOf(i.type)) throw ClassCastException()
+         if (i!=null && !type.isSubclassOf(i.type.raw)) throw ClassCastException()
          return i as Input<T?>?
       }
 
-      fun <T> getInput(type: Class<T>, name: String): Input<T?> = findInput(type, name)!!
+      fun <T: Any> getInput(type: KClass<T>, name: String): Input<T?> = findInput(type, name)!!
 
-      inline fun <reified T> findInput(name: String) = findInput(T::class.java, name)
+      inline fun <reified T: Any> findInput(name: String) = findInput(T::class, name)
 
-      inline fun <reified T> getInput(name: String) = findInput(T::class.java, name)!!
+      inline fun <reified T: Any> getInput(name: String) = findInput(T::class, name)!!
 
       operator fun contains(name: String) = mi.containsKey(name)
 
@@ -70,31 +70,30 @@ class IO(private val id: UUID) {
 
    inner class Outputs {
 
-      inline fun <reified T> create(name: String, value: T?): Output<T?> = create(name, jType<T?>(), value)
+      inline fun <reified T> create(name: String, value: T?): Output<T?> = create(name, type(), value)
 
       @Suppress("UNCHECKED_CAST")
-      fun <T> create(name: String, type: Type, value: T?): Output<T?> {
+      fun <T> create(name: String, type: VType<T>, value: T?): Output<T?> {
          failIf(mo[name]!=null) { "Output $name already exists" }
 
-         val o = Output<T?>(id, name, type.toRaw() as Class<T?>)
-         o.typeRaw = type
+         val o = Output<T?>(id, name, type)
          o.value = value
          mo[name] = o
          return o
       }
 
       @Suppress("UNCHECKED_CAST")
-      fun <T> findOutput(type: Class<T>, name: String): Output<T?>? {
+      fun <T: Any> findOutput(type: KClass<T>, name: String): Output<T?>? {
          val i = mo[name]
-         if (i!=null && type.isSuperclassOf(i.type)) throw ClassCastException()
+         if (i!=null && !type.isSuperclassOf(i.type.raw)) throw ClassCastException()
          return i as Output<T?>?
       }
 
-      fun <T> getOutput(type: Class<T>, name: String): Output<T?> = findOutput(type, name)!!
+      fun <T: Any> getOutput(type: KClass<T>, name: String): Output<T?> = findOutput(type, name)!!
 
-      inline fun <reified T> findOutput(name: String) = findOutput(T::class.java, name)
+      inline fun <reified T: Any> findOutput(name: String) = findOutput(T::class, name)
 
-      inline fun <reified T> getOutput(name: String) = findOutput(T::class.java, name)!!
+      inline fun <reified T: Any> getOutput(name: String) = findOutput(T::class, name)!!
 
       operator fun contains(name: String) = mo.containsKey(name)
 
@@ -108,10 +107,10 @@ class IO(private val id: UUID) {
 
    inner class InOutputs {
 
-      inline fun <T: Any, reified R> mapped(output: Input<T?>, name: String, noinline mapper: (R) -> T?) = mapped(output, name, jType<R>(), mapper)
+      inline fun <T: Any, reified R> mapped(output: Input<T?>, name: String, noinline mapper: (R) -> T?) = mapped(output, name, type(), mapper)
 
-      fun <T: Any, R> mapped(input: Input<T?>, name: String, type: Type, mapper: (R) -> T?): Input<R?> {
-         val io = InOutput<R>(id, name, type)
+      fun <T: Any, R> mapped(input: Input<T?>, name: String, type: VType<R>, mapper: (R) -> T?): Input<R?> {
+         val io = InOutput(id, name, type)
          mio[name] = io
          mi[name] = io.i
          onDispose += input.bindMapped(io.o, mapper)
@@ -120,10 +119,10 @@ class IO(private val id: UUID) {
          return io.i
       }
 
-      inline fun <T: Any, reified R> mapped(output: Output<T?>, name: String, noinline mapper: (T) -> R?) = mapped(output, name, jType<R>(), mapper)
+      inline fun <T: Any, reified R: Any> mapped(output: Output<T?>, name: String, noinline mapper: (T) -> R?) = mapped(output, name, type<R>(), mapper)
 
-      fun <T: Any, R> mapped(output: Output<T?>, name: String, type: Type, mapper: (T) -> R?): Output<R?> {
-         val io = InOutput<R>(id, name, type)
+      fun <T: Any, R> mapped(output: Output<T?>, name: String, type: VType<R>, mapper: (T) -> R?): Output<R?> {
+         val io = InOutput(id, name, type)
          mio[name] = io
          mo[name] = io.o
          onDispose += io.i.bindMapped(output, mapper)

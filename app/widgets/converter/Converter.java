@@ -49,6 +49,7 @@ import sp.it.util.conf.Config;
 import sp.it.util.file.Util;
 import sp.it.util.functional.Functors.F0;
 import sp.it.util.text.StringSplitParser.SplitData;
+import sp.it.util.type.VType;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
@@ -152,7 +153,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 	    super(widget);
         root.setPrefSize(getEmScaled(800), getEmScaled(500));
 
-        inputValue = io.i.create("Value", Object.class, null, consumer(v -> source.setAll(unpackData(v))));
+        inputValue = io.i.create("Value", new VType<>(Object.class, true), null, consumer(v -> source.setAll(unpackData(v))));
 
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
@@ -244,7 +245,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
 
-        Output<String> output = io.o.create("Text", String.class, "");
+        Output<String> output = io.o.create("Text", new VType<>(String.class, true), "");
         ta_in.outputText.addListener((o, ov, nv) -> output.setValue(nv));
 
         // set empty content

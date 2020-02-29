@@ -1,13 +1,12 @@
 package sp.it.pl.layout.widget.controller.io
 
 import sp.it.util.reactive.Subscription
+import sp.it.util.type.VType
 import sp.it.util.type.nullify
-import java.lang.reflect.Type
 
 open class Put<T>: XPut<T> {
    val name: String
-   val type: Class<T>
-   var typeRaw: Type? = null
+   val type: VType<T>
    protected val monitors = mutableSetOf<(T) -> Unit>()
    var value: T
       set(v) {
@@ -17,7 +16,7 @@ open class Put<T>: XPut<T> {
          }
       }
 
-   constructor(type: Class<T>, name: String, initialValue: T) {
+   constructor(type: VType<T>, name: String, initialValue: T) {
       this.name = name
       this.type = type
       this.value = initialValue

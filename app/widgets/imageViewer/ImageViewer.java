@@ -35,6 +35,7 @@ import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.IsConfig;
+import sp.it.util.type.VType;
 import sp.it.util.ui.Util;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
@@ -155,8 +156,8 @@ public class ImageViewer extends SimpleController implements ImageDisplayFeature
     @IsConfig(name = "Displayed image", editable = EditMode.APP)
     private int active_image = -1;
 
-    private Input<File> inputLocation = io.i.create("Location", File.class, consumer(this::dataChanged));
-    private Input<Song> inputLocationOf = io.io.mapped(inputLocation, "Location of", Song.class, it -> it.getLocation());
+    private Input<File> inputLocation = io.i.create("Location", new VType<>(File.class, false), consumer(this::dataChanged));
+    private Input<Song> inputLocationOf = io.io.mapped(inputLocation, "Location of", new VType<>(Song.class, false), it -> it.getLocation());
 
     public ImageViewer(Widget widget) {
         super(widget);

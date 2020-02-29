@@ -4,42 +4,45 @@ import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
-import sp.it.util.functional.asIf
 import sp.it.util.reactive.Subscription
-import sp.it.util.type.isSubclassOf
-import sp.it.util.type.toRaw
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
+import sp.it.util.type.VType
+import sp.it.util.type.argOf
+import sp.it.util.type.jvmErasure
+import sp.it.util.type.nullable
+import sp.it.util.type.raw
+import sp.it.util.type.typeResolved
 import java.util.HashMap
 import java.util.UUID
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 open class Input<T>: Put<T?> {
 
    private val sources = HashMap<Output<out T>, Subscription>()
 
-   constructor(name: String, type: Class<T?>, initialValue: T? = null, action: (T?) -> Unit): super(type, name, initialValue) {
+   constructor(name: String, type: VType<T>, initialValue: T? = null, action: (T?) -> Unit): super(type.nullable(), name, initialValue) {
       attach(action)
    }
 
    /** @return true if this input can receive values from given output */
    open fun isAssignable(output: Output<*>): Boolean = when {
-      type==List::class.java && output.type==List::class.java -> {
-         output.typeRaw.listType().isSubclassOf(typeRaw.listType())
+      type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
+         output.type.listType().isSubclassOf(type.listType())
       }
-      type==List::class.java -> {
-         isAssignable(output.type, typeRaw.listType())
+      type.jvmErasure==List::class -> {
+         isAssignable(output.type.jvmErasure, type.listType())
       }
-      output.type==List::class.java -> false
-      else -> isAssignable(output.type, type)
+      output.type.jvmErasure==List::class -> false
+      else -> isAssignable(output.type.jvmErasure, type.jvmErasure)
    }
 
-   private fun isAssignable(type1: Class<*>, type2: Class<*>) = type1.isSubclassOf(type2) || type2.isSubclassOf(type1)
+   private fun isAssignable(type1: KClass<*>, type2: KClass<*>) = type1.isSubclassOf(type2) || type2.isSubclassOf(type1)
 
    /** @return true if this input can receive the specified value */
    fun isAssignable(value: Any?): Boolean = when {
       value==null -> true
-      type==List::class.java -> typeRaw.listType().isInstance(value)
-      else -> type.isInstance(value)
+      type.jvmErasure==List::class -> type.listType().isInstance(value)
+      else -> type.jvmErasure.isInstance(value)
    }
 
    private fun monitor(output: Output<out T>): Subscription {
@@ -48,17 +51,17 @@ open class Input<T>: Put<T?> {
       return output.sync { v ->
          if (v!=null) {
             when {
-               type==List::class.java && output.type==List::class.java -> {
+               type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
                   valueAny = v
                }
-               type==List::class.java -> {
-                  if (typeRaw.listType().isInstance(v))
+               type.jvmErasure==List::class -> {
+                  if (type.listType().isInstance(v))
                      valueAny = v
                }
-               output.type==List::class.java -> {
+               output.type.jvmErasure==List::class -> {
                }
                else -> {
-                  if (type.isInstance(v))
+                  if (type.jvmErasure.isInstance(v))
                      valueAny = v
                }
             }
@@ -72,7 +75,7 @@ open class Input<T>: Put<T?> {
       set(it) {
          value = when {
             it==null -> null
-            type==List::class.java -> when (it) {
+            type.jvmErasure==List::class -> when (it) {
                is List<*> -> it as T?
                else -> listOf(it) as T?
             }
@@ -130,6 +133,6 @@ open class Input<T>: Put<T?> {
    override fun toString() = "$name, $type"
 
    companion object {
-      private fun Type?.listType() = this.asIf<ParameterizedType>()!!.actualTypeArguments[0].toRaw()
+      private fun VType<*>.listType() = type.argOf(List::class, 0).typeResolved.raw
    }
 }

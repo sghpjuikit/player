@@ -19,7 +19,7 @@ import sp.it.util.ui.x
    author = "Martin Polakovic",
    name = "Object Info",
    description = "Displays info or preview of an object.",
-   version = "1.0.0",
+   version = "1.0.1",
    year = "2020",
    group = Widget.Group.APP
 )
@@ -45,5 +45,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
          info.text = it
       }
    }
+
+   override fun focus() = Unit
 
 }

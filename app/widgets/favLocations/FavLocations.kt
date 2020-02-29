@@ -19,7 +19,6 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
-import sp.it.util.action.Action
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut.Companion.fut
@@ -32,7 +31,6 @@ import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.file.toFast
 import sp.it.util.functional.asIf
-import sp.it.util.functional.asIs
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventUp
@@ -51,7 +49,7 @@ import java.io.File
    author = "Martin Polakovic",
    name = "Favourite Locations",
    description = "Displays favourite or convenient file locations. Useful after redirecting selected location to another widget",
-   version = "1.0.0",
+   version = "1.0.1",
    year = "2020",
    group = Widget.Group.APP
 )
@@ -116,6 +114,8 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
    override fun exploreFile(file: File) {
       tree.root.children[1].findAnyChild(file, File::isAnyChildOf)?.expandToRootAndSelect(tree)
    }
+
+   override fun focus() = tree.requestFocus()
 
    companion object {
       private fun <T: Any> T.traverseChildrenToLast(next: (T) -> T?) = traverse(next).drop(1).lastOrNull()

@@ -294,7 +294,7 @@ class App: Application(), GlobalConfigDelegator {
    override fun start(primaryStage: Stage) {
       isInitialized = runTry {
          plugins.initForApp()
-         collectActionsOf(PlaylistManager::class.java, null)
+         collectActionsOf(PlaylistManager::class, null)
          collectActionsOf(this)
          collectActionsOf(ui)
          collectActionsOf(actions)

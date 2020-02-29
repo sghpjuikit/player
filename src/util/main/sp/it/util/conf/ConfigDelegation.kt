@@ -15,6 +15,7 @@ import sp.it.util.action.IsAction
 import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
@@ -28,6 +29,7 @@ import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty0
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
@@ -46,11 +48,12 @@ fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?)
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
 inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems))).nonNull()
 inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems)).nonNull()
-inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T,Boolean> = ConfCheckL(CheckList.nonNull(type(), initialItems.toList())).nonNull()
-inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T,S>): ConfCheckL<T,S> = ConfCheckL(checkList).nonNull()
+inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T, Boolean> = ConfCheckL(CheckList.nonNull(type(), initialItems.toList())).nonNull()
+inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T, S>): ConfCheckL<T, S> = ConfCheckL(checkList).nonNull()
 
 /** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
+
 /** Adds the specified constraint for elements of the list of this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: ConfL<T>> C.butElement(vararg restrictions: Constraint<T>) = apply { elementConstraints += restrictions }
 
@@ -84,6 +87,15 @@ fun <T: Any?, C: Conf<T>> C.uiConverter(converter: (T) -> String) = but(Constrai
  * enumeration, i.e. no sort will be applied.
  */
 fun <T: Any?, C: Conf<T>> C.uiNoOrder() = but(Constraint.PreserveOrder)
+
+/** @return action created from this function into the specified configurable or throws if this method is not an action */
+fun KFunction<*>.getDelegateAction(within: Configurable<*>): Action = within.getConfig(findAnnotation<IsAction>()!!.name).asIs()
+
+/** @return config created from this property or throws if this property is not delegated configurable property */
+fun KProperty0<*>.getDelegateConfig(): Config<*> {
+   isAccessible = true
+   return getDelegate().asIs()
+}
 
 /**
  * Restricts the allowed value to those contained in the specified value range.
@@ -271,9 +283,9 @@ class ConfL<T: Any?>(val list: ConfList<T>): Conf<ObservableList<T>>() {
    }
 }
 
-class ConfCheckL<T: Any?, S: Boolean?>(val list: CheckList<T,S>): Conf<CheckList<T,S>>() {
+class ConfCheckL<T: Any?, S: Boolean?>(val list: CheckList<T, S>): Conf<CheckList<T, S>>() {
 
-   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, CheckList<T,S>> {
+   operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, CheckList<T, S>> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
       val group = info.computeConfigGroup(ref)

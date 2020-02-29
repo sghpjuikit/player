@@ -26,6 +26,7 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runIO
 import sp.it.util.conf.cList
 import sp.it.util.conf.def
+import sp.it.util.conf.getDelegateAction
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.isAnyChildOf
@@ -72,7 +73,7 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
          lay(NEVER) += hBox(0, Pos.CENTER_RIGHT) {
             id = "header"
 
-            lay += Icon(IconFA.RECYCLE, 13.0).action(getConfig("Refresh").asIs<Action>())
+            lay += Icon(IconFA.RECYCLE, 13.0).action(::readFromDisc.getDelegateAction(this@FavLocations))
             lay += Icon().blank()
          }
          lay(ALWAYS) += scrollPane {

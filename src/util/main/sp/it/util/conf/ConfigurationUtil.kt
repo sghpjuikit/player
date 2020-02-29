@@ -19,6 +19,7 @@ import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.typeResolved
 import java.lang.reflect.Modifier
+import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -61,15 +62,15 @@ fun obtainConfigId(configName: String, configGroup: String) = "$configName.$conf
 
 fun obtainConfigId(config: Config<*>) = obtainConfigId(config.name, config.group)
 
-fun ConfigDelegator.collectActionsOf(o: Any) = collectActionsOf(o.javaClass, o)
+fun ConfigDelegator.collectActionsOf(o: Any) = collectActionsOf(o::class.asIs(), o)
 
-fun <T: Any> ConfigDelegator.collectActionsOf(type: Class<T>, instance: T?) {
+fun <T: Any> ConfigDelegator.collectActionsOf(type: KClass<T>, instance: T?) {
    val useStatic = instance!=null
 
    if (useStatic)
-      type.kotlin.companionObject?.let { collectActionsOf(it::class.java.asIs(), it.asIs()) }
+      type.companionObject?.let { collectActionsOf(it::class.asIs(), it.asIs()) }
 
-   type.declaredMethods.asSequence()
+   type.java.declaredMethods.asSequence()
       .filter { Modifier.isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
       .forEach { m ->
          failIf(m.parameters.isNotEmpty()) { "Action method=$m must have 0 parameters" }
@@ -79,7 +80,7 @@ fun <T: Any> ConfigDelegator.collectActionsOf(type: Class<T>, instance: T?) {
                m.isAccessible = true
                m(instance)
             }.ifError {
-               logger.error(it) { "Failed to run action from method=${type.packageName}.${m.name}" }
+               logger.error(it) { "Failed to run action from method=${m.declaringClass.packageName}.${m.name}" }
             }
             Unit
          }.provideDelegate(

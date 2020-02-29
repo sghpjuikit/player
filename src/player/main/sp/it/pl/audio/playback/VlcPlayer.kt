@@ -21,13 +21,12 @@ import sp.it.util.action.ActionRegistrar
 import sp.it.util.async.FX
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
-import sp.it.util.conf.Config
+import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
 import sp.it.util.file.unzip
-import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -51,8 +50,6 @@ import java.io.File
 import java.io.IOException
 import java.net.URI
 import kotlin.math.roundToInt
-import kotlin.reflect.jvm.isAccessible
-
 
 class VlcPlayer: GeneralPlayer.Play {
 
@@ -193,7 +190,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
    object VlcSetup {
       private var askForDownload = true
-      private val vlcConfig = APP.audio::playerVlcLocations.let { it.isAccessible = true; it.getDelegate().asIs<Config<*>>() }
+      private val vlcConfig = APP.audio::playerVlcLocations.getDelegateConfig()
       private val vlcSetupAction = APP.audio.playerVlcShowSetup
 
       fun askForDownload() {

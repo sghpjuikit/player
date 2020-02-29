@@ -1539,26 +1539,29 @@ Text {
  * inherits: .root
  * pseudoclasses: focused, hover, resized, moved, fullscreen
  */
-.window {}
-.window:hover {}
-.window:focused {}
-.window:resized {}
-.window:moved {
-    -fx-background-radius: 5;
+.window {
+    -fx-background-color: -skin-bgr-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 0em;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
 }
+.window:focused {
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+}
+.window:hover {}
+.window:resized {}
+.window:moved {}
 .window:fullscreen {}
 
-/* 
- * Empty layer right above background for brg-image. It is possible to use more
- * complex backgrounds by specifying both .background and .bgr-image while using
- * sub 1 opacity
- * an example would be a slight image overlay over background
+/*
+ * Dynamic window background.
+ *
+ * Empty layer right above .window.
+ * This layer is scaled & translated to appear to move & zoom with content.
+ * Hence, certain effects (like border) may not be visible.
+ * Use .window for static background.
  */
-.bgr-image {
-    -fx-background-color: -skin-bgr-color;
-    -fx-background-image: none; /* for example: url("bgr.jpg"); */
-    -fx-background-size: stretch;
-}
+.window .bgr-image {}
 
 /*
  * Window header
@@ -1582,7 +1585,6 @@ Text {
 
 .widget-ui: active {
     -fx-border-radius: 5;
-
 }
 
 /** Widget area content, containing the ui of the widget. */

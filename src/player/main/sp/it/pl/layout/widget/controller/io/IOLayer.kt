@@ -48,7 +48,6 @@ import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.collections.materialize
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
-import sp.it.util.functional.asIs
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
@@ -62,14 +61,10 @@ import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
-import sp.it.util.text.plural
-import sp.it.util.type.isSuperclassOf
-import sp.it.util.type.toRaw
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.text
 import sp.it.util.units.millis
-import java.lang.reflect.ParameterizedType
 import java.util.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -486,10 +481,9 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       }
 
       protected fun installDragFrom() {
-         i.onEventUp(DRAG_DETECTED) {
+         i.onEventUp(DRAG_DETECTED, PRIMARY) {
             if (selected) i.startDragAndDrop(if (it.isShortcutDown) LINK else COPY)[Df.WIDGET_OUTPUT] = output!!
             else editBegin(this)
-            it.consume()
          }
       }
 
@@ -591,7 +585,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          paneLinks.children += effect
          disposer += { paneLinks.children -= effect }
 
-         disposer += { disposerAnimations.materialize().forEach { it.stopAndFinish() }  }
+         disposer += { disposerAnimations.materialize().forEach { it.stopAndFinish() } }
 
          if (input!=null && output!=null) {
             output.attach { if (edit?.link!=this) dataSend() } on disposer
@@ -606,9 +600,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             if (input is Input<*> && output is Output<*>)
                input.unbind(output)
          }
-         onEventDown(DRAG_DETECTED) {
+         onEventDown(DRAG_DETECTED, PRIMARY) {
             editBegin(outputNodes[output])
-            it.consume()
          }
       }
 

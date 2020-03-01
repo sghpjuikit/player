@@ -2540,25 +2540,29 @@ icon-info-icon {
 }
 
 .grid-cell:hover {
-    -fx-background-color: rgba(0,0,0,0.3);
-    -fx-background-insets: -1;
-    -fx-padding: -1;
+    // if we were not using programmatic hover/select animation:
+    //-fx-background-color: rgba(0,0,0,0.3);
+    //-fx-background-insets: -1;
+    //-fx-padding: -1;
 }
 .grid-cell:selected {
-    -fx-background-color: rgba(0,0,0,0.4);
-    -fx-background-insets: -2;
-    -fx-padding: -2;
+    // if we were not using programmatic hover/select animation:
+    //-fx-background-color: rgba(0,0,0,0.4);
+    //-fx-background-insets: -2;
+    //-fx-padding: -2;
 }
 
 .grid-cell .grid-cell-stroke {
     -fx-fill: null;
-    -fx-stroke: black;
-    -fx-stroke-width: 1;
-    -fx-stroke-type: OUTSIDE;
+    -fx-stroke: -skin-bgr-color;
+    -fx-stroke-type: INSIDE;
+    // if we were not using programmatic hover/select animation:
+    //-fx-stroke-width: 1;
 }
 
 .grid-cell:selected .grid-cell-stroke {
-    -fx-stroke-width: 2;
+    // if we were not using programmatic hover/select animation:
+    // -fx-stroke-width: 2;
 }
 
 /*

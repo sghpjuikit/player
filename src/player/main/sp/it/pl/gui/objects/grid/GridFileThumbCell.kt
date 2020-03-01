@@ -10,6 +10,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.shape.Rectangle
 import sp.it.pl.gui.objects.hierarchy.Item
 import sp.it.pl.gui.objects.image.Thumbnail
+import sp.it.pl.main.emScaled
 import sp.it.util.JavaLegacy
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
@@ -23,6 +24,7 @@ import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.nameWithoutExtensionOrRoot
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.doIfImageLoaded
 import sp.it.util.reactive.on
@@ -30,6 +32,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfImageLoaded
 import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.lookupId
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
@@ -38,6 +41,7 @@ import sp.it.util.units.millis
 import sp.it.util.units.minutes
 import java.io.File
 import java.util.concurrent.ExecutorService
+import kotlin.math.sqrt
 
 /**
  * GridCell implementation for file using [sp.it.pl.gui.objects.hierarchy.Item]
@@ -47,8 +51,11 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    protected lateinit var root: Pane
    protected lateinit var name: Label
    protected var thumb: Thumbnail? = null
-   protected var imgLoadAnimation: Anim? = null
-   private var imgLoadAnimationItem: Item? = null
+   protected var imgLoadAnim: Anim? = null
+   private var imgLoadAnimItem: Item? = null
+   private val hoverAnim = lazy {
+      anim(150.millis) { root.lookupId<Rectangle>("grid-cell-stroke").strokeWidth = 1+it*2.emScaled }
+   }
    @Volatile protected var disposed = false
    private val onDispose = Disposer()
    @Volatile private var itemVolatile: Item? = null
@@ -75,9 +82,10 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       failIfNotFxThread()
 
       disposed = true
-      imgLoadAnimation?.stop()
-      imgLoadAnimation = null
-      imgLoadAnimationItem = null
+      imgLoadAnim?.stop()
+      imgLoadAnim = null
+      imgLoadAnimItem = null
+      hoverAnim.orNull()?.stop()
       onDispose()
       if (thumb!=null) {
          val img = thumb?.view?.image
@@ -99,10 +107,10 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       super.updateItem(item, empty)
       itemVolatile = item
 
-      if (imgLoadAnimation!=null) {
-         imgLoadAnimation?.stop()
-         imgLoadAnimationItem = item
-         imgLoadAnimation?.applyAt(item?.loadProgress ?: 0.0)
+      if (imgLoadAnim!=null) {
+         imgLoadAnim?.stop()
+         imgLoadAnimItem = item
+         imgLoadAnim?.applyAt(item?.loadProgress ?: 0.0)
       }
 
       if (empty) {
@@ -120,6 +128,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
 
    override fun updateSelected(selected: Boolean) {
       super.updateSelected(selected)
+      hoverAnim.value.playFromDir(selected || root.isHover)
       if (thumb!=null && thumb!!.image.value!=null) thumb!!.animationPlayPause(selected)
    }
 
@@ -139,24 +148,25 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          pane.isSnapToPixel = true
          view.isSmooth = true
          view.doIfImageLoaded { img ->
-            imgLoadAnimation?.stop()
-            imgLoadAnimationItem = item
+            imgLoadAnim?.stop()
+            imgLoadAnimItem = item
             if (img==null)
-               imgLoadAnimation?.applyAt(0.0)
+               imgLoadAnim?.applyAt(0.0)
             else
-               imgLoadAnimation?.playOpenFrom(imgLoadAnimationItem!!.loadProgress)
+               imgLoadAnim?.playOpenFrom(imgLoadAnimItem!!.loadProgress)
          } on onDispose
       }
 
 
-      imgLoadAnimation = anim(200.millis) {
-         if (imgLoadAnimationItem!=null) {
-            imgLoadAnimationItem?.loadProgress = it
+      imgLoadAnim = anim(200.millis) {
+         if (imgLoadAnimItem!=null) {
+            imgLoadAnimItem?.loadProgress = it
             thumb?.view?.opacity = it*it*it*it
          }
       }
 
       val r = Rectangle(1.0, 1.0).apply {
+         id = "grid-cell-stroke"
          styleClass += "grid-cell-stroke"
          isMouseTransparent = true
       }
@@ -185,6 +195,9 @@ open class GridFileThumbCell: GridCell<Item, File>() {
                onAction(item, it.isShiftDown)
                it.consume()
             }
+         }
+         hoverProperty() sync { h ->
+            hoverAnim.value.playFromDir(h || isSelected)
          }
       }
    }

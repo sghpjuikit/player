@@ -289,7 +289,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
          // show and apply state
          mw.show()
-         mw.isHeaderAllowed.set(false)
+         mw.isHeaderAllowed.value = false
          mw.update()
          mw.back.style = "-fx-background-size: cover;" // disallow bgr stretching
          mw.content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr

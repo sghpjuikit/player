@@ -17,6 +17,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -34,6 +35,7 @@ import sp.it.pl.main.Df;
 import sp.it.util.access.V;
 import sp.it.util.action.ActionManager;
 import sp.it.util.action.ActionRegistrar;
+import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.Subscription;
@@ -57,6 +59,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_M
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -74,8 +77,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.rgb;
+import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.gui.objects.window.Resize.NONE;
 import static sp.it.pl.gui.objects.window.stage.WindowUtilKt.buildWindowLayout;
@@ -132,6 +135,7 @@ public class Window extends WindowBase {
 	public AnchorPane front = lookupId(root, "front", AnchorPane.class);
 	public AnchorPane content = lookupId(root, "content", AnchorPane.class);
 	public HBox rightHeaderBox = lookupId(root, "rightHeaderBox", HBox.class);
+	private VBox frontContent = lookupId(root, "frontContent", VBox.class);
 
 	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
 	/** Denotes whether this is main window. Closing main window closes the application. Only one window can be main. */
@@ -236,6 +240,11 @@ public class Window extends WindowBase {
 				headerContainerMouseExited.push(false);
 		});
 		fullscreen.addListener((o,ov,nv) -> applyHeaderVisible(_headerVisible));
+		s.addEventHandler(WINDOW_SHOWING, e -> applyHeaderVisible(_headerVisible));
+		header.heightProperty().addListener((o,ov,nv) -> {
+			if (!_headerVisible)
+				headerVisibleAnim.applyAt(1.0);
+		});
 
 		titleL.setMinWidth(0);
 
@@ -452,24 +461,25 @@ public class Window extends WindowBase {
 	private Label titleL = lookupId(root, "titleL", Label.class);
 	private HBox leftHeaderBox = lookupId(root, "leftHeaderBox", HBox.class);
 	private boolean _headerVisible = true;
+	private boolean _headerInitialized = false;
+	private Anim headerVisibleAnim = anim(millis(250), consumer(it ->
+		frontContent.setPadding(new Insets(-header.getHeight()*it, 0.0, 0.0, 0.0))
+	));
 
 	/** Whether header can be ever visible. Default true. */
 	public final V<Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
-	public final V<Boolean> isHeaderVisible = new V<>(true).initSyncC(v -> applyHeaderVisible(v && !isFullscreen()));
+	public final V<Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !isFullscreen()));
 
 	private void applyHeaderVisible(boolean headerOn) {
 		var hOn = headerOn && isHeaderAllowed.get();
-		var isInitialized = s.isShowing();
-
-		headerContainer.setMinHeight(hOn ? USE_COMPUTED_SIZE : 0);
-		headerContainer.setPrefHeight(hOn ? USE_COMPUTED_SIZE : 0);
-		headerContainer.setMaxHeight(hOn ? USE_COMPUTED_SIZE : 0);
-
-		if (hOn != _headerVisible) {
+		if (!_headerInitialized || hOn != _headerVisible) {
+			headerVisibleAnim.intpl(hOn ? it -> it*it*it : it -> sqrt(sqrt(it)));
+			headerVisibleAnim.getPlayAgainIfFinished();
+			_headerInitialized = true;
 			_headerVisible = headerOn;
-			header.setVisible(hOn);
-			if (hOn && isInitialized) {
+			headerVisibleAnim.playFromDir(!hOn);
+			if (hOn) {
 				animShowNodes(filter(leftHeaderBox.getChildren(), it -> it instanceof Icon)).play();
 				animShowNodes(filter(rightHeaderBox.getChildren(), it -> it instanceof Icon)).play();
 			}

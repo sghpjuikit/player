@@ -6,7 +6,7 @@ import kotlin.text.Charsets.UTF_8
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.3.61"
+   kotlin("jvm") version "1.3.70"
    application
    id("com.github.ben-manes.versions") version "0.20.0"
 }
@@ -65,6 +65,7 @@ allprojects {
          "-Xno-call-assertions",
          "-Xno-param-assertions",
          "-Xjvm-default=enable",
+         // "-XXLanguage:+NewInference", fails to compile due to Kotlin bug
          "-Xuse-experimental=kotlin.Experimental"
       )
       kotlinOptions.javaParameters = true

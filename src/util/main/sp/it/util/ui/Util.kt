@@ -104,13 +104,13 @@ fun Color.alpha(opacity: Double): Color {
 /* ---------- ICON -------------------------------------------------------------------------------------------------- */
 
 @JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
-   val fontSize = iconSize?.let { it.toEM() } ?: 1.0
+   val fontSize = iconSize?.toEM() ?: 1.0
    style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
    styleClass += "icon"
 }
 
 fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
-   val fontSize = iconSize?.let { it.toEM() } ?: 1.0
+   val fontSize = iconSize?.toEM() ?: 1.0
    val s = icon.characterToString()
    val sb = StringBuilder(icons)
    for (i in 0 until icons) sb.append(s)
@@ -348,9 +348,8 @@ inline fun <T> listView(block: ListView<T>.() -> Unit = {}) = ListView<T>().appl
 inline fun <T> tableView(block: TableView<T>.() -> Unit = {}) = TableView<T>().apply(block)
 inline fun <T> treeView(block: TreeView<T>.() -> Unit = {}) = TreeView<T>().apply(block)
 inline fun <T> treeTableView(block: TreeTableView<T>.() -> Unit = {}) = TreeTableView<T>().apply(block)
-inline fun <T> listViewCellFactory(crossinline cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
+fun <T> listViewCellFactory(cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
    object: ListCell<T>() {
-      @Suppress("PROTECTED_CALL_FROM_PUBLIC_INLINE")
       override fun updateItem(item: T, empty: Boolean) {
          super.updateItem(item, empty)
          cellFactory(item, empty)

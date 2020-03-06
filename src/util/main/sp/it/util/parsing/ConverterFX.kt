@@ -33,7 +33,7 @@ class ConverterFX: Converter() {
                      Try.error("$delimiter2 must appear exactly once per value, but value=$value64")
                   }
                }
-               Try.ok(v)
+               Try.ok<T>(v)
             }
             else -> {
                val message = "$valueType is not $type"

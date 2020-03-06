@@ -10,7 +10,7 @@
         "refresh": "false,",
         "locations": []
       },
-      "id": "7ab409f1-9474-486f-bf98-f1086e91a1dd",
+      "id": "e0fbf548-b0bd-42e2-99e7-542bbabab010",
       "loading": "AUTOMATIC",
       "locked": false,
       "properties": {},
@@ -37,15 +37,15 @@
             "files": [],
             "sortby": "Name",
             "navigationvisible": "true",
-            "cellsize": "NORMAL",
+            "cellsize": "SMALL",
             "coveruseparentcoverifnone": "true"
           },
-          "id": "4a8a102f-a87b-4e93-8407-b5539df1a89b",
+          "id": "1ecab779-3646-4426-bc5b-9d7d44e66af8",
           "loading": "AUTOMATIC",
           "locked": false,
           "properties": {
             "ioRoot directory": {
-              "value": "Selected,7ab409f1-9474-486f-bf98-f1086e91a1dd",
+              "value": "Selected,e0fbf548-b0bd-42e2-99e7-542bbabab010",
               "_type": "string"
             }
           },
@@ -57,12 +57,12 @@
           "nameUi": "Object Info",
           "preferred": false,
           "settings": {},
-          "id": "df22f6fd-6fd0-44f8-a277-513e475a65d7",
+          "id": "7cb4fc94-0a49-4b83-98b2-23599f980113",
           "loading": "AUTOMATIC",
           "locked": false,
           "properties": {
             "ioTo display": {
-              "value": "Selected,4a8a102f-a87b-4e93-8407-b5539df1a89b",
+              "value": "Selected,1ecab779-3646-4426-bc5b-9d7d44e66af8",
               "_type": "string"
             }
           },
@@ -71,8 +71,8 @@
       },
       "collapsed": 0,
       "orientation": "VERTICAL",
-      "position": 0.7229114971050455,
-      "id": "ae77521f-9173-4c4b-b6c7-e842219f2c31",
+      "position": 0.8339517625231911,
+      "id": "1a34267d-31c7-4de2-ab8c-8ff0875ae676",
       "loading": "AUTOMATIC",
       "locked": false,
       "properties": {},
@@ -82,7 +82,7 @@
   "collapsed": 0,
   "orientation": "HORIZONTAL",
   "position": 0.1860737273259216,
-  "id": "ca6f0cc7-d699-4184-b21b-7c508ad66bcb",
+  "id": "6d31a8c4-8add-417f-8be5-bfa2b7a1ee89",
   "loading": "AUTOMATIC",
   "locked": false,
   "properties": {},

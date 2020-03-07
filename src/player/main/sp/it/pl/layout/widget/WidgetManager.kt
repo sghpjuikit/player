@@ -471,7 +471,7 @@ class WidgetManager {
       /** Compiles specified .kt files into .class files. */
       private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
          try {
-            val kotlincFile = kotlinc.getDone().toTry().orNull() ?: fail { "Kotlin compiler not available" }
+            val kotlincFile = kotlinc.getDone().toTry().getOrSupply { fail(it) { "Kotlin compiler not available" } }
             val command = listOf(
                kotlincFile.relativeToApp(),
                "-d", compileDir.relativeToApp(),

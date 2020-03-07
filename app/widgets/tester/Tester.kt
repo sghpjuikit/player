@@ -1,6 +1,12 @@
 package tester
 
-import javafx.geometry.Pos.CENTER
+import javafx.animation.Animation.INDEFINITE
+import javafx.animation.Interpolator
+import javafx.geometry.Insets
+import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.geometry.Pos.TOP_CENTER
+import javafx.scene.control.Slider
+import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import sp.it.pl.gui.objects.form.Form.Companion.form
@@ -9,15 +15,17 @@ import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.access.vx
+import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.FileActor.ANY
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.Constraint.FileActor.FILE
@@ -30,16 +38,22 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
-import sp.it.util.file.FileType
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.scrollPane
+import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.units.seconds
 import java.io.File
+import kotlin.math.sqrt
 
 @Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments")
 @Widget.Info(
@@ -53,14 +67,17 @@ import java.io.File
 @ExperimentalController("For development")
 class Tester(widget: Widget): SimpleController(widget) {
    val content = stackPane()
+   val onContentChange = Disposer()
 
    init {
       root.prefSize = 500.emScaled x 500.emScaled
       root.consumeScrolling()
-      root.lay += vBox {
-         lay += hBox(5, CENTER) {
+      root.lay += vBox(0.0, TOP_CENTER) {
+         lay += hBox(25.emScaled, TOP_CENTER) {
+            padding = Insets(20.emScaled)
             lay += Icon(IconOC.CODE).onClickDo { testFxConfigs() }.withText("Test Fx Configs")
             lay += Icon(IconOC.CODE).onClickDo { testEditors() }.withText("Test Config Editors")
+            lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Test Animations")
          }
          lay += content
       }
@@ -76,6 +93,11 @@ class Tester(widget: Widget): SimpleController(widget) {
 
    }
 
+   override fun close() {
+      onContentChange()
+      content.children.clear()
+   }
+
    fun testFxConfigs() {
       val c = object {
          val `vBoolean` = v(true)
@@ -83,8 +105,8 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `vxBoolean` = vx<Boolean>(true)
          val `vxBoolean_null` = vx<Boolean?>(true)
       }
-      content.children.clear()
-      content.lay += form(c.toConfigurableFx())
+      onContentChange()
+      content.children setToOne form(c.toConfigurableFx())
    }
 
    fun testEditors() {
@@ -118,7 +140,59 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `CheckList_` by cCheckList(CheckList.nonNull(type<Boolean?>(), listOf(true, false, null), listOf(true, false, false)))
          val `CheckList_null_` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf(true, false, null), listOf(true, false, null)))
       }
-      content.children.clear()
-      content.lay += form(c)
+      onContentChange()
+      content.children setToOne form(c)
+   }
+
+   fun testInterpolators() {
+      val interpolators = mapOf<String, (Double) -> Double>(
+         "LINEAR (JavaFx)" to { it -> Interpolator.LINEAR.interpolate(0.0, 1.0, it) },
+         "EASE_BOTH (JavaFx)" to { it -> Interpolator.EASE_BOTH.interpolate(0.0, 1.0, it) },
+         "EASE_IN (JavaFx)" to { it -> Interpolator.EASE_IN.interpolate(0.0, 1.0, it) },
+         "EASE_OUT (JavaFx)" to { it -> Interpolator.EASE_OUT.interpolate(0.0, 1.0, it) },
+         "x" to { it -> it },
+         "x^2" to { it -> it*it },
+         "x^3" to { it -> it*it*it },
+         "x^4" to { it -> it*it*it*it },
+         "x^-2 (sqrt(x))" to { it -> sqrt(it) },
+         "x^-4 (sqrt(sqrt(x)))" to { it -> sqrt(sqrt(it)) }
+      )
+      onContentChange()
+      content.children setToOne scrollPane {
+         content = vBox {
+            lay += interpolators.map { (name, interpolator) ->
+               vBox {
+                  padding = Insets(5.emScaled)
+                  lay += label(name)
+                  lay += hBox(15.emScaled, CENTER_RIGHT) {
+                     lay += stackPane {
+                        lay += Slider().apply {
+                           prefWidth = 200.emScaled
+                           min = 0.0
+                           max = 1.0
+                        }
+                     }
+                     lay += Icon(IconFA.STICKY_NOTE, 25.0)
+                     lay += Icon(IconFA.STICKY_NOTE, 25.0)
+                     lay += Icon(IconFA.STICKY_NOTE, 25.0)
+
+                     anim(1.seconds) {
+                        lookupChildAt<StackPane>(0).lookupChildAt<Slider>(0).value = it
+                        lookupChildAt<Icon>(1).opacity = it
+                        lookupChildAt<Icon>(2).rotate = 360*it
+                        lookupChildAt<Icon>(3).setScaleXY(it)
+                     }.apply {
+                        intpl(interpolator)
+                        delay = 1.seconds
+                        cycleCount = INDEFINITE
+                        isAutoReverse = true
+                        onContentChange += ::stop
+                        playOpen()
+                     }
+                  }
+               }
+            }
+         }
+      }
    }
 }

@@ -17,6 +17,7 @@ import sp.it.util.collections.materialize
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.min
 import sp.it.util.conf.only
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.FileType.DIRECTORY
@@ -28,7 +29,7 @@ import java.util.concurrent.atomic.AtomicLong
 class DirSearchPlugin: PluginBase() {
 
    private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find directories in.")
-   private val searchDepth by cv(2).def(name = "Search depth")
+   private val searchDepth by cv(2).min(1).def(name = "Search depth", info = "Max search depth used for each location")
 
    private val cacheFile = getUserResource("dirs.txt")
    private val cacheUpdate = AtomicLong(0)

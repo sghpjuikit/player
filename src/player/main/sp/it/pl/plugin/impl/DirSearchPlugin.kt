@@ -94,8 +94,7 @@ class DirSearchPlugin: PluginBase() {
 
    private fun findDirectories(rootDir: File, id: Long) =
       rootDir.walkTopDown()
-         .onEnter { file -> cacheUpdate.get()==id && file.isDirectory }
-         .onFail { file, e -> logger.warn(e) { "Couldn't not properly read/access file=$file" } }
+         .onEnter { cacheUpdate.get()==id }
          .maxDepth(searchDepth.value)
 
    companion object: KLogging(), PluginInfo {

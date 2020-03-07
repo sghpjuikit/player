@@ -123,7 +123,6 @@ class AppSearchPlugin: PluginBase() {
 
    private fun findApps(dir: File): Sequence<File> {
       return dir.walkTopDown()
-         .onFail { file, e -> logger.warn(e) { "Ignoring file=$file. No read/access permission" } }
          .maxDepth(searchDepth.value)
          .filter { it.isExecutable() }
    }

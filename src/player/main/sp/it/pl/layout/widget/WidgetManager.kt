@@ -134,12 +134,7 @@ class WidgetManager {
       val kotlinVersion = KotlinVersion.CURRENT.toString()
       val kotlincDir = APP.location.kotlinc
       val kotlincVersionFile = kotlincDir/"version"
-      val kotlincZipName = when (os) {
-         Os.UNIX -> "experimental-kotlin-compiler-linux-x64.zip"
-         Os.OSX -> "experimental-kotlin-compiler-macos-x64.zip"
-         Os.WINDOWS -> "experimental-kotlin-compiler-windows-x64.zip"
-         else -> fail { "Unable to determine kotlinc version due to unfamiliar system=$os" }
-      }
+      val kotlincZipName = "kotlin-compiler-$kotlinVersion.zip"
       val kotlincBinary = when (Os.current) {
          Os.WINDOWS -> APP.location.kotlinc/"bin"/"kotlinc.bat"
          else -> APP.location.kotlinc/"bin"/"kotlinc"

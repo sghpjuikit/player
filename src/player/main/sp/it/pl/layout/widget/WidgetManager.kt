@@ -7,7 +7,6 @@ import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
-import javafx.scene.text.Text
 import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
@@ -42,7 +41,6 @@ import sp.it.util.async.threadFactory
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
 import sp.it.util.conf.GlobalSubConfigDelegator
-import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -91,6 +89,7 @@ import sp.it.util.ui.anchorPane
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.scrollText
 import sp.it.util.ui.stylesheetToggle
+import sp.it.util.ui.text
 import sp.it.util.units.seconds
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -132,15 +131,13 @@ class WidgetManager {
    private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
    private val kotlinc by lazy {
       val os = Os.current
-      val kotlinVersion = "1.3.61"
-      val kotlincUseExperimental = widgets.useExperimentalKotlinCompiler
+      val kotlinVersion = KotlinVersion.CURRENT.toString()
       val kotlincDir = APP.location.kotlinc
       val kotlincVersionFile = kotlincDir/"version"
-      val kotlincZipName = when {
-         !kotlincUseExperimental -> "kotlin-compiler-$kotlinVersion.zip"
-         os==Os.UNIX -> "experimental-kotlin-compiler-linux-x64.zip"
-         os==Os.OSX -> "experimental-kotlin-compiler-macos-x64.zip"
-         os==Os.WINDOWS -> "experimental-kotlin-compiler-windows-x64.zip"
+      val kotlincZipName = when (os) {
+         Os.UNIX -> "experimental-kotlin-compiler-linux-x64.zip"
+         Os.OSX -> "experimental-kotlin-compiler-macos-x64.zip"
+         Os.WINDOWS -> "experimental-kotlin-compiler-windows-x64.zip"
          else -> fail { "Unable to determine kotlinc version due to unfamiliar system=$os" }
       }
       val kotlincBinary = when (Os.current) {
@@ -148,18 +145,17 @@ class WidgetManager {
          else -> APP.location.kotlinc/"bin"/"kotlinc"
       }
       val kotlincZip = kotlincDir/kotlincZipName
-      val kotlincLinkVersion = if (!kotlincUseExperimental) kotlinVersion else "1.3.31"
-      val kotlincLink = URI("https://github.com/JetBrains/kotlin/releases/download/v$kotlincLinkVersion/$kotlincZipName")
+      val kotlincLink = URI("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$kotlincZipName")
       runIO {
          fun isCorrectVersion() = kotlincVersionFile.exists() && kotlincVersionFile.readText()==kotlincLink.toString()
-         fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
+         infix fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
 
          if (!isCorrectVersion() || !kotlincBinary.exists()) {
-            if (kotlincDir.exists()) kotlincDir.deleteRecursively().orFailIO { "Failed to remove Kotlin compiler in=$kotlincDir" }
+            if (kotlincDir.exists()) kotlincDir.deleteRecursively() orFailIO { "Failed to remove Kotlin compiler in=$kotlincDir" }
             saveFileAs(kotlincLink.toString(), kotlincZip)
             kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/");  }
-            kotlincBinary.setExecutable(true).orFailIO { "Failed to make file=$kotlincBinary executable" }
-            kotlincZip.delete().orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
+            kotlincBinary.setExecutable(true) orFailIO { "Failed to make file=$kotlincBinary executable" }
+            kotlincZip.delete() orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
             kotlincVersionFile.writeText(kotlincLink.toString())
          }
 
@@ -171,28 +167,22 @@ class WidgetManager {
          it.toTry().ifErrorNotify {
             AppError(
                "Failed to obtain Kotlin compiler",
-               """
-                  |Kotlin version: $kotlinVersion
-                  |Kotlinc use experimental: $kotlincUseExperimental
-                  |Kotlinc version: $kotlincLinkVersion
-                  |Kotlinc link: $kotlincLink
-                  |
-                  | ${it.stacktraceAsString}
-               """.trimMargin(),
+               "Kotlin version: $kotlinVersion\nKotlinc link: $kotlincLink\n\n${it.stacktraceAsString}",
                AppErrorAction("Download manually") {
                   kotlincLink.browse()
                   kotlincDir.browse()
                   showFloating("Setup Kotlin compiler") {
                      scrollText {
-                        Text("""
-                           |It is recommended to let the application set up the compiler, you may wish to check the exact error instead.
-                           |You may also wish to try ${if (kotlincUseExperimental) "disable" else "enable"} experimental version of the compiler in the settings and restart the application.
-                           |
-                           |If you still wish to set up the compiler manually, you need to:
-                           | * Download the compiler from $kotlincLink
-                           | * Extract the contents to $kotlincDir so there exists executable file $kotlincBinary
-                           | * Create file $kotlincVersionFile (no extension) and set its text content to the link, you obtained the compiler from 
-                        """.trimMargin())
+                        text(
+                           buildString {
+                              appendln("It is recommended to let the application set up the compiler, you may wish to check the exact error instead.")
+                              appendln()
+                              appendln("If you still wish to set up the compiler manually, you need to:")
+                              appendln(" * Download the compiler from $kotlincLink")
+                              appendln(" * Extract the contents to $kotlincDir so there exists executable file $kotlincBinary")
+                              appendln(" * Create file $kotlincVersionFile (no extension) and set its text content to the link, you obtained the compiler from")
+                           }
+                        )
                      }
                   }
                }
@@ -526,8 +516,6 @@ class WidgetManager {
 
    inner class Widgets: GlobalSubConfigDelegator("Widgets") {
 
-      var useExperimentalKotlinCompiler by c(true)
-         .def(name = "Use experimental kotlin compiler", info = "This os-specific compiler is almost 5 times faster than standard kotlin compiler. Change requires restart.")
       val autoRecompile by cv(true)
          .def(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
       val recompile by cr { monitors.forEach { it.scheduleCompilation() } }

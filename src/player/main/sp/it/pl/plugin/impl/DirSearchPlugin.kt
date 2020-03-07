@@ -64,7 +64,7 @@ class DirSearchPlugin: PluginBase() {
    private fun updateCache() {
       runFX { searchDirs.materialize() }
          .then(NEW) { dirs ->
-            val id = cacheUpdate.getAndIncrement()
+            val id = cacheUpdate.incrementAndGet()
             dirs.asSequence()
                .distinct()
                .flatMap { findDirectories(it, id) }

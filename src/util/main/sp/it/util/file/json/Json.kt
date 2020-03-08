@@ -4,7 +4,7 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
-import sp.it.util.collections.map.ClassListMap
+import sp.it.util.collections.map.KClassListMap
 import sp.it.util.dev.fail
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
@@ -55,10 +55,10 @@ sealed class JsValue {
    fun asJsNull() = asIs<JsNull>().let { null }
    fun asJsTrue() = if (this is JsNull) null else asIs<JsTrue>().let { true }
    fun asJsFalse() = if (this is JsNull) null else asIs<JsFalse>().let { false }
-   fun asJsString() = if (this is JsNull) null else asIs<JsString>().let { it.value }
-   fun asJsNumber() = if (this is JsNull) null else asIs<JsNumber>().let { it.value }
-   fun asJsArray() = if (this is JsNull) null else asIs<JsArray>().let { it.value }
-   fun asJsObject() = if (this is JsNull) null else asIs<JsObject>().let { it.value }
+   fun asJsString() = if (this is JsNull) null else asIs<JsString>().value
+   fun asJsNumber() = if (this is JsNull) null else asIs<JsNumber>().value
+   fun asJsArray() = if (this is JsNull) null else asIs<JsArray>().value
+   fun asJsObject() = if (this is JsNull) null else asIs<JsObject>().value
 
    override fun toString() = "${this::class} ${prettyPrint()}"
 }
@@ -187,7 +187,7 @@ class Json {
                is Collection<*> -> JsArray(value.map { toJsonValue(jType<Any>(), it) })   // TODO: preserve collection/map type
                is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { it.value.let { toJsonValue(jType<Any>(), it) } })
                else -> {
-                  val converter = converters.byType.getElementOfSuper(value::class.javaObjectType)
+                  val converter = converters.byType.getElementOfSuper(value::class)
                      .asIf<JsConverter<Any>>()
                      ?.takeIf { it.canConvert(value) }
                   if (converter!=null) {
@@ -226,7 +226,7 @@ class Json {
    fun fromJsonValueImpl(typeTargetJ: Type, value: JsValue): Any? {
       val typeJ = typeTargetJ.toRaw()
       val typeK = typeJ.kotlin
-      val converter = converters.byType.getElementOfSuper(typeJ).asIf<JsConverter<Any?>>()
+      val converter = converters.byType.getElementOfSuper(typeK).asIf<JsConverter<Any?>>()
       return if (converter!=null) {
          converter.fromJson(value)
       } else {
@@ -364,11 +364,11 @@ class Json {
    }
 
    class TypeConverters {
-      val byType = ClassListMap<JsConverter<*>> { fail() }
+      val byType = KClassListMap<JsConverter<*>> { fail() }
 
       operator fun invoke(block: TypeConverters.() -> Unit) = block()
 
-      infix fun <T: Any> KClass<T>.convert(converter: JsConverter<T>) = byType.accumulate(this.java, converter)
+      infix fun <T: Any> KClass<T>.convert(converter: JsConverter<T>) = byType.accumulate(this, converter)
    }
 
 }

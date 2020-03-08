@@ -93,7 +93,6 @@ private lateinit var rawArgs: Array<String>
 fun main(args: Array<String>) {
    rawArgs = args
 
-   Thread.sleep(10000)
    // Relocate temp & home under working directory
    // It is our principle to leave no trace of ever running on the system
    // User can also better see what the application is doing

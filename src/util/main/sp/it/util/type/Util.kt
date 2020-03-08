@@ -24,6 +24,7 @@ import mu.KotlinLogging
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
 import sp.it.util.functional.recurse
+import sp.it.util.functional.recurseBF
 import sp.it.util.type.PaneProperties.paneProperty
 import java.lang.reflect.Array
 import java.lang.reflect.Field
@@ -163,14 +164,25 @@ infix fun Any.nullify(property: KProperty<*>) {
    property.javaField?.set(this, null)
 }
 
-/** Returns sequence of class' all superclasses and interfaces in depth first declaration order. */
+/**
+ * Returns sequence of class' all superclasses and interfaces in breadth first declaration order.
+ * * For every declaration, super class precedes super interfaces, except for [Any], which (as the most generic) is always the last element.
+ * * Interfaces, [Nothing], [Unit] still inherit from [Any] and will return it also
+ * * May contain duplicates, if interface is inherited multiple times within the hierarchy or if the type is erased in Kotlin (such as [MutableList] erases to [List].
+ */
 fun KClass<*>.superKClasses(): Sequence<KClass<*>> = superKClassesInc().drop(1)
 
-/** Returns sequence of this class, its all superclasses and interfaces in depth first declaration order. */
-fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when {
-   this==Nothing::class -> sequenceOf(Nothing::class)
-   this==Unit::class -> sequenceOf(Unit::class)
-   else -> java.recurse { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }
+/**
+ * Returns sequence of this class, its all superclasses and interfaces in breadth first declaration order.
+ * * For every declaration, super class precedes super interfaces, except for [Any], which (as the most generic) is always the last element.
+ * * Interfaces, [Nothing], [Unit] still inherit from [Any] and will return it also
+ * * May contain duplicates, if interface is inherited multiple times within the hierarchy or if the type is erased in Kotlin (such as [MutableList] erases to [List].
+ */
+fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
+   Any::class -> sequenceOf(Any::class)
+   Nothing::class -> sequenceOf(Nothing::class, Any::class)
+   Unit::class -> sequenceOf(Unit::class, Any::class)
+   else -> java.recurseBF { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }.filter { it != Any::class } + Any::class
    // recurse { it.superclasses }   // TODO: KClass.superclasses is bugged for anonymous Java classes
 }
 

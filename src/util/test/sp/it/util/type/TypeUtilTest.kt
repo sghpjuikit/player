@@ -25,7 +25,6 @@ import java.util.AbstractList
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
-import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KVariance
@@ -34,13 +33,50 @@ import kotlin.reflect.KVariance.INVARIANT
 import kotlin.reflect.KVariance.OUT
 import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.allSupertypes
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaType
 
+@Suppress("RemoveRedundantQualifierName")
 class TypeUtilTest: FreeSpec({
+
    "Method" - {
+      KClass<*>::superKClassesInc.name {
+         open class A: Ia
+         open class B: A(), Ib
+
+         Any::class.superclasses shouldBe listOf()
+         Ia::class.superclasses shouldBe listOf(Any::class)
+         Unit::class.superclasses shouldBe listOf(Any::class)
+         Nothing::class.superclasses shouldBe listOf(Any::class)
+
+         // special cases
+         Any::class.superKClassesInc().toList() shouldBe listOf(Any::class)
+         Nothing::class.superKClassesInc().toList() shouldBe listOf(Nothing::class, Any::class)
+         Unit::class.superKClassesInc().toList() shouldBe listOf(Unit::class, Any::class)
+         // simple cases
+         Ia::class.superKClassesInc().toList() shouldBe listOf(Ia::class, Any::class)
+         A::class.superKClassesInc().toList() shouldBe listOf(A::class, Ia::class, Any::class)
+         B::class.superKClassesInc().toList() shouldBe listOf(B::class, A::class, Ib::class, Ia::class, Any::class)
+         // complex cases
+         ArrayList::class.superKClassesInc().toList() shouldBe listOf(
+            java.util.ArrayList::class,
+            java.util.AbstractList::class,
+            kotlin.collections.List::class,
+            java.util.RandomAccess::class,
+            kotlin.Cloneable::class,
+            java.io.Serializable::class,
+            java.util.AbstractCollection::class,
+            kotlin.collections.List::class,
+            kotlin.collections.Collection::class,
+            kotlin.collections.Collection::class,
+            kotlin.collections.Collection::class,
+            kotlin.collections.Iterable::class,
+            kotlin.collections.Iterable::class,
+            kotlin.collections.Iterable::class,
+            kotlin.Any::class
+         )
+      }
 
       KType::javaFxPropertyType.name {
 
@@ -78,9 +114,9 @@ class TypeUtilTest: FreeSpec({
       }
 
       KType::isPlatformType.name {
-        Node::getScene.returnType.toString().endsWith("!") shouldBe true
-        Node::getScene.returnType.isPlatformType shouldBe true
-        String::length.returnType.isPlatformType shouldBe false
+         Node::getScene.returnType.toString().endsWith("!") shouldBe true
+         Node::getScene.returnType.isPlatformType shouldBe true
+         String::length.returnType.isPlatformType shouldBe false
       }
 
       Type::toRaw.name {
@@ -270,6 +306,8 @@ class TypeUtilTest: FreeSpec({
    }
 })
 
+interface Ia
+interface Ib
 private inline fun <reified T: Any> rowProp(property: KFunction<Any?>) = row(property.returnType, type<T>())
 private inline fun <reified TYPE, reified ARG, reified SHOULD> xxx(i: Int, variance: KVariance?) = row(Triple(type<TYPE>(), type<ARG>(), i), type<SHOULD>() to variance)
 

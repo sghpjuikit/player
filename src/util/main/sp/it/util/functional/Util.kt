@@ -4,6 +4,7 @@ import javafx.util.Callback
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.dev.Experimental
 import java.util.Comparator
+import java.util.LinkedList
 import java.util.Optional
 import java.util.concurrent.Executor
 import java.util.function.BiConsumer
@@ -261,10 +262,24 @@ inline fun Boolean.ifFalse(block: () -> Unit) = apply { if (!this) block() }
 /** @return lazy sequence yielded iteratively starting with this as first element until null element is reached */
 fun <T: Any> T.traverse(next: (T) -> T?) = generateSequence(this, next)
 
-/** @return lazy sequence yielded recursively in depth-first order starting with this as first element */
-fun <T> T.recurse(children: (T) -> Iterable<T>): Sequence<T> = sequence {
-   yield(this@recurse)
-   children(this@recurse).forEach { it.recurse(children).forEach { yield(it) } }
+/** @return lazy sequence yielded recursively in in-order depth-first order starting with this as first element */
+fun <T> T.recurse(children: (T) -> Iterable<T>) = recurseDF(children)
+
+/** @return lazy sequence yielded recursively in in-order depth-first order starting with this as first element */
+fun <T> T.recurseDF(children: (T) -> Iterable<T>): Sequence<T> = sequence {
+   yield(this@recurseDF)
+   children(this@recurseDF).forEach { it.recurseDF(children).forEach { yield(it) } }
+}
+
+/** @return lazy sequence yielded recursively in left breadth-first order starting with this as first element */
+fun <T> T.recurseBF(children: (T) -> Iterable<T>): Sequence<T> = sequence {
+   val queue = LinkedList<T>()
+   queue += this@recurseBF
+   while (!queue.isEmpty()) {
+      val node = queue.remove()
+      yield(node)
+      queue += children(node)
+   }
 }
 
 /** @return an array containing all elements */

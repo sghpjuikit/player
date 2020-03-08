@@ -732,10 +732,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.text = toS(getConfigValue())
       obv?.attach { refreshValue() }.orEmpty() on editor.onNodeDispose
       obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() }.orEmpty() }.orEmpty() on editor.onNodeDispose
-      editor.focusedProperty() attach {
-         if (!it)
-            refreshValue()
-      }
+      editor.focusedProperty() attach { if (!it) refreshValue() } on editor.onNodeDispose
       editor.onEventDown(KEY_RELEASED, ESCAPE) { refreshValue() }
 
       // applying value
@@ -819,7 +816,7 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.styleClass += "shortcut-config-editor"
       editor.isEditable = false
-      editor.focusedProperty() attach { refreshValue() }
+      editor.focusedProperty() attach { refreshValue() } on editor.onNodeDispose
       editor.onEventDown(KEY_RELEASED) { e ->
          when (e.code) {
             TAB -> {}

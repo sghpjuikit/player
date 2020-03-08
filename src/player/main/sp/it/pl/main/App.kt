@@ -112,7 +112,7 @@ class App: Application(), GlobalConfigDelegator {
    override val configurableGroupPrefix = conf.name
 
    init {
-      APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances disallowed" }
+      APP = this.takeUnless { ::APP.isInitialized } ?: fail { "Multiple application instances per process disallowed" }
    }
 
    /** Name of this application. */
@@ -180,8 +180,20 @@ class App: Application(), GlobalConfigDelegator {
 
    /** Configuration core. */
    val configuration = MainConfiguration.apply { rawAdd(location.user.application_properties) }
+
    /** Logging core. */
    val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
+   /** Logging level for logging to standard output. */
+   val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() def conf.logging.`level(stdout)` sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
+   /** Logging level for logging to file. */
+   val logLevelFile by cv(Level.WARN).values(logLevels).uiNoOrder() def conf.logging.`level(file)` sync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
+
+   init {
+      logging.init()
+      logger.info { "JVM Args: ${fetchVMArguments()}" }
+      logger.info { "App Args: ${fetchArguments()}" }
+   }
+
    /** Environment core. */
    val env = CoreEnv.apply { init() }
    /** Image I/O core. */
@@ -211,10 +223,6 @@ class App: Application(), GlobalConfigDelegator {
    /** Object functions core. */
    val functors = CoreFunctors
 
-   /** Logging level for logging to standard output. */
-   val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() def conf.logging.`level(stdout)` sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
-   /** Logging level for logging to file. */
-   val logLevelFile by cv(Level.WARN).values(logLevels).uiNoOrder() def conf.logging.`level(file)` sync { logging.changeLogBackLoggerAppenderLevel("FILE", it) }
    /** Developer mode. Enables certain features useful for developers or power users. */
    val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) } def conf.developerMode
    /** Action that calls [System.gc]. */
@@ -262,11 +270,6 @@ class App: Application(), GlobalConfigDelegator {
    @JvmField val plugins = PluginManager()
 
    override fun init() {
-      logging.init()
-
-      logger.info { "JVM Args: ${fetchVMArguments()}" }
-      logger.info { "App Args: ${fetchArguments()}" }
-
       // init cores
       classFields.initApp()
       className.initApp()
@@ -291,6 +294,8 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    override fun start(primaryStage: Stage) {
+      logger.info { "Starting..." }
+
       isInitialized = runTry {
          plugins.initForApp()
          collectActionsOf(PlaylistManager::class, null)
@@ -336,7 +341,7 @@ class App: Application(), GlobalConfigDelegator {
 
    @Deprecated("Called automatically")
    override fun stop() {
-      logger.info { "Stopping application" }
+      logger.info { "Stopping..." }
 
       store()
       onStopping()

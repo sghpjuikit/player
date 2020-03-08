@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement automatic setup for Kotlin compiler
 - Implement automatic setup for ffmpeg compiler
 - Implement application header progress indicator title showing running task count
+- Implement `Tester` widget for developers, showcases property sheets and animation interpolators
 - Implement `Object Info` widget
 - Implement `Favourite Locations` widget
 - Implement `File Explorer` composed widget (exported layout)
@@ -27,7 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `Start Screen` plugin
 - Implement `Wallpaper` plugin File.setWallpaper action
 - Implement `Wallpaper` plugin to retain wallpaper when application closes
-- Implement `Dir Viewer` icon cell & option to toggle thumbnails/icons
 - Implement new popups
 - Implement application settings import/export/defaults actions
 - Implement application settings filter
@@ -35,19 +35,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement confirmation popup for remove songs from library
 - Implement padding settings editor
 - Implement checklist settings editor
-- Implement 0 length support for chain settings editor
+- Implement 0 length support for list editor
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance
 - Improve video cover extraction performance (reuses previous output)
+- Improve window header animation
+- Improve grid cell hover/focus effect
 - Improve overlay animation performance and ux
+- Improve object inspection type inference
+    - supports generics, displays `List<SomeType>`
+    - displays nullability, displays `List<SomeType?>?`
+    - displays variance, displays `List<in/out SomeType>`
+    - displays best-effort list type by inspecting elements
+    - displays unknown types as STAR projections `*`, displays `List<*>`
 - Improve image loading performance for common formats dramatically
 - Improve image loading performance
-- Improve `Tagger` widget UX
-- Improve `Tagger` reading performance
-- Improve `FileInfo`
-    - use checklist to select which fields to display
-    - improves UX by adjusting layout automatically depending on visible fields (unifies cover & rating with other fields)
+- Widgets
+    - Implement `Dir Viewer` icon cell & option to toggle thumbnails/icons
+    - Improve `Tagger` widget UX
+    - Improve `Tagger` reading performance
+    - Improve `FileInfo`
+        - use checklist to select which fields to display
+        - improves UX by adjusting layout automatically depending on visible fields (unifies cover & rating with other fields)
 - Display date & time in UI in human readable format
 - Hide technical settings from UI & avoid persisting computed settings
 - Icons are focusable using TAB and invokable using ENTER
@@ -69,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Image size reading sometimes fail
 - Image loading blocks ui sometimes
 - Audio Library import ui visibility and layout
+- Audio Library logging errors when no saved library exists yet
 - Shortcuts settings not being applied after restart
 - Settings editors for complex values not understanding exact type (JVM erasure)
 - Settings editors general null support
@@ -89,8 +100,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Progress indicator not centered in certain sizes
 - Drag & Drop support for COPY/MOVE/LINK
 - Writing certain custom fields' values not working correctly
-- `Tagger` widget displaying wrong cover in rare cases
-- `Tagger` widget displaying wrong cover size cases
+- Widgets
+    - `Tagger` widget displaying wrong cover in rare cases
+    - `Tagger` widget displaying wrong cover size cases
 - Song `COMMENT` field never reading as `<none>`
 - View filter not working in some cases
 - View filter closing instead of focusing on Ctrl+F
@@ -99,11 +111,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Application search empty tooltip visible
 - Application skin setting not restored properly
 - Application rating skin not allowing null value sometimes
-- Plugin fixes
+- Plugins
   - Non running plugins are instantiated
   - `Waiffu2k` plugin waiffu2k binary config is not persisted
   - `Waiffu2k` plugin scaling coefficient not configurable
   - `Guide` is now a plugin and can be disabled completely
+  - `Directory Search` does not find any results
+  - `Directory Search` & `AppSearch` logging errors for inaccessible files
 - JavaFX Screen.getScreens fires invalid events with no screens
 - Popup window fixes
   - popup does not receive focus on show not even when clicked

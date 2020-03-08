@@ -24,8 +24,6 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.readTextTry
-import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.ifNull
 import sp.it.util.functional.orNull
 import sp.it.util.units.uuid
 import java.net.URI

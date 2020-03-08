@@ -13,7 +13,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.asIf
-import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.orNull
 import java.util.ArrayList
 import java.util.UUID
 
@@ -50,20 +50,20 @@ class PlayerState {
    companion object {
 
       @Blocks
-      @JvmStatic
-      fun deserialize() = CoreSerializer.readSingleStorage<PlayerStateDB>()
-         .ifErrorNotify {
-            AppError(
-               "Failed to load song player state.",
-               "You may have to create a new playlist.\n\nExact problem:\n${it.stacktraceAsString}"
-            )
-         }
-         .map { it.toDomain() }
-         .getOrSupply { PlayerState() }
-         .also {
-            PlaylistManager.playlists += it.playlists
-            PlaylistManager.active = it.playlistId
-         }
+      fun deserialize() = run {
+         CoreSerializer.readSingleStorage<PlayerStateDB>()
+            .ifErrorNotify {
+               AppError(
+                  "Failed to load song player state.",
+                  "You may have to create a new playlist.\n\nExact problem:\n${it.stacktraceAsString}"
+               )
+            }
+            .orNull()?.toDomain()
+            ?: PlayerState()
+      }.also {
+         PlaylistManager.playlists += it.playlists
+         PlaylistManager.active = it.playlistId
+      }
 
    }
 

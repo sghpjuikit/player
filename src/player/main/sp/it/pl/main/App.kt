@@ -20,7 +20,6 @@ import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
-import sp.it.pl.gui.UiManager
 import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.window.stage.WindowManager
@@ -255,7 +254,7 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    /** Manages ui. */
-   @JvmField val ui = UiManager(location.skins)
+   @JvmField val ui = AppUi(location.skins)
    /** Application search */
    @JvmField val search = AppSearch()
    /** Manages persistence and in-memory storage. */

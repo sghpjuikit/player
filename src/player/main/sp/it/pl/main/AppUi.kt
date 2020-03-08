@@ -1,4 +1,4 @@
-package sp.it.pl.gui
+package sp.it.pl.main
 
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
@@ -28,15 +28,11 @@ import sp.it.pl.gui.pane.ScreenBgrGetter
 import sp.it.pl.gui.pane.ShortcutPane
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.Widgets
-import sp.it.pl.main.APP
-import sp.it.pl.main.Actions
 import sp.it.pl.main.AppSettings.ui.skin
 import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
 import sp.it.pl.main.AppSettings.ui.view.overlayArea
 import sp.it.pl.main.AppSettings.ui.view.overlayBackground
 import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts
-import sp.it.pl.main.initActionPane
-import sp.it.pl.main.initApp
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
@@ -62,6 +58,7 @@ import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.orNull
+import sp.it.util.functional.traverse
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventUp
@@ -83,7 +80,7 @@ import sp.it.pl.main.AppSettings.ui as confUi
 import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.table as confTable
 
-class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
+class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    /** Action chooser and data info view. */
    val actionPane = LazyOverlayPane { ActionPane(APP.className, APP.instanceName, APP.instanceInfo).initApp().initActionPane() }
@@ -324,6 +321,12 @@ class UiManager(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    private fun monitorSkinFiles() {
       FileMonitor.monitorDirectory(skinDir, true) { type, file ->
          logger.info { "Change=$type detected in skin directory for $file" }
+
+         val skinFile = file.traverse { it.parentFile }.find { it.parentFile==skinDir }?.name?.let { name -> skinsImpl.find { it.name==name} }?.file
+         if (file!=skinFile) {
+            skinFile?.setLastModified(System.currentTimeMillis())
+            return@monitorDirectory
+         }
 
          skinsImpl setTo findSkins()
 

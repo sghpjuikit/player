@@ -7,7 +7,7 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
-import sp.it.pl.gui.UiManager.SkinCss
+import sp.it.pl.main.AppUi.SkinCss
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.objects.table.TableColumnInfo
 import sp.it.pl.main.APP

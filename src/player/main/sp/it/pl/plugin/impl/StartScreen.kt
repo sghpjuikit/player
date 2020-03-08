@@ -7,7 +7,7 @@ import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
-import sp.it.pl.gui.LazyOverlayPane
+import sp.it.pl.main.LazyOverlayPane
 import sp.it.pl.gui.objects.icon.Icon
 import sp.it.pl.gui.pane.OverlayPane
 import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE

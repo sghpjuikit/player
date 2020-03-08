@@ -1,6 +1,5 @@
 package sp.it.util.collections.map.abstr
 
-import sp.it.util.type.Util.getSuperClassesInc
 import sp.it.util.type.superKClassesInc
 import kotlin.reflect.KClass
 
@@ -21,7 +20,7 @@ interface MapByKClass<E> {
     * or empty list if no such mapping exists.
     */
    fun getElementsOfSuper(key: KClass<*>): Sequence<E> {
-      val keys = getSuperClassesInc(key.javaObjectType).map { it.kotlin }
+      val keys = key.superKClassesInc().toList()
       return getElementsOf(keys)
    }
 
@@ -30,17 +29,14 @@ interface MapByKClass<E> {
     *  * specified class
     *  * any of specified class' superclasses up to Object.class
     *  * any of specified class' interfaces
-    *  * Void.class or Nothing.class
+    *  * [Void].class or [Nothing].class
     *
     * or empty list if no such mapping exists.
-    *
-    * Note: Void.class is useful for mapping objects based on their generic
-    * type.
     */
    fun getElementsOfSuperV(key: KClass<*>): Sequence<E> {
-      val keys = getSuperClassesInc(key.javaObjectType).map { it.kotlin }.toMutableList()
-      if (Nothing::class!=key) keys.add(Nothing::class)
-      if (Void::class!=key) keys.add(Void::class)
+      val keys = key.superKClassesInc().toMutableList()
+      if (Nothing::class!=key) keys += Nothing::class
+      if (Void::class!=key) keys += Void::class
       return getElementsOf(keys)
    }
 
@@ -49,7 +45,6 @@ interface MapByKClass<E> {
     *  * specified class
     *  * any of specified class' superclasses up to Object.class
     *  * any of specified class' interfaces
-    *
     * or null if no such mapping exists.
     */
    fun getElementOfSuper(key: KClass<*>): E? = null
@@ -60,8 +55,7 @@ interface MapByKClass<E> {
     *  * specified class
     *  * any of specified class' superclasses up to Object.class
     *  * any of specified class' interfaces
-    *  * Void.class or Nothing.class
-    *
+    *  * [Void].class or [Nothing].class
     * or null if no such mapping exists.
     */
    fun getElementOfSuperV(key: KClass<*>): E? = null

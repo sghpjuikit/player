@@ -29,7 +29,7 @@ import sp.it.pl.main.Widgets
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.emScaled
-import sp.it.util.collections.getElementType
+import sp.it.util.collections.getElementClass
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.functional.asIf
 import sp.it.util.functional.net
@@ -173,7 +173,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
          data is Window -> exploreWindow(data)
          data is File -> exploreFile(data)
          data is Node -> exploreNode(data)
-         (data is Collection<*> && data.getElementType()==File::class.java) -> {
+         (data is Collection<*> && data.getElementClass()==File::class.java) -> {
             exploreCommonFileOf(data as Collection<File>)
          }
          else -> {

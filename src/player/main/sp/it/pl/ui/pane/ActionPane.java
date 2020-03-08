@@ -74,7 +74,7 @@ import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.collections.UtilKt.collectionUnwrap;
 import static sp.it.util.collections.UtilKt.collectionWrap;
-import static sp.it.util.collections.UtilKt.getElementType;
+import static sp.it.util.collections.UtilKt.getElementClass;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.by;
@@ -372,7 +372,7 @@ public class ActionPane extends OverlayPane<Object> {
 		var priority = NEVER;
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
 			Collection<Object> items = (Collection) data;
-			Class itemType = getElementType(items);
+			Class itemType = getElementClass(items);
 			if (APP.getClassFields().get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);

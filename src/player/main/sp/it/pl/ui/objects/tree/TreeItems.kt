@@ -135,7 +135,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Array<*> -> STreeItem<Any?>("Array<" + o.toList().getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is List<*> -> STreeItem<Any?>("List<" + o.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is Set<*> -> STreeItem<Any?>("Set<" + o.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
-   is Map<*, *> -> STreeItem<Any?>("Map of " + o.values.getElementType().toUi().plural(), { o.asSequence() }, { o.isEmpty() })
+   is Map<*, *> -> STreeItem<Any?>("Map<" + o.keys.getElementType().toUi() + "," + o.values.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }

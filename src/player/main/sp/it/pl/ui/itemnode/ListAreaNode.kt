@@ -6,7 +6,7 @@ import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.V
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
-import sp.it.util.collections.getElementType
+import sp.it.util.collections.getElementClass
 import sp.it.util.collections.setTo
 import sp.it.util.functional.Functors
 import sp.it.util.reactive.attach
@@ -105,7 +105,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     */
    open fun setData(data: List<Any>) {
       input setTo data
-      transforms.typeIn = data.getElementType()  // fires update
+      transforms.typeIn = data.getElementClass()  // fires update
    }
 
    /** Splits the specified text and [setData] with the result */

@@ -63,10 +63,7 @@ import sp.it.util.units.times
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.KVariance.INVARIANT
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -171,7 +168,7 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 }
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
-   fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeProjection.STAR })
+   fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeArg.STAR })
    val d = collectionUnwrap(it)
    val dName = APP.instanceName[d]
    val dClass = when (d) {
@@ -180,11 +177,9 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
    }
    val dType = when (d) {
       null -> Nothing::class.createType()
-      is List<*> -> List::class.createType(
-         arguments = listOf(
-            KTypeProjection(INVARIANT, d.getElementType().kotlin.estimateType().withNullability(null in d))
-         )
-      )
+      is List<*> -> List::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
+      is Set<*> -> Set::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
+      is Map<*, *> -> Map::class.createType(arguments = listOf(KTypeArg.invariant(d.keys.getElementType()), KTypeArg.invariant(d.values.getElementType())))
       else -> d::class.estimateType()
    }
    val dKind = "\nType: ${dType.toUi()}"
@@ -318,6 +313,7 @@ fun animShowNodes(nodes: List<Node>, block: (Int, Node, Double) -> Unit): Parall
       }
    }
 }
+
 fun animShowNodes(nodes: List<Node>) = animShowNodes(nodes) { _, node, at ->
    node.opacity = at
    node.setScaleXY(sqrt(at))

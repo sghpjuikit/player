@@ -8,7 +8,7 @@ import sp.it.pl.ui.pane.GroupApply.NONE
 import sp.it.util.action.Action
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionWrap
-import sp.it.util.collections.getElementType
+import sp.it.util.collections.getElementClass
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISNT
@@ -17,15 +17,14 @@ inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = r
 
 fun getUnwrappedType(d: Any?): Class<*> = when (d) {
    null -> Void::class.java
-   is Collection<*> -> d.getElementType()
+   is Collection<*> -> d.getElementClass()
    else -> d.javaClass
 }
 
 fun futureUnwrap(o: Any?): Any? = when (o) {
    is Fut<*> -> when {
       o.isDone() -> {
-         val result = o.getDone()
-         when (result) {
+         when (val result = o.getDone()) {
             is Fut.Result.ResultOk<*> -> result.value
             else -> null
          }
@@ -38,8 +37,7 @@ fun futureUnwrap(o: Any?): Any? = when (o) {
 fun futureUnwrapOrThrow(o: Any?): Any? = when (o) {
    is Fut<*> -> when {
       o.isDone() -> {
-         val result = o.getDone()
-         when (result) {
+         when (val result = o.getDone()) {
             is Fut.Result.ResultOk<*> -> result.value
             else -> null
          }

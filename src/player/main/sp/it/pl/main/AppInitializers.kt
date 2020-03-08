@@ -4,9 +4,6 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.ui.pane.ActionPane
-import sp.it.pl.ui.pane.OverlayPane
-import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget
@@ -15,6 +12,9 @@ import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.plugin.PluginBase
+import sp.it.pl.ui.pane.ActionPane
+import sp.it.pl.ui.pane.OverlayPane
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
@@ -37,10 +37,6 @@ import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
 import java.io.File
 import java.util.function.Consumer
-import kotlin.reflect.KClass
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.full.createType
-import kotlin.reflect.full.withNullability
 
 fun File.verify() {
    if (!isAbsolute)
@@ -109,11 +105,17 @@ fun InstanceName.initApp() {
    add(Output::class) { it.name }
    add(InOutput::class) { it.o.name }
    add(Collection::class) {
-      fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeProjection.STAR })
-      val isNullable = null in it
       val eName = null
-         ?: it::class.supertypes.find { it.classifier==Collection::class }?.arguments?.getOrNull(0)?.type?.toUi()
-         ?: it.getElementType().kotlin.estimateType().withNullability(isNullable).toUi()
+         ?: it::class.supertypes.find { it.classifier==Collection::class }?.let { it.arguments[0].type.toUi() }
+         ?: if (it.isEmpty()) "Empty ${it::class.toUi()}" else null
+         ?: it.getElementType().toUi()
+      eName.pluralUnit(it.size)
+   }
+   add(Map::class) {
+      val eName = null
+         ?: it::class.supertypes.find { it.classifier==Collection::class }?.arguments?.let { "Pair<" + it[0].type.toUi() + " -> " + it[1].type.toUi() + ">" }
+         ?: if (it.isEmpty()) "Empty ${it::class.toUi()}" else null
+         ?: "Pair<" + it.keys.getElementType().toUi() + " -> " + it.values.getElementType().toUi() + ">"
       eName.pluralUnit(it.size)
    }
 }

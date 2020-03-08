@@ -3,7 +3,7 @@ package sp.it.util.ui
 import javafx.scene.control.MenuItem
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.collectionWrap
-import sp.it.util.collections.getElementType
+import sp.it.util.collections.getElementClass
 import sp.it.util.collections.insertEvery
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.dev.fail
@@ -60,7 +60,7 @@ class ContextMenuGenerator {
          val valueMulti = collectionWrap(value).takeUnless { it.isEmpty() }
 
          val items1 = valueSingle?.net { it::class.superKClassesInc().associateWith { mSingle[it].orEmpty() } } ?: mapOf()
-         val itemsNType = valueMulti?.getElementType()?.kotlin
+         val itemsNType = valueMulti?.getElementClass()?.kotlin
          val itemsN = itemsNType?.net { it.superKClassesInc().associateWith { mMany[it].orEmpty() } } ?: mapOf()
 
          (items1.keys+itemsN.keys).asSequence()

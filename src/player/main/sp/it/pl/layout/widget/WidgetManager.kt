@@ -130,7 +130,6 @@ class WidgetManager {
    private var initialized = false
    private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
    private val kotlinc by lazy {
-      val os = Os.current
       val kotlinVersion = KotlinVersion.CURRENT.toString()
       val kotlincDir = APP.location.kotlinc
       val kotlincVersionFile = kotlincDir/"version"

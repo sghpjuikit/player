@@ -18,6 +18,10 @@ import sp.it.util.type.union
 import java.util.Optional
 import java.util.Stack
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection.Companion.STAR
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.withNullability
 
 /** @return new list containing elements of this sequence, e.g. for safe iteration */
 fun <T> Sequence<T>.materialize() = toList()
@@ -29,7 +33,13 @@ fun <T> List<T>.materialize() = toList()
 fun <T> Set<T>.materialize() = toList()
 
 /** @return the most specific common supertype of all elements */
-fun <E: Any> Collection<E?>.getElementType(): Class<*> {
+fun <E: Any> Collection<E?>.getElementType(): KType {
+   fun KClass<*>.estimateType() = createType(typeParameters.map { STAR })
+   return getElementClass().kotlin.estimateType().withNullability(null in this)
+}
+
+/** @return the most specific common supertype of all elements */
+fun <E: Any> Collection<E?>.getElementClass(): Class<*> {
    return null
       // Try obtaining exact type by inspecting the class
       ?: run {
@@ -44,7 +54,7 @@ fun <E: Any> Collection<E?>.getElementType(): Class<*> {
             .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
             ?.java
       }
-      ?: Void::class.javaObjectType
+      ?: Nothing::class.javaObjectType
 }
 
 /** Wraps the specified object into a collection */

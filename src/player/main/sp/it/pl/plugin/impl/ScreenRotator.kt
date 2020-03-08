@@ -10,9 +10,9 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import mu.KLogging
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.window.ShowArea.SCREEN_ACTIVE
-import sp.it.pl.gui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD

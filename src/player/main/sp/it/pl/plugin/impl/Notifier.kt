@@ -15,10 +15,10 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.gui.nodeinfo.ItemInfo
-import sp.it.pl.gui.objects.Text
-import sp.it.pl.gui.objects.window.ShowArea
-import sp.it.pl.gui.objects.window.popup.PopWindow
+import sp.it.pl.ui.nodeinfo.ItemInfo
+import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.window.ShowArea
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader

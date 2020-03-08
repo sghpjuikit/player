@@ -15,7 +15,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
-import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.AltState
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.Layouter

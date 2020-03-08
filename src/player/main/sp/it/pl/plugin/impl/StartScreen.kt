@@ -8,9 +8,9 @@ import javafx.geometry.Side
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
 import sp.it.pl.main.LazyOverlayPane
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.pane.OverlayPane
-import sp.it.pl.gui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.pane.OverlayPane
+import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.pl.main.IconWH
 import sp.it.pl.main.emScaled
 import sp.it.pl.plugin.PluginBase

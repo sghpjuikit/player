@@ -1,9 +1,9 @@
 package sp.it.pl.core
 
 import javafx.scene.control.Skin
-import sp.it.pl.gui.objects.rating.Rating
-import sp.it.pl.gui.objects.rating.RatingSkinNumber
-import sp.it.pl.gui.objects.rating.RatingSkinStar
+import sp.it.pl.ui.objects.rating.Rating
+import sp.it.pl.ui.objects.rating.RatingSkinNumber
+import sp.it.pl.ui.objects.rating.RatingSkinStar
 import sp.it.pl.web.BingImageSearchQBuilder
 import sp.it.pl.web.DuckDuckGoImageQBuilder
 import sp.it.pl.web.DuckDuckGoQBuilder

@@ -20,9 +20,9 @@ import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
-import sp.it.pl.gui.objects.autocomplete.ConfigSearch.Entry
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.window.stage.WindowManager
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE

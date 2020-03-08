@@ -23,8 +23,8 @@ import javafx.scene.shape.Circle
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
-import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
-import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.container.SwitchContainerUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df

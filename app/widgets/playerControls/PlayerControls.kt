@@ -27,10 +27,10 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.seeker.ChapterDisplayActivation.HOVER
-import sp.it.pl.gui.objects.seeker.ChapterDisplayMode.POPUP_SHARED
-import sp.it.pl.gui.objects.seeker.Seeker
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.seeker.ChapterDisplayActivation.HOVER
+import sp.it.pl.ui.objects.seeker.ChapterDisplayMode.POPUP_SHARED
+import sp.it.pl.ui.objects.seeker.Seeker
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock

@@ -11,8 +11,8 @@ import javafx.stage.Screen
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
 import sp.it.pl.core.NameUi
-import sp.it.pl.gui.objects.window.stage.Window
-import sp.it.pl.gui.objects.window.stage.asLayout
+import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.Layout

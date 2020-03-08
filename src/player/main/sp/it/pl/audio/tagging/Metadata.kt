@@ -25,11 +25,11 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Chapter.Companion.chapter
 import sp.it.pl.audio.tagging.Metadata.Companion.EMPTY
 import sp.it.pl.audio.tagging.Metadata.Field
-import sp.it.pl.gui.objects.image.Cover
-import sp.it.pl.gui.objects.image.Cover.CoverSource
-import sp.it.pl.gui.objects.image.EmptyCover
-import sp.it.pl.gui.objects.image.FileCover
-import sp.it.pl.gui.objects.image.ImageCover
+import sp.it.pl.ui.objects.image.Cover
+import sp.it.pl.ui.objects.image.Cover.CoverSource
+import sp.it.pl.ui.objects.image.EmptyCover
+import sp.it.pl.ui.objects.image.FileCover
+import sp.it.pl.ui.objects.image.ImageCover
 import sp.it.pl.main.APP
 import sp.it.pl.main.isImage
 import sp.it.pl.main.toUi

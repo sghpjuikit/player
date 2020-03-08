@@ -83,17 +83,17 @@ import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.core.CoreMenus
-import sp.it.pl.gui.itemnode.textfield.MoodItemNode
-import sp.it.pl.gui.objects.autocomplete.AutoCompletion
-import sp.it.pl.gui.objects.icon.CheckIcon
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.image.Cover
-import sp.it.pl.gui.objects.image.ImageCover
-import sp.it.pl.gui.objects.image.ThumbnailWithAdd
-import sp.it.pl.gui.objects.spinner.Spinner
-import sp.it.pl.gui.objects.window.NodeShow.LEFT_CENTER
-import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
-import sp.it.pl.gui.objects.window.popup.PopWindow
+import sp.it.pl.ui.itemnode.textfield.MoodItemNode
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion
+import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.image.Cover
+import sp.it.pl.ui.objects.image.ImageCover
+import sp.it.pl.ui.objects.image.ThumbnailWithAdd
+import sp.it.pl.ui.objects.spinner.Spinner
+import sp.it.pl.ui.objects.window.NodeShow.LEFT_CENTER
+import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.SongReader
@@ -164,7 +164,7 @@ import java.io.File
 import java.net.URI
 import java.time.Year
 import java.util.ArrayList
-import sp.it.pl.gui.objects.textfield.DecoratedTextField as DTextField
+import sp.it.pl.ui.objects.textfield.DecoratedTextField as DTextField
 
 typealias Predicate = (String) -> Boolean
 typealias Converter = (String) -> String

@@ -8,8 +8,8 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
 import sp.it.pl.main.AppUi.SkinCss
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.table.TableColumnInfo
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.toUi

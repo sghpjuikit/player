@@ -14,7 +14,7 @@ import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.gui.objects.placeholder.DragPane
+import sp.it.pl.ui.objects.placeholder.DragPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.util.async.future.Fut

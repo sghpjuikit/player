@@ -8,8 +8,8 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field
 import sp.it.pl.audio.playlist.writePlaylist
-import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.pl.gui.objects.table.PlaylistTable
+import sp.it.pl.ui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
+import sp.it.pl.ui.objects.table.PlaylistTable
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group
 import sp.it.pl.layout.widget.WidgetSource.OPEN
@@ -50,7 +50,7 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import java.util.UUID
-import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
+import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 
 @Widget.Info(
    author = "Martin Polakovic",

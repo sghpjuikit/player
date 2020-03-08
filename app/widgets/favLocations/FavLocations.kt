@@ -9,8 +9,8 @@ import javafx.scene.input.TransferMode.COPY
 import javafx.scene.input.TransferMode.LINK
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.tree.tree
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.FileExplorerFeature

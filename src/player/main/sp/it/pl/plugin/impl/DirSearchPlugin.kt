@@ -1,8 +1,8 @@
 package sp.it.pl.plugin.impl
 
 import mu.KLogging
-import sp.it.pl.gui.objects.autocomplete.ConfigSearch
-import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconFA

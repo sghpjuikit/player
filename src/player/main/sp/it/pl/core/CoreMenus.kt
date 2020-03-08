@@ -6,7 +6,7 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
-import sp.it.pl.gui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT

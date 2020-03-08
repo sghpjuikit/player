@@ -18,13 +18,13 @@ import sp.it.pl.audio.tagging.Metadata.Field.Companion.RATING
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.TITLE
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
-import sp.it.pl.gui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
-import sp.it.pl.gui.objects.rating.RatingCellFactory
-import sp.it.pl.gui.objects.table.FilteredTable
-import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
-import sp.it.pl.gui.objects.table.buildFieldedCell
-import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
+import sp.it.pl.ui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.ui.objects.rating.RatingCellFactory
+import sp.it.pl.ui.objects.table.FilteredTable
+import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
+import sp.it.pl.ui.objects.table.buildFieldedCell
+import sp.it.pl.ui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
@@ -72,7 +72,7 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
-import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
+import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 
 @Info(
    author = "Martin Polakovic",

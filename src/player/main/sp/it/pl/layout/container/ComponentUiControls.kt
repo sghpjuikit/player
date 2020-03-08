@@ -7,7 +7,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.TilePane
-import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.widget.WidgetUi
 import sp.it.pl.main.Df
 import sp.it.pl.main.set

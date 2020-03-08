@@ -1,7 +1,7 @@
 package sp.it.pl.layout.widget
 
 import javafx.scene.layout.AnchorPane
-import sp.it.pl.gui.objects.placeholder.Placeholder
+import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.layout.container.ComponentUiBase
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC

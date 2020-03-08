@@ -15,8 +15,8 @@ import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import sp.it.pl.core.CoreMouse
-import sp.it.pl.gui.objects.icon.CheckIcon
-import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.ComponentUiControlsBase
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC

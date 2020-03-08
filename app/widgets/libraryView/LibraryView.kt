@@ -27,14 +27,14 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.AVG_RATING
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
-import sp.it.pl.gui.itemnode.FieldedPredicateItemNode.PredicateData
-import sp.it.pl.gui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
-import sp.it.pl.gui.objects.contextmenu.ValueContextMenu
-import sp.it.pl.gui.objects.rating.RatingCellFactory
-import sp.it.pl.gui.objects.table.FilteredTable
-import sp.it.pl.gui.objects.table.ImprovedTable.PojoV
-import sp.it.pl.gui.objects.table.buildFieldedCell
-import sp.it.pl.gui.objects.tablerow.ImprovedTableRow
+import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.ui.objects.rating.RatingCellFactory
+import sp.it.pl.ui.objects.table.FilteredTable
+import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
+import sp.it.pl.ui.objects.table.buildFieldedCell
+import sp.it.pl.ui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
@@ -75,7 +75,6 @@ import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
 import sp.it.util.text.pluralUnit
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.raw
 import sp.it.util.type.rawJ
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
@@ -86,7 +85,7 @@ import java.util.function.Supplier
 import kotlin.streams.toList
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
-import sp.it.pl.gui.objects.table.TableColumnInfo as ColumnState
+import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 
 private typealias Metadatas = List<Metadata>
 private typealias MetadataGroups = List<MetadataGroup>

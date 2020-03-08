@@ -1,7 +1,7 @@
 package sp.it.pl.audio.tagging
 
 import sp.it.pl.audio.Song
-import sp.it.pl.gui.objects.rating.Rating
+import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.util.async.runFX

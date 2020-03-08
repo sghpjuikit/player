@@ -2,7 +2,7 @@ package sp.it.pl.main
 
 import javafx.scene.Node
 import sp.it.pl.core.NameUi
-import sp.it.pl.gui.objects.autocomplete.ConfigSearch
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.cList
 import sp.it.util.conf.def

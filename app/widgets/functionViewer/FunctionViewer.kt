@@ -13,7 +13,7 @@ import javafx.scene.shape.Line
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
-import sp.it.pl.gui.itemnode.ConfigEditor
+import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController

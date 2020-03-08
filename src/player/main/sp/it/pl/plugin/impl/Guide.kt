@@ -17,9 +17,9 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode.COPY
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.window.ShowArea.WINDOW_ACTIVE
-import sp.it.pl.gui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.layout.widget.initialTemplateFactory

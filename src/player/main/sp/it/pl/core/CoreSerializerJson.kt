@@ -1,7 +1,7 @@
 package sp.it.pl.core
 
 import mu.KLogging
-import sp.it.pl.gui.objects.window.stage.WindowDb
+import sp.it.pl.ui.objects.window.stage.WindowDb
 import sp.it.pl.layout.BiContainerDb
 import sp.it.pl.layout.FreeFormContainerDb
 import sp.it.pl.layout.NoComponentDb

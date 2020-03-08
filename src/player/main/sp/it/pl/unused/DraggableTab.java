@@ -14,7 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import sp.it.pl.gui.objects.Text;
+import sp.it.pl.ui.objects.Text;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.stage.StageStyle.TRANSPARENT;
 

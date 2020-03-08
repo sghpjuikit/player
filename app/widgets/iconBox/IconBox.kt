@@ -2,7 +2,7 @@ package iconBox
 
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS
-import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController

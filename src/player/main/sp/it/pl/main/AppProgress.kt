@@ -12,9 +12,9 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
-import sp.it.pl.gui.objects.icon.Icon
-import sp.it.pl.gui.objects.window.NodeShow.RIGHT_UP
-import sp.it.pl.gui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.NodeShow.RIGHT_UP
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.main.AppTask.State.ACTIVE
 import sp.it.pl.main.AppTask.State.DONE_CANCEL
 import sp.it.pl.main.AppTask.State.DONE_ERROR

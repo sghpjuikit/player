@@ -9,8 +9,8 @@ import javafx.scene.control.Slider
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
-import sp.it.pl.gui.objects.form.Form.Companion.form
-import sp.it.pl.gui.objects.icon.Icon
+import sp.it.pl.ui.objects.form.Form.Companion.form
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController

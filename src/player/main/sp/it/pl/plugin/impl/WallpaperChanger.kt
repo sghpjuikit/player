@@ -7,9 +7,9 @@ import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
-import sp.it.pl.gui.objects.image.Thumbnail
-import sp.it.pl.gui.objects.window.ShowArea
-import sp.it.pl.gui.objects.window.stage.setNonInteractingProgmanOnBottom
+import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.window.ShowArea
+import sp.it.pl.ui.objects.window.stage.setNonInteractingProgmanOnBottom
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.main.APP
 import sp.it.pl.main.isImage

@@ -39,11 +39,11 @@ import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.YEAR
 import sp.it.pl.audio.tagging.writeNoRefresh
 import sp.it.pl.audio.tagging.writeRating
-import sp.it.pl.gui.objects.image.Cover.CoverSource
-import sp.it.pl.gui.objects.image.ThumbnailWithAdd
-import sp.it.pl.gui.objects.rating.Rating
-import sp.it.pl.gui.pane.ImageFlowPane
-import sp.it.pl.gui.pane.SlowAction
+import sp.it.pl.ui.objects.image.Cover.CoverSource
+import sp.it.pl.ui.objects.image.ThumbnailWithAdd
+import sp.it.pl.ui.objects.rating.Rating
+import sp.it.pl.ui.pane.ImageFlowPane
+import sp.it.pl.ui.pane.SlowAction
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.SongReader

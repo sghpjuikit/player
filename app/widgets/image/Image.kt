@@ -3,7 +3,7 @@ package image
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import sp.it.pl.gui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController

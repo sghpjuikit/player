@@ -6,9 +6,9 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import sp.it.pl.gui.objects.picker.ContainerPicker
-import sp.it.pl.gui.objects.picker.Picker
-import sp.it.pl.gui.objects.picker.WidgetPicker
+import sp.it.pl.ui.objects.picker.ContainerPicker
+import sp.it.pl.ui.objects.picker.Picker
+import sp.it.pl.ui.objects.picker.WidgetPicker
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.layout.container.Container

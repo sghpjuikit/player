@@ -288,7 +288,7 @@
  */
 
 .slider {
-    -fx-skin: "sp.it.pl.gui.objects.ImprovedSliderSkin";
+    -fx-skin: "sp.it.pl.ui.objects.ImprovedSliderSkin";
 }
 .slider .thumb,
 .slider .thumb:hover,
@@ -319,7 +319,7 @@
  */
 
 .scroll-bar {
-    -fx-skin: "sp.it.pl.gui.objects.ImprovedScrollBarSkin";
+    -fx-skin: "sp.it.pl.ui.objects.ImprovedScrollBarSkin";
     -fx-background-color: null;
     -fx-background-insets: 0;
 }
@@ -607,7 +607,7 @@
 /********************************* TextArea ***********************************/
 
 .text-area {
-    -fx-skin: "sp.it.pl.gui.objects.ImprovedTextAreaSkin";
+    -fx-skin: "sp.it.pl.ui.objects.ImprovedTextAreaSkin";
 }
 .text-area:focused {
 
@@ -1903,7 +1903,7 @@ Text {
  */
 
 .seeker {
-    -fx-skin: "sp.it.pl.gui.objects.seeker.SeekerSkin";
+    -fx-skin: "sp.it.pl.ui.objects.seeker.SeekerSkin";
 }
 .seeker .thumb {}
 .seeker .thumb:hover,

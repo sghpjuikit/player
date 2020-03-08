@@ -4,9 +4,9 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.gui.pane.ActionPane
-import sp.it.pl.gui.pane.OverlayPane
-import sp.it.pl.gui.pane.ShortcutPane
+import sp.it.pl.ui.pane.ActionPane
+import sp.it.pl.ui.pane.OverlayPane
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.Widget

@@ -1,6 +1,6 @@
 package sp.it.pl.plugin.impl
 
-import sp.it.pl.gui.objects.form.Validated
+import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
 import sp.it.pl.main.isImage

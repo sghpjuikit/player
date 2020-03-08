@@ -25,11 +25,12 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import kotlin.Unit;
+import sp.it.pl.main.AppBuildersKt;
+import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.table.FilteredTable;
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV;
-import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.ClassListMap;
@@ -44,7 +45,6 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CHECKBOX
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.CLOSE_CIRCLE_OUTLINE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.RESIZE_BOTTOM_RIGHT;
 import static java.lang.Math.sqrt;
-import static java.util.stream.Collectors.joining;
 import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.BOTTOM_CENTER;
 import static javafx.geometry.Pos.CENTER;
@@ -56,19 +56,17 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.layout.Priority.SOMETIMES;
 import static javafx.util.Duration.millis;
-import static kotlin.streams.jdk8.StreamsKt.asStream;
+import static sp.it.pl.main.AppBuildersKt.animShowNodes;
+import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
+import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.ui.pane.GroupApply.FOR_ALL;
 import static sp.it.pl.ui.pane.GroupApply.FOR_EACH;
 import static sp.it.pl.ui.pane.GroupApply.NONE;
-import static sp.it.pl.main.AppBuildersKt.animShowNodes;
-import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppBuildersKt.infoIcon;
-import static sp.it.pl.main.AppExtensionsKt.toUi;
-import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.NEW;
@@ -78,6 +76,7 @@ import static sp.it.util.collections.UtilKt.collectionUnwrap;
 import static sp.it.util.collections.UtilKt.collectionWrap;
 import static sp.it.util.collections.UtilKt.getElementType;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
+import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
@@ -418,18 +417,9 @@ public class ActionPane extends OverlayPane<Object> {
 		}));
 	}
 
-	// TODO: remove
-	@SuppressWarnings("deprecation")
 	private String computeDataInfo(Object data, boolean computed) {
-		Class<?> type = data==null ? Void.class : data.getClass();
-		Object d = computed ? data instanceof Fut ? ((Fut)data).getDoneOrNull() : data : null;
-
-		String dName = !computed ? "n/a" : instanceName.get(d);
-		String dKind = !computed ? "n/a" : toUi(type) + (APP.getDeveloperMode().getValue() ? " (" + type + ")" : "");
-		String dInfo = !computed ? "" : asStream(instanceDescription.get(d)).map(e -> e.getName() + ": " + e.getValue()).sorted().collect(joining("\n"));
-		return "Data: " + dName + "\n" +
-			   "Type: " + dKind +
-			   (dInfo.isEmpty() ? "" : "\n" + dInfo);
+		if (computed) return getOr(AppBuildersKt.computeDataInfo(data).getDone().toTry(), "Failed to obtain data information.");
+	    else return "Data: n/a\nType: n/a\n";
 	}
 
 	@SuppressWarnings("unchecked")

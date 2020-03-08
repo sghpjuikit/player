@@ -33,6 +33,7 @@ import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionUnwrap
+import sp.it.util.collections.getElementType
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.ValueConfig
@@ -61,6 +62,12 @@ import sp.it.util.units.seconds
 import sp.it.util.units.times
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
+import kotlin.reflect.KClass
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KVariance.INVARIANT
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.withNullability
+import kotlin.reflect.jvm.jvmName
 
 /**
  * Creates simple help popup designed as a tooltip for help buttons.
@@ -164,10 +171,24 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 }
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
+   fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeProjection.STAR })
    val d = collectionUnwrap(it)
-   val dName = APP.instanceName.get(d)
-   val dClass = if (d==null) Nothing::class else d::class
-   val dKind = dClass.let { it.toUi() + if (APP.developerMode.value) " ($it)" else "" }
+   val dName = APP.instanceName[d]
+   val dClass = when (d) {
+      null -> Nothing::class
+      else -> d::class
+   }
+   val dType = when (d) {
+      null -> Nothing::class.createType()
+      is List<*> -> List::class.createType(
+         arguments = listOf(
+            KTypeProjection(INVARIANT, d.getElementType().kotlin.estimateType().withNullability(null in d))
+         )
+      )
+      else -> d::class.estimateType()
+   }
+   val dKind = "\nType: ${dType.toUi()}"
+   val dKindDev = "\nType (exact): ${dClass.qualifiedName ?: dClass.jvmName}".takeIf { APP.developerMode.value }.orEmpty()
    val dInfo = APP.instanceInfo[d]
       .map { "${it.name}: ${it.value}" }
       .sorted()
@@ -175,7 +196,7 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
       .takeUnless { it.isEmpty() }
       ?.let { "\n$it" } ?: ""
 
-   "Data: $dName\nType: $dKind$dInfo"
+   "Data: $dName$dKind$dKindDev$dInfo"
 }
 
 fun resizeIcon(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {

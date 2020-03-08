@@ -9,6 +9,8 @@ import sp.it.pl.main.computeDataInfo
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
+import sp.it.util.async.FX
+import sp.it.util.functional.getOr
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -41,8 +43,8 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    }
 
    override fun open(data: Any?) {
-      computeDataInfo(data) ui {
-         info.text = it
+      computeDataInfo(data).onDone(FX) {
+         info.text = it.toTry().getOr("Failed to obtain data information.")
       }
    }
 

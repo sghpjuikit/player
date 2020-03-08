@@ -18,6 +18,7 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
+import sp.it.util.collections.getElementType
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.Util
@@ -36,6 +37,10 @@ import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
 import java.io.File
 import java.util.function.Consumer
+import kotlin.reflect.KClass
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.withNullability
 
 fun File.verify() {
    if (!isAbsolute)
@@ -80,36 +85,43 @@ fun ClassName.initApp() {
           "Output" alias Output::class
        "In-Output" alias InOutput::class
          "Feature" alias Feature::class
+      "Collection" alias Collection::class
             "List" alias List::class
+             "Set" alias Set::class
+             "Map" alias Map::class
    // @formatter:on
 }
 
 fun InstanceName.initApp() {
-   add(Any::class.java) { "object" }
-   add(Void::class.java) { "<none>" }
-   add(File::class.java) { it.path }
-   add(App::class.java) { "This application" }
-   add(Song::class.java) { it.getPathAsString() }
-   add(PlaylistSong::class.java) { it.getTitle() }
-   add(Metadata::class.java) { it.getTitleOrEmpty() }
-   add(MetadataGroup::class.java) { it.getValueS("<none>") }
-   add(PluginBase::class.java) { it.name }
-   add(Component::class.java) { it.name }
-   add(Feature::class.java) { "Feature" }
-   add(Input::class.java) { it.name }
-   add(Output::class.java) { it.name }
-   add(InOutput::class.java) { it.o.name }
-   add(Collection::class.java) {
-      val eType = it::class.supertypes.find { it.classifier==Collection::class }?.arguments?.getOrNull(0)?.type
-      val eName = eType?.toUi() ?: "Item"
+   add(Void::class) { "<none>" }
+   add(Nothing::class) { "<none>" }
+   add(Any::class) { "object" }
+   add(File::class) { it.path }
+   add(App::class) { "This application" }
+   add(Song::class) { it.getPathAsString() }
+   add(PlaylistSong::class) { it.getTitle() }
+   add(Metadata::class) { it.getTitleOrEmpty() }
+   add(MetadataGroup::class) { it.getValueS("<none>") }
+   add(PluginBase::class) { it.name }
+   add(Component::class) { it.name }
+   add(Feature::class) { "Feature" }
+   add(Input::class) { it.name }
+   add(Output::class) { it.name }
+   add(InOutput::class) { it.o.name }
+   add(Collection::class) {
+      fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeProjection.STAR })
+      val isNullable = null in it
+      val eName = null
+         ?: it::class.supertypes.find { it.classifier==Collection::class }?.arguments?.getOrNull(0)?.type?.toUi()
+         ?: it.getElementType().kotlin.estimateType().withNullability(isNullable).toUi()
       eName.pluralUnit(it.size)
    }
 }
 
 fun InstanceDescription.initApp() {
    String::class describe {
-      "Length" info it.length.toString()
-      "Lines" info it.lineSequence().count().toString()
+      "Length" info it.length.toUi()
+      "Lines" info it.lineSequence().count().toUi()
    }
    File::class describe { f ->
       val type = FileType(f)

@@ -115,7 +115,8 @@ open class PopWindow {
    private val contentP: BorderPane
    private val titleL: Label
    private val header: BorderPane
-   private val whileActive = Disposer()
+   private val tillHidden = Disposer()
+   private val tillHiding = Disposer()
 
    /** Handlers called just after this popup was shown. Called even when it was already showing. */
    val onContentShown = Handler0()
@@ -276,7 +277,8 @@ open class PopWindow {
    fun show(shower: Shower) = show(shower.owner, shower.show)
 
    fun show(windowOwner: Window? = null, shower: (Window) -> P) {
-      whileActive()
+      tillHiding()
+      tillHidden()
       runFX(100.millis) {
          ownerMWindow = windowOwner
 
@@ -286,15 +288,15 @@ open class PopWindow {
 
                fun initHideWithOwner() {
                   if (windowOwner!=null) {
-                     windowOwner.onEventUp(WINDOW_HIDING) { if (isShowing) hideImmediately() } on whileActive
-                     windowOwner.onEventUp(WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on whileActive
+                     windowOwner.onEventUp(WINDOW_HIDING) { if (isShowing) hideImmediately() } on tillHidden
+                     windowOwner.onEventUp(WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on tillHidden
                   }
                }
                fun initZOrder() {
                   if (windowOwner==null) {
                      isAlwaysOnTop = true
                   } else {
-                     attachTo(windowOwner.focusedProperty(), focusedProperty()) { a, b -> stage.isAlwaysOnTop = a || b } on whileActive
+                     attachTo(windowOwner.focusedProperty(), focusedProperty()) { a, b -> stage.isAlwaysOnTop = a || b } on tillHiding
                   }
                }
                fun initAutohide() {
@@ -305,11 +307,11 @@ open class PopWindow {
                               this@PopWindow.hide()
                         }
                      }
-                  } on whileActive
+                  } on tillHidden
                }
 
                scene.root = root
-               focusedProperty() sync { root.pseudoClassChanged("window-focused", it) } on whileActive
+               focusedProperty() sync { root.pseudoClassChanged("window-focused", it) } on tillHidden
                initHideWithOwner()
                initZOrder()
                onEventUp1(WINDOW_SHOWN) { onContentShown() }
@@ -354,10 +356,11 @@ open class PopWindow {
    /** Hides this popup immediately. Use when the hiding animation is not desired (regardless the [animated] value). */
    fun hideImmediately() {
       if (!isShowing) return
+      tillHiding()
       window.asIf<Stage>()?.owner?.hideFixed()
       window?.hide()
       window = null
-      whileActive()
+      tillHidden()
    }
 
    private fun fadeIn() = animation.value.apply {

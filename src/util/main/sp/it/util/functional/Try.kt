@@ -72,12 +72,12 @@ sealed class Try<out R, out E> {
       is Error<E> -> error(mapperError(value))
    }
 
-   class Ok<R>(val value: R): Try<R, Nothing>() {
+   data class Ok<R>(val value: R): Try<R, Nothing>() {
       override val isOk = true
       override val isError = false
    }
 
-   class Error<E>(val value: E): Try<Nothing, E>() {
+   data class Error<E>(val value: E): Try<Nothing, E>() {
       override val isOk = false
       override val isError = true
    }

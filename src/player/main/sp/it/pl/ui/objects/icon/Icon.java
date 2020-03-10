@@ -65,6 +65,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.animation.Anim.mapTo01;
@@ -588,7 +589,7 @@ public class Icon extends StackPane {
 	}
 
 	public Number convert(String sizeString) {
-		return getOr(APP.getConverter().general.ofS(Double.class, sizeString), DEFAULT_ICON_SIZE);
+		return getOr(APP.getConverter().general.ofS(getKotlinClass(Double.class), sizeString), DEFAULT_ICON_SIZE);
 	}
 
 }

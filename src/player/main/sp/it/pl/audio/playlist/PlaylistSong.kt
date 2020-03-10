@@ -22,7 +22,6 @@ import sp.it.util.type.VType
 import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
 import java.net.URI
-import kotlin.reflect.KClass
 
 /**
  * Song in playlist.
@@ -199,7 +198,15 @@ class PlaylistSong: Song {
          }
       }
 
-      override fun cWidth(): Double = 60.0
+      override fun cWidth(): Double = when (this) {
+         NAME -> 400.0
+         TITLE -> 250.0
+         ARTIST -> 150.0
+         LENGTH -> 60.0
+         PATH -> 400.0
+         FORMAT -> 60.0
+         else -> 60.0
+      }
 
       override fun cVisible(): Boolean = this===NAME || this===LENGTH
 

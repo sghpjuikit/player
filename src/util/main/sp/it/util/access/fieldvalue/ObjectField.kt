@@ -78,7 +78,7 @@ interface ObjectField<in V, out T>: StringGetter<V> {
 
    fun searchMatch(matcher: (String) -> Boolean): (V) -> Boolean = { matcher(getOfS(it, "")) }
 
-   fun cWidth(): Double = 70.0
+   fun cWidth(): Double = 100.0
 
    fun cVisible(): Boolean = true
 

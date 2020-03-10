@@ -46,8 +46,9 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
-import static sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.dev.FailKt.noNull;
@@ -312,7 +313,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
-		return stream(APP.getClassFields().get(filterType))
+		return stream(APP.getClassFields().get(getKotlinClass(filterType)))
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))

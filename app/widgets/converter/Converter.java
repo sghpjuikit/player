@@ -22,16 +22,11 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import kotlin.reflect.KClass;
+import kotlin.sequences.SequencesKt;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.SongReadingKt;
-import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode;
-import sp.it.pl.ui.itemnode.ConfigEditor;
-import sp.it.pl.ui.itemnode.ListAreaNode;
-import sp.it.pl.ui.itemnode.ValueNode;
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox;
-import sp.it.pl.ui.objects.icon.Icon;
-import sp.it.pl.ui.pane.ConfigPane;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.LegacyController;
@@ -42,9 +37,16 @@ import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.main.AppDragKt;
 import sp.it.pl.main.Widgets;
+import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode;
+import sp.it.pl.ui.itemnode.ConfigEditor;
+import sp.it.pl.ui.itemnode.ListAreaNode;
+import sp.it.pl.ui.itemnode.ValueNode;
+import sp.it.pl.ui.objects.combobox.ImprovedComboBox;
+import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.pane.ConfigPane;
 import sp.it.util.access.V;
 import sp.it.util.access.VarEnum;
-import sp.it.util.collections.map.ClassListMap;
+import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.conf.Config;
 import sp.it.util.file.Util;
 import sp.it.util.functional.Functors.F0;
@@ -64,6 +66,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
@@ -144,7 +147,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     private final ObservableList<Object> source = observableArrayList();
     private final EditArea ta_in = new EditArea("In", true);
     private final ObservableList<EditArea> tas = observableArrayList(ta_in);
-    private final ClassListMap<Act<?>> acts = new ClassListMap<>(act -> act.type);
+    private final KClassListMap<Act<?>> acts = new KClassListMap<>(act -> act.type);
     private final HBox outTFBox = new HBox(5);
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
@@ -206,19 +209,19 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         // set.
         // Therefore, the order below matters.
         acts.accumulate(
-            new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
+            new Act<>("Rename files", getKotlinClass(File.class), 1, list("Filename"), (file, data) -> {
                 String name = data.get("Filename");
                 Util.renameFileNoSuffix(file, name);
             })
         );
         acts.accumulate(
-            new Act<>("Rename files (and extension)", File.class, 1, list("Filename"), (file, data) -> {
+            new Act<>("Rename files (and extension)", getKotlinClass(File.class), 1, list("Filename"), (file, data) -> {
                 String name = data.get("Filename");
                 Util.renameFile(file, name);
             })
         );
         acts.accumulate(
-            new Act<>("Edit song tags", Song.class, 100, () -> map(Metadata.Field.Companion.getAll(), f -> f.name()), data -> {
+            new Act<>("Edit song tags", getKotlinClass(Song.class), 100, () -> map(Metadata.Field.Companion.getAll(), f -> f.name()), data -> {
                 List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
                 if (songs.isEmpty()) return;
                 withAppProgress(
@@ -249,7 +252,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         ta_in.outputText.addListener((o, ov, nv) -> output.setValue(nv));
 
         // set empty content
-        applier.fillActs(Void.class);
+        applier.fillActs(getKotlinClass(Void.class));
     }
 
     @Override
@@ -375,7 +378,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         public void fillActionData(){
             if (isMain && applier!=null) {
-                applier.fillActs(transforms.getTypeIn());
+                applier.fillActs(getKotlinClass(transforms.getTypeIn()));
             }
         }
 
@@ -436,8 +439,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             });
         }
 
-        public void fillActs(Class<?> c) {
-            List<Act<?>> l = acts.getElementsOfSuperV(c);
+        public void fillActs(KClass<?> c) {
+            List<Act<?>> l = SequencesKt.toList(acts.getElementsOfSuperV(c));
             actCB.getItems().setAll(l);
             if (!l.isEmpty()) actCB.setValue(l.get(0));
         }
@@ -446,39 +449,39 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         String name;
         int max = MAX_VALUE;
         F0<List<String>> names;
-        Class<Y> type;
+        KClass<Y> type;
         boolean isNamesDeterminate;
         BiConsumer<Y,Map<String,? extends String>> actionPartial = null;
         Consumer<? super Map<String,List<? extends String>>> actionImpartial = null;
 
-        private Act(String name, Class<Y> type, int max, BiConsumer<Y,Map<String,? extends String>> action) {
+        private Act(String name, KClass<Y> type, int max, BiConsumer<Y,Map<String,? extends String>> action) {
             this.name = name;
             this.type = type;
             this.max = max;
             this.actionPartial = action;
         }
-        private Act(String name, Class<Y> type, int max, Consumer<Map<String,List<? extends String>>> action) {
+        private Act(String name, KClass<Y> type, int max, Consumer<Map<String,List<? extends String>>> action) {
             this.name = name;
             this.type = type;
             this.max = max;
             this.actionImpartial = action;
         }
-        Act(String name, Class<Y> type, int max, F0<List<String>> names, BiConsumer<Y,Map<String,? extends String>> action) {
+        Act(String name, KClass<Y> type, int max, F0<List<String>> names, BiConsumer<Y,Map<String,? extends String>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
         }
-        Act(String name, Class<Y> type, int max, List<String> names, BiConsumer<Y,Map<String,? extends String>> action) {
+        Act(String name, KClass<Y> type, int max, List<String> names, BiConsumer<Y,Map<String,? extends String>> action) {
             this(name, type, max, action);
             this.names = () -> names;
             isNamesDeterminate = true;
         }
-        Act(String name, Class<Y> type, int max, F0<List<String>> names, Consumer<Map<String,List<? extends String>>> action) {
+        Act(String name, KClass<Y> type, int max, F0<List<String>> names, Consumer<Map<String,List<? extends String>>> action) {
             this(name, type, max, action);
             this.names = names;
             isNamesDeterminate = false;
         }
-        Act(String name, Class<Y> type, int max, List<String> names, Consumer<Map<String,List<? extends String>>> action) {
+        Act(String name, KClass<Y> type, int max, List<String> names, Consumer<Map<String,List<? extends String>>> action) {
             this(name, type, max, action);
             this.names = () -> names;
             isNamesDeterminate = true;
@@ -498,7 +501,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         V<File> loc = new V<>(APP.getLocation());
 
         public WriteFileAct() {
-            super("Write file", Void.class, 1, list("Contents"), (Consumer<Map<String,List<? extends String>>>) null);
+            super("Write file", getKotlinClass(Void.class), 1, list("Contents"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data -> {
                 var file = new File(loc.get(), nam.get()+"."+ext.get());
                 var text = String.join("\n", data.get("Contents"));
@@ -523,7 +526,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         V<File> loc = new V<>(APP.getLocationHome());
 
         public ActCreateDirs() {
-            super("Create directories", Void.class, 1, list("Names (Paths)"), (Consumer<Map<String,List<? extends String>>>) null);
+            super("Create directories", getKotlinClass(Void.class), 1, list("Names (Paths)"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data ->
                 fut(data.get("Names (Paths)"))
                    .useBy(IO, names -> {

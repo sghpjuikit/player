@@ -44,6 +44,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.util.Duration.millis;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.async.AsyncKt.runFX;
@@ -228,7 +229,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
-		return stream(APP.getClassFields().get(filterType))
+		return stream(APP.getClassFields().get(getKotlinClass(filterType)))
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)

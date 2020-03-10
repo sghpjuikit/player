@@ -27,7 +27,6 @@ import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.VType
-import sp.it.util.type.rawJ
 import sp.it.util.type.type
 import java.util.HashSet
 import java.util.function.Supplier
@@ -231,10 +230,10 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
       set(v) {
          val s = v.valN
          if (s.size!=2) {
-            Parsers.DEFAULT.ofS(Boolean::class.javaObjectType, s[0])
+            Parsers.DEFAULT.ofS<Boolean>(s[0])
                .ifOk { property.override.value = it }
                .ifError { logger.warn(it) { "Unable to set config=$name override value (Boolean.class) from text='${s[0]}'" } }
-            Parsers.DEFAULT.ofS(valueType.rawJ, s[1])
+            Parsers.DEFAULT.ofS(valueType, s[1])
                .ifOk { property.real.value = it }
                .ifError { logger.warn(it) { "Unable to set config=$name real value ($valueType) from text='${s[0]}'" } }
          } else {
@@ -345,7 +344,7 @@ class CheckListConfig<T, S: Boolean?>(
       set(v) {
          if (value.all.size==v.size()) {
             value.selections setTo v.valN.mapIndexed { i, text ->
-               Parsers.DEFAULT.ofS(Boolean::class.java as Class<S>, text)
+               Parsers.DEFAULT.ofS(value.checkType, text)
                   .ifError { logger.warn(it) { "Unable to set config=$name element=$i from=$text" } }
                   .orNull() ?: value.selections[i]
             }

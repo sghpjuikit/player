@@ -68,6 +68,7 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
+import kotlin.reflect.KClass;
 import org.gamepad4j.Controllers;
 import org.gamepad4j.IController;
 import org.slf4j.Logger;
@@ -77,7 +78,7 @@ import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.pane.OverlayPane;
 import sp.it.util.access.ref.R;
 import sp.it.util.animation.Anim;
-import sp.it.util.collections.map.ClassMap;
+import sp.it.util.collections.map.KClassMap;
 import sp.it.util.collections.map.Map2D;
 import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.dev.SwitchException;
@@ -110,6 +111,7 @@ import static javafx.scene.text.Font.font;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
@@ -1106,20 +1108,22 @@ interface Utils {
 		void clear() { pool.clear(); }
 	}
 	class PoolMap<P> {
-		private final ClassMap<Pool<P>> pools = new ClassMap<>();
-		private final ClassMap<F1<Class<?>,Pool<P>>> factories = new ClassMap<>();
+		private final KClassMap<Pool<P>> pools = new KClassMap<>();
+		private final KClassMap<F1<KClass<?>,Pool<P>>> factories = new KClassMap<>();
 
-		 PoolMap() {
-		}
+		PoolMap() {}
 
 		void registerPool(Class<?> type, F0<Pool<P>> poolFactory) {
-			factories.put(type, c -> poolFactory.apply());
+			var kType = getKotlinClass(type);
+			factories.put(kType, c -> poolFactory.apply());
 		}
 		void add(Class<?> type, P p) {
-			pools.computeIfAbsent(type,factories.get(type)).add(p);
+			var kType = getKotlinClass(type);
+			pools.computeIfAbsent(kType, factories.get(kType)).add(p);
 		}
 		P get(Class<?> type) {
-			return pools.computeIfAbsent(type,factories.get(type)).get();
+			var kType = getKotlinClass(type);
+			return pools.computeIfAbsent(kType, factories.get(kType)).get();
 		}
 		void clear() {
 			pools.values().forEach(Pool::clear);

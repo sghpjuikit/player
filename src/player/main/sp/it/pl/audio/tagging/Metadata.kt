@@ -650,7 +650,7 @@ class Metadata: Song, Serializable {
    fun containsChapterAt(at: Duration): Boolean = getChapters().chapters.any { it.time==at }
 
    /** @return the color associated with this or null if none */
-   fun getColor(): Color? = color?.let { APP.converter.general.ofS<Color>(it).orNull() }
+   fun getColor(): Color? = color?.let { APP.converter.general.ofS<Color?>(it).orNull() }
 
    /** Tags joined into a string or null if none */
    fun getTags(): String? = tags
@@ -832,7 +832,11 @@ class Metadata: Song, Serializable {
 
       override fun cVisible(): Boolean = VISIBLE.contains(this)
 
-      override fun cWidth(): Double = if (this===PATH || this===TITLE) 160.0 else 60.0
+      override fun cWidth(): Double = when(this) {
+         PATH, TITLE, COMMENT -> 300.0
+         ARTIST, ALBUM_ARTIST, COMPOSER, PUBLISHER, CATEGORY, FILENAME -> 150.0
+         else -> 60.0
+      }
 
       companion object: ObjectFieldRegistry<Metadata, Field<*>>(Metadata::class) {
          @F val PATH = this + field({ it.getPathAsString() }, "Path", "Song location")

@@ -9,16 +9,18 @@ import sp.it.util.action.Action
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
+import sp.it.util.collections.getElementType
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISNT
+import kotlin.reflect.KClass
 
-inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class.java, *actions)
+inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class, *actions)
 
-fun getUnwrappedType(d: Any?): Class<*> = when (d) {
-   null -> Void::class.java
-   is Collection<*> -> d.getElementClass()
-   else -> d.javaClass
+fun getUnwrappedType(d: Any?): KClass<*> = when (d) {
+   null -> Nothing::class
+   is Collection<*> -> d.getElementClass().kotlin
+   else -> d::class
 }
 
 fun futureUnwrap(o: Any?): Any? = when (o) {

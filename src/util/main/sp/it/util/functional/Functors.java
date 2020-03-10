@@ -26,7 +26,6 @@ import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.isAny;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
-import static sp.it.util.type.Util.unPrimitivize;
 
 @SuppressWarnings({"unchecked", "unused"})
 public interface Functors {
@@ -535,7 +534,7 @@ public interface Functors {
 	}
 
 	class Parameter<P> {
-		public final Class<P> type;
+		public final Class<P> type; // TODO: use VType<P>
 		public final P defaultValue;
 		public final String name;
 		public final String description;
@@ -549,7 +548,7 @@ public interface Functors {
 		public Parameter(String name, String description, Class<P> type, P defaultValue) {
 			this.name = name.isEmpty() ? "<value>" : name;
 			this.description = description.isEmpty() ? this.name : description;
-			this.type = unPrimitivize(type);
+			this.type = type;
 			this.defaultValue = defaultValue;
 			noNull(type);
 			noNull(description);
@@ -573,11 +572,10 @@ public interface Functors {
 		public final Class<O> out;
 		private final IO<I,O> ff;
 
-		@SuppressWarnings("unchecked")
 		public PF(String name, Class<I> in, Class<O> out, IO<I,O> f) {
 			this.name = name;
-			this.in = unPrimitivize(in);
-			this.out = unPrimitivize(out);
+			this.in = in;
+			this.out = out;
 			this.ff = f;
 		}
 

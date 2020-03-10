@@ -1,4 +1,4 @@
-package sp.it.util.collections.map.abstr
+package sp.it.util.collections.map
 
 import sp.it.util.type.superKClassesInc
 import kotlin.reflect.KClass

@@ -375,7 +375,7 @@ class InsetsCE(c: Config<Insets?>): ConfigEditor<Insets?>(c) {
       v?.attach { editor.text = it.toS() }.orEmpty() on editor.onNodeDispose
    }
 
-   override fun get() = APP.converter.general.ofS<Insets>(editor.text)
+   override fun get() = APP.converter.general.ofS<Insets?>(editor.text)
 
    override fun refreshValue() {
       if (!isObservable)

@@ -6,14 +6,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.function.Function;
+import kotlin.reflect.KClass;
 import org.jetbrains.annotations.NotNull;
-import sp.it.util.collections.map.ClassMap;
+import sp.it.util.collections.map.KClassMap;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Try;
 import sp.it.util.parsing.Parsers.Invokable;
 import sp.it.util.parsing.Parsers.ParseDir;
 import sp.it.util.parsing.StringParseStrategy.From;
 import sp.it.util.parsing.StringParseStrategy.To;
+import static kotlin.jvm.JvmClassMappingKt.getJavaObjectType;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.util.functional.Try.Java.error;
 import static sp.it.util.functional.Try.Java.ok;
 import static sp.it.util.functional.Util.firstNotNull;
@@ -70,7 +73,7 @@ import static sp.it.util.type.Util.getMethodAnnotated;
  * both is unnecessary, but recommended.
  * <p/>
  * This allows only one implementation, tightly coupled to the parsed object's class.
- * <li> Create converter and register it manually {@link #addParser(Class, ConverterString)}.
+ * <li> Create converter and register it manually {@link #addParser(kotlin.reflect.KClass, ConverterString)}.
  * It is recommended (although not necessary) to register both to string and from string.
  * The converter must return null if any problem occurs.
  * </ul>
@@ -82,37 +85,36 @@ public class ConverterDefault extends Converter {
 	/** Default to string parser, which calls objects toString() or returns null constant. */
 	public final Function<Object,String> defaultTos = o -> o==null ? stringNull : o.toString();
 
-    private final ClassMap<Function<? super Object,Try<String,String>>> parsersToS = new ClassMap<>();
-    private final ClassMap<Function<? super String,Try<Object,String>>> parsersFromS = new ClassMap<>();
+    private final KClassMap<Function<? super Object,Try<String,String>>> parsersToS = new KClassMap<>();
+    private final KClassMap<Function<? super String,Try<Object,String>>> parsersFromS = new KClassMap<>();
 
-    public <T> void addParser(Class<T> c, ConverterString<T> parser) {
+    public <T> void addParser(KClass<T> c, ConverterString<T> parser) {
         addParser(c, parser::toS, parser::ofS);
     }
 
-    public <T> void addParser(Class<T> c, Function<? super T,String> to, Function<String,Try<T,String>> of) {
+    public <T> void addParser(KClass<T> c, Function<? super T,String> to, Function<String,Try<T,String>> of) {
         addParserToS(c, to);
         addParserOfS(c, of);
     }
 
-    public <T> void addParserAsF(Class<T> c, Function<? super T,String> to, Function<String,? extends T> of) {
+    public <T> void addParserAsF(KClass<T> c, Function<? super T,String> to, Function<String,? extends T> of) {
         addParserToS(c, to);
         addParserOfS(c, of.andThen(Try.Java::ok));
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void addParserToS(Class<T> c, Function<? super T,String> parser) {
+    public <T> void addParserToS(KClass<T> c, Function<? super T,String> parser) {
         parsersToS.put(c, v -> ok(parser.apply((T) v)));
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> void addParserOfS(Class<T> c, Function<String,Try<T,String>> parser) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T> void addParserOfS(KClass<T> c, Function<String,Try<T,String>> parser) {
         parsersFromS.put(c, (Function) parser);
     }
 
-    @SuppressWarnings("unchecked")
     @NotNull
     @Override
-    public <T> Try<T,String> ofS(@NotNull Class<T> c, @NotNull String s) {
+    public <T> Try<T,String> ofS(@NotNull KClass<T> c, @NotNull String s) {
         if (stringNull.equals(s)) return ok(null);
         return getParserOfS(c).apply(s);
     }
@@ -122,34 +124,34 @@ public class ConverterDefault extends Converter {
     @Override
     public <T> String toS(T o) {
         if (o==null) return stringNull;
-        String s = orNull(((Function<T,Try<String,String>>) getParserToS(o.getClass())).apply(o));
+        String s = orNull(((Function<T,Try<String,String>>) getParserToS(getKotlinClass((o.getClass())))).apply(o));
         return s!=null ? s : stringNull;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Function<? super String,Try<T,String>> getParserOfS(Class<T> c) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> Function<? super String,Try<T,String>> getParserOfS(KClass<T> c) {
         return (Function) parsersFromS.computeIfAbsent(c, key -> (Function) findOfSparser(key));
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Function<? super T,Try<String,String>> getParserToS(Class<T> c) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> Function<? super T,Try<String,String>> getParserToS(KClass<T> c) {
         return parsersToS.computeIfAbsent(c, key -> (Function) findToSparser(key));
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Function<? super String,Try<T,String>> findOfSparser(Class<T> c) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> Function<? super String,Try<T,String>> findOfSparser(KClass<T> c) {
         return (Function) firstNotNull(
             () -> parsersFromS.getElementOfSuper(c),
-            () -> buildOfSParser(c),
+            () -> buildOfSParser(getJavaObjectType(c)),
             () -> o -> error("Type " + c + " has no associated from-text converter")
         );
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Function<? super T,Try<String,String>> findToSparser(Class<T> c) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> Function<? super T,Try<String,String>> findToSparser(KClass<T> c) {
         return (Function) firstNotNull(
             () -> parsersToS.getElementOfSuper(c),
-            () -> buildToSParser(c),
+            () -> buildToSParser(getJavaObjectType(c)),
             () -> defaultTos.andThen(Try.Java::ok)
         );
     }
@@ -219,7 +221,7 @@ public class ConverterDefault extends Converter {
         return ofS;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private <T> Function<T,Try<String,String>> buildToSParser(Class<T> c) {
         StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
         if (a!=null) {

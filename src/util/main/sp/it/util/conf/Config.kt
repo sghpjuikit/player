@@ -161,7 +161,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
 
             return Try.error("Value '$s' does not correspond to any value of the enumeration in ${config.group}.${config.name}")
          } else {
-            return Parsers.DEFAULT.ofS(config.type.rawJ, s)
+            return Parsers.DEFAULT.ofS(config.type, s)
          }
       }
 

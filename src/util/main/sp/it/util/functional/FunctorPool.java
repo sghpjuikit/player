@@ -2,9 +2,10 @@ package sp.it.util.functional;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import kotlin.reflect.KClass;
 import sp.it.util.collections.list.PrefList;
+import sp.it.util.collections.map.Map2D.Key;
 import sp.it.util.collections.map.PrefListMap;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Functors.F2;
@@ -16,19 +17,20 @@ import sp.it.util.functional.Functors.PF1;
 import sp.it.util.functional.Functors.PF2;
 import sp.it.util.functional.Functors.PF3;
 import sp.it.util.functional.Functors.Parameter;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
+import static kotlin.sequences.SequencesKt.toList;
 import static sp.it.util.functional.Util.IDENTITY;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getEnumConstants;
-import static sp.it.util.type.Util.getSuperClassesInc;
 import static sp.it.util.type.Util.isEnum;
-import static sp.it.util.type.Util.unPrimitivize;
+import static sp.it.util.type.UtilKt.superKClassesInc;
 
 @SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "unchecked"})
 public class FunctorPool {
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor
-	private final PrefListMap<PF,Class<?>> fsI = new PrefListMap<>(pf -> pf.in);
-	private final PrefListMap<PF,Class<?>> fsO = new PrefListMap<>(pf -> pf.out);
-	private final PrefListMap<PF,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
+	private final PrefListMap<PF,KClass<?>> fsI = new PrefListMap<>(pf -> getKotlinClass(pf.in));
+	private final PrefListMap<PF,KClass<?>> fsO = new PrefListMap<>(pf -> getKotlinClass(pf.out));
+	private final PrefListMap<PF,Key<KClass<?>, KClass<?>>> fsIO = new PrefListMap<>(pf -> new Key<>(getKotlinClass(pf.in),getKotlinClass(pf.out)));
 	private final Set<Class> cacheStorage = new HashSet<>();
 
 	@SuppressWarnings("unchecked")
@@ -123,14 +125,14 @@ public class FunctorPool {
 	@SuppressWarnings("unckeched")
 	public <I> PrefList<PF<I,?>> getI(Class<I> i) {
 		addSelfFunctor(i);
-		return (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
+		return (PrefList) fsI.getElementsOf(toList(superKClassesInc(getKotlinClass(i))));
 	}
 
 	/** Returns all functions producing output O. */
 	@SuppressWarnings("unckeched")
 	public <O> PrefList<PF<?,O>> getO(Class<O> o) {
 		addSelfFunctor(o);
-		List<?> ll = fsO.get(unPrimitivize(o));
+		List<?> ll = fsO.get(getKotlinClass(o));
 		return ll==null ? new PrefList<>() : (PrefList) ll;
 	}
 
@@ -145,8 +147,8 @@ public class FunctorPool {
 		// keeping duplicate elements in check
 		PrefList pl = new PrefList();
 		Object pref = null;
-		for (Class c : getSuperClassesInc(unPrimitivize(i))) {
-			List l = fsIO.get(Objects.hash(c, unPrimitivize(o)));
+		for (KClass<?> c : toList(superKClassesInc(getKotlinClass(i)))) {
+			List l = fsIO.get(new Key<>(c, getKotlinClass(o)));
 			PrefList ll = l==null ? null : (PrefList) l;
 			if (ll!=null) {
 				if (pref==null && ll.getPreferredOrFirst()!=null) pref = ll.getPreferredOrFirst();
@@ -176,7 +178,7 @@ public class FunctorPool {
 
 	public <I,O> PF<I,O> getPF(String name, Class<I> i, Class<O> o) {
 		@SuppressWarnings("unchecked")
-		List<PF<I,O>> l = (List) fsIO.get(Objects.hash(unPrimitivize(i), unPrimitivize(o)));
+		List<PF<I,O>> l = (List) fsIO.get(new Key<>(getKotlinClass(i), getKotlinClass(o)));
 		return l==null ? null : stream(l).filter(f -> f.name.equals(name)).findAny().orElse(null);
 	}
 

@@ -25,6 +25,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import kotlin.Unit;
+import kotlin.reflect.KClass;
 import sp.it.pl.main.AppBuildersKt;
 import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.pl.ui.objects.icon.CheckIcon;
@@ -33,7 +34,7 @@ import sp.it.pl.ui.objects.table.FilteredTable;
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV;
 import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
-import sp.it.util.collections.map.ClassListMap;
+import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.dev.DebugKt;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
@@ -56,6 +57,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.layout.Priority.SOMETIMES;
 import static javafx.util.Duration.millis;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
@@ -194,14 +196,14 @@ public class ActionPane extends OverlayPane<Object> {
 
 	/* ---------- PRE-CONFIGURED ACTIONS --------------------------------------------------------------------------------- */
 
-	public final ClassListMap<ActionData<?,?>> actions = new ClassListMap<>(null);
+	public final KClassListMap<ActionData<?,?>> actions = new KClassListMap<>(it -> { throw new AssertionError(""); });
 
-	public final <T> void register(Class<T> c, ActionData<T,?> action) {
+	public final <T> void register(KClass<T> c, ActionData<T,?> action) {
 		actions.accumulate(c, action);
 	}
 
 	@SafeVarargs
-	public final <T> void register(Class<T> c, ActionData<T,?>... action) {
+	public final <T> void register(KClass<T> c, ActionData<T,?>... action) {
 		actions.accumulate(c, listRO(action));
 	}
 
@@ -373,7 +375,7 @@ public class ActionPane extends OverlayPane<Object> {
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
 			Collection<Object> items = (Collection) data;
 			Class itemType = getElementClass(items);
-			if (APP.getClassFields().get(itemType) != null) {	// TODO: add support for any item by using generic ToString objectField and column
+			if (!APP.getClassFields().get(getKotlinClass(itemType)).isEmpty()) {	// TODO: add support for any item by using generic ToString objectField and column
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
@@ -424,11 +426,11 @@ public class ActionPane extends OverlayPane<Object> {
 
 	@SuppressWarnings("unchecked")
 	private void showIcons(Object d) {
-		Class<?> dataType = getUnwrappedType(d);
+		var dataType = getUnwrappedType(d);
 		// get suitable actions
 		actionsData.clear();
 		actionsData.addAll(actionsIcons);
-		if (use_registered_actions) actionsData.addAll(actions.getElementsOfSuper(dataType));
+		if (use_registered_actions) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
 		actionsData.removeIf(a -> {
 			if (a.groupApply==FOR_ALL) {
 				return (boolean) a.condition.invoke(collectionWrap(d));

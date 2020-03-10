@@ -150,7 +150,7 @@ class CoreConverter: Core {
          { "${it.fontFamily}.${it.name()}" },
          { Icon.GLYPHS[it]?.let { Try.ok(it) } ?: Try.error("No such icon=$it") }
       )
-      addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect>(it) })
+      addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect?>(it) })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
       addP<Functors.PF<*, *>>(
          { "${it.name},${it.`in`},${it.out}" },
@@ -177,11 +177,9 @@ class CoreConverter: Core {
 
    }
 
-   private inline fun <reified T: Any> ConverterDefault.addP(noinline to: (T) -> String, noinline of: (String) -> T?) =
-      addParserAsF(T::class.javaObjectType, to, of)
+   private inline fun <reified T: Any> ConverterDefault.addP(noinline to: (T) -> String, noinline of: (String) -> T?) = addParserAsF(T::class, to, of)
 
-   private inline fun <reified T: Any> ConverterDefault.addT(noinline to: (T) -> String, noinline of: FromS<T?>) =
-      addParser(T::class.javaObjectType, to, of)
+   private inline fun <reified T: Any> ConverterDefault.addT(noinline to: (T) -> String, noinline of: FromS<T?>) = addParser(T::class, to, of)
 
    private fun <O> tryF(vararg ecs: KClass<*>, f: (String) -> O): FromS<O> = {
       runTry {

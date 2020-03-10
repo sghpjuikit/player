@@ -1,6 +1,5 @@
 package sp.it.util.collections.map
 
-import sp.it.util.collections.map.abstr.MapByKClass
 import java.util.ArrayList
 import java.util.function.Supplier
 import kotlin.reflect.KClass

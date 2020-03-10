@@ -185,7 +185,7 @@ class Json {
                is String -> JsString(value).withAmbiguity()
                is Enum<*> -> JsString(value.name).withAmbiguity()
                is Collection<*> -> JsArray(value.map { toJsonValue(jType<Any>(), it) })   // TODO: preserve collection/map type
-               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { it.value.let { toJsonValue(jType<Any>(), it) } })
+               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { toJsonValue(jType<Any>(), it.value) })
                else -> {
                   val converter = converters.byType.getElementOfSuper(value::class)
                      .asIf<JsConverter<Any>>()
@@ -244,13 +244,13 @@ class Json {
                   Long::class -> value.value.toLong()
                   Float::class -> value.value.toFloat()
                   Double::class -> value.value.toDouble()
-                  BigInteger::class -> when {
-                     value.value is BigInteger -> value.value
-                     value.value is BigDecimal -> value.value.toBigInteger()
+                  BigInteger::class -> when (value.value) {
+                     is BigInteger -> value.value
+                     is BigDecimal -> value.value.toBigInteger()
                      else -> BigInteger.valueOf(value.value.toLong())
                   }
-                  BigDecimal::class -> when {
-                     value.value is BigDecimal -> value.value.toBigInteger()
+                  BigDecimal::class -> when (value.value) {
+                     is BigDecimal -> value.value.toBigInteger()
                      else -> BigDecimal.valueOf(value.value.toDouble())
                   }
                   else -> fail { "Unsupported number type=$typeK" }
@@ -318,8 +318,8 @@ class Json {
                   instanceType==String::class -> value.value["value"]?.asJsString()
                   instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsString()?.let { getEnumValue(instanceType.javaObjectType, it) }
                   instanceType.isSubclassOf<Map<*, *>>() -> {
-                     val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()
-                        ?: String::class.java
+                     val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()?.kotlin
+                        ?: String::class
                      val mapValueType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(1)
                         ?: jType<Any>()
                      value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
@@ -333,7 +333,7 @@ class Json {
                            if (it.isOptional) null
                            else fail { "Type=$instanceType constructor parameter=${it.name} is missing" }
                         } else {
-                           it to argJs.let { argJsValue -> fromJsonValueImpl(it.type.javaType, argJsValue) }
+                           it to fromJsonValueImpl(it.type.javaType, argJs)
                         }
                      }.toMap()
 

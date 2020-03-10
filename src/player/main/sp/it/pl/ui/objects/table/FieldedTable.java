@@ -33,9 +33,11 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
-import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
+import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
@@ -70,7 +72,7 @@ import static sp.it.util.type.Util.invokeMethodP0;
  */
 public class FieldedTable<T> extends ImprovedTable<T> {
 
-	private F1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.cOrder(), f.cVisible(), f.cWidth());
+	private F1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.cOrder(), f.cVisible(), getEmScaled(f.cWidth()));
 	private F1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
 	private F1<String,String> keyNameColMapper = name -> name;
 
@@ -111,7 +113,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Returns all fields of this table. The fields are string representable.
 	 */
 	public List<ObjectField<T,?>> getFields() {
-		return stream(APP.getClassFields().get(type))
+		return stream(APP.getClassFields().get(getKotlinClass(type)))
 			.filter(ObjectField::isTypeStringRepresentable)
 			.sorted(by(ObjectField::name))
 			.collect(toList());
@@ -121,7 +123,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * Returns all fields of this table. The fields are string representable.
 	 */
 	public List<ObjectField<T,?>> getFieldsAll() {
-		return stream(APP.getClassFields().get(type))
+		return stream(APP.getClassFields().get(getKotlinClass(type)))
 			.sorted(by(ObjectField::name))
 			.collect(toList());
 	}

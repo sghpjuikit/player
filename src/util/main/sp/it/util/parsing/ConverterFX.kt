@@ -6,6 +6,7 @@ import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.Try
 import sp.it.util.type.isSuperclassOf
 import java.util.Base64
+import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.text.Charsets.UTF_8
 
@@ -13,7 +14,7 @@ import kotlin.text.Charsets.UTF_8
 class ConverterFX: Converter() {
 
    @Suppress("UNCHECKED_CAST")
-   override fun <T> ofS(type: Class<T>, text: String): Try<T?, String> {
+   override fun <T: Any> ofS(type: KClass<T>, text: String): Try<T?, String> {
       if (text==Parsers.DEFAULT.stringNull)
          return Try.ok(null)
 
@@ -22,7 +23,7 @@ class ConverterFX: Converter() {
          val valueType = Class.forName(valueType64.fromBase64())
          when {
             type.isSuperclassOf(valueType) -> {
-               val v = (valueType.kotlin.createInstance() as T)!!
+               val v = valueType.kotlin.createInstance() as T
                val c = v.toConfigurableFx()
                values64.split(delimiter1).forEach { value64 ->
                   if (value64.count { it==delimiter2 }==1) {
@@ -33,7 +34,7 @@ class ConverterFX: Converter() {
                      Try.error("$delimiter2 must appear exactly once per value, but value=$value64")
                   }
                }
-               Try.ok<T>(v)
+               Try.ok(v)
             }
             else -> {
                val message = "$valueType is not $type"
@@ -47,7 +48,7 @@ class ConverterFX: Converter() {
       }
    }
 
-   override fun <T: Any?> toS(o: T): String = when (o) {
+   override fun <T> toS(o: T): String = when (o) {
       null -> Parsers.DEFAULT.stringNull
       else -> {
          val v = o as Any

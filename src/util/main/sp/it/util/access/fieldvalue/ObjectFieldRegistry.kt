@@ -51,12 +51,11 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
    val all: Set<F> = allImpl
 
    /** Registers the specified field and returns it. */
-   @Suppress("UNCHECKED_CAST")
    infix operator fun <X: F> plus(field: X) = field.also { f ->
       allImpl += f
 
-      ObjectFieldMap.DEFAULT.add(type.java, all)
-      Functors.pool.add(f.name(), type.java, f.type.rawJ, { f.getOf(it) })
+      ObjectFieldMap.DEFAULT.add(type, all)
+      Functors.pool.add(f.name(), type.java, f.type.rawJ, f::getOf)
    }
 
    /** @return field with the specified [ObjectField.name] or null if none */

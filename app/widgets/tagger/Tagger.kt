@@ -404,7 +404,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       }
       colorF.textProperty() attach {
          if (it.isEmpty()) colorFValue.value = null
-         if (isHexColor(it)) APP.converter.general.ofS<Color>(it).ifOk { colorFValue.value = it }
+         if (isHexColor(it)) APP.converter.general.ofS<Color?>(it).ifOk { colorFValue.value = it }
       }
 
       // init rating TagField

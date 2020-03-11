@@ -8,8 +8,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.ui.objects.autocomplete.ConfigSearch
-import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
 import sp.it.util.async.runFX
@@ -37,10 +36,11 @@ class DirSearchPlugin: PluginBase() {
    private val cacheUpdate = AtomicLong(0)
    private val searchSourceDirs = observableArrayList<File>()
    private val searchSource = Source("Directories ($name plugin)", searchSourceDirs) by { "Open directory: ${it.absolutePath}" } toSource {
-      ConfigSearch.Entry.of(
-         { "Open directory: ${it.absolutePath}" },
+      Entry.of(
+         "Open directory: ${it.absolutePath}",
+         IconFA.FOLDER,
          { "Opens directory: ${it.absolutePath}" },
-         { Icon(IconFA.FOLDER) },
+         null,
          { it.browse() }
       )
    }

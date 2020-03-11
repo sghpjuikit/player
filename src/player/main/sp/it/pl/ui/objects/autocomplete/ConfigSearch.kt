@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.autocomplete
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -24,10 +25,12 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.main.Css
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
@@ -37,9 +40,11 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.text.keysUi
 import sp.it.util.type.isSubclassOf
+import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.uninstall
@@ -172,23 +177,29 @@ class ConfigSearch: AutoCompletion<Entry> {
    @Suppress("NonAsciiCharacters", "ClassName")
    interface Entry: Runnable {
       val name: String
+      val icon: GlyphIcons?
       val info: String get() = name
       val graphics: Node? get() = null
 
-      class ΛEntry(nameΛ: () -> String, infoΛ: () -> String, graphicsΛ: () -> Node, private val runΛ: () -> Unit): Entry {
-         override val name = nameΛ()
-         override val info = infoΛ()
-         override val graphics = graphicsΛ()
+      class ΛEntry(
+         override val name: String,
+         override val icon: GlyphIcons?,
+         val infoΛ: () -> String,
+         override val graphics: Node? = null,
+         private val runΛ: () -> Unit
+      ): Entry {
+         override val info get() = infoΛ()
          override fun run() = runΛ()
       }
 
-      class SimpleEntry constructor(override val name: String, infoΛ: () -> String, private val runΛ: () -> Unit): Entry {
+      class SimpleEntry constructor(override val name: String, override val icon: GlyphIcons?, val infoΛ: () -> String, private val runΛ: () -> Unit): Entry {
+         override val info get() = infoΛ()
          override fun run() = runΛ()
-         override val info = infoΛ()
       }
 
       class ConfigEntry constructor(private val config: Config<*>): Entry {
          override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.nameUi}"
+         override val icon = if (config is Action) IconFA.PLAY else IconFA.COGS
          override val info by lazy { "$name\n\n${config.info}" }
          override val graphics by lazy {
             when {
@@ -216,7 +227,7 @@ class ConfigSearch: AutoCompletion<Entry> {
 
       companion object {
 
-         fun of(name: () -> String, info: () -> String = { "" }, graphics: () -> Node, run: () -> Unit) = ΛEntry(name, info, graphics, run)
+         fun of(name: String, icon: GlyphIcons?, infoΛ: () -> String = { "" }, graphics: Node? = null, run: () -> Unit) = ΛEntry(name, icon, infoΛ, graphics, run)
 
          fun of(config: Config<*>) = ConfigEntry(config)
 
@@ -224,11 +235,15 @@ class ConfigSearch: AutoCompletion<Entry> {
    }
 
    private class EntryListCell: ListCell<Entry>() {
+      private val icon = Icon()
       private val text = Label()
       private val configNodeRoot = stackPane()
       private val root = stackPane {
          padding = Insets(0.0, 10.0, 0.0, 10.0)
-         lay(CENTER_LEFT) += text
+         lay(CENTER_LEFT) += hBox(5.0, CENTER_LEFT) {
+            lay += icon
+            lay += text
+         }
          lay(CENTER_RIGHT) += configNodeRoot
       }
       private val rootTooltip = appTooltip()
@@ -237,11 +252,14 @@ class ConfigSearch: AutoCompletion<Entry> {
          text.textAlignment = TextAlignment.LEFT
          text.textOverrun = OverrunStyle.CENTER_ELLIPSIS
          text.setMinPrefMaxSize(USE_COMPUTED_SIZE)
-         text.prefWidthProperty() syncFrom root.widthProperty() - configNodeRoot.widthProperty() - 10
-         text.minWidth = 200.0
-         text.maxWidthProperty() syncFrom root.widthProperty() - 100
-         text.padding = Insets(2.5, 0.0, 2.5, 0.0)
-         rootTooltip.textProperty() attach { if (it.isNullOrBlank()) root uninstall rootTooltip else root install rootTooltip }
+         root.lookupChildAt<HBox>(0).minWidth = 200.0
+         root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (root.widthProperty() - configNodeRoot.widthProperty() - 10)
+         root.lookupChildAt<HBox>(0).maxWidthProperty() syncFrom (root.widthProperty() - 100)
+         root.lookupChildAt<HBox>(0).padding = Insets(2.5, 0.0, 2.5, 0.0)
+         rootTooltip.textProperty() attach {
+            if (it.isNullOrBlank()) root uninstall rootTooltip
+            else root install rootTooltip
+         }
       }
 
       override fun updateItem(item: Entry?, empty: Boolean) {
@@ -249,10 +267,13 @@ class ConfigSearch: AutoCompletion<Entry> {
 
          if (empty || item==null) {
             text.text = ""
+            icon.isVisible = false
             graphic = null
          } else {
             graphic = root
             text.text = item.name
+            icon.isVisible = item.icon!=null
+            icon.icon(item.icon)
             rootTooltip.text = item.info
 
             val node = item.graphics

@@ -28,7 +28,7 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.ui.objects.autocomplete.ConfigSearch
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.CellGap.ABSOLUTE
@@ -36,7 +36,6 @@ import sp.it.pl.ui.objects.grid.GridView.SelectionOn.KEY_PRESS
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.ui.objects.hierarchy.Item
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.util.Sort
 import sp.it.util.access.fieldvalue.FileField
@@ -91,10 +90,11 @@ class AppSearchPlugin: PluginBase() {
    private val searchDepth by cv(Int.MAX_VALUE).min(1).def(name = "Search depth", info = "Max search depth used for each location")
    private val searchSourceApps = observableArrayList<File>()
    private val searchSource = Source("Applications ($name plugin)", searchSourceApps) by { "Run app: ${it.absolutePath}" } toSource {
-      ConfigSearch.Entry.of(
-         { "Run app: ${it.absolutePath}" },
+      Entry.of(
+         "Run app: ${it.absolutePath}",
+         IconMA.APPS,
          { "Runs application: ${it.absolutePath}" },
-         { Icon(IconMA.APPS) },
+         null,
          { it.runAsProgram() }
       )
    }

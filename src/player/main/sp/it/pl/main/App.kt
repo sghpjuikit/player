@@ -40,7 +40,6 @@ import sp.it.pl.plugin.impl.Waifu2k
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.util.access.v
 import sp.it.util.action.Action
@@ -414,15 +413,15 @@ class App: Application(), GlobalConfigDelegator {
          }.toSet().asSequence()
       } by { it.substringAfterLast(".") } toSource {
          Entry.of(
-            name = { "Open settings: ${it.substringAfterLast(".")}" },
-            graphics = {
-               label("Settings > " + it.replace(".", " > ")) {
-                  styleClass += Css.DESCRIPTION
-                  textAlignment = RIGHT
-               }
-            },
-            run = { actions.openSettings(it) }
-         )
+            name = "Open settings: ${it.substringAfterLast(".")}",
+            icon = IconFA.COG,
+            graphics = label("Settings > " + it.replace(".", " > ")) {
+               styleClass += Css.DESCRIPTION
+               textAlignment = RIGHT
+            }
+         ) {
+            actions.openSettings(it)
+         }
       }
       sources += Source("Actions") {
          configuration.getConfigs().filterIsInstance<Action>().filter { it.isEditableByUserRightNow() }.asSequence()
@@ -432,40 +431,50 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Skins") {
          ui.skins.asSequence()
       } by { "Open skin: ${it.name}" } toSource {
-         Entry.of({ "Open skin: ${it.name}" }, graphics = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name }
+         Entry.of(
+            name = "Open skin: ${it.name}",
+            icon = IconMA.BRUSH,
+            graphics = null
+         ) {
+            ui.skin.value = it.name
+         }
       }
-      sources += Source("Components - widgets") {
+      sources += Source("Components - open") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
       } by { "Open widget ${it.name}" } toSource {
          SimpleEntry(
-            "Open widget ${it.name}",
-            { "Open widget ${it.name}\n\nOpens the widget in new window." },
-            { APP.windowManager.showWindow(it.create()) }
-         )
+            name = "Open widget ${it.name}",
+            icon = IconFA.TH_LARGE,
+            infoΛ = { "Open widget ${it.name}\n\nOpens the widget in new window." }
+         ) {
+            APP.windowManager.showWindow(it.create())
+         }
       }
-      sources += Source("Components - all") {
+      sources += Source("Components - open (in new process)") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
       } by { "Open widget ${it.name} (in new process)" } toSource { c ->
          SimpleEntry(
-            "Open widget ${c.name} (in new process)",
-            { "Open widget ${c.name}\n\nOpens the widget in new process." },
-            {
-               val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
-               f.runAsAppProgram(
-                  "Launching component ${c.name} in new process",
-                  "--singleton=false", "--stateless=true", "open-component", "\"${c.name}\""
-               )
-            }
-         )
+            name = "Open widget ${c.name} (in new process)",
+            icon = IconFA.REFRESH,
+            infoΛ = { "Open widget ${c.name}\n\nOpens the widget in new process." }
+         ) {
+            val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
+            f.runAsAppProgram(
+               "Launching component ${c.name} in new process",
+               "--singleton=false", "--stateless=true", "open-component", "\"${c.name}\""
+            )
+         }
       }
-      sources += Source("Components - compile") {
+      sources += Source("Components - recompile") {
          widgetManager.factories.getFactories().filter { it.isUsableByUser() }
       } by { "Recompile widget ${it.name}" } toSource {
          SimpleEntry(
-            "Recompile widget ${it.name}",
-            { "Recompile widget ${it.name} and reload all of its instances upon success" },
-            { widgetManager.factories.recompile(it) }
-         )
+            name = "Recompile widget ${it.name}",
+            icon = IconFA.TH_LARGE,
+            infoΛ = { "Recompile widget ${it.name} and reload all of its instances upon success" }
+         ) {
+            widgetManager.factories.recompile(it)
+         }
       }
    }
 

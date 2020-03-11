@@ -1,19 +1,21 @@
 package sp.it.pl.plugin.impl
 
+import javafx.collections.FXCollections.observableArrayList
 import mu.KLogging
-import sp.it.pl.ui.objects.autocomplete.ConfigSearch
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.action.IsAction
 import sp.it.util.async.NEW
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
+import sp.it.util.collections.setTo
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -33,8 +35,15 @@ class DirSearchPlugin: PluginBase() {
 
    private val cacheFile = getUserResource("dirs.txt")
    private val cacheUpdate = AtomicLong(0)
-   private var searchSourceDirs = listOf<File>()
-   private val searchSource = Source("$name plugin - Directories") { searchSourceDirs.asSequence().map { it.toOpenDirEntry() } }
+   private val searchSourceDirs = observableArrayList<File>()
+   private val searchSource = Source("Directories ($name plugin)", searchSourceDirs) by { "Open directory: ${it.absolutePath}" } toSource {
+      ConfigSearch.Entry.of(
+         { "Open directory: ${it.absolutePath}" },
+         { "Opens directory: ${it.absolutePath}" },
+         { Icon(IconFA.FOLDER) },
+         { it.browse() }
+      )
+   }
 
    override fun start() {
       APP.search.sources += searchSource
@@ -57,7 +66,7 @@ class DirSearchPlugin: PluginBase() {
 
       val dirs = cacheFile.useLines { it.map { File(it) }.toList() }
       runFX {
-         searchSourceDirs = dirs
+         searchSourceDirs setTo dirs
       }
    }
 
@@ -72,7 +81,7 @@ class DirSearchPlugin: PluginBase() {
                .toList()
                .also { writeCache(it) }
          }.ui {
-            searchSourceDirs = it
+            searchSourceDirs setTo it
          }
          .withAppProgress("$name: Searching for Directories")
    }
@@ -84,18 +93,11 @@ class DirSearchPlugin: PluginBase() {
       cacheFile.writeTextTry(text)
    }
 
-   private fun File.toOpenDirEntry() = ConfigSearch.Entry.of(
-      { "Open directory: $absolutePath" },
-      { "Opens directory: $absolutePath" },
-      { "Open directory: $absolutePath" },
-      { Icon(IconFA.FOLDER) },
-      { browse() }
-   )
-
    private fun findDirectories(rootDir: File, id: Long) =
       rootDir.walkTopDown()
          .onEnter { cacheUpdate.get()==id }
          .maxDepth(searchDepth.value)
+         .filter { it.isDirectory }
 
    companion object: KLogging(), PluginInfo {
       override val name = "Dir Search"

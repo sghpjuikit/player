@@ -375,7 +375,7 @@ public class ActionPane extends OverlayPane<Object> {
 		if (data instanceof Collection && !((Collection)data).isEmpty()) {
 			Collection<Object> items = (Collection) data;
 			Class itemType = getElementClass(items);
-			if (!APP.getClassFields().get(getKotlinClass(itemType)).isEmpty()) {	// TODO: add support for any item by using generic ToString objectField and column
+			if (!APP.getClassFields().get(getKotlinClass(itemType)).isEmpty()) {
 				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {

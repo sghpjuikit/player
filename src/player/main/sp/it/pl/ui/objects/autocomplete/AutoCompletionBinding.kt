@@ -34,8 +34,8 @@ import javafx.util.StringConverter
 import sp.it.util.access.v
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.EventReducer.toLast
+import sp.it.util.async.runIO
 import sp.it.util.async.runLater
-import sp.it.util.async.runNew
 import sp.it.util.collections.setTo
 import sp.it.util.functional.ifIs
 import sp.it.util.reactive.Handler1
@@ -54,6 +54,7 @@ abstract class AutoCompletionBinding<T> {
    /** Auto-completion popup */
    protected val popup = buildPopup()
    protected val suggestionProviderEventReducer: EventReducer<String>
+
    /** If true, all user input changes are ignored. Primary used to avoid self triggering while auto-completing. */
    protected var ignoreInputChanges = false
    /** Auto-completion handlers */
@@ -78,7 +79,7 @@ abstract class AutoCompletionBinding<T> {
       this.completionTarget = completionTarget
       this.popup.converter = converter
       this.suggestionProviderEventReducer = toLast(250.0) { text ->
-         runNew {
+         runIO {
             suggestionProvider(text)
          } ui { suggestions ->
             if (!suggestions.isEmpty()) {

@@ -5,6 +5,7 @@ import com.sun.tools.attach.VirtualMachine
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.image.Image
+import javafx.scene.text.TextAlignment.RIGHT
 import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Stage
 import mu.KLogging
@@ -20,9 +21,6 @@ import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
-import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
@@ -40,6 +38,10 @@ import sp.it.pl.plugin.impl.StartScreen
 import sp.it.pl.plugin.impl.Tray
 import sp.it.pl.plugin.impl.Waifu2k
 import sp.it.pl.plugin.impl.WallpaperChanger
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
@@ -75,7 +77,6 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
-import sp.it.util.type.raw
 import sp.it.util.ui.label
 import java.io.File
 import java.lang.management.ManagementFactory
@@ -242,13 +243,13 @@ class App: Application(), GlobalConfigDelegator {
    }
    /** Action that re-loads [configuration] to values in default application properties file. */
    val actionSettingsLoad by cr(conf.settings.loadSettings) {
-      configuration.rawAdd(location.user.application_properties);
+      configuration.rawAdd(location.user.application_properties)
       configuration.rawSet()
    }
    /** Action that re-loads [configuration] to values in user specified file. */
    val actionSettingsLoadFrom by cr(conf.settings.loadSettingsFromFile) {
       chooseFile("Import settings", FILE, location.user.application_properties, null, ExtensionFilter("Properties", "*.properties")).ifOk {
-         configuration.rawAdd(it);
+         configuration.rawAdd(it)
          configuration.rawSet()
       }
    }
@@ -410,57 +411,61 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Settings") {
          configuration.getConfigs().flatMap {
             it.group.traverse { it.substringBeforeLast(".", "").takeIf { it.isNotEmpty() } }.asIterable()
-         }.toSet().asSequence().map {
-            Entry.of(
-               name = { "Open settings: ${it.substringAfterLast(".")}" },
-               searchText = { it.substringAfterLast(".") },
-               graphics = { label("Settings > " + it.replace(".", " > ")) },
-               run = { actions.openSettings(it) }
-            )
-         }
+         }.toSet().asSequence()
+      } by { it.substringAfterLast(".") } toSource {
+         Entry.of(
+            name = { "Open settings: ${it.substringAfterLast(".")}" },
+            graphics = {
+               label("Settings > " + it.replace(".", " > ")) {
+                  styleClass += Css.DESCRIPTION
+                  textAlignment = RIGHT
+               }
+            },
+            run = { actions.openSettings(it) }
+         )
       }
       sources += Source("Actions") {
-         configuration.getConfigs()
-            .filter { it.type.raw==Action::class && it.isEditableByUserRightNow() }
-            .asSequence().map { Entry.of(it) }
+         configuration.getConfigs().filterIsInstance<Action>().filter { it.isEditableByUserRightNow() }.asSequence()
+      } by { it.name + it.keys } toSource {
+         Entry.of(it)
       }
       sources += Source("Skins") {
-         ui.skins.asSequence().map {
-            Entry.of({ "Open skin: ${it.name}" }, graphics = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name }
-         }
+         ui.skins.asSequence()
+      } by { "Open skin: ${it.name}" } toSource {
+         Entry.of({ "Open skin: ${it.name}" }, graphics = { Icon(IconMA.BRUSH) }) { ui.skin.value = it.name }
       }
       sources += Source("Components - widgets") {
-         widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map {
-            Entry.SimpleEntry(
-               "Open widget ${it.name}",
-               { "Open widget ${it.name}\n\nOpens the widget in new window." },
-               { APP.windowManager.showWindow(it.create()) }
-            )
-         }
+         widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
+      } by { "Open widget ${it.name}" } toSource {
+         SimpleEntry(
+            "Open widget ${it.name}",
+            { "Open widget ${it.name}\n\nOpens the widget in new window." },
+            { APP.windowManager.showWindow(it.create()) }
+         )
       }
       sources += Source("Components - all") {
-         widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }.map { c ->
-            Entry.SimpleEntry(
-               "Open widget ${c.name} (in new process)",
-               { "Open widget ${c.name}\n\nOpens the widget in new process." },
-               {
-                  val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
-                  f.runAsAppProgram(
-                     "Launching component ${c.name} in new process",
-                     "--singleton=false", "--stateless=true", "open-component", "\"${c.name}\""
-                  )
-               }
-            )
-         }
+         widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
+      } by { "Open widget ${it.name} (in new process)" } toSource { c ->
+         SimpleEntry(
+            "Open widget ${c.name} (in new process)",
+            { "Open widget ${c.name}\n\nOpens the widget in new process." },
+            {
+               val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
+               f.runAsAppProgram(
+                  "Launching component ${c.name} in new process",
+                  "--singleton=false", "--stateless=true", "open-component", "\"${c.name}\""
+               )
+            }
+         )
       }
       sources += Source("Components - compile") {
-         widgetManager.factories.getFactories().filter { it.isUsableByUser() }.map {
-            Entry.SimpleEntry(
-               "Recompile widget ${it.name}",
-               { "Recompile widget ${it.name} and reload all of its instances upon success" },
-               { widgetManager.factories.recompile(it) }
-            )
-         }
+         widgetManager.factories.getFactories().filter { it.isUsableByUser() }
+      } by { "Recompile widget ${it.name}" } toSource {
+         SimpleEntry(
+            "Recompile widget ${it.name}",
+            { "Recompile widget ${it.name} and reload all of its instances upon success" },
+            { widgetManager.factories.recompile(it) }
+         )
       }
    }
 

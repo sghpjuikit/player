@@ -24,10 +24,10 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.main.Css
-import sp.it.pl.ui.itemnode.ConfigEditor
-import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
+import sp.it.pl.ui.itemnode.ConfigEditor
+import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
@@ -50,19 +50,9 @@ class ConfigSearch: AutoCompletion<Entry> {
    private val history: History
    private var ignoreEvent = false
 
-   constructor(textField: TextField, history: History = History(), entries: () -> Sequence<Entry>): super(
+   constructor(textField: TextField, history: History = History(), sources: (String) -> Collection<Entry>): super(
       textField,
-      { text ->
-         if (text.isEmpty())
-            listOf()
-         else {
-            val phrases = text.split(" ").toList()
-            entries()
-               .filter { phrases.all { phrase -> it.searchText.contains(phrase, true) } }
-               .sortedBy { it.name }
-               .toList()
-         }
-      },
+      sources,
       defaultStringConverter()
    ) {
       this.textField = textField
@@ -182,14 +172,12 @@ class ConfigSearch: AutoCompletion<Entry> {
    @Suppress("NonAsciiCharacters", "ClassName")
    interface Entry: Runnable {
       val name: String
-      val searchText: String get() = name
       val info: String get() = name
       val graphics: Node? get() = null
 
-      class ΛEntry(nameΛ: () -> String, infoΛ: () -> String, searchTextΛ: () -> String, graphicsΛ: () -> Node, private val runΛ: () -> Unit): Entry {
+      class ΛEntry(nameΛ: () -> String, infoΛ: () -> String, graphicsΛ: () -> Node, private val runΛ: () -> Unit): Entry {
          override val name = nameΛ()
          override val info = infoΛ()
-         override val searchText = searchTextΛ()
          override val graphics = graphicsΛ()
          override fun run() = runΛ()
       }
@@ -201,7 +189,6 @@ class ConfigSearch: AutoCompletion<Entry> {
 
       class ConfigEntry constructor(private val config: Config<*>): Entry {
          override val name = "${if (config is Runnable) "Run " else ""}${config.group}.${config.nameUi}"
-         override val searchText = if (config is Action) name + config.keys else name
          override val info by lazy { "$name\n\n${config.info}" }
          override val graphics by lazy {
             when {
@@ -229,7 +216,7 @@ class ConfigSearch: AutoCompletion<Entry> {
 
       companion object {
 
-         fun of(name: () -> String, info: () -> String = { "" }, searchText: () -> String = name, graphics: () -> Node, run: () -> Unit) = ΛEntry(name, info, searchText, graphics, run)
+         fun of(name: () -> String, info: () -> String = { "" }, graphics: () -> Node, run: () -> Unit) = ΛEntry(name, info, graphics, run)
 
          fun of(config: Config<*>) = ConfigEntry(config)
 

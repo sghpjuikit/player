@@ -114,6 +114,19 @@ fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
 
 }
 
+/** @return volatile [ReadWriteProperty] backed by [Volatile] annotated property */
+fun <T> volatile(initialValue: T) = object: ReadWriteProperty<Any?, T> {
+
+   @Volatile private var ref = initialValue
+
+   override fun getValue(thisRef: Any?, property: KProperty<*>) = ref
+
+   override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+      ref = value
+   }
+
+}
+
 /** @return class representing this type, i.e., type stripped of its generic type parameters */
 fun Type.toRaw(): Class<*> = let { type ->
    when (type) {

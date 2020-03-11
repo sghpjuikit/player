@@ -29,8 +29,11 @@ fun <T> Sequence<T>.materialize() = toList()
 /** @return new list containing elements of this list, e.g. for safe iteration */
 fun <T> List<T>.materialize() = toList()
 
-/** @return new list containing elements of this set, e.g. for safe iteration */
-fun <T> Set<T>.materialize() = toList()
+/** @return new set containing elements of this set, e.g. for safe iteration */
+fun <T> Set<T>.materialize() = toSet()
+
+/** @return new map containing elements of this map, e.g. for safe iteration */
+fun <K,V> Map<K,V>.materialize() = toMap()
 
 /** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): KType {

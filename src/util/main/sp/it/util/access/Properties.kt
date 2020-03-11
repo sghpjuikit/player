@@ -1,6 +1,7 @@
 package sp.it.util.access
 
 import javafx.beans.InvalidationListener
+import javafx.beans.Observable
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.binding.DoubleBinding
@@ -19,8 +20,13 @@ import javafx.beans.value.ObservableLongValue
 import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
+import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.sync
+import sp.it.util.type.volatile
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
@@ -51,6 +57,52 @@ operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 
 /** @return this property as a read-only property */
 fun <T> Property<T>.readOnly(): ObservableValue<T> = this
+
+/** @return this property as a read-only property backed by [Volatile] property */
+fun <T> ObservableValue<T>.readOnlyThreadSafe() = ObservableValueVolatileWrapper(this)
+/** @return this observable list as a read-only backed by [Volatile] property containing the [List.materialize] value */
+fun <LIST, E> LIST.readOnlyThreadSafe() where LIST: Observable, LIST: List<E> = ObservableListVolatileWrapper(this)
+/** @return this observable list as a read-only backed by [Volatile] property containing the [Set.materialize] value */
+fun <SET, E> SET.readOnlyThreadSafe() where SET: Observable, SET: Set<E> = ObservableSetVolatileWrapper(this)
+/** @return this observable list as a read-only backed by [Volatile] property containing the [Map.materialize] value */
+fun <MAP, K,V> MAP.readOnlyThreadSafe() where MAP: Observable, MAP: Map<K,V> = ObservableMapVolatileWrapper(this)
+
+data class ObservableValueVolatileWrapper<T>(private val source: ObservableValue<T>) {
+   private var value by volatile(source.value)
+   operator fun getValue(thisRef: Any?, property: KProperty<*>): T = value
+
+   init {
+      failIfNotFxThread()
+      source.attach { value = it }
+   }
+}
+data class ObservableListVolatileWrapper<LIST,E>(private val source: LIST) where LIST: Observable, LIST: List<E> {
+   private var value by volatile(source.materialize())
+   operator fun getValue(thisRef: Any?, property: KProperty<*>): List<E> = value
+
+   init {
+      failIfNotFxThread()
+      source.onChange { value = source.materialize() }
+   }
+}
+data class ObservableSetVolatileWrapper<SET,E>(private val source: SET) where SET: Observable, SET: Set<E> {
+   private var value by volatile(source.materialize())
+   operator fun getValue(thisRef: Any?, property: KProperty<*>): Set<E> = value
+
+   init {
+      failIfNotFxThread()
+      source.onChange { value = source.materialize() }
+   }
+}
+data class ObservableMapVolatileWrapper<MAP,K,V>(private val source: MAP) where MAP: Observable, MAP: Map<K,V> {
+   private var value by volatile(source.materialize())
+   operator fun getValue(thisRef: Any?, property: KProperty<*>): Map<K,V> = value
+
+   init {
+      failIfNotFxThread()
+      source.onChange { value = source.materialize() }
+   }
+}
 
 /** Sets value to negated value of current value. */
 fun WritableValue<Boolean>.toggle() {

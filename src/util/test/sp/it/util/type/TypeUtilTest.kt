@@ -160,7 +160,7 @@ class TypeUtilTest: FreeSpec({
          )
       }
 
-      KType::argOf.name + " preconditions" {
+      "${KType::argOf.name} preconditions" {
          List::class.toString() shouldBe "class kotlin.collections.List"
          MutableList::class.toString() shouldBe "class kotlin.collections.List"
          type<List<*>>().type.toString() shouldBe "kotlin.collections.List<kotlin.Any?>"
@@ -175,6 +175,7 @@ class TypeUtilTest: FreeSpec({
          MutableList::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
          ArrayList::class.allSupertypes.toString() shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
       }
+
       KType::argOf.name {
          open class Covariant<out T>
          open class Invariant<T>

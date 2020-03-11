@@ -7,6 +7,7 @@ import sp.it.pl.ui.objects.autocomplete.ConfigSearch
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.History
+import sp.it.util.access.readOnlyThreadSafe
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -14,17 +15,12 @@ import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
-import sp.it.util.reactive.onChangeAndNow
 import sp.it.pl.main.AppSettings.search as conf
 
 class AppSearch: GlobalSubConfigDelegator(conf.name) {
    val sources by cList<Source>().def(conf.sources).noPersist().butElement(UiConverter<Source> { it.nameUi })
    val history = History()
-   @Volatile private var sourcesMaterialized: List<Source> = listOf()
-
-   init {
-      sources.onChangeAndNow { sourcesMaterialized = sources.materialize() }
-   }
+   private val sourcesTS by sources.readOnlyThreadSafe()
 
    fun buildUi(onAutoCompleted: (Entry) -> Unit = {}): Node {
       val tf = searchTextField()
@@ -37,7 +33,7 @@ class AppSearch: GlobalSubConfigDelegator(conf.name) {
                else -> {
                   val maxResults = 50
                   val phrases = text.split(" ").toList()
-                  val results = sourcesMaterialized.asSequence().flatMap { it.source(phrases) }.take(maxResults + 1).toList()
+                  val results = sourcesTS.asSequence().flatMap { it.source(phrases) }.take(maxResults + 1).toList()
                   if (results.size<maxResults + 1) results
                   else results.dropLast(1) + SimpleEntry("more items...", null, { "" }, {})
                }

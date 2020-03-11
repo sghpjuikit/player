@@ -714,6 +714,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    override val editor = DecoratedTextField()
    val obv = getObservableValue(c)
+   private val converter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
    private val isObservable = obv!=null
    private var isNullEvent = Suppressor()
    private var isNull = config.value==null
@@ -729,7 +730,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.promptText = c.nameUi
 
       // refreshing value
-      editor.text = toS(getConfigValue())
+      editor.text = converter(getConfigValue())
       obv?.attach { refreshValue() }.orEmpty() on editor.onNodeDispose
       obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() }.orEmpty() }.orEmpty() on editor.onNodeDispose
       editor.focusedProperty() attach { if (!it) refreshValue() } on editor.onNodeDispose
@@ -783,7 +784,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
    override fun refreshValue() {
       isNull = config.value==null
-      editor.text = toS(config.value)
+      editor.text = converter(config.value)
       showWarnButton(getValid())
    }
 

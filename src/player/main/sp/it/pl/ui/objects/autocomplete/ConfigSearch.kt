@@ -23,6 +23,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
+import sp.it.pl.main.Css
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.main.appTooltip
@@ -34,6 +35,7 @@ import sp.it.util.conf.Config
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
+import sp.it.util.text.keysUi
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.install
 import sp.it.util.ui.label
@@ -204,7 +206,8 @@ class ConfigSearch: AutoCompletion<Entry> {
          override val graphics by lazy {
             when {
                config is Action && config.hasKeysAssigned() -> {
-                  label(config.keys) {
+                  label(config.keysUi()) {
+                     styleClass += Css.DESCRIPTION
                      textAlignment = TextAlignment.RIGHT
                   }
                }

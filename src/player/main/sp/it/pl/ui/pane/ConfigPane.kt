@@ -5,6 +5,7 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
+import sp.it.pl.main.Css
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.objects.Text
 import sp.it.util.action.Action
@@ -64,6 +65,7 @@ class ConfigPane<T: Any?>: VBox {
                it.config.info.isEmpty() || it.config.nameUi==it.config.info -> null
                else -> Text(it.config.info).apply {
                   isManaged = false
+                  styleClass += Css.DESCRIPTION
                   styleClass += "form-config-pane-config-description"
                }
             },

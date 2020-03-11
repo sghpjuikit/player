@@ -33,3 +33,7 @@ object Ui {
    const val STYLE_FONT_WEIGHT_NORMAL = "text-weight-normal"
    const val STYLE_FONT_WEIGHT_BOLD = "text-weight-bold"
 }
+
+object Css {
+   const val DESCRIPTION = "description"
+}

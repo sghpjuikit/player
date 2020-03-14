@@ -7,6 +7,7 @@ import javafx.util.Duration.ZERO
 import sp.it.util.reactive.attach
 import sp.it.util.units.minus
 import sp.it.util.units.plus
+import sp.it.util.units.seconds
 
 class RealTimeProperty {
    private val totalTime: ObjectProperty<Duration>
@@ -38,11 +39,11 @@ class RealTimeProperty {
    }
 
    fun syncRealTimeOnPreSeek() {
-      realSeek = realTime.value
+      realSeek = realTime.value.clipSubSeconds()
    }
 
    fun syncRealTimeOnPostSeek(duration: Duration) {
-      currentSeek = duration
+      currentSeek = duration.clipSubSeconds()
    }
 
    val value: Duration
@@ -50,4 +51,7 @@ class RealTimeProperty {
 
    fun realTimeProperty() = realTime
 
+   companion object {
+      fun Duration.clipSubSeconds() = toSeconds().toInt().seconds
+   }
 }

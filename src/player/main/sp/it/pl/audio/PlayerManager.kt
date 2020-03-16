@@ -3,6 +3,7 @@ package sp.it.pl.audio
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
+import javafx.util.Duration.ZERO
 import mu.KLogging
 import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
@@ -137,7 +138,13 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       }
 
       onPlaybackAt += PlayTimeHandler.at({ total -> total }) {
-         onPlaybackAt.forEach { it.restart(playingSong.value.getLength()) }
+         val psl = playingSong.value.getLength()   // should never be 0, but probably due to Jaudiotagger
+         if (psl.lessThanOrEqualTo(ZERO))
+            // disable playbackAt handlers for corrupt songs
+            // (restarting self with duration 0 would cause immediate StackOverflow)
+            onPlaybackAt.forEach { it.stop() }
+         else
+            onPlaybackAt.forEach { it.restart(psl) }
       }
    }
 

@@ -269,6 +269,8 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void ma_init() {
+		r1.setFocusTraversable(false);
+		r2.setFocusTraversable(false);
 		r1.setOpacity(0);
 		r2.setOpacity(0);
 		r1.setMouseTransparent(true);

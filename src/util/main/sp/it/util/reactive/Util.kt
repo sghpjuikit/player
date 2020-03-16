@@ -25,20 +25,31 @@ import sp.it.util.identityHashCode
 import java.util.IdentityHashMap
 import java.util.function.Consumer
 
-private typealias DisposeOn = (Subscription) -> Unit
-
 interface DisposableObservableValue<O>: ObservableValue<O> {
    fun unsubscribe()
 }
 
-fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: DisposableObservableValue<O> {
+/**
+ * Maps this observable value into one that contains values mapped from this, using the specified mapper.
+ * The mapping is eager, so it happens on every change of this value.
+ *
+ * The returned observable is [DisposableObservableValue] to allow [DisposableObservableValue.unsubscribe], which stops
+ * the mapping relationship between this and the returned observable, allowing the returned observable (or/and this) to
+ * be garbage collected.
+ *
+ * To avoid the need to call [DisposableObservableValue.unsubscribe], it is possible to supply own disposer, invoking
+ * which will stop the mapping relationship. [DisposableObservableValue.unsubscribe] still works as expected.
+ *
+ * @return mapped observable value
+ */
+fun <T, O> ObservableValue<T>.map(disposer: DisposeOn = {}, mapper: (T) -> O) = object: DisposableObservableValue<O> {
    private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
    private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
    private var mv: O = mapper(this@map.value)
-   private val disposer: Subscription
+   private var s: Subscription
 
    init {
-      disposer = this@map attach { nv ->
+      s = this@map attach { nv ->
          val omv = mv
          val nmv = mapper(nv)
          mv = nmv
@@ -47,6 +58,7 @@ fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: DisposableObservab
             listeners2.forEach { it.invalidated(this) }
          }
       }
+      s on disposer
    }
 
    override fun addListener(listener: ChangeListener<in O>) {
@@ -67,7 +79,7 @@ fun <T, O> ObservableValue<T>.map(mapper: (T) -> O) = object: DisposableObservab
 
    override fun getValue() = mv
 
-   override fun unsubscribe() = disposer.unsubscribe()
+   override fun unsubscribe() = s.unsubscribe()
 }
 
 /** Sets a block to be fired immediately and on every value change. */

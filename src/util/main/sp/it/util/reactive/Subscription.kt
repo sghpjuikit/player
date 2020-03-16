@@ -69,7 +69,9 @@ infix operator fun Subscription.plus(subscription: Subscription) = Subscription(
 infix operator fun Subscription.plus(subscription: () -> Unit) = Subscription(this, Subscription(subscription))
 
 /** Convenience method for adding this subscription to a disposer. Equivalent to: this.apply(disposerRegister) */
-infix fun Subscription.on(disposerRegister: (Subscription) -> Unit) = apply(disposerRegister)
+infix fun Subscription.on(disposer: DisposeOn) = apply(disposer)
 
 /** @return this or empty subscription if null */
 fun Subscription?.orEmpty() = this ?: Subscription()
+
+typealias DisposeOn = (Subscription) -> Unit

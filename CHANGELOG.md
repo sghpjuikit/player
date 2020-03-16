@@ -64,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Popup close button has been removed and pin button UX improved
 
 ### Fix
+- Playback seek volume fade
+- Playback loop song stopping playback
 - Main window icon showing in ui-less application mode
 - Widgets launched as new process not closing application 
 - Widgets not recompiling when application jars have newer version
@@ -107,6 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - View filter not working in some cases
 - View filter closing instead of focusing on Ctrl+F
 - Search text field clear button showing incorrectly sometimes
+- Application search results are hard to disambiguate (show icons)
+- Application search slower for lots of items
 - Application search cell graphics layout
 - Application search empty tooltip visible
 - Application skin setting not restored properly

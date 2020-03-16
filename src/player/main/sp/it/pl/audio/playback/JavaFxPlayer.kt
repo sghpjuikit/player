@@ -59,6 +59,7 @@ class JavaFxPlayer: GeneralPlayer.Play {
 
             p.startTime = ZERO
 
+            syncTo(state.volume, state.volumeFadeMultiplier) { v, vm -> p.volume = linToLog(v.toDouble() * vm.toDouble()) } on onDispose
             state.volume sync { v -> p.volume = linToLog(v.toDouble()) } on onDispose
             state.mute syncTo p.muteProperty() on onDispose
             state.rate syncTo p.rateProperty() on onDispose

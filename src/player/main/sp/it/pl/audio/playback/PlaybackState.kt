@@ -10,6 +10,7 @@ import sp.it.util.units.minus
 /** State of playback. */
 class PlaybackState {
    val volume = VolumeProperty(VolumeProperty.AVG)
+   val volumeFadeMultiplier = VolumeProperty(VolumeProperty.MAX)
    val loopMode = v(LoopMode.PLAYLIST)
    val status = v(Status.UNKNOWN)
    val duration = v(0.millis)

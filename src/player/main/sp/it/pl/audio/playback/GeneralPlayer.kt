@@ -31,9 +31,7 @@ class GeneralPlayer(state: PlayerState) {
    private val _pInfo = ReadOnlyObjectWrapper("<none>")
    val pInfo = _pInfo.readOnlyProperty!!
    private var i: Song? = null
-   private var seekDone = true
-   private var lastValidVolume = -1.0
-   private var volumeAnim: Anim? = null
+   private var seekVolumeAnim = anim(150.millis) { state.playback.volumeFadeMultiplier.value = it.pow(2) }
 
    fun play(song: PlaylistSong) {
       APP.audio.isSuspendedBecauseStartedPaused = false
@@ -140,39 +138,18 @@ class GeneralPlayer(state: PlayerState) {
 
    fun seek(to: Duration) {
       p.ifNotNull {
-         val s = state.playback.status.value
+         if (state.playback.status.value==STOPPED) pause()
 
-         if (s==STOPPED) pause()
-
-         doSeek(to)
-
-         // TODO: enable volume fading on seek
-         if (false) {
-            val currentVolume = state.playback.volume.value
-            if (seekDone)
-               lastValidVolume = currentVolume
-            else {
-               if (volumeAnim!=null) volumeAnim!!.pause()
-            }
-            seekDone = false
-            anim(150.millis) { state.playback.volume.value = currentVolume*(1.0 - it).pow(2) }
-               .then {
-                  doSeek(to)
-                  volumeAnim = anim(150.millis) { state.playback.volume.value = lastValidVolume*it.pow(2) }
-                     .then { seekDone = true }
-                     .apply { playOpen() }
-               }
-               .playOpen()
-         }
+         seekVolumeAnim.stop()
+         state.playback.volumeFadeMultiplier.value = 0.0
+         state.playback.currentTime.value = to // allow next doSeek() target correct value even if this has not finished
+         state.playback.currentTime.attach1IfNonNull { APP.audio.onSeekDone() }
+         p?.seek(to)
+         seekVolumeAnim.jumpTo(ZERO)
+         seekVolumeAnim.playFromDir(true)
       }.ifNull {
          if (APP.audio.isSuspendedBecauseStartedPaused) play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
       }
-   }
-
-   private fun doSeek(to: Duration) {
-      state.playback.currentTime.value = to // allow next doSeek() target correct value even if this has not finished
-      state.playback.currentTime.attach1IfNonNull { APP.audio.onSeekDone() }
-      p?.seek(to)
    }
 
    fun disposePlayback() {

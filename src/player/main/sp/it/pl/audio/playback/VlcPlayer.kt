@@ -25,6 +25,7 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
@@ -32,6 +33,7 @@ import sp.it.util.file.unzip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncTo
 import sp.it.util.system.Os
 import sp.it.util.ui.lay
 import sp.it.util.ui.text
@@ -114,10 +116,10 @@ class VlcPlayer: GeneralPlayer.Play {
       val p = pf.mediaPlayers().newMediaPlayer()
       player = p
 
-      state.loopMode sync { p.controls().repeat = it==SONG } on d
-      state.volume sync { p.audio().setVolume((100*it.toDouble()).roundToInt()) } on d
+      syncTo(state.volume, state.volumeFadeMultiplier) { v, vm -> p.audio().setVolume((100*v.toDouble() * vm.toDouble()).roundToInt()) } on d
       state.mute sync { p.audio().isMute = it } on d
       state.rate sync { p.controls().setRate(it.toFloat()) } on d
+      state.loopMode sync { p.controls().repeat = it==SONG } on d
 
       p.media().prepare(song.uriAsVlcPath())
 

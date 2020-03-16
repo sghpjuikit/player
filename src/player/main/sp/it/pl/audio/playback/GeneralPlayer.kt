@@ -72,10 +72,7 @@ class GeneralPlayer(state: PlayerState) {
                      song,
                      state.playback,
                      {
-                        state.playback.realTimeImpl.realSeek = state.playback.realTime.value
-                        state.playback.realTimeImpl.currentSeek = ZERO
                         player.play()
-
                         state.playback.realTimeImpl.syncRealTimeOnPlay()
                         // throw song change event
                         APP.audio.playingSong.songChanged(song)
@@ -134,7 +131,6 @@ class GeneralPlayer(state: PlayerState) {
          it.stop()
          runFX {
             APP.audio.playingSong.songChanged(Metadata.EMPTY)
-            state.playback.realTimeImpl.syncRealTimeOnStop()
             APP.audio.onPlaybackAt.forEach { it.stop() }
             PlaylistManager.playlists.forEach { it.updatePlayingItem(-1) }
             PlaylistManager.active = null
@@ -142,13 +138,13 @@ class GeneralPlayer(state: PlayerState) {
       }
    }
 
-   fun seek(duration: Duration) {
+   fun seek(to: Duration) {
       p.ifNotNull {
          val s = state.playback.status.value
 
          if (s==STOPPED) pause()
 
-         doSeek(duration)
+         doSeek(to)
 
          // TODO: enable volume fading on seek
          if (false) {
@@ -161,7 +157,7 @@ class GeneralPlayer(state: PlayerState) {
             seekDone = false
             anim(150.millis) { state.playback.volume.value = currentVolume*(1.0 - it).pow(2) }
                .then {
-                  doSeek(duration)
+                  doSeek(to)
                   volumeAnim = anim(150.millis) { state.playback.volume.value = lastValidVolume*it.pow(2) }
                      .then { seekDone = true }
                      .apply { playOpen() }
@@ -173,12 +169,10 @@ class GeneralPlayer(state: PlayerState) {
       }
    }
 
-   private fun doSeek(duration: Duration) {
-      state.playback.realTimeImpl.syncRealTimeOnPreSeek()
-      state.playback.currentTime.value = duration // allow next doSeek() target correct value even if this has not finished
+   private fun doSeek(to: Duration) {
+      state.playback.currentTime.value = to // allow next doSeek() target correct value even if this has not finished
       state.playback.currentTime.attach1IfNonNull { APP.audio.onSeekDone() }
-      p?.seek(duration)
-      state.playback.realTimeImpl.syncRealTimeOnPostSeek(duration)
+      p?.seek(to)
    }
 
    fun disposePlayback() {
@@ -194,6 +188,9 @@ class GeneralPlayer(state: PlayerState) {
    companion object: KLogging()
 
    interface Play {
+
+      val canDoSongRepeat: Boolean
+
       fun play()
 
       fun pause()

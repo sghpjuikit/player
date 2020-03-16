@@ -7,9 +7,12 @@ import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
+import javafx.util.Duration.ZERO
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playback.VolumeProperty.Companion.linToLog
+import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.*
 import sp.it.pl.main.APP
 import sp.it.util.async.runIO
 import sp.it.util.reactive.Disposer
@@ -23,6 +26,8 @@ class JavaFxPlayer: GeneralPlayer.Play {
 
    private var player: MediaPlayer? = null
    private val onDispose = Disposer()
+
+   override val canDoSongRepeat = false
 
    override fun play() = player?.play() ?: Unit
 
@@ -52,16 +57,25 @@ class JavaFxPlayer: GeneralPlayer.Play {
             val p = MediaPlayer(media)
             player = p
 
-            p.startTime = Duration.ZERO
+            p.startTime = ZERO
 
             state.volume sync { v -> p.volume = linToLog(v.toDouble()) } on onDispose
             state.mute syncTo p.muteProperty() on onDispose
             state.rate syncTo p.rateProperty() on onDispose
-            p.onEndOfMedia = Runnable { APP.audio.onPlaybackEnd }
+            p.onEndOfMedia = Runnable {
+               APP.audio.onPlaybackEnd()
+               if (state.loopMode.value==SONG) seek(ZERO)
+               when (state.loopMode.value) {
+                  OFF -> stop()
+                  PLAYLIST -> PlaylistManager.playNextItem()
+                  SONG -> seek(ZERO)
+                  else -> Unit
+               }
+            }
 
             p.statusProperty().attach1If({ it==PLAYING || it==PAUSED || it==STOPPED }) {
                p.currentTimeProperty() syncTo state.currentTime on onDispose
-               p.statusProperty().sync {if (!APP.audio.isSuspended) state.status.value = it } on onDispose
+               p.statusProperty().sync { if (!APP.audio.isSuspended) state.status.value = it } on onDispose
             }
             p.statusProperty() attach {
                if (it==PLAYING || it==PAUSED) {

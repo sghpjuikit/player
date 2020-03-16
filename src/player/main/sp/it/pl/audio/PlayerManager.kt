@@ -42,7 +42,6 @@ import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
-import sp.it.util.functional.Functors.F.f
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Handler0
@@ -136,15 +135,9 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
                it.setPlayedLastNow()
             }
       }
-      state.playback.realTimeImpl.initialize()
-      onPlaybackAt += PlayTimeHandler.at({ total -> total }, f { onPlaybackAt.forEach { it.restart(playingSong.value.getLength()) } }) // TODO: fix possible StackOverflowError
-      onPlaybackEnd += {
-         when (state.playback.loopMode.value) {
-            PlayingSequence.LoopMode.OFF -> stop()
-            PlayingSequence.LoopMode.PLAYLIST -> PlaylistManager.playNextItem()
-            PlayingSequence.LoopMode.SONG -> seek(Duration.ZERO)
-            else -> Unit
-         }
+
+      onPlaybackAt += PlayTimeHandler.at({ total -> total }) {
+         onPlaybackAt.forEach { it.restart(playingSong.value.getLength()) }
       }
    }
 

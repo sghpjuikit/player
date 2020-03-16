@@ -7,6 +7,8 @@ import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.pl.audio.Song
+import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.*
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.main.AppError
@@ -44,8 +46,11 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.LinuxNativeDiscoveryStrateg
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy
 import uk.co.caprica.vlcj.factory.discovery.strategy.OsxNativeDiscoveryStrategy
 import uk.co.caprica.vlcj.factory.discovery.strategy.WindowsNativeDiscoveryStrategy
+import uk.co.caprica.vlcj.media.MediaRef
+import uk.co.caprica.vlcj.media.TrackType
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -56,6 +61,8 @@ class VlcPlayer: GeneralPlayer.Play {
    @Volatile private var playerFactory: MediaPlayerFactory? = null
    @Volatile private var player: MediaPlayer? = null
    private val d = Disposer()
+
+   override val canDoSongRepeat = true
 
    override fun play() {
       player?.controls()?.play()
@@ -107,6 +114,7 @@ class VlcPlayer: GeneralPlayer.Play {
       val p = pf.mediaPlayers().newMediaPlayer()
       player = p
 
+      state.loopMode sync { p.controls().repeat = it==SONG } on d
       state.volume sync { p.audio().setVolume((100*it.toDouble()).roundToInt()) } on d
       state.mute sync { p.audio().isMute = it } on d
       state.rate sync { p.controls().setRate(it.toFloat()) } on d
@@ -114,8 +122,10 @@ class VlcPlayer: GeneralPlayer.Play {
       p.media().prepare(song.uriAsVlcPath())
 
       val playbackListener = createPlaybackListener(state)
+      p.events().addMediaPlayerEventListener(PlaybackLogger)
       p.events().addMediaPlayerEventListener(playbackListener)
       d += { p.events().removeMediaPlayerEventListener(playbackListener) }
+      d += { p.events().removeMediaPlayerEventListener(PlaybackLogger) }
 
       if (APP.audio.startTime!=null) {
          when (state.status.value) {
@@ -125,6 +135,37 @@ class VlcPlayer: GeneralPlayer.Play {
       }
 
       onOK()
+   }
+
+   private object PlaybackLogger: MediaPlayerEventListener {
+      override fun audioDeviceChanged(mediaPlayer: MediaPlayer?, audioDevice: String?) = logger.debug { "Playback event: audioDeviceChanged to $audioDevice" }
+      override fun volumeChanged(mediaPlayer: MediaPlayer?, volume: Float) = logger.info { "Playback event: volumeChanged to $volume" }
+      override fun scrambledChanged(mediaPlayer: MediaPlayer?, newScrambled: Int) = logger.debug { "Playback event: scrambledChanged to $newScrambled" }
+      override fun positionChanged(mediaPlayer: MediaPlayer?, newPosition: Float) = logger.trace { "Playback event: positionChanged to $newPosition" }
+      override fun elementaryStreamSelected(mediaPlayer: MediaPlayer?, type: TrackType?, id: Int) = logger.debug { "Playback event: elementaryStreamSelected $type $id" }
+      override fun seekableChanged(mediaPlayer: MediaPlayer?, newSeekable: Int) = logger.debug { "Playback event: seekableChanged to $newSeekable" }
+      override fun stopped(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: stopped" }
+      override fun snapshotTaken(mediaPlayer: MediaPlayer?, filename: String?) = logger.debug { "Playback event: snapshotTaken of $filename" }
+      override fun muted(mediaPlayer: MediaPlayer?, muted: Boolean) = logger.debug { "Playback event: muted $muted" }
+      override fun forward(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: forward" }
+      override fun pausableChanged(mediaPlayer: MediaPlayer?, newPausable: Int) = logger.debug { "Playback event: pausableChanged to $newPausable" }
+      override fun playing(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: playing" }
+      override fun titleChanged(mediaPlayer: MediaPlayer?, newTitle: Int) = logger.debug { "Playback event: titleChanged to $newTitle" }
+      override fun corked(mediaPlayer: MediaPlayer?, corked: Boolean) = logger.debug { "Playback event: corked to $corked" }
+      override fun chapterChanged(mediaPlayer: MediaPlayer?, newChapter: Int) = logger.debug { "Playback event: chapterChanged to $newChapter" }
+      override fun elementaryStreamDeleted(mediaPlayer: MediaPlayer?, type: TrackType?, id: Int) = logger.debug { "Playback event: elementaryStreamDeleted $type $id" }
+      override fun opening(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: opening" }
+      override fun backward(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: backward" }
+      override fun elementaryStreamAdded(mediaPlayer: MediaPlayer?, type: TrackType?, id: Int) = logger.debug { "Playback event: elementaryStreamAdded $type $id" }
+      override fun mediaPlayerReady(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: mediaPlayerReady" }
+      override fun videoOutput(mediaPlayer: MediaPlayer?, newCount: Int) = logger.debug { "Playback event: videoOutput to $newCount" }
+      override fun error(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: error" }
+      override fun mediaChanged(mediaPlayer: MediaPlayer?, media: MediaRef?) = logger.debug { "Playback event: mediaChanged to ${media?.mediaInstance()}" }
+      override fun finished(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: finished" }
+      override fun paused(mediaPlayer: MediaPlayer?) = logger.debug { "Playback event: paused" }
+      override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) = logger.trace { "Playback event: timeChanged to $newTime" }
+      override fun buffering(mediaPlayer: MediaPlayer?, newCache: Float) = logger.trace { "Playback event: buffering to $newCache" }
+      override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) = logger.debug { "Playback event: lengthChanged to $newLength" }
    }
 
    private fun createPlaybackListener(state: PlaybackState) = object: MediaPlayerEventAdapter() {
@@ -144,6 +185,12 @@ class VlcPlayer: GeneralPlayer.Play {
       override fun finished(mediaPlayer: MediaPlayer) {
          runFX {
             APP.audio.onPlaybackEnd()
+            when (state.loopMode.value) {
+               OFF -> stop()
+               PLAYLIST -> PlaylistManager.playNextItem()
+               SONG -> Unit // handled automatically due to ControlsApi.repeat
+               else -> Unit
+            }
          }
       }
 

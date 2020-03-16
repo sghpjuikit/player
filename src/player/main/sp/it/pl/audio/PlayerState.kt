@@ -20,11 +20,13 @@ import java.util.UUID
 /** State of player. */
 class PlayerState {
 
-   @JvmField var playback: PlaybackState = PlaybackState.default()
+   @JvmField val playback: PlaybackState
    @JvmField val playlists: MutableList<Playlist> = ArrayList()
    @JvmField var playlistId: UUID? = null
 
-   constructor()
+   constructor() {
+      playback = PlaybackState.default()
+   }
 
    constructor(s: PlayerStateDB) {
       playlists += s.playlists.map { it.toDomain() }
@@ -61,7 +63,7 @@ class PlayerState {
             .orNull()?.toDomain()
             ?: PlayerState()
       }.also {
-         PlaylistManager.playlists += it.playlists
+         PlaylistManager.playlists += it.playlists // TODO: not thread safe
          PlaylistManager.active = it.playlistId
       }
 

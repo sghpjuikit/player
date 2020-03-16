@@ -1,57 +1,51 @@
 package sp.it.pl.audio.playback
 
+import javafx.beans.InvalidationListener
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.value.ChangeListener
+import javafx.beans.value.ObservableValue
+import javafx.scene.media.MediaPlayer.Status
+import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import sp.it.util.reactive.attach
-import sp.it.util.units.minus
-import sp.it.util.units.plus
-import sp.it.util.units.seconds
+import sp.it.util.units.millis
 
-class RealTimeProperty {
-   private val totalTime: ObjectProperty<Duration>
-   private val currentTime: ObjectProperty<Duration>
-   private val realTime: ObjectProperty<Duration>
-   var currentSeek: Duration
-   var realSeek: Duration
+class RealTimeProperty: ObservableValue<Duration> {
+   private val realTime = SimpleObjectProperty(ZERO)
+   private var realSeekMs: Long = 0L
+   private var lastContinueTimeAt: Long = 0L
 
-   constructor(totalTime: ObjectProperty<Duration>, currentTime: ObjectProperty<Duration>) {
-      this.totalTime = totalTime
-      this.currentTime = currentTime
-      this.realTime = SimpleObjectProperty(ZERO)
-      this.currentSeek = ZERO!!
-      this.realSeek = ZERO!!
-   }
+   constructor(status: ObjectProperty<Status>, currentTime: ObjectProperty<Duration>) {
+      realSeekMs = 0
+      realTime.value = ZERO
 
-   fun initialize() {
-      currentTime attach { realTime.value = realSeek + currentTime.value - currentSeek }
+      status attach {
+         when (it) {
+            PLAYING -> lastContinueTimeAt = System.currentTimeMillis()
+            else -> realSeekMs += (System.currentTimeMillis() - lastContinueTimeAt)
+         }
+      }
+      currentTime attach {
+         realTime.value = (realSeekMs + System.currentTimeMillis() - lastContinueTimeAt).millis
+      }
    }
 
    fun syncRealTimeOnPlay() {
-      realSeek = ZERO
-      currentSeek = ZERO
+      realSeekMs = 0
+      lastContinueTimeAt = System.currentTimeMillis()
+      realTime.value = ZERO
    }
 
-   fun syncRealTimeOnStop() {
-      realSeek = ZERO
-      currentSeek = ZERO
-   }
+   override fun removeListener(listener: ChangeListener<in Duration>) = realTime.removeListener(listener)
 
-   fun syncRealTimeOnPreSeek() {
-      realSeek = realTime.value.clipSubSeconds()
-   }
+   override fun removeListener(listener: InvalidationListener) = realTime.removeListener(listener)
 
-   fun syncRealTimeOnPostSeek(duration: Duration) {
-      currentSeek = duration.clipSubSeconds()
-   }
+   override fun addListener(listener: ChangeListener<in Duration>) = realTime.addListener(listener)
 
-   val value: Duration
-      get() = realTime.value
+   override fun addListener(listener: InvalidationListener) = realTime.addListener(listener)
 
-   fun realTimeProperty() = realTime
+   override fun getValue(): Duration = realTime.value
 
-   companion object {
-      fun Duration.clipSubSeconds() = toSeconds().toInt().seconds
-   }
 }

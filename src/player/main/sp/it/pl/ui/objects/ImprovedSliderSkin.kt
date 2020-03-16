@@ -8,10 +8,12 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.syncTo
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.ui.onHoverOrDragEnd
 import sp.it.util.ui.onHoverOrDragStart
 import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 
 /** SliderSkin skin that adds animations & improved usability - track expands on mouse hover. */
@@ -22,6 +24,8 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
    private val onDispose = Disposer()
 
    init {
+      initIds()
+      initFill()
       initFocusAnimation()
       initHoverTrackAnimation()
       initHoverThumbAnimation()
@@ -32,11 +36,36 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
       super.dispose()
    }
 
+   fun initIds() {
+      getFieldValue<StackPane>(this, "thumb")!!.id = "thumb"
+      getFieldValue<StackPane>(this, "track")!!.id = "track"
+   }
+
+   fun initFill() {
+      val thumb = getFieldValue<StackPane>(this, "thumb")!!
+      val track = getFieldValue<StackPane>(this, "track")!!
+      val fill = stackPane {
+         id = "fill"
+         styleClass += "fill"
+         isManaged = false
+         syncTo(thumb.boundsInParentProperty(), track.boundsInParentProperty()) { _, _ ->
+            val isVertical = skinnable.orientation==VERTICAL
+            resizeRelocate(
+               track.boundsInParent.minX,
+               track.boundsInParent.minY,
+               if (isVertical) thumb.boundsInParent.centerY else thumb.boundsInParent.centerX,
+               track.boundsInParent.height
+            )
+         }
+      }
+      children.add(1, fill)
+   }
+
    fun initHoverTrackAnimation() {
       val track = getFieldValue<StackPane>(this, "track")!!
       val a = anim(350.millis) {
          val isVertical = skinnable.orientation==VERTICAL
-         val p = 1 + 1*it*it
+         val p = 1 + it*it
          track.scaleX = if (isVertical) p else 1.0
          track.scaleY = if (isVertical) 1.0 else p
       }
@@ -48,7 +77,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
    }
 
    fun initFocusAnimation() {
-      val scaling = anim(350.millis) { updateThumbScale(fxy = 1 + 1*it*it) }
+      val scaling = anim(350.millis) { updateThumbScale(fxy = 1 + it*it) }
       skinnable.focusedProperty() attach { if (it) scaling.playOpenDoClose(null) } on onDispose
       onDispose += scaling::stop
    }
@@ -57,7 +86,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
    fun initHoverThumbAnimation() {
       val a = anim(350.millis) {
          val isVertical = skinnable.orientation==VERTICAL
-         val p = 1 + 2*it*it
+         val p = 1 + it*it
 
          updateThumbScale(hx = if (isVertical) 1.0 else p, hy = if (isVertical) p else 1.0)
       }

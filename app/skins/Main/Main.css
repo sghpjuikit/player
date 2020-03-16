@@ -7,8 +7,8 @@
 
 /* Global variables*/
 * {
-    -skin-bgr-color: rgb(0, 10, 25);
-    -skin-def-font-color: rgb(190, 190, 195);
+    -skin-bgr-color: rgb(10, 10, 25);
+    -skin-def-font-color: rgb(140, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
@@ -290,6 +290,14 @@
 .slider {
     -fx-skin: "sp.it.pl.ui.objects.ImprovedSliderSkin";
 }
+
+.slider .fill {
+    -fx-background-color: -fx-focus-color;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+}
+
 .slider .thumb,
 .slider .thumb:hover,
 .slider .thumb:pressed,
@@ -297,22 +305,23 @@
 .slider:focused .thumb:hover,
 .slider:focused .thumb:pressed {
     -fx-background-color: -skin-def-font-color;
-    -fx-padding: 0.166667em;
-    -fx-background-radius: 1;
+    -fx-padding: 0.4em 0.25em 0 0.25em;
+    -fx-background-radius: 0;
 }
 
 .slider .track {
+    -fx-padding: 0;
     -fx-background-color: rgba(255,255,255,0.3);
     -fx-background-insets: 0;
-    -fx-background-radius: 1;
-    -fx-padding: 1;      /* basically track width */
+    -fx-background-radius: 0;
+    -fx-padding: 0.166667em 0 0 0;      /* basically track width */
 }
 .slider:vertical .track {}
 .slider .axis {
     -fx-tick-mark-stroke: ladder(-fx-background, derive(-fx-background,30%) 40%, derive(-fx-background,-30%) 41%);
     -fx-tick-label-fill: -skin-def-font-color;
     -fx-background-insets: -6,5,4,3;
-    -fx-opacity:0.9;
+    -fx-opacity: 0.9;
 }
 
 /********************************** ScrollBar *************************************

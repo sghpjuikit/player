@@ -60,6 +60,7 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.units.seconds
 import sp.it.util.units.toEM
 import sp.it.util.units.toHMSMs
 import java.io.File
@@ -106,9 +107,6 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val muteB = IconFA.VOLUME_UP.icon(12.0) { APP.audio.toggleMute() }
    val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.toggleLoopMode() }
    val playbackButtons = listOf(f1, f2, f3, f4, f5, seeker)
-   private var lastCurrentTimeS: Double? = null
-   private var lastRemainingTimeS: Double? = null
-   private var lastRealTimeS: Double? = null
    private val layoutSmall = LayoutSmall()
    private val layoutBig = LayoutBig()
 
@@ -136,13 +134,14 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       volume.valueProperty() syncBiFrom ps.volume on onClose
 
       ps.duration sync { totalTime.text = it.toHMSMs() } on onClose
-      ps.currentTime sync { timeChanged(ps) } on onClose
+      ps.currentTime.map(onClose) { it.toSeconds().toLong() } sync { timeChanged(ps) }
+      ps.realTimeImpl.map(onClose) { it.toSeconds().toLong() } sync { realTime.text = it.seconds.toHMSMs() }
       ps.status sync { statusChanged(it) } on onClose
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
       ps.volume sync { muteChanged(ps) } on onClose
       APP.audio.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
-      elapsedTime sync { timeChanged(ps, true) } on onClose
+      elapsedTime sync { timeChanged(ps) } on onClose
 
       currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
 
@@ -154,14 +153,14 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          { e -> PlaylistManager.use { it.addItems(e.dragboard.getAudio()) } }
       )
 
-      root.heightProperty().map { it.toDouble()<100.0.emScaled } sync {
+      root.heightProperty().map(onClose) { it.toDouble()<100.0.emScaled } sync {
          val layout: Layout = if (it) layoutSmall else layoutBig
          root.children setToOne layout.with(f2, f3, f4, muteB, seeker)
          f2.size(if (it) 12 else 24)
          f3.size(if (it) 12 else 48)
          f3.gap(if (it) 12 else 36)
          f4.size(if (it) 12 else 24)
-      } on onClose
+      }
    }
 
    private fun playFile(file: File) {
@@ -224,28 +223,11 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       })
    }
 
-   private fun timeChanged(playback: PlaybackState, forceUpdate: Boolean = false) {
-      if (forceUpdate) {
-         lastCurrentTimeS = null
-         lastRemainingTimeS = null
+   private fun timeChanged(playback: PlaybackState) {
+      currTime.text = when {
+         elapsedTime.value -> playback.currentTime.value.toHMSMs()
+         else -> "- " + playback.remainingTime.toHMSMs()
       }
-
-      if (elapsedTime.value) {
-         val currentTimeS = playback.currentTime.value.toSeconds()
-         if (currentTimeS!=lastCurrentTimeS)
-            currTime.text = playback.currentTime.value.toHMSMs()
-         lastCurrentTimeS = currentTimeS
-      } else {
-         val remainingTimeS = playback.remainingTime.toSeconds()
-         if (remainingTimeS!=lastRemainingTimeS)
-            currTime.text = "- " + playback.remainingTime.toHMSMs()
-         lastRemainingTimeS = remainingTimeS
-      }
-
-      val realTimeS = APP.audio.state.playback.realTimeImpl.value.toSeconds()
-      if (realTimeS!=lastRealTimeS)
-         realTime.text = APP.audio.state.playback.realTimeImpl.value.toHMSMs()
-      lastRealTimeS = realTimeS
    }
 
    companion object {

@@ -92,11 +92,11 @@ public class Icon extends StackPane {
 	// animation builder, & reusable supplier
 	private static final F1<Icon,Anim> Apress = i -> {
 		double s = signum(i.node.getScaleX());
-		return new Anim(millis(300), p -> setScaleXY(i.node, s*(1 - 0.3*p*p), 1 - 0.3*p*p));
+		return new Anim(millis(300), p -> setScaleXY(i.node, s*(1 - 0.3*sqrt(p)), 1 - 0.3*sqrt(p)));
 	};
 	private static final F1<Icon,Anim> Ahover = i -> {
 		double s = signum(i.node.getScaleX());
-		return new Anim(millis(150), p -> setScaleXY(i.node, s*(1 + 0.2*p*p), 1 + 0.2*p*p));
+		return new Anim(millis(200), p -> setScaleXY(i.node, s*(1 + 0.2*sqrt(p)), 1 + 0.2*sqrt(p)));
 	};
 	private static final String STYLECLASS = "icon";
 	private static final GlyphIcons DEFAULT_GLYPH = ADJUST;

@@ -141,7 +141,7 @@ class VlcPlayer: GeneralPlayer.Play {
 
    private object PlaybackLogger: MediaPlayerEventListener {
       override fun audioDeviceChanged(mediaPlayer: MediaPlayer?, audioDevice: String?) = logger.debug { "Playback event: audioDeviceChanged to $audioDevice" }
-      override fun volumeChanged(mediaPlayer: MediaPlayer?, volume: Float) = logger.info { "Playback event: volumeChanged to $volume" }
+      override fun volumeChanged(mediaPlayer: MediaPlayer?, volume: Float) = logger.debug { "Playback event: volumeChanged to $volume" }
       override fun scrambledChanged(mediaPlayer: MediaPlayer?, newScrambled: Int) = logger.debug { "Playback event: scrambledChanged to $newScrambled" }
       override fun positionChanged(mediaPlayer: MediaPlayer?, newPosition: Float) = logger.trace { "Playback event: positionChanged to $newPosition" }
       override fun elementaryStreamSelected(mediaPlayer: MediaPlayer?, type: TrackType?, id: Int) = logger.debug { "Playback event: elementaryStreamSelected $type $id" }

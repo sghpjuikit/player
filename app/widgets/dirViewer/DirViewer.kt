@@ -141,8 +141,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
    private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone).readOnlyUnless(coverOn)
       .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
-   private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
-      onClose += { unsubscribe() }
+   private val cellTextHeight = APP.ui.font.map(onClose) { 20.0.emScaled }.apply {
       attach { applyCellSize() }
    }
 

@@ -194,8 +194,7 @@ class AppSearchPlugin: PluginBase() {
 
       private val owner = APP.plugins.getRaw<AppSearchPlugin>()?.plugin!!
       private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 50.0, 50.0)
-      private val cellTextHeight = APP.ui.font.map { 20.0.emScaled }.apply {
-         onClose += { unsubscribe() }
+      private val cellTextHeight = APP.ui.font.map(onClose) { 20.0.emScaled }.apply {
          attach { applyCellSize() }
       }
 

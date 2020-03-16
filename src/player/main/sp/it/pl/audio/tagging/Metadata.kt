@@ -714,6 +714,7 @@ class Metadata: Song, Serializable {
    }
 
    companion object: KLogging() {
+      private const val serialVersionUID: Long = 1
 
       /** Delimiter between sections of data. In this case, between tags (concatenated to single string). */
       const val SEPARATOR_GROUP: Char = 29.toChar()

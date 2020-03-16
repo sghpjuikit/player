@@ -16,6 +16,10 @@ import java.util.UUID
 class MetadatasDB: HashMap<String, Metadata>, Serializable {
    constructor(): super()
    constructor(songs: Map<String, Metadata>): super(songs)
+
+   companion object {
+      private const val serialVersionUID: Long = 1
+   }
 }
 
 class PlayerStateDB: Serializable {
@@ -30,6 +34,10 @@ class PlayerStateDB: Serializable {
    }
 
    fun toDomain() = PlayerState(this)
+
+   companion object {
+      private const val serialVersionUID: Long = 1
+   }
 }
 
 class PlaybackStateDB(s: PlaybackState): Serializable {
@@ -52,6 +60,10 @@ class PlaybackStateDB(s: PlaybackState): Serializable {
       it.mute.value = mute
       it.rate.value = rate
    }
+
+   companion object {
+      private const val serialVersionUID: Long = 1
+   }
 }
 
 class PlaylistDB: Serializable {
@@ -69,6 +81,10 @@ class PlaylistDB: Serializable {
       it += items.map { it.toDomain() }
       it.updatePlayingItem(playing)
    }
+
+   companion object {
+      private const val serialVersionUID: Long = 1
+   }
 }
 
 class PlaylistItemDB: Serializable {
@@ -85,4 +101,8 @@ class PlaylistItemDB: Serializable {
    }
 
    fun toDomain() = PlaylistSong(URI.create(uri), artist, title, length)
+
+   companion object {
+      private const val serialVersionUID: Long = 1
+   }
 }

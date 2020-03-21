@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.animation.ParallelTransition
 import javafx.event.EventHandler
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side
 import javafx.scene.Cursor
@@ -12,6 +13,8 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
@@ -40,18 +43,23 @@ import sp.it.util.conf.ValueConfig
 import sp.it.util.dev.Dsl
 import sp.it.util.functional.asIs
 import sp.it.util.functional.supplyIf
+import sp.it.util.reactive.DisposeOn
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.map
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
-import sp.it.util.ui.label
+import sp.it.util.ui.hyperlink
+import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
+import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.util.units.div
@@ -129,6 +137,43 @@ inline fun bullet(text: String, block: @Dsl BulletBuilder.() -> Unit = {}) = hBo
    }
 }
 
+fun appProgressIcon(disposer: DisposeOn): Node {
+   val pB = Icon(IconFA.CIRCLE).apply {
+      isFocusTraversable = false
+      styleclass("header-icon")
+
+      install(appTooltip("Progress & Tasks"))
+      onEventDown(MOUSE_CLICKED, PRIMARY) {
+         AppProgress.showTasks(this)
+      }
+
+      val a = anim { setScaleXY(sqrt(0.2*it)) }.dur(250.millis).applyNow()
+      AppProgress.activeTaskCount sync { a.playFromDir(it==0) } on disposer
+   }
+   val pI = appProgressIndicator().apply {
+      isFocusTraversable = false
+
+      install(appTooltip("Progress & Tasks"))
+      onEventDown(MOUSE_CLICKED, PRIMARY) {
+         AppProgress.showTasks(this)
+      }
+
+      AppProgress.progress sync { progress = it } on disposer
+   }
+   val pL = appProgressIndicatorTitle(pI).apply {
+      isFocusTraversable = false
+      AppProgress.activeTaskCount sync { if (it>0) text = "$it running tasks..." } on disposer
+   }
+
+   return hBox(0.0, CENTER_LEFT) {
+      lay += stackPane {
+         lay += pB
+         lay += pI
+      }
+      lay += pL
+   }
+}
+
 /** @return standardized progress indicator with start/finish animation and start/finish actions */
 @JvmOverloads
 fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (ProgressIndicator) -> Unit = {}) = Spinner().apply {
@@ -145,7 +190,7 @@ fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (P
 }
 
 /** @return standardized progress indicator label with start/finish animation */
-fun appProgressIndicatorTitle(progressIndicator: ProgressIndicator) = label {
+fun appProgressIndicatorTitle(progressIndicator: ProgressIndicator) = hyperlink {
    progressIndicator.scaleXProperty() syncTo scaleXProperty()
    progressIndicator.scaleYProperty() syncTo scaleYProperty()
 }

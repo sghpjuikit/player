@@ -23,15 +23,14 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.ui.objects.icon.Icon;
-import sp.it.pl.ui.objects.window.Resize;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Layout;
 import sp.it.pl.layout.container.SwitchContainer;
 import sp.it.pl.layout.container.SwitchContainerUi;
 import sp.it.pl.main.AppErrors;
-import sp.it.pl.main.AppProgress;
 import sp.it.pl.main.Df;
+import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.V;
 import sp.it.util.action.ActionManager;
 import sp.it.util.action.ActionRegistrar;
@@ -80,18 +79,17 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.ui.objects.window.Resize.NONE;
-import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.buildWindowLayout;
-import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
-import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.lookupId;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
-import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
-import static sp.it.pl.main.AppBuildersKt.appProgressIndicatorTitle;
+import static sp.it.pl.main.AppBuildersKt.appProgressIcon;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.getAnyFut;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.window.Resize.NONE;
+import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.buildWindowLayout;
+import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
+import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.lookupId;
 import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.access.Values.next;
 import static sp.it.util.access.Values.previous;
@@ -306,14 +304,12 @@ public class Window extends WindowBase {
 			+ "\n\t" + getNameUi(ALT_GRAPH) + " : Toggle layout mode"
 			+ "\n\tContent right drag : drag tabs."
 		).styleclass("header-icon");
-		Icon progB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
-			.action(i -> AppProgress.INSTANCE.showTasks(i)).tooltip("Progress & Tasks");
 		Icon errorB = new Icon(FontAwesomeIcon.WARNING, -1).styleclass("header-icon")
 			.action(() -> AppErrors.INSTANCE.showDetailForLastError())
 			.tooltip("Errors");
 		onChangeAndNow(AppErrors.INSTANCE.getHistory(), runnable(() -> errorB.setVisible(!AppErrors.INSTANCE.getHistory().isEmpty())));
 
-		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), helpB, progB, errorB);
+		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), helpB, errorB);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
@@ -340,12 +336,7 @@ public class Window extends WindowBase {
 		rightHeaderBox.getChildren().forEach(i -> i.setFocusTraversable(false));
 		initClip(rightHeaderBox, new Insets(4, 0, 4, 0));
 
-		var progI = appProgressIndicator();
-		var progL = appProgressIndicatorTitle(progI);
-		AppProgress.INSTANCE.getProgress().syncC(v -> progI.setProgress(v));
-		AppProgress.INSTANCE.getActiveTaskCount().syncC(v -> { if (v>0) progL.setText(v + " running tasks..."); });
-		leftHeaderBox.getChildren().add(progI);
-		leftHeaderBox.getChildren().add(progL);
+		leftHeaderBox.getChildren().add(appProgressIcon(onClose));
 		leftHeaderBox.getChildren().forEach(i -> i.setFocusTraversable(false));
 
 		installStartLayoutPlaceholder(this);

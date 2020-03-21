@@ -92,8 +92,7 @@ import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.onHoverOrDragEnd
-import sp.it.util.ui.onHoverOrDragStart
+import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.x
@@ -445,8 +444,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
             children setTo values.map { value ->
                label(converter(value)) {
                   val a = anim(150.millis) { setScaleXYByTo(it, 0.0, 5.0) }.intpl { it*it }
-                  onHoverOrDragStart { a.playOpen() }
-                  onHoverOrDragEnd { a.playClose() }
+                  onHoverOrDrag { a.playFromDir(it) }
                   onEventDown(MOUSE_CLICKED) { onClick(value) }
                }
             }.asSequence().insertEvery(1) { label(">") }

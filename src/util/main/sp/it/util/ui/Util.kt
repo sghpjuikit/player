@@ -37,7 +37,7 @@ import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.image.WritableImage
-import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED
+import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_EXITED
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
@@ -91,6 +91,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.units.toEM
+import sp.it.util.units.uuid
 import kotlin.math.abs
 import kotlin.math.floor
 
@@ -998,44 +999,49 @@ fun <T> TreeView<T>.scrollToCenter(item: TreeItem<T>) {
 
 /**
  * Sets an action to execute when this node is hovered or dragged with mouse.
- * More reliable than [MouseEvent.MOUSE_ENTERED]. Use in combination with [Node.onHoverOrDragEnd].
+ * More reliable than [MouseEvent.MOUSE_ENTERED]/[MouseEvent.MOUSE_EXITED], because this takes into consideration mouse drag.
  */
-fun Node.onHoverOrDragStart(onStart: () -> Unit): Subscription {
-   if (isHover) onStart()
+fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
+   val key = "isHoverOrDrag-" + uuid()
+
+   if (isHover) {
+      properties[key] = true
+      on(true)
+   }
 
    return Subscription(
       onEventUp(MOUSE_ENTERED) {
-         if ("isHoverOrDrag" !in properties)
-            onStart()
+         if (key !in properties) {
+            properties[key] = true
+            on(true)
+         }
       },
       onEventUp(DRAG_DETECTED) {
-         properties["isHoverOrDrag"] = true
-         if (!isHover)
-            onStart()
+         if (key !in properties) {
+            properties[key] = true
+            on(true)
+         }
+      },
+      onEventUp(MOUSE_EXITED) {
+         if (key in properties) {
+            properties -= key
+            on(false)
+         }
+      },
+      onEventUp(MOUSE_DRAG_EXITED) {
+         if (key in properties) {
+            properties -= key
+            on(false)
+         }
+      },
+      onEventUp(MOUSE_RELEASED) {
+         if (key in properties && !isHover) {
+            properties -= key
+            on(false)
+         }
       }
    )
 }
-
-/**
- * Sets an action to execute when hover or drag with mouse on this node ends
- * More reliable than [MouseEvent.MOUSE_EXITED]. Use in combination with [Node.onHoverOrDragStart].
- */
-fun Node.onHoverOrDragEnd(onEnd: () -> Unit): Subscription = Subscription(
-   onEventUp(MOUSE_EXITED) {
-      if ("isHoverOrDrag" !in properties)
-         onEnd()
-   },
-   onEventUp(MOUSE_DRAG_RELEASED) {
-      properties -= "isHoverOrDrag"
-      if (!isHover)
-         onEnd()
-   },
-   onEventUp(MOUSE_RELEASED) {
-      properties -= "isHoverOrDrag"
-      if (!isHover)
-         onEnd()
-   }
-)
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 

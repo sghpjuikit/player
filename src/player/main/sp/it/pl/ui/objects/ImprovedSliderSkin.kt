@@ -10,8 +10,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.Util.getFieldValue
-import sp.it.util.ui.onHoverOrDragEnd
-import sp.it.util.ui.onHoverOrDragStart
+import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
@@ -71,8 +70,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
       }
       a.playAgainIfFinished = false
 
-      skinnable.onHoverOrDragStart { a.playOpen() } on onDispose
-      skinnable.onHoverOrDragEnd { a.playClose() } on onDispose
+      skinnable.onHoverOrDrag { a.playFromDir(it) } on onDispose
       onDispose += a::stop
    }
 
@@ -92,8 +90,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
       }
       a.delay = 350.millis
 
-      skinnable.onHoverOrDragStart { a.playOpen() } on onDispose
-      skinnable.onHoverOrDragEnd { a.playClose() } on onDispose
+      skinnable.onHoverOrDrag { a.playFromDir(it) } on onDispose
       onDispose += a::stop
    }
 

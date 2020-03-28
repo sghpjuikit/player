@@ -62,6 +62,7 @@ import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.children
 import sp.it.util.file.hasExtension
+import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -253,8 +254,12 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o is PluginBase -> o.name
       o is PluginBox<*> -> o.info.name
       o is WidgetFactory<*> -> o.name
-      o::class.java.isEnum -> enumToHuman(o.toString())
-      o is File -> o.nameOrRoot
+      o is File -> {
+         val needsAbsolute = treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true
+         println("$o ${treeItem.parent?.value} $needsAbsolute")
+         if (needsAbsolute) o.absolutePath
+         else o.nameOrRoot
+      }
       o is Node -> o.id?.trim().orEmpty() + ":" + APP.className.getOf(o) + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
       o is Tooltip -> "Tooltip"
       o is PopupWindow -> "Popup"
@@ -272,6 +277,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o is Name -> o.value
       o is Feature -> o.name
       o is HierarchicalBase<*, *> -> computeText(o.value)
+      o::class.java.isEnum -> enumToHuman(o.toString())
       else -> o.toString()
    }
 

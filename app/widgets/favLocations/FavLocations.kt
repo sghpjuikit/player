@@ -9,6 +9,7 @@ import javafx.scene.input.TransferMode.COPY
 import javafx.scene.input.TransferMode.LINK
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
+import javafx.util.Callback
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.layout.widget.Widget
@@ -19,6 +20,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.tree.buildTreeCell
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut.Companion.fut
@@ -61,6 +63,7 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
       isShowRoot = false
       selectionModel.selectionMode = SINGLE
       selectionModel.selectedItemProperty() sync { selected.value = it?.value.asIf<File>() }
+      cellFactory = Callback { buildTreeCell(it) }
    }
 
    init {

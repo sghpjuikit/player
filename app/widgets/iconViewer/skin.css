@@ -1,0 +1,23 @@
+
+/*
+ * Icon grid
+ * Search control
+ * inherits: .grid-view
+ */
+.icon-grid {}
+
+/*
+ * Icon grid cell
+ * inherits: .grid-cell
+ */
+.icon-grid-cell,
+.icon-grid-cell:hover,
+.icon-grid-cell:selected {
+    -fx-background-color: null;
+}
+
+/*
+ * Icon grid cell
+ * inherits: .VBox
+ */
+.icon-grid-cell-graphics {}

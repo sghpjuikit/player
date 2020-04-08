@@ -89,66 +89,6 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
    }
 
-   @IsAction(name = "Open icon viewer", info = "Opens application icon browser. For developers.")
-   fun openIconViewer() {
-      val iconSize = 120.0
-      val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
-         search.field = StringGetter.of { value, _ -> value.name() }
-         selectOn setTo listOf(SelectionOn.MOUSE_HOVER, SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)
-         cellFactory.value = Callback {
-            object: GridCell<GlyphIcons, GlyphIcons>() {
-
-               init {
-                  styleClass += "icon-grid-cell"
-                  isPickOnBounds = true
-               }
-
-               public override fun updateItem(icon: GlyphIcons, empty: Boolean) {
-                  super.updateItem(icon, empty)
-
-                  if (empty || item==null) {
-                     graphic = null
-                  } else {
-                     val iconInfo = graphic as? IconInfo
-                        ?: IconInfo(null, iconSize).apply { isMouseTransparent = true }
-                     iconInfo.setGlyph(if (empty) null else icon)
-                     graphic = iconInfo
-                  }
-               }
-
-               override fun updateSelected(selected: Boolean) {
-                  super.updateSelected(selected)
-
-                  graphic.asIf<IconInfo>()?.select(selected)
-               }
-
-            }
-         }
-      }
-      val groupsView = listView<Class<GlyphIcons>> {
-         minPrefMaxWidth = 200.0
-         cellFactory = listViewCellFactory { group, empty ->
-            text = if (empty) null else group.simpleName
-         }
-         selectionModel.selectionMode = SINGLE
-         selectionModel.selectedItemProperty() sync {
-            iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it) }.orEmpty()
-         }
-         items setTo Icon.GLYPH_TYPES
-      }
-      val layout = hBox(20, CENTER) {
-         setPrefSize(900.0, 700.0)
-         lay += groupsView
-         lay(ALWAYS) += stackPane(iconsView)
-      }
-
-      PopWindow().apply {
-         content.value = layout
-         show(WINDOW_ACTIVE(CENTER))
-      }
-      if (!groupsView.items.isEmpty()) groupsView.selectionModel.select(0)
-   }
-
    @IsAction(name = "Open settings", info = "Opens application settings.")
    fun openSettings() {
       openSettings(null)

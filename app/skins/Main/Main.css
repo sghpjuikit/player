@@ -2139,28 +2139,6 @@ Text {
     -glyph-size: 0.91667em; /* 11 */
 }
 
-/************************************ ICON CHOOSER *********************************************************************
- * Search control
- * inherits: .text-field
- */
-
-/**
- * Cell displaying icon. Used in icon browser.
- */
-.icon-grid-cell,
-.icon-grid-cell:selected {
-    -fx-background-color: transparent;
-}
-
-/*
- * Icon-info icon showing the icon graphics
- * inherits: .icon
- */
-icon-info-icon {
-    -glyph-size: 2em; /* 24 */
-}
-
-
 /************************************ RATING ***************************************************************************
  * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
  */

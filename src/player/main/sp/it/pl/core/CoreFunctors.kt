@@ -28,6 +28,8 @@ import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Util.IS0
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.isPalindrome
@@ -124,14 +126,11 @@ object CoreFunctors: Core {
          add("Length =", S, B, { x, l -> x.length==l }, Int::class.java, 0)
          add("Is empty", S, B) { it.isEmpty() }
          add("Is palindrome", S, B) { it.isPalindrome() }
+         add("Is URI", S, B) { runTry { URI.create(it) }.isOk }
+         add("To URI", S, URI::class.java) { runTry { URI.create(it) }.orNull() }
+         add("Is base64", S, B) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.isOk }
          add("Base64 encode", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
-         add("Base64 decode", S, S) {
-            try {
-               return@add String(Base64.getDecoder().decode(it.toByteArray()))
-            } catch (e: IllegalArgumentException) {
-               return@add null
-            }
-         }
+         add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
          add("To file", S, File::class.java) { File(it) }
 
          add("Any contains", Strings::class.java, B, { obj, text, ignoreCase -> obj.anyContains(text, ignoreCase) }, S, B, "", true)

@@ -1,36 +1,38 @@
 package sp.it.pl.image
 
 import javafx.scene.image.Image
+import javafx.util.Duration
 import mu.KotlinLogging
 import sp.it.pl.image.ImageLoader.Params
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
-import sp.it.pl.main.onErrorNotify
+import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.main.withAppProgress
 import sp.it.util.async.FX
-import sp.it.util.async.IO
 import sp.it.util.async.runIO
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
+import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
 import sp.it.util.functional.orNull
+import sp.it.util.math.min
 import sp.it.util.system.Os
-import sp.it.util.system.runAsProgram
 import sp.it.util.ui.IconExtractor
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.image.loadImagePsd
+import sp.it.util.units.millis
+import sp.it.util.units.seconds
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 
 private val logger = KotlinLogging.logger {}
@@ -71,7 +73,7 @@ object ImageStandardLoader: ImageLoader {
                this(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
             } else {
                tmpDir.mkdirs()
-               getThumb(p.file.absolutePath, tmpFile.absolutePath, 0, 0, 1f)
+               extractThumb(p.file.absolutePath, tmpFile.absolutePath, 1.seconds)
                if (tmpFile.exists()) this(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
                else null
             }
@@ -119,16 +121,22 @@ object Image2PassLoader {
          }
       }
    }
-
 }
 
-// TODO handle videos shorter than specified time
-private fun getThumb(videoFilename: String, thumbFilename: String, hour: Int, min: Int, sec: Float) = run {
+private fun extractThumb(videoFilename: String, thumbFilename: String, at: Duration) = run {
    val ffmpeg = ffmpeg.getDone().toTry().orNull() ?: fail { "ffmpeg not available" }
-   val args = arrayOf("-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss", "$hour:$min:$sec", "-f", "mjpeg", "-an", "\"$thumbFilename\"")
-   ffmpeg.runAsProgram(*args).then(IO) { it.waitFor(5, TimeUnit.SECONDS) }
-      .onErrorNotify { AppError("Failed to extract video cover of $videoFilename", "Reason: ${it.stacktraceAsString}") }
-      .getDone()
+   val ffprobe = ffprobe.getDone().toTry().orNull() ?: fail { "ffprobe not available" }
+
+   val durArgs = arrayOf("-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", "\"$videoFilename\"")
+   val durMax = ffprobe.runAsAppProgram("Obtaining video length", *durArgs).getDone().toTry().orThrow.toDouble().seconds
+      .takeIf { it.toMillis()>0 } ?: Double.MAX_VALUE.millis
+   val atClipped = at min durMax
+   val args = arrayOf(
+      "-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss",
+      "${atClipped.toHours().toInt()}:${atClipped.toMinutes().toInt()}:${atClipped.toSeconds().toInt()}",
+      "-f", "mjpeg", "-an", "\"$thumbFilename\""
+   )
+   ffmpeg.runAsAppProgram("Extracting video cover of $videoFilename", *args).getDone()
 }
 
 private val ffmpeg by lazy {
@@ -175,4 +183,7 @@ private val ffmpeg by lazy {
          )
       }
    }
+}
+private val ffprobe by lazy {
+   ffmpeg.then { it.parentDirOrRoot/"ffprobe" }
 }

@@ -17,6 +17,7 @@ import sp.it.util.functional.Functors.PF1;
 import sp.it.util.functional.Functors.PF2;
 import sp.it.util.functional.Functors.PF3;
 import sp.it.util.functional.Functors.Parameter;
+import sp.it.util.type.VType;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static kotlin.sequences.SequencesKt.toList;
 import static sp.it.util.functional.Util.IDENTITY;
@@ -39,70 +40,79 @@ public class FunctorPool {
 	}
 
 	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def) {
-		add(name,i,o,f,new Parameter<>(p1, p1def));
+		add(name,i,o,new Parameter<>(new VType<>(p1, true), p1def),f);
 	}
 
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Parameter<P1> p1) {
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, F2<I,P1,O> f) {
 		addF(new PF1<>(name,i,o,f,p1));
 	}
 
 	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
-		add(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def));
+		add(name,i,o,new Parameter<>(new VType<>(p1, true), p1def),new Parameter<>(new VType<>(p2, true), p2def),f);
 	}
 
-	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
+	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, F3<I,P1,P2,O> f) {
 		addF(new PF2<>(name,i,o,f,p1,p2));
 	}
 
 	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
-		add(name,i,o,f,new Parameter<>(p1, p1def),new Parameter<>(p2, p2def),new Parameter<>(p3, p3def));
+		add(name,i,o,new Parameter<>(new VType<>(p1, true), p1def),new Parameter<>(new VType<>(p2, true), p2def),new Parameter<>(new VType<>(p3, true), p3def),f);
 	}
 
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, F4<I,P1,P2,P3,O> f) {
 		addF(new PF3<>(name,i,o,f,p1,p2,p3));
 	}
 
-	public <I,O> void add(String name, Class<I> i , Class<O> o, F1<I,O> f, boolean pi, boolean po, boolean pio) {
+	public <I,O> void add(String name, Class<I> i , Class<O> o, boolean pi, boolean po, boolean pio, F1<I,O> f) {
 		addF(new PF0<>(name,i,o,f),pi,po,pio);
 	}
 
 	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
-		addF(new PF1<>(name,i,o,f,new Parameter<>(p1,p1def)),pi,po,pio);
+		addF(new PF1<>(name,i,o,f,new Parameter<>(new VType<>(p1, true),p1def)),pi,po,pio);
+	}
+
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, boolean pi, boolean po, boolean pio, F2<I,P1,O> f) {
+		addF(new PF1<>(name,i,o,f,p1),pi,po,pio);
 	}
 
 	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
-		addF(new PF2<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def)),pi,po,pio);
+		addF(new PF2<>(name,i,o,f,new Parameter<>(new VType<>(p1, true),p1def),new Parameter<>(new VType<>(p2, true),p2def)),pi,po,pio);
+	}
+
+	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, boolean pi, boolean po, boolean pio, F3<I,P1,P2,O> f) {
+		addF(new PF2<>(name,i,o,f,p1, p2),pi,po,pio);
 	}
 
 	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
-		addF(new PF3<>(name,i,o,f,new Parameter<>(p1,p1def),new Parameter<>(p2,p2def),new Parameter<>(p3,p3def)),pi,po,pio);
+		addF(new PF3<>(name,i,o,f,new Parameter<>(new VType<>(p1, true),p1def),new Parameter<>(new VType<>(p2, true),p2def),new Parameter<>(new VType<>(p3, true),p3def)),pi,po,pio);
 	}
 
-	public <C extends Comparable<? super C>> void addPredicatesComparable(Class<C> c, C def_val) {
-		add("Is less",     c,Boolean.class, (x,y) -> x.compareTo(y)<0,  c,def_val);
-		add("Is",          c,Boolean.class, (x,y) -> x.compareTo(y)==0, c,def_val);
-		add("Is more",     c,Boolean.class, (x,y) -> x.compareTo(y)>0,  c,def_val);
-		// add("Is not less", c,Boolean.class, (x,y) -> x.compareTo(y)>=0, c,def_val);
-		// add("Is not",      c,Boolean.class, (x,y) -> x.compareTo(y)!=0, c,def_val);
-		// add("Is not more", c,Boolean.class, (x,y) -> x.compareTo(y)<=0, c,def_val);
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, boolean pi, boolean po, boolean pio, F4<I,P1,P2,P3,O> f) {
+		addF(new PF3<>(name,i,o,f,p1, p2, p3),pi,po,pio);
+	}
+
+	public <C extends Comparable<? super C>> void addPredicatesComparable(Class<C> c, C defaultValue) {
+		add("< Less", c, Boolean.class, new Parameter<>(new VType<>(c, false), defaultValue), (x,y) -> x.compareTo(y)<0);
+		add("= Is",   c, Boolean.class, new Parameter<>(new VType<>(c, false), defaultValue), (x,y) -> x.compareTo(y)==0);
+		add("> More", c, Boolean.class, new Parameter<>(new VType<>(c, false), defaultValue), (x,y) -> x.compareTo(y)>0);
 	}
 
 	/** Add function to the pool. */
-	public void addF(PF f) {
+	public void addF(PF<?,?> f) {
 		fsI.accumulate(f);
 		fsO.accumulate(f);
 		fsIO.accumulate(f);
 	}
 
 	/** Add function to the pool and sets as preferred according to parameters. */
-	public void addF(PF f, boolean i, boolean o, boolean io) {
+	public void addF(PF<?,?> f, boolean i, boolean o, boolean io) {
 		fsI.accumulate(f, i);
 		fsO.accumulate(f, o);
 		fsIO.accumulate(f, io);
 	}
 
 	/** Remove function from the pool. */
-	public void remF(PF f) {
+	public void remF(PF<?,?> f) {
 		fsI.deAccumulate(f);
 		fsO.deAccumulate(f);
 		fsIO.deAccumulate(f);
@@ -118,7 +128,7 @@ public class FunctorPool {
 
 		// add enum is predicates
 		if (isEnum(c))
-			add("Is", c,Boolean.class, (a,b) -> a==b, c, (T) getEnumConstants(c)[0], false,false,true);
+			add("Is", c, Boolean.class, (a,b) -> a==b, c, (T) getEnumConstants(c)[0], false,false,true);
 	}
 
 	/** Returns all functions taking input I. */

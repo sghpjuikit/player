@@ -3,6 +3,7 @@ package sp.it.pl.core
 import javafx.util.Duration
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
+import sp.it.pl.main.toUi
 import sp.it.util.Util.StringDirection
 import sp.it.util.Util.StringDirection.FROM_START
 import sp.it.util.Util.addText
@@ -19,6 +20,7 @@ import sp.it.util.Util.replaceAllRegex
 import sp.it.util.Util.retainChars
 import sp.it.util.Util.split
 import sp.it.util.Util.splitJoin
+import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.nameOrRoot
@@ -27,12 +29,14 @@ import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
+import sp.it.util.functional.Functors.Parameter
 import sp.it.util.functional.Util.IS0
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.isPalindrome
+import sp.it.util.type.type
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
@@ -54,28 +58,34 @@ object CoreFunctors: Core {
    @Suppress("LocalVariableName", "UNUSED_ANONYMOUS_PARAMETER")
    override fun init() {
       pool.apply {
-         /*
-          * (1) Negated predicates are disabled, user interface should provide negation ability
-          * or simply generate all the negations when needed (and reuse functors while at it).
-          *
-          * (2) Adding identity function here is impossible as its type is erased to Object -> Object
-          * and we need its proper type X -> X (otherwise it erases type in function chains). Single
-          * instance per class is required for Identity function.
-          * Unfortunately:
-          *     - we cant put it to functor pool, as we do not know which classes will need it
-          *     - we cant put it to functor pool on requests, as the returned functors for class X
-          *       return functors for X and all superclasses of X, which causes IDENTITY function
-          *       to be inserted multiple times, even worse, only one of them has proper signature!
-          *     - hence we cant even return Set to prevent duplicates, as the order of class iteration
-          *       is undefined. In addition, functors are actually wrapped.
-          * Solution is to insert the proper IDENTITY functor into results, after they were
-          * collected. This guarantees single instance and correct signature. The downside is that
-          * the functor pool does not contain IDENTITY functor at all, meaning the pool must never
-          * be accessed directly. Additionally, question arises, whether IDENTITY functor should be
-          * inserted when no functors are returned.
-          *
-          * add("As self",      Object.class, Object.class, IDENTITY, true, true, true);
-          */
+         // Negated predicates are disabled, user interface should provide negation ability
+         // or simply generate all the negations when needed (and reuse functors while at it).
+
+         // Adding identity function here is impossible as its type is erased to Object -> Object
+         // and we need its proper type X -> X (otherwise it erases type in function chains). Single
+         // instance per class is required for Identity function.
+         // Unfortunately:
+         //     - we cant put it to functor pool, as we do not know which classes will need it
+         //     - we cant put it to functor pool on requests, as the returned functors for class X
+         //       return functors for X and all superclasses of X, which causes IDENTITY function
+         //       to be inserted multiple times, even worse, only one of them has proper signature!
+         //     - hence we cant even return Set to prevent duplicates, as the order of class iteration
+         //       is undefined. In addition, functors are actually wrapped.
+         // Solution is to insert the proper IDENTITY functor into results, after they were
+         // collected. This guarantees single instance and correct signature. The downside is that
+         // the functor pool does not contain IDENTITY functor at all, meaning the pool must never
+         // be accessed directly. Additionally, question arises, whether IDENTITY functor should be
+         // inserted when no functors are returned.
+         //
+         // add("As self", Object.class, Object.class, true, true, true, IDENTITY)
+
+         // symbols can be found at https://www.alt-codes.net/math-symbols-list
+
+         // assumption guarantees
+         // We are making some assumptions by not declaring and letting compiler infer the reified type parameters
+         failIf(p(StringSplitParser.singular()).type==type<StringSplitParser>())
+         failIf(p(Pattern.compile("")).type==type<Pattern>())
+         failIf(p(0).type!=type<Int>())
 
          val B = Boolean::class.java
          val S = String::class.java
@@ -88,52 +98,52 @@ object CoreFunctors: Core {
          add("Is true", B, B) { it }
          add("Is false", B, B) { !it }
          add("Negate", B, B) { b -> !b }
-         add("And", B, B, { a, b -> java.lang.Boolean.logicalAnd(a, b) }, B, true)
-         add("Or", B, B, { a, b -> java.lang.Boolean.logicalOr(a, b) }, B, true)
-         add("Xor", B, B, { a, b -> java.lang.Boolean.logicalXor(a, b) }, B, true)
+         add("And", B, B, p(true)) { it, b -> java.lang.Boolean.logicalAnd(it, b) }
+         add("Or", B, B, p(true)) { it, b -> java.lang.Boolean.logicalOr(it, b) }
+         add("Xor", B, B, p(true)) { it, b -> java.lang.Boolean.logicalXor(it, b) }
 
-         add("'_' -> ' '", S, S) { it.replace("_", " ") }
-         add("-> file name", S, S) { filenamizeString(it) }
+         add("'_' → ' '", S, S) { it.replace("_", " ") }
+         add("→ file name", S, S) { filenamizeString(it) }
          add("Anime", S, S) { renameAnime(it) }
          add("To upper case", S, S) { it.toUpperCase() }
          add("To lower case", S, S) { it.toLowerCase() }
          add("Plural", S, S) { English.plural(it) }
-         add("Replace 1st (regex)", S, S, { s, regex, n -> replace1st(s, regex, n) }, Pattern::class.java, S, Pattern.compile(""), "")
-         add("Remove 1st (regex)", S, S, { text, regex -> remove1st(text, regex) }, Pattern::class.java, Pattern.compile(""))
-         add("Replace all", S, S, { text, phrase, with -> replaceAll(text, phrase, with) }, S, S, "", "")
-         add("Replace all (regex)", S, S, { text, regex, with -> replaceAllRegex(text, regex, with) }, Pattern::class.java, S, Pattern.compile(""), "")
-         add("Remove all", S, S, { text, phrase -> removeAll(text, phrase) }, S, "")
-         add("Remove all (regex)", S, S, { text, regex -> removeAllRegex(text, regex) }, Pattern::class.java, Pattern.compile(""))
-         add("Text", S, S, { s, r -> r }, S, "")
-         add("Re-encode", S, S, { s, c1, c2 -> String(s.toByteArray(c1), c2) }, Charset::class.java, Charset::class.java, UTF_8, UTF_8)
-         add("Add text", S, S, { text, added, from -> addText(text, added, from) }, S, StringDirection::class.java, "", FROM_START)
-         add("Remove chars", S, S, { text, amount, from -> removeChars(text, amount, from) }, Int::class.java, StringDirection::class.java, 0, FROM_START)
-         add("Retain chars", S, S, { text, amount, from -> retainChars(text, amount, from) }, Int::class.java, StringDirection::class.java, 0, FROM_START)
-         add("Trim", S, S, { it.trim() })
-         add("Split", S, StringSplitParser.SplitData::class.java, { text, splitter -> split(text, splitter) }, StringSplitParser::class.java, StringSplitParser.singular())
-         add("Split-join", S, S, { t, splitter, joiner -> splitJoin(t, splitter, joiner) }, StringSplitParser::class.java, StringSplitParser::class.java, StringSplitParser.singular(), StringSplitParser.singular())
-         add("Is", S, B, { text, phrase, ignore -> text.equals(phrase, ignore) }, S, B, "", true)
-         add("Contains", S, B, { text, phrase, ignore -> text.contains(phrase, ignore) }, S, B, "", true, false, false, true)
-         add("Ends with", S, B, { text, phrase, ignore -> text.endsWith(phrase, ignore) }, S, B, "", true)
-         add("Starts with", S, B, { text, phrase, ignore -> text.startsWith(phrase, ignore) }, S, B, "", true)
-         add("Matches regex", S, B, { text, r -> r.matcher(text).matches() }, Pattern::class.java, Pattern.compile(""))
-         add("After", S, B, { x, y -> x>y }, S, "")
-         add("Before", S, B, { x, y -> x<y }, S, "")
-         add("Char at", S, Char::class.java, { x, i, dir -> charAt(x, i, dir) }, Int::class.java, StringDirection::class.java, 0, FROM_START)
+         add("Replace 1st (regex)", S, S, p(Pattern.compile("")), p<String>("")) { it, regex, n -> replace1st(it, regex, n) }
+         add("Remove 1st (regex)", S, S, p(Pattern.compile(""))) { it, regex -> remove1st(it, regex) }
+         add("Replace all", S, S, p<String>(""), p<String>("")) { it, phrase, with -> replaceAll(it, phrase, with) }
+         add("Replace all (regex)", S, S, p(Pattern.compile("")), p<String>("")) { it, regex, with -> replaceAllRegex(it, regex, with) }
+         add("Remove all", S, S, p<String>("")) { it, phrase -> removeAll(it, phrase) }
+         add("Remove all (regex)", S, S, p(Pattern.compile(""))) { it, regex -> removeAllRegex(it, regex) }
+         add("Text", S, S, p<String>("text")) { it, text -> text }
+         add("Re-encode", S, S, p<Charset>(UTF_8), p<Charset>(UTF_8)) { it, c1, c2 -> String(it.toByteArray(c1), c2) }
+         add("Add text", S, S, p<String>(""), p<StringDirection>(FROM_START)) { it, added, from -> addText(it, added, from) }
+         add("Remove chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> removeChars(it, amount, from) }
+         add("Retain chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> retainChars(it, amount, from) }
+         add("Trim", S, S) { it.trim() }
+         add("Split", S, StringSplitParser.SplitData::class.java, p(StringSplitParser.singular())) { it, splitter -> split(it, splitter) }
+         add("Split-join", S, S, p(StringSplitParser.singular()), p(StringSplitParser.singular())) { it, splitter, joiner -> splitJoin(it, splitter, joiner) }
+         add("Is", S, B, p<String>(""), p(true)) { it, phrase, ignore -> it.equals(phrase, ignore) }
+         add("Contains", S, B, p<String>(""), p(true), false, false, true) { it, phrase, ignore -> it.contains(phrase, ignore) }
+         add("Ends with", S, B, p<String>(""), p(true)) { it, phrase, ignore -> it.endsWith(phrase, ignore) }
+         add("Starts with", S, B, p<String>(""), p(true)) { it, phrase, ignore -> it.startsWith(phrase, ignore) }
+         add("Matches regex", S, B, p(Pattern.compile(""))) { it, r -> r.matcher(it).matches() }
+         add("After", S, B, p<String>("")) { it, y -> it>y }
+         add("Before", S, B, p<String>("")) { it, y -> it<y }
+         add("Char at", S, Char::class.java, p(0), p<StringDirection>(FROM_START)) { it, i, dir -> charAt(it, i, dir) }
          add("Length", S, Int::class.java, { it.length })
-         add("Length >", S, B, { x, l -> x.length>l }, Int::class.java, 0)
-         add("Length <", S, B, { x, l -> x.length<l }, Int::class.java, 0)
-         add("Length =", S, B, { x, l -> x.length==l }, Int::class.java, 0)
+         add("Length >", S, B, p(0)) { it, l -> it.length>l }
+         add("Length <", S, B, p(0)) { it, l -> it.length<l }
+         add("Length =", S, B, p(0)) { it, l -> it.length==l }
          add("Is empty", S, B) { it.isEmpty() }
          add("Is palindrome", S, B) { it.isPalindrome() }
+         add("To file", S, File::class.java) { File(it) }
          add("Is URI", S, B) { runTry { URI.create(it) }.isOk }
          add("To URI", S, URI::class.java) { runTry { URI.create(it) }.orNull() }
          add("Is base64", S, B) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.isOk }
          add("Base64 encode", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
          add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
-         add("To file", S, File::class.java) { File(it) }
 
-         add("Any contains", Strings::class.java, B, { obj, text, ignoreCase -> obj.anyContains(text, ignoreCase) }, S, B, "", true)
+         add("Any contains", Strings::class.java, B, p<String>(""), p(true)) { obj, text, ignoreCase -> obj.anyContains(text, ignoreCase) }
          add("Is empty", Strings::class.java, B) { it.isEmpty() }
          add("Elements", Strings::class.java, Int::class.java) { it.size() }
 
@@ -141,7 +151,7 @@ object CoreFunctors: Core {
 
          add("Path", File::class.java, String::class.java) { it.absolutePath }
          add("Size", File::class.java, FileSize::class.java) { FileSize(it) }
-         add("Name", File::class.java, String::class.java, { it.nameWithoutExtensionOrRoot }, true, true, true)
+         add("Name", File::class.java, String::class.java, true, true, true, { it.nameWithoutExtensionOrRoot })
          add("Name.Suffix", File::class.java, String::class.java) { it.nameOrRoot }
          add("Suffix", File::class.java, String::class.java) { it.extension }
          add("MimeType", File::class.java, MimeType::class.java) { it.mimeType() }
@@ -153,54 +163,55 @@ object CoreFunctors: Core {
 
          add("Group", MimeType::class.java, S) { it.group }
          add("Extensions", MimeType::class.java, S) { it.extensions.joinToString(", ") }
+         add("Has extension", MimeType::class.java, B, p<String>("")) { it, ext -> it.hasExtension(ext) }
 
          add("Is", MimeExt::class.java, B, { x, y -> x==y }, MimeExt::class.java, MimeExt("mp3"))
 
-         add("Less", Bitrate::class.java, B, { x, y -> x<y }, Bitrate::class.java, Bitrate(320))
-         add("Is", Bitrate::class.java, B, { x, y -> x.compareTo(y)==0 }, Bitrate::class.java, Bitrate(320))
-         add("More", Bitrate::class.java, B, { x, y -> x>y }, Bitrate::class.java, Bitrate(320))
-         add("Is good", Bitrate::class.java, B) { (value) -> value>=320 }
-         add("Is bad", Bitrate::class.java, B) { (value) -> value<=128 }
-         add("Is variable", Bitrate::class.java, B) { x -> x.isVariable() }
-         add("Is constant", Bitrate::class.java, B) { x -> x.isConstant() }
-         add("Is known", Bitrate::class.java, B) { x -> !x.isUnknown() }
+         add("Less", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it<y }
+         add("Is", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it==y }
+         add("More", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it>y }
+         add("Is good (≥${Bitrate(320).toUi()})", Bitrate::class.java, B) { it.value>=320 }
+         add("Is bad (≤${Bitrate(128).toUi()})", Bitrate::class.java, B) { it.value<=128 }
+         add("Is variable", Bitrate::class.java, B) { it.isVariable() }
+         add("Is constant", Bitrate::class.java, B) { it.isConstant() }
+         add("Is known", Bitrate::class.java, B) { !it.isUnknown() }
 
-         add("Less", Duration::class.java, B, { x, y -> x<y }, Duration::class.java, Duration(0.0))
-         add("Is", Duration::class.java, B, { x, y -> x.compareTo(y)==0 }, Duration::class.java, Duration(0.0))
-         add("More", Duration::class.java, B, { x, y -> x>y }, Duration::class.java, Duration(0.0), false, false, true)
+         add("< Less", Duration::class.java, B, p(Duration(0.0))) { it, y -> it<y }
+         add("= Is", Duration::class.java, B, p(Duration(0.0))) { it, y -> it==y }
+         add("> More", Duration::class.java, B, p(Duration(0.0)), false, false, true) { it, y -> it>y }
 
-         add("<  Less", NofX::class.java, B, { x, y -> x<y }, NofX::class.java, NofX(1, 1))
-         add("=  Is", NofX::class.java, B, { x, y -> x.compareTo(y)==0 }, NofX::class.java, NofX(1, 1))
-         add(">  More", NofX::class.java, B, { x, y -> x>y }, NofX::class.java, NofX(1, 1), false, false, true)
-         add(">= Not less", NofX::class.java, B, { x, y -> x>=y }, NofX::class.java, NofX(1, 1))
-         add("<> Is not", NofX::class.java, B, { x, y -> x.compareTo(y)!=0 }, NofX::class.java, NofX(1, 1))
-         add("<= Not more", NofX::class.java, B, { x, y -> x<=y }, NofX::class.java, NofX(1, 1))
+         add("< Less", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it<y }
+         add("= Is", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it.compareTo(y)==0 }
+         add("> More", NofX::class.java, B, p(NofX(1, 1)), false, false, true) { it, y -> it>y }
+         add("≥ Not less", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it>=y }
+         add("≤ Not more", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it<=y }
 
-         add("<  Less", FileSize::class.java, B, { x, y -> x<y }, FileSize::class.java, FileSize(0), false, false, true)
-         add("=  Is", FileSize::class.java, B, { x, y -> x.compareTo(y)==0 }, FileSize::class.java, FileSize(0))
-         add(">  More", FileSize::class.java, B, { x, y -> x>y }, FileSize::class.java, FileSize(0))
+         add("< Less", FileSize::class.java, B, p(FileSize(0)), false, false, true) { it, y -> it<y }
+         add("= Is", FileSize::class.java, B, p(FileSize(0))) { it, y -> it.compareTo(y)==0 }
+         add("≅ Is approximately", FileSize::class.java, B, p(FileSize(FileSize.Mi))) { it, y -> it.inBytes().let { y.inBytes()/16<=it && it<=y.inBytes()*16 } }
+         add("> More", FileSize::class.java, B, p(FileSize(0))) { it, y -> it>y }
          add("Is unknown", FileSize::class.java, B) { it.isUnknown() }
          add("Is known", FileSize::class.java, B) { it.isKnown() }
          add("In bytes", FileSize::class.java, Long::class.java) { it.inBytes() }
 
-         add("Is after", Year::class.java, B, { x, y -> x>y }, Year::class.java, Year.now())
-         add("Is", Year::class.java, B, { x, y -> x.compareTo(y)==0 }, Year::class.java, Year.now())
-         add("Is before", Year::class.java, B, { x, y -> x<y }, Year::class.java, Year.now())
-         add("Is in the future", Year::class.java, B) { x -> x>Year.now() }
-         add("Is now", Year::class.java, B) { x -> x.compareTo(Year.now())==0 }
-         add("Is in the past", Year::class.java, B) { x -> x<Year.now() }
+         add("Is after", Year::class.java, B, p(Year.now())) { it, y -> it>y }
+         add("Is", Year::class.java, B, p(Year.now())) { it, y -> it.compareTo(y)==0 }
+         add("Is before", Year::class.java, B, p(Year.now())) { it, y -> it<y }
+         add("Is in the future", Year::class.java, B) { it>Year.now() }
+         add("Is now", Year::class.java, B) { it.compareTo(Year.now())==0 }
+         add("Is in the past", Year::class.java, B) { it<Year.now() }
          add("Is leap", Year::class.java, B, { it.isLeap })
 
-         add("Contains year", RangeYear::class.java, B, { obj, y -> obj.contains(y) }, Year::class.java, Year.now())
-         add("Is after", RangeYear::class.java, B, { obj, y -> obj.isAfter(y) }, Year::class.java, Year.now())
-         add("Is before", RangeYear::class.java, B, { obj, y -> obj.isBefore(y) }, Year::class.java, Year.now())
-         add("Is in the future", RangeYear::class.java, B) { x -> x.contains(Year.now()) }
-         add("Is now", RangeYear::class.java, B) { x -> x.isAfter(Year.now()) }
-         add("Is in the past", RangeYear::class.java, B) { x -> x.isBefore(Year.now()) }
+         add("Contains year", RangeYear::class.java, B, p(Year.now())) { it, y -> it.contains(y) }
+         add("Is after", RangeYear::class.java, B, p(Year.now())) { it, y -> it.isAfter(y) }
+         add("Is before", RangeYear::class.java, B, p(Year.now())) { it, y -> it.isBefore(y) }
+         add("Is in the future", RangeYear::class.java, B) { it.contains(Year.now()) }
+         add("Is now", RangeYear::class.java, B) { it.isAfter(Year.now()) }
+         add("Is in the past", RangeYear::class.java, B) { it.isBefore(Year.now()) }
 
-         add("After", LocalDateTime::class.java, B, { obj, other -> obj.isAfter(other) }, LocalDateTime::class.java, LocalDateTime.now())
-         add("Before", LocalDateTime::class.java, B, { obj, other -> obj.isBefore(other) }, LocalDateTime::class.java, LocalDateTime.now())
-         add("Is", LocalDateTime::class.java, B, { obj, other -> obj.isEqual(other) }, LocalDateTime::class.java, LocalDateTime.now())
+         add("After", LocalDateTime::class.java, B, p(LocalDateTime.now())) { it, other -> it.isAfter(other) }
+         add("Before", LocalDateTime::class.java, B, p(LocalDateTime.now())) { it, other -> it.isBefore(other) }
+         add("Is", LocalDateTime::class.java, B, p(LocalDateTime.now())) { it, other -> it.isEqual(other) }
 
          add("File", Song::class.java, File::class.java) { it.getFile() }
          add("URI", Song::class.java, URI::class.java) { it.uri }
@@ -213,4 +224,5 @@ object CoreFunctors: Core {
       }
    }
 
+   private inline fun <reified TYPE> p(defaultValue: TYPE): Parameter<TYPE> = Parameter(type<TYPE>(), defaultValue)
 }

@@ -23,6 +23,8 @@ class MimeType(val name: String, vararg extensions: String) {
 
    fun getMimeType() = name
 
+   fun hasExtension(extension: String) = extension in extensions
+
    fun isOfType(extension: String): Boolean = extension in extensions
 
    override fun toString() = name

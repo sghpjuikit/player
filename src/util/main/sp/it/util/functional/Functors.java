@@ -17,6 +17,7 @@ import kotlin.jvm.functions.Function4;
 import kotlin.jvm.functions.Function5;
 import kotlin.jvm.functions.Function6;
 import sp.it.util.dev.SwitchException;
+import sp.it.util.type.VType;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IDENTITY;
 import static sp.it.util.functional.Util.IS;
@@ -534,18 +535,18 @@ public interface Functors {
 	}
 
 	class Parameter<P> {
-		public final Class<P> type; // TODO: use VType<P>
+		public final VType<P> type;
 		public final P defaultValue;
 		public final String name;
 		public final String description;
 
-		public Parameter(Class<P> type, P defaultValue) {
+		public Parameter(VType<P> type, P defaultValue) {
 			this("", "", type, defaultValue);
 			noNull(type);
 			noNull(defaultValue);
 		}
 
-		public Parameter(String name, String description, Class<P> type, P defaultValue) {
+		public Parameter(String name, String description, VType<P> type, P defaultValue) {
 			this.name = name.isEmpty() ? "<value>" : name;
 			this.description = description.isEmpty() ? this.name : description;
 			this.type = type;
@@ -554,10 +555,6 @@ public interface Functors {
 			noNull(description);
 			noNull(type);
 			noNull(defaultValue);
-		}
-
-		public static <P> Parameter<P> p(String name, String description, Class<P> type, P defaultValue) {
-			return new Parameter<>(name, description, type, defaultValue);
 		}
 	}
 

@@ -91,7 +91,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
 
       private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
          val a = vx(defaultValue).apply { attach { onChange(it) } }
-         return AccessConfig(VType(type, false), name, description, { a.value = it }, { a.value })
+         return AccessConfig(type, name, description, { a.value = it }, { a.value })
       }
 
    }

@@ -30,7 +30,7 @@ object MimeTypes {
    }
 
    fun register(mimeType: MimeType) {
-      types.put(mimeType.name, mimeType)
+      types[mimeType.name] = mimeType
       mimeType.extensions.forEach { extensions[it] = mimeType }
    }
 

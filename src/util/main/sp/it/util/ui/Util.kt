@@ -349,9 +349,9 @@ inline fun <T> listView(block: ListView<T>.() -> Unit = {}) = ListView<T>().appl
 inline fun <T> tableView(block: TableView<T>.() -> Unit = {}) = TableView<T>().apply(block)
 inline fun <T> treeView(block: TreeView<T>.() -> Unit = {}) = TreeView<T>().apply(block)
 inline fun <T> treeTableView(block: TreeTableView<T>.() -> Unit = {}) = TreeTableView<T>().apply(block)
-fun <T> listViewCellFactory(cellFactory: ListCell<T>.(T, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
+fun <T> listViewCellFactory(cellFactory: ListCell<T>.(T?, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {
    object: ListCell<T>() {
-      override fun updateItem(item: T, empty: Boolean) {
+      override fun updateItem(item: T?, empty: Boolean) {
          super.updateItem(item, empty)
          cellFactory(item, empty)
       }

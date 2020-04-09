@@ -4,6 +4,7 @@ import javafx.util.Duration
 import sp.it.util.functional.Try
 import sp.it.util.text.Strings
 import java.util.Objects
+import kotlin.math.floor
 
 /** Chapter is a text associated with specific point of time in a song. */
 class Chapter: Comparable<Chapter> {
@@ -47,13 +48,13 @@ class Chapter: Comparable<Chapter> {
          }
       }
 
-      private fun Double.computeTimeFromMs() = Duration(Math.rint(this)) // round to decimal number before assigning
+      private fun Double.computeTimeFromMs() = Duration(floor(this))
 
       @JvmStatic fun validateChapterText(text: String): Try<String, String> = when {
-         text.contains(Metadata.SEPARATOR_CHAPTER) -> Try.error("Must not contain '${Metadata.SEPARATOR_CHAPTER}'")
-         text.contains(Metadata.SEPARATOR_GROUP) -> Try.error("Must not contain '${Metadata.SEPARATOR_GROUP}'")
-         text.contains(Metadata.SEPARATOR_RECORD) -> Try.error("Must not contain '${Metadata.SEPARATOR_RECORD}'")
-         text.contains(Metadata.SEPARATOR_UNIT) -> Try.error("Must not contain '${Metadata.SEPARATOR_UNIT}'")
+         Metadata.SEPARATOR_CHAPTER in text -> Try.error("Must not contain '${Metadata.SEPARATOR_CHAPTER}'")
+         Metadata.SEPARATOR_GROUP in text -> Try.error("Must not contain '${Metadata.SEPARATOR_GROUP}'")
+         Metadata.SEPARATOR_RECORD in text -> Try.error("Must not contain '${Metadata.SEPARATOR_RECORD}'")
+         Metadata.SEPARATOR_UNIT in text -> Try.error("Must not contain '${Metadata.SEPARATOR_UNIT}'")
          else -> Try.ok(text)
       }
 

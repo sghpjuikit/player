@@ -52,6 +52,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
+import sp.it.util.text.toChar32
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
 import sp.it.util.ui.hyperlink
@@ -213,8 +214,10 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 }
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
+   fun Any?.stringUnwrap(): Any? = if (this is String && length==1) codePointAt(0).toChar32() else this
    fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeArg.STAR })
-   val d = collectionUnwrap(it)
+
+   val d = collectionUnwrap(it).stringUnwrap()
    val dName = APP.instanceName[d]
    val dClass = when (d) {
       null -> Nothing::class

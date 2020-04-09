@@ -1,5 +1,6 @@
 package sp.it.pl.main
 
+typealias IconUN = sp.it.pl.ui.objects.icon.UnicodeIcon
 typealias IconFA = de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 typealias IconMD = de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon
 typealias IconMA = de.jensd.fx.glyphs.materialicons.MaterialIcon

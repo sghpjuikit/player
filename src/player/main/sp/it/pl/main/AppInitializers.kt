@@ -28,6 +28,8 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncTo
+import sp.it.util.text.Char16
+import sp.it.util.text.Char32
 import sp.it.util.text.pluralUnit
 import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
@@ -92,6 +94,8 @@ fun InstanceName.initApp() {
    add(Void::class) { "<none>" }
    add(Nothing::class) { "<none>" }
    add(Any::class) { "object" }
+   add(Char16::class) { "Character" }
+   add(Char32::class) { "Character" }
    add(File::class) { it.path }
    add(App::class) { "This application" }
    add(Song::class) { it.getPathAsString() }
@@ -121,6 +125,21 @@ fun InstanceName.initApp() {
 }
 
 fun InstanceDescription.initApp() {
+   Char::class describe {
+      "Bin" info "0b" + Integer.toBinaryString(it.toInt())
+      "Oct" info "0" + Integer.toOctalString(it.toInt())
+      "Dec" info it.toInt().toUi()
+      "Hex" info "0x" + Integer.toHexString(it.toInt())
+      "Unicode" info "U+" + Integer.toHexString(it.toInt()).padStart(4, '0')
+      "Escape sequence" info "\\u" + Integer.toHexString(it.toInt()).padStart(4, '0')
+   }
+   Char32::class describe {
+      "Bin" info "0b" + Integer.toBinaryString(it.toInt())
+      "Oct" info "0" + Integer.toOctalString(it.toInt())
+      "Dec" info it.toInt().toUi()
+      "Hex" info "0x" + Integer.toHexString(it.toInt())
+      "Unicode" info "\\u" + Integer.toHexString(it.toInt()).padStart(4, '0')
+   }
    String::class describe {
       "Length" info it.length.toUi()
       "Lines" info it.lineSequence().count().toUi()

@@ -1,6 +1,7 @@
 package sp.it.util.functional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -16,6 +17,7 @@ import kotlin.jvm.functions.Function3;
 import kotlin.jvm.functions.Function4;
 import kotlin.jvm.functions.Function5;
 import kotlin.jvm.functions.Function6;
+import sp.it.util.conf.Constraint;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.type.VType;
 import static sp.it.util.dev.FailKt.noNull;
@@ -539,22 +541,25 @@ public interface Functors {
 		public final P defaultValue;
 		public final String name;
 		public final String description;
+		public final Set<Constraint<P>> constraints;
 
 		public Parameter(VType<P> type, P defaultValue) {
-			this("", "", type, defaultValue);
+			this("", "", type, defaultValue, Set.of());
 			noNull(type);
 			noNull(defaultValue);
 		}
 
-		public Parameter(String name, String description, VType<P> type, P defaultValue) {
+		public Parameter(String name, String description, VType<P> type, P defaultValue, Set<Constraint<P>> constraints) {
 			this.name = name.isEmpty() ? "<value>" : name;
 			this.description = description.isEmpty() ? this.name : description;
 			this.type = type;
 			this.defaultValue = defaultValue;
+			this.constraints = constraints;
 			noNull(type);
 			noNull(description);
 			noNull(type);
 			noNull(defaultValue);
+			noNull(constraints);
 		}
 	}
 

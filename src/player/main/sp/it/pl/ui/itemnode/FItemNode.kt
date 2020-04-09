@@ -4,12 +4,14 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ComboBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
+import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.objects.combobox.ImprovedComboBox
 import sp.it.util.access.vx
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
+import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Functors.F1
@@ -19,6 +21,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.type.VType
 import sp.it.util.ui.hBox
+import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import java.util.ArrayList
 import java.util.function.Supplier
@@ -47,7 +50,10 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
          editors.clear()
          paramB.children.clear()
          function.parameters.forEachIndexed { i, p ->
-            val editor = p.toConfig { generateValue() }.createEditor()
+            val editor = p.toConfig { generateValue() }.createEditor().apply {
+               if (p.description.isNotBlank())
+                  editor install appTooltip(p.description)
+            }
             editors += editor
             paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
          }
@@ -91,7 +97,7 @@ class FItemNode<I, O>(functionPool: Supplier<PrefList<PF<in I, out O>>>): ValueN
 
       private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
          val a = vx(defaultValue).apply { attach { onChange(it) } }
-         return AccessConfig(type, name, description, { a.value = it }, { a.value })
+         return AccessConfig(type, name, name, { a.value = it }, { a.value }, "", description, EditMode.USER).addConstraints(constraints)
       }
 
    }

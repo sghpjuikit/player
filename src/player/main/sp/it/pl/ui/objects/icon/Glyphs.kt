@@ -84,10 +84,10 @@ data class UnicodeIcon(val codePoint: Int): GlyphIcons {
       failIf(codePoint !in 0..0x10FFFF) { "$codePoint is not unicode code point" }
    }
 
-   override fun characterToString() = char.toString()
+   override fun characterToString() = String(IntArray(1) { codePoint }, 0, 1)
    override fun getChar() = codePoint.toChar()
-   override fun unicodeToString() = String.format("\\u%04x", char.toInt())
-   override fun name() = "0x" + Integer.toHexString(codePoint)
+   override fun unicodeToString() = String.format("\\u%04x", codePoint)
+   override fun name() = unicodeToString()
    override fun getFontFamily() = Font.getDefault().family.orEmpty()
 
    companion object {

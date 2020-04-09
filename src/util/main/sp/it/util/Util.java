@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import sp.it.util.text.Char32;
 import sp.it.util.text.StringSplitParser;
 import sp.it.util.text.StringSplitParser.Split;
 import sp.it.util.text.StringSplitParser.SplitData;
@@ -155,8 +156,8 @@ public interface Util {
 		return o.toString();
 	}
 
-	static Character charAt(String x, int i, StringDirection dir) {
-		return i<0 || i>=x.length() ? null : x.charAt(dir==FROM_START ? i : x.length() - 1 - i);
+	static Char32 charAt(String x, int i, StringDirection dir) {
+		return i<0 || i>=x.length() ? null : new Char32(x.codePointAt(dir==FROM_START ? i : x.length() - 1 - i));
 	}
 
 	/**

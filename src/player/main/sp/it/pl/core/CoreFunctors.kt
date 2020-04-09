@@ -20,6 +20,7 @@ import sp.it.util.Util.replaceAllRegex
 import sp.it.util.Util.retainChars
 import sp.it.util.Util.split
 import sp.it.util.Util.splitJoin
+import sp.it.util.conf.Constraint
 import sp.it.util.dev.failIf
 import sp.it.util.file.FileType
 import sp.it.util.file.WindowsShortcut
@@ -33,6 +34,8 @@ import sp.it.util.functional.Functors.Parameter
 import sp.it.util.functional.Util.IS0
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.text.Char16
+import sp.it.util.text.Char32
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.isPalindrome
@@ -88,8 +91,13 @@ object CoreFunctors: Core {
          failIf(p(Pattern.compile("")).type!=type<Pattern>())
          failIf(p(0).type!=type<Int>())
 
+         // type aliases
          val B = Boolean::class.java
          val S = String::class.java
+
+         // parameters
+         val pNoCase = p("Ignore case", "Ignore case", true)
+         val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
 
          add("Is null", Any::class.java, B, IS0)
          //  add("Isn't null", Object.class, BOOL, ISNTØ);
@@ -109,12 +117,13 @@ object CoreFunctors: Core {
          add("To upper case", S, S) { it.toUpperCase() }
          add("To lower case", S, S) { it.toLowerCase() }
          add("Plural", S, S) { English.plural(it) }
-         add("Replace 1st (regex)", S, S, p(Pattern.compile("")), p<String>("")) { it, regex, n -> replace1st(it, regex, n) }
-         add("Remove 1st (regex)", S, S, p(Pattern.compile(""))) { it, regex -> remove1st(it, regex) }
+         add("Is regex", S, B) { runTry { Pattern.compile(it) }.isOk }
+         add("Replace 1st (regex)", S, S, pRegex, p<String>("")) { it, regex, n -> replace1st(it, regex, n) }
+         add("Remove 1st (regex)", S, S, pRegex) { it, regex -> remove1st(it, regex) }
          add("Replace all", S, S, p<String>(""), p<String>("")) { it, phrase, with -> replaceAll(it, phrase, with) }
-         add("Replace all (regex)", S, S, p(Pattern.compile("")), p<String>("")) { it, regex, with -> replaceAllRegex(it, regex, with) }
+         add("Replace all (regex)", S, S, pRegex, p<String>("")) { it, regex, with -> replaceAllRegex(it, regex, with) }
          add("Remove all", S, S, p<String>("")) { it, phrase -> removeAll(it, phrase) }
-         add("Remove all (regex)", S, S, p(Pattern.compile(""))) { it, regex -> removeAllRegex(it, regex) }
+         add("Remove all (regex)", S, S, pRegex) { it, regex -> removeAllRegex(it, regex) }
          add("Text", S, S, p<String>("text")) { it, text -> text }
          add("Re-encode", S, S, p<Charset>(UTF_8), p<Charset>(UTF_8)) { it, c1, c2 -> String(it.toByteArray(c1), c2) }
          add("Add text", S, S, p<String>(""), p<StringDirection>(FROM_START)) { it, added, from -> addText(it, added, from) }
@@ -123,14 +132,14 @@ object CoreFunctors: Core {
          add("Trim", S, S) { it.trim() }
          add("Split", S, StringSplitParser.SplitData::class.java, p(StringSplitParser.singular())) { it, splitter -> split(it, splitter) }
          add("Split-join", S, S, p(StringSplitParser.singular()), p(StringSplitParser.singular())) { it, splitter, joiner -> splitJoin(it, splitter, joiner) }
-         add("Is", S, B, p<String>(""), p(true)) { it, phrase, ignore -> it.equals(phrase, ignore) }
-         add("Contains", S, B, p<String>(""), p(true), false, false, true) { it, phrase, ignore -> it.contains(phrase, ignore) }
-         add("Ends with", S, B, p<String>(""), p(true)) { it, phrase, ignore -> it.endsWith(phrase, ignore) }
-         add("Starts with", S, B, p<String>(""), p(true)) { it, phrase, ignore -> it.startsWith(phrase, ignore) }
-         add("Matches regex", S, B, p(Pattern.compile(""))) { it, r -> r.matcher(it).matches() }
+         add("Is", S, B, p<String>(""), pNoCase) { it, phrase, noCase -> it.equals(phrase, noCase) }
+         add("Contains", S, B, p<String>(""), pNoCase, false, false, true) { it, phrase, noCase -> it.contains(phrase, noCase) }
+         add("Ends with", S, B, p<String>(""), pNoCase) { it, phrase, noCase -> it.endsWith(phrase, noCase) }
+         add("Starts with", S, B, p<String>(""), pNoCase) { it, phrase, noCase -> it.startsWith(phrase, noCase) }
+         add("Matches regex", S, B, pRegex) { it, r -> r.matcher(it).matches() }
          add("After", S, B, p<String>("")) { it, y -> it>y }
          add("Before", S, B, p<String>("")) { it, y -> it<y }
-         add("Char at", S, Char::class.java, p(0), p<StringDirection>(FROM_START)) { it, i, dir -> charAt(it, i, dir) }
+         add("Char at", S, Char32::class.java, p(0), p<StringDirection>(FROM_START)) { it, i, dir -> charAt(it, i, dir) }
          add("Length", S, Int::class.java, { it.length })
          add("Length >", S, B, p(0)) { it, l -> it.length>l }
          add("Length <", S, B, p(0)) { it, l -> it.length<l }
@@ -144,11 +153,12 @@ object CoreFunctors: Core {
          add("Base64 encode", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
          add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
 
-         add("Any contains", Strings::class.java, B, p<String>(""), p(true)) { obj, text, ignoreCase -> obj.anyContains(text, ignoreCase) }
+         add("Any contains", Strings::class.java, B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
          add("Is empty", Strings::class.java, B) { it.isEmpty() }
          add("Elements", Strings::class.java, Int::class.java) { it.size() }
 
-         add("to ASCII", Char::class.java, Int::class.java) { it.toInt() }
+         add("To Int", Char16::class.java, Int::class.java) { it.toInt() }
+         add("To Int", Char32::class.java, Int::class.java) { it.toInt() }
 
          add("Path", File::class.java, String::class.java) { it.absolutePath }
          add("Size", File::class.java, FileSize::class.java) { FileSize(it) }
@@ -225,5 +235,8 @@ object CoreFunctors: Core {
       }
    }
 
-   private inline fun <reified TYPE> p(defaultValue: TYPE): Parameter<TYPE> = Parameter(type<TYPE>(), defaultValue)
+   private inline fun <reified TYPE> p(defaultValue: TYPE): Parameter<TYPE> =
+      Parameter(type<TYPE>(), defaultValue)
+   private inline fun <reified TYPE> p(name: String, description: String, defaultValue: TYPE, vararg constraints: Constraint<TYPE>): Parameter<TYPE> =
+      Parameter(name, description, type<TYPE>(), defaultValue, constraints.toSet())
 }

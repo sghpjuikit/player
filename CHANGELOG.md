@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement checklist settings editor
 - Implement 0 length support for list editor
 - Implement slider fill
+- Implement Unicode character icons
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance

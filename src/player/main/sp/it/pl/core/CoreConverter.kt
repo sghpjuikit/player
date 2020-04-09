@@ -13,6 +13,8 @@ import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.icon.Glyphs
+import sp.it.pl.ui.objects.icon.id
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.Action
@@ -146,10 +148,7 @@ class CoreConverter: Core {
             Font.font(name, weight, style, size)
          }
       )
-      addT<GlyphIcons>(
-         { "${it.fontFamily}.${it.name()}" },
-         { Icon.GLYPHS[it]?.let { Try.ok(it) } ?: Try.error("No such icon=$it") }
-      )
+      addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
       addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect?>(it) })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
       addP<Functors.PF<*, *>>(

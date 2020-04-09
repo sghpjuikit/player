@@ -8,6 +8,7 @@ import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.main.emScaled
+import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.util.access.VarAction
 import sp.it.util.access.VarEnum
 import sp.it.util.collections.setTo
@@ -38,7 +39,7 @@ class IconBox(widget: Widget): SimpleController(widget), HorizontalDock {
       { Icon(BUS) },
       { icon ->
          ListConfigurable.heterogeneous(
-            Config.forProperty<GlyphIcons>("Icon", VarEnum(icon.glyph, Icon.GLYPHS).apply { attach { icon.icon(it) } }),
+            Config.forProperty<GlyphIcons>("Icon", VarEnum(icon.glyph, Glyphs.GLYPHS).apply { attach { icon.icon(it) } }),
             Config.forProperty<String>("Action", VarAction(icon.onClickAction) { icon.action(it) })
          )
       }

@@ -36,6 +36,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.isPalindrome
+import sp.it.util.type.notnull
 import sp.it.util.type.type
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
@@ -83,8 +84,8 @@ object CoreFunctors: Core {
 
          // assumption guarantees
          // We are making some assumptions by not declaring and letting compiler infer the reified type parameters
-         failIf(p(StringSplitParser.singular()).type==type<StringSplitParser>())
-         failIf(p(Pattern.compile("")).type==type<Pattern>())
+         failIf(p(StringSplitParser.singular()).type!=type<StringSplitParser>())
+         failIf(p(Pattern.compile("")).type!=type<Pattern>())
          failIf(p(0).type!=type<Int>())
 
          val B = Boolean::class.java

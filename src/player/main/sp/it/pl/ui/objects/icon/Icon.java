@@ -1,20 +1,8 @@
 package sp.it.pl.ui.objects.icon;
 
 import de.jensd.fx.glyphs.GlyphIcons;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
-import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import de.jensd.fx.glyphs.materialicons.MaterialIconView;
-import de.jensd.fx.glyphs.octicons.OctIcon;
-import de.jensd.fx.glyphs.octicons.OctIconView;
-import de.jensd.fx.glyphs.weathericons.WeatherIcon;
-import de.jensd.fx.glyphs.weathericons.WeatherIconView;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -44,20 +32,18 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.LoggerFactory;
 import sp.it.util.access.V;
 import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
-import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
+import sp.it.util.functional.TryKt;
 import sp.it.util.text.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -71,7 +57,6 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.animation.Anim.mapTo01;
 import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.type.Util.getEnumConstants;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.Util.layHeaderBottom;
 import static sp.it.util.ui.Util.layHeaderLeft;
@@ -104,39 +89,10 @@ public class Icon extends StackPane {
 	private static final Double DEFAULT_ICON_GAP = 0d;
 	private static final String DEFAULT_FONT_SIZE = "1em";
 
-	/** Collection of all glyphs types. */
-	@SuppressWarnings("unchecked")
-	public static Set<Class<GlyphIcons>> GLYPH_TYPES = (Set) Set.of(
-		FontAwesomeIcon.class,
-		WeatherIcon.class,
-		MaterialDesignIcon.class,
-		MaterialIcon.class,
-		OctIcon.class
-	);
-
-	/** Collection of all glyphs mapped to a unique names that identify them. */
-	public static final MapSet<String,GlyphIcons> GLYPHS = stream(GLYPH_TYPES)
-		.flatMap(c -> stream(getEnumConstants(c)))
-		.filter(GlyphIcons.class::isInstance).map(GlyphIcons.class::cast)
-		.collect(toCollection(() -> new MapSet<>(glyph -> glyph.getClass().getSimpleName() + "." + glyph.name())));
-
-	// load fonts
-	static {
-		try {
-			Font.loadFont(FontAwesomeIconView.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
-			Font.loadFont(WeatherIconView.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
-			Font.loadFont(MaterialDesignIconView.class.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0);
-			Font.loadFont(MaterialIconView.class.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0);
-			Font.loadFont(OctIconView.class.getResource(OctIconView.TTF_PATH).openStream(), 10.0);
-		} catch (IOException e) {
-			LoggerFactory.getLogger(Icon.class).error("Could not load font", e);
-		}
-	}
-
 	private final Text node = new Text();
 	public DoubleProperty glyphOffsetX = node.translateXProperty();
 	public DoubleProperty glyphOffsetY = node.translateYProperty();
-	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GLYPHS.keyMapper.invoke(ADJUST));
+	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GlyphsKt.id(ADJUST));
 	private boolean isGlyphSetProgrammatically = false;
 	private final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
 	private boolean isGlyphSizeSetProgrammatically = false;
@@ -231,7 +187,7 @@ public class Icon extends StackPane {
 	private boolean isSelected = false;
 	public final V<Boolean> isAnimated = new V<>(true);
 
-	// TODO: handle better along with focusing as well as subclasses and IconChooser grid
+	// TODO: handle better along with focusing
 	public void select(boolean value) {
 		if (value==isSelected) return;
 		isSelected = value;
@@ -243,19 +199,19 @@ public class Icon extends StackPane {
 	public Icon icon(GlyphIcons i) {
 		isGlyphSetProgrammatically |= i!=null;
 		glyph = i;
-		setGlyphName(i==null ? "null" : GLYPHS.keyMapper.invoke(i));
+		setGlyphName(i==null ? "null" : GlyphsKt.id(i));
 		return this;
 	}
 
 	public Icon size(@Nullable Number s) {
 //		isGlyphSizeSetProgrammatically = true;
-		setGlyphSize(s==null ? s : s.doubleValue());
+		setGlyphSize(s==null ? DEFAULT_ICON_SIZE : s.doubleValue());
 		return this;
 	}
 
 	public Icon gap(@Nullable Number s) {
 		isGlyphGapSetProgrammatically = true;
-		setGlyphGap(s==null ? s : s.doubleValue());
+		setGlyphGap(s==null ? DEFAULT_ICON_SIZE : s.doubleValue());
 		return this;
 	}
 
@@ -426,8 +382,8 @@ public class Icon extends StackPane {
 
 	public GlyphIcons getGlyph() {
 		String n = getGlyphName();
-		if (glyph==null || !GLYPHS.keyMapper.invoke(glyph).equals(n))
-			glyph = GLYPHS.getOr(n, DEFAULT_GLYPH);
+		if (glyph==null || !GlyphsKt.id(glyph).equals(n))
+			glyph = TryKt.getOr(Glyphs.INSTANCE.get(n), DEFAULT_GLYPH);
 		return glyph;
 	}
 
@@ -473,9 +429,11 @@ public class Icon extends StackPane {
 
 	private void updateIcon() {
 		GlyphIcons i = getGlyph();
+		// TODO: investigate
 		// .replace("\'", "") is bug fix for some fonts having wrong font family or something
 		// WeatherIcon & MaterialDesign
-		Font f = new Font(i.getFontFamily().replace("\'", ""), node.getFont().getSize());
+
+		Font f = new Font(i.getFontFamily().replace("'", ""), node.getFont().getSize());
 		node.setFont(f);
 		node.setText(i.characterToString());
 	}

@@ -17,17 +17,18 @@ import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.KEY_PRESS
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
+import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.id
 import sp.it.util.access.fieldvalue.StringGetter
 import sp.it.util.collections.setTo
 import sp.it.util.file.div
 import sp.it.util.functional.asIf
-import sp.it.util.functional.net
+import sp.it.util.functional.ifNotNull
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.sync
 import sp.it.util.system.copyToSysClipboard
-import sp.it.util.type.Util.getEnumConstants
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.listView
@@ -36,6 +37,7 @@ import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
+import kotlin.reflect.KClass
 
 @Widget.Info(
    author = "Martin Polakovic",
@@ -75,16 +77,16 @@ class IconViewer(widget: Widget): SimpleController(widget) {
          }
       }
    }
-   val groupsView = listView<Class<GlyphIcons>> {
+   val groupsView = listView<KClass<out GlyphIcons>> {
       minPrefMaxWidth = 200.0.emScaled
       cellFactory = listViewCellFactory { group, empty ->
-         text = if (empty) null else group.simpleName
+         text = if (empty || group==null) null else group.simpleName
       }
       selectionModel.selectionMode = SINGLE
-      selectionModel.selectedItemProperty() sync {
-         iconsView.itemsRaw setTo it?.net { getEnumConstants<GlyphIcons>(it) }.orEmpty()
+      selectionModel.selectedItemProperty() attach {
+         iconsView.itemsRaw setTo it?.let { Glyphs.valuesOf(it) }.orEmpty()
       }
-      items setTo Icon.GLYPH_TYPES
+      items setTo Glyphs.GLYPH_TYPES.sortedBy { it.simpleName.orEmpty() }
    }
 
    init {
@@ -100,7 +102,10 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       }
    }
 
-   override fun focus() = groupsView.selectionModel.select(0)
+   override fun focus() {
+      if (groupsView.selectionModel.isEmpty) groupsView.selectionModel.selectFirst()
+      iconsView.requestFocus()
+   }
 
 }
 
@@ -117,7 +122,9 @@ class IconCellGraphics(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
          isMouseTransparent = true
       }
       onEventDown(MOUSE_CLICKED, PRIMARY) {
-         copyToSysClipboard(glyph?.name() ?: "")
+         glyph.ifNotNull {
+            copyToSysClipboard(it.id())
+         }
       }
 
       lay(ALWAYS) += stackPane(graphics)
@@ -128,12 +135,7 @@ class IconCellGraphics(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
       glyph = icon
       nameLabel.text = icon?.name()?.toLowerCase()?.capitalize() ?: ""
       graphics.icon(icon)
-      graphics.tooltip(
-         when (icon) {
-            null -> ""
-            else -> "${icon.name()}\n${icon.unicodeToString()}\n${icon.fontFamily}"
-         }
-      )
+      graphics.tooltip(icon?.let { "${it.name()}\n${it.unicodeToString()}\n${it.fontFamily}" }.orEmpty())
    }
 
    fun select(value: Boolean) {

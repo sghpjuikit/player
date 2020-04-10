@@ -26,11 +26,12 @@ import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.stage.WindowEvent.WINDOW_SHOWN
-import sp.it.pl.ui.objects.icon.CheckIcon
-import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.resizeIcon
+import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.ui.objects.window.Shower
+import sp.it.pl.ui.objects.window.stage.popWindowOwner
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -164,7 +165,6 @@ open class PopWindow {
    val isShowing get() = window?.isShowing ?: false
 
    private fun getRoot() = root
-   private var ownerMWindow: Window? = null
    private val animation = lazy {
       anim {
          getRoot().opacity = it*it
@@ -280,11 +280,10 @@ open class PopWindow {
       tillHiding()
       tillHidden()
       runFX(100.millis) {
-         ownerMWindow = windowOwner
-
          if (focusOnShow.value) {
             stage.apply {
                window = this
+               window?.popWindowOwner = windowOwner
 
                fun initHideWithOwner() {
                   if (windowOwner!=null) {
@@ -292,6 +291,7 @@ open class PopWindow {
                      windowOwner.onEventUp(WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on tillHidden
                   }
                }
+
                fun initZOrder() {
                   if (windowOwner==null) {
                      isAlwaysOnTop = true
@@ -299,6 +299,7 @@ open class PopWindow {
                      attachTo(windowOwner.focusedProperty(), focusedProperty()) { a, b -> stage.isAlwaysOnTop = a || b } on tillHiding
                   }
                }
+
                fun initAutohide() {
                   focusedProperty() attach {
                      if (!it && isAutohide.value) {
@@ -332,6 +333,7 @@ open class PopWindow {
          } else {
             popup.apply {
                window = this
+               window?.popWindowOwner = windowOwner
 
                content setToOne root
 
@@ -377,22 +379,24 @@ open class PopWindow {
    }
 
    private fun hideChildPopWindows() {
-      Window.getWindows().mapNotNull { it.asPopWindow()?.takeIf { it.ownerMWindow==window } }.forEach { it.hide() }
+      Window.getWindows().mapNotNull { it.asPopWindow()?.takeIf { it.window?.popWindowOwner==window } }.forEach { it.hide() }
    }
 
    companion object {
 
       fun Window.initFixHide() = apply { onEventUp(WINDOW_SHOWING) { properties["wasShown"] = true } }
 
-      fun Window.hideFixed() = apply { if (isShowing && properties["wasShown"] == true) hide() }
-
-      fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
+      fun Window.hideFixed() = apply { if (isShowing && properties["wasShown"]==true) hide() }
 
       fun Window.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
 
+      private fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
+
       fun Window.isFocusedChild(): Boolean = Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true || hasFileChooserOpen
 
-      infix fun Window.isChild(w: Window) = traverse { it.asPopWindow()?.ownerMWindow ?: it.asIf<Stage>()?.owner }.any { it===w }
+      fun Window.traverseOwners() = traverse { it.asPopWindow()?.window?.popWindowOwner ?: it.asIf<Stage>()?.owner }
+
+      infix fun Window.isChild(w: Window) = traverseOwners().any { it===w }
 
       infix fun Window.isParent(w: Window) = w isChild this
 

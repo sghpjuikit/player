@@ -662,7 +662,7 @@ class WidgetManager {
    inner class Layouts {
 
       /** @return layout of focused window or null if no window focused */
-      fun findActive(): Layout? = APP.windowManager.getFocused().orNull()?.layout
+      fun findActive(): Layout? = APP.windowManager.getFocused()?.layout
 
       /** @return layouts based on search criteria */
       fun findAll(source: WidgetSource): Sequence<Layout> = when (source) {

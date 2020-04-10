@@ -57,7 +57,6 @@ import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
-import sp.it.util.functional.orNull
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
@@ -230,22 +229,22 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    @IsAction(name = "Maximize window", info = "Switch maximized mode.", keys = "F11")
-   fun toggleMaximize() = APP.windowManager.getActive().orNull()?.toggleMaximize()
+   fun toggleMaximize() = APP.windowManager.getActive()?.toggleMaximize()
 
    @IsAction(name = "Loop maximized state", info = "Switch to different maximized window states.", keys = "F3")
-   fun toggleMaximizedState() = APP.windowManager.getActive().orNull()?.let { it.isMaximized = Values.next(it.isMaximized) }
+   fun toggleMaximizedState() = APP.windowManager.getActive()?.let { it.isMaximized = Values.next(it.isMaximized) }
 
    @IsAction(name = "Fullscreen", info = "Switch fullscreen mode.", keys = "F12")
-   fun toggleFullscreen() = APP.windowManager.getActive().orNull()?.toggleFullscreen()
+   fun toggleFullscreen() = APP.windowManager.getActive()?.toggleFullscreen()
 
    @IsAction(name = "Layout align", info = "Aligns layout of the active window", keys = "ALT+UP")
-   fun tabAlign() = APP.windowManager.getActive().orNull()?.switchPane?.alignTabs()
+   fun tabAlign() = APP.windowManager.getActive()?.switchPane?.alignTabs()
 
    @IsAction(name = "Layout move left", info = "Moves layout of the active window to the left.", keys = "ALT+LEFT")
-   fun tabPrevious() = APP.windowManager.getActive().orNull()?.switchPane?.alignLeftTab()
+   fun tabPrevious() = APP.windowManager.getActive()?.switchPane?.alignLeftTab()
 
    @IsAction(name = "Layout move right", info = "Moves layout of the active window to the right.", keys = "ALT+RIGHT")
-   fun tabNext() = APP.windowManager.getActive().orNull()?.switchPane?.alignRightTab()
+   fun tabNext() = APP.windowManager.getActive()?.switchPane?.alignRightTab()
 
    @IsAction(name = Actions.LAYOUT_MODE, info = "Shows/hides layout overlay.", keys = "F8")
    fun toggleLayoutMode() {
@@ -253,10 +252,10 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    @IsAction(name = "Layout zoom in/out", info = "Toggles layout zoom in/out.")
-   fun toggleZoomMode() = APP.windowManager.getActive().orNull()?.switchPane?.toggleZoom()
+   fun toggleZoomMode() = APP.windowManager.getActive()?.switchPane?.toggleZoom()
 
    fun setLayoutNzoom(v: Boolean) {
-      if (isLayoutMode && APP.windowManager.getActive().orNull()?.switchPane?.isZoomed!=true) {
+      if (isLayoutMode && APP.windowManager.getActive()?.switchPane?.isZoomed!=true) {
          setZoomMode(true)
       } else {
          isLayoutMode = v
@@ -264,7 +263,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       }
    }
 
-   fun setZoomMode(v: Boolean) = APP.windowManager.getActive().orNull()?.switchPane?.zoom(v)
+   fun setZoomMode(v: Boolean) = APP.windowManager.getActive()?.switchPane?.zoom(v)
 
    @IsAction(name = "Layout zoom overlay in/out", info = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
    fun toggleLayoutNzoom() {

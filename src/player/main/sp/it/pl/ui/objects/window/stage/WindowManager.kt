@@ -67,6 +67,7 @@ import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
+import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
@@ -92,7 +93,6 @@ import sp.it.util.units.millis
 import sp.it.util.units.minus
 import java.io.File
 import java.util.HashSet
-import java.util.Optional
 import javafx.stage.Window as WindowFX
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
@@ -140,16 +140,23 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
 
    /** @return main window or null if no main window (only possible when no window is open) */
-   fun getMain(): Optional<Window> = Optional.ofNullable(mainWindow)
+   fun getMain(): Window? = mainWindow
 
    /** @return focused window or null if none focused */
-   fun getFocused(): Optional<Window> = windows.stream().filter { it.focused.value }.findAny()
+   fun getFocused(): Window? = windows.find { it.focused.value }
+
+   /** @return focused window or window with focused popup or null if none focused */
+   fun getFocusedWithChild(): Window? = null
+      ?: windows.find { it.focused.value }
+      ?: WindowFX.getWindows().find { it.isFocused }?.let {
+         it.traverse { it.popWindowOwner ?: it.asIf<Stage>()?.owner }.mapNotNull { it.asAppWindow() }.firstOrNull()
+      }
 
    /** @return focused window or [getMain] if none focused */
-   fun getActive(): Optional<Window> = getFocused().or(::getMain)
+   fun getActive(): Window? = getFocused() ?: getMain()
 
    /** @return focused window or [getMain] if none focused or new window if no main window */
-   fun getActiveOrNew(): Window = getActive().orElseGet(::createWindow)
+   fun getActiveOrNew(): Window = getActive() ?: createWindow()
 
    init {
       WindowFX.getWindows().onItemAdded { w ->
@@ -234,7 +241,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    @IsAction(name = "Close active window", keys = "CTRL+W", info = "Opens new application window")
    private fun closeActiveWindow() {
-      getActive().orNull()?.close()
+      getActive()?.close()
    }
 
    private fun showDockImpl(enable: Boolean) {
@@ -391,7 +398,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          ws.forEach { it.show() }
          WidgetIoManager.requestWidgetIOUpdate()
       }
-      getActive().orNull()?.focus()
+      getActive()?.focus()
    }
 
    fun showWindow(c: Component): Window {

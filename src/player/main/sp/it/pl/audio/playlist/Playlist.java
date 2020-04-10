@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -35,11 +36,11 @@ import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppFileKt.audioExtensionFilter;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runIO;
@@ -690,7 +691,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		chooseFiles(
 				"Choose Audio Files",
 			APP.audio.getBrowse(),
-			APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
+			Optional.ofNullable(APP.windowManager.getFocused()).map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
 			audioExtensionFilter()
 		).ifOkUse(files -> {
 			APP.audio.setBrowse(files.get(0).getParentFile());
@@ -717,7 +718,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 						"Choose Audio Files From Directory Tree",
 						DIRECTORY,
 			APP.audio.getBrowse(),
-			APP.windowManager.getFocused().map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
+			Optional.ofNullable(APP.windowManager.getFocused()).map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
 		).ifOkUse(dir -> {
 			APP.audio.setBrowse(dir);
 					List<URI> queue = new ArrayList<>();

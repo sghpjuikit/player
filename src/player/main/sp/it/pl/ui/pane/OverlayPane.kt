@@ -32,7 +32,8 @@ import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
-import sp.it.util.functional.orNull
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.math.P
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
@@ -54,7 +55,6 @@ import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.makeScreenShot
 import sp.it.util.ui.pane
 import sp.it.util.ui.removeFromParent
-import sp.it.util.ui.scene
 import sp.it.util.ui.screenToLocal
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
@@ -217,15 +217,15 @@ abstract class OverlayPane<in T>: StackPane() {
       override fun computeScreen(): Screen = when (this) {
          WINDOW -> fail()
          SCREEN_PRIMARY -> Screen.getPrimary()
-         SCREEN_OF_WINDOW -> APP.windowManager.getActive().orNull()?.centre?.getScreen() ?: SCREEN_OF_MOUSE.computeScreen()
+         SCREEN_OF_WINDOW -> APP.windowManager.getActive()?.centre?.getScreen() ?: SCREEN_OF_MOUSE.computeScreen()
          SCREEN_OF_MOUSE -> getScreenForMouse()
       }
    }
 
    fun ScreenGetter.animStart(op: OverlayPane<*>) {
       if (this==Display.WINDOW) {
-         APP.windowManager.getActive().ifPresentOrElse(
-            { window ->
+         APP.windowManager.getActive()
+            .ifNotNull { window ->
                val root = window.root
                if (op !in root.children) {
                   root.children += op
@@ -241,12 +241,11 @@ abstract class OverlayPane<in T>: StackPane() {
 
                op.animation.show()
                op.onShown()
-            },
-            {
+            }
+            .ifNull {
                op.displayUsedForShow = Display.SCREEN_OF_MOUSE
                Display.SCREEN_OF_MOUSE.animStart(op)
             }
-         )
       } else {
          val screen = computeScreen()
          op.displayBgr.get().getImgAndDo(screen) { image ->

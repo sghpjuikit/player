@@ -15,7 +15,7 @@ fun String?.nullIfEmpty() = this?.takeUnless { it.isEmpty() }
 fun String?.nullIfBlank() = this?.takeUnless { it.isBlank() }
 
 /** @return plural of this word if count is more than 1 or this word otherwise */
-fun String.plural(count: Int = 2) = org.atteo.evo.inflector.English.plural(this, count)
+fun String.plural(count: Int = 2) = org.atteo.evo.inflector.English.plural(this, count)!!
 
 /** @return text in format 'x units', where x is the specified count amd units [String.plural] of this string */
 fun String.pluralUnit(count: Int = 2) = "$count " + plural(count)
@@ -67,7 +67,8 @@ fun Action.keysUi(): String = keys.let { if (it.isBlank()) it else keys(keys) }
 
 private fun key(key: String): String = null
    ?: prettyKeys[key.trim().toUpperCase()]
-   ?: runTry { KeyCode.valueOf(key.trim().toUpperCase()).char }.orNull()
+   ?: runTry { KeyCode.valueOf(key.trim().toUpperCase()).resolved }.map { prettyKeys[it?.getName()?.toUpperCase() ?: ""] }.orNull()
+   ?: runTry { KeyCode.valueOf(key.trim().toUpperCase()).resolved }.map { it?.char ?: "<none>" }.orNull()
    ?: key
 
 private val prettyKeys = mapOf(

@@ -54,6 +54,7 @@ import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.makeScreenShot
 import sp.it.util.ui.pane
 import sp.it.util.ui.removeFromParent
+import sp.it.util.ui.scene
 import sp.it.util.ui.screenToLocal
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
@@ -270,7 +271,7 @@ abstract class OverlayPane<in T>: StackPane() {
             op.isVisible = true
             op.requestFocus()     // 'bug fix' - we need focus or key events wont work
 
-            op.opacityNode = contentImg
+            op.opacityNode = null
             op.blurNode = contentImg
             op.blurNode!!.effect = op.blur
 
@@ -288,26 +289,24 @@ abstract class OverlayPane<in T>: StackPane() {
    fun ScreenGetter.animDo(op: OverlayPane<*>, it: Double) {
       val x = if (!op.animation.dir) it else mapTo01(it, 0.0, 0.4)
       val y = if (!op.animation.dir) it else mapTo01(it, 0.5, 1.0)
-      if (opacityNode!=null) { // bug fix, not 100% sure why it is necessary
-         if (this!=Display.WINDOW && (op.displayBgr.value==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.value==ScreenBgrGetter.NONE)) {
-            op.opacity = 1.0
-            op.stage?.opacity = x
-         } else {
-            op.opacity = x
-         }
-         op.opacityNode!!.opacity = 1 - x*0.5
-         op.content?.opacity = y*y
-         val b = 15.0*x*x
-         if (b==0.0 || b==15.0 || abs(op.blur.height - b) > 3.0) {
-            op.blur.height = b
-            op.blur.width = b
-         }
+      if (this!=Display.WINDOW && (op.displayBgr.value==ScreenBgrGetter.SCREEN_BGR || op.displayBgr.value==ScreenBgrGetter.NONE)) {
+         op.opacity = 1.0
+         op.stage?.opacity = x
+      } else {
+         op.opacity = x
+      }
+      op.opacityNode?.opacity = 1 - x*0.5
+      op.content?.opacity = y*y
+      val b = 15.0*x*x
+      if (b==0.0 || b==15.0 || abs(op.blur.height - b) > 3.0) {
+         op.blur.height = b
+         op.blur.width = b
       }
    }
 
    fun ScreenGetter.animEnd(op: OverlayPane<*>) {
-      op.opacityNode!!.effect = null
-      op.blurNode!!.effect = null
+      op.opacityNode?.effect = null
+      op.blurNode?.effect = null
       op.opacityNode = null
       op.blurNode = null
       op.onHidden()
@@ -315,7 +314,7 @@ abstract class OverlayPane<in T>: StackPane() {
          op.setVisible(false)
       } else {
          op.removeFromParent()
-         op.stage!!.close()
+         op.stage?.close()
          op.stage?.scene?.root?.asIf<Pane>()?.children?.clear()
          op.stage?.scene = null
          op.stage = null

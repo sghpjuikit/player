@@ -2369,7 +2369,7 @@ Text {
  * inherits: .stack-pane
  */
 .overlay-pane {
-    -fx-background-color: rgba(0,0,0,0.3);
+    -fx-background-color: rgba(0,0,0,0.4);
     -fx-background-image: url("bgr.png");
 }
 

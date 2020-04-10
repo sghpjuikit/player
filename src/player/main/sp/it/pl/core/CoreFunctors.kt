@@ -108,10 +108,14 @@ object CoreFunctors: Core {
 
          add("Is true", B, B) { it }
          add("Is false", B, B) { !it }
-         add("Negate", B, B) { b -> !b }
+         add("Negate", B, B) { !it }
          add("And", B, B, p(true)) { it, b -> java.lang.Boolean.logicalAnd(it, b) }
          add("Or", B, B, p(true)) { it, b -> java.lang.Boolean.logicalOr(it, b) }
          add("Xor", B, B, p(true)) { it, b -> java.lang.Boolean.logicalXor(it, b) }
+
+         add("To Bin", Int::class.java, S) { "0b" + Integer.toBinaryString(it) }
+         add("To Oct", Int::class.java, S) { "0" + Integer.toOctalString(it) }
+         add("To Hex", Int::class.java, S) { "0x" + Integer.toHexString(it) }
 
          add("'_' → ' '", S, S) { it.replace("_", " ") }
          add("→ file name", S, S) { filenamizeString(it) }

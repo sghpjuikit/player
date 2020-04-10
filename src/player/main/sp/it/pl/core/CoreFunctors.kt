@@ -47,6 +47,8 @@ import sp.it.util.units.NofX
 import sp.it.util.units.RangeYear
 import java.io.File
 import java.net.URI
+import java.net.URLDecoder
+import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.Year
@@ -152,6 +154,8 @@ object CoreFunctors: Core {
          add("Is base64", S, B) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.isOk }
          add("Base64 encode", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
          add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
+         add("URL encode (UTF-8)", S, S) { URLEncoder.encode(it, UTF_8) }
+         add("URL decode (UTF-8)", S, S) { URLDecoder.decode(it, UTF_8) }
 
          add("Any contains", Strings::class.java, B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
          add("Is empty", Strings::class.java, B) { it.isEmpty() }

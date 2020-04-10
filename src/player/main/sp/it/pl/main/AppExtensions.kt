@@ -120,9 +120,11 @@ fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (Pr
    }.then(IO) { p ->
       var stdout = ""
       var stderr = ""
-      runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
-      runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
+      val stdoutListener = runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
+      val stderrListener = runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
       val success = p.waitFor()
+      stdoutListener.getDone()
+      stderrListener.getDone()
       if (success!=0) doOnError(null, stdout + stderr)
       if (success!=0) fail { "Process failed and returned $success" }
       stdout

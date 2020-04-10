@@ -845,11 +845,8 @@ sealed class WidgetLoader: (Widget) -> Unit {
 
    /** Loads the widget as a standalone widget in a simplified layout of a new popup. */
    object POPUP: WidgetLoader() {
-      override fun invoke(w: Widget) {
-         APP.windowManager.showFloating(w)
-      }
+      override fun invoke(w: Widget) = APP.windowManager.showFloating(w).toUnit()
    }
-
 }
 
 /** Strategy for using a widget. This can be an existing widget or even one to be created on demand. */

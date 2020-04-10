@@ -26,6 +26,7 @@ import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetLoader
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -34,6 +35,9 @@ import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.layout.widget.orNone
+import sp.it.pl.main.Widgets.ICON_BROWSER
+import sp.it.pl.main.Widgets.INSPECTOR
 import sp.it.pl.main.Widgets.SONG_TAGGER
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.util.Util.enumToHuman
@@ -106,7 +110,12 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
    ap.register<AppDev>(
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
       FastAction(IconFA.CSS3, ActionRegistrar["Open css guide"]),
-      FastAction(IconFA.IMAGE, ActionRegistrar["Open icon viewer"]),
+      FastAction("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.EYEDROPPER) {
+         WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create())
+      },
+      FastAction("Open ${INSPECTOR.name}", "Browse available icons", IconFA.TREE) {
+         WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create())
+      },
       FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"])
    )
    ap.register<AppOpen>(

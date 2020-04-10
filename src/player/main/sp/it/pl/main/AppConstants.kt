@@ -4,6 +4,7 @@ import sp.it.pl.layout.widget.WidgetManager.FactoryRef
 
 object Widgets {
    const val CONVERTER_NAME = "Converter"
+   const val ICON_BROWSER_NAME = "Icon Browser"
    const val INSPECTOR_NAME = "Tree inspector"
    const val SONG_GROUP_TABLE_NAME = "Song Group Table"
    const val SONG_TABLE_NAME = "Song Table"
@@ -13,6 +14,7 @@ object Widgets {
    const val PLAYLIST_NAME = "Playlist"
 
    val CONVERTER = FactoryRef(CONVERTER_NAME, "Converter")
+   val ICON_BROWSER = FactoryRef(ICON_BROWSER_NAME, "IconBrowser")
    val INSPECTOR = FactoryRef(INSPECTOR_NAME, "Inspector")
    val SONG_GROUP_TABLE = FactoryRef(SONG_GROUP_TABLE_NAME, "LibraryView")
    val SONG_TABLE = FactoryRef(SONG_TABLE_NAME, "Library")

@@ -10,7 +10,10 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import javafx.util.Callback
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.main.Widgets
+import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
@@ -41,11 +44,11 @@ import kotlin.reflect.KClass
 
 @Widget.Info(
    author = "Martin Polakovic",
-   name = "Icon browser",
+   name = ICON_BROWSER_NAME,
    description = "Displays glyph icons of supported fonts.",
    version = "1.0.0",
    year = "2020",
-   group = Widget.Group.DEVELOPMENT
+   group = DEVELOPMENT
 )
 class IconViewer(widget: Widget): SimpleController(widget) {
    val iconSize = 120.emScaled

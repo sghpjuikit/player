@@ -613,8 +613,9 @@
     -fx-effect: null;
 }
 
-/********************************* TextArea ***********************************/
-
+/********************************* TextArea ***********************************
+ * inherits: text-input
+ */
 .text-area {
     -fx-skin: "sp.it.pl.ui.objects.ImprovedTextAreaSkin";
 }
@@ -2500,10 +2501,16 @@ Text {
 
 /*
  * Standard text of the guide
- * inherits: .text
+ * inherits: .text-area
  */
 .guide-text {
     -fx-font-weight: bold;
+}
+
+.guide-text:hover,
+.guide-text:readonly:focused,
+.guide-text:focused {
+    -fx-background-color: null;
 }
 
 /***************************** GRID VIEW *****************************

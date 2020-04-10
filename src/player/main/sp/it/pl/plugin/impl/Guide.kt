@@ -15,6 +15,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode.COPY
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
 import sp.it.pl.ui.objects.icon.Icon
@@ -114,10 +115,10 @@ class Guide: PluginBase() {
 
       lay(ALWAYS) += textArea {
          isEditable = false
-         isMouseTransparent = true
+         isFocusTraversable = false
          isWrapText = true
          minWidth = 350.0
-         styleClass += STYLECLASS_TEXT
+         styleClass += "guide-text"
          guideText sync ::setText
       }
    }
@@ -130,11 +131,10 @@ class Guide: PluginBase() {
       headerIcons += listOf(
          infoIcon("Guide info popup."
             + "\n\nThere are many others. If you see one for the first time, check it out."
-            + "\n\nThis popup will close on its own when you clock somewhere. ESCAPE works too."
+            + "\n\nThis popup will close on its own when you click somewhere. ESCAPE works too."
          ),
          // new Icon(ARROW_LEFT,11,"Previous",this::goToPrevious), // unnecessary, uses left+right mouse button navigation
          label {
-            guideTitleText sync ::setText
             guideTitleText sync ::setText
          },
          // new Icon(ARROW_RIGHT,11,"Next",this::goToNext) // unnecessary, uses left+right mouse button navigation
@@ -219,7 +219,6 @@ class Guide: PluginBase() {
       override val isEnabledByDefault = true
 
       private const val ICON_SIZE = 40.0
-      private const val STYLECLASS_TEXT = "guide-text"
 
       private fun String.pretty() = "'${keys(this)}'"
    }
@@ -236,19 +235,21 @@ class Guide: PluginBase() {
       fun hint(action: String, text: () -> String, graphics: (Hint.() -> Node)?, onEnter: () -> Unit = {}, onExit: () -> Unit = {}) =
          Hint(action, text, graphics, onEnter, onExit).also { this += it }
 
-      private fun layH(vararg graphics: Node) = layHorizontally(10.0, CENTER, *graphics)
+      private fun layH(block: HBox.() -> Unit) = layHorizontally(10.0, CENTER).also(block)
 
       val h00_intro = hint("Intro",
          "Hi, this is guide for this application. It will show you around. " + "\n\nBut first let's play some music.",
          {
-            layH(Icon(IconFA.MUSIC, ICON_SIZE, null) {
-               val c = APP.windowManager.getActiveOrNew().switchPane.container
-               val w = initialTemplateFactory.create()
-               c.addChild(c.emptySpot, w)
-               c.ui.alignTab(w)
+            layH {
+               lay += Icon(IconFA.MUSIC, ICON_SIZE).onClickDo {
+                  val c = APP.windowManager.getActiveOrNew().switchPane.container
+                  val w = initialTemplateFactory.create()
+                  c.addChild(c.emptySpot, w)
+                  c.ui.alignTab(w)
 
-               proceedIfActive()
-            })
+                  proceedIfActive()
+               }
+            }
          }
       )
       val h01_GuideHints = hint("Guide hints",
@@ -273,36 +274,44 @@ class Guide: PluginBase() {
             + "from where you left off."
             + "\nNow you will know where to go when you lose your way."
             + "\n\nClick on the guide button in the app window top header. It looks like: ",
-         { layH(Icon(IconFA.GRADUATION_CAP, ICON_SIZE)) }
+         {
+            layH {
+               lay += Icon(IconFA.GRADUATION_CAP, ICON_SIZE)
+            }
+         }
       )
       val h05_uiIcons = hint("Icons",
          "Icons, icons everywhere. Picture is worth a thousand words, they say."
             + "\nThe icons try to tell their function visually."
             + "\n\nOne icon leads to the next hint.",
          {
-            layH(
-               Icon(IconFA.WHEELCHAIR, ICON_SIZE).onClickDo { it.isDisable = true },
-               Icon(IconMD.WALK, ICON_SIZE).onClickDo { it.isDisable = true },
-               Icon(IconMD.RUN, ICON_SIZE).onClickDo { runFX(1500.millis) { proceedIfActive() } }
-            )
+            layH {
+               lay += Icon(IconFA.WHEELCHAIR, ICON_SIZE).onClickDo { it.isDisable = true }
+               lay += Icon(IconMD.WALK, ICON_SIZE).onClickDo { it.isDisable = true }
+               lay += Icon(IconMD.RUN, ICON_SIZE).onClickDo { runFX(1500.millis) { proceedIfActive() } }
+            }
          }
       )
       val h06_uiTooltips = hint("Tooltips",
          "Tooltips will teach you the way if the icon is not enough. Use them well."
             + "\n\nThere can be a meaning where you don't see it. Hover above the icons to find out.",
          {
-            layH(
-               Icon(IconMD.GAMEPAD_VARIANT, ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right"),
-               Icon(IconMD.HAND_POINTING_RIGHT, ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one."),
-               Icon(IconFA.GRADUATION_CAP, ICON_SIZE).tooltip("Click to claim the trophy").onClickDo { runFX(1000.millis) { proceedIfActive() } }
-            )
+            layH {
+               lay += Icon(IconFA.ARROW_RIGHT, ICON_SIZE).tooltip("Now switch to tooltip of the icon to the right")
+               lay += Icon(IconFA.ARROW_RIGHT, ICON_SIZE).tooltip("Tooltip switching does not take as long as showing a new one.")
+               lay += Icon(IconFA.CHECK, ICON_SIZE).tooltip("Click to claim the trophy").onClickDo { runFX(1000.millis) { proceedIfActive() } }
+            }
          }
       )
       val h06_uiPopups = hint("Info popup",
          "There is more... Info buttons explain various app sections and how to "
             + "use them in more detail."
             + "\n\nSee the corner of this hint? Click the help button. It looks like:",
-         { layH(Icon(IconFA.INFO, ICON_SIZE)) }
+         {
+            layH {
+               lay += Icon(IconFA.INFO, ICON_SIZE)
+            }
+         }
       )
       val h07_uiShortcuts = hint("Shortcuts",
          {
@@ -391,8 +400,8 @@ class Guide: PluginBase() {
             + "\n\t• Left click: go 'down' - visit children"
             + "\n\nTry out container navigation:",
          {
-            layH(
-               Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "").onClickDo {
+            layH {
+               lay += Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE).onClickDo {
                   val w = APP.windowManager.getActiveOrNew()
                   val i = w.topContainer.emptySpot
                   w.topContainer.ui.alignTab(i)
@@ -402,7 +411,7 @@ class Guide: PluginBase() {
                      .thenWait(1.seconds)
                      .ui { APP.ui.isLayoutMode = true }
                }.withText("Start")
-            )
+            }
          }
       )
       val h17_layoutLock = hint("Layout lock",
@@ -412,7 +421,7 @@ class Guide: PluginBase() {
                "locked. Locked layout will enter layout mode only with shortcut." +
                "\nYou may want to lock the layout after configuring it to your needs." +
                "\n\nClick on the lock button in the window header or press " +
-               ActionRegistrar["Lock layout - toggle"].keys.pretty() + " to lock layout."
+               ActionRegistrar["Toggle layout lock"].keys.pretty() + " to lock layout."
 
          }
       )
@@ -481,8 +490,8 @@ class Guide: PluginBase() {
             + "the mouse within the area can still activate different area (child area)."
             + "\n\nBelow you can start a tutorial and see the drag behavior by dragging '2' or '3' onto the test UI",
          {
-            layH(
-               Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE, "") {
+            layH {
+               lay += Icon(IconMD.PALETTE_ADVANCED, ICON_SIZE).onClickDo {
                   val wd = APP.windowManager.getActiveOrNew()
                   val i = wd.topContainer.emptySpot
                   wd.topContainer.ui.alignTab(i)
@@ -512,20 +521,22 @@ class Guide: PluginBase() {
                         { }
                      )
                   }
-               }.withText("Start"),
-               Icon(IconMD.DICE_2, ICON_SIZE).apply {
+               }.withText("Start")
+
+               lay += Icon(IconMD.DICE_2, ICON_SIZE).apply {
                   onDragDetected = EventHandler {
                      startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "2"))
                      it.consume()
                   }
-               }.withText("Drag '2'"),
-               Icon(IconMD.DICE_3, ICON_SIZE).apply {
+               }.withText("Drag '2'")
+
+               lay += Icon(IconMD.DICE_3, ICON_SIZE).apply {
                   onDragDetected = EventHandler {
                      startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "3"))
                      it.consume()
                   }
                }.withText("Drag '3'")
-            )
+            }
          }
       )
       val h24_widgetSwitch = hint("Component switching",

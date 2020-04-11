@@ -93,8 +93,6 @@ import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.streamBi;
 import static sp.it.util.functional.UtilKt.consumer;
-import static sp.it.util.math.UtilKt.max;
-import static sp.it.util.math.UtilKt.min;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
@@ -298,18 +296,18 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             this.isMain = isMain;
 
             // graphics
-            Label nameL = new Label("");
-            Icon applyI = new Icon(OctIcon.DATABASE)
+            var nameL = new Label("");
+            var applyI = new Icon(OctIcon.DATABASE)
                     .tooltip("Set as input\n\nSet transformed (visible) data as input. The original data will be lost."
                             + (isMain ? "\n\nThis edit area is main, so the new input data will update the available actions." : ""))
                     .action(() -> setData(output)); // this will update applier if it is main
-            Icon remI = new Icon(MINUS)
+            var remI = new Icon(MINUS)
                     .tooltip("Remove\n\nRemove this edit area.")
                     .action(() -> tas.remove(this));
-            Icon addI = new Icon(PLUS)
+            var addI = new Icon(PLUS)
                     .tooltip("Add\n\nCreate new edit area with no data.")
                     .action(() -> tas.add(tas.indexOf(this)+1, new EditArea()));
-            Icon copyI = new Icon(ANGLE_DOUBLE_RIGHT)
+            var copyI = new Icon(ANGLE_DOUBLE_RIGHT)
                     .tooltip("Copy data\n\nCopy transformed (visible) data into new edit area."
                             + "\n\nManual text changes will be ignored unless the type of transformation output is "
                             + "text. Use a transformation to text to achieve that."
@@ -340,24 +338,22 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 );
             }
 
-            textArea.addEventHandler(KEY_PRESSED, e -> {
+            textArea.addEventFilter(KEY_PRESSED, e -> {
                 if (e.getCode()==KeyCode.V && e.isControlDown()) {
-                    String pasted_text = Clipboard.getSystemClipboard().getString();
+                    var pasted_text = Clipboard.getSystemClipboard().getString();
                     if (pasted_text!=null) {
-                        String[] areaLines = textArea.getText().split("\\n");
-                        String[] pastedLines = pasted_text.split("\\n");
-                        String text;
-                        int min = min(areaLines.length, pastedLines.length);
-                        int max = max(areaLines.length, pastedLines.length);
-                        if (min==max) {
-                            text = streamBi(areaLines, pastedLines, (a,p) -> a+p).collect(joining("\n"));
+                        var areaLines = textArea.getText().split("\\n");
+                        var pastedLines = pasted_text.split("\\n");
+                        if (areaLines.length==pastedLines.length) {
+                            var text = streamBi(areaLines, pastedLines, (a,p) -> a+p).collect(joining("\n"));
+                            textArea.setText(text);
+                            e.consume();
                         } else {
-                            // not implemented
-                            text = "";
+                            if (textArea.getText().isEmpty() && transforms.length()<=1) {
+                                setData(unpackData(pasted_text));
+                            }
                         }
-                        textArea.setText(text);
                     }
-                    e.consume();
                 }
             });
 

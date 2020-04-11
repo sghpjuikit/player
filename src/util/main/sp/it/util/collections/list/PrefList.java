@@ -34,6 +34,11 @@ public class PrefList<E> extends ArrayList<E> {
 		super.add(e);
 	}
 
+	public void addPreferred(int index, E element) {
+		pref = element;
+		super.add(index, element);
+	}
+
 	public void addPreferred(E e, boolean preferred) {
 		if (preferred) addPreferred(e);
 		else add(e);

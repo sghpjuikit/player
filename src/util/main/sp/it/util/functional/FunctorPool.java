@@ -20,10 +20,12 @@ import sp.it.util.functional.Functors.Parameter;
 import sp.it.util.type.VType;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static kotlin.sequences.SequencesKt.toList;
+import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.IDENTITY;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.getEnumConstants;
 import static sp.it.util.type.Util.isEnum;
+import static sp.it.util.type.UtilKt.isSubclassOf;
 import static sp.it.util.type.UtilKt.superKClassesInc;
 
 @SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "unchecked"})
@@ -32,8 +34,8 @@ public class FunctorPool {
 	private final PrefListMap<PF,KClass<?>> fsI = new PrefListMap<>(pf -> getKotlinClass(pf.in));
 	private final PrefListMap<PF,KClass<?>> fsO = new PrefListMap<>(pf -> getKotlinClass(pf.out));
 	private final PrefListMap<PF,Key<KClass<?>, KClass<?>>> fsIO = new PrefListMap<>(pf -> new Key<>(getKotlinClass(pf.in),getKotlinClass(pf.out)));
-	private final Set<Class> cacheStorage = new HashSet<>();
-
+	private final Set<Class> preProcessVirtual = new HashSet<>();
+	private final String asSelfName = "As Self";
 	@SuppressWarnings("unchecked")
 	public <I,O> void add(String name, Class<I> i , Class<O> o, F1<? super I, ? extends O> f) {
 		addF(new PF0(name,i,o,f));
@@ -99,6 +101,8 @@ public class FunctorPool {
 
 	/** Add function to the pool. */
 	public void addF(PF<?,?> f) {
+		failIf(f.name.equalsIgnoreCase(asSelfName), () -> "Name '" + asSelfName + "' reserved for identity function");
+
 		fsI.accumulate(f);
 		fsO.accumulate(f);
 		fsIO.accumulate(f);
@@ -106,6 +110,8 @@ public class FunctorPool {
 
 	/** Add function to the pool and sets as preferred according to parameters. */
 	public void addF(PF<?,?> f, boolean i, boolean o, boolean io) {
+		failIf(f.name.equalsIgnoreCase(asSelfName), () -> "Name '" + asSelfName + "' reserved for identity function");
+
 		fsI.accumulate(f, i);
 		fsO.accumulate(f, o);
 		fsIO.accumulate(f, io);
@@ -119,38 +125,70 @@ public class FunctorPool {
 	}
 
 	@SuppressWarnings("unckeched")
-	private <T> void addSelfFunctor(Class<T> c) {
-		if (cacheStorage.contains(c)) return;
-		cacheStorage.add(c);
-
-		// add self functor
-		addF(new PF0("As self", c, c, IDENTITY));
+	private <T> void preProcessVirtual(Class<T> c) {
+		if (preProcessVirtual.contains(c)) return;
+		preProcessVirtual.add(c);
 
 		// add enum is predicates
 		if (isEnum(c))
-			add("Is", c, Boolean.class, (a,b) -> a==b, c, (T) getEnumConstants(c)[0], false,false,true);
+			add("Is", c, Boolean.class, (a,b) -> a==b, c, (T) getEnumConstants(c)[0], true,true,true);
 	}
 
 	/** Returns all functions taking input I. */
 	@SuppressWarnings("unckeched")
 	public <I> PrefList<PF<I,?>> getI(Class<I> i) {
-		addSelfFunctor(i);
-		return (PrefList) fsI.getElementsOf(toList(superKClassesInc(getKotlinClass(i))));
+		preProcessVirtual(i);
+
+		PrefList pl = new PrefList();
+		Object pref = null;
+		for (KClass<?> c : toList(superKClassesInc(getKotlinClass(i)))) {
+			PrefList ll = fsI.get(c);
+			if (ll!=null) {
+				if (pref==null && ll.getPreferred()!=null) pref = ll.getPreferred();
+				pl.addAll(ll);
+			}
+		}
+		Object prefCopy = pref;
+		pl.removeIf(e -> e==prefCopy || e==null);
+		if (pref!=null) pl.addPreferred(pref);
+
+		var selfF = new PF0<I,I>(asSelfName, i, i, (F1) IDENTITY);
+		if (pl.getPreferred()==null) pl.addPreferred(0, selfF); else pl.add(0, selfF);
+
+		return (PrefList) pl;
 	}
 
 	/** Returns all functions producing output O. */
 	@SuppressWarnings("unckeched")
 	public <O> PrefList<PF<?,O>> getO(Class<O> o) {
-		addSelfFunctor(o);
-		List<?> ll = fsO.get(getKotlinClass(o));
-		return ll==null ? new PrefList<>() : (PrefList) ll;
+		preProcessVirtual(o);
+
+		PrefList pl = new PrefList();
+		Object pref = null;
+		for (KClass<?> c : fsO.keySet()) {
+			if (isSubclassOf(c, o)) {
+				PrefList ll = fsO.get(c);
+				if (ll!=null) {
+					if (pref==null && ll.getPreferred()!=null) pref = ll.getPreferred();
+					pl.addAll(ll);
+				}
+			}
+		}
+		Object prefCopy = pref;
+		pl.removeIf(e -> e==prefCopy || e==null);
+		if (pref!=null) pl.addPreferred(pref);
+
+		var selfF = new PF0<O,O>(asSelfName, o, o, (F1) IDENTITY);
+		if (pl.getPreferred()==null) pl.addPreferred(0, selfF); else pl.add(0, selfF);
+
+		return pl;
 	}
 
 	/** Returns all functions taking input I and producing output O. */
 	@SuppressWarnings("unckeched")
 	public <I,O> PrefList<PF<I,O>> getIO(Class<I> i, Class<O> o) {
-		addSelfFunctor(i);
-		addSelfFunctor(o);
+		preProcessVirtual(i);
+		preProcessVirtual(o);
 
 		// this is rather messy, but works
 		// we accumulate result for all superclasses & retain first found preferred element, while
@@ -158,27 +196,32 @@ public class FunctorPool {
 		PrefList pl = new PrefList();
 		Object pref = null;
 		for (KClass<?> c : toList(superKClassesInc(getKotlinClass(i)))) {
-			List l = fsIO.get(new Key<>(c, getKotlinClass(o)));
-			PrefList ll = l==null ? null : (PrefList) l;
-			if (ll!=null) {
-				if (pref==null && ll.getPreferredOrFirst()!=null) pref = ll.getPreferredOrFirst();
-				pl.addAll(ll);
+			for (Key<KClass<?>,KClass<?>> k : fsIO.keySet()) {
+				if (k.key1().equals(c) && isSubclassOf(k.key2(), o)) {
+					PrefList ll = fsIO.get(k);
+					if (ll!=null) {
+						if (pref==null && ll.getPreferred()!=null) pref = ll.getPreferred();
+						pl.addAll(ll);
+					}
+				}
 			}
 		}
 		Object prefCopy = pref;
 		pl.removeIf(e -> e==prefCopy || e==null);
 		if (pref!=null) pl.addPreferred(pref);
-		if (pl.getPreferredOrFirst()==null && !pl.isEmpty()) {
-			Object e = pl.get(pl.size()-1);
-			pl.remove(pl.size()-1);
-			pl.addPreferred(e);
+
+		if (isSubclassOf(o, i)) {
+			var selfF = new PF0(asSelfName, i, o, IDENTITY);
+			if (pl.getPreferred()==null) pl.addPreferred(0, selfF); else pl.add(0, selfF);
+		} else {
+			if (pl.getPreferred()==null && !pl.isEmpty()) {
+				Object e = pl.get(pl.size()-1);
+				pl.remove(pl.size()-1);
+				pl.addPreferred(e);
+			}
 		}
 
 		return pl;
-
-		// old impl, ignores super classes
-		//        PrefList l = (PrefList) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
-		//        return l==null ? new PrefList() : l;
 	}
 
 	/** Returns all functions taking input IO and producing output IO. */
@@ -186,10 +229,18 @@ public class FunctorPool {
 		return getIO(io, io);
 	}
 
+	@SuppressWarnings("unchecked")
 	public <I,O> PF<I,O> getPF(String name, Class<I> i, Class<O> o) {
-		@SuppressWarnings("unchecked")
-		List<PF<I,O>> l = (List) fsIO.get(new Key<>(getKotlinClass(i), getKotlinClass(o)));
-		return l==null ? null : stream(l).filter(f -> f.name.equals(name)).findAny().orElse(null);
+		if (name.equals(asSelfName)) {
+			if (isSubclassOf(o, i)) return new PF0<>(asSelfName, i, o, (F1) IDENTITY);
+			else return null;
+		} else {
+			preProcessVirtual(i);
+			preProcessVirtual(o);
+
+			List<PF<I,O>> l = (List) fsIO.get(new Key<>(getKotlinClass(i), getKotlinClass(o)));
+			return l==null ? null : stream(l).filter(f -> f.name.equals(name)).findAny().orElse(null);
+		}
 	}
 
 	public <I> PF<I,?> getPrefI(Class<I> i) {

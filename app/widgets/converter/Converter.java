@@ -15,7 +15,9 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
@@ -52,7 +54,6 @@ import sp.it.util.file.Util;
 import sp.it.util.functional.Functors.F0;
 import sp.it.util.text.StringSplitParser.SplitData;
 import sp.it.util.type.VType;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
@@ -96,6 +97,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
+import static sp.it.util.ui.UtilKt.menuItem;
 
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
@@ -294,6 +296,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         EditArea(String name, boolean isMain) {
             super();
             this.isMain = isMain;
+            textArea.setPrefColumnCount(80);
 
             // graphics
             var nameL = new Label("");
@@ -305,24 +308,20 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     .tooltip("Remove\n\nRemove this edit area.")
                     .action(() -> tas.remove(this));
             var addI = new Icon(PLUS)
-                    .tooltip("Add\n\nCreate new edit area with no data.")
-                    .action(() -> tas.add(tas.indexOf(this)+1, new EditArea()));
-            var copyI = new Icon(ANGLE_DOUBLE_RIGHT)
-                    .tooltip("Copy data\n\nCopy transformed (visible) data into new edit area."
-                            + "\n\nManual text changes will be ignored unless the type of transformation output is "
-                            + "text. Use a transformation to text to achieve that."
-                            + "")
-                    .action(() -> {
-                        EditArea t = new EditArea();
-                        t.setData(output);
-                        tas.add(tas.indexOf(this)+1,t);
-                     });
+                    .tooltip("Add\n\nCreate new edit area")
+                    .action(THIS ->
+                        new ContextMenu(
+                            menuItem("With no data", consumer(it -> createNewAreaWithNoData())),
+                            menuItem("With input of this area", consumer(it -> createNewAreaWithInputData())),
+                            menuItem("With output of this area", consumer(it -> createNewAreaWithOutputNoData()))
+                        ).show(THIS, Side.BOTTOM, 0, 0)
+                    );
 
             // layout
             getNode().getChildren().add(0,
                 layStack(
                     nameL,Pos.CENTER,
-                    layHorizontally(5,Pos.CENTER_RIGHT, applyI,new Label(),remI,addI,copyI),Pos.CENTER_RIGHT
+                    layHorizontally(5,Pos.CENTER_RIGHT, applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
                 )
             );
 
@@ -383,6 +382,21 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             return name.get();
         }
 
+        public void createNewAreaWithNoData() {
+            tas.add(tas.indexOf(this)+1, new EditArea());
+        }
+
+        public void createNewAreaWithInputData() {
+            EditArea t = new EditArea();
+            t.setData(input);
+            tas.add(tas.indexOf(this)+1,t);
+        }
+
+        public void createNewAreaWithOutputNoData() {
+            EditArea t = new EditArea();
+            t.setData(output);
+            tas.add(tas.indexOf(this)+1,t);
+        }
     }
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})

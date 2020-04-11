@@ -169,6 +169,9 @@
     <codeStyleSettings language="kotlin">
       <option name="RIGHT_MARGIN" value="120" />
       <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
+      <option name="KEEP_BLANK_LINES_IN_DECLARATIONS" value="1" />
+      <option name="KEEP_BLANK_LINES_IN_CODE" value="1" />
+      <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="1" />
       <option name="SPACE_AROUND_EQUALITY_OPERATORS" value="false" />
       <option name="SPACE_AROUND_RELATIONAL_OPERATORS" value="false" />
       <option name="SPACE_AROUND_MULTIPLICATIVE_OPERATORS" value="false" />

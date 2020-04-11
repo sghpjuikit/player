@@ -22,10 +22,8 @@ import sp.it.util.Util.split
 import sp.it.util.Util.splitJoin
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.failIf
-import sp.it.util.file.FileType
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.nameOrRoot
-import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
@@ -39,7 +37,6 @@ import sp.it.util.text.Char32
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.isPalindrome
-import sp.it.util.type.notnull
 import sp.it.util.type.type
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
@@ -167,17 +164,9 @@ object CoreFunctors: Core {
          add("To Int", Char16::class.java, Int::class.java) { it.toInt() }
          add("To Int", Char32::class.java, Int::class.java) { it.toInt() }
 
-         add("Path", File::class.java, String::class.java) { it.absolutePath }
-         add("Size", File::class.java, FileSize::class.java) { FileSize(it) }
-         add("Name", File::class.java, String::class.java, true, true, true, { it.nameWithoutExtensionOrRoot })
-         add("Name.Suffix", File::class.java, String::class.java) { it.nameOrRoot }
-         add("Suffix", File::class.java, String::class.java) { it.extension }
-         add("MimeType", File::class.java, MimeType::class.java) { it.mimeType() }
-         add("MimeGroup", File::class.java, String::class.java) { it.mimeType().group }
-         add("Shortcut of", File::class.java, File::class.java) { WindowsShortcut.targetedFile(it).orElse(null) }
-         add("Type", File::class.java, FileType::class.java) { FileType(it) }
+         add("Shortcut target", File::class.java, File::class.java) { WindowsShortcut.targetedFile(it).orElse(null) }
          add("Exists", File::class.java, B) { it.exists() }
-         add("Anime", File::class.java, S) { renameAnime(it.nameWithoutExtensionOrRoot) }
+         add("Rename anime", File::class.java, S) { renameAnime(it.nameWithoutExtension) }
 
          add("Group", MimeType::class.java, S) { it.group }
          add("Extensions", MimeType::class.java, S) { it.extensions.joinToString(", ") }

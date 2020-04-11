@@ -102,9 +102,8 @@ object CoreFunctors: Core {
          val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
 
          add("Is null", Any::class.java, B, IS0)
-         //  add("Isn't null", Object.class, BOOL, ISNTØ);
-         add("As String", Any::class.java, String::class.java) { Objects.toString(it) }
-         add("As Boolean", String::class.java, B) { java.lang.Boolean.parseBoolean(it) }
+         add("To String", Any::class.java, String::class.java) { Objects.toString(it) }
+         add("To Boolean", String::class.java, B) { java.lang.Boolean.parseBoolean(it) }
 
          add("Is true", B, B) { it }
          add("Is false", B, B) { !it }
@@ -117,9 +116,6 @@ object CoreFunctors: Core {
          add("To Oct", Int::class.java, S) { "0" + Integer.toOctalString(it) }
          add("To Hex", Int::class.java, S) { "0x" + Integer.toHexString(it) }
 
-         add("'_' → ' '", S, S) { it.replace("_", " ") }
-         add("→ file name", S, S) { filenamizeString(it) }
-         add("Anime", S, S) { renameAnime(it) }
          add("To upper case", S, S) { it.toUpperCase() }
          add("To lower case", S, S) { it.toLowerCase() }
          add("Plural", S, S) { English.plural(it) }
@@ -128,6 +124,7 @@ object CoreFunctors: Core {
          add("Remove 1st (regex)", S, S, pRegex) { it, regex -> remove1st(it, regex) }
          add("Replace all", S, S, p<String>(""), p<String>("")) { it, phrase, with -> replaceAll(it, phrase, with) }
          add("Replace all (regex)", S, S, pRegex, p<String>("")) { it, regex, with -> replaceAllRegex(it, regex, with) }
+         add("Replace '_' with ' '", S, S) { it.replace("_", " ") }
          add("Remove all", S, S, p<String>("")) { it, phrase -> removeAll(it, phrase) }
          add("Remove all (regex)", S, S, pRegex) { it, regex -> removeAllRegex(it, regex) }
          add("Text", S, S, p<String>("text")) { it, text -> text }
@@ -160,6 +157,8 @@ object CoreFunctors: Core {
          add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
          add("URL encode (UTF-8)", S, S) { URLEncoder.encode(it, UTF_8) }
          add("URL decode (UTF-8)", S, S) { URLDecoder.decode(it, UTF_8) }
+         add("To valid file name", S, S) { filenamizeString(it) }
+         add("Anime", S, S) { renameAnime(it) }
 
          add("Any contains", Strings::class.java, B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
          add("Is empty", Strings::class.java, B) { it.isEmpty() }

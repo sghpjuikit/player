@@ -21,6 +21,7 @@ import kotlin.Unit;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistManager;
+import sp.it.pl.audio.playlist.PlaylistManagerKt;
 import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.tagging.PlaylistSongGroup;
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
@@ -176,7 +177,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		addEventHandler(MOUSE_CLICKED, e -> {
 			if (headerVisible.get() && e.getY()<getTableHeaderHeight()) return;
 			if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItemsRaw().isEmpty())
-				getPlaylist().addOrEnqueueFiles(true);
+				PlaylistManagerKt.addOrEnqueueFiles(getPlaylist(), true);
 		});
 
 		// move items on drag

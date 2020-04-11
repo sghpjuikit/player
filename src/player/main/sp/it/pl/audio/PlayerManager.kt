@@ -43,6 +43,7 @@ import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.functional.ifNotNull
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Handler0
@@ -160,7 +161,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          return
       }
 
-      if (PlaylistManager.use<PlaylistSong>( { it.playing }, null)==null) {
+      if (PlaylistManager.use({ it.playing }, null)==null) {
          logger.info("    aborted: no playback was active")
          return
       }
@@ -194,10 +195,12 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          PAUSED -> {
             logger.info("playback state is paused, so playback will initialize on resume()/seek()/play()")
             isSuspendedBecauseStartedPaused = true
-            playingSong.songChanged(PlaylistManager.use<PlaylistSong>( { it.playing }, null)!!)
+            playingSong.songChanged(PlaylistManager.use({ it.playing }, null))
          }
          PLAYING -> {
-            player.play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
+            PlaylistManager.use {
+               it.playing.ifNotNull { player.play(it) }
+            }
             // suspension_flag = false; // set inside player.play();
             runFX(200.millis) { isSuspended = false } // just in case som condition prevents resetting flag
          }
@@ -534,9 +537,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Explore current song directory - opens file browser for its location.  */
    @IsAction(name = "Explore current song directory", info = "Explore current song directory.", keys = "ALT+V", global = true)
    fun openPlayedLocation() {
-      if (PlaylistManager.active==null) return
-      val i = PlaylistManager.use<PlaylistSong>( { it.playing }, null)
-      i?.uri?.browse()
+      if (PlaylistManager.active!=null)
+         PlaylistManager.use({ it.playing }, null)?.uri?.browse()
    }
 
    enum class Seek {

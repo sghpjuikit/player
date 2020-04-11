@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -21,38 +19,22 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.util.Duration;
 import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.Song;
-import sp.it.pl.ui.objects.form.Form;
-import sp.it.pl.ui.objects.icon.Icon;
-import sp.it.pl.ui.objects.window.popup.PopWindow;
-import sp.it.pl.ui.objects.window.stage.WindowBase;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.conf.Config;
-import sp.it.util.conf.ValueConfig;
-import sp.it.util.type.VType;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
-import static javafx.geometry.Pos.CENTER;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.main.AppBuildersKt.infoIcon;
-import static sp.it.pl.main.AppFileKt.audioExtensionFilter;
-import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.dev.FailKt.noNull;
-import static sp.it.util.file.FileType.DIRECTORY;
-import static sp.it.util.file.Util.getFilesR;
 import static sp.it.util.functional.Util.map;
-import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
-import static sp.it.util.system.EnvironmentKt.chooseFile;
-import static sp.it.util.system.EnvironmentKt.chooseFiles;
 
 public class Playlist extends SimpleListProperty<PlaylistSong> {
 
@@ -143,7 +125,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		return playingSongWrapper.get()==null ? -1 : indexOf(playingSongWrapper.get());
 	}
 
-	public PlaylistSong getPlaying() {
+	public @Nullable PlaylistSong getPlaying() {
 		return playingSongWrapper.get();
 	}
 
@@ -679,101 +661,6 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public String toString() {
 		var postfix = size()>10 ? ", ..." : "";
 		return "Playlist id=" + id + " size=" + size() + " items=" + stream().limit(10).map(it -> it.toString()).collect(joining(", ")) + postfix;
-	}
-
-	// TODO: move methods to PlaylistManager
-	/**
-	 * Open chooser and add or play new songs.
-	 *
-	 * @param add true to add songs, false to clear playlist and play songs
-	 */
-	public void addOrEnqueueFiles(boolean add) {
-		chooseFiles(
-				"Choose Audio Files",
-			APP.audio.getBrowse(),
-			Optional.ofNullable(APP.windowManager.getFocused()).map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner()),
-			audioExtensionFilter()
-		).ifOkUse(files -> {
-			APP.audio.setBrowse(files.get(0).getParentFile());
-					List<URI> queue = new ArrayList<>();
-					files.forEach(f -> queue.add(f.toURI()));
-
-					if (add) addUris(queue);
-					else {
-						APP.audio.stop();
-						clear();
-						addUris(queue);
-						playFirstItem();
-					}
-		});
-	}
-
-	/**
-	 * Open chooser and add or play new songs.
-	 *
-	 * @param add true to add songs, false to clear playlist and play songs
-	 */
-	public void addOrEnqueueFolder(boolean add) {
-		chooseFile(
-						"Choose Audio Files From Directory Tree",
-						DIRECTORY,
-			APP.audio.getBrowse(),
-			Optional.ofNullable(APP.windowManager.getFocused()).map(WindowBase::getStage).orElse(APP.windowManager.createStageOwner())
-		).ifOkUse(dir -> {
-			APP.audio.setBrowse(dir);
-					List<URI> queue = new ArrayList<>();
-					getFilesR(dir, Integer.MAX_VALUE, f -> isAudio(f)).forEach(f -> queue.add(f.toURI()));
-
-					if (add) addUris(queue);
-					else {
-						APP.audio.stop();
-						clear();
-						addUris(queue);
-						playFirstItem();
-					}
-		});
-	}
-
-	/**
-	 * Open chooser and add or play new songs.
-	 *
-	 * @param add true to add songs, false to clear playlist and play songs
-	 */
-	@SuppressWarnings({"Convert2Lambda"})
-	public void addOrEnqueueUrl(boolean add) {
-		String title = add ? "Add url song." : "Play url song.";
-		Config<URI> conf = new ValueConfig<>(new VType<>(URI.class, false), "Url", URI.create("http://www.example.com"), title);
-		Form<?> form = Form.Companion.form(
-			conf,
-			consumer(new Consumer<>() {
-					@Override
-					public void accept(Config<URI> url) {
-						if (add) {
-							addUri(url.getValue());
-						} else {
-							APP.audio.stop();
-							clear();
-							addUri(url.getValue());
-							playFirstItem();
-						}
-					}
-				}
-			)
-		);
-
-		Icon infoB = infoIcon(
-			"Use direct url to a file, for example\n"
-				+ "a file on the web. The url is the\n"
-				+ "address to the file and should end \n"
-				+ "with file suffix like '.mp3'. Try\n"
-				+ "visiting: "
-		);
-
-		PopWindow p = new PopWindow();
-		p.getTitle().setValue(title);
-		p.getContent().setValue(form);
-		p.getHeaderIcons().add(infoB);
-		p.show(WINDOW_ACTIVE.invoke(CENTER));
 	}
 
 }

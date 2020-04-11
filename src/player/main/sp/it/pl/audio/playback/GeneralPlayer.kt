@@ -12,9 +12,7 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.main.APP
-import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.animation.then
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.functional.ifNotNull
@@ -108,7 +106,9 @@ class GeneralPlayer(state: PlayerState) {
          APP.audio.onPlaybackAt.forEach { it.unpause() }
       }.ifNull {
          if (APP.audio.isSuspendedBecauseStartedPaused)
-            play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
+            PlaylistManager.use {
+               it.playing.ifNotNull { play(it) }
+            }
       }
    }
 
@@ -148,7 +148,10 @@ class GeneralPlayer(state: PlayerState) {
          seekVolumeAnim.jumpTo(ZERO)
          seekVolumeAnim.playFromDir(true)
       }.ifNull {
-         if (APP.audio.isSuspendedBecauseStartedPaused) play(PlaylistManager.use<PlaylistSong>( { it.playing }, null))
+         if (APP.audio.isSuspendedBecauseStartedPaused)
+            PlaylistManager.use {
+               it.playing.ifNotNull { play(it) }
+            }
       }
    }
 

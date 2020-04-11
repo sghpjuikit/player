@@ -214,7 +214,7 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 }
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
-   fun Any?.stringUnwrap(): Any? = if (this is String && length==1) codePointAt(0).toChar32() else this
+   fun Any?.stringUnwrap(): Any? = if (this is String && codePointCount(0, length)==1) codePointAt(0).toChar32() else this
    fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeArg.STAR })
 
    val d = collectionUnwrap(it).stringUnwrap()

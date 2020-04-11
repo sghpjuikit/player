@@ -6,6 +6,11 @@ typealias Char16 = Char
 data class Char32(val value: Int) {
    fun toInt() = value
    override fun toString() = String(IntArray(1) { value }, 0, 1)
+
+   companion object {
+      val MIN = Char32(0)
+      val MAX = Char32(1114111)
+   }
 }
 
 fun Int.toChar32(): Char32 = Char32(this)

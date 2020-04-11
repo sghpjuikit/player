@@ -31,6 +31,7 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.pluralUnit
+import sp.it.util.text.toChar32
 import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
@@ -39,6 +40,7 @@ import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
 import java.io.File
 import java.util.function.Consumer
+import kotlin.streams.asSequence
 
 fun File.verify() {
    if (!isAbsolute)
@@ -69,6 +71,8 @@ fun ClassName.initApp() {
          "Nothing" aliasExact Nothing::class
          "Nothing" aliasExact Void::class
           "Object" aliasExact Any::class
+       "Character" alias Char16::class
+       "Character" alias Char32::class
             "Text" alias String::class
             "File" alias File::class
      "Application" alias App::class
@@ -93,9 +97,14 @@ fun ClassName.initApp() {
 fun InstanceName.initApp() {
    add(Void::class) { "<none>" }
    add(Nothing::class) { "<none>" }
-   add(Any::class) { "object" }
-   add(Char16::class) { "Character" }
-   add(Char32::class) { "Character" }
+   add(Any::class) {
+      if (it::class==Any::class) "object"
+      else it.toS()
+   }
+   add(String::class) {
+      if (it.codePointCount(0, it.length)>40) it.codePoints().asSequence().take(41).joinToString("") { it.toChar32().toString() } + " (first 40 characters)"
+      else it
+   }
    add(File::class) { it.path }
    add(App::class) { "This application" }
    add(Song::class) { it.getPathAsString() }
@@ -138,10 +147,10 @@ fun InstanceDescription.initApp() {
       "Oct" info "0" + Integer.toOctalString(it.toInt())
       "Dec" info it.toInt().toUi()
       "Hex" info "0x" + Integer.toHexString(it.toInt())
-      "Unicode" info "\\u" + Integer.toHexString(it.toInt()).padStart(4, '0')
+      "Unicode" info "U+" + Integer.toHexString(it.toInt()).padStart(4, '0')
    }
    String::class describe {
-      "Length" info it.length.toUi()
+      "Length" info it.codePointCount(0, it.length).toUi()
       "Lines" info it.lineSequence().count().toUi()
    }
    File::class describe { f ->

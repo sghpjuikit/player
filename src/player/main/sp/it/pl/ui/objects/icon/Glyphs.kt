@@ -18,6 +18,8 @@ import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.runTry
+import sp.it.util.text.Char32
+import sp.it.util.text.toChar32
 import sp.it.util.type.Util.getEnumConstants
 import kotlin.reflect.KClass
 
@@ -84,15 +86,15 @@ data class UnicodeIcon(val codePoint: Int): GlyphIcons {
       failIf(codePoint !in 0..0x10FFFF) { "$codePoint is not unicode code point" }
    }
 
-   override fun characterToString() = String(IntArray(1) { codePoint }, 0, 1)
+   override fun characterToString() = codePoint.toChar32().toString()
    override fun getChar() = codePoint.toChar()
-   override fun unicodeToString() = String.format("\\u%04x", codePoint)
-   override fun name() = unicodeToString()
+   override fun unicodeToString() = "\\u%04x".format(codePoint)
+   override fun name() = "U+%04x".format(codePoint)
    override fun getFontFamily() = Font.getDefault().family.orEmpty()
 
    companion object {
       fun values(): Sequence<UnicodeIcon> = sequence {
-         yieldAll((0..1114111).asSequence().map(::UnicodeIcon))
+         yieldAll((Char32.MIN.value..Char32.MAX.value).asSequence().map(::UnicodeIcon))
       }
    }
 }

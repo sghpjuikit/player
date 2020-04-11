@@ -23,7 +23,6 @@ import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
-import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.doIfImageLoaded
@@ -68,7 +67,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
 
    protected open fun computeName(item: Item): String = when (item.valType) {
       FileType.DIRECTORY -> item.value.nameOrRoot
-      FileType.FILE -> item.value.nameWithoutExtensionOrRoot
+      FileType.FILE -> item.value.nameWithoutExtension
    }
 
    protected open fun computeCellTextHeight(): Double = 40.0

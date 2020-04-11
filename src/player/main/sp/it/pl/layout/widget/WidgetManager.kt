@@ -358,7 +358,7 @@ class WidgetManager {
          logger.info { "Widget=$widgetName factory update, source files available=$srcFilesAvailable class files available=$classFilesAvailable" }
 
          if (classFilesAvailable) {
-            val controllerType = loadClass(widgetDir.nameWithoutExtension, classFile!!, compileDir, findLibFiles())
+            val controllerType = loadClass(widgetDir.name, classFile!!, compileDir, findLibFiles())
             registerFactory(controllerType)
          } else if (srcFilesAvailable) {
             compileFx()

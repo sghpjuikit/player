@@ -19,7 +19,6 @@ import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.nameOrRoot
-import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.math.min
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.maxSize
@@ -46,7 +45,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
 
    protected open fun computeName(item: Item): String = when (item.valType) {
       DIRECTORY -> item.value.nameOrRoot
-      FILE -> item.value.nameWithoutExtensionOrRoot
+      FILE -> item.value.nameWithoutExtension
    }
 
    protected open fun computeCellTextHeight(): Double = 40.0

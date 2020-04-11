@@ -39,7 +39,6 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.children
-import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.functional.orNull
 import sp.it.util.localDateTimeFromMillis
@@ -622,7 +621,7 @@ class Metadata: Song, Serializable {
          val fs = file.parentDirOrRoot.children().toList()
          return sequenceOf(getFilename().takeIf { it.isNotBlank() }, title, album, "cover", "folder")
             .filterNotNull()
-            .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtensionOrRoot.equals(filename, true) } }
+            .flatMap { filename -> fs.asSequence().filter { it.nameWithoutExtension.equals(filename, true) } }
             .find { it.isImage() }
             ?.let { FileCover(it) }
       }

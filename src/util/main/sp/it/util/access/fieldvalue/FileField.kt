@@ -8,7 +8,6 @@ import mu.KotlinLogging
 import sp.it.util.dev.Blocks
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
-import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.localDateTimeFromMillis
@@ -50,9 +49,9 @@ class FileField<T>: ObjectFieldBase<File, T> {
       }
 
       val PATH = this + FileField("Path", "Path", type<String>()) { it.path }
-      val NAME = this + FileField("Name", "Name", type<String>()) { it.nameWithoutExtensionOrRoot }
+      val NAME = this + FileField("Name", "Name", type<String>()) { if (it.isDirectory) it.nameOrRoot else it.nameWithoutExtension }
       val NAME_FULL = this + FileField("Filename", "Filename", type<String>()) { it.nameOrRoot }
-      val EXTENSION = this + FileField("Extension", "Extension", type<String>()) { it.extension }
+      val EXTENSION = this + FileField("Extension", "Extension", type<String>()) { if (it.isDirectory) "" else it.extension }
       val SIZE = this + FileField("Size", "Size", type<FileSize>()) { if (it is CachingFile) it.fileSize else it.readFileSize() }
       val TIME_ACCESSED = this + FileField("Time Accessed", "Time Accessed", type<FileTime?>()) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
       val TIME_MODIFIED = this + FileField("Time Modified", "Time Modified", type<LocalDateTime?>()) { if (it is CachingFile) it.timeModified else it.readTimeModified() }

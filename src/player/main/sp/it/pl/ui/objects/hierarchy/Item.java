@@ -26,6 +26,7 @@ import sp.it.util.functional.Util;
 import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.ImageSize;
 import static java.util.stream.Collectors.toList;
+import static kotlin.io.FilesKt.getNameWithoutExtension;
 import static kotlin.streams.jdk8.StreamsKt.asStream;
 import static sp.it.pl.audio.tagging.SongReadingKt.read;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
@@ -37,7 +38,6 @@ import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.FileType.DIRECTORY;
 import static sp.it.util.file.FileType.FILE;
-import static sp.it.util.file.UtilKt.getNameWithoutExtensionOrRoot;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.ui.image.UtilKt.toBuffered;
@@ -270,13 +270,13 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			if (coverFile==null) {
 				File i = null;
 				if (i==null)
-					i = getImage(value.getParentFile(), getNameWithoutExtensionOrRoot(value));
+					i = getImage(value.getParentFile(), getNameWithoutExtension(value));
 				if (i==null && parent!=null && getCoverStrategy().useParentCoverIfNone)
 					i = parent.getCoverFile();
 				coverFile = i;
 			}
 			if (coverFile==null && isVideo(value) && getHParent()!=null) {
-				var n = getNameWithoutExtensionOrRoot(value);
+				var n = getNameWithoutExtension(value);
 				if (n.endsWith(")")) {
 					var i = n.lastIndexOf("(");
 					var coverName = i==-1 ? null : n.substring(0, i) + "(BQ)";

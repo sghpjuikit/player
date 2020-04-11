@@ -18,18 +18,9 @@ import java.util.zip.ZipFile
 
 private val logger = KotlinLogging.logger { }
 
-/** @return File.getName], but partition name for root directories, never empty string */
+/** @return [File.getName], but partition name for root directories, never empty string */
 val File.nameOrRoot: String
    get() = name.takeUnless { it.isEmpty() } ?: toString()
-
-/**
- * Returns [File.nameWithoutExtension] or [File.toString] if this is the root directory,
- * since that returns an empty string otherwise.
- *
- * @return name of the file without extension
- */
-// TODO: does not work for directories with '.'
-val File.nameWithoutExtensionOrRoot: String get() = nameWithoutExtension.takeUnless { it.isEmpty() } ?: toString()
 
 /** @return file itself if exists or its first existing parent or error if null or no parent exists */
 @Blocks

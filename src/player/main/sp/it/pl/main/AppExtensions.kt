@@ -15,7 +15,6 @@ import sp.it.util.dev.fail
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidFile
 import sp.it.util.file.div
-import sp.it.util.file.nameWithoutExtensionOrRoot
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.system.runAsProgram
@@ -24,7 +23,6 @@ import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import kotlin.math.ceil
-import kotlin.reflect.KClass
 
 private val logger = KotlinLogging.logger {}
 
@@ -49,7 +47,7 @@ val Number.emScaled: Double get() = ceil(toDouble()*APP.ui.font.value.size.toEM(
  * @return true if parameter is valid skin file. False otherwise or if null.
  */
 fun File.isValidSkinFile(): Boolean {
-   val name = nameWithoutExtensionOrRoot
+   val name = nameWithoutExtension
    val skinFile = APP.location.skins/name/"$name.css"
    return isValidFile(this) && path.endsWith(".css") && this==skinFile
 }

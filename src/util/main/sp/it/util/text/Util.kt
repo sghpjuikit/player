@@ -7,6 +7,29 @@ import sp.it.util.dev.failIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
+import java.text.BreakIterator
+import java.util.Locale
+
+/** Length of this string in characters */
+val String.lengthInChars: Int get() = length
+
+/** Length of this string in code points */
+val String.lengthInCodePoint: Int get() = codePointCount(0, length)
+
+/** Length of this string in graphemes */
+val String.lengthInGrapheme: Int get() {
+   var graphemeCount = 0
+   val graphemeCounter = BreakIterator.getCharacterInstance(Locale.ROOT)
+   graphemeCounter.setText(this)
+   while (graphemeCounter.next()!=BreakIterator.DONE) graphemeCount++
+   return graphemeCount
+}
+
+/** @return the character (Unicode code point) at the specified index or throws [IndexOutOfBoundsException]. */
+fun String.char32At(at: Int): Char32 = codePointAt(at).toChar32()
+
+/** @return the character (Unicode code point) at the specified index or throws [IndexOutOfBoundsException]. */
+fun String.graphemeAt(at: Int): Char32 = codePointAt(at).toChar32()  // TODO: verify this is ok
 
 /** @return this string or null if it is null or [String.isEmpty] */
 fun String?.nullIfEmpty() = this?.takeUnless { it.isEmpty() }

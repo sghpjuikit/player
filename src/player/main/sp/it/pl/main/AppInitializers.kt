@@ -30,6 +30,9 @@ import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
+import sp.it.util.text.lengthInChars
+import sp.it.util.text.lengthInCodePoint
+import sp.it.util.text.lengthInGrapheme
 import sp.it.util.text.pluralUnit
 import sp.it.util.text.toChar32
 import sp.it.util.type.ClassName
@@ -150,7 +153,9 @@ fun InstanceDescription.initApp() {
       "Unicode" info "U+" + Integer.toHexString(it.toInt()).padStart(4, '0')
    }
    String::class describe {
-      "Length" info it.codePointCount(0, it.length).toUi()
+      "Length (char)" info it.lengthInChars.toUi()
+      "Length (code point)" info it.lengthInCodePoint.toUi()
+      "Length (grapheme)" info it.lengthInGrapheme.toUi()
       "Lines" info it.lineSequence().count().toUi()
    }
    File::class describe { f ->

@@ -9,11 +9,18 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import kotlin.jvm.functions.Function1;
 import sp.it.util.access.ref.SingleR;
+import sp.it.util.reactive.Disposer;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
+import static javafx.scene.input.DragEvent.DRAG_DONE;
+import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
-import static javafx.scene.input.DragEvent.DRAG_EXITED_TARGET;
+import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static sp.it.util.functional.Util.IS;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.EventsKt.onEventDown;
+import static sp.it.util.reactive.SubscriptionKt.on;
+import static sp.it.util.reactive.UtilKt.attach;
 
 /**
  * Placeholder node as a visual aid for mouse drag operations. Shown when drag enters drag accepting {@link Node} and
@@ -40,10 +47,11 @@ public class DragPane extends Placeholder {
 	private static final String STYLECLASS_ICON = "drag-pane-icon";
 	private static final GlyphIcons DEFAULT_ICON = CLIPBOARD;
 	public static final SingleR<DragPane,Data> PANE = new SingleR<>(DragPane::new,
-			(p, data) -> {
-				p.icon.icon(data.icon==null ? DEFAULT_ICON : data.icon);
-				p.info.setText(data.info.get());
-			}
+		(p, data) -> {
+			p.icon.icon(data.icon==null ? DEFAULT_ICON : data.icon);
+			p.info.setText(data.info.get());
+			p.whileActiveOfSibling = data.whileActive;
+		}
 	);
 
 	public static void install(Node r, GlyphIcons icon, String info, Function1<? super DragEvent, Boolean> cond) {
@@ -101,18 +109,21 @@ public class DragPane extends Placeholder {
 	 * even react on mouse drag moving across the node.
 	 */
 	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> info, Function1<? super DragEvent, Boolean> cond, Function1<? super DragEvent, Boolean> except, Function1<? super DragEvent, ? extends Bounds> area) {
-		Data d = new Data(info, icon, cond);
+		var d = new Data(info, icon, cond);
 		node.getProperties().put(INSTALLED, d);
-		node.addEventHandler(DragEvent.DRAG_OVER, e -> {
+		node.addEventHandler(DRAG_OVER, e -> {
 			if (!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
 				if (d.cond.invoke(e)) {
-					PANE.get().hide();
+					PANE.ifSet(it -> it.hide());
+					PANE.ifSet(it -> it.whileActiveOfSibling.invoke());
 
 					if (except==null || !except.invoke(e)) { // null is equivalent to e -> false
+						installUninstall(node, d.whileActive);
 						node.getProperties().put(ACTIVE, ACTIVE);
-						Pane p = node instanceof Pane ? (Pane) node : node.getParent()==null ? null : (Pane) node.getParent();
-						Pane dp = PANE.getM(d);
+						var p = node.getParent()==null ? null : (Pane) node.getParent();
+						var dp = PANE.getM(d);
 						if (p!=null && !p.getChildren().contains(dp)) {
+							dp.animateShow(node);
 							p.getChildren().add(dp);
 							Bounds b = area==null ? node.getBoundsInParent() : area.invoke(e);
 							double w = b.getWidth();
@@ -130,10 +141,10 @@ public class DragPane extends Placeholder {
 			}
 
 			if (area!=null && node.getProperties().containsKey(ACTIVE)) {
-				DragPane dp = PANE.getM(d);
-				Bounds b = area.invoke(e);
-				double w = b.getWidth();
-				double h = b.getHeight();
+				var dp = PANE.getM(d);
+				var b = area.invoke(e);
+				var w = b.getWidth();
+				var h = b.getHeight();
 				dp.setMaxSize(w, h);
 				dp.setPrefSize(w, h);
 				dp.setMinSize(w, h);
@@ -142,26 +153,27 @@ public class DragPane extends Placeholder {
 				dp.setVisible(true);
 			}
 		});
-		node.addEventHandler(DRAG_EXITED_TARGET, e ->
-			node.getProperties().remove(ACTIVE)
-		);
-		node.addEventHandler(DRAG_EXITED, e -> {
-			PANE.get().hide();
-			node.getProperties().remove(ACTIVE);
-		});
-		// Fixes an issue when the above handlers do not cause pane to hide
-		node.hoverProperty().addListener((o, ov, nv) -> {
-			if (!nv) {
-				PANE.get().hide();
+	}
+
+	private static void installUninstall(Node node, Disposer whileActive) {
+		whileActive.plusAssign(runnable(() -> {
+			if (node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
 				node.getProperties().remove(ACTIVE);
+				PANE.get().hide();
+				PANE.get().animateHide();
 			}
-		});
+		}));
+		on(onEventDown(node, DRAG_DONE, consumer(e -> whileActive.invoke())), whileActive);
+		on(onEventDown(node, DRAG_DROPPED, consumer(e -> whileActive.invoke())), whileActive);
+		on(onEventDown(node, DRAG_EXITED, consumer(e -> whileActive.invoke())), whileActive);
+		on(attach(node.hoverProperty(), consumer(nv -> { if (!nv) whileActive.invoke(); })), whileActive); // drag handlers can miss event
 	}
 
 	public static class Data {
 		private final Supplier<? extends String> info;
 		private final GlyphIcons icon;
 		private final Function1<? super DragEvent, Boolean> cond;
+		private final Disposer whileActive = new Disposer();
 
 		public Data(Supplier<? extends String> info, GlyphIcons icon) {
 			this.info = info;
@@ -175,6 +187,8 @@ public class DragPane extends Placeholder {
 			this.cond = cond;
 		}
 	}
+
+	private Disposer whileActiveOfSibling = new Disposer();
 
 	private DragPane() {
 		super(DEFAULT_ICON, "", runnable(() -> {}));

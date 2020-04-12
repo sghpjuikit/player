@@ -10,7 +10,9 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -18,10 +20,12 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import kotlin.Unit;
@@ -54,6 +58,7 @@ import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.layout.Priority.SOMETIMES;
 import static javafx.util.Duration.millis;
@@ -119,15 +124,19 @@ public class ActionPane extends OverlayPane<Object> {
 			infoPane.setId("infoPane");
 		var descPane = layVertically(8, BOTTOM_CENTER, descTitle,descriptionFullPane);
 			descPane.setId("descPane");
-		var iconPaneSimple = layHorizontally(15,CENTER);
+		var iconPaneSimple = new FlowPane(Orientation.HORIZONTAL, 20, 20);
+			iconPaneSimple.setAlignment(Pos.CENTER);
+			iconPaneSimple.setRowValignment(VPos.CENTER);
+			iconPaneSimple.setRowValignment(VPos.CENTER);
 			iconPaneSimple.setId("iconPaneSimple");
 		icons = iconPaneSimple.getChildren();
 
 		// content for icons and descriptions
 		var iconBox = layStack(iconPaneComplex,CENTER, iconPaneSimple,CENTER);
 			iconBox.setId("iconBox");
-		var iconPane = layStack(infoPane, TOP_LEFT, iconBox,CENTER, descPane,BOTTOM_CENTER);
+		var iconPane = layVertically(10.0, Pos.CENTER, infoPane, iconBox, descPane);
 			iconPane.setId("iconPane");
+			VBox.setVgrow(iconBox, ALWAYS);
 
 		// Minimal and maximal height of the 3 layout components. The heights should add
 		// up to full length (including the spacing of course). Sounds familiar? No, could not use
@@ -189,7 +198,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 		descTitle.setTextAlignment(TextAlignment.CENTER);
 		descFull.setTextAlignment(TextAlignment.JUSTIFY);
-		descriptionFullPane.maxWidthProperty().bind(min(400, iconPane.widthProperty()));
+		descriptionFullPane.maxWidthProperty().bind(min(600, iconPane.widthProperty()));
 
 		makeResizableByUser();
 	}

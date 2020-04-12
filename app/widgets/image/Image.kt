@@ -11,7 +11,6 @@ import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.emScaled
-import sp.it.pl.main.getImageFile
 import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
@@ -42,10 +41,10 @@ import java.io.File
 )
 class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
-   val inputImg = io.i.create<File>("To display", null) { showImageImpl(it) }
+   val inputFile = io.i.create<File>("To display", null) { showImageImpl(it) }
 
    private val thumb = Thumbnail()
-   private var img by cn<File>(null).only(FILE).def(name = "Custom image", info = "Image file to display.")
+   private var file by cn<File>(null).only(FILE).def(name = "Custom image", info = "File to display. Does not necessarily have to be an image. Audio or Video files can also display image.")
    private val fitFrom by cv(FitFrom.INSIDE).def(name = "Fit from", info = "Image fitting.")
 
    init {
@@ -58,26 +57,29 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       root.lay += thumb.pane
 
       installDrag(
-         root, IconMD.DETAILS, "Display",
-         { e -> e.dragboard.hasImageFileOrUrl() },
-         { e -> img!=null && img==e.dragboard.getImageFile() },
-         { e -> e.dragboard.getImageFileOrUrl() ui { inputImg.value = it } }
+         root, IconMD.DETAILS, "Display image of the file",
+         { e -> e.dragboard.hasFiles() || e.dragboard.hasImageFileOrUrl() },
+         { e -> file!=null && file==e.dragboard.files.firstOrNull() },
+         { e ->
+            if (e.dragboard.hasFiles()) inputFile.value = e.dragboard.files.firstOrNull()
+            else e.dragboard.getImageFileOrUrl() ui { inputFile.value = it }
+         }
       )
-      root.onEventDown(KEY_PRESSED, ENTER) { img?.let { APP.actions.openImageFullscreen(it) } }
+      root.onEventDown(KEY_PRESSED, ENTER) { file?.let { APP.actions.openImageFullscreen(it) } }
       root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
 
-      inputImg.value = img
+      inputFile.value = file
    }
 
    override fun showImage(imgFile: File?) {
-      inputImg.value = imgFile
+      inputFile.value = imgFile
    }
 
    private fun showImageImpl(imgFile: File?) {
-      img = imgFile
+      file = imgFile
 
       onClose += root.sync1IfInScene {
-         thumb.loadFile(img)
+         thumb.loadFile(file)
          root.requestFocus()
       }
    }

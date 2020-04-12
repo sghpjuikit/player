@@ -297,7 +297,7 @@ class App: Application(), GlobalConfigDelegator {
 
       isInitialized = runTry {
          plugins.initForApp()
-         collectActionsOf(PlaylistManager::class, null)
+         collectActionsOf(PlaylistManager)
          collectActionsOf(this)
          collectActionsOf(ui)
          collectActionsOf(actions)

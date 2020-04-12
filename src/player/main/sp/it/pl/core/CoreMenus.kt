@@ -144,20 +144,26 @@ object CoreMenus: Core {
             item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }
          }
          add<MetadataGroup> {
-            item("Play songs") { PlaylistManager.use { p -> p.setNplay(it.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
-            item("Enqueue songs") { PlaylistManager.use { p -> p.addItems(it.grouped) } }
-            item("Update songs from file") { APP.db.refreshSongsFromFile(it.grouped) }
-            item("Remove songs from library") { APP.db.removeSongs(it.grouped) }
+            menu("Playback") {
+               item("Play songs") { PlaylistManager.use { p -> p.setNplay(it.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
+               item("Enqueue songs") { PlaylistManager.use { p -> p.addItems(it.grouped) } }
+            }
+            menu("Library") {
+               item("Update songs from file") { APP.db.refreshSongsFromFile(it.grouped) }
+               item("Remove songs from library") { APP.db.removeSongs(it.grouped) }
+            }
             menu("Show in") {
                widgetItems<SongReader> { it.read(value.grouped) }
             }
             menu("Edit tags in") {
                widgetItems<SongWriter> { it.read(value.grouped) }
             }
-            item("Explore songs' location") { APP.actions.browseMultipleFiles(it.grouped.asSequence().mapNotNull { it.getFile() }) }
-            menu("Explore songs' location in") {
-               widgetItems<FileExplorerFeature> {
-                  it.exploreCommonFileOf(value.grouped.mapNotNull { it.getFile() })
+            menu("Location") {
+               item("Explore songs' location") { APP.actions.browseMultipleFiles(it.grouped.asSequence().mapNotNull { it.getFile() }) }
+               menu("Explore songs' location in") {
+                  widgetItems<FileExplorerFeature> {
+                     it.exploreCommonFileOf(value.grouped.mapNotNull { it.getFile() })
+                  }
                }
             }
             if (value.field==Metadata.Field.ALBUM)

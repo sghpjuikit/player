@@ -17,7 +17,9 @@ import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
@@ -274,6 +276,9 @@ public class Icon extends StackPane {
 				Text txt = s==null ? null : getFieldValue(s.getSkin(), "text");
 				Node ico = s==null ? null : getFieldValue(s.getSkin(), "graphic");
 				if (ico!=null && txt!=null) {
+					t.setContentDisplay(ContentDisplay.LEFT);
+					s.setAlignment(Pos.TOP_CENTER);
+					txt.setTextOrigin(VPos.TOP);
 					var textInterpolator = typeText(text);
 					var anim = new Anim(millis(400), p -> {
 						txt.setText(textInterpolator.invoke(p));

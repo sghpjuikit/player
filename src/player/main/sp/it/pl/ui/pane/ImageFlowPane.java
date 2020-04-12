@@ -87,17 +87,19 @@ public class ImageFlowPane extends Pane {
 
 	@Override
 	protected void layoutChildren() {
-		if (image!=null) image.getPane().setVisible(showImage);
-		if (content!=null) content.setVisible(showContent);
-
 		double pl = getPadding().getLeft();
 		double pr = getPadding().getRight();
 		double pt = getPadding().getTop();
 		double pb = getPadding().getBottom();
 		double W = getWidth() - pl - pr;
 		double H = getHeight() - pt - pb;
+		var showI = showImage && image!=null;
+		var showC = showContent && content!=null;
 
-		if (showImage && showContent && image!=null && content!=null) {
+		if (image!=null) image.getPane().setVisible(showI);
+		if (content!=null) content.setVisible(showC);
+
+		if (showI && showC) {
 			double imgRatio = image.getRatioImg();
 			double thisRatio = W/H;
 			boolean isHorizontal = thisRatio>imgRatio;
@@ -128,13 +130,12 @@ public class ImageFlowPane extends Pane {
 				content.setMaxSize(W, H - gap - imgH);
 			}
 		}
-		if ((!showImage || image==null) && showContent && content!=null) {
-			layoutInArea(content, 0 + pl, 0 + pt, W - pl - pr, H - pt - pb, 0, HPos.CENTER, VPos.CENTER);
+		if (!showI && showC) {
+			layoutInArea(content, 0, 0, getWidth(), getHeight(), 0, HPos.LEFT, VPos.TOP);
 		}
-		if (showImage && image!=null && (!showContent || content==null)) {
-			layoutInArea(image.getPane(), 0 + pl, 0 + pt, W - pl - pr, H - pt - pb, 0, HPos.CENTER, VPos.CENTER);
+		if (showI && !showC) {
+			layoutInArea(image.getPane(), 0, 0, getWidth(), getHeight(), 0, HPos.LEFT, VPos.TOP);
 		}
-		// if ((!showImage && !showContent) || (image==null && content==null)) {}
 
 		super.layoutChildren();
 	}

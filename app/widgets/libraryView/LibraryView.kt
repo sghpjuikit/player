@@ -353,6 +353,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          table.items.forEachIndexed { i, mg ->
             if (mg.getValueS("")==selLast) {
                table.selectionModel.select(i)
+               table.scrollTo(i)
             }
          }
          return

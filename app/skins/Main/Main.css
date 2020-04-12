@@ -1,9 +1,8 @@
-/* 
-    Document    : Default
-    Author      : Martin Polakovic
-    Year        : 2014
-    Description : skin
-*/
+/*
+ * Document: Spit Player skin
+ * Author: Martin Polakovic
+ * Year: 2014
+ */
 
 /* Global variables*/
 * {
@@ -50,23 +49,7 @@
 .toggle-button,
 .radio-button > .radio,
 .check-box > .box,
-/*.menu-button, */ /* enable this if you want menu button to look like normal button*/
 .color-picker.split-button > .color-picker-label {
-   /* -fx-background-color:
-        rgba(255, 255, 255, 0.08),
-        rgba(0, 0, 0, 0.8),
-        #090a0c,
-        linear-gradient(#4a5661 0%, #1f2429 20%, #1f242a 100%),
-        linear-gradient(#242a2e, #23282e),
-        radial-gradient(center 50% 0%, radius 100%, rgba(135,142,148,0.9),
-        rgba(255,255,255,0));
-    -fx-background-radius: 4, 3, 3, 3, 2, 3;
-    -fx-background-insets: -3 -3 -4 -3, -3, 0, 1, 2, 0;
-    -fx-text-fill: -skin-def-font-color;
-    -fx-padding: 0;
-    -fx-alignment: CENTER;
-    -fx-content-display: LEFT;*/
-
     -fx-background-color: rgba(0,0,0,0.2);
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
@@ -1572,7 +1555,7 @@ Text {
  * Use .window for static background.
  */
 .window .bgr-image {
-    -fx-background-image: url("bgr.png");
+    //-fx-background-image: url("bgr.png");
 }
 
 /*

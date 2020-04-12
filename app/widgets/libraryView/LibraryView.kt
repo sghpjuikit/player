@@ -66,6 +66,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
@@ -270,7 +271,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          outputSelectedGroup.value = table.selectedItemsCopy
       }
       table.selectedItems.onChange { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
-      table.selectionModel.selectedItemProperty() sync { selLast = it?.getValueS("") ?: "null" } on onClose
+      table.selectionModel.selectedItemProperty() attach { selLast = it?.getValueS("") ?: "null" } on onClose
       root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs.o) } on onClose
 
       applyData(false)

@@ -3,22 +3,28 @@ package sp.it.pl.image
 import javafx.scene.image.Image
 import javafx.util.Duration
 import mu.KotlinLogging
+import sp.it.pl.audio.SimpleSong
+import sp.it.pl.audio.tagging.read
 import sp.it.pl.image.ImageLoader.Params
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.isAudio
 import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
 import sp.it.util.async.FX
 import sp.it.util.async.runIO
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
+import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.type.MimeGroup.Companion.audio
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
@@ -68,8 +74,13 @@ object ImageStandardLoader: ImageLoader {
 
    override fun invoke(p: Params): Image? {
       logger.debug { "Loading img $p" }
+      failIfFxThread()
 
       return when (p.mime.group) {
+         audio -> {
+            if (p.file.isAudio()) SimpleSong(p.file).read().getCover(CoverSource.ANY).getImage()
+            else null
+         }
          video -> {
             val imgDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
             val imgName = buildString {

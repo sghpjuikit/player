@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement 0 length support for list editor
 - Implement slider fill
 - Implement Unicode character icons
+- Implement more skins
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance
@@ -45,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve window header animation
 - Improve grid cell hover/focus effect
 - Improve overlay animation performance and ux
+- Improve overlay icon layout
+- Improve drag&drop placeholder ux
+- Improve shortcuts ui display (use unicode glyphs for keys)
 - Improve object inspection type inference
     - supports generics, displays `List<SomeType>`
     - displays nullability, displays `List<SomeType?>?`
@@ -55,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve image loading performance
 - Widgets
     - Implement `Dir Viewer` icon cell & option to toggle thumbnails/icons
+    - Improve `Dir Viewer` cell size change performance
     - Improve `Tagger` widget UX
     - Improve `Tagger` reading performance
     - Improve `FileInfo`

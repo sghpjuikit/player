@@ -59,7 +59,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public volatile Fut<Unit> coverLoading = null;
 	public volatile Image cover = null;           // cover cache
 	public volatile File coverFile = null;        // cover file cache
-	private volatile boolean coverFile_loaded = false;
+	private volatile boolean coverFileLoaded = false;
 	private volatile boolean disposed = false;
 	public double loadProgress = 0;         // 0-1
 	public double lastScrollPosition = -1;  // 0-1
@@ -86,7 +86,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		all_children = null;
 		cover = null;
 		coverFile = null;
-		coverFile_loaded = false;
+		coverFileLoaded = false;
 		coverLoading = null;
 		disposed = true;
 	}
@@ -109,7 +109,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		all_children = null;
 		cover = null;
 		coverFile = null;
-		coverFile_loaded = false;
+		coverFileLoaded = false;
 		coverLoading = null;
 		loadProgress = 0;
 		lastScrollPosition = -1;
@@ -257,8 +257,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		failIfFxThread();
 		if (disposed) return null;
 
-		if (coverFile_loaded) return coverFile;
-		coverFile_loaded = true;
+		if (coverFileLoaded) return coverFile;
+		coverFileLoaded = true;
 
 		if (valType==DIRECTORY) {
 			if (children==null) buildChildren();

@@ -2378,7 +2378,7 @@ public class Comet extends SimpleController {
 
 		@Override
 		void draw() {
-			graphicsDir = D45 + direction; // add 45 degrees due to the graphics TODO: fix this
+			graphicsDir = D45 + direction; // add 45 degrees due to the graphics
 
 			// Draw custom graphics
 			// super.draw();

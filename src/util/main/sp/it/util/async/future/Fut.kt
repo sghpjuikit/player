@@ -57,6 +57,11 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    /** @return whether this future completed regardless of success */
    fun isDone(): Boolean = f.isDone
 
+   /** Invokes the block if this future [isDone] with [ResultOk] */
+   fun ifDoneOk(block: (T) -> Unit) {
+      if (isDone()) getDone().toTry().ifOk(block)
+   }
+
    /** Waits for this future to complete and return the result. */
    @Blocks
    fun getDone(): Result<T> = try {

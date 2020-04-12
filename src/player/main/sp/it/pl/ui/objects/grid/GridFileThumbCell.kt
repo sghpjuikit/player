@@ -155,7 +155,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          } on onDispose
       }
 
-
       imgLoadAnim = anim(200.millis) {
          if (imgLoadAnimItem!=null) {
             imgLoadAnimItem?.loadProgress = it
@@ -273,12 +272,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    private fun setCoverPost(item: Item, i: Int, imgFile: File, img: Image?) {
       if (!disposed && !isInvalid(item, i) && img!=null)
          img.sync1IfImageLoaded { thumb!!.loadImage(img, imgFile) }
-   }
-
-   class Loader(val executorThumbs: ExecutorService?) {
-      fun shutdown() {
-         executorThumbs?.shutdownNow()
-      }
    }
 
    companion object {

@@ -353,7 +353,9 @@ class Metadata: Song, Serializable {
                }
             }
          }
-         // todo: also check ID3v24Frames.FRAME_ID_PLAY_COUNTER
+
+         if (playcount==null)
+            playcount = this.getFirst(ID3v24Frames.FRAME_ID_PLAY_COUNTER).orNull()?.toIntOrNull()
 
          // PUBLISHER -----------------------------------------------------------
          if (publisher==null)
@@ -763,7 +765,6 @@ class Metadata: Song, Serializable {
 
       private fun Metadata.loadAsInt(tag: Tag, field: FieldKey): Int? = loadAsString(tag, field)?.toIntOrNull()
 
-      // TODO remove
       private fun loadComment(tag: Tag): String? {
          // there is a bug where getField(Comment) returns CUSTOM1 field, this is workaround
          // this is how COMMENT field look like: Language="English"; Text="example";

@@ -91,6 +91,13 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		disposed = true;
 	}
 
+	/** Dispose of the cover as to be able to load it again. */
+	public void disposeCover() {
+		failIfNotFxThread();
+		cover = null;
+		coverLoading = null;
+	}
+
 	/** Dispose of this as to be fully usable, but children will be {@link #disposeContent()}. */
 	public void disposeChildrenContent() {
 		failIfNotFxThread();

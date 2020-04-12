@@ -66,6 +66,7 @@ import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.let_
 import sp.it.util.functional.nullsLast
+import sp.it.util.functional.recurseBF
 import sp.it.util.functional.traverse
 import sp.it.util.inSort
 import sp.it.util.math.max
@@ -140,7 +141,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
    private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone).readOnlyUnless(coverOn)
       .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
-   private val cellTextHeight = APP.ui.font.map(onClose) { 20.0.emScaled }.apply {
+   private val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
       attach { applyCellSize() }
    }
 
@@ -223,6 +224,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       root.sync1IfInScene {
          applyCellSize()
+         revisitCurrent()
       }
    }
 
@@ -312,11 +314,12 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    }
 
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
+      item?.hRoot?.recurseBF { it.children() }.orEmpty().forEach { it.disposeCover() }
+      grid.itemsRaw.forEach { it.disposeCover() }
       grid.cellWidth.value = width.emScaled
       grid.cellHeight.value = height.emScaled + cellTextHeight.value
-      grid.horizontalCellSpacing.value = 5.emScaled
-      grid.verticalCellSpacing.value = 5.emScaled
-      revisitCurrent()
+      grid.horizontalCellSpacing.value = 10.emScaled
+      grid.verticalCellSpacing.value = 10.emScaled
    }
 
    private fun applySort() {

@@ -9,6 +9,7 @@ import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.main.withAppProgress
+import sp.it.util.Util.filenamizeString
 import sp.it.util.async.FX
 import sp.it.util.async.runIO
 import sp.it.util.dev.fail
@@ -16,12 +17,15 @@ import sp.it.util.dev.failIf
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
+import sp.it.util.file.nameOrRoot
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
 import sp.it.util.functional.orNull
+import sp.it.util.functional.traverse
+import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.system.Os
 import sp.it.util.ui.IconExtractor
@@ -67,14 +71,27 @@ object ImageStandardLoader: ImageLoader {
 
       return when (p.mime.group) {
          video -> {
-            val tmpDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
-            val tmpFile = tmpDir/"${p.file.nameWithoutExtension}.jpg"
-            if (tmpFile.exists()) {
-               this(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
+            val imgDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
+            val imgName = buildString {
+               // To enable multiple size versions, we requested image size
+               // To prevent invalid data, we embed file size
+               // To prevent conflict we embed file name, file path length and file path fragments
+               // There is a risk to run into file path limit on some platforms, so we shorten path fragments
+               append(p.file.length()).append("-")
+               append(p.size.width.toInt() max 0).append("x").append(p.size.height.toInt() max 0).append("-")
+               append(p.file.path.length).append("-")
+               append(p.file.traverse { it.parentFile }.drop(1).toList().reversed().joinToString("") {
+                  "${it.nameOrRoot.firstOrNull()?.toString()}${it.nameOrRoot.lastOrNull()}-" }
+               )
+               append(p.file.name)
+            }
+            val imgFile = imgDir/"${filenamizeString(imgName)}.jpg"
+            if (imgFile.exists()) {
+               this(p.copy(file = imgFile, mime = imgFile.mimeType()))
             } else {
-               tmpDir.mkdirs()
-               extractThumb(p.file.absolutePath, tmpFile.absolutePath, 1.seconds)
-               if (tmpFile.exists()) this(p.copy(file = tmpFile, mime = tmpFile.mimeType()))
+               imgDir.mkdirs()
+               extractThumb(p.file.absolutePath, imgFile.absolutePath, 1.seconds)
+               if (imgFile.exists()) this(p.copy(file = imgFile, mime = imgFile.mimeType()))
                else null
             }
          }

@@ -1,0 +1,31 @@
+/*
+ * Document : Spit Player skin
+ * Author : Martin Polakovic
+ * Year: 2020
+ */
+
+@import url("../Main/Main.css");
+
+* {
+    -skin-def-font-color: rgb(200, 130, 150);
+    -skin-def-font-color-hover: rgb(255, 80, 80);
+    -fx-focus-color: rgb(255, 80, 80);
+    -skin-popup-def-bgr-color: rgba(50,0,36,0.95);
+}
+
+/** Change backgrounds */
+.window {
+    -fx-background-color: radial-gradient(radius 200%, rgba(2,0,36,1) 0%, rgba(121,9,9,1) 100%, rgba(0,212,255,1) 100%);
+}
+.overlay-pane {
+    -fx-background-color: radial-gradient(radius 200%, rgba(2,0,36,0.9) 0%, rgba(121,9,9,0.8) 100%, rgba(0,212,255,0.5) 100%);
+}
+.drag-pane {
+    -fx-background-color: transparent;
+}
+
+/** Add icon shadow */
+.icon,
+.icon:hover {
+    -fx-effect: dropshadow(gaussian, rgb(0, 0, 0), 12, 0.2 , 0, 0);
+}

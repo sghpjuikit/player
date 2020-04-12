@@ -35,8 +35,7 @@ interface MapByKClass<E> {
     */
    fun getElementsOfSuperV(key: KClass<*>): Sequence<E> {
       val keys = key.superKClassesInc().toMutableList()
-      if (Nothing::class!=key) keys += Nothing::class
-      if (Void::class!=key) keys += Void::class
+      if (Nothing::class!=key || Void::class!=key) keys += Nothing::class
       return getElementsOf(keys)
    }
 
@@ -61,7 +60,6 @@ interface MapByKClass<E> {
    fun getElementOfSuperV(key: KClass<*>): E? = null
       ?: key.superKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
       ?: getElementsOf(Nothing::class).firstOrNull()
-      ?: getElementsOf(Void::class).firstOrNull()
 
 }
 

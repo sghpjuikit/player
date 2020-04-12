@@ -352,7 +352,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
             )
       }
       layout.setMinContentSize(200.0, 120.0)
-      layout.setGap(5.0)
+      layout.setGap(15.emScaled)
       tiles.padding = Insets(5.0)
       root.lay += layout
 

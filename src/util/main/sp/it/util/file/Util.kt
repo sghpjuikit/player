@@ -12,6 +12,8 @@ import java.io.FileFilter
 import java.io.FilenameFilter
 import java.net.MalformedURLException
 import java.net.URI
+import java.net.URISyntaxException
+import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.util.zip.ZipFile
@@ -98,7 +100,7 @@ infix fun File.hasExtension(suffix: String) = path.endsWith(".$suffix", true)
 /** @return true if the file path ends with '.' followed by the one of the specified [suffixes] */
 fun File.hasExtension(vararg suffixes: String) = suffixes.any { this hasExtension it }
 
-/** @return file denoting the resource of this uri or null if [IllegalArgumentException] is thrown */
+/** @return file denoting the resource of this URI or null if [IllegalArgumentException] is thrown */
 @Suppress("DEPRECATION")
 fun URI.toFileOrNull() =
    try {
@@ -107,7 +109,18 @@ fun URI.toFileOrNull() =
       null
    }
 
-/** @return file denoting the resource of this uri or null if [MalformedURLException] is thrown */
+/** @return URI denoting this URL or null if [URISyntaxException] is thrown */
+fun URL.toURIOrNull() =
+   try {
+      toURI()
+   } catch (e: URISyntaxException) {
+      null
+   }
+
+/** @return file denoting the resource of this URL or null if [URISyntaxException] or [IllegalArgumentException] is thrown */
+fun URL.toFileOrNull() = toURIOrNull()?.toFileOrNull()
+
+/** @return URL denoting the resource of this file or null if [MalformedURLException] is thrown */
 fun File.toURLOrNull() =
    try {
       toURI().toURL()

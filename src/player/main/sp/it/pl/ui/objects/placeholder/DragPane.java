@@ -114,7 +114,7 @@ public class DragPane extends Placeholder {
 						Pane dp = PANE.getM(d);
 						if (p!=null && !p.getChildren().contains(dp)) {
 							p.getChildren().add(dp);
-							Bounds b = area==null ? node.getLayoutBounds() : area.invoke(e);
+							Bounds b = area==null ? node.getBoundsInParent() : area.invoke(e);
 							double w = b.getWidth();
 							double h = b.getHeight();
 							dp.setMaxSize(w, h);

@@ -8,12 +8,12 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
-import sp.it.pl.ui.objects.placeholder.DragPane
 import sp.it.pl.main.APP
 import sp.it.pl.main.getImageFile
 import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.placeholder.DragPane
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.file.FileType.FILE
@@ -26,12 +26,12 @@ import java.io.File
  *
  * File can be accepted either by using file chooser opened by clicking on this thumbnail, or by drag&drop.
  */
-class ThumbnailWithAdd @JvmOverloads constructor(dragIcon: GlyphIcons = DETAILS, dragDescription: String = "Set Image"): Thumbnail() {
+class ThumbnailWithAdd constructor(dragIcon: GlyphIcons = DETAILS, dragDescription: String = "Set Image"): Thumbnail() {
 
    /** Action for when image file is dropped or received from file chooser. Default does nothing. */
-   @JvmField var onFileDropped: (Fut<File?>) -> Unit = {}
+   var onFileDropped: (Fut<File?>) -> Unit = {}
    /** Action for when image is highlighted. Default does nothing. */
-   @JvmField var onHighlight: (Boolean) -> Unit = {}
+   var onHighlight: (Boolean) -> Unit = {}
    private val dragData = DragPane.Data({ dragDescription }, dragIcon)
 
    init {

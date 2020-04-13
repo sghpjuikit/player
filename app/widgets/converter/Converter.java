@@ -22,7 +22,6 @@ import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import kotlin.reflect.KClass;
 import kotlin.sequences.SequencesKt;
@@ -38,6 +37,7 @@ import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.main.AppDragKt;
+import sp.it.pl.main.Css;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode;
 import sp.it.pl.ui.itemnode.ConfigEditor;
@@ -45,7 +45,6 @@ import sp.it.pl.ui.itemnode.ListAreaNode;
 import sp.it.pl.ui.itemnode.ValueNode;
 import sp.it.pl.ui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.ui.objects.icon.Icon;
-import sp.it.pl.ui.pane.ConfigPane;
 import sp.it.util.access.V;
 import sp.it.util.access.VarEnum;
 import sp.it.util.collections.map.KClassListMap;
@@ -65,6 +64,7 @@ import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_CENTER;
+import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
@@ -79,7 +79,6 @@ import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.future.Fut.fut;
-import static sp.it.util.conf.ConfigurableKt.toListConfigurable;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.equalBy;
@@ -97,7 +96,9 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
+import static sp.it.util.ui.UtilKt.label;
 import static sp.it.util.ui.UtilKt.menuItem;
+import static sp.it.util.ui.UtilKt.text;
 
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
@@ -135,7 +136,7 @@ import static sp.it.util.ui.UtilKt.menuItem;
         + "\tDrag&drop files : Sets files as input\n"
         + "\tDrag&drop songs : Sets songs as input\n"
         + "\tDrag&drop text : Sets text as input\n",
-    version = "0.7.0",
+    version = "0.8.0",
     year = "2015",
     group = Group.APP
 )
@@ -148,9 +149,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     private final EditArea ta_in = new EditArea("In", true);
     private final ObservableList<EditArea> tas = observableArrayList(ta_in);
     private final KClassListMap<Act<?>> acts = new KClassListMap<>(act -> act.type);
-    private final HBox outTFBox = new HBox(5);
+    private final HBox outTFBox = new HBox(getEmScaled(10));
     private final Applier applier = new Applier();
-    private final HBox layout = new HBox(5,outTFBox, applier.root);
+    private final HBox layout = new HBox(getEmScaled(10), outTFBox, applier.root);
 
     public Converter(Widget widget) {
 	    super(widget);
@@ -159,7 +160,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         inputValue = io.i.create("Value", new VType<>(Object.class, true), null, consumer(v -> source.setAll(unpackData(v))));
 
         // layout
-        HBox ll = new HBox(5, ta_in.getNode(),layout);
+        HBox ll = new HBox(getEmScaled(10), ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
         root.getChildren().add(ll);
 
@@ -431,21 +432,34 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 action.actionImpartial.accept(m);
             }
         });
-        VBox root = new VBox(5,
-            new StackPane(new Label("Action")),         // title
-            actCB,                                      // action chooser
-            new StackPane(new Label("Apply", runB))     // action run button
+        VBox root = new VBox(getEmScaled(10),
+            label("Action", consumer((it) ->
+                it.getStyleClass().add("form-config-pane-config-name")
+            )),
+            text("Action that uses the data in text area", consumer(it -> {
+                it.getStyleClass().add(Css.DESCRIPTION);
+                it.getStyleClass().add("form-config-pane-config-description");
+            })),
+            actCB,
+            label("Data", consumer((it) ->
+                it.getStyleClass().add("form-config-pane-config-name")
+            )),
+            text("Map text areas to the action input.\nAction can have multiple inputs", consumer(it -> {
+                it.getStyleClass().add(Css.DESCRIPTION);
+                it.getStyleClass().add("form-config-pane-config-description");
+            })),
+            runB.withText(Side.RIGHT, "Apply")
         );
 
         public Applier() {
             actCB.valueProperty().addListener((o,ov,nv) -> {
                 if (nv==null) return;
                 if (ins!=null) root.getChildren().remove(ins.node());
-                if (root.getChildren().size()==4) root.getChildren().remove(2);
-                ins = nv.isNamesDeterminate ? new InsSimple(nv) : new InsComplex(nv);
-                root.getChildren().add(2,ins.node());
+                if (root.getChildren().size()==7) root.getChildren().remove(5);
+                ins = new Ins(nv, nv.isInputsFixedLength);
+                root.getChildren().add(5,ins.node());
                 Node n = nv.getNode();
-                if (n!=null) root.getChildren().add(3,n);
+                if (n!=null) root.getChildren().add(6,n);
             });
         }
 
@@ -460,7 +474,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         int max = MAX_VALUE;
         F0<List<String>> names;
         KClass<Y> type;
-        boolean isNamesDeterminate;
+        boolean isInputsFixedLength;
         BiConsumer<Y,Map<String,? extends String>> actionPartial = null;
         Consumer<? super Map<String,List<? extends String>>> actionImpartial = null;
 
@@ -479,22 +493,22 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         Act(String name, KClass<Y> type, int max, F0<List<String>> names, BiConsumer<Y,Map<String,? extends String>> action) {
             this(name, type, max, action);
             this.names = names;
-            isNamesDeterminate = false;
+            isInputsFixedLength = false;
         }
         Act(String name, KClass<Y> type, int max, List<String> names, BiConsumer<Y,Map<String,? extends String>> action) {
             this(name, type, max, action);
             this.names = () -> names;
-            isNamesDeterminate = true;
+            isInputsFixedLength = true;
         }
         Act(String name, KClass<Y> type, int max, F0<List<String>> names, Consumer<Map<String,List<? extends String>>> action) {
             this(name, type, max, action);
             this.names = names;
-            isNamesDeterminate = false;
+            isInputsFixedLength = false;
         }
         Act(String name, KClass<Y> type, int max, List<String> names, Consumer<Map<String,List<? extends String>>> action) {
             this(name, type, max, action);
             this.names = () -> names;
-            isNamesDeterminate = true;
+            isInputsFixedLength = true;
         }
 
         Node getNode() {
@@ -521,12 +535,26 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         @Override
         public Node getNode() {
-            return layVertically(5,TOP_CENTER,
-                layHorizontally(5,CENTER_LEFT,
+            return layVertically(getEmScaled(10),TOP_CENTER,
+                label("Output file name", consumer((it) ->
+                    it.getStyleClass().add("form-config-pane-config-name")
+                )),
+                text("Output file name. Previous file will be overwritten.", consumer(it -> {
+                    it.getStyleClass().add(Css.DESCRIPTION);
+                    it.getStyleClass().add("form-config-pane-config-description");
+                })),
+                layHorizontally(getEmScaled(10),CENTER_LEFT,
                     ConfigEditor.create(Config.forProperty(String.class, "File name", nam)).buildNode(),
                     new Label("."),
                     ConfigEditor.create(Config.forProperty(String.class, "Extension", ext)).buildNode()
                 ),
+                label("Output location", consumer((it) ->
+                    it.getStyleClass().add("form-config-pane-config-name")
+                )),
+                text("Location the file will be saved to", consumer(it -> {
+                    it.getStyleClass().add(Css.DESCRIPTION);
+                    it.getStyleClass().add("form-config-pane-config-description");
+                })),
                 ConfigEditor.create(Config.forProperty(File.class, "Location", loc)).buildNode()
             );
         }
@@ -562,11 +590,22 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public Node getNode() {
             Node n = ConfigEditor.create(Config.forProperty(File.class, "Location", loc)).buildNode();
             use_loc.syncC(v -> n.setDisable(!v));
-            return layVertically(5,TOP_CENTER,
-                layHorizontally(5,CENTER_LEFT,
-                    new Label("In directory"),
-                    ConfigEditor.create(Config.forProperty(Boolean.class, "In directory", use_loc)).buildNode()
-                ),
+            return layVertically(getEmScaled(10),TOP_LEFT,
+                label("Relative", consumer((it) ->
+                    it.getStyleClass().add("form-config-pane-config-name")
+                )),
+                text("If relative, the path will be resolved against the below directory", consumer(it -> {
+                    it.getStyleClass().add(Css.DESCRIPTION);
+                    it.getStyleClass().add("form-config-pane-config-description");
+                })),
+                ConfigEditor.create(Config.forProperty(Boolean.class, "In directory", use_loc)).buildNode(),
+                label("Relative against", consumer((it) ->
+                    it.getStyleClass().add("form-config-pane-config-name")
+                )),
+                text("Location the directories will be created in", consumer(it -> {
+                    it.getStyleClass().add(Css.DESCRIPTION);
+                    it.getStyleClass().add("form-config-pane-config-description");
+                })),
                 n
             );
         }
@@ -594,7 +633,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
             configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name));
             configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input));
-            root = new HBox(5, configEditorA.buildNode(), configEditorB.buildNode());
+            root = layHorizontally(getEmScaled(10), CENTER_LEFT, configEditorB.buildNode(), new Label("→"), configEditorA.buildNode());
         }
 
         @Override
@@ -607,39 +646,13 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             return root;
         }
     }
-    private interface Ins {
-        Node node();
-        Stream<In> values();
-    }
-    private class InsSimple implements Ins {
-        ConfigPane<EditArea> ins;
-
-        InsSimple(Act<?> a) {
-            ins = new ConfigPane<>();
-            ins.configure(
-                toListConfigurable(
-                    map(a.names.get(), name -> {
-                        V<EditArea> input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in), tas);
-                        return Config.forProperty(EditArea.class, name, input);
-                    })
-                )
-            );
-        }
-
-        public Node node() {
-            return ins;
-        }
-
-        public Stream<In> values() {
-            return ins.getConfigEditors().stream().map(c -> new In(c.config.getName(),c.getConfigValue()));
-        }
-
-    }
-    private class InsComplex implements Ins {
+    private class Ins {
         ListChainValueNode<In, InPane> ins;
 
-        InsComplex(Act<?> a) {
+        Ins(Act<?> a, boolean isFixedLength) {
             ins = new ListChainValueNode<>(() -> new InPane(a.names));
+            ins.editable.setValue(!isFixedLength);
+            ins.growTo1();
             ins.maxChainLength.set(a.max);
         }
 
@@ -650,5 +663,6 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public Stream<In> values() {
             return ins.getValues();
         }
+
     }
 }

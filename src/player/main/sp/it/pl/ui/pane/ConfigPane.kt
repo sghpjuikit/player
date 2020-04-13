@@ -20,6 +20,7 @@ import sp.it.util.math.min
 import sp.it.util.type.raw
 import sp.it.util.ui.label
 import sp.it.util.ui.onNodeDispose
+import sp.it.util.ui.text
 
 class ConfigPane<T: Any?>: VBox {
    private var editors: List<ConfigEditor<*>> = listOf()
@@ -63,7 +64,7 @@ class ConfigPane<T: Any?>: VBox {
             },
             when {
                it.config.info.isEmpty() || it.config.nameUi==it.config.info -> null
-               else -> Text(it.config.info).apply {
+               else -> text(it.config.info).apply {
                   isManaged = false
                   styleClass += Css.DESCRIPTION
                   styleClass += "form-config-pane-config-description"

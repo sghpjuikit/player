@@ -83,25 +83,25 @@ public class WindowBase {
 		syncC(s.xProperty(), v -> {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				X.setValue(v);
-				updateScreen();
+				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.yProperty(), v -> {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				Y.setValue(v);
-				updateScreen();
+				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.widthProperty(), v ->  {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				W.setValue(v);
-				updateScreen();
+				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.heightProperty(), v ->  {
 			if (!isFullscreen() && isMaximized()==NONE) {
 				H.setValue(v);
-				updateScreen();
+				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 	}
@@ -176,7 +176,7 @@ public class WindowBase {
 	protected Screen screen = Screen.getPrimary();
 
 	private void updateScreen() {
-		screen = sp.it.util.ui.UtilKt.getScreen(getCenter());
+		screen = sp.it.util.ui.UtilKt.getScreen(s);
 	}
 
 	/**

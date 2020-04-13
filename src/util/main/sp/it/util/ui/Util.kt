@@ -1045,17 +1045,20 @@ fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
 
 /* ---------- SCREEN ------------------------------------------------------------------------------------------------ */
 
-/** @return screen containing this point */
+/** @return screen containing this point or primary screen */
 fun P.getScreen() = getScreen(x, y)
 
-/** @return screen containing the given coordinates */
+/** @return screen containing the given coordinates or primary screen */
 fun getScreen(x: Double, y: Double) = Screen.getScreens().find { it.bounds.contains(x, y) } ?: Screen.getPrimary()!!
 
-/** @return screen containing the given coordinates */
+/** @return screen containing the given coordinates or primary screen */
 fun getScreenForMouse() = Robot().mousePosition.toP().getScreen()
 
 /** @return image representing actual content of this screen */
 fun Screen.makeScreenShot(image: WritableImage? = null) = Robot().getScreenCapture(image, bounds)!!
 
-/** @return screen containing the centre of this window */
-val Window.screen: Screen get() = getScreen(centreX, centreY)
+/** @return screen containing this window or primary screen */
+val Window.screen: Screen get() = null
+   ?: Screen.getScreens().find { centre.toPoint2D() in it.bounds }
+   ?: Screen.getScreens().find { it.bounds.intersects(bounds) }
+   ?: Screen.getPrimary()!!

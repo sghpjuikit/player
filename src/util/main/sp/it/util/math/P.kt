@@ -12,7 +12,7 @@ data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0)
          y = value.y
       }
 
-   fun distance(p: P) = distance(p.x, p.y)
+   infix fun distance(p: P) = distance(p.x, p.y)
 
    fun distance(x: Double = 0.0, y: Double = 0.0) = sqrt((x - this.x)*(x - this.x) + (y - this.y)*(y - this.y))
 

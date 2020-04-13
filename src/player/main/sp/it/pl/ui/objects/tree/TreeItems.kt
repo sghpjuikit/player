@@ -66,7 +66,6 @@ import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
-import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -76,7 +75,6 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
 import sp.it.util.text.nullIfBlank
-import sp.it.util.text.plural
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
 import sp.it.util.type.type
@@ -256,7 +254,6 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       o is WidgetFactory<*> -> o.name
       o is File -> {
          val needsAbsolute = treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true
-         println("$o ${treeItem.parent?.value} $needsAbsolute")
          if (needsAbsolute) o.absolutePath
          else o.nameOrRoot
       }

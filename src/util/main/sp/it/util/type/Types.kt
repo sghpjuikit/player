@@ -29,6 +29,12 @@ inline fun <reified T> kType() = typeOf<T>()
 /** @return type representing the generic type argument of this method as [VType] */
 inline fun <reified T> type(): VType<T> = VType(kType<T>())
 
+/** @return type [Nothing] as [VType] */
+fun typeNothingNonNull(): VType<Nothing> = VType(Nothing::class.createType(nullable = false))
+
+/** @return type [Nothing]? as [VType] */
+fun typeNothingNullable(): VType<Nothing?> = VType(Nothing::class.createType(nullable = true))
+
 /** @return java type representing the generic type argument of this method (obtained using [kType].[KType.javaType]) */
 inline fun <reified T> jType() = object: TypeToken<T>() {}.type
 
@@ -81,19 +87,31 @@ val <T: Any> VType<T?>.raw: KClass<T> get() = type.jvmErasure.asIs()
 val KType.raw: KClass<*> get() = jvmErasure
 
 /** @return reified version of [KType.isSupertypeOf] */
-inline fun <reified T> KType.isSupertypeOf() = isSupertypeOf(kType<T>())
+inline fun <reified SUBTYPE> KType.isSupertypeOf() = isSupertypeOf(kType<SUBTYPE>())
 
 /** @return reified version of [KType.isSubtypeOf] */
-inline fun <reified T> KType.isSubtypeOf(): Boolean = isSubtypeOf(kType<T>())
+inline fun <reified SUPERTYPE> KType.isSubtypeOf() = isSubtypeOf(kType<SUPERTYPE>())
+
+/** @return whether this type [KType.isSubtypeOf] the specified type */
+infix fun VType<*>.isSubtypeOf(supertype: VType<*>) = type.isSubtypeOf(supertype.type)
+
+/** @return whether this type [KType.isSubtypeOf] the specified type */
+inline fun <reified SUPERTYPE> VType<*>.isSubtypeOf() = type.isSubtypeOf<SUPERTYPE>()
+
+/** @return whether this type [KType.isSupertypeOf] the specified type */
+infix fun VType<*>.isSupertypeOf(subtype: VType<*>) = type.isSupertypeOf(subtype.type)
+
+/** @return whether this type [KType.isSupertypeOf] the specified type */
+inline fun <reified SUBTYPE> VType<*>.isSupertypeOf() = type.isSupertypeOf<SUBTYPE>()
 
 /** @return whether erased type of this type [KClass.isSubclassOf] the specified class */
-fun VType<*>.isSuperclassOf(type: KClass<*>) = raw.isSuperclassOf(type)
+infix fun VType<*>.isSuperclassOf(subclass: KClass<*>) = raw.isSuperclassOf(subclass)
 
 /** @return reified version of [VType.isSuperclassOf] */
-inline fun <reified T> VType<*>.isSuperclassOf() = isSuperclassOf(T::class)
+inline fun <reified SUBCLASS> VType<*>.isSuperclassOf() = isSuperclassOf(SUBCLASS::class)
 
 /** @return whether erased type of this type [KClass.isSuperclassOf] the specified class */
-fun VType<*>.isSubclassOf(type: KClass<*>) = raw.isSubclassOf(type)
+infix fun VType<*>.isSubclassOf(subclass: KClass<*>) = raw.isSubclassOf(subclass)
 
 /** @return reified version of [VType.isSubclassOf] */
-inline fun <reified T> VType<*>.isSubclassOf() = isSubclassOf(T::class)
+inline fun <reified SUBCLASS> VType<*>.isSubclassOf() = isSubclassOf(SUBCLASS::class)

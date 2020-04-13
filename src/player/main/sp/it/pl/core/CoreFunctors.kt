@@ -172,7 +172,7 @@ object CoreFunctors: Core {
          add("Extensions", MimeType::class.java, S) { it.extensions.joinToString(", ") }
          add("Has extension", MimeType::class.java, B, p<String>("")) { it, ext -> it.hasExtension(ext) }
 
-         add("Is", MimeExt::class.java, B, { x, y -> x==y }, MimeExt::class.java, MimeExt("mp3"))
+         add("Is", MimeExt::class.java, B, p(MimeExt("mp3"))) { it, y -> it==y }
 
          add("Less", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it<y }
          add("Is", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it==y }

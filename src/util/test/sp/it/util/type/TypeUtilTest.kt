@@ -22,6 +22,7 @@ import sp.it.util.functional.asIs
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.AbstractList
+import java.util.function.Consumer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
@@ -33,7 +34,9 @@ import kotlin.reflect.KVariance.INVARIANT
 import kotlin.reflect.KVariance.OUT
 import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.allSupertypes
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaType
 
@@ -41,6 +44,139 @@ import kotlin.reflect.jvm.javaType
 class TypeUtilTest: FreeSpec({
 
    "Method" - {
+      "Assumptions" {
+         // Mutable collections erase to collections
+         Collection::class shouldBe MutableCollection::class
+         List::class shouldBe MutableList::class
+
+         // Nothing erases to Void
+         Nothing::class shouldBe Void::class
+         Nothing::class.toString() shouldBe "class java.lang.Void"
+
+         // Unit is ordinary
+         Unit::class.toString() shouldBe "class kotlin.Unit"
+
+         // Unit represents Unit
+         List<*>::forEach.returnType shouldBe kType<Unit>()
+         List<*>::forEach.returnType.classifier shouldBe Unit::class
+
+         // Unit represents Void when inspecting Java
+         Consumer<*>::accept.returnType shouldBe kType<Unit>()
+         Consumer<*>::accept.returnType.classifier shouldBe Unit::class
+
+         // Void represents Void when inspecting Kotlin
+         class VoidField(val void: Void, val nothing: Nothing)
+         VoidField::nothing.returnType.printIt()
+         VoidField::void.returnType shouldBe kType<Unit>()
+         VoidField::void.returnType.classifier shouldBe Unit::class
+      }
+      KType::isSubtypeOf.name {
+
+         open class NonGeneric
+         open class Covariant<out T>
+         open class Invariant<T>
+         open class Contravariant<in T>
+
+         class SubCovariant<T>: Covariant<T>()
+         class SubInvariant<T>: Invariant<T>()
+         class SubContravariant<T>: Contravariant<T>()
+
+         // Any/Nothing
+         type<Any>() isSubtypeOf type<Any>() shouldBe true
+         type<Any?>() isSubtypeOf type<Any?>() shouldBe true
+         typeNothingNonNull() isSubtypeOf typeNothingNonNull() shouldBe true
+         typeNothingNonNull() isSubtypeOf typeNothingNullable() shouldBe true
+         typeNothingNullable() isSubtypeOf typeNothingNonNull() shouldBe false
+         typeNothingNullable() isSubtypeOf typeNothingNullable() shouldBe true
+         typeNothingNonNull() isSubtypeOf type<Any>() shouldBe true
+         typeNothingNonNull() isSubtypeOf type<Any?>() shouldBe true
+         typeNothingNullable() isSubtypeOf type<Any>() shouldBe false
+         typeNothingNullable() isSubtypeOf type<Any?>() shouldBe true
+
+         // simple type
+         type<NonGeneric>() isSubtypeOf type<NonGeneric>() shouldBe true
+         type<NonGeneric>() isSubtypeOf type<Any>() shouldBe true
+         type<NonGeneric>() isSubtypeOf type<Any?>() shouldBe true
+         type<NonGeneric?>() isSubtypeOf type<Any>() shouldBe false
+         type<NonGeneric?>() isSubtypeOf type<Any?>() shouldBe true
+         // these do not work because Nothing erases to Void, which works like Unit
+         Nothing::class.printIt()
+         Nothing::class.createType().printIt()
+         typeNothingNonNull() isSubtypeOf type<NonGeneric>() shouldBe true
+         typeNothingNonNull() isSubtypeOf type<NonGeneric?>() shouldBe true
+         typeNothingNullable() isSubtypeOf type<NonGeneric>() shouldBe false
+         typeNothingNullable() isSubtypeOf type<NonGeneric?>() shouldBe true
+
+         // covariance
+         type<Covariant<Int>>() isSubtypeOf type<Covariant<Int>>() shouldBe true
+         type<Covariant<Int>>() isSubtypeOf type<Covariant<Number>>() shouldBe true
+         type<Covariant<Number>>() isSubtypeOf type<Covariant<Int>>() shouldBe false
+         type<Covariant<Int>>() isSubtypeOf type<Covariant<Int?>>() shouldBe true
+         type<Covariant<Int?>>() isSubtypeOf type<Covariant<Int>>() shouldBe false
+
+         // invariance
+         type<Invariant<Int>>() isSubtypeOf type<Invariant<Int>>() shouldBe true
+         type<Invariant<Int>>() isSubtypeOf type<Invariant<Number>>() shouldBe false
+         type<Invariant<Number>>() isSubtypeOf type<Invariant<Int>>() shouldBe false
+         type<Invariant<Int>>() isSubtypeOf type<Invariant<Int?>>() shouldBe false
+         type<Invariant<Int?>>() isSubtypeOf type<Invariant<Int>>() shouldBe false
+
+         // contravariance
+         type<Contravariant<Int>>() isSubtypeOf type<Contravariant<Int>>() shouldBe true
+         type<Contravariant<Int>>() isSubtypeOf type<Contravariant<Number>>() shouldBe false
+         type<Contravariant<Number>>() isSubtypeOf type<Contravariant<Int>>() shouldBe true
+         type<Contravariant<Int>>() isSubtypeOf type<Contravariant<Int?>>() shouldBe false
+         type<Contravariant<Int?>>() isSubtypeOf type<Contravariant<Int>>() shouldBe true
+
+         // sub-classed covariance
+         type<SubCovariant<Int>>() isSubtypeOf type<Covariant<Int>>() shouldBe true
+         type<SubCovariant<Int>>() isSubtypeOf type<Covariant<Number>>() shouldBe true
+         type<SubCovariant<Number>>() isSubtypeOf type<Covariant<Int>>() shouldBe false
+         type<SubCovariant<Int>>() isSubtypeOf type<Covariant<Int?>>() shouldBe true
+         type<SubCovariant<Int?>>() isSubtypeOf type<Covariant<Int>>() shouldBe false
+
+         // sub-classed invariance
+         type<SubInvariant<Int>>() isSubtypeOf type<Invariant<Int>>() shouldBe true
+         type<SubInvariant<Int>>() isSubtypeOf type<Invariant<Number>>() shouldBe false
+         type<SubInvariant<Number>>() isSubtypeOf type<Invariant<Int>>() shouldBe false
+         type<SubInvariant<Int>>() isSubtypeOf type<Invariant<Int?>>() shouldBe false
+         type<SubInvariant<Int?>>() isSubtypeOf type<Invariant<Int>>() shouldBe false
+
+         // sub-classed contravariance
+         type<SubContravariant<Int>>() isSubtypeOf type<Contravariant<Int>>() shouldBe true
+         type<SubContravariant<Int>>() isSubtypeOf type<Contravariant<Number>>() shouldBe false
+         type<SubContravariant<Number>>() isSubtypeOf type<Contravariant<Int>>() shouldBe true
+         type<SubContravariant<Int>>() isSubtypeOf type<Contravariant<Int?>>() shouldBe false
+         type<SubContravariant<Int?>>() isSubtypeOf type<Contravariant<Int>>() shouldBe true
+
+         // super-classed covariance
+         type<Covariant<Int>>() isSubtypeOf type<SubCovariant<Int>>() shouldBe false
+         type<Covariant<Int>>() isSubtypeOf type<SubCovariant<Number>>() shouldBe false
+         type<Covariant<Number>>() isSubtypeOf type<SubCovariant<Int>>() shouldBe false
+         type<Covariant<Int>>() isSubtypeOf type<SubCovariant<Int?>>() shouldBe false
+         type<Covariant<Int?>>() isSubtypeOf type<SubCovariant<Int>>() shouldBe false
+
+         // super-classed invariance
+         type<Invariant<Int>>() isSubtypeOf type<SubInvariant<Int>>() shouldBe false
+         type<Invariant<Int>>() isSubtypeOf type<SubInvariant<Number>>() shouldBe false
+         type<Invariant<Number>>() isSubtypeOf type<SubInvariant<Int>>() shouldBe false
+         type<Invariant<Int>>() isSubtypeOf type<SubInvariant<Int?>>() shouldBe false
+         type<Invariant<Int?>>() isSubtypeOf type<SubInvariant<Int>>() shouldBe false
+
+         // super-classed contravariance
+         type<Contravariant<Int>>() isSubtypeOf type<SubContravariant<Int>>() shouldBe false
+         type<Contravariant<Int>>() isSubtypeOf type<SubContravariant<Number>>() shouldBe false
+         type<Contravariant<Number>>() isSubtypeOf type<SubContravariant<Int>>() shouldBe false
+         type<Contravariant<Int>>() isSubtypeOf type<SubContravariant<Int?>>() shouldBe false
+         type<Contravariant<Int?>>() isSubtypeOf type<SubContravariant<Int>>() shouldBe false
+
+         // list
+         type<List<Int>>() isSubtypeOf type<List<Number>>() shouldBe true // true, because List is covariant
+         type<List<Int>>() isSubtypeOf type<MutableList<Number>>() shouldBe true // true, because MutableList erases to List
+         type<List<Int>>() isSubtypeOf type<MutableList<in Number>>() shouldBe true // true, because MutableList erases to List
+         type<List<Int>>() isSubtypeOf type<MutableList<out Number>>() shouldBe true // true, because MutableList erases to List
+         type<List<Int>>() isSubtypeOf type<List<*>>() shouldBe true // true, because covariant STAR is Any?
+      }
       KClass<*>::superKClassesInc.name {
          open class A: Ia
          open class B: A(), Ib
@@ -258,7 +394,7 @@ class TypeUtilTest: FreeSpec({
             xxx<Contravariant<Int>, Contravariant<*>, Int>(0, IN),
 
             // borderline star projection should not be star projection
-            // xxx<Invariant<in Nothing?>, Invariant<*>, Nothing?>(0, IN), // TODO: enable (does not compile in 1.3.60)
+            // xxx<Invariant<in Nothing?>, Invariant<*>, Nothing?>(0, IN), // TODO: enable (does not compile in 1.3.70)
             xxx<Invariant<out Any>, Invariant<*>, Any>(0, OUT),
 
             // variance is preserved in simple subclassing

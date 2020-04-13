@@ -2,6 +2,7 @@ package sp.it.util.collections.list;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
@@ -96,4 +97,12 @@ public class PrefList<E> extends ArrayList<E> {
 		super.removeRange(fromIndex, toIndex);
 	}
 
+	public <T> PrefList<T> map(Function<? super E, ? extends T> mapper) {
+		var l = new PrefList<T>();
+		forEach(it -> {
+			if (pref==it) l.addPreferred(mapper.apply(it));
+			else l.add(mapper.apply(it));
+		});
+		return l;
+	}
 }

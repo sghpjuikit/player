@@ -119,6 +119,13 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		}
 	}
 
+	public Link setChained(int i, C chained) {
+		Link c = new Link(i, chained);
+		chain.set(i, c);
+		generateValue();
+		return c;
+	}
+
 	public void setHeaderVisible(boolean visible) {
 		if (visible && !isHeaderVisible()) {
 			root.getChildren().add(0, new NullLink());

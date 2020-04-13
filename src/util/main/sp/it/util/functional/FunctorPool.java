@@ -34,62 +34,38 @@ public class FunctorPool {
 	private final PrefListMap<PF,KClass<?>> fsI = new PrefListMap<>(pf -> getKotlinClass(pf.in));
 	private final PrefListMap<PF,KClass<?>> fsO = new PrefListMap<>(pf -> getKotlinClass(pf.out));
 	private final PrefListMap<PF,Key<KClass<?>, KClass<?>>> fsIO = new PrefListMap<>(pf -> new Key<>(getKotlinClass(pf.in),getKotlinClass(pf.out)));
-	private final Set<Class> preProcessVirtual = new HashSet<>();
+	private final Set<Class<?>> preProcessVirtual = new HashSet<>();
 	private final String asSelfName = "As Self";
-	@SuppressWarnings("unchecked")
+
 	public <I,O> void add(String name, Class<I> i , Class<O> o, F1<? super I, ? extends O> f) {
-		addF(new PF0(name,i,o,f));
+		addF(new PF0<>(name,i,o,f));
 	}
 
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def) {
-		add(name,i,o,new Parameter<>(new VType<>(p1, true), p1def),f);
-	}
-
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, F2<I,P1,O> f) {
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, F2<? super I,? super P1,? extends O> f) {
 		addF(new PF1<>(name,i,o,f,p1));
 	}
 
-	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
-		add(name,i,o,new Parameter<>(new VType<>(p1, true), p1def),new Parameter<>(new VType<>(p2, true), p2def),f);
-	}
-
-	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, F3<I,P1,P2,O> f) {
+	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, F3<? super I,? super P1,? super P2,? extends O> f) {
 		addF(new PF2<>(name,i,o,f,p1,p2));
 	}
 
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
-		add(name,i,o,new Parameter<>(new VType<>(p1, true), p1def),new Parameter<>(new VType<>(p2, true), p2def),new Parameter<>(new VType<>(p3, true), p3def),f);
-	}
-
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, F4<I,P1,P2,P3,O> f) {
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, F4<? super I,P1,? super P2,? super P3,? extends O> f) {
 		addF(new PF3<>(name,i,o,f,p1,p2,p3));
 	}
 
-	public <I,O> void add(String name, Class<I> i , Class<O> o, boolean pi, boolean po, boolean pio, F1<I,O> f) {
+	public <I,O> void add(String name, Class<I> i , Class<O> o, boolean pi, boolean po, boolean pio, F1<? super I,? extends O> f) {
 		addF(new PF0<>(name,i,o,f),pi,po,pio);
 	}
 
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
-		addF(new PF1<>(name,i,o,f,new Parameter<>(new VType<>(p1, true),p1def)),pi,po,pio);
-	}
-
-	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, boolean pi, boolean po, boolean pio, F2<I,P1,O> f) {
+	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, boolean pi, boolean po, boolean pio, F2<? super I,? super P1,? extends O> f) {
 		addF(new PF1<>(name,i,o,f,p1),pi,po,pio);
 	}
 
-	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
-		addF(new PF2<>(name,i,o,f,new Parameter<>(new VType<>(p1, true),p1def),new Parameter<>(new VType<>(p2, true),p2def)),pi,po,pio);
-	}
-
-	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, boolean pi, boolean po, boolean pio, F3<I,P1,P2,O> f) {
+	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, boolean pi, boolean po, boolean pio, F3<? super I,? super P1,? super P2,? extends O> f) {
 		addF(new PF2<>(name,i,o,f,p1, p2),pi,po,pio);
 	}
 
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
-		addF(new PF3<>(name,i,o,f,new Parameter<>(new VType<>(p1, true),p1def),new Parameter<>(new VType<>(p2, true),p2def),new Parameter<>(new VType<>(p3, true),p3def)),pi,po,pio);
-	}
-
-	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, boolean pi, boolean po, boolean pio, F4<I,P1,P2,P3,O> f) {
+	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, boolean pi, boolean po, boolean pio, F4<? super I,? super P1,? super P2,? super P3,? extends O> f) {
 		addF(new PF3<>(name,i,o,f,p1, p2, p3),pi,po,pio);
 	}
 
@@ -131,7 +107,7 @@ public class FunctorPool {
 
 		// add enum is predicates
 		if (isEnum(c))
-			add("Is", c, Boolean.class, (a,b) -> a==b, c, (T) getEnumConstants(c)[0], true,true,true);
+			addF(new PF1<>("Is",c,Boolean.class,(a,b) -> a==b,new Parameter<>(new VType<>(c, true),(T) getEnumConstants(c)[0])),true, true, true);
 	}
 
 	/** Returns all functions taking input I. */

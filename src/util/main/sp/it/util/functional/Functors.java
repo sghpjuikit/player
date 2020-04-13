@@ -572,9 +572,9 @@ public interface Functors {
 		public final String name;
 		public final Class<I> in;
 		public final Class<O> out;
-		private final IO<I,O> ff;
+		private final IO<? super I, ? extends O> ff;
 
-		public PF(String name, Class<I> in, Class<O> out, IO<I,O> f) {
+		public PF(String name, Class<I> in, Class<O> out, IO<? super I, ? extends O> f) {
 			this.name = name;
 			this.in = in;
 			this.out = out;
@@ -605,7 +605,7 @@ public interface Functors {
 	// solely to hide generic parameter of PF above, the 3rd parameter (F) is implementation
 	// detail - we do not want it to pollute external code, in fact this parameter exists solely
 	// so PƑ can access its underlying function, while not breaking type safety for subclasses
-	abstract class PFBase<I, O, F extends IO<I,O>> extends PF<I,O> {
+	abstract class PFBase<I, O, F extends IO<? super I,? extends O>> extends PF<I,O> {
 
 		public final F f;
 
@@ -625,9 +625,9 @@ public interface Functors {
 	 * of a function - to express function of any number of parameters equally. This is useful for example for ui
 	 * function builders.
 	 */
-	class PF0<I, O> extends PFBase<I,O,F1<I,O>> {
+	class PF0<I, O> extends PFBase<I,O,F1<? super I, ? extends O>> {
 
-		public PF0(String _name, Class<I> i, Class<O> o, F1<I,O> f) {
+		public PF0(String _name, Class<I> i, Class<O> o, F1<? super I, ? extends O> f) {
 			super(_name, i, o, f);
 		}
 
@@ -644,10 +644,10 @@ public interface Functors {
 	}
 
 	/** Unary parametric function. */
-	class PF1<I, P1, O> extends PFBase<I,O,F2<I,P1,O>> {
+	class PF1<I, P1, O> extends PFBase<I,O,F2<? super I,? super P1,? extends O>> {
 		private Parameter<P1> p1;
 
-		public PF1(String _name, Class<I> i, Class<O> o, F2<I,P1,O> f, Parameter<P1> p1) {
+		public PF1(String _name, Class<I> i, Class<O> o, F2<? super I,? super P1,? extends O> f, Parameter<P1> p1) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 		}
@@ -664,11 +664,11 @@ public interface Functors {
 	}
 
 	/** Binary parametric function. */
-	class PF2<I, P1, P2, O> extends PFBase<I,O,F3<I,P1,P2,O>> {
+	class PF2<I, P1, P2, O> extends PFBase<I,O,F3<? super I,? super P1,? super P2,? extends O>> {
 		private Parameter<P1> p1;
 		private Parameter<P2> p2;
 
-		public PF2(String _name, Class<I> i, Class<O> o, F3<I,P1,P2,O> f, Parameter<P1> p1, Parameter<P2> p2) {
+		public PF2(String _name, Class<I> i, Class<O> o, F3<? super I,? super P1,? super P2,? extends O> f, Parameter<P1> p1, Parameter<P2> p2) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 			this.p2 = p2;
@@ -686,12 +686,12 @@ public interface Functors {
 	}
 
 	/** Tertiary  parametric function. */
-	class PF3<I, P1, P2, P3, O> extends PFBase<I,O,F4<I,P1,P2,P3,O>> {
+	class PF3<I, P1, P2, P3, O> extends PFBase<I,O,F4<? super I,? super P1,? super P2,? super P3,? extends O>> {
 		private Parameter<P1> p1;
 		private Parameter<P2> p2;
 		private Parameter<P3> p3;
 
-		public PF3(String _name, Class<I> i, Class<O> o, F4<I,P1,P2,P3,O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
+		public PF3(String _name, Class<I> i, Class<O> o, F4<? super I,? super P1,? super P2,? super P3,? extends O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 			this.p2 = p2;
@@ -710,10 +710,10 @@ public interface Functors {
 	}
 
 	/** N-ary parametric function. */
-	class PFN<I, O> extends PFBase<I,O,F2<I,Object[],O>> {
+	class PFN<I, O> extends PFBase<I,O,F2<? super I,? super Object[],? extends O>> {
 		private Parameter<Object>[] ps;
 
-		public PFN(String _name, Class<I> i, Class<O> o, F2<I,Object[],O> f, Parameter<Object>[] ps) {
+		public PFN(String _name, Class<I> i, Class<O> o, F2<? super I,? super Object[],? extends O> f, Parameter<Object>[] ps) {
 			super(_name, i, o, f);
 			this.ps = ps;
 		}

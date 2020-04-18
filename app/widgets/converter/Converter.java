@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,7 @@ import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.file.UtilKt.writeTextTry;
 import static sp.it.util.functional.Util.equalBy;
 import static sp.it.util.functional.Util.filter;
@@ -225,6 +227,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             new Act<>("Edit song tags", getKotlinClass(Song.class), 100, () -> map(Metadata.Field.Companion.getAll(), f -> f.name()), data -> {
                 List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
                 if (songs.isEmpty()) return;
+                failIf(data.values().stream().anyMatch(it -> it.size()!=songs.size()), () -> "Data size mismatch");
+
                 withAppProgress(
                     runIO(() -> {
                         for (int i=0; i<songs.size(); i++) {
@@ -302,9 +306,17 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             // graphics
             var nameL = new Label("");
             var applyI = new Icon(OctIcon.DATABASE)
-                    .tooltip("Set as input\n\nSet transformed (visible) data as input. The original data will be lost."
-                            + (isMain ? "\n\nThis edit area is main, so the new input data will update the available actions." : ""))
-                    .action(() -> setData(output)); // this will update applier if it is main
+                    .tooltip(
+                        "Set input\n\nSet input for this area. The actual input, its transformation and the output will be discarded."
+                        + (isMain ? "\n\nThis edit area is main, so the new input data will update the available actions." : "")
+                    )
+                    .action(THIS ->
+                        new ContextMenu(
+                            menuItem("Set input data to empty" , consumer(it -> setData(list("")))),
+                            menuItem("Set input data to output data", consumer(it -> setData(output))),
+                            menuItem("Set input data to lines of visible text", consumer(it -> setData(Arrays.asList(getValAsText().split("\\n")))))
+                        ).show(THIS, Side.BOTTOM, 0, 0)
+                    );
             var remI = new Icon(MINUS)
                     .tooltip("Remove\n\nRemove this edit area.")
                     .action(() -> tas.remove(this));

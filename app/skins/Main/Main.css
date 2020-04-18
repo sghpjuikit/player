@@ -199,16 +199,24 @@
 .split-menu-button > .arrow-button > .arrow,
 .choice-box > .open-button > .arrow,
 .menu-button:openvertically > .arrow-button > .arrow,
-.split-menu-button:openvertically > .arrow-button > .arrow,
 .combo-box-base > .arrow-button > .arrow,
+.combo-box-base:editable > .arrow-button > .arrow,
 .web-view .form-select-button .arrow,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button > .arrow  {
     -fx-background-color: -skin-def-font-color;
-    /* use this to get nice not filled arrow */
-    /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
-    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-background-insets: 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+
+.combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
+}
+.combo-box-base > .arrow-button {
+    -fx-opacity: 0;
+}
+.combo-box-base:editable > .arrow-button {
+    -fx-opacity: 1;
 }
 
 /* ====   CHOICE BOX LIKE THINGS   ========================================== */

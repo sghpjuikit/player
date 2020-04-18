@@ -90,7 +90,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		typeCB.valueProperty().addListener((o, ov, nv) -> {
 			if (inconsistentState) return;
 			if (config!=null) root.getChildren().remove(config.getNode());
-			config = new FItemNode(() -> predicatePool.invoke(nv.type));
+			config = new FItemNode(predicatePool.invoke(nv.type));
 			root.getChildren().add(config.getNode());
 			HBox.setHgrow(config.getNode(), ALWAYS);
 			config.onItemChange = v -> generatePredicate();

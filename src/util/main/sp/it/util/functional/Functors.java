@@ -563,12 +563,8 @@ public interface Functors {
 		}
 	}
 
-	interface Parameterized<P> {
-		List<Parameter<? extends P>> getParameters();
-	}
-
 	// parameterized function - variadic I -> O function factory with parameters
-	abstract class PF<I, O> implements F2<I,Object[],O>, Parameterized<Object> {
+	abstract class PF<I, O> implements F2<I,Object[],O>, Parameterized<F1<I,O>, Object> {
 		public final String name;
 		public final Class<I> in;
 		public final Class<O> out;
@@ -596,7 +592,8 @@ public interface Functors {
 			// return i -> apply(i, is); // would not preserve I,O types
 		}
 
-		public F1<I,O> toF1(List<?> is) {
+		@Override
+		public F1<I,O> realize(List<?> is) {
 			return toF1(is.toArray());
 		}
 
@@ -647,7 +644,7 @@ public interface Functors {
 	class PF1<I, P1, O> extends PFBase<I,O,F2<? super I,? super P1,? extends O>> {
 		private Parameter<P1> p1;
 
-		public PF1(String _name, Class<I> i, Class<O> o, F2<? super I,? super P1,? extends O> f, Parameter<P1> p1) {
+		public PF1(String _name, Class<I> i, Class<O> o, Parameter<P1> p1, F2<? super I,? super P1,? extends O> f) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 		}
@@ -668,7 +665,7 @@ public interface Functors {
 		private Parameter<P1> p1;
 		private Parameter<P2> p2;
 
-		public PF2(String _name, Class<I> i, Class<O> o, F3<? super I,? super P1,? super P2,? extends O> f, Parameter<P1> p1, Parameter<P2> p2) {
+		public PF2(String _name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, F3<? super I,? super P1,? super P2,? extends O> f) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 			this.p2 = p2;
@@ -691,7 +688,7 @@ public interface Functors {
 		private Parameter<P2> p2;
 		private Parameter<P3> p3;
 
-		public PF3(String _name, Class<I> i, Class<O> o, F4<? super I,? super P1,? super P2,? super P3,? extends O> f, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3) {
+		public PF3(String _name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, F4<? super I,? super P1,? super P2,? super P3,? extends O> f) {
 			super(_name, i, o, f);
 			this.p1 = p1;
 			this.p2 = p2;
@@ -713,7 +710,7 @@ public interface Functors {
 	class PFN<I, O> extends PFBase<I,O,F2<? super I,? super Object[],? extends O>> {
 		private Parameter<Object>[] ps;
 
-		public PFN(String _name, Class<I> i, Class<O> o, F2<? super I,? super Object[],? extends O> f, Parameter<Object>[] ps) {
+		public PFN(String _name, Class<I> i, Class<O> o, Parameter<Object>[] ps, F2<? super I,? super Object[],? extends O> f) {
 			super(_name, i, o, f);
 			this.ps = ps;
 		}
@@ -731,7 +728,7 @@ public interface Functors {
 
 	class TypeAwareF<I, O> implements F1<I,O> {
 		public final Class<I> in;
-		public final Class<O> out;
+		public final Class<O> out;  // TODO: make VType
 		public final F1<I,O> f;
 
 		public TypeAwareF(F1<I,O> f, Class<I> in, Class<O> out) {

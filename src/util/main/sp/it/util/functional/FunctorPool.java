@@ -42,15 +42,15 @@ public class FunctorPool {
 	}
 
 	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, F2<? super I,? super P1,? extends O> f) {
-		addF(new PF1<>(name,i,o,f,p1));
+		addF(new PF1<>(name,i,o,p1, f));
 	}
 
 	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, F3<? super I,? super P1,? super P2,? extends O> f) {
-		addF(new PF2<>(name,i,o,f,p1,p2));
+		addF(new PF2<>(name,i,o,p1,p2, f));
 	}
 
 	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, F4<? super I,P1,? super P2,? super P3,? extends O> f) {
-		addF(new PF3<>(name,i,o,f,p1,p2,p3));
+		addF(new PF3<>(name,i,o,p1,p2,p3, f));
 	}
 
 	public <I,O> void add(String name, Class<I> i , Class<O> o, boolean pi, boolean po, boolean pio, F1<? super I,? extends O> f) {
@@ -58,15 +58,15 @@ public class FunctorPool {
 	}
 
 	public <I,P1,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, boolean pi, boolean po, boolean pio, F2<? super I,? super P1,? extends O> f) {
-		addF(new PF1<>(name,i,o,f,p1),pi,po,pio);
+		addF(new PF1<>(name,i,o,p1, f),pi,po,pio);
 	}
 
 	public <I,P1,P2,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, boolean pi, boolean po, boolean pio, F3<? super I,? super P1,? super P2,? extends O> f) {
-		addF(new PF2<>(name,i,o,f,p1, p2),pi,po,pio);
+		addF(new PF2<>(name,i,o,p1, p2, f),pi,po,pio);
 	}
 
 	public <I,P1,P2,P3,O> void add(String name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, boolean pi, boolean po, boolean pio, F4<? super I,? super P1,? super P2,? super P3,? extends O> f) {
-		addF(new PF3<>(name,i,o,f,p1, p2, p3),pi,po,pio);
+		addF(new PF3<>(name,i,o,p1, p2, p3, f),pi,po,pio);
 	}
 
 	public <C extends Comparable<? super C>> void addPredicatesComparable(Class<C> c, C defaultValue) {
@@ -107,7 +107,7 @@ public class FunctorPool {
 
 		// add enum is predicates
 		if (isEnum(c))
-			addF(new PF1<>("Is",c,Boolean.class,(a,b) -> a==b,new Parameter<>(new VType<>(c, true),(T) getEnumConstants(c)[0])),true, true, true);
+			addF(new PF1<>("Is",c,Boolean.class,new Parameter<>(new VType<>(c, true),(T) getEnumConstants(c)[0]),(a,b) -> a==b),true, true, true);
 	}
 
 	/** Returns all functions taking input I. */

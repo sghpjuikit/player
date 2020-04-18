@@ -54,9 +54,13 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
 	public final V<Boolean> editable = new V<>(true);
 	protected Supplier<C> chainedFactory; // final
-	protected boolean homogeneous = true;
 	public boolean inconsistentState = true;
-	protected BiPredicate<Integer,VAL> isHomogeneous = (i, v) -> false;
+	/** Whether the link at the index can be removed from this chain. Default always true. */
+	protected BiPredicate<Integer,VAL> isHomogeneousRem = (i, v) -> true;
+	/** Whether new link can be added into this chain after the link at the index. Default always true. */
+	protected BiPredicate<Integer,VAL> isHomogeneousAdd = (i, v) -> true;
+	/** Whether the link at the index can have its content enabled. Default always true. */
+	protected BiPredicate<Integer,VAL> isHomogeneousEdit = (i, v) -> true;
 	public final Handler1<Link> onUserItemAdded = new Handler1<>();
 	public final Handler1<Link> onUserItemRemoved = new Handler1<>();
 	public final Handler0 onUserItemsCleared = new Handler0();
@@ -113,6 +117,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			Link c = new Link(i, chained);
 			chain.add(i, c);
 			generateValue();
+			chain.forEach(Link::updateIcons);
 			return c;
 		} else {
 			return null;
@@ -123,6 +128,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		Link c = new Link(i, chained);
 		chain.set(i, c);
 		generateValue();
+		chain.forEach(Link::updateIcons);
 		return c;
 	}
 
@@ -166,6 +172,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		if (n>chain.size()) {
 			repeat(n - chain.size(), (Runnable) this::addChained);
 			generateValue();
+			chain.forEach(Link::updateIcons);
 		}
 	}
 
@@ -257,7 +264,6 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			rem.tooltip(remTooltip);
 			add.tooltip(addTooltip);
 			onB.tooltip(onTooltip);
-			updateIcons();
 		}
 
 		/** @return position index within the chain from 0 to chain.size() */
@@ -267,12 +273,16 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		}
 
 		public void updateIcons() {
-			int i = getIndex();
-			boolean h = isHomogeneous();
+			var i = getIndex();
+			var minChainLength = isHeaderVisible() ? 1 : 0;
+			var noRem = chain.size()<=minChainLength || !isHomogeneous(i, isHomogeneousRem);
+			var noAdd = chain.size()>=maxChainLength.getValue() || !isHomogeneous(i, isHomogeneousAdd);
+			var noEdit = !isHomogeneous(i, isHomogeneousEdit);
 
-			rem.setDisable(h && i==0 && root.getChildren().size()!=2);
-			add.setDisable(h && i>=maxChainLength.get()-1);
-			setDisable(!h);
+			rem.setDisable(noRem);
+			add.setDisable(noAdd);
+			onB.setDisable(noRem || noAdd);
+			chained.getNode().setDisable(noEdit);
 
 			if (i==0 && buttonAdjuster.get()!=null) {
 				rem.setDisable(false);
@@ -291,26 +301,12 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			else generateValue();
 		}
 
-		private boolean isHomogeneous() {
-			int i = getIndex();
-			boolean hi = false;
-			if (chained!=null && chained.getVal()!=null) {
-				hi = isHomogeneous.test(i, chained.getVal());
-			}
-			return homogeneous || hi || i>=chain.size() - 1;
-
-			// optimization, but does not work?
-//            int i = getIndex();
-//
-//            if (i==0) return false;
-//            if (i>=chain.size()-1) return true;
-//            if (homogeneous) return true;
-//
-//            if (i>0 && chained!=null && chained.getValue()!=null)
-//                return isHomogeneous.test(chained.getValue());
-//            return false;
-
+		private boolean isHomogeneous(int index, BiPredicate<Integer,VAL> isHomogeneous) {
+			if (index>=chain.size()-1) return true;
+			if (chained!=null && chained.getVal()!=null) return isHomogeneous.test(index, chained.getVal());
+			return false;
 		}
+
 	}
 
 	public class NullLink extends HBox {

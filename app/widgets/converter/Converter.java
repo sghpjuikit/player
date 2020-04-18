@@ -180,7 +180,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         );
 
         // on source change run transformation
-        source.addListener((Change<?> change) -> ta_in.setData(source));
+        source.addListener((Change<?> change) -> ta_in.setInput(source));
 
         ta_in.onItemChange = lines -> {
             List<EditArea> l;
@@ -312,9 +312,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     )
                     .action(THIS ->
                         new ContextMenu(
-                            menuItem("Set input data to empty" , consumer(it -> setData(list("")))),
-                            menuItem("Set input data to output data", consumer(it -> setData(output))),
-                            menuItem("Set input data to lines of visible text", consumer(it -> setData(Arrays.asList(getValAsText().split("\\n")))))
+                            menuItem("Set input data to empty" , consumer(it -> setInput(list("")))),
+                            menuItem("Set input data to output data", consumer(it -> setInput(output))),
+                            menuItem("Set input data to lines of visible text", consumer(it -> setInput(Arrays.asList(getValAsText().split("\\n")))))
                         ).show(THIS, Side.BOTTOM, 0, 0)
                     );
             var remI = new Icon(MINUS)
@@ -346,7 +346,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 installDrag(
                     getNode(), OctIcon.DATABASE, () -> "Set data to " + this.name.get() + " edit area",
                     e -> true,
-                    consumer(e -> setData(unpackData(AppDragKt.getAny(e.getDragboard()))))
+                    consumer(e -> setInput(unpackData(AppDragKt.getAny(e.getDragboard()))))
                 );
             }
 
@@ -362,7 +362,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                             e.consume();
                         } else {
                             if (textArea.getText().isEmpty() && transforms.length()<=1) {
-                                setData(unpackData(pasted_text));
+                                setInput(unpackData(pasted_text));
                             }
                         }
                     }
@@ -375,18 +375,18 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         // Weird reasons for needing this method, just call it bad design. Not worth 'fixing'.
         public void setData(String name, List<?> input) {
             this.name.set(capitalizeStrong(name));
-            setData(input);
+            setInput(input);
         }
 
         @Override
-        public void setData(List<?> input) {
-            super.setData(input);
+        public void setInput(List<?> input) {
+            super.setInput(input);
             fillActionData();
         }
 
         public void fillActionData(){
             if (isMain && applier!=null) {
-                applier.fillActs(getKotlinClass(transforms.getTypeIn()));
+                applier.fillActs(transforms.getTypeIn());
             }
         }
 
@@ -401,13 +401,13 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         public void createNewAreaWithInputData() {
             EditArea t = new EditArea();
-            t.setData(input);
+            t.setInput(getInput());
             tas.add(tas.indexOf(this)+1,t);
         }
 
         public void createNewAreaWithOutputNoData() {
             EditArea t = new EditArea();
-            t.setData(output);
+            t.setInput(output);
             tas.add(tas.indexOf(this)+1,t);
         }
     }

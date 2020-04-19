@@ -29,14 +29,11 @@ import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
 import sp.it.util.functional.Functors
-import sp.it.util.functional.Functors.F1
-import sp.it.util.functional.Functors.NullIn
-import sp.it.util.functional.Functors.NullOut
-import sp.it.util.functional.Functors.PF
-import sp.it.util.functional.Functors.PF0
-import sp.it.util.functional.Functors.PF1
-import sp.it.util.functional.Functors.Parameter
-import sp.it.util.functional.Functors.TypeAwareF
+import sp.it.util.functional.PF
+import sp.it.util.functional.PF0
+import sp.it.util.functional.PF1
+import sp.it.util.functional.Parameter
+import sp.it.util.functional.TypeAwareF
 import sp.it.util.functional.Parameterized
 import sp.it.util.functional.Util.IDENTITY
 import sp.it.util.functional.Util.IS
@@ -188,26 +185,26 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       class Manual(val text: String): TransformationRaw() {
          override val name = "Manual edit"
          override val parameters = listOf<Parameter<Any?>>()
-         override fun realize(parameters: List<Any?>) = Transformation.Manual(text)
+         override fun realize(args: List<*>) = Transformation.Manual(text)
       }
 
       class ByString(override val name: String, val f: (String) -> String): TransformationRaw() {
          override val parameters = listOf<Parameter<Any?>>()
-         override fun realize(parameters: List<Any?>) = Transformation.ByString(name, f)
+         override fun realize(args: List<*>) = Transformation.ByString(name, f)
       }
 
       // outputType must match type of list of output of f
       // outputType is necessary because output list element type is erased
-      open class By1(val inputType: KClass<*>, val outputType: KClass<*>, val f: PF<in List<*>, out List<*>>): TransformationRaw() {
+      open class By1(val inputType: KClass<*>, val outputType: KClass<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
          override val name = f.name
          override val parameters = f.parameters
-         override fun realize(parameters: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(parameters))
+         override fun realize(args: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(args))
       }
 
-      class ByN(val f: PF<in Any?, out Any?>): TransformationRaw() {
+      class ByN(val f: PF<Any?, Any?>): TransformationRaw() {
          override val name = f.name
          override val parameters = f.parameters
-         override fun realize(parameters: List<*>) = Transformation.ByN(f.name, f.realize(parameters))
+         override fun realize(args: List<*>) = Transformation.ByN(f.name, f.realize(args))
       }
 
    }
@@ -240,11 +237,11 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
             .takeIf { it.size!=data.size } ?: data
       }
 
-      class By1(override val name: String, override val linkTypeIn: KClass<*>, override val linkTypeOut: KClass<*>, val f: F1<in List<*>, out List<*>>): Transformation() {
+      class By1(override val name: String, override val linkTypeIn: KClass<*>, override val linkTypeOut: KClass<*>, val f: (List<*>) -> List<*>): Transformation() {
          override fun invoke(data: List<Any?>) = data.let(f)
       }
 
-      class ByN(override val name: String, val f: F1<in Any?, out Any?>): Transformation() {
+      class ByN(override val name: String, val f: (Any?) -> Any?): Transformation() {
          override val linkTypeIn: KClass<*>?
             get() = when (f) {
                IDENTITY -> null
@@ -252,7 +249,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
                is TypeAwareF<*, *> -> when (f.f) {
                   IDENTITY -> null
                   IS, ISNT, IS0, ISNT0 -> Any::class
-                  else -> f.`in`.kotlin
+                  else -> f.typeIn.asIs<Class<Any>>().kotlin
                }
                else -> fail { "Unrecognized function $f" }
             }
@@ -263,7 +260,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
                is TypeAwareF<*, *> -> when (f.f) {
                   IDENTITY -> null
                   IS, ISNT, IS0, ISNT0 -> Boolean::class
-                  else -> f.out.kotlin
+                  else -> f.typeOut.asIs<Class<Any>>().kotlin
                }
                else -> fail { "Unrecognized function $f" }
             }
@@ -276,17 +273,15 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
 /** [FChainItemNode] adjusted for [ListAreaNode] */
 class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTransformationNode, List<Transformation>> {
-   private var handleNullIn = NullIn.NULL
-   private var handleNullOut = NullOut.NULL
 
    constructor(functions: (Class<*>) -> PrefList<PF<*, *>>): super(listOf()) {
       chainedFactory = Supplier {
          val type = typeOut
-         val by1s = functions(type.java).asIs<PrefList<PF<in Any?, out Any?>>>().map<TransformationRaw> { TransformationRaw.ByN(it) }.apply {
+         val by1s = functions(type.java).asIs<PrefList<PF<Any?, Any?>>>().map<TransformationRaw> { TransformationRaw.ByN(it) }.apply {
             removeIf { it.name=="#" }
          }
          val all = by1s.apply {
-            this += TransformationRaw.By1(Any::class, Int::class, PF0("#", jClass<List<*>>(), jClass<List<Int>>()) { it.indices.toList() })
+            this += TransformationRaw.By1(Any::class, Int::class, PF0("#", jClass<List<Any>>().asIs(), jClass<List<Int>>().asIs()) { it.indices.toList() })
 
             if (type.isSubclassOf<Comparable<*>>()) {
                val pSort = Parameter(type<Sort>(), ASCENDING)
@@ -317,7 +312,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
       }
       isHomogeneousRem = BiPredicate { i, _ -> linkTypeInAt(i + 1).isSuperclassOf(linkTypeOutAt(i - 1)) }
       isHomogeneousAdd = BiPredicate { i, _ -> i==chain.size - 1 }
-      isHomogeneousEdit = BiPredicate { i, _ -> true }
+      isHomogeneousEdit = BiPredicate { _, _ -> true }
       maxChainLength attach {
          val m: Int = it.toInt()
          if (m<chain.size) {
@@ -423,8 +418,6 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
    }
 
    companion object {
-
-      private fun throwingF() = F1<Any?, Nothing> { fail { "Initial function value. Must not be invoked" } }
 
       private fun <T> Config<T>.createEditor() = ConfigEditor.create(this)
 

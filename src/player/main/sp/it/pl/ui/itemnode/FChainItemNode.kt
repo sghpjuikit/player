@@ -6,8 +6,8 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.Functors.NullIn
 import sp.it.util.functional.Functors.NullOut
-import sp.it.util.functional.Functors.PF
-import sp.it.util.functional.Functors.TypeAwareF
+import sp.it.util.functional.PF
+import sp.it.util.functional.TypeAwareF
 import sp.it.util.functional.Util.IDENTITY
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.attach
@@ -45,7 +45,7 @@ import kotlin.streams.asSequence
  * consumers (no output) functions. They can be anywhere within the chain.
  * </ul>
  */
-class FChainItemNode: ChainValueNode<F1<in Any?, out Any?>, FItemNode<Any?, Any?>, F1<Any?, Any?>> {
+class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any?) -> Any?> {
    private val functorPool: (Class<*>) -> PrefList<PF<*, *>>
    private var handleNullIn = NullIn.NULL
    private var handleNullOut = NullOut.NULL
@@ -53,7 +53,7 @@ class FChainItemNode: ChainValueNode<F1<in Any?, out Any?>, FItemNode<Any?, Any?
    constructor(functorPool: (Class<*>) -> PrefList<PF<*, *>>): super(throwingF()) {
       this.functorPool = functorPool
       chainedFactory = Supplier {
-         FItemNode<Any?,Any?>(functorPool(typeOut).asIs<PrefList<PF<in Any?, out Any?>>>())
+         FItemNode(functorPool(typeOut).asIs<PrefList<PF<Any?, Any?>>>())
       }
       isHomogeneousEdit = BiPredicate { i, f ->
          when {
@@ -77,11 +77,13 @@ class FChainItemNode: ChainValueNode<F1<in Any?, out Any?>, FItemNode<Any?, Any?
                // link being an exceptional case. Below we check for inputs, which results in the last
                // link to be exceptional case. We do this, because the last link can always be removed
                // hence we do not have to handle the case.
-               val next: F1<*, *>? = getValueAt(i + 1)
-               if (next is TypeAwareF<*, *> && f is TypeAwareF<*, *>) f.`in`==next.`in` else false
+               val next = getValueAt(i + 1)
+               if (next is TypeAwareF<*, *> && f is TypeAwareF<*, *>) f.typeIn==next.typeIn else false
             }
          }
       }
+      isHomogeneousAdd = BiPredicate { i, _ -> i==chain.size - 1 }
+      isHomogeneousEdit = BiPredicate { _, _ -> true }
       maxChainLength attach {
          val m: Int = it.toInt()
          if (m<chain.size) {
@@ -92,6 +94,7 @@ class FChainItemNode: ChainValueNode<F1<in Any?, out Any?>, FItemNode<Any?, Any?
       }
       maxChainLength.value = Integer.MAX_VALUE
       chain.onChange { chain.forEach { it.updateIcons() } }
+      chain.onChange { chain.forEachIndexed { i, it -> it.chained.isEditableRawFunction.value = chain.lastIndex==i } }
       inconsistentState = false
       generateValue()
    }
@@ -136,7 +139,7 @@ class FChainItemNode: ChainValueNode<F1<in Any?, out Any?>, FItemNode<Any?, Any?
       generateValue()
    }
 
-   override fun reduce(values: Stream<F1<in Any?, out Any?>>): F1<Any?, Any?> = values.asSequence()
+   override fun reduce(values: Stream<(Any?) -> Any?>): (Any?) -> Any? = values.asSequence()
       .map { it.asIs<F1<Any?, Any?>>() }   // helps type system, remove when F1 uses declaration variance
       .map { it.wrap(handleNullIn, handleNullOut) }
       .fold(F1 { it }) { a, b -> b.compose(a) }

@@ -14,9 +14,8 @@ import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
-import sp.it.util.functional.Functors
-import sp.it.util.functional.Functors.F1
-import sp.it.util.functional.Functors.PF
+import sp.it.util.functional.PF
+import sp.it.util.functional.Parameter
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -39,14 +38,14 @@ import java.util.ArrayList
  * @param <I> type of function input
  * @param <O> type of function output
  */
-class FItemNode<I, O>(functions: PrefList<PF<in I, out O>>): ValueNode<F1<in I, out O>>(throwingF()) {
+class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwingF()) {
    private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
    private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
    private val editors = ArrayList<ConfigEditor<*>>()
-   private val fCB: ComboBox<PF<in I, out O>>
+   private val fCB: ComboBox<PF<I, O>>
    private var avoidGenerateValue = Suppressor(false)
    var isEditableRawFunction = v(true)
-   var onRawFunctionChange = { _: PF<in I, out O>? -> }
+   var onRawFunctionChange = { _: PF<I, O>? -> }
 
    init {
       avoidGenerateValue.suppressingAlways {
@@ -102,11 +101,11 @@ class FItemNode<I, O>(functions: PrefList<PF<in I, out O>>): ValueNode<F1<in I, 
 
    companion object {
 
-      private fun throwingF() = F1<Any?, Nothing> { fail { "Initial function value. Must not be invoked" } }
+      private fun throwingF() = { _: Any? -> fail { "Initial function value. Must not be invoked" } }
 
       private fun <T> Config<T>.createEditor() = ConfigEditor.create(this)
 
-      private fun <T> Functors.Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
+      private fun <T> Parameter<T>.toConfig(onChange: (T?) -> Unit): Config<T> {
          val a = vx(defaultValue).apply { attach { onChange(it) } }
          return AccessConfig(type, name, name, { a.value = it }, { a.value }, "", description, EditMode.USER).addConstraints(constraints)
       }

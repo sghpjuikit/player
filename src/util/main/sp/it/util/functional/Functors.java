@@ -1,7 +1,5 @@
 package sp.it.util.functional;
 
-import java.util.List;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -17,18 +15,12 @@ import kotlin.jvm.functions.Function3;
 import kotlin.jvm.functions.Function4;
 import kotlin.jvm.functions.Function5;
 import kotlin.jvm.functions.Function6;
-import sp.it.util.conf.Constraint;
 import sp.it.util.dev.SwitchException;
-import sp.it.util.type.VType;
 import static sp.it.util.dev.FailKt.noNull;
-import static sp.it.util.functional.Util.IDENTITY;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.IS0;
 import static sp.it.util.functional.Util.ISNT;
 import static sp.it.util.functional.Util.ISNT0;
-import static sp.it.util.functional.Util.isAny;
-import static sp.it.util.functional.Util.list;
-import static sp.it.util.functional.Util.listRO;
 
 @SuppressWarnings({"unchecked", "unused"})
 public interface Functors {
@@ -39,13 +31,7 @@ public interface Functors {
 	interface L {}
 
 	/** Marker interface for lambda denoting its first input and output. */
-	interface IO<I, O> extends L {
-		// not sure if good idea
-		// for default impl i want to use reflection to inspect generic type in runtime
-		// subclasses may want to override, like PF or TypeAwareF
-		// default Class<? super I> getTypeInput() {}
-		// default Class<? super I> getTypeOutput() {}
-	}
+	interface IO<I, O> extends L {}
 
 	@FunctionalInterface
 	interface F extends L, IO<Void,Void>, Function0<Unit>, Runnable {
@@ -404,7 +390,7 @@ public interface Functors {
 			return apply(i, i2);
 		}
 
-		default F1<I,O> toF1(I2 i2) {
+		default F1<? super I, ? extends O> toF1(I2 i2) {
 			return (i) -> apply(i, i2);
 		}
 
@@ -536,211 +522,4 @@ public interface Functors {
 		VALUE
 	}
 
-	class Parameter<P> {
-		public final VType<P> type;
-		public final P defaultValue;
-		public final String name;
-		public final String description;
-		public final Set<Constraint<P>> constraints;
-
-		public Parameter(VType<P> type, P defaultValue) {
-			this("", "", type, defaultValue, Set.of());
-			noNull(type);
-			noNull(defaultValue);
-		}
-
-		public Parameter(String name, String description, VType<P> type, P defaultValue, Set<Constraint<P>> constraints) {
-			this.name = name.isEmpty() ? "<value>" : name;
-			this.description = description.isEmpty() ? this.name : description;
-			this.type = type;
-			this.defaultValue = defaultValue;
-			this.constraints = constraints;
-			noNull(type);
-			noNull(description);
-			noNull(type);
-			noNull(defaultValue);
-			noNull(constraints);
-		}
-	}
-
-	// parameterized function - variadic I -> O function factory with parameters
-	abstract class PF<I, O> implements F2<I,Object[],O>, Parameterized<F1<I,O>, Object> {
-		public final String name;
-		public final Class<I> in;
-		public final Class<O> out;
-		private final IO<? super I, ? extends O> ff;
-
-		public PF(String name, Class<I> in, Class<O> out, IO<? super I, ? extends O> f) {
-			this.name = name;
-			this.in = in;
-			this.out = out;
-			this.ff = f;
-		}
-
-		public F1<I,O> toFunction() {
-			return i -> apply(i, new Object[]{});
-		}
-
-		@Override
-		public abstract O apply(I t, Object... is);
-
-		@Override
-		public F1<I,O> toF1(Object... is) {
-			// retain predicate identity
-			if (isAny(ff, IDENTITY, IS0, ISNT0, IS, ISNT)) return (F1<I,O>) ff;
-			return new TypeAwareF<>(i -> apply(i, is), in, out);
-			// return i -> apply(i, is); // would not preserve I,O types
-		}
-
-		@Override
-		public F1<I,O> realize(List<?> is) {
-			return toF1(is.toArray());
-		}
-
-	}
-
-	// solely to hide generic parameter of PF above, the 3rd parameter (F) is implementation
-	// detail - we do not want it to pollute external code, in fact this parameter exists solely
-	// so PƑ can access its underlying function, while not breaking type safety for subclasses
-	abstract class PFBase<I, O, F extends IO<? super I,? extends O>> extends PF<I,O> {
-
-		public final F f;
-
-		public PFBase(String name, Class<I> in, Class<O> out, F f) {
-			super(name, in, out, f);
-			this.f = f;
-		}
-
-	}
-
-	/**
-	 * Parametric function, {@code In -> Out} function defined as {@code (In, P1, P2, ..., Pn) -> Out} variadic
-	 * function with parameters. Formally, the signature is {@code (In, Param...) -> Out}, but the parameters are
-	 * degrees of freedom, fixing of which collapses the signature to {@code In -> Out} (as in partial application),
-	 * which can be applied on the input. While the parameters themselves are technically inputs, they are transparent
-	 * for the function user, (which should only see the collapsed signature) and serve as a variadic generalisation
-	 * of a function - to express function of any number of parameters equally. This is useful for example for ui
-	 * function builders.
-	 */
-	class PF0<I, O> extends PFBase<I,O,F1<? super I, ? extends O>> {
-
-		public PF0(String _name, Class<I> i, Class<O> o, F1<? super I, ? extends O> f) {
-			super(_name, i, o, f);
-		}
-
-		@Override
-		public List<Parameter<?>> getParameters() {
-			return listRO();
-		}
-
-		@Override
-		public O apply(I t, Object... ps) {
-			return f.apply(t);
-		}
-
-	}
-
-	/** Unary parametric function. */
-	class PF1<I, P1, O> extends PFBase<I,O,F2<? super I,? super P1,? extends O>> {
-		private Parameter<P1> p1;
-
-		public PF1(String _name, Class<I> i, Class<O> o, Parameter<P1> p1, F2<? super I,? super P1,? extends O> f) {
-			super(_name, i, o, f);
-			this.p1 = p1;
-		}
-
-		@Override
-		public List<Parameter<?>> getParameters() {
-			return list(p1);
-		}
-
-		@Override
-		public O apply(I t, Object... ps) {
-			return f.apply(t, (P1) ps[0]);
-		}
-	}
-
-	/** Binary parametric function. */
-	class PF2<I, P1, P2, O> extends PFBase<I,O,F3<? super I,? super P1,? super P2,? extends O>> {
-		private Parameter<P1> p1;
-		private Parameter<P2> p2;
-
-		public PF2(String _name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, F3<? super I,? super P1,? super P2,? extends O> f) {
-			super(_name, i, o, f);
-			this.p1 = p1;
-			this.p2 = p2;
-		}
-
-		@Override
-		public List<Parameter<?>> getParameters() {
-			return list(p1, p2);
-		}
-
-		@Override
-		public O apply(I t, Object... ps) {
-			return f.apply(t, (P1) ps[0], (P2) ps[1]);
-		}
-	}
-
-	/** Tertiary  parametric function. */
-	class PF3<I, P1, P2, P3, O> extends PFBase<I,O,F4<? super I,? super P1,? super P2,? super P3,? extends O>> {
-		private Parameter<P1> p1;
-		private Parameter<P2> p2;
-		private Parameter<P3> p3;
-
-		public PF3(String _name, Class<I> i, Class<O> o, Parameter<P1> p1, Parameter<P2> p2, Parameter<P3> p3, F4<? super I,? super P1,? super P2,? super P3,? extends O> f) {
-			super(_name, i, o, f);
-			this.p1 = p1;
-			this.p2 = p2;
-			this.p3 = p3;
-		}
-
-		@Override
-		public List<Parameter<?>> getParameters() {
-			return list(p1, p2, p3);
-		}
-
-		@Override
-		public O apply(I t, Object... ps) {
-			return f.apply(t, (P1) ps[0], (P2) ps[1], (P3) ps[2]);
-		}
-	}
-
-	/** N-ary parametric function. */
-	class PFN<I, O> extends PFBase<I,O,F2<? super I,? super Object[],? extends O>> {
-		private Parameter<Object>[] ps;
-
-		public PFN(String _name, Class<I> i, Class<O> o, Parameter<Object>[] ps, F2<? super I,? super Object[],? extends O> f) {
-			super(_name, i, o, f);
-			this.ps = ps;
-		}
-
-		@Override
-		public List<Parameter<?>> getParameters() {
-			return list(ps);
-		}
-
-		@Override
-		public O apply(I t, Object... ps) {
-			return f.apply(t, ps);
-		}
-	}
-
-	class TypeAwareF<I, O> implements F1<I,O> {
-		public final Class<I> in;
-		public final Class<O> out;  // TODO: make VType
-		public final F1<I,O> f;
-
-		public TypeAwareF(F1<I,O> f, Class<I> in, Class<O> out) {
-			this.in = in;
-			this.out = out;
-			this.f = f;
-		}
-
-		@Override
-		public O apply(I queryParam) {
-			return f.apply(queryParam);
-		}
-
-	}
 }

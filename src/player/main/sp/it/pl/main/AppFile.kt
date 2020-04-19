@@ -18,7 +18,7 @@ import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.file.type.mimeType
-import sp.it.util.functional.Functors
+import sp.it.util.functional.PF0
 import sp.it.util.functional.Try
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
@@ -164,28 +164,27 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
 /**
  * Pool of file filters intended for simple enum-like file filter selection in UI.
  *
- * Because we can not yet serialize functions (see [sp.it.util.functional.Functors] and
- * [sp.it.util.parsing.Converter]), it is useful to define predicates not from function pool,
- * but hardcoded filters, which are enumerable and we look up by name.
+ * Because we can not yet serialize functions (see [PF0] and [sp.it.util.parsing.Converter]), it is useful to define
+ * predicates not from function pool, but hardcoded filters, which are enumerable and we look up by name.
  */
 object FileFilters {
-   val filterPrimary = Functors.PF0("File - all", File::class.java, Boolean::class.java) { true }
-   private val filters = ArrayList<Functors.PF0<File, Boolean>>()
+   val filterPrimary = PF0("File - all", File::class.java, Boolean::class.java) { true }
+   private val filters = ArrayList<PF0<File, Boolean>>()
 
    init {
       filters += filterPrimary
-      filters += Functors.PF0("File - is audio", File::class.java, Boolean::class.java) { it.isAudio() }
-      filters += Functors.PF0("File - is image", File::class.java, Boolean::class.java) { it.isImage() }
-      filters += Functors.PF0("File type - file", File::class.java, Boolean::class.java) { it.isFile }
-      filters += Functors.PF0("File type - directory", File::class.java, Boolean::class.java) { it.isDirectory }
+      filters += PF0("File - is audio", File::class.java, Boolean::class.java) { it.isAudio() }
+      filters += PF0("File - is image", File::class.java, Boolean::class.java) { it.isImage() }
+      filters += PF0("File type - file", File::class.java, Boolean::class.java) { it.isFile }
+      filters += PF0("File type - directory", File::class.java, Boolean::class.java) { it.isDirectory }
       MimeTypes.setOfGroups().forEach { group ->
-         filters += Functors.PF0("Mime type group - is ${group.capitalize()}", File::class.java, Boolean::class.java) { group==it.mimeType().group }
+         filters += PF0("Mime type group - is ${group.capitalize()}", File::class.java, Boolean::class.java) { group==it.mimeType().group }
       }
       MimeTypes.setOfMimeTypes().forEach { mime ->
-         filters += Functors.PF0("Mime type - is ${mime.name}", File::class.java, Boolean::class.java) { it.mimeType()==mime }
+         filters += PF0("Mime type - is ${mime.name}", File::class.java, Boolean::class.java) { it.mimeType()==mime }
       }
       MimeTypes.setOfExtensions().forEach { extension ->
-         filters += Functors.PF0("Type - is $extension", File::class.java, Boolean::class.java) { Util.getSuffix(it).equals(extension, ignoreCase = true) }
+         filters += PF0("Type - is $extension", File::class.java, Boolean::class.java) { Util.getSuffix(it).equals(extension, ignoreCase = true) }
       }
    }
 

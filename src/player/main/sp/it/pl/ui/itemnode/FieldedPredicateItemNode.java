@@ -2,7 +2,6 @@ package sp.it.pl.ui.itemnode;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javafx.scene.Node;
@@ -16,8 +15,7 @@ import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.collections.list.PrefList;
 import sp.it.util.functional.Functors;
-import sp.it.util.functional.Functors.PF;
-import sp.it.util.functional.Util;
+import sp.it.util.functional.PF;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -53,12 +51,12 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	// isEmpty() predicate should check: element.getField(field).equals(EMPTY_ELEMENT.getField(field))
 	// where null.equals(null) would return true, basically: element.hasDefaultValue(field).
 	// However, in my opinion, isNull predicate does not lose its value completely.
-	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function<? super T, ? extends Boolean> filter) {
-		return Util.isAny(filter, IS0, ISNT0, IS, ISNT)
-				? element -> filter.apply(field.getOf(element))
+	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function1<? super T, ? extends Boolean> filter) {
+		return filter==IS0 || filter==ISNT0 || filter==IS || filter==ISNT
+				? element -> filter.invoke(field.getOf(element))
 				: element -> {
 					T o = field.getOf(element);
-					return o==null ? false : filter.apply(o);
+					return o==null ? false : filter.invoke(o);
 				};
 	}
 
@@ -164,7 +162,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		if (config==null) {
 			changeValue((Predicate<V>) IS);
 		} else {
-			Function<? super Object, ? extends Boolean> p = config.getVal();
+			Function1<? super Object, ? extends Boolean> p = config.getVal();
 			F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
 			if (p!=null && o!=null) {
 				Predicate<V> pr = predicate((ObjectField) o, p);

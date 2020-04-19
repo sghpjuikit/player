@@ -23,12 +23,10 @@ import sp.it.util.Util.splitJoin
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.failIf
 import sp.it.util.file.WindowsShortcut
-import sp.it.util.file.nameOrRoot
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
-import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Functors
-import sp.it.util.functional.Functors.Parameter
+import sp.it.util.functional.Parameter
 import sp.it.util.functional.Util.IS0
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -232,7 +230,7 @@ object CoreFunctors: Core {
    }
 
    private inline fun <reified TYPE> p(defaultValue: TYPE): Parameter<TYPE> =
-      Parameter(type<TYPE>(), defaultValue)
+      Parameter(type(), defaultValue)
    private inline fun <reified TYPE> p(name: String, description: String, defaultValue: TYPE, vararg constraints: Constraint<TYPE>): Parameter<TYPE> =
-      Parameter(name, description, type<TYPE>(), defaultValue, constraints.toSet())
+      Parameter(name, description, type(), defaultValue, constraints.toSet())
 }

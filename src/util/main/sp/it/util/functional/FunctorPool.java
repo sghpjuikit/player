@@ -11,12 +11,6 @@ import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Functors.F2;
 import sp.it.util.functional.Functors.F3;
 import sp.it.util.functional.Functors.F4;
-import sp.it.util.functional.Functors.PF;
-import sp.it.util.functional.Functors.PF0;
-import sp.it.util.functional.Functors.PF1;
-import sp.it.util.functional.Functors.PF2;
-import sp.it.util.functional.Functors.PF3;
-import sp.it.util.functional.Functors.Parameter;
 import sp.it.util.type.VType;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static kotlin.sequences.SequencesKt.toList;
@@ -31,9 +25,9 @@ import static sp.it.util.type.UtilKt.superKClassesInc;
 @SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "unchecked"})
 public class FunctorPool {
 	// functor pools must not be accessed directly, as accessor must insert IDENTITY functor
-	private final PrefListMap<PF,KClass<?>> fsI = new PrefListMap<>(pf -> getKotlinClass(pf.in));
-	private final PrefListMap<PF,KClass<?>> fsO = new PrefListMap<>(pf -> getKotlinClass(pf.out));
-	private final PrefListMap<PF,Key<KClass<?>, KClass<?>>> fsIO = new PrefListMap<>(pf -> new Key<>(getKotlinClass(pf.in),getKotlinClass(pf.out)));
+	private final PrefListMap<PF,KClass<?>> fsI = new PrefListMap<>(pf -> getKotlinClass(pf.getIn()));
+	private final PrefListMap<PF,KClass<?>> fsO = new PrefListMap<>(pf -> getKotlinClass(pf.getOut()));
+	private final PrefListMap<PF,Key<KClass<?>, KClass<?>>> fsIO = new PrefListMap<>(pf -> new Key<>(getKotlinClass(pf.getIn()),getKotlinClass(pf.getOut())));
 	private final Set<Class<?>> preProcessVirtual = new HashSet<>();
 	private final String asSelfName = "As Self";
 
@@ -77,7 +71,7 @@ public class FunctorPool {
 
 	/** Add function to the pool. */
 	public void addF(PF<?,?> f) {
-		failIf(f.name.equalsIgnoreCase(asSelfName), () -> "Name '" + asSelfName + "' reserved for identity function");
+		failIf(f.getName().equalsIgnoreCase(asSelfName), () -> "Name '" + asSelfName + "' reserved for identity function");
 
 		fsI.accumulate(f);
 		fsO.accumulate(f);
@@ -86,7 +80,7 @@ public class FunctorPool {
 
 	/** Add function to the pool and sets as preferred according to parameters. */
 	public void addF(PF<?,?> f, boolean i, boolean o, boolean io) {
-		failIf(f.name.equalsIgnoreCase(asSelfName), () -> "Name '" + asSelfName + "' reserved for identity function");
+		failIf(f.getName().equalsIgnoreCase(asSelfName), () -> "Name '" + asSelfName + "' reserved for identity function");
 
 		fsI.accumulate(f, i);
 		fsO.accumulate(f, o);
@@ -215,7 +209,7 @@ public class FunctorPool {
 			preProcessVirtual(o);
 
 			List<PF<I,O>> l = (List) fsIO.get(new Key<>(getKotlinClass(i), getKotlinClass(o)));
-			return l==null ? null : stream(l).filter(f -> f.name.equals(name)).findAny().orElse(null);
+			return l==null ? null : stream(l).filter(f -> f.getName().equals(name)).findAny().orElse(null);
 		}
 	}
 

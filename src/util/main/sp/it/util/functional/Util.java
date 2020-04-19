@@ -59,77 +59,10 @@ public interface Util {
 	FP<Object> IS = o -> true;
 
 	/** Predicate returning false. Matches no object. */
-	@SuppressWarnings("SpellCheckingInspection")
 	FP<Object> ISNT = o -> false;
 
 	/** Comparator returning 0. Produces no order change. */
-	@SuppressWarnings("ComparatorMethodParameterNotUsed")
 	Comparator<Object> SAME = (a,b) -> 0;
-
-	static <E> boolean is(E o, E a) {
-		return o==a;
-	}
-
-	static <E> boolean isAny(E o, E a) {
-		return o==a;
-	}
-
-	static <E> boolean isAny(E o, E a, E b) {
-		return o==a || o==b;
-	}
-
-	static <E> boolean isAny(E o, E a, E b, E c) {
-		return o==a || o==b || o==c;
-	}
-
-	static <E> boolean isAny(E o, E a, E b, E c, E d) {
-		return o==a || o==b || o==c || o==d;
-	}
-
-	@SafeVarargs
-	static <E> boolean isAny(E o, E... es) {
-		for (E e : es)
-			if (o==e)
-				return true;
-		return false;
-	}
-
-	static <E> boolean isAny(E o, Collection<E> es) {
-		for (E e : es)
-			if (o==e)
-				return true;
-		return false;
-	}
-
-	static <E> boolean equalsAny(E o, E a) {
-		return o.equals(a);
-	}
-
-	static <E> boolean equalsAny(E o, E a, E b) {
-		return o.equals(a) || o.equals(b);
-	}
-
-	static <E> boolean equalsAny(E o, E a, E b, E c) {
-		return o.equals(a) || o.equals(b) || o.equals(c);
-	}
-
-	static <E> boolean equalsAny(E o, E a, E b, E c, E d) {
-		return o.equals(a) || o.equals(b) || o.equals(c) || o.equals(d);
-	}
-
-	@SafeVarargs
-	static <E> boolean equalsAny(E o, E... es) {
-		for (E e : es)
-			if (o.equals(e))
-				return true;
-		return false;
-	}
-
-	static <E> boolean equalsAnyIn(E o, Collection<E> es) {
-		for (E e : es)
-			if (o.equals(e)) return true;
-		return false;
-	}
 
 	/** Repeat action n times. */
 	static void repeat(int n, Runnable action) {

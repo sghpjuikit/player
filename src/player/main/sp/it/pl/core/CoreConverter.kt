@@ -7,18 +7,18 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
-import sp.it.pl.main.AppUi.SkinCss
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
+import sp.it.pl.main.AppUi.SkinCss
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.id
+import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.Action
 import sp.it.util.functional.Functors
+import sp.it.util.functional.PF
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
 import sp.it.util.functional.compose
@@ -60,7 +60,7 @@ import java.util.regex.PatternSyntaxException as PSE
 private typealias NFE = NumberFormatException
 private typealias IAE = IllegalArgumentException
 private typealias OBE = IndexOutOfBoundsException
-private typealias FromS<T> = (String) -> Try<T,String>
+private typealias FromS<T> = (String) -> Try<T, String>
 
 class CoreConverter: Core {
 
@@ -68,37 +68,40 @@ class CoreConverter: Core {
 
    /** Default to/from string converter that uses per class registered converters. */
    @JvmField val general = Parsers.DEFAULT!!
+
    /** Default ui to string converter. */
    @JvmField val ui = object: ConverterToString<Any?> {
       override fun toS(o: Any?) = when (o) {
-            null -> AppTexts.textNoVal
-            is Boolean -> if (o) "yes" else "no"
-            is Class<*> -> APP.className[o.kotlin]
-            is KClass<*> -> APP.className[o]
-            is KTypeProjection -> when (o) {
-               KTypeProjection.STAR -> "*"
-               else -> {
-                  val v = when(o.variance!!) {
-                     KVariance.INVARIANT -> ""
-                     KVariance.IN -> "in "
-                     KVariance.OUT -> "out "
-                  }
-                  v + o.type.toUi()
+         null -> AppTexts.textNoVal
+         is Boolean -> if (o) "yes" else "no"
+         is Class<*> -> APP.className[o.kotlin]
+         is KClass<*> -> APP.className[o]
+         is KTypeProjection -> when (o) {
+            KTypeProjection.STAR -> "*"
+            else -> {
+               val v = when (o.variance!!) {
+                  KVariance.INVARIANT -> ""
+                  KVariance.IN -> "in "
+                  KVariance.OUT -> "out "
                }
+               v + o.type.toUi()
             }
-            is KType -> {
-               val suffix = when { o.isPlatformType -> "!"; o.isMarkedNullable -> "?"; else -> "" }
-               o.classifier.toUi() + o.arguments.joinToString(", ") { it.toUi() }.nullIfBlank()?.let{ "<$it>" }.orEmpty() + suffix
+         }
+         is KType -> {
+            val suffix = when {
+               o.isPlatformType -> "!"; o.isMarkedNullable -> "?"; else -> ""
             }
-            is VType<*> -> o.type.toUi()
-            is NameUi -> o.nameUi
-            is Action -> "${o.nameUi} (${o.keysUi()})"
-            is LocalDateTime -> o.format(dateTimeFormatter)
-            is LocalDate -> o.format(dateTimeFormatter)
-            is LocalTime -> o.format(dateTimeFormatter)
-            is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
-            is Effect -> o::class.toUi()
-            else -> if(isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
+            o.classifier.toUi() + o.arguments.joinToString(", ") { it.toUi() }.nullIfBlank()?.let { "<$it>" }.orEmpty() + suffix
+         }
+         is VType<*> -> o.type.toUi()
+         is NameUi -> o.nameUi
+         is Action -> "${o.nameUi} (${o.keysUi()})"
+         is LocalDateTime -> o.format(dateTimeFormatter)
+         is LocalDate -> o.format(dateTimeFormatter)
+         is LocalTime -> o.format(dateTimeFormatter)
+         is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
+         is Effect -> o::class.toUi()
+         else -> if (isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
    }
    private val fx = ConverterFX()
@@ -115,8 +118,8 @@ class CoreConverter: Core {
       fun <T: Number> FromS<T>.numberMessage(): FromS<T> = this compose { it.mapError { "Not a number" + it.nullIfBlank()?.let { ": $it" } } }
 
       addP<Boolean>(toS, { it.toBoolean() })
-      addT<Int>(toS, tryF(NFE::class) { it.toInt() }.numberMessage() )
-      addT<Double>(toS, tryF(NFE::class) { it.toDouble()}.numberMessage())
+      addT<Int>(toS, tryF(NFE::class) { it.toInt() }.numberMessage())
+      addT<Double>(toS, tryF(NFE::class) { it.toDouble() }.numberMessage())
       addT<Short>(toS, tryF(NFE::class) { it.toShort() }.numberMessage())
       addT<Long>(toS, tryF(NFE::class) { it.toLong() }.numberMessage())
       addT<Float>(toS, tryF(NFE::class) { it.toFloat() }.numberMessage())
@@ -151,7 +154,7 @@ class CoreConverter: Core {
       addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
       addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect?>(it) })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
-      addP<Functors.PF<*, *>>(
+      addP<PF<*, *>>(
          { "${it.name},${it.`in`},${it.out}" },
          {
             val data = Util.split(it, ",")

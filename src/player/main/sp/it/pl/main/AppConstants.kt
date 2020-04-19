@@ -12,6 +12,7 @@ object Widgets {
    const val LOGGER_NAME = "Logger"
    const val PLAYBACK_NAME = "Playback"
    const val PLAYLIST_NAME = "Playlist"
+   const val TESTER_NAME = "Tester"
 
    val CONVERTER = FactoryRef(CONVERTER_NAME, "Converter")
    val ICON_BROWSER = FactoryRef(ICON_BROWSER_NAME, "IconBrowser")
@@ -22,6 +23,7 @@ object Widgets {
    val LOGGER = FactoryRef(LOGGER_NAME, "Logger")
    val PLAYBACK = FactoryRef(PLAYBACK_NAME, "PlayerControls")
    val PLAYLIST = FactoryRef(PLAYLIST_NAME, "PlaylistView")
+   val TESTER = FactoryRef(TESTER_NAME, "Tester")
 }
 
 object Actions {

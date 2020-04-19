@@ -18,6 +18,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.Key
+import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -55,10 +56,10 @@ import sp.it.util.units.seconds
 import java.io.File
 import kotlin.math.sqrt
 
-@Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments")
+@Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments", "RedundantLambdaArrow")
 @Widget.Info(
    author = "Martin Polakovic",
-   name = "Tester",
+   name = TESTER_NAME,
    description = "Provides facilities for testing and development.",
    version = "1.0.0",
    year = "2020",

@@ -39,6 +39,7 @@ import sp.it.pl.layout.widget.orNone
 import sp.it.pl.main.Widgets.ICON_BROWSER
 import sp.it.pl.main.Widgets.INSPECTOR
 import sp.it.pl.main.Widgets.SONG_TAGGER
+import sp.it.pl.main.Widgets.TESTER
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
@@ -102,6 +103,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<App>(
+      FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
       FastColAction<App>("For developer", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
       FastColAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
       FastAction(IconMD.KEYBOARD_VARIANT, ActionRegistrar["Show shortcuts"]),
@@ -110,11 +112,14 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
    ap.register<AppDev>(
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
       FastAction(IconFA.CSS3, ActionRegistrar["Open css guide"]),
-      FastAction("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.EYEDROPPER) {
+      FastAction("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
          WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create())
       },
-      FastAction("Open ${INSPECTOR.name}", "Browse available icons", IconFA.TREE) {
+      FastAction("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
          WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create())
+      },
+      FastAction("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
+         WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create())
       },
       FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"])
    )

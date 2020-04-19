@@ -335,6 +335,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
 
       private fun computeCellTextHeight() = cellTextHeight.value!!
 
+      @Suppress("UNUSED_PARAMETER")
       private fun onAction(item: Album, edit: Boolean) = playSelected()
 
       override fun dispose() {

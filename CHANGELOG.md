@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Implement `Dir Viewer` icon cell & option to toggle thumbnails/icons
     - Improve `Dir Viewer` cell size change performance
     - Improve `Tagger` widget UX
+    - Improve `Converter` widget UX
     - Improve `Tagger` reading performance
     - Improve `FileInfo`
         - use checklist to select which fields to display

@@ -2,13 +2,14 @@ package sp.it.pl.core
 
 import javafx.scene.Node
 import javafx.scene.input.DataFormat
-import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetSource
+import sp.it.pl.layout.widget.WidgetUse.ANY
+import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
@@ -16,6 +17,7 @@ import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.Opener
+import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
@@ -96,8 +98,28 @@ object CoreMenus: Core {
          }
          add<File> {
             if (value.isAudio()) {
-               item("Play") { PlaylistManager.use { p -> p.playUri(it.toURI()) } }
-               item("Enqueue") { PlaylistManager.use { p -> p.addFile(it) } }
+               menu("Playback") {
+                  item("Play") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
+                        p.playlist.addNplay(it.toURI())
+                     }
+                  }
+                  item("Play (new playlist)") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
+                        p.playlist.addNplay(it.toURI())
+                     }
+                  }
+                  item("Enqueue") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
+                        p.playlist.addFile(it)
+                     }
+                  }
+                  item("Enqueue (new playlist)") {
+                     APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
+                        p.playlist.addFile(it)
+                     }
+                  }
+               }
             }
             if (value.isImage()) {
                item("Fullscreen") { APP.actions.openImageFullscreen(it) }
@@ -120,6 +142,10 @@ object CoreMenus: Core {
                }
             }
          }
+         addMany<File> {
+            item("Copy (to clipboard)") { copyToSysClipboard(DataFormat.FILES, it) }
+            item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }
+         }
          add<Node> {
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w ->
@@ -139,14 +165,30 @@ object CoreMenus: Core {
                widgetItems<ConfiguringFeature> { it.configure(value) }
             }
          }
-         addMany<File> {
-            item("Copy (to clipboard)") { copyToSysClipboard(DataFormat.FILES, it) }
-            item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }
-         }
          add<MetadataGroup> {
             menu("Playback") {
-               item("Play songs") { PlaylistManager.use { p -> p.setNplay(it.grouped.stream().sorted(APP.db.libraryComparator.get())) } }
-               item("Enqueue songs") { PlaylistManager.use { p -> p.addItems(it.grouped) } }
+               item("Play songs") {
+                  APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
+                     p.playlist.addItems(it.grouped)
+                     p.playlist.playFirstItem()
+                  }
+               }
+               item("Play songs (new playlist)") {
+                  APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
+                     p.playlist.addItems(it.grouped)
+                     p.playlist.playFirstItem()
+                  }
+               }
+               item("Enqueue songs") {
+                  APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
+                     p.playlist.addItems(it.grouped)
+                  }
+               }
+               item("Enqueue songs (new playlist)") {
+                  APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
+                     p.playlist.addItems(it.grouped)
+                  }
+               }
             }
             menu("Library") {
                item("Update songs from file") { APP.db.refreshSongsFromFile(it.grouped) }

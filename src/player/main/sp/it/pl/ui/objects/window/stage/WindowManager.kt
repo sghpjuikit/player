@@ -82,6 +82,7 @@ import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.Os
+import sp.it.util.text.keys
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.getScreenForMouse
@@ -113,7 +114,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    val windowOpacity by cv(1.0).between(0.1, 1.0).def(name = "Opacity", info = "Window opacity.")
    val windowHeaderless by cv(false).def(name = "Headerless", info = "Affects window header visibility for new windows.")
-   val windowInteractiveOnLeftAlt by cv(!Os.UNIX.isCurrent).def(name = "Interacts on Alt + Mouse Drag", info = "Simulates Linux move/resize behavior.")
+   val windowInteractiveOnLeftAlt by cv(!Os.UNIX.isCurrent).def(name = "Interacts on ${keys("Alt")} + Mouse Drag", info = "Simulates Linux move/resize behavior.")
 
    private var dockIsTogglingWindows = false
    private var dockHiddenWindows = ArrayList<Window>()
@@ -243,9 +244,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       mainWindow?.let { it.isMainImpl.value = true }
    }
 
-   @IsAction(name = "Close active window", keys = "CTRL+W", info = "Opens new application window")
+   @IsAction(name = "Close active window", keys = "CTRL+W", info = "Close focused window")
    private fun closeActiveWindow() {
-      getActive()?.close()
+      getFocused()?.close()
    }
 
    private fun showDockImpl(enable: Boolean) {

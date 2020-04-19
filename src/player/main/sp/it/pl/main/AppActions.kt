@@ -7,6 +7,8 @@ import javafx.geometry.Pos.CENTER
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
@@ -24,9 +26,11 @@ import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.pane.OverlayPane
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.Util.urlEncodeUtf8
+import sp.it.util.action.ActionManager
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.action.IsAction
 import sp.it.util.async.runFX
@@ -42,6 +46,8 @@ import sp.it.util.reactive.sync1If
 import sp.it.util.system.browse
 import sp.it.util.system.open
 import sp.it.util.system.runCommand
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.bgr
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.stackPane
@@ -90,7 +96,15 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = "Show shortcuts", info = "Display all available shortcuts.", keys = "COMMA")
    fun showShortcuts() {
-      APP.ui.shortcutPane.orBuild.show(ActionRegistrar.getActions())
+      val actionsStandard = ActionRegistrar.getActions().map { Entry(it) }
+      val actionsHardcoded = listOfNotNull(
+         Entry("Window", "Move window", keys("ALT+" + PRIMARY.nameUi) + " (hold)").takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value },
+         Entry("Window", "Resize window", keys("ALT+" + SECONDARY.nameUi) + " (hold)").takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value },
+         Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
+         Entry("Ui", "Table filter", keys("CTRL+F")),
+         Entry("Ui", "Table search", "Type text")
+      )
+      APP.ui.shortcutPane.orBuild.show(actionsStandard + actionsHardcoded)
    }
 
    @IsAction(name = "Show system info", info = "Display system information.")

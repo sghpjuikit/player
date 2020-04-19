@@ -33,11 +33,11 @@ import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
 
-class ShortcutPane: OverlayPane<Collection<Action>>() {
+class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
 
    val hideEmptyShortcuts = v(true)
    private val grid = GridPane()
-   private var value: Collection<Action> = emptySet()
+   private var value: Collection<Entry> = emptySet()
 
    init {
       styleClass += STYLECLASS
@@ -52,7 +52,7 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
                .tooltip("${hideUnassignedShortcuts1.name}\n\n${hideUnassignedShortcuts1.info}")
             lay += infoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")
          }
-         lay(ALWAYS) += hBox(10, BOTTOM_CENTER) {
+         lay(ALWAYS) += hBox(20.emScaled, BOTTOM_CENTER) {
             padding = Insets(20.emScaled)
 
             lay += text(
@@ -79,13 +79,13 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
       }
    }
 
-   override fun show(data: Collection<Action>) {
+   override fun show(data: Collection<Entry>) {
       super.show()
       value = data
       build(value)
    }
 
-   private fun build(actions: Collection<Action>) {
+   private fun build(actions: Collection<Entry>) {
       grid.children.clear()
       grid.rowConstraints.clear()
       grid.columnConstraints.clear()
@@ -96,11 +96,11 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
 
       var i = -1
       actions.asSequence()
-         .filter { !hideEmptyShortcuts.value || it.hasKeysAssigned() }
-         .groupBy { it.group }
+         .filter { !hideEmptyShortcuts.value || it.keysUi!=null }
+         .groupBy { it.groupUi }
          .entries.asSequence()
          .sortedBy { it.key }
-         .onEach { it.value.sortedBy { it.name } }
+         .onEach { it.value.sortedBy { it.nameUi } }
          .forEach { (key, value) ->
             // group title row
             i++
@@ -112,12 +112,16 @@ class ShortcutPane: OverlayPane<Collection<Action>>() {
             GridPane.setHalignment(group.parent, HPos.LEFT)
 
             // shortcut rows
-            for (a in value) {
+            value.asSequence().sortedBy { it.nameUi }.forEach {
                i++
-               grid.add(label(a.keysUi()), 0, i)
-               grid.add(label(a.name), 2, i)
+               grid.add(label(it.keysUi ?: ""), 0, i)
+               grid.add(label(it.nameUi), 2, i)
             }
          }
+   }
+
+   class Entry(val groupUi: String, val nameUi: String, val keysUi: String?) {
+      constructor(a: Action): this(a.groupUi, a.nameUi, if (a.hasKeysAssigned()) a.keysUi() else null)
    }
 
    companion object {

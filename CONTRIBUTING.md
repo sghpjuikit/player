@@ -9,9 +9,10 @@
 
 - Clone the repository
 
-- Set up JDK  
-  To avoid version problems, it is required to specify JDK explicitly
+- Set up 64-bit JDK12  
   - Download & install/extract [OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)
+  
+  To avoid problems, it is recommended to specify project-local JDK
   - Create a `gradle.properties` file at project
   - Add property: `org.gradle.java.home=/path/to/jdk`.
 - Set up Vlc (Linux only)  

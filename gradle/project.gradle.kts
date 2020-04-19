@@ -24,7 +24,7 @@ fun Project.tests(configuration: Test.() -> Unit) {
 
 /** Working directory of the application */
 val dirApp = file("app")
-val dirJDKSystem = file("org.gradle.java.home".prjProp ?: failIO { "property 'org.gradle.java.home' not set up" })
+val dirJDKSystem = file("org.gradle.java.home".prjProp ?: "java.home".sysProp ?: failIO { "property 'org.gradle.java.home' not set up" })
 val dirJdk = dirApp/"java"
 val kotlinVersion: String by extra {
    buildscript.configurations["classpath"]

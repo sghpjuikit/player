@@ -2,14 +2,17 @@ package sp.it.pl.ui.objects.window.stage;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -36,8 +39,10 @@ import sp.it.util.action.ActionManager;
 import sp.it.util.action.ActionRegistrar;
 import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
+import sp.it.util.math.P;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.Subscription;
+import sp.it.util.system.Os;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
@@ -86,10 +91,12 @@ import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.getAnyFut;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.window.Resize.*;
 import static sp.it.pl.ui.objects.window.Resize.NONE;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.buildWindowLayout;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.lookupId;
+import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.resizeTypeForCoordinates;
 import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.access.Values.next;
 import static sp.it.util.access.Values.previous;
@@ -105,6 +112,8 @@ import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.text.UtilKt.getNameUi;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
+import static sp.it.util.ui.UtilKt.getScreenXy;
+import static sp.it.util.ui.UtilKt.getXy;
 import static sp.it.util.ui.UtilKt.initClip;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
@@ -138,6 +147,8 @@ public class Window extends WindowBase {
 	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
 	/** Denotes whether this is main window. Closing main window closes the application. Only one window can be main. */
 	public final ReadOnlyBooleanProperty isMain = isMainImpl.getReadOnlyProperty();
+	/** Denotes whether this window is resizable/movable with mouse when left ALT is held. Default true on non Linux platform. */
+	public final BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
 	/** Invoked just before this window closes, after layout closes. */
 	public final Disposer onClose = new Disposer();
 
@@ -183,12 +194,28 @@ public class Window extends WindowBase {
 		header.addEventHandler(MOUSE_RELEASED, this::moveEnd);
 
 		// app dragging (anywhere on ALT)
-		root.addEventFilter(MOUSE_PRESSED, e -> {
-			if (e.getButton()==PRIMARY && e.isAltDown() && e.isShiftDown()) {
-				isMovingAlt = true;
-				root.setMouseTransparent(true);
-				moveStart(e);
+		root.addEventFilter(MouseEvent.ANY, e -> {
+			if ((isInteractiveOnLeftAlt.getValue() && e.isAltDown()) || isMovingAlt || isResizingAlt)
 				e.consume();
+		});
+		root.addEventFilter(DragEvent.ANY, e -> {
+			if (isMovingAlt || isResizingAlt)
+				e.consume();
+		});
+		root.addEventFilter(MOUSE_PRESSED, e -> {
+			if (isInteractiveOnLeftAlt.getValue() && e.isAltDown()) {
+				if (e.getButton()==PRIMARY) {
+					isMovingAlt = true;
+					root.setMouseTransparent(true);
+					moveStart(e);
+					e.consume();
+				}
+				if (e.getButton()==SECONDARY && resizable.getValue()) {
+					isResizingAlt = true;
+					root.setMouseTransparent(true);
+					resizeStart(e);
+					e.consume();
+				}
 			}
 		});
 		root.addEventFilter(MOUSE_DRAGGED, e -> {
@@ -196,17 +223,24 @@ public class Window extends WindowBase {
 				moveDo(e);
 				e.consume();
 			}
+			if (isResizingAlt) {
+				resizeDo(e);
+				e.consume();
+			}
 		});
 		root.addEventFilter(MOUSE_RELEASED, e -> {
-			if (e.getButton()==PRIMARY && isMovingAlt) {
+			if (isMovingAlt && e.getButton()==PRIMARY) {
 				isMovingAlt = false;
 				root.setMouseTransparent(false);
 				moveEnd(e);
 				e.consume();
 			}
-		});
-		root.addEventFilter(MouseEvent.ANY, e -> {
-			if (isMovingAlt) e.consume();
+			if (isResizingAlt && e.getButton()==SECONDARY) {
+				isResizingAlt = false;
+				root.setMouseTransparent(false);
+				resizeEnd(e);
+				e.consume();
+			}
 		});
 
 		// header double click maximize, show header on/off
@@ -517,7 +551,7 @@ public class Window extends WindowBase {
 		applyHeaderVisible(!v && _headerVisible);
 	}
 
-/* ---------- MOVING ------------------------------------------------------------------------------------------------ */
+/* ---------- MOVING & RESIZING ------------------------------------------------------------------------------------- */
 
 	private double appX;
 	private double appY;
@@ -529,8 +563,7 @@ public class Window extends WindowBase {
 		// disable when being resized, resize starts at mouse pressed so
 		// it can not consume drag detected event and prevent dragging
 		// should be fixed
-		if (e.getButton()!=PRIMARY || resizing.get()!=Resize.NONE) return;
-//        if (header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
+		if (e.getButton()!=PRIMARY || resizing.get()!=NONE) return;
 
 		mouseMonitor = APP.getMouse().observeMouseVelocity(consumer(speed -> mouseSpeed = speed));
 		isMoving.set(true);
@@ -592,16 +625,62 @@ public class Window extends WindowBase {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private void moveEnd(MouseEvent e) {
 		isMoving.set(false);
 		if (mouseMonitor!=null) mouseMonitor.unsubscribe();
 	}
 
-	/*******************************    RESIZING  *********************************/
+	private P resizeAltMouseStart;
+	private P resizeAltAppPos;
+	private P resizeAltAppSize;
+	private double resizeAltAppY;
+	private boolean isResizingAlt = false;
+
+	private void resizeStart(MouseEvent e) {
+		resizeAltMouseStart = getScreenXy(e);
+		resizeAltAppPos = getXy(s);
+		resizeAltAppSize = getSize();
+		isResizing.setValue(resizeTypeForCoordinates(s, new P(e.getScreenX(), e.getScreenY())));
+		root.setCursor(isResizing.getValue().getCursor());
+	}
+
+	private void resizeDo(MouseEvent e) {
+		var diff = getScreenXy(e).minus(resizeAltMouseStart);
+		Resize r = isResizing.getValue();
+		if (r==SE) {
+			setSize(resizeAltAppSize.plus(diff));
+		} else if (r==S) {
+			setSize(resizeAltAppSize.plus(diff.times(new P(0.0, 1.0))));
+		} else if (r==E) {
+			setSize(resizeAltAppSize.plus(diff.times(new P(1.0, 0.0))));
+		} else if (r==SW) {
+			setSize(resizeAltAppSize.minus(diff.times(new P(1.0, -1.0))));
+			setXY(resizeAltAppPos.plus(diff.times(new P(1.0, 0.0))));
+		} else if (r==Resize.W) {
+			setSize(resizeAltAppSize.minus(diff.times(new P(1.0, 0.0))));
+			setXY(resizeAltAppPos.plus(diff.times(new P(1.0, 0.0))));
+		} else if (r==NW) {
+			setSize(resizeAltAppSize.minus(diff));
+			setXY(resizeAltAppPos.plus(diff));
+		} else if (r==N) {
+			setSize(resizeAltAppSize.minus(diff.times(new P(0.0, 1.0))));
+			setXY(resizeAltAppPos.plus(diff.times(new P(0.0, 1.0))));
+		} else if (r==NE) {
+			setSize(resizeAltAppSize.plus(diff.times(new P(1.0, -1.0))));
+			setXY(resizeAltAppPos.plus(diff.times(new P(0.0, 1.0))));
+		} else if (r==ALL) {
+			setSize(resizeAltAppSize.plus(diff.times(2.0)));
+			setXY(resizeAltAppPos.minus(diff));
+		}
+	}
+
+	private void resizeEnd(MouseEvent e) {
+		root.setCursor(null);
+		isResizing.setValue(NONE);
+	}
 
 	private void borderDragStart(MouseEvent e) {
-		if (resizable.get()) {
+		if (resizable.getValue()) {
 			double X = e.getSceneX();
 			double Y = e.getSceneY();
 			double WW = getWidth();
@@ -609,41 +688,41 @@ public class Window extends WindowBase {
 			double L = 20; // corner threshold
 
 			Resize r = NONE;
-			if ((X>WW - L) && (Y>WH - L)) r = Resize.SE;
-			else if ((X<L) && (Y>WH - L)) r = Resize.SW;
-			else if ((X<L) && (Y<L)) r = Resize.NW;
-			else if ((X>WW - L) && (Y<L)) r = Resize.NE;
-			else if ((X>WW - L)) r = Resize.E;
-			else if ((Y>WH - L)) r = Resize.S;
+			if ((X>WW - L) && (Y>WH - L)) r = SE;
+			else if ((X<L) && (Y>WH - L)) r = SW;
+			else if ((X<L) && (Y<L)) r = NW;
+			else if ((X>WW - L) && (Y<L)) r = NE;
+			else if ((X>WW - L)) r = E;
+			else if ((Y>WH - L)) r = S;
 			else if ((X<L)) r = Resize.W;
-			else if ((Y<L)) r = Resize.N;
-			isResizing.set(r);
+			else if ((Y<L)) r = N;
+			isResizing.setValue(r);
 		}
 		e.consume();
 	}
 
 	private void borderDragged(MouseEvent e) {
-		if (resizable.get()) {
+		if (resizable.getValue()) {
 			Resize r = isResizing.get();
-			if (r==Resize.SE)
+			if (r==SE)
 				setSize(e.getScreenX() - getX(), e.getScreenY() - getY());
-			else if (r==Resize.S)
+			else if (r==S)
 				setSize(getWidth(), e.getScreenY() - getY());
-			else if (r==Resize.E)
+			else if (r==E)
 				setSize(e.getScreenX() - getX(), getHeight());
-			else if (r==Resize.SW) {
+			else if (r==SW) {
 				setSize(getX() + getWidth() - e.getScreenX(), e.getScreenY() - getY());
 				setXY(e.getScreenX(), getY());
 			} else if (r==Resize.W) {
 				setSize(getX() + getWidth() - e.getScreenX(), getHeight());
 				setXY(e.getScreenX(), getY());
-			} else if (r==Resize.NW) {
+			} else if (r==NW) {
 				setSize(getX() + getWidth() - e.getScreenX(), getY() + getHeight() - e.getScreenY());
 				setXY(e.getScreenX(), e.getScreenY());
-			} else if (r==Resize.N) {
+			} else if (r==N) {
 				setSize(getWidth(), getY() + getHeight() - e.getScreenY());
 				setXY(getX(), e.getScreenY());
-			} else if (r==Resize.NE) {
+			} else if (r==NE) {
 				setSize(e.getScreenX() - getX(), getY() + getHeight() - e.getScreenY());
 				setXY(getX(), e.getScreenY());
 			}
@@ -652,7 +731,7 @@ public class Window extends WindowBase {
 	}
 
 	private void borderDragEnd(MouseEvent e) {
-		if (isResizing.get()!=NONE) isResizing.set(NONE);
+		isResizing.setValue(NONE);
 		e.consume();
 	}
 

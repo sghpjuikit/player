@@ -11,6 +11,7 @@ import javafx.event.Event
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.geometry.Rectangle2D
 import javafx.scene.Cursor
 import javafx.scene.Cursor.E_RESIZE
 import javafx.scene.Cursor.NE_RESIZE
@@ -27,13 +28,16 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
 import javafx.scene.robot.Robot
 import javafx.stage.Stage
-import sp.it.pl.ui.objects.picker.ContainerPicker
-import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.layout.widget.initialTemplateFactory
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
+import sp.it.pl.ui.objects.picker.ContainerPicker
+import sp.it.pl.ui.objects.placeholder.Placeholder
+import sp.it.pl.ui.objects.window.Resize
+import sp.it.pl.ui.objects.window.Resize.*
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
+import sp.it.util.math.P
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
@@ -85,6 +89,19 @@ fun Window.installStartLayoutPlaceholder() {
       }
    }
 
+}
+
+fun Stage.resizeTypeForCoordinates(at: P): Resize {
+   val widths = listOf(0.0-100.0, width/3.0, 2*width/3.0, width+100.0).windowed(2, 1, false).map { it[0] to it[1] }
+   val heights = listOf(0.0-100.0, height/3.0, 2*height/3.0, height+100.0).windowed(2, 1, false).map { it[0] to it[1] }
+   val areas = mutableListOf<Rectangle2D>()
+   widths.forEach { (w1, w2) ->
+      heights.forEach { (h1, h2) ->
+         areas += Rectangle2D(x + w1, y + h1, w2 - w1, h2 - h1)
+      }
+   }
+   val resizes = listOf(NW, W, SW, N, ALL, S, NE, E, SE)
+   return areas.find { at.toPoint2D() in it }?.let { resizes[areas.indexOf(it)] } ?: NONE
 }
 
 /**

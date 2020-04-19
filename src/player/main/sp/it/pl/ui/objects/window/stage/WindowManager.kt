@@ -41,6 +41,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.toUi
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
@@ -80,6 +81,7 @@ import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.getScreenForMouse
@@ -111,6 +113,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    val windowOpacity by cv(1.0).between(0.1, 1.0).def(name = "Opacity", info = "Window opacity.")
    val windowHeaderless by cv(false).def(name = "Headerless", info = "Affects window header visibility for new windows.")
+   val windowInteractiveOnLeftAlt by cv(!Os.UNIX.isCurrent).def(name = "Interacts on Alt + Mouse Drag", info = "Simulates Linux move/resize behavior.")
 
    private var dockIsTogglingWindows = false
    private var dockHiddenWindows = ArrayList<Window>()
@@ -210,6 +213,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       w.stage.opacityProperty() syncFrom windowOpacity on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value
+      w.isInteractiveOnLeftAlt.value = windowInteractiveOnLeftAlt.value
       w.stage.title = APP.name
       w.stage.icons setToOne windowIcon
 

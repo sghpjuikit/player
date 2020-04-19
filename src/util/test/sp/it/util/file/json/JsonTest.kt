@@ -1,11 +1,11 @@
 package sp.it.util.file.json
 
-import io.kotlintest.data.forall
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FreeSpec
-import io.kotlintest.tables.row
-import sp.it.util.type.toRaw
+import io.kotest.core.spec.style.FreeSpec
+import io.kotest.data.forAll
+import io.kotest.data.row
+import io.kotest.matchers.shouldBe
 import sp.it.util.type.jType
+import sp.it.util.type.toRaw
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -20,7 +20,6 @@ import java.util.Stack
 import java.util.TreeSet
 import java.util.Vector
 
-
 class JsonTest: FreeSpec({
    val j = Json()
 
@@ -28,6 +27,7 @@ class JsonTest: FreeSpec({
       "JsNull" - {
          "should read null" {
             class Data
+
             val json = JsNull
 
             j.fromJsonValue<Any>(json).orThrow shouldBe null
@@ -52,7 +52,7 @@ class JsonTest: FreeSpec({
          "to Number should respect type" {
             val json = JsNumber(1)
 
-            forall(
+            forAll(
                arg<Byte>(),
                arg<Short>(),
                arg<Int>(),
@@ -67,6 +67,7 @@ class JsonTest: FreeSpec({
          }
          "to non Number should fail" {
             class Data
+
             val json = JsNumber(1)
             j.fromJsonValue<Data>(json).isOk shouldBe false
          }
@@ -74,6 +75,7 @@ class JsonTest: FreeSpec({
       "JsArray" - {
          "of nulls" {
             class Data
+
             val json = JsArray(listOf(JsNull, JsNull))
 
             j.fromJsonValue<Any>(json).orThrow shouldBe listOf(null, null)
@@ -91,7 +93,7 @@ class JsonTest: FreeSpec({
          "to exact collection type" {
             val json = JsArray(listOf(JsNumber(1), JsNumber(1)))
 
-            forall(
+            forAll(
                arg<Set<*>>(),
                arg<MutableSet<*>>(),
                arg<HashSet<*>>(),

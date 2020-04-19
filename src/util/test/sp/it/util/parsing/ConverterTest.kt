@@ -1,8 +1,8 @@
 package sp.it.util.parsing
 
-import io.kotlintest.should
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FreeSpec
+import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.type.type
@@ -23,7 +23,7 @@ class ConverterTest: FreeSpec({
 
          c.ofS(type<Int?>(), "") shouldBe Try.ok(null)
          c.ofS(type<Int?>(), "5") shouldBe Try.ok(5)
-         c.ofS(type<Int>(), "") should { it.isError }
+         c.ofS(type<Int>(), "") should  { it.isError }
          c.ofS(type<Int>(), "5") shouldBe Try.ok(5)
 
          c.ofS<Int?>("") shouldBe Try.ok(null)

@@ -149,7 +149,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.4.2")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.0.3")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.0.3")
       }
 
    }

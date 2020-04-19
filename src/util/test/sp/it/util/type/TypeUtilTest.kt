@@ -1,9 +1,10 @@
 package sp.it.util.type
 
-import io.kotlintest.data.forall
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FreeSpec
-import io.kotlintest.tables.row
+import io.kotest.core.spec.style.FreeSpec
+import io.kotest.data.forAll
+import io.kotest.data.row
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableListBase
@@ -43,7 +44,7 @@ import kotlin.reflect.jvm.javaType
 @Suppress("RemoveRedundantQualifierName")
 class TypeUtilTest: FreeSpec({
 
-   "Method" - {
+   "!Method" - {
       "Assumptions" {
          // Mutable collections erase to collections
          Collection::class shouldBe MutableCollection::class
@@ -177,6 +178,7 @@ class TypeUtilTest: FreeSpec({
          type<List<Int>>() isSubtypeOf type<MutableList<out Number>>() shouldBe true // true, because MutableList erases to List
          type<List<Int>>() isSubtypeOf type<List<*>>() shouldBe true // true, because covariant STAR is Any?
       }
+
       KClass<*>::superKClassesInc.name {
          open class A: Ia
          open class B: A(), Ib
@@ -223,7 +225,7 @@ class TypeUtilTest: FreeSpec({
             fun f4(): MutableList<out Int>? = null
          }
 
-         forall(
+         forAll(
             rowProp<Double>(o1::getWidth),
             rowProp<Double>(o1::widthProperty),
             rowProp<Double>(o1::getMaxWidth),
@@ -266,14 +268,14 @@ class TypeUtilTest: FreeSpec({
             val z: MutableList<X> = mutableListOf()
          }
 
-         forall(
+         forAll(
             row(o::a, X::class),
             row(o::b, Array<X>::class)
          ) { property, type ->
             property.returnType.javaType.toRaw() shouldBe type.java
          }
 
-         forall(
+         forAll(
             row(o::x, X::class),
             row(o::y, X::class),
             row(o::z, X::class)
@@ -366,7 +368,7 @@ class TypeUtilTest: FreeSpec({
          ::mmm.returnType.classifier.asIs<KClass<*>>().allSuperclasses.printIt()
          ::mmm.returnType.classifier.asIs<KClass<*>>().typeParameters.printIt()
 
-         forall(
+         io.kotest.data.forAll(
             // supertypes argument lookup
             xxx<Y31<Long>, Y1<*, *>, Int>(1, INVARIANT),
             xxx<Y32<Long>, Y1<*, *>, Int?>(1, INVARIANT),

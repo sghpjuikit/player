@@ -1,8 +1,8 @@
 package sp.it.util.math
 
-import io.kotlintest.matchers.doubles.shouldBeExactly
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FreeSpec
+import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.doubles.shouldBeExactly
+import io.kotest.matchers.shouldBe
 
 class MathUtilTest: FreeSpec({
    "Method" - {

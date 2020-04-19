@@ -1,7 +1,7 @@
 package sp.it.util.text
 
-import io.kotlintest.shouldBe
-import io.kotlintest.specs.FreeSpec
+import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.shouldBe
 
 class TextUtilTest: FreeSpec({
    "String.split (Kotlin vs Java)" - {

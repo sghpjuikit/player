@@ -62,7 +62,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	private volatile boolean coverFileLoaded = false;
 	private volatile boolean disposed = false;
 	public double loadProgress = 0;         // 0-1
-	public double lastScrollPosition = -1;  // 0-1
+	public double lastScrollPosition = -1;  // -1
+	public int lastSelectedChild = -1;   // -1-N
 	private HashMap<String, Object> properties = new HashMap<>();
 
 	public Item(Item parent, File value, FileType valueType) {
@@ -120,6 +121,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		coverLoading = null;
 		loadProgress = 0;
 		lastScrollPosition = -1;
+		lastSelectedChild = -1;
 	}
 
 	private void buildChildren() {

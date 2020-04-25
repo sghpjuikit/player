@@ -174,6 +174,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       grid.primaryFilterField = FileField.NAME_FULL
       grid.cellFactory syncFrom coverOn.map { Callback<GridView<Item,File>,GridCell<Item,File>> { _ -> if (it) Cell() else IconCell() } }
       grid.selectedItem sync { outputSelected.value = it?.value }
+      grid.selectedItem sync { it?.parent?.lastSelectedChild = grid.implGetSkin()?.selectedCI ?: -1 }
       root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
 
       grid.onEventDown(KEY_PRESSED, ENTER) {
@@ -252,6 +253,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
       ) ui {
          grid.itemsRaw setTo it
          grid.implGetSkin().position = dir.lastScrollPosition max 0.0
+         grid.implGetSkin().select(dir.lastSelectedChild)
       }
    }
 

@@ -106,7 +106,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			if (v) runLater(filter::focus);
 		}
 	};
-	int selectedCI = NO_SELECT;
+	public int selectedCI = NO_SELECT;
 	private GridCell<T,F> selectedC = null;
 	private final Disposer onDispose = new Disposer();
 

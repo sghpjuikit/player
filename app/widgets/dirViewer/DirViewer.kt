@@ -316,7 +316,7 @@ class DirViewer(widget: Widget): SimpleController(widget) {
    }
 
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
-      item?.hRoot?.recurseBF { it.children() }.orEmpty().forEach { it.disposeCover() }
+      item?.hRoot?.recurseBF { it.childrenRO().orEmpty() }.orEmpty().forEach { it.disposeCover() }
       grid.itemsRaw.forEach { it.disposeCover() }
       grid.cellWidth.value = width.emScaled
       grid.cellHeight.value = height.emScaled + cellTextHeight.value

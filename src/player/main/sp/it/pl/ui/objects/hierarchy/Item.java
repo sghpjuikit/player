@@ -71,9 +71,15 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		this.valType = valueType;
 	}
 
+	/** Returns children items. Evaluates children lazily at first invocation at most once */
 	public List<Item> children() {
 		if (children==null) buildChildren();
 		return children==null ? list() : list(children);
+	}
+
+	/** Returns children items as are - null if not yet evaluated. See {@link #children()}. */
+	public List<Item> childrenRO() {
+		return children;
 	}
 
 	/** Dispose of this as to never be used again. */

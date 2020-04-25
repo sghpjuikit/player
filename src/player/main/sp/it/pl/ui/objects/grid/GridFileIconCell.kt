@@ -7,6 +7,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
+import javafx.scene.layout.StackPane
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
@@ -21,6 +22,8 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.nameOrRoot
 import sp.it.util.math.min
 import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.label
+import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
@@ -92,24 +95,22 @@ open class GridFileIconCell: GridCell<Item, File>() {
    }
 
    protected open fun computeGraphics() {
-      name = Label()
-      name.alignment = Pos.CENTER
-
-      imgLoadAnimation = anim(200.millis) {
-         loadProgress = it
-         icon.opacity = it*it*it*it
+      val iconAnimationParent = StackPane() // prevents opacity clash with css
+      name = label {
+         alignment = Pos.CENTER
       }
 
       icon = Icon().apply {
          isAnimated.value = false
          isFocusTraversable = false
+         iconAnimationParent.lay += this
       }
-      root = object: Pane(icon, name) {
+      root = object: Pane(iconAnimationParent, name) {
          override fun layoutChildren() {
             val w = layoutBounds.width
             val h = layoutBounds.height
             val th = computeCellTextHeight()
-            icon.resizeRelocate(0.0, 0.0, w, h - th)
+            iconAnimationParent.resizeRelocate(0.0, 0.0, w, h - th)
             name.resizeRelocate(0.0, h - th, w, th)
          }
       }.apply {
@@ -127,6 +128,10 @@ open class GridFileIconCell: GridCell<Item, File>() {
             globalContextMenu.setItemsFor(item?.value)
             globalContextMenu.show(root, it)
          }
+      }
+      imgLoadAnimation = anim(200.millis) {
+         loadProgress = it
+         iconAnimationParent.opacity = it*it*it*it
       }
    }
 

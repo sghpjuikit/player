@@ -7,15 +7,17 @@
 
 ## Preparations
 
-- Clone the repository
-
-- Set up 64-bit JDK12  
+1. Clone the repository
+  - `git clone https://github.com/sghpjuikit/player.git`
+  - `cd player`
+1. Set up 64-bit JDK12  
   - Download & install/extract [OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)
   
-  To avoid problems, it is recommended to specify project-local JDK
-  - Create a `gradle.properties` file at project
+    To avoid problems, it is recommended to use project-local JDK
+  - Copy JDK contents to `<project-dir>/app/java`
+  - Create a `gradle.properties` file at project directory
   - Add property: `org.gradle.java.home=/path/to/jdk`.
-- Set up Vlc (Linux only)  
+1. Set up Vlc (Linux only)  
   64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
 
 #### Intellij IDEA
@@ -27,24 +29,24 @@
 1) Set `Project > Open Module Settings > Project > Project SDK` to the same JDK as set in gradle properties
 1) `File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JVM` set to `Use Project JVM`
 1) Optionally run `git checkout .idea` in the Terminal to regain the codeStyles
-1) Optionally enable external annotations and use those provided in [idea/annotations](idea/annotations)   
+1) Optionally enable external annotations and use those provided in [idea/annotations](.idea/annotations)   
    This will provide project specific deprecations and null type-safety for numerous JDK APIs   
    For more information about this see [official documentation](https://www.jetbrains.com/help/idea/external-annotations.html)
    
 #### Properties
 
 - [gradle/wrapper/gradle-wrapper.properties](gradle/wrapper/gradle-wrapper.properties)  
-  Shared project properties, specifies gradle version used
+  Project properties, specifies gradle version used
 - [gradle.properties](gradle.properties)  
-  Local project properties, specifies optional language, build (gradle) and custom application run properties, which are:
+  Per-developer project properties, specifies optional language, build (gradle) and custom application run properties, which are:
     - player.memoryMin=100m  // defines -Xms of the JVM of the application
     - player.memoryMax=3g  // defines -Xmx of the JVM of the application
     - player.buildDir=Z:/build  // build output directory
     - player.jvmArgs= // custom JVM arguments
 - [settings.gradle.kts](settings.gradle.kts)  
-  Shared project properties, defines gradle build configuration, like build files, etc.
+  Project properties, defines gradle build configuration, like build files, etc.
 - [app/user/application.properties](app/user/application.properties)  
-  Local application properties, managed by application and editable through ui
+  User application properties, managed by application and editable through its ui
 
 ## Running
 
@@ -65,16 +67,16 @@ Widgets are compiled and loaded by the application, their development is complet
 It also does not require an IDE or any setup whatsoever.
 
 The widgets bundled with the application are no different, but for convenience, they are part of the project as separate modules.
-This allows auto-completion, syntax highlighting as well as build failure when any widget fails to compile.
-Simply put, they seem as though they are ordinary project source files.
+This allows auto-completion, syntax highlighting as well as build failure when any widget fails to compile - they seem as though they are ordinary project source files.
 
 - Creating a widget is done by creating a widget directory   
-  To create widget `MyWidget`:
+  To create widget `MyWidget` (unique technical name):
    - Create `app/widgets/myWidget` widget directory (should be [java package name](https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html)
    - `app/widgets/mywidget/MyWidget.kt` kotlin (.kt) or java (.java) source file
    - declare package `package myWidget` which is the name of the directory
    - there, declare a top level class `MyWidget` (must be the same as the name of the directory, capitalized [camel case](https://en.wikipedia.org/wiki/Camel_case))
    - and extend `sp.it.pl.layout.widget.controller.SimpleController`
+   - optionally annotate your class with `sp.it.pl.layout.widget.Widget.Info`
 - To delete widget delete the widget directory
 
 Developing a widget carries several conveniences:
@@ -85,11 +87,11 @@ Developing a widget carries several conveniences:
 
 Restrictions:
 - Widget directory name, widget package, main widget class must share the same name, which must be unique
-- Widget can have multiple source files, but mixing Kotlin and Java for same widget is not supported
+- Widget can have multiple source files, but mixing Kotlin and Java for same widget is unsupported
 
 ## Code style
 
-The project contains a shared code style in .idea/codeStyles for IDEA with definitions for auto formatting
+The project contains a shared code style in .idea/codeStyles for IDEA with definitions for auto-formatting
   - Kotlin: Follow [official style guide](https://kotlinlang.org/docs/reference/coding-conventions.html)
   - Java: It is encouraged to write any new code on Kotlin
       

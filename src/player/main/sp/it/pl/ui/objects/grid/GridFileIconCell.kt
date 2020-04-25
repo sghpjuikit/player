@@ -7,11 +7,11 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconMD
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
@@ -38,7 +38,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
    protected lateinit var name: Label
    protected lateinit var icon: Icon
    protected var imgLoadAnimation: Anim? = null
-   private var imgLoadAnimationItem: Item? = null
+   private var loadProgress = 0.0 // 0-1
 
    init {
       styleClass += "icon-file-grid-cell"
@@ -63,7 +63,6 @@ open class GridFileIconCell: GridCell<Item, File>() {
 
       imgLoadAnimation?.stop()
       imgLoadAnimation = null
-      imgLoadAnimationItem = null
    }
 
    override fun updateItem(item: Item?, empty: Boolean) {
@@ -75,8 +74,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
 
       if (imgLoadAnimation!=null) {
          imgLoadAnimation?.stop()
-         imgLoadAnimationItem = item
-         imgLoadAnimation?.applyAt(item?.loadProgress ?: 0.0)
+         imgLoadAnimation?.applyAt(loadProgress)
       }
 
       if (empty) {
@@ -98,10 +96,8 @@ open class GridFileIconCell: GridCell<Item, File>() {
       name.alignment = Pos.CENTER
 
       imgLoadAnimation = anim(200.millis) {
-         if (imgLoadAnimationItem!=null) {
-            imgLoadAnimationItem?.loadProgress = it
-            icon.opacity = it*it*it*it
-         }
+         loadProgress = it
+         icon.opacity = it*it*it*it
       }
 
       icon = Icon().apply {
@@ -150,7 +146,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
          }
       }
       icon.icon(glyph)
-      imgLoadAnimation?.playOpenFrom(item?.loadProgress ?: 0.0)
+      imgLoadAnimation?.playOpenFrom(loadProgress)
    }
 
    companion object {

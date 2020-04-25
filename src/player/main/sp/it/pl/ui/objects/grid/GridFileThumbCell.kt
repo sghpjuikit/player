@@ -12,6 +12,7 @@ import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.main.emScaled
 import sp.it.util.JavaLegacy
+import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.FX
@@ -35,6 +36,7 @@ import sp.it.util.ui.lookupId
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
@@ -61,7 +63,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    @Volatile private var indexVolatile: Int = -1
 
    init {
-      styleClass += "grid-file-thumb-cell"
+      styleClass += "thumb-file-grid-cell"
       parentProperty() sync { parentVolatile = it?.parent } on onDispose
    }
 
@@ -121,6 +123,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       if (graphic!=null) {
          name.text = if (item==null) null else computeName(item)
          setCoverNow(item!!)
+         pseudoClassChanged("file-hidden", FileField.IS_HIDDEN.getOf(item.value))
       }
    }
 

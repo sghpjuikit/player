@@ -2577,21 +2577,29 @@ Text {
 
 /***************************** GRID FILE THUMB CELL ***************************
  * inherits: .grid-cell
+ * pseudoclasses: file-hidden
  */
-.grid-file-thumb-cell {}
+.thumb-file-grid-cell {}
+.thumb-file-grid-cell:file-hidden .icon {
+    -fx-opacity: 0.4;
+}
 
 /***************************** GRID FILE ICON CELL ****************************
  * inherits: .grid-cell
+ * pseudoclasses: file-hidden
  */
-.grid-file-icon-cell,
-.grid-file-icon-cell:hover,
-.grid-file-icon-cell:selected {
+.icon-file-grid-cell,
+.icon-file-grid-cell:hover,
+.icon-file-grid-cell:selected {
     -fx-border-width: 0;
     -fx-padding: 0;
     -fx-background-color: null;
 }
 
-.grid-file-icon-cell .icon {
+.icon-file-grid-cell:file-hidden .icon {
+    -fx-opacity: 0.4;
+}
+.icon-file-grid-cell .icon {
     -fx-background-color: rgba(0,0,0,0);
     -glyph-gap: 0;
 }

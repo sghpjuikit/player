@@ -24,6 +24,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import java.io.File
@@ -40,7 +41,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
    private var imgLoadAnimationItem: Item? = null
 
    init {
-      styleClass += "grid-file-icon-cell"
+      styleClass += "icon-file-grid-cell"
    }
 
    protected open fun computeName(item: Item): String = when (item.valType) {
@@ -88,6 +89,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
       if (graphic!=null) {
          name.text = if (item==null) null else computeName(item)
          updateIcon(item!!)
+         pseudoClassChanged("file-hidden", FileField.IS_HIDDEN.getOf(item.value))
       }
    }
 
@@ -135,7 +137,6 @@ open class GridFileIconCell: GridCell<Item, File>() {
    fun updateIcon(i: Item) {
       icon.scale(1.125)
       icon.isFocusTraversable = false
-      icon.opacity = if (FileField.IS_HIDDEN.getOf(i.value)) 0.4 else 1.0
       icon.size(gridView.value?.let { it.cellHeight.value min (it.cellHeight.value - computeCellTextHeight()) } ?: 50.0)
 
       val glyph: GlyphIcons = when (i.valType) {

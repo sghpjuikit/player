@@ -14,19 +14,10 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
 import javafx.util.Callback
-import sp.it.pl.ui.objects.grid.GridCell
-import sp.it.pl.ui.objects.grid.GridFileIconCell
-import sp.it.pl.ui.objects.grid.GridFileThumbCell
-import sp.it.pl.ui.objects.grid.GridView
-import sp.it.pl.ui.objects.grid.GridView.CellSize.NORMAL
-import sp.it.pl.ui.objects.hierarchy.Item
-import sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.placeholder.Placeholder
-import sp.it.pl.ui.objects.placeholder.show
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.FileFilters
 import sp.it.pl.main.FileFlatter
@@ -35,6 +26,17 @@ import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.objects.grid.GridCell
+import sp.it.pl.ui.objects.grid.GridFileIconCell
+import sp.it.pl.ui.objects.grid.GridFileThumbCell
+import sp.it.pl.ui.objects.grid.GridView
+import sp.it.pl.ui.objects.grid.GridView.CellSize.NORMAL
+import sp.it.pl.ui.objects.grid.GridViewSkin
+import sp.it.pl.ui.objects.hierarchy.Item
+import sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.placeholder.Placeholder
+import sp.it.pl.ui.objects.placeholder.show
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
@@ -59,6 +61,7 @@ import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
+import sp.it.util.dev.failIf
 import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
@@ -71,6 +74,7 @@ import sp.it.util.functional.traverse
 import sp.it.util.inSort
 import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
@@ -78,6 +82,8 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
@@ -111,8 +117,9 @@ import kotlin.math.round
    year = "2015",
    group = OTHER
 )
-class DirViewer(widget: Widget): SimpleController(widget) {
+class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature {
 
+   private val outputSelectedSuppressor = Suppressor(false)
    private val outputSelected = io.o.create<File>("Selected", null)
    private val inputFile = io.i.create<List<File>>("Root directory", listOf()) {
       runIO {
@@ -172,9 +179,14 @@ class DirViewer(widget: Widget): SimpleController(widget) {
 
       grid.search.field = FileField.PATH
       grid.primaryFilterField = FileField.NAME_FULL
-      grid.cellFactory syncFrom coverOn.map { Callback<GridView<Item,File>,GridCell<Item,File>> { _ -> if (it) Cell() else IconCell() } }
-      grid.selectedItem sync { outputSelected.value = it?.value }
-      grid.selectedItem sync { it?.parent?.lastSelectedChild = grid.implGetSkin()?.selectedCI ?: -1 }
+      grid.cellFactory syncFrom coverOn.map { Callback<GridView<Item, File>, GridCell<Item, File>> { _ -> if (it) Cell() else IconCell() } }
+      grid.selectedItem sync {
+         outputSelectedSuppressor.suppressed {
+            failIf(it!=null && it.parent!=item) { "item-parent mismatch" }
+            outputSelected.value = it?.value
+            item?.lastSelectedChild = grid.implGetSkin()?.selectedCI ?: GridViewSkin.NO_SELECT
+         }
+      }
       root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
 
       grid.onEventDown(KEY_PRESSED, ENTER) {
@@ -250,14 +262,20 @@ class DirViewer(widget: Widget): SimpleController(widget) {
          dir.children() let_ { it.sortedWith(buildSortComparator(locationsMaterialized, it)) }
       }.withAppProgress(
          widget.custom_name.value + ": Fetching view"
-      ) ui {
-         grid.itemsRaw setTo it
-         grid.implGetSkin().position = dir.lastScrollPosition max 0.0
-         grid.implGetSkin().select(dir.lastSelectedChild)
+      ).ui {
+         outputSelectedSuppressor.suppressing {
+            grid.itemsRaw setTo it
+            grid.implGetSkin().position = dir.lastScrollPosition max 0.0
+            grid.implGetSkin().select(dir.lastSelectedChild)
+         }
       }
    }
 
    override fun focus() = grid.requestFocus()
+
+   override fun showImages(imgFiles: Collection<File>) {
+      inputFile.value = imgFiles.toList()
+   }
 
    /** Visits top/root item. Rebuilds entire hierarchy. */
    private fun revisitTop() {

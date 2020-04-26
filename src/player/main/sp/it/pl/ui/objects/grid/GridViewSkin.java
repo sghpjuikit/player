@@ -58,6 +58,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.ui.Util.layHeaderTop;
+import static sp.it.util.ui.UtilKt.hasFocus;
 
 public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
@@ -456,7 +457,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		@Override
 		protected void layoutChildren() {
-			boolean wasFocused = skin.grid.isFocused();
+			boolean wasFocused = hasFocus(skin.grid);
 			double w = getWidth();
 			double h = getHeight();
 

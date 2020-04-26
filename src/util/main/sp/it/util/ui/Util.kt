@@ -124,6 +124,9 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
 
 /* ---------- NODE -------------------------------------------------------------------------------------------------- */
 
+/** @return true iff this or any of [Parent.unmodifiableChildren] [Node.isFocused] */
+fun Node.hasFocus(): Boolean = scene?.focusOwner?.traverse { it.parent }.orEmpty().any { it==this }
+
 /** @return true iff this is direct parent of the specified node */
 fun Node.isParentOf(child: Node) = child.parent===this
 

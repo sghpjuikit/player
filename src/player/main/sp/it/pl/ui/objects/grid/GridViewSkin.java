@@ -126,7 +126,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		attach(grid.parentProperty(), p -> {
 			if (p!=null) flow.rebuildCells();
 		});
-		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCells())), onDispose);
+		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
 
 		// TODO: remove (this fixes initial layout not showing content correctly, root of the problem is unknownm applyCss partially fixes the issue)
 		SubscriptionKt.on(sync1IfInScene(grid, runnable(() ->

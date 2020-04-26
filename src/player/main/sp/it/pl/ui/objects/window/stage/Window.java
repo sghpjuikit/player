@@ -203,7 +203,7 @@ public class Window extends WindowBase {
 				e.consume();
 		});
 		root.addEventFilter(MOUSE_PRESSED, e -> {
-			if (isInteractiveOnLeftAlt.getValue() && e.isAltDown()) {
+			if (!APP.ui.isLayoutMode() && isInteractiveOnLeftAlt.getValue() && e.isAltDown()) {
 				if (e.getButton()==PRIMARY) {
 					isMovingAlt = true;
 					root.setMouseTransparent(true);

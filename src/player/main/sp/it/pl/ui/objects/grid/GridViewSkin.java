@@ -43,11 +43,9 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
-import static javafx.util.Duration.millis;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
-import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.by;
@@ -56,7 +54,6 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
-import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.UtilKt.hasFocus;
 
@@ -127,13 +124,6 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			if (p!=null) flow.rebuildCells();
 		});
 		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
-
-		// TODO: remove (this fixes initial layout not showing content correctly, root of the problem is unknownm applyCss partially fixes the issue)
-		SubscriptionKt.on(sync1IfInScene(grid, runnable(() ->
-			runFX(millis(1000), () -> {
-				flow.requestLayout();
-			})
-		)), onDispose);
 
 		root = layHeaderTop(0, Pos.TOP_RIGHT, filterPane, flow.root);
 		filter = new Filter(grid.type, grid.itemsFiltered);
@@ -326,10 +316,8 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		selectedCI = i;
 		if (selectedC!=null) selectedC.updateSelected(false);
 		selectedC = c;
-		selectedC.requestFocus();
 		selectedC.updateSelected(true);
 		grid.selectedItem.set(c.getItem());
-		grid.requestFocus();
 	}
 
 	/**
@@ -484,7 +472,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			scrollbar.setVisible(computeMaxFullyVisibleCells()<=itemsAllCount);
 			scrollbar.setMin(0);
 			scrollbar.setMax(scrollableHeight);
-			scrollbar.setVisibleAmount((viewHeight/(scrollableHeight + viewHeight))*(scrollableHeight));
+			scrollbar.setVisibleAmount(viewHeight/virtualHeight*scrollableHeight);
 			scrollbar.setValue(viewStart);
 			scrollbar.updating = false;
 

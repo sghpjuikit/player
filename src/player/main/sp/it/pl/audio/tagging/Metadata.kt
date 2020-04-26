@@ -867,7 +867,7 @@ class Metadata: Song, Serializable {
          @F val COVER = this + field({ it.readCoverFromTag() }, "Cover", "Cover of the song")
          @F val RATING = this + field({ it.getRatingPercent() }, "Rating", "Song rating in 0-1 range")
          @F val RATING_RAW = this + field({ it.getRating() }, "Rating (raw)", "Actual song rating value in tag. Maximal value depends on tag type")
-         @F val RATING_RAW_MAX = this + field({ it.getRatingMax() }, "Rating raw", "Maximal song rating value supported by current tag type")
+         @F val RATING_RAW_MAX = this + field({ it.getRatingMax() }, "Rating max (raw)", "Maximal song rating value supported by current tag type")
          @F val PLAYCOUNT = this + field({ it.getPlaycount() }, "Playcount", "Number of times the song was played.")
          @F val CATEGORY = this + field({ it.category }, "Category", "Category of the song. Arbitrary")
          @F val COMMENT = this + field({ it.comment }, "Comment", "User comment of the song. Arbitrary")

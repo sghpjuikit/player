@@ -579,6 +579,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 					}
 				}
 			}
+
+			// update selection (if items changed, same cell may remain selected, but selected item may be different)
+			skin.selectedCI = skin.selectedC==null ? NO_SELECT : skin.selectedC.getIndex();
+			skin.grid.selectedItem.set(skin.selectedC==null ? null : skin.selectedC.getItem());
+
+			// retain focus (should not be necessary as cells should not be focus-traversable, but it's hard to tell
 			if (wasFocused)
 				skin.grid.requestFocus();
 		}

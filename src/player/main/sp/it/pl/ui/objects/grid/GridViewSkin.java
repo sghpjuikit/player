@@ -62,7 +62,7 @@ import static sp.it.util.ui.UtilKt.hasFocus;
 
 public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
-	private static final int NO_SELECT = Integer.MIN_VALUE;
+	public static final int NO_SELECT = Integer.MIN_VALUE;
 	private VBox root;
 	private GridView<T,F> grid;
 	private final Flow<T,F> flow;
@@ -285,10 +285,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	}
 
 	public void selectNone() {
-		if (selectedC!=null) selectedC.updateSelected(false);
-		grid.selectedItem.set(null);
-		selectedC = null;
-		selectedCI = NO_SELECT;
+		select(NO_SELECT);
 	}
 
 	public void select(GridCell<T,F> c) {
@@ -302,7 +299,13 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 	/** Select cell (and row it is in) at index. No-op if out of range. */
 	public void select(int i) {
-		if (i==NO_SELECT) throw new IllegalArgumentException("Illegal selection index " + NO_SELECT);
+		if (i==NO_SELECT) {
+			if (selectedC!=null) selectedC.updateSelected(false);
+			selectedC = null;
+			selectedCI = NO_SELECT;
+			grid.selectedItem.set(null);
+			return;
+		}
 
 		int itemCount = grid.getItemsShown().size();
 		int iMin = 0;

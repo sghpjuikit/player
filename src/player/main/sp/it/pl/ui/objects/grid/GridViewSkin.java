@@ -139,40 +139,45 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		// selection
 		grid.addEventHandler(KEY_PRESSED, e -> {
-			KeyCode c = e.getCode();
-			if (c.isNavigationKey()) {
-				if (grid.selectOn.contains(SelectionOn.KEY_PRESS)) {
-					if (c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst, this::selectUp);
-					if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst, this::selectDown);
-					if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst, this::selectLeft);
-					if (c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst, this::selectRight);
-					if (c==KeyCode.PAGE_UP) selectIfNoneOr(this::selectFirst, this::selectPageUp);
-					if (c==KeyCode.PAGE_DOWN) selectIfNoneOr(this::selectFirst, this::selectPageDown);
-					if (c==KeyCode.HOME) selectFirst();
-					if (c==KeyCode.END) selectLast();
-				}
-				e.consume();
-			} else if (c==ESCAPE && !e.isConsumed()) {
-				if (selectedCI >= 0) {
-					selectNone();
+			if (!e.isConsumed()) {
+				KeyCode c = e.getCode();
+				if (c.isNavigationKey()) {
+					if (grid.selectOn.contains(SelectionOn.KEY_PRESS)) {
+						if (c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst, this::selectUp);
+						if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst, this::selectDown);
+						if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst, this::selectLeft);
+						if (c==KeyCode.RIGHT || c==KeyCode.KP_RIGHT) selectIfNoneOr(this::selectFirst, this::selectRight);
+						if (c==KeyCode.PAGE_UP) selectIfNoneOr(this::selectFirst, this::selectPageUp);
+						if (c==KeyCode.PAGE_DOWN) selectIfNoneOr(this::selectFirst, this::selectPageDown);
+						if (c==KeyCode.HOME) selectFirst();
+						if (c==KeyCode.END) selectLast();
+					}
 					e.consume();
+				} else if (c==ESCAPE && !e.isConsumed()) {
+					if (selectedCI >= 0) {
+						selectNone();
+						e.consume();
+					}
 				}
 			}
 		});
 		grid.addEventHandler(MOUSE_CLICKED, e -> {
-			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) selectNone();
+			if (!e.isConsumed())
+				if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
+					selectNone();
 		});
 		grid.addEventFilter(SCROLL, e -> {
-			// Select hovered cell (if enabled)
-			// Newly created cells that 'appear' right under mouse cursor will not receive hover event
-			// Normally we would update the selection after the cells get updated, but that happens also on regular
-			// selection change, which would stop working properly.
-			// Hence we find such cells and select them here
-			if (getSkinnable().selectOn.contains(SelectionOn.MOUSE_HOVER)) {
-				flow.getCells()
-					.filter(it -> it.isHover() && !it.isSelected()).findAny()
-					.ifPresent(this::select);
-			}
+			if (!e.isConsumed())
+				// Select hovered cell (if enabled)
+				// Newly created cells that 'appear' right under mouse cursor will not receive hover event
+				// Normally we would update the selection after the cells get updated, but that happens also on regular
+				// selection change, which would stop working properly.
+				// Hence we find such cells and select them here
+				if (getSkinnable().selectOn.contains(SelectionOn.MOUSE_HOVER)) {
+					flow.getCells()
+						.filter(it -> it.isHover() && !it.isSelected()).findAny()
+						.ifPresent(this::select);
+				}
 		});
 	}
 

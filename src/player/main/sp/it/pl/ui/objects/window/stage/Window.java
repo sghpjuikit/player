@@ -203,7 +203,12 @@ public class Window extends WindowBase {
 				e.consume();
 		});
 		root.addEventFilter(MOUSE_PRESSED, e -> {
-			if (!APP.ui.isLayoutMode() && isInteractiveOnLeftAlt.getValue() && e.isAltDown()) {
+			if (isMovingAlt && e.getButton()==SECONDARY) {
+				isMovingAltMaximized = isMaximized()==Maximized.NONE;
+				toggleMaximize();
+				e.consume();
+			}
+			if (isInteractiveOnLeftAlt.getValue() && e.isAltDown() && !APP.ui.isLayoutMode()) {
 				if (e.getButton()==PRIMARY) {
 					isMovingAlt = true;
 					root.setMouseTransparent(true);
@@ -231,6 +236,7 @@ public class Window extends WindowBase {
 		root.addEventFilter(MOUSE_RELEASED, e -> {
 			if (isMovingAlt && e.getButton()==PRIMARY) {
 				isMovingAlt = false;
+				isMovingAltMaximized = false;
 				root.setMouseTransparent(false);
 				moveEnd(e);
 				e.consume();
@@ -558,6 +564,7 @@ public class Window extends WindowBase {
 	private Subscription mouseMonitor = null;
 	private double mouseSpeed = 0;
 	private boolean isMovingAlt = false;
+	private boolean isMovingAltMaximized = false;
 
 	private void moveStart(MouseEvent e) {
 		// disable when being resized, resize starts at mouse pressed so
@@ -572,6 +579,7 @@ public class Window extends WindowBase {
 	}
 
 	private void moveDo(MouseEvent e) {
+		if (isMovingAltMaximized) return;
 		// We do not want to check button onMove. Right click could interfere (possibly stop)
 		// the movement, but we want to simply ignore that. The movement begins and ends only
 		// with PRIMARY button, which is satisfactory condition to begin with.
@@ -645,6 +653,7 @@ public class Window extends WindowBase {
 	}
 
 	private void resizeDo(MouseEvent e) {
+		if (isMovingAltMaximized) return;
 		var diff = getScreenXy(e).minus(resizeAltMouseStart);
 		Resize r = isResizing.getValue();
 		if (r==SE) {

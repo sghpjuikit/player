@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import kotlin.reflect.KClass;
+import org.jetbrains.annotations.Nullable;
 import sp.it.util.collections.list.PrefList;
 import sp.it.util.collections.map.Map2D.Key;
 import sp.it.util.collections.map.PrefListMap;
@@ -200,7 +201,7 @@ public class FunctorPool {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <I,O> PF<I,O> getPF(String name, Class<I> i, Class<O> o) {
+	public <I,O> @Nullable PF<I,O> getPF(String name, Class<I> i, Class<O> o) {
 		if (name.equals(asSelfName)) {
 			if (isSubclassOf(o, i)) return new PF0<>(asSelfName, i, o, (F1) IDENTITY);
 			else return null;
@@ -213,22 +214,22 @@ public class FunctorPool {
 		}
 	}
 
-	public <I> PF<I,?> getPrefI(Class<I> i) {
+	public <I> @Nullable PF<I,?> getPrefI(Class<I> i) {
 		PrefList<PF<I,?>> pl = getI(i);
 		return pl==null ? null : pl.getPreferredOrFirst();
 	}
 
-	public <O> PF<?,O> getPrefO(Class<O> o) {
+	public <O> @Nullable PF<?,O> getPrefO(Class<O> o) {
 		PrefList<PF<?,O>> l = getO(o);
 		return l==null ? null : l.getPreferredOrFirst();
 	}
 
-	public <I,O> PF<I,O> getPrefIO(Class<I> i, Class<O> o) {
+	public <I,O> @Nullable PF<I,O> getPrefIO(Class<I> i, Class<O> o) {
 		PrefList<PF<I,O>> l = getIO(i,o);
 		return l==null ? null : l.getPreferredOrFirst();
 	}
 
-	public <IO> PF<IO,IO> getPrefIO(Class<IO> io) {
+	public <IO> @Nullable PF<IO,IO> getPrefIO(Class<IO> io) {
 		return getPrefIO(io,io);
 	}
 

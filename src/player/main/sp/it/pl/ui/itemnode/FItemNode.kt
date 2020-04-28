@@ -85,10 +85,10 @@ class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwi
 
    private fun generateValue() {
       avoidGenerateValue.suppressed {
-         val functionRaw = fCB.value
+         val functionRaw = fCB.value ?: null
          val parameters = editors.map { it.config.value }
-         val function = functionRaw.realize(parameters)
-         changeValue(function)
+         val function = functionRaw?.realize(parameters)
+         if (function!=null) changeValue(function)
       }
    }
 

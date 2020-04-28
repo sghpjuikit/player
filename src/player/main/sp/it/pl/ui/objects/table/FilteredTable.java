@@ -53,6 +53,7 @@ import static sp.it.util.Util.zeroPad;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
+import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.stream;
@@ -299,7 +300,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		public Filter(Class<T> filterType, FilteredList<T> filterList) {
 			super();
 			setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
-			onItemChange = filterList::setPredicate;
+			onItemChange = predicate -> filterList.setPredicate(predicate==IS ? null : predicate);
 			setData(getFilterPredicates(filterType));
 		}
 	}

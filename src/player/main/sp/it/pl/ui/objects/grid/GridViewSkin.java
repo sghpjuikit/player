@@ -48,6 +48,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
+import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.stream;
@@ -818,7 +819,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			super();
 			setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
 			setData(getFilterPredicates(filterType));
-			onItemChange = predicate -> filterList.setPredicate(item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
+			onItemChange = predicate -> filterList.setPredicate(predicate==IS ? null : item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
 
 			var filterKeyHandler = buildToggleOnKeyHandler(filterVisible, GridViewSkin.this.flow);
 			getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);

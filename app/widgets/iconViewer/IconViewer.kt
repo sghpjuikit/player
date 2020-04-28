@@ -23,6 +23,7 @@ import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.id
+import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.access.fieldvalue.StringGetter
 import sp.it.util.collections.setTo
 import sp.it.util.file.div
@@ -46,7 +47,7 @@ import kotlin.reflect.KClass
    author = "Martin Polakovic",
    name = ICON_BROWSER_NAME,
    description = "Displays glyph icons of supported fonts.",
-   version = "1.0.0",
+   version = "1.0.1",
    year = "2020",
    group = DEVELOPMENT
 )
@@ -55,6 +56,7 @@ class IconViewer(widget: Widget): SimpleController(widget) {
    val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
+      primaryFilterField = IconField.NAME
       selectOn setTo listOf(MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS)
       cellFactory.value = Callback {
          object: GridCell<GlyphIcons, GlyphIcons>() {

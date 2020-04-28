@@ -195,12 +195,14 @@ public class Window extends WindowBase {
 
 		// app dragging (anywhere on ALT)
 		root.addEventFilter(MouseEvent.ANY, e -> {
-			if ((isInteractiveOnLeftAlt.getValue() && e.isAltDown()) || isMovingAlt || isResizingAlt)
-				e.consume();
+			if (!APP.ui.isLayoutMode())
+				if ((isInteractiveOnLeftAlt.getValue() && e.isAltDown()) || isMovingAlt || isResizingAlt)
+					e.consume();
 		});
 		root.addEventFilter(DragEvent.ANY, e -> {
-			if (isMovingAlt || isResizingAlt)
-				e.consume();
+			if (!APP.ui.isLayoutMode())
+				if (isMovingAlt || isResizingAlt)
+					e.consume();
 		});
 		root.addEventFilter(MOUSE_PRESSED, e -> {
 			if (isMovingAlt && e.getButton()==SECONDARY) {

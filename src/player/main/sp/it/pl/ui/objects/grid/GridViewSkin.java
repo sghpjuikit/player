@@ -448,7 +448,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		@Override
 		protected void layoutChildren() {
-			boolean wasFocused = hasFocus(skin.grid);
+			boolean wasFocused = hasFocus(skin.flow);
 			double w = getWidth();
 			double h = getHeight();
 

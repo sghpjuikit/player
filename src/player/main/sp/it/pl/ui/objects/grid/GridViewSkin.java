@@ -97,8 +97,8 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			filterPane.setMaxHeight(v ? -1 : 0);
 			filter.getNode().setVisible(v);
 
-			if (v) filter.growTo1();
-			else filter.shrinkTo(0);
+			if (v) failIf(filter.length()!=0);
+			filter.convergeTo(v ? 1 : 0);
 
 			// focus filter to allow user use filter asap
 			if (v) runLater(filter::focus);

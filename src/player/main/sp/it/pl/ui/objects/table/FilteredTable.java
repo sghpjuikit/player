@@ -51,6 +51,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.async.AsyncKt.runLater;
+import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
@@ -235,8 +236,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				root.getChildren().remove(sn);
 			}
 
-			if (v) filterPane.growTo1();
-			else filterPane.shrinkTo(0);
+			if (v) failIf(filterPane.length()!=0);
+			filterPane.convergeTo(v ? 1 : 0);
 
 			filterPane.getNode().setVisible(v);
 

@@ -96,13 +96,17 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = "Show shortcuts", info = "Display all available shortcuts.", keys = "COMMA")
    fun showShortcuts() {
+      fun Entry.ifInteractiveOn() = takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value }
       val actionsStandard = ActionRegistrar.getActions().map { Entry(it) }
       val actionsHardcoded = listOfNotNull(
-         Entry("Window", "Move window", keys("ALT+" + PRIMARY.nameUi) + " (hold)").takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value },
-         Entry("Window", "Resize window", keys("ALT+" + SECONDARY.nameUi) + " (hold)").takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value },
+         Entry("UI > Window", "Move window", keys("ALT+drag " + PRIMARY.nameUi)).ifInteractiveOn(),
+         Entry("UI > Window", "Move window -> toggle maximize", keys("ALT+drag ${PRIMARY.nameUi}+${SECONDARY.nameUi}")).ifInteractiveOn(),
+         Entry("UI > Window", "Resize window", keys("ALT+drag " + SECONDARY.nameUi)).ifInteractiveOn(),
          Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
          Entry("Ui", "Table filter", keys("CTRL+F")),
-         Entry("Ui", "Table search", "Type text")
+         Entry("Ui", "Table filter (close)", ESCAPE.nameUi),
+         Entry("Ui", "Table search", "Type text"),
+         Entry("Ui", "Table search (cancel)", ESCAPE.nameUi)
       )
       APP.ui.shortcutPane.orBuild.show(actionsStandard + actionsHardcoded)
    }

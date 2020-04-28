@@ -17,6 +17,13 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
 import mu.KLogging
+import sp.it.pl.layout.widget.WidgetSource.OPEN
+import sp.it.pl.layout.widget.Widgets
+import sp.it.pl.main.AppSettings.ui.skin
+import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
+import sp.it.pl.main.AppSettings.ui.view.overlayArea
+import sp.it.pl.main.AppSettings.ui.view.overlayBackground
+import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts
 import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.ui.pane.ActionPane
@@ -26,13 +33,6 @@ import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display
 import sp.it.pl.ui.pane.ScreenBgrGetter
 import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.pl.layout.widget.WidgetSource.OPEN
-import sp.it.pl.layout.widget.Widgets
-import sp.it.pl.main.AppSettings.ui.skin
-import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
-import sp.it.pl.main.AppSettings.ui.view.overlayArea
-import sp.it.pl.main.AppSettings.ui.view.overlayBackground
-import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
@@ -183,11 +183,16 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
             ?.focus()
    }
 
-   /** Toggles lock to prevent user accidental layout change.  */
-   @IsAction(name = "Toggle layout lock", info = "Lock/unlock layout.", keys = "F4")
+   /** Toggles lock to prevent user accidental layout change. */
+   @IsAction(
+      name = "Toggle layout lock",
+      info = "Lock layout\n\nRestricts certain layout operations to prevent accidents and configuration getting in the way. " +
+             "Widgets, containers and layouts can also be locked individually.",
+      keys = "F4"
+   )
    fun toggleLayoutLocked() = layoutLocked.toggle()
 
-   /** Loads/refreshes active layout.  */
+   /** Loads/refreshes active layout. */
    @IsAction(name = "Reload layout", info = "Reload layout.", keys = "F6")
    fun loadLayout() = APP.widgetManager.layouts.findAll(OPEN).forEach { it.load() }
 
@@ -227,15 +232,6 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
          if (m) it.focus()
       }
    }
-
-   @IsAction(name = "Maximize window", info = "Switch maximized mode.", keys = "F11")
-   fun toggleMaximize() = APP.windowManager.getActive()?.toggleMaximize()
-
-   @IsAction(name = "Loop maximized state", info = "Switch to different maximized window states.", keys = "F3")
-   fun toggleMaximizedState() = APP.windowManager.getActive()?.let { it.isMaximized = Values.next(it.isMaximized) }
-
-   @IsAction(name = "Fullscreen", info = "Switch fullscreen mode.", keys = "F12")
-   fun toggleFullscreen() = APP.windowManager.getActive()?.toggleFullscreen()
 
    @IsAction(name = "Layout align", info = "Aligns layout of the active window", keys = "ALT+UP")
    fun tabAlign() = APP.windowManager.getActive()?.switchPane?.alignTabs()

@@ -8,11 +8,14 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.*
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.infoIcon
 import sp.it.pl.ui.objects.icon.CheckIcon
@@ -23,6 +26,7 @@ import sp.it.util.reactive.consumeScrolling
 import sp.it.util.system.Os
 import sp.it.util.text.keys
 import sp.it.util.text.keysUi
+import sp.it.util.text.nameUi
 import sp.it.util.ui.Util.layVertically
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -57,11 +61,12 @@ class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
 
             lay += text(
                buildString {
-                  appendln("${keys("Alt")} → Alt")
-                  appendln("${keys("Ctrl")} → Ctrl")
-                  appendln("${keys("Shift")} → Shift")
-                  if (Os.OSX.isCurrent) appendln("${keys("Win")} → Win")
-                  if (Os.OSX.isCurrent) appendln("${keys("Command")} → Command")
+                  appendln("${ALT.nameUi} → Alt")
+                  appendln("${CONTROL.nameUi} → Ctrl")
+                  appendln("${SHIFT.nameUi} → Shift")
+                  appendln("${ESCAPE.nameUi} → Escape")
+                  if (Os.WINDOWS.isCurrent) appendln("${WINDOWS.nameUi} → Win")
+                  if (Os.OSX.isCurrent) appendln("${COMMAND.nameUi} → Command")
                }
             )
             lay(ALWAYS) += scrollPane {
@@ -90,7 +95,7 @@ class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
       grid.rowConstraints.clear()
       grid.columnConstraints.clear()
 
-      grid.columnConstraints += ColumnConstraints(150.emScaled, 150.emScaled, 150.emScaled, Priority.NEVER, HPos.RIGHT, false)
+      grid.columnConstraints += ColumnConstraints(180.emScaled, 180.emScaled, 180.emScaled, Priority.NEVER, HPos.RIGHT, false)
       grid.columnConstraints += ColumnConstraints(10.emScaled)
       grid.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, ALWAYS, HPos.LEFT, false)
 

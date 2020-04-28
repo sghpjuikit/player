@@ -95,6 +95,19 @@ private fun key(key: String): String = null
    ?: key
 
 private val prettyKeys = mapOf(
+   "F1" to "F1",
+   "F2" to "F2",
+   "F3" to "F3",
+   "F4" to "F4",
+   "F5" to "F5",
+   "F6" to "F6",
+   "F7" to "F7",
+   "F8" to "F8",
+   "F9" to "F9",
+   "F10" to "F10",
+   "F11" to "F11",
+   "F12" to "F12",
+   "ESC" to "\u238B",
    "ESCAPE" to "\u238B",
    "TAB" to "\u21E5",
    "CAPS LOCK" to "\u21EA",

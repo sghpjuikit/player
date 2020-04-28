@@ -64,6 +64,7 @@ import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
+import static javafx.scene.input.KeyCode.ALT;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -327,24 +328,22 @@ public class Window extends WindowBase {
 		setTitle("");
 		Icon propB = new Icon(GEARS, -1, ActionRegistrar.get("Open settings")).styleclass("header-icon");
 		Icon runB = new Icon(GAVEL, -1, ActionRegistrar.get("Open app actions")).styleclass("header-icon");
-		Icon lockB = new Icon(null, -1, "Lock layout\n\nRestricts certain layout operations to "
-			+ "prevent accidents and configuration getting in the way. Widgets, containers and "
-			+ "layouts can also be locked individually.", () -> APP.ui.toggleLayoutLocked()).styleclass("header-icon");
+		Icon lockB = new Icon(null, -1, ActionRegistrar.get("Toggle layout lock")).styleclass("header-icon");
 		on(syncC(APP.ui.getLayoutLocked(), it -> lockB.icon(it ? LOCK : UNLOCK)), onClose);
 		Icon lmB = new Icon(null, -1, ActionRegistrar.get("Layout zoom overlay in/out")).styleclass("header-icon");
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
 		on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE)), onClose);
 		Icon helpB = infoIcon("Available actions:"
-			+ "\n\tHeader icons : Providing custom functionalities. See tooltips."
-			+ "\n\tHeader buttons : Providing window control. See tooltips."
-			+ "\n\tMouse drag : Move window. Windows snap to screen or to other windows."
-			+ "\n\tMouse drag to screen edge : Activates one of 7 maximized modes."
-			+ "\n\tMouse drag edge : Resize window."
-			+ "\n\tDouble header left click : Toggle maximized mode on/off."
-			+ "\n\tDouble header right click : Toggle hide header on/off."
-			+ "\n\t" + getNameUi(ALT_GRAPH) + " : Toggle layout mode"
-			+ "\n\tContent right drag : drag tabs."
+			+ "\n"
+			+ "\n" + getNameUi(ALT) + " + LMB drag: Move window, snap to windows/screens, maximize on screen edge"
+			+ "\n" + getNameUi(ALT) + " + LMB drag + RMB click: Toggle maximize"
+			+ "\n" + getNameUi(ALT) + " + RMB drag: Resize window"
+			+ "\nLMB drag edge: Resize window"
+			+ "\nHeader LMB drag: Move window, snap to windows/screens, maximize on screen edge"
+			+ "\nHeader double LMB click: Toggle maximized mode on/off"
+			+ "\nHeader double RMB click: Toggle hide header on/off"
+			+ "\n" + getNameUi(ALT_GRAPH) + " : Toggle layout mode"
 		).styleclass("header-icon");
 		Icon errorB = new Icon(FontAwesomeIcon.WARNING, -1).styleclass("header-icon")
 			.action(() -> AppErrors.INSTANCE.showDetailForLastError())
@@ -359,10 +358,10 @@ public class Window extends WindowBase {
 		syncC(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
 		Icon onTopB = new Icon(null, -1, "Always on top\n\nForbid hiding this window behind other application windows", this::toggleAlwaysOnTop).styleclass("header-icon");
 		syncC(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));
-		Icon fullsB = new Icon(null, -1, "Fullscreen\n\nExpand window to span whole screen and put it on top", this::toggleFullscreen).scale(1.3).styleclass("header-icon");
+		Icon fullsB = new Icon(null, -1, ActionRegistrar.get("Fullscreen")).scale(1.3).styleclass("header-icon");
 		syncC(fullscreen, it -> fullsB.icon(it ? FULLSCREEN_EXIT : FULLSCREEN));
 		Icon minB = new Icon(WINDOW_MINIMIZE, -1, "Minimize application", this::toggleMinimize).styleclass("header-icon");
-		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, "Maximize\n\nExpand window to span whole screen", this::toggleMaximize).styleclass("header-icon");
+		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, ActionRegistrar.get("Maximize")).styleclass("header-icon");
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
 		Icon closeB = new Icon(CLOSE, -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)

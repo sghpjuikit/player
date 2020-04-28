@@ -41,7 +41,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
-import sp.it.pl.main.toUi
+import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
@@ -114,7 +114,10 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    val windowOpacity by cv(1.0).between(0.1, 1.0).def(name = "Opacity", info = "Window opacity.")
    val windowHeaderless by cv(false).def(name = "Headerless", info = "Affects window header visibility for new windows.")
-   val windowInteractiveOnLeftAlt by cv(!Os.UNIX.isCurrent).def(name = "Interacts on ${keys("Alt")} + Mouse Drag", info = "Simulates Linux move/resize behavior.")
+   val windowInteractiveOnLeftAlt by cv(!Os.UNIX.isCurrent).def(
+      name = "Interacts on ${keys("Alt")} + Mouse Drag",
+      info = "Simulates Linux move/resize behavior. LMB Mouse Drag moves window. RMB Drag resizes window. RMB during move toggles maximize."
+   )
 
    private var dockIsTogglingWindows = false
    private var dockHiddenWindows = ArrayList<Window>()
@@ -245,9 +248,16 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    @IsAction(name = "Close active window", keys = "CTRL+W", info = "Close focused window")
-   private fun closeActiveWindow() {
-      getFocused()?.close()
-   }
+   private fun focusedWindowClose() = getFocused()?.close()
+
+   @IsAction(name = "Maximize", info = "Switch maximized mode for active window.", keys = "F11")
+   fun focusedWindowToggleMaximize() = getFocused()?.toggleMaximize()
+
+   @IsAction(name = "Maximized (loop)", info = "Switch to different maximized states for active window.", keys = "SHIFT+F11")
+   fun focusedWindowToggleMaximizedState() = getFocused()?.let { it.isMaximized = Values.next(it.isMaximized) }
+
+   @IsAction(name = "Fullscreen", info = "Switch fullscreen mode for active window.", keys = "F12")
+   fun focusedWindowToggleFullscreen() = getFocused()?.toggleFullscreen()
 
    private fun showDockImpl(enable: Boolean) {
       if (!APP.isStateful) return

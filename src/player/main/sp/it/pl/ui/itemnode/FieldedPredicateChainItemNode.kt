@@ -52,9 +52,14 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>(
 
    fun isEmpty(): Boolean = chain.all { it.chained.isEmpty }
 
+   /**
+    * Shrinks the chain to 1 if [length] > 0, or does not change length otherwise.
+    * Invokes [FieldedPredicateItemNode.clear] for each remaining link.
+    * Invokes [generateValue] exactly once.
+    */
    fun clear() {
       inconsistentState = true
-      convergeTo(1);
+      if (length()>1) convergeTo(1);
       chain.forEach { it.chained.clear() }
       inconsistentState = false
       generateValue()

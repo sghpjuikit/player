@@ -246,6 +246,12 @@ fun Node.styleclassToggle(styleClass: String, enabled: Boolean) {
    else styleclassRemove(styleClass)
 }
 
+/** Adds or removes the specified styleclass using [Node.styleclassAdd] and [Node.styleclassRemove]. */
+fun Node.styleclassToggle(styleClass: String) {
+   if (styleClass !in this.styleClass) styleclassAdd(styleClass)
+   else styleclassRemove(styleClass)
+}
+
 /** Removes all instances of the specified styleclass from [Node.styleClass] of this node. */
 fun Node.styleclassRemove(styleClass: String) {
    this.styleClass.removeIf { it==styleClass }

@@ -15,6 +15,7 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.SPACE;
 import static javafx.scene.input.KeyCode.TAB;
+import static javafx.scene.input.KeyCode.UNDEFINED;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -42,8 +43,8 @@ public abstract class Search {
 	public final StringProperty searchQuery = new SimpleStringProperty("");
 	private Integer searchIndex = 0;
 	private Integer selectionIndex = 0;
-	private final KeyCode keyCancel = KeyCode.ESCAPE;
-	private final KeyCode keyNextOccurrence = KeyCode.ENTER;
+	private final KeyCode keyCancel = ESCAPE;
+	private final KeyCode keyNextOccurrence = ENTER;
 	private KeyCode pressedKeyCode;
 
 
@@ -53,7 +54,7 @@ public abstract class Search {
 	 */
 	public void installOn(Node targetNode) {
 		targetNode.addEventHandler(KEY_TYPED, this::onKeyTyped);
-		targetNode.addEventFilter(KEY_PRESSED, this::onKeyPress);
+		targetNode.addEventHandler(KEY_PRESSED, this::onKeyPress);
 	}
 
 	/**
@@ -70,8 +71,11 @@ public abstract class Search {
 	 */
 	private void onKeyTyped(KeyEvent e) {
 		if (e.isConsumed()) return;
-		if (pressedKeyCode==null || pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER || pressedKeyCode==DELETE) return;
-		if (pressedKeyCode==BACK_SPACE && searchQuery.get().isEmpty()) return;
+		if (e.getCode()==null || e.getCode()==UNDEFINED) return;
+		if (pressedKeyCode==null || pressedKeyCode==UNDEFINED) return;
+		if (pressedKeyCode==keyCancel || pressedKeyCode==keyNextOccurrence) return;
+		if (pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER || pressedKeyCode==DELETE) return;
+		if (pressedKeyCode==BACK_SPACE && !isActive()) return;
 		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown()) return;
 		if (!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE)) return;
 
@@ -95,20 +99,21 @@ public abstract class Search {
 	 * Note: must be called on {@link KeyEvent#KEY_PRESSED} event as event filter.
 	 */
 	private void onKeyPress(KeyEvent e) {
+		if (e.isConsumed()) return;
 		pressedKeyCode = e.getCode();
 
 		if (isActive()) {
-			if (e.getCode()==keyCancel) {
+			if (pressedKeyCode==keyCancel) {
 				cancel();
-				e.consume(); // must cause all KEY_PRESSED handlers to be ignored
+				e.consume();
 			}
-			if (e.getCode()==keyNextOccurrence) {
+			if (pressedKeyCode==keyNextOccurrence) {
 				if (e.isShiftDown()) selectionIndex = max(0,selectionIndex-1);
 				else selectionIndex++;
 				// else min(matchesCount-1, selectionIndex+1)	// TODO: requires complete search iteration, cache matchesCount and enable
 
 				search(searchQuery.get());
-				e.consume(); // must cause all KEY_PRESSED handlers to be ignored
+				e.consume();
 			}
 		}
 	}

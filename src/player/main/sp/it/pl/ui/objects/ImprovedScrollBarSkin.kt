@@ -40,11 +40,11 @@ open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar)
 
    fun initHoverParentAnimation() {
       val a = anim(350.millis) { node.opacity = 0.6 + 0.4*it*it }.applyNow()
-      onDispose += a::stop
       onDispose += skinnable.parentProperty() syncNonNullWhile {
          a.applyAt(if (it.isHover) 1.0 else 0.0)
          it.onHoverOrDrag { a.playFromDir(it) }
       }
+      onDispose += a::stop
    }
 
 }

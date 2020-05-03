@@ -2,14 +2,21 @@ package sp.it.util.units
 
 import sp.it.util.dev.Dependency
 import java.time.Duration
+import java.time.Year
 import java.util.UUID
 import javafx.util.Duration as Dur
 
+/** Equivalent to [KotlinVersion]. */
+fun version(major: Int, minor: Int, patch: Int) = KotlinVersion(major, minor, patch)
+
+/** Equivalent to [Year.of[]. */
+fun year(year: Int) = Year.of(year)!!
+
 /** Equivalent to [UUID.randomUUID]. */
-fun uuid() = UUID.randomUUID()
+fun uuid() = UUID.randomUUID()!!
 
 /** Equivalent to [UUID.fromString]. */
-fun uuid(text: String) = UUID.fromString(text)
+fun uuid(text: String) = UUID.fromString(text)!!
 
 /** Converts to javafx [Dur] */
 val Duration.javafx: Dur get() = toMillis().millis
@@ -59,10 +66,10 @@ val Number.minutes: Dur get() = Dur.minutes(toDouble())
 val Number.hours: Dur get() = Dur.hours(toDouble())
 
 /** @return [Dur.minus]. */
-operator fun Dur.minus(d: Dur) = subtract(d)
+operator fun Dur.minus(d: Dur) = subtract(d)!!
 
 /** @return [Dur.plus]. */
-operator fun Dur.plus(d: Dur) = add(d)
+operator fun Dur.plus(d: Dur) = add(d)!!
 
 /** @return duration specified times shorter than this duration. */
 operator fun Dur.div(times: Number) = Dur(toMillis()/times.toDouble())

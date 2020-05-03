@@ -1,4 +1,7 @@
 <root>
+    <item name='java.time.Year java.time.Year of(int)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
     <item name='java.time.ZoneId java.time.ZoneId systemDefault()'>
         <annotation name='org.jetbrains.annotations.NotNull'/>
     </item>

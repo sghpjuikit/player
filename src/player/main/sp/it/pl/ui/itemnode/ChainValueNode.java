@@ -262,6 +262,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			HBox.setHgrow(chained.getNode(), ALWAYS);
 
 			on.addListener((o, ov, nv) -> generateValue());
+			on.addListener((o, ov, nv) -> ChainValueNode.this.chain.forEach(it -> it.updateIcons()));
 			on.addListener((o, ov, nv) -> { if (nv) onUserItemEnabled.invoke(this); else onUserItemDisabled.invoke(this); });
 			rem.setOnMouseClicked(e -> { onRem(); onUserItemRemoved.invoke(this); });
 			add.setOnMouseClicked(e -> { onUserItemAdded.invoke(addChained(getIndex() + 1)); });
@@ -282,10 +283,11 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			var noRem = chain.size()<=minChainLength || !isHomogeneous(i, isHomogeneousRem);
 			var noAdd = chain.size()>=maxChainLength.getValue() || !isHomogeneous(i, isHomogeneousAdd);
 			var noEdit = !isHomogeneous(i, isHomogeneousEdit);
+			var noOn = noRem || noEdit || (chain.size()<=minChainLength && on.getValue()) || (chain.size()>=maxChainLength.getValue() && !on.getValue());
 
 			rem.setDisable(noRem);
 			add.setDisable(noAdd);
-			onB.setDisable(noRem || noAdd);
+			onB.setDisable(noOn);
 			chained.getNode().setDisable(noEdit);
 
 			if (i==0 && buttonAdjuster.get()!=null) {

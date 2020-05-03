@@ -116,8 +116,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		if (chain.size()<maxChainLength.get()) {
 			Link c = new Link(i, chained);
 			chain.add(i, c);
-			generateValue();
 			chain.forEach(Link::updateIcons);
+			generateValue();
 			return c;
 		} else {
 			return null;
@@ -127,8 +127,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	public Link setChained(int i, C chained) {
 		Link c = new Link(i, chained);
 		chain.set(i, c);
-		generateValue();
 		chain.forEach(Link::updateIcons);
+		generateValue();
 		return c;
 	}
 
@@ -170,9 +170,11 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		failIf(n>maxChainLength.get(), () -> "Chain length must not be larger than max length");
 
 		if (n>chain.size()) {
+			inconsistentState = true;
 			repeat(n - chain.size(), (Runnable) this::addChained);
-			generateValue();
 			chain.forEach(Link::updateIcons);
+			inconsistentState = false;
+			generateValue();
 		}
 	}
 
@@ -181,9 +183,11 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		failIf(n>maxChainLength.get(), () -> "Chain length must not be larger than max length");
 
 		if (n<chain.size()) {
+			inconsistentState = true;
 			chain.setAll(chain.stream().limit(n).collect(toList()));
-			generateValue();
 			chain.forEach(Link::updateIcons);
+			inconsistentState = false;
+			generateValue();
 		}
 	}
 

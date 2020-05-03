@@ -135,6 +135,8 @@ public class GridView<T, F> extends Control {
 		itemsPredicate = itemsFiltered.predicateProperty();
 		itemsComparator = itemsSorted.comparatorProperty();
 
+		setFocusTraversable(true);
+
 		// search
 		search.installOn(this);
 		addEventFilter(Event.ANY, e -> {

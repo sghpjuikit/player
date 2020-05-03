@@ -55,7 +55,7 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
       chainedFactory = Supplier {
          FItemNode(functorPool(typeOut).asIs<PrefList<PF<Any?, Any?>>>())
       }
-      isHomogeneousEdit = BiPredicate { i, f ->
+      isHomogeneousRem = BiPredicate { i, f ->
          when {
             // Link is homogeneous if removing the function poses no problem.
             // For function f this is when previous function output type is same as next function input type
@@ -83,6 +83,7 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
          }
       }
       isHomogeneousAdd = BiPredicate { i, _ -> i==chain.size - 1 }
+      isHomogeneousOn = BiPredicate { _, _ -> true }
       isHomogeneousEdit = BiPredicate { _, _ -> true }
       maxChainLength attach {
          val m: Int = it.toInt()

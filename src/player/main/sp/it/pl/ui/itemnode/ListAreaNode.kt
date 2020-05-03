@@ -209,7 +209,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    }
 
-   sealed class Transformation() {
+   sealed class Transformation {
       abstract val name: String
       abstract val linkTypeIn: KClass<*>?
       abstract val linkTypeOut: KClass<*>?
@@ -271,7 +271,8 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
    }
 }
 
-/** [FChainItemNode] adjusted for [ListAreaNode] */
+// TODO: make interface for value type & use FItemNode
+/** [ FChainItemNode] adjusted for [ListAreaNode] */
 class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTransformationNode, List<Transformation>> {
 
    constructor(functions: (Class<*>) -> PrefList<PF<*, *>>): super(listOf()) {
@@ -312,6 +313,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
       }
       isHomogeneousRem = BiPredicate { i, _ -> linkTypeInAt(i + 1).isSuperclassOf(linkTypeOutAt(i - 1)) }
       isHomogeneousAdd = BiPredicate { i, _ -> i==chain.size - 1 }
+      isHomogeneousOn = BiPredicate { _, transformation -> transformation !is Transformation.Manual }
       isHomogeneousEdit = BiPredicate { _, _ -> true }
       maxChainLength attach {
          val m: Int = it.toInt()
@@ -403,10 +405,10 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
 
    private fun generateValue() {
       avoidGenerateValue.suppressed {
-         val transformationRaw = fCB.value
+         val transformationRaw = fCB.value ?: null
          val parameters = editors.map { it.config.value }
-         val function = transformationRaw.realize(parameters)
-         changeValue(function)
+         val transformation = transformationRaw?.realize(parameters)
+         if (transformation!=null) changeValue(transformation)
       }
    }
 

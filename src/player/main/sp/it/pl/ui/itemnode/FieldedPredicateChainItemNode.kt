@@ -13,15 +13,25 @@ import sp.it.util.functional.asIs
 import sp.it.util.ui.isAnyParentOf
 import java.lang.Integer.MAX_VALUE
 import java.util.ArrayList
+import java.util.function.BiPredicate
 import java.util.function.Predicate
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
 /** [ObjectField] [Predicate] chain. */
-open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>(
-   chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F>
-): ChainValueNode<Predicate<T>, FieldedPredicateItemNode<T, F>, Predicate<T>>(0, MAX_VALUE, IS.asIs(), null) {
+open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValueNode<Predicate<T>, FieldedPredicateItemNode<T, F>, Predicate<T>> {
+
+   constructor(chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F>): super(0, MAX_VALUE, IS.asIs(), null) {
+      this.data = ArrayList()
+      this.chainedFactory = Supplier { chainedFactory(this) }
+      isHomogeneousRem = BiPredicate { _, _ -> true}
+      isHomogeneousAdd = BiPredicate { _, _ -> true}
+      isHomogeneousOn = BiPredicate { _, _ -> true}
+      isHomogeneousEdit = BiPredicate { _, _ -> true}
+      inconsistentState = false
+      generateValue()
+   }
 
    constructor(): this({
       FieldedPredicateItemNode<T, F>().apply {
@@ -36,19 +46,13 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>(
          chain.forEach { it.chained.setPrefTypeSupplier(supplier) }
       }
 
-   var data: List<PredicateData<F>> = ArrayList()
+   var data: List<PredicateData<F>>
       set(data) {
          inconsistentState = true
          field = data
          chain.forEach { it.chained.setData(data) }
          clear()  // bug fix, not sure if it does not cause problems
       }
-
-   init {
-      this.chainedFactory = Supplier { chainedFactory(this) }
-      inconsistentState = false
-      generateValue()
-   }
 
    fun isEmpty(): Boolean = chain.all { it.chained.isEmpty }
 

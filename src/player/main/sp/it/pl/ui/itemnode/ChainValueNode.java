@@ -59,6 +59,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	protected BiPredicate<Integer,VAL> isHomogeneousRem = (i, v) -> true;
 	/** Whether new link can be added into this chain after the link at the index. Default always true. */
 	protected BiPredicate<Integer,VAL> isHomogeneousAdd = (i, v) -> true;
+	/** Whether the link at the index can have its enable icon enabled. Default always true. */
+	protected BiPredicate<Integer,VAL> isHomogeneousOn = (i, v) -> true;
 	/** Whether the link at the index can have its content enabled. Default always true. */
 	protected BiPredicate<Integer,VAL> isHomogeneousEdit = (i, v) -> true;
 	public final Handler1<Link> onUserItemAdded = new Handler1<>();
@@ -283,7 +285,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			var noRem = chain.size()<=minChainLength || !isHomogeneous(i, isHomogeneousRem);
 			var noAdd = chain.size()>=maxChainLength.getValue() || !isHomogeneous(i, isHomogeneousAdd);
 			var noEdit = !isHomogeneous(i, isHomogeneousEdit);
-			var noOn = noRem || noEdit || (chain.size()<=minChainLength && on.getValue()) || (chain.size()>=maxChainLength.getValue() && !on.getValue());
+			var isCriticalLength = (chain.size()<=minChainLength && on.getValue()) || (chain.size()>=maxChainLength.getValue() && !on.getValue());
+			var noOn = noRem || noEdit || !isHomogeneous(i, isHomogeneousOn) || isCriticalLength;
 
 			rem.setDisable(noRem);
 			add.setDisable(noAdd);
@@ -308,8 +311,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		}
 
 		private boolean isHomogeneous(int index, BiPredicate<Integer,VAL> isHomogeneous) {
-			if (index>=chain.size()-1) return true;
-			if (chained!=null && chained.getVal()!=null) return isHomogeneous.test(index, chained.getVal());
+			if (chained!=null) return isHomogeneous.test(index, chained.getVal());
 			return false;
 		}
 

@@ -52,7 +52,10 @@ class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwi
          fCB = ImprovedComboBox { it.name }
          fCB.items setTo functions.sortedBy { it.name }
          fCB.value = functions.preferredOrFirst
-         syncTo(isEditableRawFunction, fCB.items.sizes()) { editable, itemCount -> fCB.pseudoClassChanged("editable", editable && itemCount.toInt()>1) }
+         // display non-editable as label
+         syncTo(isEditableRawFunction, fCB.items.sizes()) { editable, itemCount ->
+            fCB.pseudoClassChanged("editable", editable && itemCount.toInt()>1)
+         }
          fCB.valueProperty() sync { function ->
             editors.clear()
             paramB.children.clear()

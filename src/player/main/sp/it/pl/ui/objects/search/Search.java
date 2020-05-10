@@ -54,7 +54,7 @@ public abstract class Search {
 	 */
 	public void installOn(Node targetNode) {
 		targetNode.addEventHandler(KEY_TYPED, this::onKeyTyped);
-		targetNode.addEventHandler(KEY_PRESSED, this::onKeyPress);
+		targetNode.addEventFilter(KEY_PRESSED, this::onKeyPress);
 	}
 
 	/**
@@ -71,7 +71,6 @@ public abstract class Search {
 	 */
 	private void onKeyTyped(KeyEvent e) {
 		if (e.isConsumed()) return;
-		if (e.getCode()==null || e.getCode()==UNDEFINED) return;
 		if (pressedKeyCode==null || pressedKeyCode==UNDEFINED) return;
 		if (pressedKeyCode==keyCancel || pressedKeyCode==keyNextOccurrence) return;
 		if (pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER || pressedKeyCode==DELETE) return;

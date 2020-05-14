@@ -2,7 +2,6 @@ package imageViewer
 
 import javafx.animation.Animation.INDEFINITE
 import javafx.beans.property.SimpleObjectProperty
-import javafx.event.EventHandler
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.input.MouseButton.PRIMARY
@@ -17,11 +16,12 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
-import sp.it.pl.layout.widget.Widget.Info
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.IconOC
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
@@ -32,6 +32,7 @@ import sp.it.pl.main.toMetadata
 import sp.it.pl.ui.nodeinfo.ItemInfo
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
@@ -51,6 +52,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.text.nameUi
 import sp.it.util.ui.Util.layAnchor
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -60,45 +62,19 @@ import sp.it.util.ui.styleclassToggle
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
+import sp.it.util.units.version
+import sp.it.util.units.year
 import java.io.File
-import java.util.ArrayList
-import java.util.function.Predicate
 import kotlin.streams.toList
 
-@Info(
-   author = "Martin Polakovic",
-   name = "Image Viewer",
-   description = "Displays images in a directory or song location. Looks for images in subfolders.",
-   howto = """
-      The widget displays an image and image thumbnails for images in specific directory - data source. Main image can change automatically  (slideshow) or manually by clicking on the thumbnail, or navigating to next/previous image.
-      User can display image or images in a location by setting the file or directory, e.g., by drag & drop. The widget can also follow playing or selected songs, displaying images in their parent directory.
-      The image search is recursive and search depth configurable.
-      
-      Available actions:
-          Left click: Shows/hides thumbnails
-          Left click bottom : Toggles info pane
-          Nav icon click : Previous/Next image
-          Info pane right click : Shows/hides bacground for info pane
-          Image right click : Opens image context menu
-          Thumbnail left click : Set as image
-          Thumbnail right click : Opens thumbnail context menu
-          Drag&Drop audio : Displays images for the first dropped item
-          Drag&Drop image : Show images
-   """,
-   version = "1.0.0",
-   year = "2015",
-   group = OTHER
-)
 class ImageViewer(widget: Widget): SimpleController(widget) {
-
    private val inputLocation = io.i.create<File>("Location") { dataChanged(it) }
    private val inputLocationOf = io.io.mapped<File, Song>(inputLocation, "Location of") { it.getLocation() }
-
    private val mainImage = Thumbnail()
    private var itemPane: ItemInfo? = null
    private val navAnim: Anim
    private val folder = SimpleObjectProperty<File?>(null)
-   private val images = ArrayList<File>()
+   private val images = mutableListOf<File>()
    private val slideshow = fxTimer(ZERO, INDEFINITE) { nextImage() }
 
    val slideshowDur by cv(15.seconds).sync { slideshow.setTimeoutAndRestart(it) }
@@ -127,7 +103,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       mainImage.isBorderToImage = true
       root.lay += mainImage.pane
 
-      val nextB = Icon(IconOC.ARROW_RIGHT).apply {
+      val nextB = Icon(IconUN(0x02af8)).apply {
          styleclass("nav-icon")
          tooltip("Next image")
          onClickDo { nextImage() }
@@ -141,7 +117,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
          maxWidth = 50.0
          visibleProperty().bind(opacityProperty().isNotEqualTo(0))
       }
-      val prevB = Icon(IconOC.ARROW_LEFT).apply {
+      val prevB = Icon(IconUN(0x2af7)).apply {
          styleclass("nav-icon")
          tooltip("Previous image")
          onClickDo { prevImage() }
@@ -166,26 +142,17 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
          applyNow()
       }
       val navInactive = EventReducer.toLast<Any>(1000.0) { if (!nextP.isHover && !prevP.isHover) navAnim.playClose() }
-      val navActive = EventReducer.toFirstDelayed<MouseEvent>(400.0) { navAnim.playOpen() }
+      val navActive = EventReducer.toFirstDelayed<MouseEvent>(400.0) { if (images.size>1) navAnim.playOpen() }
       root.onEventUp(MOUSE_EXITED) { navInactive.push(it) }
       root.onEventUp(MOUSE_MOVED) {
          navActive.push(it)
          if (!nextP.isHover && !prevP.isHover) navInactive.push(it)
       }
 
-      // thumbnails
-      root.onMouseClicked = EventHandler { e: MouseEvent ->
-         if (e.button==PRIMARY) {
-            if (e.y>0.8*root.height && e.x>0.7*root.width) {
-               theaterMode.toggle()
-               e.consume()
-            }
-         }
-      }
-
-      // slideshow on hold during user activity
       root.onEventUp(MOUSE_ENTERED) { if (slideshowOn.value) slideshow.pause() }
       root.onEventUp(MOUSE_EXITED) { if (slideshowOn.value) slideshow.unpause() }
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) { theaterMode.toggle() }
+      theaterMode sync ::applyTheaterMode
 
       installDrag(
          root, IconMD.DETAILS, "Display",
@@ -202,9 +169,8 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
             }
          }
       )
-      theaterMode.sync { applyTheaterMode(it) }
 
-      onClose += { slideshow.stop() }
+      onClose += slideshow::stop
       onClose += root.sync1IfInScene {
          if (!inputLocation.isBound(widget.id) && !inputLocationOf.isBound(widget.id) && !widget.isDeserialized)
             inputLocationOf.bind(APP.audio.playing.o)
@@ -217,7 +183,8 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       get() = images.isEmpty()
 
    private fun dataChanged(newLocation: File?) {
-      if (keepContentOnEmpty && newLocation==null) return  // prevent refreshing location if should not
+      if (keepContentOnEmpty && newLocation==null) return
+
       folder.value = newLocation
       if (theaterMode.value) {
          itemPane?.setValue(Metadata.EMPTY)
@@ -231,7 +198,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       val source = folder.value
       runIO {
          if (source==null) listOf()
-         else getFilesR(source, folderTreeDepth, Predicate { it.isImage() }).limit(thumbsLimit.toLong()).toList()
+         else getFilesR(source, folderTreeDepth) { it.isImage() }.limit(thumbsLimit.toLong()).toList()
       } ui { files ->
          val ai = activeImage
          if (files.isEmpty()) {
@@ -315,4 +282,30 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       itemPane?.isVisible = v
    }
 
+   companion object: WidgetCompanion {
+      override val name = "Image Viewer"
+      override val description = "Displays images in a directory or song location. Looks for images in subfolders."
+      override val descriptionLong = """
+         The widget displays an image in an input directory or input song's location. Displayed image can change automatically (slideshow) or by using the navigation icons.
+         The widget can also follow playing or selected songs, displaying images in their parent directory.
+         The image search within the location is recursive and search depth is configurable.
+      """
+      override val icon = IconFA.FONTICONS
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         Entry("Song", "Toggle song detail", "Image ${PRIMARY.nameUi}"),
+         Entry("Song", "Toggle song detail background", "Song detail ${SECONDARY.nameUi}"),
+         Entry("Image", "Previous image", "Nav icon ${PRIMARY.nameUi}"),
+         Entry("Image", "Next image", "Nav icon ${PRIMARY.nameUi}"),
+         Entry("Image", "Opens image context menu", "Image ${SECONDARY.nameUi}"),
+         Entry("Image", "Show image context menu", "Thumbnail ${SECONDARY.nameUi}"),
+         Entry("Image", "Show images for location of the 1st song", "Drag & Drop audio file"),
+         Entry("Image", "Show images for location", "Drag & Drop file")
+      )
+      override val group = OTHER
+   }
 }

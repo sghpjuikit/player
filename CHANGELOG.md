@@ -13,12 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `--dev` developer mode argument option
 - Implement `--uiless` argument option
 - Implement ui less application mode
+- Implement plugin metadata (simple)
+- Implement plugin management settings
+- Implement widget metadata (simple)
+- Implement widget management settings
 - Implement widget recompilation when application jars are more recent
 - Implement widget reload button for widgets that do not load properly
 - Implement widget focusing when widget opens to be used (e.g. from context menu)
-- Implement automatic setup for Vlc player
-- Implement automatic setup for Kotlin compiler
-- Implement automatic setup for ffmpeg compiler
+- Implement auto-setup for Vlc player (Windows-only)
+- Implement auto-setup for Kotlin compiler
+- Implement auto-setup for ffmpeg compiler
 - Implement application header progress indicator title showing running task count
 - Implement `Tester` widget for developers, showcases property sheets and animation interpolators
 - Implement `Object Info` widget
@@ -39,11 +43,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement slider fill
 - Implement Unicode character icons
 - Implement more skins
+- Implement application help page & shortcut
+- Implement component help page & shortcut
+- Implement window ALT+drag resizing+maximizing
+- Implement window header animation
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance
 - Improve video cover extraction performance (reuses previous output)
-- Improve window header animation
 - Improve grid cell hover/focus effect
 - Improve overlay animation performance and ux
 - Improve overlay icon layout
@@ -66,6 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Improve `FileInfo`
         - use checklist to select which fields to display
         - improves UX by adjusting layout automatically depending on visible fields (unifies cover & rating with other fields)
+    - Improve `ImageViewer` widget UX
+        - remove ability to display thumbnails (use grid widget for this)     
 - Display date & time in UI in human readable format
 - Hide technical settings from UI & avoid persisting computed settings
 - Icons are focusable using TAB and invokable using ENTER
@@ -131,7 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Guide` is now a plugin and can be disabled completely
   - `Directory Search` does not find any results
   - `Directory Search` & `AppSearch` logging errors for inaccessible files
-- JavaFX Screen.getScreens fires invalid events with no screens
+- JavaFX Screen.getScreens crashing in rare situations
 - Popup window fixes
   - popup does not receive focus on show not even when clicked
   - popup not returning focus to previously focused OS window
@@ -149,6 +158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Spectrum` widget. Was experimental and incomplete
 - `WebReader` widget. Was experimental and proved incomplete
 - `Terminal` widget for its dependencies and maintenance overhead. Standalone terminal applications can do a better job.
+- Application (?) icons with UX tooltips (use help/component help)
 - Dependencies: javafx.web, javafx.fxml
 - Annotation support for Config constraints, use delegated configurable properties and ConfigDefinition instead
 

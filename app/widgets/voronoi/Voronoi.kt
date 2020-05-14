@@ -19,8 +19,12 @@ import javafx.scene.paint.Color
 import mu.KLogging
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.Widget.Group.VISUALISATION
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
 import sp.it.util.access.V
 import sp.it.util.animation.Loop
@@ -37,6 +41,10 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
+import sp.it.util.units.version
+import sp.it.util.units.year
+import voronoi.Voronoi.Highlighting.BY_DISTANCE_ORDER
+import voronoi.Voronoi.Highlighting.BY_DISTANCE_VALUE
 import java.util.HashMap
 import java.util.Random
 import java.util.stream.IntStream
@@ -46,20 +54,12 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
 
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = "Voronoi",
-   description = "Playground to experiment and visualize voronoi diagrams",
-   howto = "To configure the visualization edit the source code.",
-   version = "1.0.0",
-   year = "2016",
-   group = Widget.Group.VISUALISATION
-)
 @ExperimentalController("Only interesting as a demo.")
 class Voronoi(widget: Widget): SimpleController(widget) {
 
    private val canvas = RenderNode()
-   val displayed by cv(CellGenerator.CIRCLES).def(name = "Displayed") sync { canvas.displayedToBe = it }
+   val displayed by cv(CellGenerator.CIRCLES).def(name = "Pattern", info = "Displayed structure") sync { canvas.displayedToBe = it }
+   val highlighting by cv(BY_DISTANCE_ORDER).def(name = "Highlighting", info = "Type of highlighting algorithm") sync { canvas.highlighting = it }
 
    init {
       root.prefSize = 850.emScaled x 600.emScaled
@@ -88,6 +88,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       val running = V(true)
       private var displayedCurrent: CellGenerator? = null
       var displayedToBe: CellGenerator? = null
+      var highlighting = BY_DISTANCE_ORDER
 
       init {
          onEventDown(MOUSE_PRESSED) { draggedCell = selectedCell }
@@ -140,10 +141,26 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          val distMin = 0.0
          val distMax = 0.2*pyth(w, h)
          val distDiff = distMax - distMin
-         val distances = cells.associateWith {
-            val dist = (mousePos?.distance(it.x, it.y) ?: distMax).clip(distMin, distMax)
-            val distNormalized = (1 - (dist - distMin)/distDiff).clip(opacityMin, opacityMax)
-            distNormalized
+         val distances = when (highlighting) {
+            BY_DISTANCE_VALUE -> cells.associateWith {
+               val dist = (mousePos?.distance(it.x, it.y) ?: distMax).clip(distMin, distMax)
+               val distNormalized = (1 - (dist - distMin)/distDiff).clip(opacityMin, opacityMax)
+               distNormalized
+            }
+            BY_DISTANCE_ORDER -> when (val mp = mousePos) {
+               null -> cells.associateWith { opacityMin }
+               else -> cells.sortedBy { mp.distance(it.x, it.y) }.withIndex().associate { (i, it) ->
+                  val steps = 30 min cells.size
+                  it to when {
+                     (i>10) -> opacityMin
+                     else -> {
+                        val opacityStep = (opacityMax - opacityMin)/steps
+                        val opacityI = (steps - i)
+                        opacityI*opacityStep
+                     }
+                  }
+               }
+            }
          }
 
          gc.setEffect(null)
@@ -212,6 +229,11 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       val height: Double,
       val count: Int
    )
+
+   enum class Highlighting {
+      BY_DISTANCE_VALUE,
+      BY_DISTANCE_ORDER
+   }
 
    enum class CellGenerator(val generator: (CellGeneratorSeed) -> Sequence<Cell>) {
       RANDOM({
@@ -384,7 +406,21 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       }
    }
 
-   companion object: KLogging() {
+   companion object: WidgetCompanion, KLogging() {
+      override val name = "Voronoi"
+      override val description = "Playground to experiment with and visualize voronoi diagrams"
+      override val descriptionLong = "$description.\nTo configure the visualization edit the source code."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 1, 0)
+      override val isSupported = true
+      override val year = year(2016)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         Entry("Interact", "Highlight", "Move cursor")
+      )
+      override val group = VISUALISATION
+
       private var rand = Random()
 
       infix fun <T> MutableList<T>.with(elements: Sequence<T>) {

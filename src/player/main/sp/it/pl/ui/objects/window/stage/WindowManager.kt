@@ -253,7 +253,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    @IsAction(name = "Maximize", info = "Switch maximized mode for active window.", keys = "F11")
    fun focusedWindowToggleMaximize() = getFocused()?.toggleMaximize()
 
-   @IsAction(name = "Maximized (loop)", info = "Switch to different maximized states for active window.", keys = "SHIFT+F11")
+   @IsAction(name = "Maximized (toggle)", info = "Switch to different maximized states for active window.", keys = "SHIFT+F11")
    fun focusedWindowToggleMaximizedState() = getFocused()?.let { it.isMaximized = Values.next(it.isMaximized) }
 
    @IsAction(name = "Fullscreen", info = "Switch fullscreen mode for active window.", keys = "F12")

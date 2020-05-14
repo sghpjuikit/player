@@ -30,7 +30,7 @@ import javafx.scene.robot.Robot
 import javafx.stage.Stage
 import sp.it.pl.layout.widget.initialTemplateFactory
 import sp.it.pl.main.AppAnimator
-import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconUN
 import sp.it.pl.ui.objects.picker.ContainerPicker
 import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.ui.objects.window.Resize
@@ -62,7 +62,7 @@ fun Window.installStartLayoutPlaceholder() {
 
    fun showStartLayoutPlaceholder() {
       var action = {}
-      val p = Placeholder(IconFA.FOLDER, "Start with a simple click\n\nIf you are 1st timer, choose ${ContainerPicker.choiceForTemplate} > ${initialTemplateFactory.name}") { action() }
+      val p = Placeholder(IconUN(0x1f4c1), "Start with a simple click\n\nIf you are 1st timer, choose ${ContainerPicker.choiceForTemplate} > ${initialTemplateFactory.name}") { action() }
       action = {
          runFX(300.millis) {
             AppAnimator.closeAndDo(p) {

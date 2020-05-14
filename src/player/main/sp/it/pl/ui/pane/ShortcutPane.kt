@@ -8,23 +8,28 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCode.*
+import javafx.scene.input.KeyCode.ALT
+import javafx.scene.input.KeyCode.COMMAND
+import javafx.scene.input.KeyCode.CONTROL
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.SHIFT
+import javafx.scene.input.KeyCode.WINDOWS
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.text.Text
+import javafx.scene.text.TextFlow
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.infoIcon
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.util.access.v
 import sp.it.util.action.Action
+import sp.it.util.collections.setToOne
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.system.Os
-import sp.it.util.text.keys
 import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.ui.Util.layVertically
@@ -32,16 +37,16 @@ import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.scrollPane
-import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
 
-class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
+class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
 
    val hideEmptyShortcuts = v(true)
    private val grid = GridPane()
-   private var value: Collection<Entry> = emptySet()
+   private val text = TextFlow()
+   private var value: Info = Info("", listOf())
 
    init {
       styleClass += STYLECLASS
@@ -76,7 +81,8 @@ class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
                vbarPolicy = AS_NEEDED
                consumeScrolling()
 
-               content = stackPane {
+               content = vBox {
+                  lay += text
                   lay += grid
                }
             }
@@ -84,13 +90,15 @@ class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
       }
    }
 
-   override fun show(data: Collection<Entry>) {
+   override fun show(data: Info) {
       super.show()
       value = data
       build(value)
    }
 
-   private fun build(actions: Collection<Entry>) {
+   private fun build(data: Info) {
+      text.children setToOne Text(data.text)
+
       grid.children.clear()
       grid.rowConstraints.clear()
       grid.columnConstraints.clear()
@@ -100,7 +108,7 @@ class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
       grid.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, ALWAYS, HPos.LEFT, false)
 
       var i = -1
-      actions.asSequence()
+      data.entries.asSequence()
          .filter { !hideEmptyShortcuts.value || it.keysUi!=null }
          .groupBy { it.groupUi }
          .entries.asSequence()
@@ -125,6 +133,7 @@ class ShortcutPane: OverlayPane<Collection<ShortcutPane.Entry>>() {
          }
    }
 
+   class Info(val text: String, val entries: List<Entry>)
    class Entry(val groupUi: String, val nameUi: String, val keysUi: String?) {
       constructor(a: Action): this(a.groupUi, a.nameUi, if (a.hasKeysAssigned()) a.keysUi() else null)
    }

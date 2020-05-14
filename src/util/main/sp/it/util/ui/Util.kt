@@ -71,6 +71,7 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.scene.text.TextAlignment
+import javafx.scene.text.TextFlow
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle
@@ -351,6 +352,7 @@ inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(tex
 inline fun text(text: String = "", block: Text.() -> Unit = {}) = Text(text).apply(block)
 inline fun textField(text: String = "", block: TextField.() -> Unit = {}) = TextField(text).apply(block)
 inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextArea(text).apply(block)
+inline fun textFlow(block: TextFlow.() -> Unit = {}) = TextFlow().apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
 inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
 inline fun menuSeparator(block: SeparatorMenuItem.() -> Unit = {}) = SeparatorMenuItem().apply(block)
@@ -985,7 +987,7 @@ fun <T> TreeView<T>.scrollToCenter(i: Int) {
    val items = expandedItemCount
    if (index<0 || index>=items) return
 
-   val fixedCellHeightNotSet = fixedCellSize==Region.USE_COMPUTED_SIZE
+   val fixedCellHeightNotSet = fixedCellSize<=0
    if (fixedCellHeightNotSet) {
       scrollTo(i)
       // TODO: improve

@@ -1,5 +1,6 @@
 package sp.it.pl.plugin
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.collections.FXCollections.observableArrayList
 import mu.KLogging
 import sp.it.pl.main.APP
@@ -8,6 +9,7 @@ import sp.it.pl.main.AppErrors
 import sp.it.pl.main.AppSettings
 import sp.it.pl.main.run1AppReady
 import sp.it.util.Locatable
+import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.materialize
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource.Companion.SimpleConfigValueStore
@@ -32,17 +34,21 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
+import sp.it.util.units.version
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmName
 
 class PluginManager: GlobalConfigDelegator {
+   /** Plugin management ui. */
    private var settings by c(this).noPersist().def(name = "Plugins", info = "Manage application plugins", group = "Plugin management")
-   /** All installed plugins */
-   val plugins: Sequence<PluginBox<*>> get() = pluginsObservable.materialize().asSequence()
-   /** All installed plugins */
-   val pluginsObservable = observableArrayList<PluginBox<*>>()!!
+   /** All installed plugins, observable, writable. */
+   private val pluginsObservableImpl = observableArrayList<PluginBox<*>>()!!
+   /** All installed plugins, observable, readable. */
+   val pluginsObservable = ObservableListRO(pluginsObservableImpl)
+   /** All installed plugins. */
+   val plugins: Sequence<PluginBox<*>> get() = pluginsObservableImpl.materialize().asSequence()
 
    /** Install the specified plugins. */
    inline fun <reified P: PluginBase> installPlugin(): Unit = installPlugin(P::class)
@@ -53,10 +59,10 @@ class PluginManager: GlobalConfigDelegator {
 
       val plugin = PluginBox(type)
       if (APP.rank==MASTER || !plugin.info.isSingleton)
-         pluginsObservable += plugin
+         pluginsObservableImpl += plugin
    }
 
-   operator fun <P: PluginBase> contains(type: KClass<P>) = pluginsObservable.any { it.type==type }
+   operator fun <P: PluginBase> contains(type: KClass<P>) = pluginsObservableImpl.any { it.type==type }
 
    /** @return running plugin of the type specified by the argument or null if no such instance */
    fun <P: PluginBase> get(type: KClass<P>): P? = getRaw(type)?.plugin
@@ -65,7 +71,7 @@ class PluginManager: GlobalConfigDelegator {
    inline fun <reified P: PluginBase> get(): P? = get(P::class)
 
    /** @return plugin of the type specified by the argument or null if no such instance */
-   fun <P: PluginBase> getRaw(type: KClass<P>): PluginBox<P>? = pluginsObservable.find { it.type==type }.asIs()
+   fun <P: PluginBase> getRaw(type: KClass<P>): PluginBox<P>? = pluginsObservableImpl.find { it.type==type }.asIs()
 
    /** @return plugin of the type specified by the generic type argument if no such instance */
    inline fun <reified P: PluginBase> getRaw(): PluginBox<P>? = getRaw(P::class)
@@ -81,12 +87,22 @@ class PluginManager: GlobalConfigDelegator {
 }
 
 interface PluginInfo: Locatable {
+   /** Name of the plugin */
    val name: String
+   /** Short (one line) description of the plugin */
    val description: String
+   /** Icon of the plugin. Default null. */
+   val icon: GlyphIcons? get() = null
+   /** Whether this plugin is supported on the current platform */
    val isSupported: Boolean
+   /** Whether this plugin can run in multiple application instances */
    val isSingleton: Boolean
+   /** Whether this plugin is enabled by default. Only has effect if [PluginBox.isBundled] is true. */
    val isEnabledByDefault: Boolean
+   /** Version of the plugin. Default application version. */
    val version: KotlinVersion get() = APP.version
+   /** Author of the plugin. Default empty. */
+   val author: String get() = ""
    override val location get() = APP.location.plugins/name
    override val userLocation get() = APP.location.user.plugins/name
 }
@@ -94,9 +110,12 @@ interface PluginInfo: Locatable {
 class EmptyPluginInfo(val type: KClass<*>): PluginInfo {
    override val name = type.simpleName ?: type.jvmName
    override val description = ""
+   override val icon = null
    override val isSupported = true
    override val isSingleton = false
    override val isEnabledByDefault = false
+   override val version = version(0,0,0)
+   override val author = ""
 }
 
 /** Plugin is configurable start/stoppable component. */

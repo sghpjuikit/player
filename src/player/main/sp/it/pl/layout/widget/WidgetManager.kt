@@ -38,12 +38,15 @@ import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runIO
 import sp.it.util.async.threadFactory
+import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.noPersist
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -71,7 +74,6 @@ import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.let_
-import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toOptional
 import sp.it.util.functional.toTry
@@ -121,8 +123,16 @@ class WidgetManager {
    @JvmField val widgets = Widgets()
    /** All component factories by their name. */
    private val factoriesC = MapSet<String, ComponentFactory<*>> { it.name }
+   /** All component factories, observable, writable. */
+   private val factoriesObservableCImpl = observableArrayList<ComponentFactory<*>>()
+   /** All component factories, observable, readable. */
+   private val factoriesObservableC = ObservableListRO<ComponentFactory<*>>(factoriesObservableCImpl)
    /** All widget factories by their name. */
    private val factoriesW = MapSet<String, WidgetFactory<*>> { it.id }
+   /** All widget factories, observable, writable. */
+   private val factoriesObservableWImpl = observableArrayList<WidgetFactory<*>>()
+   /** All widget factories, observable, readable. */
+   private val factoriesObservableW = ObservableListRO<WidgetFactory<*>>(factoriesObservableWImpl)
    /** All widget directories by their name. */
    private val monitors = MapSet<File, WidgetMonitor> { it.widgetDir }
    /** Separates entries of a java classpath argument, passed to JVM. */
@@ -252,18 +262,26 @@ class WidgetManager {
       initialized = true
    }
 
-   private fun registerFactory(factory: ComponentFactory<*>): Boolean {
+   private fun registerFactory(factory: ComponentFactory<*>) {
       logger.info { "Registering $factory" }
 
-      if (factory is WidgetFactory<*>) factoriesW put factory
-      return factoriesC put factory
+      if (factory is WidgetFactory<*> && factory !in factoriesW) {
+         factoriesW += factory
+         factoriesObservableWImpl += factory
+      }
+      if (factory !in factoriesC) {
+         factoriesC += factory
+         factoriesObservableCImpl += factory
+      }
    }
 
    private fun unregisterFactory(factory: ComponentFactory<*>) {
       logger.info { "Unregistering $factory" }
 
       if (factory is WidgetFactory<*>) factoriesW -= factory
+      if (factory is WidgetFactory<*>) factoriesObservableWImpl -= factory
       factoriesC -= factory
+      factoriesObservableCImpl -= factory
    }
 
    private inner class WidgetMonitor constructor(val widgetDir: File) {
@@ -508,8 +526,11 @@ class WidgetManager {
       }
    }
 
-   inner class Widgets: GlobalSubConfigDelegator("Widgets") {
+   inner class Widgets: GlobalSubConfigDelegator("Widget management") {
 
+      /** Plugin management ui. */
+      private var settings by c(this).noPersist()
+         .def(name = "Widgets", info = "Manage application widgets")
       val autoRecompile by cv(true)
          .def(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
       val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
@@ -606,7 +627,7 @@ class WidgetManager {
       val factoriesInCompilation = observableArrayList<File>()!!
 
       /** @return all features implemented by at least one widget */
-      fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.getFeatures().asSequence() }.distinct()
+      fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.features.asSequence() }.distinct()
 
       /** @return widget factory with the specified [WidgetFactory.id] or null if none */
       fun getFactory(factoryId: String): Try<WidgetFactory<*>, String> = factoriesW[factoryId].toOptional().toTry { factoryId }
@@ -620,8 +641,14 @@ class WidgetManager {
       /** @return all widget factories */
       fun getFactories(): Sequence<WidgetFactory<*>> = factoriesW.streamV().asSequence()
 
+      /** @return all widget factories, observable */
+      fun getFactoriesObservable() = factoriesObservableW
+
       /** @return all component factories (including widget factories) */
-      fun getComponentFactories(): Sequence<ComponentFactory<*>> = (factoriesC.asSequence() + getFactories()).distinct()
+      fun getComponentFactories(): Sequence<ComponentFactory<*>> = factoriesC.asSequence()
+
+      /** @return all component factories (including widget factories), observable */
+      fun getComponentFactoriesObservable() = factoriesObservableC
 
       //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
       inline fun <reified FEATURE: Any> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class)

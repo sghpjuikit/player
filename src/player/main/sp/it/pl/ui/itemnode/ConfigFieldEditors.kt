@@ -11,6 +11,7 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
+import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
 import javafx.scene.control.ColorPicker
 import javafx.scene.control.ContextMenu
@@ -39,11 +40,23 @@ import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.VBox
+import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
-import javafx.scene.text.TextFlow
 import javafx.util.Callback
+import sp.it.pl.layout.widget.WidgetInfo
+import sp.it.pl.layout.widget.WidgetManager
+import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
+import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconOC
+import sp.it.pl.main.appTooltip
+import sp.it.pl.main.emScaled
+import sp.it.pl.main.toS
+import sp.it.pl.main.toUi
+import sp.it.pl.plugin.PluginBox
+import sp.it.pl.plugin.PluginManager
 import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode
 import sp.it.pl.ui.itemnode.textfield.EffectTextField
 import sp.it.pl.ui.itemnode.textfield.FileTextField
@@ -54,16 +67,6 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
 import sp.it.pl.ui.objects.textfield.DecoratedTextField
 import sp.it.pl.ui.pane.ConfigPane
-import sp.it.pl.main.APP
-import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconMA
-import sp.it.pl.main.IconMD
-import sp.it.pl.main.appTooltip
-import sp.it.pl.main.emScaled
-import sp.it.pl.main.toS
-import sp.it.pl.main.toUi
-import sp.it.pl.plugin.PluginBox
-import sp.it.pl.plugin.PluginManager
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
@@ -123,8 +126,10 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.listView
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.onNodeDispose
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
+import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import java.io.File
 import kotlin.reflect.KClass
@@ -594,20 +599,40 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
          }
          lay += hBox {
             lay += listView<PluginBox<*>> {
+               pseudoClassChanged("no-fixed-cell-size", true)
                minPrefMaxWidth = 250.emScaled
                cellFactory = Callback {
                   object: ListCell<PluginBox<*>>() {
+                     val icon = Icon(null, 48.0).apply {
+                        isFocusTraversable = false
+                        isMouseTransparent = true
+                     }
+                     val label1 = label("") {
+                        styleClass += "text-weight-bold"
+                     }
+                     val label2 = label("")
+                     val root = hBox {
+                        lay += icon
+                        lay += vBox {
+                           lay += label1
+                           lay += label2
+                        }
+                     }
                      override fun updateItem(item: PluginBox<*>?, empty: Boolean) {
                         super.updateItem(item, empty)
-                        text = item?.info?.name
+                        graphic = root
+                        icon.icon(IconOC.PLUG)
+                        label1.text = item?.info?.name?.toS()
+                        label2.text = item?.let { if (it.isBundled) "bundled" else it.info.version.toS() + "\t" + it.info.author.toS() }
                      }
                   }
                }
                selectionModel.selectionMode = SINGLE
                selectionModel.selectedItemProperty() sync { pluginInfo.plugin = it }
                d += { selectionModel.clearSelection() }
-               items = APP.plugins.pluginsObservable.sorted { a, b -> a.info.name.compareTo(b.info.name) }
+               items = APP.plugins.pluginsObservable.toJavaFx().sorted { a, b -> a.info.name.compareTo(b.info.name) }
                d += { items = null }
+               d += { pluginInfo.plugin = null }
             }
             lay(ALWAYS) += pluginInfo
          }
@@ -619,8 +644,8 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
 
    override fun refreshValue() {}
 
-   class PluginInfoPane: VBox() {
-      private val disposer = Disposer()
+   private class PluginInfoPane: StackPane() {
+      val disposer = Disposer()
       var plugin: PluginBox<*>? = null
          set(value) {
             field = value
@@ -628,23 +653,132 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
             disposer()
             if (value!=null) {
                alignment = TOP_LEFT
-               lay += label("Name: " + value.info.name.toUi())
-               lay += label("Supported: " + value.info.isSupported.toUi())
-               lay += hBox(0, CENTER_LEFT) {
-                  lay += label("Enabled: ")
-                  lay += CheckIcon().apply {
-                     gap(0)
-                     selected syncFrom value.enabled on disposer
-                     onClickDo { value.enabled.toggle() }
+
+               lay(TOP_RIGHT) += Icon(value.info.icon ?: IconFA.PLUG, 128.0).apply {
+                  isFocusTraversable = false
+                  isMouseTransparent = true
+               }
+               lay += vBox {
+                  lay += label(value.info.name.toUi()) {
+                     styleClass += listOf("h4", "h4p", "text-weight-bold")
+                  }
+                  lay += label("Name: " + value.info.name.toUi())
+                  lay += label("Supported: " + value.info.isSupported.toUi())
+                  lay += hBox(0, CENTER_LEFT) {
+                     lay += label("Enabled: ")
+                     lay += CheckIcon().apply {
+                        gap(0)
+                        selected syncFrom value.enabled on disposer
+                        onClickDo { value.enabled.toggle() }
+                     }
+                  }
+                  if (value.isBundled) {
+                     lay += label("Version: " + value.info.version.toUi() + " (bundled)")
+                  } else {
+                     lay += label("Version: " + value.info.version.toUi())
+                     lay += label("Author: " + value.info.author.toUi())
+                  }
+                  lay += label("Enabled by default: " + value.info.isEnabledByDefault.toUi())
+                  lay += label("Runs in SLAVE application: " + value.info.isSingleton.not().toUi())
+                  lay += textFlow {
+                     styleClass += "h4p"
+                     lay += text(value.info.description.toUi())
                   }
                }
-               lay += label("Version: " + value.info.version.toUi())
-               lay += label("Bundled: " + value.isBundled.toUi())
-               lay += label("Enabled by default: " + value.info.isEnabledByDefault.toUi())
-               lay += label("Runs in SLAVE application: " + value.info.isSingleton.not().toUi())
-               lay += TextFlow().apply {
-                  styleClass += "h4p"
-                  lay += text(value.info.description.toUi())
+            }
+         }
+   }
+}
+
+class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Widgets>(c) {
+   private val widgetInfo = WidgetInfoPane()
+   override val editor = stackPane {
+      val d = onNodeDispose
+      lay += vBox {
+         lay += label("Installed widgets:").apply {
+            styleClass += "h4p"
+         }
+         lay += hBox {
+            lay += listView<WidgetInfo> {
+               pseudoClassChanged("no-fixed-cell-size", true)
+               minPrefMaxWidth = 250.emScaled
+               cellFactory = Callback {
+                  object: ListCell<WidgetInfo>() {
+                     val icon = Icon(null, 48.0).apply {
+                        isFocusTraversable = false
+                        isMouseTransparent = true
+                     }
+                     val label1 = label("") {
+                        styleClass += "text-weight-bold"
+                     }
+                     val label2 = label("")
+                     val root = hBox {
+                        lay += icon
+                        lay += vBox {
+                           lay += label1
+                           lay += label2
+                        }
+                     }
+                     override fun updateItem(item: WidgetInfo?, empty: Boolean) {
+                        super.updateItem(item, empty)
+                        graphic = root
+                        icon.icon(item?.icon ?: IconOC.PLUG)
+                        label1.text = item?.name?.toS()
+                        label2.text = item?.let { it.version.toS() + "\t" + it.author.toS() }
+                     }
+                  }
+               }
+               selectionModel.selectionMode = SINGLE
+               selectionModel.selectedItemProperty() sync { widgetInfo.widget = it }
+               d += { selectionModel.clearSelection() }
+               items = APP.widgetManager.factories.getFactoriesObservable().toJavaFx().sorted { a, b -> a.name.compareTo(b.name) }.asIs()
+               d += { items = null }
+               d += { widgetInfo.widget = null }
+            }
+            lay(ALWAYS) += widgetInfo
+         }
+
+      }
+   }
+
+   override fun get() = Try.ok(config.value)
+
+   override fun refreshValue() {}
+
+   private class WidgetInfoPane: StackPane() {
+      val disposer = Disposer()
+      var widget: WidgetInfo? = null
+         set(value) {
+            field = value
+            children.clear()
+            disposer()
+            if (value!=null) {
+               alignment = TOP_LEFT
+
+               lay(TOP_RIGHT) += Icon(value.icon ?: IconFA.PLUG, 128.0).apply {
+                  isFocusTraversable = false
+                  isMouseTransparent = true
+               }
+               lay += vBox {
+                  lay += label(value.name.toUi()) {
+                     styleClass += listOf("h4", "h4p", "text-weight-bold")
+                  }
+                  lay += label("Name: " + value.name.toUi())
+                  lay += label("Id: " + value.id.toUi())
+                  lay += label("Supported: " + value.isSupported.toUi())
+                  lay += label("Version: " + value.version.toUi())
+                  lay += label("Year: " + value.year.toUi())
+                  lay += label("Author: " + value.author.toUi())
+                  lay += label("Contributor: " + value.contributor.toUi())
+                  lay += textFlow {
+                     styleClass += "h4p"
+                     lay += text(value.description.toUi())
+                     lay += text(value.descriptionLong.toUi())
+                     lay += text {
+                        val fs = value.features
+                        text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString { "\n\t${it.name} - ${it.description}" })
+                     }
+                  }
                }
             }
          }

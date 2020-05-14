@@ -13,6 +13,7 @@ import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.raw
 import sp.it.util.type.union
 import java.util.Optional
@@ -134,19 +135,25 @@ fun <T, R, SET> SET.project(mapper: (T) -> R): ObservableSetRO<R> where SET: Set
 }
 
 /** Type safe read-only [ObservableList] implemented by delegation as [List] that is [Observable]. */
-class ObservableListRO<out T>(private val list: ObservableList<T>): List<T> by list, Observable {
+class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list, Observable {
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = list.addListener(listener)
    fun addListener(listener: ListChangeListener<in T>) = list.addListener(listener)
    fun removeListener(listener: ListChangeListener<in T>) = list.removeListener(listener)
+   fun toJavaFx(): ObservableList<T> = observableArrayList(this).also {
+      onChange { it setTo this }
+   }
 }
 
 /** Type safe read-only [ObservableSet] implemented by delegation as [Set] that is [Observable]. */
-class ObservableSetRO<out T>(private val set: ObservableSet<T>): Set<T> by set, Observable {
+class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Observable {
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = set.addListener(listener)
    fun addListener(listener: SetChangeListener<in T>) = set.addListener(listener)
    fun removeListener(listener: SetChangeListener<in T>) = set.removeListener(listener)
+   fun toJavaFx(): ObservableSet<T> = observableSet(this).also {
+      onChange { it setTo this }
+   }
 }
 
 fun <T> ObservableList<T>.readOnly() = ObservableListRO(this)

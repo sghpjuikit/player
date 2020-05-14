@@ -102,8 +102,7 @@ private fun File.readTimeCreated(): FileTime? =
    when (this.mimeType().name) {
       "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
       else -> when {
-         // poor but fast way of avoiding xmp reading for directories
-         name.contains(".") -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
+         isFile -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
          else -> readTimeMinOfCreatedAndModified()
       }
    }

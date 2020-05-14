@@ -15,6 +15,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
+import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.ui.itemnode.textfield.EffectTextField.Companion.EFFECT_TYPES
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.main.appTooltip
@@ -262,6 +263,10 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          put<PluginManager> {
             if (it.type.isNullable) GeneralCE(it)
             else PluginsCE(it.asIs())
+         }
+         put<WidgetManager.Widgets> {
+            if (it.type.isNullable) GeneralCE(it)
+            else WidgetsCE(it.asIs())
          }
 
          EFFECT_TYPES.map { it.type ?: Effect::class }.forEach {

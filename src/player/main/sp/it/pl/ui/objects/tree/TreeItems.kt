@@ -44,6 +44,7 @@ import sp.it.pl.layout.widget.feature.ConfiguringFeature
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.main.toUi
@@ -150,11 +151,11 @@ fun treeApp(): TreeItem<Any> {
       tree("Behavior",
          tree("Widgets",
             tree("Categories", Widget.Group.values().asList()),
-            tree("Types", { APP.widgetManager.factories.getFactories().sortedBy { it.name } }),
+            tree("Types", APP.widgetManager.factories.getFactoriesObservable().toJavaFx().sorted { a,b -> a.name.compareTo(b.name) }),
             tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
          ),
-         tree("Plugins", APP.plugins.pluginsObservable.sorted { a,b -> a.info.name.compareTo(b.info.name) })
+         tree("Plugins", APP.plugins.pluginsObservable.toJavaFx().sorted { a,b -> a.info.name.compareTo(b.info.name) })
       ),
       tree("UI",
          tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),
@@ -291,8 +292,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
          if (type==FileType.DIRECTORY && APP.location.widgets==p.parentFile || p.isValidWidgetFile())
             createIcon(IconFA.GE, 8.0)
 
-         if (type==FileType.FILE) createIcon(IconFA.FILE, 8.0)
-         else createIcon(IconFA.FOLDER, 8.0)
+         if (type==FileType.FILE) createIcon(IconUN(0x1f4c4), 8.0)
+         else createIcon(IconUN(0x1f4c1), 8.0)
       }
       else -> null
    }

@@ -1377,7 +1377,14 @@ Text {
 .table-view,
 .tree-view,
 .tree-table-view {
-    -fx-fixed-cell-size: 1.5em;
+    -fx-fixed-cell-size: 2em;
+}
+
+.list-view: no-fixed-cell-size,
+.table-view: no-fixed-cell-size,
+.tree-view: no-fixed-cell-size,
+.tree-table-view: no-fixed-cell-size {
+    -fx-fixed-cell-size: 0;
 }
 
 .combo-box-popup > .list-view {

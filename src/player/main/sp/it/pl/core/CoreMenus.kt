@@ -279,7 +279,7 @@ object CoreMenus: Core {
          add<Widget.Group> {
             item("Show open widget instances") { group ->
                APP.ui.actionPane.orBuild.show(
-                  APP.widgetManager.widgets.findAll(WidgetSource.OPEN).filter { it.factory.group()==group }.sortedBy { it.name }.toList()
+                  APP.widgetManager.widgets.findAll(WidgetSource.OPEN).filter { it.factory.group==group }.sortedBy { it.name }.toList()
                )
             }
          }

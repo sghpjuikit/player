@@ -15,6 +15,7 @@ import javafx.stage.Screen
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
+import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -25,7 +26,10 @@ import sp.it.pl.layout.widget.feature.TextDisplayFeature
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL
+import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.pl.ui.pane.OverlayPane
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
@@ -41,6 +45,7 @@ import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
+import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.browse
@@ -94,7 +99,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       APP.ui.actionPane.orBuild.show(AppOpen)
    }
 
-   @IsAction(name = "Show shortcuts", info = "Display all available shortcuts.", keys = "COMMA")
+   // hardcoded shortcut, see ActionManager.keyShortcuts
    fun showShortcuts() {
       fun Entry.ifInteractiveOn() = takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value }
       val actionsStandard = ActionRegistrar.getActions().map { Entry(it) }
@@ -102,13 +107,35 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("UI > Window", "Move window", keys("ALT+drag " + PRIMARY.nameUi)).ifInteractiveOn(),
          Entry("UI > Window", "Move window -> toggle maximize", keys("ALT+drag ${PRIMARY.nameUi}+${SECONDARY.nameUi}")).ifInteractiveOn(),
          Entry("UI > Window", "Resize window", keys("ALT+drag " + SECONDARY.nameUi)).ifInteractiveOn(),
+         Entry("UI > Window", "Resize window", keys("ALT+drag edge " + SECONDARY.nameUi)).ifInteractiveOn(),
+         Entry("UI > Window", "Maximize (toggle ${ALL.toUi()}/${NONE.toUi()})", keys("header 2x${PRIMARY.nameUi}")),
+         Entry("UI > Window", "Header visible (toggle)", keys("header 2x${SECONDARY.nameUi}")),
+         Entry("UI > Window", "Close", keys("ALT+F4")),
+         Entry("UI > Popup", "Close", ESCAPE.nameUi),
+         Entry("Ui", "Show application help", Key.F1.nameUi),
+         Entry("Ui", "Show application help", ActionManager.keyShortcuts.nameUi),
+         Entry("Ui", "Show widget help", ActionManager.keyShortcutsComponent.nameUi),
          Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
-         Entry("Ui", "Table filter", keys("CTRL+F")),
-         Entry("Ui", "Table filter (close)", ESCAPE.nameUi),
-         Entry("Ui", "Table search", "Type text"),
-         Entry("Ui", "Table search (cancel)", ESCAPE.nameUi)
+         Entry("Ui > Table/List/Grid", "Filter", keys("CTRL+F")),
+         Entry("Ui > Table/List/Grid", "Filter (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Table/List/Grid", "Filter (clear)", ESCAPE.nameUi),
+         Entry("Ui > Table/List/Grid", "Search", "Type text"),
+         Entry("Ui > Table/List/Grid", "Search (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Table/List/Grid", "Selection (cancel)", ESCAPE.nameUi)
       )
-      APP.ui.shortcutPane.orBuild.show(actionsStandard + actionsHardcoded)
+      APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info("", actionsStandard + actionsHardcoded))
+   }
+
+   fun showShortcutsFor(widget: Widget) {
+      val t = widget.factory.summaryUi
+
+      val actionsHardcoded = listOfNotNull(
+         Entry(" Layout", "Go to child", keys("${PRIMARY.nameUi} (layout mode)")),
+         Entry(" Layout", "Go to parent", keys("${SECONDARY.nameUi} (layout mode)")),
+         Entry(" Layout", "Drags widget to other area", keys("${PRIMARY.nameUi} + Drag")),
+         Entry(" Layout", "Detach widget", keys("${SHORTCUT.nameUi} + ${PRIMARY.nameUi} + Drag"))
+      )
+      APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info(t, actionsHardcoded + widget.factory.summaryActions))
    }
 
    @IsAction(name = "Show system info", info = "Display system information.")

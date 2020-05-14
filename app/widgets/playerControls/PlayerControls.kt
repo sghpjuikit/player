@@ -16,6 +16,8 @@ import javafx.scene.layout.Pane
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.UNKNOWN
+import javafx.scene.text.TextBoundsType.LOGICAL
+import javafx.scene.text.TextBoundsType.VISUAL
 import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playback.VolumeProperty
@@ -27,10 +29,6 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.seeker.ChapterDisplayActivation.HOVER
-import sp.it.pl.ui.objects.seeker.ChapterDisplayMode.POPUP_SHARED
-import sp.it.pl.ui.objects.seeker.Seeker
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
@@ -38,11 +36,17 @@ import sp.it.pl.layout.widget.feature.PlaybackFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.PLAYBACK_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.boundsType
+import sp.it.pl.ui.objects.seeker.ChapterDisplayActivation.HOVER
+import sp.it.pl.ui.objects.seeker.ChapterDisplayMode.POPUP_SHARED
+import sp.it.pl.ui.objects.seeker.Seeker
 import sp.it.util.access.toggle
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.cv
@@ -61,7 +65,6 @@ import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
-import sp.it.util.units.toEM
 import sp.it.util.units.toHMSMs
 import java.io.File
 
@@ -99,14 +102,12 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val titleL = Label()
    val artistL = Label()
    val seeker = Seeker()
-   val f1 = IconFA.ANGLE_DOUBLE_LEFT.icon(24.0) { APP.audio.seekBackward(seekType.value) }
-   val f2 = IconFA.FAST_BACKWARD.icon(24.0) { PlaylistManager.playPreviousItem() }
-   val f3 = IconFA.PLAY.icon(24.0) { APP.audio.pauseResume() }
-   val f4 = IconFA.FAST_FORWARD.icon(24.0) { PlaylistManager.playNextItem() }
-   val f5 = IconFA.ANGLE_DOUBLE_RIGHT.icon(24.0) { APP.audio.seekForward(seekType.value) }
-   val muteB = IconFA.VOLUME_UP.icon(12.0) { APP.audio.toggleMute() }
+   val f2 = IconUN(0x2aa1).icon(72.0) { PlaylistManager.playPreviousItem() /*APP.audio.seekBackwardForward(seekType.value)*/ }
+   val f3 = IconUN(0x25c6).icon(128.0) { APP.audio.pauseResume() }
+   val f4 = IconUN(0x2aa2).icon(72.0) { PlaylistManager.playNextItem() /*APP.audio.seekForward(seekType.value)*/ }
+   val muteB = IconFA.VOLUME_UP.icon(24.0) { APP.audio.toggleMute() }
    val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.toggleLoopMode() }
-   val playbackButtons = listOf(f1, f2, f3, f4, f5, seeker)
+   val playbackButtons = listOf(f2, f3, f4, seeker)
    private val layoutSmall = LayoutSmall()
    private val layoutBig = LayoutBig()
 
@@ -133,6 +134,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       volume.value = ps.volume.get()
       volume.valueProperty() syncBiFrom ps.volume on onClose
 
+      muteB.boundsType = LOGICAL
+
       ps.duration sync { totalTime.text = it.toHMSMs() } on onClose
       ps.currentTime.map(onClose) { it.toSeconds().toLong() } sync { timeChanged(ps) }
       ps.realTimeImpl.map(onClose) { it.toSeconds().toLong() } sync { realTime.text = it.seconds.toHMSMs() }
@@ -156,10 +159,9 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       root.heightProperty().map(onClose) { it.toDouble()<100.0.emScaled } sync {
          val layout: Layout = if (it) layoutSmall else layoutBig
          root.children setToOne layout.with(f2, f3, f4, muteB, seeker)
-         f2.size(if (it) 12 else 24)
-         f3.size(if (it) 12 else 48)
-         f3.gap(if (it) 12 else 36)
-         f4.size(if (it) 12 else 24)
+         f2.size(if (it) 24 else 72)
+         f3.size(if (it) 40 else 144)
+         f4.size(if (it) 24 else 72)
       }
    }
 
@@ -183,18 +185,14 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       when (newStatus) {
          null, UNKNOWN -> {
             playbackButtons.forEach { it.isDisable = true }
-            f3.icon(IconFA.PLAY)
+            f3.icon(IconUN(0x25c6))
          }
          else -> {
             playbackButtons.forEach { it.isDisable = false }
             f3.icon(when (newStatus) {
-               PLAYING -> IconFA.PAUSE
-               else -> IconFA.PLAY
+               PLAYING -> IconUN(0x25ca)
+               else -> IconUN(0x27e0)
             })
-            f3.glyphOffsetX.value = when (newStatus) {
-               PLAYING -> -APP.ui.font.value.size.toEM()*0.2
-               else -> APP.ui.font.value.size.toEM()*3.0
-            }
          }
       }
    }
@@ -217,9 +215,10 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
 
    private fun muteChanged(playback: PlaybackState) {
       muteB.icon(when {
-         playback.mute.value -> IconFA.VOLUME_OFF
-         playback.volume.value>0.5 -> IconFA.VOLUME_UP
-         else -> IconFA.VOLUME_DOWN
+         playback.mute.value -> IconUN(0x1f507)
+         playback.volume.value==0.0 -> IconUN(0x1f508)
+         playback.volume.value>0.5 -> IconUN(0x1f50a)
+         else -> IconUN(0x1f509)
       })
    }
 
@@ -231,7 +230,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    }
 
    companion object {
-      fun GlyphIcons.icon(size: Double, block: (Icon) -> Unit) = Icon(this, size).onClickDo(block)
+      fun GlyphIcons.icon(size: Double, block: (Icon) -> Unit) = Icon(this, size).onClickDo(block).apply { boundsType = VISUAL }
    }
 
    interface Layout {
@@ -244,13 +243,15 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    }
 
    inner class LayoutBig: AnchorPane(), Layout {
+      lateinit var iconParent: Pane
 
       init {
          lay(0.0, 0.0, 15.0, 0.0) += hBox(40.0) {
-            lay += hBox(5.0, CENTER) {
+            lay += hBox(0, CENTER) {
                padding = Insets(0.0, 0.0, 0.0, 20.0)
+               iconParent = this
 
-               lay += listOf(f1, f5, loopB)
+               lay += listOf(loopB)
             }
             lay += vBox(0.0, CENTER) {
                lay += titleL
@@ -279,9 +280,9 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       }
 
       override fun add(_f2: Node, _f3: Node, _f4: Node, _muteB: Node, _seeker: Node) {
-         f1.parent.asIs<Pane>().children.add(1, _f2)
-         f1.parent.asIs<Pane>().children.add(2, _f3)
-         f1.parent.asIs<Pane>().children.add(3, _f4)
+         iconParent.children.add(0, _f2)
+         iconParent.children.add(1, _f3)
+         iconParent.children.add(2, _f4)
          volume.parent.asIs<Pane>().children.add(0, muteB)
          lay(null, 0.0, 0.0, 0.0) += seeker
       }

@@ -70,9 +70,6 @@ abstract class Controller(widget: Widget): Configurable<Any?>, Locatable {
     */
    abstract fun close()
 
-   /** @return all implemented features */
-   fun getFeatures(): List<Feature> = widget.factory.getFeatures()
-
 }
 
 /** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */

@@ -50,6 +50,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.Util.layHorizontally
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -318,8 +319,7 @@ class Guide: PluginBase() {
             ("Shortcuts are keys and key combinations that invoke some action."
                + "\n\nTo configure shortcuts, visit Settings > Shortcuts. Shortcuts can be global "
                + "or local. Global shortcuts will work even if the application has no focus."
-               + "\n\nTo see all the available shortcuts, simply press "
-               + ActionRegistrar["Show shortcuts"].keys.pretty() + ".")
+               + "\n\nTo see all the available shortcuts, simply press ${ActionManager.keyShortcuts.nameUi}.")
          },
          null
       )

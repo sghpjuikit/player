@@ -44,6 +44,7 @@ import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
@@ -371,7 +372,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                                     game.play()
                               }
                            }
-                           lay += IconFA.FOLDER icon { game.location.open() }
+                           lay += IconUN(0x1f4c1) icon { game.location.open() }
                            lay += IconMD.WIKIPEDIA icon { WikipediaQBuilder(game.name).browse() }
                            lay += IconMD.STEAM icon { SteamQBuilder(game.name).browse() }
 

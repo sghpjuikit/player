@@ -19,12 +19,12 @@
     -fx-background-color: rgba(0,0,0,0.7);
 }
 
-/** Pane for thumbnails. */
-.thumbnail-pane {
-    -fx-background-color: rgba(0,0,0,0.4);
+/** Next/Previous image icons. */
+.nav-pane > .nav-icon {
+    -glyph-size: 2em;
 }
 
-/** 
+/**
  * Alternative style activated by right click for
  * Now playing song info pane in the corner in theater mode
  */

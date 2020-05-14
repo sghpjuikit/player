@@ -9,17 +9,21 @@ import javafx.scene.control.Slider
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
-import sp.it.pl.ui.objects.form.Form.Companion.form
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.Key
 import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
+import sp.it.pl.ui.objects.form.Form.Companion.form
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.access.vx
@@ -53,18 +57,12 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
+import sp.it.util.units.version
+import sp.it.util.units.year
 import java.io.File
 import kotlin.math.sqrt
 
 @Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments", "RedundantLambdaArrow")
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = TESTER_NAME,
-   description = "Provides facilities for testing and development.",
-   version = "1.0.0",
-   year = "2020",
-   group = Widget.Group.DEVELOPMENT
-)
 @ExperimentalController("For development")
 class Tester(widget: Widget): SimpleController(widget) {
    val content = stackPane()
@@ -195,5 +193,19 @@ class Tester(widget: Widget): SimpleController(widget) {
             }
          }
       }
+   }
+
+   companion object: WidgetCompanion {
+      override val name = TESTER_NAME
+      override val description = "Provides facilities for testing and development"
+      override val descriptionLong = "$description."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2020)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf<ShortcutPane.Entry>()
+      override val group = DEVELOPMENT
    }
 }

@@ -5,6 +5,7 @@ import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconUN
 import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.conf.Constraint.FileActor
@@ -32,7 +33,7 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?, val picker
 
          right.value = layHorizontally(5.0, CENTER_RIGHT, b1, b2)
 
-         type sync { b1.icon(if (it==FILE) IconFA.FILE else IconFA.FOLDER) }
+         type sync { b1.icon(if (it==FILE) IconUN(0x1f4c4) else IconUN(0x1f4c1)) }
       }
 
       addEventHandler(DRAG_OVER, handlerAccepting { it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } })

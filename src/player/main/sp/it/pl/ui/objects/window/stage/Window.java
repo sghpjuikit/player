@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.window.stage;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -33,6 +32,7 @@ import sp.it.pl.layout.container.SwitchContainerUi;
 import sp.it.pl.main.AppErrors;
 import sp.it.pl.main.Df;
 import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.objects.icon.UnicodeIcon;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.V;
 import sp.it.util.action.ActionManager;
@@ -47,7 +47,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
@@ -64,9 +63,8 @@ import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
-import static javafx.scene.input.KeyCode.ALT;
-import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCode.DOWN;
+import static javafx.scene.input.KeyCode.F1;
 import static javafx.scene.input.KeyCode.LEFT;
 import static javafx.scene.input.KeyCode.RIGHT;
 import static javafx.scene.input.KeyCode.UP;
@@ -87,13 +85,19 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIcon;
-import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.getAnyFut;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.window.Resize.*;
+import static sp.it.pl.ui.objects.window.Resize.ALL;
+import static sp.it.pl.ui.objects.window.Resize.E;
+import static sp.it.pl.ui.objects.window.Resize.N;
+import static sp.it.pl.ui.objects.window.Resize.NE;
 import static sp.it.pl.ui.objects.window.Resize.NONE;
+import static sp.it.pl.ui.objects.window.Resize.NW;
+import static sp.it.pl.ui.objects.window.Resize.S;
+import static sp.it.pl.ui.objects.window.Resize.SE;
+import static sp.it.pl.ui.objects.window.Resize.SW;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.buildWindowLayout;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.lookupId;
@@ -110,7 +114,6 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.SubscriptionKt.on;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.syncC;
-import static sp.it.util.text.UtilKt.getNameUi;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.getScreenXy;
@@ -294,33 +297,47 @@ public class Window extends WindowBase {
 			if (e.getDeltaY()>0) APP.audio.volumeInc();
 			else if (e.getDeltaY()<0) APP.audio.volumeDec();
 		});
-
-		List<Maximized> maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
-		root.addEventFilter(KeyEvent.ANY, e -> {
-			// layout mode
-			if (e.getCode().equals(ActionManager.INSTANCE.getKeyManageLayout())) {
-				if (e.getEventType().equals(KEY_RELEASED)) APP.ui.setLayoutMode(false);
-				if (e.getEventType().equals(KEY_PRESSED)) APP.ui.setLayoutMode(true);
+		// show help
+		root.addEventHandler(KEY_PRESSED, e -> {
+			if (!e.isAltDown() && !e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
+				if (e.getCode().equals(F1) || e.getCode().equals(ActionManager.INSTANCE.getKeyShortcuts())) {
+					APP.getActions().showShortcuts();
+					e.consume();
+				}
 			}
-			// toggle maximized
-			if (e.getEventType().equals(KEY_PRESSED)) {
-				if (e.isAltDown() && e.isShiftDown()) {
-
-					if (e.getCode()==LEFT) {
-						if (maximized.get()==Maximized.LEFT) screen = previous(Screen.getScreens(), screen);
-						setMaximized(previous(maximizedValues, maximized.get()));
-					}
-					if (e.getCode()==RIGHT) {
-						if (maximized.get()==Maximized.RIGHT) screen = next(Screen.getScreens(), screen);
-						setMaximized(next(maximizedValues, maximized.get()));
-					}
-					if (e.getCode()==UP) {
-						setMaximized(Maximized.ALL);
-					}
-					if (e.getCode()==DOWN) {
-						if (maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
-						else minimize();
-					}
+		});
+		// toggle maximized
+		var maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
+		root.addEventFilter(KEY_PRESSED, e -> {
+			if (e.isAltDown() && e.isShiftDown()) {
+				if (e.getCode()==LEFT) {
+					if (maximized.get()==Maximized.LEFT) screen = previous(Screen.getScreens(), screen);
+					setMaximized(previous(maximizedValues, maximized.get()));
+					e.consume();
+				}
+				if (e.getCode()==RIGHT) {
+					if (maximized.get()==Maximized.RIGHT) screen = next(Screen.getScreens(), screen);
+					setMaximized(next(maximizedValues, maximized.get()));
+					e.consume();
+				}
+				if (e.getCode()==UP) {
+					setMaximized(Maximized.ALL);
+					e.consume();
+				}
+				if (e.getCode()==DOWN) {
+					if (maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
+					else minimize();
+					e.consume();
+				}
+			}
+		});
+		// layout mode
+		root.addEventFilter(KeyEvent.ANY, e -> {
+			if (!e.isAltDown() && !e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
+				if (e.getCode().equals(ActionManager.INSTANCE.getKeyManageLayout())) {
+					if (e.getEventType().equals(KEY_RELEASED)) APP.ui.setLayoutMode(false);
+					if (e.getEventType().equals(KEY_PRESSED)) APP.ui.setLayoutMode(true);
+					e.consume();
 				}
 			}
 		});
@@ -334,23 +351,12 @@ public class Window extends WindowBase {
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
 		on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE)), onClose);
-		Icon helpB = infoIcon("Available actions:"
-			+ "\n"
-			+ "\n" + getNameUi(ALT) + " + LMB drag: Move window, snap to windows/screens, maximize on screen edge"
-			+ "\n" + getNameUi(ALT) + " + LMB drag + RMB click: Toggle maximize"
-			+ "\n" + getNameUi(ALT) + " + RMB drag: Resize window"
-			+ "\nLMB drag edge: Resize window"
-			+ "\nHeader LMB drag: Move window, snap to windows/screens, maximize on screen edge"
-			+ "\nHeader double LMB click: Toggle maximized mode on/off"
-			+ "\nHeader double RMB click: Toggle hide header on/off"
-			+ "\n" + getNameUi(ALT_GRAPH) + " : Toggle layout mode"
-		).styleclass("header-icon");
 		Icon errorB = new Icon(FontAwesomeIcon.WARNING, -1).styleclass("header-icon")
 			.action(() -> AppErrors.INSTANCE.showDetailForLastError())
 			.tooltip("Errors");
 		onChangeAndNow(AppErrors.INSTANCE.getHistory(), runnable(() -> errorB.setVisible(!AppErrors.INSTANCE.getHistory().isEmpty())));
 
-		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), helpB, errorB);
+		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
@@ -363,7 +369,7 @@ public class Window extends WindowBase {
 		Icon minB = new Icon(WINDOW_MINIMIZE, -1, "Minimize application", this::toggleMinimize).styleclass("header-icon");
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, ActionRegistrar.get("Maximize")).styleclass("header-icon");
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon closeB = new Icon(CLOSE, -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
+		Icon closeB = new Icon(new UnicodeIcon(0x271b), -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
 			.action(() -> APP.windowManager.setAsMain(this));
 		syncC(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));

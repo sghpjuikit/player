@@ -1,7 +1,10 @@
 package sp.it.util.action
 
 import javafx.application.Platform
+import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT_GRAPH
+import javafx.scene.input.KeyCode.COMMA
+import javafx.scene.input.KeyCode.PERIOD
 import javafx.stage.Stage
 import sp.it.util.access.v
 import sp.it.util.action.ActionRegistrar.hotkeys
@@ -24,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap
 object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 
    val keyManageLayout by c(ALT_GRAPH).def(name = "Manage Layout (fast) Shortcut", info = "Enables layout management mode.", editable = NONE)
+   val keyShortcuts by c(COMMA).def(name = "Show shortcuts", info = "Display all available shortcuts.", editable = NONE)
+   val keyShortcutsComponent by c(PERIOD).def(name = "Show shortcuts", info = "Display all available shortcuts.", editable = NONE)
 
    // @IsConfig(name = "Media shortcuts supported", editable = NONE, info = "Whether media shortcuts are supported on this system")
    // private val isMediaShortcutsSupported by c(true)

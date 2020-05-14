@@ -1,15 +1,20 @@
 package sp.it.pl.layout.widget
 
+import de.jensd.fx.glyphs.GlyphIcons
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.controller.Controller
 import sp.it.pl.layout.widget.controller.NoFactoryController
 import sp.it.pl.main.APP
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
+import sp.it.util.functional.asIf
 import sp.it.util.text.nullIfBlank
 import java.io.File
+import java.time.Year
 import java.util.UUID
 import kotlin.reflect.KClass
+import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.jvmName
 
@@ -25,16 +30,19 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    val controllerType: Class<C>
    val location: File
    val locationUser: File
-   private val idImpl: String
-   private val nameImpl: String
-   private val description: String
-   private val version: String
-   private val author: String
-   private val contributor: String
-   private val howto: String
-   private val year: String
-   private val notes: String
-   private val group: Widget.Group
+   override val id: String
+   override val name: String
+   override val icon: GlyphIcons?
+   override val description: String
+   override val descriptionLong: String
+   override val version: KotlinVersion
+   override val isSupported: Boolean
+   override val author: String
+   override val contributor: String
+   override val year: Year
+   override val group: Widget.Group
+   override val type: Class<*>
+   override val summaryActions: List<ShortcutPane.Entry>
 
    /** Whether this factory will be preferred on widget `find and create` requests. */
    var isPreferred = false
@@ -47,33 +55,27 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
     * @param location parent directory of the widget
     */
    constructor(controllerType: KClass<C>, location: File) {
-      val i: Widget.Info = controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
+      val info = controllerType.companionObjectInstance?.asIf<WidgetInfo>()
+      val i: Widget.Info = null
+         ?: controllerType.findAnnotation()
+         ?: WidgetFactory::class.findAnnotation()!!
       this.controllerType = controllerType.java
       this.location = location
       this.locationUser = APP.location.user.widgets/location.nameOrRoot
-      this.idImpl = controllerType.simpleName ?: controllerType.jvmName
-      this.nameImpl = i.name.nullIfBlank() ?: idImpl
-      this.description = i.description
-      this.version = i.version
-      this.author = i.author
-      this.contributor = i.contributor
-      this.howto = i.howto
-      this.year = i.year
-      this.notes = i.notes
-      this.group = i.group
+      this.id = controllerType.simpleName ?: controllerType.jvmName
+      this.name = info?.name ?: i.name.nullIfBlank() ?: id
+      this.icon = info?.icon
+      this.description = info?.description ?: i.description
+      this.descriptionLong = (info?.descriptionLong ?: i.howto) + "\n" + i.notes
+      this.version = info?.version ?: KotlinVersion(0, 0, 0)//i.version// ?: KotlinVersion(0, 0, 0)
+      this.author = info?.author ?: i.author
+      this.contributor = info?.contributor ?: i.contributor
+      this.year = info?.year ?: i.year.toIntOrNull()?.let { Year.of(it) } ?: Year.now()
+      this.isSupported = info?.isSupported ?: true
+      this.group = info?.group ?: i.group
+      this.type = this.controllerType
+      this.summaryActions = info?.summaryActions.orEmpty()
    }
-
-   override val id get() = idImpl
-   override val name get() = nameImpl
-   override fun description() = description
-   override fun version() = version
-   override fun author() = author
-   override fun contributor() = contributor
-   override fun year() = year
-   override fun howto() = howto
-   override fun notes() = notes
-   override fun group() = group
-   override fun type() = controllerType
 
    override fun create(): Widget = Widget(UUID.randomUUID(), this, false)
 
@@ -100,6 +102,7 @@ class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
 class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapitalize()) {
    override val id = factoryId
    override val name = factoryId
+   override val summaryActions = listOf<ShortcutPane.Entry>()
 
    override fun toString() = "${javaClass.simpleName} $factoryId"
 

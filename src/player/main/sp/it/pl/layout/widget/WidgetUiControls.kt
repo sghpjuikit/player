@@ -7,16 +7,12 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Label
 import javafx.scene.effect.BoxBlur
 import javafx.scene.input.DragEvent.DRAG_DONE
-import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import sp.it.pl.core.CoreMouse
-import sp.it.pl.ui.objects.icon.CheckIcon
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.ComponentUiControlsBase
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
@@ -27,18 +23,17 @@ import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.emScaled
-import sp.it.pl.main.infoIcon
+import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
-import sp.it.util.text.nameUi
 import sp.it.util.ui.centre
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
@@ -49,7 +44,6 @@ import sp.it.util.ui.toP
 class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    val title = Label()
    val propB: Icon
-   val infoB: Icon
    val absB: Icon
    val lockB: Icon
 
@@ -87,21 +81,8 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
             selected sync { icon(if (it) IconOC.UNFOLD else IconOC.FOLD) }
             selected attach { area.widget.loadType.value = if (it) AUTOMATIC else MANUAL }
          }
-         infoB = infoIcon {
-            """
-               |Controls for managing widget.
-               |
-               |Available actions:
-               |	${PRIMARY.nameUi} : Go to child
-               |	${SECONDARY.nameUi} click : Go to parent
-               |	Drag : Drags widget to other area
-               |	Drag + ${SHORTCUT.nameUi} : Detach widget
-               |
-               |${area.widget.factory.summaryUi}
-            """.trimMargin()
-         }.styleclass("header-icon")
 
-         lay += listOf(infoB, loadB, absB, lockB, propB, actB, closeB)
+         lay += listOf(loadB, absB, lockB, propB, actB, closeB)
       }
 
       // build animations

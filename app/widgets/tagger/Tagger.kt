@@ -83,6 +83,27 @@ import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.core.CoreMenus
+import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.Widget.Group.LIBRARY
+import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.layout.widget.feature.SongWriter
+import sp.it.pl.main.APP
+import sp.it.pl.main.AppProgress
+import sp.it.pl.main.AppTexts
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.Widgets.SONG_TAGGER_NAME
+import sp.it.pl.main.appProgressIndicator
+import sp.it.pl.main.emScaled
+import sp.it.pl.main.formIcon
+import sp.it.pl.main.getAudio
+import sp.it.pl.main.hasAudio
+import sp.it.pl.main.installDrag
+import sp.it.pl.main.isAudioEditable
+import sp.it.pl.main.isImageJaudiotagger
+import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.itemnode.textfield.MoodItemNode
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion
 import sp.it.pl.ui.objects.icon.CheckIcon
@@ -94,25 +115,7 @@ import sp.it.pl.ui.objects.spinner.Spinner
 import sp.it.pl.ui.objects.window.NodeShow.LEFT_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.layout.widget.feature.SongWriter
-import sp.it.pl.main.APP
-import sp.it.pl.main.AppProgress
-import sp.it.pl.main.AppTexts
-import sp.it.pl.main.IconFA
-import sp.it.pl.main.Widgets
-import sp.it.pl.main.appProgressIndicator
-import sp.it.pl.main.emScaled
-import sp.it.pl.main.formIcon
-import sp.it.pl.main.getAudio
-import sp.it.pl.main.hasAudio
-import sp.it.pl.main.infoIcon
-import sp.it.pl.main.installDrag
-import sp.it.pl.main.isAudioEditable
-import sp.it.pl.main.isImageJaudiotagger
-import sp.it.pl.plugin.impl.Notifier
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.async.runIO
@@ -131,6 +134,8 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.text.pluralUnit
 import sp.it.util.type.type
 import sp.it.util.ui.borderPane
@@ -160,6 +165,8 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.em
+import sp.it.util.units.version
+import sp.it.util.units.year
 import java.io.File
 import java.net.URI
 import java.time.Year
@@ -169,21 +176,6 @@ import sp.it.pl.ui.objects.textfield.DecoratedTextField as DTextField
 typealias Predicate = (String) -> Boolean
 typealias Converter = (String) -> String
 
-@Widget.Info(
-   name = Widgets.SONG_TAGGER_NAME,
-   author = "Martin Polakovic",
-   howto = "Available actions:\n"
-   + "    Drag cover away : Removes cover\n"
-   + "    Drag & drop image file : Adds cover\n"
-   + "    Drag & drop songs : Clears tagger and adds to tagger.\n"
-   + "    Drag & drop songs (MOVE) : Adds to tagger."
-   + "    Write : Saves the tags\n"
-   + "    Loaded songs icon click : Opens editable list of source songs",
-   description = "Tag editor for audio files. Supports reading and writing to tag. Taggable songs can be unselected in selective list mode.",
-   version = "1.0.0",
-   year = "2015",
-   group = Widget.Group.TAGGER
-)
 class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
    val inputValue = io.i.create<List<Song>>("Edit", listOf()) { read(it.orEmpty()) }
@@ -535,7 +527,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          { songs ->
             writing = false
             populate(songs)
-            APP.plugins.use<Notifier> { it.showTextNotification(Widgets.SONG_TAGGER_NAME, "Tagging complete") }
+            APP.plugins.use<Notifier> { it.showTextNotification(SONG_TAGGER_NAME, "Tagging complete") }
          }
       )
    }
@@ -768,18 +760,9 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          addEventHandler(DRAG_DROPPED, dragDroppedHandler)
       }
 
-      val helpB = infoIcon(
-         "List of all items in the tagger. Highlights non-taggable items. Taggable songs "
-            + "can be unselected filtered.\n\n"
-            + "Available actions:\n"
-            + "    Drag & drop songs : Clears tagger and adds to tagger.\n"
-            + "    Drag & drop songs (MOVE) : Adds to tagger."
-      ).size(11.0)
-
       PopWindow().apply {
          content.value = list
          title.value = "Active Items"
-         headerIcons += helpB
          show(LEFT_CENTER(infoL))
       }
    }
@@ -1036,7 +1019,24 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       }
    }
 
-   companion object {
+   companion object: WidgetCompanion {
+      override val name = SONG_TAGGER_NAME
+      override val description = "Song tag editor"
+      override val descriptionLong = "Tag editor for audio files. Supports reading and writing. Taggable songs can be unselected in selective list mode."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         ShortcutPane.Entry("Tagger > Cover", "Remove", "Drag cover away"),
+         ShortcutPane.Entry("Tagger > Cover", "Add", "Drag & drop image file"),
+         ShortcutPane.Entry("Tagger > Song list", "Set", "Drag & drop songs"),
+         ShortcutPane.Entry("Tagger > Song list", "Edit", keys("Songs icon click+${PRIMARY.nameUi}")),
+         ShortcutPane.Entry("Tagger > Song list", "Add", keys("Drag & drop songs+SHIFT")),
+      )
+      override val group = LIBRARY
 
       private val RATING_RAW_OF = Metadata.Field(type(), "Rating (raw)", "Song rating value in tag. Maximal value depends on tag type") {
          "${it.getRating() ?: AppTexts.textNoVal}/${it.getRatingMax()}"

@@ -8,8 +8,8 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconUN
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.icon.Icon
@@ -143,11 +143,11 @@ open class GridFileIconCell: GridCell<Item, File>() {
       val glyph: GlyphIcons = when (i.valType) {
          FILE -> when {
             i.value.path.endsWith("css") -> IconMD.LANGUAGE_CSS3 as GlyphIcons
-            else -> IconFA.FILE
+            else -> IconUN(0x1f4c4)
          }
          DIRECTORY -> when {
             i.value.isAbsolute && i.value.name.isEmpty() -> IconMD.HARDDISK
-            else -> IconFA.FOLDER
+            else -> IconUN(0x1f4c1)
          }
       }
       icon.icon(glyph)

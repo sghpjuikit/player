@@ -4,7 +4,7 @@ import javafx.collections.FXCollections.observableArrayList
 import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppSearch.Source
-import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
@@ -38,7 +38,7 @@ class DirSearchPlugin: PluginBase() {
    private val searchSource = Source("Directories ($name plugin)", searchSourceDirs) by { "Open directory: ${it.absolutePath}" } toSource {
       Entry.of(
          "Open directory: ${it.absolutePath}",
-         IconFA.FOLDER,
+         IconUN(0x1f4c1),
          { "Opens directory: ${it.absolutePath}" },
          null,
          { it.browse() }

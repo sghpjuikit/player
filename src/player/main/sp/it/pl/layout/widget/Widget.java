@@ -527,7 +527,6 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		APP,
 		PLAYBACK,
 		PLAYLIST,
-		TAGGER,
 		LIBRARY,
 		VISUALISATION,
 		OTHER,

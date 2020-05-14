@@ -104,10 +104,10 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
    )
    ap.register<App>(
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
-      FastColAction<App>("For developer", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
+      FastColAction<App>("Developer tools", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
       FastColAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
-      FastAction(IconMD.KEYBOARD_VARIANT, ActionRegistrar["Show shortcuts"]),
-      FastAction(IconMD.FOLDER, ActionRegistrar["Open app directory"])
+      FastAction("Open help", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() },
+      FastAction(IconUN(0x1f4c1), ActionRegistrar["Open app directory"])
    )
    ap.register<AppDev>(
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
@@ -127,13 +127,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       FastAction(
          "Select file",
          "Open file chooser to select files",
-         IconMD.FILE,
+         IconUN(0x1f4c4),
          ap.converting { chooseFiles("Select file...", null, ap.scene?.window) }
       ),
       FastAction(
          "Select directory",
          "Open file chooser to select directory",
-         IconMD.FOLDER,
+         IconUN(0x1f4c1),
          ap.converting { chooseFile("Select directory...", DIRECTORY, null, ap.scene?.window) }
       ),
       FastAction(

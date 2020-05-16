@@ -33,6 +33,7 @@ import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync1IfNonNull;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.ui.UtilKt.isAnyParentOf;
 
 @SuppressWarnings("unused")
 public interface Util {
@@ -307,7 +308,10 @@ public interface Util {
 
 	static @Nullable ScrollBar getVScrollBar(ScrollPane scrollPane) {
 		return (ScrollBar) scrollPane.lookupAll("ScrollBar").stream()
-			.filter(it -> it instanceof ScrollBar && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL)
+			.filter(it -> {
+				var isNotContent = scrollPane.getContent()==null || !isAnyParentOf(scrollPane.getContent(), it);
+				return it instanceof ScrollBar && isNotContent && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL;
+			})
 			.findFirst().orElse(null);
 	}
 

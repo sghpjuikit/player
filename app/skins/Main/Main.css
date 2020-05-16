@@ -2181,7 +2181,7 @@ Text {
 
 /** When rating.value is 1.0. */
 .rating-button:max {
-    -fx-fill: derive(-skin-def-font-color,50%);
+    -fx-fill: -fx-focus-color;
 }
 
 /********************************** SPINNER ****************************************************************************

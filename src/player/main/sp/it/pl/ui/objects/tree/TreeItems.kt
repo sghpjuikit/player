@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.tree
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.collections.FXCollections.emptyObservableList
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
@@ -24,6 +25,8 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode
+import javafx.scene.text.TextBoundsType
+import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
 import mu.KotlinLogging
@@ -45,8 +48,10 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.isSkinFile
 import sp.it.pl.main.isValidSkinFile
 import sp.it.pl.main.isValidWidgetFile
+import sp.it.pl.main.isWidgetFile
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginBox
@@ -61,12 +66,16 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
+import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children
 import sp.it.util.file.hasExtension
 import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
+import sp.it.util.file.toFast
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -75,12 +84,14 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
+import sp.it.util.text.Strings
 import sp.it.util.text.nullIfBlank
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
 import sp.it.util.type.type
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.isAnyParentOf
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.root
 import java.io.File
 import java.nio.file.Path
@@ -162,7 +173,7 @@ fun treeApp(): TreeItem<Any> {
          tree("Layouts", { APP.widgetManager.layouts.findAll(OPEN).sortedBy { it.name } })
       ),
       tree("Location", APP.location),
-      tree("File system", File.listRoots().map { FileTreeItem(it) }),
+      tree("File system", File.listRoots().map { it.toFast(DIRECTORY) }.map { FileTreeItem(it) }),
       tree(Name.treeOfPaths("Settings", APP.configuration.getConfigs().map { it.group }))
    )
 }
@@ -238,6 +249,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
    override fun updateItem(o: T?, empty: Boolean) {
       super.updateItem(o, empty)
+
       if (!empty && o!=null) {
          graphic = computeGraphics(o)
          text = computeText(o)
@@ -245,6 +257,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
          graphic = null
          text = null
       }
+
+      pseudoClassChanged("no-arrow", graphic!=null)
    }
 
    private fun computeText(o: Any?): String = when {
@@ -282,18 +296,22 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    private fun computeGraphics(p: Any): Node? = when (p) {
       is Path -> computeGraphics(p.toFile())
       is File -> {
-         if (p hasExtension "css")
-            createIcon(IconFA.CSS3, 8.0)
+         val type = if (treeItem.isLeaf) FILE else FileType(p)
+         fun GlyphIcons.icon() = createIcon(this, 10.0).apply { boundsType = VISUAL }
 
-         val type = if (treeItem.isLeaf) FileType.FILE else FileType(p)
-
-         if (type==FileType.DIRECTORY && APP.location.skins==p.parentFile || p.isValidSkinFile())
-            createIcon(IconFA.PAINT_BRUSH, 8.0)
-         if (type==FileType.DIRECTORY && APP.location.widgets==p.parentFile || p.isValidWidgetFile())
-            createIcon(IconFA.GE, 8.0)
-
-         if (type==FileType.FILE) createIcon(IconUN(0x1f4c4), 8.0)
-         else createIcon(IconUN(0x1f4c1), 8.0)
+         when (type) {
+            DIRECTORY -> when {
+               APP.location.skins==p.parentFile -> IconFA.PAINT_BRUSH.icon()
+               APP.location.widgets==p.parentFile -> IconFA.GE.icon()
+               else -> IconUN(0x1f4c1).icon()
+            }
+            FILE -> when {
+               p hasExtension "css" -> IconFA.CSS3.icon()
+               p.isSkinFile() -> IconFA.PAINT_BRUSH.icon()
+               p.isWidgetFile() -> IconFA.GE.icon()
+               else -> IconUN(0x1f4c4).icon()
+            }
+         }
       }
       else -> null
    }

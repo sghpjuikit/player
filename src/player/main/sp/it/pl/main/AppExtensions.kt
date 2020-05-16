@@ -46,14 +46,17 @@ val Number.emScaled: Double get() = ceil(toDouble()*APP.ui.font.value.size.toEM(
  *
  * @return true if parameter is valid skin file. False otherwise or if null.
  */
-fun File.isValidSkinFile(): Boolean {
+fun File.isValidSkinFile() = isValidFile(this) && isSkinFile()
+
+fun File.isSkinFile(): Boolean {
    val name = nameWithoutExtension
-   val skinFile = APP.location.skins/name/"$name.css"
-   return isValidFile(this) && path.endsWith(".css") && this==skinFile
+   return path.endsWith(".css") && this==APP.location.skins/name/"$name.css"
 }
 
-fun File.isValidWidgetFile(): Boolean {
-   return isValidFile(this) && path.endsWith(".fxml") && parentFile?.parentFile==APP.location.widgets
+fun File.isValidWidgetFile() = isValidFile(this) && isWidgetFile()
+
+fun File.isWidgetFile(): Boolean {
+   return path.endsWith(".fxml") && parentFile?.parentFile==APP.location.widgets
 }
 
 /** @return true iff this song is [Song.same] as the song that is currently playing */

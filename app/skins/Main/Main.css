@@ -1059,9 +1059,11 @@ Text {
 .tree-table-view > .virtual-flow > .corner {
     -fx-background-color: null;
 }
-/* standard cell */
+
+/* Standard cell */
 .list-cell,
 .tree-cell {}
+
 /* Selected rows focused control*/
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
 .tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
@@ -1103,25 +1105,29 @@ Text {
 /*********************************** TreeView *********************************/
 
 .tree-cell {
-    -fx-indent: 1em;
+    -fx-indent: 0.5em;
 }
 .tree-cell .label {
-    -fx-padding: 0.0em 0.0em 0.0em 0.25em; /* 0 0 0 3 */
+    -fx-padding: 0em;
 }
 .tree-cell > .tree-disclosure-node,
 .tree-table-row-cell > .tree-disclosure-node {
-    -fx-padding: 4 6 4 8;
+    -fx-padding: 0.7em 0.5em 0 0;
 }
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
-/*    -fx-background-color: -fx-text-background-color;*/
     -fx-background-color: -skin-def-font-color;
-    -fx-padding: 0.333333em 0.229em 0.333333em 0.229em; /* 4 */
-    -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
+    -fx-padding: 0.3em 0.2em;
+    -fx-shape: "M 0 -3 L 5 0 L 0 3 z";
 }
 .tree-cell:expanded > .tree-disclosure-node > .arrow,
 .tree-table-row-cell:expanded > .tree-disclosure-node > .arrow {
     -fx-rotate: 90;
+}
+
+.tree-cell:no-arrow > .tree-disclosure-node > .arrow,
+.tree-table-row-cell:no-arrow > .tree-disclosure-node > .arrow {
+    -fx-background-color: null;
 }
 
 /********************************* TableView  *********************************/

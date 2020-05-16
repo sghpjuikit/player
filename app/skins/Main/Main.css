@@ -2154,35 +2154,35 @@ Text {
  * on individual icons are impossible
  * should inherit .glyph, but does not due to possible problems
  * 
- * pseudoclasses: min - rating is at min value
+ * pseudoclasses: empty - rating is at null value
+ *                min - rating is at min value
  *                max - rating is at max value
  * the 'empty' rating button
  */
 .rating-button {
     -fx-fill: -skin-def-font-color;
-    -fx-font-size: 10px;
+    -fx-font-size: 0.833334em; /* 10 */
 }
 
+/* Top icon that lays clipped on top to show the rating.value */
+.rating-button.strong {
+    -fx-font-size: 0.833334em; /* 10 */
+}
+
+/** When rating.value is null. */
 .rating-button:empty {
     -fx-opacity: 0.0;
 }
 
+/** When rating.value is 0.0. */
 .rating-button:min {
     -fx-opacity: 0.4;
 }
 
+/** When rating.value is 1.0. */
 .rating-button:max {
     -fx-fill: derive(-skin-def-font-color,50%);
 }
-
-/*
- * the 'full' rating button - 2nd group of icons with this pseudoclass hovers
- * clipped on top to produce partial rating effect
- */
-.rating-button.strong {
-    -fx-font-size: 10px;
-}
-
 
 /********************************** SPINNER ****************************************************************************
  * Simple progress indicator control.

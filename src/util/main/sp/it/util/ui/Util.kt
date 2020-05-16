@@ -105,20 +105,22 @@ fun Color.alpha(opacity: Double): Color {
 
 /* ---------- ICON -------------------------------------------------------------------------------------------------- */
 
-@JvmOverloads fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
-   val fontSize = iconSize?.toEM() ?: 1.0
-   style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
+fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
+   val fontSize = iconSize?.toEM()
+   val fontSizeCss = fontSize?.let { "-fx-font-size: ${fontSize}em;" }.orEmpty()
+   style = "-fx-font-family: ${icon.fontFamily};$fontSizeCss"
    styleClass += "icon"
 }
 
 fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
-   val fontSize = iconSize?.toEM() ?: 1.0
+   val fontSize = iconSize?.toEM()
    val s = icon.characterToString()
    val sb = StringBuilder(icons)
    for (i in 0 until icons) sb.append(s)
 
+   val fontSizeCss = fontSize?.let { "-fx-font-size: ${fontSize}em;" }.orEmpty()
    return Text(sb.toString()).apply {
-      style = "-fx-font-family: ${icon.fontFamily}; -fx-font-size: ${fontSize}em;"
+      style = "-fx-font-family: ${icon.fontFamily};$fontSizeCss"
       styleClass += "icon"
    }
 }

@@ -29,12 +29,16 @@ import kotlin.math.roundToInt
 /** Skin for [Rating] displaying the value as horizontal sequence of icons. Editable. */
 class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
 
-   private val backgroundContainer = hBox()
+   private val backgroundContainer = hBox().apply {
+      id = "backgroundContainer"
+   }
    private val foregroundContainer = object: HBox() {
       override fun requestLayout() {
          if (::foregroundIcons.isInitialized) updateClip()
          super.requestLayout()
       }
+   }.apply {
+      id = "foregroundContainer"
    }
    private lateinit var backgroundIcons: Node
    private lateinit var foregroundIcons: Node
@@ -72,7 +76,7 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
    }
 
    private fun updateButtons() {
-      fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.value, 8.0).apply {
+      fun createButton(icon: GlyphIcons) = createIcon(icon, skinnable.icons.value, 12.0).apply {
          isCache = true
          cacheHint = CacheHint.SPEED
          styleClass += "rating-button"
@@ -108,10 +112,14 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
    }
 
    private fun updateClip(v: Double? = skinnable.rating.value) {
-      val l = foregroundIcons.boundsInParent.minX.roundToInt() - 1.0
-      val w = (v ?: 0.0)*(foregroundIcons.layoutBounds.width + 1.0)
-      foregroundMask.width = l + w
+      val l = foregroundIcons.layoutX.roundToInt()
       foregroundMask.height = skinnable.height
+      foregroundMask.width = when (v) {
+         null -> 0.0
+         0.0 -> 0.0
+         1.0 -> l + foregroundContainer.layoutBounds.width
+         else -> l + v*(foregroundIcons.layoutBounds.width)
+      }
    }
 
    private fun updateStyle(v: Double? = skinnable.rating.value) {

@@ -1,6 +1,8 @@
 package sp.it.pl.ui.objects.picker
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
@@ -11,16 +13,20 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.text.TextAlignment
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.collections.setTo
 import sp.it.util.functional.supplyIf
 import sp.it.util.math.max
+import sp.it.util.math.min
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.getVScrollBar
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.pane
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.scrollTextCenter
@@ -28,6 +34,9 @@ import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
+import sp.it.util.ui.vBox
+import sp.it.util.ui.x
+import sp.it.util.units.em
 import sp.it.util.units.millis
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -43,6 +52,7 @@ import kotlin.math.sqrt
 open class Picker<E> {
 
    private val tiles = CellPane()
+
    /** Scene graph root of this object. */
    val root = ScrollPane(tiles)
    /** Invoked when item is selected. Default implementation does nothing. */
@@ -52,21 +62,35 @@ open class Picker<E> {
    /** It may be desirable to consume the mouse click event that caused the cancellation. Default false. */
    var consumeCancelEvent = false
    /** Cell text factory producing name/title of the item. Default implementation calls [Any.toString] */
+   var iconConverter: (E) -> GlyphIcons? = { null }
+   /** Cell text factory producing name/title of the item. Default implementation calls [Any.toString] */
    var textConverter: (E) -> String = Any?::toString
    /** Cell detail text text factory producing description of the item. Default implementation returns empty string. */
    var infoConverter: (E) -> String = { "" }
    /** Supplier that returns items to be displayed. Default implementation returns empty sequence. */
    var itemSupply: () -> Sequence<E> = { sequenceOf() }
+   /** Minimum cell size. */
+   val minCellSize = v(90 x 30)
 
    private val cellFactory: (E) -> Pane = { item ->
       stackPane {
-         setMinSize(90.0, 30.0)
          styleClass += CELL_STYLE_CLASS
          padding = Insets(20.0)
 
+         val contentIcon = iconConverter(item)
          val contentText = textConverter(item)
          val contentInfoText = infoConverter(item)
-         val content = label(contentText)
+         val content = when (contentIcon) {
+            null -> label(contentText)
+            else -> vBox(5.0, Pos.CENTER) {
+               lay += Icon(contentIcon).apply {
+                  this@stackPane.heightProperty() attach {
+                     size((it.toDouble() - 3.0.em)/2.0 min 64.0)
+                  }
+               }
+               lay += label(contentText)
+            }
+         }
 
          lay += content
          lay += supplyIf(contentInfoText.isNotEmpty()) {
@@ -80,6 +104,7 @@ open class Picker<E> {
 
             val anim = anim(300.millis) {
                content.opacity = 1 - it*it
+               contentInfo.isManaged = it==0.0
                contentInfo.opacity = it
                contentInfo.setScaleXY(0.7 + 0.3*it*it)
             }
@@ -138,8 +163,8 @@ open class Picker<E> {
          if (cells.isEmpty()) return
 
          val elements = cells.size
-         val cellMinWidth = 1.0 max cells.first().minWidth
-         val cellMinHeight = 1.0 max cells.first().minHeight
+         val cellMinWidth = 1.0 max minCellSize.value.x
+         val cellMinHeight = 1.0 max minCellSize.value.y
 
          var c = if (width>height) ceil(sqrt(elements.toDouble())).toInt() else floor(sqrt(elements.toDouble())).toInt()
          c = if (width<c*cellMinWidth) floor(width/cellMinWidth).toInt() else c
@@ -149,11 +174,14 @@ open class Picker<E> {
 
          val gapSumY = (rows - 1)*gap
          val cellHeight = if (height<rows*cellMinHeight) cellMinHeight else (height - gapSumY)/rows - 1.0/rows
+         val cellSumY = rows*cellHeight
+         val totalHeight = cellSumY + gapSumY
+         minPrefMaxHeight = totalHeight
 
-         val scrollBarWidth = getVScrollBar(root)?.takeIf { it.isVisible }?.width ?: 0.0
-         val w = if (rows*(cellHeight + gap) - gap>height) width - scrollBarWidth else width
+         val isScrollbarNecessary = totalHeight>height
+         val scrollBarWidth = if (!isScrollbarNecessary) 0.0 else getVScrollBar(root)?.takeIf { it.isVisible }?.width ?: 0.0
          val gapSumX = (columns - 1)*gap
-         val cellWidth = (w - gapSumX)/columns
+         val cellWidth = (width - scrollBarWidth - gapSumX)/columns
 
          cells.forEachIndexed { i, n ->
             val x = padding.left + i%columns*(cellWidth + gap)

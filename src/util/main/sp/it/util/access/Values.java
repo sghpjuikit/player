@@ -51,7 +51,7 @@ public interface Values {
 	 *
 	 * @return next cyclical enum constant according to its ordinal number.
 	 */
-	static <E extends Enum> E next(E val) {
+	static <E extends Enum<E>> E next(E val) {
 		E[] values = getEnumConstants(val.getClass());
 		int index = (val.ordinal() + 1)%values.length;
 		return values[index];
@@ -63,7 +63,7 @@ public interface Values {
 	 *
 	 * @return previous cyclical enum constant according to its ordinal number.
 	 */
-	static <E extends Enum> E previous(E val) {
+	static <E extends Enum<E>> E previous(E val) {
 		E[] values = getEnumConstants(val.getClass());
 		int ord = val.ordinal();
 		int index = ord==0 ? values.length - 1 : ord - 1;

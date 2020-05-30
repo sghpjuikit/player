@@ -34,7 +34,7 @@ interface FileExplorerFeature {
    fun exploreCommonFileOf(files: Collection<File>) = Util.getCommonFile(files)?.let(::exploreFile).toUnit()
 }
 
-@Feature(name = "Horizontal dock", description = "Can be used as a vertically thin horizontal bar", type = HorizontalDock::class)
+@Feature(name = "Horizontal dock", description = "Supports thin horizontal layout such as in window header", type = HorizontalDock::class)
 interface HorizontalDock
 
 @Feature(name = "Image display", description = "Displays image", type = ImageDisplayFeature::class)

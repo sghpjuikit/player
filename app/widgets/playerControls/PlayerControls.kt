@@ -10,6 +10,7 @@ import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.Slider
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
@@ -18,6 +19,7 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.UNKNOWN
 import javafx.scene.text.TextBoundsType.LOGICAL
 import javafx.scene.text.TextBoundsType.VISUAL
+import mu.KLogging
 import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playback.VolumeProperty
@@ -30,6 +32,8 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.Widget.Group.PLAYBACK
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.layout.widget.feature.PlaybackFeature
@@ -47,11 +51,14 @@ import sp.it.pl.ui.objects.icon.boundsType
 import sp.it.pl.ui.objects.seeker.ChapterDisplayActivation.HOVER
 import sp.it.pl.ui.objects.seeker.ChapterDisplayMode.POPUP_SHARED
 import sp.it.pl.ui.objects.seeker.Seeker
+import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -66,32 +73,11 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
 import sp.it.util.units.toHMSMs
+import sp.it.util.units.version
+import sp.it.util.units.year
 import java.io.File
 
-@Widget.Info(
-   name = PLAYBACK_NAME,
-   author = "Martin Polakovic",
-   howto = "Playback actions:\n"
-      + "    Control Playback\n"
-      + "    Drop audio files : Adds or plays the files\n"
-      + "    Left click : Seek - move playback to seek position\n"
-      + "    Mouse drag : Seek (on release)\n"
-      + "    Right click : Cancel seek\n"
-      + "    Add button left click : Opens file chooser and plays files\n"
-      + "    Add button right click: Opens directory chooser and plays files\n"
-      + "    Drop audio files : Adds or plays the files\n"
-      + "\nChapter actions:\n"
-      + "    Right click : Create chapter\n"
-      + "    Right click chapter : Open chapter\n"
-      + "    Mouse hover chapter (optional) : Open chapter\n",
-   description = "Playback control widget.",
-   notes = "",
-   version = "1.0.0",
-   year = "2014",
-   group = Widget.Group.PLAYBACK
-)
 class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature, HorizontalDock {
-
    val volume = Slider()
    val currTime = Label("00:00")
    val totalTime = Label("00:00")
@@ -102,11 +88,11 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val titleL = Label()
    val artistL = Label()
    val seeker = Seeker()
-   val f2 = IconUN(0x2aa1).icon(72.0) { PlaylistManager.playPreviousItem() /*APP.audio.seekBackwardForward(seekType.value)*/ }
+   val f2 = IconUN(0x2aa1).icon(72.0) { if (it) PlaylistManager.playPreviousItem() else APP.audio.seekBackward(seekType.value) }
    val f3 = IconUN(0x25c6).icon(128.0) { APP.audio.pauseResume() }
-   val f4 = IconUN(0x2aa2).icon(72.0) { PlaylistManager.playNextItem() /*APP.audio.seekForward(seekType.value)*/ }
+   val f4 = IconUN(0x2aa2).icon(72.0) { if (it) PlaylistManager.playNextItem() else APP.audio.seekForward(seekType.value) }
    val muteB = IconFA.VOLUME_UP.icon(24.0) { APP.audio.toggleMute() }
-   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.toggleLoopMode() }
+   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.setLoopMode(APP.audio.getLoopMode().net { v -> if (it) Values.next(v) else Values.previous(v) }) }
    val playbackButtons = listOf(f2, f3, f4, seeker)
    private val layoutSmall = LayoutSmall()
    private val layoutBig = LayoutBig()
@@ -229,8 +215,40 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       }
    }
 
-   companion object {
-      fun GlyphIcons.icon(size: Double, block: (Icon) -> Unit) = Icon(this, size).onClickDo(block).apply { boundsType = VISUAL }
+   companion object: WidgetCompanion, KLogging() {
+      override val name = PLAYBACK_NAME
+      override val description = "Controls audio playback"
+      override val descriptionLong = "$description."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2014)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         Entry("Controls", "Play next song", "back icon LMB"),
+         Entry("Controls", "Seek backward", "back icon RMB"),
+         Entry("Controls", "Play/pause", "play/pause icon LMB or RMB"),
+         Entry("Controls", "Seek forward", "forward icon RMB"),
+         Entry("Controls", "Play previous song", "forward icon LMB"),
+         Entry("Controls", "Toggle next song mode", "loop icon LMB or RMB"),
+         Entry("Controls", "Change volume", "Scroll"),
+         Entry("Controls", "Mute", "Mute icon LMB or RMB"),
+         Entry("View", "Toggle elapsed/remaining time", "current time label LBM"),
+         Entry("Playlist", "Add songs to active playlist", "Drag & drop songs"),
+         Entry("Seeker", "Seek playback", "LMB"),
+         Entry("Seeker", "Seek playback", "drag & release LMB"),
+         Entry("Seeker", "Cancel seeking playback", "drag LMB + RMB"),
+         Entry("Seeker > Chapter", "Add chapter", "RMB"),
+         Entry("Seeker > Chapter", "Open chapter", "Hover")
+      )
+      override val group = PLAYBACK
+
+      fun GlyphIcons.icon(size: Double, block: (Boolean) -> Unit) = Icon(this, size).apply {
+         boundsType = VISUAL
+         onEventDown(MOUSE_CLICKED, PRIMARY) { block(true) }
+         onEventDown(MOUSE_CLICKED, SECONDARY) { block(false) }
+      }
    }
 
    interface Layout {

@@ -3,6 +3,7 @@ package sp.it.pl.core
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
 import javafx.scene.effect.Effect
+import javafx.scene.input.MouseButton
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
@@ -32,6 +33,7 @@ import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.keysUi
+import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.Util.isEnum
@@ -95,6 +97,7 @@ class CoreConverter: Core {
          }
          is VType<*> -> o.type.toUi()
          is NameUi -> o.nameUi
+         is MouseButton -> o.nameUi
          is Action -> "${o.nameUi} (${o.keysUi()})"
          is LocalDateTime -> o.format(dateTimeFormatter)
          is LocalDate -> o.format(dateTimeFormatter)

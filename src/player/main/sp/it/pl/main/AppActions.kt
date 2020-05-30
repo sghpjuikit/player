@@ -33,6 +33,7 @@ import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
+import sp.it.util.Sort
 import sp.it.util.Util.urlEncodeUtf8
 import sp.it.util.action.ActionManager
 import sp.it.util.action.ActionRegistrar
@@ -116,12 +117,19 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui", "Show application help", ActionManager.keyShortcuts.nameUi),
          Entry("Ui", "Show widget help", ActionManager.keyShortcutsComponent.nameUi),
          Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
+         Entry("Ui > Table/List/Grid", "Select", PRIMARY.nameUi),
+         Entry("Ui > Table/List/Grid", "Show item context menu", SECONDARY.nameUi),
          Entry("Ui > Table/List/Grid", "Filter", keys("CTRL+F")),
          Entry("Ui > Table/List/Grid", "Filter (cancel)", ESCAPE.nameUi),
          Entry("Ui > Table/List/Grid", "Filter (clear)", ESCAPE.nameUi),
          Entry("Ui > Table/List/Grid", "Search", "Type text"),
          Entry("Ui > Table/List/Grid", "Search (cancel)", ESCAPE.nameUi),
-         Entry("Ui > Table/List/Grid", "Selection (cancel)", ESCAPE.nameUi)
+         Entry("Ui > Table/List/Grid", "Selection (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Table", "Show column menu", SECONDARY.nameUi),
+         Entry("Ui > Table", "Swap columns", "Column drag"),
+         Entry("Ui > Table", "Sort - ${Sort.ASCENDING.toUi()} | ${Sort.DESCENDING.toUi()} | ${Sort.NONE.toUi()}", SECONDARY.nameUi),
+         Entry("Ui > Table", "Sorts by multiple columns", "SHIFT+LMB"),
+         Entry("Ui > Table", "Opens additional action menus", "Footer > Menu bar")
       )
       APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info("", actionsStandard + actionsHardcoded))
    }

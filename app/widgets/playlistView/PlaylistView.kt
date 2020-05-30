@@ -2,16 +2,19 @@ package playlistView
 
 import javafx.geometry.NodeOrientation.INHERIT
 import javafx.scene.control.SelectionMode.MULTIPLE
+import javafx.scene.input.KeyCode
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.stage.FileChooser
+import mu.KLogging
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field
 import sp.it.pl.audio.playlist.writePlaylist
-import sp.it.pl.ui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.pl.ui.objects.table.PlaylistTable
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group
+import sp.it.pl.layout.widget.Widget.Group.PLAYLIST
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -20,8 +23,14 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.Widgets.PLAYLIST_NAME
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.Widgets.PLAYBACK_NAME
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.toUi
+import sp.it.pl.ui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
+import sp.it.pl.ui.objects.table.PlaylistTable
+import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.Sort
 import sp.it.util.access.OrV
 import sp.it.util.access.toggle
 import sp.it.util.async.runNew
@@ -42,42 +51,20 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.saveFile
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
+import sp.it.util.units.version
+import sp.it.util.units.year
 import java.io.File
 import java.util.UUID
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = PLAYLIST_NAME,
-   description = "Provides list of items to play. Highlights playing and unplayable " + "items.",
-   howto = ""
-      + "Available actions:\n"
-      + "    Song left click : Selects item\n"
-      + "    Song right click : Opens context menu\n"
-      + "    Song double click : Plays item\n"
-      + "    Song drag : Activates Drag&Drop\n"
-      + "    Song drag + CTRL : Moves item within playlist\n"
-      + "    Type : search & filter\n"
-      + "    Press ENTER : Plays item\n"
-      + "    Press ESC : Clear selection & filter\n"
-      + "    Scroll : Scroll table vertically\n"
-      + "    Scroll + SHIFT : Scroll table horizontally\n"
-      + "    Column drag : swap columns\n"
-      + "    Column right click: show column menu\n"
-      + "    Click column : Sort - ascending | descending | none\n"
-      + "    Click column + SHIFT : Sorts by multiple columns\n"
-      + "    Menu bar : Opens additional actions\n",
-   notes = "Plans: multiple playlists through tabs",
-   version = "0.9.0",
-   year = "2015",
-   group = Group.PLAYLIST
-)
 class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
    override val playlist = computeInitialPlaylist(widget.id)
@@ -132,7 +119,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.footerVisible syncFrom tableShowFooter on onClose
       table.scrollToPlaying syncFrom scrollToPlaying on onClose
       table.defaultColumnInfo   // trigger menu initialization
-      table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
+      table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() }
+         ?: table.defaultColumnInfo
 
       table.filterPane.buttonAdjuster.value = { i ->
          i.onClickDo { playVisible.toggle() }
@@ -224,4 +212,36 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       }
    }
 
+   companion object: WidgetCompanion, KLogging() {
+      override val name = PLAYBACK_NAME
+      override val description = "Contains playlist table"
+      override val descriptionLong = "$description. Highlights playing and unplayable songs"
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         Entry("Table", "Filter", keys("CTRL+F")),
+         Entry("Table", "Filter (cancel)", KeyCode.ESCAPE.nameUi),
+         Entry("Table", "Filter (clear)", KeyCode.ESCAPE.nameUi),
+         Entry("Table", "Search", "Type text"),
+         Entry("Table", "Search (cancel)", KeyCode.ESCAPE.nameUi),
+         Entry("Table", "Selection (cancel)", KeyCode.ESCAPE.nameUi),
+         Entry("Table", "Scroll table vertically", keys("Scroll")),
+         Entry("Table", "Scroll table horizontally", keys("Scroll+SHIFT")),
+         Entry("Table columns", "Show column context menu", SECONDARY.toUi()),
+         Entry("Table columns", "Swap columns", "Column drag"),
+         Entry("Table columns", "Sort - ${Sort.ASCENDING.toUi()} | ${Sort.DESCENDING.toUi()} | ${Sort.NONE.toUi()}", PRIMARY.nameUi),
+         Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
+         Entry("Table row", "Selects item", PRIMARY.nameUi),
+         Entry("Table row", "Show context menu", SECONDARY.nameUi),
+         Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
+         Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
+         Entry("Table row", "Add songs after row", "Drag & drop songs"),
+         Entry("Footer", "Opens additional action menus", "Menu bar")
+      )
+      override val group = PLAYLIST
+   }
 }

@@ -409,7 +409,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    companion object: WidgetCompanion, KLogging() {
       override val name = "Voronoi"
       override val description = "Playground to experiment with and visualize voronoi diagrams"
-      override val descriptionLong = "$description.\nTo configure the visualization edit the source code."
+      override val descriptionLong = "$description.\nThe visualization is customizable."
       override val icon = IconUN(0x2e2a)
       override val version = version(1, 1, 0)
       override val isSupported = true

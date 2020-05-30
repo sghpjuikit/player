@@ -6,7 +6,7 @@ import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.layout.Pane
+import javafx.scene.layout.StackPane
 import javafx.scene.shape.Rectangle
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.image.Thumbnail
@@ -32,6 +32,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfImageLoaded
 import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.label
 import sp.it.util.ui.lookupId
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
@@ -48,7 +49,7 @@ import java.util.concurrent.ExecutorService
  * that shows a thumbnail image. Supports asynchronous loading of thumbnails and loading animation.
  */
 open class GridFileThumbCell: GridCell<Item, File>() {
-   protected lateinit var root: Pane
+   protected lateinit var root: StackPane
    protected lateinit var name: Label
    protected var thumb: Thumbnail? = null
    protected var imgLoadAnim: Anim? = null
@@ -139,13 +140,16 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    }
 
    protected open fun computeGraphics() {
-      name = Label()
-      name.alignment = Pos.CENTER
+      name = label {
+         alignment = Pos.CENTER
+         isManaged = false
+      }
 
       thumb = object: Thumbnail() {
          override fun getRepresentant() = item?.value
       }.apply {
          borderVisible = false
+         pane.isManaged = false
          pane.isSnapToPixel = true
          view.isSmooth = true
          view.doIfImageLoaded { img ->
@@ -168,11 +172,13 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       val r = Rectangle(1.0, 1.0).apply {
          id = "grid-cell-stroke"
          styleClass += "grid-cell-stroke"
+         isManaged = false
          isMouseTransparent = true
       }
 
-      root = object: Pane(thumb!!.pane, name, r) {
+      root = object: StackPane(thumb!!.pane, name, r) {
          override fun layoutChildren() {
+            super.layoutChildren();
             val x = 0.0
             val y = 0.0
             val w = width

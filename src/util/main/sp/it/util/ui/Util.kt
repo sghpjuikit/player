@@ -392,14 +392,20 @@ interface Lay {
    }
 }
 
-class PaneLay(private val pane: Pane): Lay {
+open class PaneLay(private val pane: Pane): Lay {
 
    override fun plusAssign(child: Node) {
       pane.children += child
    }
+
+   /** Removes the specified child from this */
+   operator fun minusAssign(child: Node) {
+      pane.children -= child
+   }
+
 }
 
-class HBoxLay(private val pane: HBox): Lay {
+class HBoxLay(private val pane: HBox): PaneLay(pane) {
 
    override fun plusAssign(child: Node) {
       pane.children += child
@@ -413,7 +419,7 @@ class HBoxLay(private val pane: HBox): Lay {
    }
 }
 
-class VBoxLay(private val pane: VBox): Lay {
+class VBoxLay(private val pane: VBox): PaneLay(pane) {
 
    override fun plusAssign(child: Node) {
       pane.children += child
@@ -427,7 +433,7 @@ class VBoxLay(private val pane: VBox): Lay {
    }
 }
 
-class StackLay(private val pane: StackPane): Lay {
+class StackLay(private val pane: StackPane): PaneLay(pane) {
 
    override fun plusAssign(child: Node) {
       pane.children += child
@@ -449,7 +455,7 @@ class StackLay(private val pane: StackPane): Lay {
    }
 }
 
-class AnchorPaneLay(private val pane: AnchorPane): Lay {
+class AnchorPaneLay(private val pane: AnchorPane): PaneLay(pane) {
 
    override fun plusAssign(child: Node) {
       pane.children += child
@@ -464,7 +470,7 @@ class AnchorPaneLay(private val pane: AnchorPane): Lay {
    }
 }
 
-class BorderPaneLay(private val pane: BorderPane): Lay {
+class BorderPaneLay(private val pane: BorderPane): PaneLay(pane) {
 
    override fun plusAssign(child: Node) {
       pane.children += child

@@ -81,6 +81,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.Constraint.FileOut
 import sp.it.util.conf.Constraint.FileRelative
+import sp.it.util.conf.Constraint.IconConstraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.PreserveOrder
@@ -170,6 +171,13 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
       editor.selected.value = c.value
       editor.selected attach { apply() } on disposer
       v?.attach { editor.selected.value = it }.orEmpty() on disposer
+
+      // single icon mode using disabled style to mimic false
+      val icon = c.findConstraint<IconConstraint>()?.icon
+      if (!c.type.isNullable && icon!=null) {
+         editor.icons(icon, icon, icon)
+         editor.selected sync { editor.pseudoClassChanged("disabled", it!=true) }
+      }
    }
 
 

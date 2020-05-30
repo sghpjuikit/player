@@ -2,6 +2,7 @@
 
 package sp.it.util.conf
 
+import de.jensd.fx.glyphs.GlyphIcons
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.singletonObservableList
@@ -110,6 +111,9 @@ interface Constraint<in T> {
 
    /** Use save file chooser in ui, allowing to define files that do not exist. */
    object FileOut: MarkerConstraint()
+
+   /** Use single icon mode for boolean config editor and disabled style for false. */
+   class IconConstraint(val icon: GlyphIcons): MarkerConstraint()
 
    class ValueSet<T>(val enumerator: () -> Collection<T>): MarkerConstraint()
 

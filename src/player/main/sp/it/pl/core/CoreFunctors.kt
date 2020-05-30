@@ -3,6 +3,7 @@ package sp.it.pl.core
 import javafx.util.Duration
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
+import sp.it.pl.main.IconMA
 import sp.it.pl.main.toUi
 import sp.it.util.Util.StringDirection
 import sp.it.util.Util.StringDirection.FROM_START
@@ -21,6 +22,7 @@ import sp.it.util.Util.retainChars
 import sp.it.util.Util.split
 import sp.it.util.Util.splitJoin
 import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.IconConstraint
 import sp.it.util.dev.failIf
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.type.MimeExt
@@ -93,7 +95,7 @@ object CoreFunctors: Core {
          val S = String::class.java
 
          // parameters
-         val pNoCase = p("Ignore case", "Ignore case", true)
+         val pNoCase = p("Ignore case", "Ignore case", true, IconConstraint(IconMA.FORMAT_SIZE))
          val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
 
          add("Is null", Any::class.java, B, IS0)

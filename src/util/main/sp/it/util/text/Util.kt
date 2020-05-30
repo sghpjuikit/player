@@ -137,11 +137,15 @@ private val prettyKeys = mapOf(
    "RIGHT ARROW" to "\u2192",
    "CLEAR" to "\u2327",
    "NUM LOCK" to "\u21ED",
-   "ENTER" to "\u2324",
+   "ENTER" to (if (Os.OSX.isCurrent) "\u2324" else "\u2756"),
    "EJECT" to "\u23CF",
    "POWER" to "\u233D",
-   "WIN" to "\u229E",
-   "WINDOWS" to "\u229E"
+   "WIN" to "\u2756",
+   "WINDOWS" to "\u2756",
+   "INSERT" to "\u2380",
+   "PRINTSCREEN" to "\u2399",
+   "SCROLL_LOCK" to "\u21f3",
+   "NUM_LOCK" to "\u21ed"
 )
 
 /** @return tuple of elements split by the specified delimiter from this string or exception if not 2 results */

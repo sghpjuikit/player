@@ -65,6 +65,7 @@ import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.F1;
+import static javafx.scene.input.KeyCode.F2;
 import static javafx.scene.input.KeyCode.LEFT;
 import static javafx.scene.input.KeyCode.RIGHT;
 import static javafx.scene.input.KeyCode.UP;
@@ -83,6 +84,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.millis;
+import static sp.it.pl.layout.widget.WidgetsKt.widgetFocused;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIcon;
 import static sp.it.pl.main.AppDragKt.contains;
@@ -302,6 +304,11 @@ public class Window extends WindowBase {
 			if (!e.isAltDown() && !e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
 				if (e.getCode().equals(F1) || e.getCode().equals(ActionManager.INSTANCE.getKeyShortcuts())) {
 					APP.getActions().showShortcuts();
+					e.consume();
+				}
+				if (e.getCode().equals(F2) || e.getCode().equals(ActionManager.INSTANCE.getKeyShortcutsComponent())) {
+					var widget = widgetFocused(s);
+					if (widget!=null) APP.getActions().showShortcutsFor(widget);
 					e.consume();
 				}
 			}

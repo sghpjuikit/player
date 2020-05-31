@@ -101,8 +101,19 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false. */
 	final ReadOnlyBooleanWrapper focusedImpl = new ReadOnlyBooleanWrapper(false);
 
-	/** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false. */
-	@IsConfig(name = "Focused", info = "Whether widget is active/focused.", editable = EditMode.NONE)
+	/**
+	 * Whether this widget is active/focused.
+	 * Each window has 0 or 1 active widgets.
+	 * Focused widget may not contain actual focus (for example when it widget has no focus traversable content).
+	 * Default false.
+	 */
+	@IsConfig(
+		name = "Focused",
+		info = "Whether widget is active/focused. " +
+			"Each window has 0 or 1 active widgets. " +
+			"Focused widget may not contain actual focus (for example when it widget has no focus traversable content).",
+		editable = EditMode.NONE
+	)
 	public final ObservableValue<Boolean> focused = focusedImpl.getReadOnlyProperty();
 
 	/**

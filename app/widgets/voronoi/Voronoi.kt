@@ -8,6 +8,7 @@ import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder
 import javafx.event.Event
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
@@ -70,7 +71,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
       root.focusedProperty() sync { canvas.pause(!it) } on onClose
       root.onEventDown(MOUSE_CLICKED, PRIMARY) { canvas.pause(false) }
-      root.onEventDown(Event.ANY) { it.consume() }
+      root.onEventDown(Event.ANY) { if (it !is KeyEvent) it.consume() }
 
       root.sync1IfInScene { canvas.loop.start() } on onClose
       onClose += { canvas.loop.stop() }

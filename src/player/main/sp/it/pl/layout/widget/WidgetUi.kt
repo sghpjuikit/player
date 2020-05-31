@@ -1,8 +1,5 @@
 package sp.it.pl.layout.widget
 
-import javafx.event.EventHandler
-import javafx.scene.input.KeyEvent
-import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.AnchorPane
 import sp.it.pl.layout.container.ComponentUiBase
 import sp.it.pl.layout.container.Container
@@ -19,10 +16,8 @@ import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.placeholder.Placeholder
-import sp.it.util.action.ActionManager
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
-import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.nullify
@@ -38,8 +33,10 @@ import sp.it.util.ui.removeFromParent
 class WidgetUi: ComponentUiBase<Widget> {
    /** Container this ui is associated with. */
    val container: Container<*>
+
    /** Index of the child in the [container] */
    val index: Int
+
    /** Widget this ui is associated with. Equivalent to [component]. */
    val widget: Widget
    override val root = AnchorPane()
@@ -83,16 +80,6 @@ class WidgetUi: ComponentUiBase<Widget> {
          { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
          { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
       )
-
-      // show help
-      root.onEventDown(KEY_PRESSED) {
-         if (!it.isAltDown && !it.isControlDown && !it.isShortcutDown && !it.isMetaDown) {
-            if (it.code==ActionManager.keyShortcutsComponent) {
-               APP.actions.showShortcutsFor(widget)
-               it.consume()
-            }
-         }
-      }
 
       // report component graphics changes
       root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }

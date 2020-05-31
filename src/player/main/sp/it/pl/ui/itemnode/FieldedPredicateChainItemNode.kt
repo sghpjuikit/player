@@ -25,10 +25,10 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
    constructor(chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F>): super(0, MAX_VALUE, IS.asIs(), null) {
       this.data = ArrayList()
       this.chainedFactory = Supplier { chainedFactory(this) }
-      isHomogeneousRem = BiPredicate { _, _ -> true}
-      isHomogeneousAdd = BiPredicate { _, _ -> true}
-      isHomogeneousOn = BiPredicate { _, _ -> true}
-      isHomogeneousEdit = BiPredicate { _, _ -> true}
+      isHomogeneousRem = BiPredicate { i, _ -> i!=0 }
+      isHomogeneousAdd = BiPredicate { _, _ -> true }
+      isHomogeneousOn = BiPredicate { _, _ -> true }
+      isHomogeneousEdit = BiPredicate { _, _ -> true }
       inconsistentState = false
       generateValue()
    }

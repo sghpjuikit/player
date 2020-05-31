@@ -6,6 +6,8 @@ import com.sun.tools.attach.VirtualMachine
 import javafx.geometry.Pos.CENTER
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.F2
+import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -105,17 +107,22 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       fun Entry.ifInteractiveOn() = takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value }
       val actionsStandard = ActionRegistrar.getActions().map { Entry(it) }
       val actionsHardcoded = listOfNotNull(
-         Entry("UI > Window", "Move window", keys("ALT+drag " + PRIMARY.nameUi)).ifInteractiveOn(),
-         Entry("UI > Window", "Move window -> toggle maximize", keys("ALT+drag ${PRIMARY.nameUi}+${SECONDARY.nameUi}")).ifInteractiveOn(),
-         Entry("UI > Window", "Resize window", keys("ALT+drag " + SECONDARY.nameUi)).ifInteractiveOn(),
-         Entry("UI > Window", "Resize window", keys("ALT+drag edge " + SECONDARY.nameUi)).ifInteractiveOn(),
-         Entry("UI > Window", "Maximize (toggle ${ALL.toUi()}/${NONE.toUi()})", keys("header 2x${PRIMARY.nameUi}")),
-         Entry("UI > Window", "Header visible (toggle)", keys("header 2x${SECONDARY.nameUi}")),
-         Entry("UI > Window", "Close", keys("ALT+F4")),
-         Entry("UI > Popup", "Close", ESCAPE.nameUi),
+         Entry("Ui > Window", "Move window", keys("ALT+drag " + PRIMARY.nameUi)).ifInteractiveOn(),
+         Entry("Ui > Window", "Move window -> toggle maximize", keys("ALT+drag ${PRIMARY.nameUi}+${SECONDARY.nameUi}")).ifInteractiveOn(),
+         Entry("Ui > Window", "Resize window", keys("ALT+drag " + SECONDARY.nameUi)).ifInteractiveOn(),
+         Entry("Ui > Window", "Resize window", keys("ALT+drag edge " + SECONDARY.nameUi)).ifInteractiveOn(),
+         Entry("Ui > Window", "Maximize (toggle ${ALL.toUi()}/${NONE.toUi()})", keys("header 2x${PRIMARY.nameUi}")),
+         Entry("Ui > Window", "Header visible (toggle)", keys("header 2x${SECONDARY.nameUi}")),
+         Entry("Ui > Window", "Close", keys("ALT+F4")),
+         Entry("Ui > Popup", "Close", ESCAPE.nameUi),
+         Entry("Ui > Focus", "Traverse next", TAB.nameUi),
+         Entry("Ui > Focus", "Traverse previous", keys("SHIFT+TAB")),
+         Entry("Ui > Focus", "Traverse next widget", keys("CTRL+TAB")),
+         Entry("Ui > Focus", "Traverse previous widget", keys("CTRL+SHIFT+TAB")),
          Entry("Ui", "Show application help", Key.F1.nameUi),
          Entry("Ui", "Show application help", ActionManager.keyShortcuts.nameUi),
-         Entry("Ui", "Show widget help", ActionManager.keyShortcutsComponent.nameUi),
+         Entry("Ui", "Show focused widget help", F2.nameUi),
+         Entry("Ui", "Show focused widget help", ActionManager.keyShortcutsComponent.nameUi),
          Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
          Entry("Ui > Table/List/Grid", "Select", PRIMARY.nameUi),
          Entry("Ui > Table/List/Grid", "Show item context menu", SECONDARY.nameUi),

@@ -46,7 +46,7 @@ public abstract class Search {
 	private final KeyCode keyCancel = ESCAPE;
 	private final KeyCode keyNextOccurrence = ENTER;
 	private KeyCode pressedKeyCode;
-
+	private boolean pressedKeyProcessed = false;
 
 	/**
 	 * Installs the behavior of this search on specified node. This involves adding appropriate event handlers for
@@ -54,7 +54,7 @@ public abstract class Search {
 	 */
 	public void installOn(Node targetNode) {
 		targetNode.addEventHandler(KEY_TYPED, this::onKeyTyped);
-		targetNode.addEventFilter(KEY_PRESSED, this::onKeyPress);
+		targetNode.addEventHandler(KEY_PRESSED, this::onKeyPress);
 	}
 
 	/**
@@ -66,11 +66,20 @@ public abstract class Search {
 		search(query, System.currentTimeMillis());
 	}
 
+	private void search(String query, long now) {
+		searchQuery.set(query);
+		searchTime = now;
+		searchIndex = 0;
+		doSearch(query);
+	}
+
 	/**
 	 * Note: must be called on {@link KeyEvent#KEY_TYPED} event as event handler
 	 */
 	private void onKeyTyped(KeyEvent e) {
 		if (e.isConsumed()) return;
+		if (pressedKeyProcessed) return;
+		pressedKeyProcessed = true;
 		if (pressedKeyCode==null || pressedKeyCode==UNDEFINED) return;
 		if (pressedKeyCode==keyCancel || pressedKeyCode==keyNextOccurrence) return;
 		if (pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER || pressedKeyCode==DELETE) return;
@@ -100,6 +109,7 @@ public abstract class Search {
 	private void onKeyPress(KeyEvent e) {
 		if (e.isConsumed()) return;
 		pressedKeyCode = e.getCode();
+		pressedKeyProcessed = false;
 
 		if (isActive()) {
 			if (pressedKeyCode==keyCancel) {
@@ -115,13 +125,6 @@ public abstract class Search {
 				e.consume();
 			}
 		}
-	}
-
-	private void search(String query, long now) {
-		searchQuery.set(query);
-		searchTime = now;
-		searchIndex = 0;
-		doSearch(query);
 	}
 
 	protected abstract void doSearch(String query);
@@ -152,9 +155,9 @@ public abstract class Search {
 	 * Ends search.
 	 */
 	public void cancel() {
-		searchQuery.set("");
 		searchIndex = 0;
 		selectionIndex = 0;
+		searchQuery.set("");
 	}
 
 	private static String removeLastChar(String text) {

@@ -155,17 +155,17 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		});
 
 		// Select grid on click. Must work even if cells consume clicks.
-		grid.addEventFilter(MOUSE_CLICKED, e -> {
+		flow.addEventFilter(MOUSE_CLICKED, e -> {
 			if (!grid.isFocused())
 				grid.requestFocus();
 		});
 		// Select no cell on click outside cell. Cell click selection must consume events.
-		grid.addEventHandler(MOUSE_CLICKED, e -> {
+		flow.addEventHandler(MOUSE_CLICKED, e -> {
 			if (!e.isConsumed())
 				if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
 					selectNone();
 		});
-		grid.addEventFilter(SCROLL, e -> {
+		flow.addEventFilter(SCROLL, e -> {
 			if (!e.isConsumed())
 				// Select hovered cell (if enabled)
 				// Newly created cells that 'appear' right under mouse cursor will not receive hover event

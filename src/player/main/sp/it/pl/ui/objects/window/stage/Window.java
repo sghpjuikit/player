@@ -340,7 +340,7 @@ public class Window extends WindowBase {
 		});
 		// layout mode
 		root.addEventFilter(KeyEvent.ANY, e -> {
-			if (!e.isAltDown() && !e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
+			if (!e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
 				if (e.getCode().equals(ActionManager.INSTANCE.getKeyManageLayout())) {
 					if (e.getEventType().equals(KEY_RELEASED)) APP.ui.setLayoutMode(false);
 					if (e.getEventType().equals(KEY_PRESSED)) APP.ui.setLayoutMode(true);

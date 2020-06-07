@@ -11,6 +11,14 @@ import javafx.scene.input.KeyCode.WINDOWS
 import mu.KLogging
 import org.jnativehook.GlobalScreen
 import org.jnativehook.NativeInputEvent
+import org.jnativehook.NativeInputEvent.BUTTON1_MASK
+import org.jnativehook.NativeInputEvent.BUTTON2_MASK
+import org.jnativehook.NativeInputEvent.BUTTON3_MASK
+import org.jnativehook.NativeInputEvent.BUTTON4_MASK
+import org.jnativehook.NativeInputEvent.BUTTON5_MASK
+import org.jnativehook.NativeInputEvent.CAPS_LOCK_MASK
+import org.jnativehook.NativeInputEvent.NUM_LOCK_MASK
+import org.jnativehook.NativeInputEvent.SCROLL_LOCK_MASK
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
 import sp.it.util.dev.fail
@@ -60,9 +68,9 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
          }
          val keyListener = object: NativeKeyListener {
             override fun nativeKeyPressed(e: NativeKeyEvent) {
-               keyCombos.forEach { (actionId, keyCombo) ->
-                  val action = ActionRegistrar[actionId]
+               val modifiers = e.modifiers.withoutIgnoredModifiers()
 
+               keyCombos.forEach { (actionId, keyCombo) ->
                   // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
                   if (e.rawCode==226) {
                      e.keyCode = 43
@@ -71,10 +79,12 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
 
                   // Unfortunately, JavaFX key codes and the library raw codes do not match for some keys, so we also
                   // check key name. This combination should be enough for all but rare cases
-                  val modifiersMatch = keyCombo.modifier==e.modifiers
-                  val keysMatch = keyCombo.key.code==e.rawCode || keyCombo.key.getName().equals(NativeKeyEvent.getKeyText(e.keyCode), ignoreCase = true)
-                  if (keysMatch && modifiersMatch)
+                  val modifiersMatch = keyCombo.modifier==modifiers
+                  val keysMatch by lazy { keyCombo.key.code==e.rawCode || keyCombo.key.getName().equals(NativeKeyEvent.getKeyText(e.keyCode), ignoreCase = true) }
+                  if (keysMatch && modifiersMatch) {
+                     val action = ActionRegistrar[actionId]
                      keyCombo.press(action, e)
+                  }
                }
             }
 
@@ -134,9 +144,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
       val key: KeyCode
       val modifier: Int
       var isPressed = false
-         private set(value) {
-            field = value
-         }
+         private set
 
       constructor(key: KeyCode, vararg modifiers: KeyCode) {
          this.key = key
@@ -179,6 +187,20 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
       }
    }
 
-   companion object: KLogging()
+   companion object: KLogging() {
+      private var ignoredModifiers = listOf(
+         SCROLL_LOCK_MASK,
+         CAPS_LOCK_MASK,
+         NUM_LOCK_MASK,
+         BUTTON1_MASK,
+         BUTTON2_MASK,
+         BUTTON3_MASK,
+         BUTTON4_MASK,
+         BUTTON5_MASK
+      )
+      private var ignoredModifiersInvMask = ignoredModifiers.reduce(Int::or).inv()
+
+      private fun Int.withoutIgnoredModifiers(): Int = this and ignoredModifiersInvMask
+   }
 
 }

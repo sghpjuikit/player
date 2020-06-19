@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects
 
-import sp.it.pl.main.emScaled
+import javafx.scene.text.Font
+import sp.it.pl.main.fontScaled
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.sync
 
@@ -16,10 +17,10 @@ class Text: javafx.scene.text.Text {
 
    /** Sets wrappingWidth to achieve natural width and height based on current text. */
    fun resizeToNatural() {
-      wrappingWidth = (110 + text.orEmpty().length/4).emScaled
+      wrappingWidth = computeNaturalWrappingWidth(text, font)
    }
 
-   override fun minWidth(height: Double): Double {
-      return super.minWidth(height)
+   companion object {
+      fun computeNaturalWrappingWidth(text: String?, font: Font?) = (110 + text.orEmpty().length/4).fontScaled(font)
    }
 }

@@ -251,7 +251,6 @@ public class Icon extends StackPane {
 		Tooltip old = getTooltip();
 		if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
 			t.setWrapText(true);
-			t.setMaxWidth(330);
 			t.getScene().getRoot().setOpacity(0.0);
 
 			// Can not set graphics normally, because:
@@ -271,6 +270,7 @@ public class Icon extends StackPane {
 
 				t.setText(text);
 				t.getScene().getRoot().applyCss();
+				t.setMaxWidth(sp.it.pl.ui.objects.Text.Companion.computeNaturalWrappingWidth(t.getText(), t.getFont()));
 
 				Label s = getFieldValue(t.getSkin(), "tipLabel");
 				Text txt = s==null ? null : getFieldValue(s.getSkin(), "text");
@@ -343,17 +343,17 @@ public class Icon extends StackPane {
 	}
 
 	/**
-	 * Installs action for left mouse click and ENTER press. The events will be consumed.
+	 * Installs action for left mouse single click and ENTER release. The events will be consumed.
 	 * @return this
 	 */
 	public final @NotNull Icon onClickDo(@Nullable Function1<Icon,Unit> action) {
 		setOnMouseClicked(action==null ? null : e -> {
-			if (e.getButton()==PRIMARY) {
+			if (e.getButton()==PRIMARY && e.getClickCount()==1) {
 				action.invoke(this);
 				e.consume();
 			}
 		});
-		setOnKeyPressed(action==null ? null : e -> {
+		setOnKeyReleased(action==null ? null : e -> {
 			if (e.getCode()==ENTER) {
 				action.invoke(this);
 				e.consume();

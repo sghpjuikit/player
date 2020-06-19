@@ -32,6 +32,7 @@ import sp.it.util.reactive.Disposer;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
@@ -41,12 +42,12 @@ import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
-import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.functional.Util.SAME;
@@ -205,14 +206,15 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			double dist = e.getScreenY() - selectionLastScreenY;
 
 			int by = (int) (dist/h);
-			if (by>=1 || by<=-1) {
+			if (by!=0) {
 				selectionLastScreenY = e.getScreenY();
 				moveSelectedItems(by);
 			}
 		});
 
 		// set key-induced actions
-		setOnKeyPressed(e -> {
+		addEventHandler(KEY_PRESSED, e -> {
+			if (e.isConsumed()) return;
 			if (e.isControlDown() && !e.isShiftDown() && !e.isAltDown() && !e.isMetaDown()) {
 				if (e.getCode()==KeyCode.UP) {
                     // table.getFocusModel().focus(-1);

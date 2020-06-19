@@ -162,8 +162,10 @@ class GameView(widget: Widget): SimpleController(widget) {
          primaryFilterField = FileField.NAME_FULL
          cellFactory.value = Callback { Cell() }
          onEventDown(KEY_PRESSED, ENTER) {
-            val si = grid.selectedItem.value
-            if (si!=null) viewGame(si.value)
+            if (!it.isConsumed) {
+               val si = grid.selectedItem.value
+               if (si!=null) viewGame(si.value)
+            }
          }
          onEventUp(SCROLL) {
             if (it.isShortcutDown) {

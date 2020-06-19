@@ -72,35 +72,37 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
    override fun reduce(values: Stream<Predicate<T>>): Predicate<T> = values.asSequence().fold(IS.asIs(), Predicate<T>::and)
 
    fun buildToggleOnKeyHandler(filterVisible: WritableValue<Boolean>, owner: Node) = EventHandler<KeyEvent> { e ->
-      when (e.code) {
-         F -> {
-            if (e.isShortcutDown) {
-               if (filterVisible.value) {
-                  val hasFocus = root.scene?.focusOwner?.let { root.isAnyParentOf(it) }==true
-                  if (hasFocus) {
-                     filterVisible.value = !filterVisible.value
-                     if (!filterVisible.value) owner.requestFocus()
+      if (!e.isConsumed) {
+         when (e.code) {
+            F -> {
+               if (e.isShortcutDown) {
+                  if (filterVisible.value) {
+                     val hasFocus = root.scene?.focusOwner?.let { root.isAnyParentOf(it) }==true
+                     if (hasFocus) {
+                        filterVisible.value = !filterVisible.value
+                        if (!filterVisible.value) owner.requestFocus()
+                     } else {
+                        focus()
+                     }
                   } else {
-                     focus()
+                     filterVisible.value = true
                   }
-               } else {
-                  filterVisible.value = true
+                  e.consume()
                }
-               e.consume()
             }
-         }
-         ESCAPE -> {
-            if (filterVisible.value) {
-               if (isEmpty()) {
-                  filterVisible.value = false
-                  owner.requestFocus()
-               } else {
-                  clear()
+            ESCAPE -> {
+               if (filterVisible.value) {
+                  if (isEmpty()) {
+                     filterVisible.value = false
+                     owner.requestFocus()
+                  } else {
+                     clear()
+                  }
+                  e.consume()
                }
-               e.consume()
             }
+            else -> {}
          }
-         else -> {}
       }
    }
 

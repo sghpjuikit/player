@@ -189,15 +189,19 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
 
       table.onEventDown(KEY_PRESSED, ENTER, false) {
-         if (!table.selectionModel.isEmpty) {
-            PlaylistManager.use { it.setNplayFrom(table.items, table.selectionModel.selectedIndex) }
-            it.consume()
+         if (!it.isConsumed) {
+            if (!table.selectionModel.isEmpty) {
+               PlaylistManager.use { it.setNplayFrom(table.items, table.selectionModel.selectedIndex) }
+               it.consume()
+            }
          }
       }
       table.onEventDown(KEY_PRESSED, DELETE, false) {
-         if (!table.selectionModel.isEmpty) {
-            removeSongs(table.selectedItems)
-            it.consume()
+         if (!it.isConsumed) {
+            if (!table.selectionModel.isEmpty) {
+               removeSongs(table.selectedItems)
+               it.consume()
+            }
          }
       }
 

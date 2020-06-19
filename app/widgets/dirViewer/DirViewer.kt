@@ -190,8 +190,10 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
 
       grid.onEventDown(KEY_PRESSED, ENTER) {
-         val si = grid.selectedItem.value
-         if (si!=null) doubleClickItem(si, it.isShiftDown)
+         if (!it.isConsumed) {
+            val si = grid.selectedItem.value
+            if (si!=null) doubleClickItem(si, it.isShiftDown)
+         }
       }
       grid.onEventDown(KEY_PRESSED, BACK_SPACE) { visitUp() }
       grid.onEventDown(MOUSE_CLICKED, SECONDARY) { visitUp() }

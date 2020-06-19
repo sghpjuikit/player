@@ -27,14 +27,6 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.AVG_RATING
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
-import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
-import sp.it.pl.ui.objects.rating.RatingCellFactory
-import sp.it.pl.ui.objects.table.FilteredTable
-import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
-import sp.it.pl.ui.objects.table.buildFieldedCell
-import sp.it.pl.ui.objects.tablerow.ImprovedTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
@@ -46,6 +38,14 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.isPlaying
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
+import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.ui.objects.rating.RatingCellFactory
+import sp.it.pl.ui.objects.table.FilteredTable
+import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
+import sp.it.pl.ui.objects.table.buildFieldedCell
+import sp.it.pl.ui.objects.tablerow.ImprovedTableRow
 import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
@@ -71,7 +71,6 @@ import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
 import sp.it.util.text.pluralUnit
@@ -242,8 +241,16 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          }
       }
 
-      table.onEventDown(KEY_PRESSED, ENTER) { playSelected() }
-      table.onEventDown(KEY_PRESSED, DELETE) { APP.db.removeSongs(table.selectedItems.flatMap { it.grouped }) }
+      table.onEventDown(KEY_PRESSED, ENTER) {
+         if (!it.isConsumed) {
+            playSelected()
+         }
+      }
+      table.onEventDown(KEY_PRESSED, DELETE) {
+         if (!it.isConsumed) {
+            APP.db.removeSongs(table.selectedItems.flatMap { it.grouped })
+         }
+      }
       table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
          if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
             table.startDragAndDrop(*ANY).setSongsAndFiles(filerSortInputList())

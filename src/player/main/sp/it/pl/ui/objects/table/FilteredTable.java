@@ -18,10 +18,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.ScrollToEvent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
-import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -42,6 +43,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
@@ -112,18 +114,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		syncSize(menuSelected.getItems(), consumer(size -> menuSelected.setDisable(size==0)));
 		syncSize(menuOrder.getItems(), consumer(size -> menuOrder.setDisable(size==0)));
 
-		// selecting
-		root.addEventHandler(KEY_PRESSED, e -> {
-			if (e.getCode()==KeyCode.ESCAPE) {
-				getSelectionModel().clearSelection();
-				e.consume();
-			}
-		});
-
 		// searching
 		search.setColumn(mainField);
 		searchQueryLabel.textProperty().bind(search.searchQuery);
-		search.installOn(root);
+		search.installOn(this);
 
 		// filtering
 		primaryFilterField = mainField;
@@ -131,9 +125,28 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		filterPane.getNode().setVisible(false);
 		var filterKeyHandler = filterPane.buildToggleOnKeyHandler(filterVisible, this);
 		filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
-		root.addEventHandler(KEY_PRESSED, filterKeyHandler);  // filter would ignore first key stroke when filter turns visible
+		addEventHandler(KEY_PRESSED, filterKeyHandler);  // filter would ignore first key stroke when filter turns visible
 
-		root.addEventFilter(ScrollEvent.ANY, e -> {
+		// selecting
+		addEventHandler(KEY_PRESSED, e -> {
+			if (e.isConsumed()) return;
+			if (e.getCode()==ESCAPE) {
+				if (!getSelectionModel().isEmpty()) {
+					getSelectionModel().clearSelection();
+					e.consume();
+				}
+			}
+		});
+
+		addEventHandler(ScrollEvent.ANY, e -> {
+			if (search.isActive())
+				search.updateSearchStyles();
+		});
+		addEventHandler(KeyEvent.ANY, e -> {
+			if (search.isActive())
+				search.updateSearchStyles();
+		});
+		addEventHandler(ScrollToEvent.ANY, e -> {
 			if (search.isActive())
 				search.updateSearchStyles();
 		});

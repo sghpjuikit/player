@@ -25,6 +25,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.PLAYBACK_NAME
+import sp.it.pl.main.Widgets.PLAYLIST_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
@@ -213,7 +214,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
    }
 
    companion object: WidgetCompanion, KLogging() {
-      override val name = PLAYBACK_NAME
+      override val name = PLAYLIST_NAME
       override val description = "Contains playlist table"
       override val descriptionLong = "$description. Highlights playing and unplayable songs"
       override val icon = IconUN(0x2e2a)

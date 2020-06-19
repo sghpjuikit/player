@@ -71,9 +71,8 @@ class Form<T>: AnchorPane {
 
       showOkButton(hasAction.value)
 
-      val observer = Runnable { validate() }
+      editorsPane.onChange = Runnable { validate() }
       editorsPane.configure(configurable)
-      editorsPane.getConfigEditors().forEach { it.onChange = observer }
 
       fieldsPane.consumeScrolling()
 

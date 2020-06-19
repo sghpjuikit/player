@@ -17,7 +17,7 @@ import sp.it.util.file.json.JsConverter
 import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.Json
-import sp.it.util.file.json.prettyPrint
+import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.file.properties.PropVal.PropValN
@@ -64,7 +64,7 @@ class CoreSerializerJson: Core {
 
             override fun fromJson(value: JsValue) = when (value) {
                is JsString -> value.value.let { PropVal1(it) }
-               is JsArray -> value.value.mapNotNull { it.asJsString() }.let { PropValN(it) }
+               is JsArray -> value.value.mapNotNull { it.asJsStringValue() }.let { PropValN(it) }
                else -> fail { "Unexpected value=$value, which is not ${JsString::class} or ${JsArray::class}" }
             }
          }
@@ -74,7 +74,7 @@ class CoreSerializerJson: Core {
    @Blocks
    inline fun <reified T: Any> toJson(t: T, file: File): Try<Nothing?, Throwable> {
       return file.writeSafely {
-         val text = json.toJsonValue<T>(t).prettyPrint()
+         val text = json.toJsonValue<T>(t).toPrettyS()
          it.writeTextTry(text, encoding)
       }.ifError {
          logger.error(it) { "Couldn't serialize " + t.javaClass + " to file=$file" }

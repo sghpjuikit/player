@@ -16,9 +16,13 @@ import sp.it.util.functional.runTry
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.Parsers
 import sp.it.util.type.Util.isEnum
+import sp.it.util.type.argOf
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.toRaw
 import sp.it.util.type.jType
+import sp.it.util.type.kType
+import sp.it.util.type.raw
+import sp.it.util.type.typeResolved
 import java.io.File
 import java.lang.reflect.GenericArrayType
 import java.lang.reflect.ParameterizedType
@@ -43,25 +47,34 @@ import java.util.UUID
 import java.util.Vector
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
 
-interface JsRoot
-
 sealed class JsValue {
-   fun asJsNull() = asIs<JsNull>().let { null }
-   fun asJsTrue() = if (this is JsNull) null else asIs<JsTrue>().let { true }
-   fun asJsFalse() = if (this is JsNull) null else asIs<JsFalse>().let { false }
-   fun asJsString() = if (this is JsNull) null else asIs<JsString>().value
-   fun asJsNumber() = if (this is JsNull) null else asIs<JsNumber>().value
-   fun asJsArray() = if (this is JsNull) null else asIs<JsArray>().value
-   fun asJsObject() = if (this is JsNull) null else asIs<JsObject>().value
+   fun asJsNull() = asIs<JsNull>()
+   fun asJsTrue() = asIs<JsTrue>()
+   fun asJsFalse() = asIs<JsFalse>()
+   fun asJsString() = asIs<JsString>()
+   fun asJsNumber() = asIs<JsNumber>()
+   fun asJsArray() = asIs<JsArray>()
+   fun asJsObject() = asIs<JsObject>()
 
-   override fun toString() = "${this::class} ${prettyPrint()}"
+   fun asJsNullValue() = asIs<JsNull>().let { null }
+   fun asJsTrueValue() = if (this is JsNull) null else asIs<JsTrue>().let { true }
+   fun asJsFalseValue() = if (this is JsNull) null else asIs<JsFalse>().let { false }
+   fun asJsStringValue() = if (this is JsNull) null else asIs<JsString>().value
+   fun asJsNumberValue() = if (this is JsNull) null else asIs<JsNumber>().value
+   fun asJsArrayValue() = if (this is JsNull) null else asIs<JsArray>().value
+   fun asJsObjectValue() = if (this is JsNull) null else asIs<JsObject>().value
+
+   override fun toString() = "${this::class} ${toPrettyS()}"
 }
+
+interface JsRoot
 
 object JsNull: JsValue()
 
@@ -75,7 +88,9 @@ class JsNumber(val value: Number): JsValue()
 
 class JsArray(val value: List<JsValue>): JsValue(), JsRoot
 
-class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot
+class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot {
+   constructor(entry: Pair<String, JsValue>): this(mapOf(entry))
+}
 
 
 interface JsConverter<T> {
@@ -156,23 +171,23 @@ class Json {
       converters {
          UUID::class convert object: JsConverter<UUID> {
             override fun toJson(value: UUID) = JsString(value.toString())
-            override fun fromJson(value: JsValue) = value.asJsString()?.let { UUID.fromString(it) }
+            override fun fromJson(value: JsValue) = value.asJsStringValue()?.let { UUID.fromString(it) }
          }
       }
    }
 
-   inline fun <reified T: Any> toJsonValue(value: T?): JsValue = toJsonValue(jType<T>(), value)
+   inline fun <reified T: Any> toJsonValue(value: T?): JsValue = toJsonValue(kType<T>(), value)
 
-   fun toJsonValue(typeAsJava: Type, value: Any?): JsValue {
+   fun toJsonValue(typeAs: KType, value: Any?): JsValue {
       return when (value) {
          null -> JsNull
          true -> JsTrue
          false -> JsFalse
          else -> {
             val type = value::class
-            val typeAs = typeAsJava.toRaw().kotlin
+            val typeAsRaw = typeAs.raw
             val isObject = type.objectInstance!=null
-            val isAmbiguous = typeAs==Any::class || typeAs.isSealed || isObject || type!=typeAs
+            val isAmbiguous = typeAsRaw==Any::class || typeAsRaw.isSealed || isObject || type!=typeAsRaw
 
             fun typeWitness() = "_type" to JsString(typeAliases.byType[type]
                ?: type.qualifiedName
@@ -182,10 +197,19 @@ class Json {
 
             when (value) {
                is Number -> JsNumber(value).withAmbiguity()
-               is String -> JsString(value).withAmbiguity()
+               is String -> JsString(value)
                is Enum<*> -> JsString(value.name).withAmbiguity()
-               is Collection<*> -> JsArray(value.map { toJsonValue(jType<Any>(), it) })   // TODO: preserve collection/map type
-               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { toJsonValue(jType<Any>(), it.value) })
+               is Array<*> -> JsArray(value.map { toJsonValue(kType<Any>(), it) })
+               is ByteArray -> JsArray(value.map { toJsonValue(kType<Byte>(), it) })
+               is CharArray -> JsArray(value.map { toJsonValue(kType<Char>(), it) })
+               is ShortArray -> JsArray(value.map { toJsonValue(kType<Short>(), it) })
+               is IntArray -> JsArray(value.map { toJsonValue(kType<Int>(), it) })
+               is LongArray -> JsArray(value.map { toJsonValue(kType<Long>(), it) })
+               is FloatArray -> JsArray(value.map { toJsonValue(kType<Float>(), it) })
+               is DoubleArray -> JsArray(value.map { toJsonValue(kType<Double>(), it) })
+               is BooleanArray -> JsArray(value.map { toJsonValue(kType<Boolean>(), it) })
+               is Collection<*> -> JsArray(value.map { toJsonValue(typeAs.argOf(Collection::class, 0).typeResolved, it) })   // TODO: preserve collection/map type
+               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { toJsonValue(typeAs.argOf(Map::class, 1).typeResolved, it.value) })
                else -> {
                   val converter = converters.byType.getElementOfSuper(value::class)
                      .asIf<JsConverter<Any>>()
@@ -195,7 +219,7 @@ class Json {
                   } else {
                      val values = type.memberProperties.filter { it.javaField!=null }.map {
                         it.isAccessible = true
-                        it.name to toJsonValue(it.returnType.javaType, it.getter.call(value))
+                        it.name to toJsonValue(it.returnType, it.getter.call(value))
                      }.toMap().let {
                         when {
                            isObject -> mapOf(typeWitness())
@@ -211,8 +235,19 @@ class Json {
       }
    }
 
-   inline fun <reified T> fromJson(file: File, charset: Charset = Charsets.UTF_8): Try<T?, Throwable> = runTry {
-      val klaxonAst = Klaxon().parseJsonObject(file.bufferedReader(charset))
+   fun ast(json: String): Try<JsValue, Throwable> = runTry {
+      val klaxonAst = Klaxon().parseJsonObject(json.reader().buffered())
+      fromKlaxonAST(klaxonAst)
+   }
+
+   inline fun <reified T> fromJson(json: String): Try<T?, Throwable> = runTry {
+      val klaxonAst = Klaxon().parseJsonObject(json.reader().buffered())
+      val ast = fromKlaxonAST(klaxonAst)
+      fromJsonValueImpl<T>(ast)
+   }
+
+   inline fun <reified T> fromJson(json: File, charset: Charset = Charsets.UTF_8): Try<T?, Throwable> = runTry {
+      val klaxonAst = Klaxon().parseJsonObject(json.bufferedReader(charset))
       val ast = fromKlaxonAST(klaxonAst)
       fromJsonValueImpl<T>(ast)
    }
@@ -229,6 +264,8 @@ class Json {
       val converter = converters.byType.getElementOfSuper(typeK).asIf<JsConverter<Any?>>()
       return if (converter!=null) {
          converter.fromJson(value)
+      } else if (value::class==typeK) {
+         return value
       } else {
          when (value) {
             is JsNull -> null
@@ -305,18 +342,18 @@ class Json {
             }
             is JsObject -> {
                val instanceType = null
-                  ?: value.value["_type"]?.asJsString()?.net { typeAliases.byAlias[it] ?: Class.forName(it).kotlin }
+                  ?: value.value["_type"]?.asJsStringValue()?.net { typeAliases.byAlias[it] ?: Class.forName(it).kotlin }
                   ?: typeK
                when {
                   instanceType.objectInstance!=null -> instanceType.objectInstance
-                  instanceType==Short::class -> value.value["value"]?.asJsNumber()?.toShort()
-                  instanceType==Int::class -> value.value["value"]?.asJsNumber()?.toInt()
-                  instanceType==Long::class -> value.value["value"]?.asJsNumber()?.toLong()
-                  instanceType==Float::class -> value.value["value"]?.asJsNumber()?.toFloat()
-                  instanceType==Double::class -> value.value["value"]?.asJsNumber()?.toDouble()
-                  instanceType==Number::class -> value.value["value"]?.asJsNumber()
-                  instanceType==String::class -> value.value["value"]?.asJsString()
-                  instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsString()?.let { getEnumValue(instanceType.javaObjectType, it) }
+                  instanceType==Short::class -> value.value["value"]?.asJsNumberValue()?.toShort()
+                  instanceType==Int::class -> value.value["value"]?.asJsNumberValue()?.toInt()
+                  instanceType==Long::class -> value.value["value"]?.asJsNumberValue()?.toLong()
+                  instanceType==Float::class -> value.value["value"]?.asJsNumberValue()?.toFloat()
+                  instanceType==Double::class -> value.value["value"]?.asJsNumberValue()?.toDouble()
+                  instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
+                  instanceType==String::class -> value.value["value"]?.asJsStringValue()
+                  instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
                   instanceType.isSubclassOf<Map<*, *>>() -> {
                      val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()?.kotlin
                         ?: String::class
@@ -377,7 +414,33 @@ class Json {
 //
 //fun <T> json(block: JsonDsl.() -> T) : T = JsonDsl.block()
 
-fun JsValue.prettyPrint(indent: String = "  ", newline: String = "\n"): String {
+fun JsObject.values(): Collection<JsValue> = value.values
+
+operator fun JsValue?.div(field: String): JsValue? = when (this) {
+   null -> null
+   is JsObject -> value[field]
+   else -> fail { "Expected ${JsObject::class}, but got $this" }
+}
+
+fun JsValue.toCompactS(): String {
+   fun String.jsonEscape() = replace("\\", "\\\\").replace("\"", "\\\"")
+   fun String.toJsonString() = "\"${this.jsonEscape()}\""
+   return when (this) {
+      is JsNull -> "null"
+      is JsTrue -> "true"
+      is JsFalse -> "false"
+      is JsString -> value.toJsonString()
+      is JsNumber -> value.toString()
+      is JsArray ->
+         if (value.isEmpty()) "[]"
+         else "[" + value.joinToString(",") { it.toPrettyS() } + "]"
+      is JsObject ->
+         if (value.isEmpty()) "{}"
+         else "{" + value.entries.joinToString(",") { it.key.toJsonString() + ":" + it.value.toPrettyS() } + "}"
+   }
+}
+
+fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String {
    fun String.jsonEscape() = replace("\\", "\\\\").replace("\"", "\\\"")
    fun String.toJsonString() = "\"${this.jsonEscape()}\""
    fun String.reIndent() = replace(newline, newline + indent)
@@ -389,10 +452,10 @@ fun JsValue.prettyPrint(indent: String = "  ", newline: String = "\n"): String {
       is JsNumber -> value.toString()
       is JsArray ->
          if (value.isEmpty()) "[]"
-         else "[" + newline + indent + value.joinToString(",$newline") { it.prettyPrint() }.reIndent() + newline + "]"
+         else "[" + newline + indent + value.joinToString(",$newline") { it.toPrettyS() }.reIndent() + newline + "]"
       is JsObject ->
          if (value.isEmpty()) "{}"
-         else "{" + newline + indent + value.entries.joinToString(",$newline") { it.key.toJsonString() + ": " + it.value.prettyPrint() }.reIndent() + newline + "}"
+         else "{" + newline + indent + value.entries.joinToString(",$newline") { it.key.toJsonString() + ": " + it.value.toPrettyS() }.reIndent() + newline + "}"
    }
 }
 

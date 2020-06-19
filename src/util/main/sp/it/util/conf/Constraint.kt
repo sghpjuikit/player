@@ -119,6 +119,10 @@ interface Constraint<in T> {
 
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
+   class UiElementConverter<T>(val converter: (T) -> String): MarkerConstraint()
+
+   class UiInfoConverter<T>(val converter: (T) -> String): MarkerConstraint()
+
    class ReadOnlyIf(val condition: ObservableValue<Boolean>): Constraint<Any?> {
       constructor(condition: ObservableValue<Boolean>, unless: Boolean): this(
          object: BooleanBinding() {

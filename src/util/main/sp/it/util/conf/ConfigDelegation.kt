@@ -77,10 +77,22 @@ fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: Boolean) = but(Constraint.R
 fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: ObservableValue<Boolean>) = but(Constraint.ReadOnlyIf(condition, true))
 
 /**
- * Gives hint to ui editor to use the specified to storing converter instead of the default one.
+ * Gives hint to ui editor to use the specified to-string converter instead of the default one.
  * This provides a fine-grained per [Config] control for this behavior.
  */
 fun <T: Any?, C: Conf<T>> C.uiConverter(converter: (T) -> String) = but(Constraint.UiConverter(converter))
+
+/**
+ * Gives hint to ui editor to use the specified to-string converter for elements instead of the default one.
+ * This provides a fine-grained per [Config] control for this behavior.
+ */
+fun <T: Any?, S: Boolean?, C: ConfCheckL<T,S>> C.uiConverterElement(converter: (T) -> String) = but(Constraint.UiElementConverter(converter))
+
+/**
+ * Gives hint to ui editor to use the specified to-info-string converter to display extended information about the value.
+ * For enumerable config only.
+ */
+fun <T: Any?, C: Conf<T>> C.uiInfoConverter(converter: (T) -> String) = but(Constraint.UiInfoConverter(converter))
 
 /**
  * If this config is [enumerable][Config.isTypeEnumerable], the value order in ui editor will follow the order of the

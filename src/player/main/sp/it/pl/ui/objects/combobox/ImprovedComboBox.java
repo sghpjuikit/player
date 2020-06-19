@@ -89,13 +89,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 				return null;
 			}
 		});
-		setCellFactory(view -> new ListCell<>() { // do not use ComboBoxListCell! causes problems!
-			@Override
-			public void updateItem(T item, boolean empty) {
-				super.updateItem(item, empty);
-				setText(empty ? "<none>" : toStringConverter.apply(item));
-			}
-		});
+		setCellFactory(view -> new ImprovedComboBoxListCell<>(this));
 		setButtonCell(getCellFactory().call(null));
 		setValue(null);
 
@@ -113,4 +107,17 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 		});
 	}
 
+	public static class ImprovedComboBoxListCell<T> extends ListCell<T> {   // do not extend ComboBoxListCell! causes problems!
+		protected Function<T,String> toStringConverter;
+
+		public ImprovedComboBoxListCell(ImprovedComboBox<T> comboBox) {
+			toStringConverter = comboBox.toStringConverter;
+		}
+
+		@Override
+		protected void updateItem(T item, boolean empty) {
+			super.updateItem(item, empty);
+			setText(empty ? "<none>" : toStringConverter.apply(item));
+		}
+	}
 }

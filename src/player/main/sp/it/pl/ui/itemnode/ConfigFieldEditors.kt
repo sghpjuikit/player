@@ -62,6 +62,7 @@ import sp.it.pl.ui.itemnode.textfield.EffectTextField
 import sp.it.pl.ui.itemnode.textfield.FileTextField
 import sp.it.pl.ui.itemnode.textfield.FontTextField
 import sp.it.pl.ui.objects.combobox.ImprovedComboBox
+import sp.it.pl.ui.objects.combobox.ImprovedComboBox.ImprovedComboBoxListCell
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
@@ -86,6 +87,8 @@ import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.PreserveOrder
 import sp.it.util.conf.Constraint.UiConverter
+import sp.it.util.conf.Constraint.UiElementConverter
+import sp.it.util.conf.Constraint.UiInfoConverter
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
@@ -99,7 +102,9 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getAny
 import sp.it.util.functional.getOr
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
@@ -218,6 +223,7 @@ class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrPropertyConfig.OrValue<T>>
 class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
    val v = getObservableValue(c)
    private val isObservable = v!=null
+   private val isDecimal = config.type.raw in setOf<Any>(Int::class, Short::class, Long::class)
    val range = c.findConstraint<NumberMinMax>()!!
    private val cur: Label
    private val min = Label(range.min!!.toUi())
@@ -236,8 +242,9 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
 
       editor.alignment = CENTER_LEFT
       editor.spacing = 5.0
-      if (config.type.raw in setOf<Any>(Int::class, Short::class, Long::class)) {
-         editor.children.add(0, cur)
+      if (isDecimal) {
+         editor.children.add(3, label("|"))
+         editor.children.add(4, cur)
          slider.majorTickUnit = 1.0
          slider.isSnapToTicks = true
       }
@@ -275,8 +282,9 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
    val v = getObservableValue(c)
    val isObservable = v!=null
    val isSortable = c.constraints.none { it is PreserveOrder }
-   private val converter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: { it.toUi() }
-   final override val editor = ImprovedComboBox(converter)
+   private val uiConverter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: { it.toUi() }
+   private val uiInfoConverter: ((T) -> String)? = c.findConstraint<UiInfoConverter<T>>()?.converter
+   final override val editor = ImprovedComboBox(uiConverter)
    private var suppressChanges = false
    private val disposer = editor.onNodeDispose
 
@@ -285,7 +293,7 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
       v?.attach { editor.value = c.value }.orEmpty() on disposer
       if (enumeration is Observable) {
          val list = observableArrayList<T>()
-         val listSorted = if (isSortable) list.sorted(by(converter)) else list
+         val listSorted = if (isSortable) list.sorted(by(uiConverter)) else list
          editor.items = listSorted
          disposer += { editor.items = null }
 
@@ -298,12 +306,27 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
             suppressChanges = false
          } on disposer
       } else {
-         editor.items setTo if (isSortable) enumeration.sortedBy(converter) else enumeration
+         editor.items setTo if (isSortable) enumeration.sortedBy(uiConverter) else enumeration
       }
       editor.value = c.value
       editor.valueProperty() attach {
          if (!suppressChanges)
             apply()
+      }
+
+      // info button
+      uiInfoConverter.ifNotNull { converter ->
+         editor.cellFactory = Callback {
+            object: ImprovedComboBoxListCell<T>(editor) {
+               val infoIcon = Icon(IconFA.INFO)
+
+               override fun updateItem(item: T?, empty: Boolean) {
+                  super.updateItem(item, empty)
+                  super.setGraphic(infoIcon)
+                  infoIcon.tooltip(item?.net(converter))
+               }
+            }
+         }
       }
    }
 
@@ -527,6 +550,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckList<T, S>>(c) {
    private val list = c.value
    private val possibleValues = if (list.checkType.isNullable) listOf(true, false, null) else listOf(true, false)
+   private val uiConverter: (T) -> String = c.findConstraint<UiElementConverter<T>>()?.converter ?: { it.toUi() }
    private val checkIcons = list.all.mapIndexed { i, _ ->
       NullCheckIcon().apply {
          selected.value = list.selections[i]
@@ -540,6 +564,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
                true -> false
                false -> if (list.checkType.isNullable) null else true
             }
+            onChange?.run()
          }
       }
    }
@@ -556,6 +581,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
             checkIcons.forEach { it.selected.value = nextValue }
          }
          updateSuperIcon()
+         onChange?.run()
       }
    }
 
@@ -569,7 +595,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
          lay += hBox(0, CENTER_LEFT) {
             padding = Insets(0.0, 0.0, 0.0, 5.0.emScaled)
             lay += checkIcons[i]
-            lay += label(element.toUi())
+            lay += label(uiConverter(element))
          }
       }
    }

@@ -21,6 +21,7 @@ import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
+import sp.it.pl.layout.widget.ComponentLoaderStrategy
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
@@ -40,12 +41,14 @@ import sp.it.pl.plugin.impl.Waifu2k
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
+import sp.it.pl.ui.objects.combobox.ImprovedComboBox
 import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
+import sp.it.util.collections.setTo
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.c
@@ -442,12 +445,17 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Components - open") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
       } by { "Open widget ${it.name}" } toSource {
-         SimpleEntry(
+         val strategyCB = ImprovedComboBox<ComponentLoaderStrategy> { it.toUi() }.apply {
+            items setTo ComponentLoaderStrategy.values()
+            value = ComponentLoaderStrategy.POPUP
+         }
+         Entry.of(
             name = "Open widget ${it.name}",
             icon = IconFA.TH_LARGE,
-            infoΛ = { "Open widget ${it.name}\n\nOpens the widget in new window." }
+            infoΛ = { "Open widget ${it.name}\n\nOpens the widget in new window." },
+            graphics = strategyCB
          ) {
-            APP.windowManager.showWindow(it.create())
+            strategyCB.value.loader(it.create())
          }
       }
       sources += Source("Components - open (in new process)") {

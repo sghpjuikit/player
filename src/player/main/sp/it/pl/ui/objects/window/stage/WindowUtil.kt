@@ -22,24 +22,50 @@ import javafx.scene.Cursor.SW_RESIZE
 import javafx.scene.Cursor.S_RESIZE
 import javafx.scene.Cursor.W_RESIZE
 import javafx.scene.Node
+import javafx.scene.Parent
+import javafx.scene.Scene
+import javafx.scene.input.KeyCode.F1
+import javafx.scene.input.KeyCode.F2
+import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyEvent.ANY
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
+import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
 import javafx.scene.robot.Robot
 import javafx.stage.Stage
 import sp.it.pl.layout.widget.initialTemplateFactory
+import sp.it.pl.layout.widget.widgetFocused
+import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconUN
 import sp.it.pl.ui.objects.picker.ContainerPicker
 import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.ui.objects.window.Resize
-import sp.it.pl.ui.objects.window.Resize.*
+import sp.it.pl.ui.objects.window.Resize.ALL
+import sp.it.pl.ui.objects.window.Resize.E
+import sp.it.pl.ui.objects.window.Resize.N
+import sp.it.pl.ui.objects.window.Resize.NE
+import sp.it.pl.ui.objects.window.Resize.NONE
+import sp.it.pl.ui.objects.window.Resize.NW
+import sp.it.pl.ui.objects.window.Resize.S
+import sp.it.pl.ui.objects.window.Resize.SE
+import sp.it.pl.ui.objects.window.Resize.SW
+import sp.it.pl.ui.objects.window.Resize.W
+import sp.it.util.action.ActionManager.keyManageLayout
+import sp.it.util.action.ActionManager.keyShortcuts
+import sp.it.util.action.ActionManager.keyShortcutsComponent
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
+import sp.it.util.functional.ifNotNull
 import sp.it.util.math.P
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
+import sp.it.util.reactive.syncNonNullIntoWhile
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.centre
@@ -91,9 +117,42 @@ fun Window.installStartLayoutPlaceholder() {
 
 }
 
+fun Stage.installWindowInteraction() = sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { it.installWindowInteraction() }
+
+fun Parent.installWindowInteraction() = Subscription(
+   // change volume on scroll
+   onEventDown(SCROLL) {
+      if (it.deltaY>0) APP.audio.volumeInc()
+      else if (it.deltaY<0) APP.audio.volumeDec()
+   },
+   // show help hotkeys
+   onEventDown(KEY_PRESSED) {
+      if (!it.isAltDown && !it.isControlDown && !it.isShortcutDown && !it.isMetaDown) {
+         if (it.code==F1 || it.code==keyShortcuts) {
+            APP.actions.showShortcuts()
+            it.consume()
+         }
+         if (it.code==F2 || it.code==keyShortcutsComponent) {
+            widgetFocused().ifNotNull(APP.actions::showShortcutsFor)
+            it.consume()
+         }
+      }
+   },
+   // layout mode hotkeys
+   onEventUp(ANY) {
+      if (!it.isControlDown && !it.isShortcutDown && !it.isMetaDown) {
+         if (it.code==keyManageLayout) {
+            if (it.eventType==KeyEvent.KEY_RELEASED) APP.ui.isLayoutMode = false
+            if (it.eventType==KEY_PRESSED) APP.ui.isLayoutMode = true
+            it.consume()
+         }
+      }
+   }
+)
+
 fun Stage.resizeTypeForCoordinates(at: P): Resize {
-   val widths = listOf(0.0-100.0, width/3.0, 2*width/3.0, width+100.0).windowed(2, 1, false).map { it[0] to it[1] }
-   val heights = listOf(0.0-100.0, height/3.0, 2*height/3.0, height+100.0).windowed(2, 1, false).map { it[0] to it[1] }
+   val widths = listOf(0.0 - 100.0, width/3.0, 2*width/3.0, width + 100.0).windowed(2, 1, false).map { it[0] to it[1] }
+   val heights = listOf(0.0 - 100.0, height/3.0, 2*height/3.0, height + 100.0).windowed(2, 1, false).map { it[0] to it[1] }
    val areas = mutableListOf<Rectangle2D>()
    widths.forEach { (w1, w2) ->
       heights.forEach { (h1, h2) ->

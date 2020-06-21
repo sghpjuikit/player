@@ -8,6 +8,7 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
+import sp.it.pl.layout.Component
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppUi.SkinCss
@@ -104,6 +105,7 @@ class CoreConverter: Core {
          is LocalTime -> o.format(dateTimeFormatter)
          is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
          is Effect -> o::class.toUi()
+         is Component -> o.name
          else -> if (isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
    }

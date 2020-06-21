@@ -3,7 +3,6 @@ package sp.it.pl.ui.objects.window.stage
 import javafx.collections.FXCollections.observableArrayList
 import javafx.event.EventHandler
 import javafx.geometry.Insets
-import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
 import javafx.scene.Scene
@@ -22,25 +21,25 @@ import javafx.stage.StageStyle.UTILITY
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Duration.ZERO
 import mu.KLogging
-import sp.it.pl.ui.objects.form.Form.Companion.form
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
-import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
-import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.deduplicateIds
+import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
 import sp.it.pl.layout.widget.NoFactoryFactory
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetIoManager
-import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.form.Form.Companion.form
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.access.v
@@ -141,7 +140,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    private val dockWidgetInitialValue = PLAYBACK.withFeature<HorizontalDock>()
    val dockWidget by cv(dockWidgetInitialValue).def(confDock.content).valuesIn {
       APP.widgetManager.factories.getFactoriesWith<HorizontalDock>()
-         .filter { it.id == dockWidgetInitialValue.id }
+         .filter { it.id==dockWidgetInitialValue.id }
          .plus(dockWidgetInitialValue) // add if not available
    }
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
@@ -194,6 +193,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          show()
       }
    }
+
    fun createStageOwnerNoShow(): Stage {
       return Stage(UTILITY).apply {
          width = 10.0
@@ -303,7 +303,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.setContent(content)
          mw.onClose += dockWidget sync {
             mw.s.asLayout()?.child?.close()
-            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it.id, NEW(CUSTOM)) ?: NoFactoryFactory(it.id).create()
+            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it.id, NEW(CUSTOM))
+               ?: NoFactoryFactory(it.id).create()
          }
          mw.onClose += {
             mw.s.asLayout()?.child?.close()
@@ -443,32 +444,12 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun <T> showSettings(c: Configurable<T>, atNode: Node) {
-      val form = form(c).apply {
+   fun <T> showSettings(c: Configurable<T>, atNode: Node) = PopWindow().apply {
+      title.value = "${c.toUi()} Settings"
+      content.value = form(c).apply {
          prefSize = 400.emScaled x 400.emScaled
       }
-      PopWindow().apply {
-         content.value = form
-         title.value = if (c is Component) "${c.name} Settings" else "Settings"
-         show(DOWN_CENTER(atNode))
-      }
-   }
-
-   fun showFloating(c: Widget): PopWindow {
-      val l = Layout.openStandalone(anchorPane())
-      val p = PopWindow().apply {
-         content.value = l.root
-         title.value = c.custom_name.value
-         properties[Window.keyWindowLayout] = l
-         onHiding += { properties -= Window.keyWindowLayout }
-         onHiding += { l.close() }
-      }
-
-      l.child = c
-      c.focus()
-
-      p.show(WINDOW_ACTIVE(CENTER))
-      return p
+      show(DOWN_CENTER(atNode))
    }
 
    /** Create, show and return component specified by the specified factoryId. */

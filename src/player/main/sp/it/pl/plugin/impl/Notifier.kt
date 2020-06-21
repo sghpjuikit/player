@@ -19,7 +19,7 @@ import sp.it.pl.ui.nodeinfo.ItemInfo
 import sp.it.pl.ui.objects.Text
 import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.pl.layout.widget.WidgetLoader.CUSTOM
+import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
@@ -209,7 +209,6 @@ class Notifier: PluginBase() {
 /** Notification popup. */
 class Notification: PopWindow() {
    private val closer = FxTimer.fxTimer(5.seconds, 1, ::hide)
-   private val root = stackPane()
    /** Executes on left mouse click. Default does nothing. */
    var lClickAction = {}
    /** Executes on right mouse click. Default does nothing. */
@@ -230,7 +229,7 @@ class Notification: PopWindow() {
       focusOnShow.value = false
       styleClass += "notification"
       onContentShown += { closer.start() }
-      content.value = root.apply {
+      root.apply {
          minSize = 150 x 70
          onEventDown(MOUSE_CLICKED, PRIMARY) { lClickAction() }
          onEventDown(MOUSE_CLICKED, SECONDARY) { rClickAction() }
@@ -242,7 +241,7 @@ class Notification: PopWindow() {
    fun setContent(content: Node, titleText: String) {
       headerVisible.value = titleText.isNotEmpty()
       title.value = titleText
-      root.children setToOne content
+      this.content.value = content
    }
 
 }

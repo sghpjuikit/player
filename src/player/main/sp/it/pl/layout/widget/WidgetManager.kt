@@ -2,20 +2,25 @@ package sp.it.pl.layout.widget
 
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
+import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Screen
+import javafx.stage.Stage
 import javafx.stage.WindowEvent.WINDOW_HIDING
 import mu.KLogging
 import sp.it.pl.core.NameUi
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.Layout
+import sp.it.pl.layout.container.SwitchContainer
 import sp.it.pl.layout.widget.WidgetSource.NONE
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
@@ -26,10 +31,16 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrorAction
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.objects.window.ShowArea
+import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.stage.installWindowInteraction
+import sp.it.pl.ui.pane.OverlayPane
+import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
@@ -88,7 +99,9 @@ import sp.it.util.system.browse
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.Util
 import sp.it.util.ui.anchorPane
+import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.scrollText
 import sp.it.util.ui.stylesheetToggle
 import sp.it.util.ui.text
@@ -572,11 +585,14 @@ class WidgetManager {
             ?: widgets.firstOrNull { it.factory in preferred }
             ?: widgets.firstOrNull()
             ?: run {
-               if (source is WidgetUse.NewAnd) {
-                  val f = preferred.firstOrNull() ?: factories.getFactories().firstOrNull { !it.isIgnored && filter(it) }
-                  f?.create()?.also(source.layouter)
-               } else {
-                  null
+               when (source) {
+                  is WidgetUse.NewAnd -> {
+                     val f = preferred.firstOrNull() ?: factories.getFactories().firstOrNull { !it.isIgnored && filter(it) }
+                     val w = f?.create()
+                     w?.let(source.layouter)
+                     w
+                  }
+                  else -> null
                }
             }
       }
@@ -831,48 +847,137 @@ enum class WidgetSource {
    OPEN_STANDALONE
 }
 
-/** Strategy for opening a new widget in ui. */
+/** Enumeration of parameter-less [ComponentLoader]s, that could be dynamically chosen to opening a widget .*/
+enum class ComponentLoaderStrategy(val loader: ComponentLoader) {
+   WINDOW(ComponentLoader.WINDOW),
+   WINDOW_FULLSCREEN(ComponentLoader.WINDOW_FULLSCREEN_ACTIVE),
+   OVERLAY(ComponentLoader.OVERLAY),
+   POPUP(ComponentLoader.POPUP)
+}
+
+/** Strategy for opening a new component in ui. */
 @Suppress("ClassName")
-sealed class WidgetLoader: (Widget) -> Unit {
-   /** Does not load widget and leaves it upon the consumer to load and manage it appropriately. */
-   object CUSTOM: WidgetLoader() {
-      override fun invoke(w: Widget) {}
+sealed class ComponentLoader: (Component) -> Any {
+   /** Does not load component and leaves it upon the consumer to load and manage it appropriately. */
+   object CUSTOM: ComponentLoader() {
+      override operator fun invoke(c: Component) = Unit
    }
 
-   /** Loads the widget in a layout of a new window. */
-   object WINDOW: WidgetLoader() {
-      override fun invoke(w: Widget) = invoke(w as Component).toUnit()
-      operator fun invoke(w: Component): Window = APP.windowManager.showWindow(w)
+   /** Loads the component in a layout of a new window. */
+   object WINDOW: ComponentLoader() {
+      override operator fun invoke(c: Component): Window = APP.windowManager.showWindow(c)
    }
 
-   /** Loads the widget as a standalone widget in a simplified layout of a new always on top fullscreen window. */
+   /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on active screen. */
+   object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader() {
+      override operator fun invoke(c: Component): Stage = WINDOW_FULLSCREEN(getScreenForMouse())(c)
+   }
+
+   /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on specified screen. */
    object WINDOW_FULLSCREEN {
-      operator fun invoke(screen: Screen): (Widget) -> Unit = { w ->
+      operator fun invoke(screen: Screen): (Component) -> Stage = { c ->
          val root = anchorPane()
          val window = Util.createFMNTStage(screen, false).apply {
             scene = Scene(root)
-            onEventUp(WINDOW_HIDING) { w.rootParent?.close() }
+            onEventUp(WINDOW_HIDING) { c.rootParent?.close() }
          }
 
          root.onEventUp(KEY_PRESSED, ESCAPE) { window.hide() }
 
-         w.load().apply {
+         c.load().apply {
             minPrefMaxWidth = Region.USE_COMPUTED_SIZE
          }
          window.show()
          Layout.openStandalone(root).apply {
-            child = w
+            child = SwitchContainer().apply {
+               addChild(0, c)
+            }
          }
 
          window.showingProperty().sync1If({ it }) {
-            w.focus()
+            c.focus()
          }
+         window
       }
    }
 
-   /** Loads the widget as a standalone widget in a simplified layout of a new popup. */
-   object POPUP: WidgetLoader() {
-      override fun invoke(w: Widget) = APP.windowManager.showFloating(w).toUnit()
+   /** Loads the component as a standalone in a new [OverlayPane]. */
+   object OVERLAY: ComponentLoader() {
+      override operator fun invoke(c: Component): OverlayPane<Unit> {
+
+         val op = object: OverlayPane<Unit>() {
+            lateinit var layout: Layout
+
+            init {
+               onShown += {
+                  stage!!.installWindowInteraction()::unsubscribe.let(onHidden::addSOnetime)
+                  stage!!.properties[Window.keyWindowLayout] = layout
+                  layout.focus()
+               }
+               onHidden += {
+                  properties -= Window.keyWindowLayout
+                  layout.focus()
+                  removeFromParent()
+               }
+            }
+
+            override fun show(data: Unit) {
+               content = anchorPane {
+                  padding = Insets(20.0.emScaled)
+                  layout = Layout.openStandalone(this).apply {
+                     child = SwitchContainer().apply {
+                        addChild(0, c)
+                     }
+                  }
+               }
+               if (c is Widget) {
+                  val parent = this
+                  c.uiTemp = object: ComponentUi {
+                     override val root = parent
+                     override fun show() {}
+                     override fun hide() {}
+                  }
+               }
+               super.show()
+            }
+
+         }
+         op.display.value = SCREEN_OF_MOUSE
+         op.displayBgr.value = APP.ui.viewDisplayBgr.value
+         op.show(Unit)
+         op.makeResizableByUser()
+         c.load().apply {
+            // autosize()
+            prefWidth(900.0)
+            prefHeight(700.0)
+         }
+         c.focus()
+
+         return op
+      }
+   }
+
+   /** Loads the component as a standalone widget in a simplified layout of a new popup. */
+   object POPUP: ComponentLoader() {
+      override operator fun invoke(c: Component): PopWindow {
+         val l = Layout.openStandalone(anchorPane())
+         val p = PopWindow().apply {
+            content.value = l.root
+            title.value = c.name
+            root.installWindowInteraction()::unsubscribe.let(onHiding::addSOnetime)
+            properties[Window.keyWindowLayout] = l
+            onHiding += { properties -= Window.keyWindowLayout }
+            onHiding += { l.close() }
+         }
+
+         l.child = SwitchContainer().apply {
+            addChild(0, c)
+         }
+         c.focus()
+
+         p.show(ShowArea.WINDOW_ACTIVE(Pos.CENTER))
+         return p
+      }
    }
 }
 
@@ -889,15 +994,15 @@ sealed class WidgetUse(val widgetFinder: WidgetSource) {
    object OPEN: WidgetUse(WidgetSource.OPEN)
 
    /** Use newly created widget. */
-   object NEW: NewAnd(NONE, WidgetLoader.POPUP)
+   object NEW: NewAnd(NONE, ComponentLoader.POPUP)
 
    /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
-   object ANY: NewAnd(WidgetSource.OPEN, WidgetLoader.POPUP)
+   object ANY: NewAnd(WidgetSource.OPEN, ComponentLoader.POPUP)
 
    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */
-   object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, WidgetLoader.POPUP)
+   object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, ComponentLoader.POPUP)
 
-   open class NewAnd(widgetFinder: WidgetSource, val layouter: (Widget) -> Unit): WidgetUse(widgetFinder) {
-      operator fun invoke(layouter: (Widget) -> Unit) = NewAnd(widgetFinder, layouter)
+   open class NewAnd(widgetFinder: WidgetSource, val layouter: (Component) -> Any): WidgetUse(widgetFinder) {
+      operator fun invoke(layouter: (Component) -> Any) = NewAnd(widgetFinder, layouter)
    }
 }

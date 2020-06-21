@@ -112,7 +112,7 @@ open class PopWindow {
          onEventUp(WINDOW_HIDDEN) { onHidden() }
       }
    }
-   private var root: StackPane
+   val root = StackPane()
    private val contentP: BorderPane
    private val titleL: Label
    private val header: BorderPane
@@ -164,11 +164,10 @@ open class PopWindow {
    /** Whether this popup is currently showing. */
    val isShowing get() = window?.isShowing ?: false
 
-   private fun getRoot() = root
    private val animation = lazy {
       anim {
-         getRoot().opacity = it*it
-         getRoot().setScaleXYByTo(it, -15.0, 0.0)
+         root.opacity = it*it
+         root.setScaleXYByTo(it, -15.0, 0.0)
       }.apply {
          onHiding += ::stop
       }
@@ -239,7 +238,7 @@ open class PopWindow {
          )
       }
 
-      root = stackPane {
+      root.apply {
          isPickOnBounds = false
          styleClass += "pop-window"
          minPrefMaxWidth = Pane.USE_COMPUTED_SIZE

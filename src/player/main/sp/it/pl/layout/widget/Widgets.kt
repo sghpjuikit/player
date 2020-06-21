@@ -32,7 +32,7 @@ var Widget.forceLoading: Boolean
       else properties -= "forceLoading"
    }
 
-fun Stage.widgetFocused(): Widget? = APP.widgetManager.widgets.findAll(OPEN).find { it.focused.value }
+fun widgetFocused(): Widget? = APP.widgetManager.widgets.findAll(OPEN).find { it.focused.value }
 
 fun Stage.widgetAtMousePos(): Widget? {
    val pos = APP.mouse.mousePosition.toP() - xy

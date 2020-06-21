@@ -12,7 +12,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.input.DragEvent;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -35,7 +34,6 @@ import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.icon.UnicodeIcon;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.V;
-import sp.it.util.action.ActionManager;
 import sp.it.util.action.ActionRegistrar;
 import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
@@ -64,14 +62,11 @@ import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
 import static javafx.scene.input.KeyCode.DOWN;
-import static javafx.scene.input.KeyCode.F1;
-import static javafx.scene.input.KeyCode.F2;
 import static javafx.scene.input.KeyCode.LEFT;
 import static javafx.scene.input.KeyCode.RIGHT;
 import static javafx.scene.input.KeyCode.UP;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
@@ -84,7 +79,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.millis;
-import static sp.it.pl.layout.widget.WidgetsKt.widgetFocused;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIcon;
 import static sp.it.pl.main.AppDragKt.contains;
@@ -102,6 +96,7 @@ import static sp.it.pl.ui.objects.window.Resize.SE;
 import static sp.it.pl.ui.objects.window.Resize.SW;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.buildWindowLayout;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
+import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installWindowInteraction;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.lookupId;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.resizeTypeForCoordinates;
 import static sp.it.util.access.PropertiesKt.toggle;
@@ -257,6 +252,8 @@ public class Window extends WindowBase {
 			}
 		});
 
+		installWindowInteraction(s);
+
 		// header double click maximize, show header on/off
 		headerContainer.setMouseTransparent(false);
 		headerContainer.setOnMouseClicked(e -> {
@@ -294,25 +291,6 @@ public class Window extends WindowBase {
 
 		titleL.setMinWidth(0);
 
-		// change volume on scroll
-		root.setOnScroll(e -> {
-			if (e.getDeltaY()>0) APP.audio.volumeInc();
-			else if (e.getDeltaY()<0) APP.audio.volumeDec();
-		});
-		// show help
-		root.addEventHandler(KEY_PRESSED, e -> {
-			if (!e.isAltDown() && !e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
-				if (e.getCode().equals(F1) || e.getCode().equals(ActionManager.INSTANCE.getKeyShortcuts())) {
-					APP.getActions().showShortcuts();
-					e.consume();
-				}
-				if (e.getCode().equals(F2) || e.getCode().equals(ActionManager.INSTANCE.getKeyShortcutsComponent())) {
-					var widget = widgetFocused(s);
-					if (widget!=null) APP.getActions().showShortcutsFor(widget);
-					e.consume();
-				}
-			}
-		});
 		// toggle maximized
 		var maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
 		root.addEventFilter(KEY_PRESSED, e -> {
@@ -334,16 +312,6 @@ public class Window extends WindowBase {
 				if (e.getCode()==DOWN) {
 					if (maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
 					else minimize();
-					e.consume();
-				}
-			}
-		});
-		// layout mode
-		root.addEventFilter(KeyEvent.ANY, e -> {
-			if (!e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
-				if (e.getCode().equals(ActionManager.INSTANCE.getKeyManageLayout())) {
-					if (e.getEventType().equals(KEY_RELEASED)) APP.ui.setLayoutMode(false);
-					if (e.getEventType().equals(KEY_PRESSED)) APP.ui.setLayoutMode(true);
 					e.consume();
 				}
 			}
@@ -445,7 +413,7 @@ public class Window extends WindowBase {
 		content.getChildren().clear();
 		layout.load(content);
 		topContainer = (SwitchContainer) l.getChild();
-		topContainer.load();    // if loaded no-op, otherwise initializes
+		topContainer.load();
 
 		double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
 		backImage.translateXProperty().unbind();

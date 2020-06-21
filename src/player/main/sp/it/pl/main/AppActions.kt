@@ -18,7 +18,7 @@ import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetLoader.WINDOW_FULLSCREEN
+import sp.it.pl.layout.widget.ComponentLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.widget.controller.Controller

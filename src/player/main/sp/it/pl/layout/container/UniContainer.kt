@@ -37,10 +37,7 @@ open class UniContainer: Container<ComponentUi> {
             c.load(root)
          }
          is Widget -> {
-            ui = ui.takeIf { it is WidgetUi && it.widget===child } ?: WidgetUi(this, 1, c).disposeUi().apply {
-               if (isStandalone)
-                  setStandaloneStyle() // TODO: check parents recursively and apply to children recursively
-            }
+            ui = ui.takeIf { it is WidgetUi && it.widget===child } ?: WidgetUi(this, 1, c).disposeUi()
             ui.root
          }
          null -> {

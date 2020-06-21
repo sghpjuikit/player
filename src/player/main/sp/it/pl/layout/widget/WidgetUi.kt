@@ -1,8 +1,10 @@
 package sp.it.pl.layout.widget
 
 import javafx.scene.layout.AnchorPane
+import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.ComponentUiBase
 import sp.it.pl.layout.container.Container
+import sp.it.pl.layout.container.UniContainer
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.layout.widget.controller.io.IOLayer
@@ -16,6 +18,7 @@ import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.placeholder.Placeholder
+import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -24,6 +27,7 @@ import sp.it.util.type.nullify
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.removeFromParent
+import sp.it.util.ui.styleclassToggle
 
 /**
  * UI allowing user to manage [Widget] instances. Manages widget's lifecycle and user's interaction with the widget.
@@ -67,7 +71,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
          layFullArea += content.apply {
             id = "widget-ui-content"
-            styleClass += "widget-ui-content"
+            styleClass += CONTENT_STYLECLASS
          }
       }
 
@@ -91,6 +95,10 @@ class WidgetUi: ComponentUiBase<Widget> {
 
    private fun loadWidget() {
       disposer()
+
+      val isStandalone = widget.traverse<Component> { it.parent }.any { it is UniContainer && it.isStandalone }
+      contentRoot.styleclassToggle(STYLECLASS, !isStandalone)
+      content.styleclassToggle(CONTENT_STYLECLASS, !isStandalone)
 
       when {
          widget.isLoaded || widget.forceLoading || widget.loadType.value==AUTOMATIC -> {
@@ -128,11 +136,6 @@ class WidgetUi: ComponentUiBase<Widget> {
 
    override fun hide() = controls.hide()
 
-   fun setStandaloneStyle() {
-      contentRoot.styleClass.clear()
-      content.styleClass.clear()
-   }
-
    private fun buildManualLoadPane() = Placeholder(IconOC.UNFOLD, "") {
       widget.forceLoading = true
       loadWidget()
@@ -151,6 +154,7 @@ class WidgetUi: ComponentUiBase<Widget> {
    companion object {
       private val animation = DelayAnimator()
       const val STYLECLASS = "widget-ui"
+      const val CONTENT_STYLECLASS = "widget-ui-content"
       @JvmField val PSEUDOCLASS_DRAGGED = pseudoclass("dragged")
    }
 }

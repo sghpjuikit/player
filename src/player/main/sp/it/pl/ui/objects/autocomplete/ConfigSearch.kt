@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects.autocomplete
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.event.EventType
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -16,16 +17,20 @@ import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.DOWN
 import javafx.scene.input.KeyCode.END
+import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.HOME
 import javafx.scene.input.KeyCode.LEFT
 import javafx.scene.input.KeyCode.RIGHT
+import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyCode.UP
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.main.Css
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.Key
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.ConfigEditor
@@ -35,13 +40,17 @@ import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Config
+import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
 import sp.it.util.text.keysUi
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
+import sp.it.util.ui.isAnyChildOf
+import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
@@ -74,10 +83,9 @@ class ConfigSearch: AutoCompletion<Entry> {
          return object: AutoCompletePopupSkin<Entry>(this, 2) {
 
             init {
-
                // set keys & allow typing
                skinnable.onEventUp(KEY_PRESSED) {
-                  if (!ignoreEvent)
+                  if (!ignoreEvent && (it.source==node || it.source==skinnable))
                      if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
                         when (it.code) {
                            UP -> history.up(this@ConfigSearch)
@@ -102,8 +110,8 @@ class ConfigSearch: AutoCompletion<Entry> {
                      }
                   ignoreEvent = false
                }
-               node.onEventUp(KEY_PRESSED) {
-                  if (!ignoreEvent)
+               node.onEventDown(KEY_PRESSED) {
+                  if (!ignoreEvent && it.source==node) {
                      if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
                         when (it.code) {
                            UP -> history.up(this@ConfigSearch)
@@ -114,10 +122,6 @@ class ConfigSearch: AutoCompletion<Entry> {
                      } else if (it.isControlDown && it.code==A) {
                         textField.selectAll()
                         it.consume()
-                        // TODO:
-                        // else if (e.getCode()==KeyCode.BACK_SPACE) {
-                        //     textField.deletePreviousChar(); // doesn't work here
-                        //     e.consume();
                      } else if (it.code==END) {
                         if (it.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
                         it.consume()
@@ -133,7 +137,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                         if (!it.isShiftDown) textField.deselect()
                         it.consume()
                      }
-                  // TODO: else if (!e.getCode().isNavigationKey()) {}
+                  }
                   ignoreEvent = false
                }
             }
@@ -249,6 +253,7 @@ class ConfigSearch: AutoCompletion<Entry> {
       private val rootTooltip = appTooltip()
 
       init {
+         icon.isFocusTraversable = false
          text.textAlignment = TextAlignment.LEFT
          text.textOverrun = OverrunStyle.CENTER_ELLIPSIS
          text.setMinPrefMaxSize(USE_COMPUTED_SIZE)
@@ -256,10 +261,29 @@ class ConfigSearch: AutoCompletion<Entry> {
          root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (root.widthProperty() - configNodeRoot.widthProperty() - 10)
          root.lookupChildAt<HBox>(0).maxWidthProperty() syncFrom (root.widthProperty() - 100)
          root.lookupChildAt<HBox>(0).padding = Insets(2.5, 0.0, 2.5, 0.0)
+         root.onEventDown(KeyEvent.ANY) {
+            when {
+               it.code==ENTER -> {
+                  // allows executing the action even if item graphics has focus
+               }
+               it.code==TAB -> {
+                  // allows moving focus from item graphics
+               }
+               it.source == configNodeRoot || it.source.asIf<Node>()?.isAnyChildOf(configNodeRoot)==true -> {
+                  // allows interaction with item graphics without interfering with the autocomplete
+                  it.consume()
+               }
+            }
+         }
          rootTooltip.textProperty() attach {
             if (it.isNullOrBlank()) root uninstall rootTooltip
             else root install rootTooltip
          }
+      }
+
+      override fun updateSelected(selected: Boolean) {
+         super.updateSelected(selected)
+         icon.select(selected)
       }
 
       override fun updateItem(item: Entry?, empty: Boolean) {

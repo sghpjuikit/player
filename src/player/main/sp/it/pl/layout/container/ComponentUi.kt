@@ -8,7 +8,7 @@ import javafx.scene.layout.Region
 import sp.it.pl.layout.AltState
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetLoader
+import sp.it.pl.layout.widget.ComponentLoader
 import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.main.AppAnimator
 import sp.it.util.access.ref.LazyR
@@ -47,7 +47,7 @@ abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
       val sizeOld = c.size()
 
       c.parent!!.addChild(c.indexInParent(), null)
-      WidgetLoader.WINDOW(c)
+      ComponentLoader.WINDOW(c)
 
       val w = c.window ?: fail { "Can not detach invisible component" }
       w.showingProperty().sync1If({ it }) {

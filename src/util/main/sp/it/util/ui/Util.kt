@@ -640,7 +640,7 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 
 /** Installs clip mask to prevent displaying content outside of this node. */
 @JvmOverloads
-fun Node.initClip(padding: Insets = Insets.EMPTY) {
+fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
    val clip = Rectangle()
 
    layoutBoundsProperty() sync {
@@ -651,6 +651,7 @@ fun Node.initClip(padding: Insets = Insets.EMPTY) {
    }
 
    setClip(clip)
+   return clip;
 }
 
 /* ---------- IMAGE_VIEW -------------------------------------------------------------------------------------------- */

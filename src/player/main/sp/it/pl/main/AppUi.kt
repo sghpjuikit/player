@@ -17,6 +17,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
 import mu.KLogging
+import sp.it.pl.layout.container.SwitchContainer
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.Widgets
 import sp.it.pl.main.AppSettings.ui.skin
@@ -57,6 +58,7 @@ import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
+import sp.it.util.functional.asIf
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
@@ -259,7 +261,10 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       }
    }
 
-   fun setZoomMode(v: Boolean) = APP.windowManager.getActive()?.switchPane?.zoom(v)
+   fun setZoomMode(v: Boolean) {
+      if (v) APP.windowManager.getActive()?.switchPane?.zoom(v)
+      else APP.widgetManager.layouts.findAll(OPEN).forEach { it.child.asIf<SwitchContainer>()?.ui?.zoom(v) }
+   }
 
    @IsAction(name = "Layout zoom overlay in/out", info = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
    fun toggleLayoutNzoom() {

@@ -26,7 +26,7 @@ import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetLoader
+import sp.it.pl.layout.widget.ComponentLoader
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -113,13 +113,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
       FastAction(IconFA.CSS3, ActionRegistrar["Open css guide"]),
       FastAction("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
-         WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create())
+         ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create())
       },
       FastAction("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
-         WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create())
+         ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create())
       },
       FastAction("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
-         WidgetLoader.WINDOW(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create())
+         ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create())
       },
       FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"])
    )

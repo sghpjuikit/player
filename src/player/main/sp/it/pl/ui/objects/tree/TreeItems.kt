@@ -25,7 +25,6 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.TransferMode
-import javafx.scene.text.TextBoundsType
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
@@ -49,14 +48,9 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.isSkinFile
-import sp.it.pl.main.isValidSkinFile
-import sp.it.pl.main.isValidWidgetFile
 import sp.it.pl.main.isWidgetFile
 import sp.it.pl.main.toUi
-import sp.it.pl.plugin.PluginBase
-import sp.it.pl.plugin.PluginBox
 import sp.it.util.HierarchicalBase
-import sp.it.util.Util.enumToHuman
 import sp.it.util.access.toggle
 import sp.it.util.async.executor.ExecuteN
 import sp.it.util.async.invoke
@@ -75,7 +69,6 @@ import sp.it.util.file.nameOrRoot
 import sp.it.util.file.toFast
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
-import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -84,7 +77,6 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
-import sp.it.util.text.Strings
 import sp.it.util.text.nullIfBlank
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
@@ -147,7 +139,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is List<*> -> STreeItem<Any?>("List<" + o.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is Set<*> -> STreeItem<Any?>("Set<" + o.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is Map<*, *> -> STreeItem<Any?>("Map<" + o.keys.getElementType().toUi() + "," + o.values.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
-   is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toString(), { sequenceOf(o.value) })
+   is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toUi(), { sequenceOf(o.value) })
    else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }
 
@@ -261,21 +253,17 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       pseudoClassChanged("no-arrow", graphic!=null)
    }
 
-   private fun computeText(o: Any?): String = when {
-      o==null -> "<none>"
-      o is Component -> o.name
-      o is PluginBase -> o.name
-      o is PluginBox<*> -> o.info.name
-      o is WidgetFactory<*> -> o.name
-      o is File -> {
+   private fun computeText(o: Any?): String = when (o) {
+      null -> "<none>"
+      is File -> {
          val needsAbsolute = treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true
          if (needsAbsolute) o.absolutePath
          else o.nameOrRoot
       }
-      o is Node -> o.id?.trim().orEmpty() + ":" + APP.className.getOf(o) + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
-      o is Tooltip -> "Tooltip"
-      o is PopupWindow -> "Popup"
-      o is WindowFX -> {
+      is Node -> o.toUi() + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
+      is Tooltip -> "Tooltip"
+      is PopupWindow -> "Popup"
+      is WindowFX -> {
          val w = o.asAppWindow()
          if (w==null) {
             o.asIf<Stage>()?.title.nullIfBlank() ?: "Window (generic)"
@@ -286,11 +274,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
             n
          }
       }
-      o is Name -> o.value
-      o is Feature -> o.name
-      o is HierarchicalBase<*, *> -> computeText(o.value)
-      o::class.java.isEnum -> enumToHuman(o.toString())
-      else -> o.toString()
+      is HierarchicalBase<*, *> -> computeText(o.value)
+      else -> o.toUi()
    }
 
    private fun computeGraphics(p: Any): Node? = when (p) {

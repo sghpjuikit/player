@@ -2,6 +2,7 @@ package sp.it.pl.core
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
+import javafx.scene.Node
 import javafx.scene.effect.Effect
 import javafx.scene.input.MouseButton
 import javafx.scene.text.Font
@@ -9,13 +10,19 @@ import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.widget.WidgetFactory
+import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppUi.SkinCss
+import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
+import sp.it.pl.plugin.PluginBase
+import sp.it.pl.plugin.PluginBox
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.id
 import sp.it.pl.ui.objects.table.TableColumnInfo
+import sp.it.pl.ui.objects.tree.Name
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.Action
@@ -106,6 +113,12 @@ class CoreConverter: Core {
          is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
          is Effect -> o::class.toUi()
          is Component -> o.name
+         is PluginBase -> o.name
+         is PluginBox<*> -> o.info.name
+         is WidgetFactory<*> -> o.name
+         is Node -> o.id?.trim().orEmpty() + ":" + o::class.toUi()
+         is Name -> o.value
+         is Feature -> o.name
          else -> if (isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
    }

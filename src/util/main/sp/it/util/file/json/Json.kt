@@ -236,18 +236,18 @@ class Json {
    }
 
    fun ast(json: String): Try<JsValue, Throwable> = runTry {
-      val klaxonAst = Klaxon().parseJsonObject(json.reader().buffered())
+      val klaxonAst = Klaxon().parser().parse(json.reader().buffered())
       fromKlaxonAST(klaxonAst)
    }
 
    inline fun <reified T> fromJson(json: String): Try<T?, Throwable> = runTry {
-      val klaxonAst = Klaxon().parseJsonObject(json.reader().buffered())
+      val klaxonAst = Klaxon().parser().parse(json.reader().buffered())
       val ast = fromKlaxonAST(klaxonAst)
       fromJsonValueImpl<T>(ast)
    }
 
    inline fun <reified T> fromJson(json: File, charset: Charset = Charsets.UTF_8): Try<T?, Throwable> = runTry {
-      val klaxonAst = Klaxon().parseJsonObject(json.bufferedReader(charset))
+      val klaxonAst = Klaxon().parser().parse(json.bufferedReader(charset))
       val ast = fromKlaxonAST(klaxonAst)
       fromJsonValueImpl<T>(ast)
    }
@@ -419,6 +419,12 @@ fun JsObject.values(): Collection<JsValue> = value.values
 operator fun JsValue?.div(field: String): JsValue? = when (this) {
    null -> null
    is JsObject -> value[field]
+   else -> fail { "Expected ${JsObject::class}, but got $this" }
+}
+
+operator fun JsValue?.div(index: Int): JsValue? = when (this) {
+   null -> null
+   is JsArray -> value[index]
    else -> fail { "Expected ${JsObject::class}, but got $this" }
 }
 

@@ -14,16 +14,13 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
-import sp.it.pl.main.infoIcon
 import sp.it.pl.main.installDrag
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.Disposer
-import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
-import sp.it.util.text.nameUi
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.removeFromParent
@@ -50,16 +47,6 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
          alignment = CENTER_RIGHT
          prefColumns = 10
          prefHeight = 25.0
-
-         lay += infoIcon(""
-            + "Controls for managing container."
-            + "\n"
-            + "\nAvailable actions:"
-            + "\n\tLeft click : Go to child"
-            + "\n\tRight click : Go to parent"
-            + "\n\tDrag : Drags widget to other area"
-            + "\n\tDrag + ${SHORTCUT.nameUi} : Detach widget"
-         ).styleclass("header-icon")
 
          lay += headerIcon(null, "Lock container's layout") {
             area.container.locked.toggle()

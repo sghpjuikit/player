@@ -149,10 +149,14 @@ class App: Application(), GlobalConfigDelegator {
    /** Whether application is initialized. Starts as error and transitions to ok in [App.start] if no error occurs. */
    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
       private set
+   /** Global event bus. Usage: simply push an event or observe. Use of event constants/objects is advised. */
+   val actionStream = Handler1<Any>().apply {
+      onEvent<Any> {
+         logger.info { "Event: $it" }
+      }
+   }
    /** Various actions for the application */
    val actions = AppActions()
-   /** Global event bus. Usage: simply push an event or observe. Use of event constants/objects is advised. */
-   val actionStream = Handler1<Any>()
    /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
    val appCommunicator = AppInstanceComm()
    /** Observable [System.out]. */

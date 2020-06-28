@@ -8,6 +8,9 @@ import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.AppErrors
 import sp.it.pl.main.AppSettings
 import sp.it.pl.main.run1AppReady
+import sp.it.pl.plugin.PluginManager.Events.PluginInstalled
+import sp.it.pl.plugin.PluginManager.Events.PluginStarted
+import sp.it.pl.plugin.PluginManager.Events.PluginStopped
 import sp.it.util.Locatable
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.materialize
@@ -34,6 +37,9 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.on
 import sp.it.util.units.version
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
@@ -58,11 +64,15 @@ class PluginManager: GlobalConfigDelegator {
       failIf(type in this) { "There already is plugin instance of type=$type" }
 
       val plugin = PluginBox(type)
-      if (APP.rank==MASTER || !plugin.info.isSingleton)
+      if (APP.rank==MASTER || !plugin.info.isSingleton) {
          pluginsObservableImpl += plugin
+         APP.actionStream(PluginInstalled(plugin))
+      }
    }
 
-   operator fun <P: PluginBase> contains(type: KClass<P>) = pluginsObservableImpl.any { it.type==type }
+   fun <P: PluginBase> isInstalled(type: KClass<P>) = pluginsObservableImpl.any { it.type==type }
+
+   operator fun <P: PluginBase> contains(type: KClass<P>) = isInstalled(type)
 
    /** @return running plugin of the type specified by the argument or null if no such instance */
    fun <P: PluginBase> get(type: KClass<P>): P? = getRaw(type)?.plugin
@@ -83,6 +93,39 @@ class PluginManager: GlobalConfigDelegator {
 
    /** Invokes the action with the running plugin of the type specified by the generic type argument or does nothing if no such instance. */
    inline fun <reified P: PluginBase> use(noinline action: (P) -> Unit) = use(P::class, action)
+
+   /** Sets a block to be fired every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
+   inline fun <reified P: PluginBase> attachWhile(noinline block: (P) -> Subscription): Subscription {
+      return when {
+         isInstalled(P::class) -> Disposer().attachWhileImpl(block)
+         else -> APP.actionStream.onEvent<PluginInstalled<P>> { Disposer().attachWhileImpl(block) }
+      }
+   }
+
+   /** Sets a block to be fired immediately if running and every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
+   inline fun <reified P: PluginBase> syncWhile(noinline block: (P) -> Subscription): Subscription {
+      val disposer = Disposer()
+      getRaw<P>()?.plugin?.ifNotNull { block(it) on disposer }
+      return when {
+         isInstalled(P::class) -> disposer.attachWhileImpl(block)
+         else -> APP.actionStream.onEvent<PluginInstalled<P>> { disposer.attachWhileImpl(block) }
+      }
+   }
+
+   inline fun <reified P: PluginBase> Disposer.attachWhileImpl(noinline block: (P) -> Subscription) = Subscription(
+      APP.actionStream.onEvent<PluginStarted<P>> { block(it.plugin.plugin!!) on this },
+      APP.actionStream.onEvent<PluginStopped<P>> { this() },
+      Subscription { this() }
+   )
+
+   object Events {
+      /** At the time the event is invoked, the plugin is not running. */
+      data class PluginInstalled<T: PluginBase>(val plugin: PluginBox<T>)
+      /** At the time the event is invoked, the plugin has started and [PluginBox.plugin] is not null. */
+      data class PluginStarted<T: PluginBase>(val plugin: PluginBox<T>)
+      /** At the time the event is invoked, the plugin is still running and [PluginBox.plugin] is not null. */
+      data class PluginStopped<T: PluginBase>(val plugin: PluginBox<T>)
+   }
 
 }
 
@@ -179,6 +222,8 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
       }.orNull {
          logger.error(it) { "Instantiating plugin $type failed" }
       }
+
+      if (plugin!=null) APP.actionStream(PluginStarted(this@PluginBox))
    }
 
    fun isRunning(): Boolean = plugin!=null
@@ -190,6 +235,7 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
       logger.info { "Stopping plugin $type" }
 
       plugin?.apply {
+         APP.actionStream(PluginStopped(this@PluginBox))
          plugin = null
          APP.configuration.rawAdd(this)
          APP.configuration.drop(this)

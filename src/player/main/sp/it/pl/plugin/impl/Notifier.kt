@@ -14,11 +14,9 @@ import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
+import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
+import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.ui.nodeinfo.ItemInfo
-import sp.it.pl.ui.objects.Text
-import sp.it.pl.ui.objects.window.ShowArea
-import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
@@ -28,22 +26,35 @@ import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.nodeinfo.ItemInfo
+import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.window.ShowArea
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.VarAction
 import sp.it.util.action.IsAction
-import sp.it.util.async.executor.FxTimer
-import sp.it.util.collections.setToOne
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
+import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.noPersist
+import sp.it.util.conf.readOnly
+import sp.it.util.conf.uiConverterElement
 import sp.it.util.conf.valuesIn
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Disposer
-import sp.it.util.reactive.attach
+import sp.it.util.reactive.Subscribed
+import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.onItemSyncWhile
+import sp.it.util.type.VType
+import sp.it.util.type.raw
+import sp.it.util.type.type
 import sp.it.util.ui.hyperlink
 import sp.it.util.ui.lay
 import sp.it.util.ui.minSize
@@ -58,12 +69,19 @@ class Notifier: PluginBase() {
 
    private val onStop = Disposer()
    private var n = Notification()
-   private var songNotificationGui: Node? = null
-   private var songNotificationInfo: SongReader? = null
+   private lateinit var songNotificationGui: Node
+   private lateinit var songNotificationInfo: SongReader
 
-   var showStatusNotification by c(false)
+   val notifySources by cList<NotifySource<Any>>()
+      .noPersist().readOnly().uiConverterElement { it.name }
+      .def(name = "Triggers", info = "Shows active event notification triggers. The handlers may have additional logic discarding some of the events.")
+   val showStatusNotification by cv(false) {
+         NotifySource<PlaybackStatusChanged>(type(), "On playback status change") { playbackChange(it.status) }.toSubscribed().toV(it)
+      }
       .def(name = "On playback status change")
-   var showSongNotification by c(true)
+   val showSongNotification by cv(true) {
+         NotifySource<PlaybackSongChanged>(type(), "On playback song change") { songChange(it.song) }.toSubscribed().toV(it)
+      }
       .def(name = "On playing song change")
    val notificationAutohide by c(false)
       .def(name = "Autohide", info = "Whether notification hides on mouse click anywhere within the application", editable = EditMode.NONE)
@@ -115,17 +133,17 @@ class Notifier: PluginBase() {
    }
 
    override fun start() {
-      n = Notification()
-      onStop += APP.audio.playingSong.onChange { _, nv -> songChange(nv) }
-      onStop += APP.audio.state.playback.status attach {
-         if (it==PAUSED || it==PLAYING || it==STOPPED)
-            playbackChange(it)
-      }
+      notifySources.onItemSyncWhile { s -> APP.actionStream.onEvent(s.type.raw) { s.block(this, it) } } on onStop
    }
 
    override fun stop() {
       onStop()
       n.hideImmediately()
+   }
+
+   fun <E: Any> installNotifySource(handler: NotifySource<E>): Subscription {
+      if (handler !in notifySources) notifySources += handler
+      return Subscription { notifySources -= handler }
    }
 
    /** Show notification for custom content. */
@@ -177,17 +195,17 @@ class Notifier: PluginBase() {
    @IsAction(name = "Notify now playing", info = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
    fun showNowPlayingNotification() = songChange(APP.audio.playingSong.value)
 
-   private fun songChange(m: Metadata) {
-      if (showSongNotification && !m.isEmpty()) {
-         val title = "Now playing \t${m.getPlaylistIndexInfo()}"
-         songNotificationInfo!!.read(m)
+   private fun songChange(song: Metadata) {
+      if (!song.isEmpty()) {
+         val title = "Now playing \t${song.getPlaylistIndexInfo()}"
+         songNotificationInfo.read(song)
 
-         showNotification(title, songNotificationGui!!)
+         showNotification(title, songNotificationGui)
       }
    }
 
-   private fun playbackChange(status: Status?) {
-      if (showStatusNotification && status!=null) {
+   private fun playbackChange(status: Status) {
+      if (status==PAUSED || status==PLAYING || status==STOPPED) {
          val title = "Playback change : $status"
          val i = ItemInfo(false).apply {
             read(APP.audio.playingSong.value)
@@ -206,9 +224,25 @@ class Notifier: PluginBase() {
    }
 }
 
+/** Application event handler for events of the specified type to show notification using the specified block. */
+data class NotifySource<out T: Any>(val type: VType<T>, val name: String, val block: Notifier.(@UnsafeVariance T) -> Unit) {
+
+   /**
+    * Returns subscribed that enables/disables notifications from this source through [Notifier.notifySources]
+    * for [Notifier] plugin using [sp.it.pl.plugin.PluginManager.syncWhile].
+    */
+   fun toSubscribed(): Subscribed = Subscribed {
+      APP.plugins.syncWhile<Notifier> {
+         if (this !in it.notifySources) it.notifySources += this
+         Subscription { it.notifySources -= this }
+      }
+   }
+}
+
 /** Notification popup. */
 class Notification: PopWindow() {
-   private val closer = FxTimer.fxTimer(5.seconds, 1, ::hide)
+   /** Invokes [hide] with delay of inactivity. */
+   private val closer = fxTimer(5.seconds, 1, ::hide)
    /** Executes on left mouse click. Default does nothing. */
    var lClickAction = {}
    /** Executes on right mouse click. Default does nothing. */

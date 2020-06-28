@@ -2,6 +2,8 @@ package sp.it.util.reactive
 
 import javafx.beans.value.ObservableValue
 import javafx.util.Duration
+import sp.it.util.access.V
+import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 
 /** Lazy subscribing. Convenient for creating toggleable features. */
@@ -33,6 +35,12 @@ class Subscribed: Subscription {
 
    /** Equivalent to [subscribe] using false. */
    override fun unsubscribe() = subscribe(false)
+
+   /**
+    * Returns value that [subscribe]s this on/off.
+    * This subscribed should only be controlled through the value, as it does not reflect changes through this subscribed.
+    */
+   fun toV(on: Boolean = isSubscribed): V<Boolean> = v(on).apply { sync(::subscribe) }
 
    companion object {
 

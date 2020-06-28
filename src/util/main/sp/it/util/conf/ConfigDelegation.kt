@@ -71,6 +71,7 @@ fun <T: File?, C: Conf<T>> C.relativeTo(relativeTo: File) = but(Constraint.FileR
 fun <T: File?, C: ConfL<T>> C.only(type: FileType) = butElement(Constraint.FileActor(type))
 fun <T: File?, C: ConfL<T>> C.only(type: Constraint.FileActor) = butElement(type)
 fun <T: File?, C: ConfL<T>> C.relativeTo(relativeTo: File) = butElement(Constraint.FileRelative(relativeTo))
+fun <T: Any, C: Conf<T>> C.readOnly() = readOnlyIf(true)
 fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: Boolean) = but(Constraint.ReadOnlyIf(condition))
 fun <T: Any, C: Conf<T>> C.readOnlyIf(condition: ObservableValue<Boolean>) = but(Constraint.ReadOnlyIf(condition, false))
 fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: Boolean) = but(Constraint.ReadOnlyIf(!condition))
@@ -81,6 +82,12 @@ fun <T: Any, C: Conf<T>> C.readOnlyUnless(condition: ObservableValue<Boolean>) =
  * This provides a fine-grained per [Config] control for this behavior.
  */
 fun <T: Any?, C: Conf<T>> C.uiConverter(converter: (T) -> String) = but(Constraint.UiConverter(converter))
+
+/**
+ * Gives hint to ui editor to use the specified to-string converter for elements instead of the default one.
+ * This provides a fine-grained per [Config] control for this behavior.
+ */
+fun <T: Any?, C: ConfL<T>> C.uiConverterElement(converter: (T) -> String) = butElement(Constraint.UiConverter(converter))
 
 /**
  * Gives hint to ui editor to use the specified to-string converter for elements instead of the default one.

@@ -8,6 +8,8 @@ import sp.it.pl.audio.tagging.write
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.plugin.impl.PlaycountIncrementer.Events.PlaycountInc
+import sp.it.pl.plugin.impl.PlaycountIncrementer.Events.PlaycountIncScheduled
 import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.MANUAL
 import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_END
 import sp.it.pl.plugin.impl.PlaycountIncrementer.PlaycountIncStrategy.ON_PERCENT
@@ -25,6 +27,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.map
+import sp.it.util.type.type
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import java.util.ArrayList
@@ -38,9 +41,17 @@ class PlaycountIncrementer: PluginBase() {
       .def(name = "Increment at percent", info = "Percent at which playcount is incremented.") attach { initStrategy() }
    val whenTime by cv(seconds(5.0)).readOnlyUnless(whenStrategy.map { it.needsTime() })
       .def(name = "Increment at time", info = "Time at which playcount is incremented.") attach { initStrategy() }
-   val showNotificationSchedule by cv(false)
+   val showNotificationSchedule by cv(false) {
+         NotifySource<PlaycountIncScheduled>(type(), "On song playcount incrementing scheduled") {
+            showTextNotification("Playcount", "Song\n${it.song.titleOrFilename}\nplaycount incrementing scheduled")
+         }.toSubscribed().toV(it)
+      }
       .def(name = "Show notification (schedule)", info = "Shows notification when playcount incrementing is scheduled.")
-   val showNotificationUpdate by cv(false)
+   val showNotificationUpdate by cv(false) {
+         NotifySource<PlaycountInc>(type(), "On song playcount incremented") {
+            showTextNotification("Playcount", "Song\n${it.song.titleOrFilename}\nplaycount incremented by ${it.by} to: ${it.to}")
+         }.toSubscribed().toV(it)
+      }
       .def(name = "Show notification (update)", info = "Shows notification when playcount is incremented.")
    val delay by cv(true)
       .def(name = "Delay writing", info = "Delays editing tag until different song starts playing." +
@@ -61,7 +72,6 @@ class PlaycountIncrementer: PluginBase() {
    }
 
    override fun start() {
-      initStrategy()
       plyingSongIncrementer.subscribe()
    }
 
@@ -73,22 +83,19 @@ class PlaycountIncrementer: PluginBase() {
 
    /** Manually increments playcount of currently playing song. According to [delay] now or schedules it for later. */
    @IsAction(name = "Increment playcount", info = "Manually increments number of times the song has been played by one.")
-   fun increment() {
-      val m = APP.audio.playingSong.value
-      if (!m.isEmpty() && m.isFileBased()) {
+   fun increment() = increment(APP.audio.playingSong.value)
+
+   /** Manually increments playcount of the specified song. According to [delay] now or schedules it for later. */
+   fun increment(song: Metadata) {
+      if (!song.isEmpty() && song.isFileBased()) {
          if (delay.value) {
-            queue += m
-            if (showNotificationSchedule.value)
-               APP.plugins.use<Notifier> {
-                  it.showTextNotification("Playcount", "Song\n${m.titleOrFilename}\nplaycount incrementing scheduled")
-               }
+            queue += song
+            APP.actionStream(PlaycountIncScheduled(song))
          } else {
-            val pc = 1 + m.getPlaycountOr0()
-            m.write({ it.setPlaycount(pc) }) {
-               if (it.isOk && showNotificationUpdate.value)
-                  APP.plugins.use<Notifier> {
-                     it.showTextNotification("Playcount", "Song\n${m.titleOrFilename}\nplaycount incremented by 1 to: $pc")
-                  }
+            val by = 1
+            val to = song.getPlaycountOr0() + by
+            song.write({ it.setPlaycount(to) }) {
+               if (it.isOk) APP.actionStream(PlaycountInc(song, by, to))
             }
          }
       }
@@ -126,18 +133,20 @@ class PlaycountIncrementer: PluginBase() {
       APP.audio.onPlaybackStart -= incrementer
    }
 
-   private fun incrementQueued(m: Metadata) {
-      val by = queue.count { it.same(m) }
+   private fun incrementQueued(song: Metadata) {
+      val by = queue.count { it.same(song) }
       if (by>0) {
-         queue.removeIf { it.same(m) }
-         val pc = by + m.getPlaycountOr0()
-         m.write({ it.setPlaycount(pc) }) {
-            if (it.isOk && showNotificationUpdate.value)
-               APP.plugins.use<Notifier> {
-                  it.showTextNotification("Song\n${m.titleOrFilename}\nplaycount incremented by: $by to: $pc", "Playcount")
-               }
+         queue.removeIf { it.same(song) }
+         val to = song.getPlaycountOr0() + by
+         song.write({ it.setPlaycount(to) }) {
+            if (it.isOk) APP.actionStream(PlaycountInc(song, by, to))
          }
       }
+   }
+
+   object Events {
+      data class PlaycountIncScheduled(val song: Metadata)
+      data class PlaycountInc(val song: Metadata, val by: Int, val to: Int)
    }
 
    /** Strategy for auto-incrementing playcount. */

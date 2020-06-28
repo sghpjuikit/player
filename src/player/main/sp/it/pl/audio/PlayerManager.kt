@@ -1,10 +1,14 @@
 package sp.it.pl.audio
 
+import javafx.scene.media.MediaPlayer
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KLogging
+import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
+import sp.it.pl.audio.PlayerManager.Events.PlaybackSongUpdated
+import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
 import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.VlcPlayer
@@ -48,6 +52,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
 import sp.it.util.system.browse
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
@@ -60,7 +65,9 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    val playing = InOutput<Metadata>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing").appWide()
    val playingSong = CurrentItem()
-   val state = PlayerState.deserialize()
+   val state = PlayerState.deserialize().apply {
+      playback.status attach { APP.actionStream(PlaybackStatusChanged(it)) }
+   }
    private val player = GeneralPlayer(state)
 
    var continuePlaybackOnStart by c(true).def(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
@@ -208,6 +215,12 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       }
    }
 
+   object Events {
+      interface PlaybackSongDiff { val song: Metadata }
+      data class PlaybackSongChanged(override val song: Metadata): PlaybackSongDiff
+      data class PlaybackSongUpdated(override val song: Metadata): PlaybackSongDiff
+      data class PlaybackStatusChanged(val status: MediaPlayer.Status)
+   }
    inner class CurrentItem {
       /**
        * Returns the playing song and all its information.
@@ -239,6 +252,9 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          // playback and calls this method and there is a listener to this which calls tagging
          // this will cause infinite loop!
          if (isSuspended && !isSuspendedBecauseStartedPaused) return
+
+         if (change) APP.actionStream(PlaybackSongChanged(new_metadata))
+         else APP.actionStream(PlaybackSongUpdated(new_metadata))
 
          if (change) changes.forEach { h -> h(ov, new_metadata) }
          updates.forEach { h -> h(ov, new_metadata) }

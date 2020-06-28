@@ -1,0 +1,14 @@
+
+/** Inherits: StackPane */
+.game-cell-play-placeholder {
+    -fx-background-color: rgba(0, 0, 0, 0.8);
+    -fx-max-height: 4em;
+}
+
+/** Inherits: .icon */
+.game-cell-play-placeholder .icon {}
+
+/** Inherits: Text */
+.game-cell-play-placeholder .label {
+    -fx-font-weight: bold;
+}

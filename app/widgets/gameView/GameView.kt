@@ -7,6 +7,7 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.TOP_RIGHT
+import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
@@ -21,6 +22,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.StackPane
+import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment.JUSTIFY
 import javafx.util.Callback
 import mu.KLogging
@@ -48,7 +50,6 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
-import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isImage
 import sp.it.pl.main.onErrorNotify
 import sp.it.pl.main.withAppProgress
@@ -84,9 +85,12 @@ import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.readProperties
 import sp.it.util.file.readTextTry
 import sp.it.util.file.toFast
+import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
+import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.map
@@ -102,6 +106,7 @@ import sp.it.util.system.chooseFile
 import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.runAsProgram
+import sp.it.util.text.keys
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.image.FitFrom.OUTSIDE
@@ -155,16 +160,22 @@ class GameView(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 1200.emScaled x 900.emScaled
+      root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
 
       root.lay += grid.apply {
          search.field = FileField.PATH
          primaryFilterField = FileField.NAME_FULL
          cellFactory.value = Callback { Cell() }
+         selectOn setTo GridView.SelectionOn.values()
+
          onEventDown(KEY_PRESSED, ENTER) {
             if (!it.isConsumed) {
                val si = grid.selectedItem.value
-               if (si!=null) viewGame(si.value)
+               if (si!=null) {
+                  if (it.isShiftDown) Game(si.value).setupAndPlay()
+                  else viewGame(si.value)
+               }
             }
          }
          onEventUp(SCROLL) {
@@ -238,8 +249,30 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    private inner class Cell: GridFileThumbCell() {
+      val playPlaceholderPane = lazy {
+         stackPane {
+            styleClass += "game-cell-play-placeholder"
+
+            lay(CENTER) += Icon(IconFA.GAMEPAD, 48.0).run {
+               isFocusTraversable = false
+               onClickDo {
+                  Game(item.value).setupAndPlay()
+               }
+               withText(Side.BOTTOM, CENTER, "Play (${keys("SHIFT+ENTER")})").asIs<VBox>()
+            }
+         }
+      }
+      val playPlaceholder = Subscribed.delayedFx(350.millis) {
+         if (it) root.lay += playPlaceholderPane.value
+         else playPlaceholderPane.orNull().ifNotNull { root.lay -= it }
+      }
 
       override fun computeCellTextHeight() = cellTextHeight.value!!
+
+      override fun updateSelected(selected: Boolean) {
+         super.updateSelected(selected)
+         playPlaceholder.subscribe(selected)
+      }
 
       override fun computeGraphics() {
          super.computeGraphics()
@@ -293,6 +326,30 @@ class GameView(widget: Widget): SimpleController(widget) {
                exe.runAsProgram(*arguments).onErrorNotify {
                   AppError("Unable to launch program $exe", "Reason: ${it.stacktraceAsString}")
                }
+            }
+         }
+      }
+
+      fun setupAndPlay() {
+         exeFile { exe ->
+            if (exe==null) {
+               object: ConfigurableBase<Any?>() {
+                  var file by c(location/"exe").only(FILE).def(name = "File", info = "Executable game launcher")
+               }.configure("Set up launcher") {
+                  val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(location.absolutePath + File.separator)
+                  val targetName = it.file.name
+                  val link = location/"play.bat"
+                  runIO {
+                     failIf(!it.file.exists()) { "Target file does not exist." }
+                     link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
+                  }.onErrorNotify {
+                     AppError("Can not set up launcher $link", "Reason:\n${it.stacktraceAsString}")
+                  } ui {
+                     play()
+                  }
+               }
+            } else {
+               play()
             }
          }
       }
@@ -354,26 +411,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                                  file.edit()
                               }
                            }
-                           lay += IconFA.GAMEPAD icon {
-                              game.exeFile { exe ->
-                                 if (exe==null)
-                                    object: ConfigurableBase<Any?>() {
-                                       var file by c(game.location/"exe").only(FILE).def(name = "File", info = "Executable game launcher")
-                                    }.configure("Set up launcher") {
-                                       val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(game.location.absolutePath + File.separator)
-                                       val targetName = it.file.name
-                                       val link = game.location/"play.bat"
-                                       runIO {
-                                          failIf(!it.file.exists()) { "Target file does not exist." }
-                                          link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
-                                       }.onDone(FX) {
-                                          it.toTry().ifErrorNotify { AppError("Can not set up launcher $link", "Reason:\n${it.stacktraceAsString}") }
-                                       }
-                                    }
-                                 else
-                                    game.play()
-                              }
-                           }
+                           lay += IconFA.GAMEPAD icon { game.setupAndPlay() }
                            lay += IconUN(0x1f4c1) icon { game.location.open() }
                            lay += IconMD.WIKIPEDIA icon { WikipediaQBuilder(game.name).browse() }
                            lay += IconMD.STEAM icon { SteamQBuilder(game.name).browse() }

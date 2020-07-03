@@ -8,6 +8,8 @@ import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.AppErrors
 import sp.it.pl.main.AppSettings
 import sp.it.pl.main.run1AppReady
+import sp.it.pl.main.toS
+import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginManager.Events.PluginInstalled
 import sp.it.pl.plugin.PluginManager.Events.PluginStarted
 import sp.it.pl.plugin.PluginManager.Events.PluginStopped
@@ -96,27 +98,47 @@ class PluginManager: GlobalConfigDelegator {
 
    /** Sets a block to be fired every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
    inline fun <reified P: PluginBase> attachWhile(noinline block: (P) -> Subscription): Subscription {
+      val disposer = Disposer()
       return when {
-         isInstalled(P::class) -> Disposer().attachWhileImpl(block)
-         else -> APP.actionStream.onEvent<PluginInstalled<P>> { Disposer().attachWhileImpl(block) }
+         isInstalled(P::class) -> {
+            Subscription(
+               APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
+               APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
+               Subscription { disposer() }
+            )
+         }
+         else -> APP.actionStream.onEvent<PluginInstalled<P>>({ it.plugin.plugin is P }) {
+            Subscription(
+               APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
+               APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
+               Subscription { disposer() }
+            )
+         }
       }
    }
 
    /** Sets a block to be fired immediately if running and every time a plugin of this type is started (right after) until it is stopped or the returned subscription unsubscribed. */
    inline fun <reified P: PluginBase> syncWhile(noinline block: (P) -> Subscription): Subscription {
       val disposer = Disposer()
+
       getRaw<P>()?.plugin?.ifNotNull { block(it) on disposer }
       return when {
-         isInstalled(P::class) -> disposer.attachWhileImpl(block)
-         else -> APP.actionStream.onEvent<PluginInstalled<P>> { disposer.attachWhileImpl(block) }
+         isInstalled(P::class) -> {
+            Subscription(
+               APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
+               APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
+               Subscription { disposer() }
+            )
+         }
+         else -> APP.actionStream.onEvent<PluginInstalled<P>>({ it.plugin.plugin is P }) {
+            Subscription(
+               APP.actionStream.onEvent<PluginStarted<P>>({ it.plugin.plugin is P }) { block(it.plugin.plugin!!) on disposer },
+               APP.actionStream.onEvent<PluginStopped<P>>({ it.plugin.plugin is P }) { disposer() },
+               Subscription { disposer() }
+            )
+         }
       }
    }
-
-   inline fun <reified P: PluginBase> Disposer.attachWhileImpl(noinline block: (P) -> Subscription) = Subscription(
-      APP.actionStream.onEvent<PluginStarted<P>> { block(it.plugin.plugin!!) on this },
-      APP.actionStream.onEvent<PluginStopped<P>> { this() },
-      Subscription { this() }
-   )
 
    object Events {
       /** At the time the event is invoked, the plugin is not running. */
@@ -236,9 +258,9 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
 
       plugin?.apply {
          APP.actionStream(PluginStopped(this@PluginBox))
-         plugin = null
          APP.configuration.rawAdd(this)
          APP.configuration.drop(this)
+         plugin = null
          runTry {
             stop()
          }.orNull {
@@ -246,6 +268,8 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
          }
       }
    }
+
+   override fun toString() = "${this::class.simpleName}(type=${type.simpleName})"
 
    companion object: KLogging()
 

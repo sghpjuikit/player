@@ -25,6 +25,7 @@ import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.map
 import sp.it.util.type.type
@@ -35,6 +36,7 @@ import java.util.ArrayList
 /** Playcount incrementing service. */
 class PlaycountIncrementer: PluginBase() {
 
+   val onStop = Disposer()
    val whenStrategy by cv(ON_TIME)
       .def(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.") attach { initStrategy() }
    val whenPercent by cv(0.4).between(0.0, 1.0).readOnlyUnless(whenStrategy.map { it.needsPercent() })
@@ -44,13 +46,13 @@ class PlaycountIncrementer: PluginBase() {
    val showNotificationSchedule by cv(false) {
          NotifySource<PlaycountIncScheduled>(type(), "On song playcount incrementing scheduled") {
             showTextNotification("Playcount", "Song\n${it.song.titleOrFilename}\nplaycount incrementing scheduled")
-         }.toSubscribed().toV(it)
+         }.toSubscribed(onStop).toV(it)
       }
       .def(name = "Show notification (schedule)", info = "Shows notification when playcount incrementing is scheduled.")
    val showNotificationUpdate by cv(false) {
          NotifySource<PlaycountInc>(type(), "On song playcount incremented") {
             showTextNotification("Playcount", "Song\n${it.song.titleOrFilename}\nplaycount incremented by ${it.by} to: ${it.to}")
-         }.toSubscribed().toV(it)
+         }.toSubscribed(onStop).toV(it)
       }
       .def(name = "Show notification (update)", info = "Shows notification when playcount is incremented.")
    val delay by cv(true)
@@ -76,6 +78,7 @@ class PlaycountIncrementer: PluginBase() {
    }
 
    override fun stop() {
+      onStop()
       plyingSongIncrementer.unsubscribe()
       disposeStrategy()
       queue.distinctBy { it.uri }.forEach(::incrementQueued)

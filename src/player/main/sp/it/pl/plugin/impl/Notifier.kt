@@ -76,11 +76,11 @@ class Notifier: PluginBase() {
       .noPersist().readOnly().uiConverterElement { it.name }
       .def(name = "Triggers", info = "Shows active event notification triggers. The handlers may have additional logic discarding some of the events.")
    val showStatusNotification by cv(false) {
-         NotifySource<PlaybackStatusChanged>(type(), "On playback status change") { playbackChange(it.status) }.toSubscribed().toV(it)
+         NotifySource<PlaybackStatusChanged>(type(), "On playback status change") { playbackChange(it.status) }.toSubscribed(onStop).toV(it)
       }
       .def(name = "On playback status change")
    val showSongNotification by cv(true) {
-         NotifySource<PlaybackSongChanged>(type(), "On playback song change") { songChange(it.song) }.toSubscribed().toV(it)
+         NotifySource<PlaybackSongChanged>(type(), "On playback song change") { songChange(it.song) }.toSubscribed(onStop).toV(it)
       }
       .def(name = "On playing song change")
    val notificationAutohide by c(false)
@@ -139,11 +139,6 @@ class Notifier: PluginBase() {
    override fun stop() {
       onStop()
       n.hideImmediately()
-   }
-
-   fun <E: Any> installNotifySource(handler: NotifySource<E>): Subscription {
-      if (handler !in notifySources) notifySources += handler
-      return Subscription { notifySources -= handler }
    }
 
    /** Show notification for custom content. */
@@ -231,10 +226,12 @@ data class NotifySource<out T: Any>(val type: VType<T>, val name: String, val bl
     * Returns subscribed that enables/disables notifications from this source through [Notifier.notifySources]
     * for [Notifier] plugin using [sp.it.pl.plugin.PluginManager.syncWhile].
     */
-   fun toSubscribed(): Subscribed = Subscribed {
+   fun toSubscribed(disposer: Disposer? = null): Subscribed = Subscribed {
       APP.plugins.syncWhile<Notifier> {
          if (this !in it.notifySources) it.notifySources += this
          Subscription { it.notifySources -= this }
+      }.apply {
+         disposer?.plusAssign { unsubscribe() }
       }
    }
 }

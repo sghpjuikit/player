@@ -1,11 +1,13 @@
 package sp.it.util.reactive
 
+import sp.it.util.collections.materialize
+
 /** Set of functions taking 0 parameters. Use as a collection of handlers. */
 class Handler0: MutableSet<() -> Unit> by LinkedHashSet(2), () -> Unit {
 
    /** Invokes all contained functions, in order they were put in. */
    override operator fun invoke() {
-      forEach { it() }
+      materialize().forEach { it() }
       removeIf { it is RemovingF }
    }
 

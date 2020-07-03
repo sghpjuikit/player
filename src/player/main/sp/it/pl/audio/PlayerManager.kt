@@ -326,7 +326,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       /** Execute when song starts playing.  */
       fun songChanged(song: Song?) {
          when {
-            song==null -> {
+            song==null || song==Metadata.EMPTY -> {
                setValue(true, Metadata.EMPTY)
                logger.info("Current song changed to none.")
                logger.info("Current song metadata set to empty.")

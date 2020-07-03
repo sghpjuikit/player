@@ -11,7 +11,6 @@ import sp.it.util.file.properties.writeProperties
 import sp.it.util.functional.compose
 import sp.it.util.functional.orNull
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.jvmErasure
 import sp.it.util.type.raw
 import java.io.File
 import java.lang.invoke.MethodHandles
@@ -39,9 +38,9 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     */
    fun rawGetAll(): Map<String, PropVal> = properties
 
-   fun rawGet(key: String): PropVal = properties[key]!!
+   fun rawGet(key: String): PropVal? = properties[key]
 
-   fun rawGet(config: Config<*>): PropVal = properties[configToRawKeyMapper(config)]!!
+   fun rawGet(config: Config<*>): PropVal? = properties[configToRawKeyMapper(config)]
 
    fun rawContains(config: String): Boolean = properties.containsKey(config)
 

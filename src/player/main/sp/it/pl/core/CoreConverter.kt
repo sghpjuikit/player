@@ -26,6 +26,7 @@ import sp.it.pl.ui.objects.tree.Name
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.Action
+import sp.it.util.formatToSmallestUnit
 import sp.it.util.functional.Functors
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
@@ -110,6 +111,7 @@ class CoreConverter: Core {
          is LocalDateTime -> o.format(dateTimeFormatter)
          is LocalDate -> o.format(dateTimeFormatter)
          is LocalTime -> o.format(dateTimeFormatter)
+         is Duration -> o.formatToSmallestUnit()
          is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
          is Effect -> o::class.toUi()
          is Component -> o.name

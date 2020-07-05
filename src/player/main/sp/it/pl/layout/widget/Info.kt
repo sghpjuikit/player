@@ -1,16 +1,23 @@
 package sp.it.pl.layout.widget
 
-import de.jensd.fx.glyphs.GlyphIcon
 import de.jensd.fx.glyphs.GlyphIcons
 import sp.it.pl.layout.widget.feature.Feature
+import sp.it.pl.main.APP
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.file.properties.PropVal.PropVal1
+import sp.it.util.functional.net
+import sp.it.util.functional.toUnit
+import sp.it.util.text.camelToDotCase
 import sp.it.util.type.isSuperclassOf
 import java.time.Year
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.jvmName
+import kotlin.streams.asSequence
 
 interface ComponentInfo {
 
@@ -72,7 +79,6 @@ interface WidgetInfo: ComponentInfo {
    /** @return true iff widget's controller implements all given features */
    fun hasFeatures(vararg features: Class<*>) = features.asSequence().all { hasFeature(it) }
 
-//   val summaryActions: List<ShortcutPane.Entry>
    val summaryActions get() = listOf<ShortcutPane.Entry>()
 
    override val summaryUi: String get() {
@@ -87,10 +93,29 @@ interface WidgetInfo: ComponentInfo {
 
 }
 
+/**
+ * Widget controller companion object.
+ * * Defines useful widget metadata
+ * * Automatically derives [id] and [type].
+ * * Allows defining global widget instance state using [appProperty]
+ */
 interface WidgetCompanion: WidgetInfo {
    override val id
       get() = type.kotlin.let { it.simpleName ?: it.jvmName }
 
    override val type: Class<*>
       get() = this::class.java.enclosingClass!!
-   }
+}
+
+/**
+ * Global widget state (shared across all widget instances) get/set/persisted from/to application properties.
+ * The key is 'widget.${widgetCompanion.id.camelToDotCase()}.${property.name.camelToDotCase()}'.
+ *
+ * Because the key uses [WidgetCompanion.id], the global states of widgets of different types do not conflict.
+ */
+@Suppress("UNCHECKED_CAST", "FINAL_UPPER_BOUND")
+fun <T: String> appProperty(initialValue: T) = object: ReadWriteProperty<WidgetCompanion, T> {
+   private fun key(c: WidgetCompanion, p: KProperty<*>) = "widget.${c.id.camelToDotCase()}.${p.name.camelToDotCase()}"
+   override fun getValue(thisRef: WidgetCompanion, property: KProperty<*>) = APP.configuration.rawGet(key(thisRef, property))?.val1?.net { it as T } ?: initialValue
+   override fun setValue(thisRef: WidgetCompanion, property: KProperty<*>, value: T) = APP.configuration.rawAdd(key(thisRef, property), PropVal1(value)).toUnit()
+}

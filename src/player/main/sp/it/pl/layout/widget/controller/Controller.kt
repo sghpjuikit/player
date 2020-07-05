@@ -29,6 +29,9 @@ import sp.it.util.units.millis
 /**
  * Defines behavior and ui of [Widget].
  *
+ * Companion:
+ * The class should be accompanied by [sp.it.pl.layout.widget.WidgetCompanion].
+ *
  * Providing API:
  * Controller is instantiated dynamically (using constructor) and normally the class is provided to the application
  * by user, so it is impossible to refer to the exact class and use the API. Exposing API by implementing interfaces
@@ -40,14 +43,17 @@ import sp.it.util.units.millis
  * - constructor is called
  * - [close] invoked
  *
- * Configurable state:
+ * Configurable [per instance] state:
  * Controller may wish to make its state user customizable. This is provided through the inherited
  * [sp.it.util.conf.Configurable] API.
  *
- * Persisted state:
+ * Persisted [per instance] state:
  * Controller may wish to make its state persistable. For fine-grained control, use [Widget.properties] directly, but
  * it is strongly recommended to simply make all persistable state configurable, as all configurable state is persisted
  * automatically. Note that it is not auto-restored. For that either use [SimpleController] or [LegacyController].
+ *
+ * Global [shared instance] state:
+ * See [sp.it.pl.layout.widget.appProperty].
  */
 abstract class Controller(widget: Widget): Configurable<Any?>, Locatable {
 

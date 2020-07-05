@@ -148,6 +148,11 @@ allprojects {
          imageIO("tiff")
       }
 
+      "Http" group {
+         implementation("io.ktor", "ktor-server-core", "1.3.2")
+         implementation("io.ktor", "ktor-client-cio", "1.3.2")
+      }
+
       "Test" group {
          testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.0.3")
          testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.0.3")

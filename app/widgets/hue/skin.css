@@ -1,0 +1,10 @@
+
+.hue-group-icon {}
+.hue-group-icon:on Text {
+    -fx-fill: -skin-def-font-color-hover;
+}
+
+.hue-bulb-icon {}
+.hue-bulb-icon:on Text {
+    -fx-fill: -skin-def-font-color-hover;
+}

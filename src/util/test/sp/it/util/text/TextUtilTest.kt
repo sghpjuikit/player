@@ -31,4 +31,14 @@ class TextUtilTest: FreeSpec({
       "1:2:3".splitTrimmed(":") shouldBe listOf("1", "2", "3")
       ":2:".splitTrimmed(":") shouldBe listOf("2")
    }
+
+   String::camelToDashCase.name - {
+      "AaaBbbCCC".camelToDashCase() shouldBe "aaa-bbb-c-c-c"
+      "AaaBbbCCC".camelToDashCase() shouldBe "AaaBbbCCC".camelToDashCase().toLowerCase()
+   }
+
+   String::camelToDotCase.name - {
+      "AaaBbbCCC".camelToDotCase() shouldBe "aaa.bbb.c.c.c"
+      "AaaBbbCCC".camelToDotCase() shouldBe "AaaBbbCCC".camelToDotCase().toLowerCase()
+   }
 })

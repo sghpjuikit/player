@@ -7,8 +7,10 @@ import sp.it.util.dev.failIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
+import java.lang.StringBuilder
 import java.text.BreakIterator
 import java.util.Locale
+import kotlin.streams.asSequence
 
 /** Length of this string in characters */
 val String.lengthInChars: Int get() = length
@@ -51,6 +53,42 @@ fun String.isPalindromeOrEmpty(): Boolean {
    val l = length
    return (0 until l/2).none { this[it]!=this[l - it - 1] }
 }
+
+/** @return camel case string converted to lower dash case */
+@Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
+fun String.camelToDashCase() = codePoints().asSequence()
+   .fold(ArrayList<Int>(length)) { str, char ->
+      if (str.isEmpty()) {
+         str += Character.toLowerCase(char)
+      } else {
+         if (Character.isUpperCase(char)) {
+            str += '-'.toInt()
+            str += Character.toLowerCase(char)
+         } else {
+            str += char
+         }
+      }
+      str
+   }
+   .joinToString("", "", "") { Character.toString(it) }
+
+/** @return camel case string converted to lower dot case */
+@Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
+fun String.camelToDotCase() = codePoints().asSequence()
+   .fold(ArrayList<Int>(length)) { str, char ->
+      if (str.isEmpty()) {
+         str += Character.toLowerCase(char)
+      } else {
+         if (Character.isUpperCase(char)) {
+            str += '.'.toInt()
+            str += Character.toLowerCase(char)
+         } else {
+            str += char
+         }
+      }
+      str
+   }
+   .joinToString("", "", "") { Character.toString(it) }
 
 /** @return pretty text representing the keys, intended for UI */
 fun keys(keys: String): String = keys.splitToSequence("+").map(::key).joinToString(" + ")

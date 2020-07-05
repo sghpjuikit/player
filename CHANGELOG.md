@@ -13,10 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `--dev` developer mode argument option
 - Implement `--uiless` argument option
 - Implement ui less application mode
-- Implement plugin metadata (simple)
-- Implement plugin management settings
-- Implement widget metadata (simple)
-- Implement widget management settings
 - Implement widget recompilation when application jars are more recent
 - Implement widget reload button for widgets that do not load properly
 - Implement widget focusing when widget opens to be used (e.g. from context menu)
@@ -24,15 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement auto-setup for Kotlin compiler
 - Implement auto-setup for ffmpeg compiler
 - Implement application header progress indicator title showing running task count
-- Implement `Tester` widget for developers, showcases property sheets and animation interpolators
-- Implement `Object Info` widget
-- Implement `Favourite Locations` widget
-- Implement `File Explorer` composed widget (exported layout)
-- Implement `Screen Rotator` plugin dialog
-- Implement `Start Screen` plugin
-- Implement `Wallpaper` plugin File.setWallpaper action
-- Implement `Wallpaper` plugin to retain wallpaper when application closes
-- Implement new popups
+- Implement new popups (fixes various issues related to popups)
 - Implement application settings import/export/defaults actions
 - Implement application settings filter
 - Implement select settings group when opening setting from application search
@@ -64,11 +52,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - displays unknown types as STAR projections `*`, displays `List<*>`
 - Improve image loading performance for common formats dramatically
 - Improve image loading performance
+- Plugins
+    - Implement plugin metadata (simple)
+    - Implement plugin management settings
+    - Implement `Screen Rotator` plugin dialog
+    - Implement `Start Screen` plugin
+    - Implement `Wallpaper` plugin File.setWallpaper action
+    - Implement `Wallpaper` plugin to retain wallpaper when application closes
+    - Implement `Notifier` plugin setting that shows enabled notification types
 - Widgets
+    - Implement multiple ways to open widgets (configurable by user), i.e window, popup, overlay, etc
+    - Implement widget metadata (simple)
+    - Implement widget management settings
+    - Implement widget global state
+    - Implement `Tester` widget for developers, showcases property sheets and animation interpolators
+    - Implement `Object Info` widget
+    - Implement `Favourite Locations` widget
+    - Implement `File Explorer` composed widget (exported layout)
+    - Implement `Hue` widget to control Phillips Hue light system
     - Implement `Dir Viewer` icon cell & option to toggle thumbnails/icons
     - Improve `Dir Viewer` cell size change performance
     - Improve `Tagger` widget UX
     - Improve `Converter` widget UX
+    - Improve `Tagger` widget UX
     - Improve `Tagger` reading performance
     - Improve `FileInfo`
         - use checklist to select which fields to display
@@ -76,9 +82,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Improve `ImageViewer` widget UX
         - remove ability to display thumbnails (use grid widget for this)     
 - Display date & time in UI in human readable format
-- Hide technical settings from UI & avoid persisting computed settings
-- Icons are focusable using TAB and invokable using ENTER
+- Hide technical settings from UI
+- Avoid persisting computed and other unwanted settings
+- Handle icon focus traversal (TAB) and action invoking (ENTER) better
 - Popup close button has been removed and pin button UX improved
+- Info buttons in various parts of UI have been removed, `,` and `.` shortcuts now intended for same use case
 
 ### Fix
 - Playback seek volume fade

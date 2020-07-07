@@ -351,7 +351,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             }
 
             textArea.addEventFilter(KEY_PRESSED, e -> {
-                if (e.getCode()==KeyCode.V && e.isControlDown()) {
+                if (e.getCode()==KeyCode.V && e.isShortcutDown()) {
                     var pasted_text = Clipboard.getSystemClipboard().getString();
                     if (pasted_text!=null) {
                         var areaLines = textArea.getText().split("\\n");

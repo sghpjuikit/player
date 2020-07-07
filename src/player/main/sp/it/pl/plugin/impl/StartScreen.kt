@@ -5,14 +5,19 @@ import javafx.geometry.Point2D
 import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
+import javafx.scene.input.Clipboard
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
+import sp.it.pl.main.APP
 import sp.it.pl.main.LazyOverlayPane
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.pl.main.IconWH
+import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.getAny
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.JavaLegacy
@@ -23,6 +28,7 @@ import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onEventDown
 import sp.it.util.system.Os
 import sp.it.util.ui.areaBy
 import sp.it.util.ui.hBox
@@ -88,6 +94,18 @@ class StartScreen: PluginBase() {
          init {
             display.value = SCREEN_OF_MOUSE
             content = stackPane {
+               isFocusTraversable = true
+
+               // support pasting clipboard
+               onShown += { requestFocus() }
+               onEventDown(KEY_PRESSED) {
+                   if (it.code==Key.V && it.isShortcutDown) {
+                      val data = Clipboard.getSystemClipboard().getAny();
+                      onHidden.addSOnetime { APP.ui.actionPane.orBuild.show(data) }
+                      hide()
+                   }
+               }
+
                lay += stackPane {
                   padding = Insets(60.emScaled)
 
@@ -129,15 +147,24 @@ class StartScreen: PluginBase() {
                      isFillWidth = false
                      style += "-fx-font-size: 1.5em;"
 
-                     lay += Icon(IconWH.MOON_27, 5.em.emScaled).onClickDo {
-                        JavaLegacy.suspendWindows(false, false, true)
-                     }.withText(Side.LEFT, "Sleep")
-                     lay += Icon(IconWH.MOON_ALT_WANING_CRESCENT_1, 5.em.emScaled).onClickDo {
-                        JavaLegacy.suspendWindows(true, false, true)
-                     }.withText(Side.LEFT, "Hibernate")
-                     lay += Icon(IconWH.MOON_14, 5.em.emScaled).onClickDo {
-                        Runtime.getRuntime().exec("shutdown -s -t 0")
-                     }.withText(Side.LEFT, "Shutdown")
+                     lay += Icon(IconWH.MOON_27, 5.em.emScaled).run {
+                        onClickDo {
+                           JavaLegacy.suspendWindows(false, false, true)
+                        }
+                        withText(Side.LEFT, "Sleep")
+                     }
+                     lay += Icon(IconWH.MOON_ALT_WANING_CRESCENT_1, 5.em.emScaled).run {
+                        onClickDo {
+                           JavaLegacy.suspendWindows(true, false, true)
+                        }
+                        withText(Side.LEFT, "Hibernate")
+                     }
+                     lay += Icon(IconWH.MOON_14, 5.em.emScaled).run {
+                        onClickDo {
+                           Runtime.getRuntime().exec("shutdown -s -t 0")
+                        }
+                        withText(Side.LEFT, "Shutdown")
+                     }
                   }
                }
             }

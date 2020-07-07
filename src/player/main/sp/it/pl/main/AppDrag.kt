@@ -5,6 +5,7 @@ import javafx.geometry.Bounds
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.image.Image
+import javafx.scene.input.Clipboard
 import javafx.scene.input.DragEvent
 import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
@@ -76,18 +77,18 @@ object Df {
    @JvmField val METADATA_GROUP = DataFormatAppOnly<MetadataGroup>("application/sp.it.player-metadata-group")
 }
 
-/** Equivalent to [Dragboard.hasContent], but see [DataFormatAppOnly]. */
-operator fun Dragboard.contains(format: DataFormatAppOnly<*>) = hasContent(format.format)
+/** Equivalent to [Clipboard.hasContent], but see [DataFormatAppOnly]. */
+operator fun Clipboard.contains(format: DataFormatAppOnly<*>) = hasContent(format.format)
 
-/** Equivalent to [Dragboard.getContent], but see [DataFormatAppOnly]. */
+/** Equivalent to [Clipboard.getContent], but see [DataFormatAppOnly]. */
 @Suppress("UNCHECKED_CAST")
-operator fun <T: Any> Dragboard.get(format: DataFormatAppOnly<T>): T {
+operator fun <T: Any> Clipboard.get(format: DataFormatAppOnly<T>): T {
    failIf(format !in this) { "No data of $format in dragboard." }
    return dragData as T
 }
 
-/** Equivalent to [Dragboard.setContent], but see [DataFormatAppOnly]. */
-operator fun <T: Any> Dragboard.set(format: DataFormatAppOnly<out T>, data: T) {
+/** Equivalent to [Clipboard.setContent], but see [DataFormatAppOnly]. */
+operator fun <T: Any> Clipboard.set(format: DataFormatAppOnly<out T>, data: T) {
    dragData = data
    dragDataId.incrementAndGet()
    setContent(mapOf(format.format to ""))
@@ -101,7 +102,7 @@ class DataFormatAppOnly<T: Any>(id: String) {
    val format = DataFormatFX(id)
 }
 
-fun Dragboard.getAny(): Any? = when {
+fun Clipboard.getAny(): Any? = when {
    Df.SONGS in this -> this[Df.SONGS]
    Df.COMPONENT in this -> this[Df.COMPONENT]
    Df.METADATA_GROUP in this -> this[Df.METADATA_GROUP]
@@ -112,7 +113,7 @@ fun Dragboard.getAny(): Any? = when {
    else -> dragData
 }
 
-fun Dragboard.getAnyFut(): Any? = when {
+fun Clipboard.getAnyFut(): Any? = when {
    Df.SONGS in this -> this[Df.SONGS]
    Df.COMPONENT in this -> this[Df.COMPONENT]
    Df.METADATA_GROUP in this -> this[Df.METADATA_GROUP]
@@ -127,17 +128,17 @@ fun Dragboard.getAnyFut(): Any? = when {
 }
 
 /** @return [Df.PLAIN_TEXT] or [Df.RTF] in dragboard */
-fun Dragboard.getText(): String = when {
+fun Clipboard.getText(): String = when {
    Df.PLAIN_TEXT in this -> this[Df.PLAIN_TEXT]
    Df.RTF in this -> this[Df.RTF]
    else -> fail { "Dragboard must contain text" }
 }
 
 /** @return whether dragboard contains [Df.PLAIN_TEXT] or [Df.RTF] */
-fun Dragboard.hasText(): Boolean = hasString() || hasRtf()
+fun Clipboard.hasText(): Boolean = hasString() || hasRtf()
 
 /** Sets both [Df.SONGS] and [Df.FILES]. */
-fun Dragboard.setSongsAndFiles(items: List<Song>) {
+fun Clipboard.setSongsAndFiles(items: List<Song>) {
    this[Df.SONGS] = items
    this.setContent(
       mapOf(

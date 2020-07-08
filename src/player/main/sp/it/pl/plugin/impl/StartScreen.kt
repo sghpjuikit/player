@@ -7,9 +7,11 @@ import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.layout.StackPane
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.LazyOverlayPane
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.OverlayPane
@@ -18,6 +20,7 @@ import sp.it.pl.main.IconWH
 import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAny
+import sp.it.pl.main.installDrag
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.JavaLegacy
@@ -91,20 +94,32 @@ class StartScreen: PluginBase() {
    private val overlay = LazyOverlayPane {
       object: OverlayPane<Unit>() {
 
+         fun StackPane.installClipboardSupport() {
+            fun Any?.showDataInfo() = also { data ->
+               onHidden.addSOnetime { APP.ui.actionPane.orBuild.show(data) }
+               hide()
+            }
+
+            onEventDown(KEY_PRESSED) {
+                if (it.code==Key.V && it.isShortcutDown) {
+                   it.consume()
+                   Clipboard.getSystemClipboard().getAny().showDataInfo()
+                }
+            }
+            installDrag(
+               IconUN(0xe295),
+               "Drag & drop object",
+               { true },
+               { it.dragboard.getAny().showDataInfo() }
+            )
+         }
+
          init {
             display.value = SCREEN_OF_MOUSE
             content = stackPane {
                isFocusTraversable = true
-
-               // support pasting clipboard
                onShown += { requestFocus() }
-               onEventDown(KEY_PRESSED) {
-                   if (it.code==Key.V && it.isShortcutDown) {
-                      val data = Clipboard.getSystemClipboard().getAny();
-                      onHidden.addSOnetime { APP.ui.actionPane.orBuild.show(data) }
-                      hide()
-                   }
-               }
+               installClipboardSupport()
 
                lay += stackPane {
                   padding = Insets(60.emScaled)

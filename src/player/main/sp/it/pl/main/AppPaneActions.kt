@@ -60,11 +60,14 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.browse
@@ -74,6 +77,10 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
+import sp.it.util.text.graphemeAt
+import sp.it.util.text.lengthInChars
+import sp.it.util.text.lengthInCodePoint
+import sp.it.util.text.lengthInGrapheme
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -81,8 +88,11 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 import java.io.File
+import java.net.URI
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
+import kotlin.text.Charsets.UTF_8
 
 @Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
@@ -161,6 +171,35 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          {
             chooseFiles("Open audio...", APP.locationHome, ap.scene?.window, audioExtensionFilter())
                .map { runLater { APP.ui.actionPane.orBuild.show(it) } }   // may auto-close on finish, delay show()
+         }
+      )
+   )
+   ap.register<String>(
+      FastAction(
+         "Detect content",
+         "Tries to detect and convert the content of the text into more specific one",
+         IconFA.SEARCH_PLUS,
+         ap.converting {
+            val data: Any = when {
+               it=="true" -> true
+               it=="false" -> false
+               it.lengthInChars==1 -> it[0]
+               it.lengthInCodePoint==1 -> it.codePointAt(0)
+               it.lengthInGrapheme==1 -> it.graphemeAt(0)
+               else -> null
+                  ?: it.toShortOrNull()
+                  ?: it.toIntOrNull()
+                  ?: it.toLongOrNull()
+                  ?: it.toFloatOrNull()
+                  ?: it.toDoubleOrNull()
+                  ?: it.toBigIntegerOrNull()
+                  ?: it.toBigDecimalOrNull()
+                  ?: it.toByteOrNull()
+                  ?: runTry { URI.create("file:///" + URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: runTry { URI.create(URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: it
+            }
+            Try.ok(data)
          }
       )
    )

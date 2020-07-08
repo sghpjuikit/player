@@ -434,7 +434,7 @@ class TypeUtilTest: FreeSpec({
          ) { i, o ->
             fun KTypeProjection.toSimpleString(): String = when (this) {
                STAR -> "*"
-               else -> variance!!.name + " " + this.type
+               else -> variance!!.name + " " + this.type?.j
             }
 
             val a1 = i.first.type.argOf(i.second.jvmErasure, i.third)

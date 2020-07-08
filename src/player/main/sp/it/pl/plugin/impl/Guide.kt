@@ -502,8 +502,7 @@ class Guide: PluginBase() {
                      root.addChild(1, w)
                      wd.topContainer.addChild(i, root)
 
-                     installDrag(
-                        w.load(),
+                     w.load().installDrag(
                         IconMD.DICE_2,
                         ("Accepts text containing digit '2' and does nothing"
                            + "\n\t• Release mouse to drop drag and execute action"
@@ -511,8 +510,7 @@ class Guide: PluginBase() {
                         { e -> e.dragboard.hasText() && e.dragboard.getText().let { "2" in it } },
                         { }
                      )
-                     installDrag(
-                        root.root,
+                     root.root.installDrag(
                         IconMD.DICE_2,
                         ("Accepts text containing digit '2' or '3' and does nothing"
                            + "\n\t• Release mouse to drop drag and execute action"

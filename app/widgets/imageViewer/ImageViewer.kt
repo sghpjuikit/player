@@ -154,8 +154,9 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       root.onEventDown(MOUSE_CLICKED, PRIMARY) { theaterMode.toggle() }
       theaterMode sync ::applyTheaterMode
 
-      installDrag(
-         root, IconMD.DETAILS, "Display",
+      root.installDrag(
+         IconMD.DETAILS,
+         "Display",
          { it.dragboard.hasImageFileOrUrl() || it.dragboard.hasAudio() || it.dragboard.hasFiles() },
          { it.gestureSource===mainImage.pane },
          {

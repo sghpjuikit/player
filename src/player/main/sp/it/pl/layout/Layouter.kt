@@ -67,8 +67,9 @@ class Layouter: ComponentUi {
 
       AppAnimator.applyAt(cp.root, 0.0)
 
-      installDrag(
-         root, IconFA.EXCHANGE, "Switch components",
+      root.installDrag(
+         IconFA.EXCHANGE,
+         "Switch components",
          { e -> Df.COMPONENT in e.dragboard },
          { e -> e.dragboard[Df.COMPONENT]===container },
          { e -> e.dragboard[Df.COMPONENT].swapWith(container, index) }

@@ -134,8 +134,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
 
       currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
 
-      installDrag(
-         root,
+      root.installDrag(
          IconMD.PLAYLIST_PLUS,
          "Add to active playlist",
          { e -> e.dragboard.hasAudio() },

@@ -56,8 +56,11 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       thumb.fitFrom syncFrom fitFrom on onClose
       root.lay += thumb.pane
 
-      installDrag(
-         root, IconMD.DETAILS, "Display image of the file",
+      root.onEventDown(KEY_PRESSED, ENTER) { file?.let { APP.actions.openImageFullscreen(it) } }
+      root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
+      root.installDrag(
+         IconMD.DETAILS,
+         "Display image of the file",
          { e -> e.dragboard.hasFiles() || e.dragboard.hasImageFileOrUrl() },
          { e -> file!=null && file==e.dragboard.files.firstOrNull() },
          { e ->
@@ -65,8 +68,6 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
             else e.dragboard.getImageFileOrUrl() ui { inputFile.value = it }
          }
       )
-      root.onEventDown(KEY_PRESSED, ENTER) { file?.let { APP.actions.openImageFullscreen(it) } }
-      root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
 
       inputFile.value = file
    }

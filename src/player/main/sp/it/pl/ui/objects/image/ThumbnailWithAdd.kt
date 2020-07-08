@@ -43,8 +43,9 @@ class ThumbnailWithAdd constructor(dragIcon: GlyphIcons = DETAILS, dragDescripti
 
       root.onEventDown(MOUSE_CLICKED, PRIMARY) { doSelectFile() }
 
-      installDrag(
-         root, dragIcon, dragDescription,
+      root.installDrag(
+         dragIcon,
+         dragDescription,
          { e -> e.dragboard.hasImageFileOrUrl() },
          { e ->
             // Fut<File> fi = getImage(e);

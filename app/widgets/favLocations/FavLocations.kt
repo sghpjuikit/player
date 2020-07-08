@@ -93,8 +93,9 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
       }
 
       // drag & drop directories
-      installDrag(
-         root, IconMD.STAR, "Add directories to favourites",
+      root.installDrag(
+         IconMD.STAR,
+         "Add directories to favourites",
          { it.dragboard.hasFiles() },
          { fut(it.dragboard.files).then(IO) { it.filter { it.isDirectory } } ui { locations += it } }
       )

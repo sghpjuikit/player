@@ -1,6 +1,5 @@
 package fileInfo
 
-import de.jensd.fx.glyphs.materialicons.MaterialIcon
 import fileInfo.FileInfo.Sort.ALPHANUMERIC
 import fileInfo.FileInfo.Sort.SEMANTIC
 import javafx.geometry.Insets
@@ -49,6 +48,7 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
@@ -370,8 +370,9 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       rater.editable.value = true
       rater.onRatingEdited = data::writeRating
 
-      installDrag(
-         root, MaterialIcon.DETAILS, "Display",
+      root.installDrag(
+         IconMA.DETAILS,
+         "Display",
          { it.dragboard.hasAudio() },
          { it.dragboard.getAudio().firstOrNull()?.let { read(it) } }
       )

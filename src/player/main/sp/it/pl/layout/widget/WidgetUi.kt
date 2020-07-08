@@ -78,8 +78,9 @@ class WidgetUi: ComponentUiBase<Widget> {
       controls = WidgetUiControls(this)
       contentRoot.layFullArea += controls.root
 
-      installDrag(
-         root, IconFA.EXCHANGE, "Switch components",
+      root.installDrag(
+         IconFA.EXCHANGE,
+         "Switch components",
          { e -> Df.COMPONENT in e.dragboard },
          { e -> e.dragboard[Df.COMPONENT].let { it==this.container || it==widget } },
          { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }

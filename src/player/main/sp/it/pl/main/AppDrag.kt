@@ -241,20 +241,20 @@ private fun futUrl(url: String): Fut<File?> = runNew {
 }
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
-fun installDrag(node: Node, icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-   installDrag(node, icon, info, condition, { false }, action)
+fun Node.installDrag(icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+   installDrag(icon, info, condition, { false }, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
-fun installDrag(node: Node, icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-   installDrag(node, icon, Supplier { info }, condition, exc, action)
+fun Node.installDrag(icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+   installDrag(icon, Supplier { info }, condition, exc, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
-fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-   installDrag(node, icon, info, condition, { false }, action)
+fun Node.installDrag(icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
+   installDrag(icon, info, condition, { false }, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 @JvmOverloads
-fun installDrag(node: Node, icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit, area: ((DragEvent) -> Bounds)? = null) {
+fun Node.installDrag(icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit, area: ((DragEvent) -> Bounds)? = null) = let { node ->
    node.addEventHandler(DRAG_OVER, handlerAccepting(condition, exc))
    node.addEventHandler(DRAG_DROPPED) { e ->
       if (condition(e)) {

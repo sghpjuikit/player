@@ -219,8 +219,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          }
       }
 
-      installDrag(
-         root, FOLDER_PLUS, "Explore directory",
+      root.installDrag(
+         FOLDER_PLUS,
+         "Explore directory",
          { it.dragboard.hasFiles() },
          { inputFile.value = it.dragboard.files }
       )

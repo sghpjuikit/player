@@ -72,18 +72,17 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       area.root.layFullArea += root
       disposer += { root.removeFromParent() }
 
-      // component switching on drag
-      installDrag(
-         root, IconFA.EXCHANGE, "Switch components",
-         { e -> Df.COMPONENT in e.dragboard },
-         { e -> e.dragboard[Df.COMPONENT]===area.container },
-         { e -> e.dragboard[Df.COMPONENT].swapWith(area.container.parent, area.container.indexInParent()!!) }
-      )
       root.onEventDown(DRAG_DETECTED) { onDragDetected(it, root) }
       root.onEventDown(DRAG_DONE) {
          root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false)
       }
-
+      // switch component on drag
+      root.installDrag(
+         IconFA.EXCHANGE, "Switch components",
+         { e -> Df.COMPONENT in e.dragboard },
+         { e -> e.dragboard[Df.COMPONENT]===area.container },
+         { e -> e.dragboard[Df.COMPONENT].swapWith(area.container.parent, area.container.indexInParent()!!) }
+      )
       // switch to container/normal layout mode using right/left click
       root.onEventDown(MOUSE_CLICKED) {
          if (area.isContainerMode && it.button==PRIMARY) {

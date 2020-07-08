@@ -375,8 +375,9 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       // deselect text fields on click
       root.onEventDown(MOUSE_PRESSED) { root.requestFocus() }
 
-      installDrag(
-         root, IconFA.MUSIC, "Edit audio files",
+      root.installDrag(
+         IconFA.MUSIC,
+         "Edit audio files",
          { it.dragboard.hasAudio() },
          { dragDroppedHandler(it) }
       )

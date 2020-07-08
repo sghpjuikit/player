@@ -490,8 +490,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       protected fun installDragTo() {
          i.onEventUp(DRAG_ENTERED) { i.pseudoClassChanged("drag-over", true) }
          i.onEventUp(DRAG_EXITED) { i.pseudoClassChanged("drag-over", false) }
-         installDrag(
-            i, IconFA.CLIPBOARD, "",
+         i.installDrag(
+            IconFA.CLIPBOARD, "",
             { if (it.transferMode==LINK) Df.WIDGET_OUTPUT in it.dragboard else true },
             {
                if (Df.WIDGET_OUTPUT in it.dragboard) {

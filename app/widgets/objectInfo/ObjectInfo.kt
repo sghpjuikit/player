@@ -60,8 +60,9 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
          )
       }
 
-      installDrag(
-         root, IconFA.INFO, "Display information about the object",
+      root.installDrag(
+         IconFA.INFO,
+         "Display information about the object",
          { true },
          { open(it.dragboard.getAny()) }
       )

@@ -135,8 +135,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
          lay += Icon().blank()
       }
 
-      installDrag(
-         root,
+      root.installDrag(
          IconFA.LIST_ALT,
          "Inspect",
          { true },

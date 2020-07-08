@@ -226,8 +226,9 @@ class AppSearchPlugin: PluginBase() {
             }
          }
 
-         installDrag(
-            root, IconFA.PLUS_SQUARE_ALT, "Add launcher",
+         root.installDrag(
+            IconFA.PLUS_SQUARE_ALT,
+            "Add launcher",
             { e -> e.dragboard.hasFiles() },
             { e -> owner.searchDirs += e.dragboard.files }
          )

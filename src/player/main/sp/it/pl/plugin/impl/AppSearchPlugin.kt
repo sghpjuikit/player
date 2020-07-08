@@ -52,11 +52,13 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.min
 import sp.it.util.conf.only
+import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.div
 import sp.it.util.file.isParentOrSelfOf
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.writeTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.net
 import sp.it.util.functional.nullsLast
@@ -98,13 +100,15 @@ class AppSearchPlugin: PluginBase() {
          { it.runAsProgram() }
       )
    }
+   private val cacheFile = getUserResource("cache.txt")
+   private val cacheUpdate = AtomicLong(0)
 
    /** Application launcher widget factory. Registered only when this plugin is running. */
    val widgetFactory = WidgetFactory(AppLauncher::class, APP.location.widgets/"AppLauncher")
 
    override fun start() {
       APP.search.sources += searchSource
-      findApps()
+      computeFiles()
       APP.widgetManager.factories.register(widgetFactory)
    }
 
@@ -113,23 +117,58 @@ class AppSearchPlugin: PluginBase() {
       APP.search.sources -= searchSource
    }
 
-   @IsAction(name = "Re-index", info = "Updates application executables index")
-   private fun findApps() {
-      val dirs = searchDirs.materialize()
+   private fun computeFiles() {
       runIO {
-         (dirs.asSequence().distinct().flatMap { findApps(it) } + startMenuPrograms())
-            .filter { !it.name.equals("Desktop.ini", true) }
-            .distinct()
-            .toList()
-      }.ui {
-         searchSourceApps setTo it
-      }.withAppProgress(
-         "$name: Searching for applications"
-      )
+         val isCacheInvalid = !cacheFile.exists()
+         if (isCacheInvalid) updateCache() else readCache()
+      }
    }
 
-   private fun findApps(dir: File): Sequence<File> {
+   private fun readCache() {
+      failIfFxThread()
+
+      val dirs = cacheFile.useLines { it.map { File(it) }.toList() }
+      runFX {
+         searchSourceApps setTo dirs
+      }
+   }
+
+   private fun writeCache(files: List<File>) {
+      failIfFxThread()
+
+      val text = files.joinToString("\n") { it.absolutePath }
+      cacheFile.writeTextTry(text)
+   }
+
+   @IsAction(
+      name = "Re-index",
+      info = "Updates locations' cache. The cache avoids searching applications repeatedly, but is not updated automatically."
+   )
+   private fun updateCache() {
+      runFX { searchDirs.materialize() }
+         .then(IO) { dirs ->
+            val id = cacheUpdate.incrementAndGet()
+            (dirs.asSequence().distinct().flatMap { findApps(it, id) } + startMenuPrograms(id))
+               .filter { !it.name.equals("Desktop.ini", true) }
+               .distinct()
+               .toList()
+               .also { writeCache(it) }
+         }.ui {
+            searchSourceApps setTo it
+         }
+         .withAppProgress("$name: Searching for applications")
+   }
+
+   private fun startMenuPrograms(id: Long): Sequence<File> = when (Os.current) {
+      Os.WINDOWS -> windowsAppDataDirectory.walk()
+         .onEnter { cacheUpdate.get()==id }
+         .filter { '.' in it.name && !it.name.contains("uninstall", true) }
+      else -> sequenceOf()
+   }
+
+   private fun findApps(dir: File, id: Long): Sequence<File> {
       return dir.walkTopDown()
+         .onEnter { cacheUpdate.get()==id }
          .maxDepth(searchDepth.value)
          .filter { it.isExecutable() }
    }
@@ -347,11 +386,6 @@ class AppSearchPlugin: PluginBase() {
       override val isEnabledByDefault = false
 
       fun File.getPortableAppExe(type: FileType) = if (type==DIRECTORY) File(this, "$name.exe") else null
-
-      fun startMenuPrograms(): Sequence<File> = when (Os.current) {
-         Os.WINDOWS -> windowsAppDataDirectory.walk().filter { '.' in it.name && !it.name.contains("uninstall", true) }
-         else -> sequenceOf()
-      }
 
       private val windowsAppDataDirectory by lazy {
          val pszPath = CharArray(WinDef.MAX_PATH)

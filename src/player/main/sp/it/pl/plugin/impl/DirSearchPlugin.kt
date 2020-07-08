@@ -10,7 +10,7 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.util.action.IsAction
-import sp.it.util.async.NEW
+import sp.it.util.async.IO
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
@@ -32,7 +32,7 @@ class DirSearchPlugin: PluginBase() {
    private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find directories in.")
    private val searchDepth by cv(2).min(1).def(name = "Search depth", info = "Max search depth used for each location")
 
-   private val cacheFile = getUserResource("dirs.txt")
+   private val cacheFile = getUserResource("cache.txt")
    private val cacheUpdate = AtomicLong(0)
    private val searchSourceDirs = observableArrayList<File>()
    private val searchSource = Source("Directories ($name plugin)", searchSourceDirs) by { "Open directory: ${it.absolutePath}" } toSource {
@@ -70,10 +70,20 @@ class DirSearchPlugin: PluginBase() {
       }
    }
 
-   @IsAction(name = "Re-index", info = "Update directory index")
+   private fun writeCache(files: List<File>) {
+      failIfFxThread()
+
+      val text = files.joinToString("\n") { it.absolutePath }
+      cacheFile.writeTextTry(text)
+   }
+
+   @IsAction(
+      name = "Re-index",
+      info = "Updates locations' cache. The cache avoids searching applications repeatedly, but is not updated automatically."
+   )
    private fun updateCache() {
       runFX { searchDirs.materialize() }
-         .then(NEW) { dirs ->
+         .then(IO) { dirs ->
             val id = cacheUpdate.incrementAndGet()
             dirs.asSequence()
                .distinct()
@@ -84,13 +94,6 @@ class DirSearchPlugin: PluginBase() {
             searchSourceDirs setTo it
          }
          .withAppProgress("$name: Searching for Directories")
-   }
-
-   private fun writeCache(files: List<File>) {
-      failIfFxThread()
-
-      val text = files.asSequence().map { it.absolutePath }.joinToString("\n")
-      cacheFile.writeTextTry(text)
    }
 
    private fun findDirectories(rootDir: File, id: Long) =

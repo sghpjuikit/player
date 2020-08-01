@@ -28,6 +28,7 @@ import sp.it.util.access.value
 import sp.it.util.collections.setToOne
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
+import sp.it.util.dev.printIt
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -118,7 +119,9 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
 
       // initialize position
       splitPane.sync1IfInScene {
-         root.parentProperty() sync { updateSplitPosition() }
+         root.parentProperty() sync {
+            updateSplitPosition()
+         }
       }
 
       // maintain position in resize (SplitPane position is affected by distortion in case of small sizes)
@@ -162,7 +165,14 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
    }
 
    private fun updateSplitPosition() {
+      root.scene ?: return
+
       splitPane.dividers[0].position = computeSplitPosition()
+      if (container.orientation.value == VERTICAL) {
+         // TODO: remove. This fixes horizontal split pane not applying position
+         splitPane.applyCss()
+         splitPane.layout()
+      }
       root1.maxSize = if (collapsed==-1) 0.x2 else (-1).x2
       root2.maxSize = if (collapsed==+1) 0.x2 else (-1).x2
    }

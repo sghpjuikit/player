@@ -24,6 +24,7 @@ import org.jnativehook.keyboard.NativeKeyListener
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.list
 import sp.it.util.functional.runTry
+import sp.it.util.type.atomic
 import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -50,17 +51,15 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
          isRunning = true
 
          val eventDispatcher = object: AbstractExecutorService() {
-            private var running = true
+            private var running by atomic(true)
 
             override fun shutdown() {
                running = false
             }
-
             override fun shutdownNow(): List<Runnable> {
                running = false
                return list()
             }
-
             override fun isShutdown() = !running
             override fun isTerminated() = !running
             override fun awaitTermination(amount: Long, units: TimeUnit) = true

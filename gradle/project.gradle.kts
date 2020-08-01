@@ -91,7 +91,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "15-ea+2"
+         val version = "15-ea+7"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -130,7 +130,7 @@ allprojects {
 
       "Image" group {
          implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.5")
+         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.6")
          imageIO("bmp")
          imageIO("jpeg")
          imageIO("iff")

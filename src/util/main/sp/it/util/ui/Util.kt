@@ -909,6 +909,24 @@ var TextArea.textAlignment: TextAlignment
    )
 }
 
+
+/** Sets font, overriding css style. */
+fun Font.asStyle(): String {
+   val tmp = style.toLowerCase()
+   val style = if (tmp.contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
+   val weight = if (tmp.contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
+   val styleS = if (style==FontPosture.ITALIC) "italic" else "normal"
+   val weightS = if (weight==FontWeight.BOLD) "bold" else "normal"
+   return """
+      .root {
+        -fx-font-family: "$family";
+        -fx-font-style: $styleS;
+        -fx-font-weight: $weightS;
+        -fx-font-size: $size;
+      }
+        """.trimIndent()
+}
+
 /** Sets font, overriding css style. */
 fun Parent.setFontAsStyle(font: Font) {
    val tmp = font.style.toLowerCase()

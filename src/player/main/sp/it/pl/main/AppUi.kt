@@ -2,7 +2,6 @@ package sp.it.pl.main
 
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.FXCollections.observableSet
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
@@ -34,7 +33,6 @@ import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display
 import sp.it.pl.ui.pane.ScreenBgrGetter
 import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
 import sp.it.util.collections.project
@@ -60,8 +58,8 @@ import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.asIf
 import sp.it.util.functional.traverse
+import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemSyncWhile
@@ -69,8 +67,8 @@ import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullIntoWhile
 import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.ui.asStyle
 import sp.it.util.ui.isAnyParentOf
-import sp.it.util.ui.setFontAsStyle
 import sp.it.util.units.millis
 import java.io.File
 import java.net.MalformedURLException
@@ -92,7 +90,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    /** System/app info detail view. */
    val infoPane = LazyOverlayPane { InfoPane().initApp() }
    /** Css files applied on top of [skin]. Can be used for clever stuff like applying generated css. */
-   val additionalStylesheets = observableArrayList<File>()!!
+   val additionalStylesheets = AdditionalStylesheets()
    /** Available application skins. Monitored and updated from disc. */
    private val skinsImpl = observableSet<SkinCss>()
 
@@ -106,7 +104,16 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
    val skin by cv("Main").values(skins.project { it.name }) def confUi.skin
    /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
-   val font by cv(Font.getDefault()) def confUi.font
+   val font by cv(Font.getDefault()) def confUi.font sync {
+      val f = APP.locationTmp/"user-font-skin.css"
+      if (it==null) {
+         additionalStylesheets -= f
+      } else {
+         val style = it.asStyle()
+         f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply font skin=$it" } }
+         additionalStylesheets += f
+      }
+   }
 
    init {
       monitorSkinFiles()
@@ -144,10 +151,11 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       it?.simpleName ?: "<none> (App skin decides)"
    } def confUi.ratingSkin sync {
       val f = APP.locationTmp/"user-rating-skin.css"
-      additionalStylesheets -= f
-      it?.let {
-         f.writeTextTry(""".rating { -fx-skin: "${it.jvmName}"; }""", Charsets.UTF_8)
-            .ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
+      if (it==null) {
+         additionalStylesheets -= f
+      } else {
+         val style = """.rating { -fx-skin: "${it.jvmName}"; }"""
+         f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
          additionalStylesheets += f
       }
    }
@@ -370,10 +378,11 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    private fun observeWindowsAndSyncSkin() {
       WindowFX.getWindows().onItemSyncWhile {
          it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { root ->
-            val s2 = skin sync { root.applySkinGui(it) }
-            val s1 = font sync { root.applyFontGui(it) }
-            val s3 = additionalStylesheets.onChange { root.applySkinGui(skin.value) }
-            s1 + s2 + s3
+            val s1 = skin sync { root.applySkinGui(it) }
+            val s2 = additionalStylesheets.onChange.addS {
+               root.applySkinGui(skin.value)
+            }
+            s1 + s2
          }
       }
       Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
@@ -381,10 +390,6 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    fun applySkin(skin: String) {
       WindowFX.getWindows().forEach { it.scene?.root?.applySkinGui(skin) }
-   }
-
-   private fun Parent.applyFontGui(font: Font) {
-      setFontAsStyle(font)
    }
 
    private fun Parent.applySkinGui(skin: String) {
@@ -414,6 +419,20 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    }
 
+}
+
+class AdditionalStylesheets(private val set: MutableSet<File> = LinkedHashSet()): Set<File> by set {
+   val onChange = Handler0()
+
+   operator fun minusAssign(stylesheet: File) {
+      set -= stylesheet
+      onChange()
+   }
+
+   operator fun plusAssign(stylesheet: File) {
+      set += stylesheet
+      onChange()
+   }
 }
 
 class LazyOverlayPane<OT, T: OverlayPane<OT>>(private val builder: () -> T) {

@@ -50,6 +50,7 @@ import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
@@ -211,7 +212,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
       val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
       if (isPublished) {
          var propertyName: String? = null
-         if (method.returnType.raw.isSubclassOf<Observable>()) {
+         if (method.returnType.isSubtypeOf<Observable>()) {
             try {
                propertyName = methodName
                propertyName = propertyName.substringBeforeLast("Property", propertyName)
@@ -242,7 +243,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
       val fieldName = field.name
       val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
       if (isPublished) {
-         if (field.returnType.raw.isSubclassOf<Observable>()) {
+         if (field.returnType.isSubtypeOf<Observable>()) {
             try {
                field.isAccessible = true
                var observable = field.getter.call(o) as Observable?

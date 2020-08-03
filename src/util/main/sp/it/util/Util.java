@@ -18,6 +18,7 @@ import static java.lang.Math.random;
 import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toCollection;
+import static kotlin.text.StringsKt.capitalize;
 import static sp.it.util.Util.StringDirection.FROM_START;
 import static sp.it.util.dev.FailKt.failIf;
 
@@ -169,31 +170,21 @@ public interface Util {
 		return str.replaceAll("[/\\\\:*?<>|]", "_");
 	}
 
-	/** Converts first letter of the string to upper case. */
-	static String capitalize(String s) {
-		return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1);
-	}
-
-	/** Converts first letter of the string to upper case and all others into lower case. */
-	static String capitalizeStrong(String s) {
-		return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
-	}
-
 	/**
 	 * Converts enum constant to 'human readable' string.
 	 * <ul>
-	 * <li> first letter upper case,
+	 * <li> first letter upper case
 	 * <li> other letters lower case,
 	 * <li> '_' into ' '
 	 * </ul>
 	 */
 	static String enumToHuman(Enum e) {
-		return capitalizeStrong(e.name().replace('_', ' '));
+		return enumToHuman(e.name());
 	}
 
 	/** Same as {@link #enumToHuman(java.lang.Enum)}, for String. */
 	static String enumToHuman(String s) {
-		return capitalizeStrong(s.replace('_', ' '));
+		return capitalize(s.replace('_', ' ').toLowerCase());
 	}
 
 	/**

@@ -41,4 +41,9 @@ class TextUtilTest: FreeSpec({
       "AaaBbbCCC".camelToDotCase() shouldBe "aaa.bbb.c.c.c"
       "AaaBbbCCC".camelToDotCase() shouldBe "AaaBbbCCC".camelToDotCase().toLowerCase()
    }
+
+   String::capitalize.name - {
+      "ǆentlmen".capitalize() shouldBe "Ǆentlmen"
+      "♡♡♡".capitalize() shouldBe "♡♡♡"
+   }
 })

@@ -3,7 +3,6 @@ package sp.it.util.type
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
-import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.shouldBe
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
@@ -44,7 +43,7 @@ import kotlin.reflect.jvm.javaType
 @Suppress("RemoveRedundantQualifierName")
 class TypeUtilTest: FreeSpec({
 
-   "!Method" - {
+   "Method" - {
       "Assumptions" {
          // Mutable collections erase to collections
          Collection::class shouldBe MutableCollection::class
@@ -61,17 +60,17 @@ class TypeUtilTest: FreeSpec({
          List<*>::forEach.returnType shouldBe kType<Unit>()
          List<*>::forEach.returnType.classifier shouldBe Unit::class
 
-         // Unit represents Void when inspecting Java
+         // Void represents Void
+         class VoidField(val void: Void)
+         VoidField::void.returnType shouldBe kType<Void>()
+         VoidField::void.returnType.classifier shouldBe Void::class
+
+         // Unit represents Void as no return
          Consumer<*>::accept.returnType shouldBe kType<Unit>()
          Consumer<*>::accept.returnType.classifier shouldBe Unit::class
-
-         // Void represents Void when inspecting Kotlin
-         class VoidField(val void: Void, val nothing: Nothing)
-         VoidField::nothing.returnType.printIt()
-         VoidField::void.returnType shouldBe kType<Unit>()
-         VoidField::void.returnType.classifier shouldBe Unit::class
       }
-      KType::isSubtypeOf.name {
+
+      "!${KType::isSubtypeOf.name}" {
 
          open class NonGeneric
          open class Covariant<out T>
@@ -216,13 +215,22 @@ class TypeUtilTest: FreeSpec({
          )
       }
 
+      KType::isPlatformType.name {
+         Node::getScene.returnType.toString().endsWith("!") shouldBe true
+         Node::getScene.returnType.isPlatformType shouldBe true
+         String::length.returnType.isPlatformType shouldBe false
+      }
+
       KType::javaFxPropertyType.name {
 
          val o1 = Pane()
          val o2 = object: Any() {
-            fun f2(): List<Int>? = null
-            fun f3(): MutableList<in Int>? = null
-            fun f4(): MutableList<out Int>? = null
+            fun f2(): List<Int> = arrayListOf()
+            fun f3(): MutableList<in Int> = arrayListOf()
+            fun f4(): MutableList<out Int> = arrayListOf()
+            fun fn2(): List<Int?>? = null
+            fun fn3(): MutableList<in Int?>? = null
+            fun fn4(): MutableList<out Int?>? = null
          }
 
          forAll(
@@ -238,23 +246,20 @@ class TypeUtilTest: FreeSpec({
             rowProp<Boolean>(o1::managedProperty),
             rowProp<Boolean>(o1::isNeedsLayout),
             rowProp<Boolean>(o1::needsLayoutProperty),
-            rowProp<EventHandler<DragEvent>>(o1::getOnDragDone),
-            rowProp<EventHandler<DragEvent>>(o1::onDragDoneProperty),
-            rowProp<ObservableList<Node?>>(o1::getChildren),
-            rowProp<ObservableList<Node?>>(o1::getChildrenUnmodifiable),
-            rowProp<ObservableMap<Any?, Any?>>(o1::getProperties),
-            rowProp<List<*>>(o2::f2),
-            rowProp<List<*>>(o2::f3),
-            rowProp<List<*>>(o2::f4)
+            rowProp<EventHandler<in DragEvent>>(o1::getOnDragDone),
+            rowProp<EventHandler<in DragEvent>>(o1::onDragDoneProperty),
+            rowProp<ObservableList<Node>>(o1::getChildren),
+            rowProp<ObservableList<Node>>(o1::getChildrenUnmodifiable),
+            rowProp<ObservableMap<Any, Any>>(o1::getProperties),
+            rowProp<List<Int>>(o2::f2),
+            rowProp<MutableList<in Int>>(o2::f3),
+            rowProp<MutableList<out Int>>(o2::f4),
+            rowProp<List<Int?>?>(o2::fn2),
+            rowProp<MutableList<in Int?>?>(o2::fn3),
+            rowProp<MutableList<out Int?>?>(o2::fn4)
          ) { property, type ->
-            property.javaFxPropertyType shouldBe type.type
+            property.javaFxPropertyType.withPlatformTypeNullability(false) shouldBe type.type
          }
-      }
-
-      KType::isPlatformType.name {
-         Node::getScene.returnType.toString().endsWith("!") shouldBe true
-         Node::getScene.returnType.isPlatformType shouldBe true
-         String::length.returnType.isPlatformType shouldBe false
       }
 
       Type::toRaw.name {
@@ -314,7 +319,7 @@ class TypeUtilTest: FreeSpec({
          ArrayList::class.allSupertypes.toString() shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
       }
 
-      KType::argOf.name {
+      "!${KType::argOf.name}" {
          open class Covariant<out T>
          open class Invariant<T>
          open class Contravariant<in T>
@@ -447,7 +452,8 @@ class TypeUtilTest: FreeSpec({
 
 interface Ia
 interface Ib
-private inline fun <reified T: Any> rowProp(property: KFunction<Any?>) = row(property.returnType, type<T>())
+
+private inline fun <reified T: Any?> rowProp(property: KFunction<Any?>) = row(property.returnType, type<T>())
 private inline fun <reified TYPE, reified ARG, reified SHOULD> xxx(i: Int, variance: KVariance?) = row(Triple(type<TYPE>(), type<ARG>(), i), type<SHOULD>() to variance)
 
 fun mmm(): MutableList<Int>? = null

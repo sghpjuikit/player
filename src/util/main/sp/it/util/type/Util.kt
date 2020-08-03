@@ -23,8 +23,13 @@ import javafx.scene.layout.VBox
 import mu.KotlinLogging
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.functional.recurse
 import sp.it.util.functional.recurseBF
+import sp.it.util.type.JavafxPropertyType.JavafxDoublePropertyType
+import sp.it.util.type.JavafxPropertyType.JavafxFloatPropertyType
+import sp.it.util.type.JavafxPropertyType.JavafxIntegerPropertyType
+import sp.it.util.type.JavafxPropertyType.JavafxLongPropertyType
 import sp.it.util.type.PaneProperties.paneProperty
 import java.lang.reflect.Array
 import java.lang.reflect.Field
@@ -353,10 +358,10 @@ val KType.javaFxPropertyType: KType
                pt.raw.isSubclassOf<Number>() -> {
                   val typename = raw.jvmName
                   when {
-                     "Double" in typename -> type<Double>().type.withNullability(pt.isMarkedNullable)
-                     "Integer" in typename -> type<Int>().type.withNullability(pt.isMarkedNullable)
-                     "Float" in typename -> type<Float>().type.withNullability(pt.isMarkedNullable)
-                     "Long" in typename -> type<Double>().type.withNullability(pt.isMarkedNullable)
+                     "Integer" in typename -> type<JavafxIntegerPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
+                     "Float" in typename -> type<JavafxFloatPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
+                     "Long" in typename -> type<JavafxLongPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
+                     "Double" in typename -> type<JavafxDoublePropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
                      else -> pt
                   }
                }
@@ -365,6 +370,19 @@ val KType.javaFxPropertyType: KType
          }
          else -> this
       }
+
+
+fun KType.withPlatformTypeNullability(nullable: Boolean): KType {
+   return classifier
+      ?.net {
+         it.createType(
+            arguments.map { it.copy(type = it.type?.withPlatformTypeNullability(nullable)) },
+            if (isPlatformType) nullable else this.isMarkedNullable,
+            annotations
+         )
+      }
+      ?: this
+}
 
 /**
  * Because `in Nothing` and `out Any?` and `*` are equal, the result is normalized to `*`, i.e [KTypeProjection.STAR].

@@ -372,9 +372,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             table.selectionModel.select(i)
          }
       }
-      // performance optimization - prevents refreshes of a lot of items
-      if (table.selectionModel.isEmpty)
-         table.selectionModel.select(0)
 
       selIgnore = false
       outputSelectedGroup.value = table.selectedItemsCopy

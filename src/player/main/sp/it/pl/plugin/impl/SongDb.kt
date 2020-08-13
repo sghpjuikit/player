@@ -2,16 +2,15 @@ package sp.it.pl.plugin.impl
 
 import mu.KLogging
 import sp.it.pl.audio.MetadatasDB
+import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
+import sp.it.pl.audio.playlist.toAbsoluteURIOrNull
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
-import sp.it.pl.main.AppError
-import sp.it.pl.main.AppErrorAction
-import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.withAppProgress
 import sp.it.util.access.v
 import sp.it.util.async.future.Fut
@@ -22,8 +21,12 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
-import sp.it.util.dev.stacktraceAsString
+import sp.it.util.file.div
 import sp.it.util.file.readTextTry
+import sp.it.util.file.writeLnToFileTry
+import sp.it.util.file.writeSafely
+import sp.it.util.functional.net
+import sp.it.util.functional.orAlsoTry
 import sp.it.util.functional.orNull
 import sp.it.util.units.uuid
 import java.net.URI
@@ -39,10 +42,13 @@ class SongDb {
 
    /** All library songs. Use output for reading/observing. Using input does not change db and has little use. */
    val songs = InOutput<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "Song library").appWide()
+
    /** All library songs by [Song.id]. This is in memory db and should be used as read-only. */
    @ThreadSafe val songsById = MapSet(synchronizedMap(HashMap<String, Metadata>(2000)), { it.id })
+
    /** Map of unique values per field gathered from [songsById] */
    @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, Set<String>>()
+   val songListFile = APP.location.user.library/"MetadataIdsDB.txt"
 
    /**
     * Comparator defining the sorting for songs in operations that wish to
@@ -76,23 +82,26 @@ class SongDb {
 
    @Blocks
    private fun getAllSongs(): MetadatasDB = CoreSerializer.readSingleStorage<MetadatasDB>()
-      .ifErrorNotify {
-            AppError(
-               "Failed to load song library.",
-               "Don't worry. Your data is not lost. You will only need to reimport your songs.\n\nExact problem:\n${it.stacktraceAsString}",
-               AppErrorAction("Update Library") {
-                  APP.plugins.getOrStart<LibraryPlugin>()?.updateLibrary()
+      .orAlsoTry {
+         val songs = songListFile.useLines { it.toList() }
+         val songsById = songs
+            .mapNotNull { id -> id.toAbsoluteURIOrNull()?.net { id to it } }
+            .associate { (id, uri) ->
+               id to SimpleSong(uri).net {
+                  it.read().takeUnless { it.isEmpty() } ?: it.toMeta()
                }
-            )
+            }
+         MetadatasDB(songsById)
       }
       .orNull() ?: MetadatasDB()
 
-   fun addSongs(items: Collection<Metadata>) {
-      if (items.isEmpty()) return
+   fun addSongs(songs: Collection<Metadata>) {
+      if (songs.isEmpty()) return
 
       CoreSerializer.useAtomically {
          val ms = MetadatasDB(songsById.backingMap())
-         items.forEach { ms[it.id] = it }
+         songs.forEach { ms[it.id] = it }
+         songListFile.writeSafely { ms.keys.asSequence().writeLnToFileTry(it) }.orThrow
          writeSingleStorage(ms)
          updateInMemoryDbFromPersisted()
       }
@@ -104,6 +113,7 @@ class SongDb {
       CoreSerializer.useAtomically {
          val ms = MetadatasDB(songsById.backingMap())
          songs.forEach { ms.remove(it.id) }
+         songListFile.writeSafely { ms.keys.asSequence().writeLnToFileTry(it) }.orThrow
          writeSingleStorage(ms)
          updateInMemoryDbFromPersisted()
       }
@@ -112,6 +122,7 @@ class SongDb {
 
    fun removeAllSongs() {
       CoreSerializer.useAtomically {
+         songListFile.writeSafely { sequenceOf<String>().writeLnToFileTry(it) }.orThrow
          writeSingleStorage(MetadatasDB())
          updateInMemoryDbFromPersisted()
       }

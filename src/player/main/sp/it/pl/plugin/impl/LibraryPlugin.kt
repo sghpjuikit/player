@@ -55,7 +55,7 @@ class LibraryPlugin: PluginBase() {
       info = "Update entire library from disc when this plugin starts (which also happens when application starts). May incur significant performance cost on the system"
    )
    val updateLibrary by cr { updateLibrary() }.def(
-      name = "Update",
+      name = "Update from locations",
       info = "Remove non-existent songs and add new songs from location"
    )
 
@@ -150,7 +150,7 @@ class LibraryPlugin: PluginBase() {
          val songs = findAudio(dirs).map { SimpleSong(it) }.toList()
          Song.addToLibTask(songs).runGet()
          Song.removeMissingFromLibTask().run()
-      }.withAppProgress("Updating song library from disk")
+      }.withAppProgress("Updating song library from locations")
    }
 
    companion object: KLogging(), PluginInfo {

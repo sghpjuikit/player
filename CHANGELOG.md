@@ -105,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Widget inputs applied too extensively during widget loading
 - Image size reading sometimes fail
 - Image loading blocks ui sometimes
-- Audio Library loading fails if class version changed
+- Audio Library loading fails if class version changed (now automatically reloads)
 - Audio Library import ui visibility and layout
 - Audio Library logging errors when no saved library exists yet
 - Shortcuts settings not being applied after restart

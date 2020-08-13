@@ -139,6 +139,28 @@ fun File.toURLOrNull() =
 fun File.writeTextTry(text: String, charset: Charset = Charsets.UTF_8) = runTry { writeText(text, charset) }
 
 /**
+ * Error-safe writing to file. Uses [File.bufferedWriter] and [java.io.Writer.append]. Error can be:
+ * * [java.io.FileNotFoundException] when file is a directory or can not be created or opened
+ * * [SecurityException] when security manager exists and file write is not permitted
+ * * [java.io.IOException] when error occurs while writing to the file output stream
+ */
+@Blocks
+@JvmOverloads
+fun Sequence<String>.writeToFileTry(file: File, charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE) = runTry {
+   file.bufferedWriter(charset, bufferSize).use { w -> forEach { w.append(it) } }
+}
+
+/**
+ * Error-safe writing to file. Uses [File.bufferedWriter] and [java.io.Writer.appendln]. Error can be:
+ * * [java.io.FileNotFoundException] when file is a directory or can not be created or opened
+ * * [SecurityException] when security manager exists and file write is not permitted
+ * * [java.io.IOException] when error occurs while writing to the file output stream
+ */
+fun Sequence<String>.writeLnToFileTry(file: File, charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE) = runTry {
+   file.bufferedWriter(charset, bufferSize).use { w -> forEach { w.appendln(it) } }
+}
+
+/**
  * Error-safe [File.readText]. Error can be:
  * * [java.io.FileNotFoundException] when file is a directory or can not be read or opened
  * * [SecurityException] when security manager exists and file read is not permitted

@@ -187,6 +187,9 @@ inline fun <E, R1, R2, E1: E, E2: E> Try<R1, E1>.andAlso(and: (R1) -> Try<R2, @U
    is Try.Error<E1> -> this
 }
 
+/** Lazy [Try.andAlso] that guards the provider with [runTry]. */
+inline fun <R1, R2> Try<R1, Throwable>.andAlsoTry(and: (R1) -> R2): Try<R2, Throwable> = andAlso { runTry { and(it) } }
+
 /**
  * Applies short-circuit boolean || operation.
  * Returns Error if both Try are Error, otherwise Ok.
@@ -230,3 +233,6 @@ inline fun <R, E, R1: R, R2: R, E1: E, E2: E> Try<R1, E1>.orAlso(or: (E) -> Try<
    is Try.Ok<R1> -> this
    is Try.Error<E1> -> or(value)
 }
+
+/** Lazy [Try.orAlso] that guards the provider with [runTry]. */
+inline fun <R, R1: R, R2: R> Try<R1, Throwable>.orAlsoTry(or: (Throwable) -> R2): Try<R, Throwable> = orAlso { runTry { or(it) } }

@@ -37,7 +37,7 @@ fun readPlaylist(file: File): List<Song> {
       it.filter { !it.startsWith("#") && it.isNotEmpty() }
          .flatMap {
             null
-               ?: it.toURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
+               ?: it.toAbsoluteURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
                ?: File(it).absoluteTo(location)
                   ?.net {
                      if (it.isPlaylistFile()) readPlaylist(it).asSequence()
@@ -80,7 +80,7 @@ private fun File.absoluteTo(dir: File): File? {
    }
 }
 
-private fun String.toURIOrNull() =
+fun String.toAbsoluteURIOrNull() =
    try {
       URI(this).takeIf { it.isAbsolute }
    } catch (e: URISyntaxException) {

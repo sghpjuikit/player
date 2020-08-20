@@ -6,7 +6,9 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyCode.F5
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -226,6 +228,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          { inputFile.value = it.dragboard.files }
       )
 
+      root.onEventDown(KEY_RELEASED, F5) { revisitCurrent() }
       coverOn.attach { revisitCurrent() }
       coverLoadingUseComposedDirCover.attach { revisitCurrent() }
       coverUseParentCoverIfNone.attach { revisitCurrent() }

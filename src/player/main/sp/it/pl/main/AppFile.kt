@@ -192,7 +192,7 @@ object FileFilters {
    fun getOrPrimary(name: String) = filters.find { it.name==name } ?: filterPrimary
 
    /** @return enumerable string value enumerating all available predicate names */
-   fun toEnumerableValue(initialValue: String = FileFilters.filterPrimary.name) = FileFilterValue(initialValue, filters.map { it.name })
+   fun toEnumerableValue(initialValue: String = filterPrimary.name) = FileFilterValue(initialValue, filters.map { it.name })
 }
 
 class FileFilterValue(initialValue: String = FileFilters.filterPrimary.name, enumerated: Collection<String>): VarEnum<String>(initialValue, enumerated) {

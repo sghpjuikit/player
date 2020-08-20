@@ -45,6 +45,7 @@ import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.functional.ifNotNull
@@ -54,6 +55,7 @@ import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.system.browse
+import sp.it.util.type.atomic
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
@@ -98,6 +100,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    var postActivating = false // this prevents onTime handlers to reset after playback activation the suspension-activation should undergo as if it never happen
    var postActivating1st = true // this negates the above when app starts and playback is activated 1st time
    var isSuspended = true
+   var isDisposed by atomic(false)
    var isSuspendedBecauseStartedPaused = false
 
    /**
@@ -158,6 +161,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    fun dispose() {
       player.dispose()
+      isDisposed = true
    }
 
    /** Initialize state from last session  */
@@ -264,14 +268,11 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       /**
        * Add behavior to playing song changed event.
        *
-       *
        * The event is fired every time playing song changes. This includes
        * replaying the same song.
        *
-       *
        * Use in cases requiring constantly updated information about the playing
        * song.
-       *
        *
        * Note: It is safe to call [.getValue] method when this even fires.
        * It has already been updated.
@@ -284,23 +285,19 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       /**
        * Add behavior to playing item updated event.
        *
-       *
        * The event is fired every time playing item changes or even if some of its
        * metadata is changed such artist or rating. More eager version of change
        * event.
-       *
        *
        * Use in cases requiring not only change updates, but also constantly
        * (real time) updated information about the playing item, such as when
        * displaying this information somewhere - for example artist of the
        * played item.
        *
-       *
        * Do not use when only the identity (defined by its URI) of the played
        * item is required. For example lastFM scrobbling service would not want
        * to update played item status when the metadata of the item change as it
        * is not a change in played item - it is still the same item.
-       *
        *
        * Note: It is safe to call [.getValue] method when this even fires.
        * It has already been updated.
@@ -376,16 +373,13 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /**
     * Starts player of song.
     *
-    *
     * It is safe to assume that application will have updated currently played
     * song after this method is invoked. The same is not guaranteed for cached
     * metadata of this song.
     *
-    *
     * Immediately after method is invoked, real time and current time are 0 and
     * all current song related information are updated and can be assumed to be
     * correctly initialized.
-    *
     *
     * Invocation of this method fires playbackStart event.
     *
@@ -590,20 +584,17 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       return Subscription { refreshHandlers.remove(handler) }
    }
 
-   /** Singleton variant of [.refreshSongs].  */
+   /** Singleton variant of [refreshSongs].  */
+   @ThreadSafe
    fun refreshSong(i: Song) {
       refreshSongs(listOf(i))
    }
 
    /**
     * Read metadata from tag of all songs and invoke [.refreshSongsWith].
-    *
-    *
-    * Safe to call from any thread.
-    *
-    *
     * Use when metadata of the songs changed.
     */
+   @ThreadSafe
    fun refreshSongs(`is`: Collection<Song>) {
       if (`is`.isEmpty()) return
 
@@ -613,17 +604,17 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       runIO(task)
    }
 
-   /** Singleton variant of [.refreshSongsWith].  */
+   /** Singleton variant of [refreshSongsWith].  */
    fun refreshItemWith(m: Metadata) {
       refreshSongsWith(listOf(m))
    }
 
-   /** Singleton variant of [.refreshSongsWith].  */
+   /** Singleton variant of [refreshSongsWith].  */
    fun refreshItemWith(m: Metadata, allowDelay: Boolean) {
       refreshSongsWith(listOf(m), allowDelay)
    }
 
-   /** Simple version of [.refreshSongsWith] with false argument.  */
+   /** Simple version of [refreshSongsWith] with false argument.  */
    fun refreshSongsWith(ms: List<Metadata>) {
       refreshSongsWith(ms, false)
    }
@@ -631,9 +622,6 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /**
     * Updates application (playlist, library, etc.) with latest metadata. Refreshes the given
     * data for the whole application.
-    *
-    *
-    * Safe to call from any thread.
     *
     * @param ms metadata to refresh
     * @param allowDelay flag for using delayed refresh to reduce refresh successions to single refresh. Normally false
@@ -644,8 +632,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
     * next refresh request and if it comes, will wait again and so on until none will come, which is when all queued
     * refreshes execute all at once).
     */
+   @ThreadSafe
    fun refreshSongsWith(ms: List<Metadata>, allowDelay: Boolean) {
-      if (allowDelay) runFX { red.push(ms.toMutableList()) }
+      val canBeDelayed = !isDisposed
+      if (allowDelay && canBeDelayed) runFX { red.push(ms.toMutableList()) }
       else refreshSongsWithNow(ms)
    }
 
@@ -659,7 +649,6 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    private fun refreshSongsWithNow(ms: List<Metadata>) {
       if (ms.isEmpty()) return
 
-      // always on br thread
       runIO {
          val msInDb = ms.filter { APP.db.exists(it) }
          if (msInDb.isEmpty()) return@runIO
@@ -689,3 +678,4 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
 }
+

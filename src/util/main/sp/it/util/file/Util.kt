@@ -157,7 +157,7 @@ fun Sequence<String>.writeToFileTry(file: File, charset: Charset = Charsets.UTF_
  * * [java.io.IOException] when error occurs while writing to the file output stream
  */
 fun Sequence<String>.writeLnToFileTry(file: File, charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE) = runTry {
-   file.bufferedWriter(charset, bufferSize).use { w -> forEach { w.appendln(it) } }
+   file.bufferedWriter(charset, bufferSize).use { w -> forEach { w.appendLine(it) } }
 }
 
 /**

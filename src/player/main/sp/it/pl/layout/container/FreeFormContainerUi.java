@@ -151,11 +151,11 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             if (w.ui!=null) w.ui.dispose();
             w.ui = null;
 
-            n = ((Container) c).load(r);
-            as = (Container) c;
+            n = ((Container<?>) c).load(r);
+            as = (Container<?>) c;
 
-            if (((Container) c).ui instanceof ContainerUi)
-                ((ContainerUi<?>) ((Container) c).ui).getControls().ifSet(it -> it.updateIcons());
+            if (((Container<?>) c).ui instanceof ContainerUi)
+                ((ContainerUi<?>) ((Container<?>) c).ui).getControls().ifSet(it -> it.updateIcons());
         } else if (c instanceof Widget) {
             w.ui = firstNotNull(
                 () -> w.ui instanceof WidgetUi && ((WidgetUi) w.ui).getWidget()==c ? w.ui : null,

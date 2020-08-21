@@ -6,7 +6,7 @@ import kotlin.text.Charsets.UTF_8
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.3.70"
+   kotlin("jvm") version "1.4.0"
    application
    id("com.github.ben-manes.versions") version "0.20.0"
 }
@@ -65,7 +65,6 @@ allprojects {
          "-Xno-call-assertions",
          "-Xno-param-assertions",
          "-Xjvm-default=enable",
-         // "-XXLanguage:+NewInference", fails to compile due to Kotlin bug
          "-Xuse-experimental=kotlin.Experimental"
       )
       kotlinOptions.javaParameters = true
@@ -84,14 +83,14 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.3.2")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.3.2")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.3.2")
-         implementation("org.jetbrains", "annotations", "17.0.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.3.9")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.3.9")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.3.9")
+         implementation("org.jetbrains", "annotations", "20.0.0")
       }
 
       "JavaFX" group {
-         val version = "15-ea+7"
+         val version = "16-ea+1"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -109,12 +108,12 @@ allprojects {
          implementation("org.slf4j", "slf4j-api")
          implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
          implementation("ch.qos.logback", "logback-classic", "1.2.3")
-         implementation("io.github.microutils", "kotlin-logging", "1.6.22")
+         implementation("io.github.microutils", "kotlin-logging", "1.8.3")
       }
 
       "Audio" group {
          implementation("uk.co.caprica", "vlcj", "4.2.0")
-         implementation("org.bitbucket.ijabz", "jaudiotagger", "85d7c6b")
+         implementation("org.bitbucket.ijabz", "jaudiotagger", "1d78c10")
       }
 
       "Native" group {
@@ -149,13 +148,13 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.3.2")
-         implementation("io.ktor", "ktor-client-cio", "1.3.2")
+         implementation("io.ktor", "ktor-server-core", "1.4.0")
+         implementation("io.ktor", "ktor-client-cio", "1.4.0")
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.0.3")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.0.3")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.2.0")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.2.0")
       }
 
    }
@@ -199,6 +198,7 @@ tasks {
       linkLocation = dirJdk
    }
 
+   @Suppress("UNUSED_VARIABLE")
    val generateFileHierarchy by creating(GenerateKtFileHierarchy::class) {
       group = "build setup"
       description = "Generates file hierarchy class and documentation"
@@ -209,6 +209,7 @@ tasks {
       outRootPath = """File("").absolutePath"""
    }
 
+   @Suppress("UNUSED_VARIABLE")
    val generateSettings by creating(GenerateKtSettings::class) {
       group = "build setup"
       description = "Generates application settings class"

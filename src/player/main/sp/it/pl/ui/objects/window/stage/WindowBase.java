@@ -16,9 +16,10 @@ import javafx.stage.StageStyle;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.math.P;
 import static java.lang.Math.abs;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE;
-import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.reactive.UtilKt.syncC;
 
 /**
@@ -493,7 +494,7 @@ public class WindowBase {
 		// avoid when not desired
 		if (!APP.ui.getSnapping().get() || resizing.get()!=Resize.NONE) return;
 
-		double S = APP.ui.getSnapDistance().get();
+		double S = getEmScaled(APP.ui.getSnapDistance().getValue());
 
 		// snap to screen edges (x and y separately)
 		double SWm = screen.getBounds().getMinX();

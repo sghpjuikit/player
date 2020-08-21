@@ -107,10 +107,10 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun <C> drop(c: Configurable<C>): Unit = c.getConfigs().forEach(::drop)
 
-   fun <T> drop(configs: Collection<Config<T>>) = configs.forEach(::drop)
+   fun <T> drop(configs: Collection<Config<T>>): Unit = configs.forEach(::drop)
 
    /** Changes all configs to their default value and applies them  */
-   fun toDefault() = getConfigs().forEach { it.setValueToDefault() }
+   fun toDefault(): Unit = getConfigs().forEach { it.setValueToDefault() }
 
    /**
     * Saves configuration to the file. The file is created if it does not exist,
@@ -144,7 +144,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
 
    fun <C> rawSet(c: Configurable<C>): Unit = c.getConfigs().forEach(::rawSet)
 
-   fun <T> rawSet(configs: Collection<Config<T>>) = configs.forEach(::rawSet)
+   fun <T> rawSet(configs: Collection<Config<T>>): Unit = configs.forEach(::rawSet)
 
    fun rawSet(c: Config<*>) {
       if (c.isPersistable()) {

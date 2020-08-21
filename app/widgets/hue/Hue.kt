@@ -75,7 +75,6 @@ import sp.it.util.file.json.JsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.div
 import sp.it.util.file.json.toPrettyS
-import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.Try
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
@@ -195,7 +194,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       fun groups() = runSuspending {
          val response = client.get<String>("$hueBridgeUrl/groups").printIt()
          val groups = response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
-         groups + HueGroup("0", "All", listOf(), HueGroupState(false, false));
+         groups + HueGroup("0", "All", listOf(), HueGroupState(false, false))
       }
 
       fun scenes() = runSuspending {

@@ -33,16 +33,16 @@ fun readPlaylist(file: File): List<Song> {
       else -> fail { "File=$file is not a supported playlist file" }
    }
 
-   return file.useLines(encoding) {
-      it.filter { !it.startsWith("#") && it.isNotEmpty() }
-         .flatMap {
+   return file.useLines(encoding) { lines ->
+      lines
+         .filter { l -> !l.startsWith("#") && l.isNotEmpty() }
+         .flatMap { l ->
             null
-               ?: it.toAbsoluteURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
-               ?: File(it).absoluteTo(location)
-                  ?.net {
-                     if (it.isPlaylistFile()) readPlaylist(it).asSequence()
-                     else sequenceOf(SimpleSong(it))
-                  }
+               ?: l.toAbsoluteURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
+               ?: File(l).absoluteTo(location)?.net {
+                  if (it.isPlaylistFile()) readPlaylist(it).asSequence()
+                  else sequenceOf(SimpleSong(it))
+               }
                ?: sequenceOf()
          }
          .toList()
@@ -57,7 +57,7 @@ fun writePlaylist(playlist: List<Song>, name: String, dir: File) {
    runTry {
       file.bufferedWriter(UTF_8).use { w ->
          playlist.forEach {
-            w.appendln(it.uri.toString())
+            w.appendLine(it.uri.toString())
          }
       }
    }.ifError {

@@ -305,7 +305,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
          Entry("Image", "Opens image context menu", "Image ${SECONDARY.nameUi}"),
          Entry("Image", "Show image context menu", "Thumbnail ${SECONDARY.nameUi}"),
          Entry("Image", "Show images for location of the 1st song", "Drag & Drop audio file"),
-         Entry("Image", "Show images for location", "Drag & Drop file")
+         Entry("Image", "Show images for location", "Drag & Drop file"),
       )
       override val group = OTHER
    }

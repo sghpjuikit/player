@@ -1035,7 +1035,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          ShortcutPane.Entry("Tagger > Cover", "Add", "Drag & drop image file"),
          ShortcutPane.Entry("Tagger > Song list", "Set", "Drag & drop songs"),
          ShortcutPane.Entry("Tagger > Song list", "Edit", keys("Songs icon +${PRIMARY.nameUi}")),
-         ShortcutPane.Entry("Tagger > Song list", "Add", keys("Drag & drop songs+SHIFT"))
+         ShortcutPane.Entry("Tagger > Song list", "Add", keys("Drag & drop songs+SHIFT")),
       )
       override val group = LIBRARY
 

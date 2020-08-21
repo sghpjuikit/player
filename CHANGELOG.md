@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement `--dev` developer mode argument option
 - Implement `--uiless` argument option
 - Implement ui less application mode
+- Implement widget recompilation prioritizes open widgets
 - Implement widget recompilation when application jars are more recent
 - Implement widget reload button for widgets that do not load properly
 - Implement widget focusing when widget opens to be used (e.g. from context menu)

@@ -24,7 +24,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
-import sp.it.pl.main.Widgets.PLAYBACK_NAME
 import sp.it.pl.main.Widgets.PLAYLIST_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
@@ -241,7 +240,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
          Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
          Entry("Table row", "Add songs after row", "Drag & drop songs"),
-         Entry("Footer", "Opens additional action menus", "Menu bar")
+         Entry("Footer", "Opens additional action menus", "Menu bar"),
       )
       override val group = PLAYLIST
    }

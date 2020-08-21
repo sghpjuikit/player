@@ -105,14 +105,12 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
                val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
                val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
                val thumbUse = thumbHas && w<=thumbW && h<=thumbH
-               if (thumbUse) {
-                  reader.readThumbnail(ii, 0)
-               }
+               if (thumbUse) reader.readThumbnail(ii, 0) else null
             } orNull {
                logger.warn(it) { "Failed to read thumbnail for image=$file" }
             }
-         }
-         null
+         } else
+            null
       }
       ?: run {
          val iW = reader.getWidth(ii)

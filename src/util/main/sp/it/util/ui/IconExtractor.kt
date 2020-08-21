@@ -78,7 +78,7 @@ object IconExtractor {
             val iconHandles = arrayOfNulls<WinDef.HICON?>(iconCount).apply {
                Shell32.INSTANCE.ExtractIconEx(absolutePath, 0, this, null, 1)
             }
-            val iconHandle = iconHandles.filterNotNull().maxBy { IconExtractorJNA.getIconSize(it).width }
+            val iconHandle = iconHandles.filterNotNull().maxByOrNull { IconExtractorJNA.getIconSize(it).width }
 
             iconHandle?.let(IconExtractorJNA::getWindowIcon)
          } else {

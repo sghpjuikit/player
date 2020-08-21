@@ -122,7 +122,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             }
          }
 
-         selectedCell = mousePos?.let { p -> cells.minBy { it.distance(p) } }
+         selectedCell = mousePos?.let { p -> cells.minByOrNull { it.distance(p) } }
          cells.forEach { it.moving?.invoke(w, h) }
 
          draw()
@@ -418,7 +418,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = listOf(
-         Entry("Interact", "Highlight", "Move cursor")
+         Entry("Interact", "Highlight", "Move cursor"),
       )
       override val group = VISUALISATION
 

@@ -102,7 +102,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = listOf(
-         ShortcutPane.Entry("Data", "Set data", "Drag & drop object")
+         ShortcutPane.Entry("Data", "Set data", "Drag & drop object"),
       )
       override val group = APP
    }

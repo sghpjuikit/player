@@ -2,7 +2,10 @@ package sp.it.util.text
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlin.streams.toList
 
+@Suppress("SpellCheckingInspection")
 class TextUtilTest: FreeSpec({
    "String.split (Kotlin vs Java)" - {
 
@@ -43,7 +46,17 @@ class TextUtilTest: FreeSpec({
    }
 
    String::capitalize.name - {
-      "ǆentlmen".capitalize() shouldBe "Ǆentlmen"
-      "♡♡♡".capitalize() shouldBe "♡♡♡"
+      "basic" {
+         "lol".capitalize() shouldBe "Lol"
+         "♡♡♡".capitalize() shouldBe "♡♡♡"
+      }
+      "ligatures (not supported)" {
+         "ﬃtext".capitalize() shouldBe "FFItext"
+      }
+      "digraphs" {
+         "ǆentlmen".capitalize() shouldBe "ǅentlmen"
+         "Ǆentlmen".capitalize() shouldBe "ǅentlmen"
+         "ǆentlmen".toUpperCase() shouldBe "ǄENTLMENT"
+      }
    }
 })

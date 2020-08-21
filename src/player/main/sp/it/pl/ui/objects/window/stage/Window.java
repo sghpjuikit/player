@@ -61,6 +61,7 @@ import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
+import static java.util.Objects.requireNonNull;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.LEFT;
 import static javafx.scene.input.KeyCode.RIGHT;
@@ -137,13 +138,13 @@ public class Window extends WindowBase {
 	public static final PseudoClass pcFullscreen = pseudoclass("fullscreen");
 
 	/** Scene root. Assigned {@link #scWindow} styleclass. */
-	public StackPane root = buildWindowLayout(consumer(this::borderDragStart), consumer(this::borderDragged), consumer(this::borderDragEnd));
-	public StackPane back = lookupId(root, "back", StackPane.class);
-	public StackPane backImage = lookupId(root, "backImage", StackPane.class);
-	public AnchorPane front = lookupId(root, "front", AnchorPane.class);
-	public AnchorPane content = lookupId(root, "content", AnchorPane.class);
-	public HBox rightHeaderBox = lookupId(root, "rightHeaderBox", HBox.class);
-	private VBox frontContent = lookupId(root, "frontContent", VBox.class);
+	public final StackPane root = buildWindowLayout(consumer(this::borderDragStart), consumer(this::borderDragged), consumer(this::borderDragEnd));
+	public final StackPane back = lookupId(root, "back", StackPane.class);
+	public final StackPane backImage = lookupId(root, "backImage", StackPane.class);
+	public final AnchorPane front = lookupId(root, "front", AnchorPane.class);
+	public final AnchorPane content = lookupId(root, "content", AnchorPane.class);
+	public final HBox rightHeaderBox = lookupId(root, "rightHeaderBox", HBox.class);
+	private final VBox frontContent = lookupId(root, "frontContent", VBox.class);
 
 	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
 	/** Denotes whether this is main window. Closing main window closes the application. Only one window can be main. */
@@ -412,7 +413,7 @@ public class Window extends WindowBase {
 		s.getProperties().put(Window.keyWindowLayout, l);
 		content.getChildren().clear();
 		layout.load(content);
-		topContainer = (SwitchContainer) l.getChild();
+		topContainer = (SwitchContainer) requireNonNull(l.getChild());
 		topContainer.load();
 
 		double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
@@ -468,14 +469,14 @@ public class Window extends WindowBase {
 
 /* ---------- HEADER & BORDER --------------------------------------------------------------------------------------- */
 
-	private StackPane headerContainer = lookupId(root, "headerContainer", StackPane.class);
-	private StackPane header = lookupId(root, "header", StackPane.class);
-	private StackPane headerActivator = lookupId(root, "headerActivator", StackPane.class);
-	private Label titleL = lookupId(root, "titleL", Label.class);
-	private HBox leftHeaderBox = lookupId(root, "leftHeaderBox", HBox.class);
+	private final StackPane headerContainer = lookupId(root, "headerContainer", StackPane.class);
+	private final StackPane header = lookupId(root, "header", StackPane.class);
+	private final StackPane headerActivator = lookupId(root, "headerActivator", StackPane.class);
+	private final Label titleL = lookupId(root, "titleL", Label.class);
+	private final HBox leftHeaderBox = lookupId(root, "leftHeaderBox", HBox.class);
 	private boolean _headerVisible = true;
 	private boolean _headerInitialized = false;
-	private Anim headerVisibleAnim = anim(millis(250), consumer(it ->
+	private final Anim headerVisibleAnim = anim(millis(250), consumer(it ->
 		frontContent.setPadding(new Insets(-header.getHeight()*it, 0.0, 0.0, 0.0))
 	));
 

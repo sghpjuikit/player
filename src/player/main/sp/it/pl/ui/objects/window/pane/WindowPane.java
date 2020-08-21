@@ -25,6 +25,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL;
 
 /**
@@ -189,9 +190,9 @@ public class WindowPane {
 	}
 
 	private double mapSnap(double x, double right, double w, double owner_width) {
-		if (abs(x)<snapDistance.get())
+		if (abs(x)<snapDistance())
 			return 0;
-		if (abs(right - owner_width)<snapDistance.get())
+		if (abs(right - owner_width)<snapDistance())
 			return owner_width - w;
 		return x;
 	}
@@ -201,10 +202,10 @@ public class WindowPane {
 			if (n==this.root) continue;
 
 			double wr = n.getLayoutX() + ((Pane) n).getWidth();
-			if (abs(x - wr)<snapDistance.get())
+			if (abs(x - wr)<snapDistance())
 				return wr;
 
-			if (abs(x + w.get() - n.getLayoutX())<snapDistance.get())
+			if (abs(x + w.get() - n.getLayoutX())<snapDistance())
 				return n.getLayoutX() - w.get();
 		}
 		return x;
@@ -215,12 +216,16 @@ public class WindowPane {
 			if (n==this.root) continue;
 
 			double wr = n.getLayoutY() + ((Pane) n).getHeight();
-			if (abs(y - wr)<snapDistance.get())
+			if (abs(y - wr)<snapDistance())
 				return wr;
 
-			if (abs(y + h.get() - n.getLayoutY())<snapDistance.get())
+			if (abs(y + h.get() - n.getLayoutY())<snapDistance())
 				return n.getLayoutY() - h.get();
 		}
 		return y;
+	}
+
+	private double snapDistance() {
+		return getEmScaled(snapDistance.getValue());
 	}
 }

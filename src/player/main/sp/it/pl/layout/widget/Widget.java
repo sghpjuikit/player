@@ -222,7 +222,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	private Controller instantiateController() {
 		restoreDefaultConfigs();
 
-		Class<Controller> cc = (Class) factory.getControllerType();
+		var cc = (Class<Controller>) factory.getControllerType();
 		LOGGER.info("Instantiating widget controller " + cc);
 
 		try {
@@ -347,7 +347,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 /******************************************************************************/
 
 	@Override
-	public Config<Object> getConfig(String name) {
+	public Config<Object> getConfig(@NotNull String name) {
 		return firstNotNull(
 			() -> configs.getConfig(name),
 			() -> controller==null ? null : controller.getConfig(name)
@@ -356,14 +356,14 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public Collection<Config<Object>> getConfigs() {
-		var c = new ArrayList<Config<Object>>(configs.getConfigs());
+		var c = new ArrayList<>(configs.getConfigs());
 		if (controller!=null) c.addAll(controller.getConfigs());
 		return c;
 	}
 
 	@SuppressWarnings("unchecked")
 	public Map<String,PropVal> getFieldsRaw() {
-		return (Map) properties.computeIfAbsent("configs", key -> new HashMap<>());
+		return (Map<String,PropVal>) properties.computeIfAbsent("configs", key -> new HashMap<>());
 	}
 
 /******************************************************************************/

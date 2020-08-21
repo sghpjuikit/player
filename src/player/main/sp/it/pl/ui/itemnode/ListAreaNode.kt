@@ -278,6 +278,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 /** [ FChainItemNode] adjusted for [ListAreaNode] */
 class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTransformationNode, List<Transformation>> {
 
+   @Suppress("RemoveExplicitTypeArguments")
    constructor(functions: (Class<*>) -> PrefList<PF<*, *>>): super(listOf()) {
       chainedFactory = Supplier {
          val type = typeOut
@@ -310,7 +311,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
          ListAreaNodeTransformationNode(all).apply {
             onRawFunctionChange = {
                chain.forEach { it.updateIcons() }
-               chain.forEachIndexed { i, it -> it.chained.isEditableRawFunction.value = chain.lastIndex==i }
+               chain.forEachIndexed { i, c -> c.chained.isEditableRawFunction.value = chain.lastIndex==i }
             }
          }
       }

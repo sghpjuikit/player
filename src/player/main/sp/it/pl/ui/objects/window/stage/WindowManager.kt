@@ -183,7 +183,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
 
       APP.mouse.screens.onChangeAndNow {
-         screenMaxScaling = Screen.getScreens().asSequence().map { it.outputScaleX max it.outputScaleY }.max() ?: 1.0
+         screenMaxScaling = Screen.getScreens().asSequence().map { it.outputScaleX max it.outputScaleY }.maxOrNull() ?: 1.0
       }
    }
 

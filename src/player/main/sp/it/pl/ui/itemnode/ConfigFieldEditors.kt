@@ -1,6 +1,5 @@
 package sp.it.pl.ui.itemnode
 
-import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
@@ -265,7 +264,7 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
       Double::class -> Try.ok(slider.value)
       Float::class -> Try.ok(slider.value.toFloat())
       Long::class -> Try.ok(slider.value.toLong())
-      Short::class -> Try.ok(slider.value.toShort())
+      Short::class -> Try.ok(slider.value.toInt().toShort())
       else -> failCase(config.type.raw)
    }
 
@@ -614,7 +613,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
                   false -> IconMD.CHECKBOX_MULTIPLE_BLANK_OUTLINE
                }
             }
-         } as GlyphIcons
+         }
       )
    }
 

@@ -275,7 +275,8 @@ class TypeUtilTest: FreeSpec({
 
          forAll(
             row(o::a, X::class),
-            row(o::b, Array<X>::class)
+            row(o::b, Array<X>::class),
+            row(o::b, Array::class)
          ) { property, type ->
             property.returnType.javaType.toRaw() shouldBe type.java
          }
@@ -306,8 +307,8 @@ class TypeUtilTest: FreeSpec({
       "${KType::argOf.name} preconditions" {
          List::class.toString() shouldBe "class kotlin.collections.List"
          MutableList::class.toString() shouldBe "class kotlin.collections.List"
-         type<List<*>>().type.toString() shouldBe "kotlin.collections.List<kotlin.Any?>"
-         type<MutableList<*>>().type.toString() shouldBe "kotlin.collections.List<out kotlin.Any?>"
+         type<List<*>>().type.toString() shouldBe "kotlin.collections.List<*>"
+         type<MutableList<*>>().type.toString() shouldBe "kotlin.collections.List<*>"
 
          List::class.isSubclassOf<MutableList<*>>() shouldBe true
          List::class.isSubclassOf(MutableList::class) shouldBe true

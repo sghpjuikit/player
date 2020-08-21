@@ -119,18 +119,18 @@ fun File.writeProperties(title: String, properties: Collection<Property>): Try<U
 
    fun Appendable.appendComment(comment: CharSequence) = apply {
       if (comment.isNotBlank())
-         comment.split("\n").forEach { line -> append("# ").appendln(line) }
+         comment.split("\n").forEach { line -> append("# ").appendLine(line) }
    }
 
    return runTry {
       bufferedWriter(UTF_8).use {
          it.appendComment(header)
-         it.appendln()
+         it.appendLine()
          properties.asSequence().sortedBy { it.key }.forEach { property ->
             it.appendComment(property.comment)
             when {
-               property.value.valN.isEmpty() -> it.append(property.key).append("=>").appendln()
-               else -> property.value.valN.forEach { value -> it.append(property.key).append("=").appendln(value) }
+               property.value.valN.isEmpty() -> it.append(property.key).append("=>").appendLine()
+               else -> property.value.valN.forEach { value -> it.append(property.key).append("=").appendLine(value) }
             }
          }
       }

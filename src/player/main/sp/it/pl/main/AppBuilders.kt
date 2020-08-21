@@ -140,30 +140,38 @@ inline fun bullet(text: String, block: @Dsl BulletBuilder.() -> Unit = {}) = hBo
 }
 
 fun appProgressIcon(disposer: DisposeOn): Node {
+   var taskList: PopWindow? = null
+   fun Node.toggleTaskList() {
+      if (taskList == null) {
+         taskList = AppProgress.showTasks(this).apply {
+            onHiding += { taskList = null }
+         }
+      } else {
+         taskList?.hide()
+      }
+   }
+   fun Node.installToggleTaskListOnMouseClicked() = onEventDown(MOUSE_CLICKED, PRIMARY) { toggleTaskList() }
+
    val pB = Icon(IconFA.CIRCLE).apply {
       isFocusTraversable = false
       styleclass("header-icon")
-
       install(appTooltip("Progress & Tasks"))
-      onEventDown(MOUSE_CLICKED, PRIMARY) {
-         AppProgress.showTasks(this)
-      }
+      installToggleTaskListOnMouseClicked()
 
       val a = anim { setScaleXY(sqrt(0.2*it)) }.dur(250.millis).applyNow()
       AppProgress.activeTaskCount sync { a.playFromDir(it==0) } on disposer
    }
    val pI = appProgressIndicator().apply {
       isFocusTraversable = false
-
       install(appTooltip("Progress & Tasks"))
-      onEventDown(MOUSE_CLICKED, PRIMARY) {
-         AppProgress.showTasks(this)
-      }
+      installToggleTaskListOnMouseClicked()
 
       AppProgress.progress sync { progress = it } on disposer
    }
    val pL = appProgressIndicatorTitle(pI).apply {
       isFocusTraversable = false
+      installToggleTaskListOnMouseClicked()
+
       AppProgress.activeTaskCount sync { if (it>0) text = "$it running tasks..." } on disposer
    }
 

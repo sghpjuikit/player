@@ -66,12 +66,12 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
 
             lay += text(
                buildString {
-                  appendln("${ALT.nameUi} → Alt")
-                  appendln("${CONTROL.nameUi} → Ctrl")
-                  appendln("${SHIFT.nameUi} → Shift")
-                  appendln("${ESCAPE.nameUi} → Escape")
-                  if (Os.WINDOWS.isCurrent) appendln("${WINDOWS.nameUi} → Win")
-                  if (Os.OSX.isCurrent) appendln("${COMMAND.nameUi} → Command")
+                  appendLine("${ALT.nameUi} → Alt")
+                  appendLine("${CONTROL.nameUi} → Ctrl")
+                  appendLine("${SHIFT.nameUi} → Shift")
+                  appendLine("${ESCAPE.nameUi} → Escape")
+                  if (Os.WINDOWS.isCurrent) appendLine("${WINDOWS.nameUi} → Win")
+                  if (Os.OSX.isCurrent) appendLine("${COMMAND.nameUi} → Command")
                }
             )
             lay(ALWAYS) += scrollPane {

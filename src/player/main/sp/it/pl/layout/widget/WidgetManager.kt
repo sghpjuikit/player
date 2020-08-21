@@ -80,6 +80,7 @@ import sp.it.util.functional.and
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.asArray
 import sp.it.util.functional.asIf
+import sp.it.util.functional.compose
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNotNull
@@ -192,12 +193,12 @@ class WidgetManager {
                      scrollText {
                         text(
                            buildString {
-                              appendln("It is recommended to let the application set up the compiler, you may wish to check the exact error instead.")
-                              appendln()
-                              appendln("If you still wish to set up the compiler manually, you need to:")
-                              appendln(" * Download the compiler from $kotlincLink")
-                              appendln(" * Extract the contents to $kotlincDir so there exists executable file $kotlincBinary")
-                              appendln(" * Create file $kotlincVersionFile (no extension) and set its text content to the link, you obtained the compiler from")
+                              appendLine("It is recommended to let the application set up the compiler, you may wish to check the exact error instead.")
+                              appendLine()
+                              appendLine("If you still wish to set up the compiler manually, you need to:")
+                              appendLine(" * Download the compiler from $kotlincLink")
+                              appendLine(" * Extract the contents to $kotlincDir so there exists executable file $kotlincBinary")
+                              appendLine(" * Create file $kotlincVersionFile (no extension) and set its text content to the link, you obtained the compiler from")
                            }
                         )
                      }
@@ -320,7 +321,7 @@ class WidgetManager {
 
       private fun findLibFiles() = widgetDir.children().filterSourceJars()
 
-      private fun findAppLibFiles() = APP.location.child("lib").children().filterSourceJars()
+      private fun findAppLibFiles() = APP.location.lib.children().filterSourceJars()
 
       private fun getAppJarFile(): Sequence<String> {
          return if (APP.location.spitplayer_jar.exists()) {
@@ -506,7 +507,7 @@ class WidgetManager {
                "-Xno-call-assertions",
                "-Xno-param-assertions",
                "-Xjvm-default=enable",
-               "-cp", computeClassPath(),
+               "-cp", '"' + computeClassPath() + '"',
                kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
             )
 
@@ -541,12 +542,19 @@ class WidgetManager {
 
    inner class Widgets: GlobalSubConfigDelegator("Widget management") {
 
+      /** Compilation order. Prioritizes currently open widgets. */
+      private val compilationOrder: Comparator<WidgetMonitor>
+         get() {
+            val openFactories = findAll(OPEN).map { it.factory.id }.toSet()
+            val isOpen = WidgetMonitor::widgetName compose openFactories::contains compose { if (it) 0 else 1 }
+            return compareBy<WidgetMonitor> { 0 }.thenBy(isOpen).thenBy(WidgetMonitor::widgetName)
+         }
       /** Plugin management ui. */
       private var settings by c(this).noPersist()
          .def(name = "Widgets", info = "Manage application widgets")
       val autoRecompile by cv(true)
          .def(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
-      val recompile by cr { monitors.forEach { it.scheduleCompilation() } }
+      val recompile by cr { monitors.sortedWith(compilationOrder).forEach { it.scheduleCompilation() } }
          .def(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
       val separateWidgets by cv(true)
          .def(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
@@ -702,6 +710,7 @@ class WidgetManager {
       }
    }
 
+   @Suppress("RedundantInnerClassModifier")
    inner class Layouts {
 
       /** @return layout of focused window or null if no window focused */
@@ -764,9 +773,9 @@ class WidgetManager {
 
       private fun <R> Widget?.filterIsControllerInstance(type: Class<R>): R? = this?.controller.takeIf(type::isInstance)?.let(type::cast)
 
-      private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.max()
+      private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.maxOrNull()
 
-      private fun Collection<File>.lastModifiedMin() = asSequence().map { it.lastModified() }.min()
+      private fun Collection<File>.lastModifiedMin() = asSequence().map { it.lastModified() }.minOrNull()
 
       private infix fun Collection<File>.modifiedAfter(that: Collection<File>) = (this.lastModifiedMax() ?: 0)>=(that.lastModifiedMax() ?: 0)
 

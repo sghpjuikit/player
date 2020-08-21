@@ -120,7 +120,7 @@ class WallpaperChanger: PluginBase() {
       override val isSingleton = true
       override val isEnabledByDefault = false
 
-      fun largestScreenSize() = Screen.getScreens().map { ImageSize(it.bounds.width, it.bounds.height) }.maxBy { it.width*it.height }
+      fun largestScreenSize() = Screen.getScreens().map { ImageSize(it.bounds.width, it.bounds.height) }.maxByOrNull { it.width*it.height }
          ?: ImageSize(0.0, 0.0)
    }
 }

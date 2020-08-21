@@ -238,8 +238,15 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          Entry("Seeker", "Seek playback", "LMB"),
          Entry("Seeker", "Seek playback", "drag & release LMB"),
          Entry("Seeker", "Cancel seeking playback", "drag LMB + RMB"),
-         Entry("Seeker > Chapter", "Add chapter", "RMB"),
-         Entry("Seeker > Chapter", "Open chapter", "Hover")
+         Entry("Seeker > Chapter", "Add chapter", "seeker RMB"),
+         Entry("Seeker > Chapter mark", "Open chapter", "Hover"),
+         Entry("Seeker > Chapter popup", "Hide chapter", "LMB"),
+         Entry("Seeker > Chapter popup", "Hide chapter", "Escape"),
+         Entry("Seeker > Chapter popup", "Play from chapter", "2xLMB"),
+         Entry("Seeker > Chapter popup > Edit", "Start edit", "2xRMB"),
+         Entry("Seeker > Chapter popup > Edit", "Apply edit", "Enter"),
+         Entry("Seeker > Chapter popup > Edit", "Append new line", "Shift + Enter"),
+         Entry("Seeker > Chapter popup > Edit", "Cancel edit", "Escape"),
       )
       override val group = PLAYBACK
 

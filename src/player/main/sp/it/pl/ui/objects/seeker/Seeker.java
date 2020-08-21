@@ -27,6 +27,7 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
+import sp.it.pl.ui.objects.Text;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.popup.PopWindow;
 import sp.it.util.access.V;
@@ -65,11 +66,11 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
 import static sp.it.pl.audio.tagging.SongWritingKt.write;
+import static sp.it.pl.main.AppBuildersKt.appTooltip;
+import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.itemnode.ConfigFieldEditorsKt.STYLECLASS_CONFIG_EDITOR_WARN_BUTTON;
 import static sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER;
-import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.main.AppBuildersKt.infoIcon;
-import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.animation.Anim.mapConcave;
 import static sp.it.util.animation.Anim.mapTo01;
@@ -126,7 +127,7 @@ public final class Seeker extends AnchorPane {
 				double v = x/w;
 
 				// snap to chapter
-				Chap ch = minBy(chapters, chapterSnapDistance.get(), c -> abs(x - c.position*w)).orElse(null);
+				Chap ch = minBy(chapters, chapterSnapDistance(), c -> abs(x - c.position*w)).orElse(null);
 				setSeekerValue(ch==null ? v : ch.position);
 			}
 			e.consume();
@@ -157,15 +158,15 @@ public final class Seeker extends AnchorPane {
 					// if out of proximity -> unselect
 					// if chapter closer than selected one -> select it
 					double dist = abs(e.getX() - chapterSelected.getCenterX());
-					minBy(chapters, chapterSnapDistance.get(), c -> abs(c.getCenterX() - e.getX()))
+					minBy(chapters, chapterSnapDistance(), c -> abs(c.getCenterX() - e.getX()))
 							.map(c -> c!=chapterSelected ? c : null)
 							.ifPresentOrElse(addB::select, () -> {
-								if (dist>chapterSnapDistance.get())
+								if (dist>chapterSnapDistance())
 									addB.unselect();
 							});
 				} else {
 					// if chapter in proximity -> select it
-					minBy(chapters, chapterSnapDistance.get(), c -> abs(c.getCenterX() - e.getX()))
+					minBy(chapters, chapterSnapDistance(), c -> abs(c.getCenterX() - e.getX()))
 							.ifPresent(addB::select);
 				}
 			}
@@ -320,6 +321,10 @@ public final class Seeker extends AnchorPane {
 				chapters.add(c);
 			}
 		}
+	}
+
+	private double chapterSnapDistance() {
+		return getEmScaled(chapterSnapDistance.getValue());
 	}
 
 	/****************************************** POSITION **********************************************/
@@ -500,11 +505,11 @@ public final class Seeker extends AnchorPane {
 		Anim messageAnimation;
 		TextArea ta;                    // edit text area
 		PopWindow p;
-		Icon helpB, prevB, nextB, editB, commitB, delB, cancelB; // popup controls
+		Icon prevB, nextB, editB, commitB, delB, cancelB; // popup controls
 		Anim hover = new Anim(millis(150), this::setScaleX).intpl(x -> 1 + 7*x);
 
 		private boolean can_hide = true;
-		private FxTimer delayerCloser = fxTimer(millis(200), 1, runnable(() -> {
+		private final FxTimer delayerCloser = fxTimer(millis(200), 1, runnable(() -> {
 			if (can_hide) p.hide();
 			can_hide = true;
 		}));
@@ -527,7 +532,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		public void showPopup() {
-			hover.playOpenDo(runnable(chapterDisplayMode.get().isShownAsPopup() ? this::showPopupReal : null));
+			hover.playOpenDo(runnable(chapterDisplayMode.get().isShownAsPopup() ? this::showPopupReal : () -> {}));
 		}
 
 		public void hidePopup() {
@@ -581,14 +586,6 @@ public final class Seeker extends AnchorPane {
 					nextB.setDisable(true);
 				if (0==i)
 					prevB.setDisable(true);
-				helpB = infoIcon(
-						"Single click : Close\n"
-						+ "Double L click : Play from this chapter\n"
-						+ "Double R click : Start edit\n"
-						+ "Enter : Apply edit changes\n"
-						+ "Shift + Enter : Append new line\n"
-						+ "Escape : If editing cancel edit, else hide"
-				).size(11);
 				// popup
 				p = new PopWindow();
 				p.getContent().setValue(content);
@@ -599,21 +596,20 @@ public final class Seeker extends AnchorPane {
 					hover.playCloseDo(just_created ? runnable(() -> Seeker.this.getChildren().remove(this)) : null);
 				}));
 				p.getTitle().setValue(toHMSMs(c.getTime()));
-				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
-				content.setOnMouseClicked(e -> {
+				p.getHeaderIcons().setAll(prevB, nextB, editB, delB);
+				content.addEventFilter(MOUSE_CLICKED, e -> {
 					if (isEdited.getValue()) return;
 
-					// otherwise handle click event
-					if (e.getClickCount()==1 && e.isStillSincePress() && p.isAutohide().getValue())
-						// attempt to hide but only if click will not follow into double click
-						delayerCloser.start();
+					if (e.getClickCount()==1 && e.getButton()==PRIMARY && e.isStillSincePress() && p.isAutohide().getValue()) {
+						delayerCloser.start(); // attempt to hide but only if click will not follow into double click
+						e.consume();
+					}
 					if (e.getClickCount()==2) {
 						can_hide = false;
 						if (e.getButton()==SECONDARY) startEdit();
 						else if (e.getButton()==PRIMARY) seekTo();
+						e.consume();
 					}
-					// consume to prevent real hide on click (just in case even if disabled)
-					e.consume();
 				});
 			}
 
@@ -640,8 +636,7 @@ public final class Seeker extends AnchorPane {
 
 			// resize on text change
 			syncC(ta.textProperty(), text -> {
-				int len = text==null ? 0 : text.length();
-				double w = 110 + len/3;
+				double w = Text.Companion.computeNaturalWrappingWidth(text, ta.getFont());
 				ta.setPrefWidth(w);
 				ta.setPrefHeight(0.8*w);
 			});
@@ -676,7 +671,7 @@ public final class Seeker extends AnchorPane {
 			children.remove(message);
 			children.add(layHeaderRight(5, Pos.CENTER, ta, warnB));
 			content.getChildren().setAll(children);
-			p.getHeaderIcons().setAll(helpB, commitB, cancelB);
+			p.getHeaderIcons().setAll( commitB, cancelB);
 		}
 
 		/** Ends editable mode and applies changes. */
@@ -694,7 +689,7 @@ public final class Seeker extends AnchorPane {
 			// maintain proper content
 			content.getChildren().remove(ta.getParent());
 			content.getChildren().add(message);
-			p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
+			p.getHeaderIcons().setAll( prevB, nextB, editB, delB);
 			// stop edit
 			isEdited.setValue(false);
 			if (just_created) Seeker.this.getChildren().remove(this);
@@ -709,7 +704,7 @@ public final class Seeker extends AnchorPane {
 				// maintain proper content
 				content.getChildren().remove(ta.getParent());
 				content.getChildren().add(message);
-				p.getHeaderIcons().setAll(helpB, prevB, nextB, editB, delB);
+				p.getHeaderIcons().setAll(prevB, nextB, editB, delB);
 			}
 			// stop edit
 			isEdited.setValue(false);

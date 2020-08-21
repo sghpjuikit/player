@@ -142,7 +142,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
 
       val glyph: GlyphIcons = when (i.valType) {
          FILE -> when {
-            i.value.path.endsWith("css") -> IconMD.LANGUAGE_CSS3 as GlyphIcons
+            i.value.path.endsWith("css") -> IconMD.LANGUAGE_CSS3
             else -> IconUN(0x1f4c4)
          }
          DIRECTORY -> when {

@@ -155,7 +155,7 @@ object AppProgress {
       }
    }
 
-   fun showTasks(target: Node) {
+   fun showTasks(target: Node): PopWindow {
       val layout = anchorPane {
          lay(10) += scrollPane {
             hbarPolicy = NEVER
@@ -219,11 +219,11 @@ object AppProgress {
             }
          }
       }
-      PopWindow().apply {
+      return PopWindow().apply {
          content.value = layout
          title.value = "Tasks"
          isEscapeHide.value = true
-         isAutohide.value = true
+         isAutohide.value = false
          show(RIGHT_UP(target))
       }
    }

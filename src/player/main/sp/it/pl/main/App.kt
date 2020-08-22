@@ -451,7 +451,7 @@ class App: Application(), GlobalConfigDelegator {
       } by { "Open widget ${it.name}" } toSource {
          val strategyCB = ImprovedComboBox<ComponentLoaderStrategy> { it.toUi() }.apply {
             items setTo ComponentLoaderStrategy.values()
-            value = ComponentLoaderStrategy.POPUP
+            value = ComponentLoaderStrategy.WINDOW
          }
          Entry.of(
             name = "Open widget ${it.name}",

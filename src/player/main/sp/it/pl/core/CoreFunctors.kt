@@ -8,7 +8,6 @@ import sp.it.pl.main.toUi
 import sp.it.util.Util.StringDirection
 import sp.it.util.Util.StringDirection.FROM_START
 import sp.it.util.Util.addText
-import sp.it.util.Util.charAt
 import sp.it.util.Util.filenamizeString
 import sp.it.util.Util.remove1st
 import sp.it.util.Util.removeAll
@@ -36,6 +35,7 @@ import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
+import sp.it.util.text.char32At
 import sp.it.util.text.isPalindrome
 import sp.it.util.type.type
 import sp.it.util.units.Bitrate
@@ -43,6 +43,8 @@ import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
 import sp.it.util.units.RangeYear
 import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -100,7 +102,15 @@ object CoreFunctors: Core {
 
          add("Is null", Any::class.java, B, IS0)
          add("To String", Any::class.java, String::class.java) { Objects.toString(it) }
-         add("To Boolean", String::class.java, B) { java.lang.Boolean.parseBoolean(it) }
+         add("To Boolean", S, B) { java.lang.Boolean.parseBoolean(it) }
+         add("To Byte", S, Byte::class.java) { it.toByteOrNull() }
+         add("To Short", S, Short::class.java) { it.toShortOrNull() }
+         add("To Int", S, Int::class.java) { it.toIntOrNull() }
+         add("To Long", S, Long::class.java) { it.toLongOrNull() }
+         add("To Float", S, Float::class.java) { it.toFloatOrNull() }
+         add("To Double", S, Double::class.java) { it.toDoubleOrNull() }
+         add("To BigInteger", S, BigInteger::class.java) { it.toBigIntegerOrNull() }
+         add("To BigDecimal", S, BigDecimal::class.java) { it.toBigDecimalOrNull() }
 
          add("Is true", B, B) { it }
          add("Is false", B, B) { !it }
@@ -108,6 +118,7 @@ object CoreFunctors: Core {
          add("And", B, B, p(true)) { it, b -> java.lang.Boolean.logicalAnd(it, b) }
          add("Or", B, B, p(true)) { it, b -> java.lang.Boolean.logicalOr(it, b) }
          add("Xor", B, B, p(true)) { it, b -> java.lang.Boolean.logicalXor(it, b) }
+         add("To Byte", B, Byte::class.java) { if (it) 1.toByte() else 0.toByte() }
 
          add("To Bin", Int::class.java, S) { "0b" + Integer.toBinaryString(it) }
          add("To Oct", Int::class.java, S) { "0" + Integer.toOctalString(it) }
@@ -139,7 +150,7 @@ object CoreFunctors: Core {
          add("Matches regex", S, B, pRegex) { it, r -> r.matcher(it).matches() }
          add("After", S, B, p<String>("")) { it, y -> it>y }
          add("Before", S, B, p<String>("")) { it, y -> it<y }
-         add("Char at", S, Char32::class.java, p(0), p<StringDirection>(FROM_START)) { it, i, dir -> charAt(it, i, dir) }
+         add("Char at", S, Char32::class.java, p(0), p<StringDirection>(FROM_START)) { it, i, dir -> runTry { it.char32At(i, dir) }.orNull() }
          add("Length", S, Int::class.java, { it.length })
          add("Length >", S, B, p(0)) { it, l -> it.length>l }
          add("Length <", S, B, p(0)) { it, l -> it.length<l }

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import sp.it.pl.ui.objects.icon.CheckIcon;
@@ -13,6 +12,7 @@ import sp.it.util.functional.Functors.F1;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.map;
+import static sp.it.util.ui.UtilKt.styleclassToggle;
 
 /**
  * Simple {@link Menu} implementation with check icon. Clicking on the icon
@@ -49,19 +49,16 @@ public class SelectionMenuItem extends Menu {
 		super(text);
 		setGraphic(icon);
 		icon.styleclass(STYLECLASS_ICON);
+		icon.gap(0);
 		selected.setValue(s);
 		// action = toggle selection
 		setOnMouseClicked(() -> selected.setValue(!selected.getValue()));
 
 		// hide open submenu arrow if no children
 		getStyleClass().add(NO_CHILDREN_STYLECLASS);
-		getItems().addListener((ListChangeListener<MenuItem>) c -> {
-			ObservableList<String> sc = getStyleClass();
-			if (c.getList().isEmpty()) {
-				if (!sc.contains(NO_CHILDREN_STYLECLASS)) sc.add(NO_CHILDREN_STYLECLASS);
-			} else
-				sc.remove(NO_CHILDREN_STYLECLASS);
-		});
+		getItems().addListener((ListChangeListener<MenuItem>) c ->
+			styleclassToggle(this, NO_CHILDREN_STYLECLASS, c.getList().isEmpty())
+		);
 	}
 
 	/**

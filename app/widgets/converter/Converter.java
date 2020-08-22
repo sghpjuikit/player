@@ -26,6 +26,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import kotlin.reflect.KClass;
 import kotlin.sequences.SequencesKt;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.SongReadingKt;
@@ -76,10 +77,12 @@ import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
+import static sp.it.util.JavaLegacyKt.typeListOfAny;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.future.Fut.fut;
+import static sp.it.util.collections.UtilKt.materialize;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.file.UtilKt.writeTextTry;
@@ -253,15 +256,17 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
 
-        Output<String> output = io.o.create("Text", new VType<>(String.class, true), "");
-        ta_in.outputText.addListener((o, ov, nv) -> output.setValue(nv));
+        Output<String> outputAsText = io.o.create("Output (as text)", new VType<>(String.class, true), "");
+        Output<List<Object>> output = io.o.create("Output", typeListOfAny(), List.of());
+        ta_in.outputText.addListener((o, ov, nv) -> outputAsText.setValue(nv));
+        ta_in.output.addListener((Change<?> o) -> output.setValue(materialize(ta_in.output)));
 
         // set empty content
         applier.fillActs(getKotlinClass(Void.class));
     }
 
     @Override
-    public void read(List<? extends Song> songs) {
+    public void read(@NotNull List<? extends Song> songs) {
         inputValue.setValue(map(songs, Song::toMeta));
     }
 
@@ -270,12 +275,11 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         inputValue.setValue(data);
     }
 
-    @SuppressWarnings("unchecked")
     private static List<?> unpackData(Object o) {
         if (o instanceof String)
             return split((String) o, "\n", x->x);
         else if (o instanceof Collection)
-            return list((Collection) o);
+            return list((Collection<?>) o);
         else return listRO(o);
     }
 

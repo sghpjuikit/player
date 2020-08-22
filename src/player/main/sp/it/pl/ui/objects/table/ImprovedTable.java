@@ -31,6 +31,7 @@ import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.Util.computeFontWidth;
@@ -212,7 +213,7 @@ public class ImprovedTable<T> extends TableView<T> {
 					setText(null);
 				} else {
 					int i = 1 + getIndex();
-					setText((zeropadIndex.get() ? zeroPad(i, getItems().size(), '0') : i) + ".");
+					setText((zeropadIndex.get() ? zeroPad(i, digits(getItems().size()), '0') : i) + ".");
 				}
 			}
 		});

@@ -715,7 +715,7 @@ Text {
     -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-border-width: 0;
-    -fx-padding: 0.5em;
+    -fx-padding: 0.2em 0.4em 0.2em 0.4em;
 }
 
 /*******************************************************************************
@@ -727,7 +727,7 @@ Text {
     -fx-background-insets: 0;
     -fx-background-radius: 2;
     -fx-border-width: 0;
-    -fx-padding: 0.5em;
+    -fx-padding: 0.2em 0.4em 0.2em 0.4em;
 }
 
 .menu-item:focused > .label {
@@ -743,7 +743,7 @@ Text {
     -fx-background-insets: 0;
     -fx-background-radius: 2;
     -fx-border-width: 0;
-    -fx-padding: 0.5em;
+    -fx-padding: 0.2em 0.4em 0.2em 0.4em;
 }
 
 /*******************************************************************************

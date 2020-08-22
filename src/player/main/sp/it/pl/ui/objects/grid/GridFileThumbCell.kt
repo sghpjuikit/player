@@ -42,7 +42,6 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
 import java.io.File
-import java.util.concurrent.ExecutorService
 
 /**
  * GridCell implementation for file using [sp.it.pl.ui.objects.hierarchy.Item]

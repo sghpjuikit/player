@@ -2,6 +2,7 @@ package sp.it.util.ui
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.css.PseudoClass
+import javafx.css.Styleable
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Bounds
@@ -238,25 +239,25 @@ fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean =
 fun Node.pseudoClassChanged(pseudoClass: String, active: Boolean) = pseudoClassStateChanged(pseudoclass(pseudoClass), active)
 
 /** Adds the specified styleclass to [Node.styleClass] of this node, if it has not yet been assigned. */
-fun Node.styleclassAdd(styleClass: String) {
+fun Styleable.styleclassAdd(styleClass: String) {
    if (styleClass !in this.styleClass)
       this.styleClass += styleClass
 }
 
 /** Adds (true) or removes (false) the specified styleclass using [Node.styleclassAdd] and [Node.styleclassRemove]. */
-fun Node.styleclassToggle(styleClass: String, enabled: Boolean) {
+fun Styleable.styleclassToggle(styleClass: String, enabled: Boolean) {
    if (enabled) styleclassAdd(styleClass)
    else styleclassRemove(styleClass)
 }
 
 /** Adds or removes the specified styleclass using [Node.styleclassAdd] and [Node.styleclassRemove]. */
-fun Node.styleclassToggle(styleClass: String) {
+fun Styleable.styleclassToggle(styleClass: String) {
    if (styleClass !in this.styleClass) styleclassAdd(styleClass)
    else styleclassRemove(styleClass)
 }
 
 /** Removes all instances of the specified styleclass from [Node.styleClass] of this node. */
-fun Node.styleclassRemove(styleClass: String) {
+fun Styleable.styleclassRemove(styleClass: String) {
    this.styleClass.removeIf { it==styleClass }
 }
 
@@ -327,7 +328,7 @@ fun bgr(color: Color) = Background(BackgroundFill(color, CornerRadii.EMPTY, Inse
 fun border(color: Color, radius: CornerRadii = CornerRadii.EMPTY) = Border(BorderStroke(color, BorderStrokeStyle.SOLID, radius, BorderWidths.DEFAULT))
 
 /** @return [PseudoClass.getPseudoClass] */
-fun pseudoclass(name: String) = PseudoClass.getPseudoClass(name)
+fun pseudoclass(name: String): PseudoClass = PseudoClass.getPseudoClass(name)
 
 inline fun stage(style: StageStyle = StageStyle.DECORATED, block: Stage.() -> Unit = {}) = Stage(style).apply(block)
 inline fun scene(root: Parent = StackPane(), block: Scene.() -> Unit = {}) = Scene(root).apply(block)
@@ -651,7 +652,7 @@ fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
    }
 
    setClip(clip)
-   return clip;
+   return clip
 }
 
 /* ---------- IMAGE_VIEW -------------------------------------------------------------------------------------------- */

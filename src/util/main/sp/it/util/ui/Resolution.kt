@@ -14,6 +14,5 @@ enum class Resolution(@JvmField val width: Double, @JvmField val height: Double)
    R_2560x1440(2560.0, 1440.0),
    R_3840x2160(3840.0, 2160.0);
 
-   @JvmField val ratio: Double = width/height
-
+   val ratio: Double = width/height
 }

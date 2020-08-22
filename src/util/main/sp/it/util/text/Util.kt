@@ -2,12 +2,14 @@ package sp.it.util.text
 
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
+import sp.it.util.Util.StringDirection
+import sp.it.util.Util.StringDirection.FROM_END
+import sp.it.util.Util.StringDirection.FROM_START
 import sp.it.util.action.Action
 import sp.it.util.dev.failIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
-import java.lang.StringBuilder
 import java.text.BreakIterator
 import java.util.Locale
 import kotlin.streams.asSequence
@@ -27,10 +29,19 @@ val String.lengthInGrapheme: Int get() {
    return graphemeCount
 }
 
-/** @return the character (Unicode code point) at the specified index or throws [IndexOutOfBoundsException]. */
+/** @return [Char16] at the specified index or throws [IndexOutOfBoundsException]. */
+fun String.char16At(at: Int): Char16 = get(at)
+
+/** @return [Char32] at the specified index or throws [IndexOutOfBoundsException]. */
 fun String.char32At(at: Int): Char32 = codePointAt(at).toChar32()
 
-/** @return the character (Unicode code point) at the specified index or throws [IndexOutOfBoundsException]. */
+/** @return [Char32] at the specified index from the specified side or throws [IndexOutOfBoundsException]. */
+fun String.char32At(at: Int, dir: StringDirection): Char32 = when (dir) {
+   FROM_START -> codePointAt(at).toChar32()
+   FROM_END -> codePointAt(lengthInCodePoint - at).toChar32()
+}
+
+/** @return [Char32] at the specified index or throws [IndexOutOfBoundsException]. */
 fun String.graphemeAt(at: Int): Char32 = codePointAt(at).toChar32()  // TODO: verify this is ok
 
 /** @return this string or null if it is null or [String.isEmpty] */

@@ -14,13 +14,11 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
 import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.flac.FlacTag;
-import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v24Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
@@ -33,6 +31,7 @@ import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.jaudiotagger.tag.wav.WavTag;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Song;
@@ -57,7 +56,6 @@ import static sp.it.pl.audio.tagging.Metadata.TAG_ID_TAGS;
 import static sp.it.pl.main.AppExtensionsKt.isPlaying;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
-import static sp.it.util.Util.emptyOr;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.functional.Try.Java.error;
@@ -122,6 +120,7 @@ public class MetadataWriter extends Song {
 		this.audioFile = audioFile;
 	}
 
+	@NotNull
 	@Override
 	public URI getUri() {
 		if (file==null) throw new IllegalStateException("Illegal getUri call. metadata writer state not initialized.");
@@ -304,7 +303,7 @@ public class MetadataWriter extends Song {
 	}
 
 	private void setRatingMP3(AbstractID3v2Tag tag, double val) {
-		AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+		var f = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
 		if (f==null) {
 			f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER);
 			f.setBody(new FrameBodyPOPM()); // TODO: this sets playcount to 0 if it was 0, avoid this
@@ -312,11 +311,10 @@ public class MetadataWriter extends Song {
 		try {
 			if (val==-1) {
 				((FrameBodyPOPM) f.getBody()).setRating(0);
-				tag.setField(f);
 			} else {
 				((FrameBodyPOPM) f.getBody()).setRating((long) val);
-				tag.setField(f);
 			}
+			tag.setField(f);
 			fields_changed++;
 		} catch (FieldDataInvalidException ex) {
 			LOGGER.info("Ignoring rating field. Data invalid.");
@@ -396,7 +394,7 @@ public class MetadataWriter extends Song {
 		// POPM COUNT
 		try {
 			// get tag
-			AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+			var f = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
 			if (f==null) {
 				f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER);
 				f.setBody(new FrameBodyPOPM());
@@ -411,7 +409,7 @@ public class MetadataWriter extends Song {
 		// PLAY COUNT
 		try {
 			// get tag
-			AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_PLAY_COUNTER);
+			var f = tag.getFirstField(ID3v24Frames.FRAME_ID_PLAY_COUNTER);
 			if (f==null) {
 				f = new ID3v24Frame(ID3v24Frames.FRAME_ID_PLAY_COUNTER);
 				f.setBody(new FrameBodyPCNT());
@@ -440,7 +438,7 @@ public class MetadataWriter extends Song {
 	}
 
 	private void setPublisherID3(AbstractID3v2Tag tag, String val) {
-		AbstractID3v2Frame f = tag.getFirstField(ID3v24Frames.FRAME_ID_PUBLISHER);
+		var f = tag.getFirstField(ID3v24Frames.FRAME_ID_PUBLISHER);
 		if (f==null) {
 			f = new ID3v24Frame(ID3v24Frames.FRAME_ID_PUBLISHER);
 			f.setBody(new FrameBodyTPUB());
@@ -474,34 +472,24 @@ public class MetadataWriter extends Song {
 		}
 	}
 
-	/**
-	 * Change user/mail within POPM3 field of id3 tag. Supports only files
-	 * supporting id3 tag (mp3). For other types (flac, ogg, wav) does nothing.
-	 */
+	/** Change user/mail within POPM3 field of id3 tag. Supports only supporting id3v24 tag. */
 	public void setUserMailID3(String val) {
-		AudioFileFormat f = getFormat();
-		switch (f) {
-			case MP3: seUserPopmID3(val); break;
-			default:    // rest not supported
-		}
+		if (tag instanceof ID3v24Tag) seUserPopmID3v24(val);
 	}
 
-	private void seUserPopmID3(String val) {
+	private void seUserPopmID3v24(String val) {
 		try {
-			AbstractID3v2Frame f = ((MP3File) audioFile).getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
-			// prevent null
-			if (f==null) {
-				f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER);
-				f.setBody(new FrameBodyPOPM());
+			var value = val==null || val.isEmpty() ? "" : val;
+			var id3v24Tag = (ID3v24Tag) tag;
+			var id3v24Frame = id3v24Tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+
+			if (id3v24Frame==null) {
+				id3v24Frame = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER);
+				id3v24Frame.setBody(new FrameBodyPOPM());
 			}
-			// set value
-			if (val==null || val.isEmpty()) {
-				((FrameBodyPOPM) f.getBody()).setEmailToUser("");
-				((MP3File) audioFile).getID3v2Tag().setField(f);
-			} else {
-				((FrameBodyPOPM) f.getBody()).setEmailToUser(val);
-				((MP3File) audioFile).getID3v2Tag().setField(f);
-			}
+
+			((FrameBodyPOPM) id3v24Frame.getBody()).setEmailToUser(value);
+			tag.setField(id3v24Frame);
 			fields_changed++;
 		} catch (FieldDataInvalidException ex) {
 			LOGGER.info("Ignoring playcount field. Data invalid.");
@@ -710,7 +698,7 @@ public class MetadataWriter extends Song {
 	 */
 	private void setCustomField(String id, String val) {
 		boolean isEmpty = val==null || val.isEmpty();
-		String ov = tag.hasField(FieldKey.CUSTOM5) ? emptyOr(tag.getFirst(FieldKey.CUSTOM5)) : "";
+		String ov = tag.hasField(FieldKey.CUSTOM5) ? tag.getFirst(FieldKey.CUSTOM5) : "";
 
 		List<String> tagFields = list(split(ov, String.valueOf(SEPARATOR_GROUP)));
 		tagFields.removeIf(tagField -> tagField.startsWith(id));
@@ -722,11 +710,11 @@ public class MetadataWriter extends Song {
 	}
 
 	private boolean hasCustomField(String id) {
-		String ov = tag.hasField(FieldKey.CUSTOM5) ? emptyOr(tag.getFirst(FieldKey.CUSTOM5)) : "";
+		String ov = tag.hasField(FieldKey.CUSTOM5) ? tag.getFirst(FieldKey.CUSTOM5) : "";
 		return ov.contains(SEPARATOR_GROUP + id);
 	}
 
-	public void setFieldS(Metadata.Field field, String data) {
+	public void setFieldS(Metadata.Field<?> field, String data) {
 		if (field==Metadata.Field.PATH ||
 			field==Metadata.Field.FILENAME ||
 			field==Metadata.Field.FORMAT ||

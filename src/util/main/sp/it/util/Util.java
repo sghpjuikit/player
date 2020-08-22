@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import sp.it.util.text.Char32;
 import sp.it.util.text.StringSplitParser;
 import sp.it.util.text.StringSplitParser.Split;
 import sp.it.util.text.StringSplitParser.SplitData;
@@ -27,47 +26,6 @@ import static sp.it.util.dev.FailKt.failIf;
  */
 @SuppressWarnings("unused")
 public interface Util {
-
-	/**
-	 * Returns empty string if string meets is-empty criteria according to {@link #hasNoReadableText(String)}
-	 * <br>
-	 * More formally: {@code (hasNoText(str)) ? "" : str;}
-	 *
-	 * @param s input string
-	 * @return "" if string should be empty or the string itself
-	 */
-	static String emptyOr(String s) {
-		return hasNoReadableText(s) ? "" : s;
-	}
-
-	/**
-	 * Inverse version of {@link #hasNoReadableText(String)}
-	 */
-	static boolean hasReadableText(String s) {
-		return !hasNoReadableText(s);
-	}
-
-	/**
-	 * Broader check for emptiness of String object.
-	 * <br/>
-	 * Criteria:
-	 * <ul> null
-	 * <li> String.isEmpty()
-	 * <li> whitespace only
-	 * <ul/>
-	 *
-	 * @param s string to check.
-	 * @return true iff any of the criteria is met.
-	 */
-	static boolean hasNoReadableText(String s) {
-		if (s==null || s.isEmpty()) return true;
-
-		for (int i = 0; i<s.length(); i++)
-			if (!Character.isWhitespace(s.charAt(i)))
-				return false;
-
-		return true;
-	}
 
 	static String renameAnime(String s) {
 		// remove the super annoying '_'
@@ -156,10 +114,6 @@ public interface Util {
 		return o.toString();
 	}
 
-	static Char32 charAt(String x, int i, StringDirection dir) {
-		return i<0 || i>=x.length() ? null : new Char32(x.codePointAt(dir==FROM_START ? i : x.length() - 1 - i));
-	}
-
 	/**
 	 * Checks and formats String so it can be safely used for naming a File.
 	 * Replaces any {@code '/', '\', ':', '*', '?', '<', '>', '|'} with '_'.
@@ -178,7 +132,7 @@ public interface Util {
 	 * <li> '_' into ' '
 	 * </ul>
 	 */
-	static String enumToHuman(Enum e) {
+	static String enumToHuman(Enum<?> e) {
 		return enumToHuman(e.name());
 	}
 
@@ -233,16 +187,14 @@ public interface Util {
 	 * maintain consistency in number of length.
 	 *
 	 * @param n number to turn onto zero-padded string
-	 * @param max number to zero-pad to
+	 * @param len length to zeropad to number to zero-pad to
 	 * @param ch character to use. Notable characters are: ' ' or '0'
 	 * @return left zero-padded string to specified length
 	 */
-	static String zeroPad(int n, int max, char ch) {
-		int diff = digits(max) - digits(n);
-		StringBuilder prefix = new StringBuilder();
-		for (int i = 1; i<=diff; i++)
-			prefix.append(ch);
-		return prefix.append(n).toString();
+	static String zeroPad(int n, int len, char ch) {
+		int diff = len - digits(n);
+		if (diff<1) return String.valueOf(n);
+		else return String.valueOf(ch).repeat(diff) + n;
 	}
 
 	/**

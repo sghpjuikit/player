@@ -51,6 +51,7 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
+import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.dev.FailKt.failIf;
@@ -496,9 +497,9 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					setText(null);
 				else {
 					int j = getIndex();
-					int i = showOriginalIndex.get() ? filteredItems.getSourceIndex(j) : j;
-					String txt = zeropadIndex.get()
-						? zeroPad(i + 1, getMaxIndex(), '0')
+					int i = showOriginalIndex.getValue() ? filteredItems.getSourceIndex(j) : j;
+					String txt = zeropadIndex.getValue()
+						? zeroPad(i + 1, digits(getMaxIndex()), '0')
 						: String.valueOf(i + 1);
 					setText(txt + ".");
 				}

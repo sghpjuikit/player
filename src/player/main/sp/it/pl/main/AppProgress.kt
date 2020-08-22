@@ -180,6 +180,7 @@ object AppProgress {
                         }
                         lay += Icon().apply {
                            isMouseTransparent = true
+                           isFocusTraversable = false
 
                            fun updateIcon() {
                               icon(when (state.value) {

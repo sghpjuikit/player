@@ -14,8 +14,8 @@ public class JavaLegacy {
 
 	public static String COMBO_BOX_STYLE_CLASS = "combo-box-popup"; // com.sun.javafx.scene.control.Properties.COMBO_BOX_STYLE_CLASS
 
-	private static Text fontMeasuringText = new Text();
-	private static Scene fontMeasuringScene = new Scene(new Group(fontMeasuringText));
+	private static final Text fontMeasuringText = new Text();
+	private static final Scene fontMeasuringScene = new Scene(new Group(fontMeasuringText));
 
 	public static double computeFontWidth(javafx.scene.text.Font font, String text) {
 		fontMeasuringText.setFont(font);

@@ -7,6 +7,7 @@ import sp.it.util.dev.failIf
 import sp.it.util.reactive.Subscription
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
+import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.jvmErasure
 import sp.it.util.type.nullable
 import sp.it.util.type.raw
@@ -26,21 +27,21 @@ open class Input<T>: Put<T?> {
 
    /** @return true if this input can receive values from given output */
    open fun isAssignable(output: Output<*>): Boolean = when {
+      output.type isSubtypeOf type -> true
       type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
          output.type.listType().isSubclassOf(type.listType())
       }
       type.jvmErasure==List::class -> {
          isAssignable(output.type.jvmErasure, type.listType())
       }
-      output.type.jvmErasure==List::class -> false
-      else -> isAssignable(output.type.jvmErasure, type.jvmErasure)
+      else -> false
    }
 
    private fun isAssignable(type1: KClass<*>, type2: KClass<*>) = type1.isSubclassOf(type2) || type2.isSubclassOf(type1)
 
    /** @return true if this input can receive the specified value */
    fun isAssignable(value: Any?): Boolean = when {
-      value==null -> true
+      value==null -> type.isNullable
       type.jvmErasure==List::class -> type.listType().isInstance(value)
       else -> type.jvmErasure.isInstance(value)
    }
@@ -51,6 +52,7 @@ open class Input<T>: Put<T?> {
       return output.sync { v ->
          if (v!=null) {
             when {
+               output.type isSubtypeOf type -> value = v
                type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
                   valueAny = v
                }
@@ -58,12 +60,7 @@ open class Input<T>: Put<T?> {
                   if (type.listType().isInstance(v))
                      valueAny = v
                }
-               output.type.jvmErasure==List::class -> {
-               }
-               else -> {
-                  if (type.jvmErasure.isInstance(v))
-                     valueAny = v
-               }
+               else -> {}
             }
          }
       }

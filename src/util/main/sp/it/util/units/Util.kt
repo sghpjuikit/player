@@ -10,13 +10,13 @@ import javafx.util.Duration as Dur
 fun version(major: Int, minor: Int, patch: Int) = KotlinVersion(major, minor, patch)
 
 /** Equivalent to [Year.of[]. */
-fun year(year: Int) = Year.of(year)!!
+fun year(year: Int): Year = Year.of(year)
 
 /** Equivalent to [UUID.randomUUID]. */
-fun uuid() = UUID.randomUUID()!!
+fun uuid(): UUID = UUID.randomUUID()
 
 /** Equivalent to [UUID.fromString]. */
-fun uuid(text: String) = UUID.fromString(text)!!
+fun uuid(text: String): UUID = UUID.fromString(text)
 
 /** Converts to javafx [Dur] */
 val Duration.javafx: Dur get() = toMillis().millis

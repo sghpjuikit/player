@@ -42,14 +42,14 @@ enum class Sort {
 
       /** @return a corresponding sort for [TableColumn.SortType] */
       @JvmStatic fun of(sort: TableColumn.SortType) = when (sort) {
-         TableColumn.SortType.ASCENDING -> Sort.ASCENDING
-         TableColumn.SortType.DESCENDING -> Sort.DESCENDING
+         TableColumn.SortType.ASCENDING -> ASCENDING
+         TableColumn.SortType.DESCENDING -> DESCENDING
       }
 
       /** @return a corresponding sort for [TreeTableColumn.SortType] */
       @JvmStatic fun of(sort: TreeTableColumn.SortType) = when (sort) {
-         TreeTableColumn.SortType.ASCENDING -> Sort.ASCENDING
-         TreeTableColumn.SortType.DESCENDING -> Sort.DESCENDING
+         TreeTableColumn.SortType.ASCENDING -> ASCENDING
+         TreeTableColumn.SortType.DESCENDING -> DESCENDING
       }
 
       /** @return sort of the given column based on its [TableColumn.SortType] */
@@ -61,7 +61,6 @@ enum class Sort {
    }
 
 }
-
 
 /** @see Sort.of */
 fun <T> Comparator<T>.inSort(sort: Sort) = sort.of(this)

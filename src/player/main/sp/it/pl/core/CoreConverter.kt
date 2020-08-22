@@ -15,7 +15,6 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppUi.SkinCss
-import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginBox

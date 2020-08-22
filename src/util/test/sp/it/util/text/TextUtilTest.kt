@@ -2,8 +2,6 @@ package sp.it.util.text
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import kotlin.streams.toList
 
 @Suppress("SpellCheckingInspection")
 class TextUtilTest: FreeSpec({

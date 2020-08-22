@@ -325,7 +325,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 /* --------------------- UTIL --------------------------------------------------------------------------------------- */
 
 	// sort order -> comparator, never null
-	@SuppressWarnings({"unchecked", "unused", "ConstantConditions"})
+	@SuppressWarnings({"unchecked", "unused"})
 	private void updateComparator(Object ignored) {
 		Comparator<? super T> c = getSortOrder().stream()
 			.map(column -> {
@@ -334,7 +334,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 				return sort.of(field.comparator(Comparator::nullsFirst));
 			})
 			.reduce(Comparator::thenComparing)
-			.orElse((Comparator) SAME);
+			.orElse((Comparator<T>) SAME);
 		itemsComparator.setValue(c);
 	}
 
@@ -345,8 +345,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.orElseThrow(() -> new RuntimeException("Cant find '" + name + "' field"));
 	}
 
-	@SuppressWarnings({"RedundantCast","unchecked"})
+	@SuppressWarnings({"unchecked"})
 	private ObjectField<T,?> nameToCF(String name) {
-		return ColumnField.INDEX.name().equals(name) ? (ObjectField) ColumnField.INDEX : nameToF(name);
+		return ColumnField.INDEX.name().equals(name) ? (ObjectField<T,?>) ColumnField.INDEX : nameToF(name);
 	}
 }

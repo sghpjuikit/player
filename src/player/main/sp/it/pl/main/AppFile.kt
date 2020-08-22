@@ -119,7 +119,8 @@ val imageExtensions12Monkey: Set<String> = linkedSetOf(
    "ico", "cur",
    "Thumbs.db",
    "svg",
-   "wmf"
+   "wmf",
+   "webp",
 )
 
 /** See [imageExtensions12Monkey]. */

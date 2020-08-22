@@ -128,6 +128,7 @@ allprojects {
       }
 
       "Image" group {
+         implementation("com.github.umjammer", "javavp8decoder", "d51fe8f")
          implementation("com.drewnoakes", "metadata-extractor", "2.11.0")
          fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.6")
          imageIO("bmp")

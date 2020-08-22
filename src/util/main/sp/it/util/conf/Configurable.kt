@@ -28,7 +28,6 @@ interface Configurable<T> {
    fun getConfig(name: String): Config<T>?
 
    /** @return config with given [Config.name] or throw exception if does not exist */
-   @JvmDefault
    fun getConfigOrThrow(name: String): Config<T> = getConfig(name) ?: fail { "Config field '$name' not found." }
 
    companion object {
@@ -45,10 +44,8 @@ object EmptyConfigurable: Configurable<Nothing> {
 /** Configurable using reflection using [IsConfig], where configs are recomputed on every access. */
 interface ConfigurableByReflect: Configurable<Any?> {
 
-   @JvmDefault
    override fun getConfigs(): Collection<Config<Any?>> = toConfigurableByReflect().getConfigs().asIs()
 
-   @JvmDefault
    override fun getConfig(name: String): Config<Any?>? {
       val property = this::class.memberProperties.find { it.name==name } ?: return null
       return annotatedConfig(property, this).asIs()

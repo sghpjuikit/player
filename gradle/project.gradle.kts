@@ -64,7 +64,7 @@ allprojects {
          "-progressive",
          "-Xno-call-assertions",
          "-Xno-param-assertions",
-         "-Xjvm-default=enable",
+         "-Xjvm-default=all",
          "-Xuse-experimental=kotlin.Experimental"
       )
       kotlinOptions.javaParameters = true

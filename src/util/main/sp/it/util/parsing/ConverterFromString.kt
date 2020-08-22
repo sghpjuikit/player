@@ -9,7 +9,6 @@ interface ConverterFromString<T> {
    fun ofS(s: String): Try<T?, String>
 
    /** @return whether string can be parsed into the object of specified type successfully */
-   @JvmDefault
    fun isValid(s: String): Boolean = ofS(s).isOk
 
 }

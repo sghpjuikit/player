@@ -10,7 +10,6 @@ interface AltState {
    fun hide()
 
    /** Invokes [show] if true else [hide]. */
-   @JvmDefault
    fun setShow(v: Boolean): Unit = if (v) show() else hide()
 
 }

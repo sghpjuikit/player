@@ -9,10 +9,8 @@ interface Locatable {
 
    val userLocation: File
 
-   @JvmDefault
    fun getResource(path: String): File = location/path
 
-   @JvmDefault
    fun getUserResource(path: String): File = userLocation/path
 
 }

@@ -28,7 +28,6 @@ interface ComponentUi: AltState {
    val root: Pane
 
    /** Dispose of this ui with the intention of never being used again. */
-   @JvmDefault
    fun dispose() = Unit
 
 }

@@ -17,14 +17,12 @@ interface NodeInfo<B> {
    fun setVisible(v: Boolean)
 
    /** Binds and sets visible true. */
-   @JvmDefault
    fun showNbind(b: B) {
       bind(b)
       setVisible(true)
    }
 
    /** Unbinds and sets visible false. */
-   @JvmDefault
    fun hideNunbind() {
       unbind()
       setVisible(false)

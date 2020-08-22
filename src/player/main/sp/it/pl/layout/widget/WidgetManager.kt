@@ -506,7 +506,7 @@ class WidgetManager {
                "-progressive",
                "-Xno-call-assertions",
                "-Xno-param-assertions",
-               "-Xjvm-default=enable",
+               "-Xjvm-default=all",
                "-cp", '"' + computeClassPath() + '"',
                kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
             )

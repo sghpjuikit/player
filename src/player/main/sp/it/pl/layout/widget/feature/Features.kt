@@ -30,7 +30,6 @@ interface FileExplorerFeature {
     *  *  if has one file, explores the file
     *  *  if has multiple files, explores their first common parent directory.
     */
-   @JvmDefault
    fun exploreCommonFileOf(files: Collection<File>) = Util.getCommonFile(files)?.let(::exploreFile).toUnit()
 }
 
@@ -46,7 +45,6 @@ interface ImageDisplayFeature {
     * Attempts to displays the images. Depends on implementation. By default
     * 1st image is displayed if available.
     */
-   @JvmDefault
    fun showImages(images: Collection<File>) = showImage(images.firstOrNull())
 }
 
@@ -86,7 +84,6 @@ interface TextDisplayFeature {
 @Feature(name = "Song metadata reader", description = "Capable of displaying song metadata", type = SongReader::class)
 interface SongReader {
    /** Passes song into this reader. */
-   @JvmDefault
    fun read(song: Song?) = read(listOfNotNull(song))
 
    /** Passes songs into this reader. Displays metadata and displays them. */

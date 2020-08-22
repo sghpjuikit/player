@@ -1,5 +1,6 @@
 package sp.it.util.type
 
+import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import java.lang.reflect.ParameterizedType
@@ -16,6 +17,9 @@ import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.typeOf
 
+private fun nothing(): Nothing = fail { "" }
+private fun nothingNullable(): Nothing? = null
+
 /** @return class representing the generic type argument of this method (obtained using T:class) */
 inline fun <reified T: Any> kClass() = T::class
 
@@ -30,10 +34,10 @@ inline fun <reified T> kType() = typeOf<T>()
 inline fun <reified T> type(): VType<T> = VType(kType<T>())
 
 /** @return type [Nothing] as [VType] */
-fun typeNothingNonNull(): VType<Nothing> = VType(Nothing::class.createType(nullable = false))
+fun typeNothingNonNull(): VType<Nothing> = VType(::nothing.returnType)
 
 /** @return type [Nothing]? as [VType] */
-fun typeNothingNullable(): VType<Nothing?> = VType(Nothing::class.createType(nullable = true))
+fun typeNothingNullable(): VType<Nothing?> = VType(::nothingNullable.returnType)
 
 /** @return java type representing the generic type argument of this method (obtained using [kType].[KType.javaType]) */
 inline fun <reified T> jType() = object: TypeToken<T>() {}.type

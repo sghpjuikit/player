@@ -70,7 +70,7 @@ class TypeUtilTest: FreeSpec({
          Consumer<*>::accept.returnType.classifier shouldBe Unit::class
       }
 
-      "!${KType::isSubtypeOf.name}" {
+      "${KType::isSubtypeOf.name}" {
 
          open class NonGeneric
          open class Covariant<out T>
@@ -99,9 +99,6 @@ class TypeUtilTest: FreeSpec({
          type<NonGeneric>() isSubtypeOf type<Any?>() shouldBe true
          type<NonGeneric?>() isSubtypeOf type<Any>() shouldBe false
          type<NonGeneric?>() isSubtypeOf type<Any?>() shouldBe true
-         // these do not work because Nothing erases to Void, which works like Unit
-         Nothing::class.printIt()
-         Nothing::class.createType().printIt()
          typeNothingNonNull() isSubtypeOf type<NonGeneric>() shouldBe true
          typeNothingNonNull() isSubtypeOf type<NonGeneric?>() shouldBe true
          typeNothingNullable() isSubtypeOf type<NonGeneric>() shouldBe false

@@ -146,14 +146,15 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       }
       textArea.textProperty() attach { text ->
          isTransformsChanging.suppressed {
-            val o = text.lines()
-            if (o.size==input.size) {
-               val transformation = TransformationRaw.Manual(text)
-               val link = ListAreaNodeTransformationNode(PrefList<TransformationRaw>().apply { addPreferred(transformation) })
-               val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual
-               if (isManualEdit) transforms.setChained(transforms.length() - 1, link)
-               else transforms.addChained(link)
-            }
+            val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual
+            val isTextEdit = transforms.chain.isEmpty() || isManualEdit
+            val transformation = TransformationRaw.Manual(text)
+            val link = ListAreaNodeTransformationNode(PrefList<TransformationRaw>().apply { addPreferred(transformation) })
+
+            if (isManualEdit) transforms.setChained(transforms.length() - 1, link)
+            else transforms.addChained(link)
+
+            if (isTextEdit) output setTo text.lines()
          }
       }
       textArea.onEventDown(KEY_PRESSED, CONTROL, V) { it.consume() } // avoids possible duplicate paste

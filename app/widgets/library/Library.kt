@@ -119,7 +119,6 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
    init {
       root.prefSize = 850.emScaled x 600.emScaled
-      root.consumeScrolling()
       root.lay += table.root
 
       // table properties
@@ -211,6 +210,8 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
             it.consume()
          }
       }
+
+      table.consumeScrolling()
 
       // sync outputs
       table.selectionModel.selectedItemProperty() sync { outputSelected.value = it } on onClose

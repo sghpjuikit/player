@@ -144,7 +144,6 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 600.emScaled x 600.emScaled
-      root.consumeScrolling()
       root.lay += table.root
 
       table.selectionModel.selectionMode = MULTIPLE
@@ -257,6 +256,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             it.consume()
          }
       }
+
+      table.consumeScrolling()
 
       // resizing
       table.columnResizePolicy = Callback { resize ->

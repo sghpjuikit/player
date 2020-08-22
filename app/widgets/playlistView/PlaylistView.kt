@@ -91,7 +91,6 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
    init {
       root.prefSize = 450.emScaled x 600.emScaled
-      root.consumeScrolling()
 
       playlist.playingSong sync { outputPlaying.value = it } on onClose
       playlist.duration attach { table.items_info.updateText() } on onClose
@@ -132,6 +131,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
             )
          }
       }
+      table.consumeScrolling()
       onClose += table::dispose
       onClose += table.selectionModel.selectedItemProperty() attach {
          if (!table.movingItems)

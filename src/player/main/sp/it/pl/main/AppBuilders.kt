@@ -55,6 +55,7 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.text.graphemeAt
 import sp.it.util.text.lengthInGrapheme
 import sp.it.util.type.type
+import sp.it.util.type.typeNothingNonNull
 import sp.it.util.ui.hBox
 import sp.it.util.ui.hyperlink
 import sp.it.util.ui.install
@@ -233,7 +234,7 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
       else -> d::class
    }
    val dType = when (d) {
-      null -> Nothing::class.createType()
+      null -> typeNothingNonNull().type
       is List<*> -> List::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
       is Set<*> -> Set::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
       is Map<*, *> -> Map::class.createType(arguments = listOf(KTypeArg.invariant(d.keys.getElementType()), KTypeArg.invariant(d.values.getElementType())))

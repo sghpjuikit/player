@@ -19,7 +19,6 @@ import javafx.stage.Screen
 import javafx.stage.Window
 import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
-import sp.it.util.functional.orNull
 import sp.it.util.math.P
 import sp.it.util.ui.bounds
 import sp.it.util.ui.centreX
@@ -45,10 +44,10 @@ enum class ShowArea(override val nameUi: String): NameUi {
       SCREEN_PRIMARY -> null to Screen.getPrimary().bounds
       ALL_SCREENS -> {
          val ss = Screen.getScreens().map { it.bounds }
-         val minX = ss.asSequence().map { it.minX }.min()!!
-         val maxX = ss.asSequence().map { it.maxX }.max()!!
-         val minY = ss.asSequence().map { it.minY }.min()!!
-         val maxY = ss.asSequence().map { it.maxY }.max()!!
+         val minX = ss.asSequence().map { it.minX }.minOrNull()!!
+         val maxX = ss.asSequence().map { it.maxX }.maxOrNull()!!
+         val minY = ss.asSequence().map { it.minY }.minOrNull()!!
+         val maxY = ss.asSequence().map { it.maxY }.maxOrNull()!!
          null to Rectangle2D(minX, minY, maxX - minX, maxY - minY)
       }
       WINDOW_MAIN -> APP.windowManager.getMain()?.stage?.let { it to it.bounds } ?: SCREEN_PRIMARY.bounds()

@@ -24,7 +24,6 @@ import mu.KotlinLogging
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
-import sp.it.util.functional.recurse
 import sp.it.util.functional.recurseBF
 import sp.it.util.type.JavafxPropertyType.JavafxDoublePropertyType
 import sp.it.util.type.JavafxPropertyType.JavafxFloatPropertyType
@@ -55,12 +54,10 @@ import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
-import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
@@ -112,7 +109,7 @@ fun setLoggingLevelForPackage(logPackage: Package, logLevel: Level) {
 /** @return thread-safe [ReadWriteProperty] backed by [AtomicReference] */
 fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
 
-   private val ref = AtomicReference<T>(initialValue)
+   private val ref = AtomicReference(initialValue)
 
    override fun getValue(thisRef: Any?, property: KProperty<*>) = ref.get()
 
@@ -271,6 +268,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
    }
 
    // add synthetic javafx layout properties for nodes in scene graph
+   @Suppress("SpellCheckingInspection")
    if (o is Node) {
       when (o.parent) {
          is StackPane -> {
@@ -333,7 +331,7 @@ private object PaneProperties {
 
 /** [KTypeProjection.type] without variance and [KTypeProjection.STAR] resolved to non null [Nothing] */
 val KTypeProjection.typeResolved: KType
-   get() = type ?: Nothing::class.createType(nullable = false)
+   get() = type ?: typeNothingNonNull().type
 
 /** True if this class is subclass of one of the top lvl javafx property interfaces, i.e [ObservableValue] or [WritableValue] */
 val KClass<*>.isJavaFxObservableOrWritableValue
@@ -439,7 +437,7 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
    }.let {
       when {
          it.variance==KVariance.OUT && it.type==Any::class.createType(nullable = true) -> KTypeProjection.STAR
-         it.variance==KVariance.IN && it.type==Nothing::class.createType(nullable = false) -> KTypeProjection.STAR
+         it.variance==KVariance.IN && it.type==typeNothingNonNull().type -> KTypeProjection.STAR
          else -> it
       }
    }

@@ -1,7 +1,6 @@
 @file:Suppress("RemoveCurlyBracesFromTemplate", "SpellCheckingInspection")
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -26,7 +25,7 @@ fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, mes
 val String.sysProp: String?
    get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
-open class LinkJDK: AbstractTask() {
+open class LinkJDK: DefaultTask() {
    /** Location of the link to the JDK. */
    @Internal lateinit var linkLocation: File
    /** Location of the JDK. */

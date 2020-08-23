@@ -20,6 +20,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.InvalidPathException
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import java.time.LocalDateTime
@@ -118,6 +119,9 @@ private fun File.readBasicFileAttributes(): BasicFileAttributes? =
    try {
       Files.readAttributes(toPath(), BasicFileAttributes::class.java)
    } catch (e: IOException) {
+      logger.error(e) { "Unable to read basic file attributes for $this" }
+      null
+   } catch (e: InvalidPathException) {
       logger.error(e) { "Unable to read basic file attributes for $this" }
       null
    }

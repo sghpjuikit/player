@@ -1318,7 +1318,7 @@ public class Comet extends SimpleController {
 		public final V<Double> energy = new V<>(0d);
 		public Rocket rocket;
 		public final StatsPlayer stats = new StatsPlayer();
-		private long hudUpdateFrequency = (long) ttl(millis(200));
+		private final long hudUpdateFrequency = (long) ttl(millis(200));
 
 		public Player(int ID, Color COLOR, KeyCode kFire, KeyCode kThrust, KeyCode kLeft, KeyCode kRight, KeyCode kAbility, AbilityKind ABILITY) {
 			id.set(ID);
@@ -1385,7 +1385,6 @@ public class Comet extends SimpleController {
 			rocket.voronoiArea = null;
 			rocket.voronoiAreaCenterDistance = null;
 			rocket.changeAbility(ability_type.get());
-			// TODO: refactor to event
 			if (!game.settings.playerNoKineticShield) game.new Enhancer("Super shield", FontAwesomeIcon.SUN_ALT, seconds(5), r -> r.kinetic_shield.large.inc().inc(), r -> r.kinetic_shield.large.dec().dec(), "").enhance(rocket);
 			createHyperSpaceAnimIn(game, rocket);
 		}

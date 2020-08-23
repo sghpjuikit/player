@@ -80,9 +80,9 @@ import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
 import sp.it.util.ui.label
+import sp.it.util.units.uri
 import java.io.File
 import java.lang.management.ManagementFactory
-import java.net.URI
 import java.net.URLConnection
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
@@ -120,7 +120,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Name of this application. */
    val name = "Spit Player"
    /** Version of this application. */
-   val version = KotlinVersion(0, 8, 0)
+   val version = KotlinVersion(2, 0, 0)
    /** Application code encoding. Useful for compilation during runtime. */
    val encoding = UTF_8
    /** Absolute file of location of this app. Working directory of the project. `new File("").getAbsoluteFile()`. */
@@ -130,7 +130,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Home directory of the os. */
    val locationHome = File(System.getProperty("user.home")) apply_ verify
    /** Uri for github website for project of this application. */
-   val githubUri = URI.create("https://www.github.com/sghpjuikit/player/")
+   val githubUri = uri("https://www.github.com/sghpjuikit/player/")
 
    /** Rank this application instance started with. [MASTER] if started as the first instance, [SLAVE] otherwise. */
    val rankAtStart: Rank = if (getInstances()>1) SLAVE else MASTER

@@ -8,6 +8,7 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.util.units.millis
+import sp.it.util.units.uri
 import java.io.Serializable
 import java.net.URI
 import java.util.HashMap
@@ -100,7 +101,7 @@ class PlaylistItemDB: Serializable {
       this.uri = i.uri.toString()
    }
 
-   fun toDomain() = PlaylistSong(URI.create(uri), artist, title, length)
+   fun toDomain() = PlaylistSong(uri(uri), artist, title, length)
 
    companion object {
       private const val serialVersionUID: Long = 1

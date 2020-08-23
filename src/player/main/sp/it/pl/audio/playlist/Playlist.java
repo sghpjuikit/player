@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.Song;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.mapset.MapSet;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -35,6 +36,7 @@ import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
+import static sp.it.util.units.UtilKt.uri;
 
 public class Playlist extends SimpleListProperty<PlaylistSong> {
 
@@ -180,7 +182,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 	/**
 	 * Duplicates the songs if they are in playlist. If they arent, does nothing.
-	 * Duplicates will appear on the next index following the last songs's index.
+	 * Duplicates will appear on the next index following the last song's index.
 	 *
 	 * @param songs songs to duplicate
 	 */
@@ -227,7 +229,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * any of them hits end/start of the playlist. Items wont rotate the list.
 	 *
 	 * @apiNote If this method requires real time response (for example reacting on mouse drag in table), it is important
-	 * to 'cache' the behavior and allow values >1 && <-1 so the moved songs dont lag behind.
+	 * to 'cache' the behavior and allow values >1 && <-1 so the moved songs don't lag behind.
 	 *
 	 * @param indexes of songs to move. Must be List<Integer>.
 	 * @param by distance to move songs by. Negative moves back. Zero does nothing.
@@ -311,7 +313,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * Updates song.
 	 * Updates all instances of the Song that are in the playlist. When application
 	 * internally updates PlaylistSong it must make sure all its duplicates are
-	 * updated too. Thats what this method does.
+	 * updated too. That's what this method does.
 	 *
 	 * @param song song to update
 	 */
@@ -417,7 +419,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 						} else {
 							playingSongWrapper.set(song);
 							if (unplayable1st==null) unplayable1st = song;  // remember 1st unplayable
-							// try to play next song, note we dont use the supplier as a fallback 2nd time
+							// try to play next song, note we don't use the supplier as a fallback 2nd time
 							// we use linear 'next time' supplier instead, to make sure we check every
 							// song on a completely unplayable playlist and exactly once. Say provided
 							// one selects random song - we could get into potentially infinite loop or
@@ -463,7 +465,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * Clears active playlist completely and adds all songs from new playlist.
 	 * Starts playing first file.
 	 *
-	 * @param songs songs to be onthe  playlist.
+	 * @param songs songs to be on the  playlist.
 	 * @throws NullPointerException if param null.
 	 */
 	public void setNplay(Collection<? extends Song> songs) {
@@ -527,7 +529,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @throws NullPointerException when param null.
 	 */
 	public void addUrl(String url) {
-		addUrls(Collections.singletonList(url));
+		addUrls(singletonList(url));
 	}
 
 	/**
@@ -543,7 +545,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 			try {
 				new URI(url);	// trigger exception
 				new URL(url);	// trigger exception
-				add.add(URI.create(url));
+				add.add(uri(url));
 			} catch (URISyntaxException|MalformedURLException e) {
 				throw new RuntimeException("Invalid URL.");
 			}
@@ -558,8 +560,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @throws NullPointerException when param null.
 	 */
 	public void addUrls(String url, int at) {
-		List<URI> to_add = Collections.singletonList(URI.create(url));
-		addUris(to_add, at);
+		addUris(singletonList(uri(url)), at);
 	}
 
 	/**
@@ -586,7 +587,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @throws NullPointerException when param null.
 	 */
 	public void addUri(URI uri) {
-		addUris(Collections.singletonList(uri));
+		addUris(singletonList(uri));
 	}
 
 	/**
@@ -621,7 +622,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	}
 
 	public void addItem(Song song) {
-		addItems(Collections.singletonList(song), size());
+		addItems(singletonList(song), size());
 	}
 
 	/**

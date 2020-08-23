@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.image;
 
 import java.io.File;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +23,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.Unit;
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.image.ImageStandardLoader;
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.dev.Dependency;
@@ -55,6 +54,7 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
+import static sp.it.util.units.UtilKt.uri;
 
 /**
  * Thumbnail.
@@ -398,7 +398,7 @@ public class Thumbnail {
 		// back to imageFile
 		String url = image.get()==null ? null : image.get().getUrl();
 		try {
-			return url==null ? imageFile : toFileOrNull(URI.create(url));
+			return url==null ? imageFile : toFileOrNull(uri(url));
 		} catch (IllegalArgumentException e) {
 			logger(Thumbnail.class).warn("Uri={} is not valid file", url, e);
 			return null;

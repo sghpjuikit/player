@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement component help page & shortcut
 - Implement window ALT+drag resizing+maximizing
 - Implement window header animation
+- Implement Webp image read support
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance

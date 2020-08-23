@@ -1,7 +1,11 @@
 package sp.it.pl.web
 
 import sp.it.util.Util
+import sp.it.util.Util.urlEncodeUtf8
 import sp.it.util.functional.Functors.F1
+import sp.it.util.parsing.StringParseStrategy.From.SINGLETON
+import sp.it.util.parsing.StringParseStrategy.To.CONSTANT
+import sp.it.util.units.uri
 import java.net.URI
 import sp.it.util.parsing.StringParseStrategy as Parse
 
@@ -10,9 +14,9 @@ interface SearchUriBuilder: F1<String, URI> {
 
    val name: String
 
-   fun uri(q: String): URI
+   fun build(q: String): URI
 
-   override fun apply(queryParam: String): URI = uri(Util.urlEncodeUtf8(queryParam))
+   override fun apply(queryParam: String): URI = build(urlEncodeUtf8(queryParam))
 
 }
 
@@ -21,41 +25,41 @@ interface ImageSearchUriBuilder: SearchUriBuilder
 interface WebSearchUriBuilder: SearchUriBuilder
 
 
-@Parse(from = Parse.From.SINGLETON, to = Parse.To.CONSTANT, constant = "Bing Image")
+@Parse(from = SINGLETON, to = CONSTANT, constant = "Bing Image")
 object BingImageSearchQBuilder: ImageSearchUriBuilder {
    override val name = "Bing Image"
-   override fun uri(q: String) = URI.create("http://www.bing.com/images/search?q=$q&qs=n&form=QBIR&pq=ggg&sc=8-3&sp=-1")
+   override fun build(q: String) = uri("http://www.bing.com/images/search?q=$q&qs=n&form=QBIR&pq=ggg&sc=8-3&sp=-1")
 }
 
-@Parse(from = Parse.From.SINGLETON, to = Parse.To.CONSTANT, constant = "DuckDuckGo Image")
+@Parse(from = SINGLETON, to = CONSTANT, constant = "DuckDuckGo Image")
 object DuckDuckGoImageQBuilder: ImageSearchUriBuilder {
    override val name = "DuckDuckGo Image"
-   override fun uri(q: String) = URI.create("https://duckduckgo.com/?q=$q&iax=images&ia=images")
+   override fun build(q: String) = uri("https://duckduckgo.com/?q=$q&iax=images&ia=images")
 }
 
-@Parse(from = Parse.From.SINGLETON, to = Parse.To.CONSTANT, constant = "DuckDuckGo")
+@Parse(from = SINGLETON, to = CONSTANT, constant = "DuckDuckGo")
 object DuckDuckGoQBuilder: WebSearchUriBuilder {
    override val name = "DuckDuckGo"
-   override fun uri(q: String) = URI.create("https://duckduckgo.com/?q=$q")
+   override fun build(q: String) = uri("https://duckduckgo.com/?q=$q")
 }
 
-@Parse(from = Parse.From.SINGLETON, to = Parse.To.CONSTANT, constant = "Google Image")
+@Parse(from = SINGLETON, to = CONSTANT, constant = "Google Image")
 object GoogleImageQBuilder: ImageSearchUriBuilder {
    override val name = "Google Image"
-   override fun uri(q: String) = URI.create("https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=$q")
+   override fun build(q: String) = uri("https://www.google.com/search?hl=en&site=imghp&tbm=isch&source=hp&q=$q")
 }
 
-@Parse(from = Parse.From.SINGLETON, to = Parse.To.CONSTANT, constant = "Wikipedia")
+@Parse(from = SINGLETON, to = CONSTANT, constant = "Wikipedia")
 object WikipediaQBuilder: WebSearchUriBuilder {
    override val name = "Wikipedia"
-   override fun uri(q: String) = URI.create("https://en.wikipedia.org/wiki/Special:Search/$q")
+   override fun build(q: String) = uri("https://en.wikipedia.org/wiki/Special:Search/$q")
 }
 
 object WebBarInterpreter {
 
    fun toUrlString(text: String, searchEngine: SearchUriBuilder): String {
       val isUrl = text.contains(".")
-      return if (isUrl) addHttpWwwPrefix(Util.urlEncodeUtf8(text)) else searchEngine(text).toASCIIString()
+      return if (isUrl) addHttpWwwPrefix(urlEncodeUtf8(text)) else searchEngine(text).toASCIIString()
    }
 
    private fun addHttpWwwPrefix(url: String) =

@@ -42,6 +42,7 @@ import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
 import sp.it.util.units.RangeYear
+import sp.it.util.units.uri
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -158,8 +159,8 @@ object CoreFunctors: Core {
          add("Is empty", S, B) { it.isEmpty() }
          add("Is palindrome", S, B) { it.isPalindrome() }
          add("To file", S, File::class.java) { File(it) }
-         add("Is URI", S, B) { runTry { URI.create(it) }.isOk }
-         add("To URI", S, URI::class.java) { runTry { URI.create(it) }.orNull() }
+         add("Is URI", S, B) { runTry { uri(it) }.isOk }
+         add("To URI", S, URI::class.java) { runTry { uri(it) }.orNull() }
          add("Is base64", S, B) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.isOk }
          add("Base64 encode", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
          add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }

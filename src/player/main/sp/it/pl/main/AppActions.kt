@@ -61,6 +61,7 @@ import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.stackPane
 import sp.it.util.units.millis
 import sp.it.util.units.times
+import sp.it.util.units.uri
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -80,7 +81,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = "Open css guide", info = "Opens css reference guide. For developers.")
    fun openCssGuide() {
-      URI.create("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
+      uri("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
    }
 
    @IsAction(name = "Open settings", info = "Opens application settings.")
@@ -223,8 +224,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       configureString("Open on web...", "Website or phrase") {
          val uriString = WebBarInterpreter.toUrlString(it, DuckDuckGoQBuilder)
          try {
-            val uri = URI(uriString)
-            uri.browse()
+            uri(uriString).browse()
          } catch (e: URISyntaxException) {
             logger.warn(e) { "$uriString is not a valid URI" }
          }
@@ -234,7 +234,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    @IsAction(name = "Open web dictionary", info = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
    fun openDictionary() {
       configureString("Look up in dictionary...", "Word") {
-         URI.create("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
+         uri("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
       }
    }
 

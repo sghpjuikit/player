@@ -50,6 +50,7 @@ import sp.it.util.type.isPlatformType
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
+import sp.it.util.units.uri
 import java.io.File
 import java.net.URI
 import java.nio.file.attribute.FileTime
@@ -148,7 +149,7 @@ class CoreConverter: Core {
       addT<StringSplitParser>(toS, StringSplitParser::fromString)
       addT<Year>(toS, tryF(DTPE::class) { Year.parse(it) })
       addP<File>(toS, { File(it) })
-      addT<URI>(toS, tryF(IAE::class) { URI.create(it) })
+      addT<URI>(toS, tryF(IAE::class) { uri(it) })
       addT<Pattern>(toS, tryF(PSE::class) { Pattern.compile(it) })
       addT<Bitrate>(toS, { Bitrate.fromString(it).orMessage() })
       addT<Duration>(toS, tryF(IAE::class) { Duration.valueOf(it.replace(" ", "")) }) // fixes java's inconsistency

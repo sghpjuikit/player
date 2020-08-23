@@ -489,7 +489,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
       private object SteamQBuilder: WebSearchUriBuilder {
          override val name = "Steam"
-         override fun uri(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
+         override fun build(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
       }
 
    }

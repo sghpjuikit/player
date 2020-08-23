@@ -87,8 +87,8 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
+import sp.it.util.units.uri
 import java.io.File
-import java.net.URI
 import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -195,8 +195,10 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                   ?: it.toBigIntegerOrNull()
                   ?: it.toBigDecimalOrNull()
                   ?: it.toByteOrNull()
-                  ?: runTry { URI.create("file:///" + URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
-                  ?: runTry { URI.create(URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: runTry { uri("file:///$it") }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: runTry { uri("file:///" + URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: runTry { uri(it) }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: runTry { uri(URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
                   ?: it
             }
             Try.ok(data)

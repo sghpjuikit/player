@@ -17,6 +17,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.system.chooseFile
 import sp.it.util.system.chooseFiles
 import sp.it.util.type.type
+import sp.it.util.units.uri
 import java.io.File
 import java.net.URI
 import java.util.UUID
@@ -147,7 +148,7 @@ fun Playlist.addOrEnqueueUrl(add: Boolean) {
    ValueConfig(
       type<URI>(),
       "Url",
-      URI.create("https://www.example.com"),
+      uri("https://www.example.com"),
       "Direct uri a file, e.g., a file on the web. The url should end with file audio file suffix like."
    ).configure(if (add) "Add url song." else "Play url song.") {
       if (add) {

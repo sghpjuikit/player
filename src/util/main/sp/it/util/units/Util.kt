@@ -1,6 +1,7 @@
 package sp.it.util.units
 
 import sp.it.util.dev.Dependency
+import java.net.URI
 import java.time.Duration
 import java.time.Year
 import java.util.UUID
@@ -17,6 +18,9 @@ fun uuid(): UUID = UUID.randomUUID()
 
 /** Equivalent to [UUID.fromString]. */
 fun uuid(text: String): UUID = UUID.fromString(text)
+
+/** Equivalent to [URI.create]. */
+fun uri(uri: String): URI = URI.create(uri)
 
 /** Converts to javafx [Dur] */
 val Duration.javafx: Dur get() = toMillis().millis

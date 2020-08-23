@@ -52,6 +52,7 @@ import sp.it.util.units.FileSize
 import sp.it.util.units.FileSize.Companion.sizeInB
 import sp.it.util.units.NofX
 import sp.it.util.units.toHMSMs
+import sp.it.util.units.uri
 import java.io.File
 import java.io.IOException
 import java.io.Serializable
@@ -76,7 +77,7 @@ class Metadata: Song, Serializable {
 
    // file fields
 
-   override val uri: URI get() = URI.create(id.replace(" ", "%20"))
+   override val uri: URI get() = uri(id.replace(" ", "%20"))
 
    override lateinit var id: String
 
@@ -746,7 +747,7 @@ class Metadata: Song, Serializable {
        * Note: The reference operator works, because there is always only one
        * instance of EMPTY metadata.
        */
-      @F val EMPTY = Metadata(SimpleSong(URI.create("empty://empty")))
+      @F val EMPTY = Metadata(SimpleSong(uri("empty://empty")))
 
       private fun String?.orNull() = takeUnless { it.isNullOrBlank() }
 

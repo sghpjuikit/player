@@ -34,6 +34,7 @@ import sp.it.util.ui.drag.DataFormat
 import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.handlerAccepting
+import sp.it.util.units.uri
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -164,7 +165,7 @@ fun Dragboard.getAudio(): List<Song> = when {
    hasFiles() -> findAudio(files).map { SimpleSong(it) }.toList()
    hasUrl() -> {
       when {
-         url.isAudio() -> listOf(SimpleSong(URI.create(url)))
+         url.isAudio() -> listOf(SimpleSong(uri(url)))
          else -> listOf()
       }
    }

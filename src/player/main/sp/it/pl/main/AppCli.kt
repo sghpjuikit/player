@@ -28,6 +28,7 @@ import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.times
+import sp.it.util.units.uri
 import java.io.File
 import java.net.URI
 import java.net.URLEncoder
@@ -186,5 +187,9 @@ class Cli: CliktCommand(
 private fun File.requireAbsolute() = require(isAbsolute) { "File must be absolute" }
 
 private fun String.toURIFlexible(): File? = null
-   ?: runTry { URI.create("file:///" + URLEncoder.encode(this, UTF_8).replace("+", "%20")).toFileOrNull()?.takeIf { it.isAbsolute } }.orNull()
-   ?: runTry { URI.create(URLEncoder.encode(this, UTF_8).replace("+", "%20")).toFileOrNull()?.takeIf { it.isAbsolute } }.orNull()
+   ?: runTry { uri("file:///$this").toAbsoluteFileOrNull() }.orNull()
+   ?: runTry { uri("file:///" + URLEncoder.encode(this, UTF_8).replace("+", "%20")).toAbsoluteFileOrNull() }.orNull()
+   ?: runTry { uri(this).toAbsoluteFileOrNull() }.orNull()
+   ?: runTry { uri(URLEncoder.encode(this, UTF_8).replace("+", "%20")).toAbsoluteFileOrNull() }.orNull()
+
+private fun URI.toAbsoluteFileOrNull() = toFileOrNull()?.takeIf { it.isAbsolute }

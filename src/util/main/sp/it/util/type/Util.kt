@@ -33,7 +33,6 @@ import sp.it.util.type.PaneProperties.paneProperty
 import java.lang.reflect.Array
 import java.lang.reflect.Field
 import java.lang.reflect.GenericArrayType
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -233,10 +232,8 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
                } else {
                   logger.warn { "Is null property='$observable' propertyName=$propertyName propertyType=$propertyType" }
                }
-            } catch (e: IllegalAccessException) {
-               logger.error(e) { "Could not obtain property '$propertyName' from object" }
-            } catch (e: InvocationTargetException) {
-               logger.error(e) { "Could not obtain property '$propertyName' from object" }
+            } catch (e: Throwable) {
+               logger.error(e) { "Could not obtain property '$propertyName' from class ${o::class} of object $o" }
             }
          }
       }

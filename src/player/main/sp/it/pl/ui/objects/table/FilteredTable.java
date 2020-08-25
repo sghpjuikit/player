@@ -13,7 +13,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -485,26 +484,25 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	@Override
 	protected Callback<TableColumn<T,Void>,TableCell<T,Void>> buildIndexColumnCellFactory() {
-		return (column -> new TableCell<>() {
-			{
-				setAlignment(Pos.CENTER_RIGHT);
-			}
-
-			@Override
-			protected void updateItem(Void item, boolean empty) {
-				super.updateItem(item, empty);
-				if (empty)
-					setText(null);
-				else {
-					int j = getIndex();
-					int i = showOriginalIndex.getValue() ? filteredItems.getSourceIndex(j) : j;
-					String txt = zeropadIndex.getValue()
-						? zeroPad(i + 1, digits(getMaxIndex()), '0')
-						: String.valueOf(i + 1);
-					setText(txt + ".");
-				}
-			}
-		});
+		return column -> new IndexTableCell<>();
 	}
 
+	private class IndexTableCell<S> extends TableCell<S,Void> {
+		{
+			setAlignment(CENTER_RIGHT);
+		}
+
+		@Override
+		protected void updateItem(Void item, boolean empty) {
+			super.updateItem(item, empty);
+			if (empty) {
+				setText(null);
+			} else {
+				int j = getIndex();
+				int i = showOriginalIndex.getValue() ? filteredItems.getSourceIndex(j) : j;
+				String txt = zeropadIndex.getValue() ? zeroPad(i + 1, digits(getMaxIndex()), '0') : String.valueOf(i + 1);
+				setText(txt + ".");
+			}
+		}
+	}
 }

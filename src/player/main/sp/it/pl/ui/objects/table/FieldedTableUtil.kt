@@ -16,18 +16,18 @@ import sp.it.util.type.isSubclassOf
  * * sets text alignment to [LEFT] for [String] and [RIGHT] otherwise
  */
 fun <T, X> ObjectField<T, X>.buildFieldedCell(): TableCell<T, X> = let { f ->
-      object: TableCell<T, X>() {
-         init {
-            alignment = if (f.type.isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
-            textAlignment = if (f.type.isSubclassOf<String>()) LEFT else RIGHT
-            padding = Insets.EMPTY
-         }
+   object: TableCell<T, X>() {
+      init {
+         alignment = if (f.type.isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
+         textAlignment = if (f.type.isSubclassOf<String>()) LEFT else RIGHT
+         padding = Insets.EMPTY
+      }
 
-         override fun updateItem(item: X, empty: Boolean) {
-            super.updateItem(item, empty)
-            val row = if (empty) null else tableRow
-            val rowItem = row?.item
-            text = if (rowItem==null) "" else f.toS(rowItem, item, "")
-         }
+      override fun updateItem(item: X, empty: Boolean) {
+         super.updateItem(item, empty)
+         val row = if (empty) null else tableRow
+         val rowItem = row?.item
+         text = if (rowItem==null) "" else f.toS(rowItem, item, "")
       }
    }
+}

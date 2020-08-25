@@ -77,7 +77,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 	public final V<Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
-	private ArrayList<Integer> selectionTmp = new ArrayList<>();
+	private final ArrayList<Integer> selectionTmp = new ArrayList<>();
 	private final Disposer disposer = new Disposer();
 
 	public PlaylistTable(Playlist playlist) {
@@ -105,34 +105,34 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		setColumnState(getDefaultColumnInfo());
 
 		// initialize row factories
-		setRowFactory(t -> new ImprovedTableRow<>() {
-			{
-				// remember position for moving selected rows on mouse drag
-				setOnMousePressed(e -> selectionLastScreenY = e.getScreenY());
-				// clear table selection on mouse released if no item
-				setOnMouseReleased(e -> {
-					if (getItem()==null)
-						selectNone();
-				});
-				// left double click -> play
-				onLeftDoubleClick((r, e) -> getPlaylist().playItem(r.getItem()));
-				// right click -> show context menu
-				onRightSingleClick((r, e) -> {
-					// prep selection for context menu
-					if (!isSelected())
-						getSelectionModel().clearAndSelect(getIndex());
+		setRowFactory(t -> {
+			var row = new ImprovedTableRow<PlaylistSong>();
+			// remember position for moving selected rows on mouse drag
+			row.setOnMousePressed(e -> selectionLastScreenY = e.getScreenY());
+			// clear table selection on mouse released if no item
+			row.setOnMouseReleased(e -> {
+				if (row.getItem()==null)
+					selectNone();
+			});
+			// left double click -> play
+			row.onLeftDoubleClick((r, e) -> getPlaylist().playItem(r.getItem()));
+			// right click -> show context menu
+			row.onRightSingleClick((r, e) -> {
+				// prep selection for context menu
+				if (!row.isSelected())
+					getSelectionModel().clearAndSelect(row.getIndex());
 
-					ImprovedTable<PlaylistSong> table = PlaylistTable.this;
-					contextMenu.setItemsFor(new PlaylistSongGroup(playlist, table.getSelectedItemsCopy()));
-					contextMenu.show(table, e);
-				});
-				// handle drag transfer
-				setOnDragDropped(e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
+				var table = PlaylistTable.this;
+				contextMenu.setItemsFor(new PlaylistSongGroup(playlist, table.getSelectedItemsCopy()));
+				contextMenu.show(table, e);
+			});
+			// handle drag transfer
+			row.setOnDragDropped(e -> dropDrag(e, row.isEmpty() ? getItems().size() : row.getIndex()));
 
-				// additional css style classes
-				styleRuleAdd(STYLE_PLAYED, p -> getPlaylist().isPlaying(p));
-				styleRuleAdd(STYLE_CORRUPT, PlaylistSong::isCorruptCached);
-			}
+			// additional css style classes
+			row.styleRuleAdd(STYLE_PLAYED, p -> getPlaylist().isPlaying(p));
+			row.styleRuleAdd(STYLE_CORRUPT, PlaylistSong::isCorruptCached);
+			return row;
 		});
 		disposer.plusAssign(syncC(getPlaylist().playingSong, s -> updateStyleRules()));
 
@@ -164,12 +164,12 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 				c.setPrefWidth(width);
 			});
 
-			TableColumn<?,?> mc = isColumnVisible(NAME) ? getColumn(NAME).get() : getColumn(TITLE).orElse(null);
+			TableColumn<?,?> mc = isColumnVisible(NAME) ? getColumn(NAME).orElse(null) : getColumn(TITLE).orElse(null);
 			if (mc!=null) {
-				double Σcw = resize.getTable().getColumns().stream()
+				double sumW = resize.getTable().getColumns().stream()
 						.filter(c -> c!=mc)
 						.mapToDouble(TableColumnBase::getWidth).sum();
-				mc.setPrefWidth(tw - Σcw - sw - gap);
+				mc.setPrefWidth(tw - sumW - sw - gap);
 			}
 			return true; // false/true, does not matter
 		});

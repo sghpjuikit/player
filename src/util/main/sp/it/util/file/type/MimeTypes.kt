@@ -1,6 +1,5 @@
 package sp.it.util.file.type
 
-import sp.it.util.file.Util.getSuffix
 import java.io.File
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
@@ -54,7 +53,7 @@ object MimeTypes {
 
    fun ofFile(file: File): MimeType = extensions.getOrDefault(file.extension.toLowerCase(), MimeType.UNKNOWN)
 
-   fun ofURI(url: URI): MimeType = extensions.getOrDefault(getSuffix(url).toLowerCase(), MimeType.UNKNOWN)
+   fun ofURI(uri: URI): MimeType = extensions.getOrDefault(uri.path.substringAfterLast(".", "").toLowerCase(), MimeType.UNKNOWN)
 
    fun setOfGroups(): Set<String> = types.values.asSequence().map { it.group }.toSet()
 

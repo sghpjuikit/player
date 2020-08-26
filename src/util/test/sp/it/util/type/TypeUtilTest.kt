@@ -19,6 +19,7 @@ import sp.it.util.collections.stackOf
 import sp.it.util.dev.fail
 import sp.it.util.dev.printIt
 import sp.it.util.functional.asIs
+import sp.it.util.functional.recurseDF
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.AbstractList
@@ -34,13 +35,12 @@ import kotlin.reflect.KVariance.INVARIANT
 import kotlin.reflect.KVariance.OUT
 import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.allSupertypes
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaType
 
-@Suppress("RemoveRedundantQualifierName")
+@Suppress("RemoveRedundantQualifierName", "RemoveExplicitTypeArguments")
 class TypeUtilTest: FreeSpec({
 
    "Method" - {
@@ -70,8 +70,7 @@ class TypeUtilTest: FreeSpec({
          Consumer<*>::accept.returnType.classifier shouldBe Unit::class
       }
 
-      "${KType::isSubtypeOf.name}" {
-
+      KType::isSubtypeOf.name {
          open class NonGeneric
          open class Covariant<out T>
          open class Invariant<T>
@@ -219,7 +218,6 @@ class TypeUtilTest: FreeSpec({
       }
 
       KType::javaFxPropertyType.name {
-
          val o1 = Pane()
          val o2 = object: Any() {
             fun f2(): List<Int> = arrayListOf()
@@ -315,6 +313,35 @@ class TypeUtilTest: FreeSpec({
          List::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
          MutableList::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
          ArrayList::class.allSupertypes.toString() shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
+      }
+
+      KClass<*>::union.name {
+         // self
+         Int::class union Int::class shouldBe Int::class
+
+         // simple hierarchy
+         Int::class union Long::class shouldBe Number::class
+         Long::class union Int::class shouldBe Number::class
+
+         // union with top of the hierarchy
+         Any::class union Int::class shouldBe Any::class
+         Any::class union Any::class shouldBe Any::class
+         Int::class union Any::class shouldBe Any::class
+
+         // union with bottom of the hierarchy
+         Int::class union Nothing::class shouldBe Any::class
+         Nothing::class union Int::class shouldBe Any::class
+
+         // complex hierarchy
+         listOf<Int>()::class union setOf<Int>()::class shouldBe Collection::class
+         listOf<Int>()::class union listOf<Int>()::class shouldBe listOf<Int>()::class
+         listOf<Int>(1)::class union listOf<Int>(1)::class shouldBe listOf<Int>(1)::class
+         listOf<Int>(1, 2)::class union listOf<Int>(1, 2)::class shouldBe listOf<Int>(1, 2)::class
+         listOf<Int>(1, 2, 3)::class union listOf<Int>(1, 2, 3)::class shouldBe listOf<Int>(1, 2, 3)::class
+
+         // interface
+         Int::class union Comparable::class shouldBe Comparable::class
+         listOf<Int>()::class union List::class shouldBe List::class
       }
 
       "!${KType::argOf.name}" {

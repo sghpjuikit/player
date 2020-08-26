@@ -18,10 +18,10 @@ import kotlin.streams.asSequence
 val String.lengthInChars: Int get() = length
 
 /** Length of this string in code points */
-val String.lengthInCodePoint: Int get() = codePointCount(0, length)
+val String.lengthInCodePoints: Int get() = codePointCount(0, length)
 
 /** Length of this string in graphemes */
-val String.lengthInGrapheme: Int get() {
+val String.lengthInGraphemes: Int get() {
    var graphemeCount = 0
    val graphemeCounter = BreakIterator.getCharacterInstance(Locale.ROOT)
    graphemeCounter.setText(this)
@@ -38,7 +38,7 @@ fun String.char32At(at: Int): Char32 = codePointAt(at).toChar32()
 /** @return [Char32] at the specified index from the specified side or throws [IndexOutOfBoundsException]. */
 fun String.char32At(at: Int, dir: StringDirection): Char32 = when (dir) {
    FROM_START -> codePointAt(at).toChar32()
-   FROM_END -> codePointAt(lengthInCodePoint - at).toChar32()
+   FROM_END -> codePointAt(lengthInCodePoints - at).toChar32()
 }
 
 /** @return [Char32] at the specified index or throws [IndexOutOfBoundsException]. */

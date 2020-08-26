@@ -15,6 +15,7 @@ import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppUi.SkinCss
+import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginBox
@@ -30,6 +31,7 @@ import sp.it.util.functional.Functors
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
+import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
@@ -47,12 +49,16 @@ import sp.it.util.toLocalDateTime
 import sp.it.util.type.Util.isEnum
 import sp.it.util.type.VType
 import sp.it.util.type.isPlatformType
+import sp.it.util.type.raw
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
 import sp.it.util.units.uri
 import java.io.File
 import java.net.URI
+import java.net.URL
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.attribute.FileTime
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -64,6 +70,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KVariance
+import kotlin.reflect.full.createType
 import java.time.DateTimeException as DTE
 import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
@@ -120,6 +127,9 @@ class CoreConverter: Core {
          is WidgetFactory<*> -> o.name
          is Node -> o.id?.trim().orEmpty() + ":" + o::class.toUi()
          is Name -> o.value
+         is File -> o.path
+         is URI -> URLDecoder.decode(o.toASCIIString(), UTF_8)
+         is URL -> URLDecoder.decode(o.toExternalForm(), UTF_8)
          is Feature -> o.name
          else -> if (isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
@@ -174,6 +184,7 @@ class CoreConverter: Core {
       addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
       addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect?>(it) })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
+      addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) { Class.forName(it).kotlin })
       addP<PF<*, *>>(
          { "${it.name},${it.`in`},${it.out}" },
          {

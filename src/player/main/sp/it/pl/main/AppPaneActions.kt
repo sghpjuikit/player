@@ -79,8 +79,8 @@ import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
 import sp.it.util.text.graphemeAt
 import sp.it.util.text.lengthInChars
-import sp.it.util.text.lengthInCodePoint
-import sp.it.util.text.lengthInGrapheme
+import sp.it.util.text.lengthInCodePoints
+import sp.it.util.text.lengthInGraphemes
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -184,8 +184,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                it=="true" -> true
                it=="false" -> false
                it.lengthInChars==1 -> it[0]
-               it.lengthInCodePoint==1 -> it.codePointAt(0)
-               it.lengthInGrapheme==1 -> it.graphemeAt(0)
+               it.lengthInCodePoints==1 -> it.codePointAt(0)
+               it.lengthInGraphemes==1 -> it.graphemeAt(0)
                else -> null
                   ?: it.toShortOrNull()
                   ?: it.toIntOrNull()
@@ -195,10 +195,10 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                   ?: it.toBigIntegerOrNull()
                   ?: it.toBigDecimalOrNull()
                   ?: it.toByteOrNull()
-                  ?: runTry { uri("file:///$it") }.orNull()?.net { it.toFileOrNull() ?: it }
-                  ?: runTry { uri("file:///" + URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
                   ?: runTry { uri(it) }.orNull()?.net { it.toFileOrNull() ?: it }
                   ?: runTry { uri(URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: runTry { uri("file:///$it") }.orNull()?.net { it.toFileOrNull() ?: it }
+                  ?: runTry { uri("file:///" + URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
                   ?: it
             }
             Try.ok(data)
@@ -327,7 +327,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          { it.isImage() && APP.plugins.get<WallpaperChanger>()!=null },
          { f -> APP.plugins.use<WallpaperChanger> { it.wallpaperFile.value = f } }
       ),
-      FastAction(
+      SlowAction(
          "Print raw  metadata", "Prints all audio metadata to console.",
          IconMA.IMAGE_ASPECT_RATIO,
          { it.isAudio() },

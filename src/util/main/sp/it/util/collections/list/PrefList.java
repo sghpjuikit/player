@@ -2,6 +2,7 @@ package sp.it.util.collections.list;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -11,6 +12,15 @@ import java.util.function.UnaryOperator;
  */
 public class PrefList<E> extends ArrayList<E> {
 	private E pref;
+
+	public PrefList() {
+		this(List.of(), null);
+	}
+
+	public PrefList(List<E> elements, E pref) {
+		addAll(elements);
+		setPreferred(pref);
+	}
 
 	/**
 	 * Get preferred item.
@@ -43,6 +53,11 @@ public class PrefList<E> extends ArrayList<E> {
 	public void addPreferred(E e, boolean preferred) {
 		if (preferred) addPreferred(e);
 		else add(e);
+	}
+
+	public void setPreferred(E e) {
+		var i = indexOf(e);
+		if (i>=0) pref = get(i);
 	}
 
 	@Override

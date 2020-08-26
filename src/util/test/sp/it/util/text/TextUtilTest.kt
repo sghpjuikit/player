@@ -53,7 +53,7 @@ class TextUtilTest: FreeSpec({
       }
       "digraphs" {
          "ǆentlmen".capitalize() shouldBe "ǅentlmen"
-         "Ǆentlmen".capitalize() shouldBe "ǅentlmen"
+         "Ǆentlmen".capitalize() shouldBe "Ǆentlmen"
       }
    }
 })

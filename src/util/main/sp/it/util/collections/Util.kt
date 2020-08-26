@@ -13,8 +13,9 @@ import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.onChange
-import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.raw
+import sp.it.util.type.typeNothingNonNull
+import sp.it.util.type.typeNothingNullable
 import sp.it.util.type.union
 import java.util.Optional
 import java.util.Stack
@@ -34,32 +35,36 @@ fun <T> List<T>.materialize() = toList()
 fun <T> Set<T>.materialize() = toSet()
 
 /** @return new map containing elements of this map, e.g. for safe iteration */
-fun <K,V> Map<K,V>.materialize() = toMap()
+fun <K, V> Map<K, V>.materialize() = toMap()
 
 /** @return the most specific common supertype of all elements */
-fun <E: Any> Collection<E?>.getElementType(): KType {
-   fun KClass<*>.estimateType() = createType(typeParameters.map { STAR })
-   return getElementClass().kotlin.estimateType().withNullability(null in this)
+fun <E: Any> Collection<E?>.getElementType(): KType = when {
+   isEmpty() -> typeNothingNonNull().type
+   all { it===null } -> typeNothingNullable().type
+   else -> {
+      null
+         ?: run {
+            // Try obtaining exact type by inspecting the class
+            runTry {
+               this::class.supertypes.find { it.classifier==Collection::class }
+                  ?.arguments?.getOrNull(0)?.type
+                  ?.withNullability(null in this)
+            }.orNull()
+         }
+         ?: run {
+            // Find lowest common element type
+            fun KClass<*>.estimateType() = createType(typeParameters.map { STAR })
+            asSequence().filterNotNull()
+               .map { it::class }.distinct()
+               .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }!!
+               .estimateType()
+               .withNullability(null in this)
+         }
+   }
 }
 
 /** @return the most specific common supertype of all elements */
-fun <E: Any> Collection<E?>.getElementClass(): Class<*> {
-   return null
-      // Try obtaining exact type by inspecting the class
-      ?: run {
-         runTry {
-            this::class.supertypes.find { it.classifier==Collection::class }?.arguments?.getOrNull(0)?.type?.raw?.java
-         }.orNull()
-      }
-      // Find lowest common element type
-      ?: run {
-         asSequence().filterNotNull()
-            .map { it::class }.distinct()
-            .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }
-            ?.java
-      }
-      ?: Nothing::class.javaObjectType
-}
+fun <E: Any> Collection<E?>.getElementClass(): Class<*> = getElementType().raw.javaObjectType
 
 /** Wraps the specified object into a collection */
 fun collectionWrap(o: Any?): Collection<Any?> = o as? Collection<Any?> ?: listOf(o)

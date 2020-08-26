@@ -25,6 +25,8 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.recurseBF
+import sp.it.util.functional.recurseDF
+import sp.it.util.functional.traverse
 import sp.it.util.type.JavafxPropertyType.JavafxDoublePropertyType
 import sp.it.util.type.JavafxPropertyType.JavafxFloatPropertyType
 import sp.it.util.type.JavafxPropertyType.JavafxIntegerPropertyType
@@ -85,8 +87,11 @@ infix fun KClass<*>.union(type: KClass<*>): KClass<*> = when {
    this==type -> this
    this==Any::class || type==Any::class -> Any::class
    this.isSuperclassOf(type) -> this
-   type.isSubclassOf(type) -> type
-   else -> Any::class
+   this.isSubclassOf(type) -> type
+   else -> null
+      ?: java.traverse { it.superclass }.filter { it != Any::class.java }.find { it.isSuperclassOf(type.java) }?.kotlin
+      ?: recurseDF { it.superclasses.asIterable() }.filter { it != Any::class }.find { it.isSuperclassOf(type) }
+      ?: Any::class
 }
 
 inline fun <reified T: Annotation> Class<*>.findAnnotation(): T? = getAnnotation(T::class.java)

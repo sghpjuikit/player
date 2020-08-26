@@ -268,38 +268,11 @@ public interface Util {
 		else return f;
 	}
 
-	/**
-	 * Returns suffix after last '.' character of the path of the file or empty
-	 * string if it doesn't contain the character.
-	 * Note that the suffix will keep the case, which may break comparison.
-	 *
-	 * @return suffix after last '.' in the path or empty string
-	 * @throws java.lang.NullPointerException if parameter null
-	 */
-	static String getSuffix(File f) {
-		return getSuffix(f.getName());
-	}
-
-	/**
-	 * Returns suffix after last '.' character of the path of the uri or empty
-	 * string if it doesn't contain the character.
-	 * Note that the suffix will keep the case, which may break comparison.
-	 *
-	 * @return suffix after last '.' in the path or empty string
-	 * @throws java.lang.NullPointerException if parameter null or if uri path not defined
-	 */
-	static String getSuffix(URI f) {
+	private static String getSuffix(URI f) {
 		return getSuffix(f.getPath());
 	}
 
-	/**
-	 * Returns suffix after last '.' character or empty string if doesn't contain the character.
-	 * Note that the suffix will keep the case, which may break comparison.
-	 *
-	 * @return suffix after last '.' or empty string if does not contain '.'
-	 * @throws java.lang.NullPointerException if parameter null
-	 */
-	static String getSuffix(String path) {
+	private static String getSuffix(String path) {
 		int p = path.lastIndexOf('.');
 		return (p<=-1) ? "" : path.substring(p + 1);
 	}

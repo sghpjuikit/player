@@ -31,8 +31,8 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.lengthInChars
-import sp.it.util.text.lengthInCodePoint
-import sp.it.util.text.lengthInGrapheme
+import sp.it.util.text.lengthInCodePoints
+import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.pluralUnit
 import sp.it.util.text.toChar32
 import sp.it.util.type.ClassName
@@ -102,13 +102,12 @@ fun InstanceName.initApp() {
    add(Nothing::class) { "<none>" }
    add(Any::class) {
       if (it::class==Any::class) "object"
-      else it.toS()
+      else it.toUi()
    }
    add(String::class) {
-      if (it.codePointCount(0, it.length)>40) it.codePoints().asSequence().take(41).joinToString("") { it.toChar32().toString() } + " (first 40 characters)"
+      if (it.lengthInCodePoints>40) it.codePoints().asSequence().take(41).joinToString("") { it.toChar32().toString() } + " (first 40 characters)"
       else it
    }
-   add(File::class) { it.path }
    add(App::class) { "This application" }
    add(Song::class) { it.getPathAsString() }
    add(PlaylistSong::class) { it.getTitle() }
@@ -143,6 +142,7 @@ fun InstanceDescription.initApp() {
       "Dec" info it.toInt().toUi()
       "Hex" info "0x" + Integer.toHexString(it.toInt())
       "Unicode" info "U+" + Integer.toHexString(it.toInt()).padStart(4, '0')
+
       "Escape sequence" info "\\u" + Integer.toHexString(it.toInt()).padStart(4, '0')
    }
    Char32::class describe {
@@ -154,27 +154,37 @@ fun InstanceDescription.initApp() {
    }
    String::class describe {
       "Length (char)" info it.lengthInChars.toUi()
-      "Length (code point)" info it.lengthInCodePoint.toUi()
-      "Length (grapheme)" info it.lengthInGrapheme.toUi()
+      "Length (code point)" info it.lengthInCodePoints.toUi()
+      "Length (grapheme)" info it.lengthInGraphemes.toUi()
       "Lines" info it.lineSequence().count().toUi()
    }
    File::class describe { f ->
       val type = FileType(f)
-      "File type" info type.name
+      val exists = f.exists()
+
+      "File type" info type.toUi()
+      "Exists" info exists.toUi()
 
       if (type==FileType.FILE) {
          val fs = FileSize(f)
-         "Size" info ("" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else ""))
+
+         if (exists)
+            "Size" info ("" + fs + (if (fs.isKnown()) " (%,d bytes)".format(fs.inBytes()).replace(',', ' ') else "n/a"))
+
          "Format" info f.name.substringAfterLast('.', "<none>")
          FileField.MIME.name() info FileField.MIME.getOfS(f, "n/a")
       }
 
-      FileField.TIME_CREATED.name() info FileField.TIME_CREATED.getOfS(f, "n/a")
-      FileField.TIME_MODIFIED.name() info FileField.TIME_MODIFIED.getOfS(f, "n/a")
-      FileField.IS_HIDDEN.name() info FileField.IS_HIDDEN.getOfS(f, "n/a")
+      if (exists) {
+         FileField.TIME_CREATED.name() info FileField.TIME_CREATED.getOfS(f, "n/a")
+         FileField.TIME_MODIFIED.name() info FileField.TIME_MODIFIED.getOfS(f, "n/a")
+         FileField.IS_HIDDEN.name() info FileField.IS_HIDDEN.getOfS(f, "n/a")
 
-      if (f.isImage())
-         "Resolution" info getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
+         // TODO: load all image/audio metadata
+         if (f.isImage())
+            "Resolution" info getImageDim(f).map { "${it.width} x ${it.height}" }.getOr("n/a")
+      }
+
    }
    App::class describe {
       "Name" info it.name

@@ -12,6 +12,8 @@ import sp.it.util.functional.Util.IDENTITY
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
+import sp.it.util.type.VType
+import sp.it.util.type.typeNothingNonNull
 import java.util.function.BiPredicate
 import java.util.function.Supplier
 import java.util.stream.Stream
@@ -46,14 +48,14 @@ import kotlin.streams.asSequence
  * </ul>
  */
 class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any?) -> Any?> {
-   private val functorPool: (Class<*>) -> PrefList<PF<*, *>>
+   private val functorPool: (VType<*>) -> PrefList<PF<*, *>>
    private var handleNullIn = NullIn.NULL
    private var handleNullOut = NullOut.NULL
 
-   constructor(functorPool: (Class<*>) -> PrefList<PF<*, *>>): super(throwingF()) {
+   constructor(functorPool: (VType<*>) -> PrefList<PF<*, *>>): super(throwingF()) {
       this.functorPool = functorPool
       chainedFactory = Supplier {
-         FItemNode(functorPool(typeOut).asIs<PrefList<PF<Any?, Any?>>>())
+         FItemNode(functorPool(typeOut).asIs())
       }
       isHomogeneousRem = BiPredicate { i, f ->
          when {
@@ -114,9 +116,9 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
     * If the class changes, entire transformation chain is cleared.
     * Calling this method always results in an update event.
     *
-    * Default Void.class
+    * Default non nullable [Nothing]
     */
-   var typeIn: Class<*> = Void::class.java
+   var typeIn: VType<*> = typeNothingNonNull()
       set(value) {
          if (value==field) {
             generateValue()
@@ -127,8 +129,8 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
          }
       }
 
-   val typeOut: Class<*>
-      get() = if (chain.isEmpty()) typeIn else chain[chain.size - 1].chained.getTypeOut()
+   val typeOut: VType<*>
+      get() = chain.map { it.chained.getTypeOut() }.fold(typeIn) { i, o -> o ?: i }
 
    /**
     * Sets null handling during chain function reduction.

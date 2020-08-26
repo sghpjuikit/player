@@ -304,7 +304,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       val f = fieldFilter.value
       table.filterPane.inconsistentState = true
       table.filterPane.prefTypeSupplier = Supplier { PredicateData.ofField(VALUE) }
-      table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getMFType(f).rawJ, it.asIs<ObjectField<MetadataGroup, Any?>>()) }
+      table.filterPane.data = MgField.all.map { PredicateData(it.toString(f), it.getMFType(f), it.asIs<ObjectField<MetadataGroup, Any?>>()) }
       table.filterPane.clear()
       if (refreshItems) setItems(inputItems.value)
    }

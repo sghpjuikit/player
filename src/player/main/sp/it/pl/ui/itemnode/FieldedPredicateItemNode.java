@@ -16,6 +16,7 @@ import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.collections.list.PrefList;
 import sp.it.util.functional.Functors;
 import sp.it.util.functional.PF;
+import sp.it.util.type.VType;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -26,7 +27,6 @@ import static sp.it.util.functional.Util.ISNT;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.type.TypesKt.getRawJ;
 
 /**
  * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
@@ -56,7 +56,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 				? element -> filter.invoke(field.getOf(element))
 				: element -> {
 					T o = field.getOf(element);
-					return o==null ? false : filter.invoke(o);
+					return o!=null && filter.invoke(o);
 				};
 	}
 
@@ -71,24 +71,23 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private boolean inconsistentState = false;
 	private boolean empty = true;
 
-	@SuppressWarnings("unchecked")
 	public FieldedPredicateItemNode() {
 		this(
-			in -> Functors.pool.getIO(in, Boolean.class),
-			in -> Functors.pool.getPrefIO(in, Boolean.class)
+			in -> Functors.pool.getIO(in, new VType<>(Boolean.class, false)),
+			in -> Functors.pool.getPrefIO(in, new VType<>(Boolean.class, false))
 		);
 	}
 
 	@SuppressWarnings("unchecked")
-	public FieldedPredicateItemNode(Function1<Class,PrefList<PF<Object,Boolean>>> predicatePool, Function1<Class,PF<Object,Boolean>> prefPredicatePool) {
-		super((Predicate) IS);
+	public FieldedPredicateItemNode(Function1<VType<?>,PrefList<PF<Object,Boolean>>> predicatePool, Function1<VType<?>,PF<Object,Boolean>> prefPredicatePool) {
+		super((Predicate<V>) IS);
 
 		root.setAlignment(CENTER_LEFT);
 		typeCB.setVisibleRowCount(25);
 		typeCB.valueProperty().addListener((o, ov, nv) -> {
 			if (inconsistentState) return;
 			if (config!=null) root.getChildren().remove(config.getNode());
-			config = new FItemNode(predicatePool.invoke(nv.type));
+			config = new FItemNode<>(predicatePool.invoke(nv.type));
 			root.getChildren().add(config.getNode());
 			HBox.setHgrow(config.getNode(), ALWAYS);
 			config.onItemChange = v -> generatePredicate();
@@ -101,7 +100,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	/** Set initially selected value. Supplier can be null and return null, in which case 1st value is selected. */
 	@SuppressWarnings("unchecked")
 	public void setPrefTypeSupplier(Supplier<? extends PredicateData<F>> initialValueSupplier) {
-		prefTypeSupplier = (Supplier) initialValueSupplier;
+		prefTypeSupplier = (Supplier<PredicateData<F>>) initialValueSupplier;
 	}
 
 	/**
@@ -172,6 +171,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		}
 	}
 
+	@NotNull
 	@Override
 	public Node getNode() {
 		return root;
@@ -179,15 +179,15 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 
 	public static class PredicateData<T> {
 		public final String name;
-		public final Class<?> type;
+		public final VType<?> type;
 		public final T value;
 
 		@NotNull
 		public static <V, T> PredicateData<ObjectField<V,T>> ofField(ObjectField<V,T> field) {
-			return new PredicateData<>(field.name(), getRawJ(field.getType()), field);
+			return new PredicateData<>(field.name(), field.getType(), field);
 		}
 
-		public PredicateData(String name, Class type, T value) {
+		public PredicateData(String name, VType<?> type, T value) {
 			noNull(name);
 			noNull(type);
 			noNull(value);

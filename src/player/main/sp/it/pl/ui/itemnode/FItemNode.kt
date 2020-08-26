@@ -26,6 +26,9 @@ import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncSize
 import sp.it.util.reactive.syncTo
+import sp.it.util.type.VType
+import sp.it.util.type.rawJ
+import sp.it.util.type.typeNothingNonNull
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.lay
@@ -81,9 +84,9 @@ class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwi
 
    override fun focus() = editors.firstOrNull()?.focusEditor().toUnit()
 
-   fun getTypeIn(): Class<*> = fCB.value?.`in` ?: Void::class.java
+   fun getTypeIn(): VType<*>? = fCB.value?.`in`
 
-   fun getTypeOut(): Class<*> = fCB.value?.out ?: Void::class.java
+   fun getTypeOut(): VType<*>? = fCB.value?.out
 
    private fun generateValue() {
       avoidGenerateValue.suppressed {

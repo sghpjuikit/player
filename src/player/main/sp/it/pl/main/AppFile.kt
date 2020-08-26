@@ -23,6 +23,7 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
 import sp.it.util.text.plural
+import sp.it.util.type.type
 import sp.it.util.ui.image.toBuffered
 import java.io.File
 import javax.imageio.ImageIO
@@ -169,23 +170,23 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
  * predicates not from function pool, but hardcoded filters, which are enumerable and we look up by name.
  */
 object FileFilters {
-   val filterPrimary = PF0("File - all", File::class.java, Boolean::class.java) { true }
+   val filterPrimary = PF0<File,Boolean>("File - all", type(), type()) { true }
    private val filters = ArrayList<PF0<File, Boolean>>()
 
    init {
       filters += filterPrimary
-      filters += PF0("File - is audio", File::class.java, Boolean::class.java) { it.isAudio() }
-      filters += PF0("File - is image", File::class.java, Boolean::class.java) { it.isImage() }
-      filters += PF0("File type - file", File::class.java, Boolean::class.java) { it.isFile }
-      filters += PF0("File type - directory", File::class.java, Boolean::class.java) { it.isDirectory }
+      filters += PF0("File - is audio", type(), type()) { it.isAudio() }
+      filters += PF0("File - is image", type(), type()) { it.isImage() }
+      filters += PF0("File type - file", type(), type()) { it.isFile }
+      filters += PF0("File type - directory", type(), type()) { it.isDirectory }
       MimeTypes.setOfGroups().forEach { group ->
-         filters += PF0("Mime type group - is ${group.capitalize()}", File::class.java, Boolean::class.java) { group==it.mimeType().group }
+         filters += PF0("Mime type group - is ${group.capitalize()}", type(), type()) { group==it.mimeType().group }
       }
       MimeTypes.setOfMimeTypes().forEach { mime ->
-         filters += PF0("Mime type - is ${mime.name}", File::class.java, Boolean::class.java) { it.mimeType()==mime }
+         filters += PF0("Mime type - is ${mime.name}", type(), type()) { it.mimeType()==mime }
       }
       MimeTypes.setOfExtensions().forEach { extension ->
-         filters += PF0("Type - is $extension", File::class.java, Boolean::class.java) { Util.getSuffix(it).equals(extension, ignoreCase = true) }
+         filters += PF0("Type - is $extension", type(), type()) { it.extension.equals(extension, ignoreCase = true) }
       }
    }
 

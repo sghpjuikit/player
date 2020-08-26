@@ -152,7 +152,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
       grid.skinProperty().sync1IfNonNull {
          grid.implGetSkin().filter.inconsistentState = true
          grid.implGetSkin().filter.prefTypeSupplier = Supplier { PredicateData.ofField(VALUE) }
-         grid.implGetSkin().filter.data = MetadataGroup.Field.all.map { mgf -> PredicateData(mgf.toString(ALBUM), mgf.getMFType(ALBUM).rawJ, mgf.asIs<ObjectField<MetadataGroup, Any?>>()) }
+         grid.implGetSkin().filter.data = MetadataGroup.Field.all.map { mgf -> PredicateData(mgf.toString(ALBUM), mgf.getMFType(ALBUM), mgf.asIs<ObjectField<MetadataGroup, Any?>>()) }
          grid.implGetSkin().filter.clear()
       }
 

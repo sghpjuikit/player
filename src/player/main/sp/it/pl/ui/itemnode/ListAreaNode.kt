@@ -23,7 +23,7 @@ import sp.it.util.Sort.NONE
 import sp.it.util.access.not
 import sp.it.util.access.v
 import sp.it.util.access.vx
-import sp.it.util.collections.getElementClass
+import sp.it.util.collections.getElementType
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -36,8 +36,8 @@ import sp.it.util.functional.PF
 import sp.it.util.functional.PF0
 import sp.it.util.functional.PF1
 import sp.it.util.functional.Parameter
-import sp.it.util.functional.TypeAwareF
 import sp.it.util.functional.Parameterized
+import sp.it.util.functional.TypeAwareF
 import sp.it.util.functional.Util.IDENTITY
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.IS0
@@ -58,9 +58,11 @@ import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
+import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.jClass
+import sp.it.util.type.isSupertypeOf
 import sp.it.util.type.type
+import sp.it.util.type.typeNothingNonNull
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.lay
@@ -71,8 +73,6 @@ import java.util.function.BiPredicate
 import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Stream
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSuperclassOf
 import kotlin.streams.toList
 
 /**
@@ -93,6 +93,7 @@ import kotlin.streams.toList
  *  * list of strings [getVal]. Each string element represents a single line in the text area. [getVal]
  *  * list of objects [output]
  */
+@Suppress("RemoveExplicitTypeArguments")
 open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    private val root = vBox()
@@ -170,7 +171,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     */
    open fun setInput(data: List<Any?>) {
       input setTo data
-      transforms.typeIn = data.getElementClass().kotlin  // fires update
+      transforms.typeIn = VType<Any?>(data.getElementType())  // fires update
    }
 
    /** Splits the specified text and [setInput] with the result */
@@ -200,7 +201,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
       // outputType must match type of list of output of f
       // outputType is necessary because output list element type is erased
-      open class By1(val inputType: KClass<*>, val outputType: KClass<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
+      open class By1(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
          override val name = f.name
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(args))
@@ -216,8 +217,8 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    sealed class Transformation {
       abstract val name: String
-      abstract val linkTypeIn: KClass<*>?
-      abstract val linkTypeOut: KClass<*>?
+      abstract val linkTypeIn: VType<*>?
+      abstract val linkTypeOut: VType<*>?
       abstract operator fun invoke(data: List<Any?>): List<Any?>
 
       object AsIs: Transformation() {
@@ -229,43 +230,43 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
       class Manual(val text: String): Transformation() {
          override val name = "Manual edit"
-         override val linkTypeIn = Any::class
-         override val linkTypeOut = String::class
+         override val linkTypeIn = type<Any?>()
+         override val linkTypeOut = type<String>()
          override fun invoke(data: List<Any?>) = text.lines()
       }
 
       class ByString(override val name: String, val f: (String) -> String): Transformation() {
-         override val linkTypeIn = String::class
-         override val linkTypeOut = String::class
+         override val linkTypeIn = type<String>()
+         override val linkTypeOut = type<String>()
          override fun invoke(data: List<Any?>) = data
             .joinToString("\n") { it.toString() }.let(f).lines()
             .takeIf { it.size!=data.size } ?: data
       }
 
-      class By1(override val name: String, override val linkTypeIn: KClass<*>, override val linkTypeOut: KClass<*>, val f: (List<*>) -> List<*>): Transformation() {
+      class By1(override val name: String, override val linkTypeIn: VType<*>, override val linkTypeOut: VType<*>, val f: (List<*>) -> List<*>): Transformation() {
          override fun invoke(data: List<Any?>) = data.let(f)
       }
 
       class ByN(override val name: String, val f: (Any?) -> Any?): Transformation() {
-         override val linkTypeIn: KClass<*>?
+         override val linkTypeIn: VType<*>?
             get() = when (f) {
                IDENTITY -> null
-               IS, ISNT, IS0, ISNT0 -> Any::class
+               IS, ISNT, IS0, ISNT0 -> type<Any?>()
                is TypeAwareF<*, *> -> when (f.f) {
                   IDENTITY -> null
-                  IS, ISNT, IS0, ISNT0 -> Any::class
-                  else -> f.typeIn.asIs<Class<Any>>().kotlin
+                  IS, ISNT, IS0, ISNT0 -> type<Any?>()
+                  else -> f.typeIn
                }
                else -> fail { "Unrecognized function $f" }
             }
-         override val linkTypeOut: KClass<*>?
+         override val linkTypeOut: VType<*>?
             get() = when (f) {
                IDENTITY -> null
-               IS, ISNT, IS0, ISNT0 -> Boolean::class
+               IS, ISNT, IS0, ISNT0 -> type<Boolean>()
                is TypeAwareF<*, *> -> when (f.f) {
                   IDENTITY -> null
-                  IS, ISNT, IS0, ISNT0 -> Boolean::class
-                  else -> f.typeOut.asIs<Class<Any>>().kotlin
+                  IS, ISNT, IS0, ISNT0 -> type<Boolean>()
+                  else -> f.typeOut
                }
                else -> fail { "Unrecognized function $f" }
             }
@@ -280,22 +281,22 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTransformationNode, List<Transformation>> {
 
    @Suppress("RemoveExplicitTypeArguments")
-   constructor(functions: (Class<*>) -> PrefList<PF<*, *>>): super(listOf()) {
+   constructor(functions: (VType<*>) -> PrefList<PF<*, *>>): super(listOf()) {
       chainedFactory = Supplier {
          val type = typeOut
-         val by1s = functions(type.java).asIs<PrefList<PF<Any?, Any?>>>().map<TransformationRaw> { TransformationRaw.ByN(it) }.apply {
+         val by1s = functions(type).asIs<PrefList<PF<Any?, Any?>>>().map<TransformationRaw> { TransformationRaw.ByN(it) }.apply {
             removeIf { it.name=="#" }
          }
          val all = by1s.apply {
-            this += TransformationRaw.By1(Any::class, Int::class, PF0("#", jClass<List<Any>>().asIs(), jClass<List<Int>>().asIs()) { it.indices.toList() })
+            this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("#", type<List<Any?>>(), type<List<Int>>()) { it.indices.toList() })
 
             if (type.isSubclassOf<Comparable<*>>()) {
                val pSort = Parameter(type<Sort>(), ASCENDING)
-               this += TransformationRaw.By1(type, type, PF1("Sort (naturally)", jClass<List<*>>(), jClass<List<*>>(), pSort) { it, sort ->
+               this += TransformationRaw.By1(type, type, PF1("Sort (naturally)", type<List<*>>(), type<List<*>>(), pSort) { it, sort ->
                   when (sort) {
-                     NONE -> it
-                     ASCENDING -> it.asIs<List<Comparable<Any?>>>().asIterable().sorted()
-                     DESCENDING -> it.asIs<List<Comparable<Any?>>>().asIterable().sorted().reversed()
+                     NONE -> it.asIs()
+                     ASCENDING -> it.asIs<List<Comparable<Any?>>>().asIterable().sorted().asIs()
+                     DESCENDING -> it.asIs<List<Comparable<Any?>>>().asIterable().sorted().reversed().asIs()
                   }
                })
             }
@@ -305,7 +306,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
             // if (sorters.isNotEmpty()) {
             //    val pBy = Parameter(type<Sort>(), ObjectField)
             //    val pSort = Parameter(type<Sort>(), ASCENDING)
-            //    this += TransformationRaw.By1(type, PF2("Sort by", jClass<List<*>>(), jClass<List<*>>(), pBy, pSort) { it, by, sort -> bysort by.com })
+            //    this += TransformationRaw.By1(type, PF2("Sort by", jClass<List<*>>(), jClass<List<*>>(), pBy, pSort) { it, by, sort -> ??? })
             // }
          }
 
@@ -316,7 +317,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
             }
          }
       }
-      isHomogeneousRem = BiPredicate { i, _ -> linkTypeInAt(i + 1).isSuperclassOf(linkTypeOutAt(i - 1)) }
+      isHomogeneousRem = BiPredicate { i, _ -> linkTypeInAt(i + 1) isSupertypeOf linkTypeOutAt(i - 1) }
       isHomogeneousAdd = BiPredicate { i, _ -> i==chain.size - 1 }
       isHomogeneousOn = BiPredicate { _, transformation -> transformation !is Transformation.Manual }
       isHomogeneousEdit = BiPredicate { _, _ -> true }
@@ -340,9 +341,9 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
     *  * the input type of this chain's reduction function
     *  * input type of the first transformation function in the chain
     *
-    * Default Void.class
+    * Default non nullable [Nothing]
     */
-   var typeIn: KClass<*> = Nothing::class
+   var typeIn: VType<*> = typeNothingNonNull()
       set(value) {
          if (value==field) {
             generateValue()
@@ -353,11 +354,11 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
          }
       }
 
-   val typeOut: KClass<*>
+   val typeOut: VType<*>
       get() = chain.map { it.chained.getVal().linkTypeOut }.fold(typeIn) { i, o -> o ?: i }
 
    private fun linkTypeInAt(at: Int) = chain.asSequence().drop(at).mapNotNull { it.chained.getVal().linkTypeIn }.firstOrNull()
-      ?: Any::class
+      ?: type<Any?>()
 
    private fun linkTypeOutAt(at: Int) = chain.asSequence().take((at + 1) max 0).mapNotNull { it.chained.getVal().linkTypeOut }.lastOrNull()
       ?: typeIn

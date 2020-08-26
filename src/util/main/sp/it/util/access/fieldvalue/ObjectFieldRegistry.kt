@@ -1,12 +1,12 @@
 package sp.it.util.access.fieldvalue
 
 import sp.it.util.collections.mapset.MapSet
+import sp.it.util.dev.failIf
 import sp.it.util.functional.Functors
-import sp.it.util.functional.PF0
-import sp.it.util.functional.Util.IDENTITY
 import sp.it.util.type.ObjectFieldMap
-import sp.it.util.type.rawJ
+import sp.it.util.type.VType
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createType
 
 /**
  * [ObjectField] per type manager.
@@ -49,6 +49,10 @@ import kotlin.reflect.KClass
  */
 abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val type: KClass<V>) {
 
+   private val typeFull = type.let {
+      failIf(it.typeParameters.isNotEmpty()) { "Classes with type parameters not yet supported: $it" }
+      VType<V>(it.createType(listOf(), false))
+   }
    private val allImpl = MapSet<String, F> { it.name() }
    val all: Set<F> = allImpl
 
@@ -56,12 +60,8 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
    infix operator fun <X: F> plus(field: X) = field.also { f ->
       allImpl += f
 
-      val canBePreferred = run {
-         // checks if there is a preferred function for this exact type, if not we set this as one
-         Functors.pool.getI(type.java)?.preferred.let { it==null || it.`in`!=type.java || (it is PF0<*, *> && it.f==IDENTITY) }
-      }
       ObjectFieldMap.DEFAULT.add(type, all)
-      Functors.pool.add(f.name(), type.java, f.type.rawJ, canBePreferred, false, false, f::getOf)
+      Functors.pool.add(f.name(), typeFull, f.type, false, false, false, f::getOf)
    }
 
    /** @return field with the specified [ObjectField.name] or null if none */

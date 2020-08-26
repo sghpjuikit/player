@@ -61,7 +61,7 @@ object CoreFunctors: Core {
 
    private val pool = Functors.pool
 
-   @Suppress("LocalVariableName", "UNUSED_ANONYMOUS_PARAMETER")
+   @Suppress("LocalVariableName", "UNUSED_ANONYMOUS_PARAMETER", "RemoveExplicitTypeArguments")
    override fun init() {
       pool.apply {
          // Negated predicates are disabled, user interface should provide negation ability
@@ -94,24 +94,24 @@ object CoreFunctors: Core {
          failIf(p(0).type!=type<Int>())
 
          // type aliases
-         val B = Boolean::class.java
-         val S = String::class.java
+         val B = type<Boolean>()
+         val S = type<String>()
 
          // parameters
          val pNoCase = p("Ignore case", "Ignore case", true, IconConstraint(IconMA.FORMAT_SIZE))
          val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
 
-         add("Is null", Any::class.java, B, IS0)
-         add("To String", Any::class.java, String::class.java) { Objects.toString(it) }
-         add("To Boolean", S, B) { java.lang.Boolean.parseBoolean(it) }
-         add("To Byte", S, Byte::class.java) { it.toByteOrNull() }
-         add("To Short", S, Short::class.java) { it.toShortOrNull() }
-         add("To Int", S, Int::class.java) { it.toIntOrNull() }
-         add("To Long", S, Long::class.java) { it.toLongOrNull() }
-         add("To Float", S, Float::class.java) { it.toFloatOrNull() }
-         add("To Double", S, Double::class.java) { it.toDoubleOrNull() }
-         add("To BigInteger", S, BigInteger::class.java) { it.toBigIntegerOrNull() }
-         add("To BigDecimal", S, BigDecimal::class.java) { it.toBigDecimalOrNull() }
+         add("Is null", type<Any?>(), B, IS0)
+         add("To String", type<Any?>(), S) { Objects.toString(it) }
+         add("To Boolean", S, type<Boolean?>()) { when (it) { "true" -> true "false" -> false else -> null } }
+         add("To Byte", S, type<Byte?>()) { it.toByteOrNull() }
+         add("To Short", S, type<Short?>()) { it.toShortOrNull() }
+         add("To Int", S, type<Int?>()) { it.toIntOrNull() }
+         add("To Long", S, type<Long?>()) { it.toLongOrNull() }
+         add("To Float", S, type<Float?>()) { it.toFloatOrNull() }
+         add("To Double", S, type<Double?>()) { it.toDoubleOrNull() }
+         add("To BigInteger", S, type<BigInteger?>()) { it.toBigIntegerOrNull() }
+         add("To BigDecimal", S, type<BigDecimal?>()) { it.toBigDecimalOrNull() }
 
          add("Is true", B, B) { it }
          add("Is false", B, B) { !it }
@@ -119,11 +119,11 @@ object CoreFunctors: Core {
          add("And", B, B, p(true)) { it, b -> java.lang.Boolean.logicalAnd(it, b) }
          add("Or", B, B, p(true)) { it, b -> java.lang.Boolean.logicalOr(it, b) }
          add("Xor", B, B, p(true)) { it, b -> java.lang.Boolean.logicalXor(it, b) }
-         add("To Byte", B, Byte::class.java) { if (it) 1.toByte() else 0.toByte() }
+         add("To Byte", B, type<Byte>()) { if (it) 1.toByte() else 0.toByte() }
 
-         add("To Bin", Int::class.java, S) { "0b" + Integer.toBinaryString(it) }
-         add("To Oct", Int::class.java, S) { "0" + Integer.toOctalString(it) }
-         add("To Hex", Int::class.java, S) { "0x" + Integer.toHexString(it) }
+         add("To Bin", type<Int>(), S) { "0b" + Integer.toBinaryString(it) }
+         add("To Oct", type<Int>(), S) { "0" + Integer.toOctalString(it) }
+         add("To Hex", type<Int>(), S) { "0x" + Integer.toHexString(it) }
 
          add("To upper case", S, S) { it.toUpperCase() }
          add("To lower case", S, S) { it.toLowerCase() }
@@ -142,7 +142,7 @@ object CoreFunctors: Core {
          add("Remove chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> removeChars(it, amount, from) }
          add("Retain chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> retainChars(it, amount, from) }
          add("Trim", S, S) { it.trim() }
-         add("Split", S, StringSplitParser.SplitData::class.java, p(StringSplitParser.singular())) { it, splitter -> split(it, splitter) }
+         add("Split", S, type<StringSplitParser.SplitData>(), p(StringSplitParser.singular())) { it, splitter -> split(it, splitter) }
          add("Split-join", S, S, p(StringSplitParser.singular()), p(StringSplitParser.singular())) { it, splitter, joiner -> splitJoin(it, splitter, joiner) }
          add("Is", S, B, p<String>(""), pNoCase) { it, phrase, noCase -> it.equals(phrase, noCase) }
          add("Contains", S, B, p<String>(""), pNoCase, false, false, true) { it, phrase, noCase -> it.contains(phrase, noCase) }
@@ -151,16 +151,16 @@ object CoreFunctors: Core {
          add("Matches regex", S, B, pRegex) { it, r -> r.matcher(it).matches() }
          add("After", S, B, p<String>("")) { it, y -> it>y }
          add("Before", S, B, p<String>("")) { it, y -> it<y }
-         add("Char at", S, Char32::class.java, p(0), p<StringDirection>(FROM_START)) { it, i, dir -> runTry { it.char32At(i, dir) }.orNull() }
-         add("Length", S, Int::class.java, { it.length })
+         add("Char at", S, type<Char32>(), p(0), p<StringDirection>(FROM_START)) { it, i, dir -> runTry { it.char32At(i, dir) }.orNull() }
+         add("Length", S, type<Int>()) { it.length }
          add("Length >", S, B, p(0)) { it, l -> it.length>l }
          add("Length <", S, B, p(0)) { it, l -> it.length<l }
          add("Length =", S, B, p(0)) { it, l -> it.length==l }
          add("Is empty", S, B) { it.isEmpty() }
          add("Is palindrome", S, B) { it.isPalindrome() }
-         add("To file", S, File::class.java) { File(it) }
+         add("To file", S, type<File>()) { File(it) }
          add("Is URI", S, B) { runTry { uri(it) }.isOk }
-         add("To URI", S, URI::class.java) { runTry { uri(it) }.orNull() }
+         add("To URI", S, type<URI>()) { runTry { uri(it) }.orNull() }
          add("Is base64", S, B) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.isOk }
          add("Base64 encode", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
          add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
@@ -169,77 +169,78 @@ object CoreFunctors: Core {
          add("To valid file name", S, S) { filenamizeString(it) }
          add("Anime", S, S) { renameAnime(it) }
 
-         add("Any contains", Strings::class.java, B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
-         add("Is empty", Strings::class.java, B) { it.isEmpty() }
-         add("Elements", Strings::class.java, Int::class.java) { it.size() }
+         add("Any contains", type<Strings>(), B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
+         add("Is empty", type<Strings>(), B) { it.isEmpty() }
+         add("Elements", type<Strings>(), type<Int>()) { it.size() }
 
-         add("To Int", Char16::class.java, Int::class.java) { it.toInt() }
-         add("To Int", Char32::class.java, Int::class.java) { it.toInt() }
+         add("To Int", type<Char16>(), type<Int>()) { it.toInt() }
+         add("To Int", type<Char32>(), type<Int>()) { it.toInt() }
 
-         add("Shortcut target", File::class.java, File::class.java) { WindowsShortcut.targetedFile(it).orElse(null) }
-         add("Exists", File::class.java, B) { it.exists() }
-         add("Rename anime", File::class.java, S) { renameAnime(it.nameWithoutExtension) }
+         add("Shortcut target", type<File>(), type<File>()) { WindowsShortcut.targetedFile(it).orElse(null) }
+         add("Exists", type<File>(), B) { it.exists() }
+         add("Rename anime", type<File>(), S) { renameAnime(it.nameWithoutExtension) }
 
-         add("Group", MimeType::class.java, S) { it.group }
-         add("Extensions", MimeType::class.java, S) { it.extensions.joinToString(", ") }
-         add("Has extension", MimeType::class.java, B, p<String>("")) { it, ext -> it.hasExtension(ext) }
+         add("Group", type<MimeType>(), S) { it.group }
+         add("Extensions", type<MimeType>(), S) { it.extensions.joinToString(", ") }
+         add("Has extension", type<MimeType>(), B, p<String>("")) { it, ext -> it.hasExtension(ext) }
 
-         add("Is", MimeExt::class.java, B, p(MimeExt("mp3"))) { it, y -> it==y }
+         add("Is", type<MimeExt>(), B, p(MimeExt("mp3"))) { it, y -> it==y }
 
-         add("Less", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it<y }
-         add("Is", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it==y }
-         add("More", Bitrate::class.java, B, p(Bitrate(320))) { it, y -> it>y }
-         add("Is good (≥${Bitrate(320).toUi()})", Bitrate::class.java, B) { it.value>=320 }
-         add("Is bad (≤${Bitrate(128).toUi()})", Bitrate::class.java, B) { it.value<=128 }
-         add("Is variable", Bitrate::class.java, B) { it.isVariable() }
-         add("Is constant", Bitrate::class.java, B) { it.isConstant() }
-         add("Is known", Bitrate::class.java, B) { !it.isUnknown() }
+         add("Less", type<Bitrate>(), B, p(Bitrate(320))) { it, y -> it<y }
+         add("Is", type<Bitrate>(), B, p(Bitrate(320))) { it, y -> it==y }
+         add("More", type<Bitrate>(), B, p(Bitrate(320))) { it, y -> it>y }
+         add("Is good (≥${Bitrate(320).toUi()})", type<Bitrate>(), B) { it.value>=320 }
+         add("Is bad (≤${Bitrate(128).toUi()})", type<Bitrate>(), B) { it.value<=128 }
+         add("Is variable", type<Bitrate>(), B) { it.isVariable() }
+         add("Is constant", type<Bitrate>(), B) { it.isConstant() }
+         add("Is known", type<Bitrate>(), B) { !it.isUnknown() }
 
-         add("< Less", Duration::class.java, B, p(Duration(0.0))) { it, y -> it<y }
-         add("= Is", Duration::class.java, B, p(Duration(0.0))) { it, y -> it==y }
-         add("> More", Duration::class.java, B, p(Duration(0.0)), false, false, true) { it, y -> it>y }
+         add("< Less", type<Duration>(), B, p(Duration(0.0))) { it, y -> it<y }
+         add("= Is", type<Duration>(), B, p(Duration(0.0))) { it, y -> it==y }
+         add("> More", type<Duration>(), B, p(Duration(0.0)), false, false, true) { it, y -> it>y }
 
-         add("< Less", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it<y }
-         add("= Is", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it.compareTo(y)==0 }
-         add("> More", NofX::class.java, B, p(NofX(1, 1)), false, false, true) { it, y -> it>y }
-         add("≥ Not less", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it>=y }
-         add("≤ Not more", NofX::class.java, B, p(NofX(1, 1))) { it, y -> it<=y }
+         add("< Less", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it<y }
+         add("= Is", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it.compareTo(y)==0 }
+         add("> More", type<NofX>(), B, p(NofX(1, 1)), false, false, true) { it, y -> it>y }
+         add("≥ Not less", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it>=y }
+         add("≤ Not more", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it<=y }
 
-         add("< Less", FileSize::class.java, B, p(FileSize(0)), false, false, true) { it, y -> it<y }
-         add("= Is", FileSize::class.java, B, p(FileSize(0))) { it, y -> it.compareTo(y)==0 }
-         add("≅ Is approximately", FileSize::class.java, B, p(FileSize(FileSize.Mi))) { it, y -> it.inBytes().let { y.inBytes()/16<=it && it<=y.inBytes()*16 } }
-         add("> More", FileSize::class.java, B, p(FileSize(0))) { it, y -> it>y }
-         add("Is unknown", FileSize::class.java, B) { it.isUnknown() }
-         add("Is known", FileSize::class.java, B) { it.isKnown() }
-         add("In bytes", FileSize::class.java, Long::class.java) { it.inBytes() }
+         add("< Less", type<FileSize>(), B, p(FileSize(0)), false, false, true) { it, y -> it<y }
+         add("= Is", type<FileSize>(), B, p(FileSize(0))) { it, y -> it.compareTo(y)==0 }
+         add("≅ Is approximately", type<FileSize>(), B, p(FileSize(FileSize.Mi))) { it, y -> it.inBytes().let { y.inBytes()/16<=it && it<=y.inBytes()*16 } }
+         add("> More", type<FileSize>(), B, p(FileSize(0))) { it, y -> it>y }
+         add("Is unknown", type<FileSize>(), B) { it.isUnknown() }
+         add("Is known", type<FileSize>(), B) { it.isKnown() }
+         add("In bytes", type<FileSize>(), type<Long>()) { it.inBytes() }
 
-         add("Is after", Year::class.java, B, p(Year.now())) { it, y -> it>y }
-         add("Is", Year::class.java, B, p(Year.now())) { it, y -> it.compareTo(y)==0 }
-         add("Is before", Year::class.java, B, p(Year.now())) { it, y -> it<y }
-         add("Is in the future", Year::class.java, B) { it>Year.now() }
-         add("Is now", Year::class.java, B) { it.compareTo(Year.now())==0 }
-         add("Is in the past", Year::class.java, B) { it<Year.now() }
-         add("Is leap", Year::class.java, B, { it.isLeap })
+         add("Is after", type<Year>(), B, p(Year.now())) { it, y -> it>y }
+         add("Is", type<Year>(), B, p(Year.now())) { it, y -> it.compareTo(y)==0 }
+         add("Is before", type<Year>(), B, p(Year.now())) { it, y -> it<y }
+         add("Is in the future", type<Year>(), B) { it>Year.now() }
+         add("Is now", type<Year>(), B) { it.compareTo(Year.now())==0 }
+         add("Is in the past", type<Year>(), B) { it<Year.now() }
+         add("Is leap", type<Year>(), B, { it.isLeap })
 
-         add("Contains year", RangeYear::class.java, B, p(Year.now())) { it, y -> it.contains(y) }
-         add("Is after", RangeYear::class.java, B, p(Year.now())) { it, y -> it.isAfter(y) }
-         add("Is before", RangeYear::class.java, B, p(Year.now())) { it, y -> it.isBefore(y) }
-         add("Is in the future", RangeYear::class.java, B) { it.contains(Year.now()) }
-         add("Is now", RangeYear::class.java, B) { it.isAfter(Year.now()) }
-         add("Is in the past", RangeYear::class.java, B) { it.isBefore(Year.now()) }
+         add("Contains year", type<RangeYear>(), B, p(Year.now())) { it, y -> it.contains(y) }
+         add("Is after", type<RangeYear>(), B, p(Year.now())) { it, y -> it.isAfter(y) }
+         add("Is before", type<RangeYear>(), B, p(Year.now())) { it, y -> it.isBefore(y) }
+         add("Is in the future", type<RangeYear>(), B) { it.contains(Year.now()) }
+         add("Is now", type<RangeYear>(), B) { it.isAfter(Year.now()) }
+         add("Is in the past", type<RangeYear>(), B) { it.isBefore(Year.now()) }
 
-         add("After", LocalDateTime::class.java, B, p(LocalDateTime.now())) { it, other -> it.isAfter(other) }
-         add("Before", LocalDateTime::class.java, B, p(LocalDateTime.now())) { it, other -> it.isBefore(other) }
-         add("Is", LocalDateTime::class.java, B, p(LocalDateTime.now())) { it, other -> it.isEqual(other) }
+         add("After", type<LocalDateTime>(), B, p(LocalDateTime.now())) { it, other -> it.isAfter(other) }
+         add("Before", type<LocalDateTime>(), B, p(LocalDateTime.now())) { it, other -> it.isBefore(other) }
+         add("Is", type<LocalDateTime>(), B, p(LocalDateTime.now())) { it, other -> it.isEqual(other) }
 
-         add("File", Song::class.java, File::class.java) { it.getFile() }
-         add("URI", Song::class.java, URI::class.java) { it.uri }
+         add("File", type<Song>(), type<File>()) { it.getFile() }
+         add("URI", type<Song>(), type<URI>()) { it.uri }
 
-         addPredicatesComparable(Short::class.java, 0.toShort())
-         addPredicatesComparable(Int::class.java, 0)
-         addPredicatesComparable(Long::class.java, 0L)
-         addPredicatesComparable(Double::class.java, 0.0)
-         addPredicatesComparable(Float::class.java, 0f)
+         addComparisons(type<Byte>(), 0.toByte())
+         addComparisons(type<Short>(), 0.toShort())
+         addComparisons(type<Int>(), 0)
+         addComparisons(type<Long>(), 0L)
+         addComparisons(type<Double>(), 0.0)
+         addComparisons(type<Float>(), 0f)
       }
    }
 

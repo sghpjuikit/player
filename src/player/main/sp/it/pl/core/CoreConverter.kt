@@ -186,17 +186,23 @@ class CoreConverter: Core {
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
       addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) { Class.forName(it).kotlin })
       addP<PF<*, *>>(
-         { "${it.name},${it.`in`},${it.out}" },
+         {
+            val iN = if (it.`in`.isNullable) "?" else ""
+            val oN = if (it.out.isNullable) "?" else ""
+            "${it.name},${it.`in`.raw.toS()}$iN,${it.out.raw.toS()}$oN"
+         },
          {
             val data = Util.split(it, ",")
             if (data.size!=3) {
                null
             } else {
                val name = data[0]
-               val typeIn = ofS<Class<*>>(data[1]).getOr(null)
-               val typeOut = ofS<Class<*>>(data[2]).getOr(null)
+               val iN = data[1].endsWith("?")
+               val oN = data[2].endsWith("?")
+               val typeIn = ofS<KClass<*>>(data[1].let { if (!iN) it else it.dropLast(1) } ).getOr(null)?.createType(listOf(), iN)
+               val typeOut = ofS<KClass<*>>(data[2].let { if (!oN) it else it.dropLast(1) } ).getOr(null)?.createType(listOf(), oN)
                if (name==null || typeIn==null || typeOut==null) null
-               else Functors.pool.getPF(name, typeIn, typeOut)
+               else Functors.pool.getPF(name, VType<Any?>(typeIn), VType<Any?>(typeOut)).asIs()
             }
          }
       )

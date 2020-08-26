@@ -63,7 +63,7 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
     */
    fun clear() {
       inconsistentState = true
-      if (length()>1) convergeTo(1);
+      if (length()>1) convergeTo(1)
       chain.forEach { it.chained.clear() }
       inconsistentState = false
       generateValue()

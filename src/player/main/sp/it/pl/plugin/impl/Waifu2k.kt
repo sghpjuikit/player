@@ -1,12 +1,12 @@
 package sp.it.pl.plugin.impl
 
-import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
 import sp.it.pl.main.isImage
 import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.form.Validated
 import sp.it.util.action.IsAction
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
@@ -64,10 +64,10 @@ class Waifu2k: PluginBase() {
       }.configure("Upscale image (waifu2k)...") { c ->
          waiffuDir.value?.runAsAppProgram(
             """Upscale image "${c.source.value?.absolutePath}"""",
-            "-i \"" + c.source.value!!.absolutePath + "\"",
-            "-o \"" + c.destination.value!!.absolutePath + "\"",
-            "-m scale",
-            "--scale_ratio ${c.scale.value}"
+            "-i", c.source.value!!.absolutePath,
+            "-o", c.destination.value!!.absolutePath,
+            "-m", "scale",
+            "--scale_ratio", c.scale.value.toString()
          )
       }
    }

@@ -473,7 +473,7 @@ class App: Application(), GlobalConfigDelegator {
             val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
             f.runAsAppProgram(
                "Launching component ${c.name} in new process",
-               "--singleton=false", "--stateless=true", "open-component", "\"${c.name}\""
+               "--singleton=false", "--stateless=true", "open-component", c.name
             )
          }
       }

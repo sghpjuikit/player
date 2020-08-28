@@ -155,14 +155,14 @@ private fun extractThumb(videoFilename: String, thumbFilename: String, at: Durat
    val ffmpeg = ffmpeg.getDone().toTry().orNull() ?: fail { "ffmpeg not available" }
    val ffprobe = ffprobe.getDone().toTry().orNull() ?: fail { "ffprobe not available" }
 
-   val durArgs = arrayOf("-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", "\"$videoFilename\"")
+   val durArgs = arrayOf("-v", "quiet", "-print_format", "compact=print_section=0:nokey=1:escape=csv", "-show_entries", "format=duration", videoFilename)
    val durMax = ffprobe.runAsAppProgram("Obtaining video length", *durArgs).getDone().toTry().orThrow.toDouble().seconds
       .takeIf { it.toMillis()>0 } ?: Double.MAX_VALUE.millis
    val atClipped = at min durMax
    val args = arrayOf(
-      "-y", "-i", "\"$videoFilename\"", "-vframes", "1", "-ss",
+      "-y", "-i", videoFilename, "-vframes", "1", "-ss",
       "${atClipped.toHours().toInt()}:${atClipped.toMinutes().toInt()}:${atClipped.toSeconds().toInt()}",
-      "-f", "mjpeg", "-an", "\"$thumbFilename\""
+      "-f", "mjpeg", "-an", thumbFilename
    )
    ffmpeg.runAsAppProgram("Extracting video cover of $videoFilename", *args).getDone()
 }

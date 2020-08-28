@@ -55,8 +55,13 @@ operator fun IntegerProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 operator fun ObservableBooleanValue.getValue(thisRef: Any, property: KProperty<*>) = get()
 operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, value: Boolean) = set(value)
 
+/** [WritableValue.setValue] to [WritableValue.getValue] transformed with the specified function, like `value = f(value)`. */
+inline fun <reified T> WritableValue<T>.transformValue(f: (T) -> T): Unit {
+   value = f(value)
+}
+
 /** @return this property as a read-only property */
-fun <T> Property<T>.readOnly(): ObservableValue<T> = this
+fun <T> ObservableValue<T>.readOnly(): ObservableValue<T> = this
 
 /** @return this property as a read-only property backed by [Volatile] property */
 fun <T> ObservableValue<T>.readOnlyThreadSafe() = ObservableValueVolatileWrapper(this)

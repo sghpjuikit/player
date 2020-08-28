@@ -336,11 +336,11 @@ fun <C: Configurable<*>> C.configure(titleText: String, action: (C) -> Any?) {
          if (result is Fut<*>) {
             val progressIndicator = appProgressIndicator({ headerIcons += it }, { headerIcons -= it })
             result.withProgress(progressIndicator)
-         } else {
-            if (isShowing) hide()
          }
+         result
       }
 
+      form.onExecuteDone = { if (it.isOk && isShowing) hide() }
       content.value = form
       title.value = titleText
       isAutohide.value = false

@@ -8,45 +8,55 @@ import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
-import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.main.okIcon
+import sp.it.pl.ui.pane.ConfigPane
+import sp.it.util.access.readOnly
+import sp.it.util.access.transformValue
 import sp.it.util.access.v
+import sp.it.util.async.FX
+import sp.it.util.async.future.Fut
 import sp.it.util.conf.Configurable
+import sp.it.util.dev.fail
 import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Error
+import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.asIf
+import sp.it.util.functional.runTry
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.map
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.x
 
-/**
- * [sp.it.util.conf.Configurable] editor. Has optional submit button.
- *
- * @param <T> type of the [sp.it.util.conf.Configurable] for this component.
- */
-class Form<T>: AnchorPane {
+/** Editor for [sp.it.util.conf.Configurable] - form. Has optional submit button. */
+class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?): AnchorPane() {
 
    private val buttonPane = BorderPane()
    private val okPane = StackPane()
    private val fieldsPane = StackPane()
    private val warnLabel = Label()
    private val okB = okIcon { ok() }
-   private var editorsPane = ConfigPane<T>()
+   private var editorsPane = ConfigPane<Any?>()
    private val anchorOk = 90.0
    private val anchorWarn = 20.0
+   private val isExecutingCount = v(0)
+
    /** Configurable object. */
-   val configurable: Configurable<T>
-   /** Invoked when user submits the editing. Default does nothing. */
-   val onOK: (Configurable<T>) -> Unit
-   /** Denotes whether there is an action that user can execute. */
-   val hasAction = v(false)
+   val configurable = configurable
+   /** Invoked when user submits the editing or programmatically by [ok]. Default does nothing.  See [ok].*/
+   val onExecute = action ?: {}
+   /** Invoked when execution finishes with or without exception. Default does nothing. See [ok].*/
+   var onExecuteDone: (Try<*, Throwable>) -> Unit = {}
+   /** Denotes whether there is an action that user can execute. See [ok]. */
+   val isExecutable = v(action!=null).readOnly()
+   /** Denotes whether there is an action running. See [ok]. */
+   val isExecuting = isExecutingCount.map { it>0 }.readOnly()
+   /** Denotes whether multiple executions are allowed. If false and [[isExecuting]] is false, onOk button is disabled. */
+   val isParallelExecutable = v(false)
 
-   private constructor(c: Configurable<T>, onOk: ((Configurable<T>) -> Unit)?): super() {
-      configurable = c
-      onOK = onOk ?: {}
-      hasAction.value = onOk!=null
-
+   init {
       padding = Insets(5.0)
       lay(0, 0, anchorOk, 0) += fieldsPane
       lay(null, 0, 0, 0) += buttonPane.apply {
@@ -69,25 +79,64 @@ class Form<T>: AnchorPane {
       }
       okPane.lay += okB
 
-      showOkButton(hasAction.value)
+      updateOkButtonVisible()
+      isParallelExecutable.attach { updateOkButtonVisible() }
+      isExecuting.attach { updateOkButtonVisible() }
 
       editorsPane.onChange = Runnable { validate() }
-      editorsPane.configure(configurable)
+      editorsPane.configure(this.configurable)
 
       fieldsPane.consumeScrolling()
 
       validate()
    }
 
+   /**
+    * Return true calling [ok] is safe in respect to [isExecutable], [isParallelExecutable], [isExecuting].
+    * Doesn't take [validate] into consideration.
+    */
+   fun okPermitted() = isExecutable.value && (isParallelExecutable.value || !isExecuting.value)
+
+   /**
+    * Invokes [okPermitted] - if gives false, throws exception.
+    * Invokes [validate] - if gives [Error], does nothing.
+    * Otherwise invokes [onExecute] and subsequently [onExecuteDone]. In this time span [isExecuting] is true.
+    */
    fun ok() {
-      validate().ifOk {
-         if (hasAction.value) onOK(configurable)
+      if (!okPermitted()) fail { "Not permitted, only executable if ${::okPermitted.name} gives true" }
+      if (validate().isOk) {
+         val resultTry = runTry {
+            isExecutingCount.transformValue { it+1 }
+            onExecute(configurable)
+         }
+         when (resultTry) {
+            is Error<Throwable> -> {
+               isExecutingCount.transformValue { it-1 }
+               onExecuteDone(resultTry)
+            }
+            is Ok<*> -> {
+               when (val result = resultTry.value) {
+                  is Fut<*> -> {
+                     result.onDone(FX) {
+                        isExecutingCount.transformValue { it-1 }
+                        onExecuteDone(it.toTry())
+                     }
+                  }
+                  else -> {
+                     isExecutingCount.transformValue { it-1 }
+                     onExecuteDone(resultTry)
+                  }
+               }
+            }
+         }
       }
    }
 
-   fun focusFirstConfigEditor() = editorsPane.focusFirstConfigEditor()
-
-   private fun validate(): Try<*, *> {
+   /**
+    * Returns [Ok] if all editors for configs in [configurable] return [sp.it.pl.ui.itemnode.ConfigEditor.getValid] [Ok].
+    * If [configurable] is [Validated], its [Validated.isValid] must also return [Ok].
+    */
+   fun validate(): Try<*, *> {
       val validation = run {
          editorsPane.getConfigEditors().asSequence()
             .map { e -> e.getValid().mapError { "${e.config.nameUi}: $it" } }
@@ -100,6 +149,8 @@ class Form<T>: AnchorPane {
       return validation
    }
 
+   fun focusFirstConfigEditor() = editorsPane.focusFirstConfigEditor()
+
    private fun showWarnButton(validation: Try<*, String>) {
       okB.isMouseTransparent = validation.isError
       buttonPane.bottom = if (validation.isOk) null else warnLabel
@@ -107,8 +158,8 @@ class Form<T>: AnchorPane {
       warnLabel.text = if (validation.isError) "Form contains wrong data: ${validation.errorOrThrow}" else ""
    }
 
-   private fun showOkButton(visible: Boolean) {
-      buttonPane.isVisible = visible
+   private fun updateOkButtonVisible() {
+      buttonPane.isVisible = okPermitted()
       updateAnchor()
    }
 
@@ -126,11 +177,11 @@ class Form<T>: AnchorPane {
        * only visible if there is an action to execute.
        */
       @JvmOverloads
-      fun <C: Configurable<*>> form(configurable: C, onOk: ((C) -> Unit)? = null) = Form(configurable, onOk.asIf())
+      fun <C: Configurable<*>> form(configurable: C, onOk: ((C) -> Any?)? = null) = Form(configurable, onOk.asIf())
    }
 }
 
-/** Marks [Configurable] that has additional validation to do before invoking [Form].[Form.onOK]. */
+/** Marks [Configurable] that has additional validation to do before invoking [Form].[Form.onExecute]. */
 interface Validated {
    fun isValid(): Try<*, String>
 }

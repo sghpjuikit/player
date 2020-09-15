@@ -73,6 +73,7 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
+import sp.it.util.text.keys
 import sp.it.util.text.pluralUnit
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.rawJ
@@ -230,7 +231,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
       // add menu items
       table.menuRemove.dsl {
-         item("Remove songs in selected groups from library") { removeSongs(ungroup(table.selectedItems)) }
+         item("Remove songs in selected groups from library (${keys("DELETE")})") { removeSongs(ungroup(table.selectedItems)) }
          item("Remove songs in all shown groups from library") { removeSongs(ungroup(table.items)) }
          item("Remove all songs from library") { APP.db.removeAllSongs() }
          item("Remove missing songs from library") {

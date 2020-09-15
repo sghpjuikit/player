@@ -151,8 +151,12 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          item("Duplicate selected (*)") { playlist.duplicateItemsAsGroup(table.selectedItems) }
       }
       table.menuRemove.dsl {
-         item("Remove selected") { playlist -= table.selectedItems }
-         item("Remove not selected") { playlist.retainAll(table.selectedItems) }
+         item("Remove selected (${keys("DELETE")})") { playlist -= table.selectedItems }
+         item("Retain selected") { playlist.retainAll(table.selectedItems) }
+         item("Retain filtered & cancel filter") {
+            playlist.retainAll(table.items.materialize())
+            table.filterVisible.value = false
+         }
          item("Remove unplayable") { playlist.removeUnplayable() }
          item("Remove duplicates") { playlist.removeDuplicates() }
          item("Remove all") { playlist.clear() }

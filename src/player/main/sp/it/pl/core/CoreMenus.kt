@@ -5,6 +5,7 @@ import javafx.scene.input.DataFormat
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
+import sp.it.pl.audio.tagging.PlaylistSongGroupRemove
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetSource
@@ -51,6 +52,7 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
+import sp.it.util.text.keys
 import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder
 import java.io.File
@@ -227,8 +229,7 @@ object CoreMenus: Core {
                }
          }
          add<PlaylistSongGroup> {
-            item("Play songs") { it.playlist.playItem(it.songs.firstOrNull()) }
-            item("Remove songs") { it.playlist.removeAll(it.songs) }
+            item("Play songs (${keys("ENTER")})") { it.playlist.playItem(it.songs.firstOrNull()) }
             menu("Show in") {
                widgetItems<SongReader> {
                   it.read(value.songs)
@@ -239,7 +240,11 @@ object CoreMenus: Core {
                   it.read(value.songs)
                }
             }
-            item("Crop") { it.playlist.retainAll(it.songs) }
+            menu("Remove") {
+               item("Remove selected (${keys("DELETE")})") { it.playlist.removeAll(it.songs) }
+               item("Retain selected") { it.playlist.retainAll(it.songs) }
+               item("Remove all") { it.playlist.clear() }
+            }
             menu("Duplicate") {
                item("as group") { it.playlist.duplicateItemsAsGroup(it.songs) }
                item("individually") { it.playlist.duplicateItemsByOne(it.songs) }
@@ -252,6 +257,11 @@ object CoreMenus: Core {
                   { uriBuilder -> value.songs.firstOrNull()?.toMetadata { uriBuilder(it.getAlbumOrEmpty()).browse() } }
                )
             }
+         }
+         add<PlaylistSongGroupRemove> {
+            item("Remove selected (${keys("DELETE")})") { it.playlist.removeAll(it.songs) }
+            item("Retain selected") { it.playlist.retainAll(it.songs) }
+            item("Remove all") { it.playlist.clear() }
          }
          add<Thumbnail.ContextMenuData> {
             if (value.image!=null)

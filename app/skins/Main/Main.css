@@ -456,6 +456,10 @@
 
 /********************************* ScrollPane *********************************/
 
+.scroll-pane {
+    -fx-skin: "sp.it.pl.ui.objects.ImprovedScrollPaneSkin";
+}
+
 .scroll-pane,
 .scroll-pane > * {
     -fx-cache: false;

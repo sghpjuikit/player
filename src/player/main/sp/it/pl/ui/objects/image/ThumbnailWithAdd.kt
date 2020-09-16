@@ -59,8 +59,15 @@ class ThumbnailWithAdd constructor(dragIcon: GlyphIcons = DETAILS, dragDescripti
    }
 
    private fun highlight(v: Boolean) {
-      if (v) DragPane.PANE.getM(dragData).showFor(root)
-      else DragPane.PANE.ifSet { it.hide() }
+      if (v)
+         DragPane.PANE.getM(dragData).apply {
+            showFor(root)
+            animateShow(imageView)
+         }
+      else DragPane.PANE.ifSet {
+         it.hide()
+         it.animateHide()
+      }
 
       onHighlight(v)
    }

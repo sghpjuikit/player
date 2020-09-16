@@ -134,9 +134,12 @@ public class ImageFlowPane extends Pane {
 			layoutInArea(content, 0, 0, getWidth(), getHeight(), 0, HPos.LEFT, VPos.TOP);
 		}
 		if (showI && !showC) {
-			layoutInArea(image.getPane(), 0, 0, getWidth(), getHeight(), 0, HPos.LEFT, VPos.TOP);
+			image.getPane().setLayoutX(pl);
+			image.getPane().setLayoutY(pt);
+			image.getPane().setMinSize(W, H);
+			image.getPane().setPrefSize(W, H);
+			image.getPane().setMaxSize(W, H);
 		}
-
 		super.layoutChildren();
 	}
 

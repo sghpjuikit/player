@@ -67,6 +67,7 @@ import sp.it.util.file.Util.copyFiles
 import sp.it.util.math.max
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
@@ -156,7 +157,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
       data = m
       dataOut.value = m
-      fieldsAll.forEach { it.update(m) }
+      fieldsAll.forEach { if (it.shouldBeVisible) it.update(m) }
       update()
    }
 
@@ -166,17 +167,13 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
       when (groupFields.value) {
          SEMANTIC -> {
-            labels.clear()
-            fieldsL.sortedBy { it.semanticIndex }
-            labels.addAll(fieldsL)
+            labels += fieldsL.sortedBy { it.semanticIndex }
             labels.add(4, gap1)
             labels.add(10, gap2)
             labels.add(17, gap3)
          }
          ALPHANUMERIC -> {
-            labels.clear()
-            fieldsL.sortedBy { it.name }
-            labels.addAll(fieldsL)
+            labels += fieldsL.sortedBy { it.name }
          }
       }
 
@@ -310,10 +307,12 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
       APP.audio.onSongRefresh { refreshed -> if (!dataReading.hasEventsQueued()) refreshed.ifHasE(data, ::read) } on onClose
 
-      fieldsM.onChange {
+      fieldsM.onChangeAndNow {
          fieldsM.forEach { (field, selected) -> fieldConfigs[field]?.shouldBeVisible = selected }
          layout.setImageVisible(fieldCover.shouldBeVisible)
          layout.setContentVisible(fieldsL.any { it.shouldBeVisible })
+      }
+      fieldsM.onChange {
          update()
       }
 

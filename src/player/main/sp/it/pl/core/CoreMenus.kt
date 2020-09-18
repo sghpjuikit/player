@@ -5,7 +5,6 @@ import javafx.scene.input.DataFormat
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
-import sp.it.pl.audio.tagging.PlaylistSongGroupRemove
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetSource
@@ -257,11 +256,6 @@ object CoreMenus: Core {
                   { uriBuilder -> value.songs.firstOrNull()?.toMetadata { uriBuilder(it.getAlbumOrEmpty()).browse() } }
                )
             }
-         }
-         add<PlaylistSongGroupRemove> {
-            item("Remove selected (${keys("DELETE")})") { it.playlist.removeAll(it.songs) }
-            item("Retain selected") { it.playlist.retainAll(it.songs) }
-            item("Remove all") { it.playlist.clear() }
          }
          add<Thumbnail.ContextMenuData> {
             if (value.image!=null)

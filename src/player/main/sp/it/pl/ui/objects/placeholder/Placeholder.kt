@@ -66,7 +66,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
       isVisible = false
    }
 
-   /** Invoke just after [showFor] to get animation effect. [animateHide] must then be called! */
+   /** Invoke just after [showFor] to get animation effect. [animateHide] must then be called after [hide]! */
    fun animateShow(n: Node) {
       if (n.placeholderAnim==null) {
          n.placeholderAnim = anim(250.millis) { n.opacity = 1-ALMOST_TRANSPARENT*sqrt(it); opacity = sqrt(it) }.apply { playOpen() }

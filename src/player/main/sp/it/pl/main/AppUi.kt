@@ -348,13 +348,16 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    private fun observeWindowsAndSyncWidgetFocus() {
       WindowFX.getWindows().onItemSyncWhile { window ->
          window.sceneProperty().syncNonNullWhile { scene ->
-            val s1 = scene.focusOwnerProperty() attach { Widgets.focusChangedHandler(it) }
+            var allowTraversal = false
+            val s1 = scene.focusOwnerProperty() attach { Widgets.focusChangedHandler(it, allowTraversal) }
             val s2 = scene.rootProperty() syncNonNullWhile { root ->
                val ss1 = root.onEventUp(MOUSE_PRESSED) { e ->
+                  allowTraversal = false
                   if (e.button==MouseButton.PRIMARY)
                      APP.ui.focusClickedWidget(e)
                }
                val ss2 = root.onEventUp(KEY_PRESSED) { e ->
+                  allowTraversal = true
                   if (e.code==TAB && e.isShortcutDown) {
                      e.consume()
 

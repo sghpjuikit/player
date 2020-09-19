@@ -632,7 +632,7 @@ class WidgetManager {
          val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
          if (all.size<=1) return
          val i = Values.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
-         all.getOrNull(i)?.focus()
+         all.getOrNull(i)?.focusAndTraverse()
       }
 
       /** Select previous widget or the first if no selected among the widgets in the specified window. */
@@ -640,7 +640,7 @@ class WidgetManager {
          val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
          if (all.size<=1) return
          val iNew = Values.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
-         all.getOrNull(iNew)?.focus()
+         all.getOrNull(iNew)?.focusAndTraverse()
       }
 
    }

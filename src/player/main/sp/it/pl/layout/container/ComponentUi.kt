@@ -30,6 +30,8 @@ interface ComponentUi: AltState {
    /** Dispose of this ui with the intention of never being used again. */
    fun dispose() = Unit
 
+   fun focusTraverse(child: Component, source: Widget): Unit = Unit
+
 }
 
 abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {

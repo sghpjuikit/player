@@ -421,9 +421,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       return create().apply {
          initLayout()
          setContent(c)
-         c.focus()
 
          show()
+         c.focus()
 
          val screen = getScreenForMouse()
          val scrSize = screen.bounds.size

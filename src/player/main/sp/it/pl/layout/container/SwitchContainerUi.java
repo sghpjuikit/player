@@ -203,6 +203,20 @@ public class SwitchContainerUi implements ComponentUi {
         widget_io.dispose();
     }
 
+    @Override
+    public void focusTraverse(@NotNull Component child, @NotNull Widget source) {
+        var componentI = container.indexOf(child);
+        var componentTab = tabs.get(componentI);
+        var sourceUi = source.uiTemp.getRoot();
+        var sourceBounds = componentTab.sceneToLocal(sourceUi.localToScene(sourceUi.getBoundsInLocal()));
+
+        var tabWidth = uiWidth();
+        var is = -ui.getTranslateX();
+        var shouldBe = -getTabX(componentI);
+        var isFullyVisible = shouldBe+sourceBounds.getMinX()>=is && shouldBe+sourceBounds.getMaxX()<=is+tabWidth;
+        if (!isFullyVisible) alignTab(componentI);
+    }
+
     /********************************    TABS   ***********************************/
 
     private final Map<Integer,TabPane> tabs = new HashMap<>();

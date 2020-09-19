@@ -41,6 +41,7 @@ import static java.util.Objects.deepEquals;
 import static java.util.stream.Collectors.joining;
 import static kotlin.io.FilesKt.deleteRecursively;
 import static sp.it.pl.layout.widget.WidgetManagerKt.orNone;
+import static sp.it.pl.layout.widget.WidgetsKt.focusAndTraverseFromToRoot;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.conf.ConfigurableKt.toConfigurableByReflect;
 import static sp.it.util.file.properties.PropertiesKt.readProperties;
@@ -332,6 +333,13 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	public void focus() {
 		if (isLoaded()) {
 			controller.focus();
+		}
+	}
+
+	public void focusAndTraverse() {
+		if (isLoaded()) {
+			controller.focus();
+			focusAndTraverseFromToRoot(this);
 		}
 	}
 

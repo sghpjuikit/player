@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement window ALT+drag resizing+maximizing
 - Implement window header animation
 - Implement Webp image read support
+- Implement Form support for asynchronous actions
+- Implement webp image support
 - Improve application settings order/hierarchy
 - Improve SLAVE application startup (due to not starting some plugins)
 - Improve initial window showing performance
@@ -46,6 +48,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve overlay icon layout
 - Improve drag&drop placeholder ux
 - Improve shortcuts ui display (use unicode glyphs for keys)
+- Improve SwitchContainer UX:
+    - Focusing now aligns tabs so the focused content is visible when switching focus
+- Improve BiContainer UX:
+    - snapping to relevant positions (edges, 1:1 ratio, centre)
+    - collapsing only taking visual effect on mouse release
+    - resizing glitches
+    - absolute position not restoring properly sometimes
+    - absolute position being distorted on certain resize operations
 - Improve object inspection type inference
     - supports generics, displays `List<SomeType>`
     - displays nullability, displays `List<SomeType?>?`

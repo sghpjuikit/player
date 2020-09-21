@@ -96,13 +96,13 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
 
    fun updateIcons() {
       val c = area.container.parent
+
+      absB.remExtraIcon()
       if (c is BiContainer) {
          val isAbs = c.absoluteSize.value==area.container.indexInParent()!!
          absB = headerIcon(if (isAbs) IconFA.UNLINK else IconFA.LINK, "Resize container proportionally").addExtraIcon().onClickDo {
             c.ui.toggleAbsoluteSizeFor(area.container.indexInParent()!!)
          }
-      } else {
-         absB.remExtraIcon()
       }
 
       autoLayoutB.remExtraIcon()
@@ -113,7 +113,8 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       }
    }
 
-   fun Icon.addExtraIcon() = apply { if (this !in icons.children) icons.children.add(2, this) }
+   @JvmOverloads
+   fun Icon.addExtraIcon(at: Int = 0) = apply { if (this !in icons.children) icons.children.add(2+at, this) }
 
    private fun Icon?.remExtraIcon() = this?.let(icons.children::remove)
 

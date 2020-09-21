@@ -160,7 +160,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
    }
 
    override fun buildControls() = super.buildControls().apply {
-      val orientB = Icon(MAGIC, -1.0, "Change orientation").addExtraIcon().onClickDo { container.orientation.toggleNext() }.styleclass("header-icon")
+      val orientB = Icon(MAGIC, -1.0, "Change orientation").addExtraIcon(1).onClickDo { container.orientation.toggleNext() }.styleclass("header-icon")
       container.orientation sync { orientB.icon(if (it==VERTICAL) ELLIPSIS_V else ELLIPSIS_H) } on disposer
    }
 

@@ -2,6 +2,7 @@ package sp.it.pl.layout.container
 
 import javafx.geometry.Orientation
 import javafx.geometry.Orientation.VERTICAL
+import javafx.geometry.Orientation.HORIZONTAL
 import javafx.scene.Node
 import sp.it.pl.layout.BiContainerDb
 import sp.it.pl.layout.Component
@@ -16,8 +17,21 @@ class BiContainer: Container<BiContainerUi> {
    override val name = "BiContainer"
    /** Orientation of this container. */
    val orientation = v(VERTICAL)
+   /**
+    * Position of the divider.
+    * * [0,1] range if [absoluteSize] 0
+    * * [0, Infinity) range of width ([orientation] == [HORIZONTAL]) or height ([orientation] == [VERTICAL]) of the absolute child if [absoluteSize] 1 or 2.
+    *
+    * This value goes hand in hand with [absoluteSize], which is the dominant property in this relationship. Therefore:
+    * * This value must be set to value required by [absoluteSize].
+    * * This value converts itself to the other value range when [absoluteSize] changes.
+    * * Initial value (before the component is displayed) will not be converted and should be provided in correct range.
+    *   This is because the conversion depends on the actual ui size
+    * */
    val position = v(0.5)
+   /** Whether child is resized absolutely (retains its size on layout). 0 == none, 1 == child 1, 2 == child 2 */
    val absoluteSize = v(0)
+   /** Whether child is hidden so the other covers the entire space. 0 == none, -1 == child 1, 1 == child 2 */
    val collapsed = v(0)
    private val children = HashMap<Int, Component>()
 

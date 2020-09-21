@@ -85,8 +85,8 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
       s2 = null
    }
 
-   /** Shows this placeholder so it is topmost child of specified node (or its first [Pane] parent), [visible] is true and [icon].[focused] is true. */
-   fun showFor(n: Node) {
+   /** Shows this placeholder so it is topmost child of specified node (or its first [Pane] parent), [visible] is true and optionally [icon].[focused] is true. */
+   fun showFor(n: Node, focus: Boolean = true) {
       val p = n.traverse { it.parent }.filterIsInstance<Pane>().firstOrNull()
       if (p!=null && this !in p.children) {
 
@@ -100,7 +100,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
          }
          toFront()
          isVisible = true
-         requestFocus()
+         if (focus) requestFocus()
       }
    }
 

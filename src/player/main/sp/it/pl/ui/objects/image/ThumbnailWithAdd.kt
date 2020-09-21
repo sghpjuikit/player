@@ -37,7 +37,7 @@ class ThumbnailWithAdd constructor(dragIcon: GlyphIcons = DETAILS, dragDescripti
    init {
       // highlight on hover | drag
       root.onEventDown(MOUSE_EXITED) { highlight(false) }
-      root.onEventDown(MOUSE_ENTERED) { highlight(true) }
+      root.onEventDown(MOUSE_ENTERED) { highlight(true, false) }
       root.onEventDown(DRAG_OVER) { if (it.dragboard.hasImageFileOrUrl()) onHighlight(true) }
       root.onEventDown(DRAG_EXITED) { onHighlight(false) }
 
@@ -58,10 +58,10 @@ class ThumbnailWithAdd constructor(dragIcon: GlyphIcons = DETAILS, dragDescripti
       )
    }
 
-   private fun highlight(v: Boolean) {
+   private fun highlight(v: Boolean, focus: Boolean = true) {
       if (v)
          DragPane.PANE.getM(dragData).apply {
-            showFor(root)
+            showFor(root, focus)
             animateShow(imageView)
          }
       else DragPane.PANE.ifSet {

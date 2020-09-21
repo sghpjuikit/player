@@ -85,7 +85,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       )
       // switch to container/normal layout mode using right/left click
       root.onEventDown(MOUSE_CLICKED) {
-         if (area.isContainerMode && it.button==PRIMARY) {
+         if (area.isContainerMode && it.button==PRIMARY && it.clickCount==1) {
             area.setContainerMode(false)
             it.consume()
          }

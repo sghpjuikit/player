@@ -18,7 +18,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -53,6 +52,8 @@ import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.LEFT;
+import static javafx.scene.input.KeyCode.RIGHT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -182,11 +183,13 @@ public final class Seeker extends AnchorPane {
 				addB.show();
 		});
 		seeker.addEventHandler(KEY_PRESSED, e -> {
-			if (e.getCode()==KeyCode.RIGHT) {
-				APP.audio.seekForwardAbsolute();
+			if (e.getCode()==RIGHT) {
+				if (e.isShiftDown()) APP.audio.seekForwardRelative();
+				else APP.audio.seekForwardAbsolute();
 				e.consume();
-			} else if (e.getCode()==KeyCode.LEFT) {
-				APP.audio.seekBackwardAbsolute();
+			} else if (e.getCode()==LEFT) {
+				if (e.isShiftDown()) APP.audio.seekBackwardRelative();
+				else APP.audio.seekBackwardAbsolute();
 				e.consume();
 			}
 		});

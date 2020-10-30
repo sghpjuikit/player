@@ -27,6 +27,8 @@ import sp.it.util.JavaLegacy
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Loop
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.async.runFX
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -59,11 +61,11 @@ class StartScreen: PluginBase() {
 
    private val overlaySleepHandler = object: SystemSleepListener {
       override fun systemAwoke(e: SystemSleepEvent?) {}
-      override fun systemAboutToSleep(e: SystemSleepEvent?) = overlay.hide()
+      override fun systemAboutToSleep(e: SystemSleepEvent?) = runFX(overlay::hide).toUnit()
    }
    private val overlayUserHandler = object: UserSessionListener {
       override fun userSessionActivated(e: UserSessionEvent?) {}
-      override fun userSessionDeactivated(e: UserSessionEvent?) = overlay.hide()
+      override fun userSessionDeactivated(e: UserSessionEvent?) = runFX(overlay::hide).toUnit()
    }
    private val overlayIsActive = Subscribed {
       val shower = fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }

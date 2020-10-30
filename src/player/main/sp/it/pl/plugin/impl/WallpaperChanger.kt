@@ -17,20 +17,22 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.readOnly
 import sp.it.util.access.vn
+import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.FILE
 import sp.it.util.functional.asIf
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfNonNull
-import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.image.FitFrom
@@ -39,6 +41,11 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.size
 import sp.it.util.ui.x
 import sp.it.util.ui.xy
+import java.awt.Desktop
+import java.awt.desktop.SystemSleepEvent
+import java.awt.desktop.SystemSleepListener
+import java.awt.desktop.UserSessionEvent
+import java.awt.desktop.UserSessionListener
 import java.io.File
 
 class WallpaperChanger: PluginBase() {
@@ -55,42 +62,53 @@ class WallpaperChanger: PluginBase() {
          }
       }
    }
-   private val wallpaperIsShowing = Subscribed {
-      APP.mouse.screens.syncWhile {
-         val disposer = Disposer()
+   private val wallpaperApplier = Subscribed {
+      val disposer = Disposer()
 
-         // An all-screen window displaying the wallpaper image in a positioned thumbnail per each screen
-         Stage().run {
-            val root = anchorPane()
-            val b = ShowArea.ALL_SCREENS.bounds().second
+      // An all-screen window displaying the wallpaper image in a positioned thumbnail per each screen
+      Stage().run {
+         val root = anchorPane()
+         val b = ShowArea.ALL_SCREENS.bounds().second
 
-            initStyle(UNDECORATED)
-            title = "${APP.name}-Wallpaper"
-            scene = Scene(root)
-            xy = 0 x 0
-            size = b.size
-            setNonInteractingProgmanOnBottom()
+         initStyle(UNDECORATED)
+         title = "${APP.name}-Wallpaper"
+         scene = Scene(root)
+         xy = 0 x 0
+         size = b.size
+         setNonInteractingProgmanOnBottom()
 
-            Screen.getScreens().forEach { screen ->
-               root.lay(screen.bounds.minY - b.minY, null, null, screen.bounds.minX - b.minX) += Thumbnail(screen.bounds.size).run {
-                  fitFrom.value = FitFrom.OUTSIDE
-                  wallpaperImageW sync { if (it!=null) loadImage(it) } on disposer
-                  onEventDown(WINDOW_HIDDEN) { loadImage(null) }
+         Screen.getScreens().forEach { screen ->
+            root.lay(screen.bounds.minY - b.minY, null, null, screen.bounds.minX - b.minX) += Thumbnail(screen.bounds.size).run {
+               fitFrom.value = FitFrom.OUTSIDE
+               wallpaperImageW sync { if (it!=null) loadImage(it) } on disposer
+               onEventDown(WINDOW_HIDDEN) { loadImage(null) }
 
-                  pane
-               }
+               pane
             }
-
-            disposer += {
-               close()
-               scene.root.asIf<Pane>()?.children?.clear()
-               scene = null
-            }
-
-            wallpaperImageW.sync1IfNonNull { show() } on disposer
          }
 
-         Subscription { disposer() }
+         disposer += {
+            close()
+            scene.root.asIf<Pane>()?.children?.clear()
+            scene = null
+         }
+
+         wallpaperImageW.sync1IfNonNull { show() } on disposer
+      }
+
+      Subscription { disposer() }
+   }
+   private val overlaySleepHandler = object: SystemSleepListener {
+      override fun systemAwoke(e: SystemSleepEvent?) = runFX(wallpaperApplier::resubscribe).toUnit()
+      override fun systemAboutToSleep(e: SystemSleepEvent?) = Unit
+   }
+   private val overlayUserHandler = object: UserSessionListener {
+      override fun userSessionActivated(e: UserSessionEvent?) = runFX(wallpaperApplier::resubscribe).toUnit()
+      override fun userSessionDeactivated(e: UserSessionEvent?) = Unit
+   }
+   private val wallpaperIsShowing = Subscribed {
+      APP.mouse.screens.onChangeAndNow {
+         wallpaperApplier.resubscribe()
       }
    }
 
@@ -105,9 +123,13 @@ class WallpaperChanger: PluginBase() {
    override fun start() {
       wallpaperIsShowing.subscribe()
       menuItemInjector.subscribe()
+      Desktop.getDesktop().addAppEventListener(overlaySleepHandler)
+      Desktop.getDesktop().addAppEventListener(overlayUserHandler)
    }
 
    override fun stop() {
+      Desktop.getDesktop().removeAppEventListener(overlaySleepHandler)
+      Desktop.getDesktop().removeAppEventListener(overlayUserHandler)
       menuItemInjector.unsubscribe()
       wallpaperIsShowing.unsubscribe()
       wallpaperImageW.value = null

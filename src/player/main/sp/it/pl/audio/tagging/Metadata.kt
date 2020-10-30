@@ -178,6 +178,21 @@ class Metadata: Song, Serializable {
    /** Custom 5 or null if empty */
    private var custom5: String? = null
 
+   /** Musicbrainz field MUSICBRAINZ_ARTISTID or null if empty */
+   private var mbArtistId: String? = null
+
+   /** Musicbrainz field MUSICBRAINZ_TRACK_ID or null if empty */
+   private var mbTrackId: String? = null
+
+   /** Musicbrainz field MUSICBRAINZ_DISC_ID or null if empty */
+   private var mbDiscId: String? = null
+
+   /** Musicbrainz field MUSICBRAINZ_RELEASEID or null if empty */
+   private var mbReleaseId: String? = null
+
+   /** Musicbrainz field MUSICBRAINZ_RELEASEARTISTID or null if empty */
+   private var mbReleaseArtistId: String? = null
+
    // synthetic fields
 
    /** Color as string or null if none */
@@ -284,6 +299,11 @@ class Metadata: Song, Serializable {
       custom3 = loadAsString(this, FieldKey.CUSTOM3)
       custom4 = loadAsString(this, FieldKey.CUSTOM4)
       custom5 = loadAsString(this, FieldKey.CUSTOM5)
+      mbArtistId = loadAsString(this, FieldKey.MUSICBRAINZ_ARTISTID)
+      mbTrackId = loadAsString(this, FieldKey.MUSICBRAINZ_TRACK_ID)
+      mbDiscId = loadAsString(this, FieldKey.MUSICBRAINZ_DISC_ID)
+      mbReleaseId = loadAsString(this, FieldKey.MUSICBRAINZ_RELEASEID)
+      mbReleaseArtistId = loadAsString(this, FieldKey.MUSICBRAINZ_RELEASEARTISTID)
 
       // Read synthetic fields
       if (!custom5.isNullOrBlank()) {
@@ -598,6 +618,21 @@ class Metadata: Song, Serializable {
    /** @return custom 5 or null if empty */
    fun getCustom5() = custom5
 
+   /** @return musicbrainz field MUSICBRAINZ_ARTISTID or null if empty */
+   fun getMusicbrainzArtistId() = mbArtistId
+
+   /** @return musicbrainz field MUSICBRAINZ_TRACK_ID or null if empty */
+   fun getMusicbrainzTrackId() = mbTrackId
+
+   /** @return musicbrainz field MUSICBRAINZ_DISC_ID or null if empty */
+   fun getMusicbrainzDiscId() = mbDiscId
+
+   /** @return musicbrainz field MUSICBRAINZ_RELEASEID or null if empty */
+   fun getMusicbrainzReleaseId() = mbReleaseId
+
+   /** @return musicbrainz field MUSICBRAINZ_RELEASEARTISTID or null if empty */
+   fun getMusicbrainzReleaseArtistId() = mbReleaseArtistId
+
    /** @return cover using the respective source */
    @Blocks
    fun getCover(source: CoverSource): Cover {
@@ -883,6 +918,11 @@ class Metadata: Song, Serializable {
          @F val CUSTOM3 = this + field({ it.custom3 }, "Custom3", "Custom field 3")
          @F val CUSTOM4 = this + field({ it.custom4 }, "Custom4", "Custom field 4")
          @F val CUSTOM5 = this + field({ it.custom5 }, "Custom5", "Custom field 5. Reserved for fields 'First played', 'Last played', 'Added to library'." )
+         @F val MUSICBRAINZ_ARTIST_ID = this + field({ it.mbArtistId }, "Musicbrainz artist_id", "Musicbrainz artist_id")
+         @F val MUSICBRAINZ_DISC_ID = this + field({ it.mbDiscId }, "Musicbrainz disc_id", "Musicbrainz disc_id")
+         @F val MUSICBRAINZ_TRACK_ID = this + field({ it.mbTrackId }, "Musicbrainz track_id", "Musicbrainz track_id")
+         @F val MUSICBRAINZ_RELEASE_ID = this + field({ it.mbReleaseId }, "Musicbrainz release_id", "Musicbrainz release_id")
+         @F val MUSICBRAINZ_RELEASE_ARTIST_ID = this + field({ it.mbReleaseArtistId }, "Musicbrainz release_artist_id", "Musicbrainz release_artist_id")
          @F val FIRST_PLAYED = this + field({ it.getTimePlayedFirst() }, "First played", "Marks time the song was played the first time.")
          @F val LAST_PLAYED = this + field({ it.getTimePlayedLast() }, "Last played", "Marks time the song was played the last time.")
          @F val ADDED_TO_LIBRARY = this + field({ it.getTimeLibraryAdded() }, "Added to library", "Marks time the song was added to the library.")

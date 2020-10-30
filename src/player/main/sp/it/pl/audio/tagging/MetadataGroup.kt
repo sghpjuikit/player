@@ -131,7 +131,7 @@ class MetadataGroup {
       @JvmStatic
       fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): Stream<MetadataGroup> {
          val getGroupedOf = f.getGroupedOf()
-         return ms.asSequence().groupBy { getGroupedOf(it) }
+         return ms.groupBy { getGroupedOf(it) }
             .entries.stream()
             .map { (key, value) -> MetadataGroup(f, false, key, value) }
       }

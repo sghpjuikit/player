@@ -1,10 +1,30 @@
 
-.hue-group-icon {}
 .hue-group-icon:on Text {
     -fx-fill: -skin-def-font-color-hover;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 0.5em,0 , 0,0);
+}
+.hue-group-icon:hover Text,
+.hue-group-icon:focused Text,
+.hue-group-icon:edited Text {
+    -fx-fill: -skin-def-font-color-hover;
+}
+.hue-group-icon:hover:on Text,
+.hue-group-icon:focused:on Text,
+.hue-group-icon:edited:on Text {
+    -fx-effect: dropshadow(gaussian, -skin-def-font-color-hover, 0.5em,0 , 0,0);
 }
 
-.hue-bulb-icon {}
 .hue-bulb-icon:on Text {
     -fx-fill: -skin-def-font-color-hover;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 0.5em,0 , 0,0);
+}
+.hue-bulb-icon:hover Text,
+.hue-bulb-icon:focused Text,
+.hue-bulb-icon:edited Text {
+    -fx-fill: -skin-def-font-color-hover;
+}
+.hue-bulb-icon:hover:on Text,
+.hue-bulb-icon:focused:on Text,
+.hue-bulb-icon:edited:on Text {
+    -fx-effect: dropshadow(gaussian, -skin-def-font-color-hover, 0.5em,0 , 0,0);
 }

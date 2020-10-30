@@ -25,6 +25,8 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.control.TitledPane
+import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
@@ -80,12 +82,14 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Suppressor
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.text.keys
 import sp.it.util.type.atomic
 import sp.it.util.ui.dsl
 import sp.it.util.ui.flowPane
@@ -120,7 +124,8 @@ class Hue(widget: Widget): SimpleController(widget) {
       fun init() =
          runFX { hueBridgeIp }
             .then(IO) { ip ->
-               ip.validIpOrNull() ?: ip() ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
+               ip.validIpOrNull() ?: ip()
+               ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
             }
             .ui { ip ->
                hueBridgeIp = ip
@@ -331,27 +336,33 @@ class Hue(widget: Widget): SimpleController(widget) {
                styleclass("hue-group-icon")
                pseudoClassChanged("on", group.state.any_on)
 
+               fun toggleBulbGrouo() = hueBridge.toggle(group).thenRefresh()
+               fun deleteBulbGrouo() = hueBridge.deleteGroup(group.id).thenRefresh()
+               fun focusBulbGrouo() {
+                  selectedGroupIcon?.select(false)
+                  selectedGroupIcon?.pseudoClassChanged("edited", false)
+                  selectedGroupIcon = this
+                  requestFocus()
+                  select(true)
+                  pseudoClassChanged("edited", true)
+                  selectedGroup = group
+                  selectedBulb = null
+                  selectedBulbIcon = null
+                  color.readOnly.value = false
+               }
+
+               focusedProperty() attach { if (it) focusBulbGrouo() }
+
+               onEventDown(KEY_PRESSED, SPACE) { toggleBulbGrouo() }
                onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  if (it.clickCount==1) {
-                     selectedGroupIcon?.select(false)
-                     selectedGroupIcon = this
-                     select(true)
-                     selectedGroup = group
-                     selectedBulb = null
-                     selectedBulbIcon = null
-                     color.readOnly.value = false
-                  }
-                  if (it.clickCount==2) {
-                     hueBridge.toggle(group)
-                     refresh()
-                  }
+                  if (it.clickCount==1) focusBulbGrouo()
+                  if (it.clickCount==2) toggleBulbGrouo()
                }
                onContextMenuRequested = EventHandler {
                   if (group.id!="0")
                      ContextMenu().dsl {
-                        item("delete") {
-                           hueBridge.deleteGroup(group.id).thenRefresh()
-                        }
+                        item("Toggle bulbs on/off    (${keys("SPACE")})") { toggleBulbGrouo() }
+                        item("Delete    (${keys("DELETE")})") { deleteBulbGrouo() }
                      }.show(this, RIGHT, 0.0, 0.0)
                }
 
@@ -384,20 +395,31 @@ class Hue(widget: Widget): SimpleController(widget) {
                styleclass("hue-bulb-icon")
                pseudoClassChanged("on", bulb.state.on)
 
+               fun toggleBulb() = hueBridge.toggle(bulb).thenRefresh()
+               fun focusBulb() {
+                  selectedBulbIcon?.select(false)
+                  selectedBulbIcon?.pseudoClassChanged("edited", false)
+                  selectedBulbIcon = this
+                  requestFocus()
+                  select(true)
+                  pseudoClassChanged("edited", true)
+                  selectedBulb = bulb
+                  selectedGroup = null
+                  selectedGroupIcon = null
+                  color.readOnly.value = false
+                  color.changeToBulb(bulb)
+               }
+
+               focusedProperty() attach { if (it) focusBulb() }
+               onEventDown(KEY_PRESSED, SPACE) { toggleBulb() }
                onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  if (it.clickCount==1) {
-                     selectedBulbIcon?.select(false)
-                     selectedBulbIcon = this
-                     select(true)
-                     selectedBulb = bulb
-                     selectedGroup = null
-                     selectedGroupIcon = null
-                     color.readOnly.value = false
-                     color.changeToBulb(bulb)
-                  }
-                  if (it.clickCount==2) {
-                     hueBridge.toggle(bulb).thenRefresh()
-                  }
+                  if (it.clickCount==1) focusBulb()
+                  if (it.clickCount==2) hueBridge.toggle(bulb).thenRefresh()
+               }
+               onContextMenuRequested = EventHandler {
+                  ContextMenu().dsl {
+                     item("Toggle on/off    (${keys("SPACE")})") { toggleBulb() }
+                  }.show(this, RIGHT, 0.0, 0.0)
                }
                withText(bulb.name)
             }

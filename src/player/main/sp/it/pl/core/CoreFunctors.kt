@@ -241,6 +241,18 @@ object CoreFunctors: Core {
          addComparisons(type<Long>(), 0L)
          addComparisons(type<Double>(), 0.0)
          addComparisons(type<Float>(), 0f)
+
+         // Else function should be of dynamic type and just one, but then we cant provide default values for parameters,
+         // this are, for now, mandatory
+         add("else", type<String?>(), type<String>(), p("")) { it, or -> it ?: or }
+         add("else", type<Byte?>(), type<Byte>(), p(0.toByte())) { it, or -> it ?: or }
+         add("else", type<Short?>(), type<Short>(), p(0.toShort())) { it, or -> it ?: or }
+         add("else", type<Int?>(), type<Int>(), p(0)) { it, or -> it ?: or }
+         add("else", type<Long?>(), type<Long>(), p(0.toLong())) { it, or -> it ?: or }
+         add("else", type<BigInteger?>(), type<BigInteger>(), p(0.toBigInteger())) { it, or -> it ?: or }
+         add("else", type<Float?>(), type<Float>(), p(0.toFloat())) { it, or -> it ?: or }
+         add("else", type<Double?>(), type<Double>(), p(0.toDouble())) { it, or -> it ?: or }
+         add("else", type<BigDecimal?>(), type<BigDecimal>(), p(0.toBigDecimal())) { it, or -> it ?: or }
       }
    }
 

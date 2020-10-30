@@ -27,6 +27,7 @@ import static sp.it.util.functional.Util.ISNT;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.type.TypesKt.notnull;
 
 /**
  * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
@@ -52,7 +53,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	// where null.equals(null) would return true, basically: element.hasDefaultValue(field).
 	// However, in my opinion, isNull predicate does not lose its value completely.
 	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function1<? super T, ? extends Boolean> filter) {
-		return filter==IS0 || filter==ISNT0 || filter==IS || filter==ISNT
+		return filter==IS0 || filter==ISNT0 || filter==IS || filter==ISNT || field.getType().isNullable()
 				? element -> filter.invoke(field.getOf(element))
 				: element -> {
 					T o = field.getOf(element);
@@ -87,7 +88,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		typeCB.valueProperty().addListener((o, ov, nv) -> {
 			if (inconsistentState) return;
 			if (config!=null) root.getChildren().remove(config.getNode());
-			config = new FItemNode<>(predicatePool.invoke(nv.type));
+			config = new FItemNode<>(predicatePool.invoke(notnull(nv.type)));
 			root.getChildren().add(config.getNode());
 			HBox.setHgrow(config.getNode(), ALWAYS);
 			config.onItemChange = v -> generatePredicate();

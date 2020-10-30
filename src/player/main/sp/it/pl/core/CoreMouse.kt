@@ -1,16 +1,12 @@
 package sp.it.pl.core
 
-import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Point2D
 import javafx.scene.robot.Robot
 import javafx.stage.Screen
 import sp.it.util.async.executor.FxTimer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.collections.readOnly
-import sp.it.util.collections.setTo
-import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
-import sp.it.util.reactive.onChange
 import sp.it.util.units.div
 import sp.it.util.units.seconds
 import java.util.HashSet
@@ -42,18 +38,9 @@ object CoreMouse: Core {
       return Subscription { unsubscribe(action) }
    }
 
-   // Screen.getScreens() uses clear+add instead of setAll and produces invalid events with no screens
-   private val screensImpl = observableArrayList<Screen>()
-   private var screensWereEmpty = false
-   private val screenObserver = Subscribed {
-      val allScreens = Screen.getScreens()
-      allScreens.onChange {
-         val screensAreEmpty = allScreens.isEmpty()
-         if (!screensAreEmpty || screensWereEmpty) screensImpl setTo allScreens
-         screensWereEmpty = screensAreEmpty
-      }
-   }
-   val screens = screensImpl.readOnly()
+   val screens = Screen.getScreens().readOnly()
+   val primaryScreen: Screen
+      get() = Screen.getPrimary()
 
    private fun unsubscribe(s: Any) {
       positionSubscribers.remove(s)

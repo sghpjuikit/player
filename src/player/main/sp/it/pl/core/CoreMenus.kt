@@ -43,6 +43,7 @@ import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.div
 import sp.it.util.file.isParentOf
+import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.ifFalse
 import sp.it.util.functional.runTry
 import sp.it.util.system.browse
@@ -137,6 +138,7 @@ object CoreMenus: Core {
                item("Copy path") { copyToSysClipboard(DataFormat.PLAIN_TEXT, it.path) }
             }
 
+            item("Copy filename") { copyToSysClipboard(DataFormat.PLAIN_TEXT, it.nameOrRoot) }
             item("Copy as ...") { f ->
                object: ConfigurableBase<Any?>() {
                   val file by cv(APP.location).only(DIRECTORY).def(name = "File")
@@ -153,7 +155,7 @@ object CoreMenus: Core {
             }
          }
          addMany<File> {
-            item("Copy (to clipboard)") { copyToSysClipboard(DataFormat.FILES, it) }
+            item("Copy") { copyToSysClipboard(DataFormat.FILES, it) }
             item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }
          }
          add<Node> {

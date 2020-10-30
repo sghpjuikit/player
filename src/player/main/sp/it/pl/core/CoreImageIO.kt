@@ -22,6 +22,13 @@ class CoreImageIO(private val imageIoDir: File): Core {
       ICC_Profile.getInstance(ColorSpace.CS_GRAY).data
       ICC_Profile.getInstance(ColorSpace.CS_CIEXYZ).data
       ICC_Profile.getInstance(ColorSpace.CS_LINEAR_RGB).data
+
+      // disable logging from net.sf.javavp8decoder
+      java.util.logging.Logger.getLogger("net.sf.javavp8decoder.vp8Decoder").apply {
+         handlers.toList().forEach(::removeHandler)
+         level = java.util.logging.Level.OFF
+         useParentHandlers = false
+      }
    }
 
 }

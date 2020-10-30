@@ -30,6 +30,12 @@ class Subscribed: Subscription {
    /** Equivalent to subscribe(!isSubscribed). */
    fun subscribeToggle() = subscribe(!isSubscribed)
 
+   /** Equivalent to calling subscribe(false) and then subscribe(true). */
+   fun resubscribe() {
+      subscribe(false)
+      subscribe(true)
+   }
+
    /** Equivalent to [subscribeToggle]. */
    operator fun not() = subscribeToggle()
 

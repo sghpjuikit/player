@@ -304,9 +304,11 @@ public class Icon extends StackPane {
 	/** Sets css style class. Returns this icon (fluent API). */
 	// TODO: remove method
 	public final @NotNull Icon styleclass(String s) {
-		getStyleClass().add(s);
-		updateIcon();
-		updateSize();
+		if (!getStyleClass().contains(s)) {
+			getStyleClass().add(s);
+			updateIcon();
+			updateSize();
+		}
 		return this;
 	}
 

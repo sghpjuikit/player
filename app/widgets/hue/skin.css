@@ -7,6 +7,7 @@
 .hue-group-icon:focused Text,
 .hue-group-icon:edited Text {
     -fx-fill: -skin-def-font-color-hover;
+    -fx-effect: null;
 }
 .hue-group-icon:hover:on Text,
 .hue-group-icon:focused:on Text,
@@ -20,11 +21,14 @@
 }
 .hue-bulb-icon:hover Text,
 .hue-bulb-icon:focused Text,
+.hue-bulb-icon:edited-group Text,
 .hue-bulb-icon:edited Text {
     -fx-fill: -skin-def-font-color-hover;
+    -fx-effect: null;
 }
 .hue-bulb-icon:hover:on Text,
 .hue-bulb-icon:focused:on Text,
+.hue-bulb-icon:edited-group:on Text,
 .hue-bulb-icon:edited:on Text {
     -fx-effect: dropshadow(gaussian, -skin-def-font-color-hover, 0.5em,0 , 0,0);
 }

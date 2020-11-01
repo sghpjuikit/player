@@ -2,6 +2,7 @@
 
 package hue
 
+import de.jensd.fx.glyphs.GlyphIcons
 import hue.HueGroupType.LightGroup
 import hue.HueGroupType.Lightsource
 import hue.HueGroupType.Luminaire
@@ -21,6 +22,7 @@ import io.ktor.http.HttpStatusCode.Companion.SwitchingProtocols
 import javafx.event.EventHandler
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side.RIGHT
+import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
@@ -109,10 +111,12 @@ import kotlin.coroutines.CoroutineContext
 class Hue(widget: Widget): SimpleController(widget) {
 
    val client = HttpClient(CIO)
-   var selectedGroup: HueGroup? = null
-   var selectedGroupIcon: Icon? = null
-   var selectedBulb: HueBulb? = null
-   var selectedBulbIcon: Icon? = null
+   val hueBulbCells = HashMap<HueBulbId, HueCell<HueBulb>>()
+   val hueBulbGroupCells = HashMap<HueGroupId, HueCell<HueGroup>>()
+   var selectedGroupId: HueGroupId? = null
+   var selectedGroupIcon: HueIcon<HueGroup>? = null
+   var selectedBulbId: HueBulbId? = null
+   var selectedBulbIcon: HueIcon<HueBulb>? = null
    val bulbsPane = flowPane(10.emScaled, 10.emScaled)
    val groupsPane = flowPane(10.emScaled, 10.emScaled)
    val scenesPane = flowPane(10.emScaled, 10.emScaled)
@@ -150,7 +154,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       @Blocks
       private fun ip() = runBlocking {
          val response = client.get<String>("https://discovery.meethue.com/")
-         (response.parseToJson().asJsArray()/0/"internalipaddress")?.asJsStringValue().printIt()
+         (response.parseToJson().asJsArray()/0/"internalipaddress")?.asJsStringValue()
       }
 
       private suspend fun isAuthorizedApiKey(ip: String, apiKey: String): Boolean {
@@ -207,50 +211,50 @@ class Hue(widget: Widget): SimpleController(widget) {
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
       }
 
-      fun toggle(bulb: HueBulb) = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/lights/${bulb.id}")
+      fun toggleBulb(bulb: HueBulbId) = runSuspending {
+         val response = client.get<String>("$hueBridgeUrl/lights/$bulb")
          val on = response.parseToJson().to<HueBulb>().state.on
-         client.put<String>("$hueBridgeUrl/lights/${bulb.id}/state") {
+         client.put<String>("$hueBridgeUrl/lights/$bulb/state") {
             body = HueBulbStateEditOn(!on).toJson().toPrettyS()
-         }.printIt()
+         }
       }
 
-      fun toggle(group: HueGroup) = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/groups/${group.id}")
-         val allOn = response.parseToJson().to<HueGroup>().copy(id = group.id).state.all_on
-         client.put<String>("$hueBridgeUrl/groups/${group.id}/action") {
+      fun toggleBulbGroup(group: HueGroupId) = runSuspending {
+         val response = client.get<String>("$hueBridgeUrl/groups/$group")
+         val allOn = response.parseToJson().to<HueGroup>().copy(id = group).state.all_on
+         client.put<String>("$hueBridgeUrl/groups/$group/action") {
             body = HueBulbStateEditOn(!allOn).toJson().toPrettyS()
-         }.printIt()
+         }
       }
 
-      fun applyLight(bulb: HueBulb, state: HueBulbStateEditLight) = runSuspending {
-         client.put<String>("$hueBridgeUrl/lights/${bulb.id}/state") {
+      fun applyBulbLight(bulb: HueBulbId, state: HueBulbStateEditLight) = runSuspending {
+         client.put<String>("$hueBridgeUrl/lights/$bulb/state") {
             body = state.toJson().asJsObject().withoutNullValues().toPrettyS()
-         }.printIt()
+         }
       }
 
-      fun applyLight(group: HueGroup, state: HueBulbStateEditLight) = runSuspending {
-         client.put<String>("$hueBridgeUrl/groups/${group.id}/action") {
+      fun applyBulbGroupLight(group: HueGroupId, state: HueBulbStateEditLight) = runSuspending {
+         client.put<String>("$hueBridgeUrl/groups/$group/action") {
             body = state.toJson().asJsObject().withoutNullValues().toPrettyS()
-         }.printIt()
+         }
       }
 
       fun applyScene(scene: HueScene) = runSuspending {
          client.put<String>("$hueBridgeUrl/groups/0/action") {
             body = JsObject("scene" to JsString(scene.id)).toPrettyS()
-         }.printIt()
+         }
       }
 
       fun createGroup(group: HueGroupCreate) = runSuspending {
          client.post<String>("$hueBridgeUrl/groups") {
             body = group.toJson().toPrettyS()
-         }.printIt()
+         }
       }
 
       fun createScene(scene: HueSceneCreate) = runSuspending {
          client.post<String>("$hueBridgeUrl/scenes") {
             body = scene.toJson().asJsObject().withoutNullValues().toPrettyS()
-         }.printIt()
+         }
       }
 
       fun deleteGroup(group: HueGroupId) = runSuspending {
@@ -270,6 +274,13 @@ class Hue(widget: Widget): SimpleController(widget) {
       val bri by cv(1).readOnlyIf(readOnly).between(1, 254).def(name = "Brightness") attach { applyToSelected(it, null, null) }
       val sat by cv(0).readOnlyIf(readOnly).between(0, 254).def(name = "Saturation") attach { applyToSelected(null, null, it) }
 
+      fun changeToBulbGroup(group: HueGroup) {
+         avoidApplying.suppressingAlways {
+            bri.value = 1
+            hue.value = 0
+            sat.value = 0
+         }
+      }
       fun changeToBulb(bulb: HueBulb) {
          avoidApplying.suppressingAlways {
             bri.value = bulb.state.bri
@@ -281,8 +292,8 @@ class Hue(widget: Widget): SimpleController(widget) {
       fun applyToSelected(bri: Int?, hue: Int?, sat: Int?) {
          avoidApplying.suppressed {
             val state = HueBulbStateEditLight(bri, hue, sat)
-            selectedBulb.ifNotNull { hueBridge.applyLight(it, state) }
-            selectedGroup.ifNotNull { hueBridge.applyLight(it, state) }
+            selectedBulbId.ifNotNull { hueBridge.applyBulbLight(it, state) }
+            selectedGroupId.ifNotNull { hueBridge.applyBulbGroupLight(it, state) }
          }
       }
    }
@@ -332,41 +343,48 @@ class Hue(widget: Widget): SimpleController(widget) {
    fun refresh(): Fut<Any> = hueBridge.init() ui {
       hueBridge.groups() ui { groups ->
          groupsPane.children setTo groups.map { group ->
-            Icon(IconFA.LIGHTBULB_ALT, 40.0).run {
-               styleclass("hue-group-icon")
-               pseudoClassChanged("on", group.state.any_on)
+            hueBulbGroupCells.getOrPut(group.id) {
+               HueIcon(IconFA.LIGHTBULB_ALT, 40.0, group).run {
+                  styleclass("hue-group-icon")
 
-               fun toggleBulbGrouo() = hueBridge.toggle(group).thenRefresh()
-               fun deleteBulbGrouo() = hueBridge.deleteGroup(group.id).thenRefresh()
-               fun focusBulbGrouo() {
-                  selectedGroupIcon?.select(false)
-                  selectedGroupIcon?.pseudoClassChanged("edited", false)
-                  selectedGroupIcon = this
-                  requestFocus()
-                  select(true)
-                  pseudoClassChanged("edited", true)
-                  selectedGroup = group
-                  selectedBulb = null
-                  selectedBulbIcon = null
-                  color.readOnly.value = false
+                  fun toggleBulbGrouo() = hueBridge.toggleBulbGroup(group.id).thenRefresh()
+                  fun deleteBulbGrouo() = hueBridge.deleteGroup(group.id).thenRefresh()
+                  fun focusBulbGroup() {
+                     selectedBulbIcon?.pseudoClassChanged("edited", false)
+                     selectedBulbIcon = null
+                     selectedBulbId = null
+                     selectedGroupIcon?.hue?.lights?.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
+                     selectedGroupIcon?.pseudoClassChanged("edited", false)
+                     selectedGroupIcon = this
+                     selectedGroupId = group.id
+                     pseudoClassChanged("edited", true)
+                     hue.lights.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", true) }
+                     color.readOnly.value = false
+                     color.changeToBulbGroup(hue)
+                  }
+
+                  focusedProperty() attach { focusBulbGroup() }
+
+                  onEventDown(KEY_PRESSED, SPACE) { toggleBulbGrouo() }
+                  onEventDown(MOUSE_CLICKED, PRIMARY) {
+                     if (it.clickCount==1) focusBulbGroup()
+                     if (it.clickCount==2) toggleBulbGrouo()
+                  }
+                  onContextMenuRequested = EventHandler {
+                     if (hue.id!="0")
+                        ContextMenu().dsl {
+                           item("Toggle bulbs on/off    (${keys("SPACE")})") { toggleBulbGrouo() }
+                           item("Delete (${keys("DELETE")})") { deleteBulbGrouo() }
+                        }.show(this, RIGHT, 0.0, 0.0)
+                  }
+
+                  HueCell(withText(group.name), this)
                }
+            }.run {
+               icon.hue = group
+               icon.pseudoClassChanged("on", group.state.any_on)
 
-               focusedProperty() attach { if (it) focusBulbGrouo() }
-
-               onEventDown(KEY_PRESSED, SPACE) { toggleBulbGrouo() }
-               onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  if (it.clickCount==1) focusBulbGrouo()
-                  if (it.clickCount==2) toggleBulbGrouo()
-               }
-               onContextMenuRequested = EventHandler {
-                  if (group.id!="0")
-                     ContextMenu().dsl {
-                        item("Toggle bulbs on/off    (${keys("SPACE")})") { toggleBulbGrouo() }
-                        item("Delete    (${keys("DELETE")})") { deleteBulbGrouo() }
-                     }.show(this, RIGHT, 0.0, 0.0)
-               }
-
-               withText(group.name)
+               node
             }
          }
          groupsPane.children += Icon(IconFA.PLUS).onClickDo {
@@ -391,37 +409,43 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
       hueBridge.bulbs() ui { bulbs ->
          bulbsPane.children setTo bulbs.map { bulb ->
-            Icon(IconFA.LIGHTBULB_ALT, 40.0).run {
-               styleclass("hue-bulb-icon")
-               pseudoClassChanged("on", bulb.state.on)
+            hueBulbCells.getOrPut(bulb.id) {
+               HueIcon(IconFA.LIGHTBULB_ALT, 40.0, bulb).run {
+                  styleclass("hue-bulb-icon")
 
-               fun toggleBulb() = hueBridge.toggle(bulb).thenRefresh()
-               fun focusBulb() {
-                  selectedBulbIcon?.select(false)
-                  selectedBulbIcon?.pseudoClassChanged("edited", false)
-                  selectedBulbIcon = this
-                  requestFocus()
-                  select(true)
-                  pseudoClassChanged("edited", true)
-                  selectedBulb = bulb
-                  selectedGroup = null
-                  selectedGroupIcon = null
-                  color.readOnly.value = false
-                  color.changeToBulb(bulb)
-               }
+                  fun toggleBulb() = hueBridge.toggleBulb(bulb.id).thenRefresh()
+                  fun focusBulb() {
+                     selectedGroupIcon?.hue?.lights?.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
+                     selectedGroupIcon?.pseudoClassChanged("edited", false)
+                     selectedGroupIcon = null
+                     selectedGroupId = null
+                     selectedBulbIcon?.pseudoClassChanged("edited", false)
+                     selectedBulbIcon = this
+                     selectedBulbId = bulb.id
+                     pseudoClassChanged("edited", true)
+                     color.readOnly.value = false
+                     color.changeToBulb(hue)
+                  }
 
-               focusedProperty() attach { if (it) focusBulb() }
-               onEventDown(KEY_PRESSED, SPACE) { toggleBulb() }
-               onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  if (it.clickCount==1) focusBulb()
-                  if (it.clickCount==2) hueBridge.toggle(bulb).thenRefresh()
+                  focusedProperty() attach { focusBulb() }
+                  onEventDown(KEY_PRESSED, SPACE) { toggleBulb() }
+                  onEventDown(MOUSE_CLICKED, PRIMARY) {
+                     if (it.clickCount==1) focusBulb()
+                     if (it.clickCount==2) toggleBulb()
+                  }
+                  onContextMenuRequested = EventHandler {
+                     ContextMenu().dsl {
+                        item("Toggle on/off (${keys("SPACE")})") { toggleBulb() }
+                     }.show(this, RIGHT, 0.0, 0.0)
+                  }
+
+                  HueCell(withText(bulb.name), this)
                }
-               onContextMenuRequested = EventHandler {
-                  ContextMenu().dsl {
-                     item("Toggle on/off    (${keys("SPACE")})") { toggleBulb() }
-                  }.show(this, RIGHT, 0.0, 0.0)
-               }
-               withText(bulb.name)
+            }.run {
+               icon.hue = bulb
+               icon.pseudoClassChanged("on", bulb.state.on)
+
+               node
             }
          }
       }
@@ -498,6 +522,9 @@ class Hue(widget: Widget): SimpleController(widget) {
 typealias HueBulbId = String
 typealias HueGroupId = String
 typealias HueSceneId = String
+
+class HueCell<T>(val node: Node, val icon: HueIcon<T>)
+class HueIcon<T>(i: GlyphIcons, size: Double, var hue: T): Icon(i, size)
 
 data class HueBridge(val id: String, val name: String)
 data class HueBulbStateEditOn(val on: Boolean)

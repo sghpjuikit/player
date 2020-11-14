@@ -26,6 +26,7 @@ import sp.it.util.access.vx
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.materialize
+import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
@@ -86,7 +87,7 @@ import kotlin.streams.toList
  * The input list is retained and all (if any) transformations are applied on it every time a change in the
  * transformation chain occurs. Manual tex edits are considered part of the transformation chain.
  *
- * The input can be set using [setInput] methods.
+ * The input can be set using [setInputToLinesOf] methods.
  *
  * The result can be accessed as:
  *  * concatenated text (which is equal to the visible text) [getValAsText]
@@ -100,11 +101,22 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    @JvmField protected val textArea = TextArea()
 
-   private val input = mutableListOf<Any?>()
+   /**
+    * Value of this - a transformation input before transformation is applied.
+    * See [setInput] and [setInputToLinesOf].
+    *
+    * Upon change:
+    * - The [transforms] input element type is determined to the best of the ability.
+    * - Transformation chain is cleared if the input element type has changed.
+    * - Text of the text area is updated.
+    */
+   @JvmField val input = FXCollections.observableArrayList<Any?>()!!
 
    /** The transformation chain. */
    @JvmField val transforms = ListAreaNodeTransformations({ Functors.pool.getI(it).asIs() })
 
+   /** Writable [output]. */
+   private val outputImpl = FXCollections.observableArrayList<Any?>()!!
    /**
     * Value of this - a transformation output of the input list after transformation is applied to each
     * element. The text of this area shows string representation of this list.
@@ -126,7 +138,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     * list change events) when the output type is String. You may observe the text directly using
     * [outputText]
     */
-   @JvmField val output = FXCollections.observableArrayList<Any?>()!!
+   @JvmField val output = outputImpl.readOnly()
 
    /** Text of the text area and approximately concatenated [getVal]. Editable by user (ui) and programmatically. */
    @JvmField val outputText = textArea.textProperty()!!
@@ -135,11 +147,14 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
    private val isTransformsChanging = Suppressor(false)
 
    init {
+      input.onChange {
+         transforms.typeIn = VType<Any?>(input.getElementType())
+      }
       transforms.onItemChange = Consumer { transformations ->
          isTransformsChanging.suppressing {
             val i = transformations.mapNotNull { it as? Transformation.Manual }.lastOrNull()?.text?.lines() ?: input.materialize()
             val o = transformations.takeLastWhile { it !is Transformation.Manual }.fold(i) { it, transformation -> transformation(it) }
-            output setTo o
+            outputImpl setTo o
             val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual
             if (!isManualEdit) textArea.text = o.asSequence().map { it.toString() }.joinToString("\n")
             changeValue(textArea.text.lines())
@@ -155,7 +170,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
             if (isManualEdit) transforms.setChained(transforms.length() - 1, link)
             else transforms.addChained(link)
 
-            if (isTextEdit) output setTo text.lines()
+            if (isTextEdit) outputImpl setTo text.lines()
          }
       }
       textArea.onEventDown(KEY_PRESSED, CONTROL, V) { it.consume() } // avoids possible duplicate paste
@@ -163,22 +178,13 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       root.lay += transforms.getNode()
    }
 
-   /**
-    * Sets the input list.
-    * The input element type is determined to the best of the ability.
-    * Transformation chain is cleared if the type of list has changed.
-    * Updates text of the text area.
-    */
+   /** Sets the [input] list */
    open fun setInput(data: List<Any?>) {
       input setTo data
-      transforms.typeIn = VType<Any?>(data.getElementType())  // fires update
    }
 
-   /** Splits the specified text and [setInput] with the result */
-   fun setInput(text: String) = setInput(text.lines())
-
-   /** @return the input that was last set or empty list if none */
-   fun getInput(): List<Any?> = listOf(input)
+   /** Sets the [input] list to lines of the specified text */
+   fun setInputToLinesOf(text: String) = setInput(text.lines())
 
    override fun getNode() = root
 

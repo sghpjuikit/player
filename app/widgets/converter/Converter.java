@@ -98,6 +98,8 @@ import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.streamBi;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.type.TypesKt.typeNothingNonNull;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
@@ -310,6 +312,11 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
             // graphics
             var nameL = new Label("");
+            var size1L = new Label("Size: ");
+            var size2L = new Label("");
+            onChangeAndNow(input, runnable(() -> size2L.setText(input.size() + " →")));
+            var size3L = new Label("");
+            onChangeAndNow(output, runnable(() -> size3L.setText(output.size() + "")));
             var applyI = new Icon(OctIcon.DATABASE)
                     .tooltip(
                         "Set input\n\nSet input for this area. The actual input, its transformation and the output will be discarded."
@@ -339,7 +346,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             getNode().getChildren().add(0,
                 layStack(
                     nameL,Pos.CENTER,
-                    layHorizontally(5,Pos.CENTER_RIGHT, applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
+                    layHorizontally(5,Pos.CENTER_RIGHT, size1L,size2L,size3L,applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
                 )
             );
 
@@ -406,7 +413,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         public void createNewAreaWithInputData() {
             EditArea t = new EditArea();
-            t.setInput(getInput());
+            t.setInput(input);
             tas.add(tas.indexOf(this)+1,t);
         }
 

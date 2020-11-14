@@ -137,7 +137,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
    init {
       transforms.onItemChange = Consumer { transformations ->
          isTransformsChanging.suppressing {
-            val i = input.materialize()
+            val i = transformations.mapNotNull { it as? Transformation.Manual }.lastOrNull()?.text?.lines() ?: input.materialize()
             val o = transformations.takeLastWhile { it !is Transformation.Manual }.fold(i) { it, transformation -> transformation(it) }
             output setTo o
             val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual

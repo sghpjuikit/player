@@ -98,6 +98,7 @@ import static sp.it.util.functional.Util.split;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.streamBi;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.type.TypesKt.typeNothingNonNull;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
@@ -262,7 +263,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         ta_in.output.addListener((Change<?> o) -> output.setValue(materialize(ta_in.output)));
 
         // set empty content
-        applier.fillActs(getKotlinClass(Void.class));
+        applier.fillActs(typeNothingNonNull());
     }
 
     @Override
@@ -479,8 +480,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             });
         }
 
-        public void fillActs(KClass<?> c) {
-            List<Act<?>> l = SequencesKt.toList(acts.getElementsOfSuperV(c));
+        public void fillActs(VType<?> c) {
+            List<Act<?>> l = SequencesKt.toList(acts.getElementsOfSuperV((KClass<?>) c.getType().getClassifier()));
             actCB.getItems().setAll(l);
             if (!l.isEmpty()) actCB.setValue(l.get(0));
         }

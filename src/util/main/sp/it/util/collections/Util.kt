@@ -2,10 +2,13 @@ package sp.it.util.collections
 
 import javafx.beans.InvalidationListener
 import javafx.beans.Observable
+import javafx.collections.FXCollections
 import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.FXCollections.observableSet
 import javafx.collections.ListChangeListener
+import javafx.collections.MapChangeListener
 import javafx.collections.ObservableList
+import javafx.collections.ObservableMap
 import javafx.collections.ObservableSet
 import javafx.collections.SetChangeListener
 import sp.it.util.functional.Try
@@ -125,7 +128,7 @@ infix fun <T> MutableCollection<T>.setToOne(element: T) {
 
 /** @return read-only observable list that maintains the elements from this list mapped using the specified mapper */
 fun <T, R, LIST> LIST.project(mapper: (T) -> R): ObservableListRO<R> where LIST: List<T>, LIST: Observable {
-   val outBacking = observableArrayList<R>()
+   val outBacking = observableList<R>()
    outBacking setTo map(mapper)
    onChange { outBacking setTo map(mapper) }
    return ObservableListRO(outBacking)
@@ -140,9 +143,7 @@ fun <T, R, SET> SET.project(mapper: (T) -> R): ObservableSetRO<R> where SET: Set
 }
 
 /** Type safe read-only [ObservableList] implemented by delegation as [List] that is [Observable]. */
-class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list, Observable {
-   override fun removeListener(listener: InvalidationListener) = addListener(listener)
-   override fun addListener(listener: InvalidationListener) = list.addListener(listener)
+class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list, Observable by list {
    fun addListener(listener: ListChangeListener<in T>) = list.addListener(listener)
    fun removeListener(listener: ListChangeListener<in T>) = list.removeListener(listener)
    fun toJavaFx(): ObservableList<T> = observableArrayList(this).also {
@@ -151,7 +152,7 @@ class ObservableListRO<T>(private val list: ObservableList<T>): List<T> by list,
 }
 
 /** Type safe read-only [ObservableSet] implemented by delegation as [Set] that is [Observable]. */
-class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Observable {
+class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Observable by set{
    override fun removeListener(listener: InvalidationListener) = addListener(listener)
    override fun addListener(listener: InvalidationListener) = set.addListener(listener)
    fun addListener(listener: SetChangeListener<in T>) = set.addListener(listener)
@@ -160,6 +161,23 @@ class ObservableSetRO<T>(private val set: ObservableSet<T>): Set<T> by set, Obse
       onChange { it setTo this }
    }
 }
+
+/** Type safe read-only [ObservableMap] implemented by delegation as [Map] that is [Observable]. */
+class ObservableMapRO<K,V>(private val map: ObservableMap<K,V>): Map<K,V> by map, Observable by map {
+   override fun removeListener(listener: InvalidationListener) = addListener(listener)
+   override fun addListener(listener: InvalidationListener) = map.addListener(listener)
+   fun addListener(listener: MapChangeListener<in K, in V>) = map.addListener(listener)
+   fun removeListener(listener: MapChangeListener<in K, in V>) = map.removeListener(listener)
+}
+
+/** @return mutable observable list */
+fun <T> observableList(): ObservableList<T> = observableArrayList()
+
+/** @return mutable observable set */
+fun <T> observableSet(): ObservableSet<T> = observableSet()
+
+/** @return mutable observable map */
+fun <K,V> observableMap(): ObservableMap<K,V> = FXCollections.observableHashMap()
 
 fun <T> ObservableList<T>.readOnly() = ObservableListRO(this)
 

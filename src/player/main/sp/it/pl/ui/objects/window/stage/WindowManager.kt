@@ -1,6 +1,5 @@
 package sp.it.pl.ui.objects.window.stage
 
-import javafx.collections.FXCollections.observableArrayList
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -48,6 +47,7 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO
+import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
@@ -103,7 +103,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    @JvmField var screenMaxScaling = 0.0
    /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */
-   @JvmField val windows = observableArrayList<Window>()!!
+   @JvmField val windows = observableList<Window>()
    /** Dock window or null if none. */
    @JvmField var dockWindow: Window? = null
    /** Main application window, see [sp.it.pl.ui.objects.window.stage.Window.isMain]. */

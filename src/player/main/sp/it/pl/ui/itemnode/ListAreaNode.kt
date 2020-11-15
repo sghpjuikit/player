@@ -1,6 +1,5 @@
 package sp.it.pl.ui.itemnode
 
-import javafx.collections.FXCollections
 import javafx.event.Event
 import javafx.geometry.Pos
 import javafx.scene.control.ComboBox
@@ -26,12 +25,14 @@ import sp.it.util.access.vx
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.materialize
+import sp.it.util.collections.observableList
 import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
+import sp.it.util.functional.FunctorPool
 import sp.it.util.functional.Functors
 import sp.it.util.functional.PF
 import sp.it.util.functional.PF0
@@ -110,13 +111,14 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     * - Transformation chain is cleared if the input element type has changed.
     * - Text of the text area is updated.
     */
-   @JvmField val input = FXCollections.observableArrayList<Any?>()!!
+   @JvmField val input = observableList<Any?>()
 
    /** The transformation chain. */
-   @JvmField val transforms = ListAreaNodeTransformations({ Functors.pool.getI(it).asIs() })
+   @JvmField val transforms = ListAreaNodeTransformations(Functors.pool)
 
    /** Writable [output]. */
-   private val outputImpl = FXCollections.observableArrayList<Any?>()!!
+   private val outputImpl = observableList<Any?>()
+
    /**
     * Value of this - a transformation output of the input list after transformation is applied to each
     * element. The text of this area shows string representation of this list.
@@ -200,21 +202,22 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
          override fun realize(args: List<*>) = Transformation.Manual(text)
       }
 
-      class ByString(override val name: String, val f: (String) -> String): TransformationRaw() {
-         override val parameters = listOf<Parameter<Any?>>()
-         override fun realize(args: List<*>) = Transformation.ByString(name, f)
+      class ByString(name: String, val f: PF<String, String>): TransformationRaw() {
+         override val name = "text:  $name"
+         override val parameters = f.parameters
+         override fun realize(args: List<*>) = Transformation.ByString(name, f.realize(args))
       }
 
       // outputType must match type of list of output of f
       // outputType is necessary because output list element type is erased
       open class By1(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
-         override val name = f.name
+         override val name = "list:  ${f.name}"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(args))
       }
 
       class ByN(val f: PF<Any?, Any?>): TransformationRaw() {
-         override val name = f.name
+         override val name = "each: ${f.name}"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.ByN(f.name, f.realize(args))
       }
@@ -244,9 +247,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       class ByString(override val name: String, val f: (String) -> String): Transformation() {
          override val linkTypeIn = type<String>()
          override val linkTypeOut = type<String>()
-         override fun invoke(data: List<Any?>) = data
-            .joinToString("\n") { it.toString() }.let(f).lines()
-            .takeIf { it.size!=data.size } ?: data
+         override fun invoke(data: List<Any?>) = data.joinToString("\n") { it.toString() }.let(f).lines()
       }
 
       class By1(override val name: String, override val linkTypeIn: VType<*>, override val linkTypeOut: VType<*>, val f: (List<*>) -> List<*>): Transformation() {
@@ -287,14 +288,20 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTransformationNode, List<Transformation>> {
 
    @Suppress("RemoveExplicitTypeArguments")
-   constructor(functions: (VType<*>) -> PrefList<PF<*, *>>): super(listOf()) {
+   constructor(functions: FunctorPool): super(listOf()) {
       chainedFactory = Supplier {
          val type = typeOut
-         val by1s = functions(type).asIs<PrefList<PF<Any?, Any?>>>().map<TransformationRaw> { TransformationRaw.ByN(it) }.apply {
-            removeIf { it.name=="#" }
-         }
+         val by1s = functions.getI(type).asIs<PrefList<PF<Any?, Any?>>>()
+            .apply { removeIf { it.name=="#" } }
+            .map<TransformationRaw> { TransformationRaw.ByN(it) }
          val all = by1s.apply {
-            this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("#", type<List<Any?>>(), type<List<Int>>()) { it.indices.toList() })
+            this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("# (0)", type<List<Any?>>(), type<List<Int>>()) { it.indices.toList() })
+            this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("# (1)", type<List<Any?>>(), type<List<Int>>()) { it.indices.map { it + 1 } })
+
+            if (type.isSubclassOf<String>()) {
+               this += functions.getIO(type<String>(), type<String>())
+                  .map { TransformationRaw.ByString(it.name, it) }
+            }
 
             if (type.isSubclassOf<Comparable<*>>()) {
                val pSort = Parameter(type<Sort>(), ASCENDING)

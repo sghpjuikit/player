@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -24,6 +25,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import kotlin.Unit;
 import kotlin.reflect.KClass;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
@@ -99,6 +101,7 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.streamBi;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.type.TypesKt.typeNothingNonNull;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -311,7 +314,21 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             textArea.setPrefColumnCount(80);
 
             // graphics
-            var nameL = new Label("");
+            var nameL = new Label(name);
+            var caretL = new Label("Pos: 0:0:0");
+            attach(textArea.caretPositionProperty(), consumer(i -> {
+                var lastCharAt = new AtomicInteger(0);
+                var lastNewlineAt = new AtomicInteger(0);
+                var xy = i.longValue() + 1;
+                var y = 1 + textArea.getText().codePoints()
+                    .limit(i.longValue())
+                    .peek(c -> lastCharAt.incrementAndGet())
+                    .filter(c -> c == '\n' || c == '\r')
+                    .peek(c -> lastNewlineAt.set(lastCharAt.get()))
+                    .count();
+                var x = xy - lastNewlineAt.get();
+                caretL.setText("Pos: " + xy + ":" + x + ":" + y + ":");
+            }));
             var size1L = new Label("Size: ");
             var size2L = new Label("");
             onChangeAndNow(input, runnable(() -> size2L.setText(input.size() + " →")));
@@ -324,7 +341,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     )
                     .action(THIS ->
                         new ContextMenu(
-                            menuItem("Set input data to empty" , consumer(it -> setInput(list("")))),
+                            menuItem("Set input data to empty" , consumer(it -> setInput(list(Unit.INSTANCE)))),
                             menuItem("Set input data to output data", consumer(it -> setInput(output))),
                             menuItem("Set input data to lines of visible text", consumer(it -> setInput(Arrays.asList(getValAsText().split("\\n")))))
                         ).show(THIS, Side.BOTTOM, 0, 0)
@@ -346,7 +363,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             getNode().getChildren().add(0,
                 layStack(
                     nameL,Pos.CENTER,
-                    layHorizontally(5,Pos.CENTER_RIGHT, size1L,size2L,size3L,applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
+                    layHorizontally(5,Pos.CENTER_RIGHT, caretL,size1L,size2L,size3L,applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
                 )
             );
 
@@ -381,7 +398,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 }
             });
 
-            setData(name, list());
+            setData(name, list(Unit.INSTANCE));
         }
 
         // Weird reasons for needing this method, just call it bad design. Not worth 'fixing'.

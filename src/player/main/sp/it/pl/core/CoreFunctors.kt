@@ -71,6 +71,7 @@ import java.time.LocalDateTime
 import java.time.Year
 import java.util.Base64
 import java.util.Objects
+import java.util.UUID
 import java.util.regex.Pattern
 import kotlin.text.Charsets.UTF_8
 
@@ -111,6 +112,7 @@ object CoreFunctors: Core {
          failIf(p(0).type!=type<Int>())
 
          // type aliases
+         val U = type<Unit>()
          val B = type<Boolean>()
          val S = type<String>()
 
@@ -129,6 +131,15 @@ object CoreFunctors: Core {
          add("To Double", S, type<Double?>()) { it.toDoubleOrNull() }
          add("To BigInteger", S, type<BigInteger?>()) { it.toBigIntegerOrNull() }
          add("To BigDecimal", S, type<BigDecimal?>()) { it.toBigDecimalOrNull() }
+
+         add("Uuid", U, type<UUID>()) { UUID.randomUUID() }
+         add("Random Boolean", U, type<Boolean>()) { Math.random()>0.5 }
+         add("Random Byte", U, type<Byte>()) { (Math.random()*Byte.MAX_VALUE).toInt().toByte() }
+         add("Random Int", U, type<Int>()) { (Math.random()*Int.MAX_VALUE).toInt() }
+         add("Random Short", U, type<Short>()) { (Math.random()*Short.MAX_VALUE).toInt().toShort() }
+         add("Random Long", U, type<Long>()) { (Math.random()*Long.MAX_VALUE).toLong() }
+         add("Random Float", U, type<Float>()) { (Math.random()*Float.MAX_VALUE).toFloat() }
+         add("Random Double", U, type<Double>()) { Math.random()*Double.MAX_VALUE }
 
          add("Is true", B, B) { it }
          add("Is false", B, B) { !it }

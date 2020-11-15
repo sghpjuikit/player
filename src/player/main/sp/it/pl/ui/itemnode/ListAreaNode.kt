@@ -28,8 +28,10 @@ import sp.it.util.collections.materialize
 import sp.it.util.collections.observableList
 import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
+import sp.it.util.collections.tabulate0
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
+import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
 import sp.it.util.functional.FunctorPool
@@ -203,7 +205,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       }
 
       class ByString(name: String, val f: PF<String, String>): TransformationRaw() {
-         override val name = "text:  $name"
+         override val name = "text: $name"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.ByString(name, f.realize(args))
       }
@@ -211,7 +213,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       // outputType must match type of list of output of f
       // outputType is necessary because output list element type is erased
       open class By1(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
-         override val name = "list:  ${f.name}"
+         override val name = "list: ${f.name}"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(args))
       }
@@ -297,6 +299,12 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
          val all = by1s.apply {
             this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("# (0)", type<List<Any?>>(), type<List<Int>>()) { it.indices.toList() })
             this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("# (1)", type<List<Any?>>(), type<List<Int>>()) { it.indices.map { it + 1 } })
+            this += TransformationRaw.By1(
+               type, type,
+               PF1("Repeat elements", type<List<Any?>>(), type<List<Any?>>(), Parameter("Times", null, type<Int>(), 1, setOf(NumberMinMax(0.0, null)))) { it, times ->
+                  it.flatMap { tabulate0(times) { _ -> it } }
+               }
+            )
 
             if (type.isSubclassOf<String>()) {
                this += functions.getIO(type<String>(), type<String>())

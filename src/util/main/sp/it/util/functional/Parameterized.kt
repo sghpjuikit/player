@@ -23,15 +23,15 @@ class Parameter<P> {
    val description: String
    val constraints: Set<Constraint<P>>
 
-   constructor(name: String, description: String, type: VType<P>, defaultValue: P, constraints: Set<Constraint<P>>) {
-      this.name = if (name.isEmpty()) "<value>" else name
-      this.description = if (description.isEmpty()) this.name else description
+   constructor(name: String?, description: String?, type: VType<P>, defaultValue: P, constraints: Set<Constraint<P>>) {
+      this.name = name ?: "<value>"
+      this.description = description ?: this.name
       this.type = type
       this.defaultValue = defaultValue
       this.constraints = constraints
    }
 
-   constructor(type: VType<P>, defaultValue: P): this("", "", type, defaultValue, setOf())
+   constructor(type: VType<P>, defaultValue: P): this(null, null, type, defaultValue, setOf())
 }
 
 /* Parameterized function - variadic I -> O function factory with parameters */

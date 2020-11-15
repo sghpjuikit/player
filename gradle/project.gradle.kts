@@ -125,6 +125,7 @@ allprojects {
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.2.2")
          implementation("com.github.ajalt", "clikt", "2.1.0")
+         implementation("org.apache.commons", "commons-text", "1.9")
       }
 
       "Image" group {

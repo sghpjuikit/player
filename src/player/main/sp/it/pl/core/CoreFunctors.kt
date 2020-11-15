@@ -36,7 +36,24 @@ import sp.it.util.text.Char32
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.char32At
+import sp.it.util.text.escapeCsv
+import sp.it.util.text.escapeEcmaScript
+import sp.it.util.text.escapeHtml3
+import sp.it.util.text.escapeHtml4
+import sp.it.util.text.escapeJava
+import sp.it.util.text.escapeJson
+import sp.it.util.text.escapeXSI
+import sp.it.util.text.escapeXml10
+import sp.it.util.text.escapeXml11
 import sp.it.util.text.isPalindrome
+import sp.it.util.text.unescapeCsv
+import sp.it.util.text.unescapeEcmaScript
+import sp.it.util.text.unescapeHtml3
+import sp.it.util.text.unescapeHtml4
+import sp.it.util.text.unescapeJava
+import sp.it.util.text.unescapeJson
+import sp.it.util.text.unescapeXSI
+import sp.it.util.text.unescapeXml
 import sp.it.util.type.type
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
@@ -162,10 +179,27 @@ object CoreFunctors: Core {
          add("Is URI", S, B) { runTry { uri(it) }.isOk }
          add("To URI", S, type<URI>()) { runTry { uri(it) }.orNull() }
          add("Is base64", S, B) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.isOk }
-         add("Base64 encode", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
-         add("Base64 decode", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
-         add("URL encode (UTF-8)", S, S) { URLEncoder.encode(it, UTF_8) }
-         add("URL decode (UTF-8)", S, S) { URLDecoder.decode(it, UTF_8) }
+         add("Encode Base64", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
+         add("Decode Base64", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
+         add("Encode URL (UTF-8)", S, S) { URLEncoder.encode(it, UTF_8) }
+         add("Decode URL (UTF-8)", S, S) { URLDecoder.decode(it, UTF_8) }
+         add("Escape Java", S, S) { it.escapeJava() }
+         add("Unescape Java", S, S) { it.unescapeJava() }
+         add("Escape EcmaScript", S, S) { it.escapeEcmaScript() }
+         add("Unescape EcmaScript", S, S) { it.unescapeEcmaScript() }
+         add("Escape Json", S, S) { it.escapeJson() }
+         add("Unescape Json", S, S) { it.unescapeJson() }
+         add("Escape Html 3.0", S, S) { it.escapeHtml3() }
+         add("Unescape Html 3.0", S, S) { it.unescapeHtml3() }
+         add("Escape Html 4.0", S, S) { it.escapeHtml4() }
+         add("Unescape Html 4.0", S, S) { it.unescapeHtml4() }
+         add("Escape Xml 1.0", S, S) { it.escapeXml10() }
+         add("Escape Xml 1.1", S, S) { it.escapeXml11() }
+         add("Unescape Xml", S, S) { it.unescapeXml() }
+         add("Escape Csv", S, S) { it.escapeCsv() }
+         add("Unescape Csv", S, S) { it.unescapeCsv() }
+         add("Escape XSI", S, S) { it.escapeXSI() }
+         add("Unescape XSI", S, S) { it.unescapeXSI() }
          add("To valid file name", S, S) { filenamizeString(it) }
          add("Anime", S, S) { renameAnime(it) }
 

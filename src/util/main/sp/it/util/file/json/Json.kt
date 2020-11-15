@@ -15,6 +15,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.Parsers
+import sp.it.util.text.escapeJson
 import sp.it.util.type.Util.isEnum
 import sp.it.util.type.argOf
 import sp.it.util.type.isSubclassOf
@@ -429,8 +430,7 @@ operator fun JsValue?.div(index: Int): JsValue? = when (this) {
 }
 
 fun JsValue.toCompactS(): String {
-   fun String.jsonEscape() = replace("\\", "\\\\").replace("\"", "\\\"")
-   fun String.toJsonString() = "\"${this.jsonEscape()}\""
+   fun String.toJsonString() = "\"${this.escapeJson()}\""
    return when (this) {
       is JsNull -> "null"
       is JsTrue -> "true"
@@ -447,8 +447,7 @@ fun JsValue.toCompactS(): String {
 }
 
 fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String {
-   fun String.jsonEscape() = replace("\\", "\\\\").replace("\"", "\\\"")
-   fun String.toJsonString() = "\"${this.jsonEscape()}\""
+   fun String.toJsonString() = "\"${this.escapeJson()}\""
    fun String.reIndent() = replace(newline, newline + indent)
    return when (this) {
       is JsNull -> "null"

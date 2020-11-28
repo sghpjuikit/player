@@ -35,6 +35,7 @@ import sp.it.util.file.toFast
 import sp.it.util.functional.asIf
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.expandToRootAndSelect
@@ -86,7 +87,7 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
       }
 
       // drag selected files
-      tree.onEventUp(DRAG_DETECTED, PRIMARY) {
+      tree.onEventDown(DRAG_DETECTED, PRIMARY) {
          tree.selectionModel.selectedItem?.value?.asIf<File>()?.let { s ->
             tree.startDragAndDrop(if (it.isShortcutDown) LINK else COPY).setContent(mapOf(Df.FILES.format to listOf(s)))
          }

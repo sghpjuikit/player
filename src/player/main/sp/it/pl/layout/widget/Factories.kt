@@ -16,7 +16,7 @@ import sp.it.util.file.div
    author = "Martin Polakovic",
    name = "Empty",
    description = "Empty widget with no content or functionality.",
-   version = "1.0",
+   version = "1.0.0",
    year = "2014",
    group = Widget.Group.OTHER
 )

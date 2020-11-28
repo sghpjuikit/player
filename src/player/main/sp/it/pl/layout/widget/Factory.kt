@@ -9,7 +9,10 @@ import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.asIf
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.text.nullIfBlank
+import sp.it.util.text.split3
 import java.io.File
 import java.time.Year
 import java.util.UUID
@@ -67,7 +70,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
       this.icon = info?.icon
       this.description = info?.description ?: i.description
       this.descriptionLong = (info?.descriptionLong ?: i.howto) + "\n" + i.notes
-      this.version = info?.version ?: KotlinVersion(0, 0, 0)//i.version// ?: KotlinVersion(0, 0, 0)
+      this.version = info?.version ?: runTry { i.version.split3(".").let { (a,b,c) -> KotlinVersion(a.toInt(), b.toInt(), c.toInt()) } }.orNull() ?: KotlinVersion(0, 0, 0)
       this.author = info?.author ?: i.author
       this.contributor = info?.contributor ?: i.contributor
       this.year = info?.year ?: i.year.toIntOrNull()?.let { Year.of(it) } ?: Year.now()

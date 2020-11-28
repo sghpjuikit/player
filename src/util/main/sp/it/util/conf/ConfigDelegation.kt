@@ -58,7 +58,9 @@ fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { co
 fun <T: Any?, C: ConfL<T>> C.butElement(vararg restrictions: Constraint<T>) = apply { elementConstraints += restrictions }
 
 fun <T: Any?, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
+fun <T: Any?, C: Conf<T>> C.noUiDefaultButton() = but(Constraint.NoUiDefaultButton)
 fun <T: Any?, C: Conf<T>> C.noPersist() = but(Constraint.NoPersist)
+fun <T: Any?, C: Conf<T>> C.singleton() = noUiDefaultButton().noPersist()
 fun <T: Any?, C: Conf<T>> C.nonNull() = but(Constraint.ObjectNonNull)
 fun <T: String, C: Conf<T>> C.nonEmpty() = but(Constraint.StringNonEmpty())
 fun <T: Number, C: Conf<T>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), null))

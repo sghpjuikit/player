@@ -106,6 +106,9 @@ interface Constraint<in T> {
    /** Avoid showing the config in ui. */
    object NoUi: MarkerConstraint()
 
+   /** Avoid showing the set-to-default button for the config in ui. Use for 'computed' configs, like singletons. */
+   object NoUiDefaultButton: MarkerConstraint()
+
    /** Avoid persisting the config. Use for 'computed' configs. Configs with [Config.isEditable]==[EditMode.NONE] are not persistent by default. */
    object NoPersist: MarkerConstraint()
 

@@ -89,7 +89,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
       }
    }
 
-   fun isPersistable() = isEditable.isByApp && !isNotEditableRightNow() && findConstraint<NoPersist>()==null
+   fun isPersistable() = isEditable.isByApp && !isNotEditableRightNow() && !hasConstraint<NoPersist>()
 
    /** Limits put on this value or markers that signify certain treatment of it. */
    abstract val constraints: Set<Constraint<T>>
@@ -99,6 +99,8 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
 
    @Experimental("Expert API, mutates state")
    fun addConstraints(constraints: Collection<Constraint<T>>): Config<T> = addConstraints(*constraints.toTypedArray())
+
+   inline fun <reified T> hasConstraint(): Boolean = findConstraints<T>().firstOrNull() != null
 
    inline fun <reified T> findConstraint(): T? = findConstraints<T>().firstOrNull()
 

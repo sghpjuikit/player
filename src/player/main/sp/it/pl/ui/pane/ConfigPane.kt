@@ -45,7 +45,7 @@ class ConfigPane<T: Any?>: VBox {
       alignment = CENTER_LEFT
       needsLabel = configurable !is Config<*>
       editors = configurable?.getConfigs().orEmpty().asSequence()
-         .filter { it.findConstraint<Constraint.NoUi>()==null }
+         .filter { !it.hasConstraint<Constraint.NoUi>() }
          .sortedWith(configOrder)
          .map {
             ConfigEditor.create(it).apply {
@@ -80,7 +80,7 @@ class ConfigPane<T: Any?>: VBox {
    override fun layoutChildren() {
       val contentLeft = padding.left
       val contentWidth = if (width>0) width - padding.left - padding.right else 200.0
-      children.asSequence().fold(0.0) { h, n ->
+      children.fold(0.0) { h, n ->
          if (n is Text) n.wrappingWidth = contentWidth
          val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
          n.relocate(contentLeft, h + p.top + spacing)

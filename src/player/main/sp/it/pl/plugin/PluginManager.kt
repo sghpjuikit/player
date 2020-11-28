@@ -8,8 +8,6 @@ import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.AppErrors
 import sp.it.pl.main.AppSettings
 import sp.it.pl.main.run1AppReady
-import sp.it.pl.main.toS
-import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginManager.Events.PluginInstalled
 import sp.it.pl.plugin.PluginManager.Events.PluginStarted
 import sp.it.pl.plugin.PluginManager.Events.PluginStopped
@@ -24,8 +22,8 @@ import sp.it.util.conf.c
 import sp.it.util.conf.collectActionsOf
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
+import sp.it.util.conf.singleton
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -50,7 +48,7 @@ import kotlin.reflect.jvm.jvmName
 
 class PluginManager: GlobalConfigDelegator {
    /** Plugin management ui. */
-   private var settings by c(this).noPersist().def(name = "Plugins", info = "Manage application plugins", group = "Plugin management")
+   private var settings by c(this).singleton().def(name = "Plugins", info = "Manage application plugins", group = "Plugin management")
    /** All installed plugins, observable, writable. */
    private val pluginsObservableImpl = observableArrayList<PluginBox<*>>()!!
    /** All installed plugins, observable, readable. */

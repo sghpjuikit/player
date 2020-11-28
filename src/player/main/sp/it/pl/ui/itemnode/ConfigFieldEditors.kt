@@ -359,7 +359,7 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
    private val v = getObservableValue(c)
    private val fileType = c.findConstraint<FileActor>() ?: FileActor.ANY
    private val relativeTo = c.findConstraint<FileRelative>()?.to
-   private val pickerType = if (c.findConstraint<FileOut>()==null) FilePickerType.IN else FilePickerType.OUT
+   private val pickerType = if (c.hasConstraint<FileOut>()) FilePickerType.OUT else FilePickerType.IN
    private var isObservable = v!=null
    override var editor = FileTextField(fileType, relativeTo, pickerType)
 

@@ -57,7 +57,7 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.conf.noPersist
+import sp.it.util.conf.singleton
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -550,7 +550,7 @@ class WidgetManager {
             return compareBy<WidgetMonitor> { 0 }.thenBy(isOpen).thenBy(WidgetMonitor::widgetName)
          }
       /** Plugin management ui. */
-      private var settings by c(this).noPersist()
+      private var settings by c(this).singleton()
          .def(name = "Widgets", info = "Manage application widgets")
       val autoRecompile by cv(true)
          .def(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")

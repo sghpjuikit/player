@@ -29,6 +29,7 @@ import sp.it.util.conf.CheckList
 import sp.it.util.conf.CheckListConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.ListConfig
@@ -52,6 +53,7 @@ import java.nio.charset.StandardCharsets.UTF_16
 import java.nio.charset.StandardCharsets.UTF_16BE
 import java.nio.charset.StandardCharsets.UTF_16LE
 import java.nio.charset.StandardCharsets.UTF_8
+import kotlin.reflect.jvm.jvmErasure
 
 private val defTooltip = appTooltip("Default value")
 private const val defBLayoutSize = 15.0
@@ -124,48 +126,53 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
 
       var defB: Icon? = null
       var defBA: Anim? = null
-      root.addEventFilter(MOUSE_ENTERED) {
-         if (isEditableByUser.value) {
-            runFX(270.millis) {
-               if (root.isHover) {
-                  if (defB==null && isEditableByUser.value) {
-                     defB = Icon(null, -1.0, null, Runnable { this.refreshDefaultValue() })
-                     defB!!.tooltip(defTooltip)
-                     defB!!.styleclass("config-editor-default-button")
-                     defB!!.isManaged = false
-                     defB!!.opacity = 0.0
+      val isTypeSingleton = config.type.type.jvmErasure.objectInstance != null || config.hasConstraint<Constraint.NoUiDefaultButton>()
+      val isDefBSupported = config.isEditable.isByUser && !isTypeSingleton
+      if (isDefBSupported) {
+         root.addEventFilter(MOUSE_ENTERED) {
+            if (isEditableByUser.value) {
+               runFX(270.millis) {
+                  if (root.isHover) {
+                     val isDefBNeeded = defB==null && isEditableByUser.value
+                     if (isDefBNeeded) {
+                        defB = Icon(null, -1.0, null, Runnable { this.refreshDefaultValue() })
+                        defB!!.tooltip(defTooltip)
+                        defB!!.styleclass("config-editor-default-button")
+                        defB!!.isManaged = false
+                        defB!!.opacity = 0.0
 
-                     val defBRoot = object: StackPane(defB) {
-                        override fun layoutChildren() {
-                           defB!!.relocate(
-                              width/2.0 - defB!!.layoutBounds.width/2,
-                              height/2.0 - defB!!.layoutBounds.height/2
-                           )
+                        val defBRoot = object: StackPane(defB) {
+                           override fun layoutChildren() {
+                              defB!!.relocate(
+                                 width/2.0 - defB!!.layoutBounds.width/2,
+                                 height/2.0 - defB!!.layoutBounds.height/2
+                              )
+                           }
+                        }
+                        defBRoot.setPrefSize(defBLayoutSize, defBLayoutSize)
+                        root.children.add(defBRoot)
+                        root.padding = paddingWithDefB
+
+                        defBA = Anim.anim(450.millis) {
+                           if (defB!=null)
+                              defB!!.opacity = it*it
                         }
                      }
-                     defBRoot.setPrefSize(defBLayoutSize, defBLayoutSize)
-                     root.children.add(defBRoot)
-                     root.padding = paddingWithDefB
-
-                     defBA = Anim.anim(450.millis) {
-                        if (defB!=null)
-                           defB!!.opacity = it*it
-                     }
+                     if (defBA!=null)
+                        defBA!!.playOpenDo(null)
                   }
-                  if (defBA!=null)
-                     defBA!!.playOpenDo(null)
                }
             }
          }
-      }
-      root.addEventFilter(MOUSE_EXITED) {
-         if (defBA!=null)
-            defBA!!.playCloseDo {
-               root.children.remove(defB!!.parent)
-               defB = null
-               defBA = null
-               root.padding = paddingNoDefB
-            }
+         root.addEventFilter(MOUSE_EXITED) {
+            if (defBA!=null)
+               defBA!!.playCloseDo {
+                  root.children.remove(defB!!.parent)
+                  defB = null
+                  defBA = null
+                  root.padding = paddingNoDefB
+               }
+         }
       }
 
       val isHardToAutoResize = editor is TextField

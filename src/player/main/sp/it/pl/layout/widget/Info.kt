@@ -77,7 +77,7 @@ interface WidgetInfo: ComponentInfo {
    fun hasFeature(feature: Class<*>) = feature.isSuperclassOf(type)
 
    /** @return true iff widget's controller implements all given features */
-   fun hasFeatures(vararg features: Class<*>) = features.asSequence().all { hasFeature(it) }
+   fun hasFeatures(vararg features: Class<*>) = features.all { hasFeature(it) }
 
    val summaryActions get() = listOf<ShortcutPane.Entry>()
 

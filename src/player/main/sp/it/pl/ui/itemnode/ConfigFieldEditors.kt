@@ -739,7 +739,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                   object: ListCell<WidgetInfo>() {
                      val icon = Icon(null, 48.0).apply {
                         isFocusTraversable = false
-                        isMouseTransparent = true
+                        onClickDo(2) { APP.windowManager.launchComponent(item.id) }
                      }
                      val label1 = label("") {
                         styleClass += "text-weight-bold"

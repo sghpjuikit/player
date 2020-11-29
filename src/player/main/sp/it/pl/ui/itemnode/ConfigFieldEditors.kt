@@ -43,6 +43,8 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.util.Callback
+import sp.it.pl.layout.widget.ComponentFactory
+import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.WidgetInfo
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.APP
@@ -732,14 +734,14 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
             styleClass += "h4p"
          }
          lay += hBox {
-            lay += listView<WidgetInfo> {
+            lay += listView<ComponentFactory<*>> {
                pseudoClassChanged("no-fixed-cell-size", true)
                minPrefMaxWidth = 250.emScaled
                cellFactory = Callback {
-                  object: ListCell<WidgetInfo>() {
+                  object: ListCell<ComponentFactory<*>>() {
                      val icon = Icon(null, 48.0).apply {
                         isFocusTraversable = false
-                        onClickDo(2) { APP.windowManager.launchComponent(item.id) }
+                        onClickDo(2) { APP.windowManager.showWindow(item.create()) }
                      }
                      val label1 = label("") {
                         styleClass += "text-weight-bold"
@@ -752,19 +754,27 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                            lay += label2
                         }
                      }
-                     override fun updateItem(item: WidgetInfo?, empty: Boolean) {
+                     override fun updateItem(item: ComponentFactory<*>?, empty: Boolean) {
                         super.updateItem(item, empty)
                         graphic = root
-                        icon.icon(item?.icon ?: IconOC.PLUG)
+                        icon.icon(
+                           when (item) {
+                              is WidgetFactory<*> -> item.icon ?: IconOC.PLUG
+                              else -> IconOC.PACKAGE
+                           }
+                        )
                         label1.text = item?.name?.toS()
-                        label2.text = item?.let { it.version.toS() + "\t" + it.author.toS() }
+                        label2.text = when (item) {
+                           is WidgetFactory<*> -> item.version.toS() + "\t" + item.author.toS()
+                           else -> null
+                        }
                      }
                   }
                }
                selectionModel.selectionMode = SINGLE
-               selectionModel.selectedItemProperty() sync { widgetInfo.widget = it }
+               selectionModel.selectedItemProperty() sync { widgetInfo.widget = it.asIf<WidgetFactory<*>>() }
                d += { selectionModel.clearSelection() }
-               items = APP.widgetManager.factories.getFactoriesObservable().toJavaFx().sorted { a, b -> a.name.compareTo(b.name) }.asIs()
+               items = APP.widgetManager.factories.getComponentFactoriesObservable().toJavaFx().sorted { a, b -> a.name.compareTo(b.name) }.asIs()
                d += { items = null }
                d += { widgetInfo.widget = null }
             }

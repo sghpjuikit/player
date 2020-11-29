@@ -257,7 +257,7 @@ class WidgetManager {
          logger.error { "External .fxwl widgets registration failed: $lDir or $lDirInitial is not a valid directory" }
       } else {
          listOf(lDirInitial, lDir).forEach {
-            it.walkTopDown().filter { it hasExtension "fxwl" }.forEach { factoriesC put DeserializingFactory(it) }
+            it.walkTopDown().filter { it hasExtension "fxwl" }.forEach { registerFactory(DeserializingFactory(it)) }
          }
 
          FileMonitor.monitorDirectory(lDir, true, { it hasExtension "fxwl" }) { type, f ->

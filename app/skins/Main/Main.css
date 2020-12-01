@@ -2311,14 +2311,40 @@ Text {
 }
 
 .inode:selected,
+.inode:selected Text,
 .onode:selected,
-.ionode:selected {
+.onode:selected Text,
+.ionode:selected,
+.ionode:selected Text {
     -fx-fill: -fx-focus-color;
     -fx-scale-x: 1.3;
     -fx-scale-y: 1.3;
 }
 
-/* 
+/*
+ * Text labelling .inode, i.onode, ionode
+ * inherits: Text
+ * pseudoclasses: node-drag-over - when .inode/.onode/.ionode has pseudoclass 'drag-over'
+ *                node-highlighted - when .inode/.onode/.ionode has pseudoclass 'highlighted'
+ *                node-selected - when .inode/.onode/.ionode has pseudoclass 'selected'
+ *                node-hover - when .inode/.onode/.ionode has pseudoclass 'hover'
+ */
+.inode-text: node-hover,
+.inode-text: node-drag-over,
+.inode-text: node-highlighted,
+.inode-text: node-selected,
+.onode-text: node-hover,
+.onode-text: node-drag-over,
+.onode-text: node-highlighted,
+.onode-text: node-selected,
+.ionode-text: node-hover,
+.ionode-text: node-drag-over,
+.ionode-text: node-highlighted,
+.ionode-text: node-selected {
+    -fx-fill: -fx-focus-color;
+}
+
+/*
  * Output -> Input connection line.
  * inherits: Path
  * pseudoclasses: highlighted - when line (including input/output) is hovered or edited

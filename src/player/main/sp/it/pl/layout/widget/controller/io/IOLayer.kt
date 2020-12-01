@@ -53,6 +53,7 @@ import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -60,6 +61,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSync
+import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.pseudoClassChanged
@@ -413,7 +415,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       val inoutput: InOutput<*>?
       val i = Icon()
       val graphics = HBox(0.0, i)
-      val label = XLabel()
+      val label = XLabel(iconStyleclass)
       var x by observable(0.0) { _, _, nv -> label.y = nv + 15 }
       var y by observable(0.0) { _, _, nv -> label.x = nv + 15 }
       var selected = false
@@ -445,6 +447,16 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          disposer += { paneLabels.children -= label.text }
 
          i.styleclass(iconStyleclass)
+         i.pseudoClassStates.onItemSyncWhile {
+            if (it.pseudoClassName in propagatedPseudoClasses) {
+               label.text.pseudoClassChanged("node-" + it.pseudoClassName, true)
+               Subscription {
+                  label.text.pseudoClassChanged("node-" + it.pseudoClassName, false)
+               }
+            } else {
+               Subscription()
+            }
+         }
          i.onEventDown(MOUSE_CLICKED) {
             when (it.clickCount) {
                1 -> {
@@ -524,12 +536,13 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          )
       }
 
-      inner class XLabel {
+      inner class XLabel(iconStyleclass: String) {
          var x = 0.0
          var y = 0.0
          var byX = 0.0
          var byY = 0.0
          var text = text {
+            styleClass += "$iconStyleclass-text"
             translateX = 20.0
             translateY = 20.0
          }
@@ -542,7 +555,9 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             text.layoutX = this@XNode.x - byX
             text.layoutY = this@XNode.y - byY
          }
+
       }
+
    }
 
    private inner class InputNode(xPut: Input<*>): XNode(xPut, "inode") {
@@ -772,6 +787,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       @JvmField val allOutputs = observableSet<Output<*>>()!!
       @JvmField val allInoutputs = observableSet<InOutput<*>>()!!
       private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
+      private val propagatedPseudoClasses = setOf("hover", "highlighted", "selected", "drag-over")
+
 
       fun addLinkForAll(i: Put<*>, o: Put<*>) {
          allLinks.put(i, o, Any())

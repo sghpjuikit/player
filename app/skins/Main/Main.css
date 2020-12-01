@@ -1461,8 +1461,7 @@ Text {
  * Icon
  * Text using glyph to make icon.
  * inherits: nothing
- * pseudoclasses:
- *   focused - when focusTraversible is true (default false) and if focused
+ * pseudoclasses: focused - when focusTraversable is true (default false) and if focused
  * properties:
  *   -glyph-name - String of the glyph
  *   -glyph-size - size

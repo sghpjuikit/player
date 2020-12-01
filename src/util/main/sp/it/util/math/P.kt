@@ -12,6 +12,24 @@ data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0)
          y = value.y
       }
 
+   /** Mutates [x] and [y] each by the function. Mutable [map]. */
+   inline fun modify(f: (Double) -> Double) {
+      x = f(x)
+      y = f(y)
+   }
+
+   /** Mutates [x] and [y] each by the corresponding values from the other point and by the function. Mutable [map]. */
+   inline fun modify(p: P, f: (Double, Double) -> Double) {
+      x = f(x, p.x)
+      y = f(y, p.y)
+   }
+
+   /** @return point with [x] and [y] computed from this point by the specified function. */
+   inline fun map(f: (Double) -> Double) = P(f(x), f(y))
+
+   /** @return point with [x] and [y] computed from this and the other point by the specified function. */
+   inline fun map(p: P, f: (Double, Double) -> Double) = P(f(x, p.x), f(y, p.y))
+
    infix fun distance(p: P) = distance(p.x, p.y)
 
    fun distance(x: Double = 0.0, y: Double = 0.0) = sqrt((x - this.x)*(x - this.x) + (y - this.y)*(y - this.y))
@@ -72,9 +90,9 @@ data class P @JvmOverloads constructor(var x: Double = 0.0, var y: Double = 0.0)
       y /= n
    }
 
-   infix fun max(that: P) = P(x max that.x, y max that.y)
+   infix fun max(that: P) = map(that) { a, b -> a max b }
 
-   infix fun min(that: P) = P(x min that.x, y min that.y)
+   infix fun min(that: P) = map(that) { a, b -> a min b }
 
    fun clip(minimum: P, maximum: P) = P(x.clip(minimum.x, maximum.x), y.clip(minimum.y, maximum.y))
 

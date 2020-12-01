@@ -505,3 +505,22 @@ fun <T> ObservableList<T>.onItemSyncWhile(subscriber: (T) -> Subscription): Subs
       ds.clear()
    }
 }
+
+/**
+ * Subscribe specified disposable block for every current and future item of this collection until it is removed or unsubscribed.
+ * Collection must not contain duplicates (as per [Any.identityHashCode]).
+ */
+fun <T> ObservableSet<T>.onItemSyncWhile(subscriber: (T) -> Subscription): Subscription {
+   fun T.id() = identityHashCode()
+
+   val ds = IdentityHashMap<T, Subscription>(size)
+   val disposer = Disposer()
+   forEach { ds[it] = subscriber(it) }
+   onItemRemoved { ds.remove(it)?.unsubscribe() } on disposer
+   onItemAdded { if (ds.containsKey(it)) fail { "Duplicate=$it" } else ds[it] = subscriber(it) } on disposer
+   return Subscription {
+      disposer()
+      ds.forEach { it.value.unsubscribe() }
+      ds.clear()
+   }
+}

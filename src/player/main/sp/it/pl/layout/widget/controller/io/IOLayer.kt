@@ -23,18 +23,19 @@ import javafx.scene.shape.Circle
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.container.SwitchContainerUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.contains
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.get
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.set
 import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.Util.pyth
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -63,7 +64,10 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.size
 import sp.it.util.ui.text
+import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import java.util.HashMap
 import kotlin.collections.component1
@@ -72,6 +76,7 @@ import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.pow
 import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -94,28 +99,35 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
    private val paneNodes = Pane()
    private val paneLabels = Pane()
    private val paneLabelsLayouter = Loop(Runnable {
-      val labels = xNodes().mapNotNull { it.label.takeIf { it.isVisible() } }.toList()
+      val labels = xNodes().mapNotNull { it.label.takeIf { it.isVisible() } }.toSet()
+      val labelsSumFxy = labels.associateWith { 0 x 0 }.toMutableMap()
+      fun Double.normalizeToClip(t: Double) = this.sign*abs(this).clip(0.0, t)/t
 
-      forEachCartesianHalfNoSelf(labels) { l1, l2 ->
-         val dir = atan2(l1.text.layoutY - l2.text.layoutY, l1.text.layoutX - l2.text.layoutX)
-         val dist = pyth(l1.text.layoutX - l2.text.layoutX, l1.text.layoutY - l2.text.layoutY)
-         when {
-            dist>100 -> Unit
-            else -> {
-               val f = (100.0 - dist.clip(0.0, 100.0))/10.0
-               l1.text.layoutX += f*cos(dir)
-               l1.text.layoutY += f*sin(dir)
-               l2.text.layoutX -= f*cos(dir)
-               l2.text.layoutY -= f*sin(dir)
-            }
-         }
-      }
+      // pull towards original location
       labels.forEach {
          val dist = pyth(it.x - it.text.layoutX, it.y - it.text.layoutY)
          val dir = atan2(it.y - it.text.layoutY, it.x - it.text.layoutX)
-         val f = dist/10.0
-         it.text.layoutX += f*cos(dir)
-         it.text.layoutY += f*sin(dir)
+         val f = 4*dist.normalizeToClip(100.0).pow(2)
+         labelsSumFxy[it]!!.x += f*cos(dir)
+         labelsSumFxy[it]!!.y += f*sin(dir)
+      }
+
+      // pull away from each other
+      forEachCartesianHalfNoSelf(labels) { l1, l2 ->
+         val dist = (l1.text.layoutX + l1.text.layoutBounds.width x l1.text.layoutY + l1.text.layoutBounds.height) - (l2.text.layoutX + l1.text.layoutBounds.width x l2.text.layoutY + l2.text.layoutBounds.height)
+         val fDistPadding = 5.emScaled.x2
+         val fDist = (l1.text.layoutBounds.size + l2.text.layoutBounds.size)/2.0 + fDistPadding
+         val fxy = dist.map(fDist) { a, b -> if (abs(a) - b<0) 4.0*((a - b).normalizeToClip(fDistPadding.x)).pow(2) else 0.0 }
+         if (fxy.x!=0.0 && fxy.y!=0.0) {
+            labelsSumFxy[l1]!! += fxy
+            labelsSumFxy[l2]!! -= fxy
+         }
+      }
+
+      // update
+      labels.forEach {
+         it.text.layoutX += labelsSumFxy[it]!!.x
+         it.text.layoutY += labelsSumFxy[it]!!.y
          it.byX = it.x - it.text.layoutX
          it.byY = it.y - it.text.layoutY
       }

@@ -257,7 +257,7 @@ tasks {
 
 application {
    applicationName = "Spit Player"
-   mainClassName = "sp.it.pl.main.AppKt"
+   mainClass.set("sp.it.pl.main.AppKt")
    applicationDefaultJvmArgs = listOf(
       "-Dfile.encoding=UTF-8",
       "-ms" + ("player.memoryMin".prjProp ?: "50m"),

@@ -1,5 +1,6 @@
 package sp.it.pl.ui.itemnode
 
+import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
@@ -44,8 +45,8 @@ import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.util.Callback
 import sp.it.pl.layout.widget.ComponentFactory
+import sp.it.pl.layout.widget.DeserializingFactory
 import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.WidgetInfo
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
@@ -54,6 +55,7 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.textColon
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
@@ -152,7 +154,6 @@ private val overTooltip = appTooltip("Override value\n\nUses specified value if 
 private const val STYLECLASS_TEXT_CONFIG_EDITOR = "text-config-editor"
 const val STYLECLASS_CONFIG_EDITOR_WARN_BUTTON = "config-editor-warn-button"
 
-
 private fun <T> getObservableValue(c: Config<T>): ObservableValue<T>? = when {
    c is PropertyConfig<T> && c.property is ObservableValue<*> -> c.property.asIs<ObservableValue<T>>()
    c is PropertyConfigRO<T> -> c.property
@@ -185,7 +186,6 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
          editor.selected sync { editor.pseudoClassChanged("disabled", it!=true) }
       }
    }
-
 
    override fun get() = Try.ok(editor.selected.value)
 
@@ -380,7 +380,6 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
          editor.value = config.value
    }
 }
-
 
 class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
    private val v = getObservableValue(c)
@@ -653,6 +652,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                            lay += label2
                         }
                      }
+
                      override fun updateItem(item: PluginBox<*>?, empty: Boolean) {
                         super.updateItem(item, empty)
                         graphic = root
@@ -697,8 +697,8 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                   lay += label(value.info.name.toUi()) {
                      styleClass += listOf("h4", "h4p", "text-weight-bold")
                   }
-                  lay += label("Name: " + value.info.name.toUi())
-                  lay += label("Supported: " + value.info.isSupported.toUi())
+                  lay += textColon("Name", value.info.name)
+                  lay += textColon("Supported", value.info.isSupported)
                   lay += hBox(0, CENTER_LEFT) {
                      lay += label("Enabled: ")
                      lay += CheckIcon().apply {
@@ -708,13 +708,15 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                      }
                   }
                   if (value.isBundled) {
-                     lay += label("Version: " + value.info.version.toUi() + " (bundled)")
+                     lay += text("Version: " + value.info.version.toUi() + " (bundled)")
                   } else {
-                     lay += label("Version: " + value.info.version.toUi())
-                     lay += label("Author: " + value.info.author.toUi())
+                     lay += textColon("Version", value.info.version)
+                     lay += textColon("Author", value.info.author)
                   }
-                  lay += label("Enabled by default: " + value.info.isEnabledByDefault.toUi())
-                  lay += label("Runs in SLAVE application: " + value.info.isSingleton.not().toUi())
+                  lay += textColon("Location", value.location)
+                  lay += textColon("Location (user data)", value.userLocation)
+                  lay += textColon("Enabled by default", value.info.isEnabledByDefault)
+                  lay += textColon("Runs in SLAVE application", value.info.isSingleton.not())
                   lay += textFlow {
                      styleClass += "h4p"
                      lay += text(value.info.description.toUi())
@@ -754,15 +756,11 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                            lay += label2
                         }
                      }
+
                      override fun updateItem(item: ComponentFactory<*>?, empty: Boolean) {
                         super.updateItem(item, empty)
                         graphic = root
-                        icon.icon(
-                           when (item) {
-                              is WidgetFactory<*> -> item.icon ?: IconOC.PLUG
-                              else -> IconOC.PACKAGE
-                           }
-                        )
+                        icon.icon(item.uiIcon)
                         label1.text = item?.name?.toS()
                         label2.text = when (item) {
                            is WidgetFactory<*> -> item.version.toS() + "\t" + item.author.toS()
@@ -772,7 +770,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                   }
                }
                selectionModel.selectionMode = SINGLE
-               selectionModel.selectedItemProperty() sync { widgetInfo.widget = it.asIf<WidgetFactory<*>>() }
+               selectionModel.selectedItemProperty() sync { widgetInfo.widget = it }
                d += { selectionModel.clearSelection() }
                items = APP.widgetManager.factories.getComponentFactoriesObservable().toJavaFx().sorted { a, b -> a.name.compareTo(b.name) }.asIs()
                d += { items = null }
@@ -790,7 +788,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
 
    private class WidgetInfoPane: StackPane() {
       val disposer = Disposer()
-      var widget: WidgetInfo? = null
+      var widget: ComponentFactory<*>? = null
          set(value) {
             field = value
             children.clear()
@@ -798,32 +796,49 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
             if (value!=null) {
                alignment = TOP_LEFT
 
-               lay(TOP_RIGHT) += Icon(value.icon ?: IconFA.PLUG, 128.0).apply {
-                  isFocusTraversable = false
-                  isMouseTransparent = true
-               }
                lay += vBox {
                   lay += label(value.name.toUi()) {
                      styleClass += listOf("h4", "h4p", "text-weight-bold")
                   }
-                  lay += label("Name: " + value.name.toUi())
-                  lay += label("Id: " + value.id.toUi())
-                  lay += label("Supported: " + value.isSupported.toUi())
-                  lay += label("Version: " + value.version.toUi())
-                  lay += label("Year: " + value.year.toUi())
-                  lay += label("Author: " + value.author.toUi())
-                  lay += label("Contributor: " + value.contributor.toUi())
-                  lay += textFlow {
-                     styleClass += "h4p"
-                     lay += text(value.description.toUi())
-                     lay += text(value.descriptionLong.toUi())
-                     lay += text {
-                        val fs = value.features
-                        text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString { "\n\t${it.name} - ${it.description}" })
+                  lay += textColon("Name", value.name)
+                  when (value) {
+                     is WidgetFactory<*> -> {
+                        lay += textColon("Id", value.id)
+                        lay += textColon("Supported", value.isSupported)
+                        lay += textColon("Version", value.version)
+                        lay += textColon("Year", value.year)
+                        lay += textColon("Author", value.author)
+                        lay += textColon("Contributor", value.contributor)
+                        lay += textColon("Location", value.location)
+                        lay += textColon("Location (user data)", value.locationUser)
+                        lay += textFlow {
+                           styleClass += "h4p"
+                           lay += text(value.description.toUi())
+                           lay += text(value.descriptionLong.toUi())
+                           lay += text {
+                              val fs = value.features
+                              text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString { "\n\t${it.name} - ${it.description}" })
+                           }
+                        }
+                     }
+                     is DeserializingFactory -> {
+                        lay += textColon("File", value.launcher)
                      }
                   }
                }
+               lay(TOP_RIGHT) += Icon(value.uiIcon, 128.0).apply {
+                  isFocusTraversable = false
+                  onClickDo(2) { APP.windowManager.showWindow(value.create()) }
+               }
             }
+         }
+   }
+
+   companion object {
+      val ComponentFactory<*>?.uiIcon: GlyphIcons
+         get() = when (this) {
+            is WidgetFactory<*> -> this.icon ?: IconOC.PLUG
+            else -> IconOC.PACKAGE
          }
    }
 }
@@ -999,7 +1014,8 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
       editor.focusedProperty() attach { refreshValue() } on editor.onNodeDispose
       editor.onEventDown(KEY_RELEASED) { e ->
          when (e.code) {
-            TAB -> {}
+            TAB -> {
+            }
             BACK_SPACE, DELETE -> applyShortcut("")
             ESCAPE -> refreshValue()
             else -> {

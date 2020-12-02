@@ -159,7 +159,8 @@ fun appHyperlinkFor(f: File) = hyperlink(f.toUi()) {
 }
 
 /** @return standardized ui text for the specified data displaying it in the most natural ui form */
-fun textColon(name: String, data: Any): Node = when (data) {
+fun textColon(name: String, data: Any?): Node = when (data) {
+   null -> text(name + ": " + data.toUi())
    is Path -> textColon(name, data.toFileOrNull() ?: data.toUi())
    is URL -> textColon(name, data.toURIOrNull() ?: data.toUi())
    is URI -> textColon(name, data.toFileOrNull() ?: data.toUi())

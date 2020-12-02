@@ -689,6 +689,7 @@ Text {
 .hyperlink:hover {
     -fx-text-fill: -fx-focus-color;
 }
+.hyperlink:focused,
 .hyperlink:pressed,
 .hyperlink:visited {
     -fx-border-width: 0;

@@ -29,6 +29,7 @@ import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.system.EnvironmentContext.defaultChooseFileDir
+import sp.it.util.system.EnvironmentContext.onNonExistentFileBrowse
 import sp.it.util.system.EnvironmentContext.runAsProgramArgsTransformer
 import java.awt.Desktop
 import java.io.File
@@ -40,6 +41,7 @@ private val logger = KotlinLogging.logger { }
 
 object EnvironmentContext {
    var runAsProgramArgsTransformer: (List<String>) -> List<String> = { it }
+   var onNonExistentFileBrowse: (File) -> Unit = { }
    var defaultChooseFileDir: File = File(System.getProperty("user.home"))
 }
 
@@ -114,15 +116,19 @@ fun URI.browse() {
    runIO {
       toFileOrNull()
          .ifNotNull {
-            if (Os.WINDOWS.isCurrent) {
-               it.openWindowsExplorerAndSelect()
-            } else {
-               // Would be nice if this was widely supported, but it isn't
-               if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn()) {
-                  Desktop.getDesktop().browseFileDirectory(it)
+            if (it.exists()) {
+               if (Os.WINDOWS.isCurrent) {
+                  it.openWindowsExplorerAndSelect()
                } else {
-                  it.parentDirOrRoot.open()
+                  // Would be nice if this was widely supported, but it isn't
+                  if (Desktop.Action.BROWSE_FILE_DIR.isSupportedOrWarn()) {
+                     Desktop.getDesktop().browseFileDirectory(it)
+                  } else {
+                     it.parentDirOrRoot.open()
+                  }
                }
+            } else {
+               onNonExistentFileBrowse(it)
             }
          }
          .ifNull {
@@ -323,7 +329,7 @@ private fun Desktop.Action.isSupportedOrWarn() =
 
 private fun File.openWindowsExplorerAndSelect() =
    try {
-      Runtime.getRuntime().exec(arrayOf("explorer.exe", "/select,", "\"$path\""))
+      Runtime.getRuntime().exec(arrayOf("explorer.exe", "/select,", "\"$absolutePath\""))
       true
    } catch (e: IOException) {
       logger.error(e) { "Failed to open explorer.exe and select file=$this" }

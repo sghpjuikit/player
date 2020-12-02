@@ -9,12 +9,14 @@ import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Node
+import javafx.scene.control.OverrunStyle.LEADING_ELLIPSIS
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.layout.Priority.NEVER
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
@@ -41,6 +43,8 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.ValueConfig
 import sp.it.util.dev.Dsl
+import sp.it.util.file.toFileOrNull
+import sp.it.util.file.toURIOrNull
 import sp.it.util.functional.asIs
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.DisposeOn
@@ -52,6 +56,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
+import sp.it.util.system.browse
 import sp.it.util.text.graphemeAt
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.type.type
@@ -71,6 +76,10 @@ import sp.it.util.units.millis
 import sp.it.util.units.plus
 import sp.it.util.units.seconds
 import sp.it.util.units.times
+import java.io.File
+import java.net.URI
+import java.net.URL
+import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
@@ -140,10 +149,31 @@ inline fun bullet(text: String, block: @Dsl BulletBuilder.() -> Unit = {}) = hBo
    }
 }
 
+/** @return standardized hyperlink for a [File] that that [File.browse]s it on click */
+fun appHyperlinkFor(f: File) = hyperlink(f.toUi()) {
+   textOverrun = LEADING_ELLIPSIS
+   onEventDown(MOUSE_CLICKED, PRIMARY) {
+      if (it.clickCount==1)
+         f.browse()
+   }
+}
+
+/** @return standardized ui text for the specified data displaying it in the most natural ui form */
+fun textColon(name: String, data: Any): Node = when (data) {
+   is Path -> textColon(name, data.toFileOrNull() ?: data.toUi())
+   is URL -> textColon(name, data.toURIOrNull() ?: data.toUi())
+   is URI -> textColon(name, data.toFileOrNull() ?: data.toUi())
+   is File -> hBox {
+      lay(NEVER) += text("$name: ")
+      lay += appHyperlinkFor(data)
+   }
+   else -> text(name + ": " + data.toUi())
+}
+
 fun appProgressIcon(disposer: DisposeOn): Node {
    var taskList: PopWindow? = null
    fun Node.toggleTaskList() {
-      if (taskList == null) {
+      if (taskList==null) {
          taskList = AppProgress.showTasks(this).apply {
             onHiding += { taskList = null }
          }
@@ -151,6 +181,7 @@ fun appProgressIcon(disposer: DisposeOn): Node {
          taskList?.hide()
       }
    }
+
    fun Node.installToggleTaskListOnMouseClicked() = onEventDown(MOUSE_CLICKED, PRIMARY) { toggleTaskList() }
 
    val pB = Icon(IconFA.CIRCLE).apply {

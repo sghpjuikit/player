@@ -16,6 +16,7 @@ import java.net.URISyntaxException
 import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.zip.ZipFile
 
 private val logger = KotlinLogging.logger { }
@@ -100,7 +101,16 @@ infix fun File.hasExtension(suffix: String) = path.endsWith(".$suffix", true)
 /** @return true if the file path ends with '.' followed by the one of the specified [suffixes] */
 fun File.hasExtension(vararg suffixes: String) = suffixes.any { this hasExtension it }
 
-/** @return file denoting the resource of this URI or null if [IllegalArgumentException] is thrown */
+/** @return ([Path.toFile]) file denoting the resource of this URI or null if [UnsupportedOperationException] is thrown */
+@Suppress("DEPRECATION")
+fun Path.toFileOrNull() =
+   try {
+      toFile()
+   } catch (e: UnsupportedOperationException) {
+      null
+   }
+
+/** @return (File(uri)) file denoting the resource of this URI or null if [IllegalArgumentException] is thrown */
 @Suppress("DEPRECATION")
 fun URI.toFileOrNull() =
    try {
@@ -109,7 +119,7 @@ fun URI.toFileOrNull() =
       null
    }
 
-/** @return URI denoting this URL or null if [URISyntaxException] is thrown */
+/** @return ([URL.toURI]]) URI denoting this URL or null if [URISyntaxException] is thrown */
 fun URL.toURIOrNull() =
    try {
       toURI()

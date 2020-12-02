@@ -6,7 +6,7 @@ import kotlin.text.Charsets.UTF_8
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.4.0"
+   kotlin("jvm") version "1.4.20"
    application
    id("com.github.ben-manes.versions") version "0.20.0"
 }
@@ -65,7 +65,8 @@ allprojects {
          "-Xno-call-assertions",
          "-Xno-param-assertions",
          "-Xjvm-default=all",
-         "-Xuse-experimental=kotlin.Experimental"
+         "-Xuse-experimental=kotlin.Experimental",
+         "-Xstring-concat=indy-with-constants"
       )
       kotlinOptions.javaParameters = true
       kotlinOptions.jdkHome = dirJdk.path

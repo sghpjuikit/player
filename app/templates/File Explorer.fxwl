@@ -69,7 +69,7 @@
           "_type": "widget"
         }
       },
-      "collapsed": 0,
+      "collapsed": 1,
       "orientation": "VERTICAL",
       "position": 0.8339517625231911,
       "id": "1a34267d-31c7-4de2-ab8c-8ff0875ae676",
@@ -79,7 +79,7 @@
       "_type": "bi-container"
     }
   },
-  "collapsed": 0,
+  "collapsed": -1,
   "orientation": "HORIZONTAL",
   "position": 0.1860737273259216,
   "id": "6d31a8c4-8add-417f-8be5-bfa2b7a1ee89",

@@ -27,7 +27,7 @@ class BiContainer: Container<BiContainerUi> {
     * * This value converts itself to the other value range when [absoluteSize] changes.
     * * Initial value (before the component is displayed) will not be converted and should be provided in correct range.
     *   This is because the conversion depends on the actual ui size
-    * */
+    */
    val position = v(0.5)
    /** Whether child is resized absolutely (retains its size on layout). 0 == none, 1 == child 1, 2 == child 2 */
    val absoluteSize = v(0)

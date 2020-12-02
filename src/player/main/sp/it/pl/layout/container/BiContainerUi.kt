@@ -124,6 +124,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
       container.collapsed sync { collapsed = it }
       container.absoluteSize sync { absoluteSize = it }
 
+
       // initialize position
       splitPane.sync1IfInScene {
          initialized = true

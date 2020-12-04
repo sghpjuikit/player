@@ -5,7 +5,7 @@ import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.KTypeArg
+import sp.it.pl.main.detectContent
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.util.Util.StringDirection
@@ -63,8 +63,8 @@ import sp.it.util.text.unescapeJson
 import sp.it.util.text.unescapeXSI
 import sp.it.util.text.unescapeXml
 import sp.it.util.type.VType
+import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.type
-import sp.it.util.type.typeNothingNullable
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
@@ -134,16 +134,11 @@ object CoreFunctors: Core {
          add("Is null", type<Any?>(), B, IS0)
          add("Class (Kotlin)", type<Any?>(), type<Class<*>>()) { if (it==null) Nothing::class else it::class }
          add("Class (Java)", type<Any?>(), type<Class<*>>()) { if (it==null) Void::class.java else it::class.java }
-         add("Type", type<Any?>(), type<VType<*>>()) {
-            when (it) {
-              null -> typeNothingNullable()
-              is Collection<*> -> VType<Any?>(it.getElementType())
-              else -> it::class.createType(it::class.typeParameters.map { KTypeArg.STAR }, false, listOf())
-            }
-         }
+         add("Type", type<Any?>(), type<VType<Any?>>()) { it.estimateRuntimeType() }
          add("To String", type<Any?>(), S) { Objects.toString(it) }
          add("To application UI text", type<Any?>(), S) { it.toUi() }
          add("To application DB text", type<Any?>(), S) { it.toS() }
+         add("To best content", type<Any?>(), type<Any?>()) { it.detectContent() }
 
          add("To Boolean", S, type<Boolean?>()) { when (it) { "true" -> true "false" -> false else -> null } }
          add("To Byte", S, type<Byte?>()) { it.toByteOrNull() }

@@ -76,7 +76,6 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.text.keys
 import sp.it.util.text.pluralUnit
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.rawJ
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize

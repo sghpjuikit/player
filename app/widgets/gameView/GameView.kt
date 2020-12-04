@@ -26,18 +26,6 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment.JUSTIFY
 import javafx.util.Callback
 import mu.KLogging
-import sp.it.pl.ui.objects.grid.GridFileThumbCell
-import sp.it.pl.ui.objects.grid.GridView
-import sp.it.pl.ui.objects.grid.GridView.CellSize
-import sp.it.pl.ui.objects.hierarchy.Item
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.image.FileCover
-import sp.it.pl.ui.objects.image.Thumbnail
-import sp.it.pl.ui.objects.placeholder.Placeholder
-import sp.it.pl.ui.objects.placeholder.show
-import sp.it.pl.ui.objects.tree.buildTreeCell
-import sp.it.pl.ui.objects.tree.initTreeView
-import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
@@ -53,8 +41,21 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.isImage
 import sp.it.pl.main.onErrorNotify
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.objects.grid.GridFileThumbCell
+import sp.it.pl.ui.objects.grid.GridView
+import sp.it.pl.ui.objects.grid.GridView.CellSize
+import sp.it.pl.ui.objects.hierarchy.Item
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.image.FileCover
+import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.placeholder.Placeholder
+import sp.it.pl.ui.objects.placeholder.show
+import sp.it.pl.ui.objects.tree.buildTreeCell
+import sp.it.pl.ui.objects.tree.initTreeView
+import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
+import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.minus
@@ -123,6 +124,7 @@ import sp.it.util.ui.text
 import sp.it.util.ui.typeText
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import java.io.File
@@ -145,12 +147,18 @@ class GameView(widget: Widget): SimpleController(widget) {
       attach { applyCellSize() }
    }
 
-   val cellSize by cv(CellSize.NORMAL).def(name = "Thumbnail size", info = "Size of the thumbnail.").uiNoOrder() attach { applyCellSize() }
-   val cellSizeRatio by cv(Resolution.R_1x1).def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.") attach { applyCellSize() }
-   val fitFrom by cv(OUTSIDE).def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
-   val files by cList<File>().def(name = "Location", info = "Location of the library.").only(DIRECTORY)
+   val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
+      .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
+   val gridCellSize by cv(CellSize.NORMAL)
+      .def(name = "Thumbnail size", info = "Size of the thumbnail.").uiNoOrder() attach { applyCellSize() }
+   val gridCellSizeRatio by cv(Resolution.R_1x1)
+      .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.") attach { applyCellSize() }
+   val gridCellCoverFitFrom by cv(OUTSIDE)
+      .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   val files by cList<File>()
+      .def(name = "Location", info = "Location of the library.").only(DIRECTORY)
 
-   val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 10.0, 10.0)
+   val grid = GridView<Item, File>(Item::value, 50.x2, 10.x2)
    val placeholder = lazy {
       Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
          chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window)
@@ -165,9 +173,10 @@ class GameView(widget: Widget): SimpleController(widget) {
 
       root.lay += grid.apply {
          search.field = FileField.PATH
-         primaryFilterField = FileField.NAME_FULL
-         cellFactory.value = Callback { Cell() }
+         filterPrimaryField = FileField.NAME_FULL
+         cellFactory.value = { Cell() }
          selectOn setTo GridView.SelectionOn.values()
+         footerVisible syncFrom gridShowFooter on onClose
 
          onEventDown(KEY_PRESSED, ENTER) {
             if (!it.isConsumed) {
@@ -191,11 +200,11 @@ class GameView(widget: Widget): SimpleController(widget) {
                   val h = grid.cellHeight.value
                   val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
                   var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
-                  if (preserveAspectRatio) nh = nw/cellSizeRatio.get().ratio
+                  if (preserveAspectRatio) nh = nw/gridCellSizeRatio.get().ratio
                   applyCellSize(nw, nh)
                } else {
-                  if (isInc) cellSize.togglePrevious()
-                  else cellSize.toggleNext()
+                  if (isInc) gridCellSize.togglePrevious()
+                  else gridCellSize.toggleNext()
                }
             }
          }
@@ -240,7 +249,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
+   private fun applyCellSize(width: Double = gridCellSize.value.width, height: Double = gridCellSize.value.width/gridCellSizeRatio.value.ratio) {
       grid.cellWidth.value = width.emScaled
       grid.cellHeight.value = height.emScaled + cellTextHeight.value
       grid.horizontalCellSpacing.value = 10.emScaled
@@ -277,7 +286,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       override fun computeGraphics() {
          super.computeGraphics()
 
-         thumb!!.fitFrom syncFrom fitFrom
+         thumb!!.fitFrom syncFrom gridCellCoverFitFrom
          root install appTooltipForData { thumb!!.representant }
       }
 

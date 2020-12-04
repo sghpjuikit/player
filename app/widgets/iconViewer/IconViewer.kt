@@ -8,11 +8,10 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
-import javafx.util.Callback
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.main.Widgets
+import sp.it.pl.main.APP
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.grid.GridCell
@@ -31,7 +30,9 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.syncFrom
 import sp.it.util.system.copyToSysClipboard
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
@@ -41,6 +42,7 @@ import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import kotlin.reflect.KClass
 
 @Widget.Info(
@@ -53,12 +55,13 @@ import kotlin.reflect.KClass
 )
 class IconViewer(widget: Widget): SimpleController(widget) {
    val iconSize = 120.emScaled
-   val iconsView = GridView<GlyphIcons, GlyphIcons>(GlyphIcons::class.java, { it }, iconSize, iconSize + 30, 5.0, 5.0).apply {
+   val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, iconSize.x2 + (0 x 30.emScaled), 5.emScaled.x2).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
-      primaryFilterField = IconField.NAME
+      filterPrimaryField = IconField.NAME
       selectOn setTo listOf(MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS)
-      cellFactory.value = Callback {
+      footerVisible syncFrom APP.ui.tableShowFooter on onClose
+      cellFactory.value = {
          object: GridCell<GlyphIcons, GlyphIcons>() {
 
             init {

@@ -15,7 +15,6 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
-import javafx.util.Callback
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -28,7 +27,6 @@ import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.withAppProgress
-import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridFileIconCell
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
@@ -41,6 +39,7 @@ import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.ui.objects.placeholder.show
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.Util.enumToHuman
+import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggleNext
@@ -105,6 +104,7 @@ import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import java.io.File
 import java.util.Stack
@@ -138,23 +138,25 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    private var filesMaterialized = files.materialize()
    private val filesEmpty = v(true).apply { files.onChangeAndNow { value = files.isEmpty() } }
 
-   private val cellSize by cv(NORMAL).uiNoOrder().attach { applyCellSize() }
+   val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
+      .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
+   val cellSize by cv(NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
-   private val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
+   val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-   private val coverOn by cv(true)
+   val coverOn by cv(true)
       .def(name = "Thumbnail", info = "Display thumbnail instead of simple icon.")
-   private val coverFitFrom by cv(FitFrom.OUTSIDE).readOnlyUnless(coverOn)
+   val coverFitFrom by cv(FitFrom.OUTSIDE).readOnlyUnless(coverOn)
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
-   private val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover).readOnlyUnless(coverOn)
+   val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover).readOnlyUnless(coverOn)
       .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
-   private val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone).readOnlyUnless(coverOn)
+   val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone).readOnlyUnless(coverOn)
       .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
-   private val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
+   val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
       attach { applyCellSize() }
    }
 
-   private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 5.0, 5.0)
+   private val grid = GridView<Item, File>({ it.value }, 50.emScaled.x2, 5.emScaled.x2)
    private val itemVisitId = AtomicLong(0)
    private var item: Item? = null
    private val placeholder = lazy {
@@ -180,13 +182,14 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       root.prefSize = 1000.emScaled x 700.emScaled
 
       grid.search.field = FileField.PATH
-      grid.primaryFilterField = FileField.NAME_FULL
-      grid.cellFactory syncFrom coverOn.map { Callback<GridView<Item, File>, GridCell<Item, File>> { _ -> if (it) Cell() else IconCell() } }
+      grid.filterPrimaryField = FileField.NAME_FULL
+      grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } }
+      grid.footerVisible syncFrom gridShowFooter on onClose
       grid.selectedItem sync {
          outputSelectedSuppressor.suppressed {
             failIf(it!=null && it.parent!=item) { "item-parent mismatch" }
             outputSelected.value = it?.value
-            item?.lastSelectedChild = grid.implGetSkin()?.selectedCI ?: GridViewSkin.NO_SELECT
+            item?.lastSelectedChild = grid.skinImpl?.selectedCI ?: GridViewSkin.NO_SELECT
          }
       }
       root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
@@ -255,7 +258,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    }
 
    private fun visit(dir: Item) {
-      item?.lastScrollPosition = grid.implGetSkin().position
+      item?.lastScrollPosition = grid.skinImpl!!.position
       if (item===dir) return
       item?.takeIf { it.isHChildOf(dir) }?.disposeChildrenContent()
       itemVisitId.incrementAndGet()
@@ -271,8 +274,8 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       ).ui {
          outputSelectedSuppressor.suppressing {
             grid.itemsRaw setTo it
-            grid.implGetSkin().position = dir.lastScrollPosition max 0.0
-            grid.implGetSkin().select(dir.lastSelectedChild)
+            grid.skinImpl!!.position = dir.lastScrollPosition max 0.0
+            grid.skinImpl!!.select(dir.lastSelectedChild)
          }
       }
    }

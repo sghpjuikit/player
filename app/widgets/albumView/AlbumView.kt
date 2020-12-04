@@ -11,7 +11,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Pane
 import javafx.scene.shape.Rectangle
-import javafx.util.Callback
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.ALBUM
@@ -31,6 +30,7 @@ import sp.it.pl.ui.objects.grid.GridView.CellSize
 import sp.it.pl.ui.objects.image.Cover.CoverSource.DIRECTORY
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.util.JavaLegacy
+import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
@@ -72,7 +72,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfImageLoaded
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.sync1IfNonNull
-import sp.it.util.type.rawJ
+import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.lay
@@ -81,6 +81,7 @@ import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
 import java.io.File
@@ -102,6 +103,8 @@ class AlbumView(widget: Widget): SimpleController(widget) {
    val outputSelectedM = io.o.create<List<Metadata>>("Selected", listOf())
    val inputSongs = io.i.create<List<Metadata>>("To display") { setItems(it) }
 
+   val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
+      .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
    val cellSize by cv(CellSize.NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
@@ -110,7 +113,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
       attach { applyCellSize() }
    }
 
-   val grid = GridView<Album, MetadataGroup>(MetadataGroup::class.java, { it.items }, 50.0, 50.0, 5.emScaled, 5.emScaled)
+   val grid = GridView<Album, MetadataGroup>(Album::items, 50.emScaled.x2, 5.emScaled.x2)
 
    init {
       root.prefSize = 800.emScaled x 800.emScaled
@@ -120,8 +123,9 @@ class AlbumView(widget: Widget): SimpleController(widget) {
 
       grid.styleClass += "album-grid"
       grid.search.field = VALUE
-      grid.primaryFilterField = VALUE
-      grid.cellFactory.value = Callback { AlbumCell() }
+      grid.filterPrimaryField = VALUE
+      grid.cellFactory.value = { AlbumCell() }
+      grid.footerVisible syncFrom gridShowFooter on onClose
       grid.selectedItem attach {
          outputSelected.value = it?.items
          outputSelectedM.value = it?.items?.grouped.orEmpty()
@@ -150,10 +154,10 @@ class AlbumView(widget: Widget): SimpleController(widget) {
 
       // update filters of VALUE type, we must wait until skin has been built
       grid.skinProperty().sync1IfNonNull {
-         grid.implGetSkin().filter.inconsistentState = true
-         grid.implGetSkin().filter.prefTypeSupplier = Supplier { PredicateData.ofField(VALUE) }
-         grid.implGetSkin().filter.data = MetadataGroup.Field.all.map { mgf -> PredicateData(mgf.toString(ALBUM), mgf.getMFType(ALBUM), mgf.asIs<ObjectField<MetadataGroup, Any?>>()) }
-         grid.implGetSkin().filter.clear()
+         grid.skinImpl!!.filter.inconsistentState = true
+         grid.skinImpl!!.filter.prefTypeSupplier = Supplier { PredicateData.ofField(VALUE) }
+         grid.skinImpl!!.filter.data = MetadataGroup.Field.all.map { mgf -> PredicateData(mgf.toString(ALBUM), mgf.getMFType(ALBUM), mgf.asIs<ObjectField<MetadataGroup, Any?>>()) }
+         grid.skinImpl!!.filter.clear()
       }
 
       // sync outputs
@@ -173,7 +177,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
    /** Populates metadata groups to table from metadata list.  */
    private fun setItems(list: List<Metadata>?) {
       if (list==null) return
-      lastScrollPosition = grid.implGetSkin()?.position ?: 0.0
+      lastScrollPosition = grid.skinImpl?.position ?: 0.0
 
       runIO {
          val mgs = groupsOf(ALBUM, list).toList()
@@ -194,7 +198,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
                   .toList()
 
                grid.itemsRaw setTo albums
-               grid.implGetSkin().position = lastScrollPosition max 0.0
+               grid.skinImpl?.position = lastScrollPosition max 0.0
                albumsOld.forEach { it.dispose() }
                selectionReStore()
                outputSelectedM.value = filterList(true)
@@ -245,8 +249,8 @@ class AlbumView(widget: Widget): SimpleController(widget) {
          selLastRestored = true
          grid.itemsShown.forEachIndexed { i, album ->
             if (album.name==selLast) {
-               grid.implGetSkin().select(i)
-               runLater { grid.implGetSkin().select(i) }
+               grid.skinImpl?.select(i)
+               runLater { grid.skinImpl!!.select(i) }
             }
          }
          return
@@ -255,12 +259,12 @@ class AlbumView(widget: Widget): SimpleController(widget) {
       // restore selection
       grid.itemsShown.forEachIndexed { i, album ->
          if (album.items.value in selOld) {
-            grid.implGetSkin().select(i)
+            grid.skinImpl!!.select(i)
          }
       }
       // performance optimization - prevents refreshes of a lot of items
       if (grid.selectedItem.value==null)
-         grid.implGetSkin().select(0)
+         grid.skinImpl!!.select(0)
 
       selIgnore = false
       outputSelected.value = grid.selectedItem.value?.items

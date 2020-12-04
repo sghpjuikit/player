@@ -3,11 +3,8 @@ package sp.it.pl.ui.objects.grid
 import javafx.scene.control.IndexedCell
 import sp.it.util.access.V
 
-/**
- * A cell of [GridView].
- * It contains single item in the [sp.it.pl.ui.objects.grid.GridView.getItemsShown] list.
- */
-open class GridCell<T, F>: IndexedCell<T>() {
+/** A cell of [GridView], contains single item in the [sp.it.pl.ui.objects.grid.GridView.itemsShown] list. */
+open class GridCell<T: Any, F: Any>: IndexedCell<T>() {
 
    /** [GridView] this cell belongs to. */
    val gridView = V<GridView<T, F>?>(null)
@@ -29,7 +26,7 @@ open class GridCell<T, F>: IndexedCell<T>() {
 
    override fun createDefaultSkin() = GridCellSkin(this)
 
-   /** Dispose of this cell with the intention of never being used again. Called automatically in when grid skin disposes.  */
+   /** Dispose of this cell with the intention of never being used again. Called automatically in when grid skin disposes. */
    open fun dispose() {}
 
 }

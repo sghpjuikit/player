@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.grid;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,35 +16,46 @@ import javafx.event.Event;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.IndexedCell;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Skin;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import kotlin.reflect.KClass;
 import sp.it.pl.ui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData;
+import sp.it.pl.ui.nodeinfo.GridInfo;
+import sp.it.pl.ui.nodeinfo.TableInfo;
 import sp.it.pl.ui.objects.grid.GridView.CellGap;
 import sp.it.pl.ui.objects.grid.GridView.Search;
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn;
+import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.reactive.SubscriptionKt;
 import sp.it.util.reactive.UtilKt;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.rangeClosed;
 import static javafx.application.Platform.runLater;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
-import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.collections.UtilKt.setTo;
@@ -56,7 +68,9 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.ui.Util.layHeaderTop;
+import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.UtilKt.hasFocus;
+import static sp.it.util.ui.UtilKt.menuItem;
 
 public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
@@ -113,28 +127,44 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		this.grid = control;
 		this.flow = new Flow<>(this);
 
-		attach(grid.cellFactory, e -> flow.disposeAndRebuildCells());
-		attach(grid.cellHeight, e -> flow.rebuildCells());
-		attach(grid.cellWidth, e -> flow.rebuildCells());
-		attach(grid.cellGap, e -> flow.rebuildCells());
-		attach(grid.horizontalCellSpacing, e -> flow.rebuildCells());
-		attach(grid.verticalCellSpacing, e -> flow.rebuildCells());
+		attach(grid.getCellFactory(), e -> flow.disposeAndRebuildCells());
+		attach(grid.getCellHeight(), e -> flow.rebuildCells());
+		attach(grid.getCellWidth(), e -> flow.rebuildCells());
+		attach(grid.getCellGap(), e -> flow.rebuildCells());
+		attach(grid.getHorizontalCellSpacing(), e -> flow.rebuildCells());
+		attach(grid.getVerticalCellSpacing(), e -> flow.rebuildCells());
 		attach(grid.widthProperty(), e -> flow.rebuildCells());
 		attach(grid.heightProperty(), e -> flow.rebuildCells());
 		attach(grid.parentProperty(), p -> {
 			if (p!=null) flow.rebuildCells();
 		});
-		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
 
 		root = layHeaderTop(0, Pos.TOP_RIGHT, filterPane, flow.root);
-		filter = new Filter(grid.type, grid.itemsFiltered);
+
+		// footer
+		sync(grid.getFooterVisible(), v -> {
+			if (v && !root.getChildren().contains(footerPane))
+				root.getChildren().add(footerPane);
+			if (!v)
+				root.getChildren().remove(footerPane);
+		});
+		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
+		searchQueryLabel.textProperty().bind(control.getSearch().searchQuery);
+		itemsInfo.bind(grid);
+
+		// filter
+		filter = new Filter(grid.getType(), grid.getItemsFiltered());
+
+		// search
+		onDispose.plusAssign(runnable(() -> searchQueryLabel.textProperty().unbind()));
+		onDispose.plusAssign(runnable(() -> itemsInfo.unbind()));
 
 		// selection
 		grid.addEventHandler(KEY_PRESSED, e -> {
 			if (e.isConsumed()) return;
 			KeyCode c = e.getCode();
 			if (c.isNavigationKey()) {
-				if (grid.selectOn.contains(SelectionOn.KEY_PRESS)) {
+				if (grid.getSelectOn().contains(SelectionOn.KEY_PRESS)) {
 					if (c==KeyCode.UP || c==KeyCode.KP_UP) selectIfNoneOr(this::selectFirst, this::selectUp);
 					if (c==KeyCode.DOWN || c==KeyCode.KP_DOWN) selectIfNoneOr(this::selectFirst, this::selectDown);
 					if (c==KeyCode.LEFT || c==KeyCode.KP_LEFT) selectIfNoneOr(this::selectFirst, this::selectLeft);
@@ -161,7 +191,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		// Select no cell on click outside cell. Cell click selection must consume events.
 		flow.addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.isConsumed()) return;
-			if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK))
+			if (grid.getSelectOn().contains(SelectionOn.MOUSE_CLICK))
 				selectNone();
 		});
 		flow.addEventFilter(SCROLL, e -> {
@@ -171,7 +201,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			// Normally we would update the selection after the cells get updated, but that happens also on regular
 			// selection change, which would stop working properly.
 			// Hence we find such cells and select them here
-			if (getSkinnable().selectOn.contains(SelectionOn.MOUSE_HOVER)) {
+			if (getSkinnable().getSelectOn().contains(SelectionOn.MOUSE_HOVER)) {
 				flow.getCells()
 					.filter(it -> it.isHover() && !it.isSelected()).findAny()
 					.ifPresent(this::select);
@@ -183,6 +213,10 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		SubscriptionKt.on(UtilKt.attach(value, consumer(action)), onDispose);
 	}
 
+	private <O> void sync(ObservableValue<O> value, Consumer<? super O> action) {
+		SubscriptionKt.on(UtilKt.sync(value, consumer(action)), onDispose);
+	}
+
 	// TODO: improve API
 	public double getPosition() {
 		return flow.getPosition();
@@ -192,6 +226,37 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	public void setPosition(double position) {
 		flow.scrollTo(position);
 	}
+
+	/* ---------- SEARCH ------------------------------------------------------------------------------------------------ */
+
+	private final Label searchQueryLabel = new Label();
+
+	/* ---------- FOOTER ------------------------------------------------------------------------------------------------ */
+
+	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
+	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
+	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
+		menuItem("Select none", consumer(e -> selectNone()))
+	);
+	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
+	/** Table menu bar in the bottom with menus. Feel free to modify. */
+	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder);
+	/**
+	 * Labeled in the bottom displaying information on table items and selection.
+	 * Feel free to provide custom implementation of {@link TableInfo#setTextFactory(kotlin.jvm.functions.Function2)}
+	 * to display different information. You may want to reuse
+	 * {@link TableInfo#DEFAULT_TEXT_FACTORY}.
+	 */
+	public final GridInfo<T,F> itemsInfo = new GridInfo<>(new Label(), null);
+	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, itemsInfo.getNode());
+	private final HBox bottomRightPane = layHorizontally(5, CENTER_RIGHT, searchQueryLabel);
+	/**
+	 * Pane for controls in the bottom of the table.
+	 * Feel free to modify its content. Menu bar and item info label are on the
+	 * left {@link BorderPane#leftProperty()}. Search query label is on the right {@link BorderPane#rightProperty()}.
+	 * Both wrapped in {@link HBox};
+	 */
+	public final BorderPane footerPane = new BorderPane(null, null, bottomRightPane, null, bottomLeftPane);
 
 	/* ---------- FILTER ------------------------------------------------------------------------------------------------ */
 
@@ -207,6 +272,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 	@Override
 	public void dispose() {
+		onDispose.invoke();
 		flow.dispose();
 		root = null;
 		grid = null;
@@ -222,17 +288,17 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 	/* ---------- SELECTION --------------------------------------------------------------------------------------------- */
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "SimplifyOptionalCallChains"})
 	private PredicateData<ObjectField<F,Object>> getPrimaryFilterPredicate() {
-		return Optional.ofNullable(grid.primaryFilterField)
+		return Optional.ofNullable(grid.getFilterPrimaryField())
 			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
 			.orElse(null);
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(Class<F> filterType) {
-		return stream(APP.getClassFields().get(getKotlinClass(filterType)))
+	private List<PredicateData<ObjectField<F,Object>>> getFilterPredicates(KClass<F> filterType) {
+		return stream(APP.getClassFields().get(filterType))
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
@@ -300,7 +366,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			if (selectedC!=null) selectedC.updateSelected(false);
 			selectedC = null;
 			selectedCI = NO_SELECT;
-			grid.selectedItem.set(null);
+			grid.getSelectedItem().setValue(null);
 			return;
 		}
 
@@ -324,7 +390,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		if (selectedC!=null) selectedC.updateSelected(false);
 		selectedC = c;
 		selectedC.updateSelected(true);
-		grid.selectedItem.set(c.getItem());
+		grid.getSelectedItem().setValue(c.getItem());
 	}
 
 	/**
@@ -354,9 +420,9 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	 */
 	public static class Flow<T, F> extends Pane {
 		private final GridViewSkin<T,F> skin;
-		@SuppressWarnings("unchecked")
-		private List<GridCell<T,F>> visibleCells = (List) getChildren();
-		private LinkedList<GridCell<T,F>> cachedCells = new LinkedList<>();
+		@SuppressWarnings({"unchecked", "rawtypes"})
+		private final List<GridCell<T,F>> visibleCells = (List) getChildren();
+		private final LinkedList<GridCell<T,F>> cachedCells = new LinkedList<>();
 		private final Rectangle clipMask = new Rectangle(0, 0);
 		private final FlowScrollBar scrollbar;
 		private final Scrolled root;
@@ -418,18 +484,19 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		private GridCell<T,F> createCell() {
-			GridView<T,F> grid = getSkinnable();
-			GridCell<T,F> cell = grid.cellFactory.getValue().call(grid);
+			var grid = getSkinnable();
+			var cellFactory = grid.getCellFactory().getValue();
+			var cell = cellFactory==null ? new GridCell<T,F>() : cellFactory.invoke(grid);
 			cell.getGridView().set(grid);
 			cell.addEventHandler(MOUSE_CLICKED, e -> {
-				if (grid.selectOn.contains(SelectionOn.MOUSE_CLICK)) {
-					getSkinnable().implGetSkin().select(cell);
+				if (grid.getSelectOn().contains(SelectionOn.MOUSE_CLICK)) {
+					getSkinnable().getSkinImpl().select(cell);
 					e.consume();
 				}
 			});
 			cell.hoverProperty().addListener((o, ov, nv) -> {
-				if (nv && grid.selectOn.contains(SelectionOn.MOUSE_HOVER))
-					getSkinnable().implGetSkin().select(cell);
+				if (nv && grid.getSelectOn().contains(SelectionOn.MOUSE_HOVER))
+					getSkinnable().getSkinImpl().select(cell);
 			});
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH, false);
 			cell.pseudoClassStateChanged(Search.PC_SEARCH_MATCH_NOT, false);
@@ -542,11 +609,11 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			int itemCount = visibleCells.size();
 			if (itemCount>0) {
 				// update cells
-				double cellWidth = getSkinnable().cellWidth.getValue();
-				double cellHeight = getSkinnable().cellHeight.getValue();
+				double cellWidth = getSkinnable().getCellWidth().getValue();
+				double cellHeight = getSkinnable().getCellHeight().getValue();
 				int columns = computeMaxCellsInRow();
-				double vGap = getSkinnable().verticalCellSpacing.getValue();
-				double hGap = getSkinnable().cellGap.getValue()==CellGap.ABSOLUTE ? getSkinnable().verticalCellSpacing.getValue() :  (w - columns*cellWidth)/(columns + 1);
+				double vGap = getSkinnable().getVerticalCellSpacing().getValue();
+				double hGap = getSkinnable().getCellGap().getValue()==CellGap.ABSOLUTE ? getSkinnable().getVerticalCellSpacing().getValue() :  (w - columns*cellWidth)/(columns + 1);
 				double cellGapHeight = cellHeight + vGap;
 				double cellGapWidth = cellWidth + hGap;
 				double viewStartY = viewStart;
@@ -576,7 +643,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 			// update selection (if items changed, same cell may remain selected, but selected item may be different)
 			skin.selectedCI = skin.selectedC==null ? NO_SELECT : skin.selectedC.getIndex();
-			skin.grid.selectedItem.set(skin.selectedC==null ? null : skin.selectedC.getItem());
+			skin.grid.getSelectedItem().set(skin.selectedC==null ? null : skin.selectedC.getItem());
 
 			// retain focus (should not be necessary as cells should not be focus-traversable, but it's hard to tell
 			if (wasFocused)
@@ -635,15 +702,15 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		public void scrollByPage(int sign) {
 			if (sign<0) {
-				IndexedCell cell = getFirstVisibleCell();
+				var cell = getFirstVisibleCell();
 				if (cell==null) return;
-				int row = cell.getIndex()/computeMaxCellsInRow();
+				var row = cell.getIndex()/computeMaxCellsInRow();
 				scrollToRowBottom(row);
 			}
 			if (sign>0) {
-				IndexedCell cell = getLastVisibleCell();
+				var cell = getLastVisibleCell();
 				if (cell==null) return;
-				int row = cell.getIndex()/computeMaxCellsInRow();
+				var row = cell.getIndex()/computeMaxCellsInRow();
 				scrollToRowTop(row);
 			}
 		}
@@ -723,12 +790,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		/** @return the max number of cell per row */
 		public int computeMaxCellsInRow() {
-			double gap = getSkinnable().horizontalCellSpacing.doubleValue();
+			double gap = getSkinnable().getHorizontalCellSpacing().doubleValue();
 			return max((int) Math.floor((computeRowWidth() + gap)/computeCellWidth()), 1);
 		}
 
 		public int computeMaxRowsInView() {
-			double gap = getSkinnable().verticalCellSpacing.doubleValue();
+			double gap = getSkinnable().getVerticalCellSpacing().doubleValue();
 			return max((int) Math.floor((getSkinnable().getHeight() + gap)/computeRowHeight()), 1);
 		}
 
@@ -738,12 +805,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		protected double computeRowHeight() {
-			return getSkinnable().cellHeight.getValue() + getSkinnable().verticalCellSpacing.doubleValue();
+			return getSkinnable().getCellHeight().getValue() + getSkinnable().getVerticalCellSpacing().doubleValue();
 		}
 
 		/** @return the width of a cell */
 		protected double computeCellWidth() {
-			return getSkinnable().cellWidth.doubleValue() + getSkinnable().horizontalCellSpacing.doubleValue();
+			return getSkinnable().getCellWidth().doubleValue() + getSkinnable().getHorizontalCellSpacing().doubleValue();
 		}
 	}
 
@@ -775,12 +842,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 	/** Scrollbar with adjusted scrolling behavior to work with {@link GridViewSkin.Flow}. */
 	public static class FlowScrollBar extends ScrollBar {
-		private final Flow flow;
+		private final Flow<?,?> flow;
 		private boolean adjusting;
 		private boolean doNotAdjust;
 		public boolean updating;
 
-		public FlowScrollBar(Flow flow) {
+		public FlowScrollBar(Flow<?,?> flow) {
 			this.flow = flow;
 
 			valueProperty().addListener((o, ov, nv) -> {
@@ -820,11 +887,11 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<F,ObjectField<F,Object>> {
 
-		private Filter(Class<F> filterType, FilteredList<T> filterList) {
+		private Filter(KClass<F> filterType, FilteredList<T> filterList) {
 			super();
 			setPrefTypeSupplier(GridViewSkin.this::getPrimaryFilterPredicate);
 			setData(getFilterPredicates(filterType));
-			onItemChange = predicate -> filterList.setPredicate(predicate==IS ? null : item -> predicate.test(getSkinnable().filterByMapper.apply(item)));
+			onItemChange = predicate -> filterList.setPredicate(predicate==IS ? null : item -> predicate.test(getSkinnable().getFilterMapper().apply(item)));
 
 			var filterKeyHandler = buildToggleOnKeyHandler(filterVisible, GridViewSkin.this.flow);
 			getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);

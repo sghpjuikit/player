@@ -18,7 +18,6 @@ import sp.it.pl.audio.tagging.Metadata.Field.Companion.RATING
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.TITLE
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
-import sp.it.pl.ui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
@@ -37,6 +36,7 @@ import sp.it.pl.main.audioExtensionFilter
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
+import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.async.runNew

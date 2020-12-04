@@ -291,8 +291,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final BorderPane footerPane = new BorderPane(null, null, bottomRightPane, null, bottomLeftPane);
 
 	/**
-	 * Visibility of the bottom controls and information panel. Displays
-	 * information about table items and menubar.
+	 * Visibility of the bottom controls and information panel.
+	 * Displays information about table items and menubar.
 	 */
 	public final BooleanProperty footerVisible = new SimpleBooleanProperty(true) {
 		@Override

@@ -10,7 +10,6 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
-import javafx.util.Callback
 import mu.KLogging
 import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.layout.exportFxwl
@@ -38,6 +37,7 @@ import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.util.Sort
+import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
@@ -68,9 +68,11 @@ import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.reactive.map
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.reactive.syncFrom
 import sp.it.util.system.Os
 import sp.it.util.system.isExecutable
 import sp.it.util.system.open
@@ -82,6 +84,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
@@ -232,13 +235,17 @@ class AppSearchPlugin: PluginBase() {
    class AppLauncher(widget: Widget): SimpleController(widget) {
 
       private val owner = APP.plugins.getRaw<AppSearchPlugin>()?.plugin!!
-      private val grid = GridView<Item, File>(File::class.java, { it.value }, 50.0, 50.0, 50.0, 50.0)
+      private val grid = GridView<Item, File>(Item::value, 50.emScaled.x2, 50.emScaled.x2)
       private val cellTextHeight = APP.ui.font.map(onClose) { 20.0.emScaled }.apply {
          attach { applyCellSize() }
       }
 
-      var closeOnProgramOpened by c(false).def(name = "Close on launch", info = "Close this widget when it launches a program.")
-      var closeOnRightClick by c(false).def(name = "Close on right click", info = "Close this widget when right click is detected.")
+      val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
+         .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
+      var closeOnProgramOpened by c(false)
+         .def(name = "Close on launch", info = "Close this widget when it launches a program.")
+      var closeOnRightClick by c(false)
+         .def(name = "Close on right click", info = "Close this widget when right click is detected.")
       private val visitId = AtomicLong(0)
       private var item: Item? = null   // item, children of which are displayed
 
@@ -246,9 +253,10 @@ class AppSearchPlugin: PluginBase() {
          root.prefSize = 1000.emScaled x 700.emScaled
 
          grid.search.field = FileField.PATH
-         grid.primaryFilterField = FileField.PATH
+         grid.filterPrimaryField = FileField.PATH
          grid.selectOn setTo listOf(KEY_PRESS, MOUSE_CLICK, MOUSE_HOVER)
-         grid.cellFactory.value = Callback { Cell() }
+         grid.cellFactory.value = { Cell() }
+         grid.footerVisible syncFrom gridShowFooter on onClose
          root.lay += grid
 
          grid.cellGap.value = ABSOLUTE
@@ -293,7 +301,7 @@ class AppSearchPlugin: PluginBase() {
             widget.custom_name.value + ": Fetching view"
          ) ui {
             grid.itemsRaw setTo it
-            grid.implGetSkin().position = i.lastScrollPosition max 0.0
+            grid.skinImpl?.position = i.lastScrollPosition max 0.0
             grid.requestFocus()
          }
       }

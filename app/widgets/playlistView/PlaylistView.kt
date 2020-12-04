@@ -27,7 +27,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.PLAYLIST_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.nodeinfo.TableInfo.Companion.DEFAULT_TEXT_FACTORY
+import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.table.PlaylistTable
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort

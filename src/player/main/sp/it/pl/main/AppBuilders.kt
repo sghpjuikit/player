@@ -45,6 +45,7 @@ import sp.it.util.conf.ValueConfig
 import sp.it.util.dev.Dsl
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.toURIOrNull
+import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -90,6 +91,7 @@ import java.net.URI
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.file.Path
+import java.util.Optional
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
@@ -403,6 +405,7 @@ fun Any?.detectContent(): Any? = when (this) {
     is Char16 -> toString().toByteOrNull() ?: this
     is Char32 -> toString().toByteOrNull() ?: this
     is String -> when {
+      this=="null" -> null
       this=="true" -> true
       this=="false" -> false
       this.lengthInChars==1 -> this[0].detectContent()
@@ -417,12 +420,17 @@ fun Any?.detectContent(): Any? = when (this) {
          ?: this.toBigIntegerOrNull()
          ?: this.toBigDecimalOrNull()
          ?: this.toByteOrNull()
+         ?: APP.serializerJson.json.ast(this).orNull()
          ?: runTry { uri(this) }.orNull()?.net { it.toFileOrNull() ?: it }
          ?: runTry { uri(URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
          ?: runTry { uri("file:///$this") }.orNull()?.net { it.toFileOrNull() ?: it }
          ?: runTry { uri("file:///" + URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
          ?: this
    }
+   is Optional<*> -> this.orElse(null).detectContent()
+   is Try.Error<*> -> this.value.detectContent()
+   is Try.Ok<*> -> this.value.detectContent()
+   is Collection<*> -> collectionUnwrap(this).detectContent()
    else -> this
 }
 

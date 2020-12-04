@@ -70,10 +70,10 @@ data class VType<out T>(/** Kotlin type representing this type */ val type: KTyp
 }
 
 /** @return nullable version of this type */
-fun <T> VType<T>.nullable(): VType<T?> = VType(type.withNullability(true))
+fun <T> VType<T>.nullable(): VType<T?> = if (isNullable) asIs() else VType(type.withNullability(true))
 
 /** @return notnull version of this type */
-fun <T: Any> VType<T?>.notnull(): VType<T> = VType(type.withNullability(false))
+fun <T: Any> VType<T?>.notnull(): VType<T> = if (!isNullable) asIs() else VType(type.withNullability(false))
 
 /** @return raw class representing this type also called erased type ([KType.jvmErasure]) */
 val <T> VType<T>.jvmErasure: KClass<*> get() = type.jvmErasure

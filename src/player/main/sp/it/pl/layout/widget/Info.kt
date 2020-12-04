@@ -17,7 +17,6 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.jvmName
-import kotlin.streams.asSequence
 
 interface ComponentInfo {
 

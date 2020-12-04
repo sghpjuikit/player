@@ -26,6 +26,8 @@ import sp.it.pl.ui.objects.tree.Name
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.Action
+import sp.it.util.file.json.JsValue
+import sp.it.util.file.json.toCompactS
 import sp.it.util.formatToSmallestUnit
 import sp.it.util.functional.Functors
 import sp.it.util.functional.PF
@@ -131,6 +133,8 @@ class CoreConverter: Core {
          is URI -> URLDecoder.decode(o.toASCIIString(), UTF_8)
          is URL -> URLDecoder.decode(o.toExternalForm(), UTF_8)
          is Feature -> o.name
+         is JsValue -> o.toCompactS()
+         is Throwable -> o.localizedMessage
          else -> if (isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
       }
    }

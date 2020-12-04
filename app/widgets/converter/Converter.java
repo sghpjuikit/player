@@ -691,7 +691,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         ListChainValueNode<In, InPane> ins;
 
         Ins(Act<?> a, boolean isFixedLength) {
-            ins = new ListChainValueNode<>(() -> new InPane(a.names));
+            ins = new ListChainValueNode<>(i -> new InPane(a.names));
             ins.editable.setValue(!isFixedLength);
             ins.growTo1();
             ins.maxChainLength.set(a.max);

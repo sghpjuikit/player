@@ -11,6 +11,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.util.Callback
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.itemnode.ListAreaNode.Transformation
 import sp.it.pl.ui.itemnode.ListAreaNode.TransformationRaw
@@ -65,6 +66,8 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.isSupertypeOf
+import sp.it.util.type.notnull
+import sp.it.util.type.nullable
 import sp.it.util.type.type
 import sp.it.util.type.typeNothingNonNull
 import sp.it.util.ui.hBox
@@ -75,7 +78,6 @@ import sp.it.util.ui.vBox
 import java.util.ArrayList
 import java.util.function.BiPredicate
 import java.util.function.Consumer
-import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.streams.toList
 
@@ -115,8 +117,11 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     */
    @JvmField val input = observableList<Any?>()
 
+   /** The intermediate results of the [transforms], including [input] (first value) and [output] (last value). */
+   private val transformsValues = mutableListOf<List<Any?>>()
+
    /** The transformation chain. */
-   @JvmField val transforms = ListAreaNodeTransformations(Functors.pool)
+   @JvmField val transforms = ListAreaNodeTransformations(transformsValues, Functors.pool)
 
    /** Writable [output]. */
    private val outputImpl = observableList<Any?>()
@@ -152,12 +157,15 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    init {
       input.onChange {
+         transformsValues setTo listOf(input)
          transforms.typeIn = VType<Any?>(input.getElementType())
       }
       transforms.onItemChange = Consumer { transformations ->
          isTransformsChanging.suppressing {
             val i = transformations.mapNotNull { it as? Transformation.Manual }.lastOrNull()?.text?.lines() ?: input.materialize()
-            val o = transformations.takeLastWhile { it !is Transformation.Manual }.fold(i) { it, transformation -> transformation(it) }
+            val outputs = transformations.takeLastWhile { it !is Transformation.Manual }.runningFold(i) { it, transformation -> transformation(it) }
+            transformsValues setTo (transformsValues.take(transformations.size + 1 - outputs.size) + outputs)
+            val o = transformsValues.last()
             outputImpl setTo o
             val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual
             if (!isManualEdit) textArea.text = o.asSequence().map { it.toString() }.joinToString("\n")
@@ -290,9 +298,10 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTransformationNode, List<Transformation>> {
 
    @Suppress("RemoveExplicitTypeArguments")
-   constructor(functions: FunctorPool): super(listOf()) {
-      chainedFactory = Supplier {
-         val type = typeOut
+   constructor(transformsValues: MutableList<List<Any?>>, functions: FunctorPool): super(listOf()) {
+      chainedFactory = Callback { i ->
+         val typeIsNullable = null in transformsValues[i]
+         val type = if (typeIsNullable) typeOut.nullable() else typeOut.notnull()
          val by1s = functions.getI(type).asIs<PrefList<PF<Any?, Any?>>>()
             .apply { removeIf { it.name=="#" } }
             .map<TransformationRaw> { TransformationRaw.ByN(it) }

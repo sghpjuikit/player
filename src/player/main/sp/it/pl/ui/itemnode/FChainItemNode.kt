@@ -1,5 +1,6 @@
 package sp.it.pl.ui.itemnode
 
+import javafx.util.Callback
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
@@ -15,7 +16,6 @@ import sp.it.util.reactive.onChange
 import sp.it.util.type.VType
 import sp.it.util.type.typeNothingNonNull
 import java.util.function.BiPredicate
-import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
@@ -54,7 +54,7 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
 
    constructor(functorPool: (VType<*>) -> PrefList<PF<*, *>>): super(throwingF()) {
       this.functorPool = functorPool
-      chainedFactory = Supplier {
+      chainedFactory = Callback { i ->
          FItemNode(functorPool(typeOut).asIs())
       }
       isHomogeneousRem = BiPredicate { i, f ->

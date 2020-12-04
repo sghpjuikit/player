@@ -6,6 +6,7 @@ import javafx.scene.Node
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyCode.F
 import javafx.scene.input.KeyEvent
+import javafx.util.Callback
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.functional.Util.IS
@@ -24,7 +25,7 @@ open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValue
 
    constructor(chainedFactory: (FieldedPredicateChainItemNode<T, F>) -> FieldedPredicateItemNode<T, F>): super(0, MAX_VALUE, IS.asIs(), null) {
       this.data = ArrayList()
-      this.chainedFactory = Supplier { chainedFactory(this) }
+      this.chainedFactory = Callback { chainedFactory(this) }
       isHomogeneousRem = BiPredicate { i, _ -> i!=0 }
       isHomogeneousAdd = BiPredicate { _, _ -> true }
       isHomogeneousOn = BiPredicate { _, _ -> true }

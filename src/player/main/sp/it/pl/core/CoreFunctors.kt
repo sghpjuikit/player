@@ -3,7 +3,10 @@ package sp.it.pl.core
 import javafx.util.Duration
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
+import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
+import sp.it.pl.main.KTypeArg
+import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.util.Util.StringDirection
 import sp.it.util.Util.StringDirection.FROM_START
@@ -20,10 +23,14 @@ import sp.it.util.Util.replaceAllRegex
 import sp.it.util.Util.retainChars
 import sp.it.util.Util.split
 import sp.it.util.Util.splitJoin
+import sp.it.util.collections.getElementType
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.IconConstraint
 import sp.it.util.dev.failIf
 import sp.it.util.file.WindowsShortcut
+import sp.it.util.file.json.JsValue
+import sp.it.util.file.json.toCompactS
+import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.functional.Functors
@@ -54,7 +61,9 @@ import sp.it.util.text.unescapeJava
 import sp.it.util.text.unescapeJson
 import sp.it.util.text.unescapeXSI
 import sp.it.util.text.unescapeXml
+import sp.it.util.type.VType
 import sp.it.util.type.type
+import sp.it.util.type.typeNothingNullable
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
@@ -73,6 +82,7 @@ import java.util.Base64
 import java.util.Objects
 import java.util.UUID
 import java.util.regex.Pattern
+import kotlin.reflect.full.createType
 import kotlin.text.Charsets.UTF_8
 
 object CoreFunctors: Core {
@@ -121,7 +131,19 @@ object CoreFunctors: Core {
          val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
 
          add("Is null", type<Any?>(), B, IS0)
+         add("Class (Kotlin)", type<Any?>(), type<Class<*>>()) { if (it==null) Nothing::class else it::class }
+         add("Class (Java)", type<Any?>(), type<Class<*>>()) { if (it==null) Void::class.java else it::class.java }
+         add("Type", type<Any?>(), type<VType<*>>()) {
+            when (it) {
+              null -> typeNothingNullable()
+              is Collection<*> -> VType<Any?>(it.getElementType())
+              else -> it::class.createType(it::class.typeParameters.map { KTypeArg.STAR }, false, listOf())
+            }
+         }
          add("To String", type<Any?>(), S) { Objects.toString(it) }
+         add("To application UI text", type<Any?>(), S) { it.toUi() }
+         add("To application DB text", type<Any?>(), S) { it.toS() }
+
          add("To Boolean", S, type<Boolean?>()) { when (it) { "true" -> true "false" -> false else -> null } }
          add("To Byte", S, type<Byte?>()) { it.toByteOrNull() }
          add("To Short", S, type<Short?>()) { it.toShortOrNull() }
@@ -213,6 +235,10 @@ object CoreFunctors: Core {
          add("Unescape XSI", S, S) { it.unescapeXSI() }
          add("To valid file name", S, S) { filenamizeString(it) }
          add("Anime", S, S) { renameAnime(it) }
+
+         add("To Json", S, type<JsValue?>()) { APP.serializerJson.json.ast(it).orNull() }
+         add("Format to pretty json", type<JsValue>(), S) { it.toPrettyS() }
+         add("Format to compact json", type<JsValue>(), S) { it.toCompactS() }
 
          add("Any contains", type<Strings>(), B, p<String>(""), pNoCase) { obj, text, noCase -> obj.anyContains(text, noCase) }
          add("Is empty", type<Strings>(), B) { it.isEmpty() }

@@ -2,7 +2,6 @@ package sp.it.pl.ui.itemnode;
 
 import java.util.List;
 import java.util.function.BiPredicate;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -15,8 +14,10 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.V;
@@ -49,11 +50,11 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 	protected final VBox rootLinks = new VBox();
 	protected final VBox root = new VBox(rootLinks);
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected final ObservableList<Link> chain = (ObservableList) rootLinks.getChildren();
 	public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
 	public final V<Boolean> editable = new V<>(true);
-	protected Supplier<C> chainedFactory; // final
+	protected Callback<Integer, C> chainedFactory; // final
 	public boolean inconsistentState = true;
 	/** Whether the link at the index can be removed from this chain. Default always true. */
 	protected BiPredicate<Integer,VAL> isHomogeneousRem = (i, v) -> true;
@@ -70,6 +71,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	public final Handler1<Link> onUserItemDisabled = new Handler1<>();
 
 	/** Creates unlimited chain of 1 initial chained element. */
+	@SuppressWarnings("rawtypes")
 	public ChainValueNode(REDUCED_VAL initialValue) {
 		super(initialValue);
 		editable.attachC(it -> chain.forEach(Link::updateIcons));
@@ -77,17 +79,17 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	}
 
 	/** Creates unlimited chain of 1 initial chained element. */
-	public ChainValueNode(REDUCED_VAL initialValue, Supplier<C> chainedFactory) {
+	public ChainValueNode(REDUCED_VAL initialValue, Callback<Integer, C> chainedFactory) {
 		this(1, initialValue, chainedFactory);
 	}
 
 	/** Creates unlimited chain of i initial chained elements. */
-	public ChainValueNode(int initialLength, REDUCED_VAL initialValue, Supplier<C> chainedFactory) {
+	public ChainValueNode(int initialLength, REDUCED_VAL initialValue, Callback<Integer, C> chainedFactory) {
 		this(initialLength, Integer.MAX_VALUE, initialValue, chainedFactory);
 	}
 
 	/** Creates limited chain of i initial chained elements. */
-	public ChainValueNode(int initialLength, int maxChainLength, REDUCED_VAL initialValue, Supplier<C> chainedFactory) {
+	public ChainValueNode(int initialLength, int maxChainLength, REDUCED_VAL initialValue, Callback<Integer, C> chainedFactory) {
 		this(initialValue);
 
 		this.maxChainLength.addListener((o,ov,nv) -> failIf(nv.intValue()<=0, () -> "Max chain length must be > 0"));
@@ -103,11 +105,11 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	}
 
 	public Link addChained() {
-		return addChained(chain.size(), chainedFactory.get());
+		return addChained(chain.size());
 	}
 
 	public Link addChained(int i) {
-		return addChained(i, chainedFactory.get());
+		return addChained(i, chainedFactory.call(i));
 	}
 
 	public Link addChained(C chained) {
@@ -202,9 +204,8 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		return chain.size();
 	}
 
-	/** {@inheritDoc} */
 	@Override
-	public VBox getNode() {
+	public @NotNull VBox getNode() {
 		return root;
 	}
 
@@ -267,7 +268,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			on.addListener((o, ov, nv) -> ChainValueNode.this.chain.forEach(it -> it.updateIcons()));
 			on.addListener((o, ov, nv) -> { if (nv) onUserItemEnabled.invoke(this); else onUserItemDisabled.invoke(this); });
 			rem.setOnMouseClicked(e -> { onRem(); onUserItemRemoved.invoke(this); });
-			add.setOnMouseClicked(e -> { onUserItemAdded.invoke(addChained(getIndex() + 1)); });
+			add.setOnMouseClicked(e -> onUserItemAdded.invoke(addChained(getIndex() + 1)));
 			rem.tooltip(remTooltip);
 			add.tooltip(addTooltip);
 			onB.tooltip(onTooltip);
@@ -327,7 +328,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 			setAlignment(CENTER_LEFT);
 			getChildren().addAll(rem, add);
 			rem.setOnMouseClicked(e -> { onClear(); onUserItemsCleared.invoke(); });
-			add.setOnMouseClicked(e -> { onUserItemAdded.invoke(addChained(getIndex() + 1)); });
+			add.setOnMouseClicked(e -> onUserItemAdded.invoke(addChained(getIndex() + 1)));
 			rem.tooltip(remAllTooltip);
 			add.tooltip(addTooltip);
 			updateIcons();
@@ -351,11 +352,11 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 	public static class ListChainValueNode<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN,List<V>> {
 
-		public ListChainValueNode(Supplier<IN> chainedFactory) {
+		public ListChainValueNode(Callback<Integer, IN> chainedFactory) {
 			this(0, chainedFactory);
 		}
 
-		public ListChainValueNode(int initialLength, Supplier<IN> chainedFactory) {
+		public ListChainValueNode(int initialLength, Callback<Integer, IN> chainedFactory) {
 			super(initialLength, List.of(), chainedFactory);
 			inconsistentState = false;
 			generateValue();

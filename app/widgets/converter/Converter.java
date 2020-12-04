@@ -327,7 +327,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     .peek(c -> lastNewlineAt.set(lastCharAt.get()))
                     .count();
                 var x = xy - lastNewlineAt.get();
-                caretL.setText("Pos: " + xy + ":" + x + ":" + y + ":");
+                caretL.setText("Pos: " + xy + ":" + x + ":" + y);
             }));
             var size1L = new Label("Size: ");
             var size2L = new Label("");

@@ -442,7 +442,7 @@ fun JsValue.toCompactS(): String {
          else "[" + value.joinToString(",") { it.toPrettyS() } + "]"
       is JsObject ->
          if (value.isEmpty()) "{}"
-         else "{" + value.entries.joinToString(",") { it.key.toJsonString() + ":" + it.value.toPrettyS() } + "}"
+         else "{" + value.entries.joinToString(",") { it.key.toJsonString() + ":" + it.value.toCompactS() } + "}"
    }
 }
 

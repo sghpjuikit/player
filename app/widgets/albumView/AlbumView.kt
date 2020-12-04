@@ -35,6 +35,7 @@ import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
 import sp.it.util.animation.Anim
+import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
@@ -191,6 +192,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
                      Album(it).apply {
                         albumsByName[name].ifNotNull {
                            coverLoading = it.coverLoading
+                           loadProgress = it.loadProgress
                         }
                      }
                   }
@@ -322,7 +324,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
       private var imgLoadAnimItem: Album? = null
 
       private val hoverAnim = lazy {
-         Anim.anim(150.millis) { root.lookupId<Rectangle>("grid-cell-stroke").strokeWidth = 1 + it*2.emScaled }
+         anim(150.millis) { root.lookupId<Rectangle>("grid-cell-stroke").strokeWidth = 1 + it*2.emScaled }
       }
       @Volatile private var disposed = false
       private val onDispose = Disposer()
@@ -421,7 +423,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
             } on onDispose
          }
 
-         imgLoadAnim = Anim.anim(200.millis) {
+         imgLoadAnim = anim(200.millis) {
             if (imgLoadAnimItem!=null) {
                imgLoadAnimItem?.loadProgress = it
                thumb?.view?.opacity = it*it*it*it

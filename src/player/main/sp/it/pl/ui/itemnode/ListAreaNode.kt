@@ -23,6 +23,7 @@ import sp.it.util.Sort.NONE
 import sp.it.util.access.not
 import sp.it.util.access.v
 import sp.it.util.access.vx
+import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.materialize
@@ -64,10 +65,10 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.VType
+import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.isSubclassOf
+import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.isSupertypeOf
-import sp.it.util.type.notnull
-import sp.it.util.type.nullable
 import sp.it.util.type.type
 import sp.it.util.type.typeNothingNonNull
 import sp.it.util.ui.hBox
@@ -212,7 +213,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
          override fun realize(args: List<*>) = Transformation.Manual(text)
       }
 
-      class ByString(name: String, val f: PF<String, String>): TransformationRaw() {
+      class ByString(name: String, val f: PF<String, Any?>): TransformationRaw() {
          override val name = "text: $name"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.ByString(name, f.realize(args))
@@ -220,7 +221,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
       // outputType must match type of list of output of f
       // outputType is necessary because output list element type is erased
-      open class By1(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
+      class By1(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
          override val name = "list: ${f.name}"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(args))
@@ -254,10 +255,10 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
          override fun invoke(data: List<Any?>) = text.lines()
       }
 
-      class ByString(override val name: String, val f: (String) -> String): Transformation() {
+      class ByString(override val name: String, val f: (String) -> Any?): Transformation() {
          override val linkTypeIn = type<String>()
          override val linkTypeOut = type<String>()
-         override fun invoke(data: List<Any?>) = data.joinToString("\n") { it.toString() }.let(f).lines()
+         override fun invoke(data: List<Any?>) = data.joinToString("\n") { it.toString() }.let(f).let(::collectionWrap).toList()
       }
 
       class By1(override val name: String, override val linkTypeIn: VType<*>, override val linkTypeOut: VType<*>, val f: (List<*>) -> List<*>): Transformation() {
@@ -300,14 +301,20 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
    @Suppress("RemoveExplicitTypeArguments")
    constructor(transformsValues: MutableList<List<Any?>>, functions: FunctorPool): super(listOf()) {
       chainedFactory = Callback { i ->
-         val typeIsNullable = null in transformsValues[i]
-         val type = if (typeIsNullable) typeOut.nullable() else typeOut.notnull()
-         val by1s = functions.getI(type).asIs<PrefList<PF<Any?, Any?>>>()
+         val typeFunctionOut = typeOut
+         val typeRuntimeOut = transformsValues[i].estimateRuntimeType()
+         val type = if (typeRuntimeOut isSubtypeOf typeFunctionOut) typeRuntimeOut else typeFunctionOut
+
+         val byNs = functions.getI(type).asIs<PrefList<PF<Any?, Any?>>>()
             .apply { removeIf { it.name=="#" } }
             .map<TransformationRaw> { TransformationRaw.ByN(it) }
-         val all = by1s.apply {
+         val all = byNs.apply {
+            // By1
             this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("# (0)", type<List<Any?>>(), type<List<Int>>()) { it.indices.toList() })
             this += TransformationRaw.By1(type<Any?>(), type<Int>(), PF0("# (1)", type<List<Any?>>(), type<List<Int>>()) { it.indices.map { it + 1 } })
+            this += TransformationRaw.By1(type<Any?>(), type<Any?>(), PF0("Filter non null", type<List<Any?>>(), type<List<Any>>()) { it.filterNotNull() })
+            this += TransformationRaw.By1(type<Any?>(), type<Any?>(), PF0("Type (nearest supertype)", type<List<Any?>>(), type<List<VType<Any>>>()) { listOf(typeRuntimeOut) })
+            this += TransformationRaw.By1(type<Any?>(), type<Any?>(), PF0("Type (of last function)", type<List<Any?>>(), type<List<VType<Any>>>()) { listOf(typeFunctionOut) })
             this += TransformationRaw.By1(
                type, type,
                PF1("Repeat elements", type<List<Any?>>(), type<List<Any?>>(), Parameter("Times", null, type<Int>(), 1, setOf(NumberMinMax(0.0, null)))) { it, times ->
@@ -315,11 +322,12 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
                }
             )
 
-            if (type.isSubclassOf<String>()) {
-               this += functions.getIO(type<String>(), type<String>())
-                  .map { TransformationRaw.ByString(it.name, it) }
+            // ByString
+            this += functions.getIO(type<String>(), type<Any?>()).map {
+               TransformationRaw.ByString(it.name, it)
             }
 
+            // By1 Comparable
             if (type.isSubclassOf<Comparable<*>>()) {
                val pSort = Parameter(type<Sort>(), ASCENDING)
                this += TransformationRaw.By1(type, type, PF1("Sort (naturally)", type<List<*>>(), type<List<*>>(), pSort) { it, sort ->
@@ -330,6 +338,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
                   }
                })
             }
+
 
             // requires some work
             // val sorters = APP.classFields[typeOut].filter { it.type.isSuperclassOf<Comparable<*>>() }

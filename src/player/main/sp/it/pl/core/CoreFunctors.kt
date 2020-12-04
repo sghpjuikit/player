@@ -35,6 +35,7 @@ import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeType
 import sp.it.util.functional.Functors
 import sp.it.util.functional.Parameter
+import sp.it.util.functional.Try
 import sp.it.util.functional.Util.IS0
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -236,7 +237,7 @@ object CoreFunctors: Core {
          add("To valid file name", S, S) { filenamizeString(it) }
          add("Anime", S, S) { renameAnime(it) }
 
-         add("To Json", S, type<JsValue?>()) { APP.serializerJson.json.ast(it).orNull() }
+         add("To Json", S, type<Try<JsValue, Throwable>>()) { APP.serializerJson.json.ast(it) }
          add("Format to pretty json", type<JsValue>(), S) { it.toPrettyS() }
          add("Format to compact json", type<JsValue>(), S) { it.toCompactS() }
 

@@ -40,11 +40,13 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
+import java.util.Optional
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
+import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
@@ -454,4 +456,86 @@ fun KClass<*>.traverseToSuper(ss: KClass<*>, stack: Stack<KClass<*>> = Stack()):
    }
    if (stack.peek()!=ss) stack.pop()
    return stack
+}
+
+/** @return true iff this and the other [KTypeProjection] represent the same type */
+infix fun KTypeProjection.isSame(c: KTypeProjection): Boolean = variance == c.variance && type isSame c.type
+
+/** @return true iff this and the other [KClassifier] represent the same type */
+@Suppress("SimplifyBooleanWithConstants")
+infix fun KClassifier?.isSame(c: KClassifier?): Boolean = when {
+   this == null && c == null -> true
+   this is KClass<*> && c is KClass<*> -> this == c
+   this is KTypeParameter && c is KTypeParameter -> true &&
+      name == c.name &&
+      variance == c.variance &&
+      (upperBounds.asSequence() zip c.upperBounds.asSequence()).all { (a, b) -> a isSame b }
+   else -> false
+}
+
+/** @return true iff this and the other [KType] represent the same type */
+@Suppress("SimplifyBooleanWithConstants")
+infix fun KType?.isSame(t: KType?): Boolean = when {
+   this == null && t == null -> true
+   this != null && t != null -> true &&
+      isMarkedNullable == t.isMarkedNullable &&
+      classifier isSame t.classifier &&
+      (arguments.asSequence() zip t.arguments.asSequence()).all { (a, b) -> a isSame b }
+   else -> false
+}
+
+/** @return true iff this and the other [VType] represent the same type */
+infix fun VType<*>.isSame(t: VType<*>): Boolean = type isSame t.type
+
+// TODO: estimate proper supertype for types that are not supertype of each other
+/**
+ * Return best common super type estimate for the elements of this list for reading the list.
+ *
+ * Non-generic elements are estimated completely.
+ * If any generic type parameter fails to be determined correctly, [KTypeProjection.STAR] will be used.
+ *
+ * Subsequent type estimates of the elements are resolved into best common super type.
+ *
+ * The returned type is guaranteed to be both run-time and compile-time compatible with every element, i.e,
+ * each element can be assumed to be of the returned type as it is assignable to it.
+ * However, this collection may not support elements of the returned type, as it may be narrower.
+ */
+fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
+   if (isEmpty()) typeNothingNonNull()
+   else asSequence().map { it.estimateRuntimeType() }.reduce { a,b ->
+      when {
+         a isSame typeNothingNonNull() -> b
+         a isSame typeNothingNullable() -> b.nullable().asIs()
+         b isSame typeNothingNonNull() -> a
+         b isSame typeNothingNullable() -> a.nullable().asIs()
+         a isSame b -> a
+         a isSubtypeOf b -> b
+         b isSubtypeOf a -> a
+         a.isNullable || b.isNullable -> type<Any?>().asIs()
+         else -> type<Any>().asIs()
+      }
+   }
+
+/**
+ * Return best type estimate for this object.
+ *
+ * Non-generic types are estimated completely.
+ * If any generic type parameter fails to be determined correctly, [KTypeProjection.STAR] will be used.
+ *
+ * The returned type is guaranteed to be both run-time and compile-time compatible with this value, i.e.,
+ * this value can be assumed to be of the returned type as it is assignable to it.
+ */
+fun <T> T.estimateRuntimeType(): VType<T> = when (this) {
+   null -> typeNothingNullable().asIs()
+   is Optional<*> -> VType(this.orElse(null).estimateRuntimeType().type)
+   else -> {
+      @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+      val c = this!!::class
+      val cParams = c.typeParameters
+      val type = when {
+         cParams.isEmpty() -> c.createType(listOf(), false, listOf())
+         else -> c.createType(c.typeParameters.map { KTypeProjection.STAR }, false, listOf())
+      }
+      VType(type)
+   }
 }

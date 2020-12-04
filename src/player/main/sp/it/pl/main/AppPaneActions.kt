@@ -174,35 +174,12 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          }
       )
    )
-   ap.register<String>(
+   ap.register<Any>(
       FastAction(
          "Detect content",
          "Tries to detect and convert the content of the text into more specific one",
          IconFA.SEARCH_PLUS,
-         ap.converting {
-            val data: Any = when {
-               it=="true" -> true
-               it=="false" -> false
-               it.lengthInChars==1 -> it[0]
-               it.lengthInCodePoints==1 -> it.codePointAt(0)
-               it.lengthInGraphemes==1 -> it.graphemeAt(0)
-               else -> null
-                  ?: it.toShortOrNull()
-                  ?: it.toIntOrNull()
-                  ?: it.toLongOrNull()
-                  ?: it.toFloatOrNull()
-                  ?: it.toDoubleOrNull()
-                  ?: it.toBigIntegerOrNull()
-                  ?: it.toBigDecimalOrNull()
-                  ?: it.toByteOrNull()
-                  ?: runTry { uri(it) }.orNull()?.net { it.toFileOrNull() ?: it }
-                  ?: runTry { uri(URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
-                  ?: runTry { uri("file:///$it") }.orNull()?.net { it.toFileOrNull() ?: it }
-                  ?: runTry { uri("file:///" + URLEncoder.encode(it, UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
-                  ?: it
-            }
-            Try.ok(data)
-         }
+         ap.converting { Try.ok(it.detectContent()) }
       )
    )
    ap.register<Component>(

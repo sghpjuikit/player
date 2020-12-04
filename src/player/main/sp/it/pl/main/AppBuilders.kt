@@ -46,6 +46,9 @@ import sp.it.util.dev.Dsl
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.toURIOrNull
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.DisposeOn
 import sp.it.util.reactive.attach
@@ -57,7 +60,12 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.browse
+import sp.it.util.text.Char16
+import sp.it.util.text.Char32
+import sp.it.util.text.char32At
 import sp.it.util.text.graphemeAt
+import sp.it.util.text.lengthInChars
+import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.type.type
 import sp.it.util.type.typeNothingNonNull
@@ -76,9 +84,11 @@ import sp.it.util.units.millis
 import sp.it.util.units.plus
 import sp.it.util.units.seconds
 import sp.it.util.units.times
+import sp.it.util.units.uri
 import java.io.File
 import java.net.URI
 import java.net.URL
+import java.net.URLEncoder
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.sqrt
@@ -386,6 +396,34 @@ fun configureString(title: String, inputName: String, action: (String) -> Any?) 
    ValueConfig(type(), inputName, "", "").addConstraints(StringNonEmpty()).configure(title) {
       action(it.value)
    }
+}
+
+fun Any?.detectContent(): Any? = when (this) {
+    null -> null
+    is Char16 -> toString().toByteOrNull() ?: this
+    is Char32 -> toString().toByteOrNull() ?: this
+    is String -> when {
+      this=="true" -> true
+      this=="false" -> false
+      this.lengthInChars==1 -> this[0].detectContent()
+      this.lengthInCodePoints==1 -> this.char32At(0).detectContent()
+      this.lengthInGraphemes==1 -> this.graphemeAt(0).detectContent()
+      else -> null
+         ?: this.toShortOrNull()
+         ?: this.toIntOrNull()
+         ?: this.toLongOrNull()
+         ?: this.toFloatOrNull()
+         ?: this.toDoubleOrNull()
+         ?: this.toBigIntegerOrNull()
+         ?: this.toBigDecimalOrNull()
+         ?: this.toByteOrNull()
+         ?: runTry { uri(this) }.orNull()?.net { it.toFileOrNull() ?: it }
+         ?: runTry { uri(URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+         ?: runTry { uri("file:///$this") }.orNull()?.net { it.toFileOrNull() ?: it }
+         ?: runTry { uri("file:///" + URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+         ?: this
+   }
+   else -> this
 }
 
 @Suppress("UNUSED_VARIABLE")

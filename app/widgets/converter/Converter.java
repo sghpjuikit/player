@@ -103,6 +103,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
+import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.type.TypesKt.typeNothingNonNull;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
@@ -317,6 +318,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             var nameL = new Label(name);
             var caretL = new Label("Pos: 0:0:0");
 
+            sync(textArea.focusedProperty(), consumer(caretL::setVisible));
             attach(textArea.caretPositionProperty(), consumer(i -> {
                 var lastCharAt = new AtomicInteger(0);
                 var lastNewlineAt = new AtomicInteger(0);

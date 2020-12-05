@@ -1,9 +1,12 @@
 package sp.it.pl.ui.pane
 
+import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.Pos.BOTTOM_CENTER
+import javafx.geometry.Pos.BOTTOM_LEFT
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
@@ -19,14 +22,17 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.text.Text
+import javafx.scene.text.TextAlignment.RIGHT
 import javafx.scene.text.TextFlow
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.infoIcon
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
+import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.system.Os
@@ -37,9 +43,7 @@ import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.scrollPane
-import sp.it.util.ui.text
 import sp.it.util.ui.vBox
-import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
 
 class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
 
@@ -64,16 +68,15 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
          lay(ALWAYS) += hBox(20.emScaled, BOTTOM_CENTER) {
             padding = Insets(20.emScaled)
 
-            lay += text(
-               buildString {
-                  appendLine("${ALT.nameUi} → Alt")
-                  appendLine("${CONTROL.nameUi} → Ctrl")
-                  appendLine("${SHIFT.nameUi} → Shift")
-                  appendLine("${ESCAPE.nameUi} → Escape")
-                  if (Os.WINDOWS.isCurrent) appendLine("${WINDOWS.nameUi} → Win")
-                  if (Os.OSX.isCurrent) appendLine("${COMMAND.nameUi} → Command")
-               }
-            )
+            lay += vBox(0, BOTTOM_LEFT) {
+               lay += legendRow(ALT)
+               lay += legendRow(ALT)
+               lay += legendRow(CONTROL)
+               lay += legendRow(SHIFT)
+               lay += legendRow(ESCAPE)
+               lay += supplyIf(Os.WINDOWS.isCurrent) { legendRow(WINDOWS) }
+               lay += supplyIf(Os.OSX.isCurrent) { legendRow(COMMAND) }
+            }
             lay(ALWAYS) += scrollPane {
                isFitToWidth = true
                isFitToHeight = false
@@ -131,6 +134,15 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
                grid.add(label(it.nameUi), 2, i)
             }
          }
+   }
+
+   private fun legendRow(key: Key) = hBox(0, CENTER_LEFT) {
+      lay += label(key.nameUi) {
+         prefWidth = 10.emScaled
+         textAlignment = RIGHT
+         alignment = CENTER_RIGHT
+      }
+      lay += label(" → ${key.name.toLowerCase().capitalize()}")
    }
 
    class Info(val text: String, val entries: List<Entry>)

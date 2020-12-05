@@ -3,17 +3,20 @@ package image
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.OTHER
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getImageFileOrUrl
 import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.toggleNext
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
@@ -28,17 +31,10 @@ import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
+import sp.it.util.units.version
+import sp.it.util.units.year
 import java.io.File
 
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = "Image",
-   description = "Shows a static image",
-   howto = "Available actions:\n    Drag & drop file : Show image representing the file",
-   version = "1.1.0",
-   year = "2015",
-   group = OTHER
-)
 class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
    val inputFile = io.i.create<File>("To display", null) { showImageImpl(it) }
@@ -85,4 +81,19 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       }
    }
 
+   companion object: WidgetCompanion {
+      override val name = "Image"
+      override val description = "Shows a static image"
+      override val descriptionLong = "$description."
+      override val icon = IconFA.FONTICONS
+      override val version = version(1, 1, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         ShortcutPane.Entry("Image", "Show image representing the file", "Drag & Drop file"),
+      )
+      override val group = OTHER
+   }
 }

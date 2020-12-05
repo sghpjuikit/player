@@ -233,8 +233,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          Entry("Table", "Search", "Type text"),
          Entry("Table", "Search (cancel)", KeyCode.ESCAPE.nameUi),
          Entry("Table", "Selection (cancel)", KeyCode.ESCAPE.nameUi),
-         Entry("Table", "Scroll table vertically", keys("Scroll")),
-         Entry("Table", "Scroll table horizontally", keys("Scroll+SHIFT")),
+         Entry("Table", "Scroll vertically", keys("Scroll")),
+         Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
          Entry("Table columns", "Show column context menu", SECONDARY.toUi()),
          Entry("Table columns", "Swap columns", "Column drag"),
          Entry("Table columns", "Sort - ${Sort.ASCENDING.toUi()} | ${Sort.DESCENDING.toUi()} | ${Sort.NONE.toUi()}", PRIMARY.nameUi),
@@ -244,7 +244,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
          Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
          Entry("Table row", "Add songs after row", "Drag & drop songs"),
-         Entry("Footer", "Opens additional action menus", "Menu bar"),
+         Entry("Table footer", "Opens additional action menus", "Menu bar"),
       )
       override val group = PLAYLIST
    }

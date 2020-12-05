@@ -4,14 +4,19 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
 import javafx.scene.control.SelectionMode.SINGLE
+import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
+import mu.KLogging
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.grid.GridCell
@@ -22,6 +27,7 @@ import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.id
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.access.fieldvalue.StringGetter
 import sp.it.util.collections.setTo
@@ -34,6 +40,8 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.copyToSysClipboard
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.listView
@@ -43,16 +51,10 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
+import sp.it.util.units.version
+import sp.it.util.units.year
 import kotlin.reflect.KClass
 
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = ICON_BROWSER_NAME,
-   description = "Displays glyph icons of supported fonts.",
-   version = "1.0.1",
-   year = "2020",
-   group = DEVELOPMENT
-)
 class IconViewer(widget: Widget): SimpleController(widget) {
    val iconSize = 120.emScaled
    val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, iconSize.x2 + (0 x 30.emScaled), 5.emScaled.x2).apply {
@@ -115,6 +117,33 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       iconsView.requestFocus()
    }
 
+   companion object: WidgetCompanion, KLogging() {
+      override val name = ICON_BROWSER_NAME
+      override val description = "Displays glyph icons of supported fonts"
+      override val descriptionLong = "$description."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 1)
+      override val isSupported = true
+      override val year = year(2020)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         ShortcutPane.Entry("Grid", "Filter", keys("CTRL+F")),
+         ShortcutPane.Entry("Grid", "Filter (cancel)", ESCAPE.nameUi),
+         ShortcutPane.Entry("Grid", "Filter (clear)", ESCAPE.nameUi),
+         ShortcutPane.Entry("Grid", "Search", "Type text"),
+         ShortcutPane.Entry("Grid", "Search (cancel)", ESCAPE.nameUi),
+         ShortcutPane.Entry("Grid", "Selection (cancel)", ESCAPE.nameUi),
+         ShortcutPane.Entry("Grid", "Scroll vertically", keys("Scroll")),
+         ShortcutPane.Entry("Grid cell", "Selects icon", "Hover or ${PRIMARY.nameUi}"),
+         ShortcutPane.Entry("Grid cell", "Show context menu", SECONDARY.nameUi),
+         ShortcutPane.Entry("Grid cell", "Copy icon", PRIMARY.nameUi),
+         ShortcutPane.Entry("Grid cell", "Move song within playlist", keys("Song drag+CTRL")),
+         ShortcutPane.Entry("Grid cell", "Add songs after row", "Drag & drop songs"),
+         ShortcutPane.Entry("Grid footer", "Opens additional action menus", "Menu bar"),
+      )
+      override val group = DEVELOPMENT
+   }
 }
 
 class IconCellGraphics(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {

@@ -13,22 +13,27 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.shape.Shape
 import javafx.stage.Window
 import javafx.util.Callback
+import mu.KLogging
+import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.Widget.Group.APP
+import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.feature.FileExplorerFeature
+import sp.it.pl.layout.widget.feature.Opener
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.Widgets.INSPECTOR_NAME
+import sp.it.pl.main.emScaled
+import sp.it.pl.main.getAny
+import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.tree.buildTreeCell
 import sp.it.pl.ui.objects.tree.buildTreeView
 import sp.it.pl.ui.objects.tree.disposeIfDisposable
 import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.ui.objects.tree.treeApp
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.FileExplorerFeature
-import sp.it.pl.layout.widget.feature.Opener
-import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconMA
-import sp.it.pl.main.Widgets
-import sp.it.pl.main.getAny
-import sp.it.pl.main.installDrag
-import sp.it.pl.main.emScaled
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.collections.getElementClass
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.functional.asIf
@@ -43,6 +48,7 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.propagateESCAPE
 import sp.it.util.reactive.syncNonNullIntoWhile
+import sp.it.util.text.appendSent
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.hBox
 import sp.it.util.ui.isAnyChildOf
@@ -51,26 +57,11 @@ import sp.it.util.ui.pickTopMostAt
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.styleclassToggle
 import sp.it.util.ui.x
+import sp.it.util.units.version
+import sp.it.util.units.year
 import java.io.File
 import javafx.stage.Window as WindowFX
 
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = Widgets.INSPECTOR_NAME,
-   description = "Inspects hierarchy of all application information. Includes windows, widgets, " +
-      "file system and more. Allows editing if possible.",
-   howto = ""
-      + "Available actions:\n"
-      + "    Right click: Open context menu\n"
-      + "    Double click file: Open file in native application\n"
-      + "    Double click skin file: Apply skin on application\n"
-      + "    Double click widget file: Open widget\n"
-      + "    Drag & drop file: Explore file\n"
-      + "    Drag & drop files: Explore files' first common parent directory\n",
-   version = "1.0.0",
-   year = "2015",
-   group = Widget.Group.APP
-)
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
    private val outputSelected = io.o.create<Any>("Selected", null)
    private val tree = buildTreeView<Any>()
@@ -185,7 +176,23 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
 
    override fun focus() = tree.requestFocus()
 
-   companion object {
+   companion object: WidgetCompanion, KLogging() {
+      override val name = INSPECTOR_NAME
+      override val description = "Displays hierarchies of application data"
+      override val descriptionLong = buildString {
+         appendSent("Displays hierarchies of all kinds of application data")
+         appendSent("Includes windows, widgets, file system and more. Allows editing if possible")
+      }
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         ShortcutPane.Entry("Data", "Add object", "Drag & drop object"),
+      )
+      override val group = APP
 
       private fun Node.traverseToFirst(test: (Node) -> Boolean) = traverse { it.parent }.find(test)
 

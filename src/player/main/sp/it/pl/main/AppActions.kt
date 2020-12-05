@@ -6,6 +6,7 @@ import com.sun.tools.attach.VirtualMachine
 import javafx.geometry.Pos.CENTER
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.F1
 import javafx.scene.input.KeyCode.F2
 import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -120,10 +121,11 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui > Focus", "Traverse previous", keys("SHIFT+TAB")),
          Entry("Ui > Focus", "Traverse next widget", keys("CTRL+TAB")),
          Entry("Ui > Focus", "Traverse previous widget", keys("CTRL+SHIFT+TAB")),
-         Entry("Ui", "Show application help", Key.F1.nameUi),
+         Entry("Ui", "Show application help", F1.nameUi),
          Entry("Ui", "Show application help", ActionManager.keyShortcuts.nameUi),
          Entry("Ui", "Show focused widget help", F2.nameUi),
          Entry("Ui", "Show focused widget help", ActionManager.keyShortcutsComponent.nameUi),
+         Entry("Ui", "Show focused widget actions", ActionManager.keyActionsComponent.nameUi),
          Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
          Entry("Ui > Table/List/Grid", "Select", PRIMARY.nameUi),
          Entry("Ui > Table/List/Grid", "Show item context menu", SECONDARY.nameUi),

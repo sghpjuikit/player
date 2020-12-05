@@ -26,6 +26,7 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode.F1
 import javafx.scene.input.KeyCode.F2
+import javafx.scene.input.KeyCode.F3
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -54,6 +55,7 @@ import sp.it.pl.ui.objects.window.Resize.S
 import sp.it.pl.ui.objects.window.Resize.SE
 import sp.it.pl.ui.objects.window.Resize.SW
 import sp.it.pl.ui.objects.window.Resize.W
+import sp.it.util.action.ActionManager.keyActionsComponent
 import sp.it.util.action.ActionManager.keyManageLayout
 import sp.it.util.action.ActionManager.keyShortcuts
 import sp.it.util.action.ActionManager.keyShortcutsComponent
@@ -134,6 +136,10 @@ fun Parent.installWindowInteraction() = Subscription(
          }
          if (it.code==F2 || it.code==keyShortcutsComponent) {
             widgetFocused().ifNotNull(APP.actions::showShortcutsFor)
+            it.consume()
+         }
+         if (it.code==F3 || it.code==keyActionsComponent) {
+            widgetFocused().ifNotNull { APP.ui.actionPane.orBuild.show(it) }
             it.consume()
          }
       }

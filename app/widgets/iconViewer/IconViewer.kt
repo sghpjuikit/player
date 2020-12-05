@@ -56,7 +56,7 @@ import sp.it.util.units.year
 import kotlin.reflect.KClass
 
 class IconViewer(widget: Widget): SimpleController(widget) {
-   val iconSize = 120.emScaled
+   val iconSize = 60.emScaled
    val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, iconSize.x2 + (0 x 30.emScaled), 5.emScaled.x2).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }

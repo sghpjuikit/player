@@ -13,6 +13,7 @@
 .icon-grid-cell:hover,
 .icon-grid-cell:selected {
     -fx-background-color: null;
+    -fx-font-size: 0.8em;
 }
 
 /*

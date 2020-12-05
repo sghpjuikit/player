@@ -1,6 +1,7 @@
 package sp.it.pl.layout.widget
 
 import javafx.scene.Node
+import javafx.scene.Parent
 import javafx.stage.Stage
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.Container
@@ -43,7 +44,7 @@ fun Widget.focusAndTraverseFromToRoot() {
       .forEach { (c, w) -> c.ui?.focusTraverse(w, this) }
 }
 
-fun widgetFocused(): Widget? = APP.widgetManager.widgets.findAll(OPEN).find { it.focused.value }
+fun Parent.widgetFocused(): Widget? = APP.widgetManager.widgets.findAll(OPEN).find { it.focused.value && it.window?.scene?.root == this }
 
 fun Stage.widgetAtMousePos(): Widget? {
    val pos = APP.mouse.mousePosition.toP() - xy

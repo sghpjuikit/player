@@ -5,6 +5,11 @@ import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinReg
 import com.sun.jna.platform.win32.WinUser
+import java.awt.Desktop
+import java.io.File
+import java.io.IOException
+import java.lang.ProcessBuilder.Redirect.DISCARD
+import java.net.URI
 import javafx.scene.input.Clipboard
 import javafx.scene.input.DataFormat
 import javafx.stage.DirectoryChooser
@@ -25,23 +30,35 @@ import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.toFast
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.Try
-import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.orNull
 import sp.it.util.system.EnvironmentContext.defaultChooseFileDir
+import sp.it.util.system.EnvironmentContext.onFileRecycled
 import sp.it.util.system.EnvironmentContext.onNonExistentFileBrowse
 import sp.it.util.system.EnvironmentContext.runAsProgramArgsTransformer
-import java.awt.Desktop
-import java.io.File
-import java.io.IOException
-import java.lang.ProcessBuilder.Redirect.DISCARD
-import java.net.URI
 
 private val logger = KotlinLogging.logger { }
 
 object EnvironmentContext {
+   /**
+    * Optional pre-processor of program arguments for [File.runAsProgram].
+    * May be used, for example, for executing the command through access elevator utility.
+    * Default does nothing.
+    */
    var runAsProgramArgsTransformer: (List<String>) -> List<String> = { it }
+   /**
+    * Invoked on [File.browse] when the file or directory does not exist.
+    * May be used to notify or help user handle such case, e.g. by showing a popup.
+    * Default does nothing.
+    */
    var onNonExistentFileBrowse: (File) -> Unit = { }
+   /** Invoked on [File.recycle] if the file existed and recycling was success. Default does nothing. */
+   var onFileRecycled: (File) -> Unit = {}
+   /**
+    * Default file chooser directory if no better default directory can be determined.
+    * Default is read from `user.home` system property.
+    */
    var defaultChooseFileDir: File = File(System.getProperty("user.home"))
 }
 
@@ -219,7 +236,12 @@ fun File.recycle(): Try<Nothing?, Nothing?> {
    logger.info { "Recycling file=$this" }
    return if (Desktop.Action.MOVE_TO_TRASH.isSupportedOrWarn()) {
       try {
-         if (Desktop.getDesktop().moveToTrash(this)) Try.ok() else Try.error()
+         if (Desktop.getDesktop().moveToTrash(this)) {
+            onFileRecycled(this)
+            Try.ok()
+         } else {
+            Try.error()
+         }
       } catch (e: IllegalArgumentException) {
          Try.ok()
       }
@@ -233,7 +255,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
       FileType.DIRECTORY -> {
          val c = DirectoryChooser().apply {
             this.title = title
-            this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
+            this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir
          }
 
          w?.hasFileChooserOpen = true
@@ -244,7 +266,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
       FILE -> {
          val c = FileChooser().apply {
             this.title = title
-            this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
+            this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir
             this.extensionFilters += extensions
          }
          w?.hasFileChooserOpen = true
@@ -258,7 +280,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
 fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void?> {
    val c = FileChooser().apply {
       this.title = title
-      this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
+      this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir
       this.extensionFilters += extensions
    }
    w?.hasFileChooserOpen = true
@@ -270,7 +292,7 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
 fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void?> {
    val c = FileChooser().apply {
       this.title = title
-      this.initialDirectory = initial?.find1stExistingParentDir()?.getOr(defaultChooseFileDir)
+      this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir
       this.initialFileName = initialName
       this.extensionFilters += extensions
    }
@@ -346,7 +368,6 @@ fun File.isExecutable(): Boolean = when (Os.current) {
    Os.WINDOWS -> path.endsWith(".exe", true) || path.endsWith(".bat", true)
    else -> path.endsWith(".sh")
 }
-
 
 var Window.hasFileChooserOpen: Boolean
    set(value) {

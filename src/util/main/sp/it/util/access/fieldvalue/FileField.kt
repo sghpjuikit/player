@@ -32,6 +32,7 @@ import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
 import kotlin.text.Charsets.UTF_8
+import sp.it.util.file.type.MimeGroup
 
 private val logger = KotlinLogging.logger { }
 
@@ -99,14 +100,17 @@ private fun File.readTimeAccessed(): FileTime? = readBasicFileAttributes()?.last
 private fun File.readTimeModified(): LocalDateTime? = lastModified().localDateTimeFromMillis()
 
 @Blocks
-private fun File.readTimeCreated(): FileTime? =
-   when (this.mimeType().name) {
-      "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
-      else -> when {
+private fun File.readTimeCreated(): FileTime? {
+   val m = this.mimeType()
+   return when {
+      m.name == "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
+      m.group == MimeGroup.image -> when {
          isFile -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
          else -> readTimeMinOfCreatedAndModified()
       }
+      else -> null
    }
+}
 
 @Blocks
 private fun File.readTimeMinOfCreatedAndModified(): FileTime? = readBasicFileAttributes()

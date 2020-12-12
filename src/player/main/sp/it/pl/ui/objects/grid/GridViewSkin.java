@@ -44,8 +44,12 @@ import sp.it.util.reactive.SubscriptionKt;
 import sp.it.util.reactive.UtilKt;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static java.lang.Math.ceil;
+import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.Math.rint;
+import static java.lang.Math.signum;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.rangeClosed;
@@ -131,6 +135,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		attach(grid.getCellHeight(), e -> flow.rebuildCells());
 		attach(grid.getCellWidth(), e -> flow.rebuildCells());
 		attach(grid.getCellGap(), e -> flow.rebuildCells());
+		attach(grid.getCellMaxColumns(), e -> flow.rebuildCells());
 		attach(grid.getHorizontalCellSpacing(), e -> flow.rebuildCells());
 		attach(grid.getVerticalCellSpacing(), e -> flow.rebuildCells());
 		attach(grid.widthProperty(), e -> flow.rebuildCells());
@@ -244,8 +249,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	/**
 	 * Labeled in the bottom displaying information on table items and selection.
 	 * Feel free to provide custom implementation of {@link TableInfo#setTextFactory(kotlin.jvm.functions.Function2)}
-	 * to display different information. You may want to reuse
-	 * {@link TableInfo#DEFAULT_TEXT_FACTORY}.
+	 * to display different information. You may want to reuse {@link TableInfo#DEFAULT_TEXT_FACTORY}.
 	 */
 	public final GridInfo<T,F> itemsInfo = new GridInfo<>(new Label(), null);
 	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, itemsInfo.getNode());
@@ -742,7 +746,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		public int computeMinVisibleRowIndex() {
-			return (int) Math.floor(viewStart/computeRowHeight());
+			return (int) floor(viewStart/computeRowHeight());
 		}
 
 		public int computeMinVisibleCellIndex() {
@@ -750,7 +754,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		public int computeMaxVisibleRowIndex() {
-			return (int) Math.floor((viewStart + getHeight())/computeRowHeight());
+			return (int) floor((viewStart + getHeight())/computeRowHeight());
 		}
 
 		public int computeMaxVisibleCellIndex() {
@@ -758,15 +762,15 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		public int computeMaxVisibleCells() {
-			return computeMaxCellsInRow()*(int) Math.ceil((getHeight())/computeRowHeight());
+			return computeMaxCellsInRow()*(int) ceil((getHeight())/computeRowHeight());
 		}
 
 		public int computeAvgVisibleCells() {
-			return computeMaxCellsInRow()*(int) Math.rint((getHeight())/computeRowHeight());
+			return computeMaxCellsInRow()*(int) rint((getHeight())/computeRowHeight());
 		}
 
 		public int computeMaxFullyVisibleCells() {
-			return computeMaxCellsInRow()*(int) Math.floor((getHeight())/computeRowHeight());
+			return computeMaxCellsInRow()*(int) floor((getHeight())/computeRowHeight());
 		}
 
 		/** @return the number of rows needed to display the whole set of cells */
@@ -781,7 +785,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		/** @return the number of rows needed to display the whole set of cells */
 		public int computeRowCount(int itemCount) {
-			return itemCount==0 ? 0 : (int) Math.ceil((double) itemCount/computeMaxCellsInRow());
+			return itemCount==0 ? 0 : (int) ceil((double) itemCount/computeMaxCellsInRow());
 		}
 
 		public int computeVisibleRowCount() {
@@ -790,13 +794,15 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		/** @return the max number of cell per row */
 		public int computeMaxCellsInRow() {
-			double gap = getSkinnable().getHorizontalCellSpacing().doubleValue();
-			return max((int) Math.floor((computeRowWidth() + gap)/computeCellWidth()), 1);
+			var gap = getSkinnable().getHorizontalCellSpacing().doubleValue();
+			var maxColumnsRaw = getSkinnable().getCellMaxColumns().getValue();
+			var maxColumns = maxColumnsRaw != null ? maxColumnsRaw : Integer.MAX_VALUE;
+			return max((int) min(maxColumns, floor((computeRowWidth() + gap)/computeCellWidth())), 1);
 		}
 
 		public int computeMaxRowsInView() {
-			double gap = getSkinnable().getVerticalCellSpacing().doubleValue();
-			return max((int) Math.floor((getSkinnable().getHeight() + gap)/computeRowHeight()), 1);
+			var gap = getSkinnable().getVerticalCellSpacing().doubleValue();
+			return max((int) floor((getSkinnable().getHeight() + gap)/computeRowHeight()), 1);
 		}
 
 		/** @return the width of a row (should be GridView.width - GridView.Scrollbar.width) */
@@ -878,7 +884,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			adjusting = true;
 			double oldValue = flow.getPosition();
 			double newValue = getMin() + ((getMax() - getMin())*clip(0, pos, 1));
-			int direction = (int) Math.signum(newValue - oldValue);
+			int direction = (int) signum(newValue - oldValue);
 			flow.scrollByPage(direction);
 			adjusting = false;
 		}

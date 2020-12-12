@@ -100,9 +100,11 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    private val isCellWidthSetProgrammatically = false
    val cellHeight = SimpleStyleableDoubleProperty(CELL_HEIGHT, this, "cellHeight", 64.0)
    private val isCellHeightSetProgrammatically = false
+   /** Cell gap layout strategy. Default [RELATIVE]. */
    val cellGap = V(RELATIVE)
-
-   /** Cell factory responsible for creating cells, Null indicates to skin to use its own default factory. */
+   /** Maximum number of cells in a horizontal row. Null indicates no limit. Default null. */
+   val cellMaxColumns = V<Int?>(null)
+   /** Cell factory responsible for creating cells, Null indicates to skin to use its own default factory.  Default null. */
    val cellFactory = V<((GridView<T, F>) -> GridCell<T, F>)?>(null)
 
    init {
@@ -142,7 +144,16 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
 
    /** Affects cell layout. */
    enum class CellGap {
-      ABSOLUTE, RELATIVE
+      /**
+       * Will position cells at exact positions from the left. The gap will be constant, but the cells will not be
+       * horizontally center aligned.
+       */
+      ABSOLUTE,
+      /**
+       * The cells will be horizontally center aligned, but the gap size will change depending on
+       * the total row width and number of cells in a row.
+       */
+      RELATIVE,
    }
 
    inner class Search: SearchAutoCancelable() {

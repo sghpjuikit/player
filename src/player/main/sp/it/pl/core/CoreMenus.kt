@@ -1,11 +1,13 @@
 package sp.it.pl.core
 
+import javafx.stage.Window as WindowFX
+import java.io.File
+import java.lang.reflect.Modifier
 import javafx.scene.Node
 import javafx.scene.input.DataFormat
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
-import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetUse.ANY
@@ -30,6 +32,7 @@ import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.toMetadata
 import sp.it.pl.main.writeImage
+import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.async.runIO
 import sp.it.util.conf.Configurable
@@ -55,9 +58,6 @@ import sp.it.util.system.saveFile
 import sp.it.util.text.keys
 import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder
-import java.io.File
-import java.lang.reflect.Modifier
-import javafx.stage.Window as WindowFX
 
 object CoreMenus: Core {
 

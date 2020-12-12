@@ -1,5 +1,6 @@
 package sp.it.pl.main
 
+import java.io.File
 import sp.it.pl.layout.widget.WidgetManager.FactoryRef
 
 object Widgets {
@@ -40,4 +41,11 @@ object Ui {
 
 object Css {
    const val DESCRIPTION = "description"
+}
+
+object Events {
+   object Files {
+      data class Create(val file: File)
+      data class Delete(val file: File)
+   }
 }

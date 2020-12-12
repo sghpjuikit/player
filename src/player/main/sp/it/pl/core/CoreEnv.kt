@@ -1,6 +1,7 @@
 package sp.it.pl.core
 
 import sp.it.pl.main.APP
+import sp.it.pl.main.Events
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.textColon
 import sp.it.pl.main.toUi
@@ -15,6 +16,7 @@ import sp.it.util.ui.vBox
 object CoreEnv: Core {
    override fun init() {
       EnvironmentContext.defaultChooseFileDir = APP.location
+      EnvironmentContext.onFileRecycled = { APP.actionStream(Events.Files.Delete(it)) }
       EnvironmentContext.onNonExistentFileBrowse = { f ->
          val existingParent = f.traverse { it.parentFile }.filter { it.exists() }.firstOrNull()
          runFX {

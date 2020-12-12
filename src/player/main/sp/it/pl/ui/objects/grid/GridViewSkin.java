@@ -546,7 +546,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 			// update scrollbar
 			scrollbar.updating = true;
-			scrollbar.setVisible(computeMaxFullyVisibleCells()<=itemsAllCount);
+			scrollbar.setVisible(computeMaxFullyVisibleCells()<itemsAllCount);
 			scrollbar.setMin(0);
 			scrollbar.setMax(scrollableHeight);
 			scrollbar.setVisibleAmount(viewHeight/virtualHeight*scrollableHeight);
@@ -797,12 +797,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			var gap = getSkinnable().getHorizontalCellSpacing().doubleValue();
 			var maxColumnsRaw = getSkinnable().getCellMaxColumns().getValue();
 			var maxColumns = maxColumnsRaw != null ? maxColumnsRaw : Integer.MAX_VALUE;
-			return max((int) min(maxColumns, floor((computeRowWidth() + gap)/computeCellWidth())), 1);
+			return clip(1, (int) floor((computeRowWidth() + gap)/computeCellWidth()), maxColumns);
 		}
 
 		public int computeMaxRowsInView() {
 			var gap = getSkinnable().getVerticalCellSpacing().doubleValue();
-			return max((int) floor((getSkinnable().getHeight() + gap)/computeRowHeight()), 1);
+			return clip(1, (int) floor((getSkinnable().getHeight() + gap)/computeRowHeight()), Integer.MAX_VALUE);
 		}
 
 		/** @return the width of a row (should be GridView.width - GridView.Scrollbar.width) */

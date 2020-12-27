@@ -617,7 +617,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 				double cellHeight = getSkinnable().getCellHeight().getValue();
 				int columns = computeMaxCellsInRow();
 				double vGap = getSkinnable().getVerticalCellSpacing().getValue();
-				double hGap = getSkinnable().getCellGap().getValue()==CellGap.ABSOLUTE ? getSkinnable().getVerticalCellSpacing().getValue() :  (w - columns*cellWidth)/(columns + 1);
+				double hGap = getSkinnable().getCellGap().getValue()==CellGap.ABSOLUTE ? getSkinnable().getHorizontalCellSpacing().getValue() :  (w - columns*cellWidth)/(columns + 1);
 				double cellGapHeight = cellHeight + vGap;
 				double cellGapWidth = cellWidth + hGap;
 				double viewStartY = viewStart;
@@ -637,7 +637,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 						failIf(cell.getIndex()!=cellI);
 						failIf(item==null);
 
-						cell.resizeRelocate(snapPositionX(xPos + hGap), snapPositionY(yPos + vGap), snapSpaceX(cellWidth), snapSpaceX(cellHeight));
+						cell.resizeRelocate(snapPositionX(xPos + hGap), snapPositionY(yPos + vGap), snapSizeX(cellWidth), snapSizeY(cellHeight));
 						cell.update(cellI, item, cellI==skin.selectedCI);
 
 						xPos += cellGapWidth;

@@ -140,8 +140,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    private val dockWidgetInitialValue = PLAYBACK.withFeature<HorizontalDock>()
    val dockWidget by cv(dockWidgetInitialValue).def(confDock.content).valuesIn {
       APP.widgetManager.factories.getFactoriesWith<HorizontalDock>()
-         .filter { it.id==dockWidgetInitialValue.id }
-         .plus(dockWidgetInitialValue) // add if not available
+         .filter { it.id!=dockWidgetInitialValue.id }
+         .plus(dockWidgetInitialValue) // TODO: handle when initial value is not HorizontalDock
    }
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
 

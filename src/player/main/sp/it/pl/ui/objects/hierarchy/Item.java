@@ -12,6 +12,7 @@ import kotlin.Unit;
 import kotlin.sequences.Sequence;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.ui.objects.image.Cover.CoverSource;
 import sp.it.pl.image.Image2PassLoader;
@@ -72,14 +73,22 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	/** Returns children items. Evaluates children lazily at first invocation at most once */
-	public List<Item> children() {
+	public @NotNull List<@NotNull Item> children() {
 		if (children==null) buildChildren();
 		return children==null ? list() : list(children);
 	}
 
 	/** Returns children items as are - null if not yet evaluated. See {@link #children()}. */
-	public List<Item> childrenRO() {
+	public @Nullable List<@NotNull Item> childrenRO() {
 		return children;
+	}
+
+	public void removeChild(Item item) {
+		failIfNotFxThread();
+		if (disposed) return;
+		if (children == null) return;
+		children.remove(item);
+		all_children.remove(item);
 	}
 
 	/** Dispose of this as to never be used again. */

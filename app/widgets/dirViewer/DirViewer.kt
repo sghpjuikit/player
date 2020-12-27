@@ -110,6 +110,10 @@ import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.round
+import sp.it.pl.main.Events
+import sp.it.util.conf.cr
+import sp.it.util.functional.asIs
+import sp.it.util.ui.dsl
 
 @Widget.Info(
    author = "Martin Polakovic",
@@ -133,7 +137,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
    private val files by cList<File>().only(DIRECTORY)
       .def(name = "Location", info = "Root directories of the content.")
-   private val fileFlatter by cv(FileFlatter.TOP_LVL)
+   private val filesRefresh by cr { revisitCurrent() }
+      .def(name = "Location (refresh)", info = "Reloads location files and reloads the view.")
+   private val filesJoiner by cv(FileFlatter.TOP_LVL)
       .def(name = "Location joiner", info = "Merges location files into a virtual view.")
    private var filesMaterialized = files.materialize()
    private val filesEmpty = v(true).apply { files.onChangeAndNow { value = files.isEmpty() } }
@@ -185,6 +191,13 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       grid.filterPrimaryField = FileField.NAME_FULL
       grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } }
       grid.footerVisible syncFrom gridShowFooter on onClose
+      grid.skinProperty() attach {
+         it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
+            item("Refresh") {
+               revisitCurrent()
+            }
+         }
+      }
       grid.selectedItem sync {
          outputSelectedSuppressor.suppressed {
             failIf(it!=null && it.parent!=item) { "item-parent mismatch" }
@@ -235,7 +248,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       coverOn.attach { revisitCurrent() }
       coverLoadingUseComposedDirCover.attach { revisitCurrent() }
       coverUseParentCoverIfNone.attach { revisitCurrent() }
-      fileFlatter attach { revisitCurrent() }
+      filesJoiner attach { revisitCurrent() }
       filter attach { revisitCurrent() }
 
       files.onChange { filesMaterialized = files.materialize() }
@@ -243,6 +256,24 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       filesEmpty sync { placeholder.show(root, it) }
       filesEmpty sync { grid.parent.isVisible = !it }
       onClose += { disposeItems() }
+
+      APP.actionStream.onEvent<Events.FileEvent.Delete> { d ->
+         val dir = item
+         if (dir?.childrenRO() != null) {
+            val toDelete = dir.childrenRO().orEmpty().find { it.value == d.file }
+            if (toDelete != null) {
+               outputSelectedSuppressor.suppressing {
+                  // delete the item visually (without triggering rebuilding children, filter, order)
+                  grid.itemsRaw setTo (grid.itemsRaw - toDelete)
+                  grid.skinImpl!!.position = dir.lastScrollPosition max 0.0
+                  grid.skinImpl!!.select(dir.lastSelectedChild)
+                  // delete the item
+                  dir.removeChild(toDelete)
+                  toDelete.dispose()
+               }
+            }
+         }
+      } on onClose
 
       root.sync1IfInScene {
          applyCellSize()
@@ -431,7 +462,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true)
       }
 
-      override fun childrenFiles() = filesMaterialized.filter { it.isDirectory && it.exists() }.let(fileFlatter.value.flatten).map { CachingFile(it) }
+      override fun childrenFiles() = filesMaterialized.filter { it.isDirectory && it.exists() }.let(filesJoiner.value.flatten).map { CachingFile(it) }
 
       override fun getCoverFile() = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
 

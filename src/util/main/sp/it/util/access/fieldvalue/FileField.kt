@@ -104,11 +104,8 @@ private fun File.readTimeCreated(): FileTime? {
    val m = this.mimeType()
    return when {
       m.name == "application/x-kra" -> readKritaTimeCreated() ?: readTimeMinOfCreatedAndModified()
-      m.group == MimeGroup.image -> when {
-         isFile -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
-         else -> readTimeMinOfCreatedAndModified()
-      }
-      else -> null
+      m.group == MimeGroup.image -> readXmpTimeCreated() ?: readTimeMinOfCreatedAndModified()
+      else -> readTimeMinOfCreatedAndModified()
    }
 }
 

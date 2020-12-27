@@ -119,7 +119,6 @@ abstract class OverlayPane<in T>: StackPane() {
             it.consume()
          }
       }
-      onEventDown(KeyEvent.ANY) { it.consume() }  // user should not be able to interact with UI below
 
       resizeB = resizeIcon().apply {
          cursor = Cursor.SE_RESIZE

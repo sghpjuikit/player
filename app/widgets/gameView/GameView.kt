@@ -130,6 +130,9 @@ import sp.it.util.units.times
 import java.io.File
 import java.net.URI
 import kotlin.math.round
+import sp.it.pl.ui.objects.grid.GridViewSkin
+import sp.it.util.conf.cr
+import sp.it.util.ui.dsl
 
 @Widget.Info(
    name = "GameView",
@@ -157,6 +160,8 @@ class GameView(widget: Widget): SimpleController(widget) {
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
    val files by cList<File>()
       .def(name = "Location", info = "Location of the library.").only(DIRECTORY)
+   val filesRefresh by cr { viewGames() }
+      .def(name = "Location (refresh)", info = "Reloads location and reloads the view.")
 
    val grid = GridView<Item, File>(Item::value, 50.x2, 10.x2)
    val placeholder = lazy {
@@ -177,6 +182,13 @@ class GameView(widget: Widget): SimpleController(widget) {
          cellFactory.value = { Cell() }
          selectOn setTo GridView.SelectionOn.values()
          footerVisible syncFrom gridShowFooter on onClose
+         grid.skinProperty() attach {
+            it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {
+               item("Refresh") {
+                  viewGames()
+               }
+            }
+         }
 
          onEventDown(KEY_PRESSED, ENTER) {
             if (!it.isConsumed) {

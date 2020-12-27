@@ -3,6 +3,8 @@
 package gameView
 
 import de.jensd.fx.glyphs.GlyphIcons
+import java.io.File
+import java.net.URI
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.TOP_CENTER
@@ -16,7 +18,9 @@ import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode.BACK_SPACE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.F5
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
@@ -25,6 +29,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment.JUSTIFY
 import javafx.util.Callback
+import kotlin.math.round
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -44,6 +49,7 @@ import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.CellSize
+import sp.it.pl.ui.objects.grid.GridViewSkin
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.FileCover
@@ -70,6 +76,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
+import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
@@ -110,6 +117,7 @@ import sp.it.util.system.runAsProgram
 import sp.it.util.text.keys
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.anchorPane
+import sp.it.util.ui.dsl
 import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.install
 import sp.it.util.ui.label
@@ -127,12 +135,6 @@ import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import sp.it.util.units.times
-import java.io.File
-import java.net.URI
-import kotlin.math.round
-import sp.it.pl.ui.objects.grid.GridViewSkin
-import sp.it.util.conf.cr
-import sp.it.util.ui.dsl
 
 @Widget.Info(
    name = "GameView",
@@ -184,7 +186,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          footerVisible syncFrom gridShowFooter on onClose
          grid.skinProperty() attach {
             it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {
-               item("Refresh") {
+               item("Refresh (${keys("F5")})") {
                   viewGames()
                }
             }
@@ -223,6 +225,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       }
 
 
+      root.onEventDown(KEY_RELEASED, F5) { viewGames() }
       files.onChange { viewGames() } on onClose
       files.onChange { grid.isVisible = !files.isEmpty() } on onClose
       files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
@@ -313,18 +316,24 @@ class GameView(widget: Widget): SimpleController(widget) {
    private class Game(dir: File) {
       /** Directory representing the location where game metadata reside. Game's identity. */
       val location: File = dir.absoluteFile
+
       /** Name of the game. */
       val name: String = location.name
+
       /** Whether game does not require installation. */
       val isPortable: Boolean = false
+
       /** Location of the installation. */
       val installLocation: File? = null
+
       /** Readme file. */
       val infoFile = location/"play-howto.md"
+
       /** Cover. */
       val cover by lazy {
          FileCover(location.findImage("cover_big") ?: location.findImage("cover"))
       }
+
       /** Properties. */
       val settings: Map<String, PropVal> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 

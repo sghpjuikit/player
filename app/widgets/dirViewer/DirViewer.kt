@@ -110,9 +110,11 @@ import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.round
-import sp.it.pl.main.Events
+import sp.it.pl.main.Events.FileEvent
 import sp.it.util.conf.cr
 import sp.it.util.functional.asIs
+import sp.it.util.system.recycle
+import sp.it.util.text.keys
 import sp.it.util.ui.dsl
 
 @Widget.Info(
@@ -193,8 +195,13 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       grid.footerVisible syncFrom gridShowFooter on onClose
       grid.skinProperty() attach {
          it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
-            item("Refresh") {
+            item("Refresh (${keys("F5")})") {
                revisitCurrent()
+            }
+         }
+         it?.asIs<GridViewSkin<*,*>>()?.menuRemove?.dsl {
+            item("Delete selected (${keys("DELETE")})") {
+               grid.selectedItem.value?.value?.recycle()
             }
          }
       }
@@ -257,7 +264,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       filesEmpty sync { grid.parent.isVisible = !it }
       onClose += { disposeItems() }
 
-      APP.actionStream.onEvent<Events.FileEvent.Delete> { d ->
+      APP.actionStream.onEvent<FileEvent.Delete> { d ->
          val dir = item
          if (dir?.childrenRO() != null) {
             val toDelete = dir.childrenRO().orEmpty().find { it.value == d.file }

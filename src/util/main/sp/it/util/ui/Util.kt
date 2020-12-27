@@ -78,6 +78,8 @@ import javafx.stage.Stage
 import javafx.stage.StageStyle
 import javafx.stage.Window
 import javafx.util.Callback
+import kotlin.math.abs
+import kotlin.math.floor
 import sp.it.util.dev.Dsl
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
@@ -94,8 +96,6 @@ import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.units.toEM
 import sp.it.util.units.uuid
-import kotlin.math.abs
-import kotlin.math.floor
 
 /* ---------- COLOR ------------------------------------------------------------------------------------------------- */
 
@@ -708,7 +708,6 @@ open class MenuBuilder<M, V>(val owner: M, val value: V) {
    @Dsl
    inline fun menu(text: String, graphics: Node? = null, crossinline then: @Dsl MenuBuilder<Menu, V>.() -> Unit) = this add Menu(text, graphics).dsl(value) { then() }
 
-
    /** Create and add to items new menu item with specified text and action. */
    @Dsl
    inline fun item(text: String, graphics: Node? = null, crossinline action: @Dsl MenuItem.(V) -> Unit) = this add MenuItem(text, graphics).apply { onAction = EventHandler { action(value) } }
@@ -887,62 +886,49 @@ fun Node.sceneToLocal(e: MouseEvent) = sceneToLocal(e.sceneX, e.sceneY)!!
 
 /** Alignment of the text of this text area. */
 var TextArea.textAlignment: TextAlignment
- get() = when {
-    pseudoClassStates.any { it.pseudoClassName=="align-left" } -> TextAlignment.LEFT
-    pseudoClassStates.any { it.pseudoClassName=="align-right" } -> TextAlignment.RIGHT
-    pseudoClassStates.any { it.pseudoClassName=="align-center" } -> TextAlignment.CENTER
-    pseudoClassStates.any { it.pseudoClassName=="align-justify" } -> TextAlignment.JUSTIFY
-    else -> TextAlignment.LEFT
- }
- set(alignment) {
-   pseudoClassChanged("align-left", false)
-   pseudoClassChanged("align-right", false)
-   pseudoClassChanged("align-center", false)
-   pseudoClassChanged("align-justify", false)
-   pseudoClassChanged(
-      when (alignment) {
-         TextAlignment.LEFT -> "align-left"
-         TextAlignment.RIGHT -> "align-right"
-         TextAlignment.CENTER -> "align-center"
-         TextAlignment.JUSTIFY -> "align-justify"
-      },
-      true
-   )
-}
-
-
-/** Sets font, overriding css style. */
-fun Font.asStyle(): String {
-   val tmp = style.toLowerCase()
-   val style = if (tmp.contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
-   val weight = if (tmp.contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
-   val styleS = if (style==FontPosture.ITALIC) "italic" else "normal"
-   val weightS = if (weight==FontWeight.BOLD) "bold" else "normal"
-   return """
-      .root {
-        -fx-font-family: "$family";
-        -fx-font-style: $styleS;
-        -fx-font-weight: $weightS;
-        -fx-font-size: $size;
-      }
-        """.trimIndent()
-}
+   get() = when {
+      pseudoClassStates.any { it.pseudoClassName=="align-left" } -> TextAlignment.LEFT
+      pseudoClassStates.any { it.pseudoClassName=="align-right" } -> TextAlignment.RIGHT
+      pseudoClassStates.any { it.pseudoClassName=="align-center" } -> TextAlignment.CENTER
+      pseudoClassStates.any { it.pseudoClassName=="align-justify" } -> TextAlignment.JUSTIFY
+      else -> TextAlignment.LEFT
+   }
+   set(alignment) {
+      pseudoClassChanged("align-left", false)
+      pseudoClassChanged("align-right", false)
+      pseudoClassChanged("align-center", false)
+      pseudoClassChanged("align-justify", false)
+      pseudoClassChanged(
+         when (alignment) {
+            TextAlignment.LEFT -> "align-left"
+            TextAlignment.RIGHT -> "align-right"
+            TextAlignment.CENTER -> "align-center"
+            TextAlignment.JUSTIFY -> "align-justify"
+         },
+         true
+      )
+   }
 
 /** Sets font, overriding css style. */
-fun Parent.setFontAsStyle(font: Font) {
-   val tmp = font.style.toLowerCase()
-   val style = if (tmp.contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
-   val weight = if (tmp.contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
-   val styleS = if (style==FontPosture.ITALIC) "italic" else "normal"
-   val weightS = if (weight==FontWeight.BOLD) "bold" else "normal"
-   setStyle(
-      """
-        -fx-font-family: "${font.family}";
-        -fx-font-style: $styleS;
-        -fx-font-weight: $weightS;
-        -fx-font-size: ${font.size};
-        """.trimIndent()
-   )
+fun Font?.asStyle(orSize: Double): String {
+   return if (this==null) {
+      """.root { -fx-font-size: $orSize; }"""
+   } else {
+      val tmp = style.toLowerCase()
+      val style = if (tmp.contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
+      val weight = if (tmp.contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
+      val styleS = if (style==FontPosture.ITALIC) "italic" else "normal"
+      val weightS = if (weight==FontWeight.BOLD) "bold" else "normal"
+
+      return """
+         .root {
+           -fx-font-family: "$family";
+           -fx-font-style: $styleS;
+           -fx-font-weight: $weightS;
+           -fx-font-size: $size;
+         }
+      """.trimIndent()
+   }
 }
 
 /**
@@ -1097,7 +1083,8 @@ fun getScreenForMouse() = Robot().mousePosition.toP().getScreen()
 fun Screen.makeScreenShot(image: WritableImage? = null) = Robot().getScreenCapture(image, bounds)!!
 
 /** @return screen containing this window or primary screen */
-val Window.screen: Screen get() = null
-   ?: Screen.getScreens().find { centre.toPoint2D() in it.bounds }
-   ?: Screen.getScreens().find { it.bounds.intersects(bounds) }
-   ?: Screen.getPrimary()!!
+val Window.screen: Screen
+   get() = null
+      ?: Screen.getScreens().find { centre.toPoint2D() in it.bounds }
+      ?: Screen.getScreens().find { it.bounds.intersects(bounds) }
+      ?: Screen.getPrimary()!!

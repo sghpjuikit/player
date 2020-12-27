@@ -1,7 +1,7 @@
 package sp.it.util.reactive
 
-import sp.it.util.collections.materialize
 import kotlin.reflect.KClass
+import sp.it.util.collections.materialize
 
 private typealias C<T> = (T) -> Unit
 
@@ -17,6 +17,11 @@ class Handler1<I>(backingSet: MutableSet<C<I>> = LinkedHashSet(2)): MutableSet<C
    fun addS(block: (I) -> Unit): Subscription {
       add(block)
       return Subscription { remove(block) }
+   }
+
+   /** Adds the specified function to this called if an event is the specified event object. Returns subscription to remove it. */
+   fun <E: Any> onEvent(event: E, block: (E) -> Unit) = addS {
+      if (it===event) block(it)
    }
 
    /** Adds the specified function to this called if an event is instance of the specified type. Returns subscription to remove it. */

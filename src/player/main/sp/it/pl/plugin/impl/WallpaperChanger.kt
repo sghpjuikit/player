@@ -1,5 +1,6 @@
 package sp.it.pl.plugin.impl
 
+import java.io.File
 import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.scene.layout.Pane
@@ -7,24 +8,24 @@ import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
-import sp.it.pl.ui.objects.image.Thumbnail
-import sp.it.pl.ui.objects.window.ShowArea
-import sp.it.pl.ui.objects.window.stage.setNonInteractingProgmanOnBottom
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.main.APP
+import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
+import sp.it.pl.main.Events.AppEvent.UserSessionEvent
 import sp.it.pl.main.isImage
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.window.ShowArea
+import sp.it.pl.ui.objects.window.stage.setNonInteractingProgmanOnBottom
 import sp.it.util.access.readOnly
 import sp.it.util.access.vn
-import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.FILE
 import sp.it.util.functional.asIf
-import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -41,12 +42,6 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.size
 import sp.it.util.ui.x
 import sp.it.util.ui.xy
-import java.awt.Desktop
-import java.awt.desktop.SystemSleepEvent
-import java.awt.desktop.SystemSleepListener
-import java.awt.desktop.UserSessionEvent
-import java.awt.desktop.UserSessionListener
-import java.io.File
 
 class WallpaperChanger: PluginBase() {
 
@@ -98,18 +93,14 @@ class WallpaperChanger: PluginBase() {
 
       Subscription { disposer() }
    }
-   private val overlaySleepHandler = object: SystemSleepListener {
-      override fun systemAwoke(e: SystemSleepEvent?) = runFX(wallpaperApplier::resubscribe).toUnit()
-      override fun systemAboutToSleep(e: SystemSleepEvent?) = Unit
+   private val overlaySleepHandler = Subscribed {
+      APP.actionStream.onEvent(SystemSleepEvent.Stop) { wallpaperApplier.resubscribe() }
    }
-   private val overlayUserHandler = object: UserSessionListener {
-      override fun userSessionActivated(e: UserSessionEvent?) = runFX(wallpaperApplier::resubscribe).toUnit()
-      override fun userSessionDeactivated(e: UserSessionEvent?) = Unit
+   private val overlayUserHandler = Subscribed {
+      APP.actionStream.onEvent(UserSessionEvent.Start) { wallpaperApplier.resubscribe() }
    }
    private val wallpaperIsShowing = Subscribed {
-      APP.mouse.screens.onChangeAndNow {
-         wallpaperApplier.resubscribe()
-      }
+      APP.mouse.screens.onChangeAndNow { wallpaperApplier.resubscribe() }
    }
 
    private fun load(f: File?) {
@@ -123,13 +114,13 @@ class WallpaperChanger: PluginBase() {
    override fun start() {
       wallpaperIsShowing.subscribe()
       menuItemInjector.subscribe()
-      Desktop.getDesktop().addAppEventListener(overlaySleepHandler)
-      Desktop.getDesktop().addAppEventListener(overlayUserHandler)
+      overlaySleepHandler.subscribe()
+      overlayUserHandler.subscribe()
    }
 
    override fun stop() {
-      Desktop.getDesktop().removeAppEventListener(overlaySleepHandler)
-      Desktop.getDesktop().removeAppEventListener(overlayUserHandler)
+      overlaySleepHandler.unsubscribe()
+      overlayUserHandler.unsubscribe()
       menuItemInjector.unsubscribe()
       wallpaperIsShowing.unsubscribe()
       wallpaperImageW.value = null

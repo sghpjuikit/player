@@ -44,8 +44,42 @@ object Css {
 }
 
 object Events {
-   object Files {
-      data class Create(val file: File)
-      data class Delete(val file: File)
+   sealed class FileEvent {
+      data class Create(val file: File): FileEvent()
+      data class Delete(val file: File): FileEvent()
+   }
+   sealed class AppEvent {
+      sealed class AppXGroundEvent: AppEvent() {
+         /** [java.awt.desktop.AppForegroundListener.appRaisedToForeground]. Raised on FX thread. */
+         object AppMovedToForeground: AppXGroundEvent()
+         /** [java.awt.desktop.AppForegroundListener.appMovedToBackground]. Raised on FX thread. */
+         object AppMovedToBackground: AppXGroundEvent()
+      }
+      sealed class AppHidingEvent: AppEvent() {
+         /** [java.awt.desktop.AppHiddenListener.appHidden]. Raised on FX thread. */
+         object AppHidden: AppHidingEvent()
+         /** [java.awt.desktop.AppHiddenListener.appUnhidden]. Raised on FX thread. */
+         object AppUnHidden: AppHidingEvent()
+      }
+      sealed class SystemSleepEvent: AppEvent() {
+         /** [java.awt.desktop.SystemSleepListener.systemAboutToSleep]. Raised on FX thread. */
+         object Start: SystemSleepEvent()
+         /** [java.awt.desktop.SystemSleepListener.systemAwoke]. Raised on FX thread. */
+         object Stop: SystemSleepEvent()
+      }
+      sealed class ScreenSleepEvent: AppEvent() {
+         /** [java.awt.desktop.ScreenSleepListener.screenAboutToSleep]. Raised on FX thread. */
+         object Start: ScreenSleepEvent()
+         /** [java.awt.desktop.ScreenSleepListener.screenAwoke]. Raised on FX thread. */
+         object Stop: ScreenSleepEvent()
+      }
+      sealed class UserSessionEvent: AppEvent() {
+         /** [java.awt.desktop.UserSessionListener.userSessionActivated]. Raised on FX thread. */
+         object Start: UserSessionEvent()
+         /** [java.awt.desktop.UserSessionListener.userSessionDeactivated]. Raised on FX thread. */
+         object Stop: UserSessionEvent()
+      }
+      /** [java.awt.desktop.AppReopenedListener.appReopened]. Raised on FX thread. */
+      object AppReopenedEvent: AppEvent()
    }
 }

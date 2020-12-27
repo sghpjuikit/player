@@ -1,8 +1,13 @@
 package sp.it.pl.plugin.impl
 
+import sp.it.pl.core.CoreMouse as sys
+import java.time.LocalDateTime
+import java.time.format.TextStyle.FULL
+import java.util.Locale.ENGLISH
 import javafx.geometry.Insets
 import javafx.geometry.Point2D
 import javafx.geometry.Pos.BOTTOM_RIGHT
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.input.Clipboard
@@ -11,66 +16,63 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
 import sp.it.pl.main.APP
+import sp.it.pl.main.Events
 import sp.it.pl.main.IconUN
-import sp.it.pl.main.LazyOverlayPane
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.pane.OverlayPane
-import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.pl.main.IconWH
 import sp.it.pl.main.Key
+import sp.it.pl.main.LazyOverlayPane
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.pane.OverlayPane
+import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.JavaLegacy
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Loop
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.async.runFX
-import sp.it.util.functional.toUnit
+import sp.it.util.conf.cvn
+import sp.it.util.conf.def
+import sp.it.util.conf.valuesIn
+import sp.it.util.functional.asIf
+import sp.it.util.functional.net
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
+import sp.it.util.ui.anchorPane
 import sp.it.util.ui.areaBy
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
+import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.em
 import sp.it.util.units.millis
-import java.awt.Desktop
-import java.awt.desktop.SystemSleepEvent
-import java.awt.desktop.SystemSleepListener
-import java.awt.desktop.UserSessionEvent
-import java.awt.desktop.UserSessionListener
-import java.time.LocalDateTime
-import java.time.format.TextStyle.FULL
-import java.util.Locale.ENGLISH
-import sp.it.pl.core.CoreMouse as sys
 
 class StartScreen: PluginBase() {
    private var corners = screenCorners()
    private var mouseIn = false
    private var mouseXy = Point2D(0.0, 0.0)
 
-   private val overlaySleepHandler = object: SystemSleepListener {
-      override fun systemAwoke(e: SystemSleepEvent?) {}
-      override fun systemAboutToSleep(e: SystemSleepEvent?) = runFX(overlay::hide).toUnit()
+   private val overlaySleepHandler = Subscribed {
+      APP.actionStream.onEvent(Events.AppEvent.SystemSleepEvent.Start) { overlay.hide() }
    }
-   private val overlayUserHandler = object: UserSessionListener {
-      override fun userSessionActivated(e: UserSessionEvent?) {}
-      override fun userSessionDeactivated(e: UserSessionEvent?) = runFX(overlay::hide).toUnit()
+   private val overlayUserHandler = Subscribed {
+      APP.actionStream.onEvent(Events.AppEvent.UserSessionEvent.Stop) { overlay.hide() }
    }
    private val overlayIsActive = Subscribed {
       val shower = fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }
-      Desktop.getDesktop().addAppEventListener(overlaySleepHandler)
-      Desktop.getDesktop().addAppEventListener(overlayUserHandler)
+      overlaySleepHandler.subscribe()
+      overlayUserHandler.subscribe()
 
       Subscription(
          sys.screens.onChange {
@@ -87,8 +89,8 @@ class StartScreen: PluginBase() {
          },
          Subscription {
             shower.stop()
-            Desktop.getDesktop().removeAppEventListener(overlaySleepHandler)
-            Desktop.getDesktop().removeAppEventListener(overlayUserHandler)
+            overlaySleepHandler.unsubscribe()
+            overlayUserHandler.unsubscribe()
          }
       )
    }
@@ -103,10 +105,10 @@ class StartScreen: PluginBase() {
             }
 
             onEventDown(KEY_PRESSED) {
-                if (it.code==Key.V && it.isShortcutDown) {
-                   it.consume()
-                   Clipboard.getSystemClipboard().getAny().showDataInfo()
-                }
+               if (it.code==Key.V && it.isShortcutDown) {
+                  it.consume()
+                  Clipboard.getSystemClipboard().getAny().showDataInfo()
+               }
             }
             installDrag(
                IconUN(0xe295),

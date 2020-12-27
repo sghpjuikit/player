@@ -20,7 +20,7 @@ class Handler1<I>(backingSet: MutableSet<C<I>> = LinkedHashSet(2)): MutableSet<C
    }
 
    /** Adds the specified function to this called if an event is the specified event object. Returns subscription to remove it. */
-   fun <E: Any> onEvent(event: E, block: (E) -> Unit) = addS {
+   fun <E: Any> onEventObject(event: E, block: (E) -> Unit) = addS {
       if (it===event) block(it)
    }
 

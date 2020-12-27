@@ -94,10 +94,10 @@ class WallpaperChanger: PluginBase() {
       Subscription { disposer() }
    }
    private val overlaySleepHandler = Subscribed {
-      APP.actionStream.onEvent(SystemSleepEvent.Stop) { wallpaperApplier.resubscribe() }
+      APP.actionStream.onEventObject(SystemSleepEvent.Stop) { wallpaperApplier.resubscribe() }
    }
    private val overlayUserHandler = Subscribed {
-      APP.actionStream.onEvent(UserSessionEvent.Start) { wallpaperApplier.resubscribe() }
+      APP.actionStream.onEventObject(UserSessionEvent.Start) { wallpaperApplier.resubscribe() }
    }
    private val wallpaperIsShowing = Subscribed {
       APP.mouse.screens.onChangeAndNow { wallpaperApplier.resubscribe() }

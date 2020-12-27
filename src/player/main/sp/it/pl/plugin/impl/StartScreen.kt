@@ -64,10 +64,10 @@ class StartScreen: PluginBase() {
    private var mouseXy = Point2D(0.0, 0.0)
 
    private val overlaySleepHandler = Subscribed {
-      APP.actionStream.onEvent(Events.AppEvent.SystemSleepEvent.Start) { overlay.hide() }
+      APP.actionStream.onEventObject(Events.AppEvent.SystemSleepEvent.Start) { overlay.hide() }
    }
    private val overlayUserHandler = Subscribed {
-      APP.actionStream.onEvent(Events.AppEvent.UserSessionEvent.Stop) { overlay.hide() }
+      APP.actionStream.onEventObject(Events.AppEvent.UserSessionEvent.Stop) { overlay.hide() }
    }
    private val overlayIsActive = Subscribed {
       val shower = fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }

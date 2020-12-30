@@ -918,7 +918,7 @@ sealed class ComponentLoader: (Component) -> Any {
             lateinit var layout: Layout
 
             init {
-               onShown += {
+               onShowing += {
                   stage!!.installWindowInteraction()::unsubscribe.let(onHidden::addSOnetime)
                   stage!!.properties[Window.keyWindowLayout] = layout
                   layout.focus()

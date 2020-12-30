@@ -135,7 +135,7 @@ class StartScreen: PluginBase() {
             display.value = SCREEN_OF_MOUSE
             content = stackPane {
                isFocusTraversable = true
-               onShown += { requestFocus() }
+               onShowed += { requestFocus() }
                installClipboardSupport()
                installWindowInteraction()
 
@@ -154,9 +154,9 @@ class StartScreen: PluginBase() {
                                  update()
                            }
                         })
-                        onShown += { time = LocalDateTime.now() }
-                        onShown += update
-                        onShown += loop::start
+                        onShowing += { time = LocalDateTime.now() }
+                        onShowing += update
+                        onShowing += loop::start
                         onHidden += loop::stop
 
                         lay += hBox(15.emScaled, BOTTOM_RIGHT) {
@@ -219,7 +219,7 @@ class StartScreen: PluginBase() {
                            }
                         }
                      }
-                     onShown += { widgetSubscribed.subscribe(true) }
+                     onShowed += { widgetSubscribed.subscribe(true) }
                      onHidden += { widgetSubscribed.subscribe(false) }
                   }
                }

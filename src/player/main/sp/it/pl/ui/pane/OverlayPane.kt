@@ -73,8 +73,12 @@ abstract class OverlayPane<in T>: StackPane() {
    val display = v<ScreenGetter>(Display.SCREEN_OF_MOUSE)
    /** Display bgr (for SCREEN variants only). */
    val displayBgr = v(ScreenBgrGetter.SCREEN_BGR)
+   /** Handlers called just after this pane starts to show. Note that this is un-intuitively not prior to but after showing is taking place.  */
+   val onShowing = Handler0()
    /** Handlers called just after this pane was shown. */
-   val onShown = Handler0()
+   val onShowed = Handler0()
+   /** Handlers called just prior to this pane starting to hide. */
+   val onHiding = Handler0()
    /** Handlers called just after this pane was hidden. */
    val onHidden = Handler0()
 
@@ -133,12 +137,12 @@ abstract class OverlayPane<in T>: StackPane() {
 
       fun applyAt0() = animation.applyAt(0.0)
 
-      fun show() {
+      fun show(then: () -> Unit = {}) {
          dir = true
-         animation.dur(400.millis).playOpenDo(null)
+         animation.dur(400.millis).playOpenDo { then() }
       }
 
-      fun hide(then: () -> Unit) {
+      fun hide(then: () -> Unit = {}) {
          dir = false
          animation.dur(250.millis).playCloseDo { then() }
       }
@@ -167,7 +171,8 @@ abstract class OverlayPane<in T>: StackPane() {
    open fun hide() {
       if (isShown()) {
          properties -= IS_SHOWN
-         animation.hide { animEnd() }
+         animEndJustPrior()
+         animation.hide(::animEndJustAfter)
       }
    }
 
@@ -196,7 +201,11 @@ abstract class OverlayPane<in T>: StackPane() {
       displayUsedForShow.animDo(this, x)
    }
 
-   private fun animEnd() {
+   private fun animEndJustPrior() {
+      displayUsedForShow.animEnd(this)
+   }
+
+   private fun animEndJustAfter() {
       displayUsedForShow.animEnd(this)
    }
 
@@ -237,8 +246,8 @@ abstract class OverlayPane<in T>: StackPane() {
                op.blurNode = window.content
                op.blurNode!!.effect = op.blur
 
-               op.animation.show()
-               op.onShown()
+               op.animation.show(op.onShowing)
+               op.onShowed()
             }
             .ifNull {
                op.displayUsedForShow = Display.SCREEN_OF_MOUSE
@@ -274,8 +283,8 @@ abstract class OverlayPane<in T>: StackPane() {
 
             op.animation.applyAt0()
             op.stage!!.onEventDown1(WINDOW_SHOWN) {
-               op.animation.show()
-               op.onShown()
+               op.animation.show(op.onShowing)
+               op.onShowed()
             }
             op.stage!!.show()
             op.stage!!.requestFocus()

@@ -177,7 +177,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
 
       root = object: StackPane(thumb!!.pane, name, r) {
          override fun layoutChildren() {
-            super.layoutChildren();
+            super.layoutChildren()
             val x = 0.0
             val y = 0.0
             val w = width

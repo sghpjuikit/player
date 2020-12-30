@@ -230,7 +230,7 @@ fun Stage.setNonInteractingProgmanOnBottom() {
       // Send 0x052C to Progman
       // This message directs Progman to spawn a WorkerW behind the desktop icons. If it is already there, nothing happens.
       val result: WinDef.DWORDByReference? = null
-      user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, result);
+      user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, result)
 
       // Get WorkerW window
       var workerW: WinDef.HWND? = null
@@ -289,7 +289,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
                   isFillHeight = false
                   isPickOnBounds = false
 
-                  lay += label() {
+                  lay += label {
                      padding = Insets(0.0, 0.0, 0.0, 5.0)
                      id = "titleL"
                   }

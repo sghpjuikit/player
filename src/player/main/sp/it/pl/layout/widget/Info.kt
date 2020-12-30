@@ -93,12 +93,13 @@ interface WidgetInfo: ComponentInfo {
 }
 
 /**
- * Widget controller companion object.
+ * Widget controller companion object. Use by having the widget's companion object extend it.
  * * Defines useful widget metadata
  * * Automatically derives [id] and [type].
  * * Allows defining global widget instance state using [appProperty]
  */
 interface WidgetCompanion: WidgetInfo {
+
    override val id
       get() = type.kotlin.let { it.simpleName ?: it.jvmName }
 

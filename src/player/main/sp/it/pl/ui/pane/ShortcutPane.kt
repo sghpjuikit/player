@@ -3,7 +3,6 @@ package sp.it.pl.ui.pane
 import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts as hideUnassignedShortcuts1
 import javafx.geometry.HPos
 import javafx.geometry.Insets
-import javafx.geometry.Pos.BOTTOM_CENTER
 import javafx.geometry.Pos.BOTTOM_LEFT
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
@@ -17,6 +16,7 @@ import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.WINDOWS
+import javafx.scene.input.MouseButton
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
@@ -39,6 +39,7 @@ import sp.it.util.system.Os
 import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.ui.Util.layVertically
+import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -57,7 +58,7 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
       hideEmptyShortcuts attach { if (isShown()) build(value) }
 
       content = vBox(5, CENTER) {
-         maxWidth = 700.emScaled
+         maxWidth = 750.emScaled
 
          lay += hBox(5, CENTER_RIGHT) {
             lay += CheckIcon(hideEmptyShortcuts)
@@ -65,10 +66,15 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
                .tooltip("${hideUnassignedShortcuts1.name}\n\n${hideUnassignedShortcuts1.info}")
             lay += infoIcon("Shortcut viewer\n\nDisplays available shortcuts. Optionally also those that have not been assigned yet.")
          }
-         lay(ALWAYS) += hBox(20.emScaled, BOTTOM_CENTER) {
+         lay(ALWAYS) += borderPane {
             padding = Insets(20.emScaled)
 
-            lay += vBox(0, BOTTOM_LEFT) {
+            left = vBox(0, BOTTOM_LEFT) {
+               id = "legend"
+               padding = Insets(0.0, 20.emScaled, 0.0, 0.0)
+
+               lay += (MouseButton.values().toList() - MouseButton.NONE).map { legendRow(it) }
+               lay += label()
                lay += legendRow(ALT)
                lay += legendRow(ALT)
                lay += legendRow(CONTROL)
@@ -77,7 +83,7 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
                lay += supplyIf(Os.WINDOWS.isCurrent) { legendRow(WINDOWS) }
                lay += supplyIf(Os.OSX.isCurrent) { legendRow(COMMAND) }
             }
-            lay(ALWAYS) += scrollPane {
+            center = scrollPane {
                isFitToWidth = true
                isFitToHeight = false
                hbarPolicy = NEVER
@@ -136,13 +142,15 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
          }
    }
 
-   private fun legendRow(key: Key) = hBox(0, CENTER_LEFT) {
-      lay += label(key.nameUi) {
+   private fun legendRow(button: MouseButton) = legendRow(button.nameUi, button.name.toLowerCase().capitalize())
+   private fun legendRow(key: Key) = legendRow(key.nameUi, key.name.toLowerCase().capitalize())
+   private fun legendRow(left: String, right: String) = hBox(0, CENTER_LEFT) {
+      lay += label(left) {
          prefWidth = 10.emScaled
          textAlignment = RIGHT
          alignment = CENTER_RIGHT
       }
-      lay += label(" → ${key.name.toLowerCase().capitalize()}")
+      lay += label(" → $right")
    }
 
    class Info(val text: String, val entries: List<Entry>)

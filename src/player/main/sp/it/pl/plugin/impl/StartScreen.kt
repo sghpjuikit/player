@@ -7,7 +7,6 @@ import java.util.Locale.ENGLISH
 import javafx.geometry.Insets
 import javafx.geometry.Point2D
 import javafx.geometry.Pos.BOTTOM_RIGHT
-import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.input.Clipboard
@@ -15,6 +14,12 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.Screen
+import sp.it.pl.layout.container.Layout
+import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
+import sp.it.pl.layout.widget.NoFactoryFactory
+import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetManager.FactoryRef
+import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.main.APP
 import sp.it.pl.main.Events
 import sp.it.pl.main.IconUN
@@ -27,6 +32,8 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.JavaLegacy
@@ -47,6 +54,7 @@ import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.areaBy
+import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
@@ -94,6 +102,11 @@ class StartScreen: PluginBase() {
          }
       )
    }
+   private var widgetLayout: Layout? = null
+   private val widgetArea = anchorPane()
+   private val widgetFactory by cvn<FactoryRef<Any>>(null).def(name = "Component", info = "Component").valuesIn {
+      APP.widgetManager.factories.getFactoriesWith()
+   }
 
    private val overlay = LazyOverlayPane {
       object: OverlayPane<Unit>() {
@@ -124,66 +137,90 @@ class StartScreen: PluginBase() {
                isFocusTraversable = true
                onShown += { requestFocus() }
                installClipboardSupport()
+               installWindowInteraction()
 
-               lay += stackPane {
+               lay += borderPane {
                   padding = Insets(60.emScaled)
 
-                  lay(BOTTOM_RIGHT) += vBox(15.emScaled, BOTTOM_RIGHT) {
-                     isFillWidth = false
+                  right = stackPane {
+                     lay(BOTTOM_RIGHT) += vBox(15.emScaled, BOTTOM_RIGHT) {
+                        isFillWidth = false
 
-                     var time = LocalDateTime.MIN
-                     val update = Handler0()
-                     val loop = Loop(Runnable {
-                        time = LocalDateTime.now().also {
-                           if (time.minute!=it.minute)
-                              update()
+                        var time = LocalDateTime.MIN
+                        val update = Handler0()
+                        val loop = Loop(Runnable {
+                           time = LocalDateTime.now().also {
+                              if (time.minute!=it.minute)
+                                 update()
+                           }
+                        })
+                        onShown += { time = LocalDateTime.now() }
+                        onShown += update
+                        onShown += loop::start
+                        onHidden += loop::stop
+
+                        lay += hBox(15.emScaled, BOTTOM_RIGHT) {
+                           lay += text {
+                              boundsType = VISUAL
+                              style += "-fx-font-size: 2em"
+                              update += { text = if (time.hour<12) "AM" else "PM" }
+                           }
+                           lay += text {
+                              boundsType = VISUAL
+                              style += "-fx-font-size: 6em"
+                              update += { text = "%d:%02d".format(time.hour%12, time.minute) }
+                           }
                         }
-                     })
-                     onShown += { time = LocalDateTime.now() }
-                     onShown += update
-                     onShown += loop::start
-                     onHidden += loop::stop
-
-                     lay += hBox(15.emScaled, BOTTOM_RIGHT) {
                         lay += text {
                            boundsType = VISUAL
                            style += "-fx-font-size: 2em"
-                           update += { text = if (time.hour<12) "AM" else "PM" }
-                        }
-                        lay += text {
-                           boundsType = VISUAL
-                           style += "-fx-font-size: 6em"
-                           update += { text = "%d:%02d".format(time.hour%12, time.minute) }
+                           update += { text = "%s, %s %d".format(time.dayOfWeek.getDisplayName(FULL, ENGLISH), time.month.getDisplayName(FULL, ENGLISH), time.dayOfMonth) }
                         }
                      }
-                     lay += text {
-                        boundsType = VISUAL
-                        style += "-fx-font-size: 2em"
-                        update += { text = "%s, %s %d".format(time.dayOfWeek.getDisplayName(FULL, ENGLISH), time.month.getDisplayName(FULL, ENGLISH), time.dayOfMonth) }
+                     lay(TOP_RIGHT) += vBox(10, TOP_RIGHT) {
+                        isFillWidth = false
+                        style += "-fx-font-size: 1.5em;"
+
+                        lay += Icon(IconWH.MOON_27, 5.em.emScaled).run {
+                           onClickDo {
+                              JavaLegacy.suspendWindows(false, false, true)
+                           }
+                           withText(Side.LEFT, "Sleep")
+                        }
+                        lay += Icon(IconWH.MOON_ALT_WANING_CRESCENT_1, 5.em.emScaled).run {
+                           onClickDo {
+                              JavaLegacy.suspendWindows(true, false, true)
+                           }
+                           withText(Side.LEFT, "Hibernate")
+                        }
+                        lay += Icon(IconWH.MOON_14, 5.em.emScaled).run {
+                           onClickDo {
+                              Runtime.getRuntime().exec("shutdown -s -t 0")
+                           }
+                           withText(Side.LEFT, "Shutdown")
+                        }
                      }
                   }
-                  lay(TOP_RIGHT) += vBox(10, TOP_RIGHT) {
-                     isFillWidth = false
-                     style += "-fx-font-size: 1.5em;"
-
-                     lay += Icon(IconWH.MOON_27, 5.em.emScaled).run {
-                        onClickDo {
-                           JavaLegacy.suspendWindows(false, false, true)
+                  left = widgetArea.apply {
+                     prefWidth = 50.emScaled
+                     val widgetSubscribed = Subscribed {
+                        widgetFactory syncWhile { f ->
+                           Layout.openStandalone(this).apply {
+                              widgetLayout = this
+                              widgetArea.scene.root.properties[Window.keyWindowLayout] = this
+                              child = f?.net {
+                                 APP.widgetManager.widgets.find(it.id, NEW(CUSTOM)) ?: NoFactoryFactory(it.id).create()
+                              }
+                              child?.asIf<Widget>()?.graphics?.prefSize = USE_COMPUTED_SIZE.x2
+                           }
+                           Subscription {
+                              widgetLayout?.close()
+                              widgetLayout = null
+                           }
                         }
-                        withText(Side.LEFT, "Sleep")
                      }
-                     lay += Icon(IconWH.MOON_ALT_WANING_CRESCENT_1, 5.em.emScaled).run {
-                        onClickDo {
-                           JavaLegacy.suspendWindows(true, false, true)
-                        }
-                        withText(Side.LEFT, "Hibernate")
-                     }
-                     lay += Icon(IconWH.MOON_14, 5.em.emScaled).run {
-                        onClickDo {
-                           Runtime.getRuntime().exec("shutdown -s -t 0")
-                        }
-                        withText(Side.LEFT, "Shutdown")
-                     }
+                     onShown += { widgetSubscribed.subscribe(true) }
+                     onHidden += { widgetSubscribed.subscribe(false) }
                   }
                }
             }

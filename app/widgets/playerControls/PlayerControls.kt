@@ -76,6 +76,8 @@ import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
 import sp.it.util.units.year
 import java.io.File
+import javafx.scene.input.MouseButton.BACK
+import javafx.scene.input.MouseButton.FORWARD
 
 class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature, HorizontalDock {
    val volume = Slider()
@@ -133,6 +135,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       elapsedTime sync { timeChanged(ps) } on onClose
 
       currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
+      root.onEventDown(MOUSE_CLICKED, BACK) { PlaylistManager.playPreviousItem() }
+      root.onEventDown(MOUSE_CLICKED, FORWARD) { PlaylistManager.playNextItem() }
 
       root.installDrag(
          IconMD.PLAYLIST_PLUS,
@@ -225,11 +229,13 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = listOf(
-         Entry("Controls", "Play next song", "back icon LMB"),
+         Entry("Controls", "Play previous song", "BMB"),
+         Entry("Controls", "Play previous song", "back icon LMB"),
          Entry("Controls", "Seek backward", "back icon RMB"),
          Entry("Controls", "Play/pause", "play/pause icon LMB or RMB"),
          Entry("Controls", "Seek forward", "forward icon RMB"),
-         Entry("Controls", "Play previous song", "forward icon LMB"),
+         Entry("Controls", "Play next song", "forward icon LMB"),
+         Entry("Controls", "Play next song", "FMB"),
          Entry("Controls", "Toggle next song mode", "loop icon LMB or RMB"),
          Entry("Controls", "Change volume", "Scroll"),
          Entry("Controls", "Mute", "Mute icon LMB or RMB"),

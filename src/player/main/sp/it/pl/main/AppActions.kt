@@ -148,10 +148,13 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       val t = widget.factory.summaryUi
 
       val actionsHardcoded = listOfNotNull(
-         Entry(" Layout", "Go to child", keys("${PRIMARY.nameUi} (layout mode)")),
-         Entry(" Layout", "Go to parent", keys("${SECONDARY.nameUi} (layout mode)")),
-         Entry(" Layout", "Drags widget to other area", keys("${PRIMARY.nameUi} + Drag")),
-         Entry(" Layout", "Detach widget", keys("${SHORTCUT.nameUi} + ${PRIMARY.nameUi} + Drag"))
+         Entry("Layout", "Go to child", keys("${PRIMARY.nameUi} (layout mode)")),
+         Entry("Layout", "Go to parent", keys("${SECONDARY.nameUi} (layout mode)")),
+         Entry("Layout", "Drags widget to other area", keys("${PRIMARY.nameUi} + Drag")),
+         Entry("Layout", "Detach widget", keys("${SHORTCUT.nameUi} + ${PRIMARY.nameUi} + Drag")),
+         Entry("Ui", "Show widget help", F2.nameUi),
+         Entry("Ui", "Show widget help", ActionManager.keyShortcutsComponent.nameUi),
+         Entry("Ui", "Show widget actions", ActionManager.keyActionsComponent.nameUi),
       )
       APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info(t, actionsHardcoded + widget.factory.summaryActions))
    }

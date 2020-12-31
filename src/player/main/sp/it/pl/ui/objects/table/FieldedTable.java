@@ -37,7 +37,7 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
@@ -98,7 +98,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 		// show the column control menu on right click ( + hide if shown )
 		addEventHandler(MOUSE_CLICKED, e -> {
-			if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight()) {
+			if (e.getButton()==SECONDARY && e.getY()<getVisibleHeaderHeight()) {
 				columnMenu.show(this, e.getScreenX(), e.getScreenY());
 			} else {
 				if (columnMenu.isShowing()) columnMenu.hide();

@@ -140,9 +140,9 @@ object AppSettings {
          /** Compile-time constant equivalent to [info]. */
          const val cinfo: String = """Rank of this application instance.
 User may wish to run certain components as separate processes. In order to make these lightweight and safe, certain features might be disabled or delegated to the primary application instance called `MASTER`.
-Other instances are called `SLAVE` instances. They can be thought of as single-purpose short-lived one-off programs
+Other instances are called `SLAVE` instances. They can be thought of as single-purpose short-lived one-off programs.
 The rank is determined at instance start up. If no other instances (of any rank) are running, the instance becomes `MASTER`, otherwise it becomes `SLAVE`. The rank can not be specified at startup or changed later.
-Closing `MASTER` instance will not close SLAVE instances nor turn them into MASTER instance."""
+Closing `MASTER` instance will not close `SLAVE` instances nor turn them into `MASTER` instance."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """App"""
          /** Name of the config. */
@@ -158,10 +158,9 @@ Closing `MASTER` instance will not close SLAVE instances nor turn them into MAST
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Developer mode"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Unlock certain features. Can be forced to `true` by starting the application with a `--dev` flag.
+         const val cinfo: String = """Enables certain features. Can be forced to `true` by starting the application with a `--dev` flag.
 Features:
-  * Widgets will not recompile when their source files are older than application library or application .jar
-    (Prevents recompilation on every application build)
+  * Widgets will not recompile when application jars are modified (Prevents recompilation on every application build)
   * Enables menu items that call object's methods using reflection
   * Shows experimental widgets
   * Shows class information about objects in object details"""
@@ -212,7 +211,7 @@ Features:
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Run garbage collector"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Runs java's garbage collector using 'System.gc()'. Requires developer mode enabled."""
+         const val cinfo: String = """Run JVM garbage collector using 'System.gc()'. Requires developer mode enabled."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """App"""
          /** Name of the config. */
@@ -461,7 +460,7 @@ Features:
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Skin"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Application skin"""
+         const val cinfo: String = """Skin of the application. Determines single stylesheet file applied on `.root` of all windows."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Ui"""
          /** Name of the config. */
@@ -477,7 +476,7 @@ Features:
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Font"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Application font"""
+         const val cinfo: String = """Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null retains font set by the skin."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Ui"""
          /** Name of the config. */

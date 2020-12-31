@@ -40,8 +40,8 @@ val appSetting = Setting.root {
             "Closing `MASTER` instance will not close `SLAVE` instances nor turn them into `MASTER` instance."
       }
       config("Developer mode") {
-         info = "Enables certain features. Can be forced to `true` by starting the application with a `--dev` flag.\n" +
-            "Features:" +
+         info = "Enables certain features. Can be forced to `true` by starting the application with a `--dev` flag." +
+            "\nFeatures:" +
             "\n  * Widgets will not recompile when application jars are modified (Prevents recompilation on every application build)" +
             "\n  * Enables menu items that call object's methods using reflection" +
             "\n  * Shows experimental widgets" +
@@ -110,10 +110,10 @@ val appSetting = Setting.root {
    }
    "Ui" {
       config("Skin") {
-         info = "Application skin"
+         info = "Skin of the application. Determines single stylesheet file applied on `.root` of all windows."
       }
       config("Font") {
-         info = "Application font"
+         info = "Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null retains font set by the skin."
       }
       config("Layout mode blur bgr") {
          info = "Layout mode use blur effect"

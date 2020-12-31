@@ -3,10 +3,20 @@ package sp.it.pl.ui.objects.table
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.scene.control.Label
 import javafx.scene.control.TableCell
+import javafx.scene.control.TableColumn
+import javafx.scene.control.TableColumnBase
+import javafx.scene.control.TableView
+import javafx.scene.control.skin.TableColumnHeader
+import javafx.scene.control.skin.TableHeaderRow
+import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
 import sp.it.util.access.fieldvalue.ObjectField
+import sp.it.util.functional.asIs
+import sp.it.util.type.Util.getFieldValue
+import sp.it.util.type.Util.invokeMethodP1
 import sp.it.util.type.isSubclassOf
 
 /**
@@ -31,3 +41,16 @@ fun <T, X> ObjectField<T, X>.buildFieldedCell(): TableCell<T, X> = let { f ->
       }
    }
 }
+
+/** Table header or null if not yet initialized */
+val TableView<*>.headerOrNull: TableHeaderRow?
+   get() = lookup("TableHeaderRow").asIs()
+
+/** Font of the given column header or null if not yet initialized */
+val TableColumn<*, *>.fontOrNull: Font?
+   get() {
+      val headerRow = tableView?.headerOrNull
+      val headerCell = if (headerRow==null) null else invokeMethodP1(headerRow, "getColumnHeaderFor", TableColumnBase::class.java, this) as TableColumnHeader?
+      val headerCellLabel = if (headerCell==null) null else getFieldValue<Label>(headerCell, "label")
+      return headerCellLabel?.font
+   }

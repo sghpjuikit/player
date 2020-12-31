@@ -17,7 +17,7 @@ public class JavaLegacy {
 	private static final Text fontMeasuringText = new Text();
 	private static final Scene fontMeasuringScene = new Scene(new Group(fontMeasuringText));
 
-	public static double computeFontWidth(javafx.scene.text.Font font, String text) {
+	public static double computeTextWidth(javafx.scene.text.Font font, String text) {
 		fontMeasuringText.setFont(font);
 		fontMeasuringText.setText(text);
 		fontMeasuringText.applyCss();
@@ -26,7 +26,7 @@ public class JavaLegacy {
 		// return com.sun.javafx.scene.control.skin.Utils.computeTextWidth(font, text, -1.0);
 	}
 
-	public static double computeFontHeight(javafx.scene.text.Font font, String text) {
+	public static double computeTextHeight(javafx.scene.text.Font font, String text) {
 		fontMeasuringText.setFont(font);
 		fontMeasuringText.setText(text);
 		fontMeasuringText.applyCss();

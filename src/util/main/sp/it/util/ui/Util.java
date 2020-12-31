@@ -398,12 +398,12 @@ public interface Util {
 
 /* ---------- FONT -------------------------------------------------------------------------------------------------- */
 
-	static double computeFontWidth(Font font, String text) {
-		return JavaLegacy.computeFontWidth(font , text);
+	static double computeTextWidth(Font font, String text) {
+		return JavaLegacy.computeTextWidth(font , text);
 	}
 
-	static double computeFontHeight(Font font, String text) {
-		return JavaLegacy.computeFontHeight(font, text);
+	static double computeTextHeight(Font font, String text) {
+		return JavaLegacy.computeTextHeight(font, text);
 	}
 
 /* ---------- WINDOW ------------------------------------------------------------------------------------------------ */

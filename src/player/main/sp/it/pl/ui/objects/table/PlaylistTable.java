@@ -46,8 +46,8 @@ import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
-import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.TableUtilKt.getFontOrNull;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.functional.Util.SAME;
@@ -56,7 +56,7 @@ import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.syncC;
-import static sp.it.util.ui.Util.computeFontWidth;
+import static sp.it.util.ui.Util.computeTextWidth;
 import static sp.it.util.ui.Util.selectRows;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.units.UtilKt.toHMSMs;
@@ -152,15 +152,16 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			}
 
 			// handle table resize or index column
-			double tw = resize.getTable().getWidth();
-			double sw = getVScrollbarWidth();
-			double gap = 3;               // prevents horizontal slider from appearing
+			var tw = resize.getTable().getWidth();
+			var sw = getVScrollbarWidth();
+			var gap = 3;               // prevents horizontal slider from appearing
 
 			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
 			getColumn(LENGTH).ifPresent(c -> {
-				double maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
-				String maxLengthText = toHMSMs(new Duration(maxLength));
-				double width = computeFontWidth(APP.ui.getFont().getValue(), maxLengthText) + 7;
+				var maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
+				var maxLengthText = toHMSMs(new Duration(maxLength));
+				var font = getFontOrNull(c);
+				var width = font == null ? 100.0 : computeTextWidth(font, maxLengthText) + 7;
 				c.setPrefWidth(width);
 			});
 
@@ -176,7 +177,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 		// empty table left click -> add items
 		addEventHandler(MOUSE_CLICKED, e -> {
-			if (headerVisible.get() && e.getY()<getTableHeaderHeight()) return;
+			if (headerVisible.get() && e.getY()<getVisibleHeaderHeight()) return;
 			if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItemsRaw().isEmpty())
 				PlaylistManagerKt.addOrEnqueueFiles(getPlaylist(), true);
 		});

@@ -78,6 +78,7 @@ import javafx.stage.Window as WindowFX
 import sp.it.pl.main.AppSettings.ui as confUi
 import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.table as confTable
+import sp.it.util.units.em
 
 class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
@@ -101,15 +102,15 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       skinsImpl setTo findSkins()
    }
 
-   /** Skin of the application. Defined stylesheet file to be applied on `.root` of windows. */
+   /** Skin of the application. Determines single stylesheet file applied on `.root` of all windows. */
    val skin by cv("Main").values(skins.project { it.name }) def confUi.skin
    /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
-   val font by cv(Font.getDefault()) def confUi.font sync {
+   val font by cvn<Font>(null) def confUi.font sync {
       val f = APP.locationTmp/"user-font-skin.css"
       if (it==null) {
          additionalStylesheets -= f
       } else {
-         val style = it.asStyle()
+         val style = it.asStyle(1.em)
          f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply font skin=$it" } }
          additionalStylesheets += f
       }
@@ -375,7 +376,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
             s1 + s2
          }
       }
-      Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
+      Tooltip.getWindows().onItemAdded { if (font.value != null) (it as? Tooltip)?.font = font.value }
    }
 
    private fun observeWindowsAndSyncSkin() {
@@ -388,7 +389,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
             s1 + s2
          }
       }
-      Tooltip.getWindows().onItemAdded { (it as? Tooltip)?.font = font.value }
+      Tooltip.getWindows().onItemAdded { if (font.value != null) (it as? Tooltip)?.font = font.value }
    }
 
    fun applySkin(skin: String) {

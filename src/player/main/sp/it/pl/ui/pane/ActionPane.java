@@ -68,7 +68,7 @@ import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
-import static sp.it.pl.ui.objects.table.FieldedTableUtilKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.pl.ui.pane.GroupApply.FOR_ALL;

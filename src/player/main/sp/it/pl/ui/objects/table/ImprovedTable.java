@@ -30,11 +30,12 @@ import sp.it.util.access.fieldvalue.ColumnField;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.TableUtilKt.getFontOrNull;
+import static sp.it.pl.ui.objects.table.TableUtilKt.getHeaderOrNull;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.type.Util.getFieldValue;
-import static sp.it.util.ui.Util.computeFontWidth;
+import static sp.it.util.ui.Util.computeTextWidth;
 import static sp.it.util.ui.Util.selectRows;
 
 public class ImprovedTable<T> extends TableView<T> {
@@ -70,9 +71,10 @@ public class ImprovedTable<T> extends TableView<T> {
 		columnIndex = buildIndexColumn();
 	}
 
+
 	/** @return height of columns header or 0 if invisible. */
-	public double getTableHeaderHeight() {
-		Pane header = (Pane) lookup("TableHeaderRow");
+	public double getVisibleHeaderHeight() {
+		Pane header = getHeaderOrNull(this);
 		return header==null || !header.isVisible() ? 0 : header.getHeight();
 	}
 
@@ -81,7 +83,7 @@ public class ImprovedTable<T> extends TableView<T> {
 	 * Note: works only if table uses fixedCellHeight.
 	 */
 	public int getRow(double y) {
-		double h = headerVisible.get() ? y - getTableHeaderHeight() : y;
+		double h = headerVisible.get() ? y - getVisibleHeaderHeight() : y;
 		return (int) floor(h/getFixedCellSize());
 	}
 
@@ -225,9 +227,10 @@ public class ImprovedTable<T> extends TableView<T> {
 	 */
 	public double computeIndexColumnWidth() {
 		// need this weird method to get 9s as 9 is a wide char (font is not always proportional)
-		int s = getMaxIndex();
-		int i = Util.decMin1(s);
-		return computeFontWidth(APP.ui.getFont().get(), i + ".") + 5;
+		var s = getMaxIndex();
+		var i = Util.decMin1(s);
+		var font = getFontOrNull(columnIndex);
+		return font == null ? 50 : computeTextWidth(font, i + ".") + 5;
 	}
 
 	/** Returns vertical scrollbar width or 0 if not visible. */

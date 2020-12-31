@@ -182,9 +182,10 @@ open class GridFileThumbCell: GridCell<Item, File>() {
             val y = 0.0
             val w = width
             val h = height
+            val nameGap = 5.emScaled
             val th = computeCellTextHeight()
             thumb!!.pane.resizeRelocate(x, y, w, h - th)
-            name.resizeRelocate(x, h - th, w, th)
+            name.resizeRelocate(x + nameGap, h - th, w-2*nameGap, th)
             r.x = x
             r.y = y
             r.width = w

@@ -208,7 +208,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 					LoadErrorController c = new LoadErrorController(this);
 					root = c.loadFirstTime();
 					controller = c;
-					LOGGER.error("Widget={} graphics creation failed.", factory.getId(), e);
+					if (LOGGER.isErrorEnabled()) LOGGER.error(logName() + " graphics creation failed.", e);
 				}
 			}
 		}
@@ -224,16 +224,16 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 		restoreDefaultConfigs();
 
 		var cc = (Class<Controller>) factory.getControllerType();
-		LOGGER.info("Instantiating widget controller " + cc);
+		LOGGER.info("Instantiating " + logName() + " controller " + cc);
 
 		try {
 			Constructor<Controller> ccc = cc.getDeclaredConstructor(Widget.class);
-			LOGGER.debug("Instantiating widget controller using 1 arg constructor");
+			LOGGER.debug("Instantiating " + logName() + " controller using 1 arg constructor");
 			return ccc.newInstance(this);
 		} catch (NoSuchMethodException e) {
 			return null;
 		} catch (IllegalAccessException|InstantiationException|InvocationTargetException e) {
-			LOGGER.error("Instantiating widget controller failed {}", cc, e);
+			LOGGER.error("Instantiating " + logName() + " controller failed {}", cc, e);
 			return null;
 		}
 	}
@@ -256,7 +256,7 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 
 	@Override
 	public void close() {
-		LOGGER.info("Widget=" + factory.getId() + " closing");
+		LOGGER.info(logName() + " closing");
 		super.close();
 
 		if (controller!=null) {
@@ -375,6 +375,10 @@ public final class Widget extends Component implements Configurable<Object>, Loc
 	}
 
 /******************************************************************************/
+
+	public String logName() {
+		return "Widget(name=" + custom_name.getValue() + ", factory=" + factory.getId() + ")";
+	}
 
 	@Override
 	public String toString() {

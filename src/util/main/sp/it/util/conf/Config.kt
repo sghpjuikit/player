@@ -1,5 +1,6 @@
 package sp.it.util.conf
 
+import java.util.function.Supplier
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
@@ -9,7 +10,6 @@ import sp.it.util.access.OrV
 import sp.it.util.access.vAlways
 import sp.it.util.access.vx
 import sp.it.util.conf.Constraint.NoPersist
-import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.ValueSet
 import sp.it.util.dev.Experimental
@@ -29,7 +29,6 @@ import sp.it.util.type.jvmErasure
 import sp.it.util.type.rawJ
 import sp.it.util.type.type
 import sp.it.util.type.typeResolved
-import java.util.function.Supplier
 
 private typealias Enumerator<T> = Supplier<Collection<T>>
 
@@ -67,7 +66,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    /** Name of this config. */
    abstract val type: VType<T>
 
-   fun isNotEditableRightNow() = constraints.asSequence().any { it is ReadOnlyIf && it.condition.value }
+   fun isNotEditableRightNow() = constraints.any { it is ReadOnlyIf && it.condition.value }
 
    fun isEditableByUserRightNow() = isEditable.isByUser && !isNotEditableRightNow()
 
@@ -100,7 +99,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    @Experimental("Expert API, mutates state")
    fun addConstraints(constraints: Collection<Constraint<T>>): Config<T> = addConstraints(*constraints.toTypedArray())
 
-   inline fun <reified T> hasConstraint(): Boolean = findConstraints<T>().firstOrNull() != null
+   inline fun <reified T> hasConstraint(): Boolean = findConstraints<T>().firstOrNull()!=null
 
    inline fun <reified T> findConstraint(): T? = findConstraints<T>().firstOrNull()
 
@@ -137,6 +136,13 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
                Enumerator { getEnumConstants<T>(type.rawJ).toList() + (null as T) }
             } else {
                Enumerator { getEnumConstants<T>(type.rawJ).toList() }
+            }
+         }
+         ?: if (!type.jvmErasure.isSealed) null else {
+            if (type.isNullable) {
+               Enumerator { type.jvmErasure.sealedSubclasses.mapNotNull { it.objectInstance as T? } + (null as T) }
+            } else {
+               Enumerator { type.jvmErasure.sealedSubclasses.mapNotNull { it.objectInstance as T? } }
             }
          }
    }

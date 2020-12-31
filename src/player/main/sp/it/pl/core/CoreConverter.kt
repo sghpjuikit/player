@@ -135,7 +135,11 @@ class CoreConverter: Core {
          is Feature -> o.name
          is JsValue -> o.toCompactS()
          is Throwable -> o.localizedMessage
-         else -> if (isEnum(o::class.java)) enumToHuman(o as Enum<*>) else general.toS(o)
+         else -> when {
+            isEnum(o::class.java) -> enumToHuman(o as Enum<*>)
+            o::class.objectInstance!=null -> enumToHuman(o::class.simpleName)
+            else -> general.toS(o)
+         }
       }
    }
    private val fx = ConverterFX()

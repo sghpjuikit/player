@@ -267,8 +267,8 @@ class GameView(widget: Widget): SimpleController(widget) {
    private fun applyCellSize(width: Double = gridCellSize.value.width, height: Double = gridCellSize.value.width/gridCellSizeRatio.value.ratio) {
       grid.cellWidth.value = width.emScaled
       grid.cellHeight.value = height.emScaled + cellTextHeight.value
-      grid.horizontalCellSpacing.value = 10.emScaled
-      grid.verticalCellSpacing.value = 10.emScaled
+      grid.horizontalCellSpacing.value = 15.emScaled
+      grid.verticalCellSpacing.value = 15.emScaled
       grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.value, it.valType) }
    }
 

@@ -148,7 +148,7 @@ import sp.it.util.units.times
 )
 class GameView(widget: Widget): SimpleController(widget) {
 
-   private val cellTextHeight = APP.ui.font.map(onClose) { 20.0.emScaled }.apply {
+   private val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
       attach { applyCellSize() }
    }
 

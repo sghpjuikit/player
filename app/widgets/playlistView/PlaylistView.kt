@@ -1,6 +1,5 @@
 package playlistView
 
-import javafx.geometry.NodeOrientation.INHERIT
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton.PRIMARY
@@ -31,7 +30,6 @@ import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.table.PlaylistTable
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
-import sp.it.util.access.OrV
 import sp.it.util.access.toggle
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
@@ -64,6 +62,9 @@ import sp.it.util.units.year
 import java.io.File
 import java.util.UUID
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.conf.cOr
+import sp.it.util.conf.defInherit
 
 class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
@@ -72,16 +73,16 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
    private var outputSelected = io.o.create<PlaylistSong>("Selected", null)
    private var outputPlaying = io.o.create<PlaylistSong>("Playing", null)
 
-   val tableOrient by cv(INHERIT) { OrV(APP.ui.tableOrient) }
-      .def(name = "Table orientation", info = "Orientation of the table.")
-   val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
-      .def(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-   val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
-      .def(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-   val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
-      .def(name = "Show table header", info = "Show table header with columns.")
-   val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-      .def(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+   val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)
+      .defInherit(APP.ui::tableOrient)
+   val tableZeropad by cOr(APP.ui::tableZeropad, Inherit(), onClose)
+      .defInherit(APP.ui::tableZeropad)
+   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, Inherit(), onClose)
+      .defInherit(APP.ui::tableOrigIndex)
+   val tableShowHeader by cOr(APP.ui::tableShowHeader, Inherit(), onClose)
+      .defInherit(APP.ui::tableShowHeader)
+   val tableShowFooter by cOr(APP.ui::tableShowFooter, Inherit(), onClose)
+      .defInherit(APP.ui::tableShowFooter)
    val scrollToPlaying by cv(true)
       .def(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
    val playVisible by cv(false)

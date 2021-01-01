@@ -36,19 +36,42 @@ import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaMethod
 import kotlin.properties.ReadOnlyProperty as RoProperty
 import kotlin.properties.ReadWriteProperty as RwProperty
+import javafx.beans.property.Property
+import sp.it.util.access.OrV
+import sp.it.util.access.OrV.OrValue
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.reactive.Unsubscriber
+import sp.it.util.reactive.on
 
+/** Non-observable non-null configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).nonNull()
+/** Non-observable nullable configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
+/** Writable observable non-null configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).nonNull()
-fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueSupplier: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueSupplier).nonNull()
-fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueSupplier: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueSupplier).nonNull()
+/** Writable observable non-null configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfig]. */
+fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueFactory: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueFactory).nonNull()
+/** Read-only observable non-null configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfigRO]. */
+fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueFactory: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueFactory).nonNull()
+/** Writable observable nullable configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
-fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueSupplier: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueSupplier)
-fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueSupplier: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueSupplier)
+/** Writable observable nullable configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfig]. */
+fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueFactory: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueFactory)
+/** Read-only observable nullable configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfigRO]. */
+fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueFactory: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueFactory)
+/** Configurable action. Backed by [Action]. */
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
+/** Inheritable observable non-null configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
+fun <T: Any> cOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue) on unsubscriber }.nonNull()
+/** Inheritable observable nullable configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
+fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue) on unsubscriber }
+/** Observable reified configurable list. Backed by [ListConfig]. */
 inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems))).nonNull()
+/** Observable reified configurable list. Backed by [ListConfig]. */
 inline fun <reified T: Any?> cList(noinline itemFactory: () -> T, noinline itemToConfigurable: (T) -> Configurable<*>, vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), itemFactory, itemToConfigurable, *initialItems)).nonNull()
+/** Observable reified configurable checked list. Backed by [CheckListConfig]. */
 inline fun <reified T: Any?> cCheckList(vararg initialItems: T): ConfCheckL<T, Boolean> = ConfCheckL(CheckList.nonNull(type(), initialItems.toList())).nonNull()
+/** Observable reified configurable checked list. Backed by [CheckListConfig]. */
 inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T, S>): ConfCheckL<T, S> = ConfCheckL(checkList).nonNull()
 
 /** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
@@ -346,23 +369,23 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
 
 class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
    private val initialValue: T
-   private var v: (T) -> W
+   private var vFactory: (T) -> W
 
    constructor(initialValue: T, valueSupplier: (T) -> W): super() {
       this.initialValue = initialValue
-      this.v = valueSupplier
+      this.vFactory = valueSupplier
    }
 
    /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
    infix fun attach(block: (T) -> Unit) = apply {
-      val s = v
-      v = { s(it).apply { asIf<ObservableValue<T>>()?.attach(block) } }
+      val s = vFactory
+      vFactory = { s(it).apply { asIf<ObservableValue<T>>()?.attach(block) } }
    }
 
    /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
    infix fun sync(block: (T) -> Unit) = apply {
-      val s = v
-      v = { s(it).apply { asIf<ObservableValue<T>>()?.sync(block) } }
+      val s = vFactory
+      vFactory = { s(it).apply { asIf<ObservableValue<T>>()?.sync(block) } }
    }
 
    override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
@@ -378,7 +401,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<Conf
       ref.configurableValueSource.initialize(c)
       validateValue(c.value)
 
-      return object: PropertyConfig<T>(type, property.name, info, constraints, v(c.value), initialValue, group), RoProperty<ConfigDelegator, W> {
+      return object: PropertyConfig<T>(type, property.name, info, constraints, vFactory(c.value), initialValue, group), RoProperty<ConfigDelegator, W> {
          @Suppress("UNCHECKED_CAST")
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
@@ -422,6 +445,46 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
       validateValue(c.value)
 
       return object: PropertyConfigRO<T>(type, property.name, info, constraints, v(c.value), group), RoProperty<ConfigDelegator, W> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W
+      }.registerConfig(ref)
+   }
+
+}
+
+class ConfVOr<T: Any?, W: OrV<T>>: Conf<T>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
+   private var vFactory: () -> W
+
+   constructor(valueSupplier: () -> W): super() {
+      this.vFactory = valueSupplier
+   }
+
+   /** Invokes [attach] with the specified block on the observable value that will be created and returns this. */
+   infix fun attach(block: (T) -> Unit) = apply {
+      val s = vFactory
+      vFactory = { s().apply { asIf<ObservableValue<T>>()?.attach(block) } }
+   }
+
+   /** Invokes [sync] with the specified block on the observable value that will be created and returns this. */
+   infix fun sync(block: (T) -> Unit) = apply {
+      val s = vFactory
+      vFactory = { s().apply { asIf<ObservableValue<T>>()?.sync(block) } }
+   }
+
+   override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
+      property.makeAccessible()
+      val info = property.obtainConfigMetadata()
+      val type = VType<T>(property.returnType.argOf(WritableValue::class, 0).typeResolved)
+      val group = info.computeConfigGroup(ref)
+
+      val isFinal = property !is KMutableProperty
+      failIf(!isFinal) { "Property must be immutable" }
+
+      return object: OrPropertyConfig<T>(type, property.name, info, constraints.asIs(), vFactory(), group), RoProperty<ConfigDelegator, W> {
+         init {
+            ref.configurableValueSource.initialize(this)
+            validateValue(this.value.value)
+         }
+         @Suppress("UNCHECKED_CAST")
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W
       }.registerConfig(ref)
    }

@@ -685,6 +685,11 @@ Features:
             override val editable = EditMode.USER
          }
       }
+      object `list` {
+         /** Name of the group. */
+         const val name = "List"
+
+      }
       object `table` {
          /** Name of the group. */
          const val name = "Table"
@@ -753,13 +758,66 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         object `showTableControls`: ConfigDefinition {
+         object `showTableFooter`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
-            const val cname: String = """Show table controls"""
+            const val cname: String = """Show table footer"""
             /** Compile-time constant equivalent to [info]. */
             const val cinfo: String = """Show table controls at the bottom of the table. Displays menu bar and table content information."""
             /** Compile-time constant equivalent to [group]. */
             const val cgroup: String = """Ui.Table"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+      }
+      object `grid` {
+         /** Name of the group. */
+         const val name = "Grid"
+
+         object `cellAlignment`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Cell alignment"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Determines horizontal alignment of the grid cells within the grid."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Grid"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         object `showGridHeader`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Show grid header"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Show grid header with columns"""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Grid"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         object `showGridFooter`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Show grid footer"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Show grid controls at the bottom of the table. Displays menu bar and table content information."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Grid"""
             /** Name of the config. */
             override val name = cname
             /** Group of the config. */

@@ -1,5 +1,7 @@
 package albumView
 
+import java.io.File
+import java.util.function.Supplier
 import javafx.geometry.Pos
 import javafx.scene.Parent
 import javafx.scene.control.Label
@@ -11,6 +13,8 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Pane
 import javafx.scene.shape.Rectangle
+import kotlin.math.round
+import kotlin.streams.toList
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.ALBUM
@@ -26,11 +30,12 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
+import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.grid.GridView.CellSize
 import sp.it.pl.ui.objects.image.Cover.CoverSource.DIRECTORY
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.util.JavaLegacy
-import sp.it.util.access.OrV
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
@@ -49,8 +54,10 @@ import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
+import sp.it.util.conf.cOr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.defInherit
 import sp.it.util.conf.noUi
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.ThreadSafe
@@ -85,10 +92,6 @@ import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
-import java.io.File
-import java.util.function.Supplier
-import kotlin.math.round
-import kotlin.streams.toList
 
 @Widget.Info(
    author = "Martin Polakovic",
@@ -104,8 +107,10 @@ class AlbumView(widget: Widget): SimpleController(widget) {
    val outputSelectedM = io.o.create<List<Metadata>>("Selected", listOf())
    val inputSongs = io.i.create<List<Metadata>>("To display") { setItems(it) }
 
-   val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-      .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, Inherit(), onClose)
+      .defInherit(APP.ui::gridShowFooter)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+      .defInherit(APP.ui::gridCellAlignment)
    val cellSize by cv(CellSize.NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
@@ -126,6 +131,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
       grid.search.field = VALUE
       grid.filterPrimaryField = VALUE
       grid.cellFactory.value = { AlbumCell() }
+      grid.cellAlign syncFrom gridCellAlignment on onClose
       grid.footerVisible syncFrom gridShowFooter on onClose
       grid.selectedItem attach {
          outputSelected.value = it?.items
@@ -232,6 +238,7 @@ class AlbumView(widget: Widget): SimpleController(widget) {
    // changes, we select all items (previously selected) that are still in the table
    private var selIgnore = false
    private var selOld = setOf<Any?>()
+
    // restoring selection from previous session, we serialize string representation and try to restore when application runs again we restore only once
    private var selLast by c("null").noUi().def(name = "Last selected", editable = EditMode.APP)
    private var selLastRestored = false

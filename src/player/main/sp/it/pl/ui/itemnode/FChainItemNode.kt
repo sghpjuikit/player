@@ -52,6 +52,7 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
    private var handleNullIn = NullIn.NULL
    private var handleNullOut = NullOut.NULL
 
+   @Suppress("UNUSED_ANONYMOUS_PARAMETER")
    constructor(functorPool: (VType<*>) -> PrefList<PF<*, *>>): super(throwingF()) {
       this.functorPool = functorPool
       chainedFactory = Callback { i ->

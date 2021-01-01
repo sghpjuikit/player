@@ -1,6 +1,5 @@
 package library
 
-import javafx.geometry.NodeOrientation
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
@@ -37,14 +36,12 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cn
-import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.only
@@ -73,6 +70,9 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.conf.cOr
+import sp.it.util.conf.defInherit
 
 @Info(
    author = "Martin Polakovic",
@@ -102,16 +102,16 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
    private val outputSelected = io.o.create<Metadata>("Selected", null)
    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
-   val tableOrient by cv(NodeOrientation.INHERIT) { OrV(APP.ui.tableOrient) }
-      .def(name = "Table orientation", info = "Orientation of the table.")
-   val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
-      .def(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-   val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
-      .def(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-   val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
-      .def(name = "Show table header", info = "Show table header with columns.")
-   val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-      .def(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+   val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)
+      .defInherit(APP.ui::tableOrient)
+   val tableZeropad by cOr(APP.ui::tableZeropad, Inherit(), onClose)
+      .defInherit(APP.ui::tableZeropad)
+   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, Inherit(), onClose)
+      .defInherit(APP.ui::tableOrigIndex)
+   val tableShowHeader by cOr(APP.ui::tableShowHeader, Inherit(), onClose)
+      .defInherit(APP.ui::tableShowHeader)
+   val tableShowFooter by cOr(APP.ui::tableShowFooter, Inherit(), onClose)
+      .defInherit(APP.ui::tableShowFooter)
    private var lastAddFilesLocation by cn<File>(APP.location.user).noUi()
       .def(name = "Last add songs browse location", editable = EditMode.APP)
    private var lastAddDirLocation by cn<File>(APP.location.user).only(DIRECTORY).noUi()

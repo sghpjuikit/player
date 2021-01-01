@@ -39,7 +39,6 @@ import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.ui.objects.placeholder.show
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.Util.enumToHuman
-import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggleNext
@@ -111,7 +110,11 @@ import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.round
 import sp.it.pl.main.Events.FileEvent
+import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.conf.cOr
 import sp.it.util.conf.cr
+import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIs
 import sp.it.util.system.recycle
 import sp.it.util.text.keys
@@ -146,8 +149,10 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    private var filesMaterialized = files.materialize()
    private val filesEmpty = v(true).apply { files.onChangeAndNow { value = files.isEmpty() } }
 
-   val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-      .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, Inherit(), onClose)
+      .defInherit(APP.ui::gridShowFooter)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+      .defInherit(APP.ui::gridCellAlignment)
    val cellSize by cv(NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
@@ -192,6 +197,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       grid.search.field = FileField.PATH
       grid.filterPrimaryField = FileField.NAME_FULL
       grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } }
+      grid.cellAlign syncFrom gridCellAlignment on onClose
       grid.footerVisible syncFrom gridShowFooter on onClose
       grid.skinProperty() attach {
          it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {

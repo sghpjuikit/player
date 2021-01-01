@@ -34,7 +34,6 @@ import sp.it.pl.ui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.ui.nodeinfo.GridInfo;
 import sp.it.pl.ui.nodeinfo.TableInfo;
-import sp.it.pl.ui.objects.grid.GridView.CellGap;
 import sp.it.pl.ui.objects.grid.GridView.Search;
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.ui.objects.icon.Icon;
@@ -134,7 +133,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		attach(grid.getCellFactory(), e -> flow.disposeAndRebuildCells());
 		attach(grid.getCellHeight(), e -> flow.rebuildCells());
 		attach(grid.getCellWidth(), e -> flow.rebuildCells());
-		attach(grid.getCellGap(), e -> flow.rebuildCells());
+		attach(grid.getCellAlign(), e -> flow.rebuildCells());
 		attach(grid.getCellMaxColumns(), e -> flow.rebuildCells());
 		attach(grid.getHorizontalCellSpacing(), e -> flow.rebuildCells());
 		attach(grid.getVerticalCellSpacing(), e -> flow.rebuildCells());
@@ -613,20 +612,22 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			int itemCount = visibleCells.size();
 			if (itemCount>0) {
 				// update cells
-				double cellWidth = getSkinnable().getCellWidth().getValue();
-				double cellHeight = getSkinnable().getCellHeight().getValue();
+				var grid = getSkinnable();
+				double cellWidth = grid.getCellWidth().getValue();
+				double cellHeight = grid.getCellHeight().getValue();
 				int columns = computeMaxCellsInRow();
-				double vGap = getSkinnable().getVerticalCellSpacing().getValue();
-				double hGap = getSkinnable().getCellGap().getValue()==CellGap.ABSOLUTE ? getSkinnable().getHorizontalCellSpacing().getValue() :  (w - columns*cellWidth)/(columns + 1);
+				double vGap = grid.getVerticalCellSpacing().getValue();
+				double hGap = grid.getCellAlign().getValue().computeGap(grid, w, columns);
 				double cellGapHeight = cellHeight + vGap;
 				double cellGapWidth = cellWidth + hGap;
 				double viewStartY = viewStart;
 				int viewStartRI = computeMinVisibleRowIndex();
 				int rowCount = computeVisibleRowCount();
 				int i = 0;
+				double xPosInitial = grid.getCellAlign().getValue().computeStartX(grid, w, columns);
 				for (int rowI = viewStartRI; rowI<viewStartRI + rowCount; rowI++) {
 					double rowStartY = rowI*cellGapHeight;
-					double xPos = 0;
+					double xPos = xPosInitial;
 					double yPos = rowStartY - viewStartY;
 					for (int cellI = rowI*columns; cellI<(rowI + 1)*columns; cellI++, i++) {
 						if (i>=itemCount) break;	// last row may not be full
@@ -637,7 +638,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 						failIf(cell.getIndex()!=cellI);
 						failIf(item==null);
 
-						cell.resizeRelocate(snapPositionX(xPos + hGap), snapPositionY(yPos + vGap), snapSizeX(cellWidth), snapSizeY(cellHeight));
+						cell.resizeRelocate(snapPositionX(xPos), snapPositionY(yPos), snapSizeX(cellWidth), snapSizeY(cellHeight));
 						cell.update(cellI, item, cellI==skin.selectedCI);
 
 						xPos += cellGapWidth;

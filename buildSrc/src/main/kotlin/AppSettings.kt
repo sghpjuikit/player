@@ -153,6 +153,7 @@ val appSetting = Setting.root {
             info = "Preferred hover scale animation duration for thumbnails."
          }
       }
+      "List" {}
       "Table" {
          config("Table orientation") {
             info = "Orientation of the table"
@@ -166,8 +167,16 @@ val appSetting = Setting.root {
          config("Show table header") {
             info = "Show table header with columns"
          }
-         config("Show table controls") {
+         config("Show table footer") {
             info = "Show table controls at the bottom of the table. Displays menu bar and table content information."
+         }
+      }
+      "Grid" {
+         config("Cell alignment") {
+            info = "Determines horizontal alignment of the grid cells within the grid."
+         }
+         config("Show grid footer") {
+            info = "Show grid controls at the bottom of the table. Displays menu bar and table content information."
          }
       }
       "Tabs" {

@@ -34,7 +34,7 @@ import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
-import sp.it.util.conf.OrPropertyConfig.OrValue
+import sp.it.util.access.OrV.OrValue
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.functional.asIs

@@ -13,7 +13,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.ConfigImpl.ConfigBase
 import sp.it.util.conf.Constraint.ReadOnlyIf
-import sp.it.util.conf.OrPropertyConfig.OrValue
+import sp.it.util.access.OrV.OrValue
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.file.properties.PropVal
@@ -229,7 +229,7 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
       )
       set(v) {
          val s = v.valN
-         if (s.size!=2) {
+         if (s.size==2) {
             Parsers.DEFAULT.ofS<Boolean>(s[0])
                .ifOk { property.override.value = it }
                .ifError { logger.warn(it) { "Unable to set config=$name override value (Boolean.class) from text='${s[0]}'" } }
@@ -240,10 +240,7 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
             logger.warn { "Unable to set config=$name value from property='$s', must have 2 values" }
          }
       }
-
-   data class OrValue<T>(val override: Boolean, val value: T)
 }
-
 
 @Suppress("UNCHECKED_CAST")
 open class ListConfig<T>(

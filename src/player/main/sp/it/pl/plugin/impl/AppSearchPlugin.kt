@@ -30,14 +30,12 @@ import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
-import sp.it.pl.ui.objects.grid.GridView.CellGap.ABSOLUTE
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.KEY_PRESS
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.util.Sort
-import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
@@ -88,6 +86,10 @@ import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
+import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.conf.cOr
+import sp.it.util.conf.defInherit
 
 class AppSearchPlugin: PluginBase() {
 
@@ -240,8 +242,10 @@ class AppSearchPlugin: PluginBase() {
          attach { applyCellSize() }
       }
 
-      val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-         .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
+      val gridShowFooter by cOr(APP.ui::gridShowFooter, Inherit(), onClose)
+         .defInherit(APP.ui::gridShowFooter)
+      val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+         .defInherit(APP.ui::gridCellAlignment)
       var closeOnProgramOpened by c(false)
          .def(name = "Close on launch", info = "Close this widget when it launches a program.")
       var closeOnRightClick by c(false)
@@ -256,10 +260,10 @@ class AppSearchPlugin: PluginBase() {
          grid.filterPrimaryField = FileField.PATH
          grid.selectOn setTo listOf(KEY_PRESS, MOUSE_CLICK, MOUSE_HOVER)
          grid.cellFactory.value = { Cell() }
+         grid.cellAlign syncFrom gridCellAlignment on onClose
          grid.footerVisible syncFrom gridShowFooter on onClose
          root.lay += grid
 
-         grid.cellGap.value = ABSOLUTE
          grid.onEventDown(KEY_PRESSED, ENTER, false) { e ->
             grid.selectedItem.value?.let {
                doubleClickItem(it)

@@ -78,6 +78,8 @@ import javafx.stage.Window as WindowFX
 import sp.it.pl.main.AppSettings.ui as confUi
 import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.table as confTable
+import sp.it.pl.main.AppSettings.ui.grid as confGrid
+import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.util.units.em
 
 class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
@@ -142,7 +144,10 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    val tableZeropad by cv(false) def confTable.zeropadNumbers
    val tableOrigIndex by cv(false) def confTable.searchShowOriginalIndex
    val tableShowHeader by cv(true) def confTable.showTableHeader
-   val tableShowFooter by cv(true) def confTable.showTableControls
+   val tableShowFooter by cv(true) def confTable.showTableFooter
+
+   val gridCellAlignment by cv<CellGap>(CellGap.CENTER) def confGrid.cellAlignment
+   val gridShowFooter by cv(true) def confGrid.showGridFooter
 
    val thumbnailAnimDur by cv(100.millis) def confImage.thumbnailAnimDuration
 

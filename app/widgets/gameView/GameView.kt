@@ -6,8 +6,8 @@ import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.net.URI
 import javafx.geometry.Insets
-import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.TOP_CENTER
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.Node
@@ -48,6 +48,7 @@ import sp.it.pl.main.onErrorNotify
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
+import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.grid.GridView.CellSize
 import sp.it.pl.ui.objects.grid.GridViewSkin
 import sp.it.pl.ui.objects.hierarchy.Item
@@ -61,7 +62,8 @@ import sp.it.pl.ui.objects.tree.initTreeView
 import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
-import sp.it.util.access.OrV
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.minus
@@ -76,9 +78,11 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
+import sp.it.util.conf.cOr
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.defInherit
 import sp.it.util.conf.only
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIf
@@ -152,8 +156,10 @@ class GameView(widget: Widget): SimpleController(widget) {
       attach { applyCellSize() }
    }
 
-   val gridShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-      .def(name = "Show grid footer", info = "Show grid controls at the bottom of the grid. Displays menu bar and grid content information.")
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
+      .defInherit(APP.ui::gridShowFooter)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+      .defInherit(APP.ui::gridCellAlignment)
    val gridCellSize by cv(CellSize.NORMAL)
       .def(name = "Thumbnail size", info = "Size of the thumbnail.").uiNoOrder() attach { applyCellSize() }
    val gridCellSizeRatio by cv(Resolution.R_1x1)
@@ -183,6 +189,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          filterPrimaryField = FileField.NAME_FULL
          cellFactory.value = { Cell() }
          selectOn setTo GridView.SelectionOn.values()
+         cellAlign syncFrom gridCellAlignment on onClose
          footerVisible syncFrom gridShowFooter on onClose
          grid.skinProperty() attach {
             it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {

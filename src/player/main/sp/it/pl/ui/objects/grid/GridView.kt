@@ -1,5 +1,7 @@
 package sp.it.pl.ui.objects.grid
 
+import java.util.Comparator
+import java.util.function.Predicate
 import javafx.beans.property.ObjectProperty
 import javafx.collections.FXCollections
 import javafx.collections.FXCollections.observableSet
@@ -12,7 +14,9 @@ import javafx.css.StyleConverter
 import javafx.event.Event.ANY
 import javafx.event.EventHandler
 import javafx.scene.control.Control
-import sp.it.pl.ui.objects.grid.GridView.CellGap.RELATIVE
+import kotlin.reflect.KClass
+import kotlin.streams.asSequence
+import sp.it.pl.ui.objects.grid.GridView.CellGap.JUSTIFY
 import sp.it.pl.ui.objects.grid.GridView.Companion.StyleableProperties.CELL_HEIGHT
 import sp.it.pl.ui.objects.grid.GridView.Companion.StyleableProperties.CELL_WIDTH
 import sp.it.pl.ui.objects.grid.GridView.Companion.StyleableProperties.HORIZONTAL_CELL_SPACING
@@ -25,10 +29,6 @@ import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.asIs
 import sp.it.util.math.P
 import sp.it.util.reactive.onChange
-import java.util.Comparator
-import java.util.function.Predicate
-import kotlin.reflect.KClass
-import kotlin.streams.asSequence
 
 /**
  * Two-dimensional virtualized control for displaying items in a two-dimensional grid.
@@ -100,8 +100,9 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    private val isCellWidthSetProgrammatically = false
    val cellHeight = SimpleStyleableDoubleProperty(CELL_HEIGHT, this, "cellHeight", 64.0)
    private val isCellHeightSetProgrammatically = false
-   /** Cell gap layout strategy. Default [RELATIVE]. */
-   val cellGap = V(RELATIVE)
+
+   /** Cell gap layout strategy. Default [JUSTIFY]. */
+   val cellAlign = V<CellGap>(CellGap.CENTER)
    /** Maximum number of cells in a horizontal row. Null indicates no limit. Default null. */
    val cellMaxColumns = V<Int?>(null)
    /** Cell factory responsible for creating cells, Null indicates to skin to use its own default factory.  Default null. */
@@ -143,17 +144,37 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    }
 
    /** Affects cell layout. */
-   enum class CellGap {
+   sealed class CellGap {
+      abstract fun computeGap(grid: GridView<*, *>, width: Double, columns: Int): Double
+      abstract fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int): Double
+
       /**
        * Will position cells at exact positions from the left. The gap will be constant, but the cells will not be
        * horizontally center aligned.
        */
-      ABSOLUTE,
+      object CENTER: CellGap() {
+         override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
+         override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = RIGHT.computeStartX(grid, width, columns)/2.0
+      }
+
+      object LEFT: CellGap() {
+         override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
+         override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = 0.0
+      }
+
+      object RIGHT: CellGap() {
+         override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
+         override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = width - columns*grid.cellWidth.value - (columns - 1)*grid.verticalCellSpacing.value
+      }
+
       /**
        * The cells will be horizontally center aligned, but the gap size will change depending on
        * the total row width and number of cells in a row.
        */
-      RELATIVE,
+      object JUSTIFY: CellGap() {
+         override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = (width - columns*grid.cellWidth.value)/(columns - 1)
+         override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = 0.0
+      }
    }
 
    inner class Search: SearchAutoCancelable() {
@@ -201,11 +222,11 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
       const val STYLE_CLASS = "grid-view"
 
       /** Creates an empty GridView with specified sizes. */
-      inline operator fun <T: Any, reified F: Any> invoke(filterMapper: F1<T, F>, backingList: ObservableList<T>? = null): GridView<T,F> =
+      inline operator fun <T: Any, reified F: Any> invoke(filterMapper: F1<T, F>, backingList: ObservableList<T>? = null): GridView<T, F> =
          GridView(F::class, filterMapper, backingList ?: FXCollections.observableArrayList())
 
       /** Creates an empty GridView with specified sizes. Convenience constructor. */
-      inline operator fun <T: Any, reified F: Any> invoke(filterMapper: F1<T, F>, cellSize: P, gap: P, backingList: ObservableList<T>? = null): GridView<T,F> =
+      inline operator fun <T: Any, reified F: Any> invoke(filterMapper: F1<T, F>, cellSize: P, gap: P, backingList: ObservableList<T>? = null): GridView<T, F> =
          GridView(filterMapper, backingList).apply {
             this.cellWidth.value = cellSize.x
             this.cellHeight.value = cellSize.y

@@ -1,6 +1,5 @@
 package libraryView
 
-import javafx.geometry.NodeOrientation
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Menu
@@ -46,7 +45,6 @@ import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.ImprovedTableRow
-import sp.it.util.access.OrV
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.executor.EventReducer
@@ -86,6 +84,9 @@ import kotlin.streams.toList
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.conf.cOr
+import sp.it.util.conf.defInherit
 
 private typealias Metadatas = List<Metadata>
 private typealias MetadataGroups = List<MetadataGroup>
@@ -119,16 +120,16 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    private val outputSelectedGroup = io.o.create("Selected", listOf<MetadataGroup>())
    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
 
-   val tableOrient by cv(NodeOrientation.INHERIT) { OrV(APP.ui.tableOrient) }
-      .def(name = "Table orientation", info = "Orientation of the table.")
-   val tableZeropad by cv(true) { OrV(APP.ui.tableZeropad) }
-      .def(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-   val tableOrigIndex by cv(true) { OrV(APP.ui.tableOrigIndex) }
-      .def(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-   val tableShowHeader by cv(true) { OrV(APP.ui.tableShowHeader) }
-      .def(name = "Show table header", info = "Show table header with columns.")
-   val tableShowFooter by cv(true) { OrV(APP.ui.tableShowFooter) }
-      .def(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menu bar and table content information.")
+   val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)
+      .defInherit(APP.ui::tableOrient)
+   val tableZeropad by cOr(APP.ui::tableZeropad, Inherit(), onClose)
+      .defInherit(APP.ui::tableZeropad)
+   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, Inherit(), onClose)
+      .defInherit(APP.ui::tableOrigIndex)
+   val tableShowHeader by cOr(APP.ui::tableShowHeader, Inherit(), onClose)
+      .defInherit(APP.ui::tableShowHeader)
+   val tableShowFooter by cOr(APP.ui::tableShowFooter, Inherit(), onClose)
+      .defInherit(APP.ui::tableShowFooter)
    val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.all.filter { it.isTypeStringRepresentable() })
       .def(name = "Field", info = "Field by which the table groups the songs") attach {
          applyData()

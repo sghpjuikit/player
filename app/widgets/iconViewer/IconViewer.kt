@@ -54,15 +54,24 @@ import sp.it.util.ui.x2
 import sp.it.util.units.version
 import sp.it.util.units.year
 import kotlin.reflect.KClass
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.access.OrV.OrValue.Initial.Override
+import sp.it.util.conf.cOr
+import sp.it.util.conf.defInherit
 
 class IconViewer(widget: Widget): SimpleController(widget) {
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
+      .defInherit(APP.ui::gridShowFooter)
+   val gridCellAlignment by cOr<GridView.CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+      .defInherit(APP.ui::gridCellAlignment)
    val iconSize = 60.emScaled
    val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, iconSize.x2 + (0 x 30.emScaled), 5.emScaled.x2).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
       filterPrimaryField = IconField.NAME
       selectOn setTo listOf(MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS)
-      footerVisible syncFrom APP.ui.tableShowFooter on onClose
+      cellAlign syncFrom gridCellAlignment on onClose
+      footerVisible syncFrom gridShowFooter on onClose
       cellFactory.value = {
          object: GridCell<GlyphIcons, GlyphIcons>() {
 

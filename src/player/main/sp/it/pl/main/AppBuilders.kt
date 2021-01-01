@@ -51,7 +51,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.supplyIf
-import sp.it.util.reactive.DisposeOn
+import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.map
@@ -183,7 +183,7 @@ fun textColon(name: String, data: Any?): Node = when (data) {
    else -> text(name + ": " + data.toUi())
 }
 
-fun appProgressIcon(disposer: DisposeOn): Node {
+fun appProgressIcon(disposer: Unsubscriber): Node {
    var taskList: PopWindow? = null
    fun Node.toggleTaskList() {
       if (taskList==null) {

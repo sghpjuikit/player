@@ -1,6 +1,7 @@
 package sp.it.util.conf
 
 
+import javafx.beans.property.Property
 import sp.it.util.functional.toUnit
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.FIELD
@@ -8,6 +9,7 @@ import kotlin.annotation.AnnotationTarget.LOCAL_VARIABLE
 import kotlin.annotation.AnnotationTarget.PROPERTY
 import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
+import kotlin.reflect.KProperty0
 
 /**
  * [Config] metadata defining basic attributes.
@@ -48,6 +50,13 @@ fun <T: Any?, C: Conf<T>> C.def(
 ) = apply {
    def = ConfigDef(name, info, group, editable)
 }
+
+/** Sets parent's [ConfigDefinition] to define this value. Overrides [IsConfig] and previously set [Conf.def]. Parent must have delegate property [Config]. */
+fun <T: Any?, C: Conf<T>> C.defInherit(
+   parent: KProperty0<*>,
+   group: String = "",
+   editable: EditMode = EditMode.USER
+) = def(parent.getDelegateConfig().nameUi, parent.getDelegateConfig().info, group, editable)
 
 fun <T: () -> Any?> cr(def: ConfigDefinition, action: T) = cr { action().toUnit() }.def(def)
 

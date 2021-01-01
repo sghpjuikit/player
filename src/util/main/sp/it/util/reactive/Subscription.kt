@@ -2,9 +2,29 @@ package sp.it.util.reactive
 
 import sp.it.util.type.nullify
 
-interface Subscription {
-
+/** Object that requires any kind of disposal. Disposable. */
+interface Unsubscribable {
+   /** Disposes pf this unsubscribable. One-time and irreversible. */
    fun unsubscribe()
+}
+
+/**
+ * Sets this [Unsubscribable] to be [Unsubscribable.unsubscribe]d according to the specified [Unsubscriber].
+ * Equivalent to: `this.apply(disposer)`.
+ * Basically the `disposer.register(disposable)`.
+ * @return this
+ */
+infix fun <T: Unsubscribable> T.on(disposer: Unsubscriber) = apply(disposer)
+
+/**
+ * Lambda consuming [Unsubscribable], used for setting up calling [Unsubscribable.unsubscribe] in the future.
+ * Basically the `disposer.register(disposable)`.
+ */
+typealias Unsubscriber = (Unsubscribable) -> Unit
+
+interface Subscription: Unsubscribable {
+
+   override fun unsubscribe()
 
    companion object {
 
@@ -68,10 +88,6 @@ infix operator fun Subscription.plus(subscription: Subscription) = Subscription(
 /** @return subscription that unsubscribes this subscription and calls the specified block */
 infix operator fun Subscription.plus(subscription: () -> Unit) = Subscription(this, Subscription(subscription))
 
-/** Convenience method for adding this subscription to a disposer. Equivalent to: this.apply(disposerRegister) */
-infix fun Subscription.on(disposer: DisposeOn) = apply(disposer)
-
 /** @return this or empty subscription if null */
 fun Subscription?.orEmpty() = this ?: Subscription()
 
-typealias DisposeOn = (Subscription) -> Unit

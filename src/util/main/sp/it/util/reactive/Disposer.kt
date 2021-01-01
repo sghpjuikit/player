@@ -1,6 +1,6 @@
 package sp.it.util.reactive
 
-class Disposer: () -> Unit, (Subscription) -> Unit {
+class Disposer: () -> Unit, Unsubscriber {
 
    private val disposers = ArrayList<() -> Unit>()
 
@@ -11,7 +11,7 @@ class Disposer: () -> Unit, (Subscription) -> Unit {
       disposers.clear()
    }
 
-   override fun invoke(subscribtion: Subscription) {
+   override fun invoke(subscribtion: Unsubscribable) {
       this += subscribtion
    }
 
@@ -23,7 +23,7 @@ class Disposer: () -> Unit, (Subscription) -> Unit {
       disposers += disposer
    }
 
-   operator fun plusAssign(disposer: Subscription) {
+   operator fun plusAssign(disposer: Unsubscribable) {
       disposers += { disposer.unsubscribe() }
    }
 
@@ -32,7 +32,7 @@ class Disposer: () -> Unit, (Subscription) -> Unit {
    }
 
    @JvmName("plusAssignSubs")
-   operator fun plusAssign(disposers: Iterable<Subscription>) {
+   operator fun plusAssign(disposers: Iterable<Unsubscribable>) {
       disposers.forEach { this += it }
    }
 

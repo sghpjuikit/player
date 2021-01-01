@@ -25,24 +25,21 @@ import sp.it.util.identityHashCode
 import java.util.IdentityHashMap
 import java.util.function.Consumer
 
-interface DisposableObservableValue<O>: ObservableValue<O> {
-   fun unsubscribe()
-}
+interface UnsubscribableObservableValue<O>: ObservableValue<O>, Unsubscribable
 
 /**
  * Maps this observable value into one that contains values mapped from this, using the specified mapper.
  * The mapping is eager, so it happens on every change of this value.
  *
- * The returned observable is [DisposableObservableValue] to allow [DisposableObservableValue.unsubscribe], which stops
+ * The returned observable is [Unsubscribable] to allow [Unsubscribable.unsubscribe], which stops
  * the mapping relationship between this and the returned observable, allowing the returned observable (or/and this) to
  * be garbage collected.
  *
- * To avoid the need to call [DisposableObservableValue.unsubscribe], it is possible to supply own disposer, invoking
- * which will stop the mapping relationship. [DisposableObservableValue.unsubscribe] still works as expected.
+ * To avoid the need to manually call [Unsubscribable.unsubscribe], it is possible to supply the [Unsubscriber].
  *
  * @return mapped observable value
  */
-fun <T, O> ObservableValue<T>.map(disposer: DisposeOn = {}, mapper: (T) -> O) = object: DisposableObservableValue<O> {
+fun <T, O> ObservableValue<T>.map(disposer: Unsubscriber = {}, mapper: (T) -> O) = object: UnsubscribableObservableValue<O> {
    private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
    private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
    private var mv: O = mapper(this@map.value)
@@ -143,7 +140,7 @@ infix fun <O> ObservableValue<O>.attach(block: (O) -> Unit): Subscription {
 
 /** Sets a block to be fired on every value change. */
 @Experimental("Questionable API")
-fun <O> ObservableValue<O>.attach(disposer: DisposeOn, block: (O) -> Unit) = attach(block) on disposer
+fun <O> ObservableValue<O>.attach(disposer: Unsubscriber, block: (O) -> Unit) = attach(block) on disposer
 
 /** Sets the value of the specified observable to the this property on every value change. */
 infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription {

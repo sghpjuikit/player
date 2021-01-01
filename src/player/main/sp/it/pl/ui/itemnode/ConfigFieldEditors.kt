@@ -142,6 +142,7 @@ import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import java.io.File
 import kotlin.reflect.KClass
+import sp.it.util.access.OrV
 
 private val warnTooltip = appTooltip("Erroneous value")
 private val actTooltip = appTooltip("Run action")
@@ -202,7 +203,7 @@ class OrBoolCE(c: Config<Boolean?>): BoolCE(c) {
    }
 }
 
-class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrPropertyConfig.OrValue<T>>(c) {
+class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
    override val editor = FlowPane(5.0, 5.0)
    private val oCE = create(Config.forProperty<Boolean>("Override", c.property.override))
    private val vCE = create(Config.forProperty(c.valueType, "", c.property.real))
@@ -212,7 +213,7 @@ class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrPropertyConfig.OrValue<T>>
       editor.children.addAll(vCE.buildNode(), oCE.buildNode())
    }
 
-   override fun get(): Try<OrPropertyConfig.OrValue<T>, String> = oCE.get().and(vCE.get()).map { config.value }
+   override fun get(): Try<OrV.OrValue<T>, String> = oCE.get().and(vCE.get()).map { config.value }
 
    override fun refreshValue() {
       oCE.refreshValue()

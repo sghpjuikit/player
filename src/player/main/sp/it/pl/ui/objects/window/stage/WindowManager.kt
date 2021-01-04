@@ -1,6 +1,5 @@
 package sp.it.pl.ui.objects.window.stage
 
-import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
@@ -8,7 +7,6 @@ import javafx.scene.Scene
 import javafx.scene.image.Image
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.layout.Region
@@ -92,14 +90,19 @@ import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import sp.it.util.units.minus
 import java.io.File
 import java.util.HashSet
 import javafx.stage.Window as WindowFX
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
-import sp.it.pl.main.Ui
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyEvent.KEY_RELEASED
+import kotlin.math.sqrt
 import sp.it.pl.main.Ui.ICON_CLOSE
+import sp.it.util.async.runFX
+import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.syncWhileTrue
+import sp.it.util.ui.containsScreen
 
 class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
@@ -321,42 +324,30 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
          // auto-hiding
          val mwh = mw.H.subtract(2) // leave 2 pixels visible
-         val mwRoot = mw.stage.scene.root
-         val showAnim = anim(200.millis) { mw.setY(-mwh.value*it, false) }
-
-         val hider = fxTimer(ZERO, 1) {
-            if (mw.y==0.0) {
-               var d = showAnim.currentTime
-               if (d==ZERO) d = 300.millis - d
-               showAnim.stop()
-               showAnim.rate = 1.0
-               showAnim.playFrom(300.millis - d)
-               showAnim.onFinished = EventHandler { content.isMouseTransparent = true }
-            }
-         }
-         mwRoot.onEventUp(MouseEvent.ANY) {
-            if (mwRoot.isHover) {
-               hider.stop()
-            } else {
-               if (dockHideInactive.value)
-                  hider.start(dockHideInactiveDelay.value)
-            }
-         }
-         hider.runNow()
-
+         val showAnim = anim(300.millis) { mw.setY(-mwh.value*it, false) }
          val shower = fxTimer(ZERO, 1) {
-            if (mw.y!=0.0 && mwRoot.isHover) {
-               var d = showAnim.currentTime
-               if (d==ZERO) d = 300.millis - d
-               showAnim.stop()
-               showAnim.rate = -1.0
-               showAnim.playFrom(d)
-               showAnim.onFinished = EventHandler { content.isMouseTransparent = false }
-            }
+            showAnim.intpl { it*it*it*it }
+            showAnim.playCloseDo { content.isMouseTransparent = false }
          }
-         mwRoot.onEventDown(MOUSE_CLICKED, SECONDARY) { hider.runNow() }
-         mwRoot.onEventDown(MOUSE_CLICKED, PRIMARY) { shower.runNow() }
-         mwRoot.onEventUp(MOUSE_ENTERED) { shower.start(dockHoverDelay.value) }
+         val hider = {
+            showAnim.intpl { sqrt(sqrt(it)) }
+            showAnim.playOpenDo { content.isMouseTransparent = true }
+         }
+         val mwIsHover = v(false).apply {
+            dockHideInactive syncWhileTrue { APP.mouse.observeMousePosition { value = mw.root.containsScreen(APP.mouse.mousePosition) } } on mw.onClose
+         }
+         mwIsHover attachFalse {
+            if (dockHideInactive.value)
+               runFX(dockHideInactiveDelay.value) {
+                  if (mwIsHover.value) hider()
+               }
+         }
+         mw.focused attachFalse { hider() }
+         mw.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { hider() }
+         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { hider() }
+         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { shower.runNow() }
+         mw.stage.scene.root.onEventUp(MOUSE_ENTERED) { shower.start(dockHoverDelay.value) }
+         hider()
       } else {
          dockWindow?.close()
          dockWindow = null

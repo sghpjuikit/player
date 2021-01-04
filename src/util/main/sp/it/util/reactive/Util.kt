@@ -198,6 +198,12 @@ infix fun <O> ObservableValue<O>.attachChanges(block: (O, O) -> Unit): Subscript
    return Subscription { removeListener(l) }
 }
 
+/** Sets a block to be fired if the value is true on every value change. */
+infix fun ObservableValue<Boolean>.attachTrue(block: (Boolean) -> Unit) = attach { if (it) block(it) }
+
+/** Sets a block to be fired if the value is false on every value change. */
+infix fun ObservableValue<Boolean>.attachFalse(block: (Boolean) -> Unit) = attach { if (!it) block(it) }
+
 /** Sets a block to be fired if the value is true immediately and on every value change. */
 infix fun ObservableValue<Boolean>.syncTrue(block: (Boolean) -> Unit) = sync { if (it) block(it) }
 
@@ -390,6 +396,15 @@ infix fun Observable.attachWhile(block: () -> Subscription): Subscription {
    return outer + inner
 }
 
+/** Sets a disposable block to be on every change to `true`. The block is disposed on the next change. */
+infix fun ObservableValue<Boolean?>.attachWhileTrue(block: () -> Subscription): Subscription = attachWhile { if (value==true) block() else Subscription() }
+
+/** Sets a disposable block to be on every change to `false`. The block is disposed on the next change. */
+infix fun ObservableValue<Boolean?>.attachWhileFalse(block: () -> Subscription): Subscription = attachWhile { if (value==false) block() else Subscription() }
+
+/** Sets a disposable block to be on every change to `null`. The block is disposed on the next change. */
+infix fun <T> ObservableValue<T?>.attachWhileNull(block: () -> Subscription): Subscription = attachWhile { if (value==null) block() else Subscription() }
+
 /** Sets a disposable block to be fired immediately and on every change. The block is disposed on the next change. */
 infix fun Observable.syncWhile(block: () -> Subscription): Subscription {
    val inner = Disposer()
@@ -399,6 +414,15 @@ infix fun Observable.syncWhile(block: () -> Subscription): Subscription {
    }
    return outer + inner
 }
+
+/** Sets a disposable block to be fired immediately if `true` and on every change to `true`. The block is disposed on the next change. */
+infix fun ObservableValue<Boolean?>.syncWhileTrue(block: () -> Subscription): Subscription = syncWhile { if (value==true) block() else Subscription() }
+
+/** Sets a disposable block to be fired immediately if `false` and on every change to `false`. The block is disposed on the next change. */
+infix fun ObservableValue<Boolean?>.syncWhileFalse(block: () -> Subscription): Subscription = syncWhile { if (value==false) block() else Subscription() }
+
+/** Sets a disposable block to be fired immediately if `null` and on every change to `null`. The block is disposed on the next change. */
+infix fun <T> ObservableValue<T?>.syncWhileNull(block: () -> Subscription): Subscription = syncWhile { if (value==null) block() else Subscription() }
 
 /** Call specified block every time an item is added to this list passing it as argument */
 fun <T> ObservableList<T>.onItemAdded(block: (T) -> Unit): Subscription = onItemsAdded { it.forEach(block) }

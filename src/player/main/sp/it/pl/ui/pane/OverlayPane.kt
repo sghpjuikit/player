@@ -246,8 +246,8 @@ abstract class OverlayPane<in T>: StackPane() {
                op.blurNode = window.content
                op.blurNode!!.effect = op.blur
 
-               op.animation.show(op.onShowing)
-               op.onShowed()
+               op.animation.show(op.onShowed)
+               op.onShowing()
             }
             .ifNull {
                op.displayUsedForShow = Display.SCREEN_OF_MOUSE
@@ -283,8 +283,8 @@ abstract class OverlayPane<in T>: StackPane() {
 
             op.animation.applyAt0()
             op.stage!!.onEventDown1(WINDOW_SHOWN) {
-               op.animation.show(op.onShowing)
-               op.onShowed()
+               op.animation.show(op.onShowed)
+               op.onShowing()
             }
             op.stage!!.show()
             op.stage!!.requestFocus()

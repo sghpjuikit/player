@@ -219,7 +219,9 @@ class StartScreen: PluginBase() {
                            }
                         }
                      }
-                     onShowed += { widgetSubscribed.subscribe(true) }
+                     onShowed += {
+                        widgetSubscribed.subscribe(true)
+                     }
                      onHidden += { widgetSubscribed.subscribe(false) }
                   }
                }

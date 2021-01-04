@@ -11,9 +11,6 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import org.jetbrains.annotations.NotNull;
-import sp.it.pl.ui.objects.icon.Icon;
-import sp.it.pl.ui.objects.window.Resize;
-import sp.it.pl.ui.objects.window.pane.PaneWindowControls;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.Layouter;
@@ -21,7 +18,9 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.WidgetUi;
 import sp.it.pl.layout.widget.controller.io.IOLayer;
 import sp.it.pl.main.Df;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLOSE;
+import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.objects.window.Resize;
+import sp.it.pl.ui.objects.window.pane.PaneWindowControls;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCHANGE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.VIEW_DASHBOARD;
 import static javafx.application.Platform.runLater;
@@ -32,6 +31,7 @@ import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.get;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.main.Ui.ICON_CLOSE;
 import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.functional.Util.findFirstEmptyKey;
@@ -244,7 +244,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             if (it) {
                 w.rightHeaderBox.getChildren().addAll(
                     new Icon(VIEW_DASHBOARD, -1, autoLayoutTooltipText, () -> autoLayout(w)).styleclass("header-icon"),
-                    new Icon(CLOSE, -1, "Close this component", () -> { container.removeChild(i); closeWindow(i); }).styleclass("header-icon")
+                    new Icon(ICON_CLOSE, -1, "Close this component", () -> { container.removeChild(i); closeWindow(i); }).styleclass("header-icon")
                 );
             } else {
                 w.rightHeaderBox.getChildren().clear();

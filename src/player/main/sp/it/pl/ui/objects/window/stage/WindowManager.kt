@@ -98,6 +98,8 @@ import java.util.HashSet
 import javafx.stage.Window as WindowFX
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
+import sp.it.pl.main.Ui
+import sp.it.pl.main.Ui.ICON_CLOSE
 
 class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
@@ -297,7 +299,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                lay += Icon(null, 13.0, "Show/hide other windows").onClickDo { dockToggleWindows.toggle() }.apply {
                   hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.onClose
                }
-               lay += Icon(IconFA.CLOSE, 13.0, "Close dock").onClickDo { dockToggleWindows.value = true; dockShow.value = false }
+               lay += Icon(ICON_CLOSE, 13.0, "Close dock").onClickDo { dockToggleWindows.value = true; dockShow.value = false }
             }
          }
          mw.setContent(content)

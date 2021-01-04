@@ -2,6 +2,7 @@ package sp.it.pl.main
 
 import java.io.File
 import sp.it.pl.layout.widget.WidgetManager.FactoryRef
+import sp.it.pl.ui.objects.icon.UnicodeIcon
 
 object Widgets {
    const val CONVERTER_NAME = "Converter"
@@ -37,6 +38,8 @@ object Ui {
    const val STYLE_FONT_STYLE_ITALIC = "text-style-italic"
    const val STYLE_FONT_WEIGHT_NORMAL = "text-weight-normal"
    const val STYLE_FONT_WEIGHT_BOLD = "text-weight-bold"
+
+   @JvmField val ICON_CLOSE = IconUN(0x271b)
 }
 
 object Css {

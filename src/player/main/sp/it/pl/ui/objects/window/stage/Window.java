@@ -31,7 +31,6 @@ import sp.it.pl.layout.container.SwitchContainerUi;
 import sp.it.pl.main.AppErrors;
 import sp.it.pl.main.Df;
 import sp.it.pl.ui.objects.icon.Icon;
-import sp.it.pl.ui.objects.icon.UnicodeIcon;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.V;
 import sp.it.util.action.ActionRegistrar;
@@ -86,6 +85,7 @@ import static sp.it.pl.main.AppDragKt.contains;
 import static sp.it.pl.main.AppDragKt.getAnyFut;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.main.Ui.ICON_CLOSE;
 import static sp.it.pl.ui.objects.window.Resize.ALL;
 import static sp.it.pl.ui.objects.window.Resize.E;
 import static sp.it.pl.ui.objects.window.Resize.N;
@@ -345,7 +345,7 @@ public class Window extends WindowBase {
 		Icon minB = new Icon(WINDOW_MINIMIZE, -1, "Minimize application", this::toggleMinimize).styleclass("header-icon");
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, ActionRegistrar.get("Maximize")).styleclass("header-icon");
 //        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
-		Icon closeB = new Icon(new UnicodeIcon(0x271b), -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
+		Icon closeB = new Icon(ICON_CLOSE, -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
 		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
 			.action(() -> APP.windowManager.setAsMain(this));
 		syncC(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));

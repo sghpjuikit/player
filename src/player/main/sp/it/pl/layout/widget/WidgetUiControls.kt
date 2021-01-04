@@ -22,6 +22,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
+import sp.it.pl.main.Ui
+import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
@@ -69,7 +71,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          prefRows = 1
          prefColumns = 10
 
-         val closeB = headerIcon(IconFA.TIMES, closeIconText) { close() }
+         val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
          val actB = headerIcon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
          propB = headerIcon(IconFA.COGS, propIconText) { APP.windowManager.showSettings(area.widget, it) }
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }

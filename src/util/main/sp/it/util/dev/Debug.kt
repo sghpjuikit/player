@@ -33,6 +33,9 @@ fun <T> printExecutionTime(block: () -> T): T {
    return t
 }
 
+/** Prints the current thread's stacktrace. */
+fun printStacktrace() = println(Exception().stacktraceAsString)
+
 /** @return string of printed stacktrace of this throwable */
 val Throwable.stacktraceAsString: String
    get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()

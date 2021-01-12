@@ -19,12 +19,16 @@ import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.WindowEvent.WINDOW_SHOWN
+import kotlin.math.abs
 import sp.it.pl.core.NameUi
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
 import sp.it.pl.plugin.impl.WallpaperChanger
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.util.access.focused
+import sp.it.util.access.readOnly
 import sp.it.util.access.v
+import sp.it.util.access.visible
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
 import sp.it.util.async.runIO
@@ -36,9 +40,14 @@ import sp.it.util.functional.ifNull
 import sp.it.util.math.P
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach1If
+import sp.it.util.reactive.fires
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.getWallpaperFile
 import sp.it.util.ui.Util.createFMNTStage
@@ -48,6 +57,7 @@ import sp.it.util.ui.applyViewPort
 import sp.it.util.ui.containsMouse
 import sp.it.util.ui.getScreen
 import sp.it.util.ui.getScreenForMouse
+import sp.it.util.ui.hasFocus
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.imgImplLoadFX
@@ -59,7 +69,6 @@ import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.toP
 import sp.it.util.units.millis
-import kotlin.math.abs
 
 /**
  * Pane laying 'above' standard content.
@@ -81,7 +90,14 @@ abstract class OverlayPane<in T>: StackPane() {
    val onHiding = Handler0()
    /** Handlers called just after this pane was hidden. */
    val onHidden = Handler0()
-
+   /** True between [onShowed] and [onHiding]. */
+   private val isShowingImpl = v(false)
+   /** True between [onShowed] and [onHiding]. Read-only. */
+   val isShowing = isShowingImpl.readOnly()
+   /** True when focused and between [onShowed] and [onHiding]. */
+   private val isShowingWithFocusImpl = v(false)
+   /** True when focused and between [onShowed] and [onHiding]. Read-only. */
+   val isShowingWithFocus = isShowingWithFocusImpl.readOnly()
    private val resizeB: Icon
    private var resizing: Subscription? = null
 
@@ -171,7 +187,9 @@ abstract class OverlayPane<in T>: StackPane() {
    open fun hide() {
       if (isShown()) {
          properties -= IS_SHOWN
-         animEndJustPrior()
+         onHiding()
+         isShowingWithFocusImpl.value = false
+         isShowingImpl.value = false
          animation.hide(::animEndJustAfter)
       }
    }
@@ -199,10 +217,6 @@ abstract class OverlayPane<in T>: StackPane() {
 
    private fun animDo(x: Double) {
       displayUsedForShow.animDo(this, x)
-   }
-
-   private fun animEndJustPrior() {
-      displayUsedForShow.animEnd(this)
    }
 
    private fun animEndJustAfter() {
@@ -246,7 +260,11 @@ abstract class OverlayPane<in T>: StackPane() {
                op.blurNode = window.content
                op.blurNode!!.effect = op.blur
 
-               op.animation.show(op.onShowed)
+               op.sceneProperty().syncNonNullWhile { it.focusOwnerProperty() sync { op.isShowingWithFocusImpl.value = op.isShowing.value && op.hasFocus() } } on { s -> op.visible.attach1If({ !it }) { s.unsubscribe() } }
+               op.animation.show {
+                  isShowingImpl.value = true
+                  op.onShowed()
+               }
                op.onShowing()
             }
             .ifNull {
@@ -283,8 +301,12 @@ abstract class OverlayPane<in T>: StackPane() {
 
             op.animation.applyAt0()
             op.stage!!.onEventDown1(WINDOW_SHOWN) {
-               op.animation.show(op.onShowed)
                op.onShowing()
+               op.animation.show {
+                  isShowingImpl.value = true
+                  op.onShowed()
+                  op.stage!!.focused sync { op.isShowingWithFocusImpl.value = it } on op.isShowing.fires(false)
+               }
             }
             op.stage!!.show()
             op.stage!!.requestFocus()
@@ -317,7 +339,7 @@ abstract class OverlayPane<in T>: StackPane() {
       op.blurNode = null
       op.onHidden()
       if (this==Display.WINDOW) {
-         op.setVisible(false)
+         op.isVisible = false
       } else {
          op.removeFromParent()
          op.stage?.close()

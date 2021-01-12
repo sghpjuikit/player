@@ -48,6 +48,7 @@ import sp.it.util.functional.net
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncWhile
@@ -111,12 +112,8 @@ class StartScreen: PluginBase() {
    private val overlay = LazyOverlayPane {
       object: OverlayPane<Unit>() {
 
+         fun Any?.showDataInfo() = APP.ui.actionPane.orBuild.show(this)
          fun StackPane.installClipboardSupport() {
-            fun Any?.showDataInfo() = also { data ->
-               onHidden.addSOnetime { APP.ui.actionPane.orBuild.show(data) }
-               hide()
-            }
-
             onEventDown(KEY_PRESSED) {
                if (it.code==Key.V && it.isShortcutDown) {
                   it.consume()
@@ -138,6 +135,7 @@ class StartScreen: PluginBase() {
                onShowed += { requestFocus() }
                installClipboardSupport()
                installWindowInteraction()
+               isShowingWithFocus attachFalse { hide() }
 
                lay += borderPane {
                   padding = Insets(60.emScaled)

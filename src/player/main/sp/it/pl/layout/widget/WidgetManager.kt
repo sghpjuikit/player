@@ -861,6 +861,7 @@ enum class ComponentLoaderStrategy(val loader: ComponentLoader) {
    WINDOW(ComponentLoader.WINDOW),
    WINDOW_FULLSCREEN(ComponentLoader.WINDOW_FULLSCREEN_ACTIVE),
    OVERLAY(ComponentLoader.OVERLAY),
+   DOCK(ComponentLoader.DOCK),
    POPUP(ComponentLoader.POPUP)
 }
 
@@ -875,6 +876,11 @@ sealed class ComponentLoader: (Component) -> Any {
    /** Loads the component in a layout of a new window. */
    object WINDOW: ComponentLoader() {
       override operator fun invoke(c: Component): Window = APP.windowManager.showWindow(c)
+   }
+
+   /** Loads the component in a layout of a new window. */
+   object DOCK: ComponentLoader() {
+      override operator fun invoke(c: Component): Window = APP.windowManager.slideWindow(c)
    }
 
    /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on active screen. */

@@ -96,6 +96,7 @@ import javafx.stage.Window as WindowFX
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import kotlin.math.sqrt
 import sp.it.pl.main.Ui.ICON_CLOSE
@@ -347,6 +348,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { hider() }
          mw.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { shower.runNow() }
          mw.stage.scene.root.onEventUp(MOUSE_ENTERED) { shower.start(dockHoverDelay.value) }
+
          hider()
       } else {
          dockWindow?.close()
@@ -410,6 +412,47 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       getActive()?.focus()
    }
 
+   fun slideWindow(c: Component): Window {
+      val screen = getScreenForMouse()
+      val mw = create(createStageOwner(), UNDECORATED, false).apply {
+         resizable.value = true
+         isAlwaysOnTop = true
+         isHeaderAllowed.value = false
+         initLayout()
+
+         // show and apply state
+         show()
+         update()
+         back.style = "-fx-background-size: cover;" // disallow bgr stretching
+         content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr
+      }
+
+      // auto-hiding
+      val showAnim = anim(400.millis) { mw.setX(screen.bounds.width-mw.W.value*it, false) }
+      val shower = {
+         showAnim.intpl { sqrt(sqrt(it)) }
+         showAnim.playOpenDo { mw.setContent(c) }
+      }
+      val hider = {
+         showAnim.intpl { 1-sqrt(sqrt(1-it)) }
+         showAnim.playCloseDo { mw.close() }
+      }
+
+      mw.autosize(c, screen)
+      mw.stage.height = screen.bounds.height
+      mw.stage.y = screen.bounds.minY
+      c.focus()
+      shower()
+
+      runFX(300.millis) {
+         mw.focused attachFalse { hider() }
+         mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
+         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { hider() }
+      }
+
+      return mw
+   }
+
    fun showWindow(c: Component): Window {
       return create().apply {
          initLayout()
@@ -419,22 +462,27 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          c.focus()
 
          val screen = getScreenForMouse()
-         val scrSize = screen.bounds.size
-         val initialSize = scrSize/2.0
-         val newSize = if (c is Widget) {
-            val sizeOld = c.load().asIf<Region>()?.size ?: P(0.0, 0.0)
-            val sizePref = c.load().asIf<Region>()?.prefSize ?: P(0.0, 0.0)
-            val sizeDiff = sizePref - sizeOld
-            P(
-               if (sizePref.x>0) stage.size.x + sizeDiff.x else initialSize.x,
-               if (sizePref.y>0) stage.size.y + sizeDiff.y else initialSize.y
-            )
-         } else {
-            initialSize
-         }
-         size = newSize min scrSize
+         autosize(c, screen)
          setXYToCenter(screen)
       }
+   }
+
+   private fun Window.autosize(c: Component, s: Screen) {
+      val scrSize = s.bounds.size
+      val initialSize = scrSize/2.0
+      val newSize = if (c is Widget) {
+         val sizeOld = c.load().asIf<Region>()?.size ?: P(0.0, 0.0)
+         val sizePref = c.load().asIf<Region>()?.prefSize ?: P(0.0, 0.0)
+         val sizeDiff = sizePref - sizeOld
+         P(
+            if (sizePref.x>0) stage.size.x + sizeDiff.x else initialSize.x,
+            if (sizePref.y>0) stage.size.y + sizeDiff.y else initialSize.y
+         )
+      } else {
+         initialSize
+      }
+
+      size = newSize min scrSize
    }
 
    fun <T> showSettings(c: Configurable<T>, atNode: Node) = PopWindow().apply {

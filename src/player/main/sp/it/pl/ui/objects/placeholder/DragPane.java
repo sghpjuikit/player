@@ -19,7 +19,7 @@ import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.EventsKt.onEventDown;
-import static sp.it.util.reactive.SubscriptionKt.on;
+import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.attach;
 
 /**

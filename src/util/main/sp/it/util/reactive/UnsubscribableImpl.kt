@@ -1,26 +1,10 @@
 package sp.it.util.reactive
 
+import javafx.beans.value.ObservableValue
+import javafx.event.EventType
+import javafx.stage.Window
+import javafx.stage.WindowEvent
 import sp.it.util.type.nullify
-
-/** Object that requires any kind of disposal. Disposable. */
-interface Unsubscribable {
-   /** Disposes pf this unsubscribable. One-time and irreversible. */
-   fun unsubscribe()
-}
-
-/**
- * Sets this [Unsubscribable] to be [Unsubscribable.unsubscribe]d according to the specified [Unsubscriber].
- * Equivalent to: `this.apply(disposer)`.
- * Basically the `disposer.register(disposable)`.
- * @return this
- */
-infix fun <T: Unsubscribable> T.on(disposer: Unsubscriber) = apply(disposer)
-
-/**
- * Lambda consuming [Unsubscribable], used for setting up calling [Unsubscribable.unsubscribe] in the future.
- * Basically the `disposer.register(disposable)`.
- */
-typealias Unsubscriber = (Unsubscribable) -> Unit
 
 interface Subscription: Unsubscribable {
 
@@ -91,3 +75,11 @@ infix operator fun Subscription.plus(subscription: () -> Unit) = Subscription(th
 /** @return this or empty subscription if null */
 fun Subscription?.orEmpty() = this ?: Subscription()
 
+/** @return [Unsubscribable] that unsubscribes subscription on [onEventDown1] using the specified event type */
+infix fun Window.fires(eventType: EventType<WindowEvent>): Unsubscriber = { s -> onEventDown1(eventType) { s.unsubscribe() } }
+
+/** @return [Unsubscribable] that unsubscribes subscription on [sync1If] using the specified value condition */
+infix fun <T> ObservableValue<T>.fires(condition: (T) -> Boolean): Unsubscriber = { s -> sync1If(condition) { s.unsubscribe() } }
+
+/** @return [Unsubscribable] that unsubscribes subscription on [sync1If] using the condition matching [Any.equals] to the specified value */
+infix fun <T> ObservableValue<T>.fires(value: T): Unsubscriber = fires(condition = { it==value })

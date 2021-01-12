@@ -39,7 +39,6 @@ import sp.it.pl.ui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.reactive.Disposer;
-import sp.it.util.reactive.SubscriptionKt;
 import sp.it.util.reactive.UtilKt;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
@@ -69,6 +68,7 @@ import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -152,7 +152,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			if (!v)
 				root.getChildren().remove(footerPane);
 		});
-		SubscriptionKt.on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
+		on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
 		searchQueryLabel.textProperty().bind(control.getSearch().searchQuery);
 		itemsInfo.bind(grid);
 
@@ -214,11 +214,11 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	}
 
 	private <O> void attach(ObservableValue<O> value, Consumer<? super O> action) {
-		SubscriptionKt.on(UtilKt.attach(value, consumer(action)), onDispose);
+		on(UtilKt.attach(value, consumer(action)), onDispose);
 	}
 
 	private <O> void sync(ObservableValue<O> value, Consumer<? super O> action) {
-		SubscriptionKt.on(UtilKt.sync(value, consumer(action)), onDispose);
+		on(UtilKt.sync(value, consumer(action)), onDispose);
 	}
 
 	// TODO: improve API

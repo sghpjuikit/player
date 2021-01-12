@@ -109,7 +109,7 @@ import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
-import static sp.it.util.reactive.SubscriptionKt.on;
+import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
@@ -524,13 +524,12 @@ public class Window extends WindowBase {
 
 	@Override
 	public void close() {
-		logger.info("Closing{} window. {} windows remain open.", isMain.getValue() ? " main" : "", APP.windowManager.windows.size()-1);
+		logger.info("Closing {} window. {} windows remain open.", isMain.getValue() ? " main" : "", APP.windowManager.windows.size()-1);
 
 		if (!isMain.getValue()) {
 			if (layout!=null) layout.close();
 			onClose.invoke();
 		}
-		getStage().hide();
 		super.close();
 	}
 

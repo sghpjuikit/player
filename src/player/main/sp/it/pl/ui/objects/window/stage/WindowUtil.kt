@@ -6,6 +6,7 @@ import com.sun.jna.Pointer
 import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser.GWL_STYLE
+import com.sun.jna.platform.win32.WinUser.SMTO_BLOCK
 import com.sun.jna.platform.win32.WinUser.SMTO_NORMAL
 import javafx.event.Event
 import javafx.geometry.Insets
@@ -231,6 +232,7 @@ fun Stage.setNonInteractingProgmanOnBottom() {
       // This message directs Progman to spawn a WorkerW behind the desktop icons. If it is already there, nothing happens.
       val result: WinDef.DWORDByReference? = null
       user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, result)
+      user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_BLOCK, 1000, result)
 
       // Get WorkerW window
       var workerW: WinDef.HWND? = null

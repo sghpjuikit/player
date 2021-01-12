@@ -11,6 +11,7 @@ import javafx.beans.property.FloatProperty
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.LongProperty
 import javafx.beans.property.Property
+import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableDoubleValue
@@ -20,6 +21,8 @@ import javafx.beans.value.ObservableLongValue
 import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import javafx.scene.Node
+import javafx.stage.Window
 import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.failIfNotFxThread
@@ -55,20 +58,30 @@ operator fun IntegerProperty.setValue(thisRef: Any, property: KProperty<*>, valu
 operator fun ObservableBooleanValue.getValue(thisRef: Any, property: KProperty<*>) = get()
 operator fun BooleanProperty.setValue(thisRef: Any, property: KProperty<*>, value: Boolean) = set(value)
 
-/** [WritableValue.setValue] to [WritableValue.getValue] transformed with the specified function, like `value = f(value)`. */
-inline fun <reified T> WritableValue<T>.transformValue(f: (T) -> T): Unit {
-   value = f(value)
-}
+/** Sets value to current value transformed with the specified function, like `value = f(value)`. */
+inline fun <T> WritableValue<T>.transformValue(f: (T) -> T) { value = f(value) }
+
+/** Sets value to negated value of current value. */
+fun WritableValue<Boolean>.toggle() = transformValue { !it }
+
+/** Sets value to the enum value following the current value based on declaration order. Loop back to 1st value. */
+fun <T: Enum<T>> WritableValue<T>.toggleNext() = transformValue { Values.next(it) }
+
+/** Sets value to the enum value preceding the current value based on declaration order. Loop back to last value. */
+fun <T: Enum<T>> WritableValue<T>.togglePrevious() = transformValue { Values.previous(it) }
 
 /** @return this property as a read-only property */
 fun <T> ObservableValue<T>.readOnly(): ObservableValue<T> = this
 
 /** @return this property as a read-only property backed by [Volatile] property */
 fun <T> ObservableValue<T>.readOnlyThreadSafe() = ObservableValueVolatileWrapper(this)
+
 /** @return this observable list as a read-only backed by [Volatile] property containing the [List.materialize] value */
 fun <LIST, E> LIST.readOnlyThreadSafe() where LIST: Observable, LIST: List<E> = ObservableListVolatileWrapper(this)
+
 /** @return this observable list as a read-only backed by [Volatile] property containing the [Set.materialize] value */
 fun <SET, E> SET.readOnlyThreadSafe() where SET: Observable, SET: Set<E> = ObservableSetVolatileWrapper(this)
+
 /** @return this observable list as a read-only backed by [Volatile] property containing the [Map.materialize] value */
 fun <MAP, K,V> MAP.readOnlyThreadSafe() where MAP: Observable, MAP: Map<K,V> = ObservableMapVolatileWrapper(this)
 
@@ -107,21 +120,6 @@ data class ObservableMapVolatileWrapper<MAP,K,V>(private val source: MAP) where 
       failIfNotFxThread()
       source.onChange { value = source.materialize() }
    }
-}
-
-/** Sets value to negated value of current value. */
-fun WritableValue<Boolean>.toggle() {
-   value = !value
-}
-
-/** Sets value to the enum value following the current value based on declaration order. Loop back to 1st value. */
-fun <T: Enum<T>> WritableValue<T>.toggleNext() {
-   value = Values.next(value)
-}
-
-/** Sets value to the enum value preceding the current value based on declaration order. Loop back to last value. */
-fun <T: Enum<T>> WritableValue<T>.togglePrevious() {
-   value = Values.previous(value)
 }
 
 operator fun ObservableNumberValue.plus(other: ObservableNumberValue) = Bindings.add(this, other) as DoubleBinding
@@ -191,21 +189,28 @@ fun or(vararg values: ObservableValue<Boolean>): BooleanBinding = object: Boolea
    override fun computeValue() = values.none { it.value }
 }
 
-
 /** @return observable value that never changes and is always set to the specified value */
 fun <T> vAlways(v: T): ObservableValue<T> = AlwaysProperty(v)
 
 /** @return observable value that never changes and is always set to the specified value */
-fun vAlways(v: Boolean): ObservableValue<Boolean> = if (v) vAlwaysTrue else vAlwaysFalse
+fun vAlways(v: Boolean): ObservableValue<Boolean> = if (v) AlwaysTrueProperty else AlwaysFalseProperty
 
-private val vAlwaysTrue: ObservableValue<Boolean> = AlwaysProperty(true)
+private object AlwaysTrueProperty: AlwaysProperty<Boolean>(true)
+private object AlwaysFalseProperty: AlwaysProperty<Boolean>(false)
 
-private val vAlwaysFalse: ObservableValue<Boolean> = AlwaysProperty(false)
-
-private class AlwaysProperty<T>(val v: T): ObservableValue<T> {
+private open class AlwaysProperty<T>(val v: T): ObservableValue<T> {
    override fun removeListener(listener: ChangeListener<in T>) = Unit
    override fun removeListener(listener: InvalidationListener) = Unit
    override fun addListener(listener: ChangeListener<in T>) = Unit
    override fun addListener(listener: InvalidationListener) = Unit
    override fun getValue() = v
 }
+
+/** [Window.focusedProperty] */
+val Window.focused: ReadOnlyBooleanProperty get() = focusedProperty()
+/** [Window.showingProperty] */
+val Window.showing: ReadOnlyBooleanProperty get() = showingProperty()
+/** [Node.focusedProperty] */
+val Node.focused: ReadOnlyBooleanProperty get() = focusedProperty()
+/** [Node.visibleProperty] */
+val Node.visible: ReadOnlyBooleanProperty get() = visibleProperty()

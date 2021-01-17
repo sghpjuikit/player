@@ -441,7 +441,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       mw.autosize(c, screen)
       mw.stage.height = screen.bounds.height
       mw.stage.y = screen.bounds.minY
-      c.focus()
       shower()
 
       runFX(300.millis) {
@@ -457,9 +456,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       return create().apply {
          initLayout()
          setContent(c)
-
          show()
-         c.focus()
 
          val screen = getScreenForMouse()
          autosize(c, screen)

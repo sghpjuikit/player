@@ -390,11 +390,14 @@ public class Window extends WindowBase {
 		content.getChildren().clear();
 		content.getChildren().add(n);
 		setAnchors(n, 0d);
+		n.requestFocus();
 	}
 
 	public void setContent(Component c) {
-		if (c!=null)
+		if (c!=null) {
 			topContainer.addChild(topContainer.getEmptySpot(), c);
+			c.focus();
+		}
 	}
 
 	public void initLayout() {

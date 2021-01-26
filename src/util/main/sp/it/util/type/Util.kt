@@ -166,8 +166,8 @@ fun Type.toRaw(): Class<*> = let { type ->
  * `Any?` -> [Object.class]
  * `List<*>` -> [List.class, Object.class]
  * `List<Int?>` -> [List.class, Integer.class]
- * `List<out Int>` -> [List.class, Integer.class]
- * `List<in Int?>` -> [List.class, Integer.class]
+ * `MutableList<out Int>` -> [List.class, Integer.class]
+ * `MutableList<in Int?>` -> [List.class, Integer.class]
  * `MutableList<Int>` -> [List.class, Integer.class]
  * `ArrayList<Int>` -> [ArrayList.class, Integer.class]
  *

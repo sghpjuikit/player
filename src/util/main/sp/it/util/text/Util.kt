@@ -197,17 +197,24 @@ private val prettyKeys = mapOf(
    "NUM_LOCK" to "\u21ed"
 )
 
+/** @return tuple of elements split by the specified delimiter from this string or exception if less than 2 results */
+fun String.split2Partial(delimiter: String, ignoreCase: Boolean = false): Pair<String, String> {
+   val i = indexOf(delimiter)
+   failIf(i == -1) { "Text must contain '$delimiter'" }
+   return substring(0, i) to substring(i + delimiter.length)
+}
+
 /** @return tuple of elements split by the specified delimiter from this string or exception if not 2 results */
 fun String.split2(delimiter: String, ignoreCase: Boolean = false): Pair<String, String> =
    split(delimiter, ignoreCase = ignoreCase).let {
-      failIf(it.size!=2) { "Array by $delimiter must have 2 elements, but is $it" }
+      failIf(it.size!=2) { "Array by '$delimiter' must have 2 elements, but is $it" }
       it[0] to it[1]
    }
 
 /** @return triple of elements split by the specified delimiter from this string or exception if not 3 results */
 fun String.split3(delimiter: String, ignoreCase: Boolean = false): Triple<String, String, String> =
    split(delimiter, ignoreCase = ignoreCase).let {
-      failIf(it.size!=3) { "Array by $delimiter must have 3 elements, but is $it" }
+      failIf(it.size!=3) { "Array by '$delimiter' must have 3 elements, but is $it" }
       Triple(it[0], it[1], it[2])
    }
 

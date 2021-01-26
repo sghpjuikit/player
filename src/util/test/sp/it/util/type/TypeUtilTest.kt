@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableListBase
@@ -261,28 +262,45 @@ class TypeUtilTest: FreeSpec({
          class X
 
          val o = object: Any() {
-            val a: X = X()
-            val b: Array<X> = arrayOf()
-            val x: MutableList<X> = mutableListOf()
-            val y: MutableList<X> = mutableListOf()
-            val z: MutableList<X> = mutableListOf()
+            val x: X = X()
+            val arrayOfX: Array<X> = arrayOf()
+            val arrayOfDouble: Array<Double> = arrayOf()
+            val doubleArray: DoubleArray = DoubleArray(0)
+            val listI: MutableList<X> = mutableListOf()
+            val listIn: MutableList<in X> = mutableListOf()
+            val listOut: MutableList<out X> = mutableListOf()
          }
 
-         forAll(
-            row(o::a, X::class),
-            row(o::b, Array<X>::class),
-            row(o::b, Array::class)
-         ) { property, type ->
-            property.returnType.javaType.toRaw() shouldBe type.java
-         }
+         o::x.returnType.javaType.toRaw() shouldBe X::class.java
+         o::arrayOfX.returnType.javaType.toRaw() shouldBe Array<X>::class.java
+         o::arrayOfX.returnType.javaType.toRaw() shouldNotBe Array::class.java
+         o::arrayOfDouble.returnType.javaType.toRaw() shouldNotBe DoubleArray::class.java
+         o::arrayOfDouble.returnType.javaType.toRaw() shouldBe Array<Double>::class.java
+         o::arrayOfDouble.returnType.javaType.toRaw() shouldNotBe Array::class.java
+         o::doubleArray.returnType.javaType.toRaw() shouldBe DoubleArray::class.java
+         o::doubleArray.returnType.javaType.toRaw() shouldNotBe Array<Double>::class.java
+         o::doubleArray.returnType.javaType.toRaw() shouldNotBe Array::class.java
+         o::listI.returnType.javaType.toRaw() shouldBe MutableList::class.java
 
          forAll(
-            row(o::x, X::class),
-            row(o::y, X::class),
-            row(o::z, X::class)
+            row(o::listI, X::class),
+            row(o::listIn, X::class),
+            row(o::listOut, X::class)
          ) { property, type ->
             (property.returnType.javaType as ParameterizedType).actualTypeArguments[0].toRaw() shouldBe type.java
          }
+      }
+
+      Type::flattenToRawTypes.name {
+         jType<Any>().flattenToRawTypes().toList() shouldBe listOf(Object::class.java)
+         jType<Any?>().flattenToRawTypes().toList() shouldBe listOf(Object::class.java)
+         jType<List<*>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Object::class.java)
+         jType<List<List<*>>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, List::class.java, Object::class.java)
+         jType<List<Int?>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
+         jType<MutableList<out Int>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
+         jType<MutableList<in Int?>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
+         jType<MutableList<Int>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
+         jType<ArrayList<Int>>().flattenToRawTypes().toList() shouldBe listOf(ArrayList::class.java, Integer::class.java)
       }
 
       KClass<*>::traverseToSuper.name {

@@ -164,7 +164,7 @@ private fun <T: Any> annotatedConfig(p: KProperty<*>, instance: T, name: String,
             FieldConfig(VType<T>(propertyType), name, def.toDef(), setOf(), instance, group, p.asIs()).asIs()
          }
       }
-   }.getOrSupply {
-      fail { "Can not create config from field=${p.name} for class=${p.javaField?.declaringClass ?: p.javaGetter?.declaringClass}" }
+   }.getOrSupply { e ->
+      fail(e) { "Can not create config from field=${p.name} for class=${p.javaField?.declaringClass ?: p.javaGetter?.declaringClass}" }
    }
 }

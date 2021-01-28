@@ -2,7 +2,6 @@ package sp.it.pl.main
 
 import java.io.File
 import sp.it.pl.layout.widget.WidgetManager.FactoryRef
-import sp.it.pl.ui.objects.icon.UnicodeIcon
 
 object Widgets {
    const val CONVERTER_NAME = "Converter"
@@ -44,6 +43,18 @@ object Ui {
 
 object Css {
    const val DESCRIPTION = "description"
+}
+
+@Suppress("ObjectPropertyName")
+object FileExtensions {
+   const val fxwl = "fxwl"
+   const val `spit-command` = "spit-command"
+}
+
+@Suppress("ObjectPropertyName")
+object FileMimes {
+   const val fxwl = "application/spit-component"
+   const val `spit-command` = "application/spit-command"
 }
 
 object Events {

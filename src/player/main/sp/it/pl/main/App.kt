@@ -87,6 +87,7 @@ import java.net.URLConnection
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
 import sp.it.pl.main.AppSettings.app as conf
+import sp.it.util.file.type.MimeType
 
 lateinit var APP: App
 private val verify = File::verify
@@ -211,7 +212,10 @@ class App: Application(), GlobalConfigDelegator {
    /** Single persistent storage per type core. */
    val serializer = CoreSerializer
    /** File mime type core. */
-   val mimeTypes = MimeTypes
+   val mimeTypes = MimeTypes.apply {
+      register(MimeType(FileMimes.fxwl, FileExtensions.fxwl))
+      register(MimeType(FileMimes.`spit-command`, FileExtensions.`spit-command`))
+   }
    /** Map of instances per type core. */
    val instances = CoreInstances
    /** Class to ui name core. */

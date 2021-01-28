@@ -2,4 +2,7 @@
     <item name='java.lang.Class T[] getEnumConstants()'>
         <annotation name='java.lang.Deprecated'/>
     </item>
+    <item name='java.lang.Class boolean isEnum()'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
 </root>

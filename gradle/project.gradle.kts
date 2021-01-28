@@ -45,7 +45,7 @@ val javaVersion = JavaVersion.current().also {
 allprojects {
    apply(plugin = "kotlin")
 
-   buildDir = file("player.buildDir".prjProp ?: rootDir/"build")/name
+   buildDir = file("player.buildDir".prjProp ?: rootDir/".gradle-build")/name
 
    tasks.withType<JavaCompile> {
       options.encoding = UTF_8.name()

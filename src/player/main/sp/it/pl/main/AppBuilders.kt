@@ -69,7 +69,6 @@ import sp.it.util.text.lengthInChars
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.type.type
-import sp.it.util.type.typeNothingNonNull
 import sp.it.util.ui.hBox
 import sp.it.util.ui.hyperlink
 import sp.it.util.ui.install
@@ -97,6 +96,7 @@ import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
+import sp.it.util.type.kTypeNothingNonNull
 
 /**
  * Creates simple help popup designed as a tooltip for help buttons.
@@ -278,7 +278,7 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
       else -> d::class
    }
    val dType = when (d) {
-      null -> typeNothingNonNull().type
+      null -> kTypeNothingNonNull()
       is List<*> -> List::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
       is Set<*> -> Set::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
       is Map<*, *> -> Map::class.createType(arguments = listOf(KTypeArg.invariant(d.keys.getElementType()), KTypeArg.invariant(d.values.getElementType())))

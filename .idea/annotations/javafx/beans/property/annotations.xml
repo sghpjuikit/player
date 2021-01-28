@@ -1,4 +1,7 @@
 <root>
+    <item name='javafx.beans.property.ReadOnlyBooleanWrapper javafx.beans.property.ReadOnlyBooleanProperty getReadOnlyProperty()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
     <item name='javafx.beans.property.ReadOnlyObjectWrapper javafx.beans.property.ReadOnlyObjectProperty&lt;T&gt; getReadOnlyProperty()'>
         <annotation name='org.jetbrains.annotations.NotNull'/>
     </item>

@@ -1,5 +1,4 @@
-## Project
-
+# Project
 .kotlintest
 app/ffmpeg/
 app/lib
@@ -13,14 +12,14 @@ app/widgets/**/*class
 private/
 *.log
 
-# Gradle
+## Gradle
 .gradle/
-build/
+.gradle-build/
 gradle.properties
 
-## IDE
+# IDE
 
-# Idea
+## Idea
 out/
 .idea/*
 !.idea/codeStyles/
@@ -29,7 +28,7 @@ out/
 *.ipr
 *.iws
 
-# NetBeans
+## NetBeans
 nbproject/
 build/
 nbbuild/
@@ -40,7 +39,7 @@ build.xml
 nbbuild.xml
 manifest.mf
 
-# Eclipse
+## Eclipse
 *.pydevproject
 .project
 .metadata
@@ -59,7 +58,7 @@ local.properties
 .cproject
 .buildpath
 
-## OS
+# OS
 Thumbs.db
 ehthumbs.db
 Desktop.ini

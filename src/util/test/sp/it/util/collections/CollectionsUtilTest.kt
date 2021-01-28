@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import sp.it.util.functional.Try
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.kType
+import sp.it.util.type.kTypeNothingNonNull
+import sp.it.util.type.kTypeNothingNullable
 import sp.it.util.type.raw
 import sp.it.util.type.type
 import sp.it.util.type.typeNothingNonNull
@@ -13,8 +15,8 @@ import sp.it.util.type.typeNothingNullable
 @Suppress("RemoveExplicitTypeArguments")
 class CollectionsUtilTest: FreeSpec({
    Collection<*>::getElementType.name - {
-      listOf<Int>().getElementType() shouldBe typeNothingNonNull().type
-      listOf(null, null).getElementType() shouldBe typeNothingNullable().type
+      listOf<Int>().getElementType() shouldBe kTypeNothingNonNull()
+      listOf(null, null).getElementType() shouldBe kTypeNothingNullable()
       listOf("", null).getElementType() shouldBe kType<String?>()
       listOf("", " ").getElementType() shouldBe kType<String>()
       listOf(0.toByte(), 10L).getElementType() shouldBe kType<Number>()

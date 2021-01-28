@@ -439,7 +439,7 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
 
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
-      failIf(info.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
+      failIf(info.editable == EditMode.USER) { "Property read-only status forbids usage of ${EditMode.USER}" }
 
       val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
       validateValue(c.value)

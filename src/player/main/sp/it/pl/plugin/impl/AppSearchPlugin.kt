@@ -7,8 +7,6 @@ import com.sun.jna.platform.win32.WinDef
 import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import mu.KLogging
 import sp.it.pl.layout.container.ComponentUi
@@ -44,7 +42,6 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
-import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -57,7 +54,6 @@ import sp.it.util.file.div
 import sp.it.util.file.isParentOrSelfOf
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.writeTextTry
-import sp.it.util.functional.asIf
 import sp.it.util.functional.net
 import sp.it.util.functional.nullsLast
 import sp.it.util.functional.toUnit
@@ -83,7 +79,6 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
-import sp.it.util.units.millis
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import sp.it.pl.ui.objects.grid.GridView.CellGap
@@ -201,10 +196,7 @@ class AppSearchPlugin: PluginBase() {
             }
             if (c is Widget) {
                val parent = this
-               val controller = c.controller as AppLauncher
-               controller.closeOnProgramOpened = true
-               controller.closeOnRightClick = true
-               c.uiTemp = object: ComponentUi {
+               c.ui = object: ComponentUi {
                   override val root = parent
                   override fun show() {}
                   override fun hide() {}
@@ -246,10 +238,6 @@ class AppSearchPlugin: PluginBase() {
          .defInherit(APP.ui::gridShowFooter)
       val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
          .defInherit(APP.ui::gridCellAlignment)
-      var closeOnProgramOpened by c(false)
-         .def(name = "Close on launch", info = "Close this widget when it launches a program.")
-      var closeOnRightClick by c(false)
-         .def(name = "Close on right click", info = "Close this widget when right click is detected.")
       private val visitId = AtomicLong(0)
       private var item: Item? = null   // item, children of which are displayed
 
@@ -268,12 +256,6 @@ class AppSearchPlugin: PluginBase() {
             grid.selectedItem.value?.let {
                doubleClickItem(it)
                e.consume()
-            }
-         }
-         grid.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
-            if (closeOnRightClick) {
-               doubleClickItem(null)
-               it.consume()
             }
          }
 
@@ -302,7 +284,7 @@ class AppSearchPlugin: PluginBase() {
          runIO {
             i.children().sortedWith(buildSortComparator())
          }.withAppProgress(
-            widget.custom_name.value + ": Fetching view"
+            widget.customName.value + ": Fetching view"
          ) ui {
             grid.itemsRaw setTo it
             grid.skinImpl?.position = i.lastScrollPosition max 0.0
@@ -315,13 +297,8 @@ class AppSearchPlugin: PluginBase() {
          item = null
       }
 
-      private fun doubleClickItem(i: Item?) {
-         if (closeOnProgramOpened) {
-            widget.uiTemp.root.asIf<OverlayPane<*>>()?.hide()
-            runFX(250.millis) { i?.value?.open() }
-         } else {
-            i?.value?.open()
-         }
+      private fun doubleClickItem(i: Item) {
+         i.value.open()
       }
 
       private fun applyCellSize() {

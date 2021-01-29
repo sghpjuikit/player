@@ -1,7 +1,6 @@
 package sp.it.util.type;
 
 import java.lang.annotation.Annotation;
-import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -14,16 +13,6 @@ import sp.it.util.collections.mapset.MapSet;
 import static sp.it.util.functional.Util.list;
 
 public interface Util {
-
-	@SuppressWarnings("unchecked")
-	static <T> T getValueFromFieldMethodHandle(MethodHandle mh, Object instance) {
-		try {
-			if (instance==null) return (T) mh.invoke();
-			else return (T) mh.invokeWithArguments(instance);
-		} catch (Throwable e) {
-			throw new RuntimeException("Error during getting value from a config field. ", e);
-		}
-	}
 
 	/**
 	 * Returns all declared fields of the class including private, static and inherited ones.
@@ -215,35 +204,4 @@ public interface Util {
 		}
 	}
 
-	/**
-	 * Returns whether class is an enum.
-	 * Works even for enums with class method bodies, where {@link Class#isEnum()} does not work.
-	 *
-	 * @return true if class is enum or false otherwise
-	 * @see #getEnumConstants(Class)
-	 */
-	static boolean isEnum(Class<?> c) {
-		return c.isEnum() || (c.getEnclosingClass()!=null && c.getEnclosingClass().isEnum());
-	}
-
-	/**
-	 * Returns enum constants of an enum class in declared order.
-	 * Works even for enums with class method bodies, where {@link Class#getEnumConstants()} does not work.
-	 *
-	 * @param type type of enum
-	 * @return non null array of enum constants
-	 * @throws java.lang.RuntimeException if class not an enum
-	 */
-	@SuppressWarnings({"unchecked", "deprecation"})
-	static <T> T[] getEnumConstants(Class<?> type) {
-		// handle enums
-		if (type.isEnum()) return (T[]) type.getEnumConstants();
-
-			// handle enum with class method bodies (they are not recognized as enums)
-		else {
-			Class<?> c = type.getEnclosingClass();
-			if (c!=null && c.isEnum()) return (T[]) c.getEnumConstants();
-			else throw new IllegalArgumentException("Class=" + type + " is not an Enum.");
-		}
-	}
 }

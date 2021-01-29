@@ -256,7 +256,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                         APP.audio.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
                         return null;
                     }),
-                    widget.custom_name.getValue() + "Editing song tags"
+                    widget.getCustomName().getValue() + "Editing song tags"
                 );
             })
         );

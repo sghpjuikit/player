@@ -5,9 +5,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import kotlin.reflect.KClass;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.util.collections.map.KClassMap;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Try;
@@ -85,8 +87,10 @@ public class ConverterDefault extends Converter {
 	/** Default to string parser, which calls objects toString() or returns null constant. */
 	public final Function<Object,String> defaultTos = o -> o==null ? stringNull : o.toString();
 
-    private final KClassMap<Function<? super Object,Try<String,String>>> parsersToS = new KClassMap<>();
-    private final KClassMap<Function<? super String,Try<Object,String>>> parsersFromS = new KClassMap<>();
+    public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super Object, @NotNull Try<@NotNull String,@NotNull String>> parserFallbackToS = null;
+    public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super @NotNull String, @NotNull Try<Object,@NotNull String>> parserFallbackFromS = null;
+    private final KClassMap<Function<? super Object, Try<String,String>>> parsersToS = new KClassMap<>();
+    private final KClassMap<Function<? super String, Try<Object,String>>> parsersFromS = new KClassMap<>();
 
     public <T> void addParser(KClass<T> c, ConverterString<T> parser) {
         addParser(c, parser::toS, parser::ofS);
@@ -143,6 +147,7 @@ public class ConverterDefault extends Converter {
         return (Function) firstNotNull(
             () -> parsersFromS.getElementOfSuper(c),
             () -> buildOfSParser(getJavaObjectType(c)),
+            () -> parserFallbackFromS==null ? null : s -> (Try<T,String>) ((BiFunction) parserFallbackFromS).apply(c, s),
             () -> o -> error("Type " + c + " has no associated from-text converter")
         );
     }
@@ -152,6 +157,7 @@ public class ConverterDefault extends Converter {
         return (Function) firstNotNull(
             () -> parsersToS.getElementOfSuper(c),
             () -> buildToSParser(getJavaObjectType(c)),
+            () -> parserFallbackToS==null ? null : o -> (Try<String,String>) ((BiFunction) parserFallbackToS).apply(c, o),
             () -> defaultTos.andThen(Try.Java::ok)
         );
     }

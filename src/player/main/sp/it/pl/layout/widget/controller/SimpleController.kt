@@ -49,7 +49,7 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
       }
    }
 
-   override fun loadFirstTime() = root
+   override fun uiRoot() = root
 
    override fun focus() = root.requestFocus()
 

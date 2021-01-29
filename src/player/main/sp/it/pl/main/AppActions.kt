@@ -65,7 +65,6 @@ import sp.it.util.units.times
 import sp.it.util.units.uri
 import java.io.File
 import java.io.IOException
-import java.net.URI
 import java.net.URISyntaxException
 
 class AppActions: GlobalSubConfigDelegator("Shortcuts") {
@@ -247,7 +246,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    fun openImageFullscreen(image: File, screen: Screen = getScreenForMouse()) {
       APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW(WINDOW_FULLSCREEN(screen))) { f ->
          val w = f.asIs<Controller>().widget
-         val window = w.graphics.scene.window
+         val window = w.graphics!!.scene.window
          val root = window.scene.root
 
          window.scene.fill = BLACK

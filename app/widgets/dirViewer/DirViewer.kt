@@ -314,7 +314,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       runIO {
          dir.children() let_ { it.sortedWith(buildSortComparator(locationsMaterialized, it)) }
       }.withAppProgress(
-         widget.custom_name.value + ": Fetching view"
+         widget.customName.value + ": Fetching view"
       ).ui {
          outputSelectedSuppressor.suppressing {
             grid.itemsRaw setTo it

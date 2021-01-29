@@ -20,8 +20,8 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.runTry
 import sp.it.util.text.Char32
 import sp.it.util.text.toChar32
-import sp.it.util.type.Util.getEnumConstants
 import kotlin.reflect.KClass
+import sp.it.util.type.enumValues
 
 object Glyphs {
 
@@ -39,7 +39,7 @@ object Glyphs {
    /** Collection of enum-based (not all!) glyphs mapped to id that identify them. */
    val GLYPHS: MapSet<String, GlyphIcons> = GLYPH_ENUM_TYPES
       .asSequence()
-      .flatMap { getEnumConstants<GlyphIcons>(it.java).asSequence() }
+      .flatMap { it.enumValues.asSequence() }
       .toCollection(MapSet { it.javaClass.simpleName + "." + it.name() })
 
    /** Inverse of [GlyphIcons.id]. Throws if fails. */

@@ -127,7 +127,7 @@ fun <T: Any?, S: Boolean?, C: ConfCheckL<T,S>> C.uiConverterElement(converter: (
 fun <T: Any?, C: Conf<T>> C.uiInfoConverter(converter: (T) -> String) = but(Constraint.UiInfoConverter(converter))
 
 /**
- * If this config is [enumerable][Config.isTypeEnumerable], the value order in ui editor will follow the order of the
+ * If this config is [enumerable][Config.isEnumerable], the value order in ui editor will follow the order of the
  * enumeration, i.e. no sort will be applied.
  */
 fun <T: Any?, C: Conf<T>> C.uiNoOrder() = but(Constraint.PreserveOrder)

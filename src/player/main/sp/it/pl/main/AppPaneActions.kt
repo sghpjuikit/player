@@ -1,5 +1,8 @@
 package sp.it.pl.main
 
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 import javafx.concurrent.Worker.State.READY
 import javafx.concurrent.Worker.State.SCHEDULED
 import javafx.geometry.Pos.CENTER
@@ -13,20 +16,12 @@ import sp.it.pl.audio.playlist.isPlaylistFile
 import sp.it.pl.audio.playlist.readPlaylist
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.addToLibTask
-import sp.it.pl.ui.pane.ActionPane
-import sp.it.pl.ui.pane.ComplexActionData
-import sp.it.pl.ui.pane.ConfigPane
-import sp.it.pl.ui.pane.FastAction
-import sp.it.pl.ui.pane.FastColAction
-import sp.it.pl.ui.pane.SlowAction
-import sp.it.pl.ui.pane.SlowColAction
-import sp.it.pl.ui.pane.register
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.loadComponentFxwlJson
-import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.ComponentLoader
+import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -41,6 +36,14 @@ import sp.it.pl.main.Widgets.INSPECTOR
 import sp.it.pl.main.Widgets.SONG_TAGGER
 import sp.it.pl.main.Widgets.TESTER
 import sp.it.pl.plugin.impl.WallpaperChanger
+import sp.it.pl.ui.pane.ActionPane
+import sp.it.pl.ui.pane.ComplexActionData
+import sp.it.pl.ui.pane.ConfigPane
+import sp.it.pl.ui.pane.FastAction
+import sp.it.pl.ui.pane.FastColAction
+import sp.it.pl.ui.pane.SlowAction
+import sp.it.pl.ui.pane.SlowColAction
+import sp.it.pl.ui.pane.register
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
@@ -60,14 +63,11 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
-import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.net
 import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.browse
@@ -77,22 +77,12 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
-import sp.it.util.text.graphemeAt
-import sp.it.util.text.lengthInChars
-import sp.it.util.text.lengthInCodePoints
-import sp.it.util.text.lengthInGraphemes
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
-import sp.it.util.units.uri
-import java.io.File
-import java.net.URLEncoder
-import java.nio.file.Files
-import java.nio.file.attribute.BasicFileAttributes
-import kotlin.text.Charsets.UTF_8
 
 @Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
@@ -271,7 +261,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMA.COLLECTIONS,
          { songs ->
             APP.widgetManager.widgets.find(Widgets.SONG_TABLE_NAME, NEW).ifNotNull {
-               it.controller.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
+               it.controller!!.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
             }
          }
       ),
@@ -281,7 +271,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMA.COLLECTIONS,
          { songs ->
             APP.widgetManager.widgets.find(Widgets.SONG_GROUP_TABLE_NAME, NEW).ifNotNull {
-               it.controller.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
+               it.controller!!.io.i.getInput<List<Metadata>>("To display").value = songs.map { it.toMeta() }
             }
          }
       )

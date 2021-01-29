@@ -130,7 +130,7 @@ import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.syncC;
-import static sp.it.util.type.Util.getEnumConstants;
+import static sp.it.util.type.KClassExtensionsKt.getEnumValues;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
@@ -548,7 +548,7 @@ interface Utils {
 		return RAND.nextBoolean();
 	}
 	static <E extends Enum<E>> E randEnum(Class<E> enumType) {
-		return randOf(getEnumConstants(enumType));
+		return randOf(getEnumValues(enumType));
 	}
 	static <T> T randOf(T a, T b) {
 		return randBoolean() ? a : b;

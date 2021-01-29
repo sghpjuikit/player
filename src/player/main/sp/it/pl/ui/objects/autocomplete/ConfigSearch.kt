@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.autocomplete
 
 import de.jensd.fx.glyphs.GlyphIcons
-import javafx.event.EventType
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -30,7 +29,6 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.main.Css
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.Key
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.ConfigEditor
@@ -50,7 +48,6 @@ import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.isAnyChildOf
-import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
@@ -213,7 +210,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                      textAlignment = TextAlignment.RIGHT
                   }
                }
-               config.type.isSubclassOf<Boolean>() || config.isTypeEnumerable -> ConfigEditor.create(config).editor
+               config.type.isSubclassOf<Boolean>() || config.isEnumerable -> ConfigEditor.create(config).editor
                else -> null
             }
          }

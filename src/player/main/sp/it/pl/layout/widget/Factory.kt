@@ -19,7 +19,9 @@ import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.jvmName
+import sp.it.util.Locatable
 
 /** Component factory that creates component by deserializing it from file. */
 interface ComponentFactory<out T: Component>: ComponentInfo {
@@ -28,11 +30,8 @@ interface ComponentFactory<out T: Component>: ComponentInfo {
 
 /** Component factory that creates widgets. */
 @Widget.Info
-open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
+open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, Locatable {
 
-   val controllerType: Class<C>
-   val location: File
-   val locationUser: File
    override val id: String
    override val name: String
    override val icon: GlyphIcons?
@@ -44,12 +43,14 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
    override val contributor: String
    override val year: Year
    override val group: Widget.Group
-   override val type: Class<*>
+   override val type: KClass<*>
    override val summaryActions: List<ShortcutPane.Entry>
-
+   override val location: File
+   override val userLocation: File
+   /** [KClass] of the controller created by [create]. */
+   val controllerType: KClass<C>
    /** Whether this factory will be preferred on widget `find and create` requests. */
    var isPreferred = false
-
    /** Whether this factory will be ignored on widget `find and create` requests. */
    var isIgnored = false
 
@@ -62,9 +63,9 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo {
       val i: Widget.Info = null
          ?: controllerType.findAnnotation()
          ?: WidgetFactory::class.findAnnotation()!!
-      this.controllerType = controllerType.java
+      this.controllerType = controllerType
       this.location = location
-      this.locationUser = APP.location.user.widgets/location.nameOrRoot
+      this.userLocation = APP.location.user.widgets/location.nameOrRoot
       this.id = controllerType.simpleName ?: controllerType.jvmName
       this.name = info?.name ?: i.name.nullIfBlank() ?: id
       this.icon = info?.icon
@@ -116,4 +117,4 @@ class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController
 annotation class ExperimentalController(val reason: String)
 
 /** @see ExperimentalController */
-fun ComponentFactory<*>.isExperimental() = this is WidgetFactory<*> && controllerType.isAnnotationPresent(ExperimentalController::class.java)
+fun ComponentFactory<*>.isExperimental() = this is WidgetFactory<*> && controllerType.hasAnnotation<ExperimentalController>()

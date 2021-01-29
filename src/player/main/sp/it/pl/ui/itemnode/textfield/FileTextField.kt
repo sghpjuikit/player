@@ -4,7 +4,6 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.util.access.toggleNext
 import sp.it.util.access.v

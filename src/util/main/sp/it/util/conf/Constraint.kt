@@ -118,7 +118,17 @@ interface Constraint<in T> {
    /** Use single icon mode for boolean config editor and disabled style for false. */
    class IconConstraint(val icon: GlyphIcons): MarkerConstraint()
 
+   /** Constrain value to those specified in the collection. May be mutable (see [ValueSetNotContainsThen]). */
    class ValueSet<T>(val enumerator: () -> Collection<T>): MarkerConstraint()
+
+   /** Strategy for dealing with value outside specified set in [ValueSet]. Default is [Strategy.USE_DEFAULT]. */
+   class ValueSetNotContainsThen(val strategy: Strategy): MarkerConstraint() {
+      enum class Strategy {
+         USE_AND_ADD,
+         USE,
+         USE_DEFAULT
+      }
+   }
 
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()
 

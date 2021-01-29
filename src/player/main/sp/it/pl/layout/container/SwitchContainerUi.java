@@ -207,7 +207,7 @@ public class SwitchContainerUi implements ComponentUi {
     public void focusTraverse(@NotNull Component child, @NotNull Widget source) {
         var componentI = container.indexOf(child);
         var componentTab = tabs.get(componentI);
-        var sourceUi = source.uiTemp.getRoot();
+        var sourceUi = source.getUi().getRoot();
         var sourceBounds = componentTab.sceneToLocal(sourceUi.localToScene(sourceUi.getBoundsInLocal()));
 
         var tabWidth = uiWidth();

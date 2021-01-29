@@ -20,11 +20,11 @@ import sp.it.util.collections.stackOf
 import sp.it.util.dev.fail
 import sp.it.util.dev.printIt
 import sp.it.util.functional.asIs
-import sp.it.util.functional.recurseDF
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.AbstractList
 import java.util.function.Consumer
+import java.util.function.Function
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
@@ -172,7 +172,14 @@ class TypeUtilTest: FreeSpec({
          type<List<Int>>() isSubtypeOf type<MutableList<Number>>() shouldBe true // true, because MutableList erases to List
          type<List<Int>>() isSubtypeOf type<MutableList<in Number>>() shouldBe true // true, because MutableList erases to List
          type<List<Int>>() isSubtypeOf type<MutableList<out Number>>() shouldBe true // true, because MutableList erases to List
-         type<List<Int>>() isSubtypeOf type<List<*>>() shouldBe true // true, because covariant STAR is Any?
+
+         // star (declaration variance)
+         type<Covariant<Int>>() isSubtypeOf type<Covariant<*>>() shouldBe true
+         type<Contravariant<Int>>() isSubtypeOf type<Contravariant<*>>() shouldBe true
+
+         // star (on-site variance)
+         type<Invariant<out Int>>() isSubtypeOf type<Invariant<*>>() shouldBe true
+         type<Invariant<in Int>>() isSubtypeOf type<Invariant<*>>() shouldBe true
       }
 
       KClass<*>::superKClassesInc.name {
@@ -291,16 +298,27 @@ class TypeUtilTest: FreeSpec({
          }
       }
 
-      Type::flattenToRawTypes.name {
-         jType<Any>().flattenToRawTypes().toList() shouldBe listOf(Object::class.java)
-         jType<Any?>().flattenToRawTypes().toList() shouldBe listOf(Object::class.java)
-         jType<List<*>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Object::class.java)
-         jType<List<List<*>>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, List::class.java, Object::class.java)
-         jType<List<Int?>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
-         jType<MutableList<out Int>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
-         jType<MutableList<in Int?>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
-         jType<MutableList<Int>>().flattenToRawTypes().toList() shouldBe listOf(List::class.java, Integer::class.java)
-         jType<ArrayList<Int>>().flattenToRawTypes().toList() shouldBe listOf(ArrayList::class.java, Integer::class.java)
+      KType::toRawFlat.name {
+         // simple type
+         kType<Any>().toRawFlat().toList() shouldBe listOf(Any::class)
+         // nullability stripped
+         kType<Any?>().toRawFlat().toList() shouldBe listOf(Any::class)
+         // variance stripped
+         kType<List<Int?>>().toRawFlat().toList() shouldBe listOf(List::class, Integer::class)
+         kType<MutableList<out Int>>().toRawFlat().toList() shouldBe listOf(List::class, Integer::class)
+         kType<MutableList<in Int?>>().toRawFlat().toList() shouldBe listOf(List::class, Integer::class)
+         kType<MutableList<Int>>().toRawFlat().toList() shouldBe listOf(List::class, Integer::class)
+         kType<ArrayList<Int>>().toRawFlat().toList() shouldBe listOf(ArrayList::class, Integer::class)
+         // star resolved as covariant Any
+         kType<List<*>>().toRawFlat().toList() shouldBe listOf(List::class, Any::class)
+         kType<Function<*,*>>().toRawFlat().toList() shouldBe listOf(Function::class, Any::class, Any::class)
+         // arbitrary depth
+         kType<List<List<*>>>().toRawFlat().toList() shouldBe listOf(List::class, List::class, Any::class)
+         // special types
+         kType<Unit>().toRawFlat().toList() shouldBe listOf(Unit::class)
+         kType<Unit?>().toRawFlat().toList() shouldBe listOf(Unit::class)
+         kTypeNothingNonNull().toRawFlat().toList() shouldBe listOf(Nothing::class)
+         kTypeNothingNullable().toRawFlat().toList() shouldBe listOf(Nothing::class)
       }
 
       KClass<*>::traverseToSuper.name {
@@ -317,7 +335,7 @@ class TypeUtilTest: FreeSpec({
          )
       }
 
-      "${KType::argOf.name} preconditions" {
+      KType::argOf.name + " preconditions" {
          List::class.toString() shouldBe "class kotlin.collections.List"
          MutableList::class.toString() shouldBe "class kotlin.collections.List"
          type<List<*>>().type.toString() shouldBe "kotlin.collections.List<*>"

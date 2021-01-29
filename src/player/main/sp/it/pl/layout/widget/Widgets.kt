@@ -8,28 +8,11 @@ import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.util.functional.asIs
-import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.traverse
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.pickTopMostAt
 import sp.it.util.ui.toP
 import sp.it.util.ui.xy
-
-object Widgets {
-   val focusChangedHandler: (Node?, Boolean) -> Unit = { n, allowTraversal ->
-      val window = n?.scene?.window
-      if (n!=null && window!=null) {
-         val widgets = APP.widgetManager.widgets.findAll(OPEN).filter { it.window===window }.toList()
-         widgets.find {
-            it.uiTemp?.root?.isAnyParentOf(n) ?: false
-         }.ifNotNull { fw ->
-            widgets.forEach { w -> if (w!==fw) w.focusedImpl.value = false }
-            fw.focusedImpl.value = true
-            if (allowTraversal) fw.focusAndTraverseFromToRoot()
-         }
-      }
-   }
-}
 
 var Widget.forceLoading: Boolean
    get() = "forceLoading" in properties
@@ -57,5 +40,5 @@ private fun widgetContainingNode(node: Node?): Widget? {
    val window = node.scene?.window
    return APP.widgetManager.widgets
       .findAll(OPEN).filter { it.window===window }
-      .find { it.uiTemp?.root?.isAnyParentOf(node) ?: false }
+      .find { it.ui?.root?.isAnyParentOf(node) ?: false }
 }

@@ -811,7 +811,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         lay += textColon("Author", value.author)
                         lay += textColon("Contributor", value.contributor)
                         lay += textColon("Location", value.location)
-                        lay += textColon("Location (user data)", value.locationUser)
+                        lay += textColon("Location (user data)", value.userLocation)
                         lay += textFlow {
                            styleClass += "h4p"
                            lay += text(value.description.toUi())

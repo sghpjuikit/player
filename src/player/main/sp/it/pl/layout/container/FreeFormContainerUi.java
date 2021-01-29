@@ -251,7 +251,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             }
         });
 
-        if (cm instanceof Widget) syncC(((Widget) cm).custom_name, it -> w.setTitle(it));
+        if (cm instanceof Widget) syncC(((Widget) cm).getCustomName(), it -> w.setTitle(it));
         else w.setTitle("");
 
         syncC(w.resizing, it -> {

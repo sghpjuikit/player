@@ -62,7 +62,7 @@ class WidgetUi: ComponentUiBase<Widget> {
       this.index = index
       this.widget = widget
       this.widget.parent = container
-      this.widget.uiTemp = this
+      this.widget.ui = this
 
       root.id = "widget-ui"
       root.layFullArea += contentRoot.apply {
@@ -112,7 +112,7 @@ class WidgetUi: ComponentUiBase<Widget> {
             content.layFullArea += widget.load()
 
             // put controls to new widget
-            widget.custom_name syncTo controls.title.textProperty() on disposer
+            widget.customName syncTo controls.title.textProperty() on disposer
             controls.propB.isDisable = widget.getConfigs().isEmpty()
             widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
@@ -122,7 +122,7 @@ class WidgetUi: ComponentUiBase<Widget> {
                animation.openAndDo(contentRoot, null)
 
                // put controls to new widget
-               widget.custom_name syncTo controls.title.textProperty() on disposer
+               widget.customName syncTo controls.title.textProperty() on disposer
                controls.propB.isDisable = widget.getConfigs().isEmpty()
                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
 
@@ -143,7 +143,7 @@ class WidgetUi: ComponentUiBase<Widget> {
       widget.forceLoading = false
    }.apply {
       styleClass += "widget-ui-load-placeholder"
-      info.text = "Unfold ${widget.custom_name.value} (LMB)"
+      info.text = "Unfold ${widget.customName.value} (LMB)"
    }
 
    override fun dispose() {

@@ -18,7 +18,6 @@ import javafx.scene.text.Font
 import mu.KLogging
 import sp.it.pl.layout.container.SwitchContainer
 import sp.it.pl.layout.widget.WidgetSource.OPEN
-import sp.it.pl.layout.widget.Widgets
 import sp.it.pl.main.AppSettings.ui.skin
 import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
 import sp.it.pl.main.AppSettings.ui.view.overlayArea
@@ -79,6 +78,7 @@ import sp.it.pl.main.AppSettings.ui as confUi
 import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.table as confTable
 import sp.it.pl.main.AppSettings.ui.grid as confGrid
+import sp.it.pl.layout.widget.Widget
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.util.units.em
 
@@ -355,7 +355,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       WindowFX.getWindows().onItemSyncWhile { window ->
          window.sceneProperty().syncNonNullWhile { scene ->
             var allowTraversal = false
-            val s1 = scene.focusOwnerProperty() attach { Widgets.focusChangedHandler(it, allowTraversal) }
+            val s1 = scene.focusOwnerProperty() attach { Widget.focusChangedHandler(it, allowTraversal) }
             val s2 = scene.rootProperty() syncNonNullWhile { root ->
                val ss1 = root.onEventUp(MOUSE_PRESSED) { e ->
                   allowTraversal = false

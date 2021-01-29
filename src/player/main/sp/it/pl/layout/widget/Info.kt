@@ -9,13 +9,13 @@ import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.text.camelToDotCase
-import sp.it.util.type.isSuperclassOf
 import java.time.Year
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.jvm.jvmName
 
 interface ComponentInfo {
@@ -61,22 +61,19 @@ interface WidgetInfo: ComponentInfo {
    val group: Widget.Group
 
    /** Exact type of the widget (also denotes widget's controller type) */
-   val type: Class<*>
+   val type: KClass<*>
 
    /** All features the widget's controller implements */
-   val features get() = type.kotlin.allSuperclasses.mapNotNull { it.findAnnotation<Feature>() }
+   val features get() = type.allSuperclasses.mapNotNull { it.findAnnotation<Feature>() }
 
    /** @return true iff widget's controller implements given feature */
    fun hasFeature(feature: Feature) = hasFeature(feature.type)
 
    /** @return true iff widget's controller implements feature of given type */
-   fun hasFeature(feature: KClass<*>) = hasFeature(feature.java)
-
-   /** @return true iff widget's controller implements feature of given type */
-   fun hasFeature(feature: Class<*>) = feature.isSuperclassOf(type)
+   fun hasFeature(feature: KClass<*>) = feature.isSuperclassOf(type)
 
    /** @return true iff widget's controller implements all given features */
-   fun hasFeatures(vararg features: Class<*>) = features.all { hasFeature(it) }
+   fun hasFeatures(vararg features: KClass<*>) = features.all { hasFeature(it) }
 
    val summaryActions get() = listOf<ShortcutPane.Entry>()
 
@@ -101,10 +98,11 @@ interface WidgetInfo: ComponentInfo {
 interface WidgetCompanion: WidgetInfo {
 
    override val id
-      get() = type.kotlin.let { it.simpleName ?: it.jvmName }
+      get() = type.let { it.simpleName ?: it.jvmName }
 
-   override val type: Class<*>
-      get() = this::class.java.enclosingClass!!
+   override val type: KClass<*>
+      get() = this::class.java.enclosingClass!!.kotlin
+
 }
 
 /**

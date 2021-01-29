@@ -12,6 +12,8 @@ import sp.it.util.access.vx
 import sp.it.util.conf.Constraint.NoPersist
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.ValueSet
+import sp.it.util.conf.Constraint.ValueSetNotContainsThen
+import sp.it.util.conf.Constraint.ValueSetNotContainsThen.Strategy.*
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal
@@ -19,14 +21,16 @@ import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
+import sp.it.util.functional.net
 import sp.it.util.parsing.Parsers
-import sp.it.util.type.Util.getEnumConstants
-import sp.it.util.type.Util.isEnum
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
+import sp.it.util.type.enumValues
+import sp.it.util.type.isEnumClass
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
 import sp.it.util.type.rawJ
+import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
 import sp.it.util.type.typeResolved
 
@@ -124,34 +128,37 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
                .ifError { logger.warn(it) { "Unable to set config=$name value from text=$s" } }
       }
 
+   protected var valueEnumerator3rd: MutableList<T>? = null
    protected var valueEnumerator2nd: Enumerator<T>? = null
 
    @Suppress("UNCHECKED_CAST")
    protected val valueEnumerator: Enumerator<T>? by lazy {
       null
-         ?: findConstraint<ValueSet<T>>()?.let { values -> Enumerator { values.enumerator() } }
-         ?: valueEnumerator2nd
-         ?: if (!isEnum(type.rawJ)) null else {
-            if (type.isNullable) {
-               Enumerator { getEnumConstants<T>(type.rawJ).toList() + (null as T) }
-            } else {
-               Enumerator { getEnumConstants<T>(type.rawJ).toList() }
-            }
+         ?: findConstraint<ValueSet<T>>()?.let { values ->
+            Enumerator { values.enumerator() + valueEnumerator3rd.orEmpty() }
+         }
+         ?: valueEnumerator2nd?.net {
+            Enumerator { it() + valueEnumerator3rd.orEmpty() }
+         }
+         ?: if (!type.rawJ.isEnumClass) null else {
+            val values = type.rawJ.enumValues.toList()
+            if (type.isNullable) Enumerator { values + valueEnumerator3rd.orEmpty() + (null as T) }
+            else Enumerator { values + valueEnumerator3rd.orEmpty() }
          }
          ?: if (!type.jvmErasure.isSealed) null else {
-            if (type.isNullable) {
-               Enumerator { type.jvmErasure.sealedSubclasses.mapNotNull { it.objectInstance as T? } + (null as T) }
-            } else {
-               Enumerator { type.jvmErasure.sealedSubclasses.mapNotNull { it.objectInstance as T? } }
-            }
+            val values = type.jvmErasure.sealedSubObjects.asIs<List<T>>()
+            if (type.isNullable) Enumerator { values + valueEnumerator3rd.orEmpty() + (null as T) }
+            else Enumerator { values + valueEnumerator3rd.orEmpty() }
          }
    }
 
-   val isTypeEnumerable: Boolean
+   /** True iff [enumerateValues] returns a value. */
+   val isEnumerable: Boolean
       get() = valueEnumerator!=null
 
-   fun enumerateValues(): Collection<T> = valueEnumerator?.invoke() ?: fail {
-      "Config $name is not enumerable, because $type not enumerable."
+   /** @return collection of values this config's value is usually within, see [ValueSetNotContainsThen] for exceptions */
+   fun enumerateValues(): Collection<T> = valueEnumerator?.net { it() } ?: fail {
+      "Config $name is not enumerable, because $type not enumerable or no value set was provided."
    }
 
    override fun getConfig(name: String) = takeIf { it.name==name }
@@ -161,15 +168,25 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    companion object: KLogging() {
 
       /** Helper method. Expert API. */
-      @JvmStatic
+      @Suppress("MoveVariableDeclarationIntoWhen")
       fun <T> convertValueFromString(config: Config<T>, s: String): Try<T, String> {
-         if (config.isTypeEnumerable) {
+         return if (config.isEnumerable) {
+            // Instead of parsing the value, iterate through possible values and find the one with the same toS
+            // Expensive, but always preserves object identity
             for (v in config.enumerateValues())
                if (Parsers.DEFAULT.toS(v).equals(s, true)) return Try.ok(v)
 
-            return Try.error("Value '$s' does not correspond to any value of the enumeration in ${config.group}.${config.name}")
+            val strategy = config.findConstraint<ValueSetNotContainsThen>()?.strategy ?: USE_DEFAULT
+            when (strategy) {
+               USE_AND_ADD -> Parsers.DEFAULT.ofS(config.type, s).ifOk {
+                  if (config.valueEnumerator3rd == null) config.valueEnumerator3rd = mutableListOf(it)
+                  else config.valueEnumerator3rd!! += it
+               }
+               USE -> Parsers.DEFAULT.ofS(config.type, s)
+               USE_DEFAULT -> Try.ok(config.defaultValue)
+            }
          } else {
-            return Parsers.DEFAULT.ofS(config.type, s)
+            Parsers.DEFAULT.ofS(config.type, s)
          }
       }
 

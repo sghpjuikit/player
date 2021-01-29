@@ -55,17 +55,14 @@ import sp.it.util.units.millis
  * Global [shared instance] state:
  * See [sp.it.pl.layout.widget.appProperty].
  */
-abstract class Controller(widget: Widget): Configurable<Any?>, Locatable {
+abstract class Controller(widget: Widget): Configurable<Any?>, Locatable by widget {
 
    /** Widget owning this controller. */
    @JvmField val widget = widget
    @JvmField val io = IO(widget.id)
-   override val location get() = widget.location
-   override val userLocation get() = widget.userLocation
 
    /** @return the ui root of this Controller */
-   @Throws(Exception::class)
-   abstract fun loadFirstTime(): Pane
+   abstract fun uiRoot(): Pane
 
    /** Focuses the content. */
    abstract fun focus()

@@ -7,8 +7,6 @@ import sp.it.util.functional.Functors.F2
 import sp.it.util.functional.Functors.F3
 import sp.it.util.functional.Functors.F4
 import sp.it.util.functional.Util.IDENTITY
-import sp.it.util.type.Util.getEnumConstants
-import sp.it.util.type.Util.isEnum
 import sp.it.util.type.VType
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.isSupertypeOf
@@ -19,6 +17,8 @@ import sp.it.util.type.rawJ
 import sp.it.util.type.traverseToSuper
 import sp.it.util.type.type
 import java.util.Comparator.nullsFirst
+import sp.it.util.type.enumValues
+import sp.it.util.type.isEnumClass
 
 @Suppress("RemoveExplicitTypeArguments")
 class FunctorPool {
@@ -74,8 +74,8 @@ class FunctorPool {
 
       // add enum is predicates
       val rawJ = c.rawJ
-      if (isEnum(rawJ)) {
-         fs.addPreferred(PF1("Is", c.nullable(), type<Boolean>(), Parameter(c, getEnumConstants<T>(rawJ)[0] as T)) { a, b -> a===b })
+      if (rawJ.isEnumClass) {
+         fs.addPreferred(PF1("Is", c.nullable(), type<Boolean>(), Parameter(c, rawJ.enumValues[0])) { a, b -> a===b })
       }
 
       return fs

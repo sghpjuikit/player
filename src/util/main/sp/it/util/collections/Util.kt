@@ -17,8 +17,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.onChange
 import sp.it.util.type.raw
-import sp.it.util.type.typeNothingNonNull
-import sp.it.util.type.typeNothingNullable
 import sp.it.util.type.union
 import java.util.Optional
 import java.util.Stack
@@ -27,6 +25,8 @@ import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.withNullability
+import sp.it.util.type.kTypeNothingNonNull
+import sp.it.util.type.kTypeNothingNullable
 
 /** @return new list containing elements of this sequence, e.g. for safe iteration */
 fun <T> Sequence<T>.materialize() = toList()
@@ -42,8 +42,8 @@ fun <K, V> Map<K, V>.materialize() = toMap()
 
 /** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): KType = when {
-   isEmpty() -> typeNothingNonNull().type
-   all { it===null } -> typeNothingNullable().type
+   isEmpty() -> kTypeNothingNonNull()
+   all { it===null } -> kTypeNothingNullable()
    else -> {
       null
          ?: run {

@@ -125,6 +125,7 @@ import kotlin.reflect.KClass
 import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
+import kotlin.reflect.cast
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -219,6 +220,7 @@ class WidgetManager {
 
       // internal factories
       registerFactory(emptyWidgetFactory)
+      registerFactory(introWidgetFactory)
       registerFactory(initialTemplateFactory)
 
       // external factories
@@ -348,7 +350,7 @@ class WidgetManager {
                      .filter { it.factory.id==widgetName }
                      .filter { it.isLoaded }
                      .forEach {
-                        val root = it.root
+                        val root = it.graphics
                         val skinUrl = skinFile.toURLOrNull()?.toExternalForm()
                         if (skinUrl!=null) {
                            root?.stylesheetToggle(skinUrl, false)
@@ -584,7 +586,7 @@ class WidgetManager {
          }
 
          val widgets = widgets.findAll(source.widgetFinder)
-            .filter { !it.forbid_use.value }
+            .filter { !it.forbidUse.value }
             .filter { filter(it.factory) }
             .toList()
 
@@ -613,12 +615,12 @@ class WidgetManager {
        * Roughly equivalent to: `find({ it.hasFeature(feature) }, source, ignore)`, but with type safety.
        * Controller is returned only if the widget is/has been loaded without any errors.
        */
-      fun <F> use(feature: Class<F>, source: WidgetUse, action: (F) -> Unit) =
+      fun <F: Any> use(feature: KClass<F>, source: WidgetUse, action: (F) -> Unit) =
          find({ it.hasFeature(feature) }, source).focusWithWindow().filterIsControllerInstance(feature).ifNotNull(action).toUnit()
 
       /** Equivalent to: `use(T::class.java, source, action)` */
-      inline fun <reified T> use(source: WidgetUse, noinline action: (T) -> Unit) =
-         use(T::class.java, source, action)
+      inline fun <reified T: Any> use(source: WidgetUse, noinline action: (T) -> Unit) =
+         use(T::class, source, action)
 
       /** Equivalent to: `find(cond, source).ifPresent(action)` */
       fun use(cond: (WidgetInfo) -> Boolean, source: WidgetUse, action: (Widget) -> Unit) =
@@ -734,7 +736,7 @@ class WidgetManager {
          APP.widgetManager.widgets
             .find(id, source)
             .focusWithWindow()
-            .filterIsControllerInstance(feature.javaObjectType)
+            .filterIsControllerInstance(feature)
             .ifNotNull(action).toUnit()
       }
 
@@ -771,7 +773,7 @@ class WidgetManager {
 
       private fun Widget?.focusWithWindow() = this?.apply { window?.requestFocus(); focus(); }
 
-      private fun <R> Widget?.filterIsControllerInstance(type: Class<R>): R? = this?.controller.takeIf(type::isInstance)?.let(type::cast)
+      private fun <R: Any> Widget?.filterIsControllerInstance(type: KClass<R>): R? = this?.controller.takeIf(type::isInstance)?.let(type::cast)
 
       private fun Collection<File>.lastModifiedMax() = asSequence().map { it.lastModified() }.maxOrNull()
 
@@ -820,11 +822,11 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             forceLoading = true
          }
          val wasFocused = widgetOld.focused.value
-         val widgetOldInputs = widgetOld.controller.io.i.getInputs().associate { it.name to it.value }
+         val widgetOldInputs = widgetOld.controller!!.io.i.getInputs().associate { it.name to it.value }
          fun Widget.restoreAuxiliaryState() {
             forceLoading = false
             failIf(controller==null)
-            controller.io.i.getInputs().forEach { i -> widgetOldInputs[i.name].ifNotNull { i.valueAny = it } }
+            controller!!.io.i.getInputs().forEach { i -> widgetOldInputs[i.name].ifNotNull { i.valueAny = it } }
             if (wasFocused) focus()
          }
 
@@ -835,8 +837,8 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             p.addChild(i, widgetNew)
             widgetNew.restoreAuxiliaryState()
          } else {
-            val parent = widgetOld.graphics.parent
-            val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics)
+            val parent = widgetOld.graphics!!.parent
+            val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics!!)
             widgetOld.close()
             parent.asIf<Pane?>()?.children?.add(i, widgetNew.load())
             widgetNew.restoreAuxiliaryState()
@@ -947,7 +949,7 @@ sealed class ComponentLoader: (Component) -> Any {
                }
                if (c is Widget) {
                   val parent = this
-                  c.uiTemp = object: ComponentUi {
+                  c.ui = object: ComponentUi {
                      override val root = parent
                      override fun show() {}
                      override fun hide() {}

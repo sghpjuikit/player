@@ -286,7 +286,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && !type.isNullable && constraints.any { it is NumberMinMax && it.isClosed() }
 
          return when {
-            config.isTypeEnumerable -> when (config.type.jvmErasure) {
+            config.isEnumerable -> when (config.type.jvmErasure) {
                KeyCode::class -> KeyCodeCE(config.asIs())
                else -> EnumerableCE(config)
             }

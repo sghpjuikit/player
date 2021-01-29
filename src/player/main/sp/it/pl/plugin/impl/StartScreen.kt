@@ -40,6 +40,9 @@ import sp.it.util.JavaLegacy
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Loop
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.conf.Constraint.ValueSetNotContainsThen
+import sp.it.util.conf.Constraint.ValueSetNotContainsThen.Strategy.USE
+import sp.it.util.conf.but
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.valuesIn
@@ -105,7 +108,7 @@ class StartScreen: PluginBase() {
    }
    private var widgetLayout: Layout? = null
    private val widgetArea = anchorPane()
-   private val widgetFactory by cvn<FactoryRef<Any>>(null).def(name = "Component", info = "Component").valuesIn {
+   private val widgetFactory by cvn<FactoryRef<Any>>(null).def(name = "Component", info = "Component").but(ValueSetNotContainsThen(USE)).valuesIn {
       APP.widgetManager.factories.getFactoriesWith()
    }
 

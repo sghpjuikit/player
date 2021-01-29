@@ -418,7 +418,7 @@ open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequen
 class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.childrenUnmodifiable
    ?: emptyObservableList())
 
-class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.uiTemp?.root).filterNotNull() }, { false })
+class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.ui?.root).filterNotNull() }, { false })
 
 class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence() else seqOf() })
 

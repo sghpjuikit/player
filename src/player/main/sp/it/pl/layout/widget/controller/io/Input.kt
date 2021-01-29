@@ -95,11 +95,11 @@ open class Input<T>: Put<T?> {
    @Idempotent
    fun bindAllIdentical() {
       val allWidgets = APP.widgetManager.widgets.findAll(OPEN).filter { it.isLoaded }.toList()
-      val outputs = getSources().mapTo(HashSet()) { o -> o.id to allWidgets.find { o in it.controller.io.o.getOutputs() }?.factory }
+      val outputs = getSources().mapTo(HashSet()) { o -> o.id to allWidgets.find { o in it.controller!!.io.o.getOutputs() }?.factory }
       outputs.forEach { (id, factory) ->
          allWidgets.asSequence()
             .filter { it.factory==factory }
-            .map { it.controller.io.o.getOutputs().find { it.id.name==id.name }!! }
+            .map { it.controller!!.io.o.getOutputs().find { it.id.name==id.name }!! }
             .forEach { (this as Input<Any?>).bind(it as Output<Any?>) }
       }
    }

@@ -20,6 +20,7 @@ import sp.it.util.functional.ifNull
 import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.units.millis
 import kotlin.math.pow
+import sp.it.util.access.readOnly
 
 /** Audio player which abstracts away from the implementation. */
 class GeneralPlayer(state: PlayerState) {
@@ -27,7 +28,7 @@ class GeneralPlayer(state: PlayerState) {
    private val state = state
    private var p: Play? = null
    private val _pInfo = ReadOnlyObjectWrapper("<none>")
-   val pInfo = _pInfo.readOnlyProperty!!
+   val pInfo = _pInfo.readOnlyProperty.readOnly()
    private var i: Song? = null
    private var seekVolumeAnim = anim(150.millis) { state.playback.volumeFadeMultiplier.value = it.pow(2) }
 

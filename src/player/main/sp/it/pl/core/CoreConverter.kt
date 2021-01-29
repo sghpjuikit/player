@@ -48,7 +48,6 @@ import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
-import sp.it.util.type.Util.isEnum
 import sp.it.util.type.VType
 import sp.it.util.type.isPlatformType
 import sp.it.util.type.raw
@@ -76,6 +75,13 @@ import kotlin.reflect.full.createType
 import java.time.DateTimeException as DTE
 import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
+import java.util.function.BiFunction
+import kotlin.reflect.full.primaryConstructor
+import sp.it.pl.conf.Command
+import sp.it.util.dev.fail
+import sp.it.util.type.isEnum
+import sp.it.util.type.isObject
+import sp.it.util.type.sealedSubObjects
 
 private typealias NFE = NumberFormatException
 private typealias IAE = IllegalArgumentException
@@ -136,8 +142,8 @@ class CoreConverter: Core {
          is JsValue -> o.toCompactS()
          is Throwable -> o.localizedMessage
          else -> when {
-            isEnum(o::class.java) -> enumToHuman(o as Enum<*>)
-            o::class.objectInstance!=null -> enumToHuman(o::class.simpleName)
+            o::class.isEnum -> enumToHuman(o as Enum<*>)
+            o::class.isObject -> enumToHuman(o::class.simpleName)
             else -> general.toS(o)
          }
       }
@@ -151,6 +157,39 @@ class CoreConverter: Core {
 
    @Suppress("RemoveExplicitTypeArguments")
    private fun ConverterDefault.init() = apply {
+
+      val anyConverter = ConverterDefault()
+      parserFallbackToS = BiFunction { type, o ->
+         when {
+            type.isObject -> Try.ok(o::class.simpleName!!)
+            else -> Try.ok(anyConverter.toS(o))
+         }
+      }
+      parserFallbackFromS = BiFunction { type, s ->
+         when {
+            type.isObject -> Try.ok(type.objectInstance)
+            type.isSealed -> type.sealedSubObjects
+               .find { it::class.simpleName == s }
+               ?.let { Try.ok(it) }
+               ?: Try.error("Not a valid value: \"$s\"")
+            type.isData -> runTry {
+               type.primaryConstructor!!.call(
+                  *type.primaryConstructor!!.parameters
+                     .windowed(2, 1, true)
+                     .map { ps ->
+                        val argS = when (ps.size) {
+                           2 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.indexOf(", ${ps[1].name!!}="))
+                           1 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.length-1)
+                           else -> fail()
+                        }
+                        general.ofS(ps[0].type.raw, argS).orThrow
+                     }
+                     .toTypedArray()
+               )
+            }.orMessage()
+            else -> Try.ok(anyConverter.ofS(type, s))
+         }
+      }
 
       val toS: (Any) -> String = defaultTos::invoke
       fun <T: Number> FromS<T>.numberMessage(): FromS<T> = this compose { it.mapError { "Not a number" + it.nullIfBlank()?.let { ": $it" } } }
@@ -192,7 +231,18 @@ class CoreConverter: Core {
       addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
       addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect?>(it) })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
-      addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) { Class.forName(it).kotlin })
+      addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) {
+         val defaultKClassToStringPrefix = "class"
+         val sanitized = it.trim().removePrefix(defaultKClassToStringPrefix).trim()
+         when (sanitized) {
+            "kotlin.Any" -> Any::class
+            "kotlin.Unit" -> Unit::class
+            "kotlin.Nothing" -> Nothing::class
+            else -> Class.forName(sanitized).kotlin
+         }
+
+
+      })
       addP<PF<*, *>>(
          {
             val iN = if (it.`in`.isNullable) "?" else ""
@@ -220,6 +270,7 @@ class CoreConverter: Core {
             it.split(" ").let { Insets(it[0].toDouble(), it[1].toDouble(), it[2].toDouble(), it[3].toDouble()) }
          }
       )
+      addT<Command>({ Command.toS(it) }, { Command.ofS(it).orMessage() })
       addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
 
    }

@@ -1,7 +1,7 @@
 package sp.it.util.access;
 
 import java.util.List;
-import static sp.it.util.type.Util.getEnumConstants;
+import static sp.it.util.type.KClassExtensionsKt.getEnumValues;
 
 public interface Values {
 
@@ -51,8 +51,9 @@ public interface Values {
 	 *
 	 * @return next cyclical enum constant according to its ordinal number.
 	 */
+	@SuppressWarnings("unchecked")
 	static <E extends Enum<E>> E next(E val) {
-		E[] values = getEnumConstants(val.getClass());
+		E[] values = getEnumValues((Class<E>) val.getClass());
 		int index = (val.ordinal() + 1)%values.length;
 		return values[index];
 	}
@@ -63,8 +64,9 @@ public interface Values {
 	 *
 	 * @return previous cyclical enum constant according to its ordinal number.
 	 */
+	@SuppressWarnings("unchecked")
 	static <E extends Enum<E>> E previous(E val) {
-		E[] values = getEnumConstants(val.getClass());
+		E[] values = getEnumValues((Class<E>) val.getClass());
 		int ord = val.ordinal();
 		int index = ord==0 ? values.length - 1 : ord - 1;
 		return values[index];

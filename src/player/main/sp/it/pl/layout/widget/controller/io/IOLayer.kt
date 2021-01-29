@@ -345,11 +345,11 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       xNodes().forEach { it.graphics.isVisible = false }
 
       switchContainerUi.container.rootParent?.allWidgets?.asSequence().orEmpty().filter { it?.controller!=null }.forEach { w ->
-         val c = w.controller
+         val c = w.controller!!
          val ins = c.io.i.getInputs().mapNotNull { inputNodes[it] }
          val ons = c.io.o.getOutputs().mapNotNull { outputNodes[it] }
 
-         val b = w.uiTemp.root.let { it.localToScene(it.layoutBounds) }
+         val b = w.ui!!.root.let { it.localToScene(it.layoutBounds) }
          val baseX = b.minX/tScaleX.value.toDouble() - translationOffset
          val baseY = b.minY - headerOffset
          val ww = b.width/tScaleX.value.toDouble()

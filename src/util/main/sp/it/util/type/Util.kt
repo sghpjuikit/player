@@ -1,5 +1,17 @@
 package sp.it.util.type
 
+import java.lang.reflect.Array
+import java.lang.reflect.Field
+import java.lang.reflect.GenericArrayType
+import java.lang.reflect.Method
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
+import java.lang.reflect.WildcardType
+import java.util.Optional
+import java.util.Stack
+import java.util.concurrent.atomic.AtomicReference
+import java.util.logging.Level
 import javafx.beans.Observable
 import javafx.beans.property.Property
 import javafx.beans.property.ReadOnlyObjectWrapper
@@ -20,30 +32,6 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
-import mu.KotlinLogging
-import sp.it.util.dev.fail
-import sp.it.util.functional.asIs
-import sp.it.util.functional.net
-import sp.it.util.functional.recurseBF
-import sp.it.util.functional.recurseDF
-import sp.it.util.functional.traverse
-import sp.it.util.type.JavafxPropertyType.JavafxDoublePropertyType
-import sp.it.util.type.JavafxPropertyType.JavafxFloatPropertyType
-import sp.it.util.type.JavafxPropertyType.JavafxIntegerPropertyType
-import sp.it.util.type.JavafxPropertyType.JavafxLongPropertyType
-import sp.it.util.type.PaneProperties.paneProperty
-import java.lang.reflect.Array
-import java.lang.reflect.Field
-import java.lang.reflect.GenericArrayType
-import java.lang.reflect.Method
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.lang.reflect.TypeVariable
-import java.lang.reflect.WildcardType
-import java.util.Optional
-import java.util.Stack
-import java.util.concurrent.atomic.AtomicReference
-import java.util.logging.Level
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -65,6 +53,18 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmName
+import mu.KotlinLogging
+import sp.it.util.dev.fail
+import sp.it.util.functional.asIs
+import sp.it.util.functional.net
+import sp.it.util.functional.recurseBF
+import sp.it.util.functional.recurseDF
+import sp.it.util.functional.traverse
+import sp.it.util.type.JavafxPropertyType.JavafxDoublePropertyType
+import sp.it.util.type.JavafxPropertyType.JavafxFloatPropertyType
+import sp.it.util.type.JavafxPropertyType.JavafxIntegerPropertyType
+import sp.it.util.type.JavafxPropertyType.JavafxLongPropertyType
+import sp.it.util.type.PaneProperties.paneProperty
 
 private val logger = KotlinLogging.logger {}
 
@@ -158,27 +158,22 @@ fun Type.toRaw(): Class<*> = let { type ->
 }
 
 /**
- * Flattens a type to individual type fragments represented by jvm classes, removing variance (wildcards) and nullability.
+ * Flattens a type to individual type fragments represented by jvm classes, removing variance (projections) and nullability.
  *
  * Examples:
  *
- * `Any` -> [Object.class]
- * `Any?` -> [Object.class]
- * `List<*>` -> [List.class, Object.class]
- * `List<Int?>` -> [List.class, Integer.class]
- * `MutableList<out Int>` -> [List.class, Integer.class]
- * `MutableList<in Int?>` -> [List.class, Integer.class]
- * `MutableList<Int>` -> [List.class, Integer.class]
- * `ArrayList<Int>` -> [ArrayList.class, Integer.class]
+ * `Any` -> [Any.class]
+ * `Any?` -> [Any.class]
+ * `List<*>` -> [List.class, Any.class]
+ * `List<Int?>` -> [List.class, Int.class]
+ * `MutableList<out Int>` -> [List.class, Int.class]
+ * `MutableList<in Int?>` -> [List.class, Int.class]
+ * `MutableList<Int>` -> [List.class, Int.class]
+ * `ArrayList<Int>` -> [ArrayList.class, Int.class]
  *
  * @return sequence of classes representing the specified type and its generic type arguments
  */
-fun Type.flattenToRawTypes(): Sequence<Class<*>> = when (this) {
-   is WildcardType -> (if (lowerBounds.isNullOrEmpty()) upperBounds else lowerBounds).asSequence().flatMap { it.flattenToRawTypes() }
-   is ParameterizedType -> sequenceOf(toRaw()) + actualTypeArguments.asSequence().flatMap { it.flattenToRawTypes() }
-   is Class<*> -> sequenceOf(this)
-   else -> throw Exception(toString())
-}
+fun KType.toRawFlat(): Sequence<KClass<*>> = recurseDF { it.arguments.map { it.type ?: kType<Any?>() } }.mapNotNull { it.raw }
 
 /** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
 infix fun Any.nullify(property: KProperty<*>) {
@@ -207,7 +202,6 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
    else -> java.recurseBF { listOfNotNull(it.superclass) + it.interfaces }.map { it.kotlin }.filter { it != Any::class } + Any::class
    // recurse { it.superclasses }   // TODO: KClass.superclasses is bugged for anonymous Java classes
 }
-
 
 /**
  * Execute action for each observable value representing a javafx property of an object o.
@@ -333,9 +327,9 @@ private object PaneProperties {
 }
 
 
-/** [KTypeProjection.type] without variance and [KTypeProjection.STAR] resolved to non null [Nothing] */
+/** [KTypeProjection.type] without variance. [KTypeProjection.STAR] resolves to non null [Nothing] */
 val KTypeProjection.typeResolved: KType
-   get() = type ?: typeNothingNonNull().type
+   get() = type ?: kTypeNothingNonNull()
 
 /** True if this class is subclass of one of the top lvl javafx property interfaces, i.e [ObservableValue] or [WritableValue] */
 val KClass<*>.isJavaFxObservableOrWritableValue
@@ -350,10 +344,10 @@ val KType.javaFxPropertyType: KType
    get() = when {
          raw.isJavaFxObservableOrWritableValue -> {
             val pt = when {
-               raw.isSubclassOf<ObservableValue<*>>() -> argOf(ObservableValue::class, 0)
-               raw.isSubclassOf<WritableValue<*>>() -> argOf(WritableValue::class, 0)
+               raw.isSubclassOf<ObservableValue<*>>() -> argOf(ObservableValue::class, 0).typeResolved
+               raw.isSubclassOf<WritableValue<*>>() -> argOf(WritableValue::class, 0).typeResolved
                else -> fail()
-            }.typeResolved
+            }
 
             // Workaround for number properties returning Number.class, due to implementing Property<Number>.
             when {

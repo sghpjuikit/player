@@ -16,7 +16,6 @@ import sp.it.util.functional.runTry
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.escapeJson
-import sp.it.util.type.Util.isEnum
 import sp.it.util.type.argOf
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.toRaw
@@ -54,6 +53,8 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
+import sp.it.util.type.isEnumClass
+import sp.it.util.type.isObject
 
 sealed class JsValue {
    fun asJsNull() = asIs<JsNull>()
@@ -187,7 +188,7 @@ class Json {
          else -> {
             val type = value::class
             val typeAsRaw = typeAs.raw
-            val isObject = type.objectInstance!=null
+            val isObject = type.isObject
             val isAmbiguous = typeAsRaw==Any::class || typeAsRaw.isSealed || isObject || type!=typeAsRaw
 
             fun typeWitness() = "_type" to JsString(typeAliases.byType[type]
@@ -295,7 +296,7 @@ class Json {
                }
             }
             is JsString -> {
-               if (isEnum(typeJ)) getEnumValue(typeJ, value.value)
+               if (typeJ.isEnumClass) getEnumValue(typeJ, value.value)
                else value.value
             }
             is JsArray -> {
@@ -346,7 +347,7 @@ class Json {
                   ?: value.value["_type"]?.asJsStringValue()?.net { typeAliases.byAlias[it] ?: Class.forName(it).kotlin }
                   ?: typeK
                when {
-                  instanceType.objectInstance!=null -> instanceType.objectInstance
+                  instanceType.isObject -> instanceType.objectInstance
                   instanceType==Short::class -> value.value["value"]?.asJsNumberValue()?.toShort()
                   instanceType==Int::class -> value.value["value"]?.asJsNumberValue()?.toInt()
                   instanceType==Long::class -> value.value["value"]?.asJsNumberValue()?.toLong()

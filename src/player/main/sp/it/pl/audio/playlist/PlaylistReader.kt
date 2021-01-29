@@ -1,8 +1,16 @@
 package sp.it.pl.audio.playlist
 
+import java.io.File
+import java.io.IOException
+import java.net.URI
+import java.net.URISyntaxException
+import java.nio.charset.Charset
+import kotlin.text.Charsets.UTF_8
 import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
+import sp.it.pl.main.FileExtensions.m3u
+import sp.it.pl.main.FileExtensions.m3u8
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread
@@ -10,26 +18,19 @@ import sp.it.util.file.div
 import sp.it.util.file.hasExtension
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
-import java.io.File
-import java.io.IOException
-import java.net.URI
-import java.net.URISyntaxException
-import java.nio.charset.Charset
-import kotlin.text.Charsets.UTF_8
 
 private const val EXTM3U = "#EXTM3U"
 private const val EXTINF = "#EXTINF"
 private val logger = KotlinLogging.logger { }
 
-@Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @Blocks
-fun readPlaylist(file: File): List<Song> {
+fun readM3uPlaylist(file: File): List<Song> {
    failIfFxThread()
 
    val location = file.parentFile ?: fail { "File=$file is not a playlist file" }
    val encoding = when {
-      file hasExtension "m3u" -> Charset.defaultCharset()
-      file hasExtension "m3u8" -> UTF_8
+      file hasExtension m3u -> Charset.defaultCharset()
+      file hasExtension m3u8 -> UTF_8
       else -> fail { "File=$file is not a supported playlist file" }
    }
 
@@ -40,7 +41,7 @@ fun readPlaylist(file: File): List<Song> {
             null
                ?: l.toAbsoluteURIOrNull()?.net { sequenceOf(SimpleSong(it)) }
                ?: File(l).absoluteTo(location)?.net {
-                  if (it.isPlaylistFile()) readPlaylist(it).asSequence()
+                  if (it.isM3uPlaylist()) readM3uPlaylist(it).asSequence()
                   else sequenceOf(SimpleSong(it))
                }
                ?: sequenceOf()
@@ -50,10 +51,10 @@ fun readPlaylist(file: File): List<Song> {
 }
 
 @Blocks
-fun writePlaylist(playlist: List<Song>, name: String, dir: File) {
+fun writeM3uPlaylist(playlist: List<Song>, name: String, dir: File) {
    failIfFxThread()
 
-   val file = dir/"$name.m3u8"
+   val file = dir/"$name.$m3u8"
    runTry {
       file.bufferedWriter(UTF_8).use { w ->
          playlist.forEach {
@@ -65,10 +66,10 @@ fun writePlaylist(playlist: List<Song>, name: String, dir: File) {
    }
 }
 
-fun File.isPlaylistFile() = hasExtension("m3u", "m3u8")
+fun File.isM3uPlaylist() = hasExtension(m3u, m3u8)
 
-private fun File.absoluteTo(dir: File): File? {
-   return if (isAbsolute) {
+private fun File.absoluteTo(dir: File): File? =
+   if (isAbsolute) {
       this
    } else {
       try {
@@ -78,7 +79,6 @@ private fun File.absoluteTo(dir: File): File? {
          null
       }
    }
-}
 
 fun String.toAbsoluteURIOrNull() =
    try {

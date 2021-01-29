@@ -37,8 +37,8 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.TransferMode.ANY;
-import static sp.it.pl.audio.playlist.PlaylistReaderKt.isPlaylistFile;
-import static sp.it.pl.audio.playlist.PlaylistReaderKt.readPlaylist;
+import static sp.it.pl.audio.playlist.PlaylistReaderKt.isM3uPlaylist;
+import static sp.it.pl.audio.playlist.PlaylistReaderKt.readM3uPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
@@ -257,7 +257,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		);
 		installDrag(
 			this, PLAYLIST_PLUS, "Add to playlist",
-			e -> e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it)),
+			e -> e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isM3uPlaylist(it)),
 //			e -> !getItemsRaw().isEmpty(),
 			consumer(e -> dropDrag(e, getItemsRaw().size()))
 		);
@@ -337,12 +337,12 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			e.consume();
 		}
 		// TODO: move to Drag utils
-		if (e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isPlaylistFile(it))) {
+		if (e.getDragboard().hasFiles() && e.getDragboard().getFiles().stream().anyMatch(it -> isM3uPlaylist(it))) {
 			List<File> files = e.getDragboard().getFiles();
 			runNew(() ->
 				files.stream()
-					.filter(it -> isPlaylistFile(it))
-					.flatMap(it -> readPlaylist(it).stream())
+					.filter(it -> isM3uPlaylist(it))
+					.flatMap(it -> readM3uPlaylist(it).stream())
 					.collect(toList())
 			).useBy(FX, items ->
 				getPlaylist().addItems(items, index)

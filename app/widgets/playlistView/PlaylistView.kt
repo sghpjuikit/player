@@ -10,7 +10,7 @@ import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field
-import sp.it.pl.audio.playlist.writePlaylist
+import sp.it.pl.audio.playlist.writeM3uPlaylist
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.PLAYLIST
 import sp.it.pl.layout.widget.WidgetCompanion
@@ -180,7 +180,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
                lastSavePlaylistLocation = file.parentDirOrRoot
                APP.audio.lastSavePlaylistLocation = file.parentDirOrRoot
                runNew {
-                  writePlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot)
+                  writeM3uPlaylist(table.selectedOrAllItemsCopy, file.name, file.parentDirOrRoot)
                }
             }
          }

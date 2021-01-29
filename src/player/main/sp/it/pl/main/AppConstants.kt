@@ -2,6 +2,9 @@ package sp.it.pl.main
 
 import java.io.File
 import sp.it.pl.layout.widget.WidgetManager.FactoryRef
+import sp.it.util.dev.failIf
+import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.MimeTypes
 
 object Widgets {
    const val CONVERTER_NAME = "Converter"
@@ -45,16 +48,21 @@ object Css {
    const val DESCRIPTION = "description"
 }
 
-@Suppress("ObjectPropertyName")
 object FileExtensions {
    const val fxwl = "fxwl"
-   const val `spit-command` = "spit-command"
+   const val command = "spit-command"
+   const val m3u = "m3u"
+   const val m3u8 = "m3u8"
 }
 
-@Suppress("ObjectPropertyName")
 object FileMimes {
-   const val fxwl = "application/spit-component"
-   const val `spit-command` = "application/spit-command"
+   val fxwl = MimeType("application/spit-component", FileExtensions.fxwl)
+   val command = MimeType("application/spit-command", FileExtensions.command)
+   val m3u = MimeTypes.ofExtension(FileExtensions.m3u).apply {
+      failIf(this==MimeType.unknown)
+      failIf(!hasExtension(FileExtensions.m3u))
+      failIf(!hasExtension(FileExtensions.m3u8))
+   }
 }
 
 object Events {

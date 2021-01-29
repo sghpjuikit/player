@@ -12,8 +12,8 @@ import javafx.stage.FileChooser.ExtensionFilter
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.audio.playlist.isPlaylistFile
-import sp.it.pl.audio.playlist.readPlaylist
+import sp.it.pl.audio.playlist.isM3uPlaylist
+import sp.it.pl.audio.playlist.readM3uPlaylist
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.addToLibTask
 import sp.it.pl.layout.Component
@@ -326,8 +326,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open playlist",
          "Add songs to new playlist widget.",
          IconMD.PLAYLIST_PLAY,
-         { it.isPlaylistFile() },
-         { f -> PlaylistManager.use { it.setNplay(readPlaylist(f)) } }
+         { it.isM3uPlaylist() },
+         { f -> PlaylistManager.use { it.setNplay(readM3uPlaylist(f)) } }
       ),
       SlowColAction(
          "Find files",

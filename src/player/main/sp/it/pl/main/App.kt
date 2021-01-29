@@ -213,8 +213,8 @@ class App: Application(), GlobalConfigDelegator {
    val serializer = CoreSerializer
    /** File mime type core. */
    val mimeTypes = MimeTypes.apply {
-      register(MimeType(FileMimes.fxwl, FileExtensions.fxwl))
-      register(MimeType(FileMimes.`spit-command`, FileExtensions.`spit-command`))
+      register(FileMimes.fxwl)
+      register(FileMimes.command)
    }
    /** Map of instances per type core. */
    val instances = CoreInstances

@@ -33,13 +33,11 @@ import sp.it.util.access.fieldvalue.StringGetter
 import sp.it.util.collections.setTo
 import sp.it.util.file.div
 import sp.it.util.functional.asIf
-import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
-import sp.it.util.system.copyToSysClipboard
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.hBox
@@ -54,10 +52,16 @@ import sp.it.util.ui.x2
 import sp.it.util.units.version
 import sp.it.util.units.year
 import kotlin.reflect.KClass
+import sp.it.pl.main.Df.PLAIN_TEXT
+import sp.it.pl.main.sysClipboard
+import sp.it.pl.ui.objects.grid.GridViewSkin
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
+import sp.it.util.functional.asIs
+import sp.it.util.ui.drag.set
+import sp.it.util.ui.dsl
 
 class IconViewer(widget: Widget): SimpleController(widget) {
    val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
@@ -93,6 +97,13 @@ class IconViewer(widget: Widget): SimpleController(widget) {
                graphic.asIf<IconCellGraphics>()?.select(selected)
             }
 
+         }
+      }
+      skinProperty() attach {
+         it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {
+            item("Copy selected (${PRIMARY.nameUi}") {
+               sysClipboard[PLAIN_TEXT] = selectedItem.value?.id()
+            }
          }
       }
    }
@@ -168,9 +179,7 @@ class IconCellGraphics(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
          isMouseTransparent = true
       }
       onEventDown(MOUSE_CLICKED, PRIMARY) {
-         glyph.ifNotNull {
-            copyToSysClipboard(it.id())
-         }
+         sysClipboard[PLAIN_TEXT] = glyph?.id()
       }
 
       lay(ALWAYS) += stackPane(graphics)

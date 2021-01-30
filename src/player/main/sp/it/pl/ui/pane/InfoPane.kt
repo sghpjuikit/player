@@ -15,15 +15,17 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
+import sp.it.pl.main.Df.PLAIN_TEXT
 import sp.it.pl.main.infoIcon
+import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
 import sp.it.util.Named
 import sp.it.util.named
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
-import sp.it.util.system.copyToSysClipboard
 import sp.it.util.toLocalDateTime
 import sp.it.util.ui.Util.layVertically
+import sp.it.util.ui.drag.set
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -95,7 +97,7 @@ class InfoPane: OverlayPane<Unit>() {
                val nameL = label(name)
                val valL = label(value) {
                   cursor = Cursor.HAND
-                  onEventDown(MOUSE_CLICKED, PRIMARY) { copyToSysClipboard(value) }
+                  onEventDown(MOUSE_CLICKED, PRIMARY) { sysClipboard[PLAIN_TEXT] = value }
                }
                g.add(valL, 0, i)
                g.add(nameL, 2, i)

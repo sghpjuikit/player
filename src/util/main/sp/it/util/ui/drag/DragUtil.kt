@@ -6,6 +6,7 @@ import javafx.scene.input.DragEvent
 import javafx.scene.input.TransferMode.ANY
 import sp.it.util.dev.failIf
 import javafx.scene.input.DataFormat as DataFormatFX
+import sp.it.util.functional.ifNotNull
 
 /** Equivalent to [Clipboard.hasContent]. */
 operator fun Clipboard.contains(format: DataFormatFX) = hasContent(format)
@@ -21,16 +22,16 @@ operator fun Clipboard.get(format: DataFormatFX): Any? {
 
 /** Equivalent to [Clipboard.getContent], but type safe. */
 @Suppress("UNCHECKED_CAST")
-operator fun <T> Clipboard.get(format: DataFormat<T>): T = this[format.format] as T
+operator fun <T: Any> Clipboard.get(format: DataFormat<T>): T = this[format.format] as T
 
-/** Equivalent to [Clipboard.setContent]. */
-operator fun Clipboard.set(format: DataFormatFX, data: Any) = setContent(mapOf(format to data))
+/** Equivalent to [Clipboard.setContent], but null safe. */
+operator fun Clipboard.set(format: DataFormatFX, data: Any?) = data.ifNotNull { setContent(mapOf(format to data)) }
 
-/** Equivalent to [Clipboard.setContent], but type safe. */
-operator fun <T> Clipboard.set(format: DataFormat<out T>, data: T) = setContent(mapOf(format.format to data))
+/** Equivalent to [Clipboard.setContent], but null safe and type safe. */
+operator fun <T: Any> Clipboard.set(format: DataFormat<T>, data: T?) = data.ifNotNull { setContent(mapOf(format.format to data)) }
 
 /** Type-safe data format for type-safe [Clipboard.get]. */
-class DataFormat<T>(val format: DataFormatFX) {
+class DataFormat<T: Any>(val format: DataFormatFX) {
    constructor(id: String): this(DataFormatFX(id))
 }
 

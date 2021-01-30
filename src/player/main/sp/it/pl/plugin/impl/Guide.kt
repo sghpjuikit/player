@@ -5,7 +5,6 @@ import javafx.geometry.Insets
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
-import javafx.scene.input.DataFormat
 import javafx.scene.input.KeyCode.LEFT
 import javafx.scene.input.KeyCode.RIGHT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -60,7 +59,8 @@ import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import java.util.ArrayList
 import sp.it.pl.main.AppSettings.plugins.guide as conf
-
+import sp.it.pl.main.Df.PLAIN_TEXT
+import sp.it.util.ui.drag.set
 
 class Guide: PluginBase() {
 
@@ -523,14 +523,14 @@ class Guide: PluginBase() {
 
                lay += Icon(IconMD.DICE_2, ICON_SIZE).apply {
                   onDragDetected = EventHandler {
-                     startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "2"))
+                     startDragAndDrop(COPY)[PLAIN_TEXT] = "2"
                      it.consume()
                   }
                }.withText("Drag '2'")
 
                lay += Icon(IconMD.DICE_3, ICON_SIZE).apply {
                   onDragDetected = EventHandler {
-                     startDragAndDrop(COPY).setContent(mapOf(DataFormat.PLAIN_TEXT to "3"))
+                     startDragAndDrop(COPY)[PLAIN_TEXT] = "3"
                      it.consume()
                   }
                }.withText("Drag '3'")

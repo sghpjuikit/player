@@ -4,7 +4,8 @@ import javafx.stage.Window as WindowFX
 import java.io.File
 import java.lang.reflect.Modifier
 import javafx.scene.Node
-import javafx.scene.input.DataFormat
+import javafx.scene.control.Menu
+import javafx.scene.input.KeyCode.SHORTCUT
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
@@ -25,11 +26,15 @@ import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
+import sp.it.pl.main.Df.FILES
+import sp.it.pl.main.Df.IMAGE
+import sp.it.pl.main.Df.PLAIN_TEXT
 import sp.it.pl.main.configure
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
+import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toMetadata
 import sp.it.pl.main.writeImage
 import sp.it.pl.ui.objects.image.Thumbnail
@@ -48,16 +53,17 @@ import sp.it.util.file.div
 import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.ifFalse
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.browse
-import sp.it.util.system.copyToSysClipboard
 import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
-import sp.it.util.text.keys
+import sp.it.util.text.*
 import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder
+import sp.it.util.ui.drag.set
 
 object CoreMenus: Core {
 
@@ -131,31 +137,39 @@ object CoreMenus: Core {
             item("Edit (in associated editor)") { it.edit() }
             item("Delete from disc") { it.recycle() }
 
-            if (APP.location isParentOf value) {
-               item("Copy path (absolute)") { copyToSysClipboard(DataFormat.PLAIN_TEXT, it.absolutePath) }
-               item("Copy path (app relative)") { copyToSysClipboard(DataFormat.PLAIN_TEXT, it.path) }
-            } else {
-               item("Copy path") { copyToSysClipboard(DataFormat.PLAIN_TEXT, it.path) }
-            }
+            menu("Copy") {
 
-            item("Copy filename") { copyToSysClipboard(DataFormat.PLAIN_TEXT, it.nameOrRoot) }
-            item("Copy as ...") { f ->
-               object: ConfigurableBase<Any?>() {
-                  val file by cv(APP.location).only(DIRECTORY).def(name = "File")
-                  val overwrite by cv(false).def(name = "Overwrite")
-                  val onError by cv(OnErrorAction.SKIP).def(name = "On error")
-               }.configure("Copy as...") {
-                  f.copyRecursively(it.file.value/f.name, it.overwrite.value) { _, e ->
-                     logger.warn(e) { "File copy failed" }
-                     it.onError.value
-                  }.ifFalse {
-                     AppErrors.push("File $f copy failed")
+               if (APP.location isParentOf value) {
+                  item("Path (absolute)") { sysClipboard[PLAIN_TEXT] = it.absolutePath }
+                  item("Path (app relative)") { sysClipboard[PLAIN_TEXT] = it.path }
+               } else {
+                  item("Path") { sysClipboard[PLAIN_TEXT] = it.path }
+               }
+
+               item("Filename") { sysClipboard[PLAIN_TEXT] = it.nameOrRoot }
+               item("File (${keys("${SHORTCUT.resolved} + C")})") { sysClipboard[FILES] = listOf(it) }
+               item("File As ...") { f ->
+                  object: ConfigurableBase<Any?>() {
+                     val file by cv(APP.location).only(DIRECTORY).def(name = "File")
+                     val overwrite by cv(false).def(name = "Overwrite")
+                     val onError by cv(OnErrorAction.SKIP).def(name = "On error")
+                  }.configure("Copy as...") {
+                     f.copyRecursively(it.file.value/f.name, it.overwrite.value) { _, e ->
+                        logger.warn(e) { "File copy failed" }
+                        it.onError.value
+                     }.ifFalse {
+                        AppErrors.push("File $f copy failed")
+                     }
                   }
                }
             }
          }
          addMany<File> {
-            item("Copy") { copyToSysClipboard(DataFormat.FILES, it) }
+            if (value.size>1) {
+               menu("Copy (${keys("${SHORTCUT.resolved} + C")})") {
+                  item("Files") { sysClipboard[FILES] = it.toList() }
+               }
+            }
             item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }
          }
          add<Node> {
@@ -212,11 +226,17 @@ object CoreMenus: Core {
             menu("Edit tags in") {
                widgetItems<SongWriter> { it.read(value.grouped) }
             }
-            menu("Location") {
-               item("Explore songs' location") { APP.actions.browseMultipleFiles(it.grouped.asSequence().mapNotNull { it.getFile() }) }
-               menu("Explore songs' location in") {
-                  widgetItems<FileExplorerFeature> {
-                     it.exploreCommonFileOf(value.grouped.mapNotNull { it.getFile() })
+            if (value.grouped.size==1) {
+               value.grouped.firstOrNull()?.getFile().ifNotNull {
+                  menuFor("File", it)
+               }
+            } else {
+               menu("Location") {
+                  item("Explore songs' location") { APP.actions.browseMultipleFiles(it.grouped.asSequence().mapNotNull { it.getFile() }) }
+                  menu("Explore songs' location in") {
+                     widgetItems<FileExplorerFeature> {
+                        it.exploreCommonFileOf(value.grouped.mapNotNull { it.getFile() })
+                     }
                   }
                }
             }
@@ -230,6 +250,11 @@ object CoreMenus: Core {
                }
          }
          add<PlaylistSongGroup> {
+            if (value.songs.size==1) {
+               value.songs.firstOrNull()?.getFile().ifNotNull {
+                  menuFor("File", it)
+               }
+            }
             item("Play songs (${keys("ENTER")})") { it.playlist.playItem(it.songs.firstOrNull()) }
             menu("Show in") {
                widgetItems<SongReader> {
@@ -275,7 +300,7 @@ object CoreMenus: Core {
                         }
                      }
                   }
-                  item("Copy to clipboard") { copyToSysClipboard(DataFormat.IMAGE, it.image) }
+                  item("Copy to clipboard") { sysClipboard[IMAGE] = it.image }
                }
             if (!value.fsDisabled && value.iFile!=value.representant)
                menuFor("Cover file", value.fsImageFile)
@@ -336,8 +361,9 @@ object CoreMenus: Core {
    private fun MenuBuilder<*, *>.menuFor(value: Any?) = menuFor(APP.className.getOf(value), value)
 
    @Dsl
-   private fun MenuBuilder<*, *>.menuFor(menuName: String, value: Any?) = menu(menuName, null) {
+   private fun MenuBuilder<*, *>.menuFor(menuName: String, value: Any?, block: MenuBuilder<Menu, out Any?>.() -> Unit = {}) = menu(menuName, null) {
       menuItemBuilders[value].forEach { this add it }
+      block()
    }
 
 }

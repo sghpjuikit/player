@@ -37,7 +37,6 @@ import sp.it.util.ui.drag.handlerAccepting
 import sp.it.util.units.uri
 import java.io.File
 import java.io.IOException
-import java.net.URI
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Supplier
 import javafx.scene.input.DataFormat as DataFormatFX
@@ -77,6 +76,9 @@ object Df {
    /** Data Format for [sp.it.pl.audio.tagging.MetadataGroup]. */
    @JvmField val METADATA_GROUP = DataFormatAppOnly<MetadataGroup>("application/sp.it.player-metadata-group")
 }
+
+/** Equivalent to [Clipboard.getSystemClipboard]. */
+val sysClipboard: Clipboard = Clipboard.getSystemClipboard()
 
 /** Equivalent to [Clipboard.hasContent], but see [DataFormatAppOnly]. */
 operator fun Clipboard.contains(format: DataFormatAppOnly<*>) = hasContent(format.format)
@@ -247,7 +249,7 @@ fun Node.installDrag(icon: GlyphIcons, info: String, condition: (DragEvent) -> B
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 fun Node.installDrag(icon: GlyphIcons, info: String, condition: (DragEvent) -> Boolean, exc: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =
-   installDrag(icon, Supplier { info }, condition, exc, action)
+   installDrag(icon, { info }, condition, exc, action)
 
 /** Sets up drag support with specified characteristics for the specified node. See [DragPane.install]. */
 fun Node.installDrag(icon: GlyphIcons, info: Supplier<out String>, condition: (DragEvent) -> Boolean, action: (DragEvent) -> Unit) =

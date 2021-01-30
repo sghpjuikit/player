@@ -10,8 +10,6 @@ import java.io.File
 import java.io.IOException
 import java.lang.ProcessBuilder.Redirect.DISCARD
 import java.net.URI
-import javafx.scene.input.Clipboard
-import javafx.scene.input.DataFormat
 import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Screen
@@ -61,12 +59,6 @@ object EnvironmentContext {
     */
    var defaultChooseFileDir: File = File(System.getProperty("user.home"))
 }
-
-/** Puts the specified string to system clipboard. Does nothing if null. */
-fun copyToSysClipboard(s: String?) = copyToSysClipboard(DataFormat.PLAIN_TEXT, s)
-
-/** Puts the specified object to system clipboard. Does nothing if null. */
-fun copyToSysClipboard(df: DataFormat, o: Any?) = o.ifNotNull { Clipboard.getSystemClipboard().setContent(mapOf(df to it)) }
 
 /**
  * Launches this file as an executable program as a separate process on an [IO].

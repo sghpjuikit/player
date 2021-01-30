@@ -15,7 +15,6 @@ import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
-import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.emScaled
@@ -36,7 +35,6 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.expandToRootAndSelect
 import sp.it.util.ui.hBox
@@ -47,6 +45,9 @@ import sp.it.util.ui.treeView
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import java.io.File
+import sp.it.pl.main.Df.FILES
+import sp.it.util.functional.ifNotNull
+import sp.it.util.ui.drag.set
 
 @Widget.Info(
    author = "Martin Polakovic",
@@ -88,8 +89,8 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
 
       // drag selected files
       tree.onEventDown(DRAG_DETECTED, PRIMARY) {
-         tree.selectionModel.selectedItem?.value?.asIf<File>()?.let { s ->
-            tree.startDragAndDrop(if (it.isShortcutDown) LINK else COPY).setContent(mapOf(Df.FILES.format to listOf(s)))
+         tree.selectionModel.selectedItem?.value?.asIf<File>()?.ifNotNull { f ->
+            tree.startDragAndDrop(if (it.isShortcutDown) LINK else COPY)[FILES] = listOf(f)
          }
       }
 

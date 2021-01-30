@@ -16,7 +16,6 @@ import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
-import javafx.scene.input.DataFormat
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -90,6 +89,8 @@ import java.nio.file.Path
 import java.util.ArrayList
 import java.util.Stack
 import javafx.stage.Window as WindowFX
+import sp.it.pl.main.Df.FILES
+import sp.it.util.ui.drag.set
 
 private val logger = KotlinLogging.logger { }
 private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
@@ -181,7 +182,7 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
             .map { it.value }
             .filterIsInstance<File>()
             .toList()
-         startDragAndDrop(*TransferMode.ANY).setContent(mapOf(DataFormat.FILES to items))
+         startDragAndDrop(*TransferMode.ANY)[FILES] = items
          e.consume()
       }
    }

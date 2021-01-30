@@ -108,16 +108,23 @@ import sp.it.util.units.millis
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
+import javafx.scene.input.KeyCode.C
+import javafx.scene.input.KeyCode.SHORTCUT
 import kotlin.math.round
+import sp.it.pl.main.Df
 import sp.it.pl.main.Events.FileEvent
+import sp.it.pl.main.sysClipboard
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.cr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.system.recycle
 import sp.it.util.text.keys
+import sp.it.util.text.resolved
+import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
 
 @Widget.Info(
@@ -205,6 +212,11 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
                revisitCurrent()
             }
          }
+         it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
+            item("Copy selected (${keys("${SHORTCUT.resolved} + C")})") {
+               copySelected()
+            }
+         }
          it?.asIs<GridViewSkin<*,*>>()?.menuRemove?.dsl {
             item("Delete selected (${keys("DELETE")})") {
                grid.selectedItem.value?.value?.recycle()
@@ -224,6 +236,12 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          if (!it.isConsumed) {
             val si = grid.selectedItem.value
             if (si!=null) doubleClickItem(si, it.isShiftDown)
+         }
+      }
+      grid.onEventDown(KEY_PRESSED, C, false) {
+         if (it.isShortcutDown) {
+            copySelected()
+            it.consume()
          }
       }
       grid.onEventDown(KEY_PRESSED, BACK_SPACE) { visitUp() }
@@ -384,6 +402,10 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          if (edit) i.value.edit()
          else i.value.open()
       }
+   }
+
+   fun copySelected() {
+      sysClipboard[Df.FILES] = grid.selectedItem.value?.value?.net { listOf(it) }
    }
 
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {

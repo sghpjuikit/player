@@ -302,6 +302,8 @@ class WidgetManager {
 
    private inner class WidgetMonitor constructor(val widgetDir: File) {
       val widgetName = widgetDir.name.capitalize()
+      val packageName  = widgetName.decapitalize()
+      val classFqName  = "$packageName.$widgetName"
       val skinFile = widgetDir/"skin.css"
       val compileDir = widgetDir/"out"
       val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
@@ -392,7 +394,7 @@ class WidgetManager {
          logger.info { "Widget=$widgetName factory update, source files available=$srcFilesAvailable class files available=$classFilesAvailable" }
 
          if (classFilesAvailable) {
-            val controllerType = loadClass(widgetDir.name, classFile!!, compileDir, findLibFiles())
+            val controllerType = loadClass(classFqName, compileDir, findLibFiles())
             registerFactory(controllerType)
          } else if (srcFilesAvailable) {
             compileFx()
@@ -463,42 +465,47 @@ class WidgetManager {
 
       /** Compiles specified .java files into .class files. */
       private fun compileJava(javaSrcFiles: Sequence<File>): Try<Nothing?, String> {
-         val options = sequenceOf(
-            "-encoding", APP.encoding.name(),
-            "-d", compileDir.relativeToApp(),
-            "-Xlint",
-            "-Xlint:-path",
-            "-Xlint:-processing",
-            "-cp", computeClassPath()
-         )
-         val sourceFiles = javaSrcFiles.map { it.path }
-         val arguments = (options + sourceFiles).asArray()
+         return try {
+            val options = sequenceOf(
+               "-encoding", APP.encoding.name(),
+               "-d", compileDir.relativeToApp(),
+               "-Xlint",
+               "-Xlint:-path",
+               "-Xlint:-processing",
+               "-cp", computeClassPath()
+            )
+            val sourceFiles = javaSrcFiles.map { it.path }
+            val arguments = (options + sourceFiles).asArray()
 
-         logger.info("Compiling with arguments=${arguments.joinToString(" ")}")
-         val compiler = ToolProvider.getSystemJavaCompiler() ?: run {
-            logger.error { "Compilation failed\nJava system compiler not available" }
-            return Try.error("Java system compiler not available")
-         }
+            logger.info("Compiling with arguments=${arguments.joinToString(" ")}")
+            val compiler = ToolProvider.getSystemJavaCompiler() ?: run {
+               logger.error { "Compilation failed\nJava system compiler not available" }
+               return Try.error("Java system compiler not available")
+            }
 
-         val streamStdOut = ByteArrayOutputStream(1000)
-         val streamStdErr = ByteArrayOutputStream(1000)
-         val success = compiler.run(null, streamStdOut, streamStdErr, *arguments)
-         val isSuccess = success==0
-         val textStdOut = streamStdOut.toString(UTF_8).prettifyCompilerOutput()
-         val textStdErr = streamStdErr.toString(UTF_8).prettifyCompilerOutput()
+            val streamStdOut = ByteArrayOutputStream(1000)
+            val streamStdErr = ByteArrayOutputStream(1000)
+            val success = compiler.run(null, streamStdOut, streamStdErr, *arguments)
+            val isSuccess = success==0
+            val textStdOut = streamStdOut.toString(UTF_8).prettifyCompilerOutput()
+            val textStdErr = streamStdErr.toString(UTF_8).prettifyCompilerOutput()
 
-         return if (isSuccess) {
-            logger.info { "Compilation succeeded$textStdOut" }
-            Try.ok()
-         } else {
-            logger.error { "Compilation failed$textStdErr" }
-            Try.error(textStdErr)
+            if (isSuccess) {
+               logger.info { "Compilation succeeded$textStdOut" }
+               Try.ok()
+            } else {
+               logger.error { "Compilation failed$textStdErr" }
+               Try.error(textStdErr)
+            }
+         } catch (e: Exception) {
+            Try.error(e.message ?: "")
          }
       }
 
       /** Compiles specified .kt files into .class files. */
       private fun compileKotlin(kotlinSrcFiles: Sequence<File>): Try<Nothing?, String> {
-         try {
+         return try {
+            failIfWrongPackage(kotlinSrcFiles)
             val kotlincFile = kotlinc.getDone().toTry().getOrSupply { fail(it) { "Kotlin compiler not available" } }
             val command = listOf(
                kotlincFile.relativeToApp(),
@@ -528,7 +535,7 @@ class WidgetManager {
             val textStdErr = process.errorStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
             val isSuccess = success==0
 
-            return if (isSuccess) {
+            if (isSuccess) {
                logger.info { "Compilation succeeded$textStdout" }
                Try.ok()
             } else {
@@ -537,7 +544,15 @@ class WidgetManager {
             }
          } catch (e: Exception) {
             logger.error(e) { "Compilation failed" }
-            return Try.error(e.message ?: "")
+            Try.error(e.message ?: "")
+         }
+      }
+
+      private fun failIfWrongPackage(kotlinSrcFiles: Sequence<File>) {
+         kotlinSrcFiles.forEach { f ->
+            f.useLines {
+               failIf(!it.firstOrNull().orEmpty().startsWith("package $packageName")) { "Class source file=$f package must be $packageName" }
+            }
          }
       }
    }
@@ -753,12 +768,11 @@ class WidgetManager {
    companion object: KLogging() {
 
       /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
-      private fun loadClass(widgetName: String, classFile: File, compileDir: File, libFiles: Sequence<File>): Try<Class<*>, Throwable> {
-         val className = "$widgetName.${classFile.nameWithoutExtension}"
+      private fun loadClass(classFqName: String, compileDir: File, libFiles: Sequence<File>): Try<Class<*>, Throwable> {
          return createControllerClassLoader(compileDir, libFiles).andAlso {
             try {
                runTry {
-                  it.loadClass(className)
+                  it.loadClass(classFqName)
                }
             } catch (t: LinkageError) {
                Try.error(t)

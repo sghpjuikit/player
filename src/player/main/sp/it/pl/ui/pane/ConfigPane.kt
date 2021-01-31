@@ -89,7 +89,7 @@ class ConfigPane<T: Any?>: VBox {
       }
    }
 
-   override fun computeMinHeight(width: Double) = insets.top + insets.bottom
+   override fun computeMinHeight(width: Double) = insets.top + insets.bottom + children.map { it.minHeight(-1.0) }.sum()
 
    // overridden because un-managed description nodes would not partake in height calculation
    override fun computePrefHeight(width: Double): Double {

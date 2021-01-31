@@ -87,7 +87,6 @@ import java.net.URLConnection
 import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
 import sp.it.pl.main.AppSettings.app as conf
-import sp.it.util.file.type.MimeType
 
 lateinit var APP: App
 private val verify = File::verify

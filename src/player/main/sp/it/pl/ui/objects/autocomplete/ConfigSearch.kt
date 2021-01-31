@@ -258,20 +258,6 @@ class ConfigSearch: AutoCompletion<Entry> {
          root.lookupChildAt<HBox>(0).prefWidthProperty() syncFrom (root.widthProperty() - configNodeRoot.widthProperty() - 10)
          root.lookupChildAt<HBox>(0).maxWidthProperty() syncFrom (root.widthProperty() - 100)
          root.lookupChildAt<HBox>(0).padding = Insets(2.5, 0.0, 2.5, 0.0)
-         root.onEventDown(KeyEvent.ANY) {
-            when {
-               it.code==ENTER -> {
-                  // allows executing the action even if item graphics has focus
-               }
-               it.code==TAB -> {
-                  // allows moving focus from item graphics
-               }
-               it.source == configNodeRoot || it.source.asIf<Node>()?.isAnyChildOf(configNodeRoot)==true -> {
-                  // allows interaction with item graphics without interfering with the autocomplete
-                  it.consume()
-               }
-            }
-         }
          rootTooltip.textProperty() attach {
             if (it.isNullOrBlank()) root uninstall rootTooltip
             else root install rootTooltip
@@ -284,6 +270,8 @@ class ConfigSearch: AutoCompletion<Entry> {
       }
 
       override fun updateItem(item: Entry?, empty: Boolean) {
+         if (this.item == item && item!=null) return
+
          super.updateItem(item, empty)
 
          if (empty || item==null) {
@@ -303,6 +291,13 @@ class ConfigSearch: AutoCompletion<Entry> {
                configNodeRoot.children.clear()
             } else {
                configNodeRoot.children setToOne node
+               node.onEventDown(KeyEvent.ANY) {
+                  when {
+                     it.code==ENTER -> Unit // allows executing the action even if item graphics has focus
+                     it.code==TAB -> Unit // allows moving focus from item graphics
+                     else -> it.consume() // allows interaction with item graphics without interfering with the autocomplete
+                  }
+               }
                StackPane.setAlignment(node, CENTER_RIGHT)
             }
          }

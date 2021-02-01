@@ -96,6 +96,7 @@ import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
+import sp.it.util.text.toChar32
 import sp.it.util.type.kTypeNothingNonNull
 
 /**
@@ -420,6 +421,7 @@ fun Any?.detectContent(): Any? = when (this) {
          ?: this.toBigIntegerOrNull()
          ?: this.toBigDecimalOrNull()
          ?: this.toByteOrNull()
+         ?: this.takeIf { it.startsWith("U+") || it.startsWith("\\u") }?.let { it.substring(2).toIntOrNull(16)?.toChar32() }
          ?: APP.serializerJson.json.ast(this).orNull()
          ?: runTry { uri(this) }.orNull()?.net { it.toFileOrNull() ?: it }
          ?: runTry { uri(URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }

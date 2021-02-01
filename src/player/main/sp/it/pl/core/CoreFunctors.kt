@@ -85,6 +85,8 @@ import java.util.UUID
 import java.util.regex.Pattern
 import kotlin.reflect.full.createType
 import kotlin.text.Charsets.UTF_8
+import sp.it.util.functional.getOrSupply
+import sp.it.util.math.StrExF
 
 object CoreFunctors: Core {
 
@@ -139,6 +141,7 @@ object CoreFunctors: Core {
          add("To application UI text", type<Any?>(), S) { it.toUi() }
          add("To application DB text", type<Any?>(), S) { it.toS() }
          add("To best content", type<Any?>(), type<Any?>()) { it.detectContent() }
+         add("Detect content", type<Any?>(), type<Any?>()) { it.detectContent() }
 
          add("To Boolean", S, type<Boolean?>()) { when (it) { "true" -> true "false" -> false else -> null } }
          add("To Byte", S, type<Byte?>()) { it.toByteOrNull() }
@@ -170,6 +173,7 @@ object CoreFunctors: Core {
          add("To Bin", type<Int>(), S) { "0b" + Integer.toBinaryString(it) }
          add("To Oct", type<Int>(), S) { "0" + Integer.toOctalString(it) }
          add("To Hex", type<Int>(), S) { "0x" + Integer.toHexString(it) }
+         add("Function", type<Number>(), type<Double>(), p<StrExF>(StrExF("x"))) { it, f -> runTry { f(it.toDouble()) }.getOrSupply { Double.NaN } }
 
          add("To upper case", S, S) { it.toUpperCase() }
          add("To lower case", S, S) { it.toLowerCase() }

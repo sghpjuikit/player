@@ -1,13 +1,14 @@
 package sp.it.pl.ui.pane
 
 import javafx.geometry.Insets
+import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
+import javafx.scene.text.TextFlow
 import sp.it.pl.main.Css
 import sp.it.pl.ui.itemnode.ConfigEditor
-import sp.it.pl.ui.objects.Text
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
@@ -18,9 +19,13 @@ import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.type.raw
+import sp.it.util.ui.height
 import sp.it.util.ui.label
+import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.text
+import sp.it.util.ui.textFlow
+import sp.it.util.ui.width
 
 class ConfigPane<T: Any?>: VBox {
    private var editors: List<ConfigEditor<*>> = listOf()
@@ -43,6 +48,7 @@ class ConfigPane<T: Any?>: VBox {
 
    fun configure(configurable: Configurable<*>?) {
       alignment = CENTER_LEFT
+      isFillWidth = false
       needsLabel = configurable !is Config<*>
       editors = configurable?.getConfigs().orEmpty().asSequence()
          .filter { !it.hasConstraint<Constraint.NoUi>() }
@@ -64,10 +70,11 @@ class ConfigPane<T: Any?>: VBox {
             },
             when {
                it.config.info.isEmpty() || it.config.nameUi==it.config.info -> null
-               else -> text(it.config.info).apply {
-                  isManaged = false
-                  styleClass += Css.DESCRIPTION
-                  styleClass += "form-config-pane-config-description"
+               else -> textFlow {
+                  lay += text(it.config.info).apply {
+                     styleClass += Css.DESCRIPTION
+                     styleClass += "form-config-pane-config-description"
+                  }
                }
             },
             it.buildNode()
@@ -76,34 +83,65 @@ class ConfigPane<T: Any?>: VBox {
       children setTo editorNodes
    }
 
-   // overridden because we have un-managed nodes description nodes would cause wrong width
+   override fun getContentBias() = Orientation.HORIZONTAL
+
+   // overridden because text nodes should not partake in width calculations
+   // using TextFlowWithNoWidth would avoid this, but may cause other issues
+   // ---
+   private var isComputingWidth = false
+   override fun computeMinWidth(height: Double): Double {
+      isComputingWidth = true
+      val x = super.computeMinWidth(height)
+      isComputingWidth = false
+      return x
+   }
+   override fun computePrefWidth(height: Double): Double {
+      isComputingWidth = true
+      val x = super.computePrefWidth(height)
+      isComputingWidth = false
+      return x
+   }
+   override fun computeMaxWidth(height: Double): Double {
+      isComputingWidth = true
+      val x = super.computeMaxWidth(height)
+      isComputingWidth = false
+      return x
+   }
+   override fun <E: Node> getManagedChildren(): MutableList<E> {
+      val mc = super.getManagedChildren<E>()
+      return if (isComputingWidth) return mc.filter { it !is TextFlow }.toMutableList()
+      else mc
+   }
+   // ---
+
+   // overridden because text nodes would not wrap
    override fun layoutChildren() {
       val contentLeft = padding.left
-      val contentWidth = if (width>0) width - padding.left - padding.right else 200.0
+      val contentWidth = if (width>0) width - padding.width else 200.0
       children.fold(0.0) { h, n ->
-         if (n is Text) n.wrappingWidth = contentWidth
          val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
+         val pH = n.prefHeight(-1.0).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
          n.relocate(contentLeft, h + p.top + spacing)
-         n.resize(contentWidth, n.prefHeight(-1.0))
-         h + p.top + n.prefHeight(-1.0) + p.bottom + spacing
+         n.resize(contentWidth, pH)
+         h + p.top + pH + p.bottom + spacing
       }
    }
 
-   override fun computeMinHeight(width: Double) = insets.top + insets.bottom + children.map { it.minHeight(-1.0) }.sum()
-
-   // overridden because un-managed description nodes would not partake in height calculation
+   // overridden because text nodes would interfere with in height calculation
+   // ---
+   override fun computeMinHeight(width: Double) = insets.height + children.map { it.minHeight(width) }.sum()
    override fun computePrefHeight(width: Double): Double {
       var minY = 0.0
       var maxY = 0.0
       children.forEach { n ->
          val y = n.layoutBounds.minY + n.layoutY
          minY = minY min y
-         maxY = maxY max (y + n.prefHeight(-1.0).clip(n.minHeight(-1.0), n.maxHeight(-1.0)))
+         maxY = maxY max (y + n.prefHeight(width).clip(n.minHeight(width), n.maxHeight(width)))
       }
       return maxY - minY
    }
-
    override fun computeMaxHeight(width: Double) = Double.MAX_VALUE
+   // ---
 
    @Suppress("UNCHECKED_CAST")
    fun getConfigEditors(): List<ConfigEditor<T>> = editors as List<ConfigEditor<T>>

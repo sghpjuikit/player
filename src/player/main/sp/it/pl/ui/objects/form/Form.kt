@@ -82,7 +82,7 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
       isParallelExecutable.attach { updateOkButtonVisible() }
       isExecuting.attach { updateOkButtonVisible() }
 
-      editorsPane.onChange = Runnable { validate() }
+      editorsPane.onChangeOrConstraint = Runnable { validate() }
       editorsPane.configure(this.configurable)
 
       validate()

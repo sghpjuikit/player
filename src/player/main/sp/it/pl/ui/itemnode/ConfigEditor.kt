@@ -71,14 +71,16 @@ private val paddingWithDefB = Insets.EMPTY
 abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
    val isEditableByUser = config.isEditableByUserRightNowProperty()
    var onChange: Runnable? = null
+   var onChangeOrConstraint: Runnable? = null
    private var inconsistentState = false
 
    /** Use to get the control node for setting and displaying the value to attach it to a scene graph. */
    abstract val editor: Node
 
-   abstract fun get(): Try<T, String>
-
+   /** [config].[Config.getValue] */
    fun getConfigValue(): T = config.value
+
+   abstract fun get(): Try<T, String>
 
    fun getValid(): Try<T, String> = get().and { v ->
       if (!config.type.isNullable) ObjectNonNull.validate(v) else Try.ok()
@@ -217,6 +219,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          config.value = config.defaultValue
          refreshValue()
          onChange?.invoke()
+         onChangeOrConstraint?.invoke()
          inconsistentState = false
       }
    }
@@ -225,12 +228,19 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
       if (inconsistentState) return
       getValid().ifOk {
          val isNew = it!=config.value
-         if (!isNew) return
-         inconsistentState = true
-         config.value = it
-         refreshValue()
-         onChange?.invoke()
-         inconsistentState = false
+         if (isNew) {
+            inconsistentState = true
+            config.value = it
+            refreshValue()
+            onChange?.invoke()
+            println("lol21")
+            onChangeOrConstraint?.invoke()
+            inconsistentState = false
+         } else {
+            onChangeOrConstraint?.invoke()
+         }
+      }.ifError {
+         onChangeOrConstraint?.invoke()
       }
    }
 

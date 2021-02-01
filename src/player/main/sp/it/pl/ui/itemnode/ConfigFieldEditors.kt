@@ -536,6 +536,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
                list setTo chain.chain.map { it.chained.getVal() }.filter { isNullableOk(it) }
                isSyntheticSetEvent = false
                this@ObservableListCE.onChange?.invoke()
+               this@ObservableListCE.onChangeOrConstraint?.invoke()
             }
 
          }
@@ -568,6 +569,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
                false -> if (list.checkType.isNullable) null else true
             }
             onChange?.run()
+            onChangeOrConstraint?.run()
          }
       }
    }
@@ -585,6 +587,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
          }
          updateSuperIcon()
          onChange?.run()
+         onChangeOrConstraint?.run()
       }
    }
 
@@ -853,6 +856,7 @@ class ConfigurableCE(c: Config<Configurable<*>?>): ConfigEditor<Configurable<*>?
 
    init {
       editor.onChange = onChange
+      editor.onChangeOrConstraint = onChangeOrConstraint
       editor.configure(c.value)
       v?.attach { editor.configure(it) }.orEmpty() on editor.onNodeDispose
    }
@@ -880,6 +884,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 
    init {
       configPane.onChange = onChange
+      configPane.onChangeOrConstraint = onChangeOrConstraint
       next()
    }
 

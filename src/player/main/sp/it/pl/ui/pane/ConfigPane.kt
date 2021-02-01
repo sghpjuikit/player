@@ -33,6 +33,7 @@ class ConfigPane<T: Any?>: VBox {
    private var needsLabel: Boolean = true
    private var inLayout = false
    var onChange: Runnable? = null
+   var onChangeOrConstraint: Runnable? = null
    val configOrder = compareBy<Config<*>> { 0 }
       .thenBy { it.group.toLowerCase() }
       .thenBy { if (it.type.raw==Action::class) 1.0 else -1.0 }
@@ -56,6 +57,7 @@ class ConfigPane<T: Any?>: VBox {
          .map {
             ConfigEditor.create(it).apply {
                onChange = this@ConfigPane.onChange
+               onChangeOrConstraint = this@ConfigPane.onChangeOrConstraint
             }
          }
          .toList()

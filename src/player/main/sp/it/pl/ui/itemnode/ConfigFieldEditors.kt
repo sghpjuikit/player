@@ -1,5 +1,7 @@
 package sp.it.pl.ui.itemnode
 
+import com.sun.javafx.scene.DirtyBits
+import com.sun.javafx.scene.NodeHelper
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable
@@ -788,6 +790,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
    override fun refreshValue() {}
 
    private class WidgetInfoPane: StackPane() {
+
       val disposer = Disposer()
       var widget: ComponentFactory<*>? = null
          set(value) {
@@ -814,11 +817,10 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         lay += textColon("Location (user data)", value.userLocation)
                         lay += textFlow {
                            styleClass += "h4p"
-                           lay += text(value.description.toUi())
                            lay += text(value.descriptionLong.toUi())
                            lay += text {
                               val fs = value.features
-                              text = "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString { "\n\t${it.name} - ${it.description}" })
+                              "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
                            }
                         }
                      }

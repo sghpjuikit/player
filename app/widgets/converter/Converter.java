@@ -56,6 +56,7 @@ import sp.it.util.conf.Config;
 import sp.it.util.file.Util;
 import sp.it.util.functional.Functors.F0;
 import sp.it.util.text.StringSplitParser.SplitData;
+import sp.it.util.type.UtilKt;
 import sp.it.util.type.VType;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
@@ -77,6 +78,7 @@ import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
+import static sp.it.pl.main.AppExtensionsKt.toUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
 import static sp.it.util.JavaLegacyKt.typeListOfAny;
@@ -105,6 +107,7 @@ import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.type.TypesKt.typeNothingNonNull;
+import static sp.it.util.type.UtilKt.estimateRuntimeType;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
@@ -312,12 +315,21 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         EditArea(String name, boolean isMain) {
             super();
             this.isMain = isMain;
+            this.transforms.setHeaderVisible(true);
             textArea.setPrefColumnCount(80);
 
             // graphics
             var nameL = new Label(name);
-            var caretL = new Label("Pos: 0:0:0");
 
+            var typeL = new Label("");
+            var typeLUpdater = runnable(() -> {
+                var text = input.size() + "x " + toUi(estimateRuntimeType(input)) + " → " + output.size() + "x " + toUi(estimateRuntimeType(output));
+                typeL.setText(text);
+            });
+            onChangeAndNow(input, typeLUpdater);
+            onChangeAndNow(output, typeLUpdater);
+
+            var caretL = new Label("Caret: 0:0:0");
             sync(textArea.focusedProperty(), consumer(caretL::setVisible));
             attach(textArea.caretPositionProperty(), consumer(i -> {
                 var lastCharAt = new AtomicInteger(0);
@@ -332,11 +344,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 var x = xy - lastNewlineAt.get();
                 caretL.setText("Pos: " + xy + ":" + x + ":" + y);
             }));
-            var size1L = new Label("Size: ");
-            var size2L = new Label("");
-            onChangeAndNow(input, runnable(() -> size2L.setText(input.size() + " →")));
-            var size3L = new Label("");
-            onChangeAndNow(output, runnable(() -> size3L.setText(output.size() + "")));
+
             var applyI = new Icon(OctIcon.DATABASE)
                     .tooltip(
                         "Set input\n\nSet input for this area. The actual input, its transformation and the output will be discarded."
@@ -364,9 +372,15 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
             // layout
             getNode().getChildren().add(0,
-                layStack(
-                    nameL,Pos.CENTER,
-                    layHorizontally(5,Pos.CENTER_RIGHT, caretL,size1L,size2L,size3L,applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
+                layVertically(5,Pos.CENTER,
+                    layStack(
+                        nameL,Pos.CENTER,
+                        layHorizontally(5,Pos.CENTER_RIGHT, applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
+                    ),
+                    layStack(
+                        typeL, CENTER_LEFT,
+                        caretL,Pos.CENTER_RIGHT
+                    )
                 )
             );
 

@@ -1765,6 +1765,9 @@ Shape, Text, TextFlow > * {
 .file-text-field {
     -fx-pref-column-count: 10;
 }
+.file-text-field:hover > * > Text {
+    -fx-underline: true;
+}
 
 /**
  * inherits: .value-text-field

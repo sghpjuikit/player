@@ -18,6 +18,9 @@ import sp.it.util.system.saveFile
 import sp.it.util.ui.Util.layHorizontally
 import sp.it.util.ui.drag.handlerAccepting
 import java.io.File
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import sp.it.util.reactive.onEventDown
+import sp.it.util.system.browse
 
 /** Text field for [File] with file/dir constraint, drag & drop and picker. Supports relative files. */
 class FileTextField(val constraint: FileActor, val relativeTo: File?, val pickerType: FilePickerType = FilePickerType.IN): ValueTextField<File>() {
@@ -35,8 +38,9 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?, val picker
          type sync { b1.icon(if (it==FILE) IconUN(0x1f4c4) else IconUN(0x1f4c1)) }
       }
 
-      addEventHandler(DRAG_OVER, handlerAccepting { it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } })
-      addEventHandler(DRAG_DROPPED) { value = it.dragboard.files.find { constraint.isValid(it) } }
+      onEventDown(MOUSE_CLICKED) { value?.browse() }
+      onEventDown(DRAG_OVER, handlerAccepting { it.dragboard.hasFiles() && it.dragboard.files.any { constraint.isValid(it) } }::handle)
+      onEventDown(DRAG_DROPPED) { value = it.dragboard.files.find { constraint.isValid(it) } }
    }
 
    override fun onDialogAction() {

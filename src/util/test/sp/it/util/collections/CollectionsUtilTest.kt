@@ -2,6 +2,8 @@ package sp.it.util.collections
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.full.createType
 import sp.it.util.functional.Try
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.kType
@@ -41,20 +43,33 @@ class CollectionsUtilTest: FreeSpec({
       listOf(null, null).estimateRuntimeType() shouldBe typeNothingNullable()
       listOf("", null).estimateRuntimeType() shouldBe type<String?>()
       listOf("", " ").estimateRuntimeType() shouldBe type<String>()
+
+      // same superclass
       listOf(0.toByte(), 10L).estimateRuntimeType() shouldBe type<Number>()
       listOf(0.toByte(), 10L, null).estimateRuntimeType() shouldBe type<Number?>()
       listOf("", Try.ok()).estimateRuntimeType() shouldBe type<Any>()
       listOf("", Try.ok(), null).estimateRuntimeType() shouldBe type<Any?>()
+
+      // same interface
       listOf("", 10L).estimateRuntimeType() shouldBe type<Comparable<*>>()
       listOf("", 10L, null).estimateRuntimeType() shouldBe type<Comparable<*>?>()
 
+      // generic types (same class, same element class)
+      listOf(listOf<Int>(1), listOf<Int>(1)).estimateRuntimeType().raw shouldBe listOf<Int>(1)::class
+      listOf(listOf<Int>(1), listOf<Int>(1), null).estimateRuntimeType().isNullable shouldBe true
+      listOf(listOf<Int>(), listOf<Int>()).estimateRuntimeType().raw shouldBe listOf<Int>()::class
+      listOf(listOf<Int>(), listOf<Int>(), null).estimateRuntimeType().isNullable shouldBe true
+
+      // generic types (same superclass, same element class)
       listOf(listOf<Int>(1, 1), setOf<Int>(1, 1)).estimateRuntimeType() shouldBe type<java.util.AbstractCollection<*>>()
       listOf(listOf<Int>(1, 1), setOf<Int>(1, 1), null).estimateRuntimeType() shouldBe type<java.util.AbstractCollection<*>?>()
 
-      listOf(listOf<Int>(1), listOf<Int>(1)).estimateRuntimeType().raw shouldBe listOf<Int>(1)::class
-      listOf(listOf<Int>(1), listOf<Int>(1), null).estimateRuntimeType().isNullable shouldBe true
+      // generic types (same superclass, same element superclass)
+      listOf(listOf<Byte>(0.toByte(), 0.toByte()), setOf<Int>(1, 1)).estimateRuntimeType() shouldBe type<java.util.AbstractCollection<Number>>()
+      listOf(listOf<Byte>(0.toByte(), 0.toByte()), setOf<Int?>(1, 1, null)).estimateRuntimeType() shouldBe type<java.util.AbstractCollection<Number?>>()
 
-      listOf(listOf<Int>(), listOf<Int>()).estimateRuntimeType().raw shouldBe listOf<Int>()::class
-      listOf(listOf<Int>(), listOf<Int>(), null).estimateRuntimeType().isNullable shouldBe true
+      // generic types (same superclass, same element interface)
+      listOf(listOf<String>("", ""), setOf<Int>(1, 1)).estimateRuntimeType() shouldBe type<java.util.AbstractCollection<Comparable<*>>>()
+      listOf(listOf<String>("", ""), setOf<Int?>(1, 1, null)).estimateRuntimeType() shouldBe type<java.util.AbstractCollection<Comparable<*>?>>()
    }
 })

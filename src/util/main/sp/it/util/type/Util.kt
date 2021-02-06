@@ -39,6 +39,7 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KVariance
 import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.allSupertypes
@@ -434,8 +435,8 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
       else -> fail { "Unknown error" }
    }.let {
       when {
-         it.variance==KVariance.OUT && it.type==Any::class.createType(nullable = true) -> KTypeProjection.STAR
-         it.variance==KVariance.IN && it.type==typeNothingNonNull().type -> KTypeProjection.STAR
+         it.variance==KVariance.OUT && it.type==Any::class.createType(nullable = true) -> STAR
+         it.variance==KVariance.IN && it.type==typeNothingNonNull().type -> STAR
          else -> it
       }
    }
@@ -481,7 +482,6 @@ infix fun KType?.isSame(t: KType?): Boolean = when {
 /** @return true iff this and the other [VType] represent the same type */
 infix fun VType<*>.isSame(t: VType<*>): Boolean = type isSame t.type
 
-// TODO: estimate proper supertype for types that are not supertype of each other
 /**
  * Return best common super type estimate for the elements of this list for reading the list.
  *
@@ -494,6 +494,7 @@ infix fun VType<*>.isSame(t: VType<*>): Boolean = type isSame t.type
  * each element can be assumed to be of the returned type as it is assignable to it.
  * However, this collection may not support elements of the returned type, as it may be narrower.
  */
+// TODO: remove and merge with T.estimateRuntimeType
 fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
    if (isEmpty()) typeNothingNonNull()
    else asSequence().map { it.estimateRuntimeType() }.reduce { a,b ->
@@ -505,8 +506,23 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
          a isSame b -> a
          a isSubtypeOf b -> b
          b isSubtypeOf a -> a
-         a.isNullable || b.isNullable -> type<Any?>().asIs()
-         else -> type<Any>().asIs()
+         else -> {
+            a.type.classifier!!.asIs<KClass<*>>()
+               .allSupertypes.asSequence()
+               .filter { it.classifier!!.asIs<KClass<*>>() != Any::class }
+               .flatMap {
+                  sequence {
+                     yield(it)
+                  // TODO: yield all parameter combinations by iterating each through subtypes
+                     yield(it.classifier!!.asIs<KClass<*>>().createType(it.arguments.map { STAR }, it.isMarkedNullable, it.annotations))
+                  }
+               }
+               .firstOrNull { VType<T>(it) isSupertypeOf b }?.net { VType(it) }
+               ?: run {
+                  if (a.isNullable || b.isNullable) type<Any?>().asIs()
+                  else type<Any>().asIs()
+               }
+         }
       }
    }
 
@@ -519,17 +535,21 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
  * The returned type is guaranteed to be both run-time and compile-time compatible with this value, i.e.,
  * this value can be assumed to be of the returned type as it is assignable to it.
  */
+@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 fun <T> T.estimateRuntimeType(): VType<T> = when (this) {
    null -> typeNothingNullable().asIs()
    is Optional<*> -> VType(this.orElse(null).estimateRuntimeType().type)
-   else -> {
-      @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+   is Collection<*> -> {
       val c = this!!::class
-      val cParams = c.typeParameters
-      val type = when {
-         cParams.isEmpty() -> c.createType(listOf(), false, listOf())
-         else -> c.createType(c.typeParameters.map { KTypeProjection.STAR }, false, listOf())
+      val cp = c.typeParameters
+      when (cp.size) {
+         0 -> VType(c.createType(listOf()))
+         1 -> VType(c.createType(c.typeParameters.map { KTypeProjection(it.variance, this.asIs<Collection<*>>().estimateRuntimeType().type) }))
+         else -> VType(c.createType(c.typeParameters.map { STAR }))
       }
-      VType(type)
+   }
+   else -> {
+      val c = this!!::class
+      VType(c.createType(c.typeParameters.map { STAR }))
    }
 }

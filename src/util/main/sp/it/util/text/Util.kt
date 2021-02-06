@@ -199,7 +199,7 @@ private val prettyKeys = mapOf(
 
 /** @return tuple of elements split by the specified delimiter from this string or exception if less than 2 results */
 fun String.split2Partial(delimiter: String, ignoreCase: Boolean = false): Pair<String, String> {
-   val i = indexOf(delimiter)
+   val i = indexOf(delimiter, 0, ignoreCase)
    failIf(i == -1) { "Text must contain '$delimiter'" }
    return substring(0, i) to substring(i + delimiter.length)
 }

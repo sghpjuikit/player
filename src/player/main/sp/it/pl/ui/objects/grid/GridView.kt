@@ -144,25 +144,25 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    }
 
    /** Affects cell layout. */
-   sealed class CellGap {
-      abstract fun computeGap(grid: GridView<*, *>, width: Double, columns: Int): Double
-      abstract fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int): Double
+   sealed interface CellGap {
+      fun computeGap(grid: GridView<*, *>, width: Double, columns: Int): Double
+      fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int): Double
 
       /**
        * Will position cells at exact positions from the left. The gap will be constant, but the cells will not be
        * horizontally center aligned.
        */
-      object CENTER: CellGap() {
+      object CENTER: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = RIGHT.computeStartX(grid, width, columns)/2.0
       }
 
-      object LEFT: CellGap() {
+      object LEFT: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = 0.0
       }
 
-      object RIGHT: CellGap() {
+      object RIGHT: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = width - columns*grid.cellWidth.value - (columns - 1)*grid.verticalCellSpacing.value
       }
@@ -171,7 +171,7 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
        * The cells will be horizontally center aligned, but the gap size will change depending on
        * the total row width and number of cells in a row.
        */
-      object JUSTIFY: CellGap() {
+      object JUSTIFY: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = (width - columns*grid.cellWidth.value)/(columns - 1)
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = 0.0
       }

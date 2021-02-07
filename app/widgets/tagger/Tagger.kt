@@ -1115,15 +1115,15 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       abstract fun complete()
    }
 
-   sealed class ReadState<out T> {
+   sealed interface ReadState<out T> {
       /** Initial state */
-      object Init: ReadState<Nothing>()
+      object Init: ReadState<Nothing>
       /** No value in all songs */
-      object None: ReadState<Nothing>()
+      object None: ReadState<Nothing>
       /** Same value in all songs */
-      data class Same<T>(val value: T): ReadState<T>()
+      data class Same<T>(val value: T): ReadState<T>
       /** Multiple value in all songs */
-      object Multi: ReadState<Nothing?>()
+      object Multi: ReadState<Nothing?>
    }
 
    class Validation(val field: TextInputControl, val condition: Predicate, val text: String) {

@@ -83,7 +83,6 @@ import java.util.Base64
 import java.util.Objects
 import java.util.UUID
 import java.util.regex.Pattern
-import kotlin.reflect.full.createType
 import kotlin.text.Charsets.UTF_8
 import sp.it.util.functional.getOrSupply
 import sp.it.util.math.StrExF
@@ -120,8 +119,8 @@ object CoreFunctors: Core {
 
          // assumption guarantees
          // We are making some assumptions by not declaring and letting compiler infer the reified type parameters
-         failIf(p(StringSplitParser.singular()).type!=type<StringSplitParser>())
-         failIf(p(Pattern.compile("")).type!=type<Pattern>())
+         failIf(p(StringSplitParser.singular()).type!=type<StringSplitParser?>())
+         failIf(p(Pattern.compile("")).type!=type<Pattern?>())
          failIf(p(0).type!=type<Int>())
 
          // type aliases
@@ -130,8 +129,8 @@ object CoreFunctors: Core {
          val S = type<String>()
 
          // parameters
-         val pNoCase = p("Ignore case", "Ignore case", true, IconConstraint(IconMA.FORMAT_SIZE))
-         val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
+         val pNoCase = p<Boolean>("Ignore case", "Ignore case", true, IconConstraint(IconMA.FORMAT_SIZE))
+         val pRegex = p<Pattern>("Regex", "Regular expression", Pattern.compile(""))
 
          add("Is null", type<Any?>(), B, IS0)
          add("Class (Kotlin)", type<Any?>(), type<Class<*>>()) { if (it==null) Nothing::class else it::class }

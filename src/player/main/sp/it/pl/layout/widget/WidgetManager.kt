@@ -512,10 +512,15 @@ class WidgetManager {
                "-d", compileDir.relativeToApp(),
                "-jdk-home", APP.location.child("java").relativeToApp(),
                "-jvm-target", Runtime.version().feature().toString(),
+               "-language-version", "1.5",
+               "-api-version", "1.5",
                "-progressive",
                "-Xno-call-assertions",
                "-Xno-param-assertions",
                "-Xjvm-default=all",
+               "-Xuse-experimental=kotlin.Experimental",
+               "-Xstring-concat=indy-with-constants",
+               "-Xuse-ir",
                "-cp", '"' + computeClassPath() + '"',
                kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }
             )
@@ -884,24 +889,24 @@ enum class ComponentLoaderStrategy(val loader: ComponentLoader) {
 
 /** Strategy for opening a new component in ui. */
 @Suppress("ClassName")
-sealed class ComponentLoader: (Component) -> Any {
+sealed interface ComponentLoader: (Component) -> Any {
    /** Does not load component and leaves it upon the consumer to load and manage it appropriately. */
-   object CUSTOM: ComponentLoader() {
+   object CUSTOM: ComponentLoader {
       override operator fun invoke(c: Component) = Unit
    }
 
    /** Loads the component in a layout of a new window. */
-   object WINDOW: ComponentLoader() {
+   object WINDOW: ComponentLoader {
       override operator fun invoke(c: Component): Window = APP.windowManager.showWindow(c)
    }
 
    /** Loads the component in a layout of a new window. */
-   object DOCK: ComponentLoader() {
+   object DOCK: ComponentLoader {
       override operator fun invoke(c: Component): Window = APP.windowManager.slideWindow(c)
    }
 
    /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on active screen. */
-   object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader() {
+   object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader {
       override operator fun invoke(c: Component): Stage = WINDOW_FULLSCREEN(getScreenForMouse())(c)
    }
 
@@ -934,7 +939,7 @@ sealed class ComponentLoader: (Component) -> Any {
    }
 
    /** Loads the component as a standalone in a new [OverlayPane]. */
-   object OVERLAY: ComponentLoader() {
+   object OVERLAY: ComponentLoader {
       override operator fun invoke(c: Component): OverlayPane<Unit> {
 
          val op = object: OverlayPane<Unit>() {
@@ -990,7 +995,7 @@ sealed class ComponentLoader: (Component) -> Any {
    }
 
    /** Loads the component as a standalone widget in a simplified layout of a new popup. */
-   object POPUP: ComponentLoader() {
+   object POPUP: ComponentLoader {
       override operator fun invoke(c: Component): PopWindow {
          val l = Layout.openStandalone(anchorPane())
          val p = PopWindow().apply {

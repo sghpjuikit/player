@@ -204,16 +204,16 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
    /** @return the value as text = [outputText] */
    fun getValAsText(): String = textArea.text
 
-   sealed class TransformationRaw: Parameterized<Transformation, Any?> {
-      abstract val name: String
+   sealed interface TransformationRaw: Parameterized<Transformation, Any?> {
+      val name: String
 
-      class Manual(val text: String): TransformationRaw() {
+      class Manual(val text: String): TransformationRaw {
          override val name = "Manual edit"
          override val parameters = listOf<Parameter<Any?>>()
          override fun realize(args: List<*>) = Transformation.Manual(text)
       }
 
-      class ByString(name: String, val f: PF<String, Any?>): TransformationRaw() {
+      class ByString(name: String, val f: PF<String, Any?>): TransformationRaw {
          override val name = "text: $name"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.ByString(name, f.realize(args))
@@ -221,13 +221,13 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
       // outputType must match type of list of output of f
       // outputType is necessary because output list element type is erased
-      class By1(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
+      class By1(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw {
          override val name = "list: ${f.name}"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(args))
       }
 
-      class ByN(val f: PF<Any?, Any?>): TransformationRaw() {
+      class ByN(val f: PF<Any?, Any?>): TransformationRaw {
          override val name = "each: ${f.name}"
          override val parameters = f.parameters
          override fun realize(args: List<*>) = Transformation.ByN(f.name, f.realize(args))
@@ -235,37 +235,37 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
 
    }
 
-   sealed class Transformation {
-      abstract val name: String
-      abstract val linkTypeIn: VType<*>?
-      abstract val linkTypeOut: VType<*>?
-      abstract operator fun invoke(data: List<Any?>): List<Any?>
+   sealed interface Transformation {
+      val name: String
+      val linkTypeIn: VType<*>?
+      val linkTypeOut: VType<*>?
+      operator fun invoke(data: List<Any?>): List<Any?>
 
-      object AsIs: Transformation() {
+      object AsIs: Transformation {
          override val name = "As is"
          override val linkTypeIn = null
          override val linkTypeOut = null
          override fun invoke(data: List<Any?>) = data
       }
 
-      class Manual(val text: String): Transformation() {
+      class Manual(val text: String): Transformation {
          override val name = "Manual edit"
          override val linkTypeIn = type<Any?>()
          override val linkTypeOut = type<String>()
          override fun invoke(data: List<Any?>) = text.lines()
       }
 
-      class ByString(override val name: String, val f: (String) -> Any?): Transformation() {
+      class ByString(override val name: String, val f: (String) -> Any?): Transformation {
          override val linkTypeIn = type<String>()
          override val linkTypeOut = type<String>()
          override fun invoke(data: List<Any?>) = data.joinToString("\n") { it.toString() }.let(f).let(::collectionWrap).toList()
       }
 
-      class By1(override val name: String, override val linkTypeIn: VType<*>, override val linkTypeOut: VType<*>, val f: (List<*>) -> List<*>): Transformation() {
+      class By1(override val name: String, override val linkTypeIn: VType<*>, override val linkTypeOut: VType<*>, val f: (List<*>) -> List<*>): Transformation {
          override fun invoke(data: List<Any?>) = data.let(f)
       }
 
-      class ByN(override val name: String, val f: (Any?) -> Any?): Transformation() {
+      class ByN(override val name: String, val f: (Any?) -> Any?): Transformation {
          override val linkTypeIn: VType<*>?
             get() = when (f) {
                IDENTITY -> null

@@ -17,23 +17,23 @@ private val logger = KotlinLogging.logger { }
 data class Property(val key: String, val value: PropVal, val comment: String)
 
 /** Property value. Single-value or multi-value. */
-sealed class PropVal {
+sealed interface PropVal {
    /** Transform value to single-value. Multi-value returns 1st value or null if empty. */
-   abstract val val1: String?
+   val val1: String?
    /** Transform value to multi-value. Single-value is wrapped in a list. */
-   abstract val valN: List<String>
+   val valN: List<String>
    /** Number of values: single-value returns 1, multi-value 0-N. */
-   abstract fun size(): Int
+   fun size(): Int
 
    /** Property value with a cardinality 1. */
-   class PropVal1(val value: String): PropVal() {
+   class PropVal1(val value: String): PropVal {
       override val val1: String get() = value
       override val valN get() = listOf(value)
       override fun size() = 1
    }
 
    /** Property value with a cardinality N. */
-   class PropValN(val value: List<String>): PropVal() {
+   class PropValN(val value: List<String>): PropVal {
       override val val1 get() = value.firstOrNull()
       override val valN get() = value
       override fun size() = value.size

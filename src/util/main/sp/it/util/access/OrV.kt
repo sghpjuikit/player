@@ -49,16 +49,16 @@ class OrV<T>(parent: Property<T>, initialValue: OrValue.Initial<T> = Inherit()):
    }
 
    data class OrValue<T>(val override: Boolean, val value: T) {
-      sealed class Initial<out T> {
-         abstract fun computeInitialValue(parent: Property<@UnsafeVariance T>): T
-         abstract fun computeInitialOverride(): Boolean
+      sealed interface Initial<out T> {
+         fun computeInitialValue(parent: Property<@UnsafeVariance T>): T
+         fun computeInitialOverride(): Boolean
 
-         class Inherit<T>: Initial<T>() {
+         class Inherit<T>: Initial<T> {
             override fun computeInitialValue(parent: Property<T>) = parent.value
             override fun computeInitialOverride() = false
          }
 
-         data class Override<T>(val value: T): Initial<T>() {
+         data class Override<T>(val value: T): Initial<T> {
             override fun computeInitialValue(parent: Property<T>) = value
             override fun computeInitialOverride() = true
          }

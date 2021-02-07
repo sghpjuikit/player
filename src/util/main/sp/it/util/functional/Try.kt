@@ -12,13 +12,13 @@ import kotlin.UnsafeVariance as UV
  * @param <R> success return value
  * @param <E> error return value
  */
-sealed class Try<out R, out E> {
+sealed interface Try<out R, out E> {
 
    /** @return true iff this is [Ok] */
-   abstract val isOk: Boolean
+   val isOk: Boolean
 
    /** @return true iff this is [Error] */
-   abstract val isError: Boolean
+   val isError: Boolean
 
    /** @return the value if ok or throw an exception if error */
    val orThrow: R
@@ -41,13 +41,13 @@ sealed class Try<out R, out E> {
    }
 
    /** Invoke the specified action if success */
-   inline fun ifOk(action: (R) -> Unit) = apply { if (this is Ok<R>) action(value) }
+   fun ifOk(action: (R) -> Unit) = apply { if (this is Ok<R>) action(value) }
 
    /** Invoke the specified action if error */
-   inline fun ifError(action: (E) -> Unit) = apply { if (this is Error<E>) action(value) }
+   fun ifError(action: (E) -> Unit) = apply { if (this is Error<E>) action(value) }
 
    /** Invoke the specified action */
-   inline fun ifAny(action: () -> Unit) = apply {
+   fun ifAny(action: () -> Unit) = apply {
       action()
    }
 
@@ -72,12 +72,12 @@ sealed class Try<out R, out E> {
       is Error<E> -> error(mapperError(value))
    }
 
-   data class Ok<R>(val value: R): Try<R, Nothing>() {
+   data class Ok<R>(val value: R): Try<R, Nothing> {
       override val isOk = true
       override val isError = false
    }
 
-   data class Error<E>(val value: E): Try<Nothing, E>() {
+   data class Error<E>(val value: E): Try<Nothing, E> {
       override val isOk = false
       override val isError = true
    }

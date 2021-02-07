@@ -58,6 +58,8 @@ allprojects {
    }
 
    tasks.withType<KotlinCompile> {
+      kotlinOptions.apiVersion = "1.5"
+      kotlinOptions.languageVersion = "1.5"
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
       kotlinOptions.freeCompilerArgs += listOf(
@@ -71,6 +73,7 @@ allprojects {
       kotlinOptions.javaParameters = true
       kotlinOptions.jdkHome = dirJdk.path
       kotlinOptions.jvmTarget = javaVersion.majorVersion
+      kotlinOptions.useIR = true
    }
 
    repositories {

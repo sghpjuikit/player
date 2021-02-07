@@ -241,7 +241,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       restoreDefaultConfigs()
 
       val c = factory.controllerType
-      logger.info { "Instantiating $logName controller $c" }
+      logger.info { "Instantiating $logName controller" }
       return runTry { c.java.getDeclaredConstructor(Widget::class.java).newInstance(this) }
          .ifError { logger.error(it) { "Instantiating $logName controller failed $c" } }
          .orNull()

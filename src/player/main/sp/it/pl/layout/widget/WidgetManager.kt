@@ -551,7 +551,8 @@ class WidgetManager {
       private fun failIfWrongPackage(kotlinSrcFiles: Sequence<File>) {
          kotlinSrcFiles.forEach { f ->
             f.useLines {
-               failIf(!it.firstOrNull().orEmpty().startsWith("package $packageName")) { "Class source file=$f package must be $packageName" }
+               val packageDef = it.firstOrNull { it.startsWith("package") }.orEmpty()
+               failIf(!packageDef.startsWith("package $packageName")) { "Class source file=$f package must be $packageName" }
             }
          }
       }

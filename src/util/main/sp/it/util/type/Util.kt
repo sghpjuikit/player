@@ -40,6 +40,8 @@ import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KTypeProjection.Companion.STAR
+import kotlin.reflect.KTypeProjection.Companion.covariant
+import kotlin.reflect.KTypeProjection.Companion.invariant
 import kotlin.reflect.KVariance
 import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.allSupertypes
@@ -538,7 +540,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
 @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 fun <T> T.estimateRuntimeType(): VType<T> = when (this) {
    null -> typeNothingNullable().asIs()
-   is Optional<*> -> VType(this.orElse(null).estimateRuntimeType().type)
+   is Optional<*> -> VType(Optional::class.createType(listOf(invariant(map { it.estimateRuntimeType().type }.orElse(kTypeNothingNonNull())))))
    is Collection<*> -> {
       val c = this!!::class
       val cp = c.typeParameters

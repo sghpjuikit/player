@@ -58,6 +58,8 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmName
 import mu.KotlinLogging
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
+import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.recurseBF
@@ -508,15 +510,32 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
          a isSame b -> a
          a isSubtypeOf b -> b
          b isSubtypeOf a -> a
+         // handles cases like Option<A>, Option<B> -> Option<supertype of A and B>
+         // TODO: change == to isSuperClassOf
+         b.jvmErasure == a.jvmErasure -> {
+            VType(
+               b.type.raw.createType(
+                  b.type.raw.asIs<KClass<*>>().typeParameters.mapIndexed { i, p ->
+                     val ac = a.type.arguments[i].type?.raw ?: Any::class
+                     val bc = b.type.arguments[i].type?.raw ?: Any::class
+                     val uc = ac union bc
+                     invariant(uc.createType(uc.typeParameters.map { STAR }))
+                  },
+                  b.isNullable || a.isNullable
+               )
+            )
+         }
          else -> {
-            a.type.classifier!!.asIs<KClass<*>>()
+            a.type.raw
                .allSupertypes.asSequence()
-               .filter { it.classifier!!.asIs<KClass<*>>() != Any::class }
                .flatMap {
                   sequence {
-                     yield(it)
-                  // TODO: yield all parameter combinations by iterating each through subtypes
-                     yield(it.classifier!!.asIs<KClass<*>>().createType(it.arguments.map { STAR }, it.isMarkedNullable, it.annotations))
+                     val c = it.raw
+                     if (c != Any::class) {
+                        yield(it)
+                     // TODO: yield all parameter combinations by iterating each through subtypes
+                        yield(c.createType(it.arguments.map { STAR }, it.isMarkedNullable, it.annotations))
+                     }
                   }
                }
                .firstOrNull { VType<T>(it) isSupertypeOf b }?.net { VType(it) }
@@ -536,11 +555,14 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
  *
  * The returned type is guaranteed to be both run-time and compile-time compatible with this value, i.e.,
  * this value can be assumed to be of the returned type as it is assignable to it.
+ * However if this value is mutable, it may not be the case after mutating.
  */
 @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 fun <T> T.estimateRuntimeType(): VType<T> = when (this) {
    null -> typeNothingNullable().asIs()
    is Optional<*> -> VType(Optional::class.createType(listOf(invariant(map { it.estimateRuntimeType().type }.orElse(kTypeNothingNonNull())))))
+   is Try.Ok<*> -> VType(Try.Ok::class.createType(listOf(invariant(value.estimateRuntimeType().type))))
+   is Try.Error<*> -> VType(Try.Error::class.createType(listOf(invariant(value.estimateRuntimeType().type))))
    is Collection<*> -> {
       val c = this!!::class
       val cp = c.typeParameters

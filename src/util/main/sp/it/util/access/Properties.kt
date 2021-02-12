@@ -10,6 +10,7 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.FloatProperty
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.LongProperty
+import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.value.ChangeListener
@@ -22,6 +23,8 @@ import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.scene.Node
+import javafx.scene.control.TreeItem
+import javafx.scene.text.TextAlignment
 import javafx.stage.Window
 import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
@@ -212,5 +215,9 @@ val Window.focused: ReadOnlyBooleanProperty get() = focusedProperty()
 val Window.showing: ReadOnlyBooleanProperty get() = showingProperty()
 /** [Node.focusedProperty] */
 val Node.focused: ReadOnlyBooleanProperty get() = focusedProperty()
+/** [TreeItem.expandedProperty] */
+val TreeItem<*>.expanded: BooleanProperty get() = expandedProperty()
 /** [Node.visibleProperty] */
 val Node.visible: ReadOnlyBooleanProperty get() = visibleProperty()
+/** [Node.visibleProperty] */
+val javafx.scene.text.Text.textAlign: ObjectProperty<TextAlignment> get() = textAlignmentProperty()

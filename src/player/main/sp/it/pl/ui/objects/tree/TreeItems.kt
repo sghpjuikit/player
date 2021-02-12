@@ -82,7 +82,6 @@ import sp.it.util.type.nullify
 import sp.it.util.type.type
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.isAnyParentOf
-import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.root
 import java.io.File
 import java.nio.file.Path
@@ -90,6 +89,9 @@ import java.util.ArrayList
 import java.util.Stack
 import javafx.stage.Window as WindowFX
 import sp.it.pl.main.Df.FILES
+import sp.it.util.access.expanded
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncTo
 import sp.it.util.ui.drag.set
 
 private val logger = KotlinLogging.logger { }
@@ -141,7 +143,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Set<*> -> STreeItem<Any?>("Set<" + o.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is Map<*, *> -> STreeItem<Any?>("Map<" + o.keys.getElementType().toUi() + "," + o.values.getElementType().toUi() + ">", { o.asSequence() }, { o.isEmpty() })
    is Map.Entry<*, *> -> STreeItem<Any?>(o.key.toUi(), { sequenceOf(o.value) })
-   else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.getHChildren().asSequence() }, { true }) else SimpleTreeItem(o)
+   else -> if (o is HierarchicalBase<*, *>) STreeItem(o, { o.hChildren.asSequence() }, { true }) else SimpleTreeItem(o)
 }.let { it as TreeItem<T> }
 
 fun <T> tree(v: T, vararg children: Any): TreeItem<Any> = SimpleTreeItem(v as Any, children.asSequence())
@@ -237,7 +239,16 @@ fun <T: Any> TreeView<T>.initTreeView() = apply {
 @Suppress("UNUSED_PARAMETER")
 fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    init {
-      onEventUp(MOUSE_CLICKED) { doOnClick(it) }
+      // disable default expand behavior
+      // https://bugs.openjdk.java.net/browse/JDK-8092146
+      // https://stackoverflow.com/questions/15509203/disable-treeitems-default-expand-collapse-on-double-click-javafx-2-2
+      onEventUp(MouseEvent.ANY) {
+         if (!isEmpty && it.clickCount == 2 && it.isPrimaryButtonDown) {
+            if (it.eventType == MOUSE_CLICKED) doOnClick(it)
+            it.consume()
+         }
+      }
+      onEventDown(MOUSE_CLICKED) { doOnClick(it) }
    }
 
    override fun updateItem(o: T?, empty: Boolean) {
@@ -251,7 +262,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
          text = null
       }
 
-      pseudoClassChanged("no-arrow", graphic!=null)
+      // pretty, but confusing UX
+      // pseudoClassChanged("no-arrow", graphic!=null)
    }
 
    private fun computeText(o: Any?): String = when (o) {
@@ -303,13 +315,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    }
 
    fun doOnClick(e: MouseEvent) {
-      // We can not override default double click behavior, hence this workaround.
-      // TODO: this may cause issues by consuming in EventFilter instead of EventHandler, rarely (for double click)
-      // https://bugs.openjdk.java.net/browse/JDK-8092146
-      // https://stackoverflow.com/questions/15509203/disable-treeitems-default-expand-collapse-on-double-click-javafx-2-2
-      if (e.clickCount==2) e.consume()
-
-      if (item!=null) {
+      if (!isEmpty && item!=null) {
+         e.consume()
          when (e.button) {
             PRIMARY -> {
                when (e.clickCount) {
@@ -325,8 +332,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
                   }
                }
             }
-            else -> {
-            }
+            else -> Unit
          }
       }
    }
@@ -338,8 +344,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    }
 
    fun doOnDoubleClick(o: Any?) {
-      if (treeItem.isLeaf) doAction(o) { treeItem?.expandedProperty()?.toggle() }
-      else treeItem?.expandedProperty()?.toggle()
+      if (treeItem.isLeaf) doAction(o) { treeItem?.expanded?.toggle() }
+      else treeItem?.expanded?.toggle()
    }
 
    fun <T> showMenu(o: T?, t: TreeView<T>, n: Node, e: MouseEvent) {

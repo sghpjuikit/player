@@ -4,42 +4,50 @@ import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.Label
 import javafx.scene.control.SelectionMode.SINGLE
-import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
+import kotlin.reflect.KClass
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.Df.PLAIN_TEXT
+import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.ICON_BROWSER_NAME
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.sysClipboard
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.KEY_PRESS
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
+import sp.it.pl.ui.objects.grid.GridViewSkin
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.id
-import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.access.fieldvalue.StringGetter
 import sp.it.util.collections.setTo
+import sp.it.util.conf.cOr
+import sp.it.util.conf.defInherit
 import sp.it.util.file.div
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
-import sp.it.util.text.keys
 import sp.it.util.text.nameUi
+import sp.it.util.ui.drag.set
+import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.listView
@@ -51,17 +59,6 @@ import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.version
 import sp.it.util.units.year
-import kotlin.reflect.KClass
-import sp.it.pl.main.Df.PLAIN_TEXT
-import sp.it.pl.main.sysClipboard
-import sp.it.pl.ui.objects.grid.GridViewSkin
-import sp.it.util.access.OrV.OrValue.Initial.Inherit
-import sp.it.util.access.OrV.OrValue.Initial.Override
-import sp.it.util.conf.cOr
-import sp.it.util.conf.defInherit
-import sp.it.util.functional.asIs
-import sp.it.util.ui.drag.set
-import sp.it.util.ui.dsl
 
 class IconViewer(widget: Widget): SimpleController(widget) {
    val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
@@ -147,21 +144,7 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       override val year = year(2020)
       override val author = "spit"
       override val contributor = ""
-      override val summaryActions = listOf(
-         ShortcutPane.Entry("Grid", "Filter", keys("CTRL+F")),
-         ShortcutPane.Entry("Grid", "Filter (cancel)", ESCAPE.nameUi),
-         ShortcutPane.Entry("Grid", "Filter (clear)", ESCAPE.nameUi),
-         ShortcutPane.Entry("Grid", "Search", "Type text"),
-         ShortcutPane.Entry("Grid", "Search (cancel)", ESCAPE.nameUi),
-         ShortcutPane.Entry("Grid", "Selection (cancel)", ESCAPE.nameUi),
-         ShortcutPane.Entry("Grid", "Scroll vertically", keys("Scroll")),
-         ShortcutPane.Entry("Grid cell", "Selects icon", "Hover or ${PRIMARY.nameUi}"),
-         ShortcutPane.Entry("Grid cell", "Show context menu", SECONDARY.nameUi),
-         ShortcutPane.Entry("Grid cell", "Copy icon", PRIMARY.nameUi),
-         ShortcutPane.Entry("Grid cell", "Move song within playlist", keys("Song drag+CTRL")),
-         ShortcutPane.Entry("Grid cell", "Add songs after row", "Drag & drop songs"),
-         ShortcutPane.Entry("Grid footer", "Opens additional action menus", "Menu bar"),
-      )
+      override val summaryActions = HelpEntries.Grid
       override val group = DEVELOPMENT
    }
 }

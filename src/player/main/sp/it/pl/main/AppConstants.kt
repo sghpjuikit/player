@@ -1,10 +1,15 @@
 package sp.it.pl.main
 
 import java.io.File
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import sp.it.pl.layout.widget.WidgetManager.FactoryRef
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.dev.failIf
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.MimeTypes
+import sp.it.util.text.*
 
 object Widgets {
    const val CONVERTER_NAME = "Converter"
@@ -104,4 +109,20 @@ object Events {
       /** [java.awt.desktop.AppReopenedListener.appReopened]. Raised on FX thread. */
       object AppReopenedEvent: AppEvent()
    }
+}
+
+object HelpEntries {
+    val Grid = listOf(
+      Entry("Grid", "Filter", keys("CTRL+F")),
+      Entry("Grid", "Filter (cancel)", ESCAPE.nameUi),
+      Entry("Grid", "Filter (clear)", ESCAPE.nameUi),
+      Entry("Grid", "Search", "Type text"),
+      Entry("Grid", "Search (cancel)", ESCAPE.nameUi),
+      Entry("Grid", "Selection (cancel)", ESCAPE.nameUi),
+      Entry("Grid", "Scroll vertically", keys("Scroll")),
+      Entry("Grid cell", "Selects icon", "Hover or ${PRIMARY.nameUi}"),
+      Entry("Grid cell", "Show context menu", SECONDARY.nameUi),
+      Entry("Grid cell", "Copy item", keys("CTRL+C")),
+      Entry("Grid footer", "Opens additional action menus", "Menu bar"),
+    )
 }

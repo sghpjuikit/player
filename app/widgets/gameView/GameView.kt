@@ -10,7 +10,6 @@ import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Side
 import javafx.scene.Node
-import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.TreeView
@@ -32,12 +31,13 @@ import javafx.util.Callback
 import kotlin.math.round
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
-import sp.it.pl.main.Css
+import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconTx
@@ -62,6 +62,7 @@ import sp.it.pl.ui.objects.placeholder.show
 import sp.it.pl.ui.objects.tree.buildTreeCell
 import sp.it.pl.ui.objects.tree.initTreeView
 import sp.it.pl.ui.objects.tree.tree
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.pl.web.WebSearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -88,7 +89,6 @@ import sp.it.util.conf.defInherit
 import sp.it.util.conf.only
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIf
-import sp.it.util.dev.printIt
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
@@ -122,6 +122,7 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.runAsProgram
 import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.dsl
@@ -143,17 +144,9 @@ import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.millis
 import sp.it.util.units.times
+import sp.it.util.units.version
+import sp.it.util.units.year
 
-@Widget.Info(
-   name = "GameView",
-   author = "Martin Polakovic",
-   howto = "",
-   description = "Game library.",
-   notes = "",
-   version = "0.9.0",
-   year = "2016",
-   group = Widget.Group.OTHER
-)
 class GameView(widget: Widget): SimpleController(widget) {
 
    private val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
@@ -514,7 +507,25 @@ class GameView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   companion object: KLogging() {
+   companion object: WidgetCompanion, KLogging() {
+      override val name = "Game library"
+      override val description = "Game library"
+      override val descriptionLong = "$description.\nSimple library of games using file system."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(0, 10, 0)
+      override val isSupported = true
+      override val year = year(2016)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = HelpEntries.Grid + listOf(
+         Entry("Grid cell", "Go to detail", ENTER.nameUi),
+         Entry("Grid cell", "Play", keys("SHIFT+ENTER")),
+         Entry("Game detail", "Back", BACK.nameUi),
+         Entry("Game detail", "Back", SECONDARY.nameUi),
+         Entry("Game detail", "Back", BACK_SPACE.nameUi),
+         Entry("Game detail", "Back", ESCAPE.nameUi),
+      )
+      override val group = Widget.Group.LIBRARY
 
       private fun File.findImage(imageName: String) = children().find {
          val filename = it.name
@@ -536,6 +547,6 @@ class GameView(widget: Widget): SimpleController(widget) {
          override val name = "Steam"
          override fun build(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
       }
-
    }
+
 }

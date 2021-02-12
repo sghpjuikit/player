@@ -90,8 +90,6 @@ import java.util.Stack
 import javafx.stage.Window as WindowFX
 import sp.it.pl.main.Df.FILES
 import sp.it.util.access.expanded
-import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncTo
 import sp.it.util.ui.drag.set
 
 private val logger = KotlinLogging.logger { }

@@ -17,6 +17,8 @@ import javafx.util.Duration
 import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
 import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.conf.Command
+import sp.it.pl.conf.Command.DoAction
 import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.feature.SongReader
@@ -30,7 +32,6 @@ import sp.it.pl.ui.nodeinfo.ItemInfo
 import sp.it.pl.ui.objects.Text
 import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.util.access.VarAction
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.conf.EditMode
@@ -91,9 +92,9 @@ class Notifier: PluginBase() {
       .def(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
    var notificationScr by c(ShowArea.SCREEN_ACTIVE)
       .def(name = "Position relative to", info = "Determines screen for positioning. Main screen, application window screen or all screens as one")
-   val onClickL by cv("Show application") { VarAction(it) }
+   val onClickL by cv<Command>(DoAction("Show application"))
       .def(name = "On click left", info = "Left click action")
-   val onClickR by cv("Notification hide") { VarAction(it) }
+   val onClickR by cv<Command>(DoAction("Notification hide"))
       .def(name = "On click right", info = "Right click action")
    val graphics by cv("Normal").def(
       name = "Playback change graphics"
@@ -146,8 +147,8 @@ class Notifier: PluginBase() {
       n.setContent(content, title)
       n.isAutohide.value = notificationAutohide
       n.duration = notificationDuration
-      n.rClickAction = onClickR.valueAsAction
-      n.lClickAction = onClickL.valueAsAction
+      n.rClickAction = onClickR.value
+      n.lClickAction = onClickL.value
       n.show(notificationScr(notificationPos))
    }
 
@@ -244,6 +245,7 @@ class Notification: PopWindow() {
    var lClickAction = {}
    /** Executes on right mouse click. Default does nothing. */
    var rClickAction = {}
+
    /** Time this notification will remain visible. Default 5 seconds. */
    var duration: Duration
       get() = closer.period

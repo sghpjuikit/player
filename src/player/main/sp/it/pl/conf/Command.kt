@@ -24,10 +24,10 @@ import sp.it.util.text.split2Partial
  * A runnable defined by a string ([Command.toS]/[Command.ofS]).
  * Allows defining arbitrary (supported) actions with parameters provided by user.
  */
-sealed class Command {
+sealed class Command: () -> Unit {
 
    /** Runs this command. */
-   abstract operator fun invoke()
+   abstract override operator fun invoke()
 
    override fun toString() = toS(this)
 

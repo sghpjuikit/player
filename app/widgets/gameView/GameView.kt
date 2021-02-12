@@ -8,7 +8,6 @@ import java.net.URI
 import javafx.geometry.Insets
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
@@ -25,6 +24,7 @@ import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextAlignment.JUSTIFY
@@ -37,8 +37,10 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrors
+import sp.it.pl.main.Css
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconTx
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.configure
@@ -86,6 +88,7 @@ import sp.it.util.conf.defInherit
 import sp.it.util.conf.only
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIf
+import sp.it.util.dev.printIt
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
@@ -122,6 +125,7 @@ import sp.it.util.text.keys
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.dsl
+import sp.it.util.ui.hBox
 import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.install
 import sp.it.util.ui.label
@@ -402,7 +406,6 @@ class GameView(widget: Widget): SimpleController(widget) {
       private val animated = ArrayList<Node>()
 
       init {
-         titleL.style = "-fx-font-size: 20;"
          fileTree.isShowRoot = false
          fileTree.selectionModel.selectionMode = SINGLE
          fileTree.cellFactory = Callback { buildTreeCell(it) }
@@ -413,50 +416,51 @@ class GameView(widget: Widget): SimpleController(widget) {
          cover.fitFrom.value = OUTSIDE
          animated += sequenceOf(cover.pane, titleL, infoT, fileTree)
 
-         lay += scrollPane {
-            isFitToHeight = false
-            isFitToWidth = true
-            hbarPolicy = NEVER
-            vbarPolicy = AS_NEEDED
+         lay += vBox(20, CENTER) {
+            lay += anchorPane {
+               minPrefMaxHeight = 500.0
 
-            content = vBox(20, CENTER) {
-               lay += anchorPane {
-                  minPrefMaxHeight = 500.0
+               layFullArea += cover.pane
+            }
+            lay += titleL.apply {
+               styleClass += "h3"
+            }
+            lay(ALWAYS) += hBox(0.0, CENTER) {
+               padding = Insets(0.0, 0.0, 0.0, 100.0)
+               lay(ALWAYS) += scrollPane {
+                     isFitToHeight = true
+                     isFitToWidth = true
+                     hbarPolicy = NEVER
+                     vbarPolicy = NEVER
 
-                  layFullArea += cover.pane
-               }
-               lay += stackPane {
-                  lay += vBox(0.0, CENTER) {
-                     lay += titleL
-                     lay += stackPane {
-                        lay(CENTER, Insets(0.0, 200.0, 100.0, 100.0)) += vBox(20, CENTER) {
-
-                           lay += infoT.apply {
-                              textAlignment = JUSTIFY
-                              wrappingWidthProperty() syncFrom widthProperty() - 200
-                           }
-                           lay += fileTree
-
+                     content = vBox(20, CENTER) {
+                        lay += infoT.apply {
+                           alignment
+                           textAlignment = JUSTIFY
+                           wrappingWidthProperty() syncFrom widthProperty() - 200
                         }
-                        lay(TOP_RIGHT, Insets(100.0, 0.0, 0.0, 0.0)) += vBox(20.0, TOP_CENTER) {
-                           minPrefMaxWidth = 200.0
-
-                           lay += IconFA.EDIT icon {
-                              val file = game.infoFile
-                              runIO {
-                                 file.createNewFile()
-                                 file.edit()
-                              }
-                           }
-                           lay += IconFA.GAMEPAD icon { game.setupAndPlay() }
-                           lay += IconUN(0x1f4c1) icon { game.location.open() }
-                           lay += IconMD.WIKIPEDIA icon { WikipediaQBuilder(game.name).browse() }
-                           lay += IconMD.STEAM icon { SteamQBuilder(game.name).browse() }
-
-                           animated += children
+                        lay(ALWAYS) += fileTree.apply {
+                           minHeight = 300.emScaled
                         }
                      }
                   }
+               lay += vBox(20.0, TOP_CENTER) {
+                  minPrefMaxWidth = 200.0
+
+                  lay += IconFA.EDIT icon {
+                     val file = game.infoFile
+                     runIO {
+                        file.createNewFile()
+                        file.edit()
+                     }
+                  }
+                  lay += IconFA.GAMEPAD icon { game.setupAndPlay() }
+                  lay += IconUN(0x1f4c1) icon { game.location.open() }
+                  lay += IconMD.WIKIPEDIA icon { WikipediaQBuilder(game.name).browse() }
+                  lay += IconMD.STEAM icon { SteamQBuilder(game.name).browse() }
+                  lay += IconTx("GOG") icon { GogQBuilder(game.name).browse() }
+
+                  animated += children
                }
             }
          }
@@ -524,6 +528,10 @@ class GameView(widget: Widget): SimpleController(widget) {
 
       private infix fun GlyphIcons.icon(block: (Icon) -> Unit) = Icon(this).size(40.0).onClickDo(block)
 
+      private object GogQBuilder: WebSearchUriBuilder {
+         override val name = "GOG"
+         override fun build(q: String): URI = URI.create("https://www.gog.com/games?sort=popularity&page=1&search=$q")
+      }
       private object SteamQBuilder: WebSearchUriBuilder {
          override val name = "Steam"
          override fun build(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")

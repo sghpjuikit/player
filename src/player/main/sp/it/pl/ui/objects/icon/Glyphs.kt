@@ -71,6 +71,7 @@ object Glyphs {
 
 /** Inverse of [Glyphs.get] */
 fun GlyphIcons.id(): String = when (this) {
+   is TextIcon -> "TextIcon.${name()}"
    is UnicodeIcon -> "UnicodeIcon.${name()}"
    is FontAwesomeIcon -> "FontAwesomeIcon.${name()}"
    is WeatherIcon -> "WeatherIcon.${name()}"
@@ -78,6 +79,14 @@ fun GlyphIcons.id(): String = when (this) {
    is MaterialIcon -> "MaterialIcon.${name()}"
    is OctIcon -> "OctIcon.${name()}"
    else -> fail { "Unsupported glyph: $this" }
+}
+
+data class TextIcon(val text: String): GlyphIcons {
+   override fun characterToString() = text
+   override fun getChar() = text.firstOrNull() ?: ' '
+   override fun unicodeToString() = text
+   override fun name() = text
+   override fun getFontFamily() = Font.getDefault().family.orEmpty()
 }
 
 data class UnicodeIcon(val codePoint: Int): GlyphIcons {

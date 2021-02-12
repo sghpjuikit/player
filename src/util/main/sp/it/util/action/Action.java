@@ -202,7 +202,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	@Override
-	public Unit invoke() {
+	public @NotNull Unit invoke() {
 		run();
 		return Unit.INSTANCE;
 	}

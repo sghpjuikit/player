@@ -233,7 +233,6 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
             config.value = it
             refreshValue()
             onChange?.invoke()
-            println("lol21")
             onChangeOrConstraint?.invoke()
             inconsistentState = false
          } else {

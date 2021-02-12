@@ -56,7 +56,7 @@ sealed class Command: () -> Unit {
 
    /** [Command] that opens a [sp.it.pl.layout.Component]. */
    data class DoComponentOpen(val loader: ComponentLoaderStrategy, val id: String): Command() {
-      override fun invoke() {
+      override operator fun invoke() {
          APP.windowManager.instantiateComponent(id)?.net(loader.loader)
       }
    }
@@ -64,7 +64,7 @@ sealed class Command: () -> Unit {
    /** [Command] that invokes an [sp.it.util.action.Action]. */
    data class DoAction(val id: String): Command() {
       fun toAction(): Action? = ActionRegistrar.getOrNull(id)
-      override fun invoke() = toAction()?.invoke().toUnit()
+      override operator fun invoke() = toAction()?.run().toUnit()
    }
 
    companion object {

@@ -156,7 +156,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       filter attach { configureFiltered() }
       filterActions attach { configureFiltered() }
 
-      refresh()
+      root.sync1IfInScene { refresh() }
    }
 
    override fun focus() = root.sync1IfInScene { groups.requestFocus() }.toUnit()

@@ -472,6 +472,12 @@ class WidgetManager {
                "-Xlint",
                "-Xlint:-path",
                "-Xlint:-processing",
+               "-progressive",
+               "-Xno-call-assertions",
+               "-Xno-param-assertions",
+               "-Xjvm-default=all",
+               "-Xuse-experimental=kotlin.Experimental",
+               "-Xstring-concat=indy-with-constants",
                "-cp", computeClassPath()
             )
             val sourceFiles = javaSrcFiles.map { it.path }

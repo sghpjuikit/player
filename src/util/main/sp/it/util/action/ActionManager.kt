@@ -175,4 +175,7 @@ object ActionRegistrar {
     */
    @JvmStatic operator fun get(name: String): Action = actions[name] ?: fail { "No action: '$name' found. " }
 
+   /** @return the action with the given [name] or null */
+   @JvmStatic fun getOrNull(name: String): Action? = actions[name]
+
 }

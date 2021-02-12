@@ -1,9 +1,11 @@
 package sp.it.pl.conf
 
 import java.io.File as FileIo
-import sp.it.pl.conf.Command.File.Op
+import sp.it.pl.conf.Command.DoFile.Op
 import sp.it.pl.layout.widget.ComponentLoaderStrategy
 import sp.it.pl.main.APP
+import sp.it.util.action.Action
+import sp.it.util.action.ActionRegistrar
 import sp.it.util.dev.Blocks
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.Try
@@ -11,6 +13,7 @@ import sp.it.util.functional.Try.Java.ok
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toUnit
 import sp.it.util.system.browse
 import sp.it.util.system.edit
 import sp.it.util.system.open
@@ -34,7 +37,7 @@ sealed class Command {
    }
 
    /** [Command] that invokes a file operation. */
-   data class File(val op: Op, val file: FileIo): Command() {
+   data class DoFile(val op: Op, val file: FileIo): Command() {
 
       override operator fun invoke() {
          when (op) {
@@ -51,11 +54,17 @@ sealed class Command {
       }
    }
 
-   /** [Command] that loads a component. */
-   data class ComponentOpen(val loader: ComponentLoaderStrategy, val id: String): Command() {
+   /** [Command] that opens a [sp.it.pl.layout.Component]. */
+   data class DoComponentOpen(val loader: ComponentLoaderStrategy, val id: String): Command() {
       override fun invoke() {
          APP.windowManager.instantiateComponent(id)?.net(loader.loader)
       }
+   }
+
+   /** [Command] that invokes an [sp.it.util.action.Action]. */
+   data class DoAction(val id: String): Command() {
+      fun toAction(): Action? = ActionRegistrar.getOrNull(id)
+      override fun invoke() = toAction()?.invoke().toUnit()
    }
 
    companion object {
@@ -67,7 +76,7 @@ sealed class Command {
                val its = it.split2Partial(" ")
                val op = its.first.toUpperCase().net(Op::valueOf)
                val file = its.second.net(::FileIo)
-               File(op, file)
+               DoFile(op, file)
             }
          }
          s.startsWith("command component open ", true) -> s.substring("command component open ".length).let {
@@ -75,16 +84,20 @@ sealed class Command {
                val its = it.split2Partial(" ")
                val op = its.first.toUpperCase().net(ComponentLoaderStrategy::valueOf)
                val id = its.second
-               ComponentOpen(op, id)
+               DoComponentOpen(op, id)
             }
          }
-         else -> error(RuntimeException("Not a valid command, text='$s'"))
+         s.startsWith("command action ", true) -> s.substring("command action ".length).let {
+            Try.ok(DoAction(it))
+         }
+         else -> Try.error(RuntimeException("Not a valid command, text='$s'"))
       }
 
       fun toS(o: Command): String = when (o) {
          is DoNothing -> "command do nothing"
-         is File -> """command file ${o.op.name.toLowerCase()} ${o.file.absolutePath}"""
-         is ComponentOpen -> """command component open ${o.loader.name.toLowerCase()} ${o.id}"""
+         is DoFile -> """command file ${o.op.name.toLowerCase()} ${o.file.absolutePath}"""
+         is DoComponentOpen -> """command component open ${o.loader.name.toLowerCase()} ${o.id}"""
+         is DoAction -> """command action ${o.id}"""
       }
 
       @Blocks

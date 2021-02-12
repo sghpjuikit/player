@@ -27,6 +27,7 @@ import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.enumValues
 import sp.it.util.type.isEnumClass
+import sp.it.util.type.isObject
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
 import sp.it.util.type.rawJ
@@ -145,7 +146,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
             if (type.isNullable) Enumerator { values + valueEnumerator3rd.orEmpty() + (null as T) }
             else Enumerator { values + valueEnumerator3rd.orEmpty() }
          }
-         ?: if (!type.jvmErasure.isSealed) null else {
+         ?: if (!type.jvmErasure.isSealed || !type.jvmErasure.sealedSubclasses.all { it.isObject }) null else {
             val values = type.jvmErasure.sealedSubObjects.asIs<List<T>>()
             if (type.isNullable) Enumerator { values + valueEnumerator3rd.orEmpty() + (null as T) }
             else Enumerator { values + valueEnumerator3rd.orEmpty() }

@@ -171,7 +171,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    val filesRefresh by cr { viewGames() }
       .def(name = "Location (refresh)", info = "Reloads location and reloads the view.")
 
-   val grid = GridView<Item, File>(Item::value, 50.x2, 10.x2)
+   val grid = GridView<Item, File>({ it.value }, 50.x2, 10.x2)
    val placeholder = lazy {
       Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
          chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window)

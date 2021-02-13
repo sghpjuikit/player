@@ -10,7 +10,6 @@ import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
 import java.util.Optional
 import java.util.Stack
-import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 import javafx.beans.Observable
 import javafx.beans.property.Property
@@ -32,7 +31,6 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
-import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
@@ -40,7 +38,6 @@ import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KTypeProjection.Companion.STAR
-import kotlin.reflect.KTypeProjection.Companion.covariant
 import kotlin.reflect.KTypeProjection.Companion.invariant
 import kotlin.reflect.KVariance
 import kotlin.reflect.KVisibility.PUBLIC
@@ -58,7 +55,6 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmName
 import mu.KotlinLogging
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
@@ -115,30 +111,6 @@ fun setLoggingLevelForPackage(logPackage: Package, logLevel: Level) {
       level = logLevel
       useParentHandlers = false
    }
-}
-
-/** @return thread-safe [ReadWriteProperty] backed by [AtomicReference] */
-fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {
-
-   private val ref = AtomicReference(initialValue)
-
-   override fun getValue(thisRef: Any?, property: KProperty<*>) = ref.get()
-
-   override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = ref.set(value)
-
-}
-
-/** @return volatile [ReadWriteProperty] backed by [Volatile] annotated property */
-fun <T> volatile(initialValue: T) = object: ReadWriteProperty<Any?, T> {
-
-   @Volatile private var ref = initialValue
-
-   override fun getValue(thisRef: Any?, property: KProperty<*>) = ref
-
-   override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-      ref = value
-   }
-
 }
 
 /** @return class representing this type, i.e., type stripped of its generic type parameters */

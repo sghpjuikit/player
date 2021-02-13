@@ -73,6 +73,7 @@ import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
+import sp.it.util.ui.show
 
 @Info(
    author = "Martin Polakovic",

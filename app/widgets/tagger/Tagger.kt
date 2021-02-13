@@ -172,6 +172,7 @@ import java.net.URI
 import java.time.Year
 import java.util.ArrayList
 import sp.it.pl.ui.objects.textfield.DecoratedTextField as DTextField
+import sp.it.util.ui.show
 
 typealias Predicate = (String) -> Boolean
 typealias Converter = (String) -> String
@@ -248,7 +249,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                   separator()
                }
                items += CoreMenus.menuItemBuilders[coverV.ContextMenuData()]
-               show(coverV.pane, it.screenX, it.screenY)
+               show(coverV.pane, it)
             }
          }
          coverV.pane.onEventDown(DRAG_DETECTED) { coverV.pane.startFullDrag() }

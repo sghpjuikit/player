@@ -56,6 +56,7 @@ import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.syncC;
+import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.Util.computeTextWidth;
 import static sp.it.util.ui.Util.selectRows;
 import static sp.it.util.ui.UtilKt.pseudoclass;
@@ -124,7 +125,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 				var table = PlaylistTable.this;
 				contextMenu.setItemsFor(new PlaylistSongGroup(playlist, table.getSelectedItemsCopy()));
-				contextMenu.show(table, e);
+				show(contextMenu, table, e);
 			});
 			// handle drag transfer
 			row.setOnDragDropped(e -> dropDrag(e, row.isEmpty() ? getItems().size() : row.getIndex()));

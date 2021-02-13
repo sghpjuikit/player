@@ -91,6 +91,7 @@ import javafx.stage.Window as WindowFX
 import sp.it.pl.main.Df.FILES
 import sp.it.util.access.expanded
 import sp.it.util.ui.drag.set
+import sp.it.util.ui.show
 
 private val logger = KotlinLogging.logger { }
 private val globalContextMenu by lazy { ValueContextMenu<Any?>() }

@@ -1,13 +1,11 @@
 package commandBar
 
 import de.jensd.fx.glyphs.GlyphIcons
-import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.KeyCode.DOWN
 import javafx.scene.input.KeyCode.UP
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.SECONDARY
-import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import kotlin.math.roundToInt
@@ -45,10 +43,12 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
+import sp.it.util.type.property
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.lay
 import sp.it.util.ui.menuItem
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.show
 import sp.it.util.ui.x
 import sp.it.util.units.em
 import sp.it.util.units.version
@@ -143,11 +143,11 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
          Config.forProperty<Command>("Command", v(icon.command).apply { attach { icon.command = it } })
       )
 
+      var Icon.commandImpl: Command by property { Command.DoNothing }
       var Icon.command: Command
-         get() = properties["command"]?.asIf<Command>() ?: Command.DoNothing
+         get() = commandImpl
          set(value) {
-            onClickAction
-            properties["command"] = value
+            commandImpl = value
             when (value) {
                is Command.DoAction -> when (val a = value.toAction()) {
                   null -> onClickDo { value() }
@@ -156,8 +156,5 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
                else -> onClickDo { value() }
             }
          }
-
-      fun ContextMenu.show(node: Node, e: MouseEvent): Unit = show(node.scene.window, e.screenX, e.screenY)
-
    }
 }

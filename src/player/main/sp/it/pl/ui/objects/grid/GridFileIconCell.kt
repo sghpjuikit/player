@@ -31,6 +31,7 @@ import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import java.io.File
+import sp.it.util.ui.show
 
 /**
  * GridCell implementation for file using [sp.it.pl.ui.objects.hierarchy.Item]

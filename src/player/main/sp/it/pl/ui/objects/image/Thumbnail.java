@@ -53,6 +53,7 @@ import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
+import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
 import static sp.it.util.units.UtilKt.uri;
 
@@ -173,7 +174,7 @@ public class Thumbnail {
 	private boolean isImgSmallerW = false;
 	private boolean isImgSmallerH = false;
 
-	/** {@link sp.it.pl.ui.objects.image.Thumbnail#Thumbnail()}} using {@link javafx.scene.layout.Region#USE_COMPUTED_SIZE} */
+	/** {@link sp.it.pl.ui.objects.image.Thumbnail#Thumbnail(double, double)}} using {@link javafx.scene.layout.Region#USE_COMPUTED_SIZE} */
 	public Thumbnail() {
 		this(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
 	}
@@ -252,7 +253,7 @@ public class Thumbnail {
 	}
 
 	private long loadId = 0;    // prevents wasteful set image operations
-	private static Map<String,Image> IMG_CACHE = new ConcurrentHashMap<>();   // caches images
+	private static final Map<String,Image> IMG_CACHE = new ConcurrentHashMap<>();   // caches images
 
 	public static Image getCached(String url, double w, double h) {
 		Image ci = url==null ? null : IMG_CACHE.get(url);
@@ -644,7 +645,7 @@ public class Thumbnail {
 	private final EventHandler<MouseEvent> contextMenuHandler = e -> {
 		if (e.getButton()==SECONDARY) {
 			contextMenu.setItemsFor(new ContextMenuData());
-			contextMenu.show(root, e);
+			show(contextMenu, root, e);
 			e.consume();
 		}
 	};

@@ -44,6 +44,7 @@ import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.Util.invokeMethodP0;
+import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 
 /**
  * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
@@ -99,7 +100,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		// show the column control menu on right click ( + hide if shown )
 		addEventHandler(MOUSE_CLICKED, e -> {
 			if (e.getButton()==SECONDARY && e.getY()<getVisibleHeaderHeight()) {
-				columnMenu.show(this, e.getScreenX(), e.getScreenY());
+				show(columnMenu, this, e);
 			} else {
 				if (columnMenu.isShowing()) columnMenu.hide();
 			}
@@ -128,8 +129,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.collect(toList());
 	}
 
-	@SuppressWarnings("unchecked")
-	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,? extends Object>> columnFactory) {
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,?>> columnFactory) {
 		colFact = f -> {
 			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
 			c.setUserData(f);

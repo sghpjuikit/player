@@ -64,7 +64,7 @@ interface Constraint<in T> {
    }
 
    class StringNonEmpty: Constraint<String> {
-      override fun isValid(value: String?) = value!=null && value.isNotEmpty()
+      override fun isValid(value: String?) = value==null || value.isNotEmpty()
       override fun message() = "String must not be empty"
    }
 

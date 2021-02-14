@@ -63,7 +63,7 @@ class CollectionsUtilTest: FreeSpec({
          Try.error("").estimateRuntimeType() shouldBe type<Try.Error<String>>()
       }
 
-      "Collections" - {
+      "!Collections" - {
 
          infix fun <T> List<T>.estimateRuntimeTypeShouldHaveElementType(type: VType<*>) {
             asIs<Any?>().estimateRuntimeType().type.argOf(List::class, 0).type shouldBe type.type

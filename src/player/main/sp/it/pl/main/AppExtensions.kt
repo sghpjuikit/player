@@ -24,6 +24,7 @@ import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import kotlin.math.ceil
+import sp.it.pl.core.CoreConverter
 
 private val logger = KotlinLogging.logger {}
 
@@ -96,10 +97,10 @@ fun Song.toMetadata(action: (Metadata) -> Unit) {
 fun MetadataGroup.isPlaying(): Boolean = field.getOf(APP.audio.playingSong.value)==value
 
 /** @return result of [sp.it.pl.core.CoreConverter.ui].[sp.it.util.parsing.ConverterToString.toS] */
-fun <T> T?.toUi(): String = APP.converter.ui.toS(this)
+fun <T> T?.toUi(): String = CoreConverter.ui.toS(this)
 
 /** @return result of [sp.it.pl.core.CoreConverter.general].[sp.it.util.parsing.ConverterToString.toS] */
-fun <T> T?.toS(): String = APP.converter.general.toS(this)
+fun <T> T?.toS(): String = CoreConverter.general.toS(this)
 
 /** Runs the specified block immediately or when application is [initialized](App.onStarted). */
 fun App.run1AppReady(block: () -> Unit) {

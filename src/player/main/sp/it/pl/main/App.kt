@@ -205,7 +205,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Image I/O core. */
    val imageIo = CoreImageIO(locationTmp/"imageio")
    /** String-Object converter core. */
-   val converter = CoreConverter().apply { init() }
+   val converter = CoreConverter.apply { init() }
    /** Json converter core. */
    val serializerJson = CoreSerializerJson()
    /** Single persistent storage per type core. */

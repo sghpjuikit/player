@@ -6,7 +6,6 @@ import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
-import sp.it.util.access.EnumerableValue
 import sp.it.util.access.OrV
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -29,7 +28,6 @@ import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.VType
 import sp.it.util.type.type
 import java.util.HashSet
-import java.util.function.Supplier
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
@@ -165,13 +163,6 @@ open class PropertyConfig<T>(
    valueType: VType<T>, name: String, def: ConfigDefinition, constraints: Set<Constraint<T>>, val property: WritableValue<T>, defaultValue: T = property.value, group: String
 ): ConfigBase<T>(valueType, name, def, constraints, defaultValue, group) {
 
-   init {
-      if (this.property is EnumerableValue<*>)
-         valueEnumerator2nd = Supplier {
-            (this.property as EnumerableValue<T>).enumerateValues()
-         }
-   }
-
    override fun getValue(): T = property.value
 
    override fun setValue(value: T) {
@@ -184,13 +175,6 @@ open class PropertyConfig<T>(
 open class PropertyConfigRO<T>(
    valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
 ): ConfigBase<T>(valueType, name, c, constraints, property.value, group) {
-
-   init {
-      if (property is EnumerableValue<*>)
-         valueEnumerator2nd = Supplier {
-            (property as EnumerableValue<T>).enumerateValues()
-         }
-   }
 
    override fun getValue(): T = property.value
 

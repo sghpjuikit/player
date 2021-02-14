@@ -4,19 +4,16 @@ import javafx.scene.image.Image
 import javafx.stage.FileChooser
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
-import sp.it.util.access.VarEnum
 import sp.it.util.dev.failIf
 import sp.it.util.file.FastFile
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
-import sp.it.util.file.Util
 import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeGroup.Companion.video
-import sp.it.util.file.type.MimeTypes
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.PF0
 import sp.it.util.functional.Try
@@ -28,6 +25,14 @@ import sp.it.util.ui.image.toBuffered
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.streams.asSequence
+import sp.it.pl.core.Parse
+import sp.it.pl.core.Parser
+import sp.it.util.access.V
+import sp.it.util.conf.but
+import sp.it.util.conf.cv
+import sp.it.util.functional.asIs
+import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.net
 
 private val logger = KotlinLogging.logger { }
 
@@ -170,44 +175,44 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
  * predicates not from function pool, but hardcoded filters, which are enumerable and we look up by name.
  */
 object FileFilters {
-   val filterPrimary = PF0<File,Boolean>("File - all", type(), type()) { true }
-   private val filters = ArrayList<PF0<File, Boolean>>()
 
-   init {
-      filters += filterPrimary
-      filters += PF0("File - is audio", type(), type()) { it.isAudio() }
-      filters += PF0("File - is image", type(), type()) { it.isImage() }
-      filters += PF0("File type - file", type(), type()) { it.isFile }
-      filters += PF0("File type - directory", type(), type()) { it.isDirectory }
-      MimeTypes.setOfGroups().forEach { group ->
-         filters += PF0("Mime type group - is ${group.capitalize()}", type(), type()) { group==it.mimeType().group }
-      }
-      MimeTypes.setOfMimeTypes().forEach { mime ->
-         filters += PF0("Mime type - is ${mime.name}", type(), type()) { it.mimeType()==mime }
-      }
-      MimeTypes.setOfExtensions().forEach { extension ->
-         filters += PF0("Type - is $extension", type(), type()) { it.extension.equals(extension, ignoreCase = true) }
-      }
-   }
+   /** Default file filter. Returns true for every file. */
+   val filterPrimary = FileFilter("File - all", type(), type()) { true }
+
+   /** Parser converting [String] to [FileFilter]. */
+   val parser: Parse<FileFilter> = Parse.or(
+      Parser(type(), listOf("File - all")) { filterPrimary },
+      Parser(type(), listOf("File - is audio")) { FileFilter("File - is audio", type(), type()) { it.isAudio() } },
+      Parser(type(), listOf("File - is audio")) { FileFilter("File - is image", type(), type()) { it.isImage() } },
+      Parser(type(), listOf("File - is audio")) { FileFilter("File type - file", type(), type()) { it.isFile } },
+      Parser(type(), listOf("File - is audio")) { FileFilter("File type - directory", type(), type()) { it.isDirectory } },
+      Parser(type(), args = listOf("Mime type group - is", String::class)) { it ->
+         val group = it[0].asIs<String>()
+         FileFilter("Mime type group - is ${group.capitalize()}", type(), type()) { group==it.mimeType().group }
+      },
+      Parser(type(), listOf("Mime type - is", String::class)) { it ->
+         val mimeTypeName = it[0].asIs<String>()
+         FileFilter("Mime type - is ${mimeTypeName.capitalize()}", type(), type()) { mimeTypeName==it.mimeType().name }
+      },
+      Parser(type(), listOf("Type - is", String::class)) { it ->
+         val extension = it[0].asIs<String>()
+         FileFilter("Type - is $extension", type(), type()) { it.extension.equals(extension, ignoreCase = true) }
+      },
+   )
 
    /** @return filter with specified name or primary filter if no such filter */
-   fun getOrPrimary(name: String) = filters.find { it.name==name } ?: filterPrimary
+   fun getOrPrimary(name: String): PF0<File, Boolean> = parser.parse(name).getOrSupply { filterPrimary }
 
-   /** @return enumerable string value enumerating all available predicate names */
-   fun toEnumerableValue(initialValue: String = filterPrimary.name) = FileFilterValue(initialValue, filters.map { it.name })
-}
+   /** @return [javafx.beans.value.ObservableValue] for [FileFilter] */
+   fun vFileFilter(initialValue: String = filterPrimary.name) = FileFilterValue(initialValue)
 
-class FileFilterValue(initialValue: String = FileFilters.filterPrimary.name, enumerated: Collection<String>): VarEnum<String>(initialValue, enumerated) {
+   /** @return delegated configurable [javafx.beans.value.ObservableValue] for [FileFilter] */
+   fun cvFileFilter() = cv(filterPrimary.name) { it.net(::vFileFilter) }.but(parser.toConstraint())
 
-   private var filter = FileFilters.getOrPrimary(initialValue)
-
-   override fun setValue(v: String) {
-      filter = FileFilters.getOrPrimary(v)
-      super.setValue(v)
+   class FileFilterValue(initialValue: String = filterPrimary.name): V<String>(initialValue) {
+      /** @return the filter represented by the current value, which is the name of the returned filter */
+      val valueAsFilter: PF0<File, Boolean> = getOrPrimary(value)
    }
-
-   /** @return the filter represented by the current value, which is the name of the returned filter */
-   fun getValueAsFilter() = filter
 }
 
 enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {

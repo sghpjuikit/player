@@ -22,18 +22,15 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.Glyphs
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.access.VarEnum
-import sp.it.util.access.v
 import sp.it.util.collections.setTo
-import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
-import sp.it.util.conf.ListConfigurable
+import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.max
 import sp.it.util.conf.min
-import sp.it.util.functional.asIf
+import sp.it.util.conf.values
 import sp.it.util.functional.net
 import sp.it.util.math.clip
 import sp.it.util.math.max
@@ -138,10 +135,10 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
       )
       override val group = Widget.Group.OTHER
 
-      fun asConfigurable(icon: Icon): Configurable<*> = ListConfigurable.heterogeneous(
-         Config.forProperty<GlyphIcons>("Icon", VarEnum(icon.glyph, Glyphs.GLYPHS).apply { attach { icon.icon(it) } }),
-         Config.forProperty<Command>("Command", v(icon.command).apply { attach { icon.command = it } })
-      )
+      fun asConfigurable(icon: Icon): Configurable<*> = object: ConfigurableBase<Any?>() {
+         val glyph by cv(icon.glyph).attach { icon.icon(it) }.values(Glyphs.GLYPHS).def(name = "Icon")
+         val command by cv(icon.command).attach { icon.command = it }.def(name = "Command")
+      }
 
       var Icon.commandImpl: Command by property { Command.DoNothing }
       var Icon.command: Command

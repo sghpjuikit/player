@@ -102,6 +102,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    abstract fun addConstraints(vararg constraints: Constraint<T>): Config<T>
 
    @Experimental("Expert API, mutates state")
+   fun addConstraints(constraint: Constraint<T>): Config<T> = addConstraints(listOf(constraint))
+
+   @Experimental("Expert API, mutates state")
    fun addConstraints(constraints: Collection<Constraint<T>>): Config<T> = addConstraints(*constraints.toTypedArray())
 
    inline fun <reified T> hasConstraint(): Boolean = findConstraints<T>().firstOrNull()!=null
@@ -129,27 +132,23 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
                .ifError { logger.warn(it) { "Unable to set config=$name value from text=$s" } }
       }
 
-   protected var valueEnumerator3rd: MutableList<T>? = null
-   protected var valueEnumerator2nd: Enumerator<T>? = null
+   protected var valueEnumerator2nd: MutableList<T>? = null
 
    @Suppress("UNCHECKED_CAST")
    protected val valueEnumerator: Enumerator<T>? by lazy {
       null
          ?: findConstraint<ValueSet<T>>()?.let { values ->
-            Enumerator { values.enumerator() + valueEnumerator3rd.orEmpty() }
-         }
-         ?: valueEnumerator2nd?.net {
-            Enumerator { it() + valueEnumerator3rd.orEmpty() }
+            Enumerator { values.enumerator() + valueEnumerator2nd.orEmpty() }
          }
          ?: if (!type.rawJ.isEnumClass) null else {
             val values = type.rawJ.enumValues.toList()
-            if (type.isNullable) Enumerator { values + valueEnumerator3rd.orEmpty() + (null as T) }
-            else Enumerator { values + valueEnumerator3rd.orEmpty() }
+            if (type.isNullable) Enumerator { values + valueEnumerator2nd.orEmpty() + (null as T) }
+            else Enumerator { values + valueEnumerator2nd.orEmpty() }
          }
          ?: if (!type.jvmErasure.isSealed || !type.jvmErasure.sealedSubclasses.all { it.isObject }) null else {
             val values = type.jvmErasure.sealedSubObjects.asIs<List<T>>()
-            if (type.isNullable) Enumerator { values + valueEnumerator3rd.orEmpty() + (null as T) }
-            else Enumerator { values + valueEnumerator3rd.orEmpty() }
+            if (type.isNullable) Enumerator { values + valueEnumerator2nd.orEmpty() + (null as T) }
+            else Enumerator { values + valueEnumerator2nd.orEmpty() }
          }
    }
 
@@ -180,8 +179,8 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
             val strategy = config.findConstraint<ValueSetNotContainsThen>()?.strategy ?: USE_DEFAULT
             when (strategy) {
                USE_AND_ADD -> Parsers.DEFAULT.ofS(config.type, s).ifOk {
-                  if (config.valueEnumerator3rd == null) config.valueEnumerator3rd = mutableListOf(it)
-                  else config.valueEnumerator3rd!! += it
+                  if (config.valueEnumerator2nd == null) config.valueEnumerator2nd = mutableListOf(it)
+                  else config.valueEnumerator2nd!! += it
                }
                USE -> Parsers.DEFAULT.ofS(config.type, s)
                USE_DEFAULT -> Try.ok(config.defaultValue)

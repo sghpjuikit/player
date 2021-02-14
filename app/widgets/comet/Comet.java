@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -93,10 +94,10 @@ import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.util.access.V;
-import sp.it.util.access.VarEnum;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.ConfigurableByReflect;
+import sp.it.util.conf.Constraint.ValueSet;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.FixedConfList;
 import sp.it.util.conf.IsConfig;
@@ -104,67 +105,11 @@ import sp.it.util.functional.Functors.F0;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Functors.F5;
 import sp.it.util.functional.Util;
-import static comet.Comet.Constants.FPS;
-import static comet.Comet.Constants.PLAYER_ABILITY_INITIAL;
-import static comet.Utils.AbilityKind.SHIELD;
-import static comet.Utils.AbilityState.ACTIVATING;
-import static comet.Utils.AbilityState.OFF;
-import static comet.Utils.AbilityState.ON;
-import static comet.Utils.AbilityState.PASSSIVATING;
-import static comet.Utils.D0;
-import static comet.Utils.D120;
-import static comet.Utils.D180;
-import static comet.Utils.D30;
-import static comet.Utils.D360;
-import static comet.Utils.D45;
-import static comet.Utils.D90;
-import static comet.Utils.FONT_PLACEHOLDER;
-import static comet.Utils.FONT_UI;
-import static comet.Utils.GunControl.AUTO;
-import static comet.Utils.GunControl.MANUAL;
-import static comet.Utils.PI;
-import static comet.Utils.abs;
-import static comet.Utils.atan;
-import static comet.Utils.calculateGunTurretAngles;
-import static comet.Utils.color;
-import static comet.Utils.computeForceInversePotential;
-import static comet.Utils.cos;
-import static comet.Utils.createHyperSpaceAnimIn;
-import static comet.Utils.createHyperSpaceAnimOut;
-import static comet.Utils.createPlayerStat;
-import static comet.Utils.deg;
-import static comet.Utils.dirDiff;
-import static comet.Utils.dirOf;
-import static comet.Utils.drawFading;
-import static comet.Utils.drawHudCircle;
-import static comet.Utils.drawHudLine;
-import static comet.Utils.drawImageRotated;
-import static comet.Utils.drawImageRotatedScaled;
-import static comet.Utils.drawOval;
-import static comet.Utils.drawTriangle;
-import static comet.Utils.floorMod;
-import static comet.Utils.graphics;
-import static comet.Utils.max;
-import static comet.Utils.min;
-import static comet.Utils.pow;
-import static comet.Utils.rand01;
-import static comet.Utils.rand0N;
-import static comet.Utils.randAngleRad;
-import static comet.Utils.randBoolean;
-import static comet.Utils.randEnum;
-import static comet.Utils.randInt;
-import static comet.Utils.randMN;
-import static comet.Utils.randOf;
-import static comet.Utils.rotate;
-import static comet.Utils.sign;
-import static comet.Utils.sin;
-import static comet.Utils.sqr;
-import static comet.Utils.sqrt;
-import static comet.Utils.strokeLine;
-import static comet.Utils.strokeOval;
-import static comet.Utils.strokePolygon;
-import static comet.Utils.ttl;
-import static comet.Utils.ttlVal;
+import static comet.Comet.Constants.*;
+import static comet.Utils.AbilityKind.*;
+import static comet.Utils.AbilityState.*;
+import static comet.Utils.*;
+import static comet.Utils.GunControl.*;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.BOTTOM_LEFT;
 import static javafx.geometry.Pos.BOTTOM_RIGHT;
@@ -216,7 +161,7 @@ import static sp.it.util.ui.Util.layAnchor;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 
-@SuppressWarnings({"unused","UnnecessaryLocalVariable"})
+@SuppressWarnings({"unused","UnnecessaryLocalVariable","SameParameterValue","UnusedReturnValue"})
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Comet",
@@ -227,7 +172,7 @@ import static sp.it.util.ui.Util.layStack;
 )
 @LegacyController
 public class Comet extends SimpleController {
-	private static Logger LOGGER = LoggerFactory.getLogger(Comet.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 
 	final Pane playfield = new Pane();  // play field, contains scenegraph game graphics
 	final Canvas canvas = new Canvas();
@@ -471,13 +416,16 @@ public class Comet extends SimpleController {
 		new Player(7, Color.CADETBLUE, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL),
 		new Player(8, Color.MAGENTA, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL)
 	);
+	final GameMode modeInitial = new ClassicMode(game);
 	@IsConfig
-	final VarEnum<GameMode> mode = new VarEnum<>(
-		new ClassicMode(game),
-		new TimeTrial(game),
-		new BounceHellMode(game),
-		new AreaMode(game),
-		new VoronoiMode(game)
+	final Config<GameMode> mode = Config.forProperty(GameMode.class, "Mode", new V(modeInitial)).addConstraints(
+		new ValueSet<>(() -> List.of(
+			modeInitial,
+			new TimeTrial(game),
+			new BounceHellMode(game),
+			new AreaMode(game),
+			new VoronoiMode(game)
+		))
 	);
 
 	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
@@ -563,11 +511,11 @@ public class Comet extends SimpleController {
 			@Override
 			public void start() {
 				gamepads.getControllers()
-					.filter(g -> stream(players).noneMatch(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()))
+					.filter(g -> stream(players).noneMatch(p -> p.gamepadId.getValue()!=null && p.gamepadId.getValue()==g.getDeviceID()))
 					.sorted(by(IController::getDeviceID))
 					.forEach(g -> stream(players).sorted(by(p -> p.id.get()))
-						              .filter(p -> p.gamepadId.get()==null).findFirst()
-						              .ifPresent(p -> p.gamepadId.set(g.getDeviceID()))
+						              .filter(p -> p.gamepadId.getValue()==null).findFirst()
+						              .ifPresent(p -> p.gamepadId.setValue(g.getDeviceID()))
 					);
 			}
 
@@ -585,8 +533,8 @@ public class Comet extends SimpleController {
 
 						gamepadIds.add(c.getDeviceID());
 						stream(players).sorted(by(p -> p.id.get()))
-							.filter(p -> p.gamepadId.get()==null).findFirst()
-							.ifPresent(p -> p.gamepadId.set(c.getDeviceID()));
+							.filter(p -> p.gamepadId.getValue()==null).findFirst()
+							.ifPresent(p -> p.gamepadId.setValue(c.getDeviceID()));
 					}
 
 					@Override
@@ -599,8 +547,8 @@ public class Comet extends SimpleController {
 //						System.out.println("VendorID = " + c.getVendorID());
 
 						gamepadIds.remove(c.getDeviceID());
-						stream(players).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==c.getDeviceID())
-							.forEach(p -> p.gamepadId.set(null));
+						stream(players).filter(p -> p.gamepadId.getValue()!=null && p.gamepadId.getValue()==c.getDeviceID())
+							.forEach(p -> p.gamepadId.setValue(null));
 					}
 
 					@Override
@@ -629,7 +577,7 @@ public class Comet extends SimpleController {
 			protected void doLoopImpl(IController[] gamepads) {
 				if (gamepads.length > 0)
 					Stream.of(gamepads).forEach(g ->
-						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId.get()!=null && p.gamepadId.get()==g.getDeviceID()).forEach(p -> {
+						players.stream().filter(p -> p.alive).filter(p -> p.gamepadId.getValue()!=null && p.gamepadId.getValue()==g.getDeviceID()).forEach(p -> {
 							IButton engine1B = g.getButton(1); // g.getButton(ButtonID.FACE_DOWN);
 							IButton engine2B = g.getButton(10);
 							IButton engine3B = g.getButton(5);
@@ -821,7 +769,7 @@ public class Comet extends SimpleController {
 			ufos.init();
 			humans.init();
 
-			mode = Comet.this.mode.get();
+			mode = Comet.this.mode.getValue();
 			mode.start(player_count);
 			players.forEach(Player::spawn);
 			loop.start();
@@ -1308,7 +1256,7 @@ public class Comet extends SimpleController {
 		@IsConfig public final V<KeyCode> keyAbility = new V<>(KeyCode.Q);
 		@IsConfig public final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
 
-		@IsConfig(nullable = true) final VarEnum<Integer> gamepadId = new VarEnum<Integer>(null, gamepadIds);
+		@IsConfig(nullable = true) final Config<Integer> gamepadId = Config.forProperty(Integer.class, "gamepadId", new V<Integer>(null), true).addConstraints(new ValueSet<>(() -> gamepadIds));
 		boolean isInputLeft, isInputRight, isInputFire, isInputFireOnce, isInputThrust, isInputAbility;
 		boolean wasInputLeft, wasInputRight, wasInputFire, wasInputFireOnce, wasInputThrust, wasInputAbility;
 		boolean wasGamepadLeft, wasGamepadRight, wasGamepadFire;

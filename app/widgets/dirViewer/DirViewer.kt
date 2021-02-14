@@ -20,7 +20,6 @@ import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
-import sp.it.pl.main.FileFilters
 import sp.it.pl.main.FileFlatter
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.appTooltipForData
@@ -113,6 +112,7 @@ import javafx.scene.input.KeyCode.SHORTCUT
 import kotlin.math.round
 import sp.it.pl.main.Df
 import sp.it.pl.main.Events.FileEvent
+import sp.it.pl.main.FileFilters.cvFileFilter
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -184,7 +184,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          prodUserToSetupLocation()
       }
    }
-   private val filter by cv(FileFilters.filterPrimary.name) { FileFilters.toEnumerableValue(it) }
+   private val filter by cvFileFilter()
       .def(name = "File filter", info = "Shows only directories and files passing the filter.")
    private val sort by cv(ASCENDING).attach { applySort() }
       .def(name = "Sort", info = "Sorting effect.")
@@ -487,7 +487,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
       override fun createItem(parent: Item, value: File, type: FileType) = FItem(parent, value, type)
 
-      override fun filterChildFile(f: File) = !f.isHidden && f.canRead() && filter.getValueAsFilter().apply(f, arrayOf())
+      override fun filterChildFile(f: File) = !f.isHidden && f.canRead() && filter.valueAsFilter.apply(f, arrayOf())
 
    }
 

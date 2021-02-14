@@ -5,6 +5,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import kotlin.reflect.KClass;
@@ -17,6 +19,7 @@ import sp.it.util.parsing.Parsers.Invokable;
 import sp.it.util.parsing.Parsers.ParseDir;
 import sp.it.util.parsing.StringParseStrategy.From;
 import sp.it.util.parsing.StringParseStrategy.To;
+import static java.util.Arrays.stream;
 import static kotlin.jvm.JvmClassMappingKt.getJavaObjectType;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.util.functional.Try.Java.error;
@@ -28,6 +31,8 @@ import static sp.it.util.parsing.Parsers.getValueOfStatic;
 import static sp.it.util.parsing.Parsers.noExWrap;
 import static sp.it.util.parsing.Parsers.parserOfI;
 import static sp.it.util.parsing.Parsers.parserOfM;
+import static sp.it.util.type.KClassExtensionsKt.getEnumValues;
+import static sp.it.util.type.KClassExtensionsKt.isEnumClass;
 import static sp.it.util.type.Util.getConstructorAnnotated;
 import static sp.it.util.type.Util.getMethodAnnotated;
 
@@ -152,7 +157,7 @@ public class ConverterDefault extends Converter {
         );
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "RedundantCast"})
     private <T> Function<? super T,Try<String,String>> findToSparser(KClass<T> c) {
         return (Function) firstNotNull(
             () -> parsersToS.getElementOfSuper(c),
@@ -213,6 +218,25 @@ public class ConverterDefault extends Converter {
             }
         }
 
+        // try to fall back to Enum.valueOf method (use case insensitive search)
+        if (ofS==null) {
+            if (isEnumClass(type)) {
+                ofS = (s) -> {
+                    try {
+                        var values = getEnumValues(type);
+                        var value = firstNotNull(
+                            () -> stream(values).filter(it -> ((Enum<?>) it).name().equals(s)).findFirst().orElse(null),
+                            () -> stream(values).filter(it -> ((Enum<?>) it).name().toLowerCase(Locale.ROOT).equals(s)).findFirst().orElse(null)
+                        );
+                        return Optional.ofNullable(value)
+                            .map(it -> Try.Java.<T,String>ok(it))
+                            .orElseGet(() -> Try.Java.error("No enum constant " + type.getSimpleName() + "." + s));
+                    } catch (Throwable e) {
+                        return Try.Java.error(e.getMessage());
+                    }
+                };
+            }
+        }
         // try to fall back to valueOf method
         if (ofS==null) {
             Method m = getValueOfStatic(type);

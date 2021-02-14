@@ -50,19 +50,16 @@ import sp.it.pl.ui.itemnode.ValueNode;
 import sp.it.pl.ui.objects.combobox.ImprovedComboBox;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.V;
-import sp.it.util.access.VarEnum;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.conf.Config;
+import sp.it.util.conf.Constraint.ValueSet;
 import sp.it.util.file.Util;
-import sp.it.util.functional.Functors.F0;
 import sp.it.util.text.StringSplitParser.SplitData;
-import sp.it.util.type.UtilKt;
 import sp.it.util.type.VType;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LIST_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
-import static java.lang.Integer.MAX_VALUE;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -237,7 +234,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             })
         );
         acts.accumulate(
-            new Act<>("Edit song tags", getKotlinClass(Song.class), 100, () -> map(Metadata.Field.Companion.getAll(), f -> f.name()), data -> {
+            new Act<>("Edit song tags", getKotlinClass(Song.class), 100, map(Metadata.Field.Companion.getAll(), f -> f.name()), data -> {
                 List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
                 if (songs.isEmpty()) return;
                 failIf(data.values().stream().anyMatch(it -> it.size()!=songs.size()), () -> "Data size mismatch");
@@ -425,7 +422,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
 
         @Override
-        public void setInput(List<?> input) {
+        public void setInput(@NotNull List<?> input) {
             super.setInput(input);
             fillActionData();
         }
@@ -466,12 +463,12 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             File rf = f.getParentFile().getAbsoluteFile();
             int dot = f.getPath().lastIndexOf('.');
             String p = f.getPath();
-            String ext = p.substring(dot,p.length());
+            String ext = p.substring(dot);
             f.renameTo(new File(rf, filenamizeString(s)+ext));
         };
         @SuppressWarnings("unchecked")
         private final Icon runB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
-            Act<Object> action = (Act) actCB.getValue();
+            Act<Object> action = (Act<Object>) actCB.getValue();
             if (action==null) return;
 
             if (action.isPartial()) {
@@ -529,8 +526,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     }
     private static class Act<Y> {
         String name;
-        int max = MAX_VALUE;
-        F0<List<String>> names;
+        int max;
+        List<String> names;
         KClass<Y> type;
         boolean isInputsFixedLength;
         BiConsumer<Y,Map<String,? extends String>> actionPartial = null;
@@ -548,24 +545,14 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             this.max = max;
             this.actionImpartial = action;
         }
-        Act(String name, KClass<Y> type, int max, F0<List<String>> names, BiConsumer<Y,Map<String,? extends String>> action) {
-            this(name, type, max, action);
-            this.names = names;
-            isInputsFixedLength = false;
-        }
         Act(String name, KClass<Y> type, int max, List<String> names, BiConsumer<Y,Map<String,? extends String>> action) {
             this(name, type, max, action);
-            this.names = () -> names;
-            isInputsFixedLength = true;
-        }
-        Act(String name, KClass<Y> type, int max, F0<List<String>> names, Consumer<Map<String,List<? extends String>>> action) {
-            this(name, type, max, action);
             this.names = names;
-            isInputsFixedLength = false;
+            isInputsFixedLength = true;
         }
         Act(String name, KClass<Y> type, int max, List<String> names, Consumer<Map<String,List<? extends String>>> action) {
             this(name, type, max, action);
-            this.names = () -> names;
+            this.names = names;
             isInputsFixedLength = true;
         }
 
@@ -679,18 +666,19 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
     }
     private class InPane extends ValueNode<In> {
-        V<String> name;
-        V<EditArea> input;
-        ConfigEditor<String> configEditorA;
-        ConfigEditor<EditArea> configEditorB;
-        HBox root;
+        final V<String> name;
+        final V<EditArea> input;
+        final ConfigEditor<String> configEditorA;
+        final ConfigEditor<EditArea> configEditorB;
+        final HBox root;
 
-        InPane(F0<? extends Collection<? extends String>> actions) {
+        @SuppressWarnings("unchecked")
+        InPane(Collection<? extends String> actions) {
             super(null);
-            name = new VarEnum<>(actions.get().stream().findFirst().orElse(null), actions);
-            input = new VarEnum<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in),tas);
-            configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name));
-            configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input));
+            name = new V<>(actions.stream().findFirst().orElse(null));
+            input = new V<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in));
+            configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name).addConstraints(new ValueSet<>(() -> actions)));
+            configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input).addConstraints(new ValueSet<>(() -> tas)));
             root = layHorizontally(getEmScaled(10), CENTER_LEFT, configEditorB.buildNode(), new Label("→"), configEditorA.buildNode());
         }
 
@@ -700,7 +688,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
 
         @Override
-        public Node getNode() {
+        public @NotNull Node getNode() {
             return root;
         }
     }

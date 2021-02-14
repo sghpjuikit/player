@@ -75,10 +75,14 @@ import kotlin.reflect.full.createType
 import java.time.DateTimeException as DTE
 import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
+import java.lang.RuntimeException
 import java.util.function.BiFunction
 import kotlin.reflect.full.primaryConstructor
 import sp.it.pl.conf.Command
+import sp.it.util.conf.Constraint
 import sp.it.util.dev.fail
+import sp.it.util.functional.net
+import sp.it.util.type.enumValues
 import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
 import sp.it.util.type.sealedSubObjects
@@ -88,7 +92,7 @@ private typealias IAE = IllegalArgumentException
 private typealias OBE = IndexOutOfBoundsException
 private typealias FromS<T> = (String) -> Try<T, String>
 
-class CoreConverter: Core {
+object CoreConverter: Core {
 
    private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy MM dd HH:mm:ss")
 
@@ -167,6 +171,13 @@ class CoreConverter: Core {
       }
       parserFallbackFromS = BiFunction { type, s ->
          when {
+            type.isEnum -> {
+               val values = type.enumValues
+               val value = null
+                  ?: values.find { it.asIs<Enum<*>>().name == s }
+                  ?: values.find { it.asIs<Enum<*>>().name.equals(s, ignoreCase = true) }
+               value?.net { Try.ok(it) } ?: Try.error("Not a valid value: \"$s\"")
+            }
             type.isObject -> Try.ok(type.objectInstance)
             type.isSealed -> type.sealedSubObjects
                .find { it::class.simpleName == s }
@@ -287,11 +298,79 @@ class CoreConverter: Core {
       }
    }
 
-   private fun <T> Try<T, Throwable>.orMessage() = mapError { it.message ?: "Unknown error" }
-
 }
 
+private fun <T> Try<T, Throwable>.orMessage() = mapError { it.message ?: "Unknown error" }
+
+/** Denotes how the object shows as human readable text in UI. */
 interface NameUi {
    /** Human readable name of this object displayed in user interface. */
    val nameUi: String
+}
+
+
+/** parser into a value. Can be used as [Constraint] as well. */
+interface Parse<T> {
+
+   fun parse(text: String): Try<T,Throwable>
+
+   fun toConstraint() = object: Constraint<String?> {
+      override fun message() = "Not valid value"
+      override fun isValid(value: String?) = validate(value).isOk
+      override fun validate(value: String?) = when {
+         value == null -> Try.ok()
+         else -> parse(value).map { null }.orMessage()
+      }
+   }
+
+   companion object {
+
+      /** @return combined parser composing the specified parsers with [Boolean.or] */
+      fun <T> or(vararg parsers: Parse<T>): Parse<T> = object: Parse<T> {
+         override fun parse(text: String): Try<T, Throwable> {
+            val outputs = mutableListOf<Try<T, Throwable>>()
+            return parsers.map { it.parse(text) }.onEach(outputs::add).find { it.isOk }
+               ?: Try.error(
+                  RuntimeException("Not valid value:" + outputs.joinToString("") { "\n${it.orMessage().errorOrThrow}" })
+               )
+         }
+      }
+
+   }
+}
+
+/** Simple [Parse]. Exposes matching parts as [args], which can be used for UX hints or auto autocompletion. */
+data class Parser<T>(val type: VType<T>, val args: List<Any?>, val builder: (List<Any?>) -> T): Parse<T> {
+   override fun parse(text: String): Try<T,Throwable> {
+      var at = 0
+      val delimiter = " "
+      val output = mutableListOf<Any?>()
+      var error: Throwable? = null
+
+      args.forEachIndexed { i, arg ->
+         val subtext = text.substring(at)
+         val isLast = i==args.size-1
+
+         when (arg) {
+            is String -> when {
+               subtext.startsWith(arg) -> at += arg.length
+               else -> error = RuntimeException("Does not begin at $at with '$arg'")
+            }
+            is KClass<*> -> {
+               val valueAsText = if (isLast) subtext else subtext.substringBefore(delimiter)
+               CoreConverter.general.ofS(arg, valueAsText).ifOk { output += it }.ifError { error = RuntimeException(it) }
+               at += valueAsText.length
+            }
+         }
+
+         if (!isLast) {
+            when {
+               text.startsWith(delimiter, at) -> at += delimiter.length
+               else -> error = RuntimeException("Does not begin at $at with '$delimiter'")
+            }
+         }
+      }
+
+      return error?.net { Try.error(it) } ?: Try.ok(builder(output))
+   }
 }

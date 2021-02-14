@@ -2,6 +2,8 @@ package sp.it.pl.conf
 
 import java.io.File as FileIo
 import sp.it.pl.conf.Command.DoFile.Op
+import sp.it.pl.core.Parse
+import sp.it.pl.core.Parser
 import sp.it.pl.layout.widget.ComponentLoaderStrategy
 import sp.it.pl.main.APP
 import sp.it.util.action.Action
@@ -11,6 +13,7 @@ import sp.it.util.file.readTextTry
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Java.ok
 import sp.it.util.functional.andAlso
+import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
@@ -19,6 +22,7 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.text.split2Partial
+import sp.it.util.type.type
 
 /**
  * A runnable defined by a string ([Command.toS]/[Command.ofS]).
@@ -68,6 +72,13 @@ sealed class Command: () -> Unit {
    }
 
    companion object {
+
+      val parser: Parse<Command> = Parse.or(
+         Parser(type(), listOf("command do nothing")) { DoNothing },
+         Parser(type(), listOf("command file", Op::class, java.io.File::class)) { DoFile(it[0].asIs(), it[1].asIs()) },
+         Parser(type(), listOf("command component open", ComponentLoaderStrategy::class, String::class)) { DoComponentOpen(it[0].asIs(), it[1].asIs()) },
+         Parser(type(), listOf("command action", String::class)) { DoAction(it[0].asIs()) },
+      )
 
       fun ofS(s: String): Try<Command, Throwable> = when {
          s=="command do nothing" -> ok(DoNothing)

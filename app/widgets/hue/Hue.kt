@@ -274,6 +274,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       val bri by cv(1).readOnlyIf(readOnly).between(1, 254).def(name = "Brightness") attach { applyToSelected(it, null, null) }
       val sat by cv(0).readOnlyIf(readOnly).between(0, 254).def(name = "Saturation") attach { applyToSelected(null, null, it) }
 
+      @Suppress("UNUSED_PARAMETER")
       fun changeToBulbGroup(group: HueGroup) {
          avoidApplying.suppressingAlways {
             bri.value = 1

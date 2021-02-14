@@ -79,10 +79,12 @@ import javafx.stage.Window
 import javafx.util.Callback
 import kotlin.math.abs
 import kotlin.math.floor
+import mu.KotlinLogging
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.max
@@ -94,6 +96,8 @@ import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.units.toEM
 import sp.it.util.units.uuid
+
+private val logger = KotlinLogging.logger {}
 
 /* ---------- COLOR ------------------------------------------------------------------------------------------------- */
 
@@ -156,7 +160,9 @@ fun Node.removeFromParent() {
 
    // Fixes possible usage of this node after removal from parent, because scene retains reference to focusOwner and
    // removes it when focus changes. Focus listener would invoke when this node is no longer part of scene graph.
-   if (hasFocusedChild) p?.requestFocus()
+   if (hasFocusedChild)
+      runTry { p?.requestFocus() }
+         .ifError { logger.error(it) { "Failed to refocus content after removal from scene graph" } }
 }
 
 @Suppress("UNCHECKED_CAST")

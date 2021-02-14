@@ -1,10 +1,9 @@
 package voronoi
 
-import com.vividsolutions.jts.geom.Coordinate
-import com.vividsolutions.jts.geom.Envelope
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.geom.GeometryFactory
-import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.Envelope
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.GeometryFactory
 import javafx.event.Event
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
@@ -54,6 +53,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
+import org.locationtech.jts.triangulate.VoronoiDiagramBuilder
 
 @ExperimentalController("Only interesting as a demo.")
 class Voronoi(widget: Widget): SimpleController(widget) {

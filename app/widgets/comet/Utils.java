@@ -1,11 +1,11 @@
 package comet;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.triangulate.VoronoiDiagramBuilder;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import comet.Comet.Asteroid;
 import comet.Comet.Colors;
 import comet.Comet.Game;
@@ -138,7 +138,7 @@ import static sp.it.util.ui.Util.layVertically;
 import static sp.it.util.ui.UtilKt.setScaleXY;
 import static sp.it.util.units.UtilKt.toHMSMs;
 
-@SuppressWarnings({"unused","UnnecessaryLocalVariable"})
+@SuppressWarnings({"FieldCanBeLocal","unused","UnnecessaryLocalVariable","SameParameterValue","UnusedReturnValue"})
 interface Utils {
 
 	private static Font loadUiFont() {
@@ -246,7 +246,7 @@ interface Utils {
 		if (i<=1) return array(0d);
 		return (i%2==1
 				? range(-i/2d,i/2d)  // ... -3 -2 -1 0 +1 +2 +3 ...
-				: stream(range(0.5-i/2,-0.5),range(0.5,i/2-0.5))   // ... -1.5 -0.5 +0.5 +1.5 ...
+				: stream(range(0.5-i/2.0,-0.5),range(0.5,i/2.0-0.5))   // ... -1.5 -0.5 +0.5 +1.5 ...
 			)
 			.map(x -> gap*x)
 			.toArray(Double[]::new);
@@ -616,7 +616,7 @@ interface Utils {
 				case CIRCLE : return w/2 + 50*cos(computeStartingAngle(ps, p));
 				case LINE : return w/(ps+1)*p;
 				case RECTANGLE : {
-					int a = ((int)ceil(sqrt(ps)));
+					var a = sqrt(ps);
 					return w/(a+1)*(1+(p-1)/a);
 				}
 			}
@@ -885,7 +885,7 @@ interface Utils {
 		}
 	}
 	class InEffectValue<T> {
-		private int times = 0;
+		private int times;
 		private T value;
 		private final F1<Integer,T> valueCalc;
 		private final Consumer<Integer> changeApplier;
@@ -1073,7 +1073,7 @@ interface Utils {
 			if (l!=null) l.forEach(action);
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "rawtypes"})
 		<T extends O,E extends O> void forEachTE(Class<T> t, Class<E> e, BiConsumer<? super T,? super E> action) {
 			if (t==e) forEachCartesianHalfNoSelf(get(t), (BiConsumer)action);
 			else forEachPair(get(t),get(e), action);
@@ -1135,7 +1135,7 @@ interface Utils {
 		private final int bucketSpan;
 		private final Set<PO>[][] a;
 
-		@SuppressWarnings({"unchecked", "rawtypes"})
+		@SuppressWarnings("unchecked")
 		SpatialHash(int width, int height, int bucket_SPAN) {
 			xMax = width;
 			yMax = height;
@@ -1176,12 +1176,12 @@ interface Utils {
 	class CollisionHandlers {
 		private final Map2D<Class<? extends PO>,Class<? extends PO>,BiConsumer<? super PO,? super PO>> hs = new Map2D<>();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "rawtypes"})
 		public <A extends PO, B extends PO> void add(Class<A> type1, Class <B> type2, BiConsumer<? super A,? super B> handler) {
 			hs.put(type1, type2, (BiConsumer)handler);
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "rawtypes"})
 		public <A extends PO, B extends PO> void forEach(TriConsumer<Class<A>,Class<B>,BiConsumer<? super A,? super B>> action) {
 			hs.forEach((TriConsumer)action);
 		}
@@ -1488,14 +1488,12 @@ interface Utils {
 
 		double clipInsideX(double x) {
 			if (x<0) return 0;
-			if (x>width) return width;
-			return x;
+			return min(x, width);
 		}
 
 		double clipInsideY(double y) {
 			if (y<0) return 0;
-			if (y>height) return height;
-			return y;
+			return min(y, height);
 		}
 
 		/** Modular coordinates. Maps coordinates of (-inf,+inf) to (0,map.width)*/
@@ -1707,12 +1705,12 @@ interface Utils {
 			achievements = set(
 				achievement1(
 					"Dominator", MaterialDesignIcon.DUMBBELL,
-					g -> stream(g.players).max(by(p -> p.stats.controlAreaSize.getAverage())).get(),
+					g -> stream(g.players).max(by(p -> p.stats.controlAreaSize.getAverage())).orElseThrow(),
 					"Control the largest nearby area throughout the game"
 				).onlyIf(g -> g.players.size()>1),
 				achievement1(
 					"Control freak", MaterialDesignIcon.ARROW_EXPAND,
-					g -> stream(g.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).get(),
+					g -> stream(g.players).max(by(p -> p.stats.controlAreaCenterDistance.getAverage())).orElseThrow(),
 					"Control your nearby area the most effectively"
 				).onlyIf(g -> g.players.size()>1),
 				achievement01(
@@ -1722,7 +1720,7 @@ interface Utils {
 				).onlyIf(g -> g.players.size()>1),
 				achievement1(
 					"Live and prosper", MaterialDesignIcon.HEART,
-					g -> stream(g.players).max(by(p -> stream(p.stats.liveTimes).max(Duration::compareTo).get())).get(),
+					g -> stream(g.players).max(by(p -> stream(p.stats.liveTimes).max(Duration::compareTo).orElseThrow())).orElseThrow(),
 					"Live the longest"
 				).onlyIf(g -> g.players.size()>1),
 				achievement0N(
@@ -1985,7 +1983,7 @@ interface Utils {
 	}
 	class TimeTrial extends ClassicMode {
 		private final TimeDouble missionTimer = new TimeDouble(0, 1, ttl(minutes(1)));
-		private TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(seconds(30)));
+		private final TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(seconds(30)));
 
 		public TimeTrial(Game game) {
 			super(game);
@@ -2384,7 +2382,7 @@ interface Utils {
 				.ifOkUse(g ->
 						IntStream.range(0, g.getNumGeometries())
 							.mapToObj(g::getGeometryN)
-							.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
+							.peek(polygon -> polygon.setUserData(inputOutputMap.get(polygon.getUserData())))
 							.forEach(polygon -> {
 								Cell cell = (Cell) polygon.getUserData();
 //								Point centroid = polygon.getCentroid();
@@ -2441,7 +2439,7 @@ interface Utils {
 		}
 
 		static class P {
-			double x=0,y=0;
+			double x,y;
 
 			P(double x, double y) {
 				this.x = x;
@@ -2682,6 +2680,7 @@ interface Utils {
 			);
 		}
 
+		@SuppressWarnings("IfStatementWithIdenticalBranches")
 		@Override
 		public int hashCode() {
 			int result;
@@ -2764,7 +2763,7 @@ interface Utils {
 			if (size==0) return;
 			// optimization for known solution for 1 points
 			if (size==1) {
-				Rocket r = rockets.stream().findFirst().get();
+				Rocket r = rockets.stream().findFirst().orElseThrow();
 				areaAction.accept(r, W*H);
 				distAction.accept(r, 0d);
 				centerAction.accept(r.x, r.y);
@@ -2775,7 +2774,6 @@ interface Utils {
 			}
 		}
 
-		@SuppressWarnings("unchecked")
 		protected void doCompute(Set<Rocket> rockets, double W, double H, Game game) {
 			inputOutputMap.clear();
 
@@ -2804,7 +2802,7 @@ interface Utils {
 				.ifOkUse(g ->
 					edgesAction.accept(IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
-						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
+						.peek(polygon -> polygon.setUserData(inputOutputMap.get(polygon.getUserData())))
 						.collect(groupingBy(polygon -> ((RocketB) polygon.getUserData()).rocket))
 						.values().stream()
 						.flatMap(ss -> {
@@ -2868,7 +2866,7 @@ interface Utils {
 			.ifOkUse(g ->
 					IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
-						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate)polygon.getUserData())))
+						.peek(polygon -> polygon.setUserData(inputOutputMap.get(polygon.getUserData())))
 						.forEach(polygon -> {
 //						.groupingBy(polygon -> ((PO) polygon.getUserData()).type)
 //						.entrySet()
@@ -2942,7 +2940,7 @@ interface Utils {
 				}
 			}
 
-			springs = springList.toArray(new Spring[springList.size()]);
+			springs = springList.toArray(new Spring[0]);
 		}
 
 		void update() {

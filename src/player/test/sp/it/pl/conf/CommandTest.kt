@@ -1,6 +1,5 @@
 package sp.it.pl.conf
 
-import ch.qos.logback.core.CoreConstants
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
@@ -9,8 +8,6 @@ import java.io.File
 import sp.it.pl.conf.Command.DoFile.Op.BROWSE
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.layout.widget.ComponentLoaderStrategy.DOCK
-import sp.it.pl.main.App
-import sp.it.pl.main.toS
 
 class CommandTest: FreeSpec({
 

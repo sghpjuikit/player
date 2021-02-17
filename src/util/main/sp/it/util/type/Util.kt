@@ -23,6 +23,7 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.geometry.VPos
 import javafx.scene.Node
+import javafx.scene.effect.Effect
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
@@ -49,6 +50,7 @@ import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
+import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
@@ -186,6 +188,15 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
  * Javafx properties are obtained from public nameProperty() methods using reflection.
  */
 fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
+   // Best we can do to stop platform type from spreading around... This is better then nothing.
+   fun KType.resolveNullability(name: String): KType = when {
+      this.isPlatformType -> when {
+         o is Effect && name == "input"-> this.withNullability(true)
+         else -> this
+      }
+      else -> this
+   }
+
    for (method in o::class.memberFunctions) {
       val methodName = method.name
       val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
@@ -204,7 +215,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
                   rop.bind(observable)
                   observable = rop.readOnlyProperty
                }
-               val propertyType = method.returnType.javaFxPropertyType
+               val propertyType = method.returnType.javaFxPropertyType.resolveNullability(propertyName)
                if (observable!=null) {
                   action(observable, propertyName, propertyType)
                } else {
@@ -229,7 +240,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
                   rop.bind(observable)
                   observable = rop.readOnlyProperty
                }
-               val propertyType = field.returnType.javaFxPropertyType
+               val propertyType = field.returnType.javaFxPropertyType.resolveNullability(fieldName)
                if (observable!=null) {
                   action(observable, fieldName, propertyType)
                } else {

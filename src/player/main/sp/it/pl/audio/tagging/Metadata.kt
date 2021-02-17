@@ -49,7 +49,7 @@ import sp.it.util.type.raw
 import sp.it.util.type.type
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
-import sp.it.util.units.FileSize.Companion.sizeInB
+import sp.it.util.units.FileSize.Companion.sizeInBytes
 import sp.it.util.units.NofX
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.uri
@@ -229,7 +229,7 @@ class Metadata: Song, Serializable {
 
    private fun File.loadFileFields() {
       id = toURI().toString()
-      fileSizeInB = sizeInB()
+      fileSizeInB = sizeInBytes()
    }
 
    private fun AudioFile.loadHeaderFields() {
@@ -482,7 +482,7 @@ class Metadata: Song, Serializable {
 
    override fun getFilename(): String = if (isEmpty()) "" else super.getFilename()
 
-   override fun getFileSize() = FileSize.fromValue(fileSizeInB)
+   override fun getFileSize() = FileSize.ofBytes(fileSizeInB)
 
    /** @return file size in bytes or -1 if unknown */
    fun getFileSizeInB() = fileSizeInB
@@ -491,7 +491,7 @@ class Metadata: Song, Serializable {
    fun getEncodingType() = encodingType
 
    /** @return bitrate or null if unknown */
-   fun getBitrate(): Bitrate = Bitrate.fromValue(bitrate)
+   fun getBitrate(): Bitrate = Bitrate.ofInt(bitrate)
 
    /** @return encoder or empty String if not available */
    fun getEncoder() = encoder

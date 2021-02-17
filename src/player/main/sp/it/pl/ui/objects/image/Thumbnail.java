@@ -55,7 +55,7 @@ import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
-import static sp.it.util.units.UtilKt.uri;
+import static sp.it.util.units.FactoriesKt.uri;
 
 /**
  * Thumbnail.

@@ -28,7 +28,7 @@ import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.Action
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toCompactS
-import sp.it.util.formatToSmallestUnit
+import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.functional.Functors
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
@@ -76,16 +76,20 @@ import java.time.DateTimeException as DTE
 import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
 import java.lang.RuntimeException
+import java.nio.file.Path
 import java.util.function.BiFunction
 import kotlin.reflect.full.primaryConstructor
 import sp.it.pl.conf.Command
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.fail
+import sp.it.util.file.div
 import sp.it.util.functional.net
+import sp.it.util.parsing.ConverterString
 import sp.it.util.type.enumValues
 import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
 import sp.it.util.type.sealedSubObjects
+import sp.it.util.units.durationOfHMSMs
 
 private typealias NFE = NumberFormatException
 private typealias IAE = IllegalArgumentException
@@ -216,15 +220,24 @@ object CoreConverter: Core {
       addP<String>({ it }, { it })
       addT<StringSplitParser>(toS, StringSplitParser::fromString)
       addT<Year>(toS, tryF(DTPE::class) { Year.parse(it) })
-      addP<File>(toS, { File(it) })
+      addP<Path>(toS, {
+         val appPrefix = "<app-dir>${File.separator}"
+         if (it.startsWith(appPrefix)) APP.location.toPath() / it.substringAfter(appPrefix)
+         else File(it).toPath()
+      })
+      addP<File>(toS, {
+         val appPrefix = "<app-dir>${File.separator}"
+         if (it.startsWith(appPrefix)) APP.location / it.substringAfter(appPrefix)
+         else File(it)
+      })
       addT<URI>(toS, tryF(IAE::class) { uri(it) })
       addT<Pattern>(toS, tryF(PSE::class) { Pattern.compile(it) })
-      addT<Bitrate>(toS, { Bitrate.fromString(it).orMessage() })
-      addT<Duration>(toS, tryF(IAE::class) { Duration.valueOf(it.replace(" ", "")) }) // fixes java's inconsistency
+      addP<Bitrate>(Bitrate)
+      addT<Duration>(toS, ::durationOfHMSMs)
       addT<LocalDateTime>(toS, tryF(DTE::class) { LocalDateTime.parse(it) })
-      addT<FileSize>(toS, { FileSize.fromString(it).orMessage() })
-      addT<StrExF>(toS, { StrExF.fromString(it).orMessage() })
-      addT<NofX>(toS, { NofX.fromString(it).orMessage() })
+      addP<FileSize>(FileSize)
+      addP<StrExF>(StrExF)
+      addP<NofX>(NofX)
       addT<TableColumnInfo>(toS, { TableColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnInfo>(toS, { TableColumnInfo.ColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnSortInfo>(toS, { TableColumnInfo.ColumnSortInfo.fromString(it).orMessage() })
@@ -240,7 +253,7 @@ object CoreConverter: Core {
          }
       )
       addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
-      addT<Effect>({ fx.toS(it) }, { fx.ofS<Effect?>(it) })
+      addP<Effect>(fx.toConverterOf<Effect?>().asIs())
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
       addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) {
          val defaultKClassToStringPrefix = "class"
@@ -268,8 +281,8 @@ object CoreConverter: Core {
                val name = data[0]
                val iN = data[1].endsWith("?")
                val oN = data[2].endsWith("?")
-               val typeIn = ofS<KClass<*>>(data[1].let { if (!iN) it else it.dropLast(1) } ).getOr(null)?.createType(listOf(), iN)
-               val typeOut = ofS<KClass<*>>(data[2].let { if (!oN) it else it.dropLast(1) } ).getOr(null)?.createType(listOf(), oN)
+               val typeIn = ofS<KClass<*>>(data[1].let { if (!iN) it else it.dropLast(1) }).getOr(null)?.createType(listOf(), iN)
+               val typeOut = ofS<KClass<*>>(data[2].let { if (!oN) it else it.dropLast(1) }).getOr(null)?.createType(listOf(), oN)
                if (name==null || typeIn==null || typeOut==null) null
                else Functors.pool.getPF(name, VType<Any?>(typeIn), VType<Any?>(typeOut)).asIs()
             }
@@ -281,10 +294,12 @@ object CoreConverter: Core {
             it.split(" ").let { Insets(it[0].toDouble(), it[1].toDouble(), it[2].toDouble(), it[3].toDouble()) }
          }
       )
-      addT<Command>({ Command.toS(it) }, { Command.ofS(it).orMessage() })
+      addP<Command>(Command)
       addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
 
    }
+
+   private inline fun <reified T: Any> ConverterDefault.addP(converter: ConverterString<T>) = addParser(T::class, converter)
 
    private inline fun <reified T: Any> ConverterDefault.addP(noinline to: (T) -> String, noinline of: (String) -> T?) = addParserAsF(T::class, to, of)
 
@@ -300,7 +315,7 @@ object CoreConverter: Core {
 
 }
 
-private fun <T> Try<T, Throwable>.orMessage() = mapError { it.message ?: "Unknown error" }
+fun <T> Try<T, Throwable>.orMessage() = mapError { it.message ?: "Unknown error" }
 
 /** Denotes how the object shows as human readable text in UI. */
 interface NameUi {

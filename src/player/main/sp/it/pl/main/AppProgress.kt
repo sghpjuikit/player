@@ -34,7 +34,7 @@ import sp.it.util.async.invoke
 import sp.it.util.async.runFX
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
-import sp.it.util.formatToSmallestUnit
+import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onItemSync

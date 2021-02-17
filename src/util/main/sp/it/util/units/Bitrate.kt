@@ -1,7 +1,7 @@
 package sp.it.util.units
 
-import sp.it.util.dev.Dependency
 import sp.it.util.functional.Try
+import sp.it.util.parsing.ConverterString
 
 /** Media bit rate with kb/s unit. Supports variable and unknown value. */
 data class Bitrate(
@@ -20,15 +20,9 @@ data class Bitrate(
 
    override fun compareTo(other: Bitrate) = value.compareTo(other.value)
 
-   /** For example: "~320 kbps" or "N/A". */
-   @Dependency("fromString")
-   override fun toString() = when {
-      value==VALUE_NA -> VALUE_S_NA
-      value<0 -> "$VALUE_S_VARIABLE${-value} $UNIT"
-      else -> "$value $UNIT"
-   }
+   override fun toString() = toS(this)
 
-   companion object {
+   companion object: ConverterString<Bitrate> {
       private const val VALUE_NA = 0
       private const val VALUE_S_NA = "n/a"
       private const val VALUE_S_VARIABLE = "~"
@@ -38,11 +32,16 @@ data class Bitrate(
       val UNKNOWN = Bitrate(VALUE_NA)
 
       /** @return file size (unlike constructor optimized using [UNKNOWN]]) */
-      fun fromValue(value: Int): Bitrate = if (value==VALUE_NA) UNKNOWN else Bitrate(value)
+      fun ofInt(value: Int): Bitrate = if (value==VALUE_NA) UNKNOWN else Bitrate(value)
 
-      @Dependency("toString")
-      @JvmStatic
-      fun fromString(s: String): Try<Bitrate, Throwable> {
+      /** For example: "~320 kbps" or "N/A". */
+      override fun toS(o: Bitrate) = when {
+         o.value==VALUE_NA -> VALUE_S_NA
+         o.value<0 -> "$VALUE_S_VARIABLE${-o.value} $UNIT"
+         else -> "${o.value} $UNIT"
+      }
+
+      override fun ofS(s: String): Try<Bitrate, String> {
          if (VALUE_S_NA==s) return Try.ok(UNKNOWN)
 
          return try {
@@ -54,11 +53,11 @@ data class Bitrate(
 
             Try.ok(if (v.isEmpty()) UNKNOWN else Bitrate(v.toInt()))
          } catch (e: IndexOutOfBoundsException) {
-            Try.error(e)
+            Try.error(e.message ?: "Unknown error")
          } catch (e: NumberFormatException) {
-            Try.error(e)
+            Try.error(e.message ?: "Unknown error")
          } catch (e: IllegalArgumentException) {
-            Try.error(e)
+            Try.error(e.message ?: "Unknown error")
          }
       }
    }

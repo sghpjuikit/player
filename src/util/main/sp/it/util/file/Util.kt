@@ -40,7 +40,10 @@ fun File.find1stExistingParentDir(): Try<File, Nothing?> = when {
 }
 
 /** Equivalent to [File.child]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
-operator fun File.div(childName: String) = child(childName)
+operator fun File.div(childName: String): File = child(childName)
+
+/** Equivalent to [Path.resolve]. Allows for intuitive `File(...)/"..."/"..."` notation for resolving Files. */
+operator fun Path.div(childName: String): Path = this.resolve(childName)
 
 /** @return child of this file, equivalent to `File(this, childName)` */
 fun File.child(childName: String): File = File(this, childName)

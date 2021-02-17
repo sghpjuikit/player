@@ -733,10 +733,10 @@ public class MetadataWriter extends Song {
 		if (field==Metadata.Field.PUBLISHER) { setPublisher(data); return; }
 		if (field==Metadata.Field.TRACK) { setTrack(data); return; }
 		if (field==Metadata.Field.TRACKS_TOTAL) { setTracksTotal(data); return; }
-		if (field==Metadata.Field.TRACK_INFO) { NofX.fromString(data).ifOkUse(this::setTracksInfo); return; }
+		if (field==Metadata.Field.TRACK_INFO) { NofX.Companion.ofS(data).ifOkUse(this::setTracksInfo); return; }
 		if (field==Metadata.Field.DISC) { setDisc(data); return; }
 		if (field==Metadata.Field.DISCS_TOTAL) { setDiscsTotal(data); return; }
-		if (field==Metadata.Field.DISCS_INFO) { NofX.fromString(data).ifOkUse(this::setDiscsInfo); return; }
+		if (field==Metadata.Field.DISCS_INFO) { NofX.Companion.ofS(data).ifOkUse(this::setDiscsInfo); return; }
 		if (field==Metadata.Field.GENRE) { setGenre(data); return; }
 		if (field==Metadata.Field.YEAR) { setYear(data); return; }
 		if (field==Metadata.Field.COVER) return;

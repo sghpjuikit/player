@@ -136,7 +136,7 @@ import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
 import static sp.it.util.ui.UtilKt.setScaleXY;
-import static sp.it.util.units.UtilKt.toHMSMs;
+import static sp.it.util.units.DurationKt.toHMSMs;
 
 @SuppressWarnings({"FieldCanBeLocal","unused","UnnecessaryLocalVariable","SameParameterValue","UnusedReturnValue"})
 interface Utils {

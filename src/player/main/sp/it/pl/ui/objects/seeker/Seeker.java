@@ -85,7 +85,7 @@ import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.layHeaderRight;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.typeText;
-import static sp.it.util.units.UtilKt.toHMSMs;
+import static sp.it.util.units.DurationKt.toHMSMs;
 
 /**
  * Playback seeker. A slider-like control that controls playback, by seeking.

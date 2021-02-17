@@ -23,7 +23,6 @@ import sp.it.util.Util.replaceAllRegex
 import sp.it.util.Util.retainChars
 import sp.it.util.Util.split
 import sp.it.util.Util.splitJoin
-import sp.it.util.collections.getElementType
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.IconConstraint
 import sp.it.util.dev.failIf
@@ -83,7 +82,6 @@ import java.util.Base64
 import java.util.Objects
 import java.util.UUID
 import java.util.regex.Pattern
-import kotlin.reflect.full.createType
 import kotlin.text.Charsets.UTF_8
 import sp.it.util.functional.getOrSupply
 import sp.it.util.math.StrExF

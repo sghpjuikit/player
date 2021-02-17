@@ -498,7 +498,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
          b.jvmErasure == a.jvmErasure -> {
             VType(
                b.type.raw.createType(
-                  b.type.raw.asIs<KClass<*>>().typeParameters.mapIndexed { i, p ->
+                  b.type.raw.asIs<KClass<*>>().typeParameters.mapIndexed { i, _ ->
                      val ac = a.type.arguments[i].type?.raw ?: Any::class
                      val bc = b.type.arguments[i].type?.raw ?: Any::class
                      val uc = ac union bc

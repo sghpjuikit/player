@@ -60,7 +60,7 @@ import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.Util.computeTextWidth;
 import static sp.it.util.ui.Util.selectRows;
 import static sp.it.util.ui.UtilKt.pseudoclass;
-import static sp.it.util.units.UtilKt.toHMSMs;
+import static sp.it.util.units.DurationKt.toHMSMs;
 
 /**
  * Playlist table GUI component.

@@ -1,8 +1,9 @@
 package sp.it.util.units
 
+import java.time.Year
 import sp.it.util.math.max
 import sp.it.util.math.min
-import java.time.Year
+import sp.it.util.parsing.ConverterToString
 
 /**
  * Range of year units.
@@ -51,16 +52,20 @@ class RangeYear {
    /** @return true iff any unspecific year has been accumulated to this range */
    fun hasUnSpecific() = hasUnspecified
 
-   override fun toString() =
-      when {
-         isEmpty() -> "<none>"
-         hasSpecific() -> {
-            when (min==max) {
-               true -> (if (hasUnspecified) "? " else "") + max
-               false -> min.toString() + (if (hasUnspecified) " ? " else " - ") + max
+   override fun toString() = toS(this)
+
+   companion object: ConverterToString<RangeYear> {
+
+      override fun toS(o: RangeYear) = when {
+         o.isEmpty() -> "<none>"
+         o.hasSpecific() -> {
+            when (o.min==o.max) {
+               true -> (if (o.hasUnspecified) "? " else "") + o.max
+               false -> "" + o.min + (if (o.hasUnspecified) " ? " else " - ") + o.max
             }
          }
          else -> ""
       }
 
+   }
 }

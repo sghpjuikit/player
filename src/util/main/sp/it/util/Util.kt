@@ -1,6 +1,5 @@
 package sp.it.util
 
-import javafx.util.Duration
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.LocalDateTime
@@ -22,16 +21,3 @@ fun Long.localDateTimeFromMillis(): LocalDateTime? =
    } catch (e: DateTimeException) {
       null
    }
-
-/** @return human readable duration value in smallest possible units (millis if less than second, etc.)*/
-fun Duration.formatToSmallestUnit(): String {
-   val ms = toMillis()
-   return when {
-      ms<1000 -> "%.0f ms".format(ms)
-      ms<10000 -> "%.1f s".format(toSeconds())
-      ms<60000 -> "%.0f s".format(toSeconds())
-      ms<3600000 -> "%.1f m".format(toMinutes())
-      ms<86400000 -> "%.1f h".format(toHours())
-      else -> "${toHours().toInt()/24} d"
-   }
-}

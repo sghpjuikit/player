@@ -14,7 +14,7 @@ class ConverterTest: FreeSpec({
    Converter::class.jvmName - {
       val c = object: Converter() {
          override fun <T: Any> ofS(type: KClass<T>, text: String) = Try.ok(text.toIntOrNull()).asIs<Try<T?, String>>()
-         override fun <T> toS(o: T) = if (o is Int) o.toString() else ""
+         override fun <T> toS(o: T?) = if (o is Int) o.toString() else ""
       }
 
       "ofS" {
@@ -33,8 +33,8 @@ class ConverterTest: FreeSpec({
       }
 
       "toConverterOf" {
-         c.toConverterOf(Int::class).ofS("") shouldBe c.ofS(Int::class, "")
-         c.toConverterOf(Int::class).ofS("5") shouldBe c.ofS(Int::class, "5")
+         c.toConverterOf<Int>().ofS("") shouldBe c.ofS(Int::class, "")
+         c.toConverterOf<Int>().ofS("5") shouldBe c.ofS(Int::class, "5")
       }
    }
 

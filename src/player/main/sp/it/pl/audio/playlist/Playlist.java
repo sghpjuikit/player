@@ -36,7 +36,7 @@ import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
-import static sp.it.util.units.UtilKt.uri;
+import static sp.it.util.units.FactoriesKt.uri;
 
 public class Playlist extends SimpleListProperty<PlaylistSong> {
 

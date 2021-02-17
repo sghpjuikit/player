@@ -4,7 +4,6 @@ import java.io.File
 import javafx.scene.input.ScrollEvent.SCROLL
 import mu.KLogging
 import sp.it.pl.conf.Command
-import sp.it.pl.conf.Command.Companion.readAsCommand
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.WidgetCompanion
@@ -35,6 +34,8 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
+import sp.it.util.file.readTextTry
+import sp.it.util.functional.andAlso
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
@@ -130,7 +131,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
       private val disposer = Disposer()
 
-      private fun Item.cellAction(): Fut<Command> =  value.net { runIO { it.readAsCommand().orNull() ?: Command.DoNothing } }
+      private fun Item.cellAction(): Fut<Command> =  value.net { runIO { it.readTextTry().andAlso(Command::ofS).orNull() ?: Command.DoNothing } }
 
       override fun computeCellTextHeight(): Double = cellTextHeight.value
 

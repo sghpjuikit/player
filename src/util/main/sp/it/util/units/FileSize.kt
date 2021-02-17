@@ -1,14 +1,14 @@
 package sp.it.util.units
 
-import sp.it.util.dev.Dependency
 import sp.it.util.functional.Try
 import java.io.File
+import sp.it.util.parsing.ConverterString
 
 /** File size. Supports values up to `2^63-1` bytes and unknown value. */
 @Suppress("unused")
 data class FileSize(private val v: Long): Comparable<FileSize> {
 
-   constructor(file: File): this(file.sizeInB())
+   constructor(file: File): this(file.sizeInBytes())
 
    init {
       if (v<-1) throw IllegalArgumentException("File size value= $v must be -1 or larger")
@@ -41,27 +41,11 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
    /** @return true iff the value is not known/specific */
    fun isUnknown() = v==-1L
 
-   @Dependency("fromString")
-   override fun toString(): String {
-      if (v==VALUE_NA) return VALUE_NA_S
-      val eb = v/Ei.toDouble()
-      if (eb>=1) return String.format("%.2f EiB", eb)
-      val pb = v/Pi.toDouble()
-      if (pb>=1) return String.format("%.2f PiB", pb)
-      val tb = v/Ti.toDouble()
-      if (tb>=1) return String.format("%.2f TiB", tb)
-      val gb = v/Gi.toDouble()
-      if (gb>=1) return String.format("%.2f GiB", gb)
-      val mb = v/Mi.toDouble()
-      if (mb>=1) return String.format("%.2f MiB", mb)
-      val kb = v/Ki.toDouble()
-      if (kb>1) return String.format("%.2f kiB", kb)
-      return String.format("%d B", v)
-   }
+   override fun toString() = toS(this)
 
    override fun compareTo(other: FileSize) = v.compareTo(other.v)
 
-   companion object {
+   companion object: ConverterString<FileSize> {
 
       /** `1024^1` */
       const val Ki: Long = 1024
@@ -88,7 +72,7 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
       val UNKNOWN = FileSize(VALUE_NA)
 
       /** @return file size of this file in bytes */
-      fun File.sizeInB(): Long {
+      fun File.sizeInBytes(): Long {
          val l = length()
          return if (l==0L) VALUE_NA else l
       }
@@ -96,12 +80,24 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
       /** @return file size of this file */
       fun File.size() = FileSize(this)
 
-      /** @return file size (unlike constructor optimized using [UNKNOWN]]) */
-      fun fromValue(value: Long): FileSize = if (value==VALUE_NA) UNKNOWN else FileSize(value)
+      override fun toS(o: FileSize): String {
+         if (o.v==VALUE_NA) return VALUE_NA_S
+         val eb = o.v/Ei.toDouble()
+         if (eb>=1) return String.format("%.2f EiB", eb)
+         val pb = o.v/Pi.toDouble()
+         if (pb>=1) return String.format("%.2f PiB", pb)
+         val tb = o.v/Ti.toDouble()
+         if (tb>=1) return String.format("%.2f TiB", tb)
+         val gb = o.v/Gi.toDouble()
+         if (gb>=1) return String.format("%.2f GiB", gb)
+         val mb = o.v/Mi.toDouble()
+         if (mb>=1) return String.format("%.2f MiB", mb)
+         val kb = o.v/Ki.toDouble()
+         if (kb>1) return String.format("%.2f kiB", kb)
+         return String.format("%d B", o.v)
+      }
 
-      @Dependency("toString")
-      @JvmStatic
-      fun fromString(s: String): Try<FileSize, Throwable> {
+      override fun ofS(s: String): Try<FileSize, String> {
          if (s==VALUE_NA_S) return Try.ok(UNKNOWN)
 
          var v = s
@@ -141,9 +137,12 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
          return try {
             Try.ok(FileSize((unit*v.toDouble()).toLong()))
          } catch (e: NumberFormatException) {
-            Try.error(e)
+            Try.error(e.message ?: "Unknown error")
          }
       }
+
+      /** @return file size (unlike constructor optimized using [UNKNOWN]]) */
+      fun ofBytes(value: Long): FileSize = if (value==VALUE_NA) UNKNOWN else FileSize(value)
 
    }
 }

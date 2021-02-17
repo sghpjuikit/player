@@ -48,7 +48,7 @@ class ConverterFX: Converter() {
       }
    }
 
-   override fun <T> toS(o: T): String = when (o) {
+   override fun <T> toS(o: T?): String = when (o) {
       null -> Parsers.DEFAULT.stringNull
       else -> {
          val v = o as Any

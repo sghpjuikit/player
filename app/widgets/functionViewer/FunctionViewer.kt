@@ -59,7 +59,7 @@ private typealias Num = Double
    group = DEVELOPMENT
 )
 class FunctionViewer(widget: Widget): SimpleController(widget) {
-   private val function = v(StrExF.fromString("x").orThrow).apply { attach { plotAnimated(it) } }
+   private val function = v(StrExF("x")).apply { attach { plotAnimated(it) } }
    private var functionPlotted = function.value as Fun
    private val functionEditor = ConfigEditor.create(Config.forProperty<StrExF>("Function", function))
    private val xMin = v(-1.0).apply { attach { plot() } }

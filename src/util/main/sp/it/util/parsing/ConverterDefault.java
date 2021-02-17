@@ -121,17 +121,15 @@ public class ConverterDefault extends Converter {
         parsersFromS.put(c, (Function) parser);
     }
 
-    @NotNull
     @Override
-    public <T> Try<T,String> ofS(@NotNull KClass<T> c, @NotNull String s) {
+    public <T> @NotNull Try<@Nullable T, @NotNull String> ofS(@NotNull KClass<T> c, @NotNull String s) {
         if (stringNull.equals(s)) return ok(null);
         return getParserOfS(c).apply(s);
     }
 
     @SuppressWarnings("unchecked")
-    @NotNull
     @Override
-    public <T> String toS(T o) {
+    public <T> @NotNull String toS(@Nullable T o) {
         if (o==null) return stringNull;
         String s = orNull(((Function<T,Try<String,String>>) getParserToS(getKotlinClass((o.getClass())))).apply(o));
         return s!=null ? s : stringNull;

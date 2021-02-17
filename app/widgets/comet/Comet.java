@@ -157,7 +157,7 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.computeTextHeight;
 import static sp.it.util.ui.Util.computeTextWidth;
-import static sp.it.util.ui.Util.layAnchor;
+import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 
@@ -217,25 +217,25 @@ public class Comet extends SimpleController {
 		);
 
 		// layout
-		root.getChildren().add(layAnchor(
-			layHorizontally(20,CENTER_LEFT,
-				ConfigEditor.create(Config.forProperty(GameMode.class, "Mode", mode)).buildNode().getChildren().get(0),
-				new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
-				new Icon(MaterialDesignIcon.NUMERIC_2_BOX_OUTLINE,15,"Start 2 player game",() -> game.start(2)),
-				new Icon(MaterialDesignIcon.NUMERIC_3_BOX_OUTLINE,15,"Start 3 player game",() -> game.start(3)),
-				new Icon(MaterialDesignIcon.NUMERIC_4_BOX_OUTLINE,15,"Start 4 player game",() -> game.start(4)),
-				new Icon(MaterialDesignIcon.NUMERIC_5_BOX_OUTLINE,15,"Start 5 player game",() -> game.start(5)),
-				new Icon(MaterialDesignIcon.NUMERIC_6_BOX_OUTLINE,15,"Start 6 player game",() -> game.start(6)),
-				new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
-				new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
-				new Icon(null,16){{ syncC(game.paused, it -> icon(it ? MaterialDesignIcon.PLAY : MaterialDesignIcon.PAUSE)); }}.action(() -> game.pause(!game.paused.get())),
-				new Icon(FontAwesomeIcon.GEARS,14,"Settings").action(e -> APP.windowManager.showSettings(toConfigurableByReflect(this),e)),
-				new Icon(FontAwesomeIcon.INFO,14,"How to play").action(() -> new HowToPane().show(game))
-			),
-			0d,0d,null,0d,
-			layStack(canvas_bgr, canvas, playfield, playerStats, message),
-			20d,0d,0d,0d
-		));
+		root.getChildren().add(
+			layHeaderTop(10,CENTER_LEFT,
+				layHorizontally(20,CENTER_LEFT,
+					ConfigEditor.create(Config.forProperty(GameMode.class, "Mode", mode)).buildNode().getChildren().get(0),
+					new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
+					new Icon(MaterialDesignIcon.NUMERIC_2_BOX_OUTLINE,15,"Start 2 player game",() -> game.start(2)),
+					new Icon(MaterialDesignIcon.NUMERIC_3_BOX_OUTLINE,15,"Start 3 player game",() -> game.start(3)),
+					new Icon(MaterialDesignIcon.NUMERIC_4_BOX_OUTLINE,15,"Start 4 player game",() -> game.start(4)),
+					new Icon(MaterialDesignIcon.NUMERIC_5_BOX_OUTLINE,15,"Start 5 player game",() -> game.start(5)),
+					new Icon(MaterialDesignIcon.NUMERIC_6_BOX_OUTLINE,15,"Start 6 player game",() -> game.start(6)),
+					new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
+					new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
+					new Icon(null,16){{ syncC(game.paused, it -> icon(it ? MaterialDesignIcon.PLAY : MaterialDesignIcon.PAUSE)); }}.action(() -> game.pause(!game.paused.get())),
+					new Icon(FontAwesomeIcon.GEARS,14,"Settings").action(e -> APP.windowManager.showSettings(toConfigurableByReflect(this),e)),
+					new Icon(FontAwesomeIcon.INFO,14,"How to play").action(() -> new HowToPane().show(game))
+				),
+				layStack(canvas_bgr, canvas, playfield, playerStats, message)
+			)
+		);
 
 		// keys
 		playfield.addEventFilter(KEY_PRESSED, e -> {
@@ -248,18 +248,20 @@ public class Comet extends SimpleController {
 					if (cc==p.keyFire.getValue()) p.rocket.gun.fire();
 				});
 				// cheats
-				if (cc==DIGIT1) game.runNext.add(() -> repeat(5, i -> game.mission.spawnPlanetoid()));
-				if (cc==DIGIT2) game.runNext.add(game.ufos::sendUfoSwarm);
-				if (cc==DIGIT3) game.runNext.add(() -> repeat(5, i -> game.humans.sendSatellite()));
-				if (cc==DIGIT4) game.runNext.add(() -> {
-					game.oss.forEachT(Asteroid.class, a -> a.dead=true);
-					game.handleEvent(Events.COMMAND_NEXT_MISSION);
-				});
-				if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).forEach(p -> game.humans.send(p.rocket, SuperShield::new));
-				if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.mode.enhancers()).enhance(r));
-				if (cc==DIGIT7) game.entities.addForceField(new BlackHole(null, seconds(20),rand0N(game.field.width),rand0N(game.field.height)));
-				if (cc==DIGIT8) game.start(2);
-				if (cc==DIGIT9) game.runNext.add(game.ufos::sendUfoSquadron);
+				if (game.running.get() && game.mode instanceof ClassicMode) {
+					if (cc==DIGIT1) game.runNext.add(() -> repeat(5, i -> game.mission.spawnPlanetoid()));
+					if (cc==DIGIT2) game.runNext.add(game.ufos::sendUfoSwarm);
+					if (cc==DIGIT3) game.runNext.add(() -> repeat(5, i -> game.humans.sendSatellite()));
+					if (cc==DIGIT4) game.runNext.add(() -> {
+						game.oss.forEachT(Asteroid.class, a -> a.dead=true);
+						game.handleEvent(Events.COMMAND_NEXT_MISSION);
+					});
+					if (cc==DIGIT5) game.players.stream().filter(p -> p.alive).forEach(p -> game.humans.send(p.rocket, SuperShield::new));
+					if (cc==DIGIT6) game.oss.get(Rocket.class).forEach(r -> randOf(game.mode.enhancers()).enhance(r));
+					if (cc==DIGIT7) game.entities.addForceField(new BlackHole(null, seconds(20),rand0N(game.field.width),rand0N(game.field.height)));
+					if (cc==DIGIT8) game.start(2);
+					if (cc==DIGIT9) game.runNext.add(game.ufos::sendUfoSquadron);
+				}
 			}
 		});
 		playfield.addEventFilter(KEY_RELEASED, e -> {
@@ -400,9 +402,7 @@ public class Comet extends SimpleController {
 	final V<Color> devCanvasFadeColor = new V<>(Color.BLACK).initAttachC(c -> game.colors.canvasFade = color(c, game.colors.canvasFade.getOpacity()));
 	@IsConfig(info = "Clipped to min=0, max=0.1")
 	final V<Double> devCanvasFadeOpacity = new V<>(0.05).initAttachC(c -> game.colors.canvasFade = color(game.colors.canvasFade, clip(0, c, 0.1)));
-	@IsConfig(nullable = true)
-	final V<Effect> devCanvasBgrEffect = new V<Effect>(new Glow(0.3)).initAttachC(e -> gc_bgr.getCanvas().setEffect(e));
-	@IsConfig
+	@IsConfig(info = "Spawning pattern for players.")
 	final V<PlayerSpawn> spawning = new V<>(PlayerSpawn.CIRCLE);
 	final ObservableList<Integer> gamepadIds = FXCollections.observableArrayList();
 	@IsConfig(name = "Players")
@@ -417,16 +417,19 @@ public class Comet extends SimpleController {
 		new Player(8, Color.MAGENTA, KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Q, PLAYER_ABILITY_INITIAL)
 	);
 	final GameMode modeInitial = new ClassicMode(game);
-	@IsConfig
-	final Config<GameMode> mode = Config.forProperty(GameMode.class, "Mode", new V(modeInitial)).addConstraints(
-		new ValueSet<>(() -> List.of(
-			modeInitial,
-			new TimeTrial(game),
-			new BounceHellMode(game),
-			new AreaMode(game),
-			new VoronoiMode(game)
-		))
+	final List<GameMode> modesAll = List.of(
+		modeInitial,
+		new TimeTrial(game),
+		new BounceHellMode(game),
+		new AreaMode(game),
+		new VoronoiMode(game)
 	);
+	@IsConfig(info = "Type of gameplay")
+	final Config<GameMode> mode = Config.forProperty(GameMode.class, "Mode", new V(modeInitial)).addConstraints(new ValueSet<>(() -> modesAll));
+	@IsConfig(nullable = true, info = "Effect to apply on the background layer")
+	final V<Effect> devCanvasBgrEffect = new V<Effect>(new Glow(0.3)).initAttachC(e -> gc_bgr.getCanvas().setEffect(e));
+	@IsConfig(info = "Enables blur effects. Experimental due to lack of polish.")
+	final V<Boolean> isHighDetails = new V<>(false);
 
 	Particle createRandomDisruptorParticle(double radiusMin, double radiusMax, SO ff) {
 		return createRandomDisruptorParticle(radiusMin, radiusMax, ff, false);
@@ -835,11 +838,13 @@ public class Comet extends SimpleController {
 			os.forEach(PO::draw);
 			oss.get(Bullet.class).forEach(Bullet::draw);
 
-			boolean isHighDetails = true;
-			if (isHighDetails) {
+			if (isHighDetails.getValue()) {
 				if (cceStrengthW.value>1) cceStrengthW.value = 0;
 				if (cceStrengthH.value>1) cceStrengthH.value = 0;
-				cee.setAngle(cceStrengthH.getAndRun()*360);
+
+				// Very interesting, but sometimes confusing effect:
+				// cee.setAngle(cceStrengthH.getAndRun()*360);
+
 				gc_bgr.applyEffect(cee);
 				gc.applyEffect(cee2);
 
@@ -4747,7 +4752,7 @@ public class Comet extends SimpleController {
 				.filter(EIndicator.class::isInstance).map(EIndicator.class::cast)
 				.noneMatch(o -> o.index==i));
 			owner.children.add(this);
-			graphics = new Draw(graphics(enhancer.icon, 15, game.colors.humansTech, null));
+			graphics = new Draw(graphics(enhancer.icon, 5, game.colors.humansTech, null));
 		}
 
 		@Override

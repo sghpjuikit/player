@@ -1,11 +1,5 @@
 package comet;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import comet.Comet.Asteroid;
 import comet.Comet.Colors;
 import comet.Comet.Game;
@@ -71,6 +65,12 @@ import javafx.util.Duration;
 import kotlin.reflect.KClass;
 import org.gamepad4j.Controllers;
 import org.gamepad4j.IController;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.ui.objects.Text;
@@ -143,7 +143,7 @@ interface Utils {
 
 	private static Font loadUiFont() {
 		try {
-			return Font.loadFont(new FileInputStream(new File(APP.getLocation().getWidgets(), "Comet/Tele-Marines.TTF")), 12.0);
+			return Font.loadFont(new FileInputStream(new File(APP.getLocation().getWidgets(), "Comet/Tele-Marines.TTF")), 14.0);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		}
@@ -169,7 +169,7 @@ interface Utils {
 	double[] degCosMemo = IntStream.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.cos(rad(angle))).toArray();
 	Random RAND = new Random();
 	Font FONT_UI = loadUiFont();
-	Font FONT_PLACEHOLDER = Font.font(FONT_UI.getName(), 12);
+	Font FONT_PLACEHOLDER = Font.font(FONT_UI.getName(), 14);
 	double HUD_DOT_GAP = 3;
 	double HUD_DOT_DIAMETER = 1;
 
@@ -316,7 +316,7 @@ interface Utils {
 	}
 
 	/** Snapshot an image out of a node, consider transparency. */
-	static Image createImage(Node n) {
+	static Image createImage(Icon n, double radius) {
 		SnapshotParameters parameters = new SnapshotParameters();
 		parameters.setFill(Color.TRANSPARENT);
 
@@ -332,8 +332,9 @@ interface Utils {
 	static Image graphics(GlyphIcons icon, double radius, Color c, Effect effect) {
 		Icon i = new Icon(icon,radius);
 		i.setFill(c);
+		i.scale(2);  // TODO: should be handled better
 		i.setEffect(effect);
-		return createImage(i);
+		return createImage(i, radius);
 	}
 	/**
 	 * Sets the transform for the GraphicsContext to rotate around a pivot point.
@@ -1604,7 +1605,7 @@ interface Utils {
 	}
 	abstract class GameMode implements Play {
 		protected Game game;
-		public String name; // TODO: make final
+		public final String name; // TODO: make final
 
 		public GameMode(Game game, String name) {
 			this.game = game;
@@ -1644,7 +1645,11 @@ interface Utils {
 		final Set<Enhancer> enhancers;
 
 		public ClassicMode(Game game) {
-			super(game, "Classic");
+			this(game, "Classic");
+		}
+
+		public ClassicMode(Game game, String name) {
+			super(game, name);
 			missions = new MapSet<>(m -> m.id,
 //				new Mission(
 //					1, "Energetic fragility","10⁻¹⁵","",
@@ -1986,8 +1991,7 @@ interface Utils {
 		private final TimeDouble remainingTimeMs = new TimeDouble(0, 1, ttl(seconds(30)));
 
 		public TimeTrial(Game game) {
-			super(game);
-			this.name = "Time Trial";
+			super(game, "Time Trial");
 
 			enhancers.clear();
 			enhancers.add(
@@ -2074,8 +2078,7 @@ interface Utils {
 	class BounceHellMode extends ClassicMode {
 
 		public BounceHellMode(Game game) {
-			super(game);
-			this.name = "Bounce";
+			super(game, "Bounce");
 		}
 
 		@Override
@@ -2224,8 +2227,7 @@ interface Utils {
 
 	}
 	class VoronoiMode extends GameMode {
-//		private final List<Cell> cells = new ArrayList<>();
-		private List<Cell> cells;
+		private List<Cell> cells = null;
 
 		public VoronoiMode(Game game) {
 			super(game, "Voronoi");
@@ -2355,7 +2357,7 @@ interface Utils {
 				stream(game.players)
 //					.filter(p -> p.alive && p.rocket.speed()>ttlVal(100, seconds(1)))
 					.filter(p -> p.alive && p.rocket.ability.isActivated())
-					.forEach(p -> cells.add(new Cell(p.rocket.x + randMN(0.01,0.012), p.rocket.y + randMN(0.01,0.012))));
+					.forEach(p -> cells.add(new Cell(p.rocket.x + randMN(0.01,0.012), p.rocket.y + randMN(0.01,0.012), p)));
 
 			// move cells
 			cells.stream().filter(cell -> cell.moving!=null)
@@ -2384,22 +2386,26 @@ interface Utils {
 							.mapToObj(g::getGeometryN)
 							.peek(polygon -> polygon.setUserData(inputOutputMap.get(polygon.getUserData())))
 							.forEach(polygon -> {
-								Cell cell = (Cell) polygon.getUserData();
+								var cell = (Cell) polygon.getUserData();
+								var player = (Player) cell.userData;
+								var isSelected = selectedCells.contains(cell);
 //								Point centroid = polygon.getCentroid();
+
 								strokePolygon(gc, polygon);
 
-								Coordinate[] cs = polygon.getCoordinates();
-								double[] xs = new double[cs.length];
-								double[] ys = new double[cs.length];
+								var cs = polygon.getCoordinates();
+								var xs = new double[cs.length];
+								var ys = new double[cs.length];
 								for (int j = 0; j < cs.length; j++) {
 									xs[j] = cs[j].x;
 									ys[j] = cs[j].y;
 								}
 
-								boolean isSelected = selectedCells.contains(cell);
-								if (isSelected) {
-									gc.setGlobalAlpha(0.2);
+								if (isSelected || player != null) {
+									gc.setFill(player == null ? game.colors.hud : player.color.getValue());
+									gc.setGlobalAlpha(isSelected && player != null ? 0.3 : 0.2);
 									gc.fillPolygon(xs, ys, polygon.getNumPoints());
+									gc.setFill(game.colors.hud);
 									gc.setGlobalAlpha(1);
 								}
 							})
@@ -2457,9 +2463,14 @@ interface Utils {
 		static class Cell extends P {
 			public double dx=0, dy=0;
 			public BiConsumer<Double,Double> moving = null;
+			public Object userData;
 
 			public Cell(double x, double y) {
 				super(x, y);
+			}
+			public Cell(double x, double y, Object userData) {
+				this(x, y);
+				this.userData = userData;
 			}
 
 			public Cell moving(BiConsumer<Double,Double> moving) {

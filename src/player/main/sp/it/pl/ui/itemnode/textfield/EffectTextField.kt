@@ -44,7 +44,7 @@ class EffectTextField: ValueTextField<Effect> {
    constructor(effectType: KClass<out Effect>? = null): super() {
       styleClass += STYLECLASS
       isEditable = false
-      limitedToType = if (effectType==Effect::class.java) null else effectType
+      limitedToType = if (effectType==Effect::class) null else effectType
 
       typeB = Icon().apply {
          styleclass("effect-config-editor-type-button")

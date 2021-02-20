@@ -1,13 +1,19 @@
 package sp.it.pl.main
 
+import sp.it.pl.main.AppSettings.app as conf
 import ch.qos.logback.classic.Level
 import com.sun.tools.attach.VirtualMachine
+import java.io.File
+import java.lang.management.ManagementFactory
+import java.net.URLConnection
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.image.Image
 import javafx.scene.text.TextAlignment.RIGHT
 import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Stage
+import kotlin.system.exitProcess
+import kotlin.text.Charsets.UTF_8
 import mu.KLogging
 import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -22,6 +28,7 @@ import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
 import sp.it.pl.layout.widget.ComponentLoaderStrategy
+import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.WidgetManager
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
@@ -81,12 +88,6 @@ import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
 import sp.it.util.ui.label
 import sp.it.util.units.uri
-import java.io.File
-import java.lang.management.ManagementFactory
-import java.net.URLConnection
-import kotlin.system.exitProcess
-import kotlin.text.Charsets.UTF_8
-import sp.it.pl.main.AppSettings.app as conf
 
 lateinit var APP: App
 private val verify = File::verify
@@ -452,17 +453,19 @@ class App: Application(), GlobalConfigDelegator {
       sources += Source("Components - open") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
       } by { "Open widget ${it.name}" } toSource {
+         val id = if (it is WidgetFactory<*>) it.id else it.name
          val strategyCB = ImprovedComboBox<ComponentLoaderStrategy> { it.toUi() }.apply {
             items setTo ComponentLoaderStrategy.values()
-            value = ComponentLoaderStrategy.DOCK
+            value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: ComponentLoaderStrategy.DOCK
          }
          Entry.of(
             name = "Open widget ${it.name}",
             icon = IconFA.TH_LARGE,
-            infoΛ = { "Open widget ${it.name}\n\nOpens the widget in new window." },
+            infoΛ = { "Open widget ${it.name}" },
             graphics = strategyCB
          ) {
             strategyCB.value.loader(it.create())
+            widgetManager.widgets.componentLastOpenStrategiesMap(id, strategyCB.value)
          }
       }
       sources += Source("Components - open (in new process)") {

@@ -126,6 +126,9 @@ import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
 import kotlin.reflect.cast
+import sp.it.util.conf.EditMode
+import sp.it.util.conf.cList
+import sp.it.util.type.map
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -578,6 +581,20 @@ class WidgetManager {
          .def(name = "Recompile all widgets", info = "Re-compiles every widget. Useful when auto-compilation is disabled or unsupported.")
       val separateWidgets by cv(true)
          .def(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
+
+      // TODO: use MapLike object with get/set operators
+      private val componentLastOpenStrategies by cList<String>()
+         .def(
+            name = "Last used 'Open component' load strategy",
+            info = "Last used 'Open component' load strategy per component",
+            editable = EditMode.APP
+         )
+      val componentLastOpenStrategiesMap: Map<String, ComponentLoaderStrategy>
+         get() = componentLastOpenStrategies.associate { it.substringBefore("|") to ComponentLoaderStrategy.valueOf(it.substringAfter("|")) }
+      fun componentLastOpenStrategiesMap(id: String, strategy:ComponentLoaderStrategy) {
+         val m = componentLastOpenStrategiesMap + (id to strategy)
+         componentLastOpenStrategies += m.entries.map { (a, b) -> "$a|$b" }
+      }
 
       /** @return widgets based on search criteria */
       fun findAll(source: WidgetSource): Sequence<Widget> = layouts.findAll(source).flatMap { it.allWidgets.asSequence() }

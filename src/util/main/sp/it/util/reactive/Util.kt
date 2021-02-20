@@ -24,6 +24,7 @@ import sp.it.util.functional.net
 import sp.it.util.identityHashCode
 import java.util.IdentityHashMap
 import java.util.function.Consumer
+import sp.it.util.collections.ObservableListRO
 
 interface UnsubscribableObservableValue<O>: ObservableValue<O>, Unsubscribable
 
@@ -427,8 +428,16 @@ infix fun <T> ObservableValue<T?>.syncWhileNull(block: () -> Subscription): Subs
 /** Call specified block every time an item is added to this list passing it as argument */
 fun <T> ObservableList<T>.onItemAdded(block: (T) -> Unit): Subscription = onItemsAdded { it.forEach(block) }
 
+/** Call specified block every time an item is added to this list passing it as argument */
+fun <T> ObservableListRO<T>.onItemAdded(block: (T) -> Unit): Subscription = onItemsAdded { it.forEach(block) }
+
 /** Call specified block every time 1-N items is added to this list passing the added items as argument */
-fun <T> ObservableList<T>.onItemsAdded(block: (List<T>) -> Unit): Subscription {
+fun <T> ObservableList<T>.onItemsAdded(block: (List<T>) -> Unit): Subscription = onItemsAdded(this::addListener, this::removeListener, block)
+
+/** Call specified block every time 1-N items is added to this list passing the added items as argument */
+fun <T> ObservableListRO<T>.onItemsAdded(block: (List<T>) -> Unit): Subscription = onItemsAdded(this::addListener, this::removeListener, block)
+
+private fun <T> onItemsAdded(addListener: (ListChangeListener<T>) -> Unit, removeListener: (ListChangeListener<T>) -> Unit, block: (List<T>) -> Unit): Subscription {
    val l = ListChangeListener<T> {
       while (it.next()) {
          if (!it.wasPermutated() && !it.wasUpdated() && it.wasAdded())
@@ -460,8 +469,16 @@ fun <K, V> ObservableMap<K, V>.onItemAdded(block: (K, V) -> Unit): Subscription 
 /** Call specified block every time an item is removed from this list passing it as argument */
 fun <T> ObservableList<T>.onItemRemoved(block: (T) -> Unit): Subscription = onItemsRemoved { it.forEach(block) }
 
+/** Call specified block every time an item is removed from this list passing it as argument */
+fun <T> ObservableListRO<T>.onItemRemoved(block: (T) -> Unit): Subscription = onItemsRemoved { it.forEach(block) }
+
 /** Call specified block every time 1-N items is removed from this list passing the removed items as argument */
-fun <T> ObservableList<T>.onItemsRemoved(block: (List<T>) -> Unit): Subscription {
+fun <T> ObservableList<T>.onItemsRemoved(block: (List<T>) -> Unit): Subscription = onItemsRemoved(this::addListener, this::removeListener, block)
+
+/** Call specified block every time 1-N items is removed from this list passing the removed items as argument */
+fun <T> ObservableListRO<T>.onItemsRemoved(block: (List<T>) -> Unit): Subscription = onItemsRemoved(this::addListener, this::removeListener, block)
+
+private fun <T> onItemsRemoved(addListener: (ListChangeListener<T>) -> Unit, removeListener: (ListChangeListener<T>) -> Unit, block: (List<T>) -> Unit): Subscription {
    val l = ListChangeListener<T> {
       while (it.next()) {
          if (!it.wasPermutated() && !it.wasUpdated() && it.wasRemoved())
@@ -492,6 +509,12 @@ fun <T> ObservableSet<T>.onItemRemoved(block: (T) -> Unit): Subscription {
 
 /** Call specified block for every current and future item of this list. */
 fun <T> ObservableList<T>.onItemSync(block: (T) -> Unit): Subscription {
+   forEach(block)
+   return onItemAdded(block)
+}
+
+/** Call specified block for every current and future item of this list. */
+fun <T> ObservableListRO<T>.onItemSync(block: (T) -> Unit): Subscription {
    forEach(block)
    return onItemAdded(block)
 }

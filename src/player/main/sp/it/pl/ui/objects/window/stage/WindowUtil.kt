@@ -3,11 +3,12 @@
 package sp.it.pl.ui.objects.window.stage
 
 import com.sun.jna.Pointer
+import com.sun.jna.platform.win32.Kernel32
 import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser.GWL_STYLE
-import com.sun.jna.platform.win32.WinUser.SMTO_BLOCK
 import com.sun.jna.platform.win32.WinUser.SMTO_NORMAL
+import java.util.UUID
 import javafx.event.Event
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
@@ -38,6 +39,18 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
 import javafx.scene.robot.Robot
 import javafx.stage.Stage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.javafx.JavaFx
+import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import sp.it.pl.layout.widget.initialTemplateFactory
 import sp.it.pl.layout.widget.widgetFocused
 import sp.it.pl.main.APP
@@ -56,6 +69,7 @@ import sp.it.pl.ui.objects.window.Resize.S
 import sp.it.pl.ui.objects.window.Resize.SE
 import sp.it.pl.ui.objects.window.Resize.SW
 import sp.it.pl.ui.objects.window.Resize.W
+import sp.it.util.access.showing
 import sp.it.util.action.ActionManager.keyActionsComponent
 import sp.it.util.action.ActionManager.keyManageLayout
 import sp.it.util.action.ActionManager.keyShortcuts
@@ -63,12 +77,14 @@ import sp.it.util.action.ActionManager.keyShortcutsComponent
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.functional.ifNotNull
+import sp.it.util.localDateTimeFromMillis
 import sp.it.util.math.P
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.reactive.syncNonNullIntoWhile
+import sp.it.util.reactive.syncTrue
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.centre
@@ -85,7 +101,8 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
-import java.util.UUID
+
+private val logger = KotlinLogging.logger { }
 
 fun Window.installStartLayoutPlaceholder() {
 
@@ -180,7 +197,7 @@ fun Stage.resizeTypeForCoordinates(at: P): Resize {
 fun Stage.setNonInteractingOnBottom() {
    if (!Os.WINDOWS.isCurrent) return
 
-   showingProperty().sync1If({ it }) {
+   showing syncTrue {
       val user32 = User32.INSTANCE
 
       val titleOriginal = title
@@ -216,7 +233,8 @@ fun Stage.setNonInteractingOnBottom() {
 fun Stage.setNonInteractingProgmanOnBottom() {
    if (!Os.WINDOWS.isCurrent) return
 
-   showingProperty().sync1If({ it }) {
+   showing.sync1If({ it }) {
+      val logName = "Window $this"
       val user32 = User32.INSTANCE
 
       val titleOriginal = title
@@ -224,32 +242,60 @@ fun Stage.setNonInteractingProgmanOnBottom() {
       title = titleUnique
       val hwnd = user32.FindWindow(null, titleUnique)   // find native window by title
       title = titleOriginal
+      if (hwnd==null) logger.warn { "$logName getting hwnd failed with code=${Kernel32.INSTANCE.GetLastError()}" }
+      if (hwnd==null) return@sync1If
 
       // Fetch the Progman window
       val progman = user32.FindWindow("Progman", null)
 
       // Send 0x052C to Progman
       // This message directs Progman to spawn a WorkerW behind the desktop icons. If it is already there, nothing happens.
-      val result: WinDef.DWORDByReference? = null
-      user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, result)
-      user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_BLOCK, 1000, result)
+      val r = user32.SendMessageTimeout(progman, 0x052C, null, WinDef.LPARAM(), SMTO_NORMAL, 1000, WinDef.DWORDByReference(WinDef.DWORD(0L)))
+      if (r.equals(0)) logger.warn { "$logName Progman failed with code=${Kernel32.INSTANCE.GetLastError()}" }
 
-      // Get WorkerW window
-      var workerW: WinDef.HWND? = null
-      user32.EnumWindows(
-         { tophandle, topparamhandle ->
-            val p = user32.FindWindowEx(tophandle, null, "SHELLDLL_DefView", null)
-            if (p!=null) {
-               workerW = user32.FindWindowEx(null, tophandle, "WorkerW", null)
+      GlobalScope.launch(Dispatchers.JavaFx) {
+         startCoroutineTimer(0, 150).cancellable().take(4).mapNotNull {
+            logger.debug { "$logName getting workerW at ${System.currentTimeMillis().localDateTimeFromMillis()}" }
+            // Get WorkerW window
+            var workerW: WinDef.HWND? = null
+            user32.EnumWindows(
+               { tophandle, topparamhandle ->
+                  user32.FindWindowEx(tophandle, null, "SHELLDLL_DefView", null).ifNotNull {
+                     user32.FindWindowEx(null, tophandle, "WorkerW", null).ifNotNull {
+                        workerW = it
+                     }
+                  }
+                  true
+               },
+               null
+            )
+            if (workerW==null && it>1) logger.warn { "$logName getting workerW failed" }
+            workerW
+         }.firstOrNull().ifNotNull { workerW ->
+            logger.debug { "$logName set workerW parent at ${System.currentTimeMillis().localDateTimeFromMillis()}" }
+            // Set WorkerW as parent
+            if (isShowing) {
+               user32.SetParent(hwnd, workerW)
+               // showingProperty().sync1If({!it}) { user32.CloseWindow(workerW  ) } // this breaks workerW search until system restart!
             }
-            true
-         },
-         null
-      )
+         }
+      }
 
-      // Set WorkerW as parent
-      if (hwnd!=null && workerW!=null)
-         user32.SetParent(hwnd, workerW)
+   }
+}
+
+/**
+ * Flow produces the first item after the given initial delay and subsequent items with the given delay between them.
+ * The items begin with 1 and represent the index in the sequence.
+ */
+@Suppress("SameParameterValue")
+private fun startCoroutineTimer(delayMillis: Long, repeatMillis: Long): Flow<Int> = flow {
+   var i = 1
+   delay(delayMillis)
+   while (true) {
+      emit(i)
+      i++
+      delay(repeatMillis)
    }
 }
 

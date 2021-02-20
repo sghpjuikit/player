@@ -121,6 +121,7 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
       val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
       val propsCfg = configs.asSequence()
          .filter { it.type.raw !in setOf(Void::class, Unit::class, Nothing::class) }
+         .filter { it.isPersistable() }
          .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueAsProperty, c.info) } }
 
       file.writeProperties(title, (propsRaw + propsCfg).values)

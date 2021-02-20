@@ -62,6 +62,7 @@ import sp.it.util.units.uuid
 import java.io.File
 import java.net.URI
 import java.util.ArrayList
+import sp.it.util.conf.noPersist
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
@@ -72,17 +73,22 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
    private val player = GeneralPlayer(state)
 
-   var continuePlaybackOnStart by c(true).def(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
-   var continuePlaybackPaused by c(false).def(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
-   var seekUnitT by c(4.seconds).def(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
-   var seekUnitP by c(0.05).between(0.0, 1.0).def(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
-   val playerInfo by cvro("<none>") { player.pInfo }.def(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
-   val playerVlcLocation by cvn<String>(null).def(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback", editable = EditMode.APP)
+   var continuePlaybackOnStart by c(true)
+      .def(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
+   var continuePlaybackPaused by c(false)
+      .def(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
+   var seekUnitT by c(4.seconds)
+      .def(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
+   var seekUnitP by c(0.05).between(0.0, 1.0)
+      .def(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
+   val playerInfo by cvro("<none>") { player.pInfo }
+      .def(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
+   val playerVlcLocation by cvn<String>(null).noPersist()
+      .def(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback", editable = EditMode.APP)
    val playerVlcLocationsRelativeTo = APP.location
    val playerVlcLocations by cList<File>().only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo).def(
       name = "Vlc player locations",
-      info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location." +
-         "\n\nRequires application restart to take effect."
+      info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location. Requires application restart to take effect."
    )
    val playerVlcShowSetup by cr { VlcPlayer.VlcSetup.configureSetup() }.def(
       name = "Vlc player setup",

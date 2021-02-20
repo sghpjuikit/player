@@ -92,7 +92,7 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import java.io.File
 import java.util.HashSet
-import javafx.stage.Window as WindowFX
+import javafx.stage.Window as WindowFx
 import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
 import sp.it.pl.main.AppSettings.ui.window as confWindow
 import javafx.scene.input.KeyCode.ESCAPE
@@ -101,6 +101,7 @@ import javafx.scene.input.KeyEvent.KEY_RELEASED
 import kotlin.math.sqrt
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.util.async.runFX
+import sp.it.util.collections.readOnly
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.syncWhileTrue
 import sp.it.util.ui.containsScreen
@@ -108,6 +109,8 @@ import sp.it.util.ui.containsScreen
 class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    @JvmField var screenMaxScaling = 0.0
+   /** Observable list of all JavaFX application windows, i.e., [javafx.stage.Stage.getWindows]. */
+   @JvmField val windowsFx = WindowFx.getWindows().readOnly()
    /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */
    @JvmField val windows = observableList<Window>()
    /** Dock window or null if none. */
@@ -160,7 +163,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** @return focused window or window with focused popup or null if none focused */
    fun getFocusedWithChild(): Window? = null
       ?: windows.find { it.focused.value }
-      ?: WindowFX.getWindows().find { it.isFocused }?.let {
+      ?: windowsFx.find { it.isFocused }?.let {
          it.traverse { it.popWindowOwner ?: it.asIf<Stage>()?.owner }.mapNotNull { it.asAppWindow() }.firstOrNull()
       }
 
@@ -171,14 +174,14 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    fun getActiveOrNew(): Window = getActive() ?: createWindow()
 
    init {
-      WindowFX.getWindows().onItemAdded { w ->
+      windowsFx.onItemAdded { w ->
          w.asAppWindow().ifNotNull {
             if (it!==dockWindow) {
                windows += it
             }
          }
       }
-      WindowFX.getWindows().onItemRemoved { w ->
+      windowsFx.onItemRemoved { w ->
          w.asAppWindow().ifNotNull {
             if (APP.isUiApp && it.isMain.value && !dockIsTogglingWindows) {
                APP.close()

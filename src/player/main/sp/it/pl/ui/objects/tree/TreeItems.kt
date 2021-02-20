@@ -88,6 +88,7 @@ import java.nio.file.Path
 import java.util.ArrayList
 import java.util.Stack
 import javafx.stage.Window as WindowFX
+import javax.swing.filechooser.FileSystemView
 import sp.it.pl.main.Df.FILES
 import sp.it.util.access.expanded
 import sp.it.util.ui.drag.set
@@ -268,9 +269,14 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    private fun computeText(o: Any?): String = when (o) {
       null -> "<none>"
       is File -> {
-         val needsAbsolute = treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true
-         if (needsAbsolute) o.absolutePath
-         else o.nameOrRoot
+         fun File.needsAbsolute() = treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true
+         when {
+            // root file shows system name of the file
+            o.parentFile == null -> FileSystemView.getFileSystemView().getSystemDisplayName(o).orEmpty().ifBlank { o.nameOrRoot }
+            // parent is not visible -> we want absolute path
+            treeItem.parent?.value?.let { it is File && it.isParentOf(o) } != true ->  o.absolutePath
+            else -> o.nameOrRoot
+         }
       }
       is Node -> o.toUi() + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
       is Tooltip -> "Tooltip"

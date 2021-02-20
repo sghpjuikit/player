@@ -78,11 +78,14 @@ import java.util.regex.PatternSyntaxException as PSE
 import java.lang.RuntimeException
 import java.nio.file.Path
 import java.util.function.BiFunction
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.relativeToOrSelf
 import kotlin.reflect.full.primaryConstructor
 import sp.it.pl.conf.Command
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.fail
 import sp.it.util.file.div
+import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.functional.net
 import sp.it.util.parsing.ConverterString
 import sp.it.util.type.enumValues
@@ -163,6 +166,7 @@ object CoreConverter: Core {
       FileField.toSConverter = ui
    }
 
+   @OptIn(ExperimentalPathApi::class)
    @Suppress("RemoveExplicitTypeArguments")
    private fun ConverterDefault.init() = apply {
 
@@ -220,16 +224,28 @@ object CoreConverter: Core {
       addP<String>({ it }, { it })
       addT<StringSplitParser>(toS, StringSplitParser::fromString)
       addT<Year>(toS, tryF(DTPE::class) { Year.parse(it) })
-      addP<Path>(toS, {
-         val appPrefix = "<app-dir>${File.separator}"
-         if (it.startsWith(appPrefix)) APP.location.toPath() / it.substringAfter(appPrefix)
-         else File(it).toPath()
-      })
-      addP<File>(toS, {
-         val appPrefix = "<app-dir>${File.separator}"
-         if (it.startsWith(appPrefix)) APP.location / it.substringAfter(appPrefix)
-         else File(it)
-      })
+      addP<Path>(
+         {
+            if (APP.location.isAnyParentOrSelfOf(it.toFile())) "<app-dir>" + File.separator + it.relativeToOrSelf(APP.location.toPath())
+            else it.toString()
+         },
+         {
+            val appPrefix = "<app-dir>${File.separator}"
+            if (it.startsWith(appPrefix)) APP.location.toPath() / it.substringAfter(appPrefix)
+            else File(it).toPath()
+         }
+      )
+      addP<File>(
+         {
+            if (APP.location.isAnyParentOrSelfOf(it)) "<app-dir>" + File.separator + it.relativeToOrSelf(APP.location)
+            else it.absoluteFile.toString()
+         },
+         {
+            val appPrefix = "<app-dir>${File.separator}"
+            if (it.startsWith(appPrefix)) APP.location / it.substringAfter(appPrefix)
+            else File(it)
+         }
+      )
       addT<URI>(toS, tryF(IAE::class) { uri(it) })
       addT<Pattern>(toS, tryF(PSE::class) { Pattern.compile(it) })
       addP<Bitrate>(Bitrate)

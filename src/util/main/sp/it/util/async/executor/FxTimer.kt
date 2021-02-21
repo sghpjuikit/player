@@ -6,7 +6,6 @@ package sp.it.util.async.executor
 
 import javafx.animation.KeyFrame
 import javafx.animation.Timeline
-import javafx.event.EventHandler
 import javafx.util.Duration
 import sp.it.util.collections.setToOne
 import sp.it.util.functional.invoke
@@ -58,7 +57,7 @@ class FxTimer {
       if (period.toMillis()==0.0) {
          runNow()
       } else {
-         timeline.keyFrames setToOne KeyFrame(period, EventHandler {
+         timeline.keyFrames setToOne KeyFrame(period, {
             if (seq==expected)
                runNow()
          })
@@ -103,7 +102,7 @@ class FxTimer {
        * @param action action to execute
        */
       @JvmStatic
-      fun fxTimer(delay: Duration, cycles: Int, action: () -> Unit) = FxTimer(delay, cycles, Runnable { action() })
+      fun fxTimer(delay: Duration, cycles: Int, action: () -> Unit) = FxTimer(delay, cycles, action)
    }
 
 }

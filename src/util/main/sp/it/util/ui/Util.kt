@@ -72,6 +72,7 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextFlow
+import javafx.stage.PopupWindow
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle
@@ -785,6 +786,14 @@ var Window.centreY
    get() = y + height/2
    set(value) {
       x = value - height/2
+   }
+
+/** Popup anchors */
+var PopupWindow.anchorXy
+   get() = P(anchorX, anchorY)
+   set(value) {
+      anchorX = value.x
+      anchorY = value.y
    }
 
 /** ([MouseEvent.x],[MouseEvent.y]) */

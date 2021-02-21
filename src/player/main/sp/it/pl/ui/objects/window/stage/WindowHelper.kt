@@ -10,7 +10,7 @@ fun WindowFX.asLayout() = null
    ?: properties[Window.keyWindowLayout] as? Layout
    ?: scene?.root?.properties?.get(Window.keyWindowLayout) as? Layout
 
-var WindowFX.popWindowOwner: javafx.stage.Window?
+var WindowFX.popWindowOwner: WindowFX?
    get() = properties["popWindowOwner"].asIf()
    set(value) {
       properties["popWindowOwner"] = value

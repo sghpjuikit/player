@@ -22,7 +22,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
-import sp.it.pl.main.Ui
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.CheckIcon
@@ -73,7 +72,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
          val actB = headerIcon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
-         propB = headerIcon(IconFA.COGS, propIconText) { APP.windowManager.showSettings(area.widget, it) }
+         propB = headerIcon(IconFA.COGS, propIconText) { tryHideAfterSettings(); APP.windowManager.showSettings(area.widget, it) }
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
          absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
          val loadB = CheckIcon().apply {
@@ -126,7 +125,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
             p.onEventUp(MOUSE_EXITED, eh),
             root.onEventUp(MOUSE_MOVED, eh),
             root.onEventUp(MOUSE_EXITED, eh),
-            root.onEventUp(DRAG_DONE) { eh(null) }
+            root.onEventUp(DRAG_DONE) { eh(null) },
          )
       }
 
@@ -164,6 +163,10 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       hiderWeak.subscribe(false)
       isShowingWeak = false
       anim.playClose()
+   }
+
+   private fun tryHideAfterSettings() {
+      if (isShowingWeak && !isShowing) hideWeak()
    }
 
    private fun tryHide() {

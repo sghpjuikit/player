@@ -1445,6 +1445,19 @@ Shape, Text, TextFlow > * {
     -fx-text-alignment: justify;
 }
 
+/*********************************** SLIDER ***********************************/
+
+/**
+ * Value changing indicator popup
+ */
+.slider-value-popup {
+    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-radius: 0;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+    -fx-border-width: 1;
+    -fx-padding: 1em;
+}
+
 /********************************* SPLIT PANE *********************************/
 
 .split-pane:collapsed > .split-pane-divider {

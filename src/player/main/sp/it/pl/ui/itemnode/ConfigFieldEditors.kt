@@ -1,7 +1,5 @@
 package sp.it.pl.ui.itemnode
 
-import com.sun.javafx.scene.DirtyBits
-import com.sun.javafx.scene.NodeHelper
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable
@@ -106,7 +104,6 @@ import sp.it.util.functional.and
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getAny
-import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
@@ -144,6 +141,7 @@ import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import java.io.File
 import kotlin.reflect.KClass
+import sp.it.pl.ui.objects.ImprovedSliderSkin
 import sp.it.util.access.OrV
 
 private val warnTooltip = appTooltip("Erroneous value")
@@ -225,20 +223,17 @@ class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
 }
 
 class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
-   val v = getObservableValue(c)
+   private val v = getObservableValue(c)
    private val isObservable = v!=null
    private val isDecimal = config.type.raw in setOf<Any>(Int::class, Short::class, Long::class)
-   val range = c.findConstraint<NumberMinMax>()!!
-   private val cur: Label
-   private val min = Label(range.min!!.toUi())
-   private val max = Label(range.max!!.toUi())
+   private val range = c.findConstraint<NumberMinMax>()!!
+   private val labelFormatter = ImprovedSliderSkin.labelFormatter(isDecimal, range.min!!, range.max!!)
+   private val min = Label(labelFormatter.toString(range.min!!))
+   private val max = Label(labelFormatter.toString(range.max!!))
    private val slider = Slider(range.min!!, range.max!!, config.value.toDouble())
    override val editor = HBox(min, slider, max)
 
    init {
-      cur = Label(computeLabelText())
-      cur.padding = Insets(0.0, 5.0, 0.0, 0.0) // add gap
-
       slider.styleClass += "slider-config-editor"
       slider.setOnMouseReleased { apply() }
       slider.blockIncrement = (range.max!! - range.min!!)/20
@@ -247,20 +242,13 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
       editor.alignment = CENTER_LEFT
       editor.spacing = 5.0
       if (isDecimal) {
-         editor.children.add(3, label("|"))
-         editor.children.add(4, cur)
          slider.majorTickUnit = 1.0
          slider.isSnapToTicks = true
+         slider.labelFormatter = labelFormatter
       }
 
       slider.value = config.value.toDouble()
-      slider.valueProperty() attach {
-         // there is a slight bug where isValueChanging is false even if it should not. It appears when mouse clicks
-         // NOT on the thumb but on the slider track instead and keeps dragging. valueChanging does not activate
-         cur.text = computeLabelText() // also bug with snap to tick, which does not work on mouse drag so we use get() which returns correct value
-         if (!slider.isValueChanging)
-            apply()
-      } on editor.onNodeDispose
+      slider.valueProperty() attach { if (!slider.isValueChanging) apply() } on editor.onNodeDispose
       v?.attach { slider.value = it.toDouble() }.orEmpty() on editor.onNodeDispose
    }
 
@@ -277,8 +265,6 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
       if (!isObservable)
          slider.value = config.value.toDouble()
    }
-
-   private fun computeLabelText(): String = getValid().map { it.toUi() }.getOr("")
 
 }
 

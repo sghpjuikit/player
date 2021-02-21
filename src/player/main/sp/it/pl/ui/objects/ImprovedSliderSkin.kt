@@ -47,6 +47,7 @@ open class ImprovedSliderSkin(slider: Slider): SliderSkin(slider) {
          id = "fill"
          styleClass += "fill"
          isManaged = false
+         isMouseTransparent = true
          syncTo(thumb.boundsInParentProperty(), track.boundsInParentProperty()) { _, _ ->
             val isVertical = skinnable.orientation==VERTICAL
             resizeRelocate(

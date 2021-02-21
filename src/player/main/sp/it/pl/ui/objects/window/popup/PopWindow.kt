@@ -13,6 +13,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
@@ -259,13 +260,20 @@ open class PopWindow {
 
          var dragStartWLocation = P()
          var dragStartLocation = P()
+         var isBeingMoved = false
          onEventDown(MOUSE_PRESSED) {
-            dragStartWLocation = window!!.xy
-            dragStartLocation = it.screenXy
+            if (it.isPrimaryButtonDown) {
+               dragStartWLocation = window!!.xy
+               dragStartLocation = it.screenXy
+               isBeingMoved = true
+            }
          }
          onEventDown(MOUSE_DRAGGED) {
-            if (userMovable.value)
+            if (userMovable.value && isBeingMoved)
                window!!.xy = dragStartWLocation + it.screenXy - dragStartLocation
+         }
+         onEventUp(MOUSE_RELEASED) {
+            isBeingMoved = false
          }
 
          lay += contentP

@@ -696,11 +696,9 @@ public class MetadataWriter extends Song {
 		var ov = tag.hasField(FieldKey.CUSTOM5) ? tag.getFirst(FieldKey.CUSTOM5) : "";
 
 		List<String> tagFields = list(split(ov, String.valueOf(SEPARATOR_GROUP)));
-		System.out.println(tagFields);
 		tagFields.removeIf(tagField -> tagField.isEmpty());
 		tagFields.removeIf(tagField -> tagField.startsWith(id));
 		if (!isEmpty) tagFields.add(id + val);
-		System.out.println(tagFields);
 
 		var nv = SEPARATOR_GROUP + tagFields.stream().collect(joining(String.valueOf(SEPARATOR_GROUP))) + SEPARATOR_GROUP;
 		setCustom5(nv);

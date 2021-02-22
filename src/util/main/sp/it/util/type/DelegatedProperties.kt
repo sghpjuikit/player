@@ -50,7 +50,7 @@ inline fun <reified T: Any> Node.property(key: String? = null, crossinline or: (
  * Every read casts and therefore asserts the value's proper runtime type (hence the reified parameter).
  * Every write writes over any previously set value.
  */
-inline fun <reified T: Any> property(key: String? = null, crossinline or: () -> T) = object: ReadWriteProperty<Node, T> {
+inline fun <reified T: Any> property(key: String? = null, crossinline or: Node.() -> T) = object: ReadWriteProperty<Node, T> {
    override fun setValue(thisRef: Node, property: KProperty<*>, value: T) = thisRef.properties.put(key ?: property.name, value).toUnit()
-   override fun getValue(thisRef: Node, property: KProperty<*>) = thisRef.properties[key ?: property.name]?.asIs<T>() ?: or()
+   override fun getValue(thisRef: Node, property: KProperty<*>) = thisRef.properties[key ?: property.name]?.asIs<T>() ?: thisRef.or()
 }

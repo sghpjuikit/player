@@ -1794,6 +1794,47 @@ Shape, Text, TextFlow > * {
     -fx-pref-column-count: 10;
 }
 
+/**
+ * inherits: FlowPane
+ * pseudoclasses: readonly, has-focus
+ */
+.tag-text-field {
+    -fx-padding: 0.16667em;
+    -fx-hgap: 0.16667em;
+    -fx-vgap: 0.16667em;
+}
+.tag-text-field:hover {
+    -fx-background-color: rgba(0,0,0,0.1);
+}
+.tag-text-field:has-focus {
+    -fx-background-color: rgba(0,0,0,0.2);
+}
+.tag-text-field .text-input:readonly:focused,
+.tag-text-field .text-input:hover,
+.tag-text-field .text-field,
+.tag-text-field .text-field:hover,
+.tag-text-field .text-field:focused {
+    -fx-background-color: transparent;
+}
+
+/**
+ * inherits: .label
+ * pseudoclasses: readonly
+ */
+.tag-text-field-tag {
+    -fx-content-display: right;
+    -fx-label-padding: 0 0 0 0.5em;
+    -fx-border-width: 1;
+    -fx-border-radius: 0.5em;
+    -fx-border-color: -skin-def-font-color;
+}
+.tag-text-field-tag:readonly {
+    -fx-label-padding: 0 0.5em 0 0.5em;
+}
+.tag-text-field-tag:hover {
+    -fx-border-color: -fx-focus-color;
+}
+
 /******************************** ITEM PICKER **************************************************************************
  * Picker displays elements to choose from as a scrollable tile grid.
  * inherits: ScrollPane

@@ -172,6 +172,17 @@ import java.net.URI
 import java.time.Year
 import java.util.ArrayList
 import sp.it.pl.ui.objects.textfield.DecoratedTextField as DTextField
+import java.util.concurrent.atomic.AtomicLong
+import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
+import sp.it.pl.ui.objects.tagtextfield.TagTextField
+import sp.it.util.access.focused
+import sp.it.util.dev.failCase
+import sp.it.util.functional.Try
+import sp.it.util.parsing.ConverterFromString
+import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.onChange
+import sp.it.util.text.splitTrimmed
+import sp.it.util.type.property
 import sp.it.util.ui.show
 
 typealias Predicate = (String) -> Boolean
@@ -220,7 +231,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    val playedFirstF: DTextField = grid.lookupId("playedFirstF")
    val playedLastF: DTextField = grid.lookupId("playedLastF")
    val addedToLibraryF: DTextField = grid.lookupId("addedToLibraryF")
-   val tagsF: DTextField = grid.lookupId("tagsF")
+   val tagsF: TagTextField<String> = grid.lookupId("tagsF")
    val moodF: MoodItemNode = grid.lookupId("moodF")
    val lyricsA: TextArea = scrollContent.lookupId("lyricsA")
    val infoL: Label = root.lookupId("infoL")
@@ -235,6 +246,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    val coverField = object: TagField<ImageCover?, File?>(COVER, false) {
       val coverContainer: StackPane = scrollContent.lookupId("coverContainer")
       val coverDescriptionL: Label = scrollContent.lookupId("coverDescriptionL")
+      val coverLoadingId = AtomicLong(0)
       override var outputValue: File? = null
 
       init {
@@ -268,7 +280,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       }
 
       override fun setEditable(v: Boolean) {
-         coverContainer.isDisable = !v
+         coverContainer.isDisable = (!readOnly && v)
       }
 
       override fun complete() {
@@ -279,7 +291,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             is ReadState.None -> ""
             is ReadState.Same<ImageCover?> -> s.value?.description ?: ""
             is ReadState.Multi -> AppTexts.textManyVal
-            else -> fail()
+            is ReadState.Init -> fail()
          }
       }
 
@@ -307,11 +319,83 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          } else {
             coverV.loadFile(f)
             coverDescriptionL.text = "${f.mimeType().name} computing size..."
+            val clId = coverLoadingId.getAndIncrement()
             runIO { getImageDim(f) } ui {
-               if (outputValue==f)
+               if (clId == coverLoadingId.get() && outputValue==f)
                   coverDescriptionL.text = f.mimeType().name + it.map { " ${it.width}x${it.height}" }.getOr("")
             }
          }
+      }
+   }
+   val tagField = object: TagField<String?, Set<String>>(TAGS, false) {
+      private val originalItems = mutableSetOf<String>()
+      private val textTag = object: TextTagField<String?>(TAGS, tagsF.textField, false, uiConverter = { "" }) {
+         override fun handleTextChange() = Unit
+         override fun handleLooseFocus() = Unit
+         override fun handleMouseClicked() = Unit
+         override fun handleBackspacePressed(e: KeyEvent) = Unit
+      }
+
+      init {
+         tagsF.installDescribeOnHoverIn(descriptionL) { f.description() }
+         tagsF.items.onChange {
+            val committable = !readOnly && tagsF.items != originalItems
+            tagsF.committable = committable
+            tagsF.textField.committable = committable
+         }
+      }
+
+      override val outputValue get() = tagsF.items.materialize()
+
+      override fun clearContent() {
+         textTag.clearContent()
+         tagsF.isEditable.value = false
+         tagsF.items.clear()
+         originalItems.clear()
+         tagsF.committable = false
+         tagsF.textField.committable = false
+      }
+
+      override fun init() {
+         super.init()
+         textTag.init()
+      }
+
+      override fun accumulate(m: Metadata) {
+         super.accumulate(m)
+         textTag.accumulate(m)
+      }
+
+      override fun setEditable(v: Boolean) {
+         textTag.setEditable(v)
+         tagsF.isEditable.value = !readOnly && v
+      }
+
+      override fun complete() {
+         val s = state
+         textTag.complete()
+
+         when (s) {
+            is ReadState.None -> {
+               originalItems setTo setOf()
+               tagsF.items.clear()
+               tagsF.textField.originalPromptText = AppTexts.textNoVal
+            }
+            is ReadState.Same<String?> -> {
+               val items = s.value.orEmpty().splitTrimmed(SEPARATOR_UNIT.toString()).toSet()
+               originalItems setTo items
+               tagsF.items setTo items
+               tagsF.textField.originalPromptText = ""
+            }
+            is ReadState.Multi -> {
+               originalItems setTo setOf()
+               tagsF.items.clear()
+               tagsF.textField.originalPromptText = AppTexts.textManyVal
+            }
+            is ReadState.Init -> failCase(s)
+         }
+         tagsF.textField.originalText = ""
+         tagsF.textField.promptText = tagsF.textField.originalPromptText
       }
    }
 
@@ -368,7 +452,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          TextTagField(FIRST_PLAYED, playedFirstF, readOnly = true),
          TextTagField(LAST_PLAYED, playedLastF, readOnly = true),
          TextTagField(ADDED_TO_LIBRARY, addedToLibraryF, readOnly = true),
-         TextTagField(TAGS, tagsF),
+         tagField,
          TextTagField(LYRICS, lyricsA),
          coverField
       )
@@ -519,7 +603,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             if (custom3F.committable) w.setCustom3(custom3F.text)
             if (custom4F.committable) w.setCustom4(custom4F.text)
             // if (custom5F.committable) w.setCustom5(custom5F.text)
-            if (tagsF.committable) w.setTags(tagsF.text.replace(", ", ",").split(",").toSet())
+            if (tagsF.committable) w.setTags(tagField.outputValue)
             // if ((boolean)playedFirstF.getUserData())  w.setPla(playedFirstF.getText());
             // if ((boolean)playedLastF.getUserData())   w.setCustom1(playedLastF.getText());
             // if ((boolean)addedToLibF.getUserData())   w.setCustom1(addedToLibF.getText());
@@ -594,7 +678,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       scrollContent.opacity = 1.0
    }
 
-   inner class TextTagField<T>(
+   open inner class TextTagField<T>(
       f: Metadata.Field<T>,
       private val c: TextInputControl,
       readOnly: Boolean = false,
@@ -631,11 +715,16 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
          clearContent()
 
-         c.focusedProperty() attach { if (!it) handleLooseFocus() }
-         c.textProperty() sync { c.committable = c.text!=c.originalText }
+         c.focused attachFalse  { handleLooseFocus() }
+         c.textProperty() sync { handleTextChange() }
+
+         // label for
+         val cLabel = scrollContent.lookupId<Label>(c.descriptionNodeId.dropLast(1) + "L")
+         cLabel.labelFor = c
+         cLabel.onEventDown(MOUSE_CLICKED) { c.requestFocus() }
 
          // show description
-         scrollContent.lookupId<Label>(c.descriptionNodeId.dropLast(1) + "L").installDescribeOnHoverIn(descriptionL) { f.description() }
+         cLabel.installDescribeOnHoverIn(descriptionL) { f.description() }
          c.installDescribeOnHoverIn(descriptionL) { f.description() }
 
          // if not committable yet, enable committable & set text to tag value on click
@@ -643,9 +732,8 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
          // disable committable if empty and backspace key pressed
          c.onEventUp(KEY_PRESSED) { e ->
-            if (e.code==BACK_SPACE || e.code==ESCAPE) {
-               handleBackspacePressed(e) // requires event filter
-            }
+            if (e.code==BACK_SPACE || e.code==ESCAPE)
+               handleBackspacePressed(e)
          }
 
          // auto-completion
@@ -660,31 +748,35 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       }
 
       override fun setEditable(v: Boolean) {
-         c.isDisable = readOnly || !v
+         c.isEditable = !readOnly && v
       }
 
-      override fun clearContent() {
+      final override fun clearContent() {
          c.text = ""
          c.promptText = ""
          c.originalText = ""
          c.originalPromptText = ""
-         c.isDisable = true
+         c.isEditable = false
       }
 
-      private fun handleLooseFocus() {
+      protected open fun handleTextChange() {
+         c.committable = !readOnly && c.text!=c.originalText
+      }
+
+      protected open fun handleLooseFocus() {
          if (c.committable)
             c.committable = c.text!=c.originalText
       }
 
-      private fun handleMouseClicked() {
+      protected open fun handleMouseClicked() {
          if (!c.committable) {
             c.text = c.originalText
-            c.committable = true
-            c.selectAll()
+            c.committable = !readOnly && true
+            if (!readOnly) c.selectAll()
          }
       }
 
-      private fun handleBackspacePressed(e: KeyEvent) {
+      protected open fun handleBackspacePressed(e: KeyEvent) {
          val setToInitial = c.text.isEmpty()
          if (setToInitial) {
             c.committable = false
@@ -712,7 +804,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             is ReadState.None -> AppTexts.textNoVal
             is ReadState.Same<T?> -> f.toS(s.value, "")
             is ReadState.Multi -> AppTexts.textManyVal
-            else -> fail()
+            else -> failCase(s)
          }
          c.promptText = c.originalPromptText
       }
@@ -816,14 +908,16 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
                   val rowHeight = v(0.0)
                   APP.ui.font sync { rowHeight.value = 2.em.emScaled } on onClose
-                  repeat(25) {
+                  repeat(24) {
                      rowConstraints += gridPaneRow {
                         isFillHeight = false
                         vgrow = NEVER
                         prefHeightProperty() syncFrom rowHeight
-//                        prefHeight = 50.0
-//                        style = "-fx-pref-height: 4em"
                      }
+                  }
+                  rowConstraints += gridPaneRow {
+                     isFillHeight = false
+                     vgrow = NEVER
                   }
 
                   listOf(
@@ -914,6 +1008,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      id = "moodF"
                      minSize = 0 x 0
                      maxSize = Double.MAX_VALUE.x2
+                     styleClass += "tag-field"
                   }
                   lay(row = 15, column = 1, hAlignment = HPos.RIGHT, colSpan = GridPane.REMAINING) += stackPane {
                      minSize = 0 x 0
@@ -939,7 +1034,16 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                   layTextField("playedFirstF", 21)
                   layTextField("playedLastF", 22)
                   layTextField("addedToLibraryF", 23)
-                  layTextField("tagsF", 24)
+                  lay += label()
+                  lay(row = 24, column = 1, colSpan = GridPane.REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += TagTextField(
+                     object: ConverterFromString<String> {
+                        override fun ofS(s: String) = if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
+                     }
+                  ).apply {
+                     id = "tagsF"
+                     styleClass += "tag-field"
+                     textField.descriptionNodeId = "tagsF"
+                  }
                }
                lay(0, 0, null, null) += vBox(5, CENTER) {
                   installDescribeOnHoverIn(descriptionL) { COVER.description() }
@@ -1061,30 +1165,9 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             if (this is TextInputControl) promptText = if (value) "" else originalPromptText
          }
 
-
-      private var TextInputControl.originalText: String
-         get() {
-            return properties["promptTextTmp"] as String? ?: ""
-         }
-         set(value) {
-            properties["promptTextTmp"] = value
-         }
-
-      private var TextInputControl.originalPromptText: String
-         get() {
-            return properties["originalPromptText"] as String? ?: ""
-         }
-         set(value) {
-            properties["originalPromptText"] = value
-         }
-
-      private var TextInputControl.descriptionNodeId: String
-         get() {
-            return properties["descriptionNodeId"] as String? ?: id
-         }
-         set(value) {
-            properties["descriptionNodeId"] = value
-         }
+      private var TextInputControl.originalText: String by property("promptTextTmp") { "" }
+      private var TextInputControl.originalPromptText: String by property("originalPromptText") { "" }
+      private var Node.descriptionNodeId: String by property("descriptionNodeId") { id }
    }
 
    abstract class TagField<I, O>(val f: Metadata.Field<I>, val readOnly: Boolean = false) {
@@ -1096,11 +1179,11 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
       abstract fun setEditable(v: Boolean)
 
-      fun init() {
+      open fun init() {
          state = ReadState.Init
       }
 
-      fun accumulate(m: Metadata) {
+      open fun accumulate(m: Metadata) {
          val s = state
 
          if (s is ReadState.Init)

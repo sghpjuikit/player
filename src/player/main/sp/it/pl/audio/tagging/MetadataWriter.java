@@ -511,11 +511,6 @@ public class MetadataWriter extends Song {
 		setCustomField(TAG_ID_COLOR, c==null ? null : APP.getConverter().general.toS(c));
 	}
 
-	/** @param tags tags to set */
-	public void setColor(String tags) {
-		setCustomField(TAG_ID_TAGS, tags);
-	}
-
 	/**
 	 * Write chapters to tag. This method rewrites any previous chapter data.
 	 * In order to not lose the original data, the chapters first need to be
@@ -697,20 +692,22 @@ public class MetadataWriter extends Song {
 	 * @param val value to set
 	 */
 	private void setCustomField(String id, String val) {
-		boolean isEmpty = val==null || val.isEmpty();
-		String ov = tag.hasField(FieldKey.CUSTOM5) ? tag.getFirst(FieldKey.CUSTOM5) : "";
+		var isEmpty = val==null || val.isEmpty();
+		var ov = tag.hasField(FieldKey.CUSTOM5) ? tag.getFirst(FieldKey.CUSTOM5) : "";
 
 		List<String> tagFields = list(split(ov, String.valueOf(SEPARATOR_GROUP)));
+		System.out.println(tagFields);
+		tagFields.removeIf(tagField -> tagField.isEmpty());
 		tagFields.removeIf(tagField -> tagField.startsWith(id));
 		if (!isEmpty) tagFields.add(id + val);
+		System.out.println(tagFields);
 
-		String nv = tagFields.stream().collect(joining(String.valueOf(SEPARATOR_GROUP)));
-		nv = SEPARATOR_GROUP + nv + SEPARATOR_GROUP;
+		var nv = SEPARATOR_GROUP + tagFields.stream().collect(joining(String.valueOf(SEPARATOR_GROUP))) + SEPARATOR_GROUP;
 		setCustom5(nv);
 	}
 
 	private boolean hasCustomField(String id) {
-		String ov = tag.hasField(FieldKey.CUSTOM5) ? tag.getFirst(FieldKey.CUSTOM5) : "";
+		var ov = tag.hasField(FieldKey.CUSTOM5) ? tag.getFirst(FieldKey.CUSTOM5) : "";
 		return ov.contains(SEPARATOR_GROUP + id);
 	}
 

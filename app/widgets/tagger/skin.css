@@ -1,8 +1,30 @@
 
+.tag-field:readonly {
+    -fx-opacity: 0.4;
+}
+
 .tag-field:committable {
     -fx-background-color: rgba(0,0,0,0.2);
+    -fx-text-fill: -skin-value-font-color;
+    -fx-prompt-text-fill: -skin-prompt-font-color;
 }
 
 .color-picker:empty > .color-picker-label {
     visibility: hidden;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

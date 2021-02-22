@@ -126,6 +126,7 @@ import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
 import kotlin.reflect.cast
+import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cList
 import sp.it.util.type.map
@@ -593,7 +594,7 @@ class WidgetManager {
          get() = componentLastOpenStrategies.associate { it.substringBefore("|") to ComponentLoaderStrategy.valueOf(it.substringAfter("|")) }
       fun componentLastOpenStrategiesMap(id: String, strategy:ComponentLoaderStrategy) {
          val m = componentLastOpenStrategiesMap + (id to strategy)
-         componentLastOpenStrategies += m.entries.map { (a, b) -> "$a|$b" }
+         componentLastOpenStrategies setTo m.entries.map { (a, b) -> "$a|$b" }
       }
 
       /** @return widgets based on search criteria */

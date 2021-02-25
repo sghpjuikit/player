@@ -54,3 +54,8 @@ inline fun <reified T: Any> property(key: String? = null, crossinline or: Node.(
    override fun setValue(thisRef: Node, property: KProperty<*>, value: T) = thisRef.properties.put(key ?: property.name, value).toUnit()
    override fun getValue(thisRef: Node, property: KProperty<*>) = thisRef.properties[key ?: property.name]?.asIs<T>() ?: thisRef.or()
 }
+
+inline fun <reified T: Any> propertyNullable(key: String? = null) = object: ReadWriteProperty<Node, T?> {
+   override fun setValue(thisRef: Node, property: KProperty<*>, value: T?) = thisRef.properties.put(key ?: property.name, value).toUnit()
+   override fun getValue(thisRef: Node, property: KProperty<*>) = thisRef.properties[key ?: property.name]?.asIs<T>()
+}

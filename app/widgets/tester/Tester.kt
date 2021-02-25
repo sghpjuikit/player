@@ -1,5 +1,8 @@
 package tester
 
+import java.io.File
+import java.time.LocalDate
+import java.time.LocalTime
 import javafx.animation.Animation.INDEFINITE
 import javafx.animation.Interpolator
 import javafx.geometry.Insets
@@ -9,6 +12,8 @@ import javafx.scene.control.Slider
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
+import javafx.scene.text.TextAlignment
+import kotlin.math.sqrt
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
@@ -27,6 +32,7 @@ import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.access.vx
+import sp.it.util.action.ActionManager
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.CheckList
@@ -45,6 +51,7 @@ import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.text.nameUi
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -54,13 +61,13 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.textAlignment
+import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
-import java.io.File
-import kotlin.math.sqrt
 
 @Suppress("RemoveExplicitTypeArguments", "RemoveRedundantBackticks", "RemoveExplicitTypeArguments", "RedundantLambdaArrow")
 @ExperimentalController("For development")
@@ -74,6 +81,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       root.lay += vBox(0.0, TOP_CENTER) {
          lay += hBox(25.emScaled, TOP_CENTER) {
             padding = Insets(20.emScaled)
+            lay += Icon(IconOC.CODE).onClickDo { testInputs() }.withText("Test widget inputs")
             lay += Icon(IconOC.CODE).onClickDo { testFxConfigs() }.withText("Test Fx Configs")
             lay += Icon(IconOC.CODE).onClickDo { testEditors() }.withText("Test Config Editors")
             lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Test Animations")
@@ -89,12 +97,21 @@ class Tester(widget: Widget): SimpleController(widget) {
       io.i.create<MutableList<in Number>>("List in Int", null) {}
       io.o.create<Int>("Nothing?", 5)
       io.o.create<Number>("Int", 5)
-
    }
 
    override fun close() {
       onContentChange()
       content.children.clear()
+   }
+
+   fun testInputs() {
+      val c = textArea {
+         text = "Trigger widget layout mode (${ActionManager.keyManageLayout.nameUi}) to test this widget's inputs"
+         isEditable = false
+         textAlignment = TextAlignment.CENTER
+      }
+      onContentChange()
+      content.children setToOne c
    }
 
    fun testFxConfigs() {
@@ -108,36 +125,45 @@ class Tester(widget: Widget): SimpleController(widget) {
       content.children setToOne form(c.toConfigurableFx())
    }
 
+   @Suppress("ObjectPropertyName", "NonAsciiCharacters", "DANGEROUS_CHARACTERS")
    fun testEditors() {
       val c = object: ConfigurableBase<Any?>() {
-         var `Boolean_simple` by c<Boolean>(true)
-         var `Boolean_simple_null` by cn<Boolean>(null)
-         val `Boolean_observe` by cv<Boolean>(true)
-         val `Boolean_observe_null` by cvn<Boolean>(null)
-         var `KeyCode_simple` by c<Key>(Key.A)
-         var `KeyCode_simple_null` by cn<Key>(null)
-         val `KeyCode_observe` by cv<Key>(Key.A)
-         val `KeyCode_observe_null` by cvn<Key>(null)
-         var `Int_simple` by c<Int>(0)
-         var `Int_simple_null` by cn<Int>(null)
-         val `Int_observe` by cv<Int>(0)
-         val `Int_observe_null` by cvn<Int>(null)
-         var `File_simple` by c<File>(APP.location.spitplayer_exe)
-         var `File_simple_null` by cn<File>(null)
-         var `File_observe` by c<File>(APP.location.spitplayer_exe)
-         val `File_observe_null` by cvn<File>(null)
-         var `File_observe_only_file_save` by c<File>(APP.location.spitplayer_exe).only(FILE).uiOut()
-         var `File_observe_only_file` by c<File>(APP.location.spitplayer_exe).only(FILE)
-         var `File_observe_only_dir` by c<File>(APP.location).only(DIRECTORY)
-         var `File_observe_only_any` by c<File>(APP.location).only(ANY)
-         var `Font_simple_null` by cn<Font>(null)
-         val `Font_observe_null` by cvn<Font>(null)
-         var `Color_simple_null` by cn<Color>(null)
-         val `Color_observe_null` by cvn<Color>(null)
-         val `List` by cList<Int>(1, 2, 3)
-         val `List_null` by cList<Int?>(1, 2, null)
-         val `CheckList_` by cCheckList(CheckList.nonNull(type<Boolean?>(), listOf(true, false, null), listOf(true, false, false)))
-         val `CheckList_null_` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf(true, false, null), listOf(true, false, null)))
+         var `c(Boolean)` by c<Boolean>(true)
+         var `cn(Boolean)` by cn<Boolean>(null)
+         val `cv(Boolean)` by cv<Boolean>(true)
+         val `cvn(Boolean)` by cvn<Boolean>(null)
+         var `c(Key)` by c<Key>(Key.A)
+         var `cn(Key)` by cn<Key>(null)
+         val `cv(Key)` by cv<Key>(Key.A)
+         val `cvn(Key)` by cvn<Key>(null)
+         var `c(Int)` by c<Int>(0)
+         var `cn(Int)` by cn<Int>(null)
+         val `cv(Int)` by cv<Int>(0)
+         val `cvn(Int)` by cvn<Int>(null)
+         var `c(File)` by c<File>(APP.location.spitplayer_exe)
+         var `cn(File)` by cn<File>(null)
+         val `cv(File)` by cv<File>(APP.location.spitplayer_exe)
+         val `cvn(File)` by cvn<File>(null)
+         var `c(File)·only(FILE)·uiOut()` by c<File>(APP.location.spitplayer_exe).only(FILE).uiOut()
+         var `c(File)·only(FILE)` by c<File>(APP.location.spitplayer_exe).only(FILE)
+         var `c(File)·only(DIRECTORY)` by c<File>(APP.location).only(DIRECTORY)
+         var `c(File)·only(ANY)` by c<File>(APP.location).only(ANY)
+         var `cn(Font)` by cn<Font>(null)
+         val `cvn(Font)` by cvn<Font>(null)
+         var `cn(Color)` by cn<Color>(null)
+         val `cvn(Color)` by cvn<Color>(null)
+         var `c(LocalTime)` by c<LocalTime>(LocalTime.now())
+         var `cn(LocalTime)` by cn<LocalTime>(null)
+         val `cv(LocalTime)` by cv<LocalTime>(LocalTime.now())
+         val `cvn(LocalTime)` by cvn<LocalTime>(null)
+         var `c(LocalDate)` by c<LocalDate>(LocalDate.now())
+         var `cn(LocalDate)` by cn<LocalDate>(null)
+         val `cv(LocalDate)` by cv<LocalDate>(LocalDate.now())
+         val `cvn(LocalDate)` by cvn<LocalDate>(null)
+         val `cList(Int)` by cList<Int>(1, 2, 3)
+         val `cList(Int?)` by cList<Int?>(1, 2, null)
+         val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<Boolean>(), listOf(true, false, false), listOf(true, false, false)))
+         val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf(true, false, null), listOf(true, false, null)))
       }
       onContentChange()
       content.children setToOne form(c)

@@ -1,5 +1,6 @@
 package sp.it.pl.ui.pane
 
+import java.util.Comparator.comparing
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER_LEFT
@@ -11,14 +12,19 @@ import sp.it.pl.main.Css
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.labelForWithClick
 import sp.it.util.action.Action
+import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint
 import sp.it.util.functional.asIf
+import sp.it.util.functional.invoke
+import sp.it.util.functional.net
+import sp.it.util.functional.nullsFirst
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.type.propertyNullable
 import sp.it.util.type.raw
 import sp.it.util.ui.height
 import sp.it.util.ui.label
@@ -32,13 +38,15 @@ class ConfigPane<T: Any?>: VBox {
    private var editors: List<ConfigEditor<*>> = listOf()
    private var editorNodes: List<Node> = listOf()
    private var needsLabel: Boolean = true
-   private var inLayout = false
+   private val onChangeRaw = Runnable { onChange?.invoke() }
+   private val onChangeOrConstraintRaw = Runnable { onChangeOrConstraint?.invoke() }
    var onChange: Runnable? = null
    var onChangeOrConstraint: Runnable? = null
-   val configOrder = compareBy<Config<*>> { 0 }
-      .thenBy { it.group.toLowerCase() }
-      .thenBy { if (it.type.raw==Action::class) 1.0 else -1.0 }
-      .thenBy { it.nameUi.toLowerCase() }
+   var editorOrder: Comparator<Config<*>>? = compareByDefault
+      set(value) {
+         field = value
+         children setTo children.materialize().sortedByConfigWith(value)
+      }
 
    constructor(): super(5.0) {
       styleClass += "form-config-pane"
@@ -54,11 +62,10 @@ class ConfigPane<T: Any?>: VBox {
       needsLabel = configurable !is Config<*>
       editors = configurable?.getConfigs().orEmpty().asSequence()
          .filter { !it.hasConstraint<Constraint.NoUi>() }
-         .sortedWith(configOrder)
          .map {
             ConfigEditor.create(it).apply {
-               onChange = this@ConfigPane.onChange
-               onChangeOrConstraint = this@ConfigPane.onChangeOrConstraint
+               onChange = onChangeRaw
+               onChangeOrConstraint = onChangeOrConstraintRaw
             }
          }
          .toList()
@@ -84,9 +91,11 @@ class ConfigPane<T: Any?>: VBox {
                }
             },
             it.buildNode()
-         )
+         ).onEach { n ->
+            n.configEditor = it
+         }
       }
-      children setTo editorNodes
+      children setTo editorNodes.sortedByConfigWith(editorOrder)
    }
 
    override fun getContentBias() = Orientation.HORIZONTAL
@@ -155,4 +164,26 @@ class ConfigPane<T: Any?>: VBox {
    fun getConfigValues(): List<T> = getConfigEditors().map { it.config.value }
 
    fun focusFirstConfigEditor() = editors.firstOrNull()?.focusEditor()
+
+   private fun List<Node>.sortedByConfigWith(comparator: Comparator<Config<*>>?): List<Node> =
+      if (comparator == null) sortedBy { it.configEditor?.net(editors::indexOf) ?: 0 }
+      else sortedWith(comparing({ it.configEditor?.config }, comparator.nullsFirst()))
+
+   companion object {
+      /** Order by declaration order, i.e., [Configurable.getConfigs]. */
+      val compareByDeclaration = null
+      /** Order by group, [Config.groupUi]. */
+      val compareByGroup: Comparator<Config<*>> = compareBy<Config<*>> { 0 }
+         .thenBy { it.group.toLowerCase() }
+      /** Order by application semantics. */
+      val compareByApp: Comparator<Config<*>> = compareBy<Config<*>> { 0 }
+         .thenBy { it.group.toLowerCase() }
+         .thenBy { if (it.type.raw==Action::class) 1.0 else -1.0 }
+         .thenBy { it.nameUi.toLowerCase() }
+      /** Default value of [ConfigPane.editorOrder] */
+      val compareByDefault: Comparator<Config<*>> = compareByApp
+
+      private var Node.configEditor by propertyNullable<ConfigEditor<*>>("config")
+
+   }
 }

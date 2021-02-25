@@ -47,6 +47,8 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
 
    /** Configurable object. */
    val configurable = configurable
+   /** Determines config editor order. Delegates to underlying [ConfigPane.editorOrder].*/
+   var editorOrder by editorsPane::editorOrder
    /** Invoked when user submits the editing or programmatically by [ok]. Default does nothing.  See [ok].*/
    val onExecute = action ?: {}
    /** Invoked when execution finishes with or without exception. Default does nothing. See [ok].*/

@@ -183,9 +183,10 @@ object FileFilters {
    val parser: Parse<FileFilter> = Parse.or(
       Parser(type(), listOf("File - all")) { filterPrimary },
       Parser(type(), listOf("File - is audio")) { FileFilter("File - is audio", type(), type()) { it.isAudio() } },
-      Parser(type(), listOf("File - is audio")) { FileFilter("File - is image", type(), type()) { it.isImage() } },
-      Parser(type(), listOf("File - is audio")) { FileFilter("File type - file", type(), type()) { it.isFile } },
-      Parser(type(), listOf("File - is audio")) { FileFilter("File type - directory", type(), type()) { it.isDirectory } },
+      Parser(type(), listOf("File - is image")) { FileFilter("File - is image", type(), type()) { it.isImage() } },
+      Parser(type(), listOf("File - is video")) { FileFilter("File - is video", type(), type()) { it.isVideo() } },
+      Parser(type(), listOf("File type - file")) { FileFilter("File type - file", type(), type()) { it.isFile } },
+      Parser(type(), listOf("File type - directory")) { FileFilter("File type - directory", type(), type()) { it.isDirectory } },
       Parser(type(), args = listOf("Mime type group - is", String::class)) { it ->
          val group = it[0].asIs<String>()
          FileFilter("Mime type group - is ${group.capitalize()}", type(), type()) { group==it.mimeType().group }
@@ -207,7 +208,7 @@ object FileFilters {
    fun vFileFilter(initialValue: String = filterPrimary.name) = FileFilterValue(initialValue)
 
    /** @return delegated configurable [javafx.beans.value.ObservableValue] for [FileFilter] */
-   fun cvFileFilter() = cv(filterPrimary.name) { it.net(::vFileFilter) }.but(parser.toConstraint())
+   fun cvFileFilter() = cv(filterPrimary.name) { vFileFilter(it) }.but(parser.toConstraint())
 
    class FileFilterValue(initialValue: String = filterPrimary.name): V<String>(initialValue) {
       /** @return the filter represented by the current value, which is the name of the returned filter */

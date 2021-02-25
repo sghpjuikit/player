@@ -343,18 +343,21 @@ fun <T> ObservableValue<T>.sync1IfNonNull(action: (T) -> Unit) = sync1If({ it!=n
  * a layout pass. The block will never run in current scene pulse as [runLater] will be invoked at least once.
  */
 fun Node.sync1IfInScene(block: () -> Unit): Subscription {
+   var disposed = false
    val disposer = Disposer()
    fun Node.onAddedToScene(action: () -> Unit): Subscription = sceneProperty().sync1IfNonNull {
       runLater {
-         if (scene==null) {
-            onAddedToScene(action) on disposer
-         } else {
-            action()
+         if (!disposed) {
+            if (scene==null) onAddedToScene(action) on disposer
+            else action()
          }
       }
    }
    onAddedToScene(block) on disposer
-   return Subscription { disposer() }
+   return Subscription {
+      disposed = true
+      disposer()
+   }
 }
 
 inline fun Image.sync1IfImageLoaded(crossinline block: () -> Unit) = progressProperty().sync1If({ it.toDouble()==1.0 }) { block() }

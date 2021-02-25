@@ -375,8 +375,9 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
 open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<out T>): TreeItem<T>(v), DisposableTreeItem {
    private val once = ExecuteN(1)
    private val childrenDisposer = Disposer()
+   private var isDisposed = false
 
-   override fun isLeaf() = childrenO.isEmpty()
+   override fun isLeaf() = if (isDisposed) true else childrenO.isEmpty()
    override fun getChildren(): ObservableList<TreeItem<T>> {
       return super.getChildren().also { children ->
          once {
@@ -395,6 +396,7 @@ open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<
    }
 
    override fun dispose() {
+      isDisposed = true
       childrenDisposer()
       nullify(::childrenO)
    }

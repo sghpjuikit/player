@@ -114,6 +114,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    var graphics: Pane? = null
       private set
 
+   private var isClosed = false
    private val configs = HashMap<String, Config<Any?>>()
    override val configurableGroupPrefix: String? = null
    override val configurableValueSource by lazy {
@@ -248,6 +249,9 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    }
 
    override fun close() {
+      if (isClosed) return
+      isClosed = true
+
       logger.info { "$logName closing" }
 
       super.close()

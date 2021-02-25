@@ -2,6 +2,7 @@ package sp.it.util.file.type
 
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
+import sp.it.util.dev.printIt
 
 /**
  * Represents a mimetype.
@@ -14,7 +15,7 @@ import kotlin.properties.ReadOnlyProperty
  *
  */
 class MimeType(val name: String, vararg extensions: String) {
-   val group: String = name.substringBefore("/")
+   val group: String = name.substringBefore("/").printIt()
    val extensions: Array<out String> = extensions
    val extension: String? = extensions.firstOrNull()
 
@@ -629,7 +630,7 @@ class MimeType(val name: String, vararg extensions: String) {
       val `audio∕adpcm`: MimeType by mime("adp")
       val `audio∕basic`: MimeType by mime("au", "snd")
       val `audio∕midi`: MimeType by mime("mid", "midi", "kar", "rmi")
-      val `audio∕mp4`: MimeType by mime("mp4a")
+      val `audio∕mp4`: MimeType by mime("mp4a", "m4a")
       val `audio∕mpeg`: MimeType by mime("mpga", "mp2", "mp2a", "mp3", "m2a", "m3a")
       val `audio∕mpegurl`: MimeType = `application∕mpegurl`
       val `audio∕ogg`: MimeType by mime("oga", "ogg", "spx")

@@ -46,6 +46,7 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import sp.it.pl.ui.labelForWithClick
 
 private typealias Fun = (Double) -> Double
 private typealias Num = Double
@@ -249,8 +250,16 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
    companion object {
 
       fun ConfigEditor<*>.toHBox() = hBox(5, CENTER) {
-         lay += buildLabel().apply { alignment = CENTER_RIGHT; prefWidth = 100.0 }
-         lay += buildNode()
+         val n = buildNode()
+         val l = buildLabel().apply {
+            alignment = CENTER_RIGHT
+            prefWidth = 100.0
+            isPickOnBounds = false
+            labelForWithClick setTo n
+         }
+
+         lay += l
+         lay += n
       }
 
       fun V<Double>.createEditor(name: String) = ConfigEditor.create(Config.forProperty<Num>(name, this))

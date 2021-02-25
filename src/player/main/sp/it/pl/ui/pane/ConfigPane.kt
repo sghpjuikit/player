@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.TextFlow
 import sp.it.pl.main.Css
 import sp.it.pl.ui.itemnode.ConfigEditor
+import sp.it.pl.ui.labelForWithClick
 import sp.it.util.action.Action
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
@@ -67,6 +68,9 @@ class ConfigPane<T: Any?>: VBox {
             when {
                needsLabel -> label(it.config.nameUi) {
                   styleClass += "form-config-pane-config-name"
+                  isPickOnBounds = false
+                  prefWidth = Region.USE_PREF_SIZE
+                  labelForWithClick setTo it.editor
                }
                else -> null
             },

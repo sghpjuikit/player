@@ -141,6 +141,7 @@ import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import java.io.File
 import kotlin.reflect.KClass
+import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.ImprovedSliderSkin
 import sp.it.util.access.OrV
 
@@ -587,7 +588,9 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
          lay += hBox(0, CENTER_LEFT) {
             padding = Insets(0.0, 0.0, 0.0, 5.0.emScaled)
             lay += checkIcons[i]
-            lay += label(uiConverter(element))
+            lay += label(uiConverter(element)) {
+               labelForWithClick setTo checkIcons[i]
+            }
          }
       }
    }

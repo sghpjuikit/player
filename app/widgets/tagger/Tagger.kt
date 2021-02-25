@@ -174,6 +174,7 @@ import java.util.ArrayList
 import sp.it.pl.ui.objects.textfield.DecoratedTextField as DTextField
 import java.util.concurrent.atomic.AtomicLong
 import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
+import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.tagtextfield.TagTextField
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
@@ -720,8 +721,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
          // label for
          val cLabel = scrollContent.lookupId<Label>(c.descriptionNodeId.dropLast(1) + "L")
-         cLabel.labelFor = c
-         cLabel.onEventDown(MOUSE_CLICKED) { c.requestFocus() }
+         cLabel.labelForWithClick setTo c
 
          // show description
          cLabel.installDescribeOnHoverIn(descriptionL) { f.description() }

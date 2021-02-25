@@ -19,6 +19,7 @@ import javafx.stage.Screen
 import javafx.stage.Window
 import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
+import sp.it.util.functional.net
 import sp.it.util.math.P
 import sp.it.util.ui.bounds
 import sp.it.util.ui.centreX
@@ -27,8 +28,11 @@ import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.size
 import sp.it.util.ui.x
 
-
-data class Shower(val owner: Window?, val show: (Window) -> P)
+/** Specifies how a window is to be shown, defining an owner and position. Allows unified API for showing windows. */
+data class Shower(val owner: Window?, val show: (Window) -> P) {
+   /** @return shower with the same [Shower.owner], but [Shower.show] mapped with the specified [mapper] */
+   fun map(mapper: (P) -> P): Shower = Shower(owner) { show(it).net(mapper) }
+}
 
 enum class ShowArea(override val nameUi: String): NameUi {
    SCREEN_ACTIVE("Screen containing mouse"),

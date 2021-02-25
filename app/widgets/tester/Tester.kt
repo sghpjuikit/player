@@ -28,6 +28,7 @@ import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -150,7 +151,9 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `c(File)·only(ANY)` by c<File>(APP.location).only(ANY)
          var `cn(Font)` by cn<Font>(null)
          val `cvn(Font)` by cvn<Font>(null)
+         var `c(Color)` by c<Color>(Color.BLACK)
          var `cn(Color)` by cn<Color>(null)
+         val `cv(Color)` by cv<Color>(Color.BLACK)
          val `cvn(Color)` by cvn<Color>(null)
          var `c(LocalTime)` by c<LocalTime>(LocalTime.now())
          var `cn(LocalTime)` by cn<LocalTime>(null)
@@ -166,7 +169,7 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf(true, false, null), listOf(true, false, null)))
       }
       onContentChange()
-      content.children setToOne form(c)
+      content.children setToOne form(c).apply { editorOrder = compareByDeclaration }
    }
 
    fun testInterpolators() {

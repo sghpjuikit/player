@@ -345,12 +345,12 @@ public class Icon extends StackPane {
 	}
 
 	/**
-	 * Installs action for left mouse single click or ENTER release.
+	 * Installs action for left mouse click or ENTER release.
 	 * The events will be consumed.
 	 * @return this
 	 */
 	public final @NotNull Icon onClickDo(@Nullable Function1<Icon,Unit> action) {
-		return onClickDo(1, action);
+		return onClickDo(null, action);
 	}
 
 	/**
@@ -358,9 +358,9 @@ public class Icon extends StackPane {
 	 * The events will be consumed.
 	 * @return this
 	 */
-	public final @NotNull Icon onClickDo(@NotNull Integer clickCount, @Nullable Function1<Icon,Unit> action) {
+	public final @NotNull Icon onClickDo(@Nullable Integer clickCount, @Nullable Function1<Icon,Unit> action) {
 		setOnMouseClicked(action==null ? null : e -> {
-			if (e.getButton()==PRIMARY && e.getClickCount()==clickCount) {
+			if (e.getButton()==PRIMARY && (clickCount==null || e.getClickCount()==clickCount)) {
 				action.invoke(this);
 				e.consume();
 			}

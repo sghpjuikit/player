@@ -2,7 +2,6 @@ package sp.it.util.file.type
 
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
-import sp.it.util.dev.printIt
 
 /**
  * Represents a mimetype.
@@ -15,7 +14,7 @@ import sp.it.util.dev.printIt
  *
  */
 class MimeType(val name: String, vararg extensions: String) {
-   val group: String = name.substringBefore("/").printIt()
+   val group: String = name.substringBefore("/")
    val extensions: Array<out String> = extensions
    val extension: String? = extensions.firstOrNull()
 

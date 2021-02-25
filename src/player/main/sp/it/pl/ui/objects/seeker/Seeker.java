@@ -22,6 +22,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.tagging.Chapter;
@@ -38,7 +39,6 @@ import sp.it.util.async.executor.FxTimer;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import sp.it.util.reactive.Subscription;
-import sp.it.util.type.Util;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CHECK;
@@ -109,20 +109,28 @@ public final class Seeker extends AnchorPane {
 	public Seeker() {
 		seeker.getStyleClass().add(STYLECLASS);
 		seeker.setManaged(false);
+		seeker.setLabelFormatter(new StringConverter<Double>() {
+			@Override public String toString(Double object) { return timeTot.getValue()==null ? "" : toHMSMs(timeTot.getValue().multiply(seeker.getValue())); }
+			@Override public Double fromString(String string) { return null; }
+		});
 		getChildren().add(seeker);
 
 		// mouse drag
 		seeker.addEventFilter(MOUSE_PRESSED, e -> {
-			if (e.getButton()==PRIMARY) user_drag = true;
+			if (e.getButton()==PRIMARY) {
+				user_drag = true;
+			}
 			e.consume();
 		});
 		seeker.addEventFilter(DRAG_DETECTED, e -> {
 			if (addB.isSelected()) addB.unselect();
 			if (addB.isShown()) addB.hide();
 			user_drag = true;
+			seeker.setValueChanging(true);
 		});
 		seeker.addEventFilter(MOUSE_DRAGGED, e -> {
 			if (e.getButton()==PRIMARY && user_drag) {
+				seeker.setValueChanging(true);
 				double x = e.getX();
 				double w = getWidth();
 				double v = x/w;
@@ -136,14 +144,15 @@ public final class Seeker extends AnchorPane {
 		seeker.setOnMouseReleased(e -> {
 			if (user_drag) {
 				if (e.getButton()==PRIMARY) {
-					double p = e.getX()/getWidth();
-					p = clip(0, p, 1);
+					double p = clip(0, e.getX()/getWidth(), 1);
 					APP.audio.seek(p);
+					seeker.setValueChanging(false);
 					runFX(millis(100), () -> user_drag = false);
 					if (seeker.isHover()) addB.show(); // ~bug fix
 				}
 				if (e.getButton()==SECONDARY) {
 					user_drag = false;
+					seeker.setValueChanging(false);
 				}
 			}
 		});
@@ -214,12 +223,12 @@ public final class Seeker extends AnchorPane {
 	}
 
 	private void setSeekerValue(double value) {
-//		 seeker.setValue(value);    // This triggers expensive layout
+		 seeker.setValue(value);    // This triggers expensive layout
 
-		var v = clip(0, value, 1);
-		var skin = seeker.getSkin();
-		var thumb = skin==null ? null : Util.<StackPane>getFieldValue(skin, "thumb");
-		if (thumb!=null) thumb.setTranslateX(seeker.getLayoutBounds().getWidth()*v-thumb.getLayoutBounds().getWidth()/2.0);
+//		var v = clip(0, value, 1);
+//		var skin = seeker.getSkin();
+//		var thumb = skin==null ? null : Util.<StackPane>getFieldValue(skin, "thumb");
+//		if (thumb!=null) thumb.setTranslateX(seeker.getLayoutBounds().getWidth()*v-thumb.getLayoutBounds().getWidth()/2.0);
 	}
 
 	@Override

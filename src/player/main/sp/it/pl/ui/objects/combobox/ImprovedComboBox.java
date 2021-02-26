@@ -21,14 +21,12 @@ import static sp.it.util.dev.FailKt.noNull;
  */
 public class ImprovedComboBox<T> extends ComboBox<T> {
 
-	/**
-	 * String converter for cell value factory. Default is Object::toString
-	 */
-	public final Function<T,String> toStringConverter;
-	/**
-	 * Text for when no value is selected. Default {@code "<none>"}
-	 */
+	/** Text for when no value is selected. Default {@code "<none>"} */
 	public final String emptyText;
+	/** String converter for cell value factory. Default is Object::toString */
+	public final Function<T,String> toStringConverter;
+	/** String converter for cell value factory. Default is Object::toString */
+	public final javafx.util.StringConverter<T> toStringConverterFx;
 	/**
 	 * Item search. Has no graphics.
 	 */
@@ -41,7 +39,7 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 			if (!getItems().isEmpty()) {
 				for (int i = 0; i<getItems().size(); i++) {
 					T e = getItems().get(i);
-					String es = toStringConverter.apply(e);
+					String es = toStringConverterFx.toString(e);
 					if (isMatchNth(es, query)) {
 						items.scrollTo(i);
 						// items.getSelectionModel().select(i); // TODO: make this work reasonably well
@@ -74,21 +72,20 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 	public ImprovedComboBox(Function<T,String> toS, String empty_text) {
 		noNull(toS, () -> empty_text);
 
-		emptyText = empty_text;
-		toStringConverter = toS;
 
-		// we need to set the converter specifically or the combobox cell wont get updated sometimes
-		setConverter(new javafx.util.StringConverter<>() {
-			@Override
-			public String toString(T object) {
+		this.emptyText = empty_text;
+		this.toStringConverter = toS;
+		this.toStringConverterFx = new javafx.util.StringConverter<>() {
+			@Override public String toString(T object) {
 				return object==null ? empty_text : toStringConverter.apply(object);
 			}
-
-			@Override
-			public T fromString(String string) {
+			@Override public T fromString(String string) {
 				return null;
 			}
-		});
+		};
+
+		// we need to set the converter specifically or the combobox cell wont get updated sometimes
+		setConverter(toStringConverterFx);
 		setCellFactory(view -> new ImprovedComboBoxListCell<>(this));
 		setButtonCell(getCellFactory().call(null));
 		setValue(null);
@@ -108,16 +105,16 @@ public class ImprovedComboBox<T> extends ComboBox<T> {
 	}
 
 	public static class ImprovedComboBoxListCell<T> extends ListCell<T> {   // do not extend ComboBoxListCell! causes problems!
-		protected Function<T,String> toStringConverter;
+		public final javafx.util.StringConverter<T> converter;
 
 		public ImprovedComboBoxListCell(ImprovedComboBox<T> comboBox) {
-			toStringConverter = comboBox.toStringConverter;
+			this.converter = comboBox.toStringConverterFx;
 		}
 
 		@Override
 		protected void updateItem(T item, boolean empty) {
 			super.updateItem(item, empty);
-			setText(empty ? "<none>" : toStringConverter.apply(item));
+			setText(converter.toString(empty ? null : item));
 		}
 	}
 }

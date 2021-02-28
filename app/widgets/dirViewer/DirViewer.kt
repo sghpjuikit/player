@@ -329,6 +329,12 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       navigation.breadcrumbs.values setTo dir.traverse { it.parent }.toList().asReversed()
       lastVisited = dir.value
       val locationsMaterialized = filesMaterialized
+
+      outputSelectedSuppressor.suppressing {
+         grid.itemsRaw setTo listOf()
+         grid.skinImpl!!.position = dir.lastScrollPosition max 0.0
+      }
+
       runIO {
          dir.children() let_ { it.sortedWith(buildSortComparator(locationsMaterialized, it)) }
       }.withAppProgress(

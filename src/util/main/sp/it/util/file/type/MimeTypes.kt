@@ -27,7 +27,7 @@ object MimeTypes {
     * @param type lower-case mime type identifier string
     * @return Instance of MimeType for the given mime type identifier or null if none was found
     */
-   fun ofType(type: String): MimeType = types.getOrDefault(type, MimeType.unknown)
+   fun ofType(type: String): MimeType? = types[type]
 
    /**
     * Get a @{link MimeType} instance for the given extension from the loaded

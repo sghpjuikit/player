@@ -2,6 +2,11 @@ package sp.it.util.file.type
 
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
+import sp.it.util.conf.Enumerator
+import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
+import sp.it.util.functional.net
+import sp.it.util.parsing.ConverterString
 
 /**
  * Represents a mimetype.
@@ -24,8 +29,16 @@ class MimeType(val name: String, vararg extensions: String) {
 
    override fun toString() = name
 
+   override fun equals(other: Any?) = this===other || other.asIf<MimeType>()?.name == name
+
+   override fun hashCode() = name.hashCode()
+
    @Suppress("NonAsciiCharacters", "ObjectPropertyName", "SpellCheckingInspection", "RemoveRedundantBackticks")
-   companion object {
+   companion object: ConverterString<MimeType>, Enumerator<MimeType> {
+
+      override fun toS(o: MimeType): String = o.name
+      override fun ofS(s: String) = MimeTypes.ofType(s)?.net { Try.ok(it) } ?: Try.error("'$s' is not recognized mime type")
+      override fun get() = MimeTypes.setOfMimeTypes()
 
       private fun mime(vararg mimeExtension: String) = PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, MimeType>> { _, property ->
          val m = MimeType(property.name.replace("∕", "/").replace("·", "."), *mimeExtension)

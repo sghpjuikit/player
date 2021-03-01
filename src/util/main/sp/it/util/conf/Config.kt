@@ -1,10 +1,10 @@
 package sp.it.util.conf
 
-import java.util.function.Supplier
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.ObservableList
+import kotlin.reflect.full.companionObjectInstance
 import mu.KLogging
 import sp.it.util.access.OrV
 import sp.it.util.access.vAlways
@@ -34,8 +34,6 @@ import sp.it.util.type.rawJ
 import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
 import sp.it.util.type.typeResolved
-
-private typealias Enumerator<T> = Supplier<Collection<T>>
 
 /**
  * Represents of a configurable value.
@@ -149,6 +147,10 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
             val values = type.jvmErasure.sealedSubObjects.asIs<List<T>>()
             if (type.isNullable) Enumerator { values + valueEnumerator2nd.orEmpty() + (null as T) }
             else Enumerator { values + valueEnumerator2nd.orEmpty() }
+         }
+         ?: (type.jvmErasure.companionObjectInstance as? Enumerator<T>)?.net { e ->
+            if (type.isNullable) Enumerator { e() + valueEnumerator2nd.orEmpty() + (null as T) }
+            else Enumerator { e() + valueEnumerator2nd.orEmpty() }
          }
    }
 

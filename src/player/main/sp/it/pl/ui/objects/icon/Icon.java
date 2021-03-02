@@ -41,7 +41,6 @@ import sp.it.util.animation.Anim;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.TryKt;
-import sp.it.util.text.UtilKt;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
@@ -59,6 +58,7 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.animation.Anim.mapTo01;
 import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.text.StringExtensionsKt.keysUi;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.Util.layHeaderBottom;
 import static sp.it.util.ui.Util.layHeaderLeft;
@@ -328,7 +328,7 @@ public class Icon extends StackPane {
 			Action a = (Action) action;
 			String title = a.getName();
 			String body = a.getInfo();
-			String keysRaw = UtilKt.keysUi(a);
+			String keysRaw = keysUi(a);
 			String keys = keysRaw.isEmpty() ? keysRaw : " (" + keysRaw + ")";
 			tooltip(title + keys + "\n\n" + body);
 		}

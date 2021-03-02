@@ -1,6 +1,23 @@
 package sp.it.pl.core
 
+import java.time.DateTimeException as DTE
+import java.time.format.DateTimeParseException as DTPE
+import java.util.regex.PatternSyntaxException as PSE
 import de.jensd.fx.glyphs.GlyphIcons
+import java.io.File
+import java.net.URI
+import java.net.URL
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.Path
+import java.nio.file.attribute.FileTime
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Year
+import java.time.format.DateTimeFormatter
+import java.util.function.BiFunction
+import java.util.regex.Pattern
 import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.effect.Effect
@@ -9,12 +26,23 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.relativeToOrSelf
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KTypeProjection.Companion.STAR
+import kotlin.reflect.KVariance
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.primaryConstructor
+import sp.it.pl.conf.Command
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppUi.SkinCss
+import sp.it.pl.main.FileFilter
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBase
@@ -26,9 +54,15 @@ import sp.it.pl.ui.objects.tree.Name
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.Action
+import sp.it.util.conf.Constraint
+import sp.it.util.dev.fail
+import sp.it.util.file.div
+import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toCompactS
-import sp.it.util.units.formatToSmallestUnit
+import sp.it.util.file.type.MimeExt
+import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.MimeType
 import sp.it.util.functional.Functors
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
@@ -37,10 +71,12 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
+import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.math.StrExF
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.ConverterFX
+import sp.it.util.parsing.ConverterString
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
 import sp.it.util.text.StringSplitParser
@@ -49,50 +85,19 @@ import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.VType
-import sp.it.util.type.isPlatformType
-import sp.it.util.type.raw
-import sp.it.util.units.Bitrate
-import sp.it.util.units.FileSize
-import sp.it.util.units.NofX
-import sp.it.util.units.uri
-import java.io.File
-import java.net.URI
-import java.net.URL
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.attribute.FileTime
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.Year
-import java.time.format.DateTimeFormatter
-import java.util.regex.Pattern
-import kotlin.reflect.KClass
-import kotlin.reflect.KType
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.KVariance
-import kotlin.reflect.full.createType
-import java.time.DateTimeException as DTE
-import java.time.format.DateTimeParseException as DTPE
-import java.util.regex.PatternSyntaxException as PSE
-import java.lang.RuntimeException
-import java.nio.file.Path
-import java.util.function.BiFunction
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.relativeToOrSelf
-import kotlin.reflect.full.primaryConstructor
-import sp.it.pl.conf.Command
-import sp.it.util.conf.Constraint
-import sp.it.util.dev.fail
-import sp.it.util.file.div
-import sp.it.util.file.isAnyParentOrSelfOf
-import sp.it.util.functional.net
-import sp.it.util.parsing.ConverterString
 import sp.it.util.type.enumValues
 import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
+import sp.it.util.type.isPlatformType
+import sp.it.util.type.raw
 import sp.it.util.type.sealedSubObjects
+import sp.it.util.type.type
+import sp.it.util.units.Bitrate
+import sp.it.util.units.FileSize
+import sp.it.util.units.NofX
 import sp.it.util.units.durationOfHMSMs
+import sp.it.util.units.formatToSmallestUnit
+import sp.it.util.units.uri
 
 private typealias NFE = NumberFormatException
 private typealias IAE = IllegalArgumentException
@@ -114,7 +119,7 @@ object CoreConverter: Core {
          is Class<*> -> APP.className[o.kotlin]
          is KClass<*> -> APP.className[o]
          is KTypeProjection -> when (o) {
-            KTypeProjection.STAR -> "*"
+            STAR -> "*"
             else -> {
                val v = when (o.variance!!) {
                   KVariance.INVARIANT -> ""
@@ -182,13 +187,13 @@ object CoreConverter: Core {
             type.isEnum -> {
                val values = type.enumValues
                val value = null
-                  ?: values.find { it.asIs<Enum<*>>().name == s }
+                  ?: values.find { it.asIs<Enum<*>>().name==s }
                   ?: values.find { it.asIs<Enum<*>>().name.equals(s, ignoreCase = true) }
                value?.net { Try.ok(it) } ?: Try.error("Not a valid value: \"$s\"")
             }
             type.isObject -> Try.ok(type.objectInstance)
             type.isSealed -> type.sealedSubObjects
-               .find { it::class.simpleName == s }
+               .find { it::class.simpleName==s }
                ?.let { Try.ok(it) }
                ?: Try.error("Not a valid value: \"$s\"")
             type.isData -> runTry {
@@ -198,7 +203,7 @@ object CoreConverter: Core {
                      .map { ps ->
                         val argS = when (ps.size) {
                            2 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.indexOf(", ${ps[1].name!!}="))
-                           1 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.length-1)
+                           1 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.length - 1)
                            else -> fail()
                         }
                         general.ofS(ps[0].type.raw, argS).orThrow
@@ -231,7 +236,7 @@ object CoreConverter: Core {
          },
          {
             val appPrefix = "<app-dir>${File.separator}"
-            if (it.startsWith(appPrefix)) APP.location.toPath() / it.substringAfter(appPrefix)
+            if (it.startsWith(appPrefix)) APP.location.toPath()/it.substringAfter(appPrefix)
             else File(it).toPath()
          }
       )
@@ -242,7 +247,7 @@ object CoreConverter: Core {
          },
          {
             val appPrefix = "<app-dir>${File.separator}"
-            if (it.startsWith(appPrefix)) APP.location / it.substringAfter(appPrefix)
+            if (it.startsWith(appPrefix)) APP.location/it.substringAfter(appPrefix)
             else File(it)
          }
       )
@@ -254,6 +259,10 @@ object CoreConverter: Core {
       addP<FileSize>(FileSize)
       addP<StrExF>(StrExF)
       addP<NofX>(NofX)
+      addP<MimeGroup>(MimeGroup)
+      addP<MimeType>(MimeType)
+      addP<MimeExt>(MimeExt)
+      addP<FileFilter>(FileFilter)
       addT<TableColumnInfo>(toS, { TableColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnInfo>(toS, { TableColumnInfo.ColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnSortInfo>(toS, { TableColumnInfo.ColumnSortInfo.fromString(it).orMessage() })
@@ -280,7 +289,6 @@ object CoreConverter: Core {
             "kotlin.Nothing" -> Nothing::class
             else -> Class.forName(sanitized).kotlin
          }
-
 
       })
       addP<PF<*, *>>(
@@ -339,69 +347,108 @@ interface NameUi {
    val nameUi: String
 }
 
+class UiStringHelper<T>(val parse: ParserOr<T>): Constraint.MarkerConstraint()
 
 /** parser into a value. Can be used as [Constraint] as well. */
 interface Parse<T> {
 
-   fun parse(text: String): Try<T,Throwable>
+   fun parse(text: String): Try<T, String>
 
    fun toConstraint() = object: Constraint<String?> {
       override fun message() = "Not valid value"
       override fun isValid(value: String?) = validate(value).isOk
-      override fun validate(value: String?) = when {
-         value == null -> Try.ok()
-         else -> parse(value).map { null }.orMessage()
-      }
+      override fun validate(value: String?) = if (value==null) Try.ok() else parse(value).map { null }
    }
 
    companion object {
 
       /** @return combined parser composing the specified parsers with [Boolean.or] */
-      fun <T> or(vararg parsers: Parse<T>): Parse<T> = object: Parse<T> {
-         override fun parse(text: String): Try<T, Throwable> {
-            val outputs = mutableListOf<Try<T, Throwable>>()
-            return parsers.map { it.parse(text) }.onEach(outputs::add).find { it.isOk }
-               ?: Try.error(
-                  RuntimeException("Not valid value:" + outputs.joinToString("") { "\n${it.orMessage().errorOrThrow}" })
-               )
-         }
-      }
+      fun <T> or(vararg parsers: Parser<T>): ParserOr<T> = ParserOr(parsers.toList())
 
    }
 }
 
+data class ParserOr<T>(val parsers: List<Parser<T>>): Parse<T> {
+   override fun parse(text: String): Try<T, String> {
+      val errors = mutableListOf<Try<T, String>>()
+      return parsers.map { it.parse(text) }.onEach(errors::add).find { it.isOk }
+         ?: Try.error("Not valid value:" + errors.joinToString("") { "\n${it.errorOrThrow}" })
+   }
+
+   fun toUiStringHelper() = UiStringHelper(this)
+}
+
 /** Simple [Parse]. Exposes matching parts as [args], which can be used for UX hints or auto autocompletion. */
-data class Parser<T>(val type: VType<T>, val args: List<Any?>, val builder: (List<Any?>) -> T): Parse<T> {
-   override fun parse(text: String): Try<T,Throwable> {
-      var at = 0
+data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val builder: (List<Any?>) -> T): Parse<T> {
+
+   companion object {
+      @JvmName("invoke2")
+      inline operator fun <reified T> invoke(args: List<ParserArg<*>>, noinline builder: (List<Any?>) -> T) = Parser(type(), args, builder)
+      @JvmName("invoke1")
+      inline operator fun <reified T> invoke(vararg args: Any?, noinline builder: (List<Any?>) -> T) = Parser(
+         type(),
+         args.map {
+            when {
+               it is String -> ParserArg.Val(it)
+               it is KClass<*> -> ParserArg.Arg(VType(it.createType(it.typeParameters.map { STAR })))
+               else -> fail { "" } }
+         },
+         builder
+      )
+   }
+
+   override fun parse(text: String): Try<T, String> = parseWithErrorPositions(text).mapError { it.second }
+
+   fun parseWithErrorPositions(text: String): Try<T, Pair<Int, String>> {
+      var charAt = 0
       val delimiter = " "
       val output = mutableListOf<Any?>()
-      var error: Throwable? = null
+      var error: String? = null
+      val errorAt = args.asSequence()
+         .mapIndexed { i, arg ->
+            val isFirst = i==0
+            val isLast = i==args.size - 1
 
-      args.forEachIndexed { i, arg ->
-         val subtext = text.substring(at)
-         val isLast = i==args.size-1
+            if (error==null) {
+               if (!isFirst) {
+                  when {
+                     text.startsWith(delimiter, charAt) -> charAt += delimiter.length
+                     else -> error = "Does not contain '$delimiter' at $charAt"
+                  }
+               }
+            }
 
-         when (arg) {
-            is String -> when {
-               subtext.startsWith(arg) -> at += arg.length
-               else -> error = RuntimeException("Does not begin at $at with '$arg'")
+            if (error==null) {
+               when (arg) {
+                  is ParserArg.Val -> when {
+                     text.startsWith(arg.value, charAt) -> {
+                        charAt += arg.value.length
+                        output += arg.value
+                     }
+                     else -> error = "Does not contain '$arg' at $charAt'"
+                  }
+                  is ParserArg.Arg<*> -> {
+                     val valueAsText = if (isLast) text.substring(charAt) else text.substring(charAt).substringBefore(delimiter)
+                     CoreConverter.general.ofS(arg.type, valueAsText).ifOk { output += it }.ifError { error = it }
+                     charAt += valueAsText.length
+                  }
+               }
             }
-            is KClass<*> -> {
-               val valueAsText = if (isLast) subtext else subtext.substringBefore(delimiter)
-               CoreConverter.general.ofS(arg, valueAsText).ifOk { output += it }.ifError { error = RuntimeException(it) }
-               at += valueAsText.length
-            }
+
          }
+         .takeWhile { error==null }
+         .count()
 
-         if (!isLast) {
-            when {
-               text.startsWith(delimiter, at) -> at += delimiter.length
-               else -> error = RuntimeException("Does not begin at $at with '$delimiter'")
-            }
-         }
-      }
+      return error?.net { Try.error(errorAt to it) } ?: Try.ok(builder(output))
+   }
 
-      return error?.net { Try.error(it) } ?: Try.ok(builder(output))
+}
+
+sealed class ParserArg<T> {
+   abstract val type: VType<T>
+
+   data class Arg<T>(override val type: VType<T>): ParserArg<T>()
+   data class Val(val value: String): ParserArg<String>() {
+      override val type: VType<String> = VType(String::class.createType())
    }
 }

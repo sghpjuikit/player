@@ -27,12 +27,16 @@ import javax.imageio.ImageIO
 import kotlin.streams.asSequence
 import sp.it.pl.core.Parse
 import sp.it.pl.core.Parser
-import sp.it.util.access.V
+import sp.it.pl.core.ParserOr
+import sp.it.util.access.v
 import sp.it.util.conf.but
 import sp.it.util.conf.cv
+import sp.it.util.file.type.MimeExt
+import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.MimeType
 import sp.it.util.functional.asIs
-import sp.it.util.functional.getOrSupply
-import sp.it.util.functional.net
+import sp.it.util.parsing.ConverterString
+import sp.it.util.text.equalsNc
 
 private val logger = KotlinLogging.logger { }
 
@@ -168,6 +172,15 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
    logger.error(it) { "Could not save image to file=$file" }
 }
 
+data class FileFilter(val value: PF0<File, Boolean>) {
+   constructor(name: String, f: (File) -> Boolean): this(PF0(name, type(), type(), f))
+
+   companion object: ConverterString<FileFilter> {
+      override fun toS(o: FileFilter) = o.value.name
+      override fun ofS(s: String) = FileFilters.parser.parse(s)
+   }
+}
+
 /**
  * Pool of file filters intended for simple enum-like file filter selection in UI.
  *
@@ -177,43 +190,35 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
 object FileFilters {
 
    /** Default file filter. Returns true for every file. */
-   val filterPrimary = FileFilter("File - all", type(), type()) { true }
+   val filterPrimary = FileFilter("File - all") { true }
 
    /** Parser converting [String] to [FileFilter]. */
-   val parser: Parse<FileFilter> = Parse.or(
-      Parser(type(), listOf("File - all")) { filterPrimary },
-      Parser(type(), listOf("File - is audio")) { FileFilter("File - is audio", type(), type()) { it.isAudio() } },
-      Parser(type(), listOf("File - is image")) { FileFilter("File - is image", type(), type()) { it.isImage() } },
-      Parser(type(), listOf("File - is video")) { FileFilter("File - is video", type(), type()) { it.isVideo() } },
-      Parser(type(), listOf("File type - file")) { FileFilter("File type - file", type(), type()) { it.isFile } },
-      Parser(type(), listOf("File type - directory")) { FileFilter("File type - directory", type(), type()) { it.isDirectory } },
-      Parser(type(), args = listOf("Mime type group - is", String::class)) { it ->
-         val group = it[0].asIs<String>()
-         FileFilter("Mime type group - is ${group.capitalize()}", type(), type()) { group==it.mimeType().group }
+   val parser: ParserOr<FileFilter> = Parse.or(
+      Parser("File - all") { filterPrimary },
+      Parser("File - is audio") { FileFilter("File - is audio") { it.isAudio() } },
+      Parser("File - is image") { FileFilter("File - is image") { it.isImage() } },
+      Parser("File - is video") { FileFilter("File - is video") { it.isVideo() } },
+      Parser("File type - file") { FileFilter("File type - file") { it.isFile } },
+      Parser("File type - directory") { FileFilter("File type - directory") { it.isDirectory } },
+      Parser("Mime type group - is", MimeGroup::class) { it ->
+         val group = it[1].asIs<MimeGroup>().name.toLowerCase()
+         FileFilter("Mime type group - is ${group.capitalize()}") { group equalsNc it.mimeType().group }
       },
-      Parser(type(), listOf("Mime type - is", String::class)) { it ->
-         val mimeTypeName = it[0].asIs<String>()
-         FileFilter("Mime type - is ${mimeTypeName.capitalize()}", type(), type()) { mimeTypeName==it.mimeType().name }
+      Parser("Mime type - is", MimeType::class) { it ->
+         val mimeType = it[1].asIs<MimeType>()
+         FileFilter("Mime type - is ${mimeType.name.capitalize()}") { mimeType==it.mimeType() }
       },
-      Parser(type(), listOf("Type - is", String::class)) { it ->
-         val extension = it[0].asIs<String>()
-         FileFilter("Type - is $extension", type(), type()) { it.extension.equals(extension, ignoreCase = true) }
-      },
+      Parser("Type - is", MimeExt::class) { it ->
+         val extension = it[1].asIs<MimeExt>().name
+         FileFilter("Type - is $extension") { it.extension equalsNc extension }
+      }
    )
 
-   /** @return filter with specified name or primary filter if no such filter */
-   fun getOrPrimary(name: String): PF0<File, Boolean> = parser.parse(name).getOrSupply { filterPrimary }
-
    /** @return [javafx.beans.value.ObservableValue] for [FileFilter] */
-   fun vFileFilter(initialValue: String = filterPrimary.name) = FileFilterValue(initialValue)
+   fun vFileFilter(initialValue: FileFilter = filterPrimary) = v(initialValue)
 
    /** @return delegated configurable [javafx.beans.value.ObservableValue] for [FileFilter] */
-   fun cvFileFilter() = cv(filterPrimary.name) { vFileFilter(it) }.but(parser.toConstraint())
-
-   class FileFilterValue(initialValue: String = filterPrimary.name): V<String>(initialValue) {
-      /** @return the filter represented by the current value, which is the name of the returned filter */
-      val valueAsFilter: PF0<File, Boolean> = getOrPrimary(value)
-   }
+   fun cvFileFilter() = cv(filterPrimary) { vFileFilter(it) }.but(parser.toUiStringHelper())
 }
 
 enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {

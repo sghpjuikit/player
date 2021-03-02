@@ -25,6 +25,7 @@ import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.but
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
@@ -137,7 +138,7 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
 
       fun asConfigurable(icon: Icon): Configurable<*> = object: ConfigurableBase<Any?>() {
          val glyph by cv(icon.glyph).attach { icon.icon(it) }.values(Glyphs.GLYPHS).def(name = "Icon")
-         val command by cv(icon.command).attach { icon.command = it }.def(name = "Command")
+         val command by cv(icon.command).attach { icon.command = it }.def(name = "Command").but(Command.parser.toUiStringHelper())
       }
 
       var Icon.commandImpl: Command by property { Command.DoNothing }

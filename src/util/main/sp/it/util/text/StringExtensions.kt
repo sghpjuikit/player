@@ -14,6 +14,9 @@ import java.text.BreakIterator
 import java.util.Locale
 import kotlin.streams.asSequence
 
+/** @return true iff this string is equal to the specified string, ignoring the case */
+infix fun String.equalsNc(other: String) = this.equals(other, ignoreCase = true)
+
 /** Length of this string in characters */
 val String.lengthInChars: Int get() = length
 

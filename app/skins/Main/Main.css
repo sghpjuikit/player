@@ -1821,17 +1821,51 @@ Shape, Text, TextFlow > * {
  * inherits: .label
  * pseudoclasses: readonly
  */
-.tag-text-field-tag {
+.tag-text-field .tag-text-field-tag {
     -fx-content-display: right;
     -fx-label-padding: 0 0 0 0.5em;
     -fx-border-width: 1;
     -fx-border-radius: 0.5em;
     -fx-border-color: -skin-def-font-color;
 }
-.tag-text-field-tag:readonly {
+.tag-text-field .tag-text-field-tag:readonly {
     -fx-label-padding: 0 0.5em 0 0.5em;
 }
-.tag-text-field-tag:hover {
+.tag-text-field .tag-text-field-tag:hover {
+    -fx-border-color: -fx-focus-color;
+}
+
+/**
+ * inherits: FlowPane
+ * pseudoclasses: readonly, focused
+ */
+.complex-text-field {
+    -fx-padding: 0.16667em;
+    -fx-hgap: 0.16667em;
+    -fx-vgap: 0.16667em;
+}
+.complex-text-field:hover {
+    -fx-background-color: rgba(0,0,0,0.1);
+}
+.complex-text-field:focused {
+    -fx-background-color: rgba(0,0,0,0.2);
+}
+
+.complex-text-field .combo-box {}
+
+/**
+ * inherits: .label
+ * pseudoclasses: readonly
+ */
+.complex-text-field .complex-text-field-tag {
+    -fx-content-display: right;
+    -fx-label-padding: 0 0.5em 0 0.5em;
+    -fx-border-width: 1;
+    -fx-border-radius: 0.5em;
+    -fx-border-color: -skin-def-font-color;
+}
+.complex-text-field .complex-text-field-tag:readonly {}
+.complex-text-field .complex-text-field-tag:hover {
     -fx-border-color: -fx-focus-color;
 }
 

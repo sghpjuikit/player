@@ -22,13 +22,11 @@ interface Suppressed {
 }
 
 /** Mutable [Suppressed]. Not thread-safe. */
-class Suppressor(override var isSuppressed: Boolean = false): Suppressed {
-
-}
+class Suppressor(override var isSuppressed: Boolean = false): Suppressed
 
 /** Invokes the block if [Suppressor.isSuppressed] is false */
 @OptIn(ExperimentalContracts::class)
-inline fun Suppressor.suppressed(block: () -> Unit) {
+inline fun Suppressed.suppressed(block: () -> Unit) {
    contract {
       callsInPlace(block, AT_MOST_ONCE)
    }

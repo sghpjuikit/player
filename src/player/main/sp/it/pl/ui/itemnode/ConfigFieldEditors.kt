@@ -13,7 +13,6 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
-import javafx.scene.control.ColorPicker
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
@@ -153,7 +152,8 @@ private val globTooltip = appTooltip("Global shortcut"
    + "the same shortcut, usually the one that was first started will work properly.")
 private val overTooltip = appTooltip("Override value\n\nUses specified value if true or inherited value if false.")
 
-private const val STYLECLASS_TEXT_CONFIG_EDITOR = "text-config-editor"
+const val STYLECLASS_COMBOBOX_CONFIG_EDITOR = "combobox-field-config"
+const val STYLECLASS_TEXT_CONFIG_EDITOR = "text-config-editor"
 const val STYLECLASS_CONFIG_EDITOR_WARN_BUTTON = "config-editor-warn-button"
 
 private fun <T> getObservableValue(c: Config<T>): ObservableValue<T>? = when {
@@ -223,6 +223,61 @@ class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
 
 }
 
+// TODO: finish details, nullability, etc
+class ComplexCE<T>(c: Config<T>): ConfigEditor<T>(c) {
+   private val v = getObservableValue(c)
+   private val isObservable = v!=null
+   private val isNullable = c.type.isNullable
+   private val parser = c.findConstraint<UiStringHelper<T>>()!!
+   private val valueChanging = Suppressor()
+   private val valueTextChangingApp = Suppressor()
+   private val valueTextChangingUser = Suppressor()
+   private var valueFromPrimary = true
+   val editorPrimary = ComplexTextField(parser)
+   val editorSecondary = TextField()
+   override val editor = vBox {
+      lay += editorSecondary
+      lay(ALWAYS) += editorPrimary
+   }
+
+   init {
+      editorSecondary.apply {
+         styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+
+         editorPrimary.valueText sync {
+            valueTextChangingUser.suppressed {
+               valueTextChangingApp.suppressing {
+                  valueFromPrimary = true
+                  text = it
+               }
+            }
+         }
+         textProperty() attach {
+            valueTextChangingApp.suppressed {
+               valueTextChangingUser.suppressing {
+                  valueFromPrimary = false
+                  editorPrimary.clearValue()
+                  apply()
+               }
+            }
+         }
+      }
+
+      editorPrimary.updateValue(c.value)
+      editorPrimary.onValueChange.addS { valueTextChangingUser.suppressed { valueChanging.suppressing { apply() } } } on editor.onNodeDispose
+      v?.attach { valueChanging.suppressed { editorPrimary.updateValue(it) } }.orEmpty() on editor.onNodeDispose
+   }
+
+   override fun get() = if (valueFromPrimary) editorPrimary.computeValue() else parser.parse.parse(editorSecondary.text)
+
+   override fun refreshValue() {
+      if (!isObservable)
+         valueChanging.suppressed {
+            editorPrimary.updateValue(config.value)
+         }
+   }
+}
+
 class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
    private val v = getObservableValue(c)
    private val isObservable = v!=null
@@ -280,7 +335,7 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
    private val disposer = editor.onNodeDispose
 
    init {
-      editor.styleClass += "combobox-field-config"
+      editor.styleClass += STYLECLASS_COMBOBOX_CONFIG_EDITOR
       v?.attach { editor.value = c.value }.orEmpty() on disposer
       if (enumeration is Observable) {
          val list = observableArrayList<T>()

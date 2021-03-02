@@ -47,15 +47,17 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
 
       // ENTER commits tag, BACKSPACE removes last tag
       textField.onEventDown(KEY_PRESSED, ENTER) {
-         converterString.ofS(textField.text ?: "").ifOk {
-            textField.text = ""
-            items += it
-         }
+         if (isEditable.value)
+            converterString.ofS(textField.text ?: "").ifOk {
+               textField.text = ""
+               items += it
+            }
       }
       textField.onEventDown(KEY_PRESSED, BACK_SPACE) {
-         if (textField.text.isEmpty()) {
-            items setTo items.toList().dropLast(1)
-         }
+         if (isEditable.value)
+            if (textField.text.isEmpty()) {
+               items setTo items.toList().dropLast(1)
+            }
       }
 
       // Read-only mode disables

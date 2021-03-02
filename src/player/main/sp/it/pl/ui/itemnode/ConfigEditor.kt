@@ -293,11 +293,15 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
       @JvmStatic
       fun <T> create(config: Config<T>): ConfigEditor<T> {
          fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && !type.isNullable && constraints.any { it is NumberMinMax && it.isClosed() }
+         fun Config<*>.isComplex() = constraints.any { it is UiStringHelper<*> }
 
          return when {
             config.isEnumerable -> when (config.type.jvmErasure) {
                KeyCode::class -> KeyCodeCE(config.asIs())
                else -> EnumerableCE(config)
+            }
+            config.isComplex() -> {
+               ComplexCE(config.asIs())
             }
             config.isMinMax() -> {
                SliderCE(config.asIs())

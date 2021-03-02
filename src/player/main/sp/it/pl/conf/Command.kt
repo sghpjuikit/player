@@ -4,6 +4,7 @@ import java.io.File as FileIo
 import sp.it.pl.conf.Command.DoFile.Op
 import sp.it.pl.core.Parse
 import sp.it.pl.core.Parser
+import sp.it.pl.core.ParserOr
 import sp.it.pl.core.orMessage
 import sp.it.pl.layout.widget.ComponentLoaderStrategy
 import sp.it.pl.main.APP
@@ -21,7 +22,6 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.text.split2Partial
-import sp.it.util.type.type
 
 /**
  * A runnable defined by a string ([Command.toS]/[Command.ofS]).
@@ -72,11 +72,11 @@ sealed class Command: () -> Unit {
 
    companion object: ConverterString<Command> {
 
-      val parser: Parse<Command> = Parse.or(
-         Parser(type(), listOf("command do nothing")) { DoNothing },
-         Parser(type(), listOf("command file", Op::class, java.io.File::class)) { DoFile(it[0].asIs(), it[1].asIs()) },
-         Parser(type(), listOf("command component open", ComponentLoaderStrategy::class, String::class)) { DoComponentOpen(it[0].asIs(), it[1].asIs()) },
-         Parser(type(), listOf("command action", String::class)) { DoAction(it[0].asIs()) },
+      val parser: ParserOr<Command> = Parse.or(
+         Parser("command do nothing") { DoNothing },
+         Parser("command file", Op::class, java.io.File::class) { DoFile(it[1].asIs(), it[2].asIs()) },
+         Parser("command component open", ComponentLoaderStrategy::class, String::class) { DoComponentOpen(it[1].asIs(), it[2].asIs()) },
+         Parser("command action", String::class) { DoAction(it[1].asIs()) },
       )
 
       override fun ofS(s: String): Try<Command, String> = when {

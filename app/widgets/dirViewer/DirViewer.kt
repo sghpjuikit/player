@@ -493,7 +493,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
       override fun createItem(parent: Item, value: File, type: FileType) = FItem(parent, value, type)
 
-      override fun filterChildFile(f: File) = !f.isHidden && f.canRead() && filter.valueAsFilter.apply(f, arrayOf())
+      override fun filterChildFile(f: File) = !f.isHidden && f.canRead() && filter.value.value.apply(f, arrayOf())
 
    }
 

@@ -540,7 +540,7 @@
     -fx-background-color: null;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    -fx-padding: 5;
+    -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
     -fx-prompt-text-fill: -skin-def-font-color;
     -fx-effect: null;
@@ -558,7 +558,7 @@
     -fx-background-color: rgba(0,0,0,0.1);
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    -fx-padding: 5;
+    -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
     -fx-prompt-text-fill: -skin-def-font-color;
     -fx-effect: null;
@@ -575,7 +575,7 @@
     -fx-background-color: rgba(0,0,0,0.2);
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    -fx-padding: 5;
+    -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
     -fx-prompt-text-fill: -skin-def-font-color;
     -fx-effect: null;
@@ -637,7 +637,7 @@
 .text-area:focused .content {
     -fx-background-color:  transparent;
     -fx-background-insets: 0;
-    -fx-padding: 3 6 2 6;
+    -fx-padding: 0em 0em 0.25em 0em;
 }
 
 /*********************************** Text *************************************/

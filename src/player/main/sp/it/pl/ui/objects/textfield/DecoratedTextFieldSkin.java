@@ -68,6 +68,10 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 			leftPane.getStyleClass().add("left-pane");
 			getChildren().add(leftPane);
 			left = newLeft;
+		} else {
+			if (leftPane!=null) getChildren().remove(leftPane);
+			leftPane = null;
+			left = null;
 		}
 
 		Node newRight = control.right.get();
@@ -78,6 +82,10 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 			rightPane.getStyleClass().add("right-pane");
 			getChildren().add(rightPane);
 			right = newRight;
+		} else {
+			if (rightPane!=null) getChildren().remove(rightPane);
+			rightPane = null;
+			right = null;
 		}
 
 		control.pseudoClassStateChanged(HAS_LEFT_NODE, left!=null);

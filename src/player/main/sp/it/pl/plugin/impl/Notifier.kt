@@ -2,6 +2,7 @@ package sp.it.pl.plugin.impl
 
 import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT
+import javafx.geometry.VPos
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -34,6 +35,7 @@ import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.collections.materialize
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
@@ -69,7 +71,7 @@ import sp.it.util.units.seconds
 class Notifier: PluginBase() {
 
    private val onStop = Disposer()
-   private var n = Notification()
+   private val ns = mutableListOf<Notification>()
    private lateinit var songNotificationGui: Node
    private lateinit var songNotificationInfo: SongReader
 
@@ -139,17 +141,27 @@ class Notifier: PluginBase() {
 
    override fun stop() {
       onStop()
-      n.hideImmediately()
+      ns.materialize().forEach(Notification::hideImmediately)
    }
 
    /** Show notification for custom content. */
    fun showNotification(title: String, content: Node) {
+      val n = ns.find { it.content === content } ?: Notification()
+      val nss = ns - n
       n.setContent(content, title)
       n.isAutohide.value = notificationAutohide
       n.duration = notificationDuration
       n.rClickAction = onClickR.value
       n.lClickAction = onClickL.value
-      n.show(notificationScr(notificationPos))
+      n.onShown.addSOnetime { ns += n }
+      n.onHidden.addSOnetime { ns -= n }
+      n.show(notificationScr(notificationPos).map {
+         if (nss.isEmpty()) it
+         else when(notificationPos.vpos!!) {
+            VPos.BOTTOM, VPos.CENTER -> it.x x ((nss.map { it.root.localToScreen(0.0, 0.0).y }.minOrNull() ?: 0.0) - n.root.height)
+            VPos.BASELINE, VPos.TOP -> it.x x (nss.map { it.root.localToScreen(0.0, it.root.height).y }.maxOrNull() ?: notificationScr.bounds().second.maxY)
+         }
+      })
    }
 
    /** Show notification displaying given text. */
@@ -185,7 +197,7 @@ class Notifier: PluginBase() {
    /** Hide notification if showing, otherwise does nothing. */
    @IsAction(name = "Notification hide", info = "Hide notification if it is showing")
    fun hideNotification() {
-      n.hide()
+      ns.forEach(Notification::hide)
    }
 
    @IsAction(name = "Notify now playing", info = "Shows notification about currently playing song.", global = true, keys = "ALT + N")

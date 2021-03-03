@@ -179,9 +179,13 @@ import sp.it.pl.ui.objects.tagtextfield.TagTextField
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Try
+import sp.it.util.math.clip
+import sp.it.util.math.max
+import sp.it.util.math.min
 import sp.it.util.parsing.ConverterFromString
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.syncTo
 import sp.it.util.text.splitTrimmed
 import sp.it.util.type.property
 import sp.it.util.ui.show
@@ -220,7 +224,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    val ratingF: DTextField = grid.lookupId("ratingF")
    val ratingPF: DTextField = grid.lookupId("ratingPF")
    val playcountF: DTextField = grid.lookupId("playcountF")
-   val commentF: DTextField = grid.lookupId("commentF")
+   val commentF: TextArea = grid.lookupId("commentF")
    val colorF: DTextField = grid.lookupId("colorF")
    val colorFValue = vn<Color>(null)
    val colorFPicker: ColorPicker = colorF.right.value as ColorPicker
@@ -908,16 +912,12 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
                   val rowHeight = v(0.0)
                   APP.ui.font sync { rowHeight.value = 2.em.emScaled } on onClose
-                  repeat(24) {
+                  repeat(25) {
                      rowConstraints += gridPaneRow {
                         isFillHeight = false
                         vgrow = NEVER
-                        prefHeightProperty() syncFrom rowHeight
+                        if (it!=13 && it!=24) prefHeightProperty() syncFrom rowHeight
                      }
-                  }
-                  rowConstraints += gridPaneRow {
-                     isFillHeight = false
-                     vgrow = NEVER
                   }
 
                   listOf(
@@ -1003,7 +1003,16 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      descriptionNodeId = "ratingF"
                   }
                   layTextField("playcountF", 12)
-                  layTextField("commentF", 13)
+                  lay(row = 13, column = 1, hAlignment = HPos.LEFT, colSpan = GridPane.REMAINING) += textArea {
+                     id = "commentF"
+                     minSize = 0 x 0
+                     maxSize = Double.MAX_VALUE.x2
+                     styleClass += "tag-field"
+                     isWrapText = true
+                     syncTo(textProperty(), prefColumnCountProperty()) { txt, columns ->
+                        prefRowCount = (txt.orEmpty().lineSequence().sumBy { 1 max ceil(it.length.toDouble()/columns.toDouble()).roundToInt() } - 1).clip(0,6)
+                     }
+                  }
                   lay(row = 14, column = 1, hAlignment = HPos.LEFT, colSpan = GridPane.REMAINING) += MoodItemNode().apply {
                      id = "moodF"
                      minSize = 0 x 0

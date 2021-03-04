@@ -112,6 +112,9 @@ val appSetting = Setting.root {
       config("Skin") {
          info = "Skin of the application. Determines single stylesheet file applied on `.root` of all windows."
       }
+      config("Skin extensions") {
+         info = "Additional stylesheet files applied on `.root` of all windows. Override styles set by the skin. Applied in the specified order."
+      }
       config("Font") {
          info = "Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null retains font set by the skin."
       }

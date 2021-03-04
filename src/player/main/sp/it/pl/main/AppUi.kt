@@ -80,6 +80,11 @@ import sp.it.pl.main.AppSettings.ui.table as confTable
 import sp.it.pl.main.AppSettings.ui.grid as confGrid
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.util.conf.Constraint
+import sp.it.util.conf.butElement
+import sp.it.util.conf.cList
+import sp.it.util.file.FileType.FILE
+import sp.it.util.reactive.Subscription
 import sp.it.util.units.em
 
 class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
@@ -106,6 +111,8 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    /** Skin of the application. Determines single stylesheet file applied on `.root` of all windows. */
    val skin by cv("Main").values(skins.project { it.name }) def confUi.skin
+   /** Additional stylesheet files applied on `.root` of all windows. Override styles set by the skin. Applied in the specified order. */
+   val skinExtensions by cList<File>().butElement(Constraint.FileActor(FILE)) def confUi.skinExtensions
    /** Font of the application. Overrides `-fx-font-family` and `-fx-font-size` defined by css on `.root`. */
    val font by cvn<Font>(null) def confUi.font sync {
       val f = APP.locationTmp/"user-font-skin.css"
@@ -122,6 +129,10 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       monitorSkinFiles()
       observeWindowsAndSyncSkin()
       observeWindowsAndSyncWidgetFocus()
+      skinExtensions.onItemSyncWhile {
+         additionalStylesheets += it
+         Subscription { additionalStylesheets -= it }
+      }
    }
 
    val viewDisplay by cv(Display.SCREEN_OF_MOUSE) def overlayArea

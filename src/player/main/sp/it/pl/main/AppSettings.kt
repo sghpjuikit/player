@@ -472,6 +472,22 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
+      object `skinExtensions`: ConfigDefinition {
+         /** Compile-time constant equivalent to [name]. */
+         const val cname: String = """Skin extensions"""
+         /** Compile-time constant equivalent to [info]. */
+         const val cinfo: String = """Additional stylesheet files applied on `.root` of all windows. Override styles set by the skin. Applied in the specified order."""
+         /** Compile-time constant equivalent to [group]. */
+         const val cgroup: String = """Ui"""
+         /** Name of the config. */
+         override val name = cname
+         /** Group of the config. */
+         override val group = cgroup
+         /** Description of the config. */
+         override val info = cinfo
+         /** Editability of the config. */
+         override val editable = EditMode.USER
+      }
       object `font`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Font"""
@@ -784,22 +800,6 @@ Features:
             const val cname: String = """Cell alignment"""
             /** Compile-time constant equivalent to [info]. */
             const val cinfo: String = """Determines horizontal alignment of the grid cells within the grid."""
-            /** Compile-time constant equivalent to [group]. */
-            const val cgroup: String = """Ui.Grid"""
-            /** Name of the config. */
-            override val name = cname
-            /** Group of the config. */
-            override val group = cgroup
-            /** Description of the config. */
-            override val info = cinfo
-            /** Editability of the config. */
-            override val editable = EditMode.USER
-         }
-         object `showGridHeader`: ConfigDefinition {
-            /** Compile-time constant equivalent to [name]. */
-            const val cname: String = """Show grid header"""
-            /** Compile-time constant equivalent to [info]. */
-            const val cinfo: String = """Show grid header with columns"""
             /** Compile-time constant equivalent to [group]. */
             const val cgroup: String = """Ui.Grid"""
             /** Name of the config. */

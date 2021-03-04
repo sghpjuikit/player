@@ -2,6 +2,8 @@ package sp.it.util.type
 
 import kotlin.reflect.KClass
 import sp.it.util.dev.fail
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 
 /** True iff this class is a enum. [Class.isEnum] does not work for enums with class method bodies. See [Class.enumValues]. */
 val Class<*>.isEnumClass: Boolean
@@ -33,7 +35,7 @@ val <T: Any> KClass<T>.enumValues: Array<T>
 
 /** True iff this class is a singleton, i.e., [KClass.objectInstance] is not null. */
 val KClass<*>.isObject: Boolean
-   get() = objectInstance!=null
+   get() = runTry { objectInstance!=null }.orNull() == true // TODO: runTry is workaround for https://youtrack.jetbrains.com/issue/KT-41373
 
 /** Singletons (objects) subclassing the specified class as sealed class. */
 val <T: Any> KClass<T>.sealedSubObjects: List<T>

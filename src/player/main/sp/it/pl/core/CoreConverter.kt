@@ -84,6 +84,7 @@ import sp.it.util.text.StringSplitParser
 import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
+import sp.it.util.text.splitTrimmed
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.VType
 import sp.it.util.type.enumValues
@@ -314,9 +315,17 @@ object CoreConverter: Core {
          }
       )
       addT<Insets>(
-         { "${it.top} ${it.right} ${it.bottom} ${it.left}" },
-         tryF(Throwable::class) {
-            it.split(" ").let { Insets(it[0].toDouble(), it[1].toDouble(), it[2].toDouble(), it[3].toDouble()) }
+         {
+            when {
+               it.top==it.right && it.top==it.bottom && it.top==it.left -> "${it.top}"
+               else -> "${it.top} ${it.right} ${it.bottom} ${it.left}"
+            }
+         },
+         {
+            null
+               ?: it.toDoubleOrNull()?.net { Try.ok(Insets(it)) }
+               ?: it.splitTrimmed(" ").map { it.toDoubleOrNull() }.filterNotNull().takeIf { it.size==4 }?.net { Try.ok(Insets(it[0], it[1], it[2], it[3])) }
+               ?: Try.error("'$it' is not a valid padding value")
          }
       )
       addP<Command>(Command)

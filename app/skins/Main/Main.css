@@ -2086,8 +2086,10 @@ Shape, Text, TextFlow > * {
  * inherits: .text-field
  */
 .text-config-editor,
+.text-config-editor:readonly,
 .text-config-editor:hover,
 .text-config-editor:focused,
+.text-config-editor:readonly:focused,
 .text-config-editor:focused:hover,
 .combobox-field-config > .list-cell,
 .combobox-field-config:hover > .list-cell,

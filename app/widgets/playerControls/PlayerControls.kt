@@ -123,6 +123,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       volume.valueProperty() syncBiFrom ps.volume on onClose
 
       muteB.boundsType = LOGICAL
+      titleL.isWrapText = true
 
       ps.duration sync { totalTime.text = it.toHMSMs() } on onClose
       ps.currentTime.map(onClose) { it.toSeconds().toLong() } sync { timeChanged(ps) }

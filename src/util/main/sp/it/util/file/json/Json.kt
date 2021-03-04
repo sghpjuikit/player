@@ -380,7 +380,7 @@ class Json {
                         constructor.isAccessible = true
                         constructor.callBy(arguments)
                      }.getOrSupply {
-                        fail { "Failed to instantiate $instanceType from $value. Reason=${it.message}" }
+                        fail(it) { "Failed to instantiate $instanceType\nwith args:${arguments.mapKeys { it.key.name }}\nfrom:$value\n" }
                      }
                   }
                }

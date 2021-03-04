@@ -76,6 +76,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.math.StrExF
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.ConverterFX
+import sp.it.util.parsing.ConverterFromString
 import sp.it.util.parsing.ConverterString
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
@@ -350,7 +351,9 @@ interface NameUi {
 class UiStringHelper<T>(val parse: ParserOr<T>): Constraint.MarkerConstraint()
 
 /** parser into a value. Can be used as [Constraint] as well. */
-interface Parse<T> {
+interface Parse<T>: ConverterFromString<T> {
+
+   override fun ofS(s: String): Try<T, String> = parse(s)
 
    fun parse(text: String): Try<T, String>
 

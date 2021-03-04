@@ -243,6 +243,15 @@ fun Node.pickTopMostAt(sceneX: Double, sceneY: Double, test: (Node) -> Boolean =
 /** Convenience for [Node.pseudoClassStateChanged]. */
 fun Node.pseudoClassChanged(pseudoClass: String, active: Boolean) = pseudoClassStateChanged(pseudoclass(pseudoClass), active)
 
+/** Equivalent to [Node.pseudoClassChanged]. */
+fun Node.pseudoClassToggle(pseudoClass: String, enabled: Boolean) = pseudoClassChanged(pseudoClass, enabled)
+
+/** Adds or removes the specified pseudoclass using [Node.pseudoClassChanged]. */
+fun Node.pseudoClassToggle(pseudoClass: String) {
+   if (pseudoClassStates.none { it.pseudoClassName == pseudoClass }) pseudoClassToggle(pseudoClass, true)
+   else pseudoClassToggle(pseudoClass, false)
+}
+
 /** Adds the specified styleclass to [Node.styleClass] of this node, if it has not yet been assigned. */
 fun Styleable.styleclassAdd(styleClass: String) {
    if (styleClass !in this.styleClass)

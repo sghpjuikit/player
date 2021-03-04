@@ -30,6 +30,7 @@ sealed class PropVal {
       override val val1: String get() = value
       override val valN get() = listOf(value)
       override fun size() = 1
+      override fun toString() = "${this::class.simpleName}($value)"
    }
 
    /** Property value with a cardinality N. */
@@ -37,6 +38,7 @@ sealed class PropVal {
       override val val1 get() = value.firstOrNull()
       override val valN get() = value
       override fun size() = value.size
+      override fun toString() = "${this::class.simpleName}($value)"
    }
 }
 

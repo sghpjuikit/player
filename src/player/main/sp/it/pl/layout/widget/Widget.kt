@@ -7,6 +7,7 @@ import java.util.UUID
 import java.util.function.Consumer
 import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.value.ChangeListener
+import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.layout.Pane
 import kotlin.annotation.AnnotationRetention.RUNTIME
@@ -14,7 +15,6 @@ import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
 import kotlin.annotation.AnnotationTarget.CLASS
 import mu.KLogging
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.WidgetDb
 import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.layout.widget.WidgetIoManager.requestWidgetIOUpdate
@@ -28,6 +28,7 @@ import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.main.APP
 import sp.it.util.Locatable
 import sp.it.util.access.readOnly
+import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
@@ -36,6 +37,7 @@ import sp.it.util.conf.Configuration
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
 import sp.it.util.conf.cv
+import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.dev.Idempotent
@@ -68,7 +70,7 @@ import sp.it.util.ui.removeFromParent
  * standalone object if implementation allows). The type of widget influences
  * the lifecycle.
  */
-class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Boolean, state: ComponentDb): Component(state), Configurable<Any?>, ConfigDelegator, Locatable by factory {
+class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Boolean, state: WidgetDb): Component(state), Configurable<Any?>, ConfigDelegator, Locatable by factory {
 
    /**
     * Factory that produced this widget.
@@ -114,7 +116,11 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    var graphics: Pane? = null
       private set
 
-   private var isClosed = false
+   init {
+      properties += state.properties
+      fieldsRaw += state.settings
+   }
+
    private val configs = HashMap<String, Config<Any?>>()
    override val configurableGroupPrefix: String? = null
    override val configurableValueSource by lazy {
@@ -137,13 +143,16 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       }
    }
 
-   /** Whether this factory will be preferred on widget `find and create` requests.  */
+   /** Whether this factory will be preferred on widget `find and create` requests. */
+   val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
+
+   /** Whether this factory will be preferred on widget `find and create` requests. */
    val preferred by cv(false).def(name = "Is preferred", group = "widget",  info = "Prefer this widget on `find and create`. ")
 
-   /** Whether this factory will be ignored on widget `find and create` requests.  */
+   /** Whether this factory will be ignored on widget `find and create` requests. */
    val forbidUse by cv(false).def(name = "Is ignored", group = "widget", info = "Ignore this widget on `find and create`.")
 
-   /** Name displayed in gui. Customizable. Default is component type name.  */
+   /** Name displayed in gui. Customizable. Default is component type name. */
    val customName by cv("").def(name = "Custom name", group = "widget", info = "Name displayed in gui. User can set his own. By default component type name.")
 
    /** [location] as a [Config]. */
@@ -162,7 +171,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       editable = EditMode.NONE
    )
 
-   /** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false.  */
+   /** Whether this widget is active/focused. Each window has 0 or 1 active widgets. Default false. */
    private val focusedImpl = ReadOnlyBooleanWrapper(false)
 
    /**
@@ -187,6 +196,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
 
    /** Invoked in [close], after [graphics] and [controller] are disposed. */
    val onClose = Disposer()
+   private var isClosed = false
 
    constructor(id: UUID, factory: WidgetFactory<*>, isDeserialized: Boolean): this(factory, isDeserialized, WidgetDb(id)) {
       customName.value = factory.name
@@ -194,11 +204,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    }
 
    constructor(state: WidgetDb): this(APP.widgetManager.factories.getFactory(state.factoryId).orNone(), true, state) {
-      preferred.value = state.preferred
-      forbidUse.value = state.forbidUse
       customName.value = state.nameUi
-      properties.putAll(state.properties)
-      fieldsRaw.putAll(state.settings)
       focused.addListener(computeFocusChangeHandler())
       properties.entries.stream()
          .filter { e: Map.Entry<String, Any?> -> e.key.startsWith("io") }
@@ -281,6 +287,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       if (w.controller!=null) w.storeConfigs()
       properties.clear()
       properties.putAll(w.properties)
+      padding.value = w.padding.value
       preferred.value = w.preferred.value
       forbidUse.value = w.forbidUse.value
       customName.value = w.customName.value
@@ -348,10 +355,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
          storeConfigs()
       }
 
-      val props = HashMap(properties)
-      val configs = fieldsRaw
-      props.remove("configs")
-      return WidgetDb(id, factory.id, preferred.value, forbidUse.value, customName.value, loadType.value, locked.value, props, configs)
+      return WidgetDb(id, factory.id, customName.value, loadType.value, locked.value, properties - "configs", fieldsRaw)
    }
 
    private fun storeConfigs() {
@@ -365,7 +369,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       // 3) easy optimization
       if (controller==null) return
       val configsRaw = fieldsRaw
-      controller!!.getConfigs().forEach { c -> configsRaw[configToRawKeyMapper.apply(c)] = c.valueAsProperty }
+      getConfigs().forEach { c -> configsRaw[configToRawKeyMapper.apply(c)] = c.valueAsProperty }
    }
 
    private fun restoreConfigs() {

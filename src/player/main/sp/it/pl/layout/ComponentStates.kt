@@ -83,7 +83,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is UniContainerDb -> UniContainerDb(id.dd(), loading, locked, child?.dd(), properties)
       is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
-      is WidgetDb -> WidgetDb(id.dd(), factoryId, preferred, forbidUse, nameUi, loading, locked, properties, settings)
+      is WidgetDb -> WidgetDb(id.dd(), factoryId, nameUi, loading, locked, properties, settings)
    }
 
    fun ComponentDb.dd2(): ComponentDb = when (this) {
@@ -93,7 +93,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is UniContainerDb -> UniContainerDb(id, loading, locked, child?.dd2(), properties)
       is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
-      is WidgetDb -> WidgetDb(id, factoryId, preferred, forbidUse, nameUi, loading, locked, properties.dd(), settings)
+      is WidgetDb -> WidgetDb(id, factoryId, nameUi, loading, locked, properties.dd(), settings)
    }
 
    return this.dd().dd2()
@@ -169,11 +169,9 @@ class FreeFormContainerDb(
    override fun toDomain() = FreeFormContainer(this)
 }
 
-class WidgetDb @JvmOverloads constructor(
+class WidgetDb(
    id: UUID = UUID.randomUUID(),
    val factoryId: String = emptyWidgetFactory.id,
-   val preferred: Boolean = false,
-   val forbidUse: Boolean = false,
    val nameUi: String = emptyWidgetFactory.name,
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,

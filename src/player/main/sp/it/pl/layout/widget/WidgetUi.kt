@@ -17,12 +17,14 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
+import sp.it.pl.main.toS
 import sp.it.pl.ui.objects.placeholder.Placeholder
+import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.syncFrom
 import sp.it.util.type.nullify
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoclass
@@ -112,7 +114,8 @@ class WidgetUi: ComponentUiBase<Widget> {
             content.layFullArea += widget.load()
 
             // put controls to new widget
-            widget.customName syncTo controls.title.textProperty() on disposer
+            widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } }
+            controls.title.textProperty() syncFrom widget.customName on disposer
             controls.propB.isDisable = widget.getConfigs().isEmpty()
             widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
@@ -122,7 +125,8 @@ class WidgetUi: ComponentUiBase<Widget> {
                animation.openAndDo(contentRoot, null)
 
                // put controls to new widget
-               widget.customName syncTo controls.title.textProperty() on disposer
+               widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } }
+               controls.title.textProperty() syncFrom widget.customName on disposer
                controls.propB.isDisable = widget.getConfigs().isEmpty()
                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
 

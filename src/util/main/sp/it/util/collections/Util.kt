@@ -40,6 +40,10 @@ fun <T> Set<T>.materialize() = toSet()
 /** @return new map containing elements of this map, e.g. for safe iteration */
 fun <K, V> Map<K, V>.materialize() = toMap()
 
+fun <K,V> Map<K,V>.toStringPretty(): String = asSequence().joinToString("\n", "{\n", "\n}") { "$it" }
+
+fun <T> Iterable<T>.toStringPretty(): String = asSequence().joinToString("\n", "(\n", "\n)") { "$it" }
+
 /** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): KType = when {
    isEmpty() -> kTypeNothingNonNull()

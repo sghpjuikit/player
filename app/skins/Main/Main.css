@@ -277,7 +277,6 @@
  * 
  * pseudoclasses: vertical
  */
-
 .slider {
     -fx-skin: "sp.it.pl.ui.objects.ImprovedSliderSkin";
 }
@@ -982,6 +981,9 @@ Shape, Text, TextFlow > * {
 
 /********************************* SplitPane **********************************/
 
+.split-pane {
+    -fx-skin: "sp.it.pl.ui.objects.ImprovedSplitPaneSkin";
+}
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;
    -fx-background-color: transparent;

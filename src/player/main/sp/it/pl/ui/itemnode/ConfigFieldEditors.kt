@@ -962,8 +962,9 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    val obv = getObservableValue(c)
    private val converter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
    private val isObservable = obv!=null
-   private var isNullEvent = Suppressor()
+   private val isNullEvent = Suppressor()
    private var isNull = config.value==null
+   private val isValueRefreshing = Suppressor()
    private val warnI = lazy {
       Icon().apply {
          styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
@@ -984,10 +985,12 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
       // applying value
       editor.textProperty() attach {
-         if (!isNullEvent.isSuppressed) {
-            if (isNull) isNull = false // cancel null mode on text change
-            showWarnButton(getValid())
-            apply()
+         isValueRefreshing.suppressed {
+            isNullEvent.suppressed {
+               if (isNull) isNull = false // cancel null mode on text change
+               showWarnButton(getValid())
+               apply()
+            }
          }
       }
       editor.onEventDown(KEY_PRESSED, ENTER) { apply() }
@@ -1029,9 +1032,11 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    override fun get(): Try<T, String> = if (isNull) Try.ok(null as T) else Config.convertValueFromString(config, editor.text)
 
    override fun refreshValue() {
-      isNull = config.value==null
-      editor.text = converter(config.value)
-      showWarnButton(getValid())
+      isValueRefreshing.suppressingAlways {
+         isNull = config.value==null
+         editor.text = converter(config.value)
+         showWarnButton(getValid())
+      }
    }
 
    private fun showWarnButton(value: Try<*, String>) {

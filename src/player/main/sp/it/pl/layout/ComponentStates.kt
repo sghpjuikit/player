@@ -81,7 +81,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is RootContainerDb -> RootContainerDb(id.dd(), loading, locked, child?.dd(), properties)
       is SwitchContainerDb -> SwitchContainerDb(id.dd(), translate, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is UniContainerDb -> UniContainerDb(id.dd(), loading, locked, child?.dd(), properties)
-      is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd() }, properties)
+      is BiContainerDb -> BiContainerDb(id.dd(), orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id.dd(), loading, locked, showHeaders, children.mapValues { it.value?.dd() }, properties)
       is WidgetDb -> WidgetDb(id.dd(), factoryId, nameUi, loading, locked, properties, settings)
    }
@@ -91,7 +91,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
       is RootContainerDb -> RootContainerDb(id, loading, locked, child?.dd2(), properties)
       is SwitchContainerDb -> SwitchContainerDb(id, translate, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is UniContainerDb -> UniContainerDb(id, loading, locked, child?.dd2(), properties)
-      is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, loading, locked, children.mapValues { it.value?.dd2() }, properties)
+      is BiContainerDb -> BiContainerDb(id, orientation, position, absoluteSize, collapsed, joined, loading, locked, children.mapValues { it.value?.dd2() }, properties)
       is FreeFormContainerDb -> FreeFormContainerDb(id, loading, locked, showHeaders, children.mapValues { it.value?.dd2() }, properties)
       is WidgetDb -> WidgetDb(id, factoryId, nameUi, loading, locked, properties.dd(), settings)
    }
@@ -150,6 +150,7 @@ class BiContainerDb(
    val position: Double = 0.5,
    val absoluteSize: Int = 0,
    val collapsed: Int = 0,
+   val joined: Boolean = false,
    loading: Widget.LoadType = Widget.LoadType.AUTOMATIC,
    locked: Boolean = false,
    val children: Map<Int, ComponentDb?> = mapOf(),

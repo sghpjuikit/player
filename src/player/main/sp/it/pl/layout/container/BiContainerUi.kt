@@ -11,7 +11,9 @@ import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.Node
 import javafx.scene.control.SplitPane
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
@@ -47,6 +49,7 @@ import sp.it.util.ui.setAnchors
 import sp.it.util.ui.x2
 import kotlin.math.absoluteValue
 import kotlin.reflect.KProperty0
+import sp.it.util.access.toggle
 
 class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
    private val root1 = AnchorPane()
@@ -68,6 +71,11 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
          ui2.asIf<WidgetUi?>()?.controls?.updateAbsB()
          container.children[1].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
          container.children[2].asIf<Container<*>?>()?.ui?.asIf<ContainerUi<*>>()?.let { it.controls.ifSet { it.updateIcons() } }
+      }
+   var joined: Boolean
+      get() = container.joined.value
+      set(i) {
+         splitPane.pseudoClassChanged("joined", i)
       }
    var collapsed: Int
       get() = container.collapsed.value
@@ -123,7 +131,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
       container.orientation syncTo splitPane.orientationProperty()
       container.collapsed sync { collapsed = it }
       container.absoluteSize sync { absoluteSize = it }
-
+      container.joined sync { joined = it }
 
       // initialize position
       splitPane.sync1IfInScene {
@@ -134,7 +142,7 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
          }
       }
 
-      // fixes initiali
+      // fixes initialization
       splitPane.layoutBoundsProperty().attach { updatePosition() }
 
       splitPane.skinProperty() syncNonNullWhile { skin ->
@@ -176,6 +184,19 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
                2 -> if (container.orientation.value==HORIZONTAL) root2.width else root2.height
                else -> fail()
             }
+      }
+
+      // toggle joined mode
+      splitPane.onEventUp(MOUSE_CLICKED, SECONDARY, false) {
+         if (it.clickCount == 2) {
+            val vRaw = when (splitPane.orientation!!) {
+               HORIZONTAL -> splitPane.sceneToLocal(it.sceneX, 0.0).x/splitPane.width
+               VERTICAL -> splitPane.sceneToLocal(0.0, it.sceneY).y/splitPane.height
+            }
+            if ((splitPane.dividers[0].position-vRaw).absoluteValue<=collapsedActivatorDist) {
+               c.joined.toggle()
+            }
+         }
       }
    }
 

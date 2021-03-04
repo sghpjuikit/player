@@ -33,6 +33,8 @@ class BiContainer: Container<BiContainerUi> {
    val absoluteSize = v(0)
    /** Whether child is hidden so the other covers the entire space. 0 == none, -1 == child 1, 1 == child 2 */
    val collapsed = v(0)
+   /** Whether the children should appear as one, i.e., the divider has little to no visibility */
+   val joined = v(false)
    private val children = HashMap<Int, Component>()
 
    constructor(state: BiContainerDb = BiContainerDb()): super(state) {
@@ -40,6 +42,7 @@ class BiContainer: Container<BiContainerUi> {
       position.value = state.position
       absoluteSize.value = state.absoluteSize
       collapsed.value = state.collapsed
+      joined.value = state.joined
       children += state.children.filter { it.key in 1..2 }.mapValues { it.value?.toDomain() }.filterNotNullValues()
       setChildrenParents()
    }
@@ -91,6 +94,6 @@ class BiContainer: Container<BiContainerUi> {
 
    override fun hide() = ui?.hide() ?: Unit
 
-   override fun toDb() = BiContainerDb(id, orientation.value, position.value, absoluteSize.value, collapsed.value, loadType.value, locked.value, children.mapValues { it.value.toDb() }, properties)
+   override fun toDb() = BiContainerDb(id, orientation.value, position.value, absoluteSize.value, collapsed.value, joined.value, loadType.value, locked.value, children.mapValues { it.value.toDb() }, properties)
 
 }

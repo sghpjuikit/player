@@ -1660,6 +1660,12 @@ Shape, Text, TextFlow > * {
  */
 .container-ui {}
 
+/**
+ * pseudoclasses: collapsed - when one of the split contents is collapsed to be invisible
+ *                joined - when the split contents should appear as one, i.e., the divider has little to no visibility
+ */
+.container-ui .split-pane {}
+
 .container-ui .split-pane .split-pane-divider {
     -fx-background-color: -skin-pane-color;
 }

@@ -28,6 +28,8 @@ import sp.it.util.animation.Anim;
 import sp.it.util.animation.interpolator.CircularInterpolator;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
+import sp.it.util.dev.DebugKt;
+import sp.it.util.dev.FailKt;
 import sp.it.util.reactive.Subscribed;
 import static java.lang.Double.NaN;
 import static java.lang.Double.max;
@@ -51,6 +53,7 @@ import static sp.it.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.collections.UtilKt.setToOne;
+import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -251,16 +254,16 @@ public class SwitchContainerUi implements ComponentUi {
         AltState as;
         Component c = layouts.get(i);
         TabPane tab = tabs.computeIfAbsent(i, index -> {
-            TabPane t = new TabPane(i);
+            TabPane t = new TabPane(index);
             ui.getChildren().add(t);
             return t;
         });
         if (c instanceof Container) {
             if (tab.ui!=null) tab.ui.dispose();
-            tab.ui = null;
 
             n = ((Container) c).load(tab);
             as = (Container) c;
+            tab.ui = ((Container) c).ui;
         } else if (c instanceof Widget) {
             tab.ui = firstNotNull(
                 () -> tab.ui instanceof WidgetUi && ((WidgetUi) tab.ui).getWidget()==c ? tab.ui : null,
@@ -282,6 +285,7 @@ public class SwitchContainerUi implements ComponentUi {
             n = tab.ui.getRoot();
             as = tab.ui;
         }
+        failIf(tabs.get(i).ui==null);
         setToOne(tab.getChildren(), n);
         if (APP.ui.isLayoutMode()) as.show();
     }
@@ -309,12 +313,11 @@ public class SwitchContainerUi implements ComponentUi {
         toAdd.filter(isClose).forEach(it -> addTab(it));
         toRem.filter(not(isClose)).forEach(it -> {
             var t = tabs.get(it);
-            var l = t==null || !(t.ui instanceof Layouter) ? null : (Layouter) t.ui;
-            if (l!=null)
-                l.hideAnd(runnable(() -> {
-                    if (!isClose.test(it))
-                        removeTab(it);
-                }));
+            if (t.ui == null) removeTab(it);
+            if (t.ui instanceof Layouter) ((Layouter) t.ui).hideAnd(runnable(() -> {
+                if (!isClose.test(it))
+                    removeTab(it);
+            }));
         });
     }
 
@@ -452,6 +455,8 @@ public class SwitchContainerUi implements ComponentUi {
                 i = e.getKey();
                 alignTab(i);
                 break;
+            } else {
+                updateEmptyTabs();
             }
         }
         return i;
@@ -463,7 +468,10 @@ public class SwitchContainerUi implements ComponentUi {
      * Use to align tabs while adhering to user settings.
      */
     public void snapTabs() {
-        if (!snap.get()) return;
+        if (!snap.get()) {
+            updateEmptyTabs();
+            return;
+        }
 
         var is = ui.getTranslateX();
         var should_be = -getTabX(currTab());
@@ -495,7 +503,7 @@ public class SwitchContainerUi implements ComponentUi {
     }
 
     private double tabWidth() {
-        return uiWidth(); // + tab_spacing; // we can set gap between tabs easily here
+        return uiWidth() + 10.0; // we can set gap between tabs easily here
     }
 
     // get current X position of the tab with the specified index
@@ -633,6 +641,7 @@ public class SwitchContainerUi implements ComponentUi {
 
         TabPane(int index) {
             this.index = index;
+            this.getStyleClass().add("switch-pane-tab");
         }
 
         @Override

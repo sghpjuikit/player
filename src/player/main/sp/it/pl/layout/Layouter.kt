@@ -102,9 +102,15 @@ class Layouter: ComponentUi {
    fun hideAnd(onHidden: () -> Unit) = showControls(false) { onHidden() }
 
    private fun showControls(value: Boolean, onClosed: () -> Unit = {}) {
-      if (isCpShown==value) return
+      if (isCpShown==value) {
+         if (!value) onClosed()
+         return
+      }
       val isWpShown = root.children.size!=1
-      if (isWpShown) return
+      if (isWpShown) {
+         if (!value) onClosed()
+         return
+      }
 
       isCpShown = value
       if (value) {

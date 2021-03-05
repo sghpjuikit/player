@@ -114,7 +114,7 @@ fun <T, T1: T, T2: T> Sequence<T1>.insertEvery(nth: Int, prefix: Boolean = false
 @Suppress("DEPRECATION")
 infix fun <T> MutableCollection<T>.setTo(elements: Collection<T>) {
    if (this is ObservableList<T>) {
-      this.setAll(if (elements is MutableCollection<T>) elements else ArrayList(elements))
+      this.setAll(elements)
    } else {
       this.clear()
       this += elements

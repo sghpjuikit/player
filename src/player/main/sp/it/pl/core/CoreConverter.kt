@@ -324,7 +324,7 @@ object CoreConverter: Core {
          {
             null
                ?: it.toDoubleOrNull()?.net { Try.ok(Insets(it)) }
-               ?: it.splitTrimmed(" ").map { it.toDoubleOrNull() }.filterNotNull().takeIf { it.size==4 }?.net { Try.ok(Insets(it[0], it[1], it[2], it[3])) }
+               ?: it.splitTrimmed(" ").mapNotNull { it.toDoubleOrNull() }.takeIf { it.size==4 }?.net { Try.ok(Insets(it[0], it[1], it[2], it[3])) }
                ?: Try.error("'$it' is not a valid padding value")
          }
       )

@@ -19,6 +19,7 @@ import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.layout.widget.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.main.APP
+import sp.it.pl.main.Actions
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
@@ -155,6 +156,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       isShowingWeak = true
       hiderWeak.subscribe(true)
       anim.playOpen()
+      if (!APP.ui.layoutModeBroad.value) APP.actionStream(Actions.LAYOUT_MODE)
 
       updateAbsB()
    }
@@ -185,7 +187,6 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       isShowing = true
       area.contentRoot.pseudoClassChanged("layout-mode", true)
       showWeak()
-      APP.actionStream("Widget control")
    }
 
    fun hide() {

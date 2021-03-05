@@ -1600,9 +1600,7 @@ Shape, Text, TextFlow > * {
  * Hence, certain effects (like border) may not be visible.
  * Use .window for static background.
  */
-.window .bgr-image {
-    //-fx-background-image: url("bgr.png");
-}
+.window .bgr-image {}
 
 /*
  * Window header
@@ -1919,7 +1917,6 @@ Shape, Text, TextFlow > * {
  */
 .pop-window {
     -fx-background-color: -skin-popup-def-bgr-color;
-    -fx-background-image: url("bgr.png");
     -fx-background-radius: 0em;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, derive(-skin-def-font-color, -50%) 50%, transparent 100%);
     -fx-border-width: 1;
@@ -2515,7 +2512,6 @@ Shape, Text, TextFlow > * {
  */
 .overlay-pane {
     -fx-background-color: rgba(0,0,0,0.4);
-    -fx-background-image: url("bgr.png");
 }
 
 /* 

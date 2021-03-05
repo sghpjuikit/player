@@ -365,7 +365,7 @@ class Guide: PluginBase() {
             + "\n\nClick anywhere within empty space (not inside widget) and choose 'Place widget' "
             + "to add new widget. All available widgets will display for you to choose from. "
             + "There is a widget called 'Empty' which contains no content. Select it.")
-      val h12_moduleWidgetControl = hint("Widget control",
+      val h12_moduleWidgetControl = hint(Actions.LAYOUT_MODE,
          "Widget controls are located in the widget header. It is displayed "
             + "automatically when mouse cursor enters right top corner of the widget."
             + "\nThis is known as layout mode. It is an overlay UI for manipulating the content. "

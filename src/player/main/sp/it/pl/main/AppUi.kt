@@ -1,6 +1,5 @@
 package sp.it.pl.main
 
-import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections.observableSet
 import javafx.geometry.NodeOrientation
@@ -80,6 +79,8 @@ import sp.it.pl.main.AppSettings.ui.table as confTable
 import sp.it.pl.main.AppSettings.ui.grid as confGrid
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.util.access.readOnly
+import sp.it.util.access.v
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
@@ -140,8 +141,14 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    val viewCloseOnDone by cv(true) def closeWhenActionEnds
    val viewHideEmptyShortcuts by cv(true) def hideUnassignedShortcuts
 
-   /** Application layout mode. When true, ui editing controls are visible. */
-   val layoutMode: BooleanProperty = SimpleBooleanProperty(false)
+   /** [layoutModeImpl] */
+   val layoutModeImpl = v(false)
+   /** Application layout mode. When true, ui editing controls are visible. Changes state immediately after showing and immediately before hiding.  */
+   val layoutMode = layoutModeImpl.readOnly()
+   /** [layoutModeBroadImpl] */
+   val layoutModeBroadImpl = v(false)
+   /** Application layout mode. When true, ui editing controls are visible. Changes state immediately before showing and immediately after hiding. */
+   val layoutModeBroad = layoutModeBroadImpl.readOnly()
    val layoutModeBlur by cv(false) def confUi.layoutModeBlurBgr
    val layoutModeOpacity by cv(true) def confUi.layoutModeFadeBgr
    var layoutModeOpacityStrength by c(1.0).between(0.0, 1.0).readOnlyUnless(layoutModeOpacity) def confUi.layoutModeFadeIntensity
@@ -177,7 +184,6 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       }
    }
 
-
    /**
     * Sets layout mode for all active components.
     *
@@ -188,15 +194,17 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
     * @return whether layout mode is on or not.
     */
    var isLayoutMode: Boolean
-      get() = layoutMode.get()
+      get() = layoutMode.value
       set(v) {
-         if (layoutMode.get()==v) return
+         if (layoutMode.value==v) return
          if (v) {
+            layoutModeBroadImpl.value = v
             APP.widgetManager.layouts.findAll(OPEN).forEach { it.show() }
-            layoutMode.set(v)
+            layoutModeImpl.value = v
          } else {
-            layoutMode.set(v)
+            layoutModeImpl.value = v
             APP.widgetManager.layouts.findAll(OPEN).forEach { it.hide() }
+            layoutModeBroadImpl.value = v
             setZoomMode(false)
          }
          if (v) APP.actionStream(Actions.LAYOUT_MODE)
@@ -271,7 +279,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    @IsAction(name = Actions.LAYOUT_MODE, info = "Shows/hides layout overlay.", keys = "F8")
    fun toggleLayoutMode() {
-      isLayoutMode = !layoutMode.get()
+      isLayoutMode = !layoutMode.value
    }
 
    @IsAction(name = "Layout zoom in/out", info = "Toggles layout zoom in/out.")

@@ -314,12 +314,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       }
 
       fun onUpdateAndNow(bc: (Metadata) -> Unit): Subscription {
-         bc.invoke(value)
-         return onUpdate { _, n -> bc.invoke(n) }
-      }
-
-      fun update() {
-         load(false, value)
+         bc(value)
+         return onUpdate { _, n -> bc(n) }
       }
 
       fun update(m: Metadata) {
@@ -329,37 +325,17 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       /** Execute when song starts playing.  */
       fun songChanged(song: Song?) {
          when {
-            song==null || song==Metadata.EMPTY -> {
-               setValue(true, Metadata.EMPTY)
-               logger.info("Current song changed to none.")
-               logger.info("Current song metadata set to empty.")
-            }
-            value.same(song) -> {
-               setValue(true, value)
-               logger.info("Current song changed to the same song.")
-               logger.info("Current song metadata reused.")
-            }
-            valNext.same(song) -> {
-               setValue(true, valNext)
-               logger.info("Current song changed to song in order.")
-               logger.info("Current song metadata copied from cache of next song metadata.")
-            }
-            else -> {
-               logger.info("Current song changed to song not in order.")
-               logger.info("Current song metadata will be loaded...")
-               load(true, song)
-            }
+            song==null || song==Metadata.EMPTY -> setValue(true, Metadata.EMPTY)
+            value.same(song) -> setValue(true, value)
+            valNext.same(song) -> setValue(true, valNext)
+            else ->
+               runIO {
+                  song.read()
+               } ui {
+                  setValue(true, if (it.isEmpty()) song.toMeta() else it)
+               }
          }
          valNextLoader.start()
-      }
-
-      // load metadata, type indicates UPDATE vs CHANGE
-      private fun load(changeType: Boolean, song: Song) {
-         runIO {
-            song.read()
-         } ui {
-            setValue(changeType, if (it.isEmpty()) song.toMeta() else it)
-         }
       }
 
       private fun preloadNext() {

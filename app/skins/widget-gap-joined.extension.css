@@ -1,0 +1,70 @@
+/*
+ * Document : Spit Player skin extension
+ * Author : Martin Polakovic
+ * Year: 2020
+ */
+
+.window .header {
+    -fx-background-color: transparent;
+}
+
+.widget-ui .widget-ui-content {
+    -fx-border-insets: 0em;
+}
+.widget-ui,
+.widget-ui:layout-mode {
+    -fx-background-insets: 0em;
+}
+.container-ui .split-pane .split-pane-divider {
+    -fx-padding: 0.5em;
+    -fx-background-color: transparent;
+}
+.container-ui:layout-mode .split-pane .split-pane-divider {
+    -fx-background-color: transparent;
+    -fx-opacity: 0.0;
+}
+
+.container-ui .split-pane *.vertical-grabber,
+.container-ui:layout-mode .split-pane *.vertical-grabber {
+    -fx-padding: 0.5em 111 0.5em 111;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-color:
+        linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%)
+        transparent
+        linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%)
+        transparent
+}
+.container-ui .split-pane *.horizontal-grabber,
+.container-ui:layout-mode .split-pane *.horizontal-grabber {
+    -fx-padding: 111 0.5em 111 0.5em;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-color:
+        transparent
+        linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%)
+        transparent
+        linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%)
+}
+
+.container-ui .split-pane:joined .split-pane-divider {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+.container-ui:layout-mode .split-pane:joined .split-pane-divider {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-opacity: 0.0;
+}
+.container-ui .split-pane:joined *.vertical-grabber,
+.container-ui:layout-mode .split-pane:joined *.vertical-grabber {
+    -fx-border-color: transparent;
+    -fx-padding: 0 111 0 111;
+}
+.container-ui .split-pane:joined *.horizontal-grabber,
+.container-ui:layout-mode .split-pane:joined *.horizontal-grabber {
+    -fx-border-color: transparent;
+    -fx-padding: 111 0 111 0;
+}

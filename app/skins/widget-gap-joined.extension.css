@@ -4,17 +4,41 @@
  * Year: 2020
  */
 
+// do not highlight as not content
 .window .header {
     -fx-background-color: transparent;
 }
 
-.widget-ui .widget-ui-content {
-    -fx-border-insets: 0em;
+// top/bottom padding makes the content pop up more
+// left/right padding is half of that because it stacks
+.switch-pane-tab {
+    -fx-padding: 1em 0.5em 1em 0.5em;
 }
+
+// tab gap simulates split-pane-divider
+.switch-pane-tab-bgr {
+    -fx-min-height: 222; // 2*split-pane-divider.padding
+    -fx-pref-height: 222;
+    -fx-max-height: 222;
+    -fx-border-insets: -4;
+    -fx-border-width: 4;
+    -fx-border-color:
+        transparent
+        radial-gradient(center 0% 50%, radius 50%, -skin-def-font-color, transparent)
+        transparent
+        radial-gradient(center 100% 50%, radius 50%, -skin-def-font-color, transparent)
+}
+
+// disable focusing
 .widget-ui,
 .widget-ui:layout-mode {
     -fx-background-insets: 0em;
 }
+.widget-ui .widget-ui-content {
+    -fx-border-insets: 0em;
+}
+
+// divider is transparent gap with border on content edges
 .container-ui .split-pane .split-pane-divider {
     -fx-padding: 0.5em;
     -fx-background-color: transparent;
@@ -23,7 +47,6 @@
     -fx-background-color: transparent;
     -fx-opacity: 0.0;
 }
-
 .container-ui .split-pane *.vertical-grabber,
 .container-ui:layout-mode .split-pane *.vertical-grabber {
     -fx-padding: 0.5em 111 0.5em 111;
@@ -49,6 +72,7 @@
         linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%)
 }
 
+// joined divider has width 0
 .container-ui .split-pane:joined .split-pane-divider {
     -fx-padding: 0;
     -fx-background-color: transparent;

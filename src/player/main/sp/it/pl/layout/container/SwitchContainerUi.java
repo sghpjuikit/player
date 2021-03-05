@@ -2,6 +2,7 @@ package sp.it.pl.layout.container;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
@@ -15,6 +16,7 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.layout.AltState;
@@ -28,8 +30,6 @@ import sp.it.util.animation.Anim;
 import sp.it.util.animation.interpolator.CircularInterpolator;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
-import sp.it.util.dev.DebugKt;
-import sp.it.util.dev.FailKt;
 import sp.it.util.reactive.Subscribed;
 import static java.lang.Double.NaN;
 import static java.lang.Double.max;
@@ -52,7 +52,7 @@ import static sp.it.util.animation.interpolator.EasingMode.EASE_IN;
 import static sp.it.util.animation.interpolator.EasingMode.EASE_OUT;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
-import static sp.it.util.collections.UtilKt.setToOne;
+import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.UtilKt.consumer;
@@ -286,7 +286,7 @@ public class SwitchContainerUi implements ComponentUi {
             as = tab.ui;
         }
         failIf(tabs.get(i).ui==null);
-        setToOne(tab.getChildren(), n);
+        tab.setContent(n);
         if (APP.ui.isLayoutMode()) as.show();
     }
 
@@ -503,7 +503,7 @@ public class SwitchContainerUi implements ComponentUi {
     }
 
     private double tabWidth() {
-        return uiWidth() + 10.0; // we can set gap between tabs easily here
+        return uiWidth();
     }
 
     // get current X position of the tab with the specified index
@@ -637,17 +637,30 @@ public class SwitchContainerUi implements ComponentUi {
 
     private static class TabPane extends AnchorPane {
         final int index;
+        final StackPane bgr = new StackPane();
         ComponentUi ui;
 
         TabPane(int index) {
             this.index = index;
             this.getStyleClass().add("switch-pane-tab");
+
+            getChildren().add(bgr);
+            bgr.getChildren().add(
+                new StackPane()
+            );
+            bgr.getChildren().get(0).getStyleClass().add("switch-pane-tab-bgr");
+        }
+
+        void setContent(Node node) {
+            setTo(getChildren(), node==null ? List.of(bgr) : List.of(bgr, node));
         }
 
         @Override
         protected void layoutChildren() {
-            for (Node n : getChildren())
-                n.resizeRelocate(0,0,getWidth(),getHeight());
+            var p = getPadding();
+            for (Node n : getChildren()) {
+                n.resizeRelocate(p.getLeft(),p.getTop(),getWidth()-p.getLeft()-p.getRight(),getHeight()-p.getTop()-p.getBottom());
+            }
         }
 
     }

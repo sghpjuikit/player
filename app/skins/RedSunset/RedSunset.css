@@ -7,7 +7,8 @@
 @import url("../Main/Main.css");
 
 * {
-    -skin-def-font-color: rgb(200, 130, 150);
+    -skin-pane-color: rgba(0, 0, 0, 0.2);
+    -skin-def-font-color: rgb(230, 75, 160);
     -skin-def-font-color-hover: rgb(255, 80, 80);
     -fx-focus-color: rgb(255, 80, 80);
     -skin-popup-def-bgr-color: rgba(50,0,36,0.95);
@@ -15,7 +16,7 @@
 
 /** Change backgrounds */
 .window {
-    -fx-background-color: radial-gradient(radius 200%, rgba(2,0,36,1) 0%, rgba(121,9,9,1) 100%, rgba(0,212,255,1) 100%);
+    -fx-background-color: radial-gradient(radius 200%, rgba(32,10,56,1) 0%, rgba(141,19,19,1) 100%, rgba(20,232,255,1) 100%);
 }
 .overlay-pane {
     -fx-background-color: radial-gradient(radius 200%, rgba(2,0,36,0.9) 0%, rgba(121,9,9,0.8) 100%, rgba(0,212,255,0.5) 100%);

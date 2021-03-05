@@ -203,7 +203,7 @@ class StartScreen: PluginBase() {
                      }
                   }
                   left = widgetArea.apply {
-                     prefWidth = 50.emScaled
+                     prefWidth = 800.emScaled   // TODO: remove this
                      val widgetSubscribed = Subscribed {
                         widgetFactory syncWhile { f ->
                            Layout.openStandalone(this).apply {

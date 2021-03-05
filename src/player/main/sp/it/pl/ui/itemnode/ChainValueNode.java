@@ -282,7 +282,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 		public void updateIcons() {
 			var i = getIndex();
-			var minChainLength = isHeaderVisible() ? 1 : 0;
+			var minChainLength = isHeaderVisible() ? 0 : 1;
 			var noRem = chain.size()<=minChainLength || !isHomogeneous(i, isHomogeneousRem);
 			var noAdd = chain.size()>=maxChainLength.getValue() || !isHomogeneous(i, isHomogeneousAdd);
 			var noEdit = !isHomogeneous(i, isHomogeneousEdit);

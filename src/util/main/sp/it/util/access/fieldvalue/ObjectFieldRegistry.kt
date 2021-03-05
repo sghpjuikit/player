@@ -7,6 +7,9 @@ import sp.it.util.type.ObjectFieldMap
 import sp.it.util.type.VType
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
+import sp.it.util.functional.Try
+import sp.it.util.functional.net
+import sp.it.util.parsing.ConverterString
 
 /**
  * [ObjectField] per type manager.
@@ -47,7 +50,7 @@ import kotlin.reflect.full.createType
  * }
  * ```
  */
-abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val type: KClass<V>) {
+abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val type: KClass<V>): ConverterString<F> {
 
    private val typeFull = type.let {
       failIf(it.typeParameters.isNotEmpty()) { "Classes with type parameters not yet supported: $it" }
@@ -66,5 +69,7 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
 
    /** @return field with the specified [ObjectField.name] or null if none */
    open fun valueOf(text: String): F? = allImpl[text]
+   override fun toS(o: F) = o.name()
+   override fun ofS(s: String) = valueOf(s)?.net { Try.ok(it) } ?: Try.error("Not a recognized field: '$s'")
 
 }

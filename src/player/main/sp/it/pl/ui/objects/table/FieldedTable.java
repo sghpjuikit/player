@@ -350,4 +350,5 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	private ObjectField<T,?> nameToCF(String name) {
 		return ColumnField.INDEX.name().equals(name) ? (ObjectField<T,?>) ColumnField.INDEX : nameToF(name);
 	}
+
 }

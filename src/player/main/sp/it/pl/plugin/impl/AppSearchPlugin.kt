@@ -33,7 +33,6 @@ import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.pane.OverlayPane
-import sp.it.util.Sort
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
@@ -82,6 +81,7 @@ import sp.it.util.ui.x2
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
@@ -326,7 +326,7 @@ class AppSearchPlugin: PluginBase() {
          }
          return compareBy<Item> { 0 }
             .thenBy { byParent[it.value.parent]?.takeIf { it.size>1 }?.first() ?: it.value }
-            .thenBy(FileField.NAME.comparator<File> { it.inSort(Sort.ASCENDING).nullsLast() }) { it.value }
+            .thenBy(FileField.NAME.comparator { it.inSort(ASCENDING).nullsLast() }) { it.value }
       }
 
       private inner class Cell: GridFileThumbCell() {

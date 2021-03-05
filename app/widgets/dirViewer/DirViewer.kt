@@ -447,7 +447,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
             val sortByValue = FileField.valueOf(sortBy.value)!!
             compareBy<Item> { 0 }
                .thenBy { it.valType }.inSort(sortFile.value.sort)
-               .thenBy(sortByValue.comparator<File> { it.inSort(sort.value).nullsLast() }) { it.value }
+               .thenBy(sortByValue.comparator { it.inSort(sort.value).nullsLast() }) { it.value }
                .thenBy { it.value.path }
          }
       }

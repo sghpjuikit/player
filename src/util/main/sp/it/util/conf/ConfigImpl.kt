@@ -255,7 +255,8 @@ open class ListConfig<T>(
                if (configs.size==values.size)
                   (configs zip values).forEach { (c, v) -> c.valueAsProperty = PropVal1(v) }
 
-               (if (a.isSimpleItemType) configs[0].value as T else item)
+               if (a.isSimpleItemType) (configs[0].value as T)
+               else item
             }
             .filter(if (a.itemType.isNullable) { _ -> true } else { it -> it!=null })
       }

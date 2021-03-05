@@ -70,7 +70,9 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import sp.it.util.Sort
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.collections.setTo
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.ui.show
@@ -219,7 +221,11 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs.o) } on onClose
 
       // sync library comparator
-      table.itemsComparator syncTo APP.db.libraryComparator on onClose
+      table.itemsComparator sync {
+         val sorts = table.sortOrder.mapNotNull { c -> c.userData?.asIs<Metadata.Field<*>>()?.net { Sort.of(c) to it } }
+         APP.audio.songOrderBys setTo sorts.map { it.second }
+         APP.audio.songOrderSorts setTo sorts.map { it.first }
+      } on onClose
 
    }
 

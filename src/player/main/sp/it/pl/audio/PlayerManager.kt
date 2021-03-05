@@ -62,7 +62,15 @@ import sp.it.util.units.uuid
 import java.io.File
 import java.net.URI
 import java.util.ArrayList
+import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_INFO
+import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
+import sp.it.util.Sort.ASCENDING
 import sp.it.util.conf.noPersist
+import sp.it.util.conf.noUi
+import sp.it.util.functional.Util.SAME
+import sp.it.util.functional.asIs
+import sp.it.util.functional.nullsLast
+import sp.it.util.inSort
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
@@ -95,8 +103,20 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       info = "Shows convenient options for initial Vlc setup"
    )
 
-   var browse by c<File>(APP.location.user).only(DIRECTORY).def(name = "Last browse location")
-   var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY).def(name = "Last playlist export location")
+   val songOrderBys by cList<Metadata.Field<*>>(DISCS_INFO, TRACK_INFO).noUi()
+   val songOrderSorts by cList(ASCENDING, ASCENDING).noUi()
+   val songOrderComparator: Comparator<Metadata?>
+      get() {
+         if (songOrderBys.size != songOrderSorts.size) {
+            songOrderBys.clear()
+            songOrderSorts.clear()
+         }
+         return ((songOrderBys zip songOrderSorts).map { (by, sort) -> by.comparator { it.inSort(sort).nullsLast() } }.reduceOrNull { a,b -> a.thenComparing(b) } ?: SAME).asIs()
+      }
+   var browse by c<File>(APP.location.user).only(DIRECTORY)
+      .def(name = "Last browse location")
+   var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY)
+      .def(name = "Last playlist export location")
    var readOnly by c(true).def(
       name = "No song modification",
       info = "Disallow all song modifications by this application.\n\nWhen true, app will be unable to change any song metadata"

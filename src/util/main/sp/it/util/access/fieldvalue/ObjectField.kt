@@ -1,12 +1,12 @@
 package sp.it.util.access.fieldvalue
 
-import sp.it.util.functional.Util.by
+import java.util.Comparator
+import java.util.Comparator.comparing
+import java.util.Comparator.naturalOrder
 import sp.it.util.functional.asIs
 import sp.it.util.functional.nullsLast
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.rawJ
-import java.util.Comparator
 
 /**
  * @param <V> type of value this field extracts from
@@ -54,21 +54,17 @@ interface ObjectField<in V, out T>: StringGetter<V> {
     * Returns a comparator comparing by the value extracted by this field or [sp.it.util.functional.Util.SAME] if
     * this field does not extract [java.lang.Comparable] type.
     *
-    * Note, that because value returned by [getOf] can be null, comparator this method returns may
-    * be unsafe - throw [java.lang.NullPointerException] when comparing null values - and must be guarded, by
+    * Note, that because value returned by [getOf] can be null, the returned comparator must be guarded, by
     * providing transformer that makes it null safe.
     *
     * @param comparatorTransformer function that transforms the underlying null-unsafe comparator into null-safe one
     */
-   @Suppress("UNCHECKED_CAST")
-   fun <C: Comparable<C?>> comparator(comparatorTransformer: (Comparator<in C>) -> Comparator<in C?> = { it.nullsLast() }): Comparator<@UnsafeVariance V?> {
-      return when {
-         type.isSubclassOf<Comparable<*>>() -> by<V, C?>({ o -> getOf(o) as C? }, comparatorTransformer)
-         else -> sp.it.util.functional.Util.SAME as Comparator<V?>
-      }
+   fun comparator(comparatorTransformer: (Comparator<Comparable<*>>) -> Comparator<Comparable<*>?>): Comparator<@UnsafeVariance V?> = when {
+      type.isSubclassOf<Comparable<*>>() -> comparing<V?, Comparable<*>?>({ if (it==null) null else getOf(it).asIs() }, comparatorTransformer(naturalOrder<Comparable<*>>().asIs()))
+      else -> sp.it.util.functional.Util.SAME.asIs()
    }
 
-   fun <C: Comparable<C?>> comparator(): Comparator<@UnsafeVariance V?> = comparator<C> { it.nullsLast() }
+   fun comparator(): Comparator<@UnsafeVariance V?> = comparator { it.nullsLast() }
 
    fun toS(v: V, o: @UnsafeVariance T?, substitute: String): String = toS(o, substitute)
 

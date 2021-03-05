@@ -225,13 +225,13 @@ class AlbumView(widget: Widget): SimpleController(widget) {
 
    private fun filterList(orAll: Boolean): List<Metadata> = grid.getSelectedOrAllItems(orAll).toList().flatMap { it.items.grouped }
 
-   private fun filerSortInputList() = filterList(false).sortedWith(APP.db.libraryComparator.value)
+   private fun filerSortInputList() = filterList(false).sortedWith(APP.audio.songOrderComparator)
 
    private fun playSelected() = play(filerSortInputList())
 
    private fun play(items: List<Metadata>) {
       if (items.isEmpty()) return
-      PlaylistManager.use { it.setNplay(items.stream().sorted(APP.db.libraryComparator.get())) }
+      PlaylistManager.use { it.setNplay(items.stream().sorted(APP.audio.songOrderComparator)) }
    }
 
    // restoring selection if table items change, we want to preserve as many selected items as possible - when selection

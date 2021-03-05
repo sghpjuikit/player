@@ -12,7 +12,6 @@ import sp.it.pl.core.CoreSerializer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.main.withAppProgress
-import sp.it.util.access.v
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
@@ -31,7 +30,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.units.uuid
 import java.net.URI
 import java.util.Collections.synchronizedMap
-import java.util.Comparator
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("unused")
@@ -49,14 +47,6 @@ class SongDb {
    /** Map of unique values per field gathered from [songsById] */
    @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, Set<String>>()
    val songListFile = APP.location.user.library/"MetadataIdsDB.txt"
-
-   /**
-    * Comparator defining the sorting for songs in operations that wish to
-    * provide consistent sorting across the application.
-    *
-    * The comparator should reflect library table sort order.
-    */
-   var libraryComparator = v<Comparator<in Metadata>>(Comparator { a, b -> a.compareTo(b) })
 
    fun init() {
       if (running) return

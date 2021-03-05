@@ -35,6 +35,9 @@ import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
+import sp.it.pl.audio.playlist.PlaylistSong
+import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.WidgetFactory
@@ -52,7 +55,9 @@ import sp.it.pl.ui.objects.icon.id
 import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.pl.ui.objects.tree.Name
 import sp.it.util.Util.enumToHuman
+import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
+import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.action.Action
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.fail
@@ -213,7 +218,7 @@ object CoreConverter: Core {
                      .toTypedArray()
                )
             }.orMessage()
-            else -> Try.ok(anyConverter.ofS(type, s))
+            else -> anyConverter.ofS(type, s)
          }
       }
 
@@ -264,7 +269,13 @@ object CoreConverter: Core {
       addP<MimeGroup>(MimeGroup)
       addP<MimeType>(MimeType)
       addP<MimeExt>(MimeExt)
+      addP<ColumnField>(ColumnField)
+      addP<IconField<*>>(IconField)
       addP<FileFilter>(FileFilter)
+      addP<FileField<*>>(FileField)
+      addP<PlaylistSong.Field<*>>(PlaylistSong.Field)
+      addP<Metadata.Field<*>>(Metadata.Field)
+      addP<MetadataGroup.Field<*>>(MetadataGroup.Field)
       addT<TableColumnInfo>(toS, { TableColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnInfo>(toS, { TableColumnInfo.ColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnSortInfo>(toS, { TableColumnInfo.ColumnSortInfo.fromString(it).orMessage() })

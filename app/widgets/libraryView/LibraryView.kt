@@ -339,7 +339,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private fun filerSortInputList() = filterList(inputItems.value, false).sortedWith(APP.db.libraryComparator.value)
+   private fun filerSortInputList() = filterList(inputItems.value, false).sortedWith(APP.audio.songOrderComparator)
 
    private fun playSelected() = play(filerSortInputList())
 

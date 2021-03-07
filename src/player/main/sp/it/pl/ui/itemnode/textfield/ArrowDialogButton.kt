@@ -16,6 +16,6 @@ class ArrowDialogButton: StackPane() {
       // }
       // setPrefSize(22.0, 22.0)
 
-      children += Icon().tooltip("Open dialog").styleclass("value-text-field-arrow")
+      children += Icon().styleclass("value-text-field-arrow")
    }
 }

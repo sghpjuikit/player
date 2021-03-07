@@ -1,24 +1,40 @@
 package sp.it.pl.ui.itemnode.textfield
 
+import java.time.format.DateTimeFormatter as Formatter
 import java.time.LocalTime
+import java.time.format.DateTimeParseException
+import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.ui.objects.time.TimePickerContent
 import sp.it.pl.ui.objects.window.NodeShow
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 
 /** [ValueTextField] for [LocalTime] using [TimePickerContent]. */
-class TimeTextField: ValueTextField<LocalTime>() {
+class TimeTextField(formatter: Formatter): ValueTextField<LocalTime>({ it?.net(formatter::format) ?: textNoVal }) {
+   private var formatter = formatter
    private var popup: PopWindow? = null
    private var popupContent: TimePickerContent? = null
+   private var valueChanging = Suppressor()
 
    init {
       styleClass += "time-text-field"
       isEditable = true
+      textProperty() attach {
+         valueChanging.suppressed {
+            try {
+               value = LocalTime.parse(it, formatter)
+            } catch (e: DateTimeParseException) {
+            }
+         }
+      }
    }
 
    override fun onDialogAction() {
@@ -33,6 +49,8 @@ class TimeTextField: ValueTextField<LocalTime>() {
       val p = popup ?: PopWindow().apply {
          styleClass += "time-text-field-popup"
          popup = this
+         userMovable.value = false
+         userResizable.value = false
          headerVisible.value = false
          isAutohide.value = true
          isEscapeHide.value = true

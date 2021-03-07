@@ -53,7 +53,11 @@ import java.nio.charset.StandardCharsets.UTF_16
 import java.nio.charset.StandardCharsets.UTF_16BE
 import java.nio.charset.StandardCharsets.UTF_16LE
 import java.nio.charset.StandardCharsets.UTF_8
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import kotlin.reflect.jvm.jvmErasure
+import sp.it.pl.core.UiStringHelper
 
 private val defTooltip = appTooltip("Default value")
 private const val defBLayoutSize = 15.0
@@ -252,6 +256,9 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          put<Color> { ColorCE(it.asIs()) }
          put<File> { FileCE(it.asIs()) }
          put<Font> { FontCE(it.asIs()) }
+         put<LocalTime> { LocalTimeCE(it.asIs()) }
+         put<LocalDate> { LocalDateCE(it.asIs()) }
+         put<LocalDateTime> { LocalDateTimeCE(it.asIs()) }
          put<OrValue<*>> {
             when (it) {
                is OrPropertyConfig<*> -> OrCE(it)

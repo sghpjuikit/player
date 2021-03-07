@@ -1801,6 +1801,27 @@ Shape, Text, TextFlow > * {
 }
 
 /**
+ * inherits: .value-text-field
+ */
+.time-text-field {
+    -fx-pref-column-count: 10;
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.date-text-field {
+    -fx-pref-column-count: 10;
+}
+
+/**
+ * inherits: .value-text-field
+ */
+.datetime-text-field {
+    -fx-pref-column-count: 10;
+}
+
+/**
  * inherits: FlowPane
  * pseudoclasses: readonly, has-focus
  */

@@ -2,6 +2,7 @@ package tester
 
 import java.io.File
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import javafx.animation.Animation.INDEFINITE
 import javafx.animation.Interpolator
@@ -163,6 +164,10 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `cn(LocalDate)` by cn<LocalDate>(null)
          val `cv(LocalDate)` by cv<LocalDate>(LocalDate.now())
          val `cvn(LocalDate)` by cvn<LocalDate>(null)
+         var `c(LocalDateTime)` by c<LocalDateTime>(LocalDateTime.now())
+         var `cn(LocalDateTime)` by cn<LocalDateTime>(null)
+         val `cv(LocalDateTime)` by cv<LocalDateTime>(LocalDateTime.now())
+         val `cvn(LocalDateTime)` by cvn<LocalDateTime>(null)
          val `cList(Int)` by cList<Int>(1, 2, 3)
          val `cList(Int?)` by cList<Int?>(1, 2, null)
          val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<Boolean>(), listOf(true, false, false), listOf(true, false, false)))

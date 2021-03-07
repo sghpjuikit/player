@@ -1,5 +1,6 @@
 package sp.it.pl.ui.itemnode
 
+import com.jfoenix.controls.JFXColorPicker
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable
@@ -139,10 +140,20 @@ import sp.it.util.ui.text
 import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import java.io.File
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import javafx.scene.control.TextField
 import kotlin.reflect.KClass
+import sp.it.pl.core.UiStringHelper
+import sp.it.pl.ui.itemnode.textfield.DateTextField
+import sp.it.pl.ui.itemnode.textfield.DateTimeTextField
+import sp.it.pl.ui.itemnode.textfield.TimeTextField
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.ImprovedSliderSkin
+import sp.it.pl.ui.objects.tagtextfield.ComplexTextField
 import sp.it.util.access.OrV
+import sp.it.util.reactive.suppressingAlways
 
 private val warnTooltip = appTooltip("Erroneous value")
 private val actTooltip = appTooltip("Run action")
@@ -469,12 +480,72 @@ class InsetsCE(c: Config<Insets?>): ConfigEditor<Insets?>(c) {
 class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = ColorPicker()
+   override val editor = JFXColorPicker()
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
       editor.valueProperty() attach { apply() } on editor.onNodeDispose
+      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+   }
+
+   override fun get() = Try.ok(editor.value)
+
+   override fun refreshValue() {
+      if (!isObservable)
+         editor.value = config.value
+   }
+}
+
+class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
+   private val v = getObservableValue(c)
+   private var isObservable = v!=null
+   override val editor = TimeTextField(APP.converter.timeFormatter)
+
+   init {
+      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      editor.value = config.value
+      editor.onValueChange.addS { apply() } on editor.onNodeDispose
+      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+   }
+
+   override fun get() = Try.ok(editor.value)
+
+   override fun refreshValue() {
+      if (!isObservable)
+         editor.value = config.value
+   }
+}
+
+class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
+   private val v = getObservableValue(c)
+   private var isObservable = v!=null
+   override val editor = DateTextField(APP.converter.dateFormatter)
+
+   init {
+      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      editor.value = config.value
+      editor.onValueChange.addS { apply() } on editor.onNodeDispose
+      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+   }
+
+   override fun get() = Try.ok(editor.value)
+
+   override fun refreshValue() {
+      if (!isObservable)
+         editor.value = config.value
+   }
+}
+
+class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c) {
+   private val v = getObservableValue(c)
+   private var isObservable = v!=null
+   override val editor = DateTimeTextField(APP.converter.dateTimeFormatter)
+
+   init {
+      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      editor.value = config.value
+      editor.onValueChange.addS { apply() } on editor.onNodeDispose
       v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
    }
 

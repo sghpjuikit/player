@@ -113,6 +113,8 @@ private typealias FromS<T> = (String) -> Try<T, String>
 
 object CoreConverter: Core {
 
+   private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+   private val dateFormatter = DateTimeFormatter.ofPattern("yyyy MM dd")
    private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy MM dd HH:mm:ss")
 
    /** Default to/from string converter that uses per class registered converters. */
@@ -147,8 +149,8 @@ object CoreConverter: Core {
          is MouseButton -> o.nameUi
          is Action -> "${o.nameUi} (${o.keysUi()})"
          is LocalDateTime -> o.format(dateTimeFormatter)
-         is LocalDate -> o.format(dateTimeFormatter)
-         is LocalTime -> o.format(dateTimeFormatter)
+         is LocalDate -> o.format(dateFormatter)
+         is LocalTime -> o.format(timeFormatter)
          is Duration -> o.formatToSmallestUnit()
          is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
          is Effect -> o::class.toUi()

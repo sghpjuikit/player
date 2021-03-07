@@ -6,6 +6,7 @@ import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Node
+import javafx.scene.Parent
 import javafx.scene.control.Label
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -132,6 +133,8 @@ open class PopWindow {
    val onHidden = Handler0()
    /** Root's [Node.styleClass]. */
    val styleClass get() = root.styleClass!!
+   /** Root's [Parent.stylesheets]. */
+   val stylesheets get() = root.stylesheets!!
    /** Root's [Node.properties]. */
    val properties get() = root.properties!!
    /** Whether show/hide is animated. */

@@ -1896,6 +1896,111 @@ Shape, Text, TextFlow > * {
     -fx-border-color: -fx-focus-color;
 }
 
+
+/******************************* TIME-CLOCK-DIGITAL ********************************************************************
+ * Extends StackPane
+ * pseudoclasses: readonly
+ */
+.time-clock-digital {
+    -fx-padding: 1em;
+}
+.time-clock-digital-text,
+.time-clock-digital-text-hour,
+.time-clock-digital-text-minute,
+.time-clock-digital-text-second {
+     -fx-font-size: 2em;
+}
+.time-clock-digital-text-mode {
+     -fx-font-size: 1em;
+}
+
+/******************************* TIME-CLOCK-ANALOG *********************************************************************
+ * inherits: StackPane
+ * pseudoclasses: readonly
+ */
+.time-clock-analog {}
+/* inherits: StackPane */
+.time-clock-analog-circle {
+    -fx-max-width: 6em;
+    -fx-pref-width: 6em;
+    -fx-pref-height: 6em;
+    -fx-max-height: 6em;
+    -fx-padding: 6em;
+    -fx-background-radius: 6em;
+    -fx-background-color: rgba(255,255,255,0.1);
+}
+/* inherits: .label */
+.time-clock-analog-hour-label {
+}
+/* inherits: StackPane */
+.time-clock-analog-middle-dot {
+    -fx-max-width: 0em;
+    -fx-max-height: 0em;
+    -fx-padding: 0.2em;
+    -fx-background-radius: 0.2em;
+    -fx-background-color: rgba(255,255,255,0.4);
+}
+/*
+ * inherits: StackPane
+ * pseudoclasses: hour, minute, second
+ */
+.time-clock-analog-arrow {
+    -fx-background-insets: 0 0 0 0.5em;
+    -fx-background-color: rgba(255,255,255,0.4);
+    -fx-max-height: 0.1em;
+}
+.time-clock-analog-arrow:hour {
+    -fx-max-width: 3em;
+}
+.time-clock-analog-arrow:minute {
+    -fx-max-width: 4em;
+}
+.time-clock-analog-arrow:second {
+    -fx-max-width: 5em;
+}
+/* inherits: .label */
+.time-clock-analog-unit-label {
+    -fx-label-padding: 0 0.5em 0 0.5em;
+    -fx-border-width: 1;
+    -fx-border-radius: 0.5em;
+    -fx-border-color: -skin-def-font-color;
+}
+/* inherits: .label */
+.time-clock-analog-mode-label {
+    -fx-label-padding: 0 0.5em 0 0.5em;
+    -fx-border-width: 1;
+    -fx-border-radius: 0.5em;
+    -fx-border-color: -skin-def-font-color;
+}
+
+/******************************* TIME-PICKER-CONTENT *******************************************************************
+ * inherits: VBox
+ * pseudoclasses: readonly
+ */
+.time-picker-content {
+    -fx-alignment: CENTER;
+}
+.time-picker-content .time-clock-digital {
+    -fx-background-color: rgba(255,22,22,0.2);
+}
+.time-picker-content .time-clock-analog {
+    -fx-padding: 1em;
+}
+
+
+/******************************* TIME-TEXT-FIELD ***********************************************************************
+ * inherits: .value-text-field
+ */
+.time-text-field {}
+/*
+ * inherits: StackPane
+ */
+.time-text-field-popup {}
+.time-text-field-popup .pop-window-content {
+    -fx-padding: 0;
+}
+.time-text-field-popup .time-picker-content {}
+
 /******************************** ITEM PICKER **************************************************************************
  * Picker displays elements to choose from as a scrollable tile grid.
  * inherits: ScrollPane

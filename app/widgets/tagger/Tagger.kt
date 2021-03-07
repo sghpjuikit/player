@@ -173,6 +173,8 @@ import java.time.Year
 import java.util.ArrayList
 import sp.it.pl.ui.objects.textfield.DecoratedTextField as DTextField
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.tagtextfield.TagTextField

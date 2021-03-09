@@ -103,7 +103,6 @@ allprojects {
             implementation("org.openjfx", "javafx-$it", version, classifier = classifier)
          }
          implementation("de.jensd", "fontawesomefx", "8.9")
-         implementation("com.jfoenix", "jfoenix", "9.0.10")
       }
 
       "Logging" group {

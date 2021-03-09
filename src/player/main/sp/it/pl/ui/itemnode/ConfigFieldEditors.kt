@@ -1,6 +1,5 @@
 package sp.it.pl.ui.itemnode
 
-import com.jfoenix.controls.JFXColorPicker
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable

@@ -23,6 +23,7 @@ import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.scene.Node
+import javafx.scene.control.TextInputControl
 import javafx.scene.control.TreeItem
 import javafx.scene.text.TextAlignment
 import javafx.stage.Window
@@ -215,6 +216,8 @@ val Window.focused: ReadOnlyBooleanProperty get() = focusedProperty()
 val Window.showing: ReadOnlyBooleanProperty get() = showingProperty()
 /** [Node.focusedProperty] */
 val Node.focused: ReadOnlyBooleanProperty get() = focusedProperty()
+/** [TextInputControl.editableProperty] */
+val TextInputControl.editable: ReadOnlyBooleanProperty get() = editableProperty()
 /** [TreeItem.expandedProperty] */
 val TreeItem<*>.expanded: BooleanProperty get() = expandedProperty()
 /** [Node.visibleProperty] */

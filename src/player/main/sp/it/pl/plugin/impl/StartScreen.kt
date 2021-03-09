@@ -32,6 +32,7 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.pane.OverlayPane

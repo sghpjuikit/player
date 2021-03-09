@@ -1,4 +1,4 @@
-package sp.it.pl.ui.objects.time
+package sp.it.pl.ui.objects.picker
 
 import java.time.LocalTime
 import javafx.scene.layout.Priority.ALWAYS

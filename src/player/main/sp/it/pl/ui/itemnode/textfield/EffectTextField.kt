@@ -35,7 +35,6 @@ import sp.it.util.ui.Util.layHorizontally
 import kotlin.reflect.KClass
 
 class EffectTextField: ValueTextField<Effect> {
-
    private val typeB: Icon
    private val propB: Icon
    private val limitedToType: KClass<out Effect>?

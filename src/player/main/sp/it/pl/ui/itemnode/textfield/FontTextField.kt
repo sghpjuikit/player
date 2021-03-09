@@ -1,18 +1,50 @@
 package sp.it.pl.ui.itemnode.textfield
 
 import javafx.scene.text.Font
-import sp.it.pl.ui.objects.picker.FontSelectorDialog
+import sp.it.pl.main.APP
+import sp.it.pl.ui.objects.picker.FontPicker
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
+import sp.it.util.async.runLater
+import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Suppressor
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
+import sp.it.util.reactive.syncFrom
 
-/** Text field for [Font] with a picker. */
+/** [ValueTextField] for [Font]. */
 class FontTextField: ValueTextField<Font>() {
+   private var picker: FontPicker? = null
+   private var valueChanging = Suppressor()
 
    init {
       styleClass += STYLECLASS
+      isEditable = true
+      textProperty() attach {
+         valueChanging.suppressed {
+            APP.converter.general.ofS<Font>(it).ifOk {
+               runLater {
+                  value = it
+               }
+            }
+         }
+      }
    }
 
    override fun onDialogAction() {
-      FontSelectorDialog(value) { value = it }.popup.show(RIGHT_CENTER(this))
+      val d = Disposer()
+      val pc = picker ?: FontPicker { valueChanging.suppressing { value = it } }.apply {
+         picker = this
+         pickerContent.font = this@FontTextField.value ?: Font.getDefault()
+         editable syncFrom this@FontTextField.editableProperty() on d
+         popup.onHiding += {
+            d()
+            picker = null
+         }
+      }
+
+      pc.popup.show(RIGHT_CENTER(this))
    }
 
    companion object {

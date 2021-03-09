@@ -6,12 +6,14 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
+import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.StackPane
 import javafx.scene.transform.Rotate
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlin.math.sin
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
@@ -36,7 +38,7 @@ class TimeClockAnalog: StackPane() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
-   val value = v<LocalTime>(LocalTime.now())
+   val value = v(LocalTime.now())
    /** Unit the arrow displays and user sets by dragging the arrow. Default [Unit.HOUR] */
    val unit = v(Unit.HOUR)
    /** Updates graphics to display [value] */
@@ -56,6 +58,7 @@ class TimeClockAnalog: StackPane() {
       }
       onEventDown(MOUSE_DRAGGED, PRIMARY) { updateFromMouse(it) }
       onEventDown(MOUSE_CLICKED, PRIMARY) { updateFromMouse(it) }
+      onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { unit.value.adder(it, -e.deltaY.sign.toLong()) } }
    }
 
    /** The twelve hour labels */
@@ -134,10 +137,10 @@ class TimeClockAnalog: StackPane() {
       modeLabel.relocate(centre.x + radius/2.5*cos(-PI/4.0) - unitLabel.width/2.0, centre.y - radius/2.5*sin(-PI/4.0) - unitLabel.height/2.0)
    }
 
-   enum class Unit(val nameUi: String, val nameCss: String, val base: Int, val getter: (LocalTime) -> Int, val setter: (LocalTime, Int) -> LocalTime) {
-      HOUR("H", "hour", 12, LocalTime::getHour, LocalTime::withHour),
-      MINUTE("M", "minute", 60, LocalTime::getMinute, LocalTime::withMinute),
-      SECOND("S", "second", 60, LocalTime::getSecond, LocalTime::withSecond)
+   enum class Unit(val nameUi: String, val nameCss: String, val base: Int, val getter: (LocalTime) -> Int, val setter: (LocalTime, Int) -> LocalTime, val adder: (LocalTime, Long) -> LocalTime) {
+      HOUR("H", "hour", 12, LocalTime::getHour, LocalTime::withHour, LocalTime::plusHours),
+      MINUTE("M", "minute", 60, LocalTime::getMinute, LocalTime::withMinute, LocalTime::plusMinutes),
+      SECOND("S", "second", 60, LocalTime::getSecond, LocalTime::withSecond, LocalTime::plusSeconds)
    }
 
    enum class Mode { AM, PM }

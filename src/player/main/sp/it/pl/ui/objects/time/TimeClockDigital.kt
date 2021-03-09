@@ -21,7 +21,7 @@ class TimeClockDigital: StackPane() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
-   val value = v<LocalTime>(LocalTime.now())
+   val value = v(LocalTime.now())
    /** Updates graphics to display [value] */
    val update = Handler1<LocalTime>()
 
@@ -36,7 +36,7 @@ class TimeClockDigital: StackPane() {
             styleClass += "time-clock-digital-text"
             styleClass += "time-clock-digital-text-hour"
             update += { text = "%2d".format(it.hour%12).padStart(2, ' ') }
-            onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusHours(e.deltaY.sign.toLong()) } }
+            onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusHours(-e.deltaY.sign.toLong()) } }
          }
          lay += text(":") {
             styleClass += "time-clock-digital-text"
@@ -45,7 +45,7 @@ class TimeClockDigital: StackPane() {
             styleClass += "time-clock-digital-text"
             styleClass += "time-clock-digital-text-minute"
             update += { text = "%02d".format(it.minute) }
-            onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusMinutes(e.deltaY.sign.toLong()) } }
+            onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusMinutes(-e.deltaY.sign.toLong()) } }
          }
          lay += text(":") {
             styleClass += "time-clock-digital-text"
@@ -54,7 +54,7 @@ class TimeClockDigital: StackPane() {
             styleClass += "time-clock-digital-text"
             styleClass += "time-clock-digital-text-second"
             update += { text = "%02d".format(it.second) }
-            onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusSeconds(e.deltaY.sign.toLong()) } }
+            onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusSeconds(-e.deltaY.sign.toLong()) } }
          }
          lay += text {
             styleClass += "time-clock-digital-text"

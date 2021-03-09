@@ -418,6 +418,12 @@ open class PaneLay(private val pane: Pane): Lay {
       pane.children -= child
    }
 
+   /** Removes the specified children from this */
+   operator fun minusAssign(children: Collection<Node>) = children.forEach { this -= it }
+
+   /** Removes the specified children from this */
+   operator fun minusAssign(children: Sequence<Node>) = children.forEach { this -= it }
+
 }
 
 class HBoxLay(private val pane: HBox): PaneLay(pane) {

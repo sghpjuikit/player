@@ -13,6 +13,7 @@ import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
@@ -42,7 +43,7 @@ class TimeTextField(formatter: Formatter): ValueTextField<LocalTime>({ it?.net(f
       val pc = popupContent ?: TimePickerContent().apply {
          popupContent = this
          value.value = this@TimeTextField.value ?: LocalTime.now()
-         value attach { this@TimeTextField.value = it } on d
+         value attach { valueChanging.suppressing { this@TimeTextField.value = it } } on d
          editable syncFrom this@TimeTextField.editableProperty() on d
       }
 

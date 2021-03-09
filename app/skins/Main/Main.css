@@ -1987,6 +1987,77 @@ Shape, Text, TextFlow > * {
     -fx-padding: 1em;
 }
 
+/******************************* DATE-PICKER-CONTENT *******************************************************************
+ * extends: VBox
+ * pseudoclasses: readonly
+ */
+.date-picker-content {
+    -fx-alignment: center;
+}
+/*
+ * extends: FlowPane
+ */
+ .date-picker-content-header {
+    -fx-padding: 1em;
+    -fx-background-color: rgba(255,22,22,0.2);
+    -fx-alignment: center;
+    -fx-hgap: 0.5em;
+    -fx-vgap: 0.5em;
+    -fx-orientation: horizontal;
+    -fx-column-halignment: center;
+    -fx-row-valignment: center;
+}
+/*
+ * extends: .label
+ */
+.date-picker-content-header-year-label {
+    -fx-font-size: 2em;
+}
+/*
+ * extends: .label
+ */
+.date-picker-content-header-month-label {
+    -fx-font-size: 2em;
+}
+/*
+ * extends: FlowPane
+ * pseudoclasses: weekday - day of the day header cell
+ *                other - day cell for other month than the currently displayed
+ */
+.date-picker-content-cells {
+    -fx-padding: 1em;
+    -fx-hgap: 0.5em;
+    -fx-vgap: 0.5em;
+    -fx-alignment: top-left;
+    -fx-column-halignment: center;
+    -fx-row-valignment: center;
+    -fx-orientation: horizontal;
+    -fx-max-width: 20em; // should be around 7days*cell-width+6*cell-hgap
+}
+.date-picker-content-cell {
+    -fx-pref-width: 2em;
+    -fx-max-width: 2em;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}
+.date-picker-content-cell:weekday {}
+.date-picker-content-cell:other {
+    -fx-opacity: 0.4;
+}
+.date-picker-content-cell:hover {
+    -fx-background-color: rgba(255,22,22,0.2);
+    -fx-background-insets: 0;
+    -fx-background-radius: 3em;
+    -fx-text-fill: -fx-focus-color
+}
+
+/******************************* DATETIME-PICKER-CONTENT ***************************************************************
+ * extends: HBox
+ * pseudoclasses: readonly
+ */
+.datetime-picker-content {}
+.datetime-picker-content .date-picker-content {}
+.datetime-picker-content .time-picker-content {}
 
 /******************************* TIME-TEXT-FIELD ***********************************************************************
  * inherits: .value-text-field
@@ -2000,6 +2071,32 @@ Shape, Text, TextFlow > * {
     -fx-padding: 0;
 }
 .time-text-field-popup .time-picker-content {}
+
+/******************************* DATE-TEXT-FIELD ***********************************************************************
+ * inherits: .value-text-field
+ */
+.date-text-field {}
+/*
+ * inherits: StackPane
+ */
+.date-text-field-popup {}
+.date-text-field-popup .pop-window-content {
+    -fx-padding: 0;
+}
+.date-text-field-popup .time-picker-content {}
+
+/******************************* DATETIME-TEXT-FIELD *******************************************************************
+ * inherits: .value-text-field
+ */
+.datetime-text-field {}
+/*
+ * inherits: StackPane
+ */
+.datetime-text-field-popup {}
+.datetime-text-field-popup .pop-window-content {
+    -fx-padding: 0;
+}
+.datetime-text-field-popup .time-picker-content {}
 
 /******************************** ITEM PICKER **************************************************************************
  * Picker displays elements to choose from as a scrollable tile grid.

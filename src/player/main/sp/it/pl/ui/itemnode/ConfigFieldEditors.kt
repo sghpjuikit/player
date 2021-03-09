@@ -143,9 +143,11 @@ import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.Locale
 import javafx.scene.control.TextField
 import kotlin.reflect.KClass
 import sp.it.pl.core.UiStringHelper
+import sp.it.pl.ui.itemnode.textfield.ColorTextField
 import sp.it.pl.ui.itemnode.textfield.DateTextField
 import sp.it.pl.ui.itemnode.textfield.DateTimeTextField
 import sp.it.pl.ui.itemnode.textfield.TimeTextField
@@ -480,12 +482,12 @@ class InsetsCE(c: Config<Insets?>): ConfigEditor<Insets?>(c) {
 class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = JFXColorPicker()
+   override val editor = ColorTextField()
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.valueProperty() attach { apply() } on editor.onNodeDispose
+      editor.onValueChange.addS { apply() } on editor.onNodeDispose
       v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
    }
 
@@ -520,7 +522,7 @@ class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
 class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = DateTextField(APP.converter.dateFormatter)
+   override val editor = DateTextField(Locale.getDefault(), APP.converter.dateFormatter)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
@@ -540,7 +542,7 @@ class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
 class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = DateTimeTextField(APP.converter.dateTimeFormatter)
+   override val editor = DateTimeTextField(Locale.getDefault(), APP.converter.dateTimeFormatter)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR

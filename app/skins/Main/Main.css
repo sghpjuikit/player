@@ -22,6 +22,7 @@
     -skin-value-font-color: rgb(75, 175, 105);
 
     -fx-focus-color: #ffcc66;
+    -skin-focus-bgr-color: rgba(22,22,255,0.2);
     -fx-faint-focus-color: #ffcc66;
 }
 
@@ -118,6 +119,40 @@
         linear-gradient(#242a30, #232830),
         radial-gradient(center 60% 0%, radius 100%, rgba(135,142,160,0.9),
         rgba(255,255,255,0));
+}
+
+// TODO: generalize to BUTTON-LIKE THINGS
+.button,
+.button:hover,
+.button:focused {
+    -fx-label-padding: 0 0.2em 0 0.2em;
+    -fx-background-color: null;
+    -fx-border-color: -skin-def-font-color;
+    -fx-border-width: 0.08em;
+    -fx-border-radius: 0.2em;
+    -fx-effect: null;
+}
+
+.toggle-button,
+.toggle-button:hover,
+.toggle-button:focused {
+    -fx-label-padding: 0 0.5em 0 0.5em;;
+    -fx-background-color: null;
+    -fx-border-color: -skin-def-font-color;
+    -fx-border-width: 0.08em;
+    -fx-border-radius: 0.2em;
+    -fx-effect: null;
+}
+
+.button:hover,
+.toggle-button:hover {
+    -fx-background-color: -skin-focus-bgr-color;
+}
+
+.button:focused,
+.toggle-button:focused {
+    -fx-text-fill: -fx-focus-color;
+    -fx-border-color: -fx-focus-color;
 }
 
 /* ====   DISABLED THINGS   ================================================= */
@@ -1001,22 +1036,6 @@ Shape, Text, TextFlow > * {
     -fx-background-insets: 0;
 }
 
-/********************************* ColorPicker ********************************/
-
-.color-palette {
-    -fx-background-color: -skin-popup-def-bgr-color;
-    -fx-border-width: 1;
-    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
-    -fx-border-radius: 5;
-}
-
-.custom-color-dialog  {
-    -fx-background-color: -skin-bgr-color;
-}
-
-.custom-color-dialog .controls-pane .customcolor-controls-background {
-    -fx-background-color: -skin-pane-color;
-}
 
 /********* Customised CSS for controls placed directly within cells ***********/
 
@@ -1384,6 +1403,203 @@ Shape, Text, TextFlow > * {
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-border-radius: 5;
     -fx-padding: 0.5em 1em 0.5em 1em;
+}
+
+/******************************* COLOR PICKER ********************************/
+
+.color-picker > .arrow-button {
+    -fx-background-color: null;
+    -fx-padding: 0.5em 0.667em 0.5em 0; /*  6 8 6 0 */
+}
+.color-picker.split-button > .arrow-button  {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: 1 1 1 0, 1, 2;
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
+}
+.color-picker.split-button:focused > .arrow-button {
+    -fx-background-color: -fx-focus-color, -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
+    -fx-background-insets: 1 1 1 0, 1, 2, 1, 2.6;
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0, 0 1 1 0, 0 1 1 0;
+}
+.color-picker.split-button > .color-picker-label,
+.color-picker.split-button:focused > .color-picker-label {
+    -fx-background-color: null;
+}
+.color-picker.split-button > .arrow-button {
+    -fx-padding: 0.5em 0.667em 0.5em 0.667em; /* 6 8 6 8 */
+}
+.color-picker > .color-picker-label > .picker-color > .picker-color-rect {
+    -fx-stroke: null;
+    -fx-stroke-width: 1;
+    -fx-scale-x: 2.5;
+    -fx-scale-y: 1.5;
+}
+
+.color-palette {
+    -fx-spacing: 1em; /* 10px */
+    -fx-background-color: -skin-popup-def-bgr-color;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-border-width: 1;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+    -fx-padding: 2em;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 12, 0.0,0 ,8);
+}
+.color-palette > .color-picker-grid {
+    -fx-padding: 0;
+    -fx-snap-to-pixel: false;
+}
+.color-palette > .color-picker-grid > .color-square {
+    -fx-background-color: transparent;
+    -fx-padding: 0.5px;
+}
+
+.color-palette-region > .color-square.hover-square {
+    -fx-background-color: -fx-faint-focus-color, white;
+    -fx-background-insets: -3,-1;
+    -fx-background-radius: 5,0;
+    -fx-scale-x: 1.5;
+    -fx-scale-y: 1.5;
+    -fx-border-color: -fx-focus-color;
+    -fx-border-insets: -1, -1;
+}
+
+.custom-color-dialog > .color-rect-pane {
+    -fx-spacing: 0.75em;
+    -fx-pref-height: 16.666667em;
+    -fx-alignment: top-left;
+    -fx-fill-height: true;
+}
+
+.custom-color-dialog .color-rect-pane .color-rect {
+    -fx-min-width: 16.666667em;
+    -fx-min-height: 16.666667em;
+}
+
+.custom-color-dialog .color-rect-pane .color-rect-border {
+    -fx-border-width: 1;
+    -fx-border-color: derive(-fx-base, -20%);
+}
+
+.custom-color-dialog > .color-rect-pane #color-rect-indicator {
+    -fx-background-color: null;
+    -fx-border-color: white;
+    -fx-border-radius: 0.4166667em;
+    -fx-translate-x: -0.4166667em;
+    -fx-translate-y: -0.4166667em;
+    -fx-pref-width: 0.833333em;
+    -fx-pref-height: 0.833333em;
+    -fx-effect: dropshadow(three-pass-box, black, 2, 0.0, 0, 1);
+}
+
+.custom-color-dialog > .color-rect-pane > .color-bar {
+    -fx-min-width: 1.666667em;
+    -fx-min-height: 16.666667em;
+    -fx-max-width: 1.666667em;
+    -fx-border-color: derive(-fx-base, -20%);
+}
+
+.custom-color-dialog > .color-rect-pane > .color-bar > #color-bar-indicator {
+    -fx-border-radius: 0.333333em;
+    -fx-border-color: white;
+    -fx-effect: dropshadow(three-pass-box, black, 2, 0.0, 0, 1);
+    -fx-pref-width: 2em;
+    -fx-pref-height: 0.833333em;
+    -fx-translate-x: -0.1666667em;
+    -fx-translate-y: -0.4166667em;
+}
+
+.custom-color-dialog  {
+    -fx-background-color: -skin-bgr-color;
+    -fx-padding: 1.25em;
+    -fx-spacing: 1.25em;
+}
+.custom-color-dialog .controls-pane .current-new-color-grid #current-new-color-border {
+    -fx-border-color: derive(-fx-base, -20%);
+    -fx-border-width: 0;
+}
+
+.custom-color-dialog .controls-pane .current-new-color-grid .color-rect {
+    -fx-min-width: 10.666667em;
+    -fx-min-height: 1.75em;
+    -fx-pref-width: 10.666667em;
+    -fx-pref-height: 1.75em;
+}
+
+.custom-color-dialog .transparent-pattern {
+    -fx-background-repeat: repeat;
+    -fx-background-size: auto;
+}
+
+.custom-color-dialog .controls-pane #spacer1 {
+    -fx-min-height: 0.1666667em;
+    -fx-max-height: 0.1666667em;
+    -fx-pref-height: 0.1666667em;
+}
+
+.custom-color-dialog .controls-pane #spacer2 {
+    -fx-min-height: 1em;
+    -fx-max-height: 1em;
+    -fx-pref-height: 1em;
+}
+
+.custom-color-dialog .controls-pane #settings-pane {
+    -fx-hgap: 0.4166667em;
+    -fx-vgap: 0.3333333em;
+}
+
+.custom-color-dialog .controls-pane #settings-pane .settings-label {
+    -fx-min-width: 7em;
+}
+
+.custom-color-dialog .controls-pane #settings-pane .settings-unit {
+    -fx-max-width: 1.5em;
+    -fx-min-width: 1.5em;
+    -fx-pref-width: 1.5em;
+}
+
+.custom-color-dialog .controls-pane #settings-pane .slider {
+    -fx-pref-width: 8.25em;
+}
+
+.custom-color-dialog .controls-pane .color-input-field {
+    -fx-pref-column-count: 3;
+    -fx-max-width: 3.25em;
+    -fx-min-width: 3.25em;
+    -fx-pref-width: 3.25em;
+}
+
+.custom-color-dialog .controls-pane .web-field {
+    -fx-pref-column-count: 6;
+    -fx-pref-width: 8.25em;
+}
+
+.custom-color-dialog .controls-pane #spacer-side {
+    -fx-min-width: 0.5em;
+    -fx-pref-width: 0.5em;
+}
+
+.custom-color-dialog .controls-pane #spacer-bottom {
+    -fx-pref-height: 0.833333em;
+    -fx-min-height: 0.833333em;
+}
+
+.custom-color-dialog .controls-pane .customcolor-controls-background {
+    -fx-background-color: -skin-pane-color;
+    -fx-background-insets:
+        0.8333333em 0 0.4166667em 0,
+        1em 0.166667em 0.5833333em 0.166667em;
+    -fx-background-radius: 0.25em;
+}
+
+.custom-color-dialog .controls-pane .current-new-color-grid .label {
+    -fx-padding: 0 0 0 0.4166667em;
+}
+
+.custom-color-dialog .controls-pane #buttons-hbox {
+    -fx-spacing: 0.333333em;
+    -fx-padding: 1em 0 0 0;
+    -fx-alignment: bottom-right;
 }
 
 /********************************* FIXED_ROWS *********************************/
@@ -1977,7 +2193,7 @@ Shape, Text, TextFlow > * {
     -fx-alignment: CENTER;
 }
 .time-picker-content .time-clock-digital {
-    -fx-background-color: rgba(255,22,22,0.2);
+    -fx-background-color: -skin-focus-bgr-color;
 }
 .time-picker-content .time-clock-analog {
     -fx-padding: 1em;
@@ -1995,7 +2211,7 @@ Shape, Text, TextFlow > * {
  */
  .date-picker-content-header {
     -fx-padding: 1em;
-    -fx-background-color: rgba(255,22,22,0.2);
+    -fx-background-color: -skin-focus-bgr-color;
     -fx-alignment: center;
     -fx-hgap: 0.5em;
     -fx-vgap: 0.5em;
@@ -2041,7 +2257,7 @@ Shape, Text, TextFlow > * {
     -fx-opacity: 0.4;
 }
 .date-picker-content-cell:hover {
-    -fx-background-color: rgba(255,22,22,0.2);
+    -fx-background-color: -skin-focus-bgr-color;
     -fx-background-insets: 0;
     -fx-background-radius: 3em;
     -fx-text-fill: -fx-focus-color

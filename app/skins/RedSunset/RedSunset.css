@@ -11,6 +11,7 @@
     -skin-def-font-color: rgb(230, 75, 160);
     -skin-def-font-color-hover: rgb(255, 80, 80);
     -fx-focus-color: rgb(255, 80, 80);
+    -skin-focus-bgr-color: rgba(255,22,22,0.2);
     -skin-popup-def-bgr-color: rgba(50,0,36,0.95);
 }
 
@@ -23,6 +24,12 @@
 }
 .drag-pane {
     -fx-background-color: transparent;
+}
+.color-palette {
+    -fx-background-color: radial-gradient(radius 200%, rgba(32,10,56,0.8) 0%, rgba(141,19,19,0.8) 100%, rgba(20,232,255,0.8) 100%);
+}
+.custom-color-dialog  {
+    -fx-background-color: radial-gradient(radius 200%, rgba(32,10,56,1) 0%, rgba(141,19,19,1) 100%, rgba(20,232,255,1) 100%);
 }
 
 /** Add icon shadow */

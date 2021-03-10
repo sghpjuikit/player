@@ -15,7 +15,7 @@
     -fx-background-color: -skin-bgr-color;
 }
 .bgr-image {
-    -fx-opacity: 0.5;
+    -fx-opacity: 0.2;
     -fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
 }

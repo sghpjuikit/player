@@ -103,6 +103,7 @@ import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.util.async.runFX
 import sp.it.util.collections.readOnly
 import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.map
 import sp.it.util.reactive.syncWhileTrue
 import sp.it.util.ui.containsScreen
 
@@ -120,8 +121,21 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** 128x128 icon of the application */
    private val windowIcon by lazy { Image(File("resources/icons/icon128.png").toURI().toString()) }
 
-   val windowOpacity by cv(1.0).between(0.1, 1.0).def(name = "Opacity", info = "Window opacity.")
-   val windowHeaderless by cv(false).def(name = "Headerless", info = "Affects window header visibility for new windows.")
+   /** Required by skins that want to use transparent background colors. Determines [windowStyle] */
+   val windowStyleAllowTransparency by cv(false).def(
+      name = "Allow transparency",
+      info = "Required by skins that want to use transparent background colors. May cause performance degradation. Requires application restart."
+   )
+   /** Window [StageStyle] set at window creation time. Determined by [windowStyleAllowTransparency]. */
+   val windowStyle = windowStyleAllowTransparency
+      .map { if (it) StageStyle.TRANSPARENT else StageStyle.DECORATED }
+   /** Any application window will be created and maintained with this [Stage.opacity]. */
+   val windowOpacity by cv(1.0).between(0.1, 1.0)
+      .def(name = "Opacity", info = "Window opacity.")
+   /** Any application window will be created with this [Window.isHeaderVisible]. */
+   val windowHeaderless by cv(false)
+      .def(name = "Headerless", info = "Affects window header visibility for new windows.")
+   /** Any application window will move/resize on ALT + MOUSE_DRAG if true. Default true on non-Linux platforms. */
    val windowInteractiveOnLeftAlt by cv(!Os.UNIX.isCurrent).def(
       name = "Interacts on ${keys("Alt")} + Mouse Drag",
       info = "Simulates Linux move/resize behavior. LMB Mouse Drag moves window. RMB Drag resizes window. RMB during move toggles maximize."
@@ -215,7 +229,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun create(canBeMain: Boolean = APP.isUiApp) = create(null, UNDECORATED, canBeMain)
+   fun create(canBeMain: Boolean = APP.isUiApp) = create(null, windowStyle.value, canBeMain)
 
    fun create(owner: Stage?, style: StageStyle, canBeMain: Boolean): Window {
       val w = Window(owner, style)
@@ -417,7 +431,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    fun slideWindow(c: Component): Window {
       val screen = getScreenForMouse()
-      val mw = create(createStageOwner(), UNDECORATED, false).apply {
+      val mw = create(createStageOwner(), windowStyle.value, false).apply {
          resizable.value = true
          isAlwaysOnTop = true
          isHeaderAllowed.value = false

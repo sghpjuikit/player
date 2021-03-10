@@ -2,6 +2,7 @@ package sp.it.util.access.ref;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.Nullable;
 import sp.it.util.functional.Functors.F1;
 import static sp.it.util.dev.FailKt.noNull;
 
@@ -43,6 +44,10 @@ public class LazyR<V> {
 	public V getOr(V or) {
 		if (!isSet) set(or);
 		return v;
+	}
+
+	public @Nullable V getOrNull() {
+		return getOr((V) null);
 	}
 
 	public V getOr(Supplier<V> or) {

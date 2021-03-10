@@ -7,11 +7,17 @@ import java.time.LocalTime
 import javafx.animation.Animation.INDEFINITE
 import javafx.animation.Interpolator
 import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_CENTER
+import javafx.scene.control.Separator
 import javafx.scene.control.Slider
+import javafx.scene.effect.Glow
+import javafx.scene.effect.Shadow
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import javafx.scene.shape.LineTo
+import javafx.scene.shape.MoveTo
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import kotlin.math.sqrt
@@ -63,10 +69,9 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
-import sp.it.util.ui.textAlignment
-import sp.it.util.ui.textArea
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -82,13 +87,17 @@ class Tester(widget: Widget): SimpleController(widget) {
       root.consumeScrolling()
       root.lay += vBox(0.0, TOP_CENTER) {
          lay += hBox(25.emScaled, TOP_CENTER) {
-            padding = Insets(20.emScaled)
+            padding = Insets(10.emScaled, 10.emScaled, 20.emScaled, 10.emScaled)
             lay += Icon(IconOC.CODE).onClickDo { testInputs() }.withText("Test widget inputs")
             lay += Icon(IconOC.CODE).onClickDo { testFxConfigs() }.withText("Test Fx Configs")
             lay += Icon(IconOC.CODE).onClickDo { testEditors() }.withText("Test Config Editors")
             lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Test Animations")
          }
-         lay += content
+         lay += Separator()
+         lay += stackPane {
+            padding = Insets(20.emScaled, 10.emScaled, 0.0, 10.emScaled)
+            lay += content
+         }
       }
 
       // Create test inputs/outputs
@@ -107,9 +116,9 @@ class Tester(widget: Widget): SimpleController(widget) {
    }
 
    fun testInputs() {
-      val c = textArea {
+      val c = label {
          text = "Trigger widget layout mode (${ActionManager.keyManageLayout.nameUi}) to test this widget's inputs"
-         isEditable = false
+         isWrapText = true
          textAlignment = TextAlignment.CENTER
       }
       onContentChange()

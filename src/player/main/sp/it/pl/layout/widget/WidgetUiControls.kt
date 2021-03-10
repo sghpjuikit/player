@@ -177,7 +177,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          isShowingWeak &&  // ignore when not showing
          !isShowing &&     // ignore in strong mode
          PSEUDOCLASS_DRAGGED !in root.pseudoClassStates &&   // keep visible when dragging
-         (mouse !in root.localToScreen(root.layoutBounds) || icons.children.all { it.localToScreen(it.layoutBounds).centre distance mouse.toP()>100 })
+         (root.scene==null || mouse !in root.localToScreen(root.layoutBounds) || icons.children.all { it.localToScreen(it.layoutBounds).centre distance mouse.toP()>100 })
       ) {
          hideWeak()
       }

@@ -8,8 +8,10 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.runTry
 import java.io.File
 import java.io.FileNotFoundException
+import java.nio.file.Files
 import java.time.LocalDateTime
 import kotlin.text.Charsets.UTF_8
+import sp.it.util.functional.ifNotNull
 
 private val logger = KotlinLogging.logger { }
 
@@ -125,6 +127,8 @@ fun File.writeProperties(title: String, properties: Collection<Property>): Try<U
    }
 
    return runTry {
+      parentFile?.takeIf { !it.exists() }.ifNotNull { Files.createDirectories(it.toPath()) }
+
       bufferedWriter(UTF_8).use {
          it.appendComment(header)
          it.appendLine()

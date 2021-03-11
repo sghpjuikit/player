@@ -1,0 +1,112 @@
+/*
+ * Document : Spit Player skin
+ * Author : Martin Polakovic
+ * Year: 2017
+ */
+
+@import url("../Main/Main.css");
+
+* {
+    -skin-bgr-color: rgb(10, 10, 25);
+    -skin-def-font-color: rgb(10, 200, 220);
+    -skin-def-font-color-hover: #ffcc66;
+    -skin-sel-font-color: rgb(175, 175, 176);
+    -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
+    -skin-color-darker: rgba(0,0,0,0.1);
+    -skin-color-lighter: rgba(180,200,255,0.08);
+    /* default color for panels such as header or widget area or other areas. */
+    -skin-pane-color: radial-gradient(radius 110%, rgba(32,10,66,0.3) 40%, rgba(0,0,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
+    /* Darker version of pane color. By default used for :dragged pseudoclass */
+    -skin-pane-color-dragged: rgba(10,15,25,0.8);
+    /* Default bgr color for tooltips and popups. */
+    -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
+    -skin-value-font-color: rgb(75, 175, 105);
+
+    -fx-focus-color: #ffcc66;
+    -skin-focus-bgr-color: rgba(22,22,255,0.2);
+    -fx-faint-focus-color: #ffcc66;
+    -skin-def-icon-border-color: rgba(130,180,240, 0.2);
+}
+
+/* add obsidian background */
+.popup,
+.popup:focused,
+.pop-window,
+.pop-window:window-focused {
+    -fx-background-color:
+         radial-gradient(radius 120%, rgba(0,15,06,0.5) 40%, rgba(0,9,55,0.8) 80%, rgba(20,22,55,0.2) 100%),
+         radial-gradient(radius 100%, rgba(0,0,56,0.3) 40%, rgba(0,9,55,0.2) 60%, rgba(0,2,5,0.3) 100%);
+    -fx-border-color: transparent;
+}
+.window:focused,
+.window {
+    -fx-background-color:
+        radial-gradient(radius 100%, rgba(55,10,56,0.0) 40%, rgba(55,19,155,0.3) 80%, rgba(20,232,255,0) 100%),
+        radial-gradient(radius 100%, rgba(32,10,56,0.0) 40%, rgba(55,19,155,0.3) 80%, rgba(20,232,255,0) 100%);
+    -fx-border-color: transparent;
+}
+.widget-ui {}
+.widget-ui-content {
+    -fx-background-color: -skin-pane-color;
+    -fx-effect: dropshadow(gaussian, black, 55,0.3 , 0,0);
+}
+
+/* disable widget focus effect */
+.widget-ui:active .widget-ui-content {
+    -fx-border-color: transparent;
+}
+
+/* disable bgr */
+.bgr-image {
+    -fx-background-color: null;
+    -fx-opacity: 1;
+}
+
+/* add focus effect */
+.icon:hover {
+    -fx-fill: -fx-focus-color;
+    -fx-border-color: null;
+    -fx-border-width: 0;
+}
+.accordion .titled-pane:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow {
+    -fx-background-color: -fx-focus-color;
+}
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
+.accordion .titled-pane:expanded:focused > .title {
+    -fx-text-color: -fx-focus-color;
+}
+
+/* add glow effect */
+.icon {
+    -fx-effect: dropshadow(gaussian, rgba(0,100,255, 1), 25, 0.2 , 0, 0);   /* decreases performance */
+}
+
+/* add focus glow effect */
+.icon:hover,
+.inode:hover Text,
+.onode:hover Text,
+.ionode:hover Text,
+.inode:highlighted Text,
+.onode:highlighted Text,
+.ionode:highlighted Text,
+.inode:hover,
+.onode:hover,
+.ionode:hover,
+.inode:highlighted,
+.onode:highlighted,
+.ionode:highlighted,
+.iolink:hover,
+.iolink:highlighted,
+.table-row-cell:played > .indexed-cell:played,
+.table-row-cell:played > .indexed-cell:played:selected,
+.accordion .titled-pane:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow,
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
+.accordion .titled-pane:expanded:focused > .title {
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 12,0 , 0,0);
+}

@@ -1,0 +1,14 @@
+/*
+ * Document : Spit Player skin extension
+ * Author : Martin Polakovic
+ * Year: 2020
+ */
+
+.window,
+.window .header,
+.pop-window,
+.pop-window-content,
+* {
+    -fx-background-radius: 1em;
+    -fx-border-radius: 1em;
+}

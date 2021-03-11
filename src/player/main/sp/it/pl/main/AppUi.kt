@@ -85,7 +85,7 @@ import sp.it.util.conf.Constraint
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
 import sp.it.util.file.FileType.FILE
-import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.onItemRemoved
 import sp.it.util.units.em
 
 class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
@@ -130,10 +130,9 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       monitorSkinFiles()
       observeWindowsAndSyncSkin()
       observeWindowsAndSyncWidgetFocus()
-      skinExtensions.onItemSyncWhile {
-         additionalStylesheets += it
-         Subscription { additionalStylesheets -= it }
-      }
+      skinExtensions.forEach { additionalStylesheets += it }
+      skinExtensions.onItemAdded { additionalStylesheets += it }
+      skinExtensions.onItemRemoved { additionalStylesheets -= it }
    }
 
    val viewDisplay by cv(Display.SCREEN_OF_MOUSE) def overlayArea

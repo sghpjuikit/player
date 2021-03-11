@@ -539,8 +539,6 @@ fun <K, V> ObservableMap<K, V>.onItemSync(block: (K, V) -> Unit): Subscription {
  * Collection must not contain duplicates (as per [Any.identityHashCode]).
  */
 fun <T> ObservableList<T>.onItemSyncWhile(subscriber: (T) -> Subscription): Subscription {
-   fun T.id() = identityHashCode()
-
    val ds = IdentityHashMap<T, Subscription>(size)
    val disposer = Disposer()
    forEach { ds[it] = subscriber(it) }
@@ -558,8 +556,6 @@ fun <T> ObservableList<T>.onItemSyncWhile(subscriber: (T) -> Subscription): Subs
  * Collection must not contain duplicates (as per [Any.identityHashCode]).
  */
 fun <T> ObservableSet<T>.onItemSyncWhile(subscriber: (T) -> Subscription): Subscription {
-   fun T.id() = identityHashCode()
-
    val ds = IdentityHashMap<T, Subscription>(size)
    val disposer = Disposer()
    forEach { ds[it] = subscriber(it) }

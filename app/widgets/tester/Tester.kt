@@ -7,17 +7,12 @@ import java.time.LocalTime
 import javafx.animation.Animation.INDEFINITE
 import javafx.animation.Interpolator
 import javafx.geometry.Insets
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.control.Separator
 import javafx.scene.control.Slider
-import javafx.scene.effect.Glow
-import javafx.scene.effect.Shadow
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
-import javafx.scene.shape.LineTo
-import javafx.scene.shape.MoveTo
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import kotlin.math.sqrt
@@ -71,7 +66,6 @@ import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
-import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year

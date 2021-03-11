@@ -1980,7 +1980,11 @@ Shape, Text, TextFlow > * {
     -glyph-name: "FontAwesomeIcon.CARET_DOWN";
     -glyph-size: 1.2em;
     -fx-scale-x: 1;
-    -fx-scale-y: 1.4;
+    -fx-scale-y: 1;
+    -fx-translate-x: 0.25em;
+}
+.value-text-field:hover .value-text-field-arrow {
+    -fx-background-color: rgba(0,0,0,0.1);
 }
 
 /**

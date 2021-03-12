@@ -175,9 +175,10 @@ private fun <T> getObservableValue(c: Config<T>): ObservableValue<T>? = when {
 }
 
 open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
-   final override val editor = NullCheckIcon()
    private val v = getObservableValue(c)
    private val isObservable = v!=null
+   private val isNullable = c.type.isNullable
+   final override val editor = NullCheckIcon(isNullable)
    private val disposer = editor.onNodeDispose
 
    init {
@@ -667,21 +668,18 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 @Suppress("UNCHECKED_CAST")
 class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckList<T, S>>(c) {
    private val list = c.value
-   private val possibleValues = if (list.checkType.isNullable) listOf(true, false, null) else listOf(true, false)
+   private val isSelectionNullable = list.checkType.isNullable
+   private val possibleValues = if (isSelectionNullable) listOf(true, false, null) else listOf(true, false)
    private val uiConverter: (T) -> String = c.findConstraint<UiElementConverter<T>>()?.converter ?: { it.toUi() }
    private val checkIcons = list.all.mapIndexed { i, _ ->
-      NullCheckIcon().apply {
+      NullCheckIcon(isSelectionNullable).apply {
          selected.value = list.selections[i]
          selected attach { list.selections[i] = it as S }
          selected attach { updateSuperIcon() }
          styleclass("boolean-config-editor")
          icons(IconMA.CHECK_BOX, IconMA.CHECK_BOX_OUTLINE_BLANK, IconMA.DO_NOT_DISTURB)
          onClickDo {
-            selected.value = when (selected.value) {
-               null -> true
-               true -> false
-               false -> if (list.checkType.isNullable) null else true
-            }
+            toggle()
             onChange?.run()
             onChangeOrConstraint?.run()
          }

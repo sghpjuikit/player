@@ -29,6 +29,11 @@ class CheckIcon: Icon {
    /** Creates icon with selection set to the provided value. */
    @JvmOverloads constructor(s: Boolean = true): this(v(s))
 
+   /** Toggles [selected] between true, false. */
+   fun toggle() {
+      selected.toggle()
+   }
+
    /** Sets normal and selected icons. Overrides icon css values.  */
    fun icons(selectedIcon: GlyphIcons, unselectedIcon: GlyphIcons): CheckIcon {
       styleclassRemove(STYLECLASS_DISABLING)
@@ -60,25 +65,30 @@ class NullCheckIcon: Icon {
 
    /** Selection state. */
    val selected: Property<Boolean?>
+   val isNullable: Boolean
    private var s: Subscription? = null
 
    /** Creates icon with property as selection value. [selected]===s will always be true. */
-   constructor(s: Property<Boolean?>?): super() {
+   constructor(isNullable: Boolean, s: Property<Boolean?>?): super() {
+      this.isNullable = isNullable
       selected = s ?: vn(true)
       styleclass(STYLECLASS)
       selected sync { pseudoClassChanged("selected", it==true) }
       selected sync { pseudoClassChanged("null", it==null) }
-      onClickDo {
-         selected.value = when(selected.value) {
-            null -> true
-            true -> false
-            false -> null
-         }
-      }
+      onClickDo { toggle() }
    }
 
    /** Creates icon with selection set to the provided value. */
-   constructor(s: Boolean? = true): this(vn(s))
+   constructor(isNullable: Boolean, s: Boolean? = true): this(isNullable, vn(s))
+
+   /** Toggles [selected] between true, false, null */
+   fun toggle() {
+      selected.value = when(selected.value) {
+         null -> true
+         true -> false
+         false -> if (isNullable) null else true
+      }
+   }
 
    /** Sets normal and selected icons. Overrides icon css values.  */
    fun icons(selectedIcon: GlyphIcons, unselectedIcon: GlyphIcons, nullIcon: GlyphIcons): NullCheckIcon {

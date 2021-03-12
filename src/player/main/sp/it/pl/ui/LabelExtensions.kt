@@ -22,8 +22,8 @@ val Label.labelForWithClick: WriteOnlyPropertyOperator<Node, Subscription>
             it.requestFocus()
 
             if (it is CheckBox) it.selectedProperty().toggle()
-            if (it is NullCheckIcon) it.selected.value = it.selected.value.let { when(it) { null -> true true -> false false -> null } }
-            if (it is CheckIcon) it.selected.toggle()
+            if (it is NullCheckIcon) it.toggle()
+            if (it is CheckIcon) it.toggle()
          },
          Subscription { if (labelFor==it) labelFor = null }
       )

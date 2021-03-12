@@ -13,16 +13,15 @@
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
     -skin-color-lighter: rgba(180,200,255,0.08);
-    /* default color for panels such as header or widget area or other areas. */
+    /* Default color for panels such as header or widget area or other areas. */
     -skin-pane-color: rgba(100,130,180,0.1);
     /* Darker version of pane color. By default used for :dragged pseudoclass */
     -skin-pane-color-dragged: rgba(10,15,25,0.8);
     /* Default bgr color for tooltips and popups. */
     -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
     -skin-value-font-color: rgb(75, 175, 105);
-
-    -fx-focus-color: #ffcc66;
     -skin-focus-bgr-color: rgba(22,22,255,0.2);
+    -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
 }
 

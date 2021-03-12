@@ -14,19 +14,15 @@
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.4);
     -skin-color-lighter: rgba(180,200,255,0.08);
-    /* default color for panels such as header or widget area or other areas. */
     -skin-pane-color: radial-gradient(radius 110%, rgba(22,30,86,0.3) 40%, rgba(20,20,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
 //    -skin-pane-color: radial-gradient(radius 110%, rgba(32,10,66,0.3) 40%, rgba(0,0,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
-    /* Darker version of pane color. By default used for :dragged pseudoclass */
     -skin-pane-color-dragged: rgba(10,15,25,0.8);
-    /* Default bgr color for tooltips and popups. */
     -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
     -skin-value-font-color: rgb(75, 175, 105);
-
-    -fx-focus-color: #ffcc66;
     -skin-focus-bgr-color: rgba(22,22,255,0.2);
-    -fx-faint-focus-color: #ffcc66;
     -skin-def-icon-border-color: rgba(130,180,240, 0.2);
+    -fx-focus-color: #ffcc66;
+    -fx-faint-focus-color: #ffcc66;
 }
 
 /* add obsidian background */

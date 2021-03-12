@@ -4,7 +4,7 @@
 }
 
 .tag-field:committable {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: -skin-color-darker;
     -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-prompt-font-color;
 }

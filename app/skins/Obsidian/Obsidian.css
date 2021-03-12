@@ -12,10 +12,11 @@
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
-    -skin-color-darker: rgba(0,0,0,0.1);
+    -skin-color-darker: rgba(0,0,0,0.4);
     -skin-color-lighter: rgba(180,200,255,0.08);
     /* default color for panels such as header or widget area or other areas. */
-    -skin-pane-color: radial-gradient(radius 110%, rgba(32,10,66,0.3) 40%, rgba(0,0,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
+    -skin-pane-color: radial-gradient(radius 110%, rgba(22,30,86,0.3) 40%, rgba(20,20,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
+//    -skin-pane-color: radial-gradient(radius 110%, rgba(32,10,66,0.3) 40%, rgba(0,0,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
     /* Darker version of pane color. By default used for :dragged pseudoclass */
     -skin-pane-color-dragged: rgba(10,15,25,0.8);
     /* Default bgr color for tooltips and popups. */
@@ -34,21 +35,21 @@
 .pop-window,
 .pop-window:window-focused {
     -fx-background-color:
-         radial-gradient(radius 120%, rgba(0,15,06,0.5) 40%, rgba(0,9,55,0.8) 80%, rgba(20,22,55,0.2) 100%),
-         radial-gradient(radius 100%, rgba(0,0,56,0.3) 40%, rgba(0,9,55,0.2) 60%, rgba(0,2,5,0.3) 100%);
+         radial-gradient(radius 120%, rgba(20,35,06,0.6) 40%, rgba(0,9,22,0.8) 80%, rgba(20,22,95,0.3) 100%),
+         radial-gradient(radius 100%, rgba(20,20,66,0.2) 0%, rgba(0,9,55,0.6) 60%, rgba(22,2,5,0.4) 100%),
+         radial-gradient(radius 100%, rgba(20,20,66,0) 0%, rgba(0,9,55,0.6) 60%, rgba(22,2,55,0.2) 100%);
     -fx-border-color: transparent;
 }
 .window:focused,
 .window {
     -fx-background-color:
-        radial-gradient(radius 100%, rgba(55,10,56,0.0) 40%, rgba(55,19,155,0.3) 80%, rgba(20,232,255,0) 100%),
-        radial-gradient(radius 100%, rgba(32,10,56,0.0) 40%, rgba(55,19,155,0.3) 80%, rgba(20,232,255,0) 100%);
+        radial-gradient(radius 100%, rgba(32,10,56,0.0) 40%, rgba(55,19,55,0.8) 80%, rgba(20,232,255,0) 100%);
     -fx-border-color: transparent;
 }
 .widget-ui {}
 .widget-ui-content {
     -fx-background-color: -skin-pane-color;
-    -fx-effect: dropshadow(gaussian, black, 55,0.3 , 0,0);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,1), 55,0.3 , 0,0);
 }
 
 /* disable widget focus effect */

@@ -51,7 +51,7 @@
 .radio-button > .radio,
 .check-box > .box,
 .color-picker.split-button > .color-picker-label {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: -skin-color-darker;
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
         rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
@@ -602,7 +602,7 @@
 .choice-box:focused,
 .choice-box:showing:focused,
 .text-input:focused {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: -skin-color-darker;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-padding: 0.25em;
@@ -1443,7 +1443,7 @@ Shape, Text, TextFlow > * {
     -fx-border-width: 1;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
     -fx-padding: 2em;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 12, 0.0,0 ,8);
+    -fx-effect: dropshadow(gaussian, -skin-color-darker, 12, 0.0,0 ,8);
 }
 .color-palette > .color-picker-grid {
     -fx-padding: 0;
@@ -2061,7 +2061,7 @@ Shape, Text, TextFlow > * {
     -fx-background-color: rgba(0,0,0,0.1);
 }
 .tag-text-field:has-focus {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: -skin-color-darker;
 }
 .tag-text-field .text-input:readonly:focused,
 .tag-text-field .text-input:hover,
@@ -2102,7 +2102,7 @@ Shape, Text, TextFlow > * {
     -fx-background-color: rgba(0,0,0,0.1);
 }
 .complex-text-field:focused {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: -skin-color-darker;
 }
 
 .complex-text-field .combo-box {}
@@ -3131,8 +3131,8 @@ Shape, Text, TextFlow > * {
 .grid-cell {
     -fx-border-width: 0;
     -fx-padding: 0;
-    // -fx-background-color: rgba(0,0,0,0.2); /* dark cells */
-    -fx-background-color: rgba(255, 255, 255, 0.05);  /* dark cells */
+    // -fx-background-color: -skin-color-darker; /* dark cells */
+    -fx-background-color: -skin-color-lighter;  /* dark cells */
     -fx-font-size: 0.9em;   /* improves readability */
 }
 

@@ -13,6 +13,7 @@ import sp.it.util.system.Os
 import java.text.BreakIterator
 import java.util.Locale
 import kotlin.streams.asSequence
+import sp.it.util.functional.net
 
 /** @return true iff this string is equal to the specified string, ignoring the case */
 infix fun String.equalsNc(other: String) = this.equals(other, ignoreCase = true)
@@ -106,6 +107,9 @@ fun String.camelToDotCase() = codePoints().asSequence()
 
 /** @return pretty text representing the keys, intended for UI */
 fun keys(keys: String): String = keys.splitToSequence("+").map(::key).joinToString(" + ")
+
+/** @return pretty text representing the keys, intended for UI */
+fun keys(vararg keys: KeyCode): String = keys.mapNotNull { it.resolved?.net { key(it.name) } }.joinToString(" + ")
 
 /** @return pretty text representing the key, intended for UI */
 val KeyCode.nameUi: String

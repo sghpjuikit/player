@@ -62,27 +62,31 @@ abstract class ValueTextField<T>(textValueConverter: (T?) -> String = APP.conver
       onEventDown(MOUSE_CLICKED, SECONDARY) {
          fun MenuItem.disIf(condition: Boolean) = apply { isDisable = condition }
          val tf = this@ValueTextField
-         ContextMenu().dsl {
-            item("Undo (${keys(SHORTCUT, Key.Z)})") { tf.undo() }.disIf(!tf.isUndoable)
-            item("Redo (${keys(SHORTCUT, SHIFT, Key.Z)})") { tf.redo() }.disIf(!tf.isRedoable)
-            item("Cut (${keys(SHORTCUT, Key.X)})") { tf.cutSelectedOrAll() }
-            item("Copy (${keys(SHORTCUT, Key.C)})") { tf.copySelectedOrAll() }
-            item("Paste (${keys(SHORTCUT, Key.V)})") { tf.paste() }.disIf(!Clipboard.getSystemClipboard().hasString())
-            item("Delete (${keys(DELETE)})") { tf.deleteText(tf.selection) }.disIf(tf.selectedText.isNullOrEmpty())
-            separator()
-            item("Select All (${keys("${SHORTCUT.resolved} + C")})") { tf.selectAll() }
-            separator()
-            menu("Text") {
-               items {
-                  CoreMenus.menuItemBuilders[tf.text]
+
+         ContextMenu().apply {
+            dsl {
+               item("Undo (${keys(SHORTCUT, Key.Z)})") { tf.undo() }.disIf(!tf.isUndoable)
+               item("Redo (${keys(SHORTCUT, SHIFT, Key.Z)})") { tf.redo() }.disIf(!tf.isRedoable)
+               item("Cut (${keys(SHORTCUT, Key.X)})") { tf.cutSelectedOrAll() }
+               item("Copy (${keys(SHORTCUT, Key.C)})") { tf.copySelectedOrAll() }
+               item("Paste (${keys(SHORTCUT, Key.V)})") { tf.paste() }.disIf(!Clipboard.getSystemClipboard().hasString())
+               item("Delete (${keys(DELETE)})") { tf.deleteText(tf.selection) }.disIf(tf.selectedText.isNullOrEmpty())
+               separator()
+               item("Select All (${keys("${SHORTCUT.resolved} + C")})") { tf.selectAll() }
+               separator()
+               menu("Text") {
+                  items {
+                     CoreMenus.menuItemBuilders[tf.text]
+                  }
                }
+               menu(tf.value?.estimateRuntimeType()?.toUi() ?: "Value") {
+                  items {
+                     CoreMenus.menuItemBuilders[tf.value]
+                  }
+               }.disIf(tf.value==null)
             }
-            menu(tf.value?.estimateRuntimeType()?.toUi() ?: "Value") {
-               items {
-                  CoreMenus.menuItemBuilders[tf.value]
-               }
-            }
-         }.show(this, it)
+            show(this@ValueTextField, it)
+         }
       }
 
       right setToOne ArrowDialogButton().apply {

@@ -8,6 +8,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.v
+import sp.it.util.reactive.sync
 import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.vBox
@@ -23,8 +24,13 @@ class FontPicker(onOk: (Font) -> Unit) {
          padding = Insets(15.0)
          lay(ALWAYS) += pickerContent
          lay += hBox(15.0, CENTER) {
-            lay += Icon(IconFA.CHECK, 22.0).onClickDo { popup.hide(); if (editable.value) onOk(pickerContent.font) }.withText("Use")
-            lay += Icon(IconFA.TIMES, 22.0).onClickDo { popup.hide() }.withText("Cancel")
+            lay += Icon(IconFA.CHECK, 22.0).onClickDo { popup.hide(); if (editable.value) onOk(pickerContent.font) }.also {
+               editable sync { isDisable = !it }
+               it.withText("Use")
+            }
+            lay += Icon(IconFA.TIMES, 22.0).onClickDo { popup.hide() }.also {
+               it.withText("Cancel")
+            }
          }
       }
    }

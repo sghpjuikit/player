@@ -55,6 +55,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.NEVER;
 import static javafx.scene.layout.Priority.SOMETIMES;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
+import static sp.it.util.reactive.EventsKt.propagateESCAPE;
 
 /** Content for picking {@link javafx.scene.text.Font} */
 public class FontPickerContent extends GridPane {
@@ -112,6 +113,7 @@ public class FontPickerContent extends GridPane {
 
 		add(new Label("Font"), 0, 0);
 		add(fontListView, 0, 1);
+		propagateESCAPE(fontListView);
 		fontListView.setCellFactory(stringListView -> new ListCell<>() {
 			@Override
 			public void updateItem(String family, boolean empty) {
@@ -135,19 +137,23 @@ public class FontPickerContent extends GridPane {
 			refreshSample();
 		});
 		fontListView.addEventHandler(KEY_PRESSED, e -> {
-			filteredFontList.stream().filter(it -> it.toLowerCase().startsWith(e.getText().toLowerCase())).findFirst().ifPresent(it -> {
-				fontListView.getSelectionModel().select(it);
-				fontListView.scrollTo(it);
-			});
-			e.consume();
+			if (e.getCode().isLetterKey()) {
+				filteredFontList.stream().filter(it -> it.toLowerCase().startsWith(e.getText().toLowerCase())).findFirst().ifPresent(it -> {
+					fontListView.getSelectionModel().select(it);
+					fontListView.scrollTo(it);
+				});
+				e.consume();
+			}
 		});
 
 		add(new Label("Style"), 1, 0);
 		add(styleListView, 1, 1);
+		propagateESCAPE(styleListView);
 		styleListView.selectionModelProperty().get().selectedItemProperty().addListener(sampleRefreshListener);
 
 		add(new Label("Label"), 2, 0);
 		add(sizeListView, 2, 1);
+		propagateESCAPE(sizeListView);
 		sizeListView.selectionModelProperty().get().selectedItemProperty().addListener(sampleRefreshListener);
 
 		sampleArea.setWrapText(true);

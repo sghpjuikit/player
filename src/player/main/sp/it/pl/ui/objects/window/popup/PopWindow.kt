@@ -248,7 +248,7 @@ open class PopWindow {
          minPrefMaxWidth = Pane.USE_COMPUTED_SIZE
          minPrefMaxHeight = Pane.USE_COMPUTED_SIZE
 
-         onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
+         onEventUp(KEY_PRESSED, ESCAPE, consume = false) {
             if (isEscapeHide.value) {
                hide()
                it.consume()
@@ -325,6 +325,7 @@ open class PopWindow {
                focusedProperty() sync { root.pseudoClassChanged("window-focused", it) } on tillHidden
                initHideWithOwner()
                initZOrder()
+               initHideOnEscapeWhenNoFocus()
                onEventUp1(WINDOW_SHOWN) { onContentShown() }
 
                if (animated.value) fadeIn()
@@ -344,6 +345,7 @@ open class PopWindow {
             popup.apply {
                window = this
                window?.popWindowOwner = windowOwner
+               initHideOnEscapeWhenNoFocus()
 
                content setToOne root
 
@@ -357,6 +359,14 @@ open class PopWindow {
       }
    }
 
+   private fun Window.initHideOnEscapeWhenNoFocus() {
+      scene.onEventDown(KEY_PRESSED) {
+         if (it.code==ESCAPE && isEscapeHide.value) {
+            hide()
+            it.consume()
+         }
+      } on tillHidden
+   }
 
    /** Hides this popup. If is [animated], the hiding animation is started, otherwise happens immediately. */
    fun hide() {

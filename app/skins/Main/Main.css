@@ -1962,82 +1962,93 @@ Shape, Text, TextFlow > * {
 
 /******************************** ENHANCED TEXT FIELDS ****************************************************************/
 
-/**
+/*
  * inherits: .text-field
+ * pseudoclasses: no-visible, left-visible, right-visible
  */
 .decorated-text-field {}
+/* inherits: HBox */
+.decorated-text-field .left-pane {
+    -fx-translate-x: -0.25em;
+    -fx-alignment: center-left;
+    -fx-spacing: 0.5em;
+}
+/* inherits: HBox */
+.decorated-text-field .right-pane {
+    -fx-translate-x: 0.25em;
+    -fx-alignment: center-right;
+    -fx-spacing: 0.5em;
+}
 
-/**
- * inherits: .decorated-text-field
- */
+/* inherits: .decorated-text-field */
 .value-text-field {}
+.value-text-field .left-pane {
+    -fx-background-color: rgba(0,0,0,0.1);
+}
+.value-text-field .right-pane {
+    -fx-background-color: rgba(0,0,0,0.1);
+}
 
-/**
+/*
  * Button that opens value picker for .value-text-field
  * inherits: .icon
  */
-.value-text-field-arrow {
+.value-text-field .value-text-field-arrow {
     -glyph-name: "FontAwesomeIcon.CARET_DOWN";
     -glyph-size: 1.2em;
     -fx-scale-x: 1;
     -fx-scale-y: 1;
-    -fx-translate-x: 0.25em;
 }
-.value-text-field:hover .value-text-field-arrow {
-    -fx-background-color: rgba(0,0,0,0.1);
-}
+.value-text-field:hover .value-text-field-arrow {}
 
-/**
+/*
  * inherits: .value-text-field
  */
 .mood-text-field {
     -fx-pref-column-count: 10;
 }
 
-/**
+/*
  * inherits: .value-text-field
  */
 .file-text-field {
     -fx-pref-column-count: 10;
 }
-.file-text-field:hover > * > Text {
-    -fx-underline: true;
-}
 
-/**
+/*
  * inherits: .value-text-field
  */
 .effect-text-field {}
 
-/**
+/*
  * inherits: .value-text-field
  */
 .font-text-field {
     -fx-pref-column-count: 10;
 }
 
-/**
+/*
  * inherits: .value-text-field
  */
 .time-text-field {
     -fx-pref-column-count: 10;
 }
 
-/**
+/*
  * inherits: .value-text-field
  */
 .date-text-field {
     -fx-pref-column-count: 10;
 }
 
-/**
+/*
  * inherits: .value-text-field
  */
 .datetime-text-field {
     -fx-pref-column-count: 10;
 }
 
-/**
+/*
  * inherits: FlowPane
  * pseudoclasses: readonly, has-focus
  */
@@ -2060,7 +2071,7 @@ Shape, Text, TextFlow > * {
     -fx-background-color: transparent;
 }
 
-/**
+/*
  * inherits: .label
  * pseudoclasses: readonly
  */
@@ -2078,7 +2089,7 @@ Shape, Text, TextFlow > * {
     -fx-border-color: -fx-focus-color;
 }
 
-/**
+/*
  * inherits: FlowPane
  * pseudoclasses: readonly, focused
  */
@@ -2096,7 +2107,7 @@ Shape, Text, TextFlow > * {
 
 .complex-text-field .combo-box {}
 
-/**
+/*
  * inherits: .label
  * pseudoclasses: readonly
  */

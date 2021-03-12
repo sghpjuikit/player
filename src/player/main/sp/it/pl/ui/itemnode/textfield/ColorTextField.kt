@@ -6,6 +6,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.emScaled
 import sp.it.util.access.editable
 import sp.it.util.async.runLater
+import sp.it.util.collections.setToOne
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.suppressed
@@ -21,7 +22,7 @@ class ColorTextField: ValueTextField<Color>() {
    init {
       styleClass += "color-text-field"
       isEditable = true
-      right.value = picker
+      right setToOne picker
 
       textProperty() attach {
          valueChanging.suppressed {

@@ -16,6 +16,10 @@ class ArrowDialogButton: StackPane() {
       // }
       // setPrefSize(22.0, 22.0)
 
-      children += Icon().styleclass("value-text-field-arrow")
+      children += Icon().styleclass(STYLECLASS)
+   }
+
+   companion object {
+      const val STYLECLASS = "value-text-field-arrow"
    }
 }

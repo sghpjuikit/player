@@ -30,67 +30,61 @@
 package sp.it.pl.ui.objects.textfield;
 
 import javafx.css.PseudoClass;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.skin.TextFieldSkin;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.HitInfo;
+import sp.it.util.reactive.Subscription;
+import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 public class DecoratedTextFieldSkin extends TextFieldSkin {
 
-	private static final PseudoClass HAS_NO_SIDE_NODE = pseudoclass("no-side-nodes");
-	private static final PseudoClass HAS_LEFT_NODE = pseudoclass("left-node-visible");
-	private static final PseudoClass HAS_RIGHT_NODE = pseudoclass("right-node-visible");
+	private static final PseudoClass HAS_NO_SIDE_NODE = pseudoclass("no-visible");
+	private static final PseudoClass HAS_LEFT_NODE = pseudoclass("left-visible");
+	private static final PseudoClass HAS_RIGHT_NODE = pseudoclass("right-visible");
 
-	private Node left;
-	private StackPane leftPane;
-	private Node right;
-	private StackPane rightPane;
-	private DecoratedTextField control;
+	private HBox leftPane;
+	private HBox rightPane;
+	private final Subscription sLeft;
+	private final Subscription sRight;
 
 	public DecoratedTextFieldSkin(DecoratedTextField control) {
 		super(control);
 
-		this.control = control;
-		registerChangeListener(control.left, e -> updateChildren());
-		registerChangeListener(control.right, e -> updateChildren());
+		sLeft = onChange(control.getLeft(), runnable(() -> updateChildren()));
+		sRight = onChange(control.getRight(), runnable(() -> updateChildren()));
 		registerChangeListener(control.focusedProperty(), e -> updateChildren());
 		updateChildren();
 	}
 
 	private void updateChildren() {
-		Node newLeft = control.left.get();
-		if (newLeft!=null) {
+		var newLeft = ((DecoratedTextField) getSkinnable()).getLeft();
+		if (!newLeft.isEmpty()) {
 			getChildren().remove(leftPane);
-			leftPane = new StackPane(newLeft);
-			leftPane.setAlignment(Pos.CENTER_LEFT);
+			leftPane = new HBox(newLeft.toArray(Node[]::new));
 			leftPane.getStyleClass().add("left-pane");
 			getChildren().add(leftPane);
-			left = newLeft;
 		} else {
 			if (leftPane!=null) getChildren().remove(leftPane);
 			leftPane = null;
-			left = null;
 		}
 
-		Node newRight = control.right.get();
-		if (newRight!=null) {
+		var newRight = ((DecoratedTextField) getSkinnable()).getRight();
+		if (!newRight.isEmpty()) {
 			getChildren().remove(rightPane);
-			rightPane = new StackPane(newRight);
-			rightPane.setAlignment(Pos.CENTER_RIGHT);
+			rightPane = new HBox(newRight.toArray(Node[]::new));
 			rightPane.getStyleClass().add("right-pane");
 			getChildren().add(rightPane);
-			right = newRight;
 		} else {
 			if (rightPane!=null) getChildren().remove(rightPane);
 			rightPane = null;
-			right = null;
 		}
 
-		control.pseudoClassStateChanged(HAS_LEFT_NODE, left!=null);
-		control.pseudoClassStateChanged(HAS_RIGHT_NODE, right!=null);
-		control.pseudoClassStateChanged(HAS_NO_SIDE_NODE, left==null && right==null);
+		getSkinnable().pseudoClassStateChanged(HAS_LEFT_NODE, !newLeft.isEmpty());
+		getSkinnable().pseudoClassStateChanged(HAS_RIGHT_NODE, !newRight.isEmpty());
+		getSkinnable().pseudoClassStateChanged(HAS_NO_SIDE_NODE, !newLeft.isEmpty() && !newRight.isEmpty());
 	}
 
 	@Override
@@ -111,7 +105,7 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 		}
 
 		if (rightPane!=null) {
-			final double rightStartX = rightPane==null ? 0.0 : w - rightWidth + snappedLeftInset();
+			final double rightStartX = w - rightWidth + snappedLeftInset();
 			rightPane.resizeRelocate(rightStartX, 0, rightWidth, fullHeight);
 		}
 	}
@@ -143,14 +137,10 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 		return Math.max(ph, Math.max(leftHeight, rightHeight));
 	}
 
-//    @Override
-//    protected double computeMinWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-//        return computePrefWidth(height, topInset, rightInset, bottomInset, leftInset);
-//}
-
 	@Override
 	public void dispose() {
-		control = null;
+		sLeft.unsubscribe();
+		sRight.unsubscribe();
 		super.dispose();
 	}
 }

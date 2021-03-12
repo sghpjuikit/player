@@ -38,7 +38,6 @@ import javafx.scene.input.TransferMode.COPY
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.GridPane
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.layout.Priority.SOMETIMES
@@ -181,9 +180,9 @@ import sp.it.pl.ui.objects.tagtextfield.TagTextField
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Try
+import sp.it.util.functional.orNull
 import sp.it.util.math.clip
 import sp.it.util.math.max
-import sp.it.util.math.min
 import sp.it.util.parsing.ConverterFromString
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onChange
@@ -229,7 +228,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    val commentF: TextArea = grid.lookupId("commentF")
    val colorF: DTextField = grid.lookupId("colorF")
    val colorFValue = vn<Color>(null)
-   val colorFPicker: ColorPicker = colorF.right.value as ColorPicker
+   val colorFPicker: ColorPicker = colorF.right[0] as ColorPicker
    val custom1F: DTextField = grid.lookupId("custom1F")
    val custom2F: DTextField = grid.lookupId("custom2F")
    val custom3F: DTextField = grid.lookupId("custom3F")
@@ -703,26 +702,16 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          if (valCond!=null && c is DTextField) {
             val v = Validation(c, valCond, "$f field does not contain valid text.")
             validators += v
-            val rightOriginal = c.right.value
-            val warnI by lazy { Icon(IconFA.EXCLAMATION_TRIANGLE, 11.0) }
+            val warnI = lazy { Icon(IconFA.EXCLAMATION_TRIANGLE, 11.0) }
             c.textProperty() attach {
-               if (v.isValid()) {
-                  c.right.value = rightOriginal
-               } else {
-                  if (rightOriginal==null) {
-                     c.right.value = warnI
-                  } else {
-                     val box = if (c.right.value is HBox) c.right.value as HBox else hBox { c.right.value = this}
-                     if (rightOriginal !in box.children) box.children.add(0, rightOriginal)
-                     if (warnI !in box.children) box.children += warnI
-                  }
-               }
+               if (v.isValid()) c.right -= warnI.orNull()
+               else c.right += warnI.value
             }
          }
 
          clearContent()
 
-         c.focused attachFalse  { handleLooseFocus() }
+         c.focused attachFalse { handleLooseFocus() }
          c.textProperty() sync { handleTextChange() }
 
          // label for
@@ -1031,7 +1020,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                         maxSize = Double.MAX_VALUE.x2
                         alignment = CENTER_LEFT
 
-                        right.value = ColorPicker().apply {
+                        right += ColorPicker().apply {
                            id = "colorFPicker"
                            minPrefMaxWidth = 40.emScaled
                         }

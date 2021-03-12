@@ -29,16 +29,14 @@
 
 package sp.it.pl.ui.objects.textfield
 
-import javafx.beans.property.ObjectProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.Node
 import javafx.scene.control.TextField
+import sp.it.util.collections.observableList
 
 /** [TextField], which can be decorated with nodes inside on the left and right. */
 open class DecoratedTextField: TextField() {
-
-   @JvmField val left: ObjectProperty<Node?> = SimpleObjectProperty(null)
-   @JvmField val right: ObjectProperty<Node?> = SimpleObjectProperty(null)
+   val left = observableList<Node>()
+   val right = observableList<Node>()
 
    init {
       styleClass += STYLECLASS

@@ -19,20 +19,21 @@ import javafx.scene.effect.PerspectiveTransform
 import javafx.scene.effect.Reflection
 import javafx.scene.effect.SepiaTone
 import javafx.scene.effect.Shadow
+import kotlin.reflect.KClass
 import mu.KLogging
+import sp.it.pl.main.APP
+import sp.it.pl.main.appTooltip
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.picker.Picker
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_UP
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.pl.main.APP
-import sp.it.pl.main.appTooltip
-import sp.it.pl.main.toUi
+import sp.it.util.collections.setToOne
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.ui.Util.layHorizontally
-import kotlin.reflect.KClass
 
 class EffectTextField: ValueTextField<Effect> {
    private val typeB: Icon
@@ -59,7 +60,7 @@ class EffectTextField: ValueTextField<Effect> {
       onValueChange += {
          propB.isDisable = value==null
       }
-      right.value = layHorizontally(5.0, CENTER, typeB, propB)
+      right setToOne layHorizontally(5.0, CENTER, typeB, propB)
    }
 
    override fun onDialogAction() {}

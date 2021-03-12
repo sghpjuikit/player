@@ -96,6 +96,7 @@ import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
+import sp.it.util.collections.setToOne
 import sp.it.util.text.toChar32
 import sp.it.util.type.kTypeNothingNonNull
 
@@ -322,12 +323,12 @@ fun searchTextField() = DecoratedTextField().apply {
       }
    }
 
-   left.value = Icon().also { i ->
+   left setToOne Icon().also { i ->
       i.styleclass("search-icon-sign")
       i.isMouseTransparent = true
       i.isFocusTraversable = false
    }
-   right.value = Icon().also { i ->
+   right setToOne Icon().also { i ->
       i.styleClass += "search-clear-button"
       i.isFocusTraversable = false
       i.opacity = 0.0

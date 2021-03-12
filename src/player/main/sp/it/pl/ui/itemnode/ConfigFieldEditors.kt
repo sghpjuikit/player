@@ -1113,7 +1113,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
    private fun showWarnButton(value: Try<*, String>) {
       val shouldBeVisible = value.isError && isEditableByUser.value
-      editor.right.value = if (shouldBeVisible) warnI.value else null
+      editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
       warnI.orNull()?.isVisible = shouldBeVisible
       warnTooltip.text = value.map { "" }.getAny()
    }
@@ -1167,19 +1167,19 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
       editor.contextMenu = ContextMenu().dsl {
          item("Clear") { applyShortcut("") }
       }
-      editor.left.value = hBox(5, CENTER_LEFT) {
-         lay += Icon().apply {
+      editor.left setTo listOf(
+         Icon().apply {
             styleclass("config-shortcut-run-icon")
             action(config.value)
             tooltip(actTooltip)
-         }
-         lay += globB.apply {
+         },
+         globB.apply {
             styleclass("config-shortcut-global-icon")
             selected.value = config.value.isGlobal
             tooltip(globTooltip)
             selected attach { applyShortcut(config.value.keys) }
          }
-      }
+      )
    }
 
    private fun applyShortcut(newKeys: String) {
@@ -1218,7 +1218,7 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
 
    private fun showWarnButton(value: Try<*, String>) {
       val shouldBeVisible = value.isError && isEditableByUser.value
-      this.editor.right.value = if (shouldBeVisible) warnI.value else null
+      editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
       warnI.orNull()?.isVisible = shouldBeVisible
       warnTooltip.text = value.map { "" }.getAny()
    }

@@ -6,6 +6,8 @@ import javafx.event.Event
 import javafx.event.EventHandler
 import javafx.event.EventType
 import javafx.scene.Node
+import javafx.scene.Scene
+import javafx.scene.control.ListView
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
@@ -47,6 +49,44 @@ fun <T: Event> Window.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Un
 
 /** Equivalent to [Window.addEventFilter], but the handler runs at most once. */
 fun <T: Event> Window.onEventUp1(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+   val handler = object: EventHandler<T> {
+      override fun handle(event: T) {
+         eventHandler(event)
+         removeEventFilter(eventType, this)
+      }
+   }
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventFilter(eventType, handler) }
+}
+
+/** Equivalent to [Scene.addEventHandler]. */
+fun <T: Event> Scene.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+   val handler = eventHandler.eh
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventHandler(eventType, handler) }
+}
+
+/** Equivalent to [Scene.addEventHandler], but the handler runs at most once. */
+fun <T: Event> Scene.onEventDown1(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+   val handler = object: EventHandler<T> {
+      override fun handle(event: T) {
+         eventHandler(event)
+         removeEventHandler(eventType, this)
+      }
+   }
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventHandler(eventType, handler) }
+}
+
+/** Equivalent to [Scene.addEventFilter]. */
+fun <T: Event> Scene.onEventUp(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+   val handler = eventHandler.eh
+   addEventFilter(eventType, handler)
+   return Subscription { removeEventFilter(eventType, handler) }
+}
+
+/** Equivalent to [Scene.addEventFilter], but the handler runs at most once. */
+fun <T: Event> Scene.onEventUp1(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
    val handler = object: EventHandler<T> {
       override fun handle(event: T) {
          eventHandler(event)
@@ -130,6 +170,14 @@ fun <R, T: Event> TreeItem<R>.onEventDown(eventType: EventType<T>, eventHandler:
 
 /** Consume [ScrollEvent.ANY] events, e.g. to prevent certain scrollable JavaFx controls (table, tree, list, ...) from consuming non-deterministically. */
 fun Node.consumeScrolling() = onEventDown(ScrollEvent.ANY) { it.consume() }
+
+/** Re-fire [KeyCode.ESCAPE] key events, e.g. to bypass consuming, which for example [TreeView] does by default. */
+fun ListView<*>.propagateESCAPE() = onEventDown(KeyEvent.ANY) {
+   if (editingIndex==-1 && it.code==KeyCode.ESCAPE) {
+      parent?.fireEvent(it)
+      it.consume()
+   }
+}
 
 /** Re-fire [KeyCode.ESCAPE] key events, e.g. to bypass consuming, which for example [TreeView] does by default. */
 fun TreeView<*>.propagateESCAPE() = onEventDown(KeyEvent.ANY) {

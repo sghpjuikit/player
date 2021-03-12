@@ -46,8 +46,11 @@ abstract class ValueTextField<T>(textValueConverter: (T?) -> String = APP.conver
    /** Value */
    var value by observable<T?>(null) { _, ov, nv ->
       if (ov!=nv) {
-         text = textValueConverter(nv)
-         promptText = text
+         val c = caretPosition
+         val t = textValueConverter(nv)
+         if (t != text) text = t
+         if (t != promptText) promptText = text
+         if (c != caretPosition) positionCaret(c)
          onValueChange(nv)
       }
    }

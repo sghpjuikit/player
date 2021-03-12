@@ -142,6 +142,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       name = label {
          alignment = Pos.CENTER
          isManaged = false
+         isWrapText = true
       }
 
       thumb = object: Thumbnail() {
@@ -185,7 +186,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
             val nameGap = 5.emScaled
             val th = computeCellTextHeight()
             thumb!!.pane.resizeRelocate(x, y, w, h - th)
-            name.resizeRelocate(x + nameGap, h - th, w-2*nameGap, th)
+            name.resizeRelocate(x + nameGap, h - th + nameGap, w-2*nameGap, th-2*nameGap)
             r.x = x
             r.y = y
             r.width = w

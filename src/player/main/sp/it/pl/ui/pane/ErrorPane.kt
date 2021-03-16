@@ -70,6 +70,7 @@ class ErrorPane: OverlayPane<Any>() {
             alignment = CENTER
             lay += layScrollVTextCenter(uiText).apply {
                isFitToWidth = true
+               minWidth = 400.emScaled
             }
          }
          lay(TOP_RIGHT) += vBox(0.0, CENTER_RIGHT) {

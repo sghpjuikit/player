@@ -11,8 +11,10 @@ import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 import java.io.File
 import java.util.logging.LogManager
+import sp.it.util.async.runFX
+import sp.it.util.reactive.Handler1
 
-class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File): Core {
+class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File, val events: Handler1<Any>): Core {
 
    override fun init() {
       // redirect java util logging to sl4j
@@ -35,7 +37,7 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
       StatusPrinter.printInCaseOfErrorsOrWarnings(lc)
 
       // log uncaught thread termination exceptions
-      Thread.setDefaultUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
+      Thread.setDefaultUncaughtExceptionHandler { _, e -> runFX { events(e) } }
    }
 
    fun changeLogBackLoggerAppenderLevel(appenderName: String, level: Level) {

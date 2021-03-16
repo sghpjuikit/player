@@ -189,6 +189,9 @@ fun InstanceDescription.initApp() {
    App::class describe {
       "Name" info it.name
    }
+   AppError::class describe {
+      "Text" info (it.textShort + "\n\n" + it.textFull)
+   }
    Component::class describe {
       "Name" info it.name
    }

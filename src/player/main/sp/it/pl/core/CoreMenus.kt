@@ -25,7 +25,7 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppErrors
+import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.Df.IMAGE
 import sp.it.pl.main.Df.PLAIN_TEXT
@@ -158,7 +158,7 @@ object CoreMenus: Core {
                         logger.warn(e) { "File copy failed" }
                         it.onError.value
                      }.ifFalse {
-                        AppErrors.push("File $f copy failed")
+                        AppEventLog.push("File $f copy failed")
                      }
                   }
                }

@@ -5,7 +5,7 @@ import javafx.collections.FXCollections.observableArrayList
 import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.MASTER
-import sp.it.pl.main.AppErrors
+import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.AppSettings
 import sp.it.pl.main.run1AppReady
 import sp.it.pl.plugin.PluginManager.Events.PluginInstalled
@@ -215,7 +215,7 @@ class PluginBox<T: PluginBase>(val type: KClass<T>, val isEnabledByDefault: Bool
 
       if (isToBeRunning) {
          val canBeRunning = info.isSupported && sequenceOf(location, userLocation).all { Util.isValidatedDirectory(it) }.ifFalse {
-            AppErrors.push("Plugin ${info.name} could not start.", "Directory $location or $userLocation can not be used.")
+            AppEventLog.push("Plugin ${info.name} could not start.", "Directory $location or $userLocation can not be used.")
          }
 
          if (canBeRunning) start()

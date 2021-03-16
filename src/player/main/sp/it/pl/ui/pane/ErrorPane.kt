@@ -6,49 +6,71 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.geometry.VPos
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.NEVER
 import javafx.scene.text.TextAlignment
-import sp.it.pl.ui.objects.Text
-import sp.it.pl.ui.objects.icon.Icon
+import javafx.scene.text.TextBoundsType
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppErrors
+import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.Key
+import sp.it.pl.main.emScaled
+import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.util.access.textAlign
 import sp.it.util.access.toggleNext
+import sp.it.util.access.v
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.supplyIf
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncTo
 import sp.it.util.ui.Util.layScrollVTextCenter
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 
-class ErrorPane: OverlayPane<AppError>() {
+class ErrorPane: OverlayPane<Any>() {
 
-   private val text: Text
-   private var historyAt = -1
+   private val uiText: Text
+   private var uiAt = -1
    private lateinit var historyAtText: WritableValue<String>
+   private val uiErrorsOnly = v(true)
+   private val uiTextAlignment = v(TextAlignment.CENTER)
 
    init {
-      text = Text().apply {
+      uiErrorsOnly attach { updateIndexes() }
+
+      uiText = Text().apply {
          textOrigin = VPos.CENTER
          textAlignment = TextAlignment.CENTER
+         boundsType = TextBoundsType.VISUAL
          setMinPrefMaxSize(-1.0)
       }
 
       content = stackPane {
-         padding = Insets(50.0)
-         prefHeight = 200.0
-         minHeight = 200.0
-         maxHeight = 200.0
-         lay(CENTER) += layScrollVTextCenter(text).apply {
-            prefWidth = 400.0
-            maxWidth = 400.0
+         padding = Insets(50.emScaled, 300.emScaled, 50.emScaled, 300.emScaled)
+         minPrefMaxHeight = 200.0.emScaled
+         onEventDown(KEY_PRESSED, Key.LEFT) { visitLeft() }
+         onEventDown(KEY_PRESSED, Key.RIGHT) { visitRight() }
+
+         lay(CENTER) += vBox {
+            isFillWidth = false
+            alignment = CENTER
+            lay += layScrollVTextCenter(uiText).apply {
+               isFitToWidth = true
+            }
          }
          lay(TOP_RIGHT) += vBox(0.0, CENTER_RIGHT) {
             isPickOnBounds = false
@@ -58,13 +80,18 @@ class ErrorPane: OverlayPane<AppError>() {
                isPickOnBounds = false
                isFillHeight = false
 
+               lay += label("Event Log")
+               lay += CheckIcon(uiErrorsOnly)
                lay += Icon(IconFA.ANGLE_LEFT, -1.0, "Previous message").onClickDo { visitLeft() }
                lay += label("0/0") {
                   historyAtText = textProperty()
                }
                lay += Icon(IconFA.ANGLE_RIGHT, -1.0, "Next message").onClickDo { visitRight() }
                lay += Icon(null, -1.0, "Toggle text alignment").apply {
-                  text.textAlignmentProperty() sync {
+                  syncTo(uiErrorsOnly, uiTextAlignment) { isErrOnly, txtAlign ->
+                     uiText.textAlign.value = if (isErrOnly) TextAlignment.LEFT else txtAlign
+                  }
+                  uiText.textAlign sync {
                      val glyph = when (it!!) {
                         TextAlignment.CENTER -> IconFA.ALIGN_CENTER
                         TextAlignment.JUSTIFY -> IconFA.ALIGN_JUSTIFY
@@ -73,9 +100,7 @@ class ErrorPane: OverlayPane<AppError>() {
                      }
                      icon(glyph)
                   }
-                  onClickDo {
-                     text.textAlignmentProperty().toggleNext()
-                  }
+                  onClickDo { uiTextAlignment.toggleNext() }
                }
                lay += supplyIf(display.value!=Display.WINDOW) {
                   Icon(IconFA.SQUARE, -1.0, "Always on top\n\nForbid hiding this window behind other application windows").apply {
@@ -93,28 +118,44 @@ class ErrorPane: OverlayPane<AppError>() {
       }
       makeResizableByUser()
 
-      AppErrors.history.onChange { updateIndexes() }
+      AppEventLog.history.onChange { updateIndexes() }
    }
 
-   override fun show(data: AppError) {
-      historyAt = AppErrors.history.indexOf(data)
-      visit(historyAt)
+   override fun show(data: Any) {
+      uiAt = AppEventLog.history.indexOfLast { it===data }
+      visit(uiAt)
       super.show()
    }
 
-   private fun visitLeft() = visit(historyAt.max(1) - 1)
+   private fun visitLeft() = visit(
+      if (!uiErrorsOnly.value) (uiAt max 1) - 1
+      else AppEventLog.history.asSequence().withIndex().take(uiAt max 1).filter { (_, o) -> isError(o) }.lastOrNull()?.index
+         ?: uiAt
+   )
 
-   private fun visitRight() = visit(historyAt.min(AppErrors.history.size - 2) + 1)
+   private fun visitRight() = visit(
+      if (!uiErrorsOnly.value) (uiAt min AppEventLog.history.size - 2) + 1
+      else AppEventLog.history.asSequence().withIndex().drop(uiAt).filter { (_, o) -> isError(o) }.take(2).lastOrNull()?.index
+         ?: uiAt
+   )
 
-   private fun visit(at: Int) = update(at, AppErrors.history[at])
+   private fun visit(at: Int) = update(at, AppEventLog.history[at])
 
    private fun updateIndexes() {
-      historyAtText.value = "${historyAt + 1}/${AppErrors.history.size}"
+      historyAtText.value =
+         if (!uiErrorsOnly.value) "${uiAt + 1}/${AppEventLog.history.size}"
+         else "${AppEventLog.history.asSequence().take(uiAt).count(::isError) + 1}/${AppEventLog.history.count(::isError)}"
    }
 
-   private fun update(at: Int, error: AppError) {
-      historyAt = at
+   private fun update(at: Int, error: Any) {
+      uiAt = at
+      uiText.text = when (error) {
+         is AppError -> error.textShort + "\n\n" + error.textFull
+         is Throwable -> "Unspecified error: ${error.stacktraceAsString}"
+         else -> error.toUi()
+      }
       updateIndexes()
-      text.text = error.textShort + "\n\n" + error.textFull
    }
+
+   private fun isError(o: Any?) = o is Throwable || o is AppError
 }

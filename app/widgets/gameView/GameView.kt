@@ -36,7 +36,7 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppErrors
+import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
@@ -354,7 +354,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       fun play() {
          exeFile { exe ->
             if (exe==null) {
-               AppErrors.push("No launcher is set up.")
+               AppEventLog.push("No launcher is set up.")
             } else {
                val arguments = settings["arguments"]?.valN.orEmpty().filter { it.isNotBlank() }.toTypedArray()
                exe.runAsProgram(*arguments).onErrorNotify {

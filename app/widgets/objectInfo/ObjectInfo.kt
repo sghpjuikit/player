@@ -36,11 +36,13 @@ import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicLong
 
 class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    private val inputItems = io.i.create<Any>("To display", null, ::open)
    private val info = Text()
    private val thumb = Thumbnail()
+   private val openId = AtomicLong(1L)
 
    init {
       root.prefSize = 600.emScaled x 300.emScaled
@@ -69,8 +71,11 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    }
 
    override fun open(data: Any?) {
+      val id = openId.incrementAndGet()
       computeDataInfo(data).onDone(FX) {
-         info.text = it.toTry().getOr("Failed to obtain data information.")
+         if (id==openId.get()) {
+            info.text = it.toTry().getOr("Failed to obtain data information.")
+         }
       }
 
       when (data) {

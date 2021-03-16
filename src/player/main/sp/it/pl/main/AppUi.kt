@@ -92,7 +92,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    /** Action chooser and data info view. */
    val actionPane = LazyOverlayPane { ActionPane(APP.className, APP.instanceName, APP.instanceInfo).initApp().initActionPane() }
-   /** Error detail view. Usually used internally by [sp.it.pl.main.AppErrors]. */
+   /** Error detail view. Usually used internally by [sp.it.pl.main.AppEventLog]. */
    val errorPane = LazyOverlayPane { ErrorPane().initApp() }
    /** Shortcut bindings/keymap detail view. */
    val shortcutPane = LazyOverlayPane { ShortcutPane().initApp() }

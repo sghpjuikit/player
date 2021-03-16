@@ -28,7 +28,7 @@ import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Layout;
 import sp.it.pl.layout.container.SwitchContainer;
 import sp.it.pl.layout.container.SwitchContainerUi;
-import sp.it.pl.main.AppErrors;
+import sp.it.pl.main.AppEventLog;
 import sp.it.pl.main.Df;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.Resize;
@@ -47,11 +47,13 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SEND;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH_LARGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.WARNING;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN_EXIT;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MAXIMIZE;
@@ -110,7 +112,6 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
-import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
@@ -327,10 +328,8 @@ public class Window extends WindowBase {
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
 		on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE)), onClose);
-		Icon errorB = new Icon(FontAwesomeIcon.WARNING, -1).styleclass("header-icon")
-			.action(() -> AppErrors.INSTANCE.showDetailForLastError())
-			.tooltip("Errors");
-		onChangeAndNow(AppErrors.INSTANCE.getHistory(), runnable(() -> errorB.setVisible(!AppErrors.INSTANCE.getHistory().isEmpty())));
+		Icon errorB = new Icon(WARNING, -1).styleclass("header-icon").action(() -> APP.getActions().openAppEventLog()).tooltip("Event Log");
+		syncC(AppEventLog.INSTANCE.getHasErrors(), it -> errorB.icon(it ? WARNING : SEND));
 
 		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
 		leftHeaderBox.setTranslateY(-4);

@@ -153,9 +153,12 @@ class App: Application(), GlobalConfigDelegator {
    /** Global event bus. Usage: simply push an event or observe. Use of event constants/objects is advised. */
    val actionStream = Handler1<Any>().apply {
       onEvent<Any> {
-         logger.info { "Event: $it" }
+         if (it is Throwable) logger.error(it) { "Error:" }
+         else logger.info { "Event: $it" }
       }
    }
+   /** History for [actionStream]. */
+   val actionsLog = AppEventLog
    /** Various actions for the application */
    val actions = AppActions()
    /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
@@ -189,7 +192,7 @@ class App: Application(), GlobalConfigDelegator {
    val configuration = MainConfiguration.apply { rawAdd(location.user.application_properties) }
 
    /** Logging core. */
-   val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log)
+   val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log, actionStream)
    /** Logging level for logging to standard output. */
    val logLevelConsole by cv(Level.INFO).values(logLevels).uiNoOrder() def conf.logging.`level(stdout)` sync { logging.changeLogBackLoggerAppenderLevel("STDOUT", it) }
    /** Logging level for logging to file. */
@@ -324,12 +327,12 @@ class App: Application(), GlobalConfigDelegator {
             logger.error(it) { "Application failed to start" }
             logger.info { "Application closing prematurely" }
 
-            AppErrors.push(
+            AppEventLog.push(
                "Application did not start successfully and will close.",
                "Please fill an issue at $githubUri providing the logs in ${location.user.log}." +
                "\nThe exact problem was:\n ${it.stacktraceAsString}"
             )
-            AppErrors.showDetailForLastError()
+            AppEventLog.showDetailForLastError()
          }
       }.ifOk {
          runLater {

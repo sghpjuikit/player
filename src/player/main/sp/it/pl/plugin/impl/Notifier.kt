@@ -26,7 +26,7 @@ import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.hasFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppErrors
+import sp.it.pl.main.AppEventLog
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.nodeinfo.ItemInfo
@@ -171,7 +171,7 @@ class Notifier: PluginBase() {
             wrappingWithNatural.subscribe()
          }
          lay += hyperlink("Click to show full details") {
-            onEventDown(MOUSE_CLICKED, PRIMARY) { AppErrors.showDetailForLastError() }
+            onEventDown(MOUSE_CLICKED, PRIMARY) { AppEventLog.showDetailForLastError() }
          }
          lay += supplyIf(error.action!=null) {
             hyperlink(error.action!!.name) {

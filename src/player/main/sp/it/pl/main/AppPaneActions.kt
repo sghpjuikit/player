@@ -107,7 +107,8 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       FastColAction<App>("Developer tools", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
       FastColAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
       FastAction("Open help", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() },
-      FastAction(IconUN(0x1f4c1), ActionRegistrar["Open app directory"])
+      FastAction(IconFA.SEND, ActionRegistrar["Open app directory"]),
+      FastAction(IconUN(0x1f4c1), ActionRegistrar["Open app event log"])
    )
    ap.register<AppDev>(
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),

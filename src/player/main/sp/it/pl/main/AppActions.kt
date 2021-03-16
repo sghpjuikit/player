@@ -79,6 +79,11 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       APP.location.open()
    }
 
+   @IsAction(name = "Open app event log", info = "Opens application event log.")
+   fun openAppEventLog() {
+      AppEventLog.showDetailForLast()
+   }
+
    @IsAction(name = "Open css guide", info = "Opens css reference guide. For developers.")
    fun openCssGuide() {
       uri("http://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()

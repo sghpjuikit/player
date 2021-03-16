@@ -111,12 +111,12 @@ fun App.run1AppReady(block: () -> Unit) {
    }
 }
 
-/** Invokes [File.runAsProgram] and if error occurs logs and reports using [AppErrors]. Returns process result (stdout) or error. */
+/** Invokes [File.runAsProgram] and if error occurs logs and reports using [AppEventLog]. Returns process result (stdout) or error. */
 fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<String> {
    fun String?.wrap() = if (isNullOrBlank()) "" else "\n$this"
    fun doOnError(e: Throwable?, text: String?) {
       logger.error(e) { "$actionName failed.\n${text.wrap()}" }
-      AppErrors.push("$actionName failed.", text.wrap())
+      AppEventLog.push("$actionName failed.", text.wrap())
    }
 
    return runAsProgram(*arguments) {

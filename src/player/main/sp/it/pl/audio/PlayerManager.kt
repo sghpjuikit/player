@@ -359,8 +359,6 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       }
 
       private fun preloadNext() {
-         logger.info("Pre-loading metadata for next song to play.")
-
          val next = PlaylistManager.use( { it.nextPlaying }, null)
          if (next!=null) {
             runIO {

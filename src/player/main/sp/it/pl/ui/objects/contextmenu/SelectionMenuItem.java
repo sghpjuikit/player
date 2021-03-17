@@ -9,9 +9,11 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.util.functional.Functors.F1;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.map;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.ui.UtilKt.styleclassToggle;
 
 /**
@@ -51,6 +53,7 @@ public class SelectionMenuItem extends Menu {
 		icon.styleclass(STYLECLASS_ICON);
 		icon.gap(0);
 		selected.setValue(s);
+
 		// action = toggle selection
 		setOnMouseClicked(() -> selected.setValue(!selected.getValue()));
 
@@ -104,8 +107,8 @@ public class SelectionMenuItem extends Menu {
 	 * @param h click handler
 	 */
 	public void setOnMouseClicked(Runnable h) {
-		setOnAction(e -> h.run());
-		icon.setOnMouseClicked(e -> h.run());
+		addEventHandler(MOUSE_CLICKED, e -> h.run());
+		icon.onClickDo(consumer(i -> h.run()));
 	}
 
 	public static <I> List<MenuItem> buildSingleSelectionMenu(Collection<I> inputs, I selected, F1<I,String> toText, Consumer<I> action) {

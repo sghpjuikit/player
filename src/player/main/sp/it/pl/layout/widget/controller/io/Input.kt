@@ -16,6 +16,9 @@ import java.util.HashMap
 import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSubtypeOf
+import sp.it.util.functional.asIs
+import sp.it.util.type.estimateRuntimeType
 
 open class Input<T>: Put<T?> {
 
@@ -29,10 +32,10 @@ open class Input<T>: Put<T?> {
    open fun isAssignable(output: Output<*>): Boolean = when {
       output.type isSubtypeOf type -> true
       type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
-         output.type.listType().isSubclassOf(type.listType())
+         output.type.listType().isSubtypeOf(type.listType())
       }
       type.jvmErasure==List::class -> {
-         isAssignable(output.type.jvmErasure, type.listType())
+         isAssignable(output.type.jvmErasure, type.listType().raw)
       }
       else -> false
    }
@@ -42,7 +45,7 @@ open class Input<T>: Put<T?> {
    /** @return true if this input can receive the specified value */
    fun isAssignable(value: Any?): Boolean = when {
       value==null -> type.isNullable
-      type.jvmErasure==List::class -> type.listType().isInstance(value)
+      type.jvmErasure==List::class -> type.listType().isSubtypeOf(value.asIs<List<*>>().estimateRuntimeType().type)
       else -> type.jvmErasure.isInstance(value)
    }
 
@@ -57,7 +60,7 @@ open class Input<T>: Put<T?> {
                   valueAny = v
                }
                type.jvmErasure==List::class -> {
-                  if (type.listType().isInstance(v))
+                  if (type.listType().raw.isInstance(v))
                      valueAny = v
                }
                else -> {}
@@ -130,6 +133,6 @@ open class Input<T>: Put<T?> {
    override fun toString() = "$name, $type"
 
    companion object {
-      private fun VType<*>.listType() = type.argOf(List::class, 0).typeResolved.raw
+      private fun VType<*>.listType() = type.argOf(List::class, 0).typeResolved
    }
 }

@@ -33,8 +33,8 @@ class CollectionsUtilTest: FreeSpec({
       listOf("", 10L).getElementType() shouldBe kType<Comparable<*>>()
       listOf("", 10L, null).getElementType() shouldBe kType<Comparable<*>?>()
 
-      listOf(listOf<Int>(1, 1), setOf<Int>(1, 1)).getElementType() shouldBe kType<java.util.AbstractCollection<*>>()
-      listOf(listOf<Int>(1, 1), setOf<Int>(1, 1), null).getElementType() shouldBe kType<java.util.AbstractCollection<*>?>()
+      listOf(listOf<Int>(1, 1), setOf<Int>(1, 1)).getElementType() shouldBe kType<AbstractCollection<*>>()
+      listOf(listOf<Int>(1, 1), setOf<Int>(1, 1), null).getElementType() shouldBe kType<AbstractCollection<*>?>()
 
       listOf(listOf<Int>(1), listOf<Int>(1)).getElementType().raw shouldBe listOf<Int>(1)::class
       listOf(listOf<Int>(1), listOf<Int>(1), null).getElementType().isMarkedNullable shouldBe true

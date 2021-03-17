@@ -57,7 +57,6 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncTo
 import sp.it.util.system.chooseFile
 import sp.it.util.system.chooseFiles
 import sp.it.util.text.pluralUnit

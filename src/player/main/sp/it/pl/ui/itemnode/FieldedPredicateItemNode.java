@@ -22,9 +22,6 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
-import static sp.it.util.functional.Util.IS0;
-import static sp.it.util.functional.Util.ISNT;
-import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.type.TypesKt.notnull;
@@ -33,33 +30,6 @@ import static sp.it.util.type.TypesKt.notnull;
  * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
  */
 public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends ValueNode<Predicate<V>> {
-
-	// Normally we would use this predicate builder:
-	//     (field,filter) -> element -> filter.test(element.getField(field));
-	// But element.getField(field) can return null!, which Predicate can not handle on its own.
-	// We end up with null safe alternative:
-	//     (field,filter) -> element -> {
-	//         Object o = element.getField(field);
-	//         return o==null ? false : filter.test(o);
-	//     };
-	// Problem:
-	//    Predicate testing null (o -> o==null) will get bypassed and wont have any effect
-	// leading us to predicate identity preservation and ultimate solution below.
-	//
-	// One could argue predicate isNull is useless in OOP, particularly for filtering, like here,
-	// but ultimately, it has it's place and we should'nt ignore it out of convenience.
-	// In this particular case, where we are filtering FieldedValue, isNull should not be used, rather
-	// isEmpty() predicate should check: element.getField(field).equals(EMPTY_ELEMENT.getField(field))
-	// where null.equals(null) would return true, basically: element.hasDefaultValue(field).
-	// However, in my opinion, isNull predicate does not lose its value completely.
-	private static <V, T> Predicate<V> predicate(ObjectField<V,T> field, Function1<? super T, ? extends Boolean> filter) {
-		return filter==IS0 || filter==ISNT0 || filter==IS || filter==ISNT || field.getType().isNullable()
-				? element -> filter.invoke(field.getOf(element))
-				: element -> {
-					T o = field.getOf(element);
-					return o!=null && filter.invoke(o);
-				};
-	}
 
 	private static final Tooltip negTooltip = new Tooltip("Negate");
 
@@ -165,7 +135,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 			Function1<? super Object, ? extends Boolean> p = config.getVal();
 			F o = typeCB.getValue()==null ? null : typeCB.getValue().value;
 			if (p!=null && o!=null) {
-				Predicate<V> pr = predicate((ObjectField) o, p);
+				Predicate<V> pr = FieldedPredicateItemNodeCompanion.INSTANCE.predicate((ObjectField) o, (Function1) p);
 				if (negB.selected.getValue()) pr = pr.negate();
 				changeValue(pr);
 			}

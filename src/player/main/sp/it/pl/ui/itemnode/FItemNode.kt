@@ -24,11 +24,8 @@ import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncSize
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.VType
-import sp.it.util.type.rawJ
-import sp.it.util.type.typeNothingNonNull
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.lay

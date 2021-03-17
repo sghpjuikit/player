@@ -227,15 +227,18 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 					defColInfo.columns.streamV()
 						.map(c -> {
 							ObjectField<T,?> f = nameToCF(c.name);
-							SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible, v -> setColumnVisible(f, v));
 							String d = f.description();
+
+							SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible);
+							m.getSelected().addListener((o,ov,nv) -> setColumnVisible(f, nv));
 							if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
+
 							return m;
 						})
 						.sorted(by(MenuItem::getText))
 						.collect(toList())
 				);
-				columnVisibleMenu.getItems().forEach(i -> ((SelectionMenuItem) i).selected.setValue(isColumnVisible(nameToCF(i.getText()))));
+				columnVisibleMenu.getItems().forEach(i -> ((SelectionMenuItem) i).getSelected().setValue(isColumnVisible(nameToCF(i.getText()))));
 			});
 
 			// link table column button to our menu instead of an old one

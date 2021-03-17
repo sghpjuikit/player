@@ -32,6 +32,7 @@ import kotlin.jvm.functions.Function1;
 import sp.it.pl.ui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.ui.nodeinfo.TableInfo;
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
@@ -49,7 +50,6 @@ import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.async.AsyncKt.runLater;
@@ -386,7 +386,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			columnMenu.getItems().add(menu);
 			columnMenu.addEventHandler(WINDOW_HIDDEN, e -> menu.getItems().clear());
 			columnMenu.addEventHandler(WINDOW_SHOWING, e -> menu.getItems().addAll(
-				buildSingleSelectionMenu(filter(getFieldsAll(), ObjectField::searchSupported), field, ObjectField::name, this::setColumn)
+				SelectionMenuItem.Companion.buildSingleSelectionMenu(filter(getFieldsAll(), ObjectField::searchSupported), field, ObjectField::name, this::setColumn)
 			));
 		}
 

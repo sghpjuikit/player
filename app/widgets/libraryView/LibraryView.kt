@@ -38,7 +38,6 @@ import sp.it.pl.main.isPlaying
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
@@ -84,6 +83,7 @@ import kotlin.streams.toList
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit

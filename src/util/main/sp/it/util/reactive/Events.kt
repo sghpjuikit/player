@@ -8,6 +8,7 @@ import javafx.event.EventType
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.ListView
+import javafx.scene.control.Menu
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode
@@ -163,6 +164,13 @@ fun <T: KeyEvent> Node.onEventUp(eventType: EventType<T>, modifier: KeyCode? = n
 
 /** Equivalent to [TreeItem.addEventHandler]. */
 fun <R, T: Event> TreeItem<R>.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
+   val handler = eventHandler.eh
+   addEventHandler(eventType, handler)
+   return Subscription { removeEventHandler(eventType, handler) }
+}
+
+/** Equivalent to [Menu.addEventHandler]. */
+fun <T: Event> Menu.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Unit): Subscription {
    val handler = eventHandler.eh
    addEventHandler(eventType, handler)
    return Subscription { removeEventHandler(eventType, handler) }

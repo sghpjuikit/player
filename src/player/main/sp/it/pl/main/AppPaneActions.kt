@@ -284,19 +284,19 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          { it.recycle() }
       ),
       SlowAction(
-         "Print raw  metadata", "Prints all image metadata to console.",
+         "Print raw metadata", "Prints all image metadata to console.",
          IconMA.IMAGE_ASPECT_RATIO,
          { it.isImage() },
          { APP.actions.printAllImageFileMetadata(it) }
       ),
       SlowAction(
-         "Print raw  metadata", "Prints all image metadata to console.",
+         "Set as wallpaper", "Sets image as wallpaper.",
          IconMA.IMAGE_ASPECT_RATIO,
          { it.isImage() && APP.plugins.get<WallpaperChanger>()!=null },
          { f -> APP.plugins.use<WallpaperChanger> { it.wallpaperFile.value = f } }
       ),
       SlowAction(
-         "Print raw  metadata", "Prints all audio metadata to console.",
+         "Print raw metadata", "Prints all audio metadata to console.",
          IconMA.IMAGE_ASPECT_RATIO,
          { it.isAudio() },
          { APP.actions.printAllAudioFileMetadata(it) }
@@ -365,7 +365,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       ),
       FastColAction(
          "View image",
-         "Opens image in an image browser widget.",
+         "Opens images in an image browser widget.",
          IconFA.IMAGE,
          { it.isImage() },
          { img_files -> APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } }

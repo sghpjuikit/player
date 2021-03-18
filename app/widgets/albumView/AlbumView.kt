@@ -15,6 +15,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.shape.Rectangle
 import kotlin.math.round
 import kotlin.streams.toList
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.ALBUM
@@ -25,6 +26,7 @@ import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
@@ -101,7 +103,7 @@ import sp.it.util.units.minutes
    year = "2015",
    group = LIBRARY
 )
-class AlbumView(widget: Widget): SimpleController(widget) {
+class AlbumView(widget: Widget): SimpleController(widget), SongReader {
 
    val outputSelected = io.o.create<MetadataGroup>("Selected Album", null)
    val outputSelectedM = io.o.create<List<Metadata>>("Selected", listOf())
@@ -180,6 +182,10 @@ class AlbumView(widget: Widget): SimpleController(widget) {
    }
 
    override fun focus() = grid.requestFocus()
+
+   override fun read(songs: List<Song>) {
+      inputSongs.value = songs.map { it.toMeta() }
+   }
 
    /** Populates metadata groups to table from metadata list.  */
    private fun setItems(list: List<Metadata>?) {

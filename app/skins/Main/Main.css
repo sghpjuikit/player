@@ -1722,13 +1722,16 @@ Shape, Text, TextFlow > * {
 /** 
  * Toggle icon - checkbox
  * inherits: .icon
- * pseudoclasses: selected
+ * pseudoclasses: selected, readonly
  */
 .check-icon {
    -glyph-name: "FontAwesomeIcon.TOGGLE_OFF";
 }
 .check-icon:selected {
    -glyph-name: "FontAwesomeIcon.TOGGLE_ON";
+}
+.check-icon:readonly {
+   -fx-opacity: 0.8;
 }
 
 /** 

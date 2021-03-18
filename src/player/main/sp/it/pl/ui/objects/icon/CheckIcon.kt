@@ -14,8 +14,10 @@ import sp.it.util.ui.styleclassRemove
 /** Checkbox like icon. Has two-icon mode and one-icon disabling mode. */
 class CheckIcon: Icon {
 
-   /** Selection state. */
+   /** Whether this is selected. */
    @JvmField val selected: Property<Boolean>
+   /** Whether this is read-only. Default true. */
+   val editable = v(true)
    private var s: Subscription? = null
 
    /** Creates icon with property as selection value. [selected]===s will always be true. */
@@ -23,6 +25,9 @@ class CheckIcon: Icon {
       selected = s ?: v(true)
       styleclass(STYLECLASS)
       selected sync { pseudoClassChanged("selected", it) }
+      editable sync { pseudoClassChanged("readonly", !it) }
+      editable sync { isMouseTransparent = !it }
+      editable sync { isFocusTraversable = it }
       onClickDo { selected.toggle() }
    }
 
@@ -63,9 +68,12 @@ class CheckIcon: Icon {
 /** Indeterminate checkbox like icon. Has two-icon mode and one-icon disabling mode. */
 class NullCheckIcon: Icon {
 
-   /** Selection state. */
+   /** Whether this is selected. */
    val selected: Property<Boolean?>
+   /** Whether this is 3-valued, i.e., nullable selection. */
    val isNullable: Boolean
+   /** Whether this is read-only. Default true. */
+   val readOnly = v(true)
    private var s: Subscription? = null
 
    /** Creates icon with property as selection value. [selected]===s will always be true. */
@@ -75,6 +83,9 @@ class NullCheckIcon: Icon {
       styleclass(STYLECLASS)
       selected sync { pseudoClassChanged("selected", it==true) }
       selected sync { pseudoClassChanged("null", it==null) }
+      readOnly sync { pseudoClassChanged("readonly", !it) }
+      readOnly sync { isMouseTransparent = !it }
+      readOnly sync { isFocusTraversable = it }
       onClickDo { toggle() }
    }
 

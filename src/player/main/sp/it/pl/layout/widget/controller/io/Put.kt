@@ -4,24 +4,18 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.type.VType
 import sp.it.util.type.nullify
 
-open class Put<T>: XPut<T> {
-   val name: String
-   val type: VType<T>
+open class Put<T>(type: VType<T>, name: String, initialValue: T): XPut<T> {
+   val name: String = name
+   val type: VType<T> = type
    protected val monitors = mutableSetOf<(T) -> Unit>()
-   var value: T
+   val initialValue: T = initialValue
+   var value: T = initialValue
       set(v) {
          if (field!==v) {
             field = v
             monitors.forEach { it(v) }
          }
       }
-
-   constructor(type: VType<T>, name: String, initialValue: T) {
-      this.name = name
-      this.type = type
-      this.value = initialValue
-   }
-
 
    fun sync(action: (T) -> Unit): Subscription {
       action(value)

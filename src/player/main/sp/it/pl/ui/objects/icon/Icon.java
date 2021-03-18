@@ -366,14 +366,14 @@ public class Icon extends StackPane {
 	 */
 	public final @NotNull Icon onClickDo(@Nullable Integer clickCount, @Nullable Function1<Icon,Unit> action) {
 		setOnMouseClicked(action==null ? null : e -> {
-			if (e.getButton()==PRIMARY && (clickCount==null || e.getClickCount()==clickCount)) {
+			if (!isMouseTransparent() && e.getButton()==PRIMARY && (clickCount==null || e.getClickCount()==clickCount)) {
 				if (isFocusTraversable() && !isFocused()) requestFocus();
 				action.invoke(this);
 				e.consume();
 			}
 		});
 		setOnKeyReleased(action==null ? null : e -> {
-			if (e.getCode()==ENTER) {
+			if (!isMouseTransparent() && e.getCode()==ENTER) {
 				if (isFocusTraversable() && !isFocused()) requestFocus();
 				action.invoke(this);
 				e.consume();

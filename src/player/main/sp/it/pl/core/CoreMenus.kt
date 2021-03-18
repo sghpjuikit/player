@@ -195,14 +195,12 @@ object CoreMenus: Core {
             menu("Playback") {
                item("Play songs") {
                   APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
-                     p.playlist.addItems(it.grouped)
-                     p.playlist.playFirstItem()
+                     p.playlist.setNplay(it.grouped)
                   }
                }
                item("Play songs (new playlist)") {
                   APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
-                     p.playlist.addItems(it.grouped)
-                     p.playlist.playFirstItem()
+                     p.playlist.setNplay(it.grouped)
                   }
                }
                item("Enqueue songs") {
@@ -221,7 +219,8 @@ object CoreMenus: Core {
                item("Remove songs from library") { APP.db.removeSongs(it.grouped) }
             }
             menu("Show in") {
-               widgetItems<SongReader> { it.read(value.grouped) }
+               widgetItems<SongReader> {
+                  it.read(value.grouped) }
             }
             menu("Edit tags in") {
                widgetItems<SongWriter> { it.read(value.grouped) }

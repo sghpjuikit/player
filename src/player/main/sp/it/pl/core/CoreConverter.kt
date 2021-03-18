@@ -149,7 +149,7 @@ object CoreConverter: Core {
          is VType<*> -> o.type.toUi()
          is NameUi -> o.nameUi
          is MouseButton -> o.nameUi
-         is Action -> "${o.nameUi} (${o.keysUi()})"
+         is Action -> o.nameUi + o.keysUi().nullIfBlank()?.net { " (${o.keysUi()})" }.orEmpty()
          is LocalDateTime -> o.format(dateTimeFormatter)
          is LocalDate -> o.format(dateFormatter)
          is LocalTime -> o.format(timeFormatter)

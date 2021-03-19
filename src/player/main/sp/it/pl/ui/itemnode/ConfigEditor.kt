@@ -20,7 +20,6 @@ import sp.it.pl.ui.itemnode.textfield.EffectTextField.Companion.EFFECT_TYPES
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.main.appTooltip
 import sp.it.pl.plugin.PluginManager
-import sp.it.util.access.not
 import sp.it.util.action.Action
 import sp.it.util.animation.Anim
 import sp.it.util.async.runFX
@@ -39,8 +38,6 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
-import sp.it.util.reactive.on
-import sp.it.util.reactive.syncFrom
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
 import sp.it.util.ui.onNodeDispose
@@ -56,8 +53,14 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import javafx.beans.binding.BooleanBinding
 import kotlin.reflect.jvm.jvmErasure
 import sp.it.pl.core.UiStringHelper
+import sp.it.util.access.readOnly
+import sp.it.util.access.v
+import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.functional.net
+import sp.it.util.type.VType
 
 private val defTooltip = appTooltip("Default value")
 private const val defBLayoutSize = 15.0
@@ -72,17 +75,29 @@ private val paddingWithDefB = Insets.EMPTY
  * type of configuration into consideration. For example
  * for boolean CheckBox control will be used, for enum ComboBox etc...
  */
-abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
-   val isEditableByUser = config.isEditableByUserRightNowProperty()
+abstract class ConfigEditor<T>(val config: Config<T>) {
+   /** Whether this editor allows editing. Affects [isEditable]. Default true. */
+   val isEditableAllowed = v(true)
+   /** Whether this editor is editable. Takes into account [Config.isEditable], [Config.constraints], [isEditableAllowed]  */
+   val isEditable = config.isEditableByUserRightNowProperty().net {
+      object: BooleanBinding() {
+         init { bind(isEditableAllowed, it) }
+         override fun computeValue() = isEditableAllowed.value && it.value
+      }.apply {
+         readOnly()
+      }
+   }
+   /** Whether config value type is nullable, convenience for: [config].[Config.type].[VType.isNullable] */
+   val isNullable = config.type.isNullable
+   /** Invoked when value changes */
    var onChange: Runnable? = null
+   /** Invoked when value changes or constraint warning changes */
    var onChangeOrConstraint: Runnable? = null
    private var inconsistentState = false
-
-   /** Use to get the control node for setting and displaying the value to attach it to a scene graph. */
+   /** The node setting and displaying the value */
    abstract val editor: Node
-
-   /** [config].[Config.getValue] */
-   fun getConfigValue(): T = config.value
+   /** Disposer, convenience for: [editor].[Node.onNodeDispose] . */
+   protected val disposer get() = editor.onNodeDispose
 
    abstract fun get(): Try<T, String>
 
@@ -136,10 +151,10 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
       val isDefBSupported = config.isEditable.isByUser && !isTypeSingleton
       if (isDefBSupported) {
          root.addEventFilter(MOUSE_ENTERED) {
-            if (isEditableByUser.value) {
+            if (isEditable.value) {
                runFX(270.millis) {
                   if (root.isHover) {
-                     val isDefBNeeded = defB==null && isEditableByUser.value
+                     val isDefBNeeded = defB==null && isEditable.value
                      if (isDefBNeeded) {
                         defB = Icon(null, -1.0, null, Runnable { this.refreshDefaultValue() })
                         defB!!.tooltip(defTooltip)
@@ -159,7 +174,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
                         root.children.add(defBRoot)
                         root.padding = paddingWithDefB
 
-                        defBA = Anim.anim(450.millis) {
+                        defBA = anim(450.millis) {
                            if (defB!=null)
                               defB!!.opacity = it*it
                         }
@@ -173,6 +188,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          root.addEventFilter(MOUSE_EXITED) {
             if (defBA!=null)
                defBA!!.playCloseDo {
+                  if (defB!!.isFocused) editor.requestFocus()
                   root.children.remove(defB!!.parent)
                   defB = null
                   defBA = null
@@ -216,7 +232,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
    /** Sets and applies default value of the config if it has different value set and if editable by user.  */
    fun refreshDefaultValue() {
       if (inconsistentState) return
-      if (isEditableByUser.value) {
+      if (isEditable.value) {
          val isNew = config.value!=config.defaultValue
          if (!isNew) return
          inconsistentState = true
@@ -256,6 +272,7 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
          put<Color> { ColorCE(it.asIs()) }
          put<File> { FileCE(it.asIs()) }
          put<Font> { FontCE(it.asIs()) }
+         put<Insets> { InsetsCE(it.asIs()) }
          put<LocalTime> { LocalTimeCE(it.asIs()) }
          put<LocalDate> { LocalDateCE(it.asIs()) }
          put<LocalDateTime> { LocalDateTimeCE(it.asIs()) }
@@ -316,8 +333,6 @@ abstract class ConfigEditor<T>(@JvmField val config: Config<T>) {
             else -> {
                editorBuilders[config.type.jvmErasure]?.invoke(config) ?: GeneralCE(config)
             }
-         }.apply {
-            editor.disableProperty() syncFrom isEditableByUser.not() on editor.onNodeDispose
          }.asIs()
       }
 

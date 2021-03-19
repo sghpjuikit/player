@@ -23,6 +23,7 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.geometry.VPos
 import javafx.scene.Node
+import javafx.scene.effect.Blend
 import javafx.scene.effect.Effect
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
@@ -192,6 +193,10 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
    fun KType.resolveNullability(name: String): KType = when {
       this.isPlatformType -> when {
          o is Effect && name == "input"-> this.withNullability(true)
+         o is Effect && name == "topInput"-> this.withNullability(true)
+         o is Effect && name == "bottomInput"-> this.withNullability(true)
+         o is Blend && name == "mode"-> this.withNullability(false)
+         name == "opacity"-> this.withNullability(false)
          else -> this
       }
       else -> this

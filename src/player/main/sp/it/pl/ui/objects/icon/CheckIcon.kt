@@ -73,7 +73,7 @@ class NullCheckIcon: Icon {
    /** Whether this is 3-valued, i.e., nullable selection. */
    val isNullable: Boolean
    /** Whether this is read-only. Default true. */
-   val readOnly = v(true)
+   val editable = v(true)
    private var s: Subscription? = null
 
    /** Creates icon with property as selection value. [selected]===s will always be true. */
@@ -83,9 +83,9 @@ class NullCheckIcon: Icon {
       styleclass(STYLECLASS)
       selected sync { pseudoClassChanged("selected", it==true) }
       selected sync { pseudoClassChanged("null", it==null) }
-      readOnly sync { pseudoClassChanged("readonly", !it) }
-      readOnly sync { isMouseTransparent = !it }
-      readOnly sync { isFocusTraversable = it }
+      editable sync { pseudoClassChanged("readonly", !it) }
+      editable sync { isMouseTransparent = !it }
+      editable sync { isFocusTraversable = it }
       onClickDo { toggle() }
    }
 
@@ -94,11 +94,12 @@ class NullCheckIcon: Icon {
 
    /** Toggles [selected] between true, false, null */
    fun toggle() {
-      selected.value = when(selected.value) {
-         null -> true
-         true -> false
-         false -> if (isNullable) null else true
-      }
+      if (editable.value)
+         selected.value = when(selected.value) {
+            null -> true
+            true -> false
+            false -> if (isNullable) null else true
+         }
    }
 
    /** Sets normal and selected icons. Overrides icon css values.  */

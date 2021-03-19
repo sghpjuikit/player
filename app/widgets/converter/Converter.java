@@ -41,6 +41,7 @@ import sp.it.pl.layout.widget.controller.io.Output;
 import sp.it.pl.layout.widget.feature.Opener;
 import sp.it.pl.layout.widget.feature.SongWriter;
 import sp.it.pl.main.AppDragKt;
+import sp.it.pl.main.AppTexts;
 import sp.it.pl.main.Css;
 import sp.it.pl.main.Widgets;
 import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode;
@@ -457,7 +458,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
     private class Applier {
-        private final ImprovedComboBox<Act<?>> actCB = new ImprovedComboBox<>(act -> act.name, "<none>");
+        private final ImprovedComboBox<Act<?>> actCB = new ImprovedComboBox<>(act -> act.name, AppTexts.INSTANCE.getTextNoVal());
         Ins ins;
         BiConsumer<File,String> applier = (f, s) -> {
             File rf = f.getParentFile().getAbsoluteFile();
@@ -684,7 +685,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         @Override
         public In getVal() {
-            return new In(configEditorA.getConfigValue(), configEditorB.getConfigValue());
+            return new In(configEditorA.getConfig().getValue(), configEditorB.getConfig().getValue());
         }
 
         @Override

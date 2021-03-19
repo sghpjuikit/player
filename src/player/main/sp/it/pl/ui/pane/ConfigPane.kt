@@ -11,6 +11,7 @@ import javafx.scene.text.TextFlow
 import sp.it.pl.main.Css
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.labelForWithClick
+import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -24,6 +25,7 @@ import sp.it.util.functional.nullsFirst
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.reactive.syncFrom
 import sp.it.util.type.propertyNullable
 import sp.it.util.type.raw
 import sp.it.util.ui.height
@@ -40,6 +42,7 @@ class ConfigPane<T: Any?>: VBox {
    private var needsLabel: Boolean = true
    private val onChangeRaw = Runnable { onChange?.invoke() }
    private val onChangeOrConstraintRaw = Runnable { onChangeOrConstraint?.invoke() }
+   val editable = v(true)
    var onChange: Runnable? = null
    var onChangeOrConstraint: Runnable? = null
    var editorOrder: Comparator<Config<*>>? = compareByDefault
@@ -70,29 +73,30 @@ class ConfigPane<T: Any?>: VBox {
          }
          .toList()
       editorNodes.forEach { it.onNodeDispose() }
-      editorNodes = editors.flatMap {
+      editorNodes = editors.flatMap { e ->
          listOfNotNull(
             when {
-               needsLabel -> label(it.config.nameUi) {
+               needsLabel -> label(e.config.nameUi) {
                   styleClass += "form-config-pane-config-name"
                   isPickOnBounds = false
                   prefWidth = Region.USE_PREF_SIZE
-                  labelForWithClick setTo it.editor
+                  labelForWithClick setTo e.editor
                }
                else -> null
             },
             when {
-               it.config.info.isEmpty() || it.config.nameUi==it.config.info -> null
+               e.config.info.isEmpty() || e.config.nameUi==e.config.info -> null
                else -> textFlow {
-                  lay += text(it.config.info).apply {
+                  lay += text(e.config.info).apply {
                      styleClass += Css.DESCRIPTION
                      styleClass += "form-config-pane-config-description"
                   }
                }
             },
-            it.buildNode()
+            e.buildNode()
          ).onEach { n ->
-            n.configEditor = it
+            e.isEditableAllowed syncFrom editable
+            n.configEditor = e
          }
       }
       children setTo editorNodes.sortedByConfigWith(editorOrder)

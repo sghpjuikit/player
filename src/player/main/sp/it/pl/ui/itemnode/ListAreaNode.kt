@@ -418,7 +418,7 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
 
    init {
       avoidGenerateValue.suppressingAlways {
-         fCB = ImprovedComboBox { it.name }
+         fCB = ImprovedComboBox({ it.name })
          fCB.items setTo transformations.sortedBy { it.name }
          fCB.value = transformations.preferredOrFirst
          fCB.disableProperty() syncFrom isEditableRawFunction.not()

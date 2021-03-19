@@ -6,7 +6,6 @@ import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
-import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -33,7 +32,6 @@ import javafx.scene.input.KeyCode.UNDEFINED
 import javafx.scene.input.KeyCombination.NO_MATCH
 import javafx.scene.input.KeyCombination.keyCombination
 import javafx.scene.input.KeyEvent
-import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.layout.FlowPane
@@ -144,6 +142,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Locale
 import javafx.scene.control.TextField
+import javafx.scene.input.KeyCode.SPACE
 import kotlin.reflect.KClass
 import sp.it.pl.core.UiStringHelper
 import sp.it.pl.ui.itemnode.textfield.ColorTextField
@@ -154,7 +153,10 @@ import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.ImprovedSliderSkin
 import sp.it.pl.ui.objects.tagtextfield.ComplexTextField
 import sp.it.util.access.OrV
+import sp.it.util.access.editable
+import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.reactive.suppressingAlways
+import sp.it.util.reactive.syncTo
 
 private val warnTooltip = appTooltip("Erroneous value")
 private val actTooltip = appTooltip("Run action")
@@ -162,7 +164,6 @@ private val globTooltip = appTooltip("Global shortcut"
    + "\n\nGlobal shortcuts can be used even when the application has no focus or window."
    + "\n\nOnly one application can use this shortcut. If multiple applications use "
    + "the same shortcut, usually the one that was first started will work properly.")
-private val overTooltip = appTooltip("Override value\n\nUses specified value if true or inherited value if false.")
 
 const val STYLECLASS_COMBOBOX_CONFIG_EDITOR = "combobox-field-config"
 const val STYLECLASS_TEXT_CONFIG_EDITOR = "text-config-editor"
@@ -177,22 +178,26 @@ private fun <T> getObservableValue(c: Config<T>): ObservableValue<T>? = when {
 open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
    private val v = getObservableValue(c)
    private val isObservable = v!=null
-   private val isNullable = c.type.isNullable
    final override val editor = NullCheckIcon(isNullable)
-   private val disposer = editor.onNodeDispose
 
    init {
       editor.styleclass("boolean-config-editor")
+
+      // value
       editor.onClickDo {
-         editor.selected.value = when (editor.selected.value) {
-            null -> true
-            true -> false
-            false -> if (c.type.isNullable) null else true
-         }
+         if (isEditable.value)
+            editor.selected.value = when (editor.selected.value) {
+               null -> true
+               true -> false
+               false -> if (c.type.isNullable) null else true
+            }
       }
       editor.selected.value = c.value
       editor.selected attach { apply() } on disposer
       v?.attach { editor.selected.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
 
       // single icon mode using disabled style to mimic false
       val icon = c.findConstraint<IconConstraint>()?.icon
@@ -210,21 +215,14 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
    }
 }
 
-class OrBoolCE(c: Config<Boolean?>): BoolCE(c) {
-   init {
-      editor.styleclass("override-config-editor")
-      editor.tooltip(overTooltip)
-   }
-}
-
 class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
-   override val editor = FlowPane(5.0, 5.0)
-   private val oCE = create(Config.forProperty<Boolean>("Override", c.property.override))
-   private val vCE = create(Config.forProperty(c.valueType, "", c.property.real))
+   override val editor = FlowPane()
+   private val oCE = create(Config.forProperty<Boolean>("Override", c.property.override).addConstraints(ReadOnlyIf(isEditable)))
+   private val vCE = create(Config.forProperty(c.valueType, "", c.property.real).addConstraints(ReadOnlyIf(isEditable)).addConstraints(ReadOnlyIf(c.property.override, true)))
 
    init {
-      c.property.override sync { vCE.editor.isDisable = !it } on editor.onNodeDispose
-      editor.children.addAll(vCE.buildNode(), oCE.buildNode())
+      editor.styleClass += "override-config-editor"
+      editor.lay += listOf(vCE.buildNode(), oCE.buildNode())
    }
 
    override fun get(): Try<OrV.OrValue<T>, String> = oCE.get().and(vCE.get()).map { config.value }
@@ -236,27 +234,26 @@ class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
 
 }
 
-// TODO: finish details, nullability, etc
 class ComplexCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    private val v = getObservableValue(c)
    private val isObservable = v!=null
-   private val isNullable = c.type.isNullable
    private val parser = c.findConstraint<UiStringHelper<T>>()!!
-   private val valueChanging = Suppressor()
-   private val valueTextChangingApp = Suppressor()
-   private val valueTextChangingUser = Suppressor()
-   private var valueFromPrimary = true
    val editorPrimary = ComplexTextField(parser)
    val editorSecondary = TextField()
    override val editor = vBox {
       lay += editorSecondary
       lay(ALWAYS) += editorPrimary
    }
+   private val valueChanging = Suppressor()
+   private val valueTextChangingApp = Suppressor()
+   private val valueTextChangingUser = Suppressor()
+   private var valueFromPrimary = true
 
    init {
-      editorSecondary.apply {
-         styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      editorSecondary.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
 
+      // value
+      editorSecondary.apply {
          editorPrimary.valueText sync {
             valueTextChangingUser.suppressed {
                valueTextChangingApp.suppressing {
@@ -275,10 +272,13 @@ class ComplexCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             }
          }
       }
-
       editorPrimary.updateValue(c.value)
-      editorPrimary.onValueChange.addS { valueTextChangingUser.suppressed { valueChanging.suppressing { apply() } } } on editor.onNodeDispose
-      v?.attach { valueChanging.suppressed { editorPrimary.updateValue(it) } }.orEmpty() on editor.onNodeDispose
+      editorPrimary.onValueChange.addS { valueTextChangingUser.suppressed { valueChanging.suppressing { apply() } } } on disposer
+      v?.attach { valueChanging.suppressed { editorPrimary.updateValue(it) } }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editorPrimary.isEditable on disposer
+      isEditable syncTo editorSecondary.editable on disposer
    }
 
    override fun get() = if (valueFromPrimary) editorPrimary.computeValue() else parser.parse.parse(editorSecondary.text)
@@ -316,9 +316,13 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
          slider.labelFormatter = labelFormatter
       }
 
+      // value
       slider.value = config.value.toDouble()
-      slider.valueProperty() attach { if (!slider.isValueChanging) apply() } on editor.onNodeDispose
-      v?.attach { slider.value = it.toDouble() }.orEmpty() on editor.onNodeDispose
+      slider.valueProperty() attach { if (!slider.isValueChanging) apply() } on disposer
+      v?.attach { slider.value = it.toDouble() }.orEmpty() on disposer
+
+      // readonly
+      isEditable sync { editor.isDisable = !it } on disposer
    }
 
    override fun get(): Try<Number, String> = when (config.type.raw) {
@@ -345,7 +349,6 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
    private val uiInfoConverter: ((T) -> String)? = c.findConstraint<UiInfoConverter<T>>()?.converter
    final override val editor = ImprovedComboBox(uiConverter)
    private var suppressChanges = false
-   private val disposer = editor.onNodeDispose
 
    init {
       editor.styleClass += STYLECLASS_COMBOBOX_CONFIG_EDITOR
@@ -372,6 +375,9 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
          if (!suppressChanges)
             apply()
       }
+      
+      // readonly
+      isEditable sync { editor.readOnly.value = !it } on disposer
 
       // info button
       uiInfoConverter.ifNotNull { converter ->
@@ -379,10 +385,10 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
             object: ImprovedComboBoxListCell<T>(editor) {
                val infoIcon = Icon(IconFA.INFO)
 
-               override fun updateItem(item: T?, empty: Boolean) {
+               override fun updateItem(item: T, empty: Boolean) {
                   super.updateItem(item, empty)
                   super.setGraphic(infoIcon)
-                  infoIcon.tooltip(item?.net(converter))
+                  infoIcon.tooltip(item.net(converter))
                }
             }
          }
@@ -401,15 +407,14 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
 
 class KeyCodeCE(c: Config<KeyCode?>): EnumerableCE<KeyCode?>(c) {
    init {
-      editor.onKeyPressed = EventHandler { it.consume() }
-      editor.onKeyReleased = EventHandler { it.consume() }
-      editor.onKeyTyped = EventHandler { it.consume() }
-      editor.onEventUp(ANY) {
+//      editor.onKeyPressed = EventHandler { it.consume() }
+//      editor.onKeyReleased = EventHandler { it.consume() }
+//      editor.onKeyTyped = EventHandler { it.consume() }
+      editor.onEventUp(KEY_PRESSED) {
          // UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any which cause selection change) do not fire
          // KEY_PRESSED event. Hence set the KeyEvent.ANY. Causes the value to be set twice, but that's idempotent
-         if (it.code!=UNDEFINED) {
+         if (isEditable.value && it.code!=UNDEFINED && !it.code.isArrowKey && !it.code.isNavigationKey && it.code!=TAB && it.code!=SPACE) {
             editor.value = it.code
-            it.consume()
          }
       }
    }
@@ -426,9 +431,14 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onEventDown(KEY_PRESSED, ENTER) { it.consume() }
+
+      // value
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on editor.onNodeDispose
-      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+      editor.onValueChange.addS { apply() } on disposer
+      v?.attach { editor.value = it }.orEmpty() on disposer
+      
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = if (config.type.isNullable || editor.value!=null) Try.ok(editor.value) else Try.error(ObjectNonNull.message())
@@ -447,8 +457,11 @@ class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on editor.onNodeDispose
-      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+      editor.onValueChange.addS { apply() } on disposer
+      v?.attach { editor.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = Try.ok(editor.value)
@@ -466,16 +479,24 @@ class InsetsCE(c: Config<Insets?>): ConfigEditor<Insets?>(c) {
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.text = config.value.toS()
-      editor.textProperty() attach { apply() } on editor.onNodeDispose
-      v?.attach { editor.text = it.toS() }.orEmpty() on editor.onNodeDispose
+      editor.text = toS(config.value)
+      editor.textProperty() attach { apply() } on disposer
+      v?.attach { editor.text = toS(it) }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = APP.converter.general.ofS<Insets?>(editor.text)
 
    override fun refreshValue() {
       if (!isObservable)
-         editor.text = config.value.toS()
+         editor.text = toS(config.value)
+   }
+
+   private fun toS(o: Any?) = when (o) {
+      null -> o.toUi()
+      else -> o.toS()
    }
 }
 
@@ -487,8 +508,11 @@ class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on editor.onNodeDispose
-      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+      editor.onValueChange.addS { apply() } on disposer
+      v?.attach { editor.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = Try.ok(editor.value)
@@ -507,8 +531,11 @@ class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on editor.onNodeDispose
-      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+      editor.onValueChange.addS { apply() } on disposer
+      v?.attach { editor.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = Try.ok(editor.value)
@@ -527,8 +554,11 @@ class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on editor.onNodeDispose
-      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+      editor.onValueChange.addS { apply() } on disposer
+      v?.attach { editor.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = Try.ok(editor.value)
@@ -547,8 +577,11 @@ class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on editor.onNodeDispose
-      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+      editor.onValueChange.addS { apply() } on disposer
+      v?.attach { editor.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = Try.ok(editor.value)
@@ -562,20 +595,23 @@ class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c
 class EffectCE(c: Config<Effect?>, effectType: KClass<out Effect>): ConfigEditor<Effect?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = EffectTextField(effectType)
+   override val editor = EffectTextField(isNullable, effectType, config.value)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.value = config.value
-      editor.onValueChange.addS { apply() } on editor.onNodeDispose
-      v?.attach { editor.value = it }.orEmpty() on editor.onNodeDispose
+      editor.value.value = config.value
+      editor.value attach { apply() } on disposer
+      v?.attach { editor.value.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
-   override fun get() = Try.ok(editor.value)
+   override fun get() = Try.ok(editor.value.value)
 
    override fun refreshValue() {
       if (!isObservable)
-         editor.value = config.value
+         editor.value.value = config.value
    }
 }
 
@@ -587,14 +623,12 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
    private var isSyntheticListEvent = false
    private var isSyntheticSetEvent = false
    override val editor = chain.getNode()
-   private val disposer = editor.onNodeDispose
 
    init {
       chain.isHeaderVisible = true
-      chain.editable syncFrom when (lc.a.itemFactory) {
-         is FailFactory -> vAlways(false)
-         else -> !editor.disableProperty()
-      }
+
+      // readonly
+      chain.editable syncFrom when { lc.a.itemFactory is FailFactory -> vAlways(false) else -> isEditable }
 
       // bind list to chain
       chain.onUserItemAdded += {
@@ -645,6 +679,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       private val pane = ConfigPane<T?>()
 
       init {
+         pane.editable syncFrom isEditable on disposer
          pane.onChange = Runnable {
             if (lc.a.isSimpleItemType && !isSyntheticListEvent && !isSyntheticLinkEvent) {
                isSyntheticSetEvent = true
@@ -676,6 +711,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
          selected.value = list.selections[i]
          selected attach { list.selections[i] = it as S }
          selected attach { updateSuperIcon() }
+         editable syncFrom isEditable
          styleclass("boolean-config-editor")
          icons(IconMA.CHECK_BOX, IconMA.CHECK_BOX_OUTLINE_BLANK, IconMA.DO_NOT_DISTURB)
          onClickDo {
@@ -689,17 +725,19 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
    private val superIcon = Icon(null).apply {
       styleclass("boolean-config-editor")
       onClickDo {
-         val nextValue = when {
-            checkIcons.isEmpty() || isIndeterminate() -> true
-            else -> Values.next(possibleValues, checkIcons.first().selected.value)
+         if (isEditable.value) {
+            val nextValue = when {
+               checkIcons.isEmpty() || isIndeterminate() -> true
+               else -> Values.next(possibleValues, checkIcons.first().selected.value)
+            }
+            noSuperIconUpdate.suppressing {
+               list.selections setTo list.selections.map { nextValue as S }
+               checkIcons.forEach { it.selected.value = nextValue }
+            }
+            updateSuperIcon()
+            onChange?.run()
+            onChangeOrConstraint?.run()
          }
-         noSuperIconUpdate.suppressing {
-            list.selections setTo list.selections.map { nextValue as S }
-            checkIcons.forEach { it.selected.value = nextValue }
-         }
-         updateSuperIcon()
-         onChange?.run()
-         onChangeOrConstraint?.run()
       }
    }
 
@@ -972,7 +1010,10 @@ class ConfigurableCE(c: Config<Configurable<*>?>): ConfigEditor<Configurable<*>?
       editor.onChange = onChange
       editor.onChangeOrConstraint = onChangeOrConstraint
       editor.configure(c.value)
-      v?.attach { editor.configure(it) }.orEmpty() on editor.onNodeDispose
+      v?.attach { editor.configure(it) }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.editable on disposer
    }
 
    override fun get() = Try.ok(config.value)
@@ -1000,6 +1041,9 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
       configPane.onChange = onChange
       configPane.onChangeOrConstraint = onChangeOrConstraint
       next()
+
+      // readonly
+      isEditable syncTo configPane.editable on disposer
    }
 
    private fun prev() {
@@ -1046,11 +1090,11 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.promptText = c.nameUi
 
-      // refreshing value
-      editor.text = converter(getConfigValue())
-      obv?.attach { refreshValue() }.orEmpty() on editor.onNodeDispose
-      obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() }.orEmpty() }.orEmpty() on editor.onNodeDispose
-      editor.focusedProperty() attach { if (!it) refreshValue() } on editor.onNodeDispose
+      // value
+      editor.text = converter(config.value)
+      obv?.attach { refreshValue() }.orEmpty() on disposer
+      obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() }.orEmpty() }.orEmpty() on disposer
+      editor.focusedProperty() attach { if (!it) refreshValue() } on disposer
       editor.onEventDown(KEY_RELEASED, ESCAPE) { refreshValue() }
 
       // applying value
@@ -1065,37 +1109,41 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       }
       editor.onEventDown(KEY_PRESSED, ENTER) { apply() }
 
-      // null state toggle
+      // null
       fun handleNullEvent(e: KeyEvent) {
-         if (config.type.isNullable) {
-            if (isNull) {
-               editor.text = "" // invokes text change and cancels null mode
-               e.consume()
-            } else {
-               if (editor.text.isEmpty()) {
-                  isNullEvent.suppressing {
-                     isNull = true
-                     editor.text = null.toUi()
-                     showWarnButton(getValid())
-                     apply()
-                     e.consume()
+         if (isEditable.value)
+            if (config.type.isNullable) {
+               if (isNull) {
+                  editor.text = "" // invokes text change and cancels null mode
+                  e.consume()
+               } else {
+                  if (editor.text.isEmpty()) {
+                     isNullEvent.suppressing {
+                        isNull = true
+                        editor.text = null.toUi()
+                        showWarnButton(getValid())
+                        apply()
+                        e.consume()
+                     }
                   }
                }
             }
-         }
       }
       editor.onEventUp(KEY_PRESSED, BACK_SPACE, false, ::handleNullEvent)
       editor.onEventUp(KEY_PRESSED, DELETE, false, ::handleNullEvent)
       editor.onEventUp(KEY_PRESSED) {
-         if (isNull && it.code!=BACK_SPACE && it.code!=DELETE) {
-            isNullEvent.suppressing {
-               editor.text = ""
-               // not consuming handles event natively & invokes text change and cancels null mode
+         if (isEditable.value)
+            if (isNull && it.code!=BACK_SPACE && it.code!=DELETE) {
+               isNullEvent.suppressing {
+                  editor.text = ""
+                  // not consuming handles event natively & invokes text change and cancels null mode
+               }
             }
-         }
       }
 
-      isEditableByUser sync { showWarnButton(getValid()) } on editor.onNodeDispose
+      // readonly
+      isEditable syncTo editor.editable on disposer
+      isEditable sync { showWarnButton(getValid()) } on disposer
    }
 
    @Suppress("UNCHECKED_CAST")
@@ -1110,7 +1158,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    private fun showWarnButton(value: Try<*, String>) {
-      val shouldBeVisible = value.isError && isEditableByUser.value
+      val shouldBeVisible = value.isError && isEditable.value
       editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
       warnI.orNull()?.isVisible = shouldBeVisible
       warnTooltip.text = value.map { "" }.getAny()
@@ -1138,23 +1186,24 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.styleClass += "shortcut-config-editor"
       editor.isEditable = false
-      editor.focusedProperty() attach { refreshValue() } on editor.onNodeDispose
+      editor.focusedProperty() attach { refreshValue() } on disposer
       editor.onEventDown(KEY_RELEASED) { e ->
-         when (e.code) {
-            TAB -> {
-            }
-            BACK_SPACE, DELETE -> applyShortcut("")
-            ESCAPE -> refreshValue()
-            else -> {
-               if (!e.code.isModifierKey) {
-                  val keys = listOfNotNull(
-                     CONTROL.takeIf { e.isControlDown || (Os.WINDOWS.isCurrent && e.isShortcutDown) },
-                     ALT.takeIf { e.isAltDown },
-                     SHIFT.takeIf { e.isShiftDown },
-                     META.takeIf { e.isMetaDown || (Os.OSX.isCurrent && e.isShortcutDown) },
-                     e.code
-                  )
-                  applyShortcut(keys.joinToString("+"))
+         if (isEditable.value) {
+            when (e.code) {
+               TAB -> {}
+               BACK_SPACE, DELETE -> applyShortcut("")
+               ESCAPE -> refreshValue()
+               else -> {
+                  if (!e.code.isModifierKey) {
+                     val keys = listOfNotNull(
+                        CONTROL.takeIf { e.isControlDown || (Os.WINDOWS.isCurrent && e.isShortcutDown) },
+                        ALT.takeIf { e.isAltDown },
+                        SHIFT.takeIf { e.isShiftDown },
+                        META.takeIf { e.isMetaDown || (Os.OSX.isCurrent && e.isShortcutDown) },
+                        e.code
+                     )
+                     applyShortcut(keys.joinToString("+"))
+                  }
                }
             }
          }
@@ -1178,6 +1227,9 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
             selected attach { applyShortcut(config.value.keys) }
          }
       )
+
+      // readonly
+      isEditable syncTo globB.editable on disposer
    }
 
    private fun applyShortcut(newKeys: String) {
@@ -1215,7 +1267,7 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
    }
 
    private fun showWarnButton(value: Try<*, String>) {
-      val shouldBeVisible = value.isError && isEditableByUser.value
+      val shouldBeVisible = value.isError && isEditable.value
       editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
       warnI.orNull()?.isVisible = shouldBeVisible
       warnTooltip.text = value.map { "" }.getAny()

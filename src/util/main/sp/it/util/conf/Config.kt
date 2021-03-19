@@ -74,20 +74,18 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    fun isEditableByUserRightNow() = isEditable.isByUser && !isNotEditableRightNow()
 
    fun isEditableByUserRightNowProperty(): ObservableValue<Boolean> {
-      return if (!isEditable.isByUser) {
-         vAlways(false)
-      } else {
-         val readOnlyIfs = findConstraints<ReadOnlyIf>().map { it.condition }.toList()
-         if (readOnlyIfs.isEmpty())
-            vAlways(true)
-         else
-            object: BooleanBinding() {
-               init {
-                  bind(*readOnlyIfs.toTypedArray())
+      return when {
+         !isEditable.isByUser -> vAlways(false)
+         else -> {
+            val readOnlyIfs = findConstraints<ReadOnlyIf>().map { it.condition }.toList()
+            when {
+               readOnlyIfs.isEmpty() -> vAlways(true)
+               else -> object: BooleanBinding() {
+                  init { bind(*readOnlyIfs.toTypedArray()) }
+                  override fun computeValue() = readOnlyIfs.none { it.value }
                }
-
-               override fun computeValue() = readOnlyIfs.none { it.value }
             }
+         }
       }
    }
 

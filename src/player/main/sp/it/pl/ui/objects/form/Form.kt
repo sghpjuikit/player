@@ -27,6 +27,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.map
+import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
@@ -53,6 +54,8 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
    val onExecute = action ?: {}
    /** Invoked when execution finishes with or without exception. Default does nothing. See [ok].*/
    var onExecuteDone: (Try<*, Throwable>) -> Unit = {}
+   /** Denotes whether config editors can be edited. Default true. */
+   val isEditable = v(true)
    /** Denotes whether there is an action that user can execute. See [ok]. */
    val isExecutable = v(action!=null).readOnly()
    /** Denotes whether there is an action running. See [ok]. */
@@ -84,6 +87,7 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
       isParallelExecutable.attach { updateOkButtonVisible() }
       isExecuting.attach { updateOkButtonVisible() }
 
+      editorsPane.editable syncFrom isEditable
       editorsPane.onChangeOrConstraint = Runnable { validate() }
       editorsPane.configure(this.configurable)
 

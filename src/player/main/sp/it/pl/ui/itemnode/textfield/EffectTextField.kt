@@ -1,6 +1,5 @@
 package sp.it.pl.ui.itemnode.textfield
 
-import javafx.geometry.Pos.CENTER
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Bloom
 import javafx.scene.effect.BoxBlur
@@ -19,83 +18,64 @@ import javafx.scene.effect.PerspectiveTransform
 import javafx.scene.effect.Reflection
 import javafx.scene.effect.SepiaTone
 import javafx.scene.effect.Shadow
+import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
 import mu.KLogging
-import sp.it.pl.main.APP
-import sp.it.pl.main.appTooltip
+import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.picker.Picker
-import sp.it.pl.ui.objects.window.NodeShow.RIGHT_UP
-import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.util.collections.setToOne
+import sp.it.pl.ui.objects.combobox.ImprovedComboBox
+import sp.it.pl.ui.pane.ConfigPane
+import sp.it.util.access.v
+import sp.it.util.access.vn
+import sp.it.util.collections.setTo
+import sp.it.util.conf.Configurable
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.ui.Util.layHorizontally
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncTo
+import sp.it.util.ui.lay
 
-class EffectTextField: ValueTextField<Effect> {
-   private val typeB: Icon
-   private val propB: Icon
-   private val limitedToType: KClass<out Effect>?
+/** Effect editor which can edit/create [Effect]. */
+class EffectTextField(isNullable: Boolean, effectType: KClass<out Effect>? = null, initialValue: Effect?): VBox() {
+   private val isNullable: Boolean = isNullable
+   private val limitedToType: KClass<out Effect>? = if (effectType==Effect::class) null else effectType
+   private val comboBox = ImprovedComboBox<EffectType>({ it.name })
+   private val editors = ConfigPane<Any?>()
+   val value = vn(initialValue)
+   val editable = v(true)
 
-   /** Creates effect editor which can edit an effect or create effect of any specified types or any type if no specified. */
-   constructor(effectType: KClass<out Effect>? = null): super() {
-      styleClass += STYLECLASS
-      isEditable = false
-      limitedToType = if (effectType==Effect::class) null else effectType
+   init {
+      this.styleClass += STYLECLASS
 
-      typeB = Icon().apply {
-         styleclass("effect-config-editor-type-button")
-         tooltip(typeTooltip)
-         onClickDo(::openChooser)
+      lay += comboBox
+      lay += editors
+
+      comboBox.editor.isEditable = false
+      comboBox.items setTo when {
+         limitedToType==null -> EFFECT_TYPES.filter { isNullable || it.type!=null }
+         else -> listOf(EffectType(limitedToType), EffectType(null)).filter { isNullable || it.type!=null }
       }
-      propB = Icon().apply {
-         styleclass("effect-config-editor-conf-button")
-         isDisable = value==null
-         tooltip(propTooltip)
-         onClickDo(::openProperties)
+      comboBox.value = comboBox.items.first()
+      comboBox.valueProperty() attach {
+         if (editable.value && it!=null)
+            value.value = it.instantiate()
       }
-      onValueChange += {
-         propB.isDisable = value==null
+
+      value sync { v ->
+         comboBox.value = comboBox.items.find { it.type==v?.net { it::class } }
+         editors.configure(v?.toConfigurableFx() ?: Configurable.EMPTY)
       }
-      right setToOne layHorizontally(5.0, CENTER, typeB, propB)
-   }
 
-   override fun onDialogAction() {}
-
-   private fun openChooser(i: Icon) {
-      PopWindow().apply {
-         title.value = "Effect"
-         isAutohide.value = true
-         content.value = Picker<EffectType>().apply {
-            root.setPrefSize(300.0, 500.0)
-            itemSupply = limitedToType
-               ?.net { { sequenceOf(EffectType(limitedToType), EffectType(null)) } }
-               ?: { EFFECT_TYPES.asSequence() }
-            textConverter = { it.name }
-            onCancel = { hide() }
-            onSelect = {
-               value = it.instantiate()
-               openProperties(i)
-               hide()
-            }
-            buildContent()
-         }.root
-
-         show(RIGHT_UP(propB))
-      }
-   }
-
-   private fun openProperties(i: Icon) {
-      value?.let { APP.windowManager.showSettings(it.toConfigurableFx(), i) }
+      // readonly
+      editable sync { comboBox.readOnly.value = !it }
+      editable syncTo editors.editable
    }
 
    companion object: KLogging() {
       const val STYLECLASS = "effect-text-field"
-      private val typeTooltip = appTooltip("Choose type of effect")
-      private val propTooltip = appTooltip("Configure effect")
       val EFFECT_TYPES = listOf(
          EffectType(Blend::class),
          EffectType(Bloom::class),
@@ -119,16 +99,15 @@ class EffectTextField: ValueTextField<Effect> {
    }
 
    class EffectType(type: KClass<out Effect>?) {
-
-      /** Effect type. Null represents no effect.  */
+      /** Effect type. Null represents no effect. */
       val type = type
-      val name = type?.toUi() ?: "None"
 
-      fun instantiate(): Effect? = runTry {
-         type?.java?.getConstructor()?.newInstance()
-      }.ifError {
-         logger.error(it) { "Config could not instantiate effect" }
-      }.orNull()
+      /** human readable effect name. */
+      val name = type?.toUi() ?: textNoVal
+
+      fun instantiate(): Effect? = runTry { type?.java?.getConstructor()?.newInstance() }
+         .ifError { logger.error(it) { "Config could not instantiate effect" } }
+         .orNull()
    }
 
 }

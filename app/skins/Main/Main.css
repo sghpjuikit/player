@@ -246,8 +246,9 @@
 .combo-box-base > .arrow-button {
     -fx-background-color: transparent;
 }
+
 .combo-box-base > .arrow-button {
-    -fx-opacity: 0;
+    -fx-opacity: 0.4;
 }
 .combo-box-base:editable > .arrow-button {
     -fx-opacity: 1;
@@ -631,6 +632,7 @@
 }
 
 .combo-box > .list-cell,
+.combo-box:editable > .list-cell,
 .combo-box:hover > .list-cell {
     -fx-background-color: null;
     -fx-background-insets: 0;
@@ -1985,9 +1987,15 @@ Shape, Text, TextFlow > * {
 /* inherits: .decorated-text-field */
 .value-text-field {}
 .value-text-field .left-pane {
+    -fx-background-color: transparent;
+}
+.value-text-field:editable .left-pane {
     -fx-background-color: rgba(0,0,0,0.1);
 }
 .value-text-field .right-pane {
+    -fx-background-color: transparent;
+}
+.value-text-field:editable .right-pane {
     -fx-background-color: rgba(0,0,0,0.1);
 }
 
@@ -2001,7 +2009,6 @@ Shape, Text, TextFlow > * {
     -fx-scale-x: 1;
     -fx-scale-y: 1;
 }
-.value-text-field:hover .value-text-field-arrow {}
 
 /*
  * inherits: .value-text-field
@@ -2016,11 +2023,6 @@ Shape, Text, TextFlow > * {
 .file-text-field {
     -fx-pref-column-count: 10;
 }
-
-/*
- * inherits: .value-text-field
- */
-.effect-text-field {}
 
 /*
  * inherits: .value-text-field
@@ -2090,6 +2092,11 @@ Shape, Text, TextFlow > * {
 .tag-text-field .tag-text-field-tag:hover {
     -fx-border-color: -fx-focus-color;
 }
+
+/*
+ * inherits: VBox
+ */
+.effect-text-field {}
 
 /*
  * inherits: FlowPane
@@ -2541,6 +2548,7 @@ Shape, Text, TextFlow > * {
 .text-config-editor:readonly:focused,
 .text-config-editor:focused:hover,
 .combobox-field-config > .list-cell,
+.combobox-field-config:editable > .list-cell,
 .combobox-field-config:hover > .list-cell,
 .combobox-field-config:focused > .list-cell,
 .combobox-field-config:focused:hover > .list-cell {
@@ -2586,11 +2594,12 @@ Shape, Text, TextFlow > * {
     -fx-background-color: -skin-value-font-color;
 }
 
+/*
+ * inherits: FlowPane
+ */
 .override-config-editor {
-    -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK_OUTLINE";
-}
-.override-config-editor:selected {
-    -glyph-name: "MaterialDesignIcon.CHECKBOX_MULTIPLE_BLANK";
+    -fx-hgap: 0.5em;
+    -fx-vgap: 0.5em;
 }
 
 .config-shortcut-run-icon {
@@ -2602,18 +2611,6 @@ Shape, Text, TextFlow > * {
 }
 .config-shortcut-global-icon:selected {
     -glyph-name: "MaterialDesignIcon.CAST_CONNECTED";
-}
-
-/* Effect type chooser button for effect config field. */
-.effect-config-editor-type-button {
-    -glyph-name: "MaterialDesignIcon.AUTO_FIX";
-    -glyph-size: 0.66667em; /* 8 */
-}
-
-/* Effect properties button for effect config field. */
-.effect-config-editor-conf-button {
-    -glyph-name: "FontAwesomeIcon.GEAR";
-    -glyph-size: 0.66667em; /* 8 */
 }
 
 /*

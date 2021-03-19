@@ -10,6 +10,7 @@ import javafx.scene.layout.FlowPane
 import sp.it.pl.core.Parser
 import sp.it.pl.core.ParserArg
 import sp.it.pl.core.UiStringHelper
+import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.itemnode.ConfigEditor
@@ -50,7 +51,7 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
    val valueText = valueTextRw.readOnly()
    private val valuePosition = v(-1)
    private val valuePartials = observableList<String>()
-   private val comboBox = ImprovedComboBox<Pair<String, () -> Unit>?> { it.first }
+   private val comboBox = ImprovedComboBox<Pair<String, () -> Unit>?>({ it?.first  ?: textNoVal }, textNoVal)
 
    init {
       styleClass += STYLECLASS

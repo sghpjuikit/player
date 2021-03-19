@@ -400,11 +400,11 @@ class App: Application(), GlobalConfigDelegator {
       // TODO: close SLAVE instances
       Runtime.getRuntime().addShutdownHook(object: Thread() {
          override fun run() {
-            val args = fetchArguments().toTypedArray();
+            val args = fetchArguments().toTypedArray()
             val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
             Runtime.getRuntime().exec(f.absolutePath, args)
          }
-      });
+      })
       close()
    }
 
@@ -471,7 +471,7 @@ class App: Application(), GlobalConfigDelegator {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
       } by { "Open widget ${it.name}" } toSource {
          val id = if (it is WidgetFactory<*>) it.id else it.name
-         val strategyCB = ImprovedComboBox<ComponentLoaderStrategy> { it.toUi() }.apply {
+         val strategyCB = ImprovedComboBox<ComponentLoaderStrategy>({ it.toUi() }).apply {
             items setTo ComponentLoaderStrategy.values()
             value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: ComponentLoaderStrategy.DOCK
          }

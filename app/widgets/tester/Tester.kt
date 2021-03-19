@@ -7,15 +7,21 @@ import java.time.LocalTime
 import javafx.animation.Animation.INDEFINITE
 import javafx.animation.Interpolator
 import javafx.geometry.Insets
+import javafx.geometry.Insets.EMPTY
+import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.control.Separator
 import javafx.scene.control.Slider
+import javafx.scene.effect.Blend
+import javafx.scene.effect.Effect
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import kotlin.math.sqrt
+import sp.it.pl.conf.Command
+import sp.it.pl.conf.Command.DoNothing
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
@@ -43,6 +49,7 @@ import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.FileActor.ANY
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.Constraint.FileActor.FILE
+import sp.it.util.conf.between
 import sp.it.util.conf.c
 import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cList
@@ -54,18 +61,22 @@ import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.syncFrom
 import sp.it.util.text.nameUi
 import sp.it.util.type.type
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
+import sp.it.util.ui.minPrefMaxHeight
+import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.units.em
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -132,19 +143,24 @@ class Tester(widget: Widget): SimpleController(widget) {
 
    @Suppress("ObjectPropertyName", "NonAsciiCharacters", "DANGEROUS_CHARACTERS")
    fun testEditors() {
+      val r = object: ConfigurableBase<Any?>() {
+         val editable by cv(true)
+      }
       val c = object: ConfigurableBase<Any?>() {
          var `c(Boolean)` by c<Boolean>(true)
          var `cn(Boolean)` by cn<Boolean>(null)
-         val `cv(Boolean)` by cv<Boolean>(true)
-         val `cvn(Boolean)` by cvn<Boolean>(null)
-         var `c(Key)` by c<Key>(Key.A)
-         var `cn(Key)` by cn<Key>(null)
+         val `cv(String)` by cv<String>("text")
+         val `cvn(String)` by cvn<String>(null)
+         val `cv(Pos)` by cv<Pos>(TOP_CENTER)
+         val `cvn(Pos)` by cvn<Pos>(null)
          val `cv(Key)` by cv<Key>(Key.A)
          val `cvn(Key)` by cvn<Key>(null)
          var `c(Int)` by c<Int>(0)
          var `cn(Int)` by cn<Int>(null)
          val `cv(Int)` by cv<Int>(0)
          val `cvn(Int)` by cvn<Int>(null)
+         val `cv(Int)|0-100` by cv<Int>(0).between(0,100)
+         val `cvn(Int)|0-100` by cvn<Int>(null).between(0,100)
          var `c(File)` by c<File>(APP.location.spitplayer_exe)
          var `cn(File)` by cn<File>(null)
          val `cv(File)` by cv<File>(APP.location.spitplayer_exe)
@@ -155,6 +171,8 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `c(File)·only(ANY)` by c<File>(APP.location).only(ANY)
          var `cn(Font)` by cn<Font>(null)
          val `cvn(Font)` by cvn<Font>(null)
+         var `cn(Insets)` by cn<Insets>(EMPTY)
+         val `cvn(Insets)` by cvn<Insets>(null)
          var `c(Color)` by c<Color>(Color.BLACK)
          var `cn(Color)` by cn<Color>(null)
          val `cv(Color)` by cv<Color>(Color.BLACK)
@@ -171,13 +189,30 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `cn(LocalDateTime)` by cn<LocalDateTime>(null)
          val `cv(LocalDateTime)` by cv<LocalDateTime>(LocalDateTime.now())
          val `cvn(LocalDateTime)` by cvn<LocalDateTime>(null)
+         val `cv(Effect)` by cv<Effect>(Blend())
+         val `cvn(Effect)` by cvn<Effect>(null)
+         val `cv(Command)` by cvn<Command>(DoNothing)
+         val `cvn(Command)` by cvn<Command>(null)
          val `cList(Int)` by cList<Int>(1, 2, 3)
          val `cList(Int?)` by cList<Int?>(1, 2, null)
-         val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<Boolean>(), listOf(true, false, false), listOf(true, false, false)))
-         val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf(true, false, null), listOf(true, false, null)))
+         val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<Boolean>(), listOf("a", "b", "c"), listOf(true, false, false)))
+         val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf("a", "b", null), listOf(true, false, null)))
       }
       onContentChange()
-      content.children setToOne form(c).apply { editorOrder = compareByDeclaration }
+      content.children setToOne vBox {
+         spacing = 1.em.emScaled
+
+         lay += form(r).apply {
+            minPrefMaxHeight = 6.em.emScaled
+         }
+         lay += Separator().apply {
+            minPrefMaxWidth = 10.em.emScaled
+         }
+         lay += form(c).apply {
+            isEditable syncFrom r.editable
+            editorOrder = compareByDeclaration
+         }
+      }
    }
 
    fun testInterpolators() {

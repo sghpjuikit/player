@@ -49,7 +49,7 @@ class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwi
 
    init {
       avoidGenerateValue.suppressingAlways {
-         fCB = ImprovedComboBox { it.name }
+         fCB = ImprovedComboBox({ it.name })
          fCB.items setTo functions.sortedBy { it.name }
          fCB.value = functions.preferredOrFirst
          // display non-editable as label

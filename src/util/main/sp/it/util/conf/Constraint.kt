@@ -45,7 +45,7 @@ interface Constraint<in T> {
 
    class FileRelative(val to: File): MarkerConstraint()
 
-   class NumberMinMax(val min: Double?, val max: Double?): Constraint<Number> {
+   class NumberMinMax(val min: Double?, val max: Double?): Constraint<Number?> {
 
       init {
          failIf(min==null && max==null) { "Min and max can not both be null" }
@@ -63,9 +63,14 @@ interface Constraint<in T> {
       }
    }
 
-   class StringNonEmpty: Constraint<String> {
+   class StringNonEmpty: Constraint<String?> {
       override fun isValid(value: String?) = value==null || value.isNotEmpty()
       override fun message() = "String must not be empty"
+   }
+
+   class StringNonBlank: Constraint<String?> {
+      override fun isValid(value: String?) = value==null || value.isNotBlank()
+      override fun message() = "String must not contain only whitespace characters"
    }
 
    class StringLength(val min: Int, val max: Int): Constraint<String> {

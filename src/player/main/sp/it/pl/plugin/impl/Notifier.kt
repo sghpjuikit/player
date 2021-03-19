@@ -15,6 +15,7 @@ import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
+import javafx.util.Duration.INDEFINITE
 import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
 import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
 import sp.it.pl.audio.tagging.Metadata
@@ -58,6 +59,7 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.type.VType
 import sp.it.util.type.raw
 import sp.it.util.type.type
+import sp.it.util.ui.containsMouse
 import sp.it.util.ui.hyperlink
 import sp.it.util.ui.lay
 import sp.it.util.ui.minSize
@@ -89,7 +91,7 @@ class Notifier: PluginBase() {
    val notificationAutohide by c(false)
       .def(name = "Autohide", info = "Whether notification hides on mouse click anywhere within the application", editable = EditMode.NONE)
    var notificationDuration by c(2500.millis)
-      .def(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
+      .def(name = "Autohide delay", info = "Time it takes for the notification to hide on its own. Ignored if notification is permanent")
    var notificationPos by c(Pos.BOTTOM_RIGHT)
       .def(name = "Position", info = "Position within the virtual bounding box, which is relative to screen or window")
    var notificationScr by c(ShowArea.SCREEN_ACTIVE)
@@ -145,12 +147,12 @@ class Notifier: PluginBase() {
    }
 
    /** Show notification for custom content. */
-   fun showNotification(title: String, content: Node) {
+   fun showNotification(title: String, content: Node, isPermanent: Boolean = false): Notification {
       val n = ns.find { it.content === content } ?: Notification()
       val nss = ns - n
       n.setContent(content, title)
       n.isAutohide.value = notificationAutohide
-      n.duration = notificationDuration
+      n.duration = if (isPermanent) INDEFINITE else notificationDuration
       n.rClickAction = onClickR.value
       n.lClickAction = onClickL.value
       n.onShown.addSOnetime { ns += n }
@@ -162,10 +164,12 @@ class Notifier: PluginBase() {
             VPos.BASELINE, VPos.TOP -> it.x x (nss.map { it.root.localToScreen(0.0, it.root.height).y }.maxOrNull() ?: notificationScr.bounds().second.maxY)
          }
       })
+
+      return n
    }
 
    /** Show notification displaying given text. */
-   fun showTextNotification(error: AppError) {
+   fun showTextNotification(error: AppError, isPermanent: Boolean = false): Notification {
       val root = vBox(10.0, CENTER_LEFT) {
          lay += Text(error.textShort).apply {
             wrappingWithNatural.subscribe()
@@ -180,24 +184,25 @@ class Notifier: PluginBase() {
          }
       }
 
-      showNotification("Error", root)
+      return showNotification("Error", root, isPermanent)
    }
 
    /** Show notification displaying given text. */
-   fun showTextNotification(title: String, contentText: String) {
+   fun showTextNotification(title: String, contentText: String, isPermanent: Boolean = false): Notification {
       val root = stackPane {
          lay += Text(contentText).apply {
             wrappingWithNatural.subscribe()
          }
       }
 
-      showNotification(title, root)
+      return showNotification(title, root, isPermanent)
    }
 
-   /** Hide notification if showing, otherwise does nothing. */
-   @IsAction(name = "Notification hide", info = "Hide notification if it is showing")
+   /** Hides hovered notification or last shown notification or does nothing if no showing.. */
+   @IsAction(name = "Notification hide", info = "Hides hovered notification or last shown notification or does nothing if no showing.")
    fun hideNotification() {
-      ns.forEach(Notification::hide)
+      val n = ns.find { it.root.containsMouse() } ?: ns.lastOrNull()
+      n?.hide()
    }
 
    @IsAction(name = "Notify now playing", info = "Shows notification about currently playing song.", global = true, keys = "ALT + N")

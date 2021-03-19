@@ -71,6 +71,7 @@ import sp.it.util.functional.Util.SAME
 import sp.it.util.functional.asIs
 import sp.it.util.functional.nullsLast
 import sp.it.util.inSort
+import sp.it.util.reactive.onChange
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
@@ -98,6 +99,11 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       name = "Vlc player locations",
       info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location. Requires application restart to take effect."
    )
+
+   init {
+      playerVlcLocations.onChange { APP.actions.showSuggestRestartNotification() }
+   }
+
    val playerVlcShowSetup by cr { VlcPlayer.VlcSetup.configureSetup() }.def(
       name = "Vlc player setup",
       info = "Shows convenient options for initial Vlc setup"

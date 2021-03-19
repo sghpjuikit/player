@@ -102,6 +102,7 @@ import kotlin.math.sqrt
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.util.async.runFX
 import sp.it.util.collections.readOnly
+import sp.it.util.dev.printIt
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.map
 import sp.it.util.reactive.syncWhileTrue
@@ -122,7 +123,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    private val windowIcon by lazy { Image(File("resources/icons/icon128.png").toURI().toString()) }
 
    /** Required by skins that want to use transparent background colors. Determines [windowStyle] */
-   val windowStyleAllowTransparency by cv(false).def(
+   val windowStyleAllowTransparency by cv(false).attach { APP.actions.showSuggestRestartNotification() }.def(
       name = "Allow transparency",
       info = "Required by skins that want to use transparent background colors. May cause performance degradation. Requires application restart."
    )

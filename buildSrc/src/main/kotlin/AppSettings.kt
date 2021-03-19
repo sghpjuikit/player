@@ -50,6 +50,9 @@ val appSetting = Setting.root {
       config("Close") {
          info = "Closes this application"
       }
+      config("Restart") {
+         info = "Restarts this application"
+      }
       config("Start normally") {
          info = "Loads last application state if not yet loaded"
       }

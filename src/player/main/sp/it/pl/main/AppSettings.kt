@@ -191,6 +191,22 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
+      object `restart`: ConfigDefinition {
+         /** Compile-time constant equivalent to [name]. */
+         const val cname: String = """Restart"""
+         /** Compile-time constant equivalent to [info]. */
+         const val cinfo: String = """Restarts this application"""
+         /** Compile-time constant equivalent to [group]. */
+         const val cgroup: String = """App"""
+         /** Name of the config. */
+         override val name = cname
+         /** Group of the config. */
+         override val group = cgroup
+         /** Description of the config. */
+         override val info = cinfo
+         /** Editability of the config. */
+         override val editable = EditMode.USER
+      }
       object `startNormally`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Start normally"""

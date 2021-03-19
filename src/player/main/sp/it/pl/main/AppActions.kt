@@ -66,6 +66,15 @@ import sp.it.util.units.uri
 import java.io.File
 import java.io.IOException
 import java.net.URISyntaxException
+import javafx.geometry.Pos.CENTER_LEFT
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import sp.it.pl.plugin.impl.Notifier
+import sp.it.pl.ui.objects.Text
+import sp.it.util.dev.ThreadSafe
+import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.hyperlink
+import sp.it.util.ui.lay
+import sp.it.util.ui.vBox
 
 class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
@@ -262,6 +271,30 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
          window.showingProperty().sync1If({ it }) {
             f.showImage(image)
+         }
+      }
+   }
+
+   private var isShowingRestart = false
+
+   /** Show permanent notification suggesting application restart. */
+   @ThreadSafe
+   fun showSuggestRestartNotification() {
+      runFX {
+         if (!isShowingRestart) {
+            val root = vBox(10.0, CENTER_LEFT) {
+               lay += Text("Application requires restart to apply changes").apply {
+                  wrappingWithNatural.subscribe()
+               }
+               lay += hyperlink("Restart") {
+                  onEventDown(MOUSE_CLICKED, PRIMARY) { APP.restart() }
+               }
+            }
+            APP.plugins.use<Notifier> {
+               val n = it.showNotification("Restart", root, true)
+               n.onShown += { isShowingRestart = true }
+               n.onHiding += { isShowingRestart = false }
+            }
          }
       }
    }

@@ -394,6 +394,20 @@ class App: Application(), GlobalConfigDelegator {
       Platform.exit()
    }
 
+   /** Close this app normally. Causes invocation of [stop] as a result. */
+   @IsAction(name = conf.restart.cname, info = conf.restart.cinfo)
+   fun restart() {
+      // TODO: close SLAVE instances
+      Runtime.getRuntime().addShutdownHook(object: Thread() {
+         override fun run() {
+            val args = fetchArguments().toTypedArray();
+            val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
+            Runtime.getRuntime().exec(f.absolutePath, args)
+         }
+      });
+      close()
+   }
+
    /** @return arguments supplied to this application's main method when it was launched */
    fun fetchArguments(): List<String> = rawArgs.toList()
 

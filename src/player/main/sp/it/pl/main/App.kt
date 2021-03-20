@@ -48,7 +48,7 @@ import sp.it.pl.plugin.impl.Waifu2k
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.util.access.v
 import sp.it.util.action.Action
@@ -471,7 +471,7 @@ class App: Application(), GlobalConfigDelegator {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
       } by { "Open widget ${it.name}" } toSource {
          val id = if (it is WidgetFactory<*>) it.id else it.name
-         val strategyCB = ImprovedComboBox<ComponentLoaderStrategy>({ it.toUi() }).apply {
+         val strategyCB = SpitComboBox<ComponentLoaderStrategy>({ it.toUi() }).apply {
             items setTo ComponentLoaderStrategy.values()
             value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: ComponentLoaderStrategy.DOCK
          }

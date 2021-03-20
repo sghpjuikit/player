@@ -5,7 +5,7 @@ import javafx.scene.control.ComboBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
 import sp.it.pl.main.appTooltip
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.util.access.v
 import sp.it.util.access.vx
 import sp.it.util.collections.list.PrefList
@@ -49,7 +49,7 @@ class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwi
 
    init {
       avoidGenerateValue.suppressingAlways {
-         fCB = ImprovedComboBox({ it.name })
+         fCB = SpitComboBox({ it.name })
          fCB.items setTo functions.sortedBy { it.name }
          fCB.value = functions.preferredOrFirst
          // display non-editable as label

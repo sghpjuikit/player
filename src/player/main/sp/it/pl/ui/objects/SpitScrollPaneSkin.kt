@@ -6,7 +6,7 @@ import javafx.scene.input.ScrollEvent
 import sp.it.util.reactive.onEventDown
 
 /** ScrollPaneSkin skin that consumes scroll events. */
-open class ImprovedScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane) {
+open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane) {
 
    init {
       initConsumeScrolling()

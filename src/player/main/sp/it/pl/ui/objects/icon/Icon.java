@@ -276,7 +276,7 @@ public class Icon extends StackPane {
 
 				t.setText(text);
 				t.getScene().getRoot().applyCss();
-				t.setMaxWidth(sp.it.pl.ui.objects.Text.Companion.computeNaturalWrappingWidth(t.getText(), t.getFont()));
+				t.setMaxWidth(sp.it.pl.ui.objects.SpitText.Companion.computeNaturalWrappingWidth(t.getText(), t.getFont()));
 
 				Label s = getFieldValue(t.getSkin(), "tipLabel");
 				Text txt = s==null ? null : getFieldValue(s.getSkin(), "text");

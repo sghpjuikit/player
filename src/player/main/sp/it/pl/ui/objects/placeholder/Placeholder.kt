@@ -10,7 +10,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
-import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
@@ -40,7 +40,7 @@ import kotlin.math.sqrt
 open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () -> Unit): StackPane() {
 
    @JvmField val icon = Icon()
-   @JvmField val info = Text()
+   @JvmField val info = SpitText()
    private var s: Subscription? = null
    private var s2: Subscription? = null
 

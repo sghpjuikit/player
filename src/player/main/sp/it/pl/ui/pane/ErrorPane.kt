@@ -17,7 +17,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.Key
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.textAlign
@@ -43,7 +43,7 @@ import sp.it.util.ui.vBox
 
 class ErrorPane: OverlayPane<Any>() {
 
-   private val uiText: Text
+   private val uiText: SpitText
    private var uiAt = -1
    private lateinit var historyAtText: WritableValue<String>
    private val uiErrorsOnly = v(true)
@@ -52,7 +52,7 @@ class ErrorPane: OverlayPane<Any>() {
    init {
       uiErrorsOnly attach { updateIndexes() }
 
-      uiText = Text().apply {
+      uiText = SpitText().apply {
          textOrigin = VPos.CENTER
          textAlignment = TextAlignment.CENTER
          boundsType = TextBoundsType.VISUAL

@@ -421,6 +421,7 @@ data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val build
             when {
                it is String -> ParserArg.Val(it)
                it is KClass<*> -> ParserArg.Arg(VType(it.createType(it.typeParameters.map { STAR })))
+               it is ParserArg<*> -> it
                else -> fail { "" } }
          },
          builder

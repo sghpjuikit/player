@@ -15,7 +15,7 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.itemnode.STYLECLASS_COMBOBOX_CONFIG_EDITOR
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.util.access.readOnly
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -51,7 +51,7 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
    val valueText = valueTextRw.readOnly()
    private val valuePosition = v(-1)
    private val valuePartials = observableList<String>()
-   private val comboBox = ImprovedComboBox<Pair<String, () -> Unit>?>({ it?.first  ?: textNoVal }, textNoVal)
+   private val comboBox = SpitComboBox<Pair<String, () -> Unit>?>({ it?.first  ?: textNoVal }, textNoVal)
 
    init {
       styleClass += STYLECLASS

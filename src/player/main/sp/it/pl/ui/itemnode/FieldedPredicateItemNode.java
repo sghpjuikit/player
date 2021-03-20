@@ -11,7 +11,7 @@ import javafx.scene.layout.HBox;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.main.AppTexts;
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox;
+import sp.it.pl.ui.objects.SpitComboBox;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.collections.list.PrefList;
@@ -34,7 +34,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 
 	private static final Tooltip negTooltip = new Tooltip("Negate");
 
-	private final ComboBox<PredicateData<F>> typeCB = new ImprovedComboBox<>(t -> t.name, AppTexts.INSTANCE.getTextNoVal());
+	private final ComboBox<PredicateData<F>> typeCB = new SpitComboBox<>(t -> t.name, AppTexts.INSTANCE.getTextNoVal());
 	private FItemNode<Object,Boolean> config;
 	private final CheckIcon negB = (CheckIcon) new CheckIcon(false).styleclass("filter-negate-icon");
 	private final HBox root = new HBox(5, negB, typeCB);

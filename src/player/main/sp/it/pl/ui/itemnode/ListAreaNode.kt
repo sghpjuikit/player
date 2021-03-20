@@ -15,7 +15,7 @@ import javafx.util.Callback
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.itemnode.ListAreaNode.Transformation
 import sp.it.pl.ui.itemnode.ListAreaNode.TransformationRaw
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.util.Sort
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.Sort.DESCENDING
@@ -418,7 +418,7 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
 
    init {
       avoidGenerateValue.suppressingAlways {
-         fCB = ImprovedComboBox({ it.name })
+         fCB = SpitComboBox({ it.name })
          fCB.items setTo transformations.sortedBy { it.name }
          fCB.value = transformations.preferredOrFirst
          fCB.disableProperty() syncFrom isEditableRawFunction.not()

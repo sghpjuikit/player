@@ -48,12 +48,12 @@ import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode;
 import sp.it.pl.ui.itemnode.ConfigEditor;
 import sp.it.pl.ui.itemnode.ListAreaNode;
 import sp.it.pl.ui.itemnode.ValueNode;
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox;
+import sp.it.pl.ui.objects.SpitComboBox;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.V;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.conf.Config;
-import sp.it.util.conf.Constraint.ValueSet;
+import sp.it.util.conf.Constraint.ValueSealedSet;
 import sp.it.util.file.Util;
 import sp.it.util.text.StringSplitParser.SplitData;
 import sp.it.util.type.VType;
@@ -458,7 +458,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
     private class Applier {
-        private final ImprovedComboBox<Act<?>> actCB = new ImprovedComboBox<>(act -> act.name, AppTexts.INSTANCE.getTextNoVal());
+        private final SpitComboBox<Act<?>> actCB = new SpitComboBox<>(act -> act.name, AppTexts.INSTANCE.getTextNoVal());
         Ins ins;
         BiConsumer<File,String> applier = (f, s) -> {
             File rf = f.getParentFile().getAbsoluteFile();
@@ -678,8 +678,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             super(null);
             name = new V<>(actions.stream().findFirst().orElse(null));
             input = new V<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in));
-            configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name).addConstraints(new ValueSet<>(() -> actions)));
-            configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input).addConstraints(new ValueSet<>(() -> tas)));
+            configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name).addConstraints(new ValueSealedSet<>(() -> actions)));
+            configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input).addConstraints(new ValueSealedSet<>(() -> tas)));
             root = layHorizontally(getEmScaled(10), CENTER_LEFT, configEditorB.buildNode(), new Label("→"), configEditorA.buildNode());
         }
 

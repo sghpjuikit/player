@@ -31,7 +31,7 @@ import sp.it.pl.main.AppEventLog
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.nodeinfo.ItemInfo
-import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.action.IsAction
@@ -171,7 +171,7 @@ class Notifier: PluginBase() {
    /** Show notification displaying given text. */
    fun showTextNotification(error: AppError, isPermanent: Boolean = false): Notification {
       val root = vBox(10.0, CENTER_LEFT) {
-         lay += Text(error.textShort).apply {
+         lay += SpitText(error.textShort).apply {
             wrappingWithNatural.subscribe()
          }
          lay += hyperlink("Click to show full details") {
@@ -190,7 +190,7 @@ class Notifier: PluginBase() {
    /** Show notification displaying given text. */
    fun showTextNotification(title: String, contentText: String, isPermanent: Boolean = false): Notification {
       val root = stackPane {
-         lay += Text(contentText).apply {
+         lay += SpitText(contentText).apply {
             wrappingWithNatural.subscribe()
          }
       }

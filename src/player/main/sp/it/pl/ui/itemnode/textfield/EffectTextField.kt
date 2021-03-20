@@ -23,7 +23,7 @@ import kotlin.reflect.KClass
 import mu.KLogging
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -42,7 +42,7 @@ import sp.it.util.ui.lay
 class EffectTextField(isNullable: Boolean, effectType: KClass<out Effect>? = null, initialValue: Effect?): VBox() {
    private val isNullable: Boolean = isNullable
    private val limitedToType: KClass<out Effect>? = if (effectType==Effect::class) null else effectType
-   private val comboBox = ImprovedComboBox<EffectType>({ it.name })
+   private val comboBox = SpitComboBox<EffectType>({ it.name })
    private val editors = ConfigPane<Any?>()
    val value = vn(initialValue)
    val editable = v(true)

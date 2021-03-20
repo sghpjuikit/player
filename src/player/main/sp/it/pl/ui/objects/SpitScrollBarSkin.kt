@@ -13,7 +13,7 @@ import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.units.millis
 
 /** ScrollBar skin that adds animations & improved usability - thumb expands on mouse hover. */
-open class ImprovedScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
+open class SpitScrollBarSkin(scrollbar: ScrollBar): ScrollBarSkin(scrollbar) {
    private val onDispose = Disposer()
 
    init {

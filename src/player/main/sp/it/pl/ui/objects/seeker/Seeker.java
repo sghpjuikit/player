@@ -27,7 +27,7 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
-import sp.it.pl.ui.objects.Text;
+import sp.it.pl.ui.objects.SpitText;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.popup.PopWindow;
 import sp.it.util.access.V;
@@ -648,7 +648,7 @@ public final class Seeker extends AnchorPane {
 
 			// resize on text change
 			syncC(ta.textProperty(), text -> {
-				double w = Text.Companion.computeNaturalWrappingWidth(text, ta.getFont());
+				double w = SpitText.Companion.computeNaturalWrappingWidth(text, ta.getFont());
 				ta.setPrefWidth(w);
 				ta.setPrefHeight(0.8*w);
 			});

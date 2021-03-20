@@ -11,9 +11,9 @@ import sp.it.util.access.vAlways
 import sp.it.util.access.vx
 import sp.it.util.conf.Constraint.NoPersist
 import sp.it.util.conf.Constraint.ReadOnlyIf
-import sp.it.util.conf.Constraint.ValueSet
-import sp.it.util.conf.Constraint.ValueSetNotContainsThen
-import sp.it.util.conf.Constraint.ValueSetNotContainsThen.Strategy.*
+import sp.it.util.conf.Constraint.ValueSealedSet
+import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn
+import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy.*
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal
@@ -133,8 +133,8 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    @Suppress("UNCHECKED_CAST")
    protected val valueEnumerator: Enumerator<T>? by lazy {
       null
-         ?: findConstraint<ValueSet<T>>()?.let { values ->
-            Enumerator { values.enumerator() + valueEnumerator2nd.orEmpty() }
+         ?: findConstraint<ValueSealedSet<T>>()?.let { values ->
+            Enumerator { values.enumerateSealed() + valueEnumerator2nd.orEmpty() }
          }
          ?: if (!type.rawJ.isEnumClass) null else {
             val values = type.rawJ.enumValues.toList()
@@ -146,9 +146,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
             if (type.isNullable) Enumerator { values + valueEnumerator2nd.orEmpty() + (null as T) }
             else Enumerator { values + valueEnumerator2nd.orEmpty() }
          }
-         ?: (type.jvmErasure.companionObjectInstance as? Enumerator<T>)?.net { e ->
-            if (type.isNullable) Enumerator { e() + valueEnumerator2nd.orEmpty() + (null as T) }
-            else Enumerator { e() + valueEnumerator2nd.orEmpty() }
+         ?: (type.jvmErasure.companionObjectInstance as? SealedEnumerator<T>)?.net { e ->
+            if (type.isNullable) Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() + (null as T) }
+            else Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() }
          }
    }
 
@@ -156,7 +156,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    val isEnumerable: Boolean
       get() = valueEnumerator!=null
 
-   /** @return collection of values this config's value is usually within, see [ValueSetNotContainsThen] for exceptions */
+   /** @return collection of values this config's value is usually within, see [ValueSealedSetIfNotIn] for exceptions */
    fun enumerateValues(): Collection<T> = valueEnumerator?.net { it() } ?: fail {
       "Config $name is not enumerable, because $type not enumerable or no value set was provided."
    }
@@ -176,7 +176,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
             for (v in config.enumerateValues())
                if (Parsers.DEFAULT.toS(v).equals(s, true)) return Try.ok(v)
 
-            val strategy = config.findConstraint<ValueSetNotContainsThen>()?.strategy ?: USE_DEFAULT
+            val strategy = config.findConstraint<ValueSealedSetIfNotIn>()?.strategy ?: USE_DEFAULT
             when (strategy) {
                USE_AND_ADD -> Parsers.DEFAULT.ofS(config.type, s).ifOk {
                   if (config.valueEnumerator2nd == null) config.valueEnumerator2nd = mutableListOf(it)

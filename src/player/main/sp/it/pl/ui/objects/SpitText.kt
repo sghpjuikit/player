@@ -6,7 +6,7 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.sync
 
 /** [javafx.scene.text.Text] with support for [wrappingWithNatural]. */
-class Text: javafx.scene.text.Text {
+class SpitText: javafx.scene.text.Text {
 
    /** Whether [wrappingWidth] is maintained to achieve natural width and height based on current text. Default false. */
    val wrappingWithNatural = Subscribed { textProperty() sync { resizeToNatural() } }
@@ -24,4 +24,3 @@ class Text: javafx.scene.text.Text {
       fun computeNaturalWrappingWidth(text: String?, font: Font?) = (110 + text.orEmpty().length/4).fontScaled(font)
    }
 }
-

@@ -37,6 +37,7 @@ import sp.it.util.async.executor.EventReducer.toLast
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
+import sp.it.util.dev.fail
 import sp.it.util.functional.ifIs
 import sp.it.util.reactive.Handler1
 import sp.it.util.ui.minPrefMaxWidth
@@ -75,9 +76,12 @@ abstract class AutoCompletionBinding<T> {
     * @param suggestionProvider The strategy to retrieve suggestions
     * @param converter The converter to be used to convert suggestions to strings
     */
-   protected constructor(completionTarget: Node, suggestionProvider: (String) -> Collection<T>, converter: StringConverter<T>) {
+   protected constructor(completionTarget: Node, suggestionProvider: (String) -> Collection<T>, converter: (T) -> String) {
       this.completionTarget = completionTarget
-      this.popup.converter = converter
+      this.popup.converter = object: StringConverter<T>() {
+         override fun toString(o: T) = converter(o)
+         override fun fromString(string: String?) = fail { "" }
+      }
       this.suggestionProviderEventReducer = toLast(250.0) { text ->
          runIO {
             suggestionProvider(text)

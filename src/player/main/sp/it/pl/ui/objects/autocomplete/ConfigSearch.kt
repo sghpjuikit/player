@@ -38,7 +38,6 @@ import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Config
-import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -47,7 +46,6 @@ import sp.it.util.text.keysUi
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
-import sp.it.util.ui.isAnyChildOf
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt

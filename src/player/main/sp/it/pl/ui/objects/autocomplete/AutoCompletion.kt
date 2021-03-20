@@ -29,8 +29,8 @@
 
 package sp.it.pl.ui.objects.autocomplete
 
+import java.util.Objects
 import javafx.scene.control.TextField
-import javafx.util.StringConverter
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -43,14 +43,14 @@ import sp.it.util.reactive.attach
 open class AutoCompletion<T>: AutoCompletionBinding<T> {
 
    /** String converter to be used to convert suggestions to strings. */
-   protected val converter: StringConverter<T>
+   protected val converter: (T) -> String
    /** [completionTarget] of more precise type. */
    protected val completionTargetTyped: TextField
    /** Disposer called on [dispose]. */
    protected val disposer = Disposer()
 
    /** Creates an auto-completion binding between the specified textField and suggestions. */
-   internal constructor(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): super(textField, allSuggestions, converter) {
+   internal constructor(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): super(textField, allSuggestions, converter) {
       this.completionTargetTyped = textField
       this.converter = converter
 
@@ -67,20 +67,16 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
    override fun dispose() = disposer()
 
    override fun acceptSuggestion(suggestion: T) {
-      val newText = converter.toString(suggestion)
+      val newText = converter(suggestion)
       completionTargetTyped.text = newText
       completionTargetTyped.positionCaret(newText.length)
    }
 
    companion object {
 
-      @Suppress("UNCHECKED_CAST")
-      fun <T> defaultStringConverter() = object: StringConverter<T>() {
-         override fun toString(t: T?) = t?.toString()
-         override fun fromString(string: String) = string as T
-      }
+      fun <T> defaultStringConverter(): (T) -> String = Objects::toString
 
-      fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: StringConverter<T>): Subscription {
+      fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): Subscription {
          val a = AutoCompletion(textField, allSuggestions, converter)
          return Subscription { a.dispose() }
       }

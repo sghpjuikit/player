@@ -61,8 +61,8 @@ import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode
 import sp.it.pl.ui.itemnode.textfield.EffectTextField
 import sp.it.pl.ui.itemnode.textfield.FileTextField
 import sp.it.pl.ui.itemnode.textfield.FontTextField
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox
-import sp.it.pl.ui.objects.combobox.ImprovedComboBox.ImprovedComboBoxListCell
+import sp.it.pl.ui.objects.SpitComboBox
+import sp.it.pl.ui.objects.SpitComboBox.ImprovedComboBoxListCell
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
@@ -150,11 +150,13 @@ import sp.it.pl.ui.itemnode.textfield.DateTextField
 import sp.it.pl.ui.itemnode.textfield.DateTimeTextField
 import sp.it.pl.ui.itemnode.textfield.TimeTextField
 import sp.it.pl.ui.labelForWithClick
-import sp.it.pl.ui.objects.ImprovedSliderSkin
+import sp.it.pl.ui.objects.SpitSliderSkin
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.tagtextfield.ComplexTextField
 import sp.it.util.access.OrV
 import sp.it.util.access.editable
 import sp.it.util.conf.Constraint.ReadOnlyIf
+import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.syncTo
 
@@ -296,7 +298,7 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
    private val isObservable = v!=null
    private val isDecimal = config.type.raw in setOf<Any>(Int::class, Short::class, Long::class)
    private val range = c.findConstraint<NumberMinMax>()!!
-   private val labelFormatter = ImprovedSliderSkin.labelFormatter(isDecimal, range.min!!, range.max!!)
+   private val labelFormatter = SpitSliderSkin.labelFormatter(isDecimal, range.min!!, range.max!!)
    private val min = Label(labelFormatter.toString(range.min!!))
    private val max = Label(labelFormatter.toString(range.max!!))
    private val slider = Slider(range.min!!, range.max!!, config.value.toDouble())
@@ -347,7 +349,7 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
    val isSortable = c.constraints.none { it is PreserveOrder }
    private val uiConverter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: { it.toUi() }
    private val uiInfoConverter: ((T) -> String)? = c.findConstraint<UiInfoConverter<T>>()?.converter
-   final override val editor = ImprovedComboBox(uiConverter)
+   final override val editor = SpitComboBox(uiConverter)
    private var suppressChanges = false
 
    init {
@@ -1139,6 +1141,14 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
                   // not consuming handles event natively & invokes text change and cancels null mode
                }
             }
+      }
+
+      // autocomplete
+      // TODO support observable iterator, like EnumerableCE does
+      config.findConstraint<UnsealedEnumerator<T>>().ifNotNull { e ->
+         @Suppress("UNCHECKED_CAST")
+         val autocompleteValues = if (isNullable) e.enumerateUnsealed() - (null as T) + (null as T) else e.enumerateUnsealed()
+         autoComplete(editor, { t -> autocompleteValues.filter { it.toUi().contains(t, true) } }, converter)
       }
 
       // readonly

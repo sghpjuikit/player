@@ -28,6 +28,7 @@ import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.FileFilters
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.IconUN
@@ -50,6 +51,7 @@ import sp.it.util.conf.Constraint.FileActor.ANY
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.Constraint.FileActor.FILE
 import sp.it.util.conf.between
+import sp.it.util.conf.but
 import sp.it.util.conf.c
 import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cList
@@ -59,6 +61,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
+import sp.it.util.conf.valuesUnsealed
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.syncFrom
@@ -88,7 +91,7 @@ class Tester(widget: Widget): SimpleController(widget) {
    val onContentChange = Disposer()
 
    init {
-      root.prefSize = 500.emScaled x 500.emScaled
+      root.prefSize = 800.emScaled x 500.emScaled
       root.consumeScrolling()
       root.lay += vBox(0.0, TOP_CENTER) {
          lay += hBox(25.emScaled, TOP_CENTER) {
@@ -151,6 +154,8 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `cn(Boolean)` by cn<Boolean>(null)
          val `cv(String)` by cv<String>("text")
          val `cvn(String)` by cvn<String>(null)
+         val `cv(String) with autocomplete` by cv<String>("aaa").valuesUnsealed { listOf("a", "aa", "aaa") }
+         val `cvn(String) with autocomplete` by cvn<String>(null).valuesUnsealed { listOf("a", "aa", "aaa", null) }
          val `cv(Pos)` by cv<Pos>(TOP_CENTER)
          val `cvn(Pos)` by cvn<Pos>(null)
          val `cv(Key)` by cv<Key>(Key.A)
@@ -191,8 +196,10 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cvn(LocalDateTime)` by cvn<LocalDateTime>(null)
          val `cv(Effect)` by cv<Effect>(Blend())
          val `cvn(Effect)` by cvn<Effect>(null)
-         val `cv(Command)` by cvn<Command>(DoNothing)
-         val `cvn(Command)` by cvn<Command>(null)
+         val `cv(Command) with value builder` by cvn<Command>(DoNothing).but(Command.parser.toUiStringHelper())
+         val `cvn(Command) with value builder` by cvn<Command>(null).but(Command.parser.toUiStringHelper())
+         val `cv(FileFilter) with value builder` by cv(FileFilters.filterPrimary).but(FileFilters.parser.toUiStringHelper())
+         val `cvn(FileFilter) with value builder` by cvn(null).but(FileFilters.parser.toUiStringHelper())
          val `cList(Int)` by cList<Int>(1, 2, 3)
          val `cList(Int?)` by cList<Int?>(1, 2, null)
          val `cCheckList(Boolean)` by cCheckList(CheckList.nonNull(type<Boolean>(), listOf("a", "b", "c"), listOf(true, false, false)))

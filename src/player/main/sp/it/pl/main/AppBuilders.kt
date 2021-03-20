@@ -20,8 +20,7 @@ import javafx.scene.layout.Priority.NEVER
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
-import javafx.scene.text.TextFlow
-import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
@@ -115,7 +114,7 @@ import sp.it.util.type.kTypeNothingNonNull
 @JvmOverloads
 fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = PopWindow().apply {
    styleClass += "help-pop-window"
-   content.value = Text(textContent).apply {
+   content.value = SpitText(textContent).apply {
       styleClass += "help-pop-window-text"
       wrappingWithNatural.subscribe()
    }
@@ -136,7 +135,7 @@ fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    .action { i ->
       APP.actionStream("Info popup")
       helpPopup(tooltipText()).apply {
-         content.value.asIs<Text>().wrappingWidth = 400.emScaled
+         content.value.asIs<SpitText>().wrappingWidth = 400.emScaled
          headerIconsVisible.value = false
          show(RIGHT_CENTER(i))
       }
@@ -356,7 +355,7 @@ fun <N: Node> showFloating(title: String, content: (PopWindow) -> N): PopWindow 
 fun showConfirmation(text: String, action: () -> Unit) {
    PopWindow().apply {
       content.value = vBox(0, CENTER) {
-         lay += Text(text).apply {
+         lay += SpitText(text).apply {
             boundsType = TextBoundsType.LOGICAL_VERTICAL_CENTER
             textAlignment = TextAlignment.CENTER
             wrappingWithNatural.subscribe()

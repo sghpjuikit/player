@@ -73,7 +73,7 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sp.it.pl.ui.objects.Text;
+import sp.it.pl.ui.objects.SpitText;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.pane.OverlayPane;
 import sp.it.util.access.ref.R;
@@ -742,7 +742,7 @@ interface Utils {
 
 					Icon icon = new Icon(enhancer.icon, 20);
 					Label nameL = new Label(enhancer.name);
-					Text descL = new Text(enhancer.description);
+					SpitText descL = new SpitText(enhancer.description);
 					descL.setWrappingWidth(400);
 					g.add(icon, 0,i.get());
 					g.add(nameL, 2,i.get());
@@ -755,7 +755,7 @@ interface Utils {
 	}
 	/** Mission details help pane. */
 	class MissionPane extends OverlayPane<Mission> {
-		private final Text text = new Text(null);
+		private final SpitText text = new SpitText(null);
 		private final Icon helpI = infoIcon("Mission details");
 
 		public MissionPane() {
@@ -860,7 +860,7 @@ interface Utils {
 
 							Icon icon = new Icon(enhancer.icon, 20);
 							Label nameL = new Label(enhancer.name);
-							Text descL = new Text(enhancer.description);
+							SpitText descL = new SpitText(enhancer.description);
 							descL.setWrappingWidth(400);
 							achievementPane.add(icon, 0,i.get());
 							achievementPane.add(nameL, 2,i.get());

@@ -34,8 +34,13 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KTypeProjection.Companion.covariant
 import kotlin.reflect.KTypeProjection.Companion.invariant
+import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.isAccessible
+import sp.it.util.conf.Constraint.ValueUnsealedSet
+import sp.it.util.functional.asIf
+import sp.it.util.functional.ifNotNull
+import sp.it.util.type.jvmErasure
 
 interface ConfigImpl {
 
@@ -56,6 +61,10 @@ interface ConfigImpl {
 
       constructor(type: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, `val`: T, group: String): this(type, name, if (c.name.isEmpty()) name else c.name, `val`, group, c.info, c.editable) {
          constraintsImpl = if (constraints.isEmpty()) null else HashSet(constraints)
+
+         type.jvmErasure.companionObjectInstance.asIf<UnsealedEnumerator<T>>()?.ifNotNull {
+            addConstraints(ValueUnsealedSet { it.enumerateUnsealed() })
+         }
       }
 
       @SafeVarargs

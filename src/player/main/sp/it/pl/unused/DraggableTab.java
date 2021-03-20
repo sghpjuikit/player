@@ -14,7 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import sp.it.pl.ui.objects.Text;
+import sp.it.pl.ui.objects.SpitText;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.stage.StageStyle.TRANSPARENT;
 
@@ -32,7 +32,7 @@ public class DraggableTab extends Tab {
 	private static final Stage markerStage;
 
 	private Label nameLabel;
-	private Text dragText;
+	private SpitText dragText;
 	private Stage dragStage;
 	private boolean detachable;
 
@@ -57,7 +57,7 @@ public class DraggableTab extends Tab {
 		setGraphic(nameLabel);
 		detachable = true;
 
-		dragText = new Text(text);
+		dragText = new SpitText(text);
 		StackPane dragStagePane = new StackPane(dragText);
 		dragStagePane.getStyleClass().add("tooltip");
 

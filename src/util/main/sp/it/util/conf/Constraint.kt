@@ -123,16 +123,23 @@ interface Constraint<in T> {
    /** Use single icon mode for boolean config editor and disabled style for false. */
    class IconConstraint(val icon: GlyphIcons): MarkerConstraint()
 
-   /** Constrain value to those specified in the collection. May be mutable (see [ValueSetNotContainsThen]). */
-   class ValueSet<T>(val enumerator: () -> Collection<T>): MarkerConstraint()
+   /** Constrain value to those specified in the collection. May be mutable (see [ValueSealedSetIfNotIn], [SealedEnumerator]). */
+   class ValueSealedSet<T>(private val enumerator: () -> Collection<T>): MarkerConstraint(), SealedEnumerator<T> {
+      override fun enumerateSealed() = enumerator()
+   }
 
-   /** Strategy for dealing with value outside specified set in [ValueSet]. Default is [Strategy.USE_DEFAULT]. */
-   class ValueSetNotContainsThen(val strategy: Strategy): MarkerConstraint() {
+   /** Strategy for dealing with value outside specified set in [ValueSealedSet]. Default is [Strategy.USE_DEFAULT]. */
+   class ValueSealedSetIfNotIn(val strategy: Strategy): MarkerConstraint() {
       enum class Strategy {
          USE_AND_ADD,
          USE,
          USE_DEFAULT
       }
+   }
+
+   /** Similar to [ValueSealedSet], but as a [UnsealedEnumerator], does not constrain value in any way. Basically autocompletion. */
+   class ValueUnsealedSet<T>(private val enumerator: () -> Collection<T>): MarkerConstraint(), UnsealedEnumerator<T> {
+      override fun enumerateUnsealed() = enumerator()
    }
 
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()

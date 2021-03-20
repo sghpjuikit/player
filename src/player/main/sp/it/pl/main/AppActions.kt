@@ -69,7 +69,7 @@ import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.plugin.impl.Notifier
-import sp.it.pl.ui.objects.Text
+import sp.it.pl.ui.objects.SpitText
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.hyperlink
@@ -283,7 +283,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       runFX {
          if (!isShowingRestart) {
             val root = vBox(10.0, CENTER_LEFT) {
-               lay += Text("Application requires restart to apply changes").apply {
+               lay += SpitText("Application requires restart to apply changes").apply {
                   wrappingWithNatural.subscribe()
                }
                lay += hyperlink("Restart") {

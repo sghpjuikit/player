@@ -142,54 +142,23 @@ fun KProperty0<*>.getDelegateConfig(): Config<*> {
    return getDelegate().asIs()
 }
 
-/**
- * Restricts the allowed value to those contained in the specified value range.
- *
- * Consistency:
- *
- * In order to guarantee consistency, the enumerator must be immutable collection.
- * In case it is mutable, remove operation mey render the config's value out of range. It is responsibility of the
- * caller to recover from such case.
- * At the minimum, mutable collection should be [observable][javafx.beans.Observable].
- *
- * Observability:
- *
- * If the enumerator collection is [observable][javafx.beans.Observable], the value range in the ui editor will reflect the
- * changes.
- *
- * Nullability:
- *
- * Nullability of this config is respected and reflected by nullability of the elements in the value range. I.e., if
- * this config is nullable, the collection may contain null value. However it is responsibility of the caller, hence
- * even if this config is nullable it may not give user the option to select null if the enumerator does not contain it.
- *
- * @param enumerator value range supplier
- */
-fun <T: Any?, C: Conf<T>> C.values(enumerator: Collection<T>) = but(Constraint.ValueSet { enumerator })
+/** [Constraint.ValueSealedSet] using the specified collection as enumerator */
+fun                <T: Any?, C: Conf<T>> C.values(enumerator: Collection<T>) = but(Constraint.ValueSealedSet { enumerator })
 
-/**
- * Restricts the allowed value to those contained in the specified value range.
- *
- * This method breaks consistency as if mutable not observable collection would be used. See [values] for details.
- *
- * @param enumerator value range supplier
- */
-fun <T: Any?, C: Conf<T>> C.valuesIn(enumerator: () -> Sequence<T>) = but(Constraint.ValueSet { enumerator().toList() })
+/** [Constraint.ValueSealedSet] using the specified enumerator */
+fun                <T: Any?, C: Conf<T>> C.valuesIn(enumerator: () -> Sequence<T>) = but(Constraint.ValueSealedSet { enumerator().toList() })
 
-/**
- * Restricts the allowed value to those contained in the specified value range.
- *
- * Nullability:
- *
- * The specified generic type argument will be used as a key to get the value range. Nullability is respected,
- * thus if it is nullable, the value range given by the instance source will also contain null as a possible
- * value.
- *
- * @param instanceSource instance source that maps values to types and which will be used to find the exact
- * value range, which is the association in the source for the type represented by the specified generic type
- * argument
- */
+/** [Constraint.ValueSealedSet] using the instance map for type specified by the reified generic type argument as enumerator */
 inline fun <reified T: Any?, C: Conf<T>> C.valuesIn(instanceSource: InstanceMap) = values(instanceSource.getInstances())
+
+/** [Constraint.ValueUnsealedSet] using the specified enumerator */
+fun                <T: Any?, C: Conf<T>> C.valuesUnsealed(enumerator: () -> Collection<T>) = but(Constraint.ValueUnsealedSet { enumerator().toList() })
+
+/** [Constraint.ValueUnsealedSet] using the specified collection as enumerator */
+fun                <T: Any?, C: Conf<T>> C.valuesUnsealed(enumerator: Collection<T>) = valuesUnsealed { enumerator }
+
+/** [Constraint.ValueUnsealedSet] using the instance map for type specified by the reified generic type argument as enumerator */
+inline fun <reified T: Any?, C: Conf<T>> C.valuesUnsealed(instanceSource: InstanceMap) = valuesUnsealed(instanceSource.getInstances())
 
 /** Singleton configuration used by delegated configurable properties. */
 private val configuration = object: ConfigValueSource {

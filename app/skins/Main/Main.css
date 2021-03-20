@@ -313,7 +313,7 @@
  * pseudoclasses: vertical
  */
 .slider {
-    -fx-skin: "sp.it.pl.ui.objects.ImprovedSliderSkin";
+    -fx-skin: "sp.it.pl.ui.objects.SpitSliderSkin";
 }
 
 .slider .fill {
@@ -353,7 +353,7 @@
  */
 
 .scroll-bar {
-    -fx-skin: "sp.it.pl.ui.objects.ImprovedScrollBarSkin";
+    -fx-skin: "sp.it.pl.ui.objects.SpitScrollBarSkin";
     -fx-background-color: null;
     -fx-background-insets: 0;
 }
@@ -495,7 +495,7 @@
 /********************************* ScrollPane *********************************/
 
 .scroll-pane {
-    -fx-skin: "sp.it.pl.ui.objects.ImprovedScrollPaneSkin";
+    -fx-skin: "sp.it.pl.ui.objects.SpitScrollPaneSkin";
 }
 
 .scroll-pane,
@@ -647,7 +647,7 @@
  * inherits: text-input
  */
 .text-area {
-    -fx-skin: "sp.it.pl.ui.objects.ImprovedTextAreaSkin";
+    -fx-skin: "sp.it.pl.ui.objects.SpitAreaSkin";
 }
 .text-area:focused {
 
@@ -1014,7 +1014,7 @@ Shape, Text, TextFlow > * {
 /********************************* SplitPane **********************************/
 
 .split-pane {
-    -fx-skin: "sp.it.pl.ui.objects.ImprovedSplitPaneSkin";
+    -fx-skin: "sp.it.pl.ui.objects.SpitSplitPaneSkin";
 }
 .split-pane:horizontal > .split-pane-divider {
    -fx-border-color: transparent;

@@ -90,9 +90,9 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
       nullify(::control)
    }
 
-   private fun chooseSuggestion(suggestion: T? = list.selectionModel.selectedItem) {
-      if (suggestion!=null)
-         control.onSuggestion(suggestion)
+   private fun chooseSuggestion() {
+      if (!list.selectionModel.isEmpty)
+         control.onSuggestion(list.selectionModel.selectedItem)
    }
 
    protected open fun buildListCell(listView: ListView<T>): ListCell<T> = TextFieldListCell.forListView(control.converter)(listView)

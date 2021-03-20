@@ -88,7 +88,7 @@ import org.gamepad4j.StickID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.ui.itemnode.ConfigEditor;
-import sp.it.pl.ui.objects.Text;
+import sp.it.pl.ui.objects.SpitText;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.layout.widget.controller.LegacyController;
@@ -97,7 +97,7 @@ import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.conf.Config;
 import sp.it.util.conf.ConfigurableByReflect;
-import sp.it.util.conf.Constraint.ValueSet;
+import sp.it.util.conf.Constraint.ValueSealedSet;
 import sp.it.util.conf.EditMode;
 import sp.it.util.conf.FixedConfList;
 import sp.it.util.conf.IsConfig;
@@ -179,7 +179,7 @@ public class Comet extends SimpleController {
 	final Canvas canvas_bgr = new Canvas();
 	final GraphicsContext gc = canvas.getGraphicsContext2D(); // draws canvas game graphics on canvas
 	final GraphicsContext gc_bgr = canvas_bgr.getGraphicsContext2D(); // draws canvas game graphics on bgr canvas
-	final Text message = new Text(null);
+	final SpitText message = new SpitText(null);
 	final Game game = new Game();
 
 	public Comet(Widget widget) {
@@ -425,7 +425,7 @@ public class Comet extends SimpleController {
 		new VoronoiMode(game)
 	);
 	@IsConfig(info = "Type of gameplay")
-	final Config<GameMode> mode = Config.forProperty(GameMode.class, "Mode", new V(modeInitial)).addConstraints(new ValueSet<>(() -> modesAll));
+	final Config<GameMode> mode = Config.forProperty(GameMode.class, "Mode", new V(modeInitial)).addConstraints(new ValueSealedSet<>(() -> modesAll));
 	@IsConfig(nullable = true, info = "Effect to apply on the background layer")
 	final V<Effect> devCanvasBgrEffect = new V<Effect>(new Glow(0.3)).initAttachC(e -> gc_bgr.getCanvas().setEffect(e));
 	@IsConfig(info = "Enables blur effects. Experimental due to lack of polish.")
@@ -1261,7 +1261,7 @@ public class Comet extends SimpleController {
 		@IsConfig public final V<KeyCode> keyAbility = new V<>(KeyCode.Q);
 		@IsConfig public final V<AbilityKind> ability_type = new V<>(AbilityKind.SHIELD);
 
-		@IsConfig(nullable = true) final Config<Integer> gamepadId = Config.forProperty(Integer.class, "gamepadId", new V<Integer>(null), true).addConstraints(new ValueSet<>(() -> gamepadIds));
+		@IsConfig(nullable = true) final Config<Integer> gamepadId = Config.forProperty(Integer.class, "gamepadId", new V<Integer>(null), true).addConstraints(new ValueSealedSet<>(() -> gamepadIds));
 		boolean isInputLeft, isInputRight, isInputFire, isInputFireOnce, isInputThrust, isInputAbility;
 		boolean wasInputLeft, wasInputRight, wasInputFire, wasInputFireOnce, wasInputThrust, wasInputAbility;
 		boolean wasGamepadLeft, wasGamepadRight, wasGamepadFire;

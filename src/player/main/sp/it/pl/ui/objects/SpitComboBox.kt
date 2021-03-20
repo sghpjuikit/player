@@ -1,4 +1,4 @@
-package sp.it.pl.ui.objects.combobox
+package sp.it.pl.ui.objects
 
 import javafx.beans.property.Property
 import javafx.scene.control.ComboBox
@@ -25,7 +25,7 @@ import sp.it.util.reactive.onEventUp
  *  * Searching & scrolling when typing, [search]
  *  * [readOnly]
  */
-class ImprovedComboBox<T>(toStringConverter: (T) -> String, emptyText: String = textNoVal): ComboBox<T>() {
+class SpitComboBox<T>(toStringConverter: (T) -> String, emptyText: String = textNoVal): ComboBox<T>() {
    /** Whether this combobox is not editable. Default false. Note: [ComboBox.editable] refers to [ComboBox.commitValue]. */
    val readOnly: Property<Boolean> = V(false)
    /** Text for when no value is selected. Default `"<none>"`  */
@@ -83,7 +83,7 @@ class ImprovedComboBox<T>(toStringConverter: (T) -> String, emptyText: String = 
 
    private fun skinPopupListView(): ListView<T> = skin.asIs<ComboBoxListViewSkin<T>>().popupContent.asIs()
 
-   open class ImprovedComboBoxListCell<T>(comboBox: ImprovedComboBox<T>): ListCell<T>() {
+   open class ImprovedComboBoxListCell<T>(comboBox: SpitComboBox<T>): ListCell<T>() {
       // do not extend ComboBoxListCell! causes problems!
       val converter: StringConverter<T?>
 

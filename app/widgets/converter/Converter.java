@@ -469,7 +469,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         };
         @SuppressWarnings("unchecked")
         private final Icon runB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
-            Act<Object> action = (Act<Object>) actCB.getValue();
+            var action = (Act<Object>) actCB.getValue();
             if (action==null) return;
 
             if (action.isPartial()) {

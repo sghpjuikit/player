@@ -32,6 +32,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.hasFocus
 import sp.it.util.ui.lay
 import sp.it.util.ui.styleclassToggle
@@ -154,6 +155,7 @@ open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
             name to {
                lay -= comboBox
                lay += ConfigEditor.create(Config.forProperty(arg.type, name, vn(initialValue))).run {
+                  isEditableAllowed syncFrom this@ComplexTextField.isEditable
                   onChangeOrConstraint = Runnable {
                      get().ifOk {
                         valuePartials setTo (valuePartials.take(position) + it.toS())

@@ -2552,7 +2552,7 @@ Shape, Text, TextFlow > * {
 .combobox-field-config:hover > .list-cell,
 .combobox-field-config:focused > .list-cell,
 .combobox-field-config:focused:hover > .list-cell {
-    -fx-pref-column-count: 10;
+    -fx-pref-column-count: 20;
     -fx-text-fill: -skin-value-font-color;
     -fx-prompt-text-fill: -skin-prompt-font-color;
 }

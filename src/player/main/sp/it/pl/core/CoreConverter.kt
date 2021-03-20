@@ -347,6 +347,8 @@ object CoreConverter: Core {
          }
       )
       addP<Command>(Command)
+      addP<Command.CommandActionId>(Command.CommandActionId)
+      addP<Command.CommandComponentId>(Command.CommandComponentId)
       addT<SkinCss>({ it.file.absolutePath }, { Try.ok(SkinCss(File(it))) })
 
    }

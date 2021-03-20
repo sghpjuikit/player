@@ -1,4 +1,4 @@
-package sp.it.pl.ui.objects.tagtextfield
+package sp.it.pl.ui.objects.complexfield
 
 import javafx.scene.control.Label
 import javafx.scene.control.TextField

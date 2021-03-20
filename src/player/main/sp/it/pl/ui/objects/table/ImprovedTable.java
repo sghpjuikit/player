@@ -24,7 +24,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
-import sp.it.pl.ui.objects.tablerow.ImprovedTableRow;
+import sp.it.pl.ui.objects.tablerow.SpitTableRow;
 import sp.it.util.Util;
 import sp.it.util.access.fieldvalue.ColumnField;
 import static java.lang.Math.floor;
@@ -121,8 +121,8 @@ public class ImprovedTable<T> extends TableView<T> {
 
 	public void updateStyleRules() {
 		for (TableRow<T> row : getRows()) {
-			if (row instanceof ImprovedTableRow) {
-				((ImprovedTableRow) row).updateStyleRules();
+			if (row instanceof SpitTableRow) {
+				((SpitTableRow) row).updateStyleRules();
 			}
 		}
 	}

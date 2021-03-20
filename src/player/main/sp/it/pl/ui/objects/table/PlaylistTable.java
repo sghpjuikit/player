@@ -25,7 +25,7 @@ import sp.it.pl.audio.playlist.PlaylistManagerKt;
 import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.tagging.PlaylistSongGroup;
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
-import sp.it.pl.ui.objects.tablerow.ImprovedTableRow;
+import sp.it.pl.ui.objects.tablerow.SpitTableRow;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ColumnField;
 import sp.it.util.reactive.Disposer;
@@ -107,7 +107,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 		// initialize row factories
 		setRowFactory(t -> {
-			var row = new ImprovedTableRow<PlaylistSong>();
+			var row = new SpitTableRow<PlaylistSong>();
 			// remember position for moving selected rows on mouse drag
 			row.setOnMousePressed(e -> selectionLastScreenY = e.getScreenY());
 			// clear table selection on mouse released if no item

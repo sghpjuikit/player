@@ -24,7 +24,7 @@ import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
-import sp.it.pl.ui.objects.textfield.DecoratedTextField
+import sp.it.pl.ui.objects.textfield.SpitTextField
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
@@ -310,7 +310,7 @@ fun Font.rowHeight(): Double {
    return h.toDouble()
 }
 
-fun searchTextField() = DecoratedTextField().apply {
+fun searchTextField() = SpitTextField().apply {
    id = "search-text-field"
    styleClass += "search"
    val isEmpty = textProperty().map { it.isNullOrBlank() }

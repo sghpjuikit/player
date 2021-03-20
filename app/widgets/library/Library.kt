@@ -22,7 +22,7 @@ import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
-import sp.it.pl.ui.objects.tablerow.ImprovedTableRow
+import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
 import sp.it.pl.layout.widget.Widget.Info
@@ -171,7 +171,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
       // row behavior
       table.rowFactory = Callback { t ->
-         ImprovedTableRow<Metadata>().apply {
+         SpitTableRow<Metadata>().apply {
             onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setNplayFrom(table.items, r.index) } }
             onRightSingleClick { r, e ->
                // prep selection for context menu

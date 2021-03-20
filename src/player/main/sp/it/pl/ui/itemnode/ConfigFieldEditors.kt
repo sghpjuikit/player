@@ -58,15 +58,15 @@ import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode
-import sp.it.pl.ui.itemnode.textfield.EffectTextField
-import sp.it.pl.ui.itemnode.textfield.FileTextField
-import sp.it.pl.ui.itemnode.textfield.FontTextField
+import sp.it.pl.ui.objects.textfield.EffectTextField
+import sp.it.pl.ui.objects.textfield.FileTextField
+import sp.it.pl.ui.objects.textfield.FontTextField
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.SpitComboBox.ImprovedComboBoxListCell
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
-import sp.it.pl.ui.objects.textfield.DecoratedTextField
+import sp.it.pl.ui.objects.textfield.SpitTextField
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.Values
 import sp.it.util.access.toggle
@@ -145,14 +145,14 @@ import javafx.scene.control.TextField
 import javafx.scene.input.KeyCode.SPACE
 import kotlin.reflect.KClass
 import sp.it.pl.core.UiStringHelper
-import sp.it.pl.ui.itemnode.textfield.ColorTextField
-import sp.it.pl.ui.itemnode.textfield.DateTextField
-import sp.it.pl.ui.itemnode.textfield.DateTimeTextField
-import sp.it.pl.ui.itemnode.textfield.TimeTextField
+import sp.it.pl.ui.objects.textfield.ColorTextField
+import sp.it.pl.ui.objects.textfield.DateTextField
+import sp.it.pl.ui.objects.textfield.DateTimeTextField
+import sp.it.pl.ui.objects.textfield.TimeTextField
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.SpitSliderSkin
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
-import sp.it.pl.ui.objects.tagtextfield.ComplexTextField
+import sp.it.pl.ui.objects.complexfield.ComplexTextField
 import sp.it.util.access.OrV
 import sp.it.util.access.editable
 import sp.it.util.conf.Constraint.ReadOnlyIf
@@ -477,7 +477,7 @@ class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
 class InsetsCE(c: Config<Insets?>): ConfigEditor<Insets?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = DecoratedTextField()
+   override val editor = SpitTextField()
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
@@ -1074,7 +1074,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 }
 
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
-   override val editor = DecoratedTextField()
+   override val editor = SpitTextField()
    val obv = getObservableValue(c)
    private val converter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
    private val isObservable = obv!=null
@@ -1185,7 +1185,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 }
 
 class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
-   override val editor = DecoratedTextField()
+   override val editor = SpitTextField()
    private var globB = CheckIcon()
    private val warnI = lazy {
       Icon().apply {

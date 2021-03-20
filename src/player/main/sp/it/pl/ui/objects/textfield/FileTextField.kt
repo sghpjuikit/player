@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode.textfield
+package sp.it.pl.ui.objects.textfield
 
 import java.io.File
 import javafx.scene.input.DragEvent.DRAG_DROPPED

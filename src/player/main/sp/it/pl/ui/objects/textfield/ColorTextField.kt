@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode.textfield
+package sp.it.pl.ui.objects.textfield
 
 import javafx.scene.control.ColorPicker
 import javafx.scene.input.MouseEvent

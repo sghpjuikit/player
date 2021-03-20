@@ -16,7 +16,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import sp.it.pl.layout.widget.WidgetManager
-import sp.it.pl.ui.itemnode.textfield.EffectTextField.Companion.EFFECT_TYPES
+import sp.it.pl.ui.objects.textfield.EffectTextField.Companion.EFFECT_TYPES
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.main.appTooltip
 import sp.it.pl.plugin.PluginManager

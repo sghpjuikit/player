@@ -24,9 +24,9 @@ import static javafx.scene.input.MouseButton.SECONDARY;
  * observable (POJO) or is external, all the styles must be applied on change
  * manually. This can be done simply by calling table.refresh();
  */
-public class ImprovedTableRow<T> extends TableRow<T> {
+public class SpitTableRow<T> extends TableRow<T> {
 
-	public ImprovedTableRow() {
+	public SpitTableRow() {
 		super();
 
 		setOnMouseClicked(e -> {
@@ -43,10 +43,10 @@ public class ImprovedTableRow<T> extends TableRow<T> {
 
 /* --------------------- MOUSE HANDLER FLUENT API ------------------------------------------------------------------- */
 
-	private BiConsumer<ImprovedTableRow<T>,MouseEvent> onL1Click = null;
-	private BiConsumer<ImprovedTableRow<T>,MouseEvent> onL2Click = null;
-	private BiConsumer<ImprovedTableRow<T>,MouseEvent> onR1Click = null;
-	private BiConsumer<ImprovedTableRow<T>,MouseEvent> onR2Click = null;
+	private BiConsumer<SpitTableRow<T>,MouseEvent> onL1Click = null;
+	private BiConsumer<SpitTableRow<T>,MouseEvent> onL2Click = null;
+	private BiConsumer<SpitTableRow<T>,MouseEvent> onR1Click = null;
+	private BiConsumer<SpitTableRow<T>,MouseEvent> onR2Click = null;
 
 	/**
 	 * Registers handler for single left click. Does nothing if row empty.
@@ -54,22 +54,22 @@ public class ImprovedTableRow<T> extends TableRow<T> {
 	 * @param handler, which takes this row as additional parameter.
 	 * @return this
 	 */
-	public ImprovedTableRow<T> onLeftSingleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
+	public SpitTableRow<T> onLeftSingleClick(BiConsumer<SpitTableRow<T>,MouseEvent> handler) {
 		onL1Click = handler;
 		return this;
 	}
 
-	public ImprovedTableRow<T> onLeftDoubleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
+	public SpitTableRow<T> onLeftDoubleClick(BiConsumer<SpitTableRow<T>,MouseEvent> handler) {
 		onL2Click = handler;
 		return this;
 	}
 
-	public ImprovedTableRow<T> onRightSingleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
+	public SpitTableRow<T> onRightSingleClick(BiConsumer<SpitTableRow<T>,MouseEvent> handler) {
 		onR1Click = handler;
 		return this;
 	}
 
-	public ImprovedTableRow<T> onRightDoubleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
+	public SpitTableRow<T> onRightDoubleClick(BiConsumer<SpitTableRow<T>,MouseEvent> handler) {
 		onR2Click = handler;
 		return this;
 	}

@@ -1,10 +1,11 @@
-package sp.it.pl.ui.itemnode.textfield
+package sp.it.pl.ui.objects.textfield
 
-import java.time.format.DateTimeFormatter as Formatter
-import java.time.LocalTime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import sp.it.pl.main.AppTexts.textNoVal
-import sp.it.pl.ui.objects.picker.TimePickerContent
+import java.util.Locale
+import sp.it.pl.main.AppTexts
+import sp.it.pl.ui.objects.picker.DateTimePickerContent
 import sp.it.pl.ui.objects.window.NodeShow
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.functional.net
@@ -18,20 +19,23 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 
-/** [ValueTextField] for [LocalTime] using [TimePickerContent]. */
-class TimeTextField(formatter: Formatter): ValueTextField<LocalTime>({ it?.net(formatter::format) ?: textNoVal }) {
+/** [ValueTextField] for [LocalDateTime]. */
+class DateTimeTextField(locale: Locale = Locale.getDefault(), formatter: DateTimeFormatter): ValueTextField<LocalDateTime>({
+   it?.net(formatter::format) ?: AppTexts.textNoVal
+}) {
+   private var locale = locale
    private var formatter = formatter
    private var popup: PopWindow? = null
-   private var popupContent: TimePickerContent? = null
+   private var popupContent: DateTimePickerContent? = null
    private var valueChanging = Suppressor()
 
    init {
-      styleClass += "time-text-field"
+      styleClass += "datetime-text-field"
       isEditable = true
       textProperty() attach {
          valueChanging.suppressed {
             try {
-               value = LocalTime.parse(it, formatter)
+               value = LocalDateTime.parse(it, formatter)
             } catch (e: DateTimeParseException) {
             }
          }
@@ -40,15 +44,15 @@ class TimeTextField(formatter: Formatter): ValueTextField<LocalTime>({ it?.net(f
 
    override fun onDialogAction() {
       val d = Disposer()
-      val pc = popupContent ?: TimePickerContent().apply {
+      val pc = popupContent ?: DateTimePickerContent(locale).apply {
          popupContent = this
-         value.value = this@TimeTextField.value ?: LocalTime.now()
-         value attach { valueChanging.suppressing { this@TimeTextField.value = it } } on d
-         editable syncFrom this@TimeTextField.editableProperty() on d
+         value.value = this@DateTimeTextField.value ?: LocalDateTime.now()
+         value attach { valueChanging.suppressing { this@DateTimeTextField.value = it } } on d
+         editable syncFrom this@DateTimeTextField.editableProperty() on d
       }
 
       val p = popup ?: PopWindow().apply {
-         styleClass += "time-text-field-popup"
+         styleClass += "datetime-text-field-popup"
          popup = this
          userMovable.value = false
          userResizable.value = false
@@ -66,4 +70,5 @@ class TimeTextField(formatter: Formatter): ValueTextField<LocalTime>({ it?.net(f
       }
       p.show(NodeShow.DOWN_LEFT(this))
    }
+
 }

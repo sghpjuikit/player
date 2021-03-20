@@ -43,7 +43,7 @@ import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
-import sp.it.pl.ui.objects.tablerow.ImprovedTableRow
+import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.executor.EventReducer
@@ -192,7 +192,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          }
       }
       table.rowFactory = Callback { t ->
-         ImprovedTableRow<MetadataGroup>().apply {
+         SpitTableRow<MetadataGroup>().apply {
             styleRuleAdd(pcPlaying) { it.isPlaying() }
             onLeftDoubleClick { _, _ -> playSelected() }
             onRightSingleClick { row, e ->

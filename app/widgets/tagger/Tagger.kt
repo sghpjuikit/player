@@ -103,7 +103,7 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.isAudioEditable
 import sp.it.pl.main.isImageJaudiotagger
 import sp.it.pl.plugin.impl.Notifier
-import sp.it.pl.ui.itemnode.textfield.MoodItemNode
+import sp.it.pl.ui.objects.textfield.MoodItemNode
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
@@ -170,13 +170,13 @@ import java.io.File
 import java.net.URI
 import java.time.Year
 import java.util.ArrayList
-import sp.it.pl.ui.objects.textfield.DecoratedTextField as DTextField
+import sp.it.pl.ui.objects.textfield.SpitTextField as DTextField
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
 import sp.it.pl.ui.labelForWithClick
-import sp.it.pl.ui.objects.tagtextfield.TagTextField
+import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Try

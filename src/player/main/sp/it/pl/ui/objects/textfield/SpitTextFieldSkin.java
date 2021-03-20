@@ -39,7 +39,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
-public class DecoratedTextFieldSkin extends TextFieldSkin {
+public class SpitTextFieldSkin extends TextFieldSkin {
 
 	private static final PseudoClass HAS_NO_SIDE_NODE = pseudoclass("no-visible");
 	private static final PseudoClass HAS_LEFT_NODE = pseudoclass("left-visible");
@@ -50,7 +50,7 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 	private final Subscription sLeft;
 	private final Subscription sRight;
 
-	public DecoratedTextFieldSkin(DecoratedTextField control) {
+	public SpitTextFieldSkin(SpitTextField control) {
 		super(control);
 
 		sLeft = onChange(control.getLeft(), runnable(() -> updateChildren()));
@@ -60,7 +60,7 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 	}
 
 	private void updateChildren() {
-		var newLeft = ((DecoratedTextField) getSkinnable()).getLeft();
+		var newLeft = ((SpitTextField) getSkinnable()).getLeft();
 		if (!newLeft.isEmpty()) {
 			getChildren().remove(leftPane);
 			leftPane = new HBox(newLeft.toArray(Node[]::new));
@@ -71,7 +71,7 @@ public class DecoratedTextFieldSkin extends TextFieldSkin {
 			leftPane = null;
 		}
 
-		var newRight = ((DecoratedTextField) getSkinnable()).getRight();
+		var newRight = ((SpitTextField) getSkinnable()).getRight();
 		if (!newRight.isEmpty()) {
 			getChildren().remove(rightPane);
 			rightPane = new HBox(newRight.toArray(Node[]::new));

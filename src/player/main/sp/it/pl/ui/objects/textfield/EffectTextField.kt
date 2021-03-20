@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode.textfield
+package sp.it.pl.ui.objects.textfield
 
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Bloom

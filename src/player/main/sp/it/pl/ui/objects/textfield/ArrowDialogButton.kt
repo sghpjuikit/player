@@ -1,4 +1,4 @@
-package sp.it.pl.ui.itemnode.textfield
+package sp.it.pl.ui.objects.textfield
 
 import javafx.scene.layout.StackPane
 import sp.it.pl.ui.objects.icon.Icon

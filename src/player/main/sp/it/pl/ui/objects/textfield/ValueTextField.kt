@@ -1,11 +1,11 @@
-package sp.it.pl.ui.itemnode.textfield
+package sp.it.pl.ui.objects.textfield
 
 import javafx.scene.control.TextField
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.properties.Delegates.observable
 import sp.it.pl.main.APP
-import sp.it.pl.ui.objects.textfield.DecoratedTextField
+import sp.it.pl.ui.showContextMenu
 import sp.it.util.access.editable
 import sp.it.util.collections.setToOne
 import sp.it.util.reactive.Handler1
@@ -21,7 +21,7 @@ import sp.it.util.reactive.sync
  *
  * @param <T> type of the value
  */
-abstract class ValueTextField<T>(textValueConverter: (T?) -> String = APP.converter.ui::toS): DecoratedTextField() {
+abstract class ValueTextField<T>(textValueConverter: (T?) -> String = APP.converter.ui::toS): SpitTextField() {
 
    /** Behavior executing when value changes */
    val onValueChange = Handler1<T?>()

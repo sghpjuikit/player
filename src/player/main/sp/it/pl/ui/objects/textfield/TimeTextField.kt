@@ -1,11 +1,10 @@
-package sp.it.pl.ui.itemnode.textfield
+package sp.it.pl.ui.objects.textfield
 
 import java.time.format.DateTimeFormatter as Formatter
-import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeParseException
-import java.util.Locale
 import sp.it.pl.main.AppTexts.textNoVal
-import sp.it.pl.ui.objects.picker.DatePickerContent
+import sp.it.pl.ui.objects.picker.TimePickerContent
 import sp.it.pl.ui.objects.window.NodeShow
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.functional.net
@@ -19,23 +18,21 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 
-/** [ValueTextField] for [LocalDate]. */
-class DateTextField(locale: Locale = Locale.getDefault(), formatter: Formatter): ValueTextField<LocalDate>({ it?.net(formatter::format) ?: textNoVal }) {
-   private var locale = locale
+/** [ValueTextField] for [LocalTime] using [TimePickerContent]. */
+class TimeTextField(formatter: Formatter): ValueTextField<LocalTime>({ it?.net(formatter::format) ?: textNoVal }) {
    private var formatter = formatter
    private var popup: PopWindow? = null
-   private var popupContent: DatePickerContent? = null
+   private var popupContent: TimePickerContent? = null
    private var valueChanging = Suppressor()
 
    init {
-      styleClass += "date-text-field"
+      styleClass += "time-text-field"
       isEditable = true
       textProperty() attach {
          valueChanging.suppressed {
             try {
-               value = LocalDate.parse(it, formatter)
+               value = LocalTime.parse(it, formatter)
             } catch (e: DateTimeParseException) {
-
             }
          }
       }
@@ -43,20 +40,20 @@ class DateTextField(locale: Locale = Locale.getDefault(), formatter: Formatter):
 
    override fun onDialogAction() {
       val d = Disposer()
-      val pc = popupContent ?: DatePickerContent(locale).apply {
+      val pc = popupContent ?: TimePickerContent().apply {
          popupContent = this
-         value.value = this@DateTextField.value ?: LocalDate.now()
-         value attach { valueChanging.suppressing { this@DateTextField.value = it } } on d
-         editable syncFrom this@DateTextField.editableProperty() on d
+         value.value = this@TimeTextField.value ?: LocalTime.now()
+         value attach { valueChanging.suppressing { this@TimeTextField.value = it } } on d
+         editable syncFrom this@TimeTextField.editableProperty() on d
       }
 
       val p = popup ?: PopWindow().apply {
-         styleClass += "date-text-field-popup"
+         styleClass += "time-text-field-popup"
          popup = this
          userMovable.value = false
          userResizable.value = false
          headerVisible.value = false
-         isAutohide.value = true
+         isAutohide.value = false
          isEscapeHide.value = true
          content.value = stackPane {
             lay += pc
@@ -69,5 +66,4 @@ class DateTextField(locale: Locale = Locale.getDefault(), formatter: Formatter):
       }
       p.show(NodeShow.DOWN_LEFT(this))
    }
-
 }

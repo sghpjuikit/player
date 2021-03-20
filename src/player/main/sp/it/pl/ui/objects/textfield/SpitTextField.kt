@@ -30,35 +30,23 @@
 package sp.it.pl.ui.objects.textfield
 
 import javafx.scene.Node
-import javafx.scene.control.ContextMenu
-import javafx.scene.control.MenuItem
 import javafx.scene.control.TextField
-import javafx.scene.input.Clipboard
 import javafx.scene.input.ContextMenuEvent
-import javafx.scene.input.KeyCode.DELETE
-import javafx.scene.input.KeyCode.SHIFT
-import javafx.scene.input.KeyCode.SHORTCUT
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import sp.it.pl.core.CoreMenus
-import sp.it.pl.main.Key
-import sp.it.pl.main.toUi
+import sp.it.pl.ui.showContextMenu
 import sp.it.util.collections.observableList
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.onEventDown
-import sp.it.util.text.keys
-import sp.it.util.text.resolved
-import sp.it.util.type.estimateRuntimeType
-import sp.it.util.ui.copySelectedOrAll
-import sp.it.util.ui.cutSelectedOrAll
-import sp.it.util.ui.dsl
-import sp.it.util.ui.show
 
 /** [TextField], which can be decorated with nodes inside on the left and right. */
-open class DecoratedTextField: TextField() {
+open class SpitTextField: TextField() {
+   /** Content on the left. Default empty. */
    val left = observableList<Node>()
+   /** Content on the right. Default empty.  */
    val right = observableList<Node>()
+   /** Context menu or null if falling back on [TextField] context menu behavior. Default null. */
    var contextMenuShower: ((MouseEvent) -> Unit)? = null
 
    init {
@@ -80,49 +68,10 @@ open class DecoratedTextField: TextField() {
       }
    }
 
-   override fun createDefaultSkin() = DecoratedTextFieldSkin(this)
+   override fun createDefaultSkin() = SpitTextFieldSkin(this)
 
    companion object {
       const val STYLECLASS = "decorated-text-field"
-
-      fun showContextMenu(tf: TextField, event: MouseEvent, textGetter: (() -> String?)?, valueGetter: (() -> Any?)?) {
-         fun MenuItem.disIf(condition: Boolean) = apply { isDisable = condition }
-
-         ContextMenu().apply {
-            dsl {
-               item("Undo (${keys(SHORTCUT, Key.Z)})") { tf.undo() }.disIf(!tf.isUndoable || !tf.isEditable)
-               item("Redo (${keys(SHORTCUT, SHIFT, Key.Z)})") { tf.redo() }.disIf(!tf.isRedoable || !tf.isEditable)
-               item("Cut (${keys(SHORTCUT, Key.X)})") { tf.cutSelectedOrAll() }.disIf(!tf.isEditable)
-               item("Copy (${keys(SHORTCUT, Key.C)})") { tf.copySelectedOrAll() }
-               item("Paste (${keys(SHORTCUT, Key.V)})") { tf.paste() }.disIf(!tf.isEditable || !Clipboard.getSystemClipboard().hasString())
-               item("Delete (${keys(DELETE)})") { tf.deleteText(tf.selection) }.disIf(!tf.isEditable || tf.selectedText.isNullOrEmpty())
-               separator()
-               item("Select All (${keys("${SHORTCUT.resolved} + C")})") { tf.selectAll() }
-
-               if (textGetter!=null || valueGetter!=null)
-                  separator()
-
-               if (textGetter!=null) {
-                  val t = textGetter()
-                  menu("Text") {
-                     items {
-                        CoreMenus.menuItemBuilders[t]
-                     }
-                  }.disIf(t==null)
-               }
-
-               if (valueGetter!=null) {
-                  val v = valueGetter()
-                  menu(v?.estimateRuntimeType()?.toUi() ?: "Value") {
-                     items {
-                        CoreMenus.menuItemBuilders[v]
-                     }
-                  }.disIf(v==null)
-               }
-            }
-            show(tf, event)
-         }
-      }
    }
 
 }

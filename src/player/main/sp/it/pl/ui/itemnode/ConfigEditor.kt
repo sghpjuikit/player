@@ -272,7 +272,6 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          put<Color> { ColorCE(it.asIs()) }
          put<File> { FileCE(it.asIs()) }
          put<Font> { FontCE(it.asIs()) }
-         put<Insets> { InsetsCE(it.asIs()) }
          put<LocalTime> { LocalTimeCE(it.asIs()) }
          put<LocalDate> { LocalDateCE(it.asIs()) }
          put<LocalDateTime> { LocalDateTimeCE(it.asIs()) }

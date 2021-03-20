@@ -474,34 +474,6 @@ class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
    }
 }
 
-class InsetsCE(c: Config<Insets?>): ConfigEditor<Insets?>(c) {
-   private val v = getObservableValue(c)
-   private var isObservable = v!=null
-   override val editor = SpitTextField()
-
-   init {
-      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.text = toS(config.value)
-      editor.textProperty() attach { apply() } on disposer
-      v?.attach { editor.text = toS(it) }.orEmpty() on disposer
-
-      // readonly
-      isEditable syncTo editor.editable on disposer
-   }
-
-   override fun get() = APP.converter.general.ofS<Insets?>(editor.text)
-
-   override fun refreshValue() {
-      if (!isObservable)
-         editor.text = toS(config.value)
-   }
-
-   private fun toS(o: Any?) = when (o) {
-      null -> o.toUi()
-      else -> o.toS()
-   }
-}
-
 class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null

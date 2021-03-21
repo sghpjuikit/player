@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.window.stage;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -38,6 +39,7 @@ import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.math.P;
 import sp.it.util.reactive.Disposer;
+import sp.it.util.reactive.Subscribed;
 import sp.it.util.reactive.Subscription;
 import sp.it.util.system.Os;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
@@ -112,6 +114,7 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
+import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.getScreen;
@@ -148,10 +151,12 @@ public class Window extends WindowBase {
 	private final VBox frontContent = lookupId(root, "frontContent", VBox.class);
 
 	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
-	/** Denotes whether this is main window. Closing main window closes the application. Only one window can be main. */
+	/** Whether this is main window. Closing main window closes the application. Only one window can be main. */
 	public final ReadOnlyBooleanProperty isMain = isMainImpl.getReadOnlyProperty();
-	/** Denotes whether this window is resizable/movable with mouse when left ALT is held. Default true on non Linux platform. */
+	/** Whether this window is resizable/movable with mouse when left ALT is held. Default true on non Linux platform. */
 	public final BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
+	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non uniform bgr needs to be set for the effect to be visible. Default false. */
+	public Property<Boolean> transformBgrWithContent = new V<>(false);
 	/** Invoked just before this window closes, after layout closes. */
 	public final Disposer onClose = new Disposer();
 
@@ -418,27 +423,38 @@ public class Window extends WindowBase {
 		topContainer = (SwitchContainer) requireNonNull(l.getChild());
 		topContainer.load();
 
-		double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
-		backImage.translateXProperty().unbind();
-		backImage.setTranslateX(0);
-		backImage.setScaleX(scaleFactor);
-		backImage.setScaleY(scaleFactor);
-		// scroll bgr along with the tabs
-		// using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))
-		// try at: http://www.mathe-fa.de
-		topContainer.ui.translateProperty().addListener((o, ov, nv) -> {
-			double x = nv.doubleValue();
-			double space = backImage.getWidth()*((scaleFactor - 1)/2d);
-			double dir = signum(x);
-			x = abs(x);
-			backImage.setTranslateX(dir*space*(1 - (1/(1 + 0.0005*x))));
+
+		var transformBgrWithContentSub = new Subscribed(it -> {
+			double scaleFactor = 1.25; // prevent running out of bgr when translating
+			backImage.translateXProperty().unbind();
+			backImage.setTranslateX(0);
+			backImage.setScaleX(scaleFactor);
+			backImage.setScaleY(scaleFactor);
+			var s1 = sync(topContainer.ui.translateProperty(), consumer(nv -> {
+				double x = nv.doubleValue();
+				double space = backImage.getWidth()*((scaleFactor - 1)/2d);
+				double dir = signum(x);
+				x = abs(x);
+				backImage.setTranslateX(dir*space*(1 - (1/(1 + 0.0005*x))));  // (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  try at: http://www.mathe-fa.de
+			}));
+			var s2 = sync(topContainer.ui.zoomProperty(), consumer(nv -> {
+				double x = nv.doubleValue();
+				x = 1 - (1 - x)/5;
+				backImage.setScaleX(scaleFactor*pow(x, 0.25));
+				backImage.setScaleY(scaleFactor*pow(x, 0.25));
+			}));
+
+			return Subscription.Companion.invoke(
+				s1,
+				s2,
+				Subscription.Companion.invoke(runnable(() -> {
+					backImage.setTranslateX(0);
+					backImage.setScaleX(1.0);
+					backImage.setScaleY(1.0);
+				}))
+			);
 		});
-		topContainer.ui.zoomProperty().addListener((o, ov, nv) -> {
-			double x = nv.doubleValue();
-			x = 1 - (1 - x)/5;
-			backImage.setScaleX(scaleFactor*pow(x, 0.25));
-			backImage.setScaleY(scaleFactor*pow(x, 0.25));
-		});
+		sync(transformBgrWithContent, consumer(transformBgrWithContentSub::subscribe));
 	}
 
 	/**

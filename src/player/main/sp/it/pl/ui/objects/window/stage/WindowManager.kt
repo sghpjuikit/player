@@ -102,7 +102,6 @@ import kotlin.math.sqrt
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.util.async.runFX
 import sp.it.util.collections.readOnly
-import sp.it.util.dev.printIt
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.map
 import sp.it.util.reactive.syncWhileTrue
@@ -122,10 +121,15 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** 128x128 icon of the application */
    private val windowIcon by lazy { Image(File("resources/icons/icon128.png").toURI().toString()) }
 
-   /** Required by skins that want to use transparent background colors. Determines [windowStyle] */
+   /** Required by skins that want to use transparent background colors. Determines [windowStyle]. Default false. */
    val windowStyleAllowTransparency by cv(false).attach { APP.actions.showSuggestRestartNotification() }.def(
       name = "Allow transparency",
       info = "Required by skins that want to use transparent background colors. May cause performance degradation. Requires application restart."
+   )
+   /** Whether [Window.transformBgrWithContent] is true. Default false. */
+   val windowStyleBgrWithContentTransformation by cv(false).def(
+      name = "Allow bgr transformations",
+      info = "Enables depth effect, where the window background moves and zooms with the window content. A non uniform bgr needs to be set for the effect to be visible"
    )
    /** Window [StageStyle] set at window creation time. Determined by [windowStyleAllowTransparency]. */
    val windowStyle = windowStyleAllowTransparency
@@ -244,6 +248,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       w.isInteractiveOnLeftAlt.value = windowInteractiveOnLeftAlt.value
       w.stage.title = APP.name
       w.stage.icons setToOne windowIcon
+      w.transformBgrWithContent syncFrom windowStyleBgrWithContentTransformation on w.onClose
 
       return w
    }

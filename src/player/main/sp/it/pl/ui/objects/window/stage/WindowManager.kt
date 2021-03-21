@@ -98,6 +98,7 @@ import sp.it.pl.main.AppSettings.ui.window as confWindow
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
+import javafx.stage.StageStyle.TRANSPARENT
 import kotlin.math.sqrt
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.util.async.runFX
@@ -133,7 +134,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    )
    /** Window [StageStyle] set at window creation time. Determined by [windowStyleAllowTransparency]. */
    val windowStyle = windowStyleAllowTransparency
-      .map { if (it) StageStyle.TRANSPARENT else StageStyle.DECORATED }
+      .map { if (it) TRANSPARENT else UNDECORATED }
    /** Any application window will be created and maintained with this [Stage.opacity]. */
    val windowOpacity by cv(1.0).between(0.1, 1.0)
       .def(name = "Opacity", info = "Window opacity.")

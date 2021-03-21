@@ -49,7 +49,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REPLY;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TRASH_ALT;
 import static java.lang.Double.max;
 import static java.lang.Math.abs;
-import static java.lang.Math.signum;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -203,23 +202,7 @@ public final class Seeker extends AnchorPane {
 			}
 		});
 
-		ma_init();
-		Anim sa = new Anim(millis(1000), p -> {
-			double p1 = mapTo01(p, 0, 0.5);
-			double p2 = mapTo01(p, 0.8, 1);
-			double p3 = mapTo01(p, 0.3, 0.6);
-
-			r1.setOpacity(p1);
-			r2.setOpacity(p1);
-
-			double scale = 1 + 0.8*mapConcave(p3);
-			r1.setScaleX(scale);
-			r1.setScaleY(scale);
-			r2.setScaleX(scale);
-			r2.setScaleY(scale);
-		}).intpl(new CircularInterpolator())
-			.delay(millis(150));
-		onHoverChanged(sa::playFromDir);
+		maInstall();
 	}
 
 	private void setSeekerValue(double value) {
@@ -259,26 +242,27 @@ public final class Seeker extends AnchorPane {
 //****************************** runners animation *****************************/
 
 	private static final double MA_ISIZE = 10;
-	private final Loop ma = new Loop(this::ma_do);
 	private final Icon r1 = new Icon(ANGLE_DOWN, MA_ISIZE);
 	private final Icon r2 = new Icon(ANGLE_UP, MA_ISIZE);
-	private double matox = 0;
-	private double macurx = 0;
-	private double maspeed = 0;
 
-	private void ma_do() {
-		double diff = matox - macurx;
-		if (diff==0) return;                     // performance optimization & bug fix
-		double dir = signum(diff);
-		double dist = abs(diff);
-		maspeed = max(1, dist/10d);              // prevents animation from never finishing
-		macurx += dir*maspeed;
-		if (abs(macurx - matox)<1) macurx = matox;   // finish anim in next cycle
+	private void maInstall() {
+		ma_init();
+		Anim sa = new Anim(millis(1000), p -> {
+			double p1 = mapTo01(p, 0, 0.5);
+			double p2 = mapTo01(p, 0.8, 1);
+			double p3 = mapTo01(p, 0.3, 0.6);
 
-		double x = macurx;
-		x = clip(0, x, getWidth());        // fixes outside of area bugs
-		r1.setLayoutX(x - r1.getLayoutBounds().getWidth()/2.0);
-		r2.setLayoutX(x - r2.getLayoutBounds().getWidth()/2.0);
+			r1.setOpacity(p1);
+			r2.setOpacity(p1);
+
+			double scale = 1 + 0.8*mapConcave(p3);
+			r1.setScaleX(scale);
+			r1.setScaleY(scale);
+			r2.setScaleX(scale);
+			r2.setScaleY(scale);
+		}).intpl(new CircularInterpolator())
+			.delay(millis(150));
+		onHoverChanged(sa::playFromDir);
 	}
 
 	private void ma_init() {
@@ -292,9 +276,13 @@ public final class Seeker extends AnchorPane {
 		r2.setManaged(false);
 		getChildren().addAll(r1, r2);
 
-		addEventFilter(MOUSE_MOVED, e -> matox = addB.isSelected() ? chapterSelected.getCenterX() : e.getX());
-		addEventFilter(MOUSE_DRAGGED, e -> matox = addB.isSelected() ? chapterSelected.getCenterX() : e.getX());
-		ma.start(); // starts animation
+		addEventFilter(MOUSE_MOVED, e -> maMoveTo(addB.isSelected() ? chapterSelected.getCenterX() : e.getX()));
+		addEventFilter(MOUSE_DRAGGED, e -> maMoveTo(addB.isSelected() ? chapterSelected.getCenterX() : e.getX()));
+	}
+
+	private void maMoveTo(double x) {
+		r1.setLayoutX(x - r1.getLayoutBounds().getWidth()/2.0);
+		r2.setLayoutX(x - r2.getLayoutBounds().getWidth()/2.0);
 	}
 
 //********************************** chapters *********************************/
@@ -348,7 +336,7 @@ public final class Seeker extends AnchorPane {
 	private double posLast = 0;
 	private long posLastFrame = 0;
 	private double posUpdateInterval = 20;
-	private long polastUpdate = 0;
+	private long posLastUpdate = 0;
 
 	/**
 	 * Binds to total and current duration value. This will cause seeker to update when the total
@@ -380,7 +368,6 @@ public final class Seeker extends AnchorPane {
 		timeLoop.start();
 
 		return () -> {
-			ma.stop();
 			timeLoop.stop();
 			if (timeTot!=null) timeTot.unbind();
 			if (timeCur!=null) timeCur.unbind();
@@ -407,8 +394,8 @@ public final class Seeker extends AnchorPane {
 			posLast += dp;
 
 			long now = System.currentTimeMillis();
-			if (now - polastUpdate>posUpdateInterval) {
-				polastUpdate = now;
+			if (now - posLastUpdate>posUpdateInterval) {
+				posLastUpdate = now;
 				setSeekerValue(posLast);
 			}
 		}
@@ -473,7 +460,7 @@ public final class Seeker extends AnchorPane {
 			setCenterX(c.getCenterX());                     // move this to chapter
 			select.playOpen();                              // animate this
 			selectChapAnim.playOpenDoClose(oc);             // animate runners & open chap in middle
-			matox = c.getCenterX();                         // animate-move runners to chapter
+			maMoveTo(c.getCenterX());                       // animate-move runners to chapter
 		}
 
 		boolean isSelected() {

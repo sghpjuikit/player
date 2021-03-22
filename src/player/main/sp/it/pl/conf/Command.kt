@@ -136,8 +136,8 @@ sealed class Command: () -> Unit {
       override fun toS(o: Command): String = when (o) {
          is DoNothing -> "command do nothing"
          is DoFile -> """command file ${o.op.name.toLowerCase()} ${o.file.absolutePath}"""
-         is DoComponentOpen -> """command component open ${o.loader.name.toLowerCase()} ${o.id}"""
-         is DoAction -> """command action ${o.id}"""
+         is DoComponentOpen -> """command component open ${o.loader.name.toLowerCase()} ${o.id.id}"""
+         is DoAction -> """command action ${o.id.id}"""
       }
 
    }

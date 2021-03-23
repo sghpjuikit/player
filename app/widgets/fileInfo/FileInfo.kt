@@ -78,6 +78,7 @@ import java.nio.file.StandardCopyOption
 import java.util.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
+import sp.it.util.units.em
 
 private typealias MField = Metadata.Field<*>
 
@@ -276,26 +277,22 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    }
 
    @Suppress("MoveVariableDeclarationIntoWhen")
-   private inner class FieldsPane internal constructor(): TilePane(VERTICAL, 10.0, 0.0) {
+   private inner class FieldsPane: TilePane(VERTICAL, 10.0, 0.0) {
       override fun layoutChildren() {
          val width = width
          val height = height
-         val cellH = 15 + tiles.vgap
-         val rows = 1 max (floor(height max 5.0)/cellH).toInt()
+         val cellH = 1.5.em.emScaled + vgap
+         val rows = 1 max floor((height max cellH)/cellH).toInt()
          val columns = 1 max ceil(labels.size.toDouble()/rows.toDouble()).toInt()
          var cellW = when (columns) {
-            // do not allow 0 columns & set whole width if 1 column
-            // handle 1 column manually - the below caused some problems
             1, 0 -> width
-            // for n elements there is n-1 gaps so we need to add 1 gap width
-            // above cell width includes 1 gap width per element so subtract it
-            else -> (width + tiles.hgap)/columns - tiles.hgap
+            else -> (width + hgap)/columns - hgap
          }
 
          // adhere to requested minimum size
          cellW = cellW max minColumnWidth.value
          val w = cellW
-         tiles.prefTileWidth = w
+         prefTileWidth = w
          labels.forEach { it.maxWidth = w }
          super.layoutChildren()
       }

@@ -5,7 +5,6 @@ import fileInfo.FileInfo.Sort.SEMANTIC
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos
-import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Label
 import javafx.scene.control.OverrunStyle.ELLIPSIS
 import javafx.scene.layout.TilePane
@@ -76,8 +75,13 @@ import sp.it.util.ui.x
 import java.io.File
 import java.nio.file.StandardCopyOption
 import java.util.ArrayList
+import javafx.scene.control.ContentDisplay.RIGHT
+import javafx.scene.control.Hyperlink
 import kotlin.math.ceil
 import kotlin.math.floor
+import sp.it.pl.main.appHyperlinkFor
+import sp.it.util.functional.asIf
+import sp.it.util.ui.Util
 import sp.it.util.units.em
 
 private typealias MField = Metadata.Field<*>
@@ -103,7 +107,6 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    private val cover = ThumbnailWithAdd()
    private val tiles: TilePane = FieldsPane()
    private val layout = ImageFlowPane(cover, tiles)
-   private val rater = Rating()
    private val gap1 = Label(" ")
    private val gap2 = Label(" ")
    private val gap3 = Label(" ")
@@ -131,6 +134,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       when (field) {
          RATING -> RatingField(semanticIndex)
          COVER -> CoverField()
+         PATH -> LocationField(semanticIndex)
          else -> LField(semanticIndex, field)
       }
    }
@@ -234,9 +238,43 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    }
 
    private inner class RatingField(semanticIndex: Int): LField(semanticIndex, RATING) {
+      private val rater = Rating()
+
+      init {
+         contentDisplay = RIGHT
+         graphic = rater.apply {
+            icons syncFrom APP.ui.ratingIconCount on onClose
+            partialRating syncFrom APP.ui.ratingIsPartial on onClose
+            editable.value = true
+            onRatingEdited = data::writeRating
+         }
+      }
+
       override fun update(m: Metadata) {
          super.update(m)
          rater.rating.value = m.getRatingPercent()
+      }
+
+      override fun setHide() {
+         isDisable = false
+         if (!shouldBeVisible || (!showEmptyFields.value && isValueEmpty)) labels.remove(this)
+      }
+   }
+
+   private inner class LocationField(semanticIndex: Int): LField(semanticIndex, PATH) {
+
+      init {
+         contentDisplay = RIGHT
+         graphic = null
+      }
+
+      override fun update(m: Metadata) {
+         super.update(m)
+         graphic = when {
+            m == EMPTY -> null
+            m.isFileBased() -> appHyperlinkFor(m.getLocation()!!).apply { maxWidth = this@LocationField.maxWidth }// - (this@LocationField.graphicTextGap max 0.0) - this@LocationField.width }
+            else -> appHyperlinkFor(m.uri).apply { maxWidth = this@LocationField.maxWidth }// - (this@LocationField.graphicTextGap max 0.0) - this@LocationField.width }
+         }
       }
 
       override fun setHide() {
@@ -264,7 +302,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       override fun update(m: Metadata) {
          isValueEmpty = field.isFieldEmpty(m)
          val v = when {
-            m===EMPTY || field==RATING -> ""
+            m===EMPTY || field==RATING || field==PATH -> ""
             else -> m.getFieldS(field, "").replace('\r', ' ').replace('\n', ',')
          }
          text = "$name: $v"
@@ -281,7 +319,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       override fun layoutChildren() {
          val width = width
          val height = height
-         val cellH = 1.5.em.emScaled + vgap
+         val cellH = 2.em.emScaled + vgap
          val rows = 1 max floor((height max cellH)/cellH).toInt()
          val columns = 1 max ceil(labels.size.toDouble()/rows.toDouble()).toInt()
          var cellW = when (columns) {
@@ -295,6 +333,11 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          prefTileWidth = w
          labels.forEach { it.maxWidth = w }
          super.layoutChildren()
+
+         // hyperlinks width fix
+         labels.forEach {
+            it.graphic?.asIf<Hyperlink>()?.maxWidth = w - it.graphicTextGap - Util.computeTextWidth(it.font, it.text)
+         }
       }
    }
 
@@ -355,16 +398,6 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       // align tiles from left top & tile content to center left
       tiles.alignment = Pos.TOP_LEFT
       tiles.tileAlignment = Pos.CENTER_LEFT
-
-      // add rater stars to rating label as graphics
-      fieldRating.graphic = rater
-      fieldRating.contentDisplay = ContentDisplay.RIGHT
-
-      // bind rating to app configs
-      rater.icons syncFrom APP.ui.ratingIconCount on onClose
-      rater.partialRating syncFrom APP.ui.ratingIsPartial on onClose
-      rater.editable.value = true
-      rater.onRatingEdited = data::writeRating
 
       root.installDrag(
          IconMA.DETAILS,

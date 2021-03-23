@@ -171,6 +171,15 @@ fun appHyperlinkFor(f: File) = hyperlink(f.toUi()) {
    }
 }
 
+/** @return standardized hyperlink for a [File] that that [File.browse]s it on click */
+fun appHyperlinkFor(u: URI) = hyperlink(u.toUi()) {
+   textOverrun = LEADING_ELLIPSIS
+   onEventDown(MOUSE_CLICKED, PRIMARY) {
+      if (it.clickCount==1)
+         u.browse()
+   }
+}
+
 /** @return standardized ui text for the specified data displaying it in the most natural ui form */
 fun textColon(name: String, data: Any?): Node = when (data) {
    null -> text(name + ": " + data.toUi())

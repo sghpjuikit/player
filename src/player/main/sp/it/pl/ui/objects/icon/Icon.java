@@ -366,7 +366,7 @@ public class Icon extends StackPane {
 	 */
 	public final @NotNull Icon onClickDo(@Nullable Integer clickCount, @Nullable Function1<Icon,Unit> action) {
 		setOnMouseClicked(action==null ? null : e -> {
-			if (!isMouseTransparent() && e.getButton()==PRIMARY && (clickCount==null || e.getClickCount()==clickCount)) {
+			if (!isMouseTransparent() && e.getButton()==PRIMARY && (clickCount==null || e.getClickCount()==clickCount) && iconBounds().contains(e.getX(), e.getY())) {
 				if (isFocusTraversable() && !isFocused()) requestFocus();
 				action.invoke(this);
 				e.consume();

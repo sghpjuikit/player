@@ -647,7 +647,7 @@
  * inherits: text-input
  */
 .text-area {
-    -fx-skin: "sp.it.pl.ui.objects.SpitAreaSkin";
+    -fx-skin: "sp.it.pl.ui.objects.SpitTextAreaSkin";
 }
 .text-area:focused {
 

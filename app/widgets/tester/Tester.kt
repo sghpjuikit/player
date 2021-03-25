@@ -6,17 +6,29 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import javafx.animation.Animation.INDEFINITE
 import javafx.animation.Interpolator
+import javafx.animation.PathTransition
+import javafx.animation.PathTransition.OrientationType
+import javafx.animation.Transition
 import javafx.geometry.Insets
 import javafx.geometry.Insets.EMPTY
 import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_CENTER
+import javafx.scene.Group
 import javafx.scene.control.Separator
 import javafx.scene.control.Slider
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Effect
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import javafx.scene.shape.Arc
+import javafx.scene.shape.ArcTo
+import javafx.scene.shape.ArcType
+import javafx.scene.shape.Circle
+import javafx.scene.shape.ClosePath
+import javafx.scene.shape.MoveTo
+import javafx.scene.shape.Path
+import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import kotlin.math.sqrt
@@ -62,11 +74,14 @@ import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
 import sp.it.util.conf.valuesUnsealed
+import sp.it.util.file.div
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.syncFrom
 import sp.it.util.text.nameUi
 import sp.it.util.type.type
+import sp.it.util.ui.flowPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -79,7 +94,9 @@ import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.em
+import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -92,14 +109,18 @@ class Tester(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 800.emScaled x 500.emScaled
+      root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
       root.lay += vBox(0.0, TOP_CENTER) {
-         lay += hBox(25.emScaled, TOP_CENTER) {
+         lay += flowPane(25.emScaled, 25.emScaled) {
+            alignment = Pos.CENTER
             padding = Insets(10.emScaled, 10.emScaled, 20.emScaled, 10.emScaled)
             lay += Icon(IconOC.CODE).onClickDo { testInputs() }.withText("Test widget inputs")
             lay += Icon(IconOC.CODE).onClickDo { testFxConfigs() }.withText("Test Fx Configs")
             lay += Icon(IconOC.CODE).onClickDo { testEditors() }.withText("Test Config Editors")
-            lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Test Animations")
+            lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Animation Interpolators")
+            lay += Icon(IconOC.CODE).onClickDo { testPathShapeTransitions() }.withText("Path/Shape Animations")
+            lay += Icon(IconOC.CODE).onClickDo { testCssGradients() }.withText("Test CSS Gradients")
          }
          lay += Separator()
          lay += stackPane {
@@ -164,8 +185,8 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `cn(Int)` by cn<Int>(null)
          val `cv(Int)` by cv<Int>(0)
          val `cvn(Int)` by cvn<Int>(null)
-         val `cv(Int)|0-100` by cv<Int>(0).between(0,100)
-         val `cvn(Int)|0-100` by cvn<Int>(null).between(0,100)
+         val `cv(Int)|0-100` by cv<Int>(0).between(0, 100)
+         val `cvn(Int)|0-100` by cvn<Int>(null).between(0, 100)
          var `c(File)` by c<File>(APP.location.spitplayer_exe)
          var `cn(File)` by cn<File>(null)
          val `cv(File)` by cv<File>(APP.location.spitplayer_exe)
@@ -269,6 +290,97 @@ class Tester(widget: Widget): SimpleController(widget) {
                      }
                   }
                }
+            }
+         }
+      }
+   }
+
+   fun testPathShapeTransitions() {
+      fun createEllipsePath(centerX: Double, centerY: Double, radiusX: Double, radiusY: Double, rotate: Double) = Path().apply {
+         elements += MoveTo(centerX - radiusX, centerY - radiusY)
+         elements += ArcTo().apply {
+            this.x = centerX - radiusX + 1
+            this.y = centerY - radiusY
+            this.isSweepFlag = false
+            this.isLargeArcFlag = true
+            this.radiusX = radiusX
+            this.radiusY = radiusY
+            this.xAxisRotation = rotate
+         }
+         elements += ClosePath()
+         stroke = Color.DODGERBLUE
+         strokeDashArray.setAll(5.0, 5.0)
+      }
+
+      onContentChange()
+      content.children setToOne scrollPane {
+         content = vBox {
+            lay += Group().apply {
+               children += Rectangle(0.0, 0.0, 220.0, 220.0)
+               children += Rectangle(0.0, 0.0, 10.0, 10.0).apply {
+                  arcHeight = 0.0
+                  arcWidth = 0.0
+                  fill = Color.GREEN
+               }
+               children += createEllipsePath(210.0, 110.0, 100.0, 80.0, 0.0)
+
+               PathTransition(8.seconds, children[2].asIs(), children[1].asIs()).apply {
+                  orientation = OrientationType.ORTHOGONAL_TO_TANGENT
+                  interpolator = Interpolator.LINEAR
+                  cycleCount = INDEFINITE
+                  isAutoReverse = false
+                  play()
+                  onClose += ::stop
+               }
+            }
+            lay += stackPane {
+               prefSize = 500.x2
+               lay += Group().apply {
+                  children += Rectangle().apply {
+                     fill = Color.TRANSPARENT
+                     width = 400.0
+                     height = 400.0
+                  }
+                  children += Circle(100.0, Color.AQUA).apply {
+                     styleClass += "xxx"
+                     centerX = 200.0
+                     centerY = 200.0
+                     clip = Group().apply {
+                        children += Rectangle().apply {
+                           fill = Color.TRANSPARENT
+                           width = 400.0
+                           height = 400.0
+                        }
+                        children += Arc().apply {
+                           styleClass += "yyy"
+                           this.type = ArcType.ROUND
+                           this.centerX = 200.0
+                           this.centerY = 200.0
+                           this.radiusX = 100.0
+                           this.radiusY = 100.0
+                           this.startAngle = 0.0
+
+                           val a = anim(3.seconds) { length = 360.0*it }
+                           a.delay(0.millis)
+                           a.interpolator = Interpolator.LINEAR
+                           a.cycleCount = Transition.INDEFINITE
+                           a.playOpen()
+                           onClose += a::stop
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   fun testCssGradients() {
+      onContentChange()
+      content.children setToOne scrollPane {
+         content = vBox {
+            lay += stackPane {
+               styleClass += "test-gradient"
             }
          }
       }

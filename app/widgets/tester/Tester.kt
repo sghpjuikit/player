@@ -1,6 +1,7 @@
 package tester
 
 import java.io.File
+import java.lang.Math.PI
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -31,6 +32,9 @@ import javafx.scene.shape.Path
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
+import kotlin.math.log2
+import kotlin.math.pow
+import kotlin.math.sin
 import kotlin.math.sqrt
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoNothing
@@ -254,7 +258,16 @@ class Tester(widget: Widget): SimpleController(widget) {
          "x^3" to { it -> it*it*it },
          "x^4" to { it -> it*it*it*it },
          "x^-2 (sqrt(x))" to { it -> sqrt(it) },
-         "x^-4 (sqrt(sqrt(x)))" to { it -> sqrt(sqrt(it)) }
+         "x^-4 (sqrt(sqrt(x)))" to { it -> sqrt(sqrt(it)) },
+         "log2 N(20)" to { it -> log2(1.0 + (it*1024*1024))/20.0 },
+         "log2 N(10)" to { it -> log2(1.0 + (it*1024))/10.0 },
+         "log2 N(4)" to { it -> log2(1.0 + (it*16))/4.0 },
+         "log2 N(2)" to { it -> log2(1.0 + (it*4))/2.0 },
+         "exp2 N(20)" to { it -> 20.0.pow(10*(it - 1)) },
+         "exp2 N(10)" to { it -> 10.0.pow(10*(it - 1)) },
+         "exp2 N(4)" to { it -> 4.0.pow(10*(it - 1)) },
+         "exp2 N(2)" to { it -> 2.0.pow(10*(it - 1)) },
+         "sin" to { it -> sin(PI/2*it) },
       )
       onContentChange()
       content.children setToOne scrollPane {

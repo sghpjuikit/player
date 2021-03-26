@@ -65,6 +65,7 @@ import java.util.ArrayList
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_INFO
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
 import sp.it.util.Sort.ASCENDING
+import sp.it.util.conf.cv
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
 import sp.it.util.functional.Util.SAME
@@ -86,9 +87,9 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       .def(name = "Remember playback state", info = "Continue last remembered playback when application starts.")
    var continuePlaybackPaused by c(false)
       .def(name = "Pause playback on start", info = "Continue last remembered playback paused on application start.")
-   var seekUnitT by c(4.seconds)
+   val seekUnitT by cv(4.seconds)
       .def(name = "Seek time unit", info = "Time to jump by when seeking forward/backward.")
-   var seekUnitP by c(0.05).between(0.0, 1.0)
+   val seekUnitP by cv(0.05).between(0.0, 1.0)
       .def(name = "Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.")
    val playerInfo by cvro("<none>") { player.pInfo }
       .def(name = "Player", info = "Exact player implementation currently in use.", editable = EditMode.NONE)
@@ -447,13 +448,13 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Seek forward by small duration unit.  */
    @IsAction(name = "Seek forward", info = "Seek playback forward by small duration unit.", keys = "ALT+D", repeat = true, global = true)
    fun seekForwardAbsolute() {
-      seek(state.playback.currentTime.value.add(seekUnitT))
+      seek(state.playback.currentTime.value.add(seekUnitT.value))
    }
 
    /** Seek forward by small fraction unit.  */
    @IsAction(name = "Seek forward (%)", info = "Seek playback forward by fraction.", keys = "SHIFT+ALT+D", repeat = true, global = true)
    fun seekForwardRelative() {
-      val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() + seekUnitP
+      val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() + seekUnitP.value
       seek(d min 1.0)
    }
 
@@ -467,13 +468,13 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    /** Seek backward by small duration unit.  */
    @IsAction(name = "Seek backward", info = "Seek playback backward by small duration unit.", keys = "ALT+A", repeat = true, global = true)
    fun seekBackwardAbsolute() {
-      seek(state.playback.currentTime.value.subtract(seekUnitT))
+      seek(state.playback.currentTime.value.subtract(seekUnitT.value))
    }
 
    /** Seek backward by small fraction unit.  */
    @IsAction(name = "Seek backward (%)", info = "Seek playback backward by fraction.", keys = "SHIFT+ALT+A", repeat = true, global = true)
    fun seekBackwardRelative() {
-      val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() - seekUnitP
+      val d = state.playback.currentTime.value.toMillis()/state.playback.duration.value.toMillis() - seekUnitP.value
       seek(d max 0.0)
    }
 

@@ -154,9 +154,9 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
                VERTICAL -> splitPane.sceneToLocal(0.0, it.sceneY).y/splitPane.height
             }
             val vSnap = !it.isShiftDown && !it.isShortcutDown
-            val vSnaps = when (vSnap) {
-               false -> sequenceOf(0.0, 1.0)
-               true -> sequenceOf(0.0, 1.0, 0.5, if (splitPane.orientation==HORIZONTAL) splitPane.height/splitPane.width else splitPane.width/splitPane.height)
+            val vSnaps = when {
+               vSnap -> sequenceOf(0.0, 1.0, 0.5, if (splitPane.orientation==HORIZONTAL) splitPane.height/splitPane.width else splitPane.width/splitPane.height)
+               else -> sequenceOf(0.0, 1.0)
             }
             val v = (vSnaps.minByOrNull { (it-vRaw).absoluteValue }?.takeIf { (it-vRaw).absoluteValue<=collapsedActivatorDist } ?: vRaw).clip(0.0, 1.0)
 

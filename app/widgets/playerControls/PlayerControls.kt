@@ -110,7 +110,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
 
       val ps = APP.audio.state.playback
 
-      seeker.bindTime(ps.duration, ps.currentTime) on onClose
+      seeker.bindTime(ps) on onClose
       seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
       seeker.prefHeight = 30.0
 

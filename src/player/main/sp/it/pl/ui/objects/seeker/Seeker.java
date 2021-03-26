@@ -8,8 +8,6 @@ import java.util.function.Consumer;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
@@ -25,6 +23,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
+import sp.it.pl.audio.playback.PlaybackState;
 import sp.it.pl.audio.tagging.Chapter;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.ui.objects.SpitText;
@@ -32,7 +31,6 @@ import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.popup.PopWindow;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
-import sp.it.util.animation.Loop;
 import sp.it.util.animation.interpolator.CircularInterpolator;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
@@ -61,8 +59,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.media.MediaPlayer.Status.PLAYING;
-import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.audio.tagging.Chapter.validateChapterText;
 import static sp.it.pl.audio.tagging.SongWritingKt.write;
@@ -70,6 +66,7 @@ import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.itemnode.ConfigFieldEditorsKt.STYLECLASS_CONFIG_EDITOR_WARN_BUTTON;
+import static sp.it.pl.ui.objects.seeker.SeekerUtilsKt.bindTimeToSmooth;
 import static sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER;
 import static sp.it.util.Util.clip;
 import static sp.it.util.animation.Anim.mapConcave;
@@ -118,6 +115,10 @@ public final class Seeker extends AnchorPane {
 		seeker.addEventFilter(MOUSE_PRESSED, e -> {
 			if (e.getButton()==PRIMARY) {
 				user_drag = true;
+			}
+			if (e.getButton()==SECONDARY && user_drag) {
+				user_drag = false;
+				seeker.setValueChanging(false);
 			}
 			e.consume();
 		});
@@ -330,13 +331,6 @@ public final class Seeker extends AnchorPane {
 	/****************************************** POSITION **********************************************/
 
 	private ObjectProperty<Duration> timeTot = null;
-	private ObjectProperty<Duration> timeCur = null;
-	private final ChangeListener<Object> timeUpdater = (o, ov, nv) -> timeUpdate();
-	private final Loop timeLoop = new Loop(this::timeUpdateDo);
-	private double posLast = 0;
-	private long posLastFrame = 0;
-	private double posUpdateInterval = 20;
-	private long posLastUpdate = 0;
 
 	/**
 	 * Binds to total and current duration value. This will cause seeker to update when the total
@@ -348,58 +342,11 @@ public final class Seeker extends AnchorPane {
 	 * time of the playing song and then call this method only once and subsequently call dispose
 	 * only once as well at the end of the entire playback.
 	 *
-	 * @param totalTime length of the song
-	 * @param currentTime time seeker within the playback of the song.
 	 * @return the runnable which disposes of the binding
 	 */
-	public Subscription bindTime(ObjectProperty<Duration> totalTime, ObjectProperty<Duration> currentTime) {
-		if (timeTot!=null) timeTot.removeListener(timeUpdater);
-		if (timeCur!=null) timeCur.removeListener(timeUpdater);
-		widthProperty().removeListener(timeUpdater);
-
-		timeTot = totalTime;
-		timeCur = currentTime;
-
-		timeTot.addListener(timeUpdater);
-		timeCur.addListener(timeUpdater);
-		widthProperty().addListener(timeUpdater);
-
-		timeUpdater.changed(null, ZERO, ZERO);
-		timeLoop.start();
-
-		return () -> {
-			timeLoop.stop();
-			if (timeTot!=null) timeTot.unbind();
-			if (timeCur!=null) timeCur.unbind();
-			if (timeTot!=null) timeTot.removeListener(timeUpdater);
-			if (timeCur!=null) timeCur.removeListener(timeUpdater);
-			timeTot = new SimpleObjectProperty<>(Duration.ONE);
-			timeCur = new SimpleObjectProperty<>(Duration.ONE);
-			timeUpdater.changed(null, null, null);
-		};
-	}
-
-	private void timeUpdate() {
-		if (timeTot.getValue()==null) return; // bug fix
-		posLast = timeCur.getValue().toMillis()/timeTot.getValue().toMillis();
-		posLastFrame = 0;   // when we seek dt must be 0
-		posUpdateInterval = clip(0, timeTot.getValue().toMillis()/getWidth(), 60);
-		if (!user_drag) setSeekerValue(posLast);
-	}
-
-	private void timeUpdateDo(long frame) {
-		if (!user_drag && APP.audio.getState().playback.getStatus().getValue()==PLAYING) {
-			long dt = posLastFrame==0 ? 0 : (frame - posLastFrame)/1000000;
-			double dp = dt/timeTot.get().toMillis();
-			posLast += dp;
-
-			long now = System.currentTimeMillis();
-			if (now - posLastUpdate>posUpdateInterval) {
-				posLastUpdate = now;
-				setSeekerValue(posLast);
-			}
-		}
-		posLastFrame = frame;
+	public Subscription bindTime(PlaybackState playback) {
+		timeTot = playback.getDuration();
+		return bindTimeToSmooth(playback, consumer(it -> { if (!user_drag) setSeekerValue(it); }));
 	}
 
 	/**************************************************************************************************/

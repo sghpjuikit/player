@@ -1,0 +1,48 @@
+.icon {
+    -fx-fill: -fx-focus-color;
+}
+.icon:hover {
+    -fx-fill: -fx-focus-color;
+    -fx-effect: none;
+}
+
+.seeker-label {
+    -fx-text-fill: -fx-focus-color;
+    -fx-padding: 1em;
+}
+
+/*
+ * pseudoclasses: focused, readonly
+ */
+.seeker-circle {
+    -fx-max-width: 60;
+    -fx-max-height: 60;
+    -fx-background-color: radial-gradient(center 50% 50%, radius 100%, -skin-color-lighter, transparent 55%, transparent);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+.seeker-circle .seeker-circle-bgr {
+    -fx-fill: transparent;
+    -fx-stroke: rgba(0,220,220,0.3);
+    -fx-stroke-type: outside;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+    -fx-stroke-dash-array: 3 8;
+    -fx-effect: dropshadow(gaussian, black, 25, 0.2 , 0,0);
+}
+.seeker-circle .seeker-circle-frg {
+    -fx-fill: transparent;
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-type: inside;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 10, 0.2 , 0,0);
+}
+.seeker-circle:focused .seeker-circle-bgr {
+    -fx-stroke-dash-array: 5 5;
+}
+.seeker-circle:focused .seeker-circle-frg {
+    -fx-stroke-width: 3;
+}

@@ -1,0 +1,9 @@
+
+.test-gradient {
+    -fx-min-width: 400;
+    -fx-min-height: 400;
+    -fx-border-color: radial-gradient(center 50% 50%, radius 50%, black, black 85%, transparent);
+    -fx-border-width: 50;
+    -fx-border-radius: 125;
+    -fx-background-color: radial-gradient(center 50% 50%, radius 50%, rgba(50,80,250), rgba(0,0,255,0.3) 85%, transparent);
+}

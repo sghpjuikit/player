@@ -155,8 +155,8 @@ class Notifier: PluginBase() {
       n.duration = if (isPermanent) INDEFINITE else notificationDuration
       n.rClickAction = onClickR.value
       n.lClickAction = onClickL.value
-      n.onShown.addSOnetime { ns += n }
-      n.onHidden.addSOnetime { ns -= n }
+      n.onShown attach1 { ns += n }
+      n.onHidden attach1 { ns -= n }
       n.show(notificationScr(notificationPos).map {
          if (nss.isEmpty()) it
          else when(notificationPos.vpos!!) {

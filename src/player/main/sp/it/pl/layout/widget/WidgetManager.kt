@@ -129,7 +129,6 @@ import kotlin.reflect.cast
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cList
-import sp.it.util.type.map
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -962,7 +961,7 @@ sealed class ComponentLoader: (Component) -> Any {
 
             init {
                onShowing += {
-                  stage!!.installWindowInteraction()::unsubscribe.let(onHidden::addSOnetime)
+                  stage!!.installWindowInteraction()::unsubscribe.let(onHidden::attach1)
                   stage!!.properties[Window.keyWindowLayout] = layout
                   layout.focus()
                }
@@ -1016,7 +1015,7 @@ sealed class ComponentLoader: (Component) -> Any {
          val p = PopWindow().apply {
             content.value = l.root
             title.value = c.name
-            root.installWindowInteraction()::unsubscribe.let(onHiding::addSOnetime)
+            root.installWindowInteraction()::unsubscribe.let(onHiding::attach1)
             properties[Window.keyWindowLayout] = l
             onHiding += { properties -= Window.keyWindowLayout }
             onHiding += { l.close() }

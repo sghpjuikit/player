@@ -17,13 +17,13 @@ class Handler0: MutableSet<() -> Unit> by LinkedHashSet(2), () -> Unit {
    }
 
    /** Adds specified block to this. */
-   fun addS(block: () -> Unit): Subscription {
+   infix fun attach(block: () -> Unit): Subscription {
       add(block)
       return Subscription { remove(block) }
    }
 
    /** Adds specified block to this so it is removed after it runs. */
-   fun addSOnetime(block: () -> Unit): Subscription {
+   infix fun attach1(block: () -> Unit): Subscription {
       val r = RemovingF(block)
       add(r)
       return Subscription { remove(r) }

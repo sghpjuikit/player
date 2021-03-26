@@ -275,7 +275,7 @@ class ComplexCE<T>(c: Config<T>): ConfigEditor<T>(c) {
          }
       }
       editorPrimary.updateValue(c.value)
-      editorPrimary.onValueChange.addS { valueTextChangingUser.suppressed { valueChanging.suppressing { apply() } } } on disposer
+      editorPrimary.onValueChange attach { valueTextChangingUser.suppressed { valueChanging.suppressing { apply() } } } on disposer
       v?.attach { valueChanging.suppressed { editorPrimary.updateValue(it) } }.orEmpty() on disposer
 
       // readonly
@@ -436,7 +436,7 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
 
       // value
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on disposer
+      editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
       
       // readonly
@@ -459,7 +459,7 @@ class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on disposer
+      editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
       // readonly
@@ -482,7 +482,7 @@ class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on disposer
+      editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
       // readonly
@@ -505,7 +505,7 @@ class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on disposer
+      editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
       // readonly
@@ -528,7 +528,7 @@ class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on disposer
+      editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
       // readonly
@@ -551,7 +551,7 @@ class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.value = config.value
-      editor.onValueChange.addS { apply() } on disposer
+      editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
       // readonly

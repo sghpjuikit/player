@@ -406,7 +406,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       WindowFX.getWindows().onItemSyncWhile {
          it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { root ->
             val s1 = skin sync { root.applySkinGui(it) }
-            val s2 = additionalStylesheets.onChange.addS {
+            val s2 = additionalStylesheets.onChange attach {
                root.applySkinGui(skin.value)
             }
             s1 + s2

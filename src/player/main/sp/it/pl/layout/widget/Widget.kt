@@ -28,7 +28,6 @@ import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.main.APP
 import sp.it.util.Locatable
 import sp.it.util.access.readOnly
-import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
@@ -250,7 +249,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       val c = factory.controllerType
       logger.info { "Instantiating $logName controller" }
       return runTry { c.java.getDeclaredConstructor(Widget::class.java).newInstance(this) }
-         .ifError { logger.error(it) { "Instantiating $logName controller failed $c" } }
+         .ifError { APP.actionStream(RuntimeException("Instantiating $logName widget controller ($c) failed", it)) }
          .orNull()
    }
 

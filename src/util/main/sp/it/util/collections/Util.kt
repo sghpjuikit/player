@@ -178,10 +178,10 @@ class ObservableMapRO<K,V>(private val map: ObservableMap<K,V>): Map<K,V> by map
 }
 
 /** @return mutable observable list */
-fun <T> observableList(): ObservableList<T> = observableArrayList()
+fun <T> observableList(vararg items: T): ObservableList<T> = observableArrayList(*items)
 
 /** @return mutable observable set */
-fun <T> observableSet(): ObservableSet<T> = observableSet()
+fun <T> observableSet(vararg items: T): ObservableSet<T> = observableSet(*items)
 
 /** @return mutable observable map */
 fun <K,V> observableMap(): ObservableMap<K,V> = FXCollections.observableHashMap()

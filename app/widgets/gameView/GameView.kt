@@ -149,9 +149,7 @@ import sp.it.util.units.year
 
 class GameView(widget: Widget): SimpleController(widget) {
 
-   private val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
-      attach { applyCellSize() }
-   }
+   private val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
       .defInherit(APP.ui::gridShowFooter)

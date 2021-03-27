@@ -21,6 +21,7 @@ import sp.it.util.reactive.attach1If
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.zip
 
 class JavaFxPlayer: GeneralPlayer.Play {
 
@@ -59,7 +60,7 @@ class JavaFxPlayer: GeneralPlayer.Play {
 
             p.startTime = ZERO
 
-            syncTo(state.volume, state.volumeFadeMultiplier) { v, vm -> p.volume = linToLog(v.toDouble() * vm.toDouble()) } on onDispose
+            state.volume zip state.volumeFadeMultiplier sync { (v, vm) -> p.volume = linToLog(v.toDouble() * vm.toDouble()) } on onDispose
             state.volume sync { v -> p.volume = linToLog(v.toDouble()) } on onDispose
             state.mute syncTo p.muteProperty() on onDispose
             state.rate syncTo p.rateProperty() on onDispose

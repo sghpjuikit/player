@@ -1,6 +1,5 @@
 package sp.it.pl.audio.playback
 
-import javafx.geometry.Pos.CENTER
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
@@ -14,7 +13,6 @@ import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.main.AppError
 import sp.it.pl.main.bullet
 import sp.it.pl.main.configure
-import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
@@ -25,7 +23,6 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.div
@@ -33,12 +30,10 @@ import sp.it.util.file.unzip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncTo
 import sp.it.util.system.Os
 import sp.it.util.ui.lay
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
-import sp.it.util.units.em
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
@@ -116,7 +111,7 @@ class VlcPlayer: GeneralPlayer.Play {
       val p = pf.mediaPlayers().newMediaPlayer()
       player = p
 
-      syncTo(state.volume, state.volumeFadeMultiplier) { v, vm -> p.audio().setVolume((100*v.toDouble() * vm.toDouble()).roundToInt()) } on d
+      state.volume zip state.volumeFadeMultiplier sync { (v, vm) -> p.audio().setVolume((100*v.toDouble() * vm.toDouble()).roundToInt()) } on d
       state.mute sync { p.audio().isMute = it } on d
       state.rate sync { p.controls().setRate(it.toFloat()) } on d
       state.loopMode sync { p.controls().repeat = it==SONG } on d

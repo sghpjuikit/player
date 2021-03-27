@@ -117,9 +117,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-   private val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
-      attach { applyCellSize() }
-   }
+   private val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    val grid = GridView<Album, MetadataGroup>(Album::items, 50.emScaled.x2, 5.emScaled.x2)
 

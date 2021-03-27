@@ -44,7 +44,8 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sizes
-import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.zip
 import sp.it.util.type.nullify
 import sp.it.util.ui.listView
 
@@ -59,7 +60,8 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
          items = control.suggestions
 
          cellFactory = Callback { buildListCell(it) }
-         syncTo(control.visibleRowCount, items.sizes(), fixedCellSizeProperty()) { rowCount, itemCount, cellSize ->
+         control.visibleRowCount zip items.sizes() zip fixedCellSizeProperty() sync { (counts, cellSize) ->
+            val (rowCount, itemCount) = counts
             prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
          } on onDispose
 

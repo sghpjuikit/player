@@ -186,7 +186,7 @@ import sp.it.util.math.max
 import sp.it.util.parsing.ConverterFromString
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onChange
-import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.zip
 import sp.it.util.text.splitTrimmed
 import sp.it.util.type.property
 import sp.it.util.ui.show
@@ -1000,7 +1000,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      maxSize = Double.MAX_VALUE.x2
                      styleClass += "tag-field"
                      isWrapText = true
-                     syncTo(textProperty(), prefColumnCountProperty()) { txt, columns ->
+                     textProperty() zip prefColumnCountProperty() sync { (txt, columns) ->
                         prefRowCount = (txt.orEmpty().lineSequence().sumBy { 1 max ceil(it.length.toDouble()/columns.toDouble()).roundToInt() } - 1).clip(0,6)
                      }
                   }

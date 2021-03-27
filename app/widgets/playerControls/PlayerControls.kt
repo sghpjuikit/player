@@ -126,8 +126,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       titleL.isWrapText = true
 
       ps.duration sync { totalTime.text = it.toHMSMs() } on onClose
-      ps.currentTime.map(onClose) { it.toSeconds().toLong() } sync { timeChanged(ps) }
-      ps.realTimeImpl.map(onClose) { it.toSeconds().toLong() } sync { realTime.text = it.seconds.toHMSMs() }
+      ps.currentTime map { it.toSeconds().toLong() } sync { timeChanged(ps) } on onClose
+      ps.realTimeImpl map { it.toSeconds().toLong() } sync { realTime.text = it.seconds.toHMSMs() } on onClose
       ps.status sync { statusChanged(it) } on onClose
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
@@ -146,7 +146,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          { e -> PlaylistManager.use { it.addItems(e.dragboard.getAudio()) } }
       )
 
-      root.heightProperty().map(onClose) { it.toDouble()<100.0.emScaled } sync {
+      root.heightProperty() map { it.toDouble()<100.0.emScaled } sync {
          val layout: Layout = if (it) layoutSmall else layoutBig
          root.children setToOne layout.with(f2, f3, f4, muteB, seeker)
          f2.size(if (it) 24 else 72)

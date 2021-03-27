@@ -60,6 +60,7 @@ import sp.it.util.access.readOnly
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.functional.net
+import sp.it.util.reactive.Disposer
 import sp.it.util.type.VType
 
 private val defTooltip = appTooltip("Default value")
@@ -83,7 +84,8 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
       object: BooleanBinding() {
          init { bind(isEditableAllowed, it) }
          override fun computeValue() = isEditableAllowed.value && it.value
-      }.apply {
+         override fun dispose() = unbind(isEditableAllowed, it)
+      }.run {
          readOnly()
       }
    }
@@ -97,11 +99,12 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
    /** The node setting and displaying the value */
    abstract val editor: Node
    /** Disposer, convenience for: [editor].[Node.onNodeDispose] . */
-   protected val disposer get() = editor.onNodeDispose
+   protected val disposer = Disposer()
 
    abstract fun get(): Try<T, String>
 
    fun getValid(): Try<T, String> = get().and { v ->
+
       if (!config.type.isNullable) ObjectNonNull.validate(v) else Try.ok()
    }.and { v ->
       config.constraints.map { it.validate(v) }.find { it.isError } ?: Try.ok()
@@ -323,15 +326,11 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                KeyCode::class -> KeyCodeCE(config.asIs())
                else -> EnumerableCE(config)
             }
-            config.isComplex() -> {
-               ComplexCE(config.asIs())
-            }
-            config.isMinMax() -> {
-               SliderCE(config.asIs())
-            }
-            else -> {
-               editorBuilders[config.type.jvmErasure]?.invoke(config) ?: GeneralCE(config)
-            }
+            config.isComplex() -> ComplexCE(config.asIs())
+            config.isMinMax() -> SliderCE(config.asIs())
+            else -> editorBuilders[config.type.jvmErasure]?.invoke(config) ?: GeneralCE(config)
+         }.apply {
+            editor.onNodeDispose += { disposer() }
          }.asIs()
       }
 

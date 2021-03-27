@@ -24,13 +24,13 @@ import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncTo
 import sp.it.util.type.VType
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.pseudoClassChanged
 import java.util.ArrayList
+import sp.it.util.reactive.zip
 
 /**
  * Value node containing function.
@@ -53,7 +53,7 @@ class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwi
          fCB.items setTo functions.sortedBy { it.name }
          fCB.value = functions.preferredOrFirst
          // display non-editable as label
-         syncTo(isEditableRawFunction, fCB.items.sizes()) { editable, itemCount ->
+         isEditableRawFunction zip fCB.items.sizes() sync { (editable, itemCount) ->
             fCB.pseudoClassChanged("editable", editable && itemCount.toInt()>1)
          }
          fCB.valueProperty() sync { function ->

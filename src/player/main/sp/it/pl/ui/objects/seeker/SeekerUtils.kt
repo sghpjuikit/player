@@ -12,7 +12,8 @@ import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.main.APP
 import sp.it.util.animation.Loop
 import sp.it.util.reactive.Subscription
-import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.zip
 import sp.it.util.units.divMillis
 
 /** Observes [PlaybackState] durations to update playback position in 0-1 value range. */
@@ -22,7 +23,7 @@ fun bindTimeTo(playback: PlaybackState, smooth: Boolean, block: (Double) -> Unit
 
 /** Observes [PlaybackState] durations to update playback position in 0-1 value range in regular macro intervals. */
 fun bindTimeToDiscrete(playback: PlaybackState, block: (Double) -> Unit): Subscription =
-   syncTo(playback.currentTime, playback.duration) { c,t -> block(if (t==null) 0.0 else c.divMillis(t)) }
+   playback.currentTime zip playback.duration sync { (c, t) -> block(if (t==null) 0.0 else c.divMillis(t)) }
 
 /** Observes [PlaybackState] durations to update playback position in 0-1 value range on each JavaFX UI pulse. */
 fun bindTimeToSmooth(playback: PlaybackState, block: (Double) -> Unit): Subscription {

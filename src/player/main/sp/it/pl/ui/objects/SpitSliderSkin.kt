@@ -21,7 +21,7 @@ import sp.it.util.reactive.attachWhileTrue
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.zip
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -68,7 +68,7 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
          styleClass += "fill"
          isManaged = false
          isMouseTransparent = true
-         syncTo(thumb.boundsInParentProperty(), track.boundsInParentProperty()) { _, _ ->
+         thumb.boundsInParentProperty() zip track.boundsInParentProperty() sync { (_, _) ->
             val isVertical = skinnable.orientation==VERTICAL
             resizeRelocate(
                track.boundsInParent.minX,

@@ -322,7 +322,6 @@ fun Font.rowHeight(): Double {
 fun searchTextField() = SpitTextField().apply {
    id = "search-text-field"
    styleClass += "search"
-   val isEmpty = textProperty().map { it.isNullOrBlank() }
 
    onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
       if (!text.isNullOrEmpty()) {
@@ -344,7 +343,7 @@ fun searchTextField() = SpitTextField().apply {
       i.visibleProperty() syncFrom editableProperty()
 
       val fade = anim(200.millis) { i.opacity = it }.applyNow()
-      isEmpty attach { fade.playFromDir(!it) }
+      textProperty() map { it.isNullOrBlank() } attach { println(it);fade.playFromDir(!it) }
    }
 }
 

@@ -602,7 +602,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       chain.isHeaderVisible = true
 
       // readonly
-      chain.editable syncFrom when { lc.a.itemFactory is FailFactory -> vAlways(false) else -> isEditable }
+      chain.editable syncFrom when { lc.a.itemFactory is FailFactory -> vAlways(false) else -> isEditable } on disposer
 
       // bind list to chain
       chain.onUserItemAdded += {
@@ -685,7 +685,7 @@ class CheckListCE<T, S: Boolean?>(c: CheckListConfig<T, S>): ConfigEditor<CheckL
          selected.value = list.selections[i]
          selected attach { list.selections[i] = it as S }
          selected attach { updateSuperIcon() }
-         editable syncFrom isEditable
+         editable syncFrom isEditable on disposer
          styleclass("boolean-config-editor")
          icons(IconMA.CHECK_BOX, IconMA.CHECK_BOX_OUTLINE_BLANK, IconMA.DO_NOT_DISTURB)
          onClickDo {

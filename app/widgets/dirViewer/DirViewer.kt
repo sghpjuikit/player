@@ -86,7 +86,6 @@ import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncTo
 import sp.it.util.system.chooseFile
 import sp.it.util.system.edit
 import sp.it.util.system.open
@@ -121,6 +120,7 @@ import sp.it.util.conf.cr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
+import sp.it.util.reactive.zip
 import sp.it.util.system.recycle
 import sp.it.util.text.keys
 import sp.it.util.text.resolved
@@ -172,9 +172,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
    val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone).readOnlyUnless(coverOn)
       .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
-   val cellTextHeight = APP.ui.font.map(onClose) { 43.0.emScaled }.apply {
-      attach { applyCellSize() }
-   }
+   val cellTextHeight = APP.ui.font.map { 43.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    private val grid = GridView<Item, File>({ it.value }, 50.emScaled.x2, 5.emScaled.x2)
    private val itemVisitId = AtomicLong(0)
@@ -203,7 +201,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
       grid.search.field = FileField.PATH
       grid.filterPrimaryField = FileField.NAME_FULL
-      grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } }
+      grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } } on onClose
       grid.cellAlign syncFrom gridCellAlignment on onClose
       grid.footerVisible syncFrom gridShowFooter on onClose
       grid.skinProperty() attach {
@@ -530,7 +528,8 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       init {
          spacing = 0.0
          alignment = CENTER_LEFT
-         syncTo(filesEmpty, navigationVisible) { a, b ->
+
+         filesEmpty zip navigationVisible sync { (a, b) ->
             if (!a && b) children setTo listOf(upIcon, breadcrumbs)
             else children.clear()
          }

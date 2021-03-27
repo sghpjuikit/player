@@ -63,7 +63,6 @@ import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncTo
 import sp.it.util.type.VType
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.isSubclassOf
@@ -81,6 +80,7 @@ import java.util.function.BiPredicate
 import java.util.function.Consumer
 import java.util.stream.Stream
 import kotlin.streams.toList
+import sp.it.util.reactive.zip
 
 /**
  * List editor with transformation ability. Editable area with function editor displaying the list contents.
@@ -423,7 +423,7 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
          fCB.value = transformations.preferredOrFirst
          fCB.disableProperty() syncFrom isEditableRawFunction.not()
          // display non-editable as label
-         syncTo(isEditableRawFunction, fCB.items.sizes()) { editable, itemCount ->
+         isEditableRawFunction zip fCB.items.sizes() sync { (editable, itemCount) ->
             fCB.pseudoClassChanged("editable", editable && itemCount.toInt()>1)
          }
          // display TransformationRaw.Manual as label

@@ -86,6 +86,7 @@ import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.attachTo
+import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -93,8 +94,7 @@ import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncTo
-import sp.it.util.reactive.syncWhile
+import sp.it.util.reactive.zip
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -134,7 +134,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       root.prefSize = 850.emScaled x 200.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
 
-      ps.currentTime.map(onClose) { it.toSeconds().toLong() } sync { timeChanged(ps) }
+      ps.currentTime map { it.toSeconds().toLong() } sync { timeChanged(ps) } on onClose
       ps.status sync { statusChanged(it) } on onClose
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
@@ -157,10 +157,10 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
             lay += seeker.apply {
                valueSymmetrical.value = true
 
-               seekType syncWhile { s ->
-                  when (s) {
-                     Seek.RELATIVE -> blockIncrement syncFrom APP.audio.seekUnitP
-                     Seek.ABSOLUTE -> ps.duration syncWhile { td -> APP.audio.seekUnitT sync { sd -> blockIncrement.value = sd.divMillis(td) } }
+               blockIncrement syncFrom seekType.flatMap {
+                  when (it) {
+                     Seek.RELATIVE -> APP.audio.seekUnitP
+                     Seek.ABSOLUTE -> ps.duration zip APP.audio.seekUnitT map { (td, sd) -> sd.divMillis(td) }
                   }
                } on onClose
 
@@ -342,7 +342,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                isCache = true
                isCacheShape = true
                cacheHint = ROTATE
-               syncTo(valueShown, valueSymmetrical) { v, vs -> rotate = if (vs) 180.0*v else 0.0 }
+               valueShown zip valueSymmetrical sync { (v, vs) -> rotate = if (vs) 180.0*v else 0.0 }
             }
             children += Circle(W/4.0).apply {
                styleClass += "seeker-circle-frg"

@@ -13,8 +13,9 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncTo
 import kotlin.math.abs
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.zip
 
 class Balancer: Control {
 
@@ -73,7 +74,7 @@ class BalancerSkin(b: Balancer): SkinBase<Balancer>(b) {
          minProperty() syncFrom b.min on disposer
          maxProperty() syncFrom b.max on disposer
          valueProperty() syncFrom b.balance on disposer
-         syncTo(b.min, b.max) { min, max -> majorTickUnit = (max.toDouble() - min.toDouble())/2.0 } on disposer
+         b.min zip b.max sync { (min, max) -> majorTickUnit = (max.toDouble() - min.toDouble())/2.0 } on disposer
          majorTickUnit = (b.max.value - b.min.value)/2.0
          minorTickCount = 1
          isSnapToTicks = true

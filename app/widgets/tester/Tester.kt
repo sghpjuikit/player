@@ -74,6 +74,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
+import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
@@ -82,7 +83,12 @@ import sp.it.util.file.div
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
+import sp.it.util.reactive.flatMap
+import sp.it.util.reactive.map
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.syncWhile
+import sp.it.util.reactive.zip
 import sp.it.util.text.nameUi
 import sp.it.util.type.type
 import sp.it.util.ui.flowPane
@@ -115,12 +121,14 @@ class Tester(widget: Widget): SimpleController(widget) {
       root.prefSize = 800.emScaled x 500.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
+
       root.lay += vBox(0.0, TOP_CENTER) {
          lay += flowPane(25.emScaled, 25.emScaled) {
             alignment = Pos.CENTER
             padding = Insets(10.emScaled, 10.emScaled, 20.emScaled, 10.emScaled)
             lay += Icon(IconOC.CODE).onClickDo { testInputs() }.withText("Test widget inputs")
             lay += Icon(IconOC.CODE).onClickDo { testFxConfigs() }.withText("Test Fx Configs")
+            lay += Icon(IconOC.CODE).onClickDo { testValueObserving() }.withText("Test observing values")
             lay += Icon(IconOC.CODE).onClickDo { testEditors() }.withText("Test Config Editors")
             lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Animation Interpolators")
             lay += Icon(IconOC.CODE).onClickDo { testPathShapeTransitions() }.withText("Path/Shape Animations")
@@ -396,6 +404,50 @@ class Tester(widget: Widget): SimpleController(widget) {
                styleClass += "test-gradient"
             }
          }
+      }
+   }
+
+   fun testValueObserving() {
+      onContentChange()
+
+      val c = object: ConfigurableBase<Any?>() {
+         val aa by cv(true).def(name = "Select 'a' if true else 'b + c'")
+         val a by cv(1.0).between(1, 10)
+         val b by cv(2.0).between(1, 10)
+         val c by cv(3.0).between(1, 10)
+         val consumer1 = v(0.0)
+         val consumer2 = v(0.0)
+      }
+
+      c.consumer1 syncFrom c.aa.flatMap {
+         when (it) {
+            true -> c.a
+            false -> c.b zip c.c map { (td, sd) -> sd + td }
+         }
+      }
+
+      c.aa syncWhile { s ->
+         when (s) {
+            true -> c.consumer2 syncFrom c.a
+            false -> c.b syncWhile { td -> c.c sync { sd -> c.consumer2.value = sd + td } }
+         }
+      }
+
+      content.children setToOne vBox {
+         lay += label("Complex value observation.\nThe below values should always be the same. ") {
+            isWrapText = true
+         }
+         lay += label()
+         lay += label {
+            isWrapText = true
+            textProperty() syncFrom c.consumer1.map { "  Map/flatMap based. Tests map(), flatMap(), zip()\n    Value: $it" }
+         }
+         lay += label()
+         lay += label {
+            isWrapText = true
+            textProperty() syncFrom c.consumer2.map { "  Subscription based. Tests subscription nesting.\n    Value: $it" }
+         }
+         lay += form(c)
       }
    }
 

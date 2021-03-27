@@ -31,7 +31,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncTo
+import sp.it.util.reactive.zip
 import sp.it.util.ui.Util.layScrollVTextCenter
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -89,7 +89,7 @@ class ErrorPane: OverlayPane<Any>() {
                }
                lay += Icon(IconFA.ANGLE_RIGHT, -1.0, "Next message").onClickDo { visitRight() }
                lay += Icon(null, -1.0, "Toggle text alignment").apply {
-                  syncTo(uiErrorsOnly, uiTextAlignment) { isErrOnly, txtAlign ->
+                  uiErrorsOnly zip uiTextAlignment sync { (isErrOnly, txtAlign) ->
                      uiText.textAlign.value = if (isErrOnly) TextAlignment.LEFT else txtAlign
                   }
                   uiText.textAlign sync {

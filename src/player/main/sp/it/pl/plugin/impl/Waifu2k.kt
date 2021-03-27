@@ -18,9 +18,10 @@ import sp.it.util.conf.uiOut
 import sp.it.util.file.FileType.FILE
 import sp.it.util.functional.Try
 import sp.it.util.reactive.Subscribed
-import sp.it.util.reactive.syncTo
 import sp.it.util.system.Os
 import java.io.File
+import sp.it.util.reactive.sync
+import sp.it.util.reactive.zip
 
 class Waifu2k: PluginBase() {
 
@@ -49,7 +50,7 @@ class Waifu2k: PluginBase() {
          val scale by cv(2).def(name = "Scale", info = "Scaling factor. Take input image resolution into consideration and do not scale to giant resolutions.", group = "3").min(2)
 
          init {
-            syncTo(source, scale) { f, sc ->
+            source zip scale sync { (f, sc) ->
                val isInitial = destination.value?.path?.endsWith("x(waifu2x).${f?.extension}")!=false
                if (isInitial) destination.value = f?.resolveSibling("${f.nameWithoutExtension}-scaled${sc}x(waifu2x).${f.extension}")
             }

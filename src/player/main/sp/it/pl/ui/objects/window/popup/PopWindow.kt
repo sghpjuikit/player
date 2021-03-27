@@ -51,7 +51,6 @@ import sp.it.util.math.P
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
@@ -61,6 +60,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onEventUp1
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.system.hasFileChooserOpen
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
@@ -306,7 +306,7 @@ open class PopWindow {
                   if (windowOwner==null) {
                      isAlwaysOnTop = true
                   } else {
-                     attachTo(windowOwner.focusedProperty(), focusedProperty()) { a, b -> stage.isAlwaysOnTop = a || b } on tillHiding
+                     windowOwner.focusedProperty() zip focusedProperty() attach { (a, b) -> stage.isAlwaysOnTop = a || b } on tillHiding
                   }
                }
 

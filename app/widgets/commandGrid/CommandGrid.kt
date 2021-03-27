@@ -71,9 +71,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    val coverFitFrom by cv(FitFrom.OUTSIDE)
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
-   val cellTextHeight = APP.ui.font.map(onClose) { 30.0.emScaled }.apply {
-      attach { applyCellSize() }
-   }
+   val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    init {
       root.prefSize = 900.emScaled x 500.emScaled

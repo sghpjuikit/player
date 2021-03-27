@@ -1,5 +1,7 @@
 package sp.it.util.reactive
 
+import java.util.IdentityHashMap
+import java.util.function.Consumer
 import javafx.beans.InvalidationListener
 import javafx.beans.Observable
 import javafx.beans.binding.Bindings.size
@@ -17,67 +19,152 @@ import javafx.scene.Node
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import sp.it.util.async.runLater
+import sp.it.util.collections.ObservableListRO
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.functional.kt
 import sp.it.util.functional.net
 import sp.it.util.identityHashCode
-import java.util.IdentityHashMap
-import java.util.function.Consumer
-import sp.it.util.collections.ObservableListRO
 
-interface UnsubscribableObservableValue<O>: ObservableValue<O>, Unsubscribable
-
-/**
- * Maps this observable value into one that contains values mapped from this, using the specified mapper.
- * The mapping is eager, so it happens on every change of this value.
- *
- * The returned observable is [Unsubscribable] to allow [Unsubscribable.unsubscribe], which stops
- * the mapping relationship between this and the returned observable, allowing the returned observable (or/and this) to
- * be garbage collected.
- *
- * To avoid the need to manually call [Unsubscribable.unsubscribe], it is possible to supply the [Unsubscriber].
- *
- * @return mapped observable value
- */
-fun <T, O> ObservableValue<T>.map(disposer: Unsubscriber = {}, mapper: (T) -> O) = object: UnsubscribableObservableValue<O> {
-   private val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
-   private val listeners2 by lazy { HashSet<InvalidationListener>(2) }
-   private var mv: O = mapper(this@map.value)
-   private var s: Subscription
-
-   init {
-      s = this@map attach { nv ->
-         val omv = mv
-         val nmv = mapper(nv)
-         mv = nmv
-         if (omv!=nmv) {
-            listeners1.forEach { it.changed(this, omv, nmv) }
-            listeners2.forEach { it.invalidated(this) }
-         }
-      }
-      s on disposer
-   }
+private abstract class MappedObservableValue<O>: ObservableValue<O> {
+   protected val listeners1 by lazy { HashSet<ChangeListener<in O>>(2) }
+   protected val listeners2 by lazy { HashSet<InvalidationListener>(2) }
 
    override fun addListener(listener: ChangeListener<in O>) {
       listeners1 += listener
+      updateListening()
    }
 
    override fun removeListener(listener: ChangeListener<in O>) {
       listeners1 -= listener
+      updateListening()
    }
 
    override fun addListener(listener: InvalidationListener) {
       listeners2 += listener
+      updateListening()
    }
 
    override fun removeListener(listener: InvalidationListener) {
       listeners2 -= listener
+      updateListening()
    }
 
-   override fun getValue() = mv
+   protected abstract fun updateListening()
 
-   override fun unsubscribe() = s.unsubscribe()
+}
+
+/**
+ * Maps this [ObservableValue] into one that contains values mapped by [mapper].
+ * When the returned observable is observed, the mapping is eager, so it happens on every change of this observable.
+ * When the returned observable is not observed, the mapping is lazy, so it happens on every [getValue].
+ *
+ * * The returned observable holds forever reference to this observable.
+ * * This observable holds reference to the returned observable if the returned observable is observed.
+ *
+ * Therefore to garbage collect the observable:
+ * * If this and returned observable share lifecycle, no action is necessary
+ * * If this observable outlives the returned observable, remove all listeners from the returned observable at the end of its life
+ * * If the returned observable outlives this observable, remove any reference to this observable at the end of its life
+ */
+infix fun <T, O> ObservableValue<T>.map(mapper: (T) -> O): ObservableValue<O> = object: MappedObservableValue<O>() {
+   private var mv: O = computeValue()
+   private val s = Subscribed {
+      mv = mapper(this@map.value)
+      this@map sync { nv ->
+         val omv = mv
+         val nmv = mapper(nv)
+         if (omv!=nmv) {
+            mv = nmv
+            listeners1.forEach { it.changed(this, omv, nmv) }
+            listeners2.forEach { it.invalidated(this) }
+         }
+      }
+   }
+
+   private fun computeValue(): O = mapper(this@map.value)
+
+   override fun updateListening() = s.subscribe(listeners1.isNotEmpty() || listeners2.isNotEmpty())
+
+   override fun getValue() = if (s.isSubscribed) mv else computeValue()
+}
+
+/**
+ * Maps this [ObservableValue] into one that contains values mapped by [mapper].
+ * When the returned observable is observed, the mapping is eager, so it happens on every change of this observable.
+ * When the returned observable is not observed, the mapping is lazy, so it happens on every [getValue].
+ *
+ * * The returned observable holds forever reference to this observable.
+ * * This observable holds reference to the returned observable if the returned observable is observed.
+ *
+ * Therefore to garbage collect the observable:
+ * * If this and returned observable share lifecycle, no action is necessary
+ * * If this observable outlives the returned observable, remove all listeners from the returned observable at the end of its life
+ * * If the returned observable outlives this observable, remove any reference to this observable at the end of its life
+ */
+@Suppress("SpellCheckingInspection", "UnnecessaryVariable")
+infix fun <T, O> ObservableValue<T>.flatMap(mapper: (T) -> ObservableValue<O>): ObservableValue<O> = object: MappedObservableValue<O>() {
+   private var mv: O = computeValue()
+   private var so = Subscription()
+   private val s = Subscribed {
+      this@flatMap sync { nov ->
+         val nmov = mapper(nov)
+
+         so.unsubscribe()
+         so = nmov sync { nv ->
+            val omv = mv
+            val nmv = nv
+            if (omv!=nmv) {
+               mv = nmv
+               listeners1.forEach { it.changed(this, omv, nmv) }
+               listeners2.forEach { it.invalidated(this) }
+            }
+         }
+      }
+   }
+
+   private fun computeValue(): O = mapper(this@flatMap.value).value
+
+   override fun updateListening() = s.subscribe(listeners1.isNotEmpty() || listeners2.isNotEmpty())
+
+   override fun getValue() = if (s.isSubscribed) mv else computeValue()
+}
+
+/**
+ * Maps this and the specified [ObservableValue] into one that contains [Pair] of values from both.
+ * When the returned observable is observed, the mapping is eager, so it happens on every change of this adn that observable.
+ * When the returned observable is not observed, the mapping is lazy, so it happens on every [getValue].
+ *
+ * * The returned observable holds forever reference to this observable.
+ * * This observable holds reference to the returned observable if the returned observable is observed.
+ *
+ * Therefore to garbage collect the observable:
+ * * If this and returned observable share lifecycle, no action is necessary
+ * * If this observable outlives the returned observable, remove all listeners from the returned observable at the end of its life
+ * * If the returned observable outlives this observable, remove any reference to this observable at the end of its life
+ */
+infix fun <T, O> ObservableValue<T>.zip(that: ObservableValue<O>): ObservableValue<Pair<T, O>> = object: MappedObservableValue<Pair<T, O>>() {
+   private var mv = computeValue()
+   private val s = Subscribed {
+      mv = computeValue()
+      val updater = {
+         val omv = mv
+         val nmv = computeValue()
+         if (omv!=nmv) {
+            mv = nmv
+            listeners1.forEach { it.changed(this, omv, nmv) }
+            listeners2.forEach { it.invalidated(this) }
+         }
+      }
+      that attach { updater() }
+      this@zip attach { updater() }
+   }
+
+   private fun computeValue(): Pair<T, O> = this@zip.value to that.value
+
+   override fun updateListening() = s.subscribe(listeners1.isNotEmpty() || listeners2.isNotEmpty())
+
+   override fun getValue() = if (s.isSubscribed) mv else computeValue()
 }
 
 /** Sets a block to be fired immediately and on every value change. */
@@ -120,13 +207,10 @@ infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscripti
 }
 
 /** Sets the value of this observable to the specified property immediately and on every value change. */
-infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>): Subscription {
-   w.value = value
-   return this attachTo w
-}
+infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>) = sync { w.value = it }
 
 /** Sets the value the specified observable to the this property immediately and on every value change. */
-infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>): Subscription = o syncTo this
+infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>) = o syncTo this
 
 /** Sets the value the specified observable to the this property immediately and on every value change. */
 @Experimental("Questionable API")
@@ -143,61 +227,18 @@ infix fun <O> ObservableValue<O>.attach(block: (O) -> Unit): Subscription {
 @Experimental("Questionable API")
 fun <O> ObservableValue<O>.attach(disposer: Unsubscriber, block: (O) -> Unit) = attach(block) on disposer
 
-/** Sets the value of the specified observable to the this property on every value change. */
-infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>): Subscription {
-   val l = ChangeListener<O> { _, _, nv -> w.value = nv }
-   this.addListener(l)
-   return Subscription { this.removeListener(l) }
-}
-
-/** Sets the mapped value the specified observable to the this property on every value change. */
-infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
-
-/** Sets a block to be fired on every value change of either observables. */
-fun <O1, O2> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, block: (O1, O2) -> Unit): Subscription {
-   val l1 = ChangeListener<O1> { _, _, nv -> block(nv, o2.value) }
-   val l2 = ChangeListener<O2> { _, _, nv -> block(o1.value, nv) }
-   o1.addListener(l1)
-   o2.addListener(l2)
-   return Subscription {
-      o1.removeListener(l1)
-      o2.removeListener(l2)
-   }
-}
-
-/** Sets a block to be fired immediately and on every value change of either observables. */
-fun <O1, O2> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, block: (O1, O2) -> Unit): Subscription {
-   block(o1.value, o2.value)
-   return attachTo(o1, o2, block)
-}
-
-/** Sets a block to be fired on every value change of either observables. */
-fun <O1, O2, O3> attachTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, block: (O1, O2, O3) -> Unit): Subscription {
-   val l1 = ChangeListener<O1> { _, _, nv -> block(nv, o2.value, o3.value) }
-   val l2 = ChangeListener<O2> { _, _, nv -> block(o1.value, nv, o3.value) }
-   val l3 = ChangeListener<O3> { _, _, nv -> block(o1.value, o2.value, nv) }
-   o1.addListener(l1)
-   o2.addListener(l2)
-   o3.addListener(l3)
-   return Subscription {
-      o1.removeListener(l1)
-      o2.removeListener(l2)
-      o3.removeListener(l3)
-   }
-}
-
-/** Sets a block to be fired immediately and on every value change of either observables. */
-fun <O1, O2, O3> syncTo(o1: ObservableValue<O1>, o2: ObservableValue<O2>, o3: ObservableValue<O3>, block: (O1, O2, O3) -> Unit): Subscription {
-   block(o1.value, o2.value, o3.value)
-   return attachTo(o1, o2, o3, block)
-}
-
 /** Sets a block to be fired on every value change. */
 infix fun <O> ObservableValue<O>.attachChanges(block: (O, O) -> Unit): Subscription {
    val l = ChangeListener<O> { _, ov, nv -> block(ov, nv) }
    addListener(l)
    return Subscription { removeListener(l) }
 }
+
+/** Sets the value of the specified observable to the this property on every value change. */
+infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>) = attach { w.value = it }
+
+/** Sets the mapped value the specified observable to the this property on every value change. */
+infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
 /** Sets a block to be fired if the value is true on every value change. */
 infix fun ObservableValue<Boolean>.attachTrue(block: (Boolean) -> Unit) = attach { if (it) block(it) }
@@ -336,7 +377,6 @@ inline fun <T> ObservableValue<T>.attach1IfNonNull(crossinline action: (T) -> Un
 
 /** [sync1If] testing the value is not null. */
 fun <T> ObservableValue<T>.sync1IfNonNull(action: (T) -> Unit) = sync1If({ it!=null }, action)
-
 
 /**
  * Runs block once node is in scene graph and after proper layout, i.e., its scene being non null and after executing

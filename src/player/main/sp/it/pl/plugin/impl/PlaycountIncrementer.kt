@@ -39,9 +39,9 @@ class PlaycountIncrementer: PluginBase() {
    val onStop = Disposer()
    val whenStrategy by cv(ON_TIME)
       .def(name = "Incrementing strategy", info = "Playcount strategy for incrementing playback.") attach { initStrategy() }
-   val whenPercent by cv(0.4).between(0.0, 1.0).readOnlyUnless(whenStrategy.map { it.needsPercent() })
+   val whenPercent by cv(0.4).between(0.0, 1.0).readOnlyUnless(whenStrategy map { it.needsPercent() })
       .def(name = "Increment at percent", info = "Percent at which playcount is incremented.") attach { initStrategy() }
-   val whenTime by cv(seconds(5.0)).readOnlyUnless(whenStrategy.map { it.needsTime() })
+   val whenTime by cv(seconds(5.0)).readOnlyUnless(whenStrategy map { it.needsTime() })
       .def(name = "Increment at time", info = "Time at which playcount is incremented.") attach { initStrategy() }
    val showNotificationSchedule by cv(false) {
          NotifySource<PlaycountIncScheduled>(type(), "On song playcount incrementing scheduled") {

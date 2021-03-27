@@ -80,7 +80,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private val editorsRoot = StackPane()
    private val editorsPane = ConfigPane<Any>()
    private val filterTextField = searchTextField()
-   private val filter = filterTextField.textProperty().map {
+   private val filter = filterTextField.textProperty() map {
       it.nullIfBlank()?.net {
          text -> { it: Config<*> -> it.group.contains(text, true) || it.nameUi.contains(text, true) }
       }
@@ -153,7 +153,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       groups.propagateESCAPE()
       groups.selectionModel.selectedItemProperty() attach { storeAppSettingsSelection(it) } on onClose
       groups.selectionModel.selectedItemProperty() attach { showConfigs(it?.value) } on onClose
-      filter attach { configureFiltered() }
+      filter attach { configureFiltered() } on onClose
       filterActions attach { configureFiltered() }
 
       root.sync1IfInScene { refresh() }

@@ -59,7 +59,12 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
     * @param location parent directory of the widget
     */
    constructor(controllerType: KClass<C>, location: File) {
-      val info = controllerType.companionObjectInstance?.asIf<WidgetInfo>()
+      val info = try {
+         controllerType.companionObjectInstance?.asIf<WidgetInfo>()
+      } catch (t: Throwable) {
+         // this can happen in dev environment due to binary incompatibility
+         null
+      }
       val i: Widget.Info = null
          ?: controllerType.findAnnotation()
          ?: WidgetFactory::class.findAnnotation()!!

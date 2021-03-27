@@ -789,14 +789,14 @@ class WidgetManager {
 
       /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
       private fun loadClass(classFqName: String, compileDir: File, libFiles: Sequence<File>): Try<Class<*>, Throwable> {
-         return createControllerClassLoader(compileDir, libFiles).andAlso {
-            try {
-               runTry {
-                  it.loadClass(classFqName)
+            return createControllerClassLoader(compileDir, libFiles).andAlso {
+               try {
+                  runTry {
+                     it.loadClass(classFqName)
+                  }
+               } catch (t: LinkageError) {
+                  Try.error(t)
                }
-            } catch (t: LinkageError) {
-               Try.error(t)
-            }
          }
       }
 
@@ -867,8 +867,12 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
          val p = widgetOld.parent
          if (p!=null) {
             val i = widgetOld.indexInParent()
+
+            val loadNotification = "reloading=" + widgetNew.id
+            p.properties[loadNotification] = loadNotification // we need this because remove/add child is not atomic
             p.removeChild(i)
             p.addChild(i, widgetNew)
+            p.properties - loadNotification
             widgetNew.restoreAuxiliaryState()
          } else {
             val parent = widgetOld.graphics!!.parent

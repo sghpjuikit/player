@@ -154,12 +154,17 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
         c2.closeWindowIfEmpty();
     }
 
+    protected boolean isEmptyForCloseWindowIfEmpty() {
+        return getAllWidgets().findFirst().isEmpty() && getAllContainers(true)
+            .noneMatch(it -> it.properties.keySet().stream().noneMatch(itt -> itt.startsWith("reloading=")));
+    }
+
     protected void closeWindowIfEmpty() {
         var rp = getRootParent();
-        var isEmpty = rp!=null && rp.getAllWidgets().findFirst().isEmpty();
+        var isEmpty = rp!=null && rp.isEmptyForCloseWindowIfEmpty();
         var w = rp==null ? null : rp.getWindow();
         var aw = w==null ? null : WindowHelperKt.asAppWindow(w);
-        var awIsEmpty = aw!=null && aw.getTopContainer()!=null && aw.getTopContainer().getAllWidgets().findFirst().isEmpty();
+        var awIsEmpty = aw!=null && aw.getLayout()!=null && aw.getLayout().isEmptyForCloseWindowIfEmpty();
 
         if (AppKt.APP.windowManager.getWindowDisallowEmpty().getValue() && isEmpty && awIsEmpty)
             aw.hide();

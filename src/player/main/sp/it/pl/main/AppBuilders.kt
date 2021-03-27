@@ -357,7 +357,7 @@ fun searchTextField() = SpitTextField().apply {
       i.visibleProperty() syncFrom editableProperty()
 
       val fade = anim(200.millis) { i.opacity = it }.applyNow()
-      textProperty() map { it.isNullOrBlank() } attach { println(it);fade.playFromDir(!it) }
+      textProperty() map { it.isNullOrBlank() } attach { fade.playFromDir(!it) }
    }
 }
 

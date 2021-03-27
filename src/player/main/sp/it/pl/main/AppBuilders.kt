@@ -49,7 +49,6 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
@@ -91,13 +90,21 @@ import java.net.URLEncoder
 import java.nio.file.Path
 import java.util.Optional
 import java.util.concurrent.atomic.AtomicLong
+import javafx.scene.control.Label
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
+import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.util.collections.setToOne
+import sp.it.util.reactive.attachTrue
+import sp.it.util.reactive.onEventUp
 import sp.it.util.text.toChar32
 import sp.it.util.type.kTypeNothingNonNull
+import sp.it.util.ui.label
+import sp.it.util.ui.lookupSiblingUp
 
 /**
  * Creates simple help popup designed as a tooltip for help buttons.
@@ -147,17 +154,24 @@ fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25
    withText(Side.RIGHT, text)
 }
 
-data class BulletBuilder(val icon: Icon = Icon(IconFA.CIRCLE), var description: String? = null)
+data class BulletBuilder(val text: String, val descriptionLabel: Label, var isReadOnly: Boolean = false, var onClick: () -> Unit = {}, var description: String? = null)
 
-inline fun bullet(text: String, block: @Dsl BulletBuilder.() -> Unit = {}) = hBox(1.em.emScaled, TOP_LEFT) {
-   val bb = BulletBuilder().apply(block)
-   lay += bb.icon
-   lay += vBox(2.em.emScaled) {
-      lay += text(text)
-      lay += supplyIf(bb.description!=null) {
-         TextFlow().apply {
-            children += text(bb.description!!)
-         }
+inline fun bullet(text: String, descriptionLabel: Label, block: @Dsl BulletBuilder.() -> Unit = {}) = hBox(1.em.emScaled, TOP_LEFT) {
+   val bb = BulletBuilder(text, descriptionLabel).apply(block)
+   lay += hBox(1.em.emScaled, CENTER_LEFT) {
+      lay += CheckIcon(true).apply {
+         editable.value = false
+         opacity = 0.0
+      }
+      lay += label(text) {
+         isDisable = bb.isReadOnly
+         isFocusTraversable = true
+         isWrapText = true
+         onEventDown(KEY_PRESSED, ENTER) { bb.onClick() }
+         onEventDown(MOUSE_CLICKED, PRIMARY) { bb.onClick() }
+         onEventUp(MOUSE_ENTERED) { requestFocus() }
+         focusedProperty() attach { lookupSiblingUp<Node>(1).opacity = if (it) 1.0 else 0.0 }
+         focusedProperty() attachTrue { bb.descriptionLabel.text = bb.description.orEmpty() }
       }
    }
 }

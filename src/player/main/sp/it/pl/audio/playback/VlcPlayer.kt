@@ -51,7 +51,10 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener
 import java.io.File
 import java.io.IOException
 import java.net.URI
+import javafx.geometry.Pos.TOP_CENTER
 import kotlin.math.roundToInt
+import sp.it.util.reactive.zip
+import sp.it.util.ui.label
 
 class VlcPlayer: GeneralPlayer.Play {
 
@@ -245,48 +248,50 @@ class VlcPlayer: GeneralPlayer.Play {
 
       fun configureSetup() {
          showFloating("Vlc Setup") { p ->
-            vBox(2.em.emScaled, CENTER) {
-               lay += text("Viable Vlc player has not been found on the system")
-               lay += bullet("Let application download and set up private, local Vlc (recommended)") {
+            vBox(0.0, TOP_CENTER) {
+               val dl = label("\n\n\n\n") {
+                  isWrapText = true
+               }
+               lay += text("Vlc player needs to be set up before playback is possible")
+               lay += bullet("Let application download and set up its own private Vlc instance (recommended)", dl) {
                   description = "This application will download and set up a portable version of the Vlc player in" +
                      " ${APP.location.vlc.absolutePath}. This is the recommended way, as the application does not" +
-                     " depend on external Vlc version or location."
-
-                  icon.isDisable = !Os.WINDOWS.isCurrent
-                  icon.onClickDo {
+                     " depend on external program."
+                  isReadOnly = !Os.WINDOWS.isCurrent
+                  onClick = {
                      setup() ui { p.hide() }
                   }
                }
-               lay += bullet("I have a custom Vlc available") {
+               lay += bullet("I have a custom Vlc available", dl) {
                   description = "Add 64-bit Vlc location in application settings in `${vlcConfig.groupUi}`." +
                      " Use this option, if you do have Vlc available, but not installed or integrated in your system." +
-                     "  This is not recommended, as application playback functionality would depend on or share the Vlc" +
+                     " This is not recommended, as application playback functionality would depend on or share the Vlc" +
                      " application, which could cause problems.\n" +
-                     " Note that moving, updating or changing this Vlc may interfere with this application."
-
-                  icon.onClickDo {
+                     "Note that moving, updating or changing this Vlc may interfere with this application."
+                  onClick = {
                      p.hide()
                      p.onHidden += {
                         vlcConfig.configure("Vlc Setup") {}
                      }
                   }
                }
-               lay += bullet("I already have Vlc installed") {
+               lay += bullet("I already have Vlc installed", dl) {
                   description = "This requires 64-bit `VLC` to be properly installed. The installation will be discovered automatically." +
                      " This is not recommended, as application playback functionality would depend on or share the Vlc" +
                      " application, which could cause problems.\n" +
-                     " Note that moving, updating or changing this Vlc may interfere with this application.\n\n"
-                  icon.onClickDo {
+                     "Note that moving, updating or changing this Vlc instance may interfere with this application.\n\n"
+                  onClick = {
                      p.hide()
                   }
                }
-               lay += bullet("Not now...'") {
+               lay += bullet("Not now...", dl) {
                   description = "You can open this setup again anytime using ${ActionRegistrar[APP_SEARCH].toUi()} " +
                      "and invoking ${vlcSetupAction.toUi()}"
-                  icon.onClickDo {
+                  onClick = {
                      p.hide()
                   }
                }
+               lay += dl
             }
          }
       }

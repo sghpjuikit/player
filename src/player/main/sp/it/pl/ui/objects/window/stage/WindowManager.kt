@@ -27,7 +27,6 @@ import sp.it.pl.layout.widget.NoFactoryFactory
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetIoManager
 import sp.it.pl.layout.widget.WidgetUse.NEW
-import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
@@ -38,7 +37,6 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.Values
-import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
@@ -46,7 +44,6 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO
 import sp.it.util.collections.observableList
-import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -54,7 +51,6 @@ import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
-import sp.it.util.conf.valuesIn
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidatedDirectory
@@ -100,10 +96,12 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.stage.StageStyle.TRANSPARENT
 import kotlin.math.sqrt
-import sp.it.pl.main.Ui.ICON_CLOSE
+import sp.it.pl.layout.exportFxwl
 import sp.it.util.async.runFX
 import sp.it.util.collections.readOnly
+import sp.it.util.dev.printIt
 import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.map
 import sp.it.util.reactive.syncWhileTrue
 import sp.it.util.ui.containsScreen
@@ -150,32 +148,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    val windowDisallowEmpty by cv(true)
       .def(name = "Allow empty window", info = "Automatically closes non-main window if it becomes empty.")
 
-   private var dockIsTogglingWindows = false
-   private var dockHiddenWindows = ArrayList<Window>()
-   private val dockToggleWindows = v(true).apply {
-      attach {
-         if (APP.isStateful) {
-            if (it) {
-               dockHiddenWindows.forEach { it.show() }
-            } else {
-               dockHiddenWindows setTo windows.asSequence().filter { it!==dockWindow }
-               dockIsTogglingWindows = true
-               dockHiddenWindows.forEach { it.hide() }
-               dockIsTogglingWindows = false
-            }
-         }
-      }
-   }
    val dockHoverDelay by cv(700.millis).def(confDock.showDelay)
    val dockHideInactive by cv(true).def(confDock.hideOnIdle)
    val dockHideInactiveDelay by cv(1500.millis).def(confDock.hideOnIdleDelay).readOnlyUnless(dockHideInactive)
-   private val dockWidgetInitialValue = PLAYBACK.withFeature<HorizontalDock>()
-   val dockWidget by cv(dockWidgetInitialValue).def(confDock.content).valuesIn {
-      APP.widgetManager.factories.getFactoriesWith<HorizontalDock>()
-         .filter { it.id!=dockWidgetInitialValue.id }
-         .plus(dockWidgetInitialValue) // TODO: handle when initial value is not HorizontalDock
-   }
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
+   val dockHeight by cv(40.0)
 
    /** @return main window or null if no main window (only possible when no window is open) */
    fun getMain(): Window? = mainWindow
@@ -206,7 +183,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
       windowsFx.onItemRemoved { w ->
          w.asAppWindow().ifNotNull {
-            if (APP.isUiApp && it.isMain.value && !dockIsTogglingWindows) {
+            if (APP.isUiApp && it.isMain.value) {
                APP.close()
             } else {
                windows -= it
@@ -308,7 +285,10 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             resizable.value = true
             isAlwaysOnTop = true
 
-            setSize(Screen.getPrimary().bounds.width, 40.0)
+            setSize(Screen.getPrimary().bounds.width, dockHeight.value)
+            dockHeight attachTo H
+            H attach { dockHeight.value = it.toDouble() }
+
             APP.mouse.screens.onChangeAndNow {
                val s = Screen.getPrimary()
                setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height)
@@ -327,19 +307,20 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                isFillHeight = false
                padding = Insets(5.0, 5.0, 5.0, 25.0)
 
-               lay += Icon(null, 13.0, "Show/hide other windows").onClickDo { dockToggleWindows.toggle() }.apply {
+               lay += Icon(null, 13.0, "Close dock").apply {
+                  onClickDo { dockShow.value = false }
                   hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.onClose
                }
-               lay += Icon(ICON_CLOSE, 13.0, "Close dock").onClickDo { dockToggleWindows.value = true; dockShow.value = false }
             }
          }
          mw.setContent(content)
-         mw.onClose += dockWidget sync {
-            mw.s.asLayout()?.child?.close()
-            mw.s.asLayout()?.child = APP.widgetManager.widgets.find(it.id, NEW(CUSTOM))
-               ?: NoFactoryFactory(it.id).create()
-         }
+
+         // content
+         val dockComponentFile = APP.location.user.tmp / "DockComponent.fxwl"
+         val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
+         mw.s.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
          mw.onClose += {
+            mw.s.asLayout()?.child?.exportFxwl(dockComponentFile).printIt()
             mw.s.asLayout()?.child?.close()
          }
 
@@ -355,7 +336,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          val showAnim = anim(300.millis) { mw.setY(-mwh.value*it, false) }
          val shower = fxTimer(ZERO, 1) {
             showAnim.intpl { it*it*it*it }
-            showAnim.playCloseDo { content.isMouseTransparent = false }
+            showAnim.playCloseDo { content.isMouseTransparent = false; mw.focus() }
          }
          val hider = {
             showAnim.intpl { sqrt(sqrt(it)) }
@@ -367,7 +348,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mwIsHover attachFalse {
             if (dockHideInactive.value)
                runFX(dockHideInactiveDelay.value) {
-                  if (mwIsHover.value) hider()
+//                  if (mwIsHover.value) hider()
                }
          }
          mw.focused attachFalse { hider() }

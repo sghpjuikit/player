@@ -72,7 +72,7 @@ fun <T, O> ObservableValue<T>.map(disposer: Unsubscriber = {}, mapper: (T) -> O)
    }
 
    override fun removeListener(listener: InvalidationListener) {
-      listeners2 += listener
+      listeners2 -= listener
    }
 
    override fun getValue() = mv

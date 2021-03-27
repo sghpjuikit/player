@@ -645,7 +645,7 @@ public class WindowBase {
 		focus();
 	}
 
-	/** Sets the window invisible and focuses it. */
+	/** Sets the window invisible. */
 	public void hide() {
 		s.hide();
 	}

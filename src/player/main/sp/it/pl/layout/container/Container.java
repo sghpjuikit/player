@@ -6,10 +6,13 @@ import java.util.Map;
 import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.ComponentDb;
 import sp.it.pl.layout.widget.Widget;
+import sp.it.pl.main.AppKt;
+import sp.it.pl.ui.objects.window.stage.WindowHelperKt;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static sp.it.util.functional.Util.list;
@@ -22,7 +25,7 @@ import static sp.it.util.functional.Util.stream;
  * <p/>
  * Containers are components storing their children and with layout-defining
  * behavior such as loading itself and its content and supporting layout
- * operations requiring the awarenes of the component within layout hierarchy.
+ * operations requiring the awareness of the component within layout hierarchy.
  * <p/>
  Containers are not graphical components, Containers wrap them. This creates
  an abstraction layer that allows for defining layout hierarchy - layout maps
@@ -46,7 +49,7 @@ import static sp.it.util.functional.Util.stream;
  Container implementation (extending class) must handle
  - adding the child to its child mapB (includes the index interpretation)
  - removing previously assigned children
- - reload itself so the layout change trasforms into graphical change.
+ - reload itself so the layout change transforms into graphical change.
  NOTE: invalid index (for example out of range) must be ignored for some
  behavior to work correctly.This is because indexOf() method returns invalid (but still number)
  index if component is not found. Therefore such index must be ignored.
@@ -72,7 +75,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
     public void setParentRec() {
         for (Component c: getChildren().values()) {
             if (c instanceof Container) {
-                ((Container<?>) c).setParent(this);
+                c.setParent(this);
                 ((Container<?>) c).setParentRec();
             }
         }
@@ -115,6 +118,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
             Component c = getChildren().get(index); // capture before reload
             addChild(index, null);  // reload
             if (c!=null) c.close();
+            closeWindowIfEmpty();
         }
     }
 
@@ -125,7 +129,8 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
      * @param toParent container containing the child to swap with
      * @param toChild child to swap with
      */
-    public void swapChildren(Container toParent, Integer i1, Component toChild) {
+    @SuppressWarnings({"UnnecessaryLocalVariable","ConstantConditions"})
+    public void swapChildren(Container<?> toParent, Integer i1, Component toChild) {
         Container<?> c1 = this;
         Container<?> c2 = toParent;
 
@@ -144,6 +149,20 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
 
         c1.addChild(i1, w2);
         c2.addChild(i2, w1);
+
+        c1.closeWindowIfEmpty();
+        c2.closeWindowIfEmpty();
+    }
+
+    protected void closeWindowIfEmpty() {
+        var rp = getRootParent();
+        var isEmpty = rp!=null && rp.getAllWidgets().findFirst().isEmpty();
+        var w = rp==null ? null : rp.getWindow();
+        var aw = w==null ? null : WindowHelperKt.asAppWindow(w);
+        var awIsEmpty = aw!=null && aw.getTopContainer()!=null && aw.getTopContainer().getAllWidgets().findFirst().isEmpty();
+
+        if (AppKt.APP.windowManager.getWindowDisallowEmpty().getValue() && isEmpty && awIsEmpty)
+            aw.hide();
     }
 
     /**
@@ -206,12 +225,11 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
      *
      * @return containers
      */
-    @SuppressWarnings("unchecked")
     public Stream<Container<?>> getAllContainers(boolean include_self) {
         Stream<Container<?>> s1 = include_self ? stream(this) : stream();
         Stream<Container<?>> s2 = getChildren().values().stream()
             .filter(c -> c instanceof Container)
-            .flatMap(c -> ((Container) c).getAllContainers(true));
+            .flatMap(c -> ((Container<?>) c).getAllContainers(true));
         return stream(s1, s2);
     }
 
@@ -222,7 +240,6 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
      * Here, the term parent is not parent Container, but instead the very AnchorPane
      * this container will be loaded into.
      *
-     * @param parentPane
      * @return the result of the call to {@link #load()}
      */
     public Node load(AnchorPane parentPane){
@@ -238,6 +255,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
      * <p/>
      * {@inheritDoc}
      */
+    @NotNull
     @Override
     public abstract Node load();
 
@@ -315,7 +333,7 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
     protected final void setChildrenParents() {
         getChildren().values().forEach(it -> {
             if (it instanceof Container<?>)
-                ((Container<?>) it).setParent(this);
+                it.setParent(this);
         });
     }
 }

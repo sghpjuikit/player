@@ -38,6 +38,7 @@ class FreeFormContainer: Container<FreeFormContainerUi> {
       ui.closeWindow(index)
       getChildren()[index]?.close()
       children.remove(index)
+      closeWindowIfEmpty()
    }
 
    override fun getEmptySpot() = null

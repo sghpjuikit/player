@@ -146,6 +146,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       name = "Interacts on ${keys("Alt")} + Mouse Drag",
       info = "Simulates Linux move/resize behavior. LMB Mouse Drag moves window. RMB Drag resizes window. RMB during move toggles maximize."
    )
+   /** Automatically closes non-main window if it becomes empty. */
+   val windowDisallowEmpty by cv(true)
+      .def(name = "Allow empty window", info = "Automatically closes non-main window if it becomes empty.")
 
    private var dockIsTogglingWindows = false
    private var dockHiddenWindows = ArrayList<Window>()

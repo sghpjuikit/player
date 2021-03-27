@@ -135,9 +135,13 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       skinExtensions.onItemRemoved { additionalStylesheets -= it }
    }
 
+   /** [overlayArea] */
    val viewDisplay by cv(Display.SCREEN_OF_MOUSE) def overlayArea
+   /** [overlayBackground] */
    val viewDisplayBgr by cv(ScreenBgrGetter.SCREEN_BGR) def overlayBackground.appendInfo("\nIgnored when `${overlayArea.name}` is `${Display.WINDOW.nameUi}`")
+   /** [closeWhenActionEnds] */
    val viewCloseOnDone by cv(true) def closeWhenActionEnds
+   /** [hideUnassignedShortcuts] */
    val viewHideEmptyShortcuts by cv(true) def hideUnassignedShortcuts
 
    /** [layoutModeImpl] */
@@ -148,28 +152,47 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    val layoutModeBroadImpl = v(false)
    /** Application layout mode. When true, ui editing controls are visible. Changes state immediately before showing and immediately after hiding. */
    val layoutModeBroad = layoutModeBroadImpl.readOnly()
+   /** [confUi.layoutModeBlurBgr] */
    val layoutModeBlur by cv(false) def confUi.layoutModeBlurBgr
+   /** [confUi.layoutModeFadeBgr] */
    val layoutModeOpacity by cv(true) def confUi.layoutModeFadeBgr
+   /** [confUi.layoutModeFadeIntensity] */
    var layoutModeOpacityStrength by c(1.0).between(0.0, 1.0).readOnlyUnless(layoutModeOpacity) def confUi.layoutModeFadeIntensity
+   /** [confUi.layoutModeBlurIntensity] */
    var layoutModeBlurStrength by c(4.0).between(0.0, 20.0).readOnlyUnless(layoutModeBlur) def confUi.layoutModeBlurIntensity
+   /** [confUi.layoutModeAnimLength] */
    var layoutModeDuration by c(250.millis) def confUi.layoutModeAnimLength
+   /** [confUi.lockLayout] */
    val layoutLocked by cv(false) { SimpleBooleanProperty(it) } attach { APP.actionStream("Layout lock") } def confUi.lockLayout
+   /** [confUi.snap] */
    val snapping by cv(true) def confUi.snap
+   /** [confUi.snapActivationDistance] */
    val snapDistance by cv(12.0) def confUi.snapActivationDistance
 
+   /** [confTable.tableOrientation] */
    val tableOrient by cv(NodeOrientation.INHERIT) def confTable.tableOrientation
+   /** [confTable.zeropadNumbers] */
    val tableZeropad by cv(false) def confTable.zeropadNumbers
+   /** [confTable.searchShowOriginalIndex] */
    val tableOrigIndex by cv(false) def confTable.searchShowOriginalIndex
+   /** [confTable.showTableHeader] */
    val tableShowHeader by cv(true) def confTable.showTableHeader
+   /** [confTable.showTableFooter] */
    val tableShowFooter by cv(true) def confTable.showTableFooter
 
+   /** [confGrid.cellAlignment] */
    val gridCellAlignment by cv<CellGap>(CellGap.CENTER) def confGrid.cellAlignment
+   /** [confGrid.showGridFooter] */
    val gridShowFooter by cv(true) def confGrid.showGridFooter
 
+   /** [confImage.thumbnailAnimDuration] */
    val thumbnailAnimDur by cv(100.millis) def confImage.thumbnailAnimDuration
 
+   /** [confUi.ratingIconAmount] */
    val ratingIconCount by cv(5).between(0, 10) def confUi.ratingIconAmount
+   /** [confUi.ratingAllowPartial] */
    val ratingIsPartial by cv(true) def confUi.ratingAllowPartial
+   /** [confUi.ratingSkin] */
    val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter {
       it?.simpleName ?: "<none> (App skin decides)"
    } def confUi.ratingSkin sync {

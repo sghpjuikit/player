@@ -238,6 +238,7 @@ open class GenerateKtSettings: DefaultTask() {
             sb.appendIndentln("}")
          }
          is Setting.SettingConfig -> {
+            sb.appendIndentln("/** $info. */")
             sb.appendIndentln("object ${defName(name)}: ConfigDefinition {")
             sb.appendIndentln("${outIndent}/** Compile-time constant equivalent to [name]. */")
             sb.appendIndentln("${outIndent}const val cname: String = \"\"\"${name.replace("\n", "${'\n'}")}\"\"\"")

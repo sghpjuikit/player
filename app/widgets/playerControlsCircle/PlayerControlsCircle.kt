@@ -2,6 +2,7 @@ package playerControlsCircle
 
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
+import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.CacheHint.ROTATE
 import javafx.scene.Group
@@ -153,6 +154,8 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       )
 
       root.lay += hBox {
+         padding = Insets(10.emScaled)
+
          lay += stackPane {
             lay += seeker.apply {
                valueSymmetrical.value = true

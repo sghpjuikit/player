@@ -248,7 +248,7 @@ open class PopWindow {
          minPrefMaxWidth = Pane.USE_COMPUTED_SIZE
          minPrefMaxHeight = Pane.USE_COMPUTED_SIZE
 
-         onEventUp(KEY_PRESSED, ESCAPE, consume = false) {
+         onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
             if (isEscapeHide.value) {
                hide()
                it.consume()

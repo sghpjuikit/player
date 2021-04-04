@@ -73,6 +73,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import java.io.File
+import java.net.URI
 import java.nio.file.StandardCopyOption
 import java.util.ArrayList
 import javafx.scene.control.ContentDisplay.RIGHT
@@ -80,6 +81,7 @@ import javafx.scene.control.Hyperlink
 import kotlin.math.ceil
 import kotlin.math.floor
 import sp.it.pl.main.appHyperlinkFor
+import sp.it.pl.main.detectContent
 import sp.it.util.functional.asIf
 import sp.it.util.ui.Util
 import sp.it.util.units.em
@@ -135,6 +137,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          RATING -> RatingField(semanticIndex)
          COVER -> CoverField()
          PATH -> LocationField(semanticIndex)
+         COMMENT -> CommentField(semanticIndex)
          else -> LField(semanticIndex, field)
       }
    }
@@ -253,6 +256,39 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       override fun update(m: Metadata) {
          super.update(m)
          rater.rating.value = m.getRatingPercent()
+      }
+
+      override fun setHide() {
+         isDisable = false
+         if (!shouldBeVisible || (!showEmptyFields.value && isValueEmpty)) labels.remove(this)
+      }
+   }
+
+   private inner class CommentField(semanticIndex: Int): LField(semanticIndex, COMMENT) {
+
+      init {
+         contentDisplay = RIGHT
+         graphic = null
+      }
+
+      override fun update(m: Metadata) {
+         super.update(m)
+         val vText = m.getFieldS(field, "").replace('\r', ' ').replace('\n', ',')
+         val v = vText.detectContent()
+         when {
+            m == EMPTY -> {
+               graphic = null
+               text = "$name: "
+            }
+            v is URI -> {
+               text = "$name: "
+               graphic = appHyperlinkFor(v).apply { maxWidth = this@CommentField.maxWidth }// - (this@LocationField.graphicTextGap max 0.0) - this@LocationField.width }
+            }
+            else -> {
+               text = "$name: $vText"
+               graphic = null
+            }
+         }
       }
 
       override fun setHide() {

@@ -58,10 +58,12 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import java.util.ArrayList
+import javafx.scene.input.KeyCode.ESCAPE
 import kotlin.math.PI
 import kotlin.math.sin
 import sp.it.util.access.focused
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.reactive.zip
 import sp.it.util.units.millis
 
 @Widget.Info(
@@ -99,7 +101,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
             lay += CheckIcon(filterActions).icons(IconFA.COMPRESS).tooltip("No shortcuts\n\nHide shortcuts and action editors as they get in the way.")
             lay += filterTextField.apply {
                val focusAnim = anim(200.millis) { prefWidth = (25 + it*125).emScaled }.intpl { sin(PI/2*it) }.applyNow()
-               focused attach focusAnim::playFromDir
+               focused zip textProperty() map { (f,t) -> f || t.isNotBlank() } attach focusAnim::playFromDir
             }
             lay += Icon(IconMA.CANCEL, 13.0).onClickDo { refresh() }.tooltip("Refresh\n\nSet all editors to actual values")
             lay += Icon(IconFA.RECYCLE, 13.0).onClickDo { defaults() }.tooltip("Default\n\nSet all editors to default values")
@@ -147,6 +149,12 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    init {
       root.prefSize = 800.emScaled x 600.emScaled
       root.consumeScrolling()
+      root.onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
+         if (filterTextField.text.isNotBlank()) {
+            filterTextField.text = ""
+            it.consume()
+         }
+      }
       root.onEventDown(KEY_PRESSED, F, consume = false) {
          if (it.isShortcutDown) {
             filterTextField.requestFocus()

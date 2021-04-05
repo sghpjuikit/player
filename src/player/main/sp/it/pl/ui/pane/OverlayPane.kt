@@ -171,7 +171,6 @@ abstract class OverlayPane<in T>: StackPane() {
    private var blurNode: Node? = null
    protected var stage: Stage? = null
 
-
    /** Show this pane with given value. */
    abstract fun show(data: T)
 
@@ -224,6 +223,7 @@ abstract class OverlayPane<in T>: StackPane() {
    }
 
    interface ScreenGetter {
+      fun isWindowBased(): Boolean
       fun computeScreen(): Screen
    }
 
@@ -234,7 +234,7 @@ abstract class OverlayPane<in T>: StackPane() {
       SCREEN_PRIMARY("Primary screen");
 
       override val nameUi = name
-
+      override fun isWindowBased() = this != WINDOW
       override fun computeScreen(): Screen = when (this) {
          WINDOW -> fail()
          SCREEN_PRIMARY -> Screen.getPrimary()

@@ -75,7 +75,6 @@ import sp.it.util.ui.scene
 import sp.it.util.ui.screenXy
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.size
-import sp.it.util.ui.stackPane
 import sp.it.util.ui.stage
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
@@ -410,11 +409,13 @@ open class PopWindow {
 
       fun Window.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
 
-      private fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
+      fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
 
-      fun Window.isFocusedChild(): Boolean = Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true || hasFileChooserOpen
+      fun Window.isOpenChild(): Boolean = hasFileChooserOpen || Stage.getWindows().any { this isParent it }
 
-      fun Window.traverseOwners() = traverse { it.asPopWindow()?.window?.popWindowOwner ?: it.asIf<Stage>()?.owner }
+      fun Window.isFocusedChild(): Boolean = hasFileChooserOpen || Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true
+
+      fun Window.traverseOwners() = traverse { it.asPopWindow()?.window?.popWindowOwner ?: it.asIf<Stage>()?.owner }.drop(1)
 
       infix fun Window.isChild(w: Window) = traverseOwners().any { it===w }
 

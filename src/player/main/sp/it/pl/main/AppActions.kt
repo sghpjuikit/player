@@ -195,6 +195,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
             init {
                content = stackPane()
                display.value = object: ScreenGetter {
+                  override fun isWindowBased() = true
                   override fun computeScreen() = it
                }
             }

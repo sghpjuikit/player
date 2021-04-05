@@ -139,7 +139,10 @@ class StartScreen: PluginBase() {
                onShowed += { requestFocus() }
                installClipboardSupport()
                installWindowInteraction()
-               isShowingWithFocus attachFalse { hide() }
+               isShowingWithFocus attachFalse {
+                  if (!(display.value.isWindowBased() && scene?.window?.isOpenChild() == true))
+                     hide()
+               }
 
                lay += borderPane {
                   padding = Insets(60.emScaled)

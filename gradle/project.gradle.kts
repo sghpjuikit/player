@@ -91,7 +91,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "17-ea+5"
+         val version = "17-ea+6"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -109,11 +109,11 @@ allprojects {
          implementation("org.slf4j", "slf4j-api")
          implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
          implementation("ch.qos.logback", "logback-classic", "1.2.3")
-         implementation("io.github.microutils", "kotlin-logging", "2.0.5")
+         implementation("io.github.microutils", "kotlin-logging", "2.0.6")
       }
 
       "Audio" group {
-         implementation("uk.co.caprica", "vlcj", "4.7.0")
+         implementation("uk.co.caprica", "vlcj", "4.7.1")
          implementation("org.bitbucket.ijabz", "jaudiotagger", "35ea31b")
       }
 
@@ -151,13 +151,13 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.5.2")
-         implementation("io.ktor", "ktor-client-cio", "1.5.2")
+         implementation("io.ktor", "ktor-server-core", "1.5.3")
+         implementation("io.ktor", "ktor-client-cio", "1.5.3")
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.4.1")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.4.1")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.4.3")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.4.3")
       }
 
    }

@@ -13,6 +13,7 @@ import javafx.scene.shape.Line
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
+import kotlin.math.floor
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
@@ -27,7 +28,6 @@ import sp.it.util.functional.net
 import sp.it.util.math.P
 import sp.it.util.math.StrExF
 import sp.it.util.math.max
-import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.anchorPane
@@ -46,27 +46,28 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import mu.KLogging
+import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.main.IconUN
 import sp.it.pl.ui.labelForWithClick
+import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.conf.cv
+import sp.it.util.functional.traverse
+import sp.it.util.text.keys
+import sp.it.util.units.version
+import sp.it.util.units.year
 
 private typealias Fun = (Double) -> Double
 private typealias Num = Double
 
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = "Function Viewer",
-   description = "Plots functions",
-   version = "1.0.0",
-   year = "2015",
-   group = DEVELOPMENT
-)
 class FunctionViewer(widget: Widget): SimpleController(widget) {
-   private val function = v(StrExF("x")).apply { attach { plotAnimated(it) } }
+   private val function by cv(StrExF("x")).apply { attach { plotAnimated(it) } }
    private var functionPlotted = function.value as Fun
    private val functionEditor = ConfigEditor.create(Config.forProperty<StrExF>("Function", function))
-   private val xMin = v(-1.0).apply { attach { plot() } }
-   private val xMax = v(1.0).apply { attach { plot() } }
-   private val yMin = v(-1.0).apply { attach { plot() } }
-   private val yMax = v(1.0).apply { attach { plot() } }
+   private val xMin by cv(-1.0).apply { attach { plot() } }
+   private val xMax by cv(+1.0).apply { attach { plot() } }
+   private val yMin by cv(-1.0).apply { attach { plot() } }
+   private val yMax by cv(+1.0).apply { attach { plot() } }
    private val plot = Plot()
    private val plotAnimation = anim(700.millis) { plot.animation.value = 1.0 - it*it*it*it }
    private var updateCoord: (P) -> Unit = {}
@@ -224,7 +225,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             coordRoot.children += Line(mapX(0.0).precise, 0.0, mapX(0.0).precise, height.precise).apply {
                stroke = Color.AQUA
                opacity = 0.4
-               strokeWidth = 1.0
+               strokeWidth = 2.0
                strokeDashArray += 2.0
             }
          }
@@ -232,13 +233,27 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             coordRoot.children += Line(0.0, mapY(0.0).precise, width.precise, mapY(0.0).precise).apply {
                stroke = Color.AQUA
                opacity = 0.4
-               strokeWidth = 1.0
+               strokeWidth = 2.0
                strokeDashArray += 2.0
             }
          }
 
-         @Suppress("UNUSED_VARIABLE") val unit = 10 pow ((xMax.value - xMin.value).digits())
-         @Suppress("UNUSED_VARIABLE") val range = P(xMax.value - xMin.value, yMax.value - yMin.value)
+         (xMin.value..xMax.value).axes().forEach { axe ->
+            coordRoot.children += Line(mapX(axe).precise, 0.0, mapX(axe).precise, height.precise).apply {
+               stroke = Color.AQUA
+               opacity = 0.4
+               strokeWidth = 1.0
+               strokeDashArray += 4.0
+            }
+         }
+         (yMin.value..yMax.value).axes().forEach { axe ->
+            coordRoot.children += Line(0.0, mapY(axe).precise, width.precise, mapY(axe).precise).apply {
+               stroke = Color.AQUA
+               opacity = 0.4
+               strokeWidth = 1.0
+               strokeDashArray += 4.0
+            }
+         }
       }
 
       private fun mapX(x: Num) = (x - xMin.value)/(xMax.value - xMin.value)*width
@@ -247,7 +262,21 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
    }
 
-   companion object {
+   companion object: WidgetCompanion, KLogging() {
+      override val name = "Function Viewer"
+      override val description = "Plots mathematical functions"
+      override val descriptionLong = "$description."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(2, 0, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         ShortcutPane.Entry("Graph", "Zoom in/out", "Scroll"),
+         ShortcutPane.Entry("Graph", "Shift axes", keys("LMB drag")),
+      )
+      override val group = DEVELOPMENT
 
       fun ConfigEditor<*>.toHBox() = hBox(5, CENTER) {
          val n = buildNode()
@@ -266,33 +295,23 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
       val Double.precise: Double get() = roundToInt().toDouble()
 
-      fun P.invertY() = apply { y = 1 - y }
-
-      infix fun Int.pow(power: Int) = toDouble().pow(power)
-
-      fun Num.digits(): Int {
-         when {
-            this<0.0 -> {
-               var x = this
-               var digits = 0
-               while (x<0) {
-                  x += 10
-                  digits++
+      fun ClosedFloatingPointRange<Double>.axes(): Sequence<Double> {
+         val axeRange = endInclusive-start
+         return when {
+            axeRange==0.0 -> sequenceOf()
+            else -> {
+               val precisionDigits = when {
+                  axeRange>0.0 -> axeRange.traverse { it/10.0 }.takeWhile { it>1.0 }.count().toDouble() - 1.0
+                  else -> -axeRange.traverse { it*10.0 }.takeWhile { it<1.0 }.count().toDouble() - 1.0
                }
-               return -digits
+               val axeGap = 10.0.pow(precisionDigits)
+               val axeFirst = floor(start / axeGap).toInt()
+               generateSequence(axeFirst) { it+1 }.map { it*axeGap }.filter { it>=start }.takeWhile { it<=endInclusive }
             }
-            this>0.0 -> {
-               var x = this
-               var digits = 0
-               while (x>0) {
-                  x /= 10
-                  digits++
-               }
-               return digits
-            }
-            else -> return 0
          }
 
       }
+
+      fun P.invertY() = apply { y = 1 - y }
    }
 }

@@ -343,7 +343,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.s.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
          mw.onClose += {
             mwFocusRestoring.suppressed {
-               mw.s.asLayout()?.child?.exportFxwl(dockComponentFile)
+               mw.s.asLayout()?.child?.exportFxwl(dockComponentFile)?.getDone()
                mw.s.asLayout()?.child?.close()
             }
          }

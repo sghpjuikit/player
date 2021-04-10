@@ -317,7 +317,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             right = flowPane {
                orientation = VERTICAL
                lay += vBox {
-                  alignment = Pos.TOP_CENTER;
+                  alignment = Pos.TOP_CENTER
                   this.lay += CheckIcon(mwAutohide).apply {
                      isFocusTraversable = false
                      styleclass("header-icon")
@@ -327,7 +327,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                   }
                }
                lay += vBox {
-                  alignment = Pos.BOTTOM_CENTER;
+                  alignment = Pos.BOTTOM_CENTER
                   lay += Icon(null, 13.0, "Close dock").apply {
                      onClickDo { dockShow.value = false }
                      hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.onClose
@@ -343,7 +343,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.s.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
          mw.onClose += {
             mwFocusRestoring.suppressed {
-               mw.s.asLayout()?.child?.exportFxwl(dockComponentFile)?.getDone()
+               mw.s.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
                mw.s.asLayout()?.child?.close()
             }
          }

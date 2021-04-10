@@ -129,8 +129,8 @@ fun File.runAsAppProgram(actionName: String, vararg arguments: String, then: (Pr
       val stdoutListener = runNew(StreamGobbler(p.inputStream) { stdout = it.wrap() })
       val stderrListener = runNew(StreamGobbler(p.errorStream) { stderr = it.wrap() })
       val success = p.waitFor()
-      stdoutListener.getDone()
-      stderrListener.getDone()
+      stdoutListener.block()
+      stderrListener.block()
       if (success!=0) doOnError(null, stdout + stderr)
       if (success!=0) fail { "Process failed and returned $success" }
       stdout

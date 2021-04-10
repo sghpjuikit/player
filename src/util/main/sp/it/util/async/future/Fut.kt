@@ -10,7 +10,6 @@ import sp.it.util.async.future.Fut.Result.ResultOk
 import sp.it.util.async.sleep
 import sp.it.util.dev.Blocks
 import sp.it.util.functional.Try
-import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
@@ -57,12 +56,12 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    /** @return whether this future completed regardless of success */
    fun isDone(): Boolean = f.isDone
 
-   /** Invokes the block if this future [isDone] with [ResultOk] */
+   /** Invokes the block if this future [isDone] and [getDone] is [ResultOk] */
    fun ifDoneOk(block: (T) -> Unit) {
       if (isDone()) getDone().toTry().ifOk(block)
    }
 
-   /** Waits for this future to complete and return the result. */
+   /** Blocks current thread until [isDone] and returns the result. */
    @Blocks
    fun getDone(): Result<T> = try {
       ResultOk(f.get())
@@ -72,12 +71,9 @@ class Fut<T>(private var f: CompletableFuture<T>) {
       ResultFail(e)
    }
 
-   @Deprecated("for removal")
-   fun getDoneOrNull(): T? = if (f.isDone) {
-      getDone().let { it.asIf<ResultOk<T>>()?.value }
-   } else {
-      null
-   }
+   /** Blocks current thread until [isDone]. Returns this. */
+   @Blocks
+   fun block() = apply { getDone() }
 
    companion object: KLogging() {
 

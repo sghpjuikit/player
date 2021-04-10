@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import sp.it.util.JavaLegacy;
 import sp.it.util.access.V;
 import sp.it.util.reactive.Subscription;
+import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.StageStyle.UNDECORATED;
@@ -270,7 +271,7 @@ public interface Util {
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
 
 		sync1IfNonNull(s.skinProperty(), consumer(skin -> {
-			ScrollBar scrollBar = getVScrollBar(s);
+			ScrollBar scrollBar = getScrollBar(s, VERTICAL);
 			var updateWrappingWidth = (Runnable) () -> {
 				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
 				t.setWrappingWidth(s.getWidth()-sw);
@@ -293,7 +294,7 @@ public interface Util {
 		s.setHbarPolicy(ScrollBarPolicy.NEVER);
 
 		sync1IfNonNull(s.skinProperty(), consumer(skin -> {
-			ScrollBar scrollBar = getVScrollBar(s);
+			ScrollBar scrollBar = getScrollBar(s, VERTICAL);
 			var updateWrappingWidth = (Runnable) () -> {
 				var sw = scrollBar==null || !scrollBar.isVisible() ? 0 : scrollBar.getWidth();
 				t.setWrappingWidth(s.getWidth()-sw);
@@ -306,11 +307,11 @@ public interface Util {
 		return s;
 	}
 
-	static @Nullable ScrollBar getVScrollBar(ScrollPane scrollPane) {
+	static @Nullable ScrollBar getScrollBar(ScrollPane scrollPane, Orientation orientation) {
 		return (ScrollBar) scrollPane.lookupAll("ScrollBar").stream()
 			.filter(it -> {
 				var isNotContent = scrollPane.getContent()==null || !isAnyParentOf(scrollPane.getContent(), it);
-				return it instanceof ScrollBar && isNotContent && ((ScrollBar) it).getOrientation()==Orientation.VERTICAL;
+				return it instanceof ScrollBar && isNotContent && ((ScrollBar) it).getOrientation()==orientation;
 			})
 			.findFirst().orElse(null);
 	}

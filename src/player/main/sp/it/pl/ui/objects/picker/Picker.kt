@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.picker
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Insets
+import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos
 import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ScrollPane
@@ -23,7 +24,7 @@ import sp.it.util.math.min
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
-import sp.it.util.ui.Util.getVScrollBar
+import sp.it.util.ui.Util.getScrollBar
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.minPrefMaxHeight
@@ -179,7 +180,7 @@ open class Picker<E> {
          minPrefMaxHeight = totalHeight
 
          val isScrollbarNecessary = totalHeight>height
-         val scrollBarWidth = if (!isScrollbarNecessary) 0.0 else getVScrollBar(root)?.takeIf { it.isVisible }?.width ?: 0.0
+         val scrollBarWidth = if (!isScrollbarNecessary) 0.0 else getScrollBar(root, VERTICAL)?.takeIf { it.isVisible }?.width ?: 0.0
          val gapSumX = (columns - 1)*gap
          val cellWidth = (width - scrollBarWidth - gapSumX)/columns
 

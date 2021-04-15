@@ -71,7 +71,7 @@ class PF3<I, P1, P2, P3, O>(_name: String, i: VType<I>, o: VType<O>, val p1: Par
 }
 
 /** N-ary parametric function. */
-class PFN<I, O>(_name: String, i: VType<I>, o: VType<O>, val ps: Array<Parameter<Any>>, val f: (I, Args?) -> O): PF<I, O>(_name, i, o, f) {
+class PFN<I, O>(_name: String, i: VType<I>, o: VType<O>, val ps: Array<Parameter<Any?>>, val f: (I, Args) -> O): PF<I, O>(_name, i, o, f) {
    override val parameters: Params = ps.toList().asIs()
    override fun apply(i: I, args: Args): O = f(i, args)
 }

@@ -307,9 +307,9 @@ object CoreFunctors: Core {
          addComparisons(type<Byte>(), 0.toByte())
          addComparisons(type<Short>(), 0.toShort())
          addComparisons(type<Int>(), 0)
+         addComparisons(type<Float>(), 0f)
          addComparisons(type<Long>(), 0L)
          addComparisons(type<Double>(), 0.0)
-         addComparisons(type<Float>(), 0f)
 
          // Else function should be of dynamic type and just one, but then we cant provide default values for parameters,
          // this are, for now, mandatory

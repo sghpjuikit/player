@@ -54,7 +54,9 @@ class FunctorPool {
       val cn = c.nullable()
       val comparator = nullsFirst { a: C, b: C -> a.compareTo(b) }
       add("< Less", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)<0 }
-      add("= Is", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)==0 }
+      add("≤ Less or same", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)<=0 }
+      add("= Same", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)==0 }
+      add("≥ More or same", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)>=0 }
       add("> More", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)>0 }
    }
 

@@ -314,7 +314,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
 
       lay += stackPane {
          id = "backImage"
-         styleClass += "bgr-image"
+            styleClass += "bgr-image"
       }
    }
 
@@ -384,5 +384,12 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
       lay(null, null, 0, 0) += borderRegion(4, 25, SW_RESIZE)
       lay(0, 0, null, null) += borderRegion(4, 25, NE_RESIZE)
       lay(0, 0, null, null) += borderRegion(25, 4, NE_RESIZE)
+
+
+      layFullArea += vBox {
+         id = "frontImage"
+         styleClass += "fgr-image"
+         isMouseTransparent = true
+      }
    }
 }

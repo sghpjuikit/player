@@ -1809,14 +1809,21 @@ Shape, Text, TextFlow > * {
 .window:fullscreen {}
 
 /*
- * Dynamic window background.
- *
+ * Window background.
  * Empty layer right above .window.
- * This layer is scaled & translated to appear to move & zoom with content.
+ *
+ * May be dynamic, using a depth effect, if user enables it in the settings.
+ * If so, this layer is scaled & translated to appear to move & zoom with content.
  * Hence, certain effects (like border) may not be visible.
  * Use .window for static background.
  */
 .window .bgr-image {}
+
+/*
+ * Window foreground.
+ * Empty layer right above all window content.
+ */
+.window .fgr-image {}
 
 /*
  * Window header

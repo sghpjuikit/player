@@ -53,7 +53,12 @@ abstract class ListLikeViewInfo<E, VIEW>: NodeInfo<VIEW> {
    protected fun updateTextImpl(allItems: List<E>, selectedItems: List<E>) {
       val isAll = selectedItems.isEmpty()
       val items = if (isAll) allItems else selectedItems
-      node.text = textFactory(isAll, items)
+
+      try {
+         node.text = textFactory(isAll, items)
+      } catch (e: NoSuchElementException) {
+         // consume no such elements, works around JavaFX bug of ObservableList.iterator.next failing in certain events
+      }
    }
 
    companion object {

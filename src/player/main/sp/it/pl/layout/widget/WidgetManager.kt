@@ -87,8 +87,6 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.let_
 import sp.it.util.functional.runTry
-import sp.it.util.functional.toOptional
-import sp.it.util.functional.toTry
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
@@ -129,6 +127,8 @@ import kotlin.reflect.cast
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cList
+import sp.it.util.functional.Option
+import sp.it.util.functional.toTry
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -690,8 +690,8 @@ class WidgetManager {
       /** @return all features implemented by at least one widget */
       fun getFeatures(): Sequence<Feature> = getFactories().flatMap { it.features.asSequence() }.distinct()
 
-      /** @return widget factory with the specified [WidgetFactory.id] or null if none */
-      fun getFactory(factoryId: String): Try<WidgetFactory<*>, String> = factoriesW[factoryId].toOptional().toTry { factoryId }
+      /** @return widget factory with the specified [WidgetFactory.id] or error with the specified [factoryId] */
+      fun getFactory(factoryId: String): Try<WidgetFactory<*>, String> = Option(factoriesW[factoryId]).toTry { factoryId }
 
       /** @return widget factory with the specified [WidgetFactory.name] or null if none */
       fun getFactoryByName(name: String): WidgetFactory<*>? = factoriesW.find { it.name==name }

@@ -1,7 +1,7 @@
 package sp.it.util.functional
 
-import java.util.Optional
-import sp.it.util.dev.fail
+import sp.it.util.functional.Option.None
+import sp.it.util.functional.Option.Some
 
 /**
  * Option monad for functional value handling.
@@ -35,11 +35,10 @@ sealed class Option<out R> {
    }
 
    /** @return the value if ok or throw an exception if error */
-   val orThrow: R
-      get() = when (this) {
-         is Some<R> -> value
-         is None -> fail { "Can not get value of Option.None" }
-      }
+   fun getOrThrow(or: () -> Throwable = { NoSuchElementException("Can not get value of Option.None") }): R = when (this) {
+      is Some<R> -> value
+      is None -> throw or()
+   }
 
    /** Invoke the specified action if [isSome]. Returns this. */
    inline fun ifSome(action: (R) -> Unit) = apply { if (this is Some<R>) action(value) }
@@ -64,6 +63,16 @@ sealed class Option<out R> {
       operator fun <R: Any, RN: R?> invoke(value: RN): Option<R> = if (value==null) None else Some(value)
    }
 
-   fun <T: Any, TN: T?> Optional<TN>.toOption(): Option<T> = Option(orNull())
+}
 
+/** @return the value if ok or the specified value if error */
+fun <R, R1: R, R2: R> Option<R1>.getOr(or: R2): R = when (this) {
+   is Some<R1> -> value
+   is None -> or
+}
+
+/** @return the value if ok or the value computed with specified supplier if error */
+inline fun <R, R1: R, R2: R> Option<R1>.getOrSupply(or: () -> R2): R = when (this) {
+   is Some<R1> -> value
+   is None -> or()
 }

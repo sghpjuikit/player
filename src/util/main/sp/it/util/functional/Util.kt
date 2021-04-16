@@ -75,8 +75,24 @@ fun <T: Any> Optional<T>.toTry(): Try<T, Nothing?> = map { Try.ok(it) }.orNull()
 /** @return ok with the value of this optional or error with the supplied value if this is empty optional */
 fun <T: Any, E> Optional<T>.toTry(error: () -> E): Try<T, E> = map { Try.ok(it) }.orNull() ?: Try.error(error())
 
-/** Equivalent to [Optional.ofNullable]. */
-fun <T: Any> T?.toOptional(): Optional<T> = Optional.ofNullable(this)
+/** @return ok with the value of this option or error if this is empty optional */
+fun <T> Option<T>.toTry(): Try<T, Nothing?> = when(this) {
+   is Option.Some<T> -> Try.ok(value)
+   is Option.None -> Try.error()
+}
+
+/** @return ok with the value of this option or error with the supplied value if this is Option */
+fun <T, E> Option<T>.toTry(error: () -> E): Try<T, E> = when (this) {
+   is Option.Some<T> -> Try.ok(value)
+   is Option.None -> Try.error(error())
+}
+
+fun <T: Any, TN: T?> Optional<TN>.toOption(): Option<T> = Option(orNull())
+
+fun <T, E> Try<T, E>.toOption(): Option<T> = when (this) {
+   is Try.Ok<T> -> Option.Some(value)
+   is Try.Error<E> -> Option.None
+}
 
 /** @return this result represented as a [Try] */
 fun <T> Result<T>.toTry(): Try<T, Throwable> = fold({ Try.ok(it) }, { Try.error(it) })

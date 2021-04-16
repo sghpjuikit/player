@@ -110,6 +110,8 @@ import sp.it.util.ui.x
 import sp.it.util.ui.xy
 import sp.it.util.units.divMillis
 import sp.it.util.units.millis
+import sp.it.util.units.minus
+import sp.it.util.units.times
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -135,16 +137,12 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       root.prefSize = 850.emScaled x 200.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
 
-      ps.currentTime map { it.toSeconds().toLong() } sync { timeChanged(ps) } on onClose
       ps.status sync { statusChanged(it) } on onClose
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
       ps.volume sync { muteChanged(ps) } on onClose
 //      APP.audio.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
-      elapsedTime sync { timeChanged(ps) } on onClose
 
-      currTime.isPickOnBounds = false
-      currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
       root.onEventDown(MOUSE_CLICKED, BACK) { PlaylistManager.playPreviousItem() }
       root.onEventDown(MOUSE_CLICKED, FORWARD) { PlaylistManager.playNextItem() }
       root.installDrag(
@@ -170,25 +168,35 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
 
                val valueSuppressor = Suppressor()
                bindTimeToSmooth(ps) { valueSuppressor.suppressing { value.value = it } } on onClose
-               valueSoft attach {
-                  valueSuppressor.suppressed {
-                  if (!isValueChanging.value) APP.audio.seek(it) } } on onClose
+               valueSoft attach { valueSuppressor.suppressed { if (!isValueChanging.value) APP.audio.seek(it) } } on onClose
             }
             lay += vBox {
                alignment = Pos.CENTER
                isPickOnBounds = false
                lay += label {
+                  isMouseTransparent = true
+                  isPickOnBounds = false
                   styleClass += "seeker-label"
                }
                lay += hBox {
                   alignment = Pos.CENTER
+                  isPickOnBounds = false
                   isFillHeight = false
                   lay += f2.size(36).scale(2.0)
                   lay += f3.size(72).scale(2.0)
                   lay += f4.size(36).scale(2.0)
                }
                lay += currTime.apply {
+                  isPickOnBounds = false
                   styleClass += "seeker-label"
+                  onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
+
+                  seeker.isValueChanging flatMap {
+                     if (it) seeker.valueShown zip ps.duration map { (at, total) -> total * at }
+                     else ps.currentTime map { it.toSeconds().toLong() } map { ps.currentTime.value }
+                  } zip elapsedTime sync { (current, e) ->
+                     text = if (e) current.toHMSMs() else "- " + (ps.duration.value - current).toHMSMs()
+                  } on onClose
                }
             }
          }
@@ -262,13 +270,6 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
          playback.volume.value>0.5 -> IconUN(0x1f50a)
          else -> IconUN(0x1f509)
       })
-   }
-
-   private fun timeChanged(playback: PlaybackState) {
-      currTime.text = when {
-         elapsedTime.value -> playback.currentTime.value.toHMSMs()
-         else -> "- " + playback.remainingTime.toHMSMs()
-      }
    }
 
    /** Circular [Slider] with value always normalized to 0..1. */
@@ -394,15 +395,16 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                      else -> vNorm
                   }
                   val v = vRaw.clip().snap(e)
-                  if (editable.value && (isValueChanging.value || (!onlyInside || centerDist<=radius))) {
+                  if (editable.value && (!onlyInside || centerDist<=radius)) {
                      if (isValueChanging.value && !anim) valueToAnimFalse(v)
                      else valueToAnimTrue(v)
                   }
                }
                onEventDown(MOUSE_PRESSED, PRIMARY) {
+                  this@SeekerCircle.requestFocus()
                   if (editable.value) {
-                     isValueChanging.value = true
                      updateFromMouse(it, true, true)
+                     isValueChanging.value = true
                   }
                }
                onEventDown(MOUSE_RELEASED, PRIMARY) {
@@ -420,6 +422,10 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                      isValueChanging.value = false
                      valueShownToActualAnimTrue()
                   }
+               }
+               onEventDown(MOUSE_CLICKED, SECONDARY, false) {
+                  if (it.isPrimaryButtonDown)
+                     it.consume()
                }
                onEventDown(MOUSE_PRESSED, SECONDARY) {
                   if (isValueChanging.value) {

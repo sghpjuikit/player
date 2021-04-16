@@ -143,6 +143,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
 //      APP.audio.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
       elapsedTime sync { timeChanged(ps) } on onClose
 
+      currTime.isPickOnBounds = false
       currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
       root.onEventDown(MOUSE_CLICKED, BACK) { PlaylistManager.playPreviousItem() }
       root.onEventDown(MOUSE_CLICKED, FORWARD) { PlaylistManager.playNextItem() }

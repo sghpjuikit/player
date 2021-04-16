@@ -157,6 +157,9 @@ import sp.it.util.access.OrV
 import sp.it.util.access.editable
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.UnsealedEnumerator
+import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.toOption
+import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.syncTo
 
@@ -1048,11 +1051,13 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    override val editor = SpitTextField()
    val obv = getObservableValue(c)
-   private val converter: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
+   private val converterRaw: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
+   private val converter: (T) -> String = { get().toOption().filter { v -> v==it }.map { editor.text }.getOrSupply { converterRaw(it) } }
    private val isObservable = obv!=null
    private val isNullEvent = Suppressor()
    private var isNull = config.value==null
    private val isValueRefreshing = Suppressor()
+   private var isValueRefreshingRaw = true
    private val warnI = lazy {
       Icon().apply {
          styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
@@ -1065,10 +1070,10 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       editor.promptText = c.nameUi
 
       // value
-      editor.text = converter(config.value)
+      editor.text = converterRaw(config.value)
       obv?.attach { refreshValue() }.orEmpty() on disposer
       obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() }.orEmpty() }.orEmpty() on disposer
-      editor.focusedProperty() attach { if (!it) refreshValue() } on disposer
+      editor.focusedProperty() attachFalse  { refreshValue() } on disposer
       editor.onEventDown(KEY_RELEASED, ESCAPE) { refreshValue() }
 
       // applying value
@@ -1077,7 +1082,9 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             isNullEvent.suppressed {
                if (isNull) isNull = false // cancel null mode on text change
                showWarnButton(getValid())
+               isValueRefreshingRaw = false
                apply()
+               isValueRefreshingRaw = true
             }
          }
       }
@@ -1121,8 +1128,8 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
          val isSortable = config.constraints.none { it is PreserveOrder }
          @Suppress("UNCHECKED_CAST")
          val enumeration = if (isNullable) e.enumerateUnsealed() - (null as T) + (null as T) else e.enumerateUnsealed()
-         val enumerationSorted = if (isSortable) enumeration.sortedBy(converter) else enumeration
-         autoComplete(editor, { t -> enumerationSorted.filter { it.toUi().contains(t, true) } }, converter)
+         val enumerationSorted = if (isSortable) enumeration.sortedBy(converterRaw) else enumeration
+         autoComplete(editor, { t -> enumerationSorted.filter { it.toUi().contains(t, true) } }, converterRaw)
       }
 
       // readonly
@@ -1136,7 +1143,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    override fun refreshValue() {
       isValueRefreshing.suppressingAlways {
          isNull = config.value==null
-         editor.text = converter(config.value)
+         editor.text = if (isValueRefreshingRaw) converterRaw(config.value) else converter(config.value)
          showWarnButton(getValid())
       }
    }

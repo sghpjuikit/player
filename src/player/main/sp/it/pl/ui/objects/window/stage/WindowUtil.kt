@@ -311,6 +311,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
    lay += stackPane {
       id = "back"
       isMouseTransparent = true
+      isPickOnBounds = false
 
       lay += stackPane {
          id = "backImage"
@@ -390,6 +391,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
          id = "frontImage"
          styleClass += "fgr-image"
          isMouseTransparent = true
+         isPickOnBounds = false
       }
    }
 }

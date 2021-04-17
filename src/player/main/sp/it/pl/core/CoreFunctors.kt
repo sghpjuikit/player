@@ -1,5 +1,8 @@
 package sp.it.pl.core
 
+import com.github.f4b6a3.uuid.UuidCreator
+import com.github.f4b6a3.uuid.enums.UuidLocalDomain
+import com.github.f4b6a3.uuid.enums.UuidNamespace
 import javafx.util.Duration
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
@@ -152,7 +155,14 @@ object CoreFunctors: Core {
          add("To BigInteger", S, type<BigInteger?>()) { it.toBigIntegerOrNull() }
          add("To BigDecimal", S, type<BigDecimal?>()) { it.toBigDecimalOrNull() }
 
-         add("Uuid", U, type<UUID>()) { UUID.randomUUID() }
+         add("Uuid 1", U, type<UUID>()) { UuidCreator.getTimeBased() }
+         add("Uuid 2", U, type<UUID>(), p(UuidLocalDomain.LOCAL_DOMAIN_PERSON), p(1701)) { u, ld, id -> UuidCreator.getDceSecurity(ld, id) }
+         add("Uuid 3", U, type<UUID>(), p<UuidNamespace?>(null), p("")) { u, ns, name -> UuidCreator.getNameBasedMd5(ns, name) }
+         add("Uuid 4", U, type<UUID>()) { UuidCreator.getRandomBased() }
+         add("Uuid 5", U, type<UUID>(), p<UuidNamespace?>(null), p("")) { u, ns, name -> UuidCreator.getNameBasedSha1(ns, name) }
+         add("Uuid 6 (mac node id)", U, type<UUID>()) { UuidCreator.getTimeOrderedWithMac() }
+         add("Uuid 6 (hash node id)", U, type<UUID>()) { UuidCreator.getTimeOrderedWithHash() }
+         add("Uuid 6 (random node id)", U, type<UUID>()) { UuidCreator.getTimeOrderedWithRandom() }
          add("Random Boolean", U, type<Boolean>()) { Math.random()>0.5 }
          add("Random Byte", U, type<Byte>()) { (Math.random()*Byte.MAX_VALUE).toInt().toByte() }
          add("Random Int", U, type<Int>()) { (Math.random()*Int.MAX_VALUE).toInt() }

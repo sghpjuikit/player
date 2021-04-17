@@ -123,6 +123,7 @@ allprojects {
       }
 
       "Misc" group {
+         implementation("com.github.f4b6a3", "uuid-creator", "3.6.0")
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.2.2")
          implementation("com.github.ajalt", "clikt", "2.1.0")

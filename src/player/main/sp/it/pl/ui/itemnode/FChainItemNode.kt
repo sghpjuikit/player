@@ -18,6 +18,7 @@ import sp.it.util.type.typeNothingNonNull
 import java.util.function.BiPredicate
 import java.util.stream.Stream
 import kotlin.streams.asSequence
+import sp.it.util.type.type
 
 /**
  * Function editor with function chaining.
@@ -52,11 +53,11 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
    private var handleNullIn = NullIn.NULL
    private var handleNullOut = NullOut.NULL
 
-   @Suppress("UNUSED_ANONYMOUS_PARAMETER")
+   @Suppress("UNUSED_ANONYMOUS_PARAMETER", "RemoveExplicitTypeArguments")
    constructor(functorPool: (VType<*>) -> PrefList<PF<*, *>>): super(throwingF()) {
       this.functorPool = functorPool
       chainedFactory = Callback { i ->
-         FItemNode(functorPool(typeOut).asIs())
+         FItemNode(typeOut, type<Any?>(), functorPool.asIs())
       }
       isHomogeneousRem = BiPredicate { i, f ->
          when {
@@ -131,7 +132,7 @@ class FChainItemNode: ChainValueNode<(Any?) -> Any?, FItemNode<Any?, Any?>, (Any
       }
 
    val typeOut: VType<*>
-      get() = chain.map { it.chained.getTypeOut() }.fold(typeIn) { i, o -> o ?: i }
+      get() = chain.map { it.chained.typeOut }.fold(typeIn) { i, o -> o ?: i }
 
    /**
     * Sets null handling during chain function reduction.

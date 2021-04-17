@@ -123,9 +123,6 @@ class FunctorPool {
       ).asIs()
    }
 
-   /** Returns all functions taking input IO and producing output IO. */
-   fun <IO> getIO(io: VType<IO>): PrefList<PF<IO, IO>> = getIO(io, io)
-
    fun <I, O> getPF(name: String, i: VType<I>, o: VType<O>): PF<I, O>? {
       return if (name==asSelfName) {
          if (o isSubtypeOf i) PF0(asSelfName, i, o, IDENTITY.asIs())
@@ -144,4 +141,5 @@ class FunctorPool {
    fun <IO> getPrefIO(io: VType<IO>): PF<IO, IO>? = getPrefIO(io, io)
 
    private data class PPF(val f: PF<*, *>, val i: Boolean, val o: Boolean, val io: Boolean)
+
 }

@@ -25,7 +25,6 @@ import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.type.TypesKt.notnull;
 
 /**
  * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
@@ -43,15 +42,21 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	private boolean inconsistentState = false;
 	private boolean empty = true;
 
+	@SuppressWarnings({"unchecked", "rawtypes", "UseBulkOperation"})
 	public FieldedPredicateItemNode() {
-		this(
-			in -> Functors.pool.getIO(in, new VType<>(Boolean.class, false)),
-			in -> Functors.pool.getPrefIO(in, new VType<>(Boolean.class, false))
-		);
+		this(in -> {
+			var fsIO = Functors.pool.getIO(in, new VType<>(Boolean.class, false));
+			var fsI = Functors.pool.getI(in);
+			var fsAll = new PrefList();
+			fsIO.forEach(fsAll::add);
+			fsI.stream().filter(it -> it.getParameters().size()==0 && !fsAll.contains(it)).forEach(fsAll::add);
+			fsAll.setPreferred(fsIO.getPreferred());
+			return fsAll;
+		});
 	}
 
 	@SuppressWarnings("unchecked")
-	public FieldedPredicateItemNode(Function1<VType<?>,PrefList<PF<Object,Boolean>>> predicatePool, Function1<VType<?>,PF<Object,Boolean>> prefPredicatePool) {
+	public FieldedPredicateItemNode(Function1<VType<?>,PrefList<PF<Object,?>>> predicatePool) {
 		super((Predicate<V>) IS);
 
 		root.setAlignment(CENTER_LEFT);
@@ -59,7 +64,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		typeCB.valueProperty().addListener((o, ov, nv) -> {
 			if (inconsistentState) return;
 			if (config!=null) root.getChildren().remove(config.getNode());
-			config = new FItemNode<>(predicatePool.invoke(notnull(nv.type)));
+			config = new FItemNode<>(nv.type, new VType<>(Boolean.class, false), predicatePool, null);
 			root.getChildren().add(config.getNode());
 			HBox.setHgrow(config.getNode(), ALWAYS);
 			config.onItemChange = v -> generatePredicate();
@@ -76,7 +81,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 	}
 
 	/**
-	 * Sets chosable data specifying what filter can be generated in form of list
+	 * Sets combo box data specifying what filter can be generated in form of list
 	 * of tri-tuples : displayed name, class, passed object.
 	 * <pre>
 	 * The name is what will be displayed in the combobox to choose from
@@ -125,7 +130,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 		empty = true;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void generatePredicate() {
 		if (inconsistentState) return;
 		empty = config==null;

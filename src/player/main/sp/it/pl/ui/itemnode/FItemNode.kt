@@ -30,7 +30,13 @@ import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.pseudoClassChanged
 import java.util.ArrayList
+import sp.it.pl.main.F
+import sp.it.util.collections.toStringPretty
+import sp.it.util.functional.asIs
+import sp.it.util.functional.compose
+import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.zip
+import sp.it.util.type.isSubtypeOf
 
 /**
  * Value node containing function.
@@ -38,72 +44,117 @@ import sp.it.util.reactive.zip
  * @param <I> type of function input
  * @param <O> type of function output
  */
-class FItemNode<I, O>(functions: PrefList<PF<I, O>>): ValueNode<(I) -> O>(throwingF()) {
+class FItemNode<I, O>(typeIn: VType<I>, typeOutTargeted: VType<O>, functionPool: (VType<*>) -> PrefList<PF<I, *>>, initialValue: F<I,O>? = null): ValueNode<F<I,O>?>(initialValue) {
+   val typeIn: VType<I> = typeIn
+   val typeOutTargeted: VType<O> = typeOutTargeted
+   val typeOut: VType<O>? get() = fs.lastOrNull()?.takeIf { it.isTerminal() }?.fCB?.value?.out?.asIs()
+   private val functionPool: (VType<*>) -> PrefList<PF<I, *>> = functionPool
    private val root = hBox(5, CENTER_LEFT).apply { id = "fItemNodeRoot" }
-   private val paramB = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
-   private val editors = ArrayList<ConfigEditor<*>>()
-   private val fCB: ComboBox<PF<I, O>>
+   private val mapperNodes = hBox(5, CENTER_LEFT).apply { id = "fItemNodeMappersRoot" }
+   private val editorsNodes = hBox(5, CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
+   private val fs = ArrayList<FItem>()
+
    private var avoidGenerateValue = Suppressor(false)
    var isEditableRawFunction = v(true)
-   var onRawFunctionChange = { _: PF<I, O>? -> }
+   var onRawFunctionChange = { }
 
    init {
-      avoidGenerateValue.suppressingAlways {
-         fCB = SpitComboBox({ it.name })
-         fCB.items setTo functions.sortedBy { it.name }
-         fCB.value = functions.preferredOrFirst
-         // display non-editable as label
-         isEditableRawFunction zip fCB.items.sizes() sync { (editable, itemCount) ->
-            fCB.pseudoClassChanged("editable", editable && itemCount.toInt()>1)
-         }
-         fCB.valueProperty() sync { function ->
-            editors.clear()
-            paramB.children.clear()
-            function?.parameters.orEmpty().forEachIndexed { i, p ->
-               val editor = p.toConfig { generateValue() }.createEditor().apply {
-                  if (p.description.isNotBlank())
-                     editor install appTooltip(p.description)
-               }
-               editors += editor
-               paramB.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
-            }
-            onRawFunctionChange(function)
-            generateValue()
-         }
-      }
-      generateValue()
-
-      root.lay += fCB
-      root.lay(ALWAYS) += paramB
+      root.lay += mapperNodes
+      root.lay(ALWAYS) += editorsNodes
+      newFItem()
    }
 
    override fun getNode() = root
 
-   override fun focus() = editors.firstOrNull()?.focusEditor().toUnit()
+   override fun focus() {
+      fs.lastOrNull().ifNotNull {
+         if (it.editors.isNotEmpty()) it.editors.firstOrNull()?.focusEditor()
+         else it.fCB.requestFocus()
+      }
+   }
 
-   fun getTypeIn(): VType<*>? = fCB.value?.`in`
+   private fun newFItem() {
+      avoidGenerateValue.suppressing {
+         var isInitializing = true
+         FItem().apply {
 
-   fun getTypeOut(): VType<*>? = fCB.value?.out
+            val functions = functionPool(fs.lastOrNull()?.fCB?.value?.out ?: typeIn)
+
+            fs += this
+            mapperNodes.children += fCB
+
+            fCB.items setTo functions.sortedBy { it.name }
+            fCB.value = functions.preferredOrFirst
+            // display non-editable as label
+            isEditableRawFunction zip fCB.items.sizes() sync { (editable, itemCount) ->
+               fCB.pseudoClassChanged("editable", editable && itemCount.toInt()>1)
+            }
+            fCB.valueProperty() sync { function ->
+               val isTerminal = isTerminal()
+               editorsNodes.children.clear()
+               editors.clear()
+               if (isTerminal) {
+                  function?.parameters.orEmpty().forEachIndexed { i, p ->
+                     val editor = p.toConfig { generateValue() }.createEditor().apply {
+                        if (p.description.isNotBlank())
+                           editor install appTooltip(p.description)
+                     }
+                     editors += editor
+                     editorsNodes.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
+                  }
+               } else {
+                  val i = mapperNodes.children.indexOf(fCB) + 1
+                  fs setTo fs.take(i)
+                  mapperNodes.children setTo mapperNodes.children.take(i)
+                  if (!isInitializing && function!=null) newFItem()
+               }
+               if (fCB.isFocused) focus()
+               onRawFunctionChange()
+               generateValue()
+            }
+         }
+         isInitializing = false
+      }
+      generateValue()
+   }
+
+   private fun FItem.isTerminal() = fCB.value?.out?.isSubtypeOf(typeOutTargeted)==true
 
    private fun generateValue() {
       avoidGenerateValue.suppressed {
-         val functionRaw = fCB.value ?: null
-         val parameters = editors.map { it.config.value }
-         val function = functionRaw?.realize(parameters)
-         if (function!=null) changeValue(function)
+         println()
+         println(fs.map { it.fCB.value?.name }.toStringPretty())
+         val isTerminal = fs.lastOrNull()?.isTerminal() == true
+         val functions = fs.mapNotNull { it.realize() }
+         val isNonNull = functions.size == fs.size
+         println(isTerminal)
+         println(isNonNull)
+         val function = functions.reduceOrNull { mapper, getter -> mapper compose getter }
+         println(function)
+         if (isTerminal && isNonNull && function!=null) changeValue(function.asIs())
       }
    }
 
    fun clear() {
       avoidGenerateValue.suppressing {
-         editors.forEach { it.refreshDefaultValue() }
+         fs setTo fs.take(1)
+         fs.forEach { it.editors.forEach { it.refreshDefaultValue() } }
       }
       generateValue()
    }
 
-   companion object {
+   data class FItem(
+      val editors: MutableList<ConfigEditor<*>> = ArrayList(),
+      val fCB: ComboBox<PF<*, *>> = SpitComboBox({ it.name })
+   ) {
+      fun realize(): F<Any?, Any?>? {
+         val functionRaw = fCB.value ?: null
+         val parameters = editors.map { it.config.value }
+         return functionRaw?.realize(parameters).asIs()
+      }
+   }
 
-      private fun throwingF() = { _: Any? -> fail { "Initial function value. Must not be invoked" } }
+   companion object {
 
       private fun <T> Config<T>.createEditor() = ConfigEditor.create(this)
 

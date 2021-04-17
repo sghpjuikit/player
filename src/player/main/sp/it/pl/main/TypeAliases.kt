@@ -10,3 +10,4 @@ typealias IconWH = de.jensd.fx.glyphs.weathericons.WeatherIcon
 typealias Key = javafx.scene.input.KeyCode
 typealias KTypeArg = kotlin.reflect.KTypeProjection
 typealias KTypeParam = kotlin.reflect.KTypeParameter
+typealias F<I,O> = (I) -> O

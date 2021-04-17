@@ -18,7 +18,7 @@ interface ItemNode<out T> {
 }
 
 /** Item node which directly holds the value */
-abstract class ValueNode<T: Any?>(initialValue: T): ItemNode<T> {
+abstract class ValueNode<T>(initialValue: T): ItemNode<T> {
    protected var value: T = initialValue
 
    /** Value change handler invoked when value changes, consuming the new value. */

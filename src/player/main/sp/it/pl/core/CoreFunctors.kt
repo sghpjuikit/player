@@ -85,6 +85,7 @@ import java.util.regex.Pattern
 import kotlin.text.Charsets.UTF_8
 import sp.it.util.functional.getOrSupply
 import sp.it.util.math.StrExF
+import sp.it.util.text.lengthInCodePoints
 
 object CoreFunctors: Core {
 
@@ -200,10 +201,10 @@ object CoreFunctors: Core {
          add("After", S, B, p<String>("")) { it, y -> it>y }
          add("Before", S, B, p<String>("")) { it, y -> it<y }
          add("Char at", S, type<Char32>(), p(0), p<StringDirection>(FROM_START)) { it, i, dir -> runTry { it.char32At(i, dir) }.orNull() }
-         add("Length", S, type<Int>()) { it.length }
-         add("Length >", S, B, p(0)) { it, l -> it.length>l }
-         add("Length <", S, B, p(0)) { it, l -> it.length<l }
-         add("Length =", S, B, p(0)) { it, l -> it.length==l }
+         add("Length", S, type<Int>()) { it.lengthInCodePoints }
+         add("Length >", S, B, p(0)) { it, l -> it.lengthInCodePoints>l }
+         add("Length <", S, B, p(0)) { it, l -> it.lengthInCodePoints<l }
+         add("Length =", S, B, p(0)) { it, l -> it.lengthInCodePoints==l }
          add("Is empty", S, B) { it.isEmpty() }
          add("Is palindrome", S, B) { it.isPalindrome() }
          add("To file", S, type<File>()) { File(it) }

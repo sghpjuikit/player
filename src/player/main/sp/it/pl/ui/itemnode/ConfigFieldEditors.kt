@@ -137,12 +137,17 @@ import sp.it.util.ui.text
 import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import java.io.File
+import java.math.BigInteger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Locale
 import javafx.scene.control.TextField
 import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.ScrollEvent
+import javafx.scene.input.ScrollEvent.SCROLL
+import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlin.reflect.KClass
 import sp.it.pl.core.UiStringHelper
 import sp.it.pl.ui.objects.textfield.ColorTextField
@@ -162,6 +167,7 @@ import sp.it.util.functional.toOption
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.syncTo
+import sp.it.util.type.jvmErasure
 
 private val warnTooltip = appTooltip("Erroneous value")
 private val actTooltip = appTooltip("Run action")
@@ -1122,6 +1128,22 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             }
       }
 
+      // integers
+      @Suppress("RemoveExplicitTypeArguments")
+      val scrollHandler = when (config.type.jvmErasure) {
+         Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }
+//         UByte::class -> scrollHandler<UByte>(UByte.MIN_VALUE, UByte.MAX_VALUE, { a,b -> (a+b).toUByte() }) { it.toUByte() }
+         Short::class -> onNumberScrolled<Short>(Short.MIN_VALUE, Short.MAX_VALUE, { a,b -> (a+b).toShort() }) { it.toShort() }
+//         UShort::class -> scrollHandler<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
+         Int::class -> onNumberScrolled<Int>(Int.MIN_VALUE, Int.MAX_VALUE, Int::plus) { it }
+//         UInt::class -> scrollHandler<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
+         Long::class -> onNumberScrolled<Long>(Long.MIN_VALUE, Long.MAX_VALUE, Long::plus) { it.toLong() }
+//         ULong::class -> scrollHandler<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
+         BigInteger::class -> onNumberScrolled<BigInteger>(null, null, BigInteger::plus) { it.toBigInteger() }
+         else -> null
+      }
+      if (scrollHandler!=null) editor.onEventDown(SCROLL, scrollHandler)
+
       // autocomplete
       config.findConstraint<UnsealedEnumerator<T>>().ifNotNull { e ->
          // TODO support observable iterator, like EnumerableCE does
@@ -1160,6 +1182,21 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       is Collection<*> -> o.joinToString(", ", "[", "]") { it.toUi() }
       is Map<*, *> -> o.entries.joinToString(", ", "[", "]") { it.key.toUi() + " -> " + it.value.toUi() }
       else -> if (config.isEditable.isByUser) o.toS() else o.toUi()
+   }
+
+   companion object {
+      private inline fun <reified T: Number> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (ScrollEvent) -> Unit = { it ->
+         val dv = it.deltaY.sign.roundToInt()
+         val ov = config.value.asIs<T?>() ?: caster(0)
+         val nv = when {
+            ov==min && dv<0 -> ov
+            ov==max && dv>0 -> ov
+            else -> adder(ov, caster(dv))
+         }
+         config.asIs<Config<T>>().value = nv
+         refreshValue()
+         it.consume()
+      }
    }
 }
 

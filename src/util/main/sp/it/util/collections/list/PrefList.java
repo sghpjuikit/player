@@ -56,19 +56,23 @@ public class PrefList<E> extends ArrayList<E> {
 	}
 
 	public void setPreferred(E e) {
-		var i = indexOf(e);
-		if (i>=0) pref = get(i);
+		if (e==null) {
+			pref = null;
+		} else {
+			var i = indexOf(e);
+			if (i>=0) pref = get(i);
+		}
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		if (pref!=null && o.equals(pref)) pref = null;
+		if (pref!=null && pref.equals(o)) pref = null;
 		return super.remove(o);
 	}
 
 	@Override
 	public E remove(int i) {
-		if (pref!=null && get(i).equals(pref)) pref = null;
+		if (pref!=null && pref.equals(get(i))) pref = null;
 		return super.remove(i);
 	}
 

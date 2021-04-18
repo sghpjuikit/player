@@ -24,24 +24,25 @@
 .seeker-circle .seeker-circle-bgr {
     -fx-fill: transparent;
     -fx-stroke: rgba(0,220,220,0.3);
-    -fx-stroke-type: outside;
+    -fx-stroke-type: center;
     -fx-stroke-width: 2;
-    -fx-stroke-line-cap: round;
-    -fx-stroke-line-join: round;
-    -fx-stroke-dash-array: 3 8;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-line-join: butt;
+    -fx-stroke-dash-array: 3 10;
     -fx-effect: dropshadow(gaussian, black, 25, 0.2 , 0,0);
 }
 .seeker-circle .seeker-circle-frg {
     -fx-fill: transparent;
     -fx-stroke: -fx-focus-color;
-    -fx-stroke-type: inside;
-    -fx-stroke-width: 2;
-    -fx-stroke-line-cap: round;
-    -fx-stroke-line-join: round;
+    -fx-stroke-type: center;
+    -fx-stroke-width: 3;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-line-join: butt;
+    -fx-stroke-dash-array: 6 2;
     -fx-effect: dropshadow(gaussian, -fx-focus-color, 10, 0.2 , 0,0);
 }
 .seeker-circle:focused .seeker-circle-bgr {
-    -fx-stroke-dash-array: 5 5;
+    -fx-stroke-dash-array: 5 2;
 }
 .seeker-circle:focused .seeker-circle-frg {
     -fx-stroke-width: 3;

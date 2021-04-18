@@ -201,11 +201,26 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
             }
          }
          lay += borderPane {
-            top = loopB
+            top = stackPane {
+               lay += SeekerCircle(100.emScaled).apply {
+                  editable.value = false
+                  ps.loopMode sync {
+                     value.value = when (it) {
+                        OFF -> 0.0
+                        PLAYLIST -> 1.0
+                        SONG -> 0.1
+                        RANDOM -> 0.5
+                     }
+                  }
+               }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += loopB
+               }
+            }
             bottom = stackPane {
                lay += SeekerCircle(100.emScaled).apply {
                   blockIncrement.value = VolumeProperty.STEP
-
                   value attachTo ps.volume
                   ps.volume sync { value.value = it.toDouble() }
                }

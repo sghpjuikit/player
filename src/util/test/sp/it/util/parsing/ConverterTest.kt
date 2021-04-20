@@ -33,7 +33,8 @@ class ConverterTest: FreeSpec({
       }
 
       "toConverterOf" {
-         c.toConverterOf<Int>().ofS("") shouldBe c.ofS(Int::class, "")
+         c.toConverterOf<Int>().ofS("") shouldBe Try.Error("Null is not kotlin.Int")
+         c.toConverterOf<Int?>().ofS("") shouldBe c.ofS(Int::class, "")
          c.toConverterOf<Int>().ofS("5") shouldBe c.ofS(Int::class, "5")
       }
    }

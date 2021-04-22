@@ -42,6 +42,7 @@ import javafx.scene.text.TextBoundsType.VISUAL
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.sign
 import kotlin.math.sin
 import mu.KLogging
@@ -54,6 +55,7 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
+import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.PLAYBACK
 import sp.it.pl.layout.widget.WidgetCompanion
@@ -77,9 +79,11 @@ import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.collections.observableList
+import sp.it.util.collections.setTo
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.file.div
+import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.math.clip
 import sp.it.util.reactive.Handler1
@@ -90,6 +94,7 @@ import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
@@ -141,7 +146,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
       ps.volume sync { muteChanged(ps) } on onClose
-//      APP.audio.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
+      APP.audio.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
 
       root.onEventDown(MOUSE_CLICKED, BACK) { PlaylistManager.playPreviousItem() }
       root.onEventDown(MOUSE_CLICKED, FORWARD) { PlaylistManager.playNextItem() }
@@ -191,6 +196,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                   styleClass += "seeker-label"
                   onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
 
+                  seeker.ticks += listOf(0.0, 0.25, 0.5, 0.75)
                   seeker.isValueChanging flatMap {
                      if (it) seeker.valueShown zip ps.duration map { (at, total) -> total * at }
                      else ps.currentTime map { it.toSeconds().toLong() } map { ps.currentTime.value }
@@ -240,9 +246,10 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       }
    }
 
-//   private fun playingItemChanged(song: Metadata) {
+   private fun playingItemChanged(song: Metadata) {
 //      seeker.reloadChapters(song)
-//   }
+      seeker.ticks setTo song.getChapters().chapters.map { it.time.divMillis(song.getLength()) }
+   }
 
    private fun statusChanged(newStatus: Status?) {
       when (newStatus) {
@@ -309,6 +316,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       val blockIncrement = v(0.1)
       /** Similar to as [Slider.showTickMarks] and [Slider.snapToTicks]. Default contains 0.0, 0.5 and 1.0. */
       val snaps = observableList(0.0, 0.5, 1.0)
+      val ticks = observableList<Double>()
 
       private val anim = anim(200.millis) { valueShown.value = valueAnimFrom + it*(valueAnimTo-valueAnimFrom) }.intpl { sin(PI/2*it) }
       private val animSuppressor = Suppressor()
@@ -332,7 +340,6 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
          onEventDown(KEY_PRESSED, KP_UP) { increment() }
          onEventDown(KEY_PRESSED, HOME) { decrementToMin() }
          onEventDown(KEY_PRESSED, END) { incrementToMax() }
-         onEventDown(SCROLL) { e -> if (e.deltaY.sign<0) increment() else decrement(); e.consume() }
 
          value attach { if (!isValueChanging.value) valueSoft(it) }
          value attachChanges { _, n ->
@@ -415,6 +422,12 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                      else valueToAnimTrue(v)
                   }
                }
+               onEventDown(SCROLL) { e ->
+                  val polarPos = (e.xy - (centerX x centerY))
+                  val centerDist = polarPos distance (0 x 0)
+                  if (centerDist<=radius && e.deltaY.sign<0) increment() else decrement()
+                  e.consume()
+               }
                onEventDown(MOUSE_PRESSED, PRIMARY) {
                   this@SeekerCircle.requestFocus()
                   if (editable.value) {
@@ -447,6 +460,31 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                      isValueChanging.value = false
                      valueShownToActualAnimTrue()
                   }
+               }
+            }
+         }
+
+         lay += object: StackPane() {
+            val radius = W/4.0 + 5
+
+            init {
+               isPickOnBounds = false
+               valueSymmetrical attach { requestLayout() }
+               ticks.onChangeAndNow {
+                  children setTo ticks.map { tick ->
+                     Circle(5.0, Color.RED).apply {
+                        styleClass += "seeker-circle-chapter"
+                     }
+                  }
+               }
+            }
+
+            override fun layoutChildren() {
+               (children zip ticks).forEach { (c, t) ->
+                  val aRaw = 2.0*PI*t.toDouble() + valueStartAngle.value*PI/180.0
+                  val a = if (valueSymmetrical.value) aRaw/2.0 else aRaw
+                  c.asIs<Circle>().centerX = layoutBounds.centerX + radius*cos(a)
+                  c.asIs<Circle>().centerY = layoutBounds.centerY + radius*sin(a)
                }
             }
          }
@@ -488,7 +526,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       private fun Double.snap(e: MouseEvent? = null): Double {
          val snap = e!=null && !e.isShiftDown && !e.isShortcutDown
          val snapBy = APP.ui.snapDistance.value / (2*PI*W/4.0)
-         val snaps = if (snap) snaps else listOf()
+         val snaps = if (snap) (snaps + ticks).toSet() else setOf()
          return snaps.minByOrNull { (it-this).absoluteValue }?.takeIf { (it-this).absoluteValue<=snapBy } ?: this
       }
    }

@@ -11,14 +11,14 @@ import static sp.it.util.dev.FailKt.noNull;
  * ability to filter items before the selection takes place.
  */
 public class PlayingSequence {
-    private ItemSelector<PlaylistSong> selector = LoopMode.PLAYLIST.selector();
+    private PlaylistSongSelector<PlaylistSong> selector = LoopMode.PLAYLIST.selector();
     private static final List<PlaylistSong> history = new ArrayList<>();
     private static int history_pos = -1;
 
     /**
      * Sets the logic that determines how the next item should be selected.
      */
-    public void setSelector(ItemSelector<PlaylistSong> selector) {
+    public void setSelector(PlaylistSongSelector<PlaylistSong> selector) {
         noNull(selector);
         this.selector = selector;
     }
@@ -53,10 +53,26 @@ public class PlayingSequence {
 
     /** Playback looping mode. */
     public enum LoopMode {
+        OFF {
+            @Override
+            public PlaylistSongSelector<PlaylistSong> selector() {
+                return new PlaylistSongSelector<>(
+                        (size, index, current_item, playlist) -> {
+                            if (size==0 || index==0) return null;
+                            if (current_item==null) return playlist.get(0);
+                            return playlist.get(Values.decrIndex(size, index));
+                        },
+                        (size, index, current_item, playlist) -> {
+                            if (size==0 || index==size - 1) return null;
+                            if (current_item==null) return playlist.get(0);
+                            return playlist.get(Values.incrIndex(size, index));
+                        });
+            }
+        },
         PLAYLIST {
             @Override
-            public ItemSelector<PlaylistSong> selector() {
-                return new ItemSelector<>(
+            public PlaylistSongSelector<PlaylistSong> selector() {
+                return new PlaylistSongSelector<>(
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
                             if (current_item==null) return playlist.get(0);
@@ -71,34 +87,18 @@ public class PlayingSequence {
         },
         SONG {
             @Override
-            public ItemSelector<PlaylistSong> selector() {
+            public PlaylistSongSelector<PlaylistSong> selector() {
                 Selection<PlaylistSong> sel = (size, index, current_item, playlist) -> {
                     if (current_item==null && size>0) return playlist.get(0);
                     return current_item;
                 };
-                return new ItemSelector<>(sel, sel);
-            }
-        },
-        OFF {
-            @Override
-            public ItemSelector<PlaylistSong> selector() {
-                return new ItemSelector<>(
-                        (size, index, current_item, playlist) -> {
-                            if (size==0 || index==0) return null;
-                            if (current_item==null) return playlist.get(0);
-                            return playlist.get(Values.decrIndex(size, index));
-                        },
-                        (size, index, current_item, playlist) -> {
-                            if (size==0 || index==size - 1) return null;
-                            if (current_item==null) return playlist.get(0);
-                            return playlist.get(Values.incrIndex(size, index));
-                        });
+                return new PlaylistSongSelector<>(sel, sel);
             }
         },
         RANDOM {
             @Override
-            public ItemSelector<PlaylistSong> selector() {
-                return new ItemSelector<>(
+            public PlaylistSongSelector<PlaylistSong> selector() {
+                return new PlaylistSongSelector<>(
                         (size, index, current_item, playlist) -> {
                             if (size==0) return null;
                             // generate random index
@@ -127,6 +127,6 @@ public class PlayingSequence {
         };
 
         /** @return {@link Selection}. */
-        public abstract ItemSelector<PlaylistSong> selector();
+        public abstract PlaylistSongSelector<PlaylistSong> selector();
     }
 }

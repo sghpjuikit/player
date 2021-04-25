@@ -37,6 +37,8 @@ import javafx.scene.control.TreeView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.image.WritableImage
+import javafx.scene.input.DragEvent
+import javafx.scene.input.GestureEvent
 import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_EXITED
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
@@ -86,6 +88,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.max
@@ -409,19 +412,19 @@ interface Lay {
 
 open class PaneLay(private val pane: Pane): Lay {
 
-   override fun plusAssign(child: Node) {
-      pane.children += child
-   }
+   /** Clears [Pane.children] */
+   fun clear() = pane.children.clear()
 
-   /** Removes the specified child from this */
-   operator fun minusAssign(child: Node) {
-      pane.children -= child
-   }
+   /** Adds the specified child to [Pane.children] */
+   override fun plusAssign(child: Node) = pane.children.add(child).toUnit()
 
-   /** Removes the specified children from this */
+   /** Removes the specified child from [Pane.children] */
+   operator fun minusAssign(child: Node) = pane.children.remove(child).toUnit()
+
+   /** Removes the specified children from [Pane.children] */
    operator fun minusAssign(children: Collection<Node>) = children.forEach { this -= it }
 
-   /** Removes the specified children from this */
+   /** Removes the specified children from [Pane.children] */
    operator fun minusAssign(children: Sequence<Node>) = children.forEach { this -= it }
 
 }
@@ -819,6 +822,24 @@ val MouseEvent.sceneXy get() = P(sceneX, sceneY)
 
 /** ([MouseEvent.screenX],[MouseEvent.screenY]) */
 val MouseEvent.screenXy get() = P(screenX, screenY)
+
+/** ([GestureEvent.x],[GestureEvent.y]) */
+val GestureEvent.xy get() = P(x, y)
+
+/** ([GestureEvent.sceneX],[GestureEvent.sceneY]) */
+val GestureEvent.sceneXy get() = P(sceneX, sceneY)
+
+/** ([GestureEvent.screenX],[GestureEvent.screenY]) */
+val GestureEvent.screenXy get() = P(screenX, screenY)
+
+/** ([DragEvent.x],[DragEvent.y]) */
+val DragEvent.xy get() = P(x, y)
+
+/** ([DragEvent.sceneX],[DragEvent.sceneY]) */
+val DragEvent.sceneXy get() = P(sceneX, sceneY)
+
+/** ([DragEvent.screenX],[DragEvent.screenY]) */
+val DragEvent.screenXy get() = P(screenX, screenY)
 
 /** Left top corner of the bounds represented as point */
 val Rectangle2D.min get() = P(minX, minY)

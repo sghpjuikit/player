@@ -122,15 +122,10 @@ class FItemNode<I, O>(typeIn: VType<I>, typeOutTargeted: VType<O>, functionPool:
 
    private fun generateValue() {
       avoidGenerateValue.suppressed {
-         println()
-         println(fs.map { it.fCB.value?.name }.toStringPretty())
          val isTerminal = fs.lastOrNull()?.isTerminal() == true
          val functions = fs.mapNotNull { it.realize() }
          val isNonNull = functions.size == fs.size
-         println(isTerminal)
-         println(isNonNull)
          val function = functions.reduceOrNull { mapper, getter -> mapper compose getter }
-         println(function)
          if (isTerminal && isNonNull && function!=null) changeValue(function.asIs())
       }
    }

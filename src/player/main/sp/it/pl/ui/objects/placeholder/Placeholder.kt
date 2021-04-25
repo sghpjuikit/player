@@ -3,10 +3,6 @@ package sp.it.pl.ui.objects.placeholder
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.input.KeyCode.ENTER
-import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
@@ -18,7 +14,6 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Subscription
-import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.Util.layHeaderBottom
 import sp.it.util.ui.containsMouse
@@ -31,6 +26,9 @@ import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.size
 import sp.it.util.units.millis
 import kotlin.math.sqrt
+import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
+import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
+import sp.it.util.ui.stackPane
 
 /**
  * Placeholder pane. Can invoke action and display its icon and multi-line information text.
@@ -46,23 +44,33 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
 
    init {
       styleClass += STYLECLASS
+      isFocusTraversable = true
+
       info.text = actionName
       info.textAlignment = TextAlignment.CENTER
 
       icon.styleclass(STYLECLASS_ICON)
       icon.icon(actionIcon)
       icon.action(action)
-      icon.isMouseTransparent = true
-      hoverProperty() sync { icon.select(it) }
+      icon.isFocusTraversable = false
+      icon.focusOwner.value = this
+      icon.onClickDelegateMouseTo(this)
+      icon.onClickDelegateKeyTo(this)
 
-      onEventDown(MOUSE_CLICKED, PRIMARY) { action() }
-      onEventDown(KEY_PRESSED, ENTER) { action() }
       parentProperty() sync {
-         if (it!=null && it.scene?.window?.isShowing==true && it.containsMouse())
+         if (it!=null && it.scene?.window?.isShowing==true && it.containsMouse()) {
             pseudoClassChanged("hover", true)
+            icon.select(true)
+         }
       }
 
-      lay += layHeaderBottom(8.0, Pos.CENTER, icon, info)
+      lay += layHeaderBottom(8.0, Pos.CENTER,
+         stackPane {
+            isMouseTransparent = true
+            lay += icon
+         },
+         info
+      )
       isVisible = false
    }
 
@@ -72,8 +80,8 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
          n.placeholderAnim = anim(250.millis) { n.opacity = 1-ALMOST_TRANSPARENT*sqrt(it); opacity = sqrt(it) }.apply { playOpen() }
          s2?.unsubscribe()
          s2 = Subscription {
-            n.placeholderAnim?.stop();
-            n.placeholderAnim?.applyAt(0.0);
+            n.placeholderAnim?.stop()
+            n.placeholderAnim?.applyAt(0.0)
             n.placeholderAnim=null
          }
       }
@@ -102,10 +110,6 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
          isVisible = true
          if (focus) requestFocus()
       }
-   }
-
-   override fun requestFocus() {
-      icon.requestFocus()
    }
 
    /** Hides this placeholder so it is not a child of any node and [visible] is false. */

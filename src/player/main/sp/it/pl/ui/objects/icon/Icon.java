@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.CssMetaData;
 import javafx.css.SimpleStyleableObjectProperty;
 import javafx.css.StyleConverter;
@@ -24,6 +25,8 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Effect;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -33,6 +36,7 @@ import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sp.it.util.access.V;
@@ -42,6 +46,7 @@ import sp.it.util.animation.Anim;
 import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.TryKt;
+import sp.it.util.reactive.Subscription;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
@@ -59,6 +64,10 @@ import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.animation.Anim.mapTo01;
 import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.reactive.EventsKt.onEventDown;
+import static sp.it.util.reactive.UtilKt.attach;
+import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.text.StringExtensionsKt.keysUi;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.Util.layHeaderBottom;
@@ -73,6 +82,8 @@ import static sp.it.util.ui.UtilKt.typeText;
 
 /**
  * Icon.
+ *
+ * Selection: icon is selected when focusOwner is focused | focusOwner is hover | select(true) has been called
  */
 public class Icon extends StackPane {
 
@@ -93,6 +104,8 @@ public class Icon extends StackPane {
 	private static final String DEFAULT_FONT_SIZE = "1em";
 
 	private final Text node = new Text();
+	public ObjectProperty<Node> focusOwner = new SimpleObjectProperty<>(this);
+	private Subscription focusOwnerS = null;
 	public DoubleProperty glyphOffsetX = node.translateXProperty();
 	public DoubleProperty glyphOffsetY = node.translateYProperty();
 	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GlyphsKt.id(ADJUST));
@@ -104,22 +117,18 @@ public class Icon extends StackPane {
 	private double glyphScale = 1;
 
 	public Icon() {
-		this(null, -1);
+		this(null, -1, (String) null);
 	}
 
-	public Icon(GlyphIcons i) {
-		this(i, -1);
+	public Icon(@Nullable GlyphIcons i) {
+		this(i, -1, (String) null);
 	}
 
-	public Icon(GlyphIcons i, double size) {
-		this(i, size, null, (Function1<Icon,Unit>) null);
+	public Icon(@Nullable GlyphIcons i, double size) {
+		this(i, size, (String) null);
 	}
 
-	public Icon(GlyphIcons i, double size, String tooltip) {
-		this(i, size, tooltip, (Function1<Icon,Unit>) null);
-	}
-
-	public Icon(GlyphIcons i, double size, String tooltip, Function1<Icon,Unit> onClick) {
+	public Icon(@Nullable GlyphIcons i, double size, @Nullable String tooltip) {
 		setId("icon");
 		this.size.addListener((o, ov, nv) -> updateSize());
 		gap.addListener((o, ov, nv) -> updateSize());
@@ -132,7 +141,6 @@ public class Icon extends StackPane {
 		if (size!=-1) size(size);
 		if (i!=null) icon(i);
 		tooltip(tooltip);
-		onClickDo(onClick);
 		node.setCache(false);
 		node.setCache(true);
 		node.setCacheHint(CacheHint.SPEED);
@@ -145,18 +153,35 @@ public class Icon extends StackPane {
 		node.setFocusTraversable(false);
 		node.setManaged(false);
 		getChildren().add(node);
+
+		// selection
 		setFocusTraversable(true);
+		sync(focusOwner, consumer(fo -> {
+			if (focusOwnerS!=null) focusOwnerS.unsubscribe();
 
-		// mouse hover animation
-		// unfortunately, when effects such as drop shadow are enabled, this hover does not work properly
-		// hoverProperty().addListener((o, ov, nv) -> select(nv));
-		addEventHandler(MOUSE_EXITED, e -> select(false));
-		addEventHandler(MOUSE_ENTERED, e -> { if (iconBounds().contains(e.getX(), e.getY())) select(true); });
-		addEventHandler(MOUSE_MOVED, e -> { if (iconBounds().contains(e.getX(), e.getY())) select(true); });
+			var s1 = attach(fo.focusedProperty(), consumer(f -> {
+					pseudoClassStateChanged(pseudoclass("focused"), f);
+					if (isAnimated.get() && !(!f && isHover()))
+						ra.get(this, Ahover).playFromDir(f);
+				}));
 
-		focusedProperty().addListener((o,ov,nv) -> {
-			if (isAnimated.get()) ra.get(this, Ahover).playFromDir(nv);
-		});
+			Subscription s2 = null;
+			if (fo==this) {
+				// unfortunately, when effects such as drop shadow are enabled, we need to check bounds
+				s2 = Subscription.Companion.invoke(
+					onEventDown(fo, MOUSE_EXITED, consumer(e -> { if (!fo.isFocused()) select(false); })),
+					onEventDown(fo, MOUSE_ENTERED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); })),
+					onEventDown(fo, MOUSE_MOVED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); }))
+				);
+			} else {
+				s2 = attach(fo.hoverProperty(), consumer(h -> {
+					if (!fo.isFocused())
+						select(h);
+				}));
+			}
+
+			focusOwnerS = Subscription.Companion.invoke(s1, s2);
+		}));
 	}
 
 	private Bounds iconBounds() {
@@ -195,12 +220,10 @@ public class Icon extends StackPane {
 	private boolean isSelected = false;
 	public final V<Boolean> isAnimated = new V<>(true);
 
-	// TODO: handle better along with focusing
 	public void select(boolean value) {
 		if (value==isSelected) return;
 		isSelected = value;
-		pseudoClassStateChanged(pseudoclass("hover"), value);
-		node.pseudoClassStateChanged(pseudoclass("hover"), value);
+		pseudoClassStateChanged(pseudoclass("hover"), focusOwner.getValue().isFocused() || value);
 		if (isAnimated.get()) ra.get(this, Ahover).playFromDir(value);
 	}
 
@@ -343,7 +366,8 @@ public class Icon extends StackPane {
 	}
 
 	/**
-	 * Installs action for left mouse click and ENTER press. The events will be consumed.
+	 * Installs action for left mouse click and ENTER press.
+	 * Handled event will be consumed.
 	 * @return this
 	 */
 	public final @NotNull Icon action(@Nullable Consumer<? super Icon> action) {
@@ -352,30 +376,43 @@ public class Icon extends StackPane {
 
 	/**
 	 * Installs action for left mouse click or ENTER release.
-	 * The events will be consumed.
+	 * Handled event will be consumed.
 	 * @return this
 	 */
-	public final @NotNull Icon onClickDo(@Nullable Function1<Icon,Unit> action) {
+	public final @NotNull Icon onClickDo(@Nullable Function1<Icon, Unit> action) {
 		return onClickDo(null, action);
 	}
 
 	/**
 	 * Installs action for left mouse click with specified click count or ENTER release.
-	 * The events will be consumed.
+	 * Handled event will be consumed.
 	 * @return this
 	 */
-	public final @NotNull Icon onClickDo(@Nullable Integer clickCount, @Nullable Function1<Icon,Unit> action) {
+	public final @NotNull Icon onClickDo(@Nullable Integer clickCount, @Nullable Function1<Icon, Unit> action) {
+		return onClickDo(PRIMARY, null, action==null ? null : (i, e) -> action.invoke(i));
+	}
+
+	/**
+	 * Installs action for mouse click with specified button and specified click count or ENTER release.
+	 * Handled event will be consumed.
+	 * @return this
+	 */
+	public final @NotNull Icon onClickDo(@Nullable MouseButton button, @Nullable Integer clickCount, @Nullable Function2<Icon, @Nullable MouseEvent, Unit> action) {
 		setOnMouseClicked(action==null ? null : e -> {
-			if (!isMouseTransparent() && e.getButton()==PRIMARY && (clickCount==null || e.getClickCount()==clickCount) && iconBounds().contains(e.getX(), e.getY())) {
-				if (isFocusTraversable() && !isFocused()) requestFocus();
-				action.invoke(this);
+			if (!isMouseTransparent() &&
+				(button==null || e.getButton()==button) &&
+				(clickCount==null || e.getClickCount()==clickCount) &&
+				(e.getTarget()!=this || iconBounds().contains(e.getX(), e.getY()))
+			) {
+				if (focusOwner.getValue().isFocusTraversable() && !focusOwner.getValue().isFocused()) requestFocus();
+				action.invoke(this, e);
 				e.consume();
 			}
 		});
 		setOnKeyReleased(action==null ? null : e -> {
 			if (!isMouseTransparent() && e.getCode()==ENTER) {
-				if (isFocusTraversable() && !isFocused()) requestFocus();
-				action.invoke(this);
+				if (focusOwner.getValue().isFocusTraversable() && !focusOwner.getValue().isFocused()) requestFocus();
+				action.invoke(this, null);
 				e.consume();
 			}
 		});

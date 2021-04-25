@@ -69,22 +69,6 @@ public class PlayingSequence {
                         });
             }
         },
-        PLAYLIST {
-            @Override
-            public PlaylistSongSelector<PlaylistSong> selector() {
-                return new PlaylistSongSelector<>(
-                        (size, index, current_item, playlist) -> {
-                            if (size==0) return null;
-                            if (current_item==null) return playlist.get(0);
-                            else return playlist.get(Values.decrIndex(size, index));
-                        },
-                        (size, index, current_item, playlist) -> {
-                            if (size==0) return null;
-                            if (current_item==null) return playlist.get(0);
-                            else return playlist.get(Values.incrIndex(size, index));
-                        });
-            }
-        },
         SONG {
             @Override
             public PlaylistSongSelector<PlaylistSong> selector() {
@@ -123,6 +107,22 @@ public class PlayingSequence {
                             return p;
                         }
                 );
+            }
+        },
+        PLAYLIST {
+            @Override
+            public PlaylistSongSelector<PlaylistSong> selector() {
+                return new PlaylistSongSelector<>(
+                        (size, index, current_item, playlist) -> {
+                            if (size==0) return null;
+                            if (current_item==null) return playlist.get(0);
+                            else return playlist.get(Values.decrIndex(size, index));
+                        },
+                        (size, index, current_item, playlist) -> {
+                            if (size==0) return null;
+                            if (current_item==null) return playlist.get(0);
+                            else return playlist.get(Values.incrIndex(size, index));
+                        });
             }
         };
 

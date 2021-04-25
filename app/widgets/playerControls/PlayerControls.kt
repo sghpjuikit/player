@@ -102,7 +102,6 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val seekType by cv(Seek.RELATIVE).def(name = "Seek type", info = "Forward/backward buttons seek by time (absolute) or fraction of total duration (relative).")
    val showChapters by cv(POPUP_SHARED) { dv -> seeker.chapterDisplayMode.apply { value = dv } }.def(name = "Chapters show", info = "Display chapter marks on seeker.")
    val showChapOnHover by cv(HOVER) { dv -> seeker.chapterDisplayActivation.apply { value = dv } }.def(name = "Chapter open on", info = "Opens chapter also when mouse hovers over them.")
-   val snapToChap by cv(false) { dv -> seeker.chapterSnap.apply { value = dv } }.def(name = "Snap seeker to chapters", info = "Enable snapping to chapters during dragging.")
    val elapsedTime by cv(true).def(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
 
    init {
@@ -111,6 +110,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       val ps = APP.audio.state.playback
 
       seeker.bindTime(ps) on onClose
+      seeker.chapterSnap.value = true
       seeker.chapterSnapDistance syncFrom APP.ui.snapDistance on onClose
       seeker.prefHeight = 30.0
 

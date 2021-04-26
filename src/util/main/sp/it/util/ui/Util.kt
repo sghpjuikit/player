@@ -1030,7 +1030,7 @@ fun <T> TreeView<T>.scrollToCenter(item: TreeItem<T>) {
 
 /**
  * Sets an action to execute when this node is hovered or dragged with mouse.
- * More reliable than [MouseEvent.MOUSE_ENTERED]/[MouseEvent.MOUSE_EXITED], because this takes into consideration mouse drag.
+ * More reliable than [MOUSE_ENTERED]/[MOUSE_EXITED], because this takes into consideration mouse drag.
  */
 fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
    val key = "isHoverOrDrag-" + uuid()
@@ -1054,7 +1054,7 @@ fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
          }
       },
       onEventUp(MOUSE_EXITED) {
-         if (key in properties) {
+         if (key in properties && !contains(it.x, it.y)) {
             properties -= key
             on(false)
          }

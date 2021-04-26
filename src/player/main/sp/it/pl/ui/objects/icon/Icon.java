@@ -65,7 +65,7 @@ import static sp.it.util.animation.Anim.mapTo01;
 import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
-import static sp.it.util.reactive.EventsKt.onEventDown;
+import static sp.it.util.reactive.EventsKt.onEventUp;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.text.StringExtensionsKt.keysUi;
@@ -75,6 +75,7 @@ import static sp.it.util.ui.Util.layHeaderLeft;
 import static sp.it.util.ui.Util.layHeaderRight;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.UtilKt.createIcon;
+import static sp.it.util.ui.UtilKt.onHoverOrDrag;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.setMinPrefMaxSize;
 import static sp.it.util.ui.UtilKt.setScaleXY;
@@ -169,12 +170,12 @@ public class Icon extends StackPane {
 			if (fo==this) {
 				// unfortunately, when effects such as drop shadow are enabled, we need to check bounds
 				s2 = Subscription.Companion.invoke(
-					onEventDown(fo, MOUSE_EXITED, consumer(e -> { if (!fo.isFocused()) select(false); })),
-					onEventDown(fo, MOUSE_ENTERED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); })),
-					onEventDown(fo, MOUSE_MOVED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); }))
+					onEventUp(fo, MOUSE_EXITED, consumer(e -> { if (!fo.isFocused()) select(false); })),
+					onEventUp(fo, MOUSE_ENTERED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); })),
+					onEventUp(fo, MOUSE_MOVED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); }))
 				);
 			} else {
-				s2 = attach(fo.hoverProperty(), consumer(h -> {
+				s2 = onHoverOrDrag(fo, consumer(h -> {
 					if (!fo.isFocused())
 						select(h);
 				}));

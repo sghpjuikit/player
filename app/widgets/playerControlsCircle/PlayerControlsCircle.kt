@@ -77,11 +77,11 @@ import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
 import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.pl.ui.objects.seeker.bindTimeToSmooth
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.access.Values
 import sp.it.util.access.toggle
+import sp.it.util.access.toggleNext
+import sp.it.util.access.togglePrevious
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.async.runLater
 import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cv
@@ -133,7 +133,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
    val f3 = IconUN(0x25c6).icon(128.0) { APP.audio.pauseResume() }
    val f4 = IconUN(0x2aa2).icon(72.0) { if (it) PlaylistManager.playNextItem() else APP.audio.seekForward(seekType.value) }
    val muteB = IconFA.VOLUME_UP.icon(24.0) { APP.audio.toggleMute() }
-   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.setLoopMode(APP.audio.getLoopMode().net { v -> if (it) Values.next(v) else Values.previous(v) }) }
+   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.state.playback.loopMode.let { v -> if (it) v.toggleNext() else v.togglePrevious() } }
    val playbackButtons = listOf(f2, f3, f4)
    val seeker = SeekerCircle(333.0.emScaled)
    val seekerChapters = observableList<Double>()
@@ -215,13 +215,10 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                   isPickOnBounds = false
                   isFillHeight = false
                   lay += f2.size(36).scale(2.0)
-                  lay += stackPane {
-                     isMouseTransparent = true
-                     lay += f3.size(72).scale(2.0).apply {
-                        isFocusTraversable = false
-                        focusOwner.value = seeker
-                        onClickDelegateKeyTo(seeker)
-                     }
+                  lay += f3.size(72).scale(2.0).apply {
+                     isFocusTraversable = false
+                     focusOwner.value = seeker
+                     onClickDelegateKeyTo(seeker)
                   }
                   lay += f4.size(36).scale(2.0)
                }
@@ -254,10 +251,11 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                         PLAYLIST -> 1.0
                      }
                   }
+                  val mappingInv = { it: Double -> mapping.entries.minByOrNull { (_, v) -> abs(it - v) }!!.key }
+
                   snaps setTo mapping.values
                   blockIncrement.value = 1.0/valueCount
-                  value attach { ps.loopMode.value = mapping.entries.minByOrNull { (_, v) -> abs(it - v) }!!.key }
-                  isValueChanging attachFalse { runLater { value.value = mapping[ps.loopMode.value]!! } }
+                  value attach { ps.loopMode.value = mappingInv(it) }
                   ps.loopMode sync { value.value = mapping[it]!! }
 
                   // knob delegates focus & some events to icon

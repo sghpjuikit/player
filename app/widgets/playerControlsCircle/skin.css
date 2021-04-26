@@ -19,7 +19,7 @@
     -fx-max-height: 60;
     -fx-background-color: radial-gradient(center 50% 50%, radius 100%, -skin-color-lighter, transparent 55%, transparent);
     -fx-background-insets: 0;
-    -fx-background-radius: 0;
+    -fx-background-radius: 100000; // makes the knob a circle for mouse interaction
 }
 .seeker-circle .seeker-circle-bgr {
     -fx-fill: transparent;

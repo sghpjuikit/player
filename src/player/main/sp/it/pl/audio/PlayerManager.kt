@@ -14,7 +14,6 @@ import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.VlcPlayer
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
-import sp.it.pl.audio.playlist.sequence.PlayingSequence
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.audio.tagging.readTask
@@ -24,7 +23,6 @@ import sp.it.pl.audio.tagging.writeRating
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
-import sp.it.util.access.Values
 import sp.it.util.access.toggle
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
@@ -65,6 +63,7 @@ import java.util.ArrayList
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_INFO
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
 import sp.it.util.Sort.ASCENDING
+import sp.it.util.access.toggleNext
 import sp.it.util.conf.cv
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
@@ -79,6 +78,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    val playing = InOutput<Metadata>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing").appWide()
    val playingSong = CurrentItem()
    val state = PlayerState.deserialize().apply {
+      playback.loopMode attach { PlaylistManager.playingItemSelector.setSelector(it.selector()) }
       playback.status attach { APP.actionStream(PlaybackStatusChanged(it)) }
    }
    private val player = GeneralPlayer(state)
@@ -439,10 +439,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    fun seekForward(type: Seek) {
-      if (type==Seek.ABSOLUTE)
-         seekForwardAbsolute()
-      else
-         seekForwardRelative()
+      when (type) {
+         Seek.ABSOLUTE -> seekForwardAbsolute()
+         Seek.RELATIVE -> seekForwardRelative()
+      }
    }
 
    /** Seek forward by small duration unit.  */
@@ -459,10 +459,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    fun seekBackward(type: Seek) {
-      if (type==Seek.ABSOLUTE)
-         seekBackwardAbsolute()
-      else
-         seekBackwardRelative()
+      when (type) {
+         Seek.ABSOLUTE -> seekBackwardAbsolute()
+         Seek.RELATIVE -> seekBackwardRelative()
+      }
    }
 
    /** Seek backward by small duration unit.  */
@@ -496,18 +496,9 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       state.playback.volume.decByStep()
    }
 
-   fun getLoopMode(): PlayingSequence.LoopMode {
-      return state.playback.loopMode.value
-   }
-
    @IsAction(name = "Toggle looping", info = "Switch between playlist looping mode.", keys = "ALT+L")
    fun toggleLoopMode() {
-      setLoopMode(Values.next(getLoopMode()))
-   }
-
-   fun setLoopMode(mode: PlayingSequence.LoopMode) {
-      state.playback.loopMode.set(mode)
-      PlaylistManager.playingItemSelector.setSelector(mode.selector())
+      state.playback.loopMode.toggleNext()
    }
 
    /** Switches between on/off state for mute property.  */

@@ -183,8 +183,8 @@ public class FontPickerContent extends GridPane {
 	}
 
 	private <T> void selectInList(ListView<T> listView, T selection) {
-		listView.scrollTo(selection);
 		listView.getSelectionModel().select(selection);
+		listView.scrollTo(selection);
 	}
 
 	private <T> T selectedOr(ListView<T> listView, T or) {

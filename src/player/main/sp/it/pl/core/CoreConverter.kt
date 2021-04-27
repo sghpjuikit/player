@@ -284,14 +284,14 @@ object CoreConverter: Core {
       addT<TableColumnInfo.ColumnInfo>(toS, { TableColumnInfo.ColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnSortInfo>(toS, { TableColumnInfo.ColumnSortInfo.fromString(it).orMessage() })
       addT<Font>(
-         { "${it.name}, ${it.size}" },
+         { "${it.family}, ${it.style}, ${it.size}" },
          {
             runTry {
                val i = it.indexOf(',')
                val name = it.substring(0, i)
                val style = if (it.toLowerCase().contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
                val weight = if (it.toLowerCase().contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
-               val size = it.substring(i + 2).toDouble()
+               val size = it.substringAfterLast(",").trim().toDoubleOrNull() ?: Font.getDefault().size
                val f = Font.font(name, weight, style, size)
                if (f.family==name) f else fail { "Not recognized font" }
             }.orMessage()

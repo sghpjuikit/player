@@ -9,6 +9,7 @@
 .seeker-label {
     -fx-text-fill: -fx-focus-color;
     -fx-padding: 1em;
+    -fx-font-weight: bold;
 }
 
 /*

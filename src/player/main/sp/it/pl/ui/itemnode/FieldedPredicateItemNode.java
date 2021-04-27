@@ -25,6 +25,7 @@ import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.type.TypesKt.notnull;
 
 /**
  * Filter node producing {@link sp.it.util.access.fieldvalue.ObjectField} predicate.
@@ -44,7 +45,8 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 
 	@SuppressWarnings({"unchecked", "rawtypes", "UseBulkOperation"})
 	public FieldedPredicateItemNode() {
-		this(in -> {
+		this(inRaw -> {
+			var in = notnull(inRaw);
 			var fsIO = Functors.pool.getIO(in, new VType<>(Boolean.class, false));
 			var fsI = Functors.pool.getI(in);
 			var fsAll = new PrefList();

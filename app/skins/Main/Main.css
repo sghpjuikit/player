@@ -6,7 +6,7 @@
 
 /* Global variables*/
 * {
-    -skin-bgr-color: rgb(10, 10, 25);
+    -skin-bgr-color: rgb(10, 10, 10);
     -skin-def-font-color: rgb(160, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
@@ -1009,7 +1009,7 @@ Shape, Text, TextFlow > * {
 .accordion .titled-pane:focused > .title,
 .accordion .titled-pane:expanded > .title,
 .accordion .titled-pane:expanded:focused > .title {
-    -fx-text-color: -fx-focus-color;
+    -fx-text-fill: -fx-focus-color;
 }
 
 /********************************* SplitPane **********************************/

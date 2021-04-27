@@ -15,7 +15,7 @@
 /* Add background. */
 .bgr-image {
     -fx-opacity: 0.2;
-    -fx-background-image: url("bgr.jpg");
+    -fx-background-image: url("bgr.png");
     -fx-background-size: stretch;
 }
 
@@ -31,7 +31,7 @@
 .accordion .titled-pane:focused > .title,
 .accordion .titled-pane:expanded > .title,
 .accordion .titled-pane:expanded:focused > .title {
-    -fx-text-color: -fx-focus-color;
+    -fx-text-fill: -fx-focus-color;
 }
 
 /** Add glow effect */

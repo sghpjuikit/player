@@ -707,8 +707,9 @@ Shape, Text, TextFlow > * {
 
 .label {
     -fx-text-fill: -skin-def-font-color;
-    /* decreases performance for little eye candy */
-    /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );*/
+
+    /* For some reason some labels have borders sometimes, so we eliminate those here */
+    -fx-border-width: 0;
 }
 
 /*********************************** Hyperlink ********************************/

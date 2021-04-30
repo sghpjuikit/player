@@ -54,6 +54,38 @@ public class JavaLegacy {
 		WindowsSuspend.SetSuspendState(hibernate, forceCritical, disableWakeEvent);
 	}
 
+	public static void shutdownWindows() {
+		try {
+			Runtime.getRuntime().exec("shutdown -s -t 0");
+		} catch(Throwable e) {
+			// TODO: use EnvironmentKt.runCommand() and handle errors
+		}
+	}
+
+	public static void restartWindows() {
+		try {
+			Runtime.getRuntime().exec("shutdown -r -t 0");
+		} catch(Throwable e) {
+			// TODO: use EnvironmentKt.runCommand() and handle errors
+		}
+	}
+
+	public static void logOffWindows() {
+		try {
+			Runtime.getRuntime().exec("shutdown -l -t 0");
+		} catch(Throwable e) {
+			// TODO: use EnvironmentKt.runCommand() and handle errors
+		}
+	}
+
+	public static void lockWindows() {
+		try {
+			Runtime.getRuntime().exec("Rundll32.exe user32.dll,LockWorkStation");
+		} catch(Throwable e) {
+			// TODO: use EnvironmentKt.runCommand() and handle errors
+		}
+	}
+
 	private static class WindowsSuspend {
 		public static native boolean SetSuspendState(boolean hibernate, boolean forceCritical, boolean disableWakeEvent);
 

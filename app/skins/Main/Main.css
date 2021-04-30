@@ -2140,6 +2140,31 @@ Shape, Text, TextFlow > * {
     -fx-border-color: -fx-focus-color;
 }
 
+/******************************* PC_CONTROLS ***************************************************************************
+ * Extends StackPane
+ * properties: -fx-orientation = [HORIZONTAL | VERTICAL]
+ * pseudoclasses: horizontal, vertical
+ */
+.pc-controls {
+    -fx-font-size: 1em;
+    -fx-orientation: VERTICAL;
+}
+.pc-controls:horizontal HBox {
+    -fx-spacing: 1em;
+    -fx-alignment: CENTER;
+    -fx-fill-height: false;
+    -fx-fill-width: false;
+}
+.pc-controls:vertical VBox {
+    -fx-spacing: 1em;
+    -fx-alignment: CENTER_RIGHT;
+    -fx-fill-width: false;
+    -fx-fill-height: false;
+}
+.pc-controls .icon {
+    -glyph-size: 2em;
+}
+
 /******************************* TIME-CLOCK-ANALOG *********************************************************************
  * inherits: StackPane
  * pseudoclasses: readonly

@@ -24,7 +24,7 @@ import sp.it.util.ui.styleclassToggle
  */
 class SelectionMenuItem(text: String? = "", selectedInitial: Boolean = false): Menu(text) {
    /** Selection icon */
-   private val icon = CheckIcon(false)
+   private val icon = CheckIcon(selectedInitial)
    /** Selection mouse click disposer */
    private var mouseClicking: Subscription? = null
    /** Selection state reflected by the icon. Changes on click. Default false. */
@@ -34,7 +34,6 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Boolean = false): M
       graphic = icon
       icon.styleclass(STYLECLASS_ICON)
       icon.gap(0)
-      selected.value = selectedInitial
 
       // action = toggle selection
       installOnMouseClick { selected.setValue(!selected.value) }

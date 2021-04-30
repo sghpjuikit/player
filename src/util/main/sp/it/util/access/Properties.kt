@@ -224,6 +224,6 @@ val ComboBox<*>.editable: BooleanProperty get() = editableProperty()
 /** [TreeItem.expandedProperty] */
 val TreeItem<*>.expanded: BooleanProperty get() = expandedProperty()
 /** [Node.visibleProperty] */
-val Node.visible: ReadOnlyBooleanProperty get() = visibleProperty()
+val Node.visible: BooleanProperty get() = visibleProperty()
 /** [Node.visibleProperty] */
 val javafx.scene.text.Text.textAlign: ObjectProperty<TextAlignment> get() = textAlignmentProperty()

@@ -59,7 +59,7 @@ interface ConfigImpl {
       override val constraints
          get() = constraintsImpl.orEmpty()
 
-      constructor(type: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, `val`: T, group: String): this(type, name, if (c.name.isEmpty()) name else c.name, `val`, group, c.info, c.editable) {
+      constructor(type: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, `val`: T, group: String): this(type, name, c.name.ifEmpty { name }, `val`, group, c.info, c.editable) {
          constraintsImpl = if (constraints.isEmpty()) null else HashSet(constraints)
 
          type.jvmErasure.companionObjectInstance.asIf<UnsealedEnumerator<T>>()?.ifNotNull {

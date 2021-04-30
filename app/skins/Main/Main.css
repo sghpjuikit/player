@@ -553,10 +553,10 @@
 
 .separator:horizontal .line,
 .separator:vertical .line {
-        -fx-opacity: 0.4;
-        -fx-border-width: 1;
-        -fx-border-color: -skin-def-font-color;
-        -fx-border-insets: 0;
+    -fx-opacity: 0.4;
+    -fx-border-width: 1;
+    -fx-border-color: -skin-def-font-color;
+    -fx-border-insets: 0;
 }
 
 /********************************* Text boxes *********************************/
@@ -2140,24 +2140,6 @@ Shape, Text, TextFlow > * {
     -fx-border-color: -fx-focus-color;
 }
 
-
-/******************************* TIME-CLOCK-DIGITAL ********************************************************************
- * Extends StackPane
- * pseudoclasses: readonly
- */
-.time-clock-digital {
-    -fx-padding: 1em;
-}
-.time-clock-digital-text,
-.time-clock-digital-text-hour,
-.time-clock-digital-text-minute,
-.time-clock-digital-text-second {
-     -fx-font-size: 2em;
-}
-.time-clock-digital-text-mode {
-     -fx-font-size: 1em;
-}
-
 /******************************* TIME-CLOCK-ANALOG *********************************************************************
  * inherits: StackPane
  * pseudoclasses: readonly
@@ -2215,6 +2197,83 @@ Shape, Text, TextFlow > * {
     -fx-border-width: 1;
     -fx-border-radius: 0.5em;
     -fx-border-color: -skin-def-font-color;
+}
+
+/******************************* TIME-CLOCK-DIGITAL ********************************************************************
+ * Extends StackPane
+ * pseudoclasses: readonly
+ */
+.time-clock-digital {
+    -fx-padding: 1em;
+}
+.time-clock-digital-text,
+.time-clock-digital-text-hour,
+.time-clock-digital-text-minute,
+.time-clock-digital-text-second {
+     -fx-font-size: 2em;
+}
+.time-clock-digital-text-mode {
+     -fx-font-size: 1em;
+}
+
+/******************************* TIME-CLOCK-DIGITAL-IOS ****************************************************************
+ * Extends VBox
+ * pseudoclasses: readonly
+ * properties: -fx-precision-min, -fx-precision-max
+ */
+.time-clock-digital-ios {
+    -fx-padding: 1em;
+    -fx-spacing: 0.5em;
+    -fx-alignment: CENTER;
+    -fx-fill-height: false;
+    -fx-precision-max: HOUR;
+    -fx-precision-min: MINUTE;
+}
+.time-clock-digital-ios-text,
+.time-clock-digital-ios-text-hour,
+.time-clock-digital-ios-text-minute,
+.time-clock-digital-ios-text-second {
+     -fx-font-size: 2em;
+}
+.time-clock-digital-ios-text-mode {
+     -fx-font-size: 1em;
+}
+.time-clock-digital-ios-separator {
+    -fx-pref-height: 8em;
+}
+.time-clock-digital-ios-separator:vertical .line {
+    -fx-opacity: 1;
+    -fx-border-width: 1;
+}
+
+/******************************* DATE-CLOCK-DIGITAL-IOS ****************************************************************
+ * Extends VBox
+ * pseudoclasses: readonly
+ * properties: -fx-precision-min, -fx-precision-max
+ */
+.date-clock-digital-ios {
+    -fx-padding: 1em;
+    -fx-spacing: 0.5em;
+    -fx-alignment: CENTER;
+    -fx-fill-height: false;
+    -fx-precision-max: MONTH;
+    -fx-precision-min: DAY;
+}
+.date-clock-digital-ios-text,
+.date-clock-digital-ios-text-year,
+.date-clock-digital-ios-text-month,
+.date-clock-digital-ios-text-day {
+     -fx-font-size: 2em;
+}
+.date-clock-digital-ios-text-mode {
+     -fx-font-size: 1em;
+}
+.date-clock-digital-ios-separator {
+    -fx-pref-height: 8em;
+}
+.date-clock-digital-ios-separator:vertical .line {
+    -fx-opacity: 1;
+    -fx-border-width: 1;
 }
 
 /******************************* TIME-PICKER-CONTENT *******************************************************************

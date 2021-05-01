@@ -187,7 +187,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
         w.moveOnDragOf(w.root);
         w.setContent(n);
-        if (as!=null) as.show();
+        if (c==null && as!=null) as.show();
     }
 
     public void closeWindow(int i) {

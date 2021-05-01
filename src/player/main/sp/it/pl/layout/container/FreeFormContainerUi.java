@@ -82,7 +82,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             e -> contains(e.getDragboard(), Df.COMPONENT),
             e -> get(e.getDragboard(), Df.COMPONENT) == container,
             consumer(e -> get(e.getDragboard(), Df.COMPONENT).swapWith(container, addEmptyWindowAt(e.getX(),e.getY()))),
-            e -> bestRecBounds(e.getX(),e.getY(),null) // alternatively: e -> bestRecBounds(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow()))
+            e -> bestRec(e.getX(),e.getY(),null).absolute // alternatively: e -> bestRec(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow())).absolute
         );
 
         rt.widthProperty().addListener((o,ov,nv) -> {
@@ -142,7 +142,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     public void loadWindow(int i, Component c) {
-        FfWindow w = getWindow(i, c);
+        var w = getWindow(i, c);
 
         var r = w.content;
         Node n;
@@ -191,7 +191,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     public void closeWindow(int i) {
-        FfWindow w = windows.get(i);
+        var w = windows.get(i);
         if (w!=null) {
             w.close();
             windows.remove(i);
@@ -203,7 +203,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     private FfWindow getWindow(int i, Component cm) {
-        FfWindow w = windows.get(i);
+        var w = windows.get(i);
         if (w==null) {
             w = buildWindow(i, cm);
             windows.put(i, w);
@@ -212,9 +212,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     private FfWindow buildWindow(int i, Component cm) {
-        FfWindow w = new FfWindow(rt);
-        w.root.getStyleClass().add("free-form-container-window");
-        w.offscreenFixOn.set(false);
+        var w = new FfWindow(rt);
 
         // initial size/pos
         w.open();
@@ -231,7 +229,9 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         // store for restoration (runLater avoids initialization problems)
         runLater(() -> {
             syncC(w.x, v -> { if (!resizing) container.properties.put(i+"x", v.doubleValue()/rt.getWidth());});
+            syncC(w.x, v -> { if (!resizing) container.properties.put(i+"w", (v.doubleValue() + w.w.get())/rt.getWidth());});
             syncC(w.y, v -> { if (!resizing) container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
+            syncC(w.y, v -> { if (!resizing) container.properties.put(i+"h", (v.doubleValue() + w.h.get())/rt.getHeight());});
             syncC(w.w, v -> { if (!resizing) container.properties.put(i+"w", (w.x.get()+v.doubleValue())/rt.getWidth());});
             syncC(w.h, v -> { if (!resizing) container.properties.put(i+"h", (w.y.get()+v.doubleValue())/rt.getHeight());});
             syncC(APP.ui.getSnapDistance(), it -> w.snapDistance.setValue(it));
@@ -239,14 +239,15 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         });
         syncC(container.lockedUnder, it -> w.resizable.setValue(!it));
         syncC(container.lockedUnder, it -> w.movable.setValue(!it));
-        syncC(container.getShowHeaders(), it -> w.setHeaderVisible(it));
         syncC(container.getShowHeaders(), it -> {
             if (it) {
+                w.setHeaderVisible(it);
                 w.rightHeaderBox.getChildren().addAll(
                     new Icon(VIEW_DASHBOARD, -1, autoLayoutTooltipText, () -> autoLayout(w)).styleclass("header-icon"),
                     new Icon(ICON_CLOSE, -1, "Close this component", () -> { container.removeChild(i); closeWindow(i); }).styleclass("header-icon")
                 );
             } else {
+                w.setHeaderVisible(it);
                 w.rightHeaderBox.getChildren().clear();
             }
         });
@@ -272,43 +273,10 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     /** Optimal size/position strategy returning greatest empty square. */
-    TupleM4 bestRec(double x, double y, FfWindow new_w) {
-        TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
+    BestRec bestRec(double x, double y, FfWindow newW) {
+        var b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
 
-        for (FfWindow w : windows.values()) {
-            if (w==new_w) continue;   // ignore self
-            double wl = w.x.get()+w.w.get();
-            if (wl<x && wl>b.a) b.a = wl;
-            double wr = w.x.get();
-            if (wr>x && wr<b.b) b.b = wr;
-            double ht = w.y.get()+w.h.get();
-            if (ht<y && ht>b.c) b.c = ht;
-            double hb = w.y.get();
-            if (hb>y && hb<b.d) b.d = hb;
-        }
-
-        b.a = 0d;
-        b.b = rt.getWidth();
-        for (FfWindow w : windows.values()) {
-            if (w==new_w) continue;   // ignore self
-            double wl = w.x.get()+w.w.get();
-            double wr = w.x.get();
-            double ht = w.y.get()+w.h.get();
-            double hb = w.y.get();
-            boolean inTheWay = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
-            if (inTheWay) {
-                if (wl<x && wl>b.a) b.a = wl;
-                if (wr>x && wr<b.b) b.b = wr;
-            }
-        }
-
-        return new TupleM4(b.a/rt.getWidth(),b.c/rt.getHeight(), (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
-    }
-
-    Bounds bestRecBounds(double x, double y, FfWindow newW) {
-        TupleM4 b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
-
-        for (FfWindow w : windows.values()) {
+        for (var w : windows.values()) {
             if (w==newW) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             if (wl<x && wl>b.a) b.a = wl;
@@ -322,7 +290,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
         b.a = 0d;
         b.b = rt.getWidth();
-        for (FfWindow w : windows.values()) {
+        for (var w : windows.values()) {
             if (w==newW) continue;   // ignore self
             double wl = w.x.get()+w.w.get();
             double wr = w.x.get();
@@ -335,18 +303,15 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
             }
         }
 
-        return new BoundingBox(b.a,b.c,b.b-b.a,b.d-b.c);
-    }
-
-    /** Optimal size/position strategy returning center-aligned 3rd of window size
-      dimensions. */
-    TupleM4 bestRecSimple(double x, double y) {
-        return new TupleM4(x/rt.getWidth()-1/6d, y/rt.getHeight()-1/6d, 1/3d, 1/3d);
+        return new BestRec(
+            new TupleM4(b.a/rt.getWidth(),b.c/rt.getHeight(), (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight()),
+            new BoundingBox(b.a,b.c,b.b-b.a,b.d-b.c)
+        );
     }
 
     /** Initializes position & size for i-th window, ignoring self w if passed as param. */
     private void storeBestRec(int i, double x, double y, FfWindow w) {
-        TupleM4 bestPos = bestRec(x, y, w);
+        var bestPos = bestRec(x, y, w).relative;
         // add empty window at index
         // the method call eventually invokes load() method below, with
         // component/child == null (3rd case)
@@ -357,9 +322,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     private int addEmptyWindowAt(double x, double y) {
-        // get index
         int i = findFirstEmptyKey(container.getChildren(), 1);
-        // preset viable area
         storeBestRec(i, x,y, null);
         // add empty window at index (into viable area)
         // the method call eventually invokes load() method below, with
@@ -376,15 +339,25 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
     }
 
     public void autoLayout(FfWindow w) {
-        TupleM4 p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
-        w.x.set(p.a*rt.getWidth());
-        w.y.set(p.b*rt.getHeight());
-        w.w.set(p.c*rt.getWidth());
-        w.h.set(p.d*rt.getHeight());
+        var p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w).absolute;
+        w.x.set(p.getMinX());
+        w.y.set(p.getMinY());
+        w.w.set(p.getWidth());
+        w.h.set(p.getHeight());
     }
 
     public void autoLayoutAll() {
         windows.forEach((i,w) -> autoLayout(w));
+    }
+
+    private static class BestRec {
+        public TupleM4 relative;
+        public Bounds absolute;
+
+        public BestRec(TupleM4 relative, Bounds absolute) {
+            this.relative = relative;
+            this.absolute = absolute;
+        }
     }
 
     private static class TupleM4 {
@@ -406,6 +379,8 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
 
         public FfWindow(AnchorPane owner) {
             super(owner);
+            root.getStyleClass().add("free-form-container-window");
+            offscreenFixOn.set(false);
         }
 
     }

@@ -2301,6 +2301,24 @@ Shape, Text, TextFlow > * {
     -fx-border-width: 1;
 }
 
+/******************************* DATE-TIME-CLOCK-WIN *******************************************************************
+ * Inherits: VBox
+ */
+.date-time-clock-win {
+    -fx-spacing: 1.25em;
+    -fx-alignment: BOTTOM_RIGHT;
+    -fx-fill-width: false;
+}
+.date-time-clock-win-text {
+    -fx-font-size: 2em;
+    -fx-bounds-type: VISUAL;
+}
+.date-time-clock-win-text-datepart {}
+.date-time-clock-win-text-hourminute {
+    -fx-font-size: 6em;
+}
+.date-time-clock-win-text-date {}
+
 /******************************* TIME-PICKER-CONTENT *******************************************************************
  * inherits: VBox
  * pseudoclasses: readonly

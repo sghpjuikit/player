@@ -44,11 +44,11 @@ public class PaneWindowControls extends WindowPane {
 	private final Pane subroot = buildWindowLayout(consumer(this::borderDragStart), consumer(this::borderDragged), consumer(this::borderDragEnd));
 	public final AnchorPane borders = lookupId(subroot, "borders", AnchorPane.class);
 	public final AnchorPane content = lookupId(subroot, "content", AnchorPane.class);
-	public final StackPane header = lookupId(subroot, "header", StackPane.class);
-	public final Label titleL = lookupId(subroot, "titleL", Label.class);
+	public final StackPane header = lookupId(subroot, "headerContainer", StackPane.class);
+	public final Label titleL = lookupId(header, "titleL", Label.class);
 	public final VBox contentRoot = lookupId(subroot, "contentRoot", VBox.class);
-	public final HBox leftHeaderBox = lookupId(subroot, "leftHeaderBox", HBox.class);
-	public final HBox rightHeaderBox = lookupId(subroot, "rightHeaderBox", HBox.class);
+	public final HBox leftHeaderBox = lookupId(header, "leftHeaderBox", HBox.class);
+	public final HBox rightHeaderBox = lookupId(header, "rightHeaderBox", HBox.class);
 	private boolean headerVisible = true;
 	private boolean headerAllowed = true;
 

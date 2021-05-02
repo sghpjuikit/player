@@ -11,11 +11,16 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Year
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ISO_DATE
+import java.time.format.DateTimeFormatter.ISO_DATE_TIME
+import java.time.format.DateTimeFormatter.ISO_INSTANT
+import java.time.format.DateTimeFormatter.ISO_TIME
 import java.util.function.BiFunction
 import java.util.regex.Pattern
 import javafx.geometry.Insets
@@ -239,7 +244,6 @@ object CoreConverter: Core {
       addT<Byte>(toS, tryF(NFE::class) { it.toByte() })
       addP<String>({ it }, { it })
       addT<StringSplitParser>(toS, StringSplitParser::fromString)
-      addT<Year>(toS, tryF(DTPE::class) { Year.parse(it) })
       addP<Path>(
          {
             if (APP.location.isAnyParentOrSelfOf(it.toFile())) "<app-dir>" + File.separator + it.relativeToOrSelf(APP.location.toPath())
@@ -266,7 +270,11 @@ object CoreConverter: Core {
       addT<Pattern>(toS, tryF(PSE::class) { Pattern.compile(it) })
       addP<Bitrate>(Bitrate)
       addT<Duration>(toS, ::durationOfHMSMs)
-      addT<LocalDateTime>(toS, tryF(DTE::class) { LocalDateTime.parse(it) })
+      addT<Instant>({ ISO_INSTANT.format(it) }, tryF(DTPE::class) { Instant.parse(it) })
+      addT<LocalTime>({ ISO_TIME.format(it) }, tryF(DTPE::class) { LocalTime.parse(it, ISO_TIME) })
+      addT<LocalDate>({ ISO_DATE.format(it) }, tryF(DTPE::class) { LocalDate.parse(it, ISO_DATE) })
+      addT<LocalDateTime>({ ISO_DATE_TIME.format(it) }, tryF(DTPE::class) { LocalDateTime.parse(it, ISO_DATE_TIME) })
+      addT<Year>(toS, tryF(DTPE::class) { Year.parse(it) })
       addP<FileSize>(FileSize)
       addP<StrExF>(StrExF)
       addP<NofX>(NofX)

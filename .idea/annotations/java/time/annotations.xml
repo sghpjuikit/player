@@ -1,4 +1,13 @@
 <root>
+    <item name='java.time.LocalDate java.time.LocalDate from(java.time.temporal.TemporalAccessor)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='java.time.LocalDate java.time.LocalDate parse(java.lang.CharSequence)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='java.time.LocalDate java.time.LocalDate parse(java.lang.CharSequence, java.time.format.DateTimeFormatter)'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
     <item name='java.time.Year java.time.Year of(int)'>
         <annotation name='org.jetbrains.annotations.NotNull'/>
     </item>

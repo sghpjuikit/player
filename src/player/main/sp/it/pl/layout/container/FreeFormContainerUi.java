@@ -61,6 +61,8 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         super(c);
         container = getContainer();
 
+        rt.setMinSize(0.0, 0.0);
+        rt.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         setAnchor(getRoot(), rt, 0d);
 
         // add new widget on left click

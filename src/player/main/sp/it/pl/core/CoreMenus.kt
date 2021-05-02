@@ -39,7 +39,9 @@ import sp.it.pl.main.toMetadata
 import sp.it.pl.main.writeImage
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.web.SearchUriBuilder
+import sp.it.util.access.vn
 import sp.it.util.async.runIO
+import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
@@ -52,6 +54,7 @@ import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.div
 import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
@@ -321,7 +324,15 @@ object CoreMenus: Core {
             }
          }
          add<Input<*>> {
-            menuFor("Value", value.value)
+            menu("Value") {
+               item("Set to...") { input ->
+                  Config.forProperty(input.type, "Value", vn(input.value).asIs()).configure("Set value") { c ->
+                     fun Input<Any?>.setValue() { this.value = c.value }
+                     input.asIs<Input<Any?>>().setValue()
+                  }
+               }
+               menuFor("Value", value.value)
+            }
             menu("Link") {
                item("All identical") { it.bindAllIdentical() }
             }

@@ -268,8 +268,8 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
          IOLayer.allInputs.removeAll(`is`)
          IOLayer.allOutputs.removeAll(os)
          c.close()
-         `is`.forEach(Consumer { i: Input<*> -> i.dispose() })
-         os.forEach(Consumer { o: Output<*> -> o.dispose() })
+         `is`.forEach { it.dispose() }
+         os.forEach { it.dispose() }
       }
 
       graphics?.onNodeDispose()

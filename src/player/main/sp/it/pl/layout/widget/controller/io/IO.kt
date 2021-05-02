@@ -11,6 +11,7 @@ import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
+import sp.it.util.collections.materialize
 
 class IO(private val id: UUID) {
    @JvmField val o = Outputs()
@@ -40,7 +41,19 @@ class IO(private val id: UUID) {
 
          val i: Input<T?> = Input(name, type, initialValue, action)
          mi[name] = i
+         IOLayer.allInputs += i
          return i
+      }
+
+      fun remove(i: Input<*>) {
+         i.unbindAll()
+         i.dispose()
+         mi -= i.name
+         IOLayer.allInputs -= i
+      }
+
+      fun removeAll() {
+         mi.values.toList().materialize().forEach(::remove)
       }
 
       fun getInputRaw(name: String): Input<*>? = mi[name]

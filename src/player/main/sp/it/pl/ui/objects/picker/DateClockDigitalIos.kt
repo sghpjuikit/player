@@ -1,10 +1,8 @@
 package sp.it.pl.ui.objects.picker
 
 import java.time.LocalDate
-import javafx.geometry.Orientation
 import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.Separator
-import javafx.scene.input.ScrollEvent
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
 import kotlin.math.sign
@@ -22,6 +20,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.lay
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
@@ -35,9 +34,9 @@ class DateClockDigitalIos: HBox() {
    /** Updates graphics to display [value] */
    val update = Handler1<LocalDate>()
    /** The smallest displayed unit */
-   val precisionMin by sv<TimeClockPrecision>(PRECISION_MIN)
+   val precisionMin by sv(PRECISION_MIN)
    /** The largest displayed unit */
-   val precisionMax by sv<TimeClockPrecision>(PRECISION_MAX)
+   val precisionMax by sv(PRECISION_MAX)
 
    init {
       styleClass += "date-clock-digital-ios"
@@ -46,10 +45,9 @@ class DateClockDigitalIos: HBox() {
       val nodeYear = vBox {
          (-1..1).forEach { by ->
             lay += text("") {
-               isDisable = by!=0
-               opacity = if (by==0) 1.0 else 0.4
                styleClass += "date-clock-digital-ios-text"
                styleClass += "date-clock-digital-ios-text-year"
+               pseudoClassChanged("secondary", by!=0)
                update += { text = "%2d".format(it.year + by).padStart(4, ' ') }
             }
          }
@@ -58,10 +56,9 @@ class DateClockDigitalIos: HBox() {
       val nodeMonth = vBox {
          (-1..1).forEach { by ->
             lay += text("") {
-               isDisable = by!=0
-               opacity = if (by==0) 1.0 else 0.4
                styleClass += "date-clock-digital-ios-text"
                styleClass += "date-clock-digital-ios-text-month"
+               pseudoClassChanged("secondary", by!=0)
                update += { text = "%02d".format((it.monthValue + by + 12)%12) }
             }
          }
@@ -70,10 +67,9 @@ class DateClockDigitalIos: HBox() {
       val nodeDay = vBox {
          (-1..1).forEach { by ->
             lay += text("") {
-               isDisable = by!=0
-               opacity = if (by==0) 1.0 else 0.4
                styleClass += "date-clock-digital-ios-text"
                styleClass += "date-clock-digital-ios-text-day"
+               pseudoClassChanged("secondary", by!=0)
                update += { text = "%02d".format((it.dayOfMonth + by + it.lengthOfMonth())%it.lengthOfMonth()) }
             }
          }

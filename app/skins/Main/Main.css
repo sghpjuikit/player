@@ -2254,6 +2254,9 @@ Shape, Text, TextFlow > * {
     -fx-precision-max: HOUR;
     -fx-precision-min: MINUTE;
 }
+.time-clock-digital-ios-text:secondary {
+    -fx-opacity: 0.4;
+}
 .time-clock-digital-ios-text,
 .time-clock-digital-ios-text-hour,
 .time-clock-digital-ios-text-minute,
@@ -2283,6 +2286,9 @@ Shape, Text, TextFlow > * {
     -fx-fill-height: false;
     -fx-precision-max: MONTH;
     -fx-precision-min: DAY;
+}
+.date-clock-digital-ios-text:secondary {
+    -fx-opacity: 0.4;
 }
 .date-clock-digital-ios-text,
 .date-clock-digital-ios-text-year,

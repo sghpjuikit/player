@@ -1,10 +1,8 @@
 package sp.it.pl.ui.objects.picker
 
 import java.time.LocalTime
-import javafx.geometry.Orientation
 import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.Separator
-import javafx.scene.input.ScrollEvent
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
 import kotlin.math.sign
@@ -22,6 +20,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.lay
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
@@ -35,9 +34,9 @@ class TimeClockDigitalIos: HBox() {
    /** Updates graphics to display [value] */
    val update = Handler1<LocalTime>()
    /** The smallest displayed unit */
-   val precisionMin by sv<TimeClockPrecision>(PRECISION_MIN)
+   val precisionMin by sv(PRECISION_MIN)
    /** The largest displayed unit */
-   val precisionMax by sv<TimeClockPrecision>(PRECISION_MAX)
+   val precisionMax by sv(PRECISION_MAX)
 
    init {
       styleClass += "time-clock-digital-ios"
@@ -46,10 +45,9 @@ class TimeClockDigitalIos: HBox() {
       val nodeHour = vBox {
          (-1..1).forEach { by ->
             lay += text("") {
-               isDisable = by!=0
-               opacity = if (by==0) 1.0 else 0.4
                styleClass += "time-clock-digital-ios-text"
                styleClass += "time-clock-digital-ios-text-hour"
+               pseudoClassChanged("secondary", by!=0)
                update += { text = "%2d".format((it.hour + by + 24)%24).padStart(2, ' ') }
             }
          }
@@ -58,10 +56,9 @@ class TimeClockDigitalIos: HBox() {
       val nodeMin = vBox {
          (-1..1).forEach { by ->
             lay += text("") {
-               isDisable = by!=0
-               opacity = if (by==0) 1.0 else 0.4
                styleClass += "time-clock-digital-ios-text"
                styleClass += "time-clock-digital-ios-text-minute"
+               pseudoClassChanged("secondary", by!=0)
                update += { text = "%02d".format((it.minute + by + 60)%60) }
             }
          }
@@ -70,10 +67,9 @@ class TimeClockDigitalIos: HBox() {
       val nodeSec = vBox {
          (-1..1).forEach { by ->
             lay += text("") {
-               isDisable = by!=0
-               opacity = if (by==0) 1.0 else 0.4
                styleClass += "time-clock-digital-ios-text"
                styleClass += "time-clock-digital-ios-text-second"
+               pseudoClassChanged("secondary", by!=0)
                update += { text = "%02d".format((it.second + by + 60)%60) }
             }
          }

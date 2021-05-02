@@ -869,7 +869,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             val i = widgetOld.indexInParent()
 
             val loadNotification = "reloading=" + widgetNew.id
-            p.properties[loadNotification] = loadNotification // we need this because remove/add child is not atomic
+            p.properties[loadNotification] = loadNotification // in some situations container needs to know that after remove, add will come
             p.removeChild(i)
             p.addChild(i, widgetNew)
             p.properties - loadNotification

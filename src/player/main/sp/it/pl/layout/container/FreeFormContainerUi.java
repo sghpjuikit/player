@@ -195,10 +195,14 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         if (w!=null) {
             w.close();
             windows.remove(i);
-            container.properties.remove(i+"x");
-            container.properties.remove(i+"y");
-            container.properties.remove(i+"w");
-            container.properties.remove(i+"h");
+
+            var c = container.getChildren().get(i);
+            if (c==null || !container.properties.containsKey("reloading=" + c.id)) {
+                container.properties.remove(i+"x");
+                container.properties.remove(i+"y");
+                container.properties.remove(i+"w");
+                container.properties.remove(i+"h");
+            }
         }
     }
 
@@ -244,7 +248,7 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
                 w.setHeaderVisible(it);
                 w.rightHeaderBox.getChildren().addAll(
                     new Icon(VIEW_DASHBOARD, -1, autoLayoutTooltipText, () -> autoLayout(w)).styleclass("header-icon"),
-                    new Icon(ICON_CLOSE, -1, "Close this component", () -> { container.removeChild(i); closeWindow(i); }).styleclass("header-icon")
+                    new Icon(ICON_CLOSE, -1, "Close this component", () -> { closeWindow(i); container.removeChild(i); }).styleclass("header-icon")
                 );
             } else {
                 w.setHeaderVisible(it);

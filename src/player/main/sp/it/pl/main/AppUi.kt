@@ -4,7 +4,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections.observableSet
 import javafx.geometry.NodeOrientation
 import javafx.scene.Node
-import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Skin
 import javafx.scene.control.Tooltip
@@ -63,7 +62,6 @@ import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncNonNullIntoWhile
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.asStyle
 import sp.it.util.ui.isAnyParentOf
@@ -427,10 +425,10 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    private fun observeWindowsAndSyncSkin() {
       WindowFX.getWindows().onItemSyncWhile {
-         it.sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { root ->
-            val s1 = skin sync { root.applySkinGui(it) }
+         it.sceneProperty().syncNonNullWhile { scene ->
+            val s1 = skin sync { scene.applySkinGui(it) }
             val s2 = additionalStylesheets.onChange attach {
-               root.applySkinGui(skin.value)
+               scene.applySkinGui(skin.value)
             }
             s1 + s2
          }
@@ -439,12 +437,12 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    fun applySkin(skin: String) {
-      WindowFX.getWindows().forEach { it.scene?.root?.applySkinGui(skin) }
+      WindowFX.getWindows().forEach { it.scene?.applySkinGui(skin) }
    }
 
-   private fun Parent.applySkinGui(skin: String) {
+   private fun Scene.applySkinGui(skin: String) {
       stylesheets.clear()
-      this addStyleSheet skinDir/skin/"$skin.css"
+      this setUserAgentStyleSheet skinDir/skin/"$skin.css"
       additionalStylesheets.forEach { this addStyleSheet it }
    }
 
@@ -465,7 +463,8 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
          null
       }
 
-      private infix fun Parent.addStyleSheet(file: File) = file.toStyleSheet()?.let { stylesheets += it }
+      private infix fun Scene.setUserAgentStyleSheet(file: File) = file.toStyleSheet()?.let { stylesheets += it }
+      private infix fun Scene.addStyleSheet(file: File) = file.toStyleSheet()?.let { stylesheets += it }
 
    }
 

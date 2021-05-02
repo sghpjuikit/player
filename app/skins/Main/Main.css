@@ -245,14 +245,13 @@
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
 
-.combo-box-base > .arrow-button {
-    -fx-background-color: transparent;
-}
 
 .combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
     -fx-opacity: 0.4;
 }
 .combo-box-base:editable > .arrow-button {
+    -fx-background-color: transparent;
     -fx-opacity: 1;
 }
 

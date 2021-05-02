@@ -9,7 +9,7 @@ Skinning/styling is done through css.
 **A stylesheet** is a css file. It can apply to the whole application or only on some component or module. This is done
 by attaching the stylesheet to that element either in code.
 
-**Skin** is a stylesheet recognized by the application. There are [application skins] and widget skins. Application skin
+**Skin** is a stylesheet recognized by the application. There are [application skins](#application-skin) and [widget skins](#widget-skin). Application skin
 can be specified in application settings. Skin can import stylesheets and thus extend other skin,
 see [extending](#extending).
 
@@ -31,13 +31,13 @@ Preferably use an editor with css syntax highlighting Consult:
 - [Modena.css](https://gist.github.com/maxd/63691840fc372f22f470) to determine what values to override,
 - [Main](Main) to determine what values to override,
 
-#### Application skin
+### Application skin
 
 - Skin must be a `.css` file (it may import/extend other skins).
 - Located in [skins](.) directory and its own subdirectory with the same name.
 
   For example: `.../skins/MySkin/MySkin.css`
-
+- Skin will be applied as **userAgentStylesheet** (see [extending](#extending))
 - The name of the skin file will be used in the application as the name of the skin
 - The skin can refer to external files (like images). It is recommended to put all required files into the same
   directory as skin's css file
@@ -50,11 +50,29 @@ developer of those modules must manually specify/load those css files in code or
 
 #### Extending
 
-Stylesheets can extend other stylesheets by importing them with `@import url("../skin-name/skin-name.css");`
+Stylesheets can extend other stylesheets by importing them with `@import url("../skin-name/skin-name.css");`.
+Application skins are considered **userAgentStylesheet**, which means:
+- they provide all the styling. Unless the skin provides styling for all JavaFX controls, it should inherit either
+  skin that inherits default javaFx userAgentStylesheet **Modena.css** (like **Main**: `@import url("../Main/Main.css");`
+  or inherit it directly: `@import "com/sun/javafx/scene/control/skin/modena/modena.css";` 
+- have lower priority compared to normal stylesheets (see [priority](#priority))
+
 [Modena.css](https://gist.github.com/maxd/63691840fc372f22f470) always serves as the base skin. Any skin in the /skins
 directory will automatically extend Modena skin This application however uses heavily edited versions of Modena and
 defines custom controls. It is recommended to extend the skin [Main](Main), as it is a complete skin for the
 application.
+
+#### Priority
+
+Styleable values of components take into consideration the priority of the origin the value comes from. The priorities
+are defined in javadoc of `javafx.css.StyleableProperty` and are in increasing order:
+- a style from a user agent stylesheet (`javafx.application.Application.setUserAgentStylesheet(String)`)
+- value set from code (`javafx.css.StyleableProperty.setValue()` or `javafx.scene.Node.setOpacity(double)`)
+- a style from a stylesheet in `javafx.scene.Scene.getStylesheets()` or `javafx.scene.Parent.getStylesheets()`
+- a style from `javafx.scene.Node.setStyle(String)`
+
+In other words programmatic values override skins, but stylesheets override even those.
+Therefore: In order for programmatic values to be applied over skin values, all skin values must be defined in skin files. 
 
 #### Reloading
 

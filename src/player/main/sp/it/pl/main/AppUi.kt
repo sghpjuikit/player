@@ -463,7 +463,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
          null
       }
 
-      private infix fun Scene.setUserAgentStyleSheet(file: File) = file.toStyleSheet()?.let { stylesheets += it }
+      private infix fun Scene.setUserAgentStyleSheet(file: File) = file.toStyleSheet()?.let { userAgentStylesheet = it }
       private infix fun Scene.addStyleSheet(file: File) = file.toStyleSheet()?.let { stylesheets += it }
 
    }

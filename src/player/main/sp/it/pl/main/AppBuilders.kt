@@ -99,6 +99,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
 import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.util.collections.setToOne
 import sp.it.util.reactive.attachTrue
@@ -414,7 +415,7 @@ fun showConfirmation(text: String, action: () -> Unit) {
    }
 }
 
-fun <C: Configurable<*>> C.configure(titleText: String, action: (C) -> Any?) {
+fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_ACTIVE(CENTER), action: (C) -> Any?) {
    PopWindow().apply {
       val form = form(this@configure) {
          val result = action(it)
@@ -429,7 +430,7 @@ fun <C: Configurable<*>> C.configure(titleText: String, action: (C) -> Any?) {
       content.value = form
       title.value = titleText
       isAutohide.value = false
-      show(WINDOW_ACTIVE(CENTER))
+      show(shower)
 
       form.focusFirstConfigEditor()
    }

@@ -25,7 +25,9 @@ import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.async.runFX
 import sp.it.util.file.div
+import sp.it.util.functional.net
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attachFalse
@@ -106,8 +108,10 @@ class StartScreen: PluginBase() {
                installClipboardSupport()
                installWindowInteraction()
                isShowingWithFocus attachFalse {
-                  if (!(display.value.isWindowBased() && scene?.window?.isOpenChild()==true))
-                     hide()
+                  runFX(50.millis) {
+                     if (!display.value.isWindowBased() || scene?.window?.net { !it.isFocused && it.isShowing && !it.isOpenChild() }==true)
+                        hide()
+                  }
                }
 
                lay += widgetArea.apply {

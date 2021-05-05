@@ -177,32 +177,50 @@ open class Anim: Transition {
    }
 
    fun playOpenDoClose(blockMiddle: Block?) {
-      playOpenDo {
-         blockMiddle?.invoke()
+      if (currentRate < 0.0) {
          onFinished = null
          playClose()
+      } else {
+         playOpenDo {
+            blockMiddle?.invoke()
+            onFinished = null
+            playClose()
+         }
       }
    }
 
    fun playCloseDoOpen(blockMiddle: Block?) {
-      playCloseDo {
-         blockMiddle?.invoke()
+      if (currentRate > 0.0) {
          onFinished = null
          playOpen()
+      } else {
+         playCloseDo {
+            blockMiddle?.invoke()
+            onFinished = null
+            playOpen()
+         }
       }
    }
 
    fun playOpenDoCloseDo(blockMiddle: Block?, blockEnd: Block) {
-      playOpenDo {
-         blockMiddle?.invoke()
+      if (currentRate < 0.0) {
          playCloseDo(blockEnd)
+      } else {
+         playOpenDo {
+            blockMiddle?.invoke()
+            playCloseDo(blockEnd)
+         }
       }
    }
 
    fun playCloseDoOpenDo(blockMiddle: Block?, blockEnd: Block) {
-      playCloseDo {
-         blockMiddle?.invoke()
+      if (currentRate > 0.0) {
          playOpenDo(blockEnd)
+      } else {
+         playCloseDo {
+            blockMiddle?.invoke()
+            playOpenDo(blockEnd)
+         }
       }
    }
 

@@ -1,25 +1,41 @@
 package sp.it.pl.ui.objects.window.stage
 
+import javafx.stage.Window as WindowFx
+import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
+import sp.it.pl.main.AppSettings.ui.window as confWindow
+import java.io.File
+import javafx.geometry.Insets
+import javafx.geometry.Orientation.VERTICAL
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.image.Image
+import javafx.scene.input.DragEvent.DRAG_ENTERED
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle
+import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.StageStyle.UTILITY
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Duration.ZERO
+import kotlin.math.sqrt
 import mu.KLogging
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.deduplicateIds
+import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
 import sp.it.pl.layout.widget.NoFactoryFactory
 import sp.it.pl.layout.widget.Widget
@@ -30,18 +46,23 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
+import sp.it.pl.main.windowOnTopIcon
+import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut
+import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.observableList
+import sp.it.util.collections.readOnly
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -59,10 +80,15 @@ import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
+import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.max
+import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.attachTo
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
@@ -70,51 +96,25 @@ import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
+import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.syncWhileTrue
 import sp.it.util.system.Os
 import sp.it.util.text.keys
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
+import sp.it.util.ui.containsScreen
+import sp.it.util.ui.flowPane
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import java.io.File
-import java.util.HashSet
-import javafx.stage.Window as WindowFx
-import sp.it.pl.main.AppSettings.plugins.screenDock as confDock
-import sp.it.pl.main.AppSettings.ui.window as confWindow
-import javafx.geometry.Orientation.VERTICAL
-import javafx.geometry.Pos
-import javafx.scene.input.DragEvent.DRAG_ENTERED
-import javafx.scene.input.KeyCode.ESCAPE
-import javafx.scene.input.KeyCode.SPACE
-import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.KeyEvent.KEY_RELEASED
-import javafx.scene.input.MouseEvent.MOUSE_RELEASED
-import javafx.stage.StageStyle.TRANSPARENT
-import kotlin.math.sqrt
-import sp.it.pl.layout.exportFxwl
-import sp.it.pl.main.IconMD
-import sp.it.pl.ui.objects.icon.CheckIcon
-import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
-import sp.it.util.async.runFX
-import sp.it.util.collections.readOnly
-import sp.it.util.functional.toUnit
-import sp.it.util.reactive.Suppressor
-import sp.it.util.reactive.attachFalse
-import sp.it.util.reactive.attachTo
-import sp.it.util.reactive.map
-import sp.it.util.reactive.suppressed
-import sp.it.util.reactive.suppressing
-import sp.it.util.reactive.syncWhileTrue
-import sp.it.util.ui.containsScreen
-import sp.it.util.ui.flowPane
-import sp.it.util.ui.vBox
 
 class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
@@ -289,7 +289,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       if (enable) {
          if (dockWindow?.isShowing==true) return
 
-         val mwAutohide = v<Boolean>(true)
+         val mwAutohide = v(true)
          val mwFocusRestoring = Suppressor()
          val mw = dockWindow ?: create(createStageOwner(), UNDECORATED, false).apply {
             dockWindow = this
@@ -318,17 +318,14 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                orientation = VERTICAL
                lay += vBox {
                   alignment = Pos.TOP_CENTER
-                  this.lay += CheckIcon(mwAutohide).apply {
-                     isFocusTraversable = false
-                     styleclass("header-icon")
-                     styleclass("pop-window-pin-button")
-                     tooltip("Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.")
-                     icons(IconMD.PIN)
-                  }
+                  lay += windowPinIcon(mwAutohide)
+                  lay += windowOnTopIcon(mw)
                }
                lay += vBox {
                   alignment = Pos.BOTTOM_CENTER
-                  lay += Icon(null, 13.0, "Close dock").apply {
+                  lay += Icon().apply {
+                     styleclass("header-icon")
+                     tooltip("Close dock permanently")
                      onClickDo { dockShow.value = false }
                      hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.onClose
                   }
@@ -472,11 +469,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    fun slideWindow(c: Component): Window {
       val screen = getScreenForMouse()
+      val mwAutohide = v(true)
       val mw = create(createStageOwner(), windowStyle.value, false).apply {
          resizable.value = true
          isAlwaysOnTop = true
          isHeaderAllowed.value = false
-         initLayout()
 
          // show and apply state
          show()
@@ -484,12 +481,31 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          back.style = "-fx-background-size: cover;" // disallow bgr stretching
          content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr
       }
+      val content = borderPane {
+         padding = Insets(20.emScaled)
+         center = stackPane {
+            lay += anchorPane {
+               Layout.openStandalone(this).apply {
+                  mw.s.properties[Window.keyWindowLayout] = this
+               }
+            }
+         }
+         right = flowPane {
+            orientation = VERTICAL
+            lay += vBox {
+               alignment = Pos.TOP_CENTER
+               lay += windowPinIcon(mwAutohide)
+               lay += windowOnTopIcon(mw)
+            }
+         }
+      }
+      mw.setContent(content)
 
       // auto-hiding
       val showAnim = anim(400.millis) { mw.setX(screen.bounds.width-mw.W.value*it, false) }
       val shower = {
          showAnim.intpl { sqrt(sqrt(it)) }
-         showAnim.playOpenDo { mw.setContent(c) }
+         showAnim.playOpenDo { mw.s.asLayout()?.child = c }
       }
       val hider = {
          showAnim.intpl { 1-sqrt(sqrt(1-it)) }
@@ -503,9 +519,10 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       runFX(300.millis) {
          mw.focused attachFalse {
-            runFX(50.millis) {   // TODO: is delay necessary?
-               if (!mw.stage.isFocused && mw.stage.isShowing && !mw.stage.isOpenChild()) hider()
-            }
+            if (mwAutohide.value)
+               runFX(50.millis) {   // TODO: is delay necessary?
+                  if (!mw.stage.isFocused && mw.stage.isShowing && !mw.stage.isOpenChild()) hider()
+               }
          }
          mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
          mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { hider() }

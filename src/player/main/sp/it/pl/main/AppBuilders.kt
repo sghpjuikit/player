@@ -90,6 +90,7 @@ import java.net.URLEncoder
 import java.nio.file.Path
 import java.util.Optional
 import java.util.concurrent.atomic.AtomicLong
+import javafx.beans.property.Property
 import javafx.scene.control.Label
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
@@ -98,6 +99,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
 import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.util.collections.setToOne
 import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.onEventUp
@@ -136,7 +138,6 @@ fun helpPopup(textContent: String, textTitle: String = "Help"): PopWindow = PopW
 fun infoIcon(tooltipText: String) = infoIcon { tooltipText }
 
 /** @return standardized icon that opens a help popup with the specified text (lazy)  */
-//fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION).tooltip(tooltipText())
 fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
    .tooltip("Help")
    .action { i ->
@@ -152,6 +153,23 @@ fun infoIcon(tooltipText: () -> String): Icon = Icon(IconOC.QUESTION)
 fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25.0).run {
    action(action)
    withText(Side.RIGHT, text)
+}
+
+/** @return standardized always on top icon associated with the specified window */
+fun windowOnTopIcon(window: Window) = Icon().apply {
+   styleclass("header-icon")
+   styleclass("window-top-icon")
+   tooltip("On top\n\nWindow will stay in foreground when other window is being interacted with")
+   onClickDo { window.toggleAlwaysOnTop() }
+   window.alwaysOnTop sync { icon(if (it) IconFA.SQUARE else IconFA.SQUARE_ALT) }
+}
+
+fun windowPinIcon(autohide: Property<Boolean>) = CheckIcon(autohide).apply {
+   isFocusTraversable = false
+   styleclass("header-icon")
+   styleclass("window-pin-icon")
+   tooltip("Pin\n\nWindow will not close when other window is being interacted with")
+   icons(IconMD.PIN)
 }
 
 data class BulletBuilder(val text: String, val descriptionLabel: Label, var isReadOnly: Boolean = false, var onClick: () -> Unit = {}, var description: String? = null)

@@ -29,12 +29,10 @@ import javafx.stage.WindowEvent.WINDOW_HIDING
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.stage.WindowEvent.WINDOW_SHOWN
 import sp.it.pl.main.APP
-import sp.it.pl.main.IconMD
 import sp.it.pl.main.resizeIcon
-import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.stage.popWindowOwner
-import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
@@ -188,14 +186,9 @@ open class PopWindow {
          styleClass += "pop-window-header-icons"
          alignment = CENTER_RIGHT
 
-         val pinB = CheckIcon().apply {
-            isFocusTraversable = false
-            styleclass("header-icon")
+         val pinB = windowPinIcon(isAutohide).apply {
             styleclass("pop-window-pin-button")
-            tooltip("Pin\n\nWhen disabled, this popup will close on mouse click outside of this popup.")
-            icons(IconMD.PIN)
-            onClickDo { isAutohide.toggle() }
-            selected syncFrom isAutohide
+            isFocusTraversable = false
          }
 
          headerIcons.onChangeAndNow {

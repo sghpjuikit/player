@@ -25,6 +25,7 @@
     -skin-focus-bgr-color: rgba(22,22,255,0.2);
     -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
+    -fx-focused-mark-color: transparent;
 }
 
 /******************************************************************************
@@ -754,7 +755,7 @@ Shape, Text, TextFlow > * {
  * Menu
  */
 .menu {
-    -fx-background-color: null;
+    -fx-background-color: transparent;
     -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-border-width: 0;
@@ -765,7 +766,7 @@ Shape, Text, TextFlow > * {
  * MenuItem
  */
 .menu-item {
-    -fx-background-color: null;
+    -fx-background-color: transparent;
     -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-background-radius: 2;
@@ -773,7 +774,11 @@ Shape, Text, TextFlow > * {
     -fx-padding: 0.2em 0.4em 0.2em 0.4em;
 }
 
+.menu-item:focused {
+    -fx-background-color: transparent;
+}
 .menu-item:focused > .label {
+    -fx-background-color: transparent;
     -fx-text-fill: -fx-focus-color;
 }
 
@@ -1835,6 +1840,18 @@ Shape, Text, TextFlow > * {
     -fx-background-color: -skin-pane-color;
 }
 
+/*
+ * Window header icon for always on top
+ * Inherits: .icon
+ */
+.window-top-icon {}
+
+/*
+ * Window header icon for autohide
+ * Inherits: .check-icon
+ */
+.window-pin-icon {}
+
 /************************************ COMPONENT ***********************************************************************/
 
 /*
@@ -2537,7 +2554,10 @@ Shape, Text, TextFlow > * {
     -fx-padding: 0 2em 0 0;
 }
 
-/* Close button in the header*/
+/*
+ * Close button in the header
+ * inherits: .window-pin-icon
+ */
 .pop-window-pin-button {
     /* separate the pin button from the rest a bit visually */
     /* -fx-padding: 0 0 0 5; */

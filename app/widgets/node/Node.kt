@@ -3,7 +3,9 @@ package node
 import java.util.Base64
 import javafx.beans.value.WritableValue
 import javafx.scene.Node
+import javafx.scene.control.ContextMenu
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.reflect.full.createInstance
 import mu.KLogging
@@ -12,22 +14,23 @@ import sp.it.pl.layout.widget.Widget.Group.APP
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.IconUN
-import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.vn
 import sp.it.util.collections.setTo
-import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
-import sp.it.util.conf.valuesIn
 import sp.it.util.dev.fail
 import sp.it.util.file.div
 import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
@@ -36,7 +39,9 @@ import sp.it.util.text.split2Partial
 import sp.it.util.text.splitTrimmed
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
+import sp.it.util.ui.dsl
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.show
 import sp.it.util.ui.x
 import sp.it.util.units.version
 import sp.it.util.units.year
@@ -58,18 +63,33 @@ class Node(widget: Widget): SimpleController(widget) {
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
 
-      root.onEventDown(MOUSE_CLICKED, PRIMARY) {
+      root.onEventDown(MOUSE_CLICKED, SECONDARY) {
          if (it.isStillSincePress)
-            object: ConfigurableBase<Any?>() {
-               val properties = nodeInstance.value.javaFxProperties()
-               val propertyName by cvn<String>(null).valuesIn { properties.asSequence().map { it.name } }
-            }.configure("Add input") {
-               val property = it.properties.firstOrNull { p -> p.name==it.propertyName.value }
-               if (property!=null && io.i.getInputs().none { it.name==property.name }) {
-                  io.i.create(property.name, property.type, property.value.value) { property.value.value = it }
-                  storeInputs()
+            ContextMenu().dsl {
+               menu("Inputs") {
+                  val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()
+                  val properties = nodeInstance.value.javaFxProperties()
+                  properties.forEach { p ->
+                     item {
+                        SelectionMenuItem(p.name, p.name in propertiesWithInputs).apply {
+                           selected attachFalse {
+                              io.i.getInputs().find { it.name==p.name }.ifNotNull {
+                                 io.i.remove(it)
+                                 storeInputs()
+                              }
+                           }
+                           selected attachTrue {
+                              io.i.create(p.name, p.type, p.value.value) {
+                                 p.value.value = it
+                                 storeInputs()
+                              }
+                              storeInputs()
+                           }
+                        }
+                     }
+                  }
                }
-            }
+            }.show(root, it)
       }
 
       nodeInstance sync { node ->
@@ -90,7 +110,7 @@ class Node(widget: Widget): SimpleController(widget) {
    fun restoreInputs() {
       widget.properties.getS("node-widget-inputs").orEmpty().splitTrimmed("-").forEach {
          val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
-         val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64() to propertyValueBase64.decodeBase64().unquote()
+         val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64() to propertyValueBase64.ifNotEmpty { it.decodeBase64().unquote() }
          val properties = nodeInstance.value.javaFxProperties()
          val property = properties.firstOrNull { p -> p.name==propertyName }
          if (property!=null && io.i.getInputs().none { it.name==property.name }) {
@@ -135,6 +155,7 @@ class Node(widget: Widget): SimpleController(widget) {
 
       data class NodeInput(val name: String, val value: WritableValue<*>, val type: VType<*>)
 
+      fun String.ifNotEmpty(mapper: (String) -> String) = if (isEmpty()) "" else mapper(this)
       fun String.unquote() = if (startsWith("\"") && endsWith("\"")) drop(1).dropLast(1) else fail { "Must be quoted" }
       fun String.quote() = "\"$this\""
       fun String.encodeBase64(): String = Base64.getEncoder().encodeToString(toByteArray())

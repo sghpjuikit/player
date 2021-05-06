@@ -271,8 +271,8 @@ public class FreeFormContainerUi extends ContainerUi<FreeFormContainer> {
         syncC(w.moving, it -> Layouter.Companion.suppressHidingFor(w.borders, it));
 
         // report component graphics changes
-        syncC(w.root.parentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
-        syncC(w.root.boundsInParentProperty(), v -> IOLayer.allLayers.forEach(it -> it.requestLayout()));
+        syncC(w.root.parentProperty(), v -> IOLayer.Companion.getAllLayers().forEach(it -> it.requestLayout()));
+        syncC(w.root.boundsInParentProperty(), v -> IOLayer.Companion.getAllLayers().forEach(it -> it.requestLayout()));
 
 
         return w;

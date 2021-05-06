@@ -1,5 +1,7 @@
 package sp.it.pl.layout.widget.controller.io
 
+import java.time.LocalDate
+import java.time.LocalTime
 import javafx.animation.PathTransition
 import javafx.animation.Transition
 import javafx.beans.property.DoubleProperty
@@ -23,6 +25,19 @@ import javafx.scene.shape.Circle
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sign
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.withSign
+import kotlin.properties.Delegates.observable
+import kotlin.streams.asSequence
 import sp.it.pl.layout.container.SwitchContainerUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
@@ -49,6 +64,7 @@ import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.collections.materialize
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
+import sp.it.util.functional.net
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
@@ -66,26 +82,13 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.show
 import sp.it.util.ui.size
 import sp.it.util.ui.text
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.millis
-import java.util.HashMap
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sign
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.math.withSign
-import kotlin.properties.Delegates.observable
-import kotlin.streams.asSequence
-import sp.it.util.ui.show
+import sp.it.util.units.uuid
 
 private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, T>
 
@@ -480,8 +483,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          }
 
          val a = anim(250.millis) {
-            label.text.opacity = it
-            label.text.setScaleXY(0.8 + 0.2*it)
+            label.text.opacity = sqrt(it)
+            label.text.setScaleXY(0.9 + 0.1*sqrt(it))
          }
          val valuePut = if (xPut is Input<*>) input else output
          valuePut!!.sync { a.playCloseDoOpen { label.text.text = valuePut.xPutToStr() } } on disposer
@@ -782,14 +785,21 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
    }
 
    companion object {
-      @JvmField val allLayers = observableSet<IOLayer>()!!
-      @JvmField val allLinks = Map2D<Put<*>, Put<*>, Any>()
-      @JvmField val allInputs = observableSet<Input<*>>()!!
-      @JvmField val allOutputs = observableSet<Output<*>>()!!
-      @JvmField val allInoutputs = observableSet<InOutput<*>>()!!
+      val allLayers = observableSet<IOLayer>()!!
+      val allLinks = Map2D<Put<*>, Put<*>, Any>()
+      val allInputs = observableSet<Input<*>>()!!
+      val allOutputs = observableSet<Output<*>>()!!
+      val allInoutputs = observableSet<InOutput<*>>()!!
       private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
       private val propagatedPseudoClasses = setOf("hover", "highlighted", "selected", "drag-over")
 
+      private val currentTime = InOutput<LocalTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time").appWide().apply {
+         Loop(Runnable { i.value = LocalTime.now().net { LocalTime.of(it.hour, it.minute, it.second) } }).start()
+         i.isBound()
+      }
+      private val currentDate = InOutput<LocalDate>(uuid("d445671f-7e25-4fa6-83de-e8e543ad0507"), "Current Date").appWide().apply {
+         Loop(Runnable { i.value = LocalDate.now() }).start()
+      }
 
       fun addLinkForAll(i: Put<*>, o: Put<*>) {
          allLinks.put(i, o, Any())

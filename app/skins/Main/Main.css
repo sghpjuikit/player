@@ -12,6 +12,7 @@
     -skin-def-font-color: rgb(160, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
+    -fx-text-base-color: -skin-def-font-color;
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
     -skin-color-lighter: rgba(180,200,255,0.08);

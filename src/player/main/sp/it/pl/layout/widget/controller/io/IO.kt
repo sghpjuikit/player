@@ -4,14 +4,11 @@ import sp.it.util.dev.failIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.type.VType
-import sp.it.util.type.raw
 import sp.it.util.type.type
 import java.util.HashMap
 import java.util.UUID
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.isSuperclassOf
 import sp.it.util.collections.materialize
+import sp.it.util.type.isSupertypeOf
 
 class IO(private val id: UUID) {
    @JvmField val o = Outputs()
@@ -59,17 +56,15 @@ class IO(private val id: UUID) {
       fun getInputRaw(name: String): Input<*>? = mi[name]
 
       @Suppress("UNCHECKED_CAST")
-      fun <T: Any> findInput(type: KClass<T>, name: String): Input<T?>? {
+      fun <T> findInput(type: VType<T>, name: String): Input<T>? {
          val i = mi[name]
-         if (i!=null && !type.isSubclassOf(i.type.raw)) throw ClassCastException()
-         return i as Input<T?>?
+         if (i!=null && !i.type.isSupertypeOf(type)) return null
+         return i as Input<T>?
       }
 
-      fun <T: Any> getInput(type: KClass<T>, name: String): Input<T?> = findInput(type, name)!!
+      inline fun <reified T> findInput(name: String): Input<T>? = findInput(type<T>(), name)
 
-      inline fun <reified T: Any> findInput(name: String) = findInput(T::class, name)
-
-      inline fun <reified T: Any> getInput(name: String) = findInput(T::class, name)!!
+      inline fun <reified T> getInput(name: String): Input<T> = findInput(name)!!
 
       operator fun contains(name: String) = mi.containsKey(name)
 
@@ -96,17 +91,15 @@ class IO(private val id: UUID) {
       }
 
       @Suppress("UNCHECKED_CAST")
-      fun <T: Any> findOutput(type: KClass<T>, name: String): Output<T?>? {
+      fun <T> findOutput(type: VType<T>, name: String): Output<T>? {
          val i = mo[name]
-         if (i!=null && !type.isSuperclassOf(i.type.raw)) throw ClassCastException()
-         return i as Output<T?>?
+         if (i!=null && !type.isSupertypeOf(i.type)) return null
+         return i as Output<T>?
       }
 
-      fun <T: Any> getOutput(type: KClass<T>, name: String): Output<T?> = findOutput(type, name)!!
+      inline fun <reified T> findOutput(name: String): Output<T>? = findOutput(type<T>(), name)
 
-      inline fun <reified T: Any> findOutput(name: String) = findOutput(T::class, name)
-
-      inline fun <reified T: Any> getOutput(name: String) = findOutput(T::class, name)!!
+      inline fun <reified T> getOutput(name: String): Output<T> = findOutput(name)!!
 
       operator fun contains(name: String) = mo.containsKey(name)
 

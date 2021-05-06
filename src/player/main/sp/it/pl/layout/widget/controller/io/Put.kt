@@ -11,7 +11,7 @@ open class Put<T>(type: VType<T>, name: String, initialValue: T): XPut<T> {
    val initialValue: T = initialValue
    var value: T = initialValue
       set(v) {
-         if (field!==v) {
+         if (field!=v) {
             field = v
             monitors.forEach { it(v) }
          }

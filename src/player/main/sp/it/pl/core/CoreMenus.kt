@@ -14,6 +14,7 @@ import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
+import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
 import sp.it.pl.layout.widget.controller.io.Output
@@ -44,6 +45,9 @@ import sp.it.util.async.runIO
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.UiConverter
+import sp.it.util.conf.Constraint.ValueSealedSet
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
@@ -64,6 +68,7 @@ import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
 import sp.it.util.text.*
+import sp.it.util.type.type
 import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder
 import sp.it.util.ui.drag.set
@@ -324,17 +329,26 @@ object CoreMenus: Core {
             }
          }
          add<Input<*>> {
-            menu("Value") {
-               item("Set to...") { input ->
-                  Config.forProperty(input.type, "Value", vn(input.value).asIs()).configure("Set value") { c ->
-                     fun Input<Any?>.setValue() { this.value = c.value }
-                     input.asIs<Input<Any?>>().setValue()
+            menuFor("Value", value.value)
+            menu("Link") {
+               item("From all identical") { it.bindAllIdentical() }
+               item("To generated...") { input ->
+                  Config.forProperty(type<Output<Any?>>(), "Value", vn<Output<Any?>>(null)).addConstraints(
+                     ValueSealedSet { IOLayer.allInoutputs.filter { input.isAssignable(it.o) }.map { it.o } },
+                     ObjectNonNull,
+                     UiConverter<Output<*>> { "${it.id.ownerId} -> ${it.id.name}" }
+                  ).configure("Link ${input.name} to...") { c ->
+                     c.value.ifNotNull { output ->
+                        input.asIs<Input<Any?>>().bind(output)
+                     }
                   }
                }
-               menuFor("Value", value.value)
             }
-            menu("Link") {
-               item("All identical") { it.bindAllIdentical() }
+            item("Set to...") { input ->
+               Config.forProperty(input.type, "Value", vn(input.value).asIs()).configure("Set ${input.name} value") { c ->
+                  fun Input<Any?>.setValue() { this.value = c.value }
+                  input.asIs<Input<Any?>>().setValue()
+               }
             }
             menu("Unlink") {
                item("All inbound") { it.unbindAll() }
@@ -349,7 +363,7 @@ object CoreMenus: Core {
          add<InOutput<*>> {
             menuFor("Value", value.o.value)
             menu("Link") {
-               item("All identical") { it.i.bindAllIdentical() }
+               item("From all identical") { it.i.bindAllIdentical() }
             }
             menu("Unlink") {
                item("All") { it.i.unbindAll(); it.o.unbindAll() }

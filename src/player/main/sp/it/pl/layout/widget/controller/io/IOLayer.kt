@@ -53,6 +53,7 @@ import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.Util.pyth
 import sp.it.util.access.v
+import sp.it.util.access.visible
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
 import sp.it.util.animation.Loop
@@ -71,6 +72,8 @@ import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -151,6 +154,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
    private var editTo: XNode? = null
    private var selected: XNode? = null
 
+   private val isDisplaying = visible
    private val disposer = Disposer()
 
    init {
@@ -166,7 +170,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       paneLabels.interact(doLayout = false, noMouse = true, noPick = false)
       children += listOf(paneLinks, paneNodes, paneLabels)
 
-      visibleProperty() attach { if (it) paneLabelsLayouter.start() else paneLabelsLayouter.stop() } on disposer
+      isDisplaying attachTrue { paneLabelsLayouter.start() }
+      isDisplaying attachFalse { paneLabelsLayouter.stop() }
       disposer += { paneLabelsLayouter.stop() }
 
       var aDir = true
@@ -487,7 +492,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             label.text.setScaleXY(0.9 + 0.1*sqrt(it))
          }
          val valuePut = if (xPut is Input<*>) input else output
-         valuePut!!.sync { a.playCloseDoOpen { label.text.text = valuePut.xPutToStr() } } on disposer
+         valuePut!!.sync { if (isDisplaying.value) a.playCloseDoOpen { label.text.text = valuePut.xPutToStr() } } on disposer
+         isDisplaying attachFalse { a.stop() } on disposer
          disposer += a::stop
       }
 
@@ -619,7 +625,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          disposer += { disposerAnimations.materialize().forEach { it.stopAndFinish() } }
 
          if (input!=null && output!=null) {
-            output.attach { if (edit?.link!=this) dataSend() } on disposer
+            output.attach { if (isDisplaying.value && edit?.link!=this) dataSend() } on disposer
          }
          hoverProperty() attach {
             val n1 = inputNodes[input] ?: outputNodes[input]

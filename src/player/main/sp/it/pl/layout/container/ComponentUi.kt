@@ -2,13 +2,14 @@ package sp.it.pl.layout.container
 
 import javafx.event.EventHandler
 import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import sp.it.pl.layout.AltState
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.ComponentLoader
+import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.main.AppAnimator
 import sp.it.util.access.ref.LazyR
@@ -65,7 +66,7 @@ abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
 /** Ui allowing user to manage [Container] instances. */
 abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
-   final override val root: AnchorPane
+   final override val root = AnchorPane()
    val container: C
    var controls = LazyR { buildControls() }
    var isLayoutMode = false
@@ -73,7 +74,6 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
    constructor(container: C): super(container) {
       this.container = container
-      this.root = AnchorPane()
       root.styleClass += "container-ui"
 
       // report component graphics changes
@@ -82,14 +82,14 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
       // switch to container/normal layout mode using right/left click
        root.onMouseClicked = EventHandler {
-           if (isLayoutMode && !isContainerMode && it.button==MouseButton.SECONDARY) {
-               if (container.children.isEmpty()) {
-                   AppAnimator.closeAndDo(root) { container.close() }
-               } else {
-                   setContainerMode(true)
-               }
-               it.consume()
-           }
+          if (isLayoutMode && !isContainerMode && it.button==SECONDARY) {
+             if (container.children.isEmpty()) {
+                AppAnimator.closeAndDo(root) { container.close() }
+             } else {
+                setContainerMode(true)
+             }
+             it.consume()
+          }
        }
    }
 

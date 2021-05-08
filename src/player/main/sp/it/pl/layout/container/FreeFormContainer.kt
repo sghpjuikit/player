@@ -28,7 +28,7 @@ class FreeFormContainer: Container<FreeFormContainerUi> {
       if (c==null) children.remove(index)
       else children[index] = c
 
-      ui?.loadWindow(index, c)
+      ui?.load(index, c)
       setParentRec()
    }
 

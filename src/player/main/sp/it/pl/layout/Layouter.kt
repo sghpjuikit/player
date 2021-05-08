@@ -159,9 +159,9 @@ class Layouter: ComponentUi {
 
       fun suppressHidingFor(node: Node, suppress: Boolean) {
          if (suppress) node.properties[SUPPRESS_HIDING_KEY] = null
-         else node.properties.remove(SUPPRESS_HIDING_KEY)
+         else node.properties -= SUPPRESS_HIDING_KEY
       }
 
-      private fun isSuppressedHiding(node: Node) = node.properties.containsKey(SUPPRESS_HIDING_KEY)
+      private fun isSuppressedHiding(node: Node) = SUPPRESS_HIDING_KEY in node.properties
    }
 }

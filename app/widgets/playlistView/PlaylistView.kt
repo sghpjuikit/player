@@ -119,7 +119,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.footerVisible syncFrom tableShowFooter on onClose
       table.scrollToPlaying syncFrom scrollToPlaying on onClose
       table.defaultColumnInfo   // trigger menu initialization
-      table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() }
+      table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() }
          ?: table.defaultColumnInfo
 
       table.filterPane.buttonAdjuster.value = { i ->

@@ -25,6 +25,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.dev.fail
 import sp.it.util.file.div
+import sp.it.util.functional.asIf
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
@@ -109,7 +110,7 @@ class Node(widget: Widget): SimpleController(widget) {
    }
 
    fun restoreInputs() {
-      widget.properties.getS("node-widget-inputs").orEmpty().splitTrimmed("-").forEach {
+      widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitTrimmed("-").forEach {
          val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
          val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64() to propertyValueBase64.ifNotEmpty { it.decodeBase64().unquote() }
          val properties = nodeInstance.value.javaFxProperties()

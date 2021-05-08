@@ -314,7 +314,7 @@ class FreeFormContainerUi(c: FreeFormContainer): ContainerUi<FreeFormContainer>(
    }
 
    companion object {
-      fun Any?.asD() = asIf<Double>()
+      private fun Any?.asD() = asIf<Double>()
       const val autoLayoutTooltipText = "Auto-layout\n\nResize components to maximize used space."
       const val layoutButtonTooltipText = "Maximize & align\n\n" +
          "Sets best size and position for the widget. Maximizes widget size " +

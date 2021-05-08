@@ -87,6 +87,7 @@ import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSe
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
+import sp.it.util.functional.asIf
 import sp.it.util.ui.show
 
 private typealias Metadatas = List<Metadata>
@@ -215,7 +216,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
 
       table.defaultColumnInfo   // trigger menu initialization
-      table.columnState = widget.properties.getS("columns")?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
+      table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
 
       // column context menu - add group by menu
       val fieldMenu = Menu("Group by")

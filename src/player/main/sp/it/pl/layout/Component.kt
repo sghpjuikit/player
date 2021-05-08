@@ -12,7 +12,6 @@ import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.main.APP
 import sp.it.util.access.V
 import sp.it.util.access.v
-import sp.it.util.collections.map.PropertyMap
 import sp.it.util.conf.IsConfig
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
@@ -28,7 +27,7 @@ abstract class Component(state: ComponentDb) {
    /** Unique ID. Permanent. Persists application life cycle. */
    @JvmField val id: UUID
    /** Simple storage for component state. Persists application life cycle. */
-   @JvmField val properties = PropertyMap<String>()
+   @JvmField val properties = HashMap<String, Any?>()
    /** Name. */
    abstract val name: String
    /** Denotes whether component loading is delayed until user manually requests it. */

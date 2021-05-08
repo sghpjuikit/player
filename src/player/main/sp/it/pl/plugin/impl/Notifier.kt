@@ -148,8 +148,9 @@ class Notifier: PluginBase() {
 
    /** Show notification for custom content. */
    fun showNotification(title: String, content: Node, isPermanent: Boolean = false): Notification {
-      val n = ns.find { it.content === content } ?: Notification()
+      val n = ns.find { it.content.value === content } ?: Notification()
       val nss = ns - n
+
       n.setContent(content, title)
       n.isAutohide.value = notificationAutohide
       n.duration = if (isPermanent) INDEFINITE else notificationDuration
@@ -157,13 +158,15 @@ class Notifier: PluginBase() {
       n.lClickAction = onClickL.value
       n.onShown attach1 { ns += n }
       n.onHidden attach1 { ns -= n }
-      n.show(notificationScr(notificationPos).map {
-         if (nss.isEmpty()) it
-         else when(notificationPos.vpos!!) {
-            VPos.BOTTOM, VPos.CENTER -> it.x x ((nss.map { it.root.localToScreen(0.0, 0.0).y }.minOrNull() ?: 0.0) - n.root.height)
-            VPos.BASELINE, VPos.TOP -> it.x x (nss.map { it.root.localToScreen(0.0, it.root.height).y }.maxOrNull() ?: notificationScr.bounds().second.maxY)
+      n.show(
+         notificationScr(notificationPos).map {
+            if (nss.isEmpty()) it
+            else when(notificationPos.vpos!!) {
+               VPos.BOTTOM, VPos.CENTER -> it.x x ((nss.map { it.root.localToScreen(0.0, 0.0).y }.minOrNull() ?: 0.0) - n.root.height)
+               VPos.BASELINE, VPos.TOP -> it.x x (nss.map { it.root.localToScreen(0.0, it.root.height).y }.maxOrNull() ?: notificationScr.bounds().second.maxY)
+            }
          }
-      })
+      )
 
       return n
    }

@@ -53,6 +53,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
+import sp.it.util.collections.toStringPretty
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
 
@@ -219,16 +220,19 @@ class Json {
                   if (converter!=null) {
                      converter.toJson(value)
                   } else {
-                     val values = type.memberProperties.filter { it.javaField!=null }.map {
-                        it.isAccessible = true
-                        it.name to toJsonValue(it.returnType, it.getter.call(value))
-                     }.toMap().let {
-                        when {
-                           isObject -> mapOf(typeWitness())
-                           isAmbiguous -> it + typeWitness()
-                           else -> it
+                     val values = type.memberProperties.asSequence()
+                        .filter { it.javaField!=null }
+                        .associate {
+                           it.isAccessible = true
+                           it.name to toJsonValue(it.returnType, it.getter.call(value))
                         }
-                     }
+                        .let {
+                           when {
+                              isObject -> mapOf(typeWitness())
+                              isAmbiguous -> (it + typeWitness())
+                              else -> it
+                           }
+                        }
                      JsObject(values)
                   }
                }
@@ -443,7 +447,8 @@ fun JsValue.toCompactS(): String {
          else "[" + value.joinToString(",") { it.toPrettyS() } + "]"
       is JsObject ->
          if (value.isEmpty()) "{}"
-         else "{" + value.entries.joinToString(",") { it.key.toJsonString() + ":" + it.value.toCompactS() } + "}"
+         else "{" + value.entries.asSequence().sortedBy { it.key }
+            .joinToString(",") { it.key.toJsonString() + ":" + it.value.toCompactS() } + "}"
    }
 }
 
@@ -461,7 +466,8 @@ fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String {
          else "[" + newline + indent + value.joinToString(",$newline") { it.toPrettyS() }.reIndent() + newline + "]"
       is JsObject ->
          if (value.isEmpty()) "{}"
-         else "{" + newline + indent + value.entries.joinToString(",$newline") { it.key.toJsonString() + ": " + it.value.toPrettyS() }.reIndent() + newline + "}"
+         else "{" + newline + indent + value.entries.asSequence().sortedBy { it.key }
+            .joinToString(",$newline") { it.key.toJsonString() + ": " + it.value.toPrettyS() }.reIndent() + newline + "}"
    }
 }
 

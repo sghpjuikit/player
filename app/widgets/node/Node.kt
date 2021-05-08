@@ -8,6 +8,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.isSuperclassOf
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.APP
@@ -54,7 +55,7 @@ class Node(widget: Widget): SimpleController(widget) {
    private val nodeInstance = vn<Node>(null).apply {
       node sync {
          val isDifferentClass = value?.net { it::class.java.name }!=it
-         if (isDifferentClass) value = runTry { Class.forName(it)?.kotlin?.createInstance() as Node? }.orNull()
+         if (isDifferentClass) value = runTry { Class.forName(it)?.kotlin?.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node? }.orNull()
       }
    }
 
@@ -136,7 +137,7 @@ class Node(widget: Widget): SimpleController(widget) {
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = listOf(
-         ShortcutPane.Entry("Node", "Add component property as widget input", "2x${PRIMARY.nameUi}"),
+         ShortcutPane.Entry("Node", "Edit component properties as widget inputs", PRIMARY.nameUi),
       )
       override val group = APP
 

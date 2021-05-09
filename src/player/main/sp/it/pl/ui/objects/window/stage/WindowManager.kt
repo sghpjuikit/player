@@ -54,6 +54,7 @@ import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
 import sp.it.util.access.Values
+import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
@@ -133,7 +134,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** Required by skins that want to use transparent background colors. Determines [windowStyle]. Default false. */
    val windowStyleAllowTransparency by cv(false).attach { APP.actions.showSuggestRestartNotification() }.def(
       name = "Allow transparency",
-      info = "Required by skins that want to use transparent background colors. May cause performance degradation. Requires application restart."
+      info = "Required by skins that want to use transparent backgrounds. May degrade performance. Requires application restart."
    )
    /** Whether [Window.transformBgrWithContent] is true. Default false. */
    val windowStyleBgrWithContentTransformation by cv(false).def(
@@ -142,7 +143,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    )
    /** Window [StageStyle] set at window creation time. Determined by [windowStyleAllowTransparency]. */
    val windowStyle = windowStyleAllowTransparency
-      .map { if (it) TRANSPARENT else UNDECORATED }
+      .map { it.toWindowStyle() }
    /** Any application window will be created and maintained with this [Stage.opacity]. */
    val windowOpacity by cv(1.0).between(0.1, 1.0)
       .def(name = "Opacity", info = "Window opacity.")
@@ -225,7 +226,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
    }
 
-   fun create(canBeMain: Boolean = APP.isUiApp) = create(null, windowStyle.value, canBeMain)
+   fun create(canBeMain: Boolean = APP.isUiApp, state: WindowDb? = null) = create(
+      null,
+      (state?.transparent ?: windowStyleAllowTransparency.value).toWindowStyle(),
+      state?.main ?: canBeMain
+   )
 
    fun create(owner: Stage?, style: StageStyle, canBeMain: Boolean): Window {
       val w = Window(owner, style)
@@ -234,7 +239,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       w.initialize()
 
-      w.stage.opacityProperty() syncFrom windowOpacity on w.onClose
+      windowOpacity sync { if (!w.opacityOverride) w.opacity.value = it } on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value
       w.isInteractiveOnLeftAlt.value = windowInteractiveOnLeftAlt.value
       w.stage.title = APP.name
@@ -277,7 +282,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    fun focusedWindowToggleMaximizedState() = getFocused()?.let { it.isMaximized = Values.next(it.isMaximized) }
 
    @IsAction(name = "Fullscreen", info = "Switch fullscreen mode for active window.", keys = "F12")
-   fun focusedWindowToggleFullscreen() = getFocused()?.toggleFullscreen()
+   fun focusedWindowToggleFullscreen() = getFocused()?.fullscreen?.toggle()
 
    private fun showDockImpl(enable: Boolean) {
       if (!APP.isStateful) return
@@ -295,7 +300,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             dockWindow = this
 
             resizable.value = true
-            isAlwaysOnTop = true
+            alwaysOnTop.value = true
 
             setSize(Screen.getPrimary().bounds.width, dockHeight.value)
             dockHeight attachTo H
@@ -310,7 +315,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             center = stackPane {
                lay += anchorPane {
                   Layout.openStandalone(this).apply {
-                     mw.s.properties[Window.keyWindowLayout] = this
+                     mw.properties[Window.keyWindowLayout] = this
                   }
                }
             }
@@ -472,7 +477,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       val mwAutohide = v(true)
       val mw = create(createStageOwner(), windowStyle.value, false).apply {
          resizable.value = true
-         isAlwaysOnTop = true
+         alwaysOnTop.value = true
          isHeaderAllowed.value = false
 
          // show and apply state
@@ -486,7 +491,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          center = stackPane {
             lay += anchorPane {
                Layout.openStandalone(this).apply {
-                  mw.s.properties[Window.keyWindowLayout] = this
+                  mw.properties[Window.keyWindowLayout] = this
                }
             }
          }
@@ -593,6 +598,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.deduplicateIds()?.toDomain()
    }
 
-   companion object: KLogging()
+   companion object: KLogging() {
+      private fun Boolean.toWindowStyle(): StageStyle = if (this) TRANSPARENT else UNDECORATED
+   }
 
 }

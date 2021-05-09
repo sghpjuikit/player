@@ -115,6 +115,7 @@ import sp.it.pl.main.FileFilters.cvFileFilter
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.conf.butElement
 import sp.it.util.conf.cOr
 import sp.it.util.conf.cr
 import sp.it.util.conf.defInherit
@@ -147,7 +148,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
    }
 
-   private val files by cList<File>().only(DIRECTORY)
+   private val files by cList<File>().butElement { only(DIRECTORY) }
       .def(name = "Location", info = "Root directories of the content.")
    private val filesRefresh by cr { revisitCurrent() }
       .def(name = "Location (refresh)", info = "Reloads location files and reloads the view.")

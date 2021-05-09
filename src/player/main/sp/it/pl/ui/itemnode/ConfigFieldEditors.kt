@@ -160,11 +160,13 @@ import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.complexfield.ComplexTextField
 import sp.it.util.access.OrV
 import sp.it.util.access.editable
+import sp.it.util.access.toWritable
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.toOption
 import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.map
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.jvmErasure
@@ -228,12 +230,13 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
 
 class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
    override val editor = FlowPane()
-   private val oCE = create(Config.forProperty<Boolean>("Override", c.property.override).addConstraints(ReadOnlyIf(isEditable)))
-   private val vCE = create(Config.forProperty(c.valueType, "", c.property.real).addConstraints(ReadOnlyIf(isEditable)).addConstraints(ReadOnlyIf(c.property.override, true)))
+   // TODO: impl disposing properly
+   private val oCE = create(Config.forProperty<OrV.State>("Override", c.property.override.map { OrV.State.of(it) }.toWritable { c.property.override.value = it.override }).addConstraints(ReadOnlyIf(isEditable, true)))
+   private val vCE = create(Config.forProperty<T>(c.valueType, "", c.property.real).addConstraints(ReadOnlyIf(isEditable, true)).addConstraints(*c.elementConstraints.toTypedArray()))
 
    init {
       editor.styleClass += "override-config-editor"
-      editor.lay += listOf(vCE.buildNode(), oCE.buildNode())
+      editor.lay += listOf(oCE.buildNode(), vCE.buildNode())
    }
 
    override fun get(): Try<OrV.OrValue<T>, String> = oCE.get().and(vCE.get()).map { config.value }

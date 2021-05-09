@@ -104,7 +104,6 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
    abstract fun get(): Try<T, String>
 
    fun getValid(): Try<T, String> = get().and { v ->
-
       if (!config.type.isNullable) ObjectNonNull.validate(v) else Try.ok()
    }.and { v ->
       config.constraints.map { it.validate(v) }.find { it.isError } ?: Try.ok()

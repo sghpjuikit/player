@@ -39,7 +39,6 @@ import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementType
 import sp.it.util.conf.Configurable
-import sp.it.util.conf.Constraint.StringNonEmpty
 import sp.it.util.conf.ValueConfig
 import sp.it.util.dev.Dsl
 import sp.it.util.file.toFileOrNull
@@ -101,7 +100,9 @@ import kotlin.reflect.jvm.jvmName
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.util.access.toggle
 import sp.it.util.collections.setToOne
+import sp.it.util.conf.nonEmpty
 import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.onEventUp
 import sp.it.util.text.toChar32
@@ -161,7 +162,7 @@ fun windowOnTopIcon(window: Window) = Icon().apply {
    styleclass("header-icon")
    styleclass("window-top-icon")
    tooltip("On top\n\nWindow will stay in foreground when other window is being interacted with")
-   onClickDo { window.toggleAlwaysOnTop() }
+   onClickDo { window.alwaysOnTop.toggle() }
    window.alwaysOnTop sync { icon(if (it) IconFA.SQUARE else IconFA.SQUARE_ALT) }
 }
 
@@ -437,7 +438,7 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
 }
 
 fun configureString(title: String, inputName: String, action: (String) -> Any?) {
-   ValueConfig(type(), inputName, "", "").addConstraints(StringNonEmpty()).configure(title) {
+   ValueConfig(type(), inputName, "", "").constrain { nonEmpty() } .configure(title) {
       action(it.value)
    }
 }

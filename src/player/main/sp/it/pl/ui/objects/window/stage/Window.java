@@ -3,7 +3,6 @@ package sp.it.pl.ui.objects.window.stage;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
@@ -34,6 +33,7 @@ import sp.it.pl.main.Df;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.V;
+import sp.it.util.access.WithSetterObservableValue;
 import sp.it.util.action.ActionRegistrar;
 import sp.it.util.animation.Anim;
 import sp.it.util.async.executor.EventReducer;
@@ -104,6 +104,7 @@ import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installStartLayoutPl
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installWindowInteraction;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.lookupId;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.resizeTypeForCoordinates;
+import static sp.it.util.access.PropertiesDelegatedKt.toWritable;
 import static sp.it.util.access.PropertiesKt.toggle;
 import static sp.it.util.access.Values.next;
 import static sp.it.util.access.Values.previous;
@@ -114,6 +115,7 @@ import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
+import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
@@ -152,7 +154,7 @@ public class Window extends WindowBase {
 
 	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
 	/** Whether this is main window. Closing main window closes the application. Only one window can be main. */
-	public final ReadOnlyBooleanProperty isMain = isMainImpl.getReadOnlyProperty();
+	public final WithSetterObservableValue<Boolean> isMain = toWritable(isMainImpl, consumer(it -> { if (it) APP.windowManager.setAsMain(this); }));
 	/** Whether this window is resizable/movable with mouse when left ALT is held. Default true on non Linux platform. */
 	public final BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
 	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non uniform bgr needs to be set for the effect to be visible. Default false. */
@@ -162,7 +164,7 @@ public class Window extends WindowBase {
 
 	Window(Stage owner, StageStyle style) {
 		super(owner, style);
-		s.getProperties().put(keyWindowAppWindow, this);
+		properties.put(keyWindowAppWindow, this);
 	}
 
 	void initialize() {
@@ -173,8 +175,11 @@ public class Window extends WindowBase {
 		// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
 
 		s.setOnCloseRequest(e -> close()); // avoid window not closing properly sometimes (like when OS requests closing the window)
-		s.setFullScreenExitHint("");
-		s.setFullScreenExitKeyCombination(NO_MATCH);
+
+		// fullscreen
+		fullScreenExitHint.setValue("");
+		fullScreenExitCombination.setValue(NO_MATCH);
+		attach(fullscreen, consumer(v -> applyHeaderVisible(!v && _headerVisible)));
 
 		// drag&drop
 		installDrag(
@@ -286,7 +291,7 @@ public class Window extends WindowBase {
 			headerContainerMouseExited.push(true)
 		);
 		headerContainer.addEventFilter(MOUSE_EXITED_TARGET, e -> {
-			if ((!isHeaderVisible.get() || isFullscreen()) && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)    // TODO: 20?
+			if ((!isHeaderVisible.get() || fullscreen.getValue()) && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)    // TODO: 20?
 				headerContainerMouseExited.push(false);
 		});
 		fullscreen.addListener((o,ov,nv) -> applyHeaderVisible(_headerVisible));
@@ -342,21 +347,19 @@ public class Window extends WindowBase {
 
 		Icon miniB = new Icon(null, -1, "Toggle dock", () -> toggle(APP.windowManager.getDockShow())).styleclass("header-icon");
 		syncC(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
-		Icon onTopB = new Icon(null, -1, "Always on top\n\nForbid hiding this window behind other application windows", this::toggleAlwaysOnTop).styleclass("header-icon");
+		Icon onTopB = new Icon(null, -1, "Always on top\n\nForbid hiding this window behind other application windows", () -> toggle(alwaysOnTop)).styleclass("header-icon");
 		syncC(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));
 		Icon fullsB = new Icon(null, -1, ActionRegistrar.get("Fullscreen")).scale(1.3).styleclass("header-icon");
 		syncC(fullscreen, it -> fullsB.icon(it ? FULLSCREEN_EXIT : FULLSCREEN));
 		Icon minB = new Icon(WINDOW_MINIMIZE, -1, "Minimize application", this::toggleMinimize).styleclass("header-icon");
 		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, ActionRegistrar.get("Maximize")).styleclass("header-icon");
-//        maintain(maxB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maxB::icon);
 		Icon closeB = new Icon(ICON_CLOSE, -1, "Close\n\nCloses window. If the window is main, application closes as well.", this::close).styleclass("header-icon");
-		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4)
-			.action(() -> APP.windowManager.setAsMain(this));
+		Icon mainB = new Icon(FontAwesomeIcon.CIRCLE, -1).styleclass("header-icon").scale(0.4);
+			 mainB.action(() -> WindowHelperKt.openWindowSettings(this, mainB));
 		syncC(isMain, v -> mainB.setOpacity(v ? 1.0 : 0.4));
 		syncC(isMain, v -> mainB.tooltip(v
 			? "Main window\n\nThis window is main app window\nClosing it will close application."
 			: "Main window\n\nThis window is not main app window\nClosing it will not close application."));
-		mainB.setVisible(APP.isUiApp());
 
 		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, new Label(""), minB, maxB, closeB);
 		rightHeaderBox.setTranslateY(-4);
@@ -457,6 +460,14 @@ public class Window extends WindowBase {
 		sync(transformBgrWithContent, consumer(transformBgrWithContentSub::subscribe));
 	}
 
+	// TODO: dispose of zoom effect
+	public Layout detachLayout() {
+		var l = layout;
+		layout = null;
+		topContainer = null;
+		return l;
+	}
+
 	/**
 	 * Returns layout aggregator of this window.
 	 *
@@ -501,7 +512,7 @@ public class Window extends WindowBase {
 	/** Whether header can be ever visible. Default true. */
 	public final V<Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
-	public final V<Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !isFullscreen()));
+	public final V<Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !fullscreen.getValue()));
 
 	private void applyHeaderVisible(boolean headerOn) {
 		var hOn = headerOn && isHeaderAllowed.get();
@@ -549,12 +560,6 @@ public class Window extends WindowBase {
 			onClose.invoke();
 		}
 		super.close();
-	}
-
-	@Override
-	public void setFullscreen(boolean v) {
-		super.setFullscreen(v);
-		applyHeaderVisible(!v && _headerVisible);
 	}
 
 /* ---------- MOVING & RESIZING ------------------------------------------------------------------------------------- */

@@ -26,10 +26,11 @@ import sp.it.util.file.writeTextTry
 import sp.it.util.system.browse
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
+import sp.it.util.conf.butElement
 
 class DirSearchPlugin: PluginBase() {
 
-   private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find directories in.")
+   private val searchDirs by cList<File>().butElement { only(DIRECTORY) }.def(name = "Location", info = "Locations to find directories in.")
    private val searchDepth by cv(2).min(1).def(name = "Search depth", info = "Max search depth used for each location")
 
    private val cacheFile = getUserResource("cache.txt")

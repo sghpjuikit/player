@@ -79,6 +79,7 @@ import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.butElement
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cOr
@@ -162,7 +163,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    val gridCellCoverFitFrom by cv(OUTSIDE)
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
    val files by cList<File>()
-      .def(name = "Location", info = "Location of the library.").only(DIRECTORY)
+      .def(name = "Location", info = "Location of the library.").butElement { only(DIRECTORY) }
    val filesRefresh by cr { viewGames() }
       .def(name = "Location (refresh)", info = "Reloads location and reloads the view.")
 

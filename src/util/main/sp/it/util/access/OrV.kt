@@ -48,6 +48,15 @@ class OrV<T>(parent: Property<T>, initialValue: OrValue.Initial<T> = Inherit()):
       parent.removeListener(listener)
    }
 
+   enum class State(val override: Boolean) {
+      OVERRIDE(true),
+      INHERIT(false);
+
+      companion object {
+         fun of(override: Boolean) = if (override) OVERRIDE else INHERIT
+      }
+   }
+
    data class OrValue<T>(val override: Boolean, val value: T) {
       sealed class Initial<out T> {
          abstract fun computeInitialValue(parent: Property<@UnsafeVariance T>): T

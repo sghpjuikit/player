@@ -64,6 +64,7 @@ import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_INFO
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.toggleNext
+import sp.it.util.conf.butElement
 import sp.it.util.conf.cv
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.noUi
@@ -96,7 +97,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    val playerVlcLocation by cvn<String>(null).noPersist()
       .def(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback", editable = EditMode.APP)
    val playerVlcLocationsRelativeTo = APP.location
-   val playerVlcLocations by cList<File>().only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo).def(
+   val playerVlcLocations by cList<File>().butElement { only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo) }.def(
       name = "Vlc player locations",
       info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location. Requires application restart to take effect."
    )

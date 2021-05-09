@@ -195,15 +195,17 @@ open class PropertyConfigRO<T>(
 open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    val property: OrV<T>
    val valueType: VType<T>
+   val elementConstraints: MutableSet<Constraint<T>>
 
    constructor(
-      valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, property: OrV<T>, group: String
+      valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, elementConstraints: Set<Constraint<T>>, property: OrV<T>, group: String
    ): super(
       VType(OrValue::class.createType(listOf(invariant(valueType.type)))),
       name, c, constraints, OrValue(property.override.value, property.real.value), group
    ) {
       this.property = property
       this.valueType = valueType
+      this.elementConstraints = elementConstraints.toMutableSet()
    }
 
    override fun getValue() = OrValue(property.override.value, property.real.value)
@@ -211,6 +213,11 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    override fun setValue(value: OrValue<T>) {
       property.real.value = value.value
       property.override.value = value.override
+   }
+
+   fun constrainOverridden(block: ConstrainedDsl<T>.() -> Unit): ConfigBase<OrValue<T>> {
+      ConstrainedDsl(elementConstraints::add).block()
+      return this
    }
 
    override var valueAsProperty: PropVal

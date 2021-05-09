@@ -13,18 +13,15 @@ import sp.it.util.access.vx
 import sp.it.util.action.Action
 import sp.it.util.action.IsAction
 import sp.it.util.dev.failIf
-import sp.it.util.file.FileType
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
-import sp.it.util.type.InstanceMap
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.type
 import sp.it.util.type.typeResolved
-import java.io.File
 import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
@@ -76,62 +73,24 @@ inline fun <reified T: Any?, S: Boolean?> cCheckList(checkList: CheckList<T, S>)
 
 /** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: Conf<T>> C.but(vararg restrictions: Constraint<T>) = apply { constraints += restrictions }
+/** Adds the specified constraint for this delegated [Config], which allows value restriction and fine-grained behavior. */
+fun <T: Any?, C: Conf<T>> C.but(block: ConstrainedDsl<T>.() -> Unit) = apply { ConstrainedDsl(constraints::add).block() }
 
 /** Adds the specified constraint for elements of the list of this delegated [Config], which allows value restriction and fine-grained behavior. */
 fun <T: Any?, C: ConfL<T>> C.butElement(vararg restrictions: Constraint<T>) = apply { elementConstraints += restrictions }
+/** Adds the specified constraint for elements of the list of this delegated [Config], which allows value restriction and fine-grained behavior. */
+fun <T: Any?, C: ConfL<T>> C.butElement(block: ConstrainedDsl<T>.() -> Unit) = apply { ConstrainedDsl(elementConstraints::add).block() }
 
-fun <T: Any?, C: Conf<T>> C.noUi() = but(Constraint.NoUi)
-fun <T: Any?, C: Conf<T>> C.noUiDefaultButton() = but(Constraint.NoUiDefaultButton)
-fun <T: Any?, C: Conf<T>> C.noPersist() = but(Constraint.NoPersist)
-fun <T: Any?, C: Conf<T>> C.singleton() = noUiDefaultButton().noPersist()
-fun <T: Any?, C: Conf<T>> C.nonNull() = but(Constraint.ObjectNonNull)
-fun <T: String, TN: T?, C: Conf<TN>> C.nonEmpty() = but(Constraint.StringNonEmpty())
-fun <T: String, TN: T?, C: Conf<TN>> C.nonBlank() = but(Constraint.StringNonBlank())
-fun <T: Number, TN: T?, C: Conf<TN>> C.min(min: T) = but(Constraint.NumberMinMax(min.toDouble(), null))
-fun <T: Number, TN: T?, C: Conf<TN>> C.max(max: T) = but(Constraint.NumberMinMax(null, max.toDouble()))
-fun <T: Number, TN: T?, C: Conf<TN>> C.between(min: T, max: T) = but(Constraint.NumberMinMax(min.toDouble(), max.toDouble()))
-fun <T: File?, C: Conf<T>> C.uiOut() = but(Constraint.FileOut)
-fun <T: File?, C: Conf<T>> C.only(type: FileType) = but(Constraint.FileActor(type))
-fun <T: File?, C: Conf<T>> C.only(type: Constraint.FileActor) = but(type)
-fun <T: File?, C: Conf<T>> C.relativeTo(relativeTo: File) = but(Constraint.FileRelative(relativeTo))
-fun <T: File?, C: ConfL<T>> C.only(type: FileType) = butElement(Constraint.FileActor(type))
-fun <T: File?, C: ConfL<T>> C.only(type: Constraint.FileActor) = butElement(type)
-fun <T: File?, C: ConfL<T>> C.relativeTo(relativeTo: File) = butElement(Constraint.FileRelative(relativeTo))
-fun <T: Any?, C: Conf<T>> C.readOnly() = readOnlyIf(true)
-fun <T: Any?, C: Conf<T>> C.readOnlyIf(condition: Boolean) = but(Constraint.ReadOnlyIf(condition))
-fun <T: Any?, C: Conf<T>> C.readOnlyIf(condition: ObservableValue<Boolean>) = but(Constraint.ReadOnlyIf(condition, false))
-fun <T: Any?, C: Conf<T>> C.readOnlyUnless(condition: Boolean) = but(Constraint.ReadOnlyIf(!condition))
-fun <T: Any?, C: Conf<T>> C.readOnlyUnless(condition: ObservableValue<Boolean>) = but(Constraint.ReadOnlyIf(condition, true))
-
-/**
- * Gives hint to ui editor to use the specified to-string converter instead of the default one.
- * This provides a fine-grained per [Config] control for this behavior.
- */
-fun <T: Any?, C: Conf<T>> C.uiConverter(converter: (T) -> String) = but(Constraint.UiConverter(converter))
+/** Adds the specified constraint for overridden value this delegated [Config], which allows value restriction and fine-grained behavior. */
+fun <T: Any?, W: OrV<T>, C: ConfVOr<T, W>> C.butOverridden(vararg restrictions: Constraint<T>) = apply { elementConstraints += restrictions }
+/** Adds the specified constraint for overridden value this delegated [Config], which allows value restriction and fine-grained behavior. */
+fun <T: Any?, W: OrV<T>, C: ConfVOr<T, W>> C.butOverridden(block: ConstrainedDsl<T>.() -> Unit) = apply { ConstrainedDsl(elementConstraints::add).block() }
 
 /**
  * Gives hint to ui editor to use the specified to-string converter for elements instead of the default one.
  * This provides a fine-grained per [Config] control for this behavior.
  */
-fun <T: Any?, C: ConfL<T>> C.uiConverterElement(converter: (T) -> String) = butElement(Constraint.UiConverter(converter))
-
-/**
- * Gives hint to ui editor to use the specified to-string converter for elements instead of the default one.
- * This provides a fine-grained per [Config] control for this behavior.
- */
-fun <T: Any?, S: Boolean?, C: ConfCheckL<T,S>> C.uiConverterElement(converter: (T) -> String) = but(Constraint.UiElementConverter(converter))
-
-/**
- * Gives hint to ui editor to use the specified to-info-string converter to display extended information about the value.
- * For enumerable config only.
- */
-fun <T: Any?, C: Conf<T>> C.uiInfoConverter(converter: (T) -> String) = but(Constraint.UiInfoConverter(converter))
-
-/**
- * If this config is [enumerable][Config.isEnumerable], the value order in ui editor will follow the order of the
- * enumeration, i.e. no sort will be applied.
- */
-fun <T: Any?, C: Conf<T>> C.uiNoOrder() = but(Constraint.PreserveOrder)
+fun <T: Any?, S: Boolean?, C: ConfCheckL<T,S>> C.uiConverterElement(converter: (T) -> String) = but(Constraint.UiElementConverter(converter)) // TODO: remove
 
 /** @return action created from this function into the specified configurable or throws if this method is not an action */
 fun KFunction<*>.getDelegateAction(within: Configurable<*>): Action = within.getConfig(findAnnotation<IsAction>()!!.name).asIs()
@@ -141,24 +100,6 @@ fun KProperty0<*>.getDelegateConfig(): Config<*> {
    isAccessible = true
    return getDelegate().asIs()
 }
-
-/** [Constraint.ValueSealedSet] using the specified collection as enumerator */
-fun                <T: Any?, C: Conf<T>> C.values(enumerator: Collection<T>) = but(Constraint.ValueSealedSet { enumerator })
-
-/** [Constraint.ValueSealedSet] using the specified enumerator */
-fun                <T: Any?, C: Conf<T>> C.valuesIn(enumerator: () -> Sequence<T>) = but(Constraint.ValueSealedSet { enumerator().toList() })
-
-/** [Constraint.ValueSealedSet] using the instance map for type specified by the reified generic type argument as enumerator */
-inline fun <reified T: Any?, C: Conf<T>> C.valuesIn(instanceSource: InstanceMap) = values(instanceSource.getInstances())
-
-/** [Constraint.ValueUnsealedSet] using the specified enumerator */
-fun                <T: Any?, C: Conf<T>> C.valuesUnsealed(enumerator: () -> Collection<T>) = but(Constraint.ValueUnsealedSet { enumerator().toList() })
-
-/** [Constraint.ValueUnsealedSet] using the specified collection as enumerator */
-fun                <T: Any?, C: Conf<T>> C.valuesUnsealed(enumerator: Collection<T>) = valuesUnsealed { enumerator }
-
-/** [Constraint.ValueUnsealedSet] using the instance map for type specified by the reified generic type argument as enumerator */
-inline fun <reified T: Any?, C: Conf<T>> C.valuesUnsealed(instanceSource: InstanceMap) = valuesUnsealed(instanceSource.getInstances())
 
 /** Singleton configuration used by delegated configurable properties. */
 private val configuration = object: ConfigValueSource {
@@ -225,7 +166,7 @@ interface ConfigPropertyDelegator<REF: ConfigDelegator, D: Any> {
    operator fun provideDelegate(ref: REF, property: KProperty<*>): D
 }
 
-abstract class Conf<T: Any?> {
+abstract class Conf<T: Any?>: ConstrainedDsl<T> {
    protected var refSubstitute: Any? = null
    val constraints = HashSet<Constraint<T>>()
    var def: ConfigDefinition? = null
@@ -248,6 +189,9 @@ abstract class Conf<T: Any?> {
    protected fun <CFGT, CFG: Config<CFGT>> CFG.registerConfig(ref: ConfigDelegator) = apply {
       ref.configurableValueSource.register(this)
    }
+
+   override fun addConstraint(constraint: Constraint<T>): Conf<T> = apply { constraints += constraint }
+
 }
 
 class ConfR(private val action: () -> Unit): Conf<Action>() {
@@ -421,8 +365,9 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
 
 }
 
-class ConfVOr<T: Any?, W: OrV<T>>: Conf<T>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
+class ConfVOr<T: Any?, W: OrV<T>>: Conf<OrValue<T>>, ConfigPropertyDelegator<ConfigDelegator, RoProperty<ConfigDelegator, W>> {
    private var vFactory: () -> W
+   val elementConstraints = HashSet<Constraint<T>>()
 
    constructor(valueSupplier: () -> W): super() {
       this.vFactory = valueSupplier
@@ -449,10 +394,10 @@ class ConfVOr<T: Any?, W: OrV<T>>: Conf<T>, ConfigPropertyDelegator<ConfigDelega
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
-      return object: OrPropertyConfig<T>(type, property.name, info, constraints.asIs(), vFactory(), group), RoProperty<ConfigDelegator, W> {
+      return object: OrPropertyConfig<T>(type, property.name, info, constraints, elementConstraints, vFactory(), group), RoProperty<ConfigDelegator, W> {
          init {
             ref.configurableValueSource.initialize(this)
-            validateValue(this.value.value)
+            validateValue(this.value)
          }
          @Suppress("UNCHECKED_CAST")
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W

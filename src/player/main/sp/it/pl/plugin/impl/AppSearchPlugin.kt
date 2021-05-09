@@ -83,12 +83,13 @@ import java.util.concurrent.atomic.AtomicLong
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.conf.butElement
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 
 class AppSearchPlugin: PluginBase() {
 
-   private val searchDirs by cList<File>().only(DIRECTORY).def(name = "Location", info = "Locations to find applications in.")
+   private val searchDirs by cList<File>().butElement { only(DIRECTORY) }.def(name = "Location", info = "Locations to find applications in.")
    private val searchDepth by cv(Int.MAX_VALUE).min(1).def(name = "Search depth", info = "Max search depth used for each location")
    private val searchSourceApps = observableArrayList<File>()
    private val searchSource = Source("Applications ($name plugin)", searchSourceApps) by { "Run app: ${it.absolutePath}" } toSource {

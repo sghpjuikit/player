@@ -45,13 +45,13 @@ import sp.it.util.async.runIO
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.Constraint.ObjectNonNull
-import sp.it.util.conf.Constraint.UiConverter
-import sp.it.util.conf.Constraint.ValueSealedSet
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.nonNull
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
+import sp.it.util.conf.uiConverter
+import sp.it.util.conf.valuesIn
 import sp.it.util.dev.Dsl
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType.DIRECTORY
@@ -333,11 +333,11 @@ object CoreMenus: Core {
             menu("Link") {
                item("From all identical") { it.bindAllIdentical() }
                item("To generated...") { input ->
-                  Config.forProperty(type<Output<Any?>>(), "Value", vn<Output<Any?>>(null)).addConstraints(
-                     ValueSealedSet { IOLayer.allInoutputs.filter { input.isAssignable(it.o) }.map { it.o } },
-                     ObjectNonNull,
-                     UiConverter<Output<*>> { "${it.id.ownerId} -> ${it.id.name}" }
-                  ).configure("Link ${input.name} to...") { c ->
+                  Config.forProperty(type<Output<Any?>>(), "Value", vn<Output<Any?>>(null)).constrain {
+                     nonNull()
+                     uiConverter { "${it.id.ownerId} -> ${it.id.name}" }
+                     valuesIn { IOLayer.allInoutputs.asSequence().filter { input.isAssignable(it.o) }.map { it.o }.asIs() }
+                  }.configure("Link ${input.name} to...") { c ->
                      c.value.ifNotNull { output ->
                         input.asIs<Input<Any?>>().bind(output)
                      }

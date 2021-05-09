@@ -3,23 +3,29 @@ package sp.it.pl.ui.objects.window.stage;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.collections.ObservableMap;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import sp.it.pl.ui.objects.window.Resize;
+import sp.it.util.access.WithSetterObservableValue;
 import sp.it.util.math.P;
 import static java.lang.Math.abs;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL;
 import static sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE;
+import static sp.it.util.access.PropertiesDelegatedKt.toWritable;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.syncC;
 
 /**
@@ -32,6 +38,8 @@ import static sp.it.util.reactive.UtilKt.syncC;
  */
 public class WindowBase {
 
+	Stage s = new Stage();
+
 	final DoubleProperty W = new SimpleDoubleProperty(100);
 	final DoubleProperty H = new SimpleDoubleProperty(100);
 	final DoubleProperty X = new SimpleDoubleProperty(0);
@@ -39,11 +47,9 @@ public class WindowBase {
 	final ReadOnlyObjectWrapper<Maximized> MaxProp = new ReadOnlyObjectWrapper<>(NONE);
 	final ReadOnlyBooleanWrapper isMoving = new ReadOnlyBooleanWrapper(false);
 	final ReadOnlyObjectWrapper<Resize> isResizing = new ReadOnlyObjectWrapper<>(Resize.NONE);
-	final BooleanProperty FullProp = new SimpleBooleanProperty(false);
+	final BooleanProperty FullProp = new SimpleBooleanProperty(s.isFullScreen());
 	private double deMaxX = 0; // 0-1
 	private double deMaxY = 0; // 0-1
-
-	Stage s = new Stage();
 
 	/**
 	 * Indicates whether the window has focus. Read-only. Use {@link #focus()}.
@@ -53,11 +59,13 @@ public class WindowBase {
 	 * Indicates whether this window is always on top. Window always on top
 	 * will not hide behind other windows.
 	 */
-	public final ReadOnlyBooleanProperty alwaysOnTop = s.alwaysOnTopProperty();
+	public final WithSetterObservableValue<Boolean> alwaysOnTop = toWritable(s.alwaysOnTopProperty(), consumer(s::setAlwaysOnTop));
 	/**
 	 * Indicates whether this window is in fullscreen.
 	 */
-	public final ReadOnlyBooleanProperty fullscreen = s.fullScreenProperty();
+	public final WithSetterObservableValue<Boolean> fullscreen = toWritable(s.fullScreenProperty(), consumer(it -> { FullProp.set(it); s.setFullScreen(it); }));
+	public final ObjectProperty<String> fullScreenExitHint = s.fullScreenExitHintProperty();
+	public final ObjectProperty<KeyCombination> fullScreenExitCombination = s.fullScreenExitKeyProperty();
 	/**
 	 * Indicates whether this window is maximized.
 	 */
@@ -75,6 +83,9 @@ public class WindowBase {
 	 * possible to change the size of the Stage.
 	 */
 	public final BooleanProperty resizable = s.resizableProperty();
+	public final DoubleProperty opacity = s.opacityProperty();
+	public final ObservableMap<Object, Object> properties = s.getProperties();
+
 
 	public WindowBase(Stage owner, StageStyle style) {
 		if (owner!=null) s.initOwner(owner);
@@ -82,25 +93,25 @@ public class WindowBase {
 
 		// window properties may change externally so let us take notice
 		syncC(s.xProperty(), v -> {
-			if (!isFullscreen() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && isMaximized()==NONE) {
 				X.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.yProperty(), v -> {
-			if (!isFullscreen() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && isMaximized()==NONE) {
 				Y.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.widthProperty(), v ->  {
-			if (!isFullscreen() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && isMaximized()==NONE) {
 				W.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.heightProperty(), v ->  {
-			if (!isFullscreen() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && isMaximized()==NONE) {
 				H.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
@@ -180,29 +191,6 @@ public class WindowBase {
 		screen = sp.it.util.ui.UtilKt.getScreen(s);
 	}
 
-	/**
-	 * The value of the property resizable
-	 * see {@link #setAlwaysOnTop(boolean)}
-	 *
-	 * @return the value of the property resizable.
-	 */
-	public boolean isAlwaysOnTop() {
-		return s.isAlwaysOnTop();
-	}
-
-	/**
-	 * Sets the value of the property is AlwaysOnTop.
-	 * Property description:
-	 * Defines behavior where this window always stays on top of other windows.
-	 */
-	public void setAlwaysOnTop(boolean val) {
-		s.setAlwaysOnTop(val);
-	}
-
-	public void toggleAlwaysOnTop() {
-		s.setAlwaysOnTop(!s.isAlwaysOnTop());
-	}
-
 	/** Brings the window to front if it was behind some window on the desktop. */
 	public void focus() {
 		s.requestFocus();
@@ -249,7 +237,7 @@ public class WindowBase {
 	 */
 	public void setMaximized(Maximized val) {
 		// no-op if fullscreen
-		if (isFullscreen()) return;
+		if (fullscreen.getValue()) return;
 
 		// prevent pointless change
 		Maximized old = isMaximized();
@@ -376,38 +364,6 @@ public class WindowBase {
 	 */
 	public void toggleMaximize() {
 		setMaximized(isMaximized()==ALL ? NONE : ALL);
-	}
-
-	/** @return value of property fullscreen of this window */
-	public boolean isFullscreen() {
-		return s.isFullScreen();
-	}
-
-	/**
-	 * Sets setFullscreen mode on (true) and off (false)
-	 *
-	 * @param val - true to go setFullscreen, - false to go out of setFullscreen
-	 */
-	public void setFullscreen(boolean val) {
-		FullProp.set(val);
-		s.setFullScreen(val);
-	}
-
-	/** Change between on/off setFullscreen state */
-	public void toggleFullscreen() {
-		setFullscreen(!isFullscreen());
-	}
-
-	/**
-	 * Specifies the text to show when a user enters full screen mode, usually
-	 * used to indicate the way a user should go about exiting out of setFullscreen
-	 * mode. A value of null will result in the default per-locale message being
-	 * displayed. If set to the empty string, then no message will be displayed.
-	 * If an application does not have the proper permissions, this setting will
-	 * be ignored.
-	 */
-	public void setFullScreenExitHint(String text) {
-		s.setFullScreenExitHint(text);
 	}
 
 	/** Snaps this window to the top edge of this window's screen. */
@@ -563,7 +519,7 @@ public class WindowBase {
 	 * not being resized.
 	 */
 	public void setXY(double x, double y, boolean snap) {
-		if (isFullscreen()) return;
+		if (fullscreen.getValue()) return;
 		MaxProp.set(Maximized.NONE);
 		s.setX(x);
 		s.setY(y);
@@ -593,7 +549,7 @@ public class WindowBase {
 	 * @param height vertical size of the window
 	 */
 	public void setXYSize(double x, double y, double width, double height) {
-		if (isFullscreen()) return;
+		if (fullscreen.getValue()) return;
 		MaxProp.set(Maximized.NONE);
 		s.setX(x);
 		s.setY(y);
@@ -612,7 +568,7 @@ public class WindowBase {
 	 * @param height vertical size of the window
 	 */
 	public void setSize(double width, double height) {
-		if (isFullscreen()) return;
+		if (fullscreen.getValue()) return;
 		s.setWidth(width);
 		s.setHeight(height);
 		W.set(s.getWidth());

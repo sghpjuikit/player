@@ -38,13 +38,14 @@ import sp.it.util.action.IsAction
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.collections.materialize
 import sp.it.util.conf.EditMode
+import sp.it.util.conf.butElement
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
 import sp.it.util.conf.readOnly
-import sp.it.util.conf.uiConverterElement
+import sp.it.util.conf.uiConverter
 import sp.it.util.conf.valuesIn
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
@@ -78,7 +79,7 @@ class Notifier: PluginBase() {
    private lateinit var songNotificationInfo: SongReader
 
    val notifySources by cList<NotifySource<Any>>()
-      .noPersist().readOnly().uiConverterElement { it.name }
+      .noPersist().readOnly().butElement { uiConverter { it.name } }
       .def(name = "Triggers", info = "Shows active event notification triggers. The handlers may have additional logic discarding some of the events.")
    val showStatusNotification by cv(false) {
          NotifySource<PlaybackStatusChanged>(type(), "On playback status change") { playbackChange(it.status) }.toSubscribed(onStop).toV(it)

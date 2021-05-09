@@ -42,7 +42,7 @@ import sp.it.util.type.typeResolved
  *
  * @param <T> type of value of this config
  */
-abstract class Config<T>: WritableValue<T>, Configurable<T> {
+abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Config<T>> {
 
    abstract override fun getValue(): T
 
@@ -98,7 +98,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
    abstract fun addConstraints(vararg constraints: Constraint<T>): Config<T>
 
    @Experimental("Expert API, mutates state")
-   fun addConstraints(constraint: Constraint<T>): Config<T> = addConstraints(listOf(constraint))
+   override fun addConstraint(constraint: Constraint<T>): Config<T> = addConstraints(listOf(constraint))
 
    @Experimental("Expert API, mutates state")
    fun addConstraints(constraints: Collection<Constraint<T>>): Config<T> = addConstraints(*constraints.toTypedArray())
@@ -247,7 +247,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T> {
                val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, property.list)) EditMode.NONE else EditMode.USER
                ListConfig(name, def.copy(editable = isReadOnly), property, "", setOf(), setOf()).asIs()
             }
-            is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), property.asIs(), group = "").asIs()
+            is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), setOf(), property.asIs(), group = "").asIs()
             is WritableValue<*> -> PropertyConfig(type, name, def, setOf(), property.asIs(), group = "")
             is ObservableValue<*> -> PropertyConfigRO(type, name, def, setOf(), property.asIs(), group = "")
             else -> null

@@ -35,10 +35,11 @@ import sp.it.util.text.pluralUnit
 import java.io.File
 import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
+import sp.it.util.conf.butElement
 
 class LibraryPlugin: PluginBase() {
 
-   private val sourceDirs by cList<File>().only(DIRECTORY).def(
+   private val sourceDirs by cList<File>().butElement { only(DIRECTORY) }.def(
       name = "Location",
       info = "Locations to find audio. Directories will be scanned recursively to unlimited depth."
    )

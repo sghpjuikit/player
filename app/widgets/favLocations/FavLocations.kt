@@ -46,6 +46,7 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import java.io.File
 import sp.it.pl.main.Df.FILES
+import sp.it.util.conf.butElement
 import sp.it.util.functional.ifNotNull
 import sp.it.util.ui.drag.set
 
@@ -60,7 +61,7 @@ import sp.it.util.ui.drag.set
 class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeature {
 
    private val selected = io.o.create<File>("Selected", null)
-   private val locations by cList<File>().def(name = "Favourite locations", info = "Favourite locations").only(DIRECTORY)
+   private val locations by cList<File>().def(name = "Favourite locations", info = "Favourite locations").butElement { only(DIRECTORY) }
    private val tree = treeView<Any> {
       isShowRoot = false
       selectionModel.selectionMode = SINGLE

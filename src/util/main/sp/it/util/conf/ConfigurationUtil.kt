@@ -127,7 +127,7 @@ private fun <T: Any> annotatedConfig(p: KProperty<*>, instance: T, name: String,
 
             val property = p.getter.call(instance) as OrV<T>
             val propertyType = type.argOf(OrV::class, 0).typeResolved.resolveNullability()
-            OrPropertyConfig(VType(propertyType), name, def.toDef(), setOf(), property, group).asIs()
+            OrPropertyConfig(VType(propertyType), name, def.toDef(), setOf(), setOf(), property, group).asIs()
          }
          typeRaw.isSubclassOf<WritableValue<*>>() -> {
             failIf(!isFinal) { "Property must be immutable" }

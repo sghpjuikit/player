@@ -29,10 +29,10 @@ import javafx.scene.Scene
 import javafx.scene.input.KeyCode.F1
 import javafx.scene.input.KeyCode.F2
 import javafx.scene.input.KeyCode.F3
-import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.MouseButton
+import javafx.scene.input.KeyEvent.KEY_RELEASED
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Priority.ALWAYS
@@ -116,7 +116,7 @@ fun Window.installStartLayoutPlaceholder() {
                   p.hide()
                   Robot().apply {
                      mouseMove(root.localToScreen(root.layoutBounds).centre.toPoint2D())
-                     mouseClick(MouseButton.PRIMARY)
+                     mouseClick(PRIMARY)
                   }
                }
             }
@@ -166,7 +166,7 @@ fun Parent.installWindowInteraction() = Subscription(
    onEventUp(ANY) {
       if (!it.isControlDown && !it.isShortcutDown && !it.isMetaDown) {
          if (it.code==keyManageLayout) {
-            if (it.eventType==KeyEvent.KEY_RELEASED) APP.ui.isLayoutMode = false
+            if (it.eventType==KEY_RELEASED) APP.ui.isLayoutMode = false
             if (it.eventType==KEY_PRESSED) APP.ui.isLayoutMode = true
             it.consume()
          }

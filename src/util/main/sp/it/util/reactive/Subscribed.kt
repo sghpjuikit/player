@@ -7,7 +7,7 @@ import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 
 /** Lazy subscribing. Convenient for creating toggleable features. */
-class Subscribed: Subscription {
+class Subscribed: Unsubscribable {
    private val subscribing: (Subscribed) -> Subscription
    private var s: Subscription? = null
    val isSubscribed get() = s!=null

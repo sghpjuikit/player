@@ -194,36 +194,4 @@ fun or(vararg values: ObservableValue<Boolean>): BooleanBinding = object: Boolea
    override fun computeValue() = values.none { it.value }
 }
 
-/** @return observable value that never changes and is always set to the specified value */
-fun <T> vAlways(v: T): ObservableValue<T> = AlwaysProperty(v)
 
-/** @return observable value that never changes and is always set to the specified value */
-fun vAlways(v: Boolean): ObservableValue<Boolean> = if (v) AlwaysTrueProperty else AlwaysFalseProperty
-
-private object AlwaysTrueProperty: AlwaysProperty<Boolean>(true)
-private object AlwaysFalseProperty: AlwaysProperty<Boolean>(false)
-
-private open class AlwaysProperty<T>(val v: T): ObservableValue<T> {
-   override fun removeListener(listener: ChangeListener<in T>) = Unit
-   override fun removeListener(listener: InvalidationListener) = Unit
-   override fun addListener(listener: ChangeListener<in T>) = Unit
-   override fun addListener(listener: InvalidationListener) = Unit
-   override fun getValue() = v
-}
-
-/** [Window.focusedProperty] */
-val Window.focused: ReadOnlyBooleanProperty get() = focusedProperty()
-/** [Window.showingProperty] */
-val Window.showing: ReadOnlyBooleanProperty get() = showingProperty()
-/** [Node.focusedProperty] */
-val Node.focused: ReadOnlyBooleanProperty get() = focusedProperty()
-/** [TextInputControl.editableProperty] */
-val TextInputControl.editable: BooleanProperty get() = editableProperty()
-/** [ComboBox.editableProperty] */
-val ComboBox<*>.editable: BooleanProperty get() = editableProperty()
-/** [TreeItem.expandedProperty] */
-val TreeItem<*>.expanded: BooleanProperty get() = expandedProperty()
-/** [Node.visibleProperty] */
-val Node.visible: BooleanProperty get() = visibleProperty()
-/** [Node.visibleProperty] */
-val javafx.scene.text.Text.textAlign: ObjectProperty<TextAlignment> get() = textAlignmentProperty()

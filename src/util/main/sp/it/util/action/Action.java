@@ -329,49 +329,49 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	@Override
-	public VType<Action> getType() {
+	public @NotNull VType<Action> getType() {
 		return new VType<>(Action.class, false);
 	}
 
 	@Override
-	public Action getDefaultValue() {
+	public @NotNull Action getDefaultValue() {
 		return new Action(name, action, info, group, defaultKeys, defaultGlobal, continuous);
 	}
 
 	@Override
-	public String getName() {
+	public @NotNull String getName() {
 		return name;
 	}
 
 	@Override
-	public String getNameUi() {
+	public @NotNull String getNameUi() {
 		return name;
 	}
 
 	@Override
-	public String getInfo() {
+	public @NotNull String getInfo() {
 		return info;
 	}
 
 	@Override
-	public String getGroup() {
+	public @NotNull String getGroup() {
 		return group;
 	}
 
 	@Override
-	public EditMode isEditable() {
+	public @NotNull EditMode isEditable() {
 		return EditMode.USER;
 	}
 
 	@Override
-	public Set<Constraint<Action>> getConstraints() {
+	public @NotNull Set<Constraint<Action>> getConstraints() {
 		return constraints==null ? Set.of() : constraints;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@SafeVarargs
 	@Override
-	public final Config<Action> addConstraints(Constraint<? super Action>... constraints) {
+	public final @NotNull Config<Action> addConstraints(Constraint<? super Action> @NotNull ... constraints) {
 		if (this.constraints==null) this.constraints = new HashSet<>(constraints.length);
 		this.constraints.addAll((List) list(constraints));
 		return this;

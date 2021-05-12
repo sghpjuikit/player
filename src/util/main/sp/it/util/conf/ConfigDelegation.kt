@@ -48,14 +48,22 @@ fun <T: Any> cn(initialValue: T?): ConfS<T?> = ConfS(initialValue)
 fun <T: Any> cv(initialValue: T): ConfV<T, V<T>> = ConfV(initialValue, { v(it) }).nonNull()
 /** Writable observable non-null configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfig]. */
 fun <T: Any, W: WritableValue<T>> cv(initialValue: T, valueFactory: (T) -> W): ConfV<T, W> = ConfV(initialValue, valueFactory).nonNull()
+/** Writable observable non-null configurable value supplied by the specified [value]. Backed by [PropertyConfig]. */
+fun <T: Any, W: WritableValue<T>> cv(value: W): ConfV<T, W> = cv(value.value, { value }).nonNull()
 /** Read-only observable non-null configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfigRO]. */
 fun <T: Any, W: ObservableValue<T>> cvro(initialValue: T, valueFactory: (T) -> W): ConfVRO<T, W> = ConfVRO(initialValue, valueFactory).nonNull()
+/** Read-only observable non-null configurable value supplied by the specified [value]. Backed by [PropertyConfigRO]. */
+fun <T: Any, W: ObservableValue<T>> cvro(value: W): ConfVRO<T, W> = cvro(value.value, { value }).nonNull()
 /** Writable observable nullable configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> cvn(initialValue: T?): ConfV<T?, V<T?>> = ConfV(initialValue, { vn(it) })
 /** Writable observable nullable configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfig]. */
 fun <T: Any, W: WritableValue<T?>> cvn(initialValue: T?, valueFactory: (T?) -> W): ConfV<T?, W> = ConfV(initialValue, valueFactory)
+/** Writable observable nullable configurable value supplied by the specified [value]. Backed by [PropertyConfig]. */
+fun <T: Any, W: WritableValue<T?>> cvn(value: W): ConfV<T?, W> = cvn(value.value, { value })
 /** Read-only observable nullable configurable value supplied by the specified [valueFactory]. Backed by [PropertyConfigRO]. */
 fun <T: Any, W: ObservableValue<T?>> cvnro(initialValue: T?, valueFactory: (T?) -> W): ConfVRO<T?, W> = ConfVRO(initialValue, valueFactory)
+/** Read-only observable nullable configurable value supplied by the specified [value]. Backed by [PropertyConfigRO]. */
+fun <T: Any, W: ObservableValue<T?>> cvnro(value: W): ConfVRO<T?, W> = cvnro(value.value, { value })
 /** Configurable action. Backed by [Action]. */
 fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
 /** Inheritable observable non-null configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */

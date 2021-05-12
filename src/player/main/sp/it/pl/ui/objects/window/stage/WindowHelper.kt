@@ -14,6 +14,7 @@ import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.EditMode
 import sp.it.util.conf.between
 import sp.it.util.conf.butOverridden
 import sp.it.util.conf.cOr
@@ -21,6 +22,7 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
 import sp.it.util.conf.readOnlyIf
+import sp.it.util.conf.readOnlyUnless
 import sp.it.util.functional.asIf
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
@@ -63,6 +65,10 @@ fun openWindowSettings(w: Window, eventSource: Node) {
          .defInherit(APP.windowManager::windowOpacity)
       val transparency by cOr(APP.windowManager::windowStyleAllowTransparency, if (w.stageStyleOverride) Override(w.s.style==TRANSPARENT) else Inherit(), onClose)
          .defInherit(APP.windowManager::windowStyleAllowTransparency)
+      val headerAllowed by cv(w.isHeaderAllowed)
+         .def(name = "Allow header", info = "Whether header can be visible. Some windows do not support header.", editable = EditMode.APP)
+      val headerVisible by cv(w.isHeaderVisible).readOnlyUnless(w.isHeaderAllowed)
+         .def(name = "Show header", info = "Whether header is visible. Otherwise it will auto-hide.")
 
       init {
          w.isMain attachFalse { main.value = it } on onClose

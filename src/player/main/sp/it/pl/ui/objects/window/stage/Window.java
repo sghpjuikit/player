@@ -274,7 +274,7 @@ public class Window extends WindowBase {
 					toggleMaximize();
 			if (e.getButton()==SECONDARY)
 				if (e.getClickCount()==2)
-					isHeaderVisible.set(!isHeaderVisible.get());
+					toggle(isHeaderVisible);
 		});
 
 		// show header by hovering over a thin activator

@@ -77,7 +77,7 @@ fun String.camelToDashCase() = codePoints().asSequence()
          str += Character.toLowerCase(char)
       } else {
          if (Character.isUpperCase(char)) {
-            str += '-'.toInt()
+            str += '-'.code
             str += Character.toLowerCase(char)
          } else {
             str += char
@@ -95,7 +95,7 @@ fun String.camelToDotCase() = codePoints().asSequence()
          str += Character.toLowerCase(char)
       } else {
          if (Character.isUpperCase(char)) {
-            str += '.'.toInt()
+            str += '.'.code
             str += Character.toLowerCase(char)
          } else {
             str += char
@@ -145,9 +145,9 @@ val MouseButton.nameUi: String
 fun Action.keysUi(): String = keys.let { if (it.isBlank()) it else keys(keys) }
 
 private fun key(key: String): String = null
-   ?: prettyKeys[key.trim().toUpperCase()]
-   ?: runTry { KeyCode.valueOf(key.trim().toUpperCase()).resolved }.map { prettyKeys[it?.getName()?.toUpperCase() ?: ""] }.orNull()
-   ?: runTry { KeyCode.valueOf(key.trim().toUpperCase()).resolved }.map { it?.char ?: "<none>" }.orNull()
+   ?: prettyKeys[key.trim().uppercase()]
+   ?: runTry { KeyCode.valueOf(key.trim().uppercase()).resolved }.map { prettyKeys[it?.getName()?.uppercase() ?: ""] }.orNull()
+   ?: runTry { KeyCode.valueOf(key.trim().uppercase()).resolved }.map { it?.char ?: "<none>" }.orNull()
    ?: key
 
 private val prettyKeys = mapOf(

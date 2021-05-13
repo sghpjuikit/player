@@ -36,11 +36,11 @@ object MimeTypes {
     * @param extension lower-case extension
     * @return Instance of MimeType for the given ext or null if none was found
     */
-   fun ofExtension(extension: String): MimeType = extensions.getOrDefault(extension.toLowerCase(), MimeType.unknown)
+   fun ofExtension(extension: String): MimeType = extensions.getOrDefault(extension.lowercase(), MimeType.unknown)
 
-   fun ofFile(file: File): MimeType = extensions.getOrDefault(file.extension.toLowerCase(), MimeType.unknown)
+   fun ofFile(file: File): MimeType = extensions.getOrDefault(file.extension.lowercase(), MimeType.unknown)
 
-   fun ofURI(uri: URI): MimeType = extensions.getOrDefault(uri.path.substringAfterLast(".", "").toLowerCase(), MimeType.unknown)
+   fun ofURI(uri: URI): MimeType = extensions.getOrDefault(uri.path.substringAfterLast(".", "").lowercase(), MimeType.unknown)
 
    fun setOfGroups(): Set<String> = types.values.asSequence().map { it.group }.toSet()
 

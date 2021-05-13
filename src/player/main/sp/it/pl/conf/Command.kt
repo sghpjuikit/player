@@ -114,7 +114,7 @@ sealed class Command: () -> Unit {
          s.startsWith("command file ", true) -> s.substring("command file ".length).let {
             runTry {
                val its = it.split2Partial(" ")
-               val op = its.first.toUpperCase().net(Op::valueOf)
+               val op = its.first.uppercase().net(Op::valueOf)
                val file = its.second.net(::FileIo)
                DoFile(op, file)
             }.orMessage()
@@ -122,7 +122,7 @@ sealed class Command: () -> Unit {
          s.startsWith("command component open ", true) -> s.substring("command component open ".length).let {
             runTry {
                val its = it.split2Partial(" ")
-               val op = its.first.toUpperCase().net(ComponentLoaderStrategy::valueOf)
+               val op = its.first.uppercase().net(ComponentLoaderStrategy::valueOf)
                val id = its.second
                DoComponentOpen(op, CommandComponentId(id))
             }.orMessage()
@@ -135,8 +135,8 @@ sealed class Command: () -> Unit {
 
       override fun toS(o: Command): String = when (o) {
          is DoNothing -> "command do nothing"
-         is DoFile -> """command file ${o.op.name.toLowerCase()} ${o.file.absolutePath}"""
-         is DoComponentOpen -> """command component open ${o.loader.name.toLowerCase()} ${o.id.id}"""
+         is DoFile -> """command file ${o.op.name.lowercase()} ${o.file.absolutePath}"""
+         is DoComponentOpen -> """command component open ${o.loader.name.lowercase()} ${o.id.id}"""
          is DoAction -> """command action ${o.id.id}"""
       }
 

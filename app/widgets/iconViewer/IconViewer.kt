@@ -45,6 +45,7 @@ import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.syncFrom
+import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
@@ -171,7 +172,7 @@ class IconCellGraphics(icon: GlyphIcons?, iconSize: Double): VBox(5.0) {
 
    fun setGlyph(icon: GlyphIcons?) {
       glyph = icon
-      nameLabel.text = icon?.name()?.toLowerCase()?.capitalize() ?: ""
+      nameLabel.text = icon?.name()?.capitalLower() ?: ""
       graphics.icon(icon)
       graphics.tooltip(icon?.let { "${it.name()}\n${it.unicodeToString()}\n${it.fontFamily}" }.orEmpty())
    }

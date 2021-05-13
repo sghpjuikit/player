@@ -669,12 +669,12 @@ public interface Util {
 	 * @param from the first and smallest key to check
 	 * @return the smallest nonexistent integer key key
 	 */
-	@SuppressWarnings({"ConstantConditions", "OptionalGetWithoutIsPresent"})
+	@SuppressWarnings({"OptionalGetWithoutIsPresent"})
 	static int findFirstEmptyKey(Map<Integer,?> map, int from) {
 		return IntStream.iterate(from, i -> i + 1).filter(i -> !map.containsKey(i)).findFirst().getAsInt();
 	}
 
-	@SuppressWarnings({"ConstantConditions", "OptionalGetWithoutIsPresent"})
+	@SuppressWarnings({"OptionalGetWithoutIsPresent"})
 	static int findFirstInt(int from, IntPredicate condition) {
 		return IntStream.iterate(from, i -> i + 1).filter(condition).findFirst().getAsInt();
 	}

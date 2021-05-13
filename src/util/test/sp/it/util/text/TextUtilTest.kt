@@ -35,25 +35,25 @@ class TextUtilTest: FreeSpec({
 
    String::camelToDashCase.name - {
       "AaaBbbCCC".camelToDashCase() shouldBe "aaa-bbb-c-c-c"
-      "AaaBbbCCC".camelToDashCase() shouldBe "AaaBbbCCC".camelToDashCase().toLowerCase()
+      "AaaBbbCCC".camelToDashCase() shouldBe "AaaBbbCCC".camelToDashCase().lowercase()
    }
 
    String::camelToDotCase.name - {
       "AaaBbbCCC".camelToDotCase() shouldBe "aaa.bbb.c.c.c"
-      "AaaBbbCCC".camelToDotCase() shouldBe "AaaBbbCCC".camelToDotCase().toLowerCase()
+      "AaaBbbCCC".camelToDotCase() shouldBe "AaaBbbCCC".camelToDotCase().lowercase()
    }
 
-   String::capitalize.name - {
+   String::capital.name - {
       "basic" {
-         "lol".capitalize() shouldBe "Lol"
-         "♡♡♡".capitalize() shouldBe "♡♡♡"
+         "lol".capital() shouldBe "Lol"
+         "♡♡♡".capital() shouldBe "♡♡♡"
       }
-      "ligatures (not supported)" {
-         "ﬃtext".capitalize() shouldBe "FFItext"
+      "ligatures" {
+         "ﬃtext".capital() shouldBe "Ffitext"
       }
       "digraphs" {
-         "ǆentlmen".capitalize() shouldBe "ǅentlmen"
-         "Ǆentlmen".capitalize() shouldBe "Ǆentlmen"
+         "ǆentlmen".capital() shouldBe "ǅentlmen"
+         "Ǆentlmen".capital() shouldBe "Ǆentlmen"
       }
    }
 })

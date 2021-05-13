@@ -36,6 +36,7 @@ import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.system.Os
+import sp.it.util.text.capitalLower
 import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.ui.Util.layVertically
@@ -142,8 +143,8 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
          }
    }
 
-   private fun legendRow(button: MouseButton) = legendRow(button.nameUi, button.name.toLowerCase().capitalize())
-   private fun legendRow(key: Key) = legendRow(key.nameUi, key.name.toLowerCase().capitalize())
+   private fun legendRow(button: MouseButton) = legendRow(button.nameUi, button.name.capitalLower())
+   private fun legendRow(key: Key) = legendRow(key.nameUi, key.name.capitalLower())
    private fun legendRow(left: String, right: String) = hBox(0, CENTER_LEFT) {
       lay += label(left) {
          prefWidth = 10.emScaled

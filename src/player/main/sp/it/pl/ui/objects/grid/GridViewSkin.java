@@ -795,14 +795,14 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		/** @return the max number of cell per row */
 		public int computeMaxCellsInRow() {
-			var gap = getSkinnable().getHorizontalCellSpacing().doubleValue();
+			var gap = getSkinnable().getHorizontalCellSpacing().getValue();
 			var maxColumnsRaw = getSkinnable().getCellMaxColumns().getValue();
 			var maxColumns = maxColumnsRaw != null ? maxColumnsRaw : Integer.MAX_VALUE;
 			return clip(1, (int) floor((computeRowWidth() + gap)/computeCellWidth()), maxColumns);
 		}
 
 		public int computeMaxRowsInView() {
-			var gap = getSkinnable().getVerticalCellSpacing().doubleValue();
+			var gap = getSkinnable().getVerticalCellSpacing().getValue();
 			return clip(1, (int) floor((getSkinnable().getHeight() + gap)/computeRowHeight()), Integer.MAX_VALUE);
 		}
 
@@ -812,12 +812,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		protected double computeRowHeight() {
-			return getSkinnable().getCellHeight().getValue() + getSkinnable().getVerticalCellSpacing().doubleValue();
+			return getSkinnable().getCellHeight().getValue() + getSkinnable().getVerticalCellSpacing().getValue();
 		}
 
 		/** @return the width of a cell */
 		protected double computeCellWidth() {
-			return getSkinnable().getCellWidth().doubleValue() + getSkinnable().getHorizontalCellSpacing().doubleValue();
+			return getSkinnable().getCellWidth().getValue() + getSkinnable().getHorizontalCellSpacing().getValue();
 		}
 	}
 

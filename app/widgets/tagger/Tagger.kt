@@ -187,6 +187,8 @@ import sp.it.util.parsing.ConverterFromString
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.zip
+import sp.it.util.text.capital
+import sp.it.util.text.decapital
 import sp.it.util.text.splitTrimmed
 import sp.it.util.type.property
 import sp.it.util.ui.show
@@ -1148,7 +1150,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          "${it.getRating() ?: AppTexts.textNoVal}/${it.getRatingMax()}"
       }
 
-      private fun Label.computeIdFromText() = text.split(" ").joinToString("") { it.capitalize() }.decapitalize() + "L"
+      private fun Label.computeIdFromText() = text.split(" ").joinToString("") { it.capital() }.decapital() + "L"
 
       private fun Node.installDescribeOnHoverIn(label: Label, text: () -> String) {
          onEventUp(MOUSE_ENTERED) { label.text = text() }

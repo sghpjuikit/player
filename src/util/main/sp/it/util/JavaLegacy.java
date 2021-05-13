@@ -94,4 +94,5 @@ public class JavaLegacy {
 				Native.register("powrprof");
 		}
 	}
+
 }

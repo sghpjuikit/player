@@ -14,5 +14,5 @@ sourceSets {
 }
 
 dependencies {
-   implementation("com.beust", "klaxon", "5.0.11")
+   implementation("com.beust", "klaxon", "5.5")
 }

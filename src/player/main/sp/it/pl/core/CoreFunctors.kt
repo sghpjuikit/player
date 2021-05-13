@@ -147,9 +147,13 @@ object CoreFunctors: Core {
 
          add("To Boolean", S, type<Boolean?>()) { when (it) { "true" -> true "false" -> false else -> null } }
          add("To Byte", S, type<Byte?>()) { it.toByteOrNull() }
+         add("To UByte", S, type<UByte?>()) { it.toUByteOrNull() }
          add("To Short", S, type<Short?>()) { it.toShortOrNull() }
+         add("To UShort", S, type<UShort?>()) { it.toUShortOrNull() }
          add("To Int", S, type<Int?>()) { it.toIntOrNull() }
+         add("To UInt", S, type<UInt?>()) { it.toUIntOrNull() }
          add("To Long", S, type<Long?>()) { it.toLongOrNull() }
+         add("To ULong", S, type<ULong?>()) { it.toULongOrNull() }
          add("To Float", S, type<Float?>()) { it.toFloatOrNull() }
          add("To Double", S, type<Double?>()) { it.toDoubleOrNull() }
          add("To BigInteger", S, type<BigInteger?>()) { it.toBigIntegerOrNull() }
@@ -165,8 +169,8 @@ object CoreFunctors: Core {
          add("Uuid 6 (random node id)", U, type<UUID>()) { UuidCreator.getTimeOrderedWithRandom() }
          add("Random Boolean", U, type<Boolean>()) { Math.random()>0.5 }
          add("Random Byte", U, type<Byte>()) { (Math.random()*Byte.MAX_VALUE).toInt().toByte() }
-         add("Random Int", U, type<Int>()) { (Math.random()*Int.MAX_VALUE).toInt() }
          add("Random Short", U, type<Short>()) { (Math.random()*Short.MAX_VALUE).toInt().toShort() }
+         add("Random Int", U, type<Int>()) { (Math.random()*Int.MAX_VALUE).toInt() }
          add("Random Long", U, type<Long>()) { (Math.random()*Long.MAX_VALUE).toLong() }
          add("Random Float", U, type<Float>()) { (Math.random()*Float.MAX_VALUE).toFloat() }
          add("Random Double", U, type<Double>()) { Math.random()*Double.MAX_VALUE }
@@ -184,8 +188,8 @@ object CoreFunctors: Core {
          add("To Hex", type<Int>(), S) { "0x" + Integer.toHexString(it) }
          add("Function", type<Number>(), type<Double>(), p<StrExF>(StrExF("x"))) { it, f -> runTry { f(it.toDouble()) }.getOrSupply { Double.NaN } }
 
-         add("To upper case", S, S) { it.toUpperCase() }
-         add("To lower case", S, S) { it.toLowerCase() }
+         add("To upper case", S, S) { it.uppercase() }
+         add("To lower case", S, S) { it.lowercase() }
          add("Plural", S, S) { English.plural(it) }
          add("Is regex", S, B) { runTry { Pattern.compile(it) }.isOk }
          add("Replace 1st (regex)", S, S, pRegex, p<String>("")) { it, regex, n -> replace1st(it, regex, n) }
@@ -250,7 +254,7 @@ object CoreFunctors: Core {
          add("Is empty", type<Strings>(), B) { it.isEmpty() }
          add("Elements", type<Strings>(), type<Int>()) { it.size() }
 
-         add("To Int", type<Char16>(), type<Int>()) { it.toInt() }
+         add("To Int", type<Char16>(), type<Int>()) { it.code }
          add("To Int", type<Char32>(), type<Int>()) { it.toInt() }
 
          add("Shortcut target", type<File>(), type<File>()) { WindowsShortcut.targetedFile(it).orElse(null) }
@@ -296,7 +300,7 @@ object CoreFunctors: Core {
          add("Is in the future", type<Year>(), B) { it>Year.now() }
          add("Is now", type<Year>(), B) { it.compareTo(Year.now())==0 }
          add("Is in the past", type<Year>(), B) { it<Year.now() }
-         add("Is leap", type<Year>(), B, { it.isLeap })
+         add("Is leap", type<Year>(), B) { it.isLeap }
 
          add("Contains year", type<RangeYear>(), B, p(Year.now())) { it, y -> it.contains(y) }
          add("Is after", type<RangeYear>(), B, p(Year.now())) { it, y -> it.isAfter(y) }
@@ -313,10 +317,14 @@ object CoreFunctors: Core {
          add("URI", type<Song>(), type<URI>()) { it.uri }
 
          addComparisons(type<Byte>(), 0.toByte())
+         addComparisons(type<UByte>(), 0.toUByte())
          addComparisons(type<Short>(), 0.toShort())
+         addComparisons(type<UShort>(), 0.toUShort())
          addComparisons(type<Int>(), 0)
+         addComparisons(type<UInt>(), 0.toUInt())
          addComparisons(type<Float>(), 0f)
          addComparisons(type<Long>(), 0L)
+         addComparisons(type<ULong>(), 0L.toULong())
          addComparisons(type<Double>(), 0.0)
 
          // Else function should be of dynamic type and just one, but then we cant provide default values for parameters,

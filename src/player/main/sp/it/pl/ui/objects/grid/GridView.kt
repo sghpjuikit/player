@@ -8,8 +8,6 @@ import javafx.collections.FXCollections.observableSet
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.collections.transformation.SortedList
-import javafx.css.CssMetaData
-import javafx.css.SimpleStyleableDoubleProperty
 import javafx.css.StyleConverter
 import javafx.event.Event.ANY
 import javafx.event.EventHandler
@@ -17,14 +15,13 @@ import javafx.scene.control.Control
 import kotlin.reflect.KClass
 import kotlin.streams.asSequence
 import sp.it.pl.ui.objects.grid.GridView.CellGap.JUSTIFY
-import sp.it.pl.ui.objects.grid.GridView.Companion.StyleableProperties.CELL_HEIGHT
-import sp.it.pl.ui.objects.grid.GridView.Companion.StyleableProperties.CELL_WIDTH
-import sp.it.pl.ui.objects.grid.GridView.Companion.StyleableProperties.HORIZONTAL_CELL_SPACING
-import sp.it.pl.ui.objects.grid.GridView.Companion.StyleableProperties.VERTICAL_CELL_SPACING
 import sp.it.pl.ui.objects.search.SearchAutoCancelable
+import sp.it.util.access.StyleableCompanion
 import sp.it.util.access.V
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.StringGetter
+import sp.it.util.access.sv
+import sp.it.util.access.svMetaData
 import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.asIs
 import sp.it.util.math.P
@@ -92,14 +89,10 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    /** [selectedOrAllItems] if orAll is true or [selectedItems]. Intended for immediate consumption (may be backed by an observable). */
    fun getSelectedOrAllItems(orAll: Boolean): Sequence<T> = if (orAll) selectedOrAllItems else selectedItems
 
-   val horizontalCellSpacing = SimpleStyleableDoubleProperty(HORIZONTAL_CELL_SPACING, this, "horizontalCellSpacing", 12.0)
-   private val isHorizontalCellSpacingSetProgrammatically = false
-   val verticalCellSpacing = SimpleStyleableDoubleProperty(VERTICAL_CELL_SPACING, this, "verticalCellSpacing", 12.0)
-   private val isVerticalCellSpacingSetProgrammatically = false
-   val cellWidth = SimpleStyleableDoubleProperty(CELL_WIDTH, this, "cellWidth", 64.0)
-   private val isCellWidthSetProgrammatically = false
-   val cellHeight = SimpleStyleableDoubleProperty(CELL_HEIGHT, this, "cellHeight", 64.0)
-   private val isCellHeightSetProgrammatically = false
+   val horizontalCellSpacing by sv<Double>(HORIZONTAL_CELL_SPACING)
+   val verticalCellSpacing by sv<Double>(VERTICAL_CELL_SPACING)
+   val cellWidth by sv<Double>(CELL_WIDTH)
+   val cellHeight by sv<Double>(CELL_HEIGHT)
 
    /** Cell gap layout strategy. Default [JUSTIFY]. */
    val cellAlign = V<CellGap>(CellGap.CENTER)
@@ -131,7 +124,7 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
 
    override fun createDefaultSkin(): GridViewSkin<T, F> = GridViewSkin(this)
 
-   override fun getControlCssMetaData(): List<CssMetaData<GridView<*, *>, *>> = StyleableProperties.classCssMetaData
+   override fun getControlCssMetaData() = classCssMetaData
 
    /** Strategy for cell selection change activation behavior. */
    enum class SelectionOn {
@@ -144,25 +137,25 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    }
 
    /** Affects cell layout. */
-   sealed class CellGap {
-      abstract fun computeGap(grid: GridView<*, *>, width: Double, columns: Int): Double
-      abstract fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int): Double
+   sealed interface CellGap {
+      fun computeGap(grid: GridView<*, *>, width: Double, columns: Int): Double
+      fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int): Double
 
       /**
        * Will position cells at exact positions from the left. The gap will be constant, but the cells will not be
        * horizontally center aligned.
        */
-      object CENTER: CellGap() {
+      object CENTER: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = RIGHT.computeStartX(grid, width, columns)/2.0
       }
 
-      object LEFT: CellGap() {
+      object LEFT: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = 0.0
       }
 
-      object RIGHT: CellGap() {
+      object RIGHT: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = grid.verticalCellSpacing.value
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = width - columns*grid.cellWidth.value - (columns - 1)*grid.verticalCellSpacing.value
       }
@@ -171,7 +164,7 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
        * The cells will be horizontally center aligned, but the gap size will change depending on
        * the total row width and number of cells in a row.
        */
-      object JUSTIFY: CellGap() {
+      object JUSTIFY: CellGap {
          override fun computeGap(grid: GridView<*, *>, width: Double, columns: Int) = (width - columns*grid.cellWidth.value)/(columns - 1)
          override fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int) = 0.0
       }
@@ -218,7 +211,7 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
       }
    }
 
-   companion object {
+   companion object: StyleableCompanion() {
       const val STYLE_CLASS = "grid-view"
 
       /** Creates an empty GridView with specified sizes. */
@@ -234,29 +227,9 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
             verticalCellSpacing.value = gap.y
          }
 
-      object StyleableProperties {
-         val HORIZONTAL_CELL_SPACING: CssMetaData<GridView<*, *>, Number> = object: CssMetaData<GridView<*, *>, Number>("-fx-horizontal-cell-spacing", StyleConverter.getSizeConverter(), 12.0) {
-            override fun getInitialValue(node: GridView<*, *>) = node.horizontalCellSpacing.value
-            override fun isSettable(n: GridView<*, *>) = !n.isHorizontalCellSpacingSetProgrammatically && !n.horizontalCellSpacing.isBound
-            override fun getStyleableProperty(n: GridView<*, *>) = n.horizontalCellSpacing
-         }
-         val VERTICAL_CELL_SPACING: CssMetaData<GridView<*, *>, Number> = object: CssMetaData<GridView<*, *>, Number>("-fx-vertical-cell-spacing", StyleConverter.getSizeConverter(), 12.0) {
-            override fun getInitialValue(node: GridView<*, *>) = node.verticalCellSpacing.value
-            override fun isSettable(n: GridView<*, *>) = !n.isVerticalCellSpacingSetProgrammatically && !n.verticalCellSpacing.isBound
-            override fun getStyleableProperty(n: GridView<*, *>) = n.verticalCellSpacing
-         }
-         val CELL_WIDTH: CssMetaData<GridView<*, *>, Number> = object: CssMetaData<GridView<*, *>, Number>("-fx-cell-width", StyleConverter.getSizeConverter(), 64.0) {
-            override fun getInitialValue(node: GridView<*, *>) = node.cellWidth.value
-            override fun isSettable(n: GridView<*, *>) = !n.isCellWidthSetProgrammatically && !n.cellWidth.isBound
-            override fun getStyleableProperty(n: GridView<*, *>) = n.cellWidth
-         }
-         val CELL_HEIGHT: CssMetaData<GridView<*, *>, Number> = object: CssMetaData<GridView<*, *>, Number>("-fx-cell-height", StyleConverter.getSizeConverter(), 64.0) {
-            override fun getInitialValue(node: GridView<*, *>) = node.cellHeight.value
-            override fun isSettable(n: GridView<*, *>) = !n.isCellHeightSetProgrammatically && !n.cellHeight.isBound
-            override fun getStyleableProperty(n: GridView<*, *>) = n.cellHeight
-         }
-
-         val classCssMetaData = getClassCssMetaData().asIs<List<CssMetaData<GridView<*, *>, *>>>() + listOf(HORIZONTAL_CELL_SPACING, VERTICAL_CELL_SPACING, CELL_WIDTH, CELL_HEIGHT)
-      }
+      val HORIZONTAL_CELL_SPACING by svMetaData<GridView<*, *>, Double>("-fx-horizontal-cell-spacing", StyleConverter.getSizeConverter().asIs(), 12.0, GridView<*, *>::horizontalCellSpacing)
+      val VERTICAL_CELL_SPACING by svMetaData<GridView<*, *>, Double>("-fx-vertical-cell-spacing", StyleConverter.getSizeConverter().asIs(), 12.0, GridView<*, *>::verticalCellSpacing)
+      val CELL_WIDTH by svMetaData<GridView<*, *>, Double>("-fx-cell-width", StyleConverter.getSizeConverter().asIs(), 64.0, GridView<*, *>::cellWidth)
+      val CELL_HEIGHT by svMetaData<GridView<*, *>, Double>("-fx-cell-height", StyleConverter.getSizeConverter().asIs(), 64.0, GridView<*, *>::cellHeight)
    }
 }

@@ -456,7 +456,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
 
    companion object: KLogging() {
 
-      val configToRawKeyMapper = F1 { it: Config<*> -> it.name.replace(' ', '_').toLowerCase() }
+      val configToRawKeyMapper = F1 { it: Config<*> -> it.name.replace(' ', '_').lowercase() }
 
       val focusChangedHandler: (Node?, Boolean) -> Unit = { n, allowTraversal ->
          val window = n?.scene?.window

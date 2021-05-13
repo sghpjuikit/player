@@ -23,6 +23,7 @@ import sp.it.util.Named
 import sp.it.util.named
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
+import sp.it.util.text.capitalLower
 import sp.it.util.toLocalDateTime
 import sp.it.util.ui.Util.layVertically
 import sp.it.util.ui.drag.set
@@ -79,7 +80,7 @@ class InfoPane: OverlayPane<Unit>() {
          .forEach {
             // group title row
             i++
-            val group = label(it.key.toLowerCase().capitalize()) {
+            val group = label(it.key.capitalLower()) {
                styleClass += STYLECLASS_GROUP
             }
             g.add(layVertically(0.0, Pos.CENTER, label(), group), 2, i)

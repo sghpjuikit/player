@@ -297,8 +297,8 @@ object CoreConverter: Core {
             runTry {
                val i = it.indexOf(',')
                val name = it.substring(0, i)
-               val style = if (it.toLowerCase().contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
-               val weight = if (it.toLowerCase().contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
+               val style = if (it.lowercase().contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
+               val weight = if (it.lowercase().contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
                val size = it.substringAfterLast(",").trim().toDoubleOrNull() ?: Font.getDefault().size
                val f = Font.font(name, weight, style, size)
                if (f.family==name) f else fail { "Not recognized font" }

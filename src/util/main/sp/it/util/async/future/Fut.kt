@@ -98,13 +98,13 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
    }
 
-   sealed class Result<out T> {
+   sealed interface Result<out T> {
 
-      data class ResultOk<T>(val value: T): Result<T>()
+      data class ResultOk<T>(val value: T): Result<T>
 
-      data class ResultInterrupted(val error: InterruptedException): Result<Nothing>()
+      data class ResultInterrupted(val error: InterruptedException): Result<Nothing>
 
-      data class ResultFail(val error: ExecutionException): Result<Nothing>() {
+      data class ResultFail(val error: ExecutionException): Result<Nothing> {
          constructor(error: Throwable): this(error as? ExecutionException ?: ExecutionException("", error))
       }
 

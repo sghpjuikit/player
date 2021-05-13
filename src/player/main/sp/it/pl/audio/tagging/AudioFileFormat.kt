@@ -21,11 +21,11 @@ enum class AudioFileFormat {
 
    companion object {
 
-      private val formats = values().associateBy { it.name.toLowerCase() }
+      private val formats = values().associateBy { it.name.lowercase() }
 
       fun of(uri: URI): AudioFileFormat = of(uri.path)
 
-      fun of(uri: String): AudioFileFormat = formats[uri.substringAfterLast(".").toLowerCase()] ?: UNKNOWN
+      fun of(uri: String): AudioFileFormat = formats[uri.substringAfterLast(".").lowercase()] ?: UNKNOWN
 
    }
 

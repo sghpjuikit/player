@@ -58,7 +58,7 @@ fun ConfigDefinition?.computeConfigGroup(declaringRef: Any): String {
    }
 }
 
-fun obtainConfigId(configName: String, configGroup: String) = "$configName.$configGroup".replace(' ', '_').toLowerCase()
+fun obtainConfigId(configName: String, configGroup: String) = "$configName.$configGroup".replace(' ', '_').lowercase()
 
 fun obtainConfigId(config: Config<*>) = obtainConfigId(config.name, config.group)
 

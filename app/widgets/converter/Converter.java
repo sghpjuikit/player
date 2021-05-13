@@ -71,7 +71,6 @@ import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
-import static kotlin.text.StringsKt.capitalize;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
@@ -104,6 +103,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.sync;
+import static sp.it.util.text.UtilKt.capitalLower;
 import static sp.it.util.type.TypesKt.typeNothingNonNull;
 import static sp.it.util.type.UtilKt.estimateRuntimeType;
 import static sp.it.util.ui.Util.layHorizontally;
@@ -418,7 +418,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         // Weird reasons for needing this method, just call it bad design. Not worth 'fixing'.
         public void setData(String name, List<?> input) {
-            this.name.set(capitalize(name.toLowerCase()));
+            this.name.set(capitalLower(name));
             setInput(input);
         }
 

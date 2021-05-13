@@ -36,6 +36,7 @@ import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.MimeType
 import sp.it.util.functional.asIs
 import sp.it.util.parsing.ConverterString
+import sp.it.util.text.capital
 import sp.it.util.text.equalsNc
 
 private val logger = KotlinLogging.logger { }
@@ -60,10 +61,10 @@ val audioExtensions = setOf(
 )
 
 /** See [audioExtensionsJaudiotagger]. */
-fun File.isAudio() = extension.toLowerCase() in audioExtensions
+fun File.isAudio() = extension.lowercase() in audioExtensions
 
 /** See [audioExtensionsJaudiotagger]. */
-fun String.isAudio() = substringAfterLast(".").toLowerCase() in audioExtensions
+fun String.isAudio() = substringAfterLast(".").lowercase() in audioExtensions
 
 /** [FileChooser.ExtensionFilter] for [audioExtensions]. */
 fun audioExtensionFilter() = FileChooser.ExtensionFilter("Audio files", audioExtensions.map { "*.$it" })
@@ -79,10 +80,10 @@ val audioExtensionsJaudiotagger = setOf(
 )
 
 /** See [audioExtensionsJaudiotagger]. */
-fun File.isAudioEditable() = extension.toLowerCase() in audioExtensionsJaudiotagger
+fun File.isAudioEditable() = extension.lowercase() in audioExtensionsJaudiotagger
 
 /** See [audioExtensionsJaudiotagger]. */
-fun AudioFileFormat.isAudioEditable() = name.toLowerCase() in audioExtensionsJaudiotagger
+fun AudioFileFormat.isAudioEditable() = name.lowercase() in audioExtensionsJaudiotagger
 
 fun findAudio(files: Collection<File>, depth: Int = Int.MAX_VALUE) = files.asSequence().flatMap { f -> getFilesR(f, depth) { it.isAudio() }.asSequence() }
 
@@ -106,7 +107,7 @@ val imageExtensionsJaudiotagger = setOf(
 )
 
 /** See [imageExtensionsJaudiotagger]. */
-fun File.isImageJaudiotagger() = extension.toLowerCase() in imageExtensionsJaudiotagger
+fun File.isImageJaudiotagger() = extension.lowercase() in imageExtensionsJaudiotagger
 
 /** Lowercase image file extensions supported by 23monkey library. */
 val imageExtensions12Monkey: Set<String> = linkedSetOf(
@@ -134,16 +135,16 @@ val imageExtensions12Monkey: Set<String> = linkedSetOf(
 )
 
 /** See [imageExtensions12Monkey]. */
-fun File.isImage12Monkey() = extension.toLowerCase() in imageExtensions12Monkey
+fun File.isImage12Monkey() = extension.lowercase() in imageExtensions12Monkey
 
 /** Lowercase image (read) file extensions supported by this application. */
 val imageExtensionsRead = imageExtensions12Monkey + setOf("kra")
 
 /** See [imageExtensionsRead]. */
-fun File.isImage() = extension.toLowerCase() in imageExtensionsRead
+fun File.isImage() = extension.lowercase() in imageExtensionsRead
 
 /** See [imageExtensionsRead]. */
-fun String.isImage() = substringAfterLast(".").toLowerCase() in imageExtensionsRead
+fun String.isImage() = substringAfterLast(".").lowercase() in imageExtensionsRead
 
 /** Lowercase image (write) file extensions supported by this application. */
 val imageExtensionsWrite = setOf(
@@ -153,7 +154,7 @@ val imageExtensionsWrite = setOf(
 )
 
 /** See [imageExtensionsWrite]. */
-fun File.isImageWrite() = extension.toLowerCase() in imageExtensionsWrite
+fun File.isImageWrite() = extension.lowercase() in imageExtensionsWrite
 
 /** [FileChooser.ExtensionFilter] for [imageExtensionsWrite]. */
 fun imageWriteExtensionFilter() = FileChooser.ExtensionFilter("Image files", imageExtensionsWrite.map { "*.$it" })
@@ -165,7 +166,7 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
    val i = img.toBuffered()
    failIf(i==null) { "Format=${file.extension} not supported" }
 
-   val format = file.extension.toLowerCase()
+   val format = file.extension.lowercase()
    val noWriter = !ImageIO.write(i, format, file)
    failIf(noWriter) { "No image writer for format: $format" }
 }.ifError {
@@ -201,12 +202,12 @@ object FileFilters {
       Parser("File type - file") { FileFilter("File type - file") { it.isFile } },
       Parser("File type - directory") { FileFilter("File type - directory") { it.isDirectory } },
       Parser("Mime type group - is", MimeGroup::class) { it ->
-         val group = it[1].asIs<MimeGroup>().name.toLowerCase()
-         FileFilter("Mime type group - is ${group.capitalize()}") { group equalsNc it.mimeType().group }
+         val group = it[1].asIs<MimeGroup>().name.lowercase()
+         FileFilter("Mime type group - is ${group.capital()}") { group equalsNc it.mimeType().group }
       },
       Parser("Mime type - is", MimeType::class) { it ->
          val mimeType = it[1].asIs<MimeType>()
-         FileFilter("Mime type - is ${mimeType.name.capitalize()}") { mimeType==it.mimeType() }
+         FileFilter("Mime type - is ${mimeType.name.capital()}") { mimeType==it.mimeType() }
       },
       Parser("Type - is", MimeExt::class) { it ->
          val extension = it[1].asIs<MimeExt>().name

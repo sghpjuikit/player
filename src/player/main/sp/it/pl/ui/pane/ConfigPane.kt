@@ -148,7 +148,7 @@ class ConfigPane<T: Any?>: VBox {
 
    // overridden because text nodes would interfere with in height calculation
    // ---
-   override fun computeMinHeight(width: Double) = insets.height + children.map { it.minHeight(width) }.sum()
+   override fun computeMinHeight(width: Double) = insets.height + children.sumOf { it.minHeight(width) }
    override fun computePrefHeight(width: Double): Double {
       var minY = 0.0
       var maxY = 0.0
@@ -178,12 +178,12 @@ class ConfigPane<T: Any?>: VBox {
       val compareByDeclaration = null
       /** Order by group, [Config.groupUi]. */
       val compareByGroup: Comparator<Config<*>> = compareBy<Config<*>> { 0 }
-         .thenBy { it.group.toLowerCase() }
+         .thenBy { it.group.lowercase() }
       /** Order by application semantics. */
       val compareByApp: Comparator<Config<*>> = compareBy<Config<*>> { 0 }
-         .thenBy { it.group.toLowerCase() }
+         .thenBy { it.group.lowercase() }
          .thenBy { if (it.type.raw==Action::class) 1.0 else -1.0 }
-         .thenBy { it.nameUi.toLowerCase() }
+         .thenBy { it.nameUi.lowercase() }
       /** Default value of [ConfigPane.editorOrder] */
       val compareByDefault: Comparator<Config<*>> = compareByApp
 

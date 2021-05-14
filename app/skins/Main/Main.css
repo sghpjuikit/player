@@ -3244,6 +3244,12 @@ Shape, Text, TextFlow > * {
 /***************************** GRID VIEW *****************************
  * Virtualized control displaying 2D matrix of cells. Think of it as 2D ListView.
  * Contains rows and each rows individual cells.
+ * inherits: Control
+ * properties:
+ *   -fx-horizontal-cell-spacing: size
+ *   -fx-vertical-cell-spacing: size
+ *   -fx-cell-width: size
+ *   -fx-cell-height: size
  */
 .grid-view {
     -fx-border-width: 0;

@@ -270,6 +270,7 @@ class Json {
 
    fun <T> fromJson(type: VType<T>, json: File, charset: Charset = UTF_8): Try<T?, Throwable> = fromJson(type, json.inputStream(), charset)
 
+   @Suppress("unchecked_cast")
    fun <T> fromJson(type: VType<T>, json: InputStream, charset: Charset = UTF_8): Try<T?, Throwable> = ast(json, charset).andAlso {
       runTry { fromJsonValueImpl(type.type.javaType, it) as T }
    }
@@ -290,132 +291,132 @@ class Json {
       val typeJ = typeTargetJ.toRaw()
       val typeK = typeJ.kotlin
       val converter = converters.byType.getElementOfSuper(typeK).asIf<JsConverter<Any?>>()
-      return if (converter!=null) {
-         converter.fromJson(value)
-      } else if (value::class==typeK) {
-         return value
-      } else {
-         when (value) {
-            is JsNull -> null
-            is JsTrue -> true
-            is JsFalse -> false
-            is JsNumber -> {
-               when (typeK) {
-                  Any::class -> value.value
-                  Number::class -> value.value
-                  Byte::class -> value.value.toByte()
-                  UByte::class -> value.value.toByte().toUByte()
-                  Short::class -> value.value.toShort()
-                  UShort::class -> value.value.toShort().toUShort()
-                  Int::class -> value.value.toInt()
-                  UInt::class -> value.value.toInt().toUInt()
-                  Long::class -> value.value.toLong()
-                  ULong::class -> value.value.toLong().toULong()
-                  Float::class -> value.value.toFloat()
-                  Double::class -> value.value.toDouble()
-                  BigInteger::class -> when (value.value) {
-                     is BigInteger -> value.value
-                     is BigDecimal -> value.value.toBigInteger()
-                     else -> BigInteger.valueOf(value.value.toLong())
-                  }
-                  BigDecimal::class -> when (value.value) {
-                     is BigDecimal -> value.value.toBigInteger()
-                     else -> BigDecimal.valueOf(value.value.toDouble())
-                  }
-                  else -> fail { "Unsupported number type=$typeK" }
-               }
-            }
-            is JsString -> {
-               if (typeJ.isEnumClass) getEnumValue(typeJ, value.value)
-               else value.value
-            }
-            is JsArray -> {
-               when {
-                  typeK==Any::class -> value.value.map { fromJsonValueImpl(jType<Any>(), it) }
-                  Collection::class.isSuperclassOf(typeK) -> {
-                     val itemType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)
-                        ?: jType<Any>()
-                     val values = value.value.map { fromJsonValueImpl(itemType, it) }
-                     when (typeK) {
-                        Set::class -> HashSet(values)
-                        MutableSet::class -> HashSet(values)
-                        HashSet::class -> HashSet(values)
-                        SortedSet::class -> TreeSet(values)
-                        NavigableSet::class -> TreeSet(values)
-                        TreeSet::class -> TreeSet(values)
-                        List::class -> values
-                        MutableList::class -> ArrayList(values)
-                        LinkedList::class -> LinkedList(values)
-                        ArrayList::class -> ArrayList(values)
-                        Vector::class -> Vector(values)
-                        Vector::class -> Vector(values)
-                        Stack::class -> Stack<Any?>().apply { values.forEach { push(it) } }
-                        Queue::class -> ArrayDeque(values)
-                        Deque::class -> ArrayDeque(values)
-                        ArrayDeque::class -> ArrayDeque(values)
-                        PriorityQueue::class -> PriorityQueue(values)
-                        else -> fail { "Unsupported collection type=$typeK" }
+      return when {
+         converter!=null -> converter.fromJson(value)
+         value::class==typeK -> return value
+         else -> {
+            when (value) {
+               is JsNull -> null
+               is JsTrue -> true
+               is JsFalse -> false
+               is JsNumber -> {
+                  when (typeK) {
+                     Any::class -> value.value
+                     Number::class -> value.value
+                     Byte::class -> value.value.toByte()
+                     UByte::class -> value.value.toByte().toUByte()
+                     Short::class -> value.value.toShort()
+                     UShort::class -> value.value.toShort().toUShort()
+                     Int::class -> value.value.toInt()
+                     UInt::class -> value.value.toInt().toUInt()
+                     Long::class -> value.value.toLong()
+                     ULong::class -> value.value.toLong().toULong()
+                     Float::class -> value.value.toFloat()
+                     Double::class -> value.value.toDouble()
+                     BigInteger::class -> when (value.value) {
+                        is BigInteger -> value.value
+                        is BigDecimal -> value.value.toBigInteger()
+                        else -> BigInteger.valueOf(value.value.toLong())
                      }
+                     BigDecimal::class -> when (value.value) {
+                        is BigDecimal -> value.value.toBigInteger()
+                        else -> BigDecimal.valueOf(value.value.toDouble())
+                     }
+                     else -> fail { "Unsupported number type=$typeK" }
                   }
-                  typeK===Array<Any?>::class -> {
-                     val arrayType = typeTargetJ.asIf<GenericArrayType>()?.genericComponentType ?: jType<Any>()
-                     value.value.map { fromJsonValueImpl(arrayType, it) }.toTypedArray()
-                  }
-                  typeK===ByteArray::class -> value.value.mapNotNull { fromJsonValueImpl<Byte>(it) }.toByteArray()
-                  typeK===CharArray::class -> value.value.mapNotNull { fromJsonValueImpl<Char>(it) }.toCharArray()
-                  typeK===ShortArray::class -> value.value.mapNotNull { fromJsonValueImpl<Short>(it) }.toShortArray()
-                  typeK===IntArray::class -> value.value.mapNotNull { fromJsonValueImpl<Int>(it) }.toIntArray()
-                  typeK===LongArray::class -> value.value.mapNotNull { fromJsonValueImpl<Long>(it) }.toLongArray()
-                  typeK===FloatArray::class -> value.value.mapNotNull { fromJsonValueImpl<Float>(it) }.toFloatArray()
-                  typeK===DoubleArray::class -> value.value.mapNotNull { fromJsonValueImpl<Double>(it) }.toDoubleArray()
-                  typeK===BooleanArray::class -> value.value.mapNotNull { fromJsonValueImpl<Boolean>(it) }.toBooleanArray()
-                  else -> fail { "Unsupported collection type=$typeK" }
                }
-            }
-            is JsObject -> {
-               val instanceType = null
-                  ?: value.value["_type"]?.asJsStringValue()?.net { typeAliases.byAlias[it] ?: Class.forName(it).kotlin }
-                  ?: typeK
-               when {
-                  instanceType.isObject -> instanceType.objectInstance
-                  instanceType==Byte::class -> value.value["value"]?.asJsNumberValue()?.toByte()
-                  instanceType==UByte::class -> value.value["value"]?.asJsNumberValue()?.toShort()?.toUByte()
-                  instanceType==Short::class -> value.value["value"]?.asJsNumberValue()?.toShort()
-                  instanceType==UShort::class -> value.value["value"]?.asJsNumberValue()?.toInt()?.toUShort()
-                  instanceType==Int::class -> value.value["value"]?.asJsNumberValue()?.toInt()
-                  instanceType==UInt::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toUInt()
-                  instanceType==Long::class -> value.value["value"]?.asJsNumberValue()?.toLong()
-                  instanceType==ULong::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toULong()
-                  instanceType==Float::class -> value.value["value"]?.asJsNumberValue()?.toFloat()
-                  instanceType==Double::class -> value.value["value"]?.asJsNumberValue()?.toDouble()
-                  instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
-                  instanceType==String::class -> value.value["value"]?.asJsStringValue()
-                  instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
-                  instanceType.isSubclassOf<Map<*, *>>() -> {
-                     val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()?.kotlin
-                        ?: String::class
-                     val mapValueType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(1)
-                        ?: jType<Any>()
-                     value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
-                  }
-                  else -> {
-                     val constructor = instanceType.constructors.firstOrNull()
-                        ?: fail { "Type=$instanceType has no constructor" }
-                     val arguments = constructor.parameters.mapNotNull {
-                        val argJs = value.value[it.name]
-                        if (argJs==null) {
-                           if (it.isOptional) null
-                           else fail { "Type=$instanceType constructor parameter=${it.name} is missing" }
-                        } else {
-                           it to fromJsonValueImpl(it.type.javaType, argJs)
+               is JsString -> {
+                  if (typeJ.isEnumClass) getEnumValue(typeJ, value.value)
+                  else value.value
+               }
+               is JsArray -> {
+                  when {
+                     typeK==Any::class -> value.value.map { fromJsonValueImpl(jType<Any>(), it) }
+                     Collection::class.isSuperclassOf(typeK) -> {
+                        val itemType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)
+                           ?: jType<Any>()
+                        val values = value.value.map { fromJsonValueImpl(itemType, it) }
+                        when (typeK) {
+                           Set::class -> HashSet(values)
+                           MutableSet::class -> HashSet(values)
+                           HashSet::class -> HashSet(values)
+                           SortedSet::class -> TreeSet(values)
+                           NavigableSet::class -> TreeSet(values)
+                           TreeSet::class -> TreeSet(values)
+                           List::class -> values
+                           MutableList::class -> ArrayList(values)
+                           LinkedList::class -> LinkedList(values)
+                           ArrayList::class -> ArrayList(values)
+                           Vector::class -> Vector(values)
+                           Vector::class -> Vector(values)
+                           Stack::class -> Stack<Any?>().apply { values.forEach { push(it) } }
+                           Queue::class -> ArrayDeque(values)
+                           Deque::class -> ArrayDeque(values)
+                           ArrayDeque::class -> ArrayDeque(values)
+                           PriorityQueue::class -> PriorityQueue(values)
+                           else -> fail { "Unsupported collection type=$typeK" }
                         }
-                     }.toMap()
+                     }
+                     typeK===Array<Any?>::class -> {
+                        val arrayType = typeTargetJ.asIf<GenericArrayType>()?.genericComponentType ?: jType<Any>()
+                        value.value.map { fromJsonValueImpl(arrayType, it) }.toTypedArray()
+                     }
+                     typeK===ByteArray::class -> value.value.mapNotNull { fromJsonValueImpl<Byte>(it) }.toByteArray()
+                     typeK===CharArray::class -> value.value.mapNotNull { fromJsonValueImpl<Char>(it) }.toCharArray()
+                     typeK===ShortArray::class -> value.value.mapNotNull { fromJsonValueImpl<Short>(it) }.toShortArray()
+                     typeK===IntArray::class -> value.value.mapNotNull { fromJsonValueImpl<Int>(it) }.toIntArray()
+                     typeK===LongArray::class -> value.value.mapNotNull { fromJsonValueImpl<Long>(it) }.toLongArray()
+                     typeK===FloatArray::class -> value.value.mapNotNull { fromJsonValueImpl<Float>(it) }.toFloatArray()
+                     typeK===DoubleArray::class -> value.value.mapNotNull { fromJsonValueImpl<Double>(it) }.toDoubleArray()
+                     typeK===BooleanArray::class -> value.value.mapNotNull { fromJsonValueImpl<Boolean>(it) }.toBooleanArray()
+                     else -> fail { "Unsupported collection type=$typeK" }
+                  }
+               }
+               is JsObject -> {
+                  val instanceType = null
+                     ?: value.value["_type"]?.asJsStringValue()?.net { typeAliases.byAlias[it] ?: Class.forName(it).kotlin }
+                     ?: typeK
+                  when {
+                     instanceType.isObject -> instanceType.objectInstance
+                     instanceType==Byte::class -> value.value["value"]?.asJsNumberValue()?.toByte()
+                     instanceType==UByte::class -> value.value["value"]?.asJsNumberValue()?.toShort()?.toUByte()
+                     instanceType==Short::class -> value.value["value"]?.asJsNumberValue()?.toShort()
+                     instanceType==UShort::class -> value.value["value"]?.asJsNumberValue()?.toInt()?.toUShort()
+                     instanceType==Int::class -> value.value["value"]?.asJsNumberValue()?.toInt()
+                     instanceType==UInt::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toUInt()
+                     instanceType==Long::class -> value.value["value"]?.asJsNumberValue()?.toLong()
+                     instanceType==ULong::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toULong()
+                     instanceType==Float::class -> value.value["value"]?.asJsNumberValue()?.toFloat()
+                     instanceType==Double::class -> value.value["value"]?.asJsNumberValue()?.toDouble()
+                     instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
+                     instanceType==String::class -> value.value["value"]?.asJsStringValue()
+                     instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
+                     instanceType.isSubclassOf<Map<*, *>>() -> {
+                        val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()?.kotlin
+                           ?: String::class
+                        val mapValueType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(1)
+                           ?: jType<Any>()
+                        value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
+                     }
+                     else -> {
+                        val constructor = instanceType.constructors.firstOrNull()
+                           ?: fail { "Type=$instanceType has no constructor" }
+                        val arguments = constructor.parameters.mapNotNull {
+                           val argJs = value.value[it.name]
+                           if (argJs==null) {
+                              if (it.isOptional) null
+                              else fail { "Type=$instanceType constructor parameter=${it.name} is missing" }
+                           } else {
+                              it to fromJsonValueImpl(it.type.javaType, argJs)
+                           }
+                        }.toMap()
 
-                     runTry {
-                        constructor.isAccessible = true
-                        constructor.callBy(arguments)
-                     }.getOrSupply {
-                        fail(it) { "Failed to instantiate $instanceType\nwith args:${arguments.mapKeys { it.key.name }}\nfrom:$value\n" }
+                        runTry {
+                           constructor.isAccessible = true
+                           constructor.callBy(arguments)
+                        }.getOrSupply {
+                           fail(it) { "Failed to instantiate $instanceType\nwith args:${arguments.mapKeys { it.key.name }}\nfrom:$value\n" }
+                        }
                      }
                   }
                }
@@ -446,10 +447,6 @@ class Json {
    }
 
 }
-
-//object JsonDsl {}
-//
-//fun <T> json(block: JsonDsl.() -> T) : T = JsonDsl.block()
 
 fun JsObject.values(): Collection<JsValue> = value.values
 

@@ -116,7 +116,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
    private var data: Metadata = EMPTY
    private val dataReading = EventReducer.toLast<Song?>(200.0) { setValue(it) }
-   val dataIn = io.i.create<Song>("To display", null, dataReading::push)
+   val dataIn = io.i.create<Song?>("To display", null, dataReading::push)
    val dataOut = io.o.create<Metadata>("Displayed", EMPTY)
 
    val minColumnWidth by cv(150.0).attach { tiles.requestLayout() }.def(name = "Column width", info = "Minimal width for field columns.")
@@ -213,7 +213,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       if (file==null || !data.isFileBased()) return
 
       val items = when {
-         includeAlbum -> APP.db.songs.o.value.orEmpty().asSequence()
+         includeAlbum -> APP.db.songs.o.value.asSequence()
             .filter { it.getAlbum()!=null && it.getAlbum()==data.getAlbum() }
             .toHashSet() + data
          else -> setOf(data)
@@ -328,7 +328,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          DISCS_TOTAL -> "disc"
          TRACKS_TOTAL -> "track"
          PATH -> "location"
-         else -> field.name().toLowerCase()
+         else -> field.name().lowercase()
       }
 
       init {

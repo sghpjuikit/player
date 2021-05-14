@@ -70,8 +70,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
    override val playlist = computeInitialPlaylist(widget.id)
    private val table = PlaylistTable(playlist)
-   private var outputSelected = io.o.create<PlaylistSong>("Selected", null)
-   private var outputPlaying = io.o.create<PlaylistSong>("Playing", null)
+   private var outputSelected = io.o.create<PlaylistSong?>("Selected", null)
+   private var outputPlaying = io.o.create<PlaylistSong?>("Playing", null)
 
    val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)
       .defInherit(APP.ui::tableOrient)
@@ -110,7 +110,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.search.setColumn(Field.NAME)
       table.selectionModel.selectionMode = MULTIPLE
       table.items_info.textFactory = { all, list ->
-         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.timeMs }.millis.toHMSMs()
+         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.timeMs }.millis.toHMSMs()
       }
       table.nodeOrientationProperty() syncFrom tableOrient on onClose
       table.zeropadIndex syncFrom tableZeropad on onClose

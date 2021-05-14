@@ -920,7 +920,7 @@ fun Font?.asStyle(orSize: Double): String {
    return if (this==null) {
       """.root { -fx-font-size: $orSize; }"""
    } else {
-      val tmp = style.toLowerCase()
+      val tmp = style.lowercase()
       val style = if (tmp.contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
       val weight = if (tmp.contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
       val styleS = if (style==FontPosture.ITALIC) "italic" else "normal"

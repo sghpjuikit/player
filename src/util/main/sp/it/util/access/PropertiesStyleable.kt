@@ -70,4 +70,4 @@ fun <T> sv(metadata: CssMetaData<out Styleable, T>) = PropertyDelegateProvider<S
    ReadOnlyProperty { _, _ -> sv }
 }
 
-inline fun <reified T: Enum<T>> enumConverter(): StyleConverter<String, T> = StyleConverter.getEnumConverter(T::class.java)!!
+inline fun <reified T: Enum<T>> enumConverter(): StyleConverter<String, T> = StyleConverter.getEnumConverter(T::class.java)

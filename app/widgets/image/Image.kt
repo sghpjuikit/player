@@ -37,7 +37,7 @@ import java.io.File
 
 class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
-   val inputFile = io.i.create<File>("To display", null) { showImageImpl(it) }
+   val inputFile = io.i.create<File?>("To display", null) { showImageImpl(it) }
 
    private val thumb = Thumbnail()
    private var file by cn<File>(null).only(FILE).def(name = "Custom image", info = "File to display. Does not necessarily have to be an image. Audio or Video files can also display image.")

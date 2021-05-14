@@ -68,8 +68,8 @@ import java.io.File
 import kotlin.streams.toList
 
 class ImageViewer(widget: Widget): SimpleController(widget) {
-   private val inputLocation = io.i.create<File>("Location") { dataChanged(it) }
-   private val inputLocationOf = io.io.mapped<File, Song>(inputLocation, "Location of") { it.getLocation() }
+   private val inputLocation = io.i.create<File?>("Location", null) { dataChanged(it) }
+   private val inputLocationOf = io.io.mapped<File?, Song?>(inputLocation, "Location of") { it?.getLocation() }
    private val mainImage = Thumbnail()
    private var itemPane: ItemInfo? = null
    private val navAnim: Anim
@@ -220,9 +220,9 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       // in folder.get() directory
       // avoids image loading + necessary to display custom image, which fires
       // thumbnail refresh and subsequently would change the displayed image
-      val displLoc = if (mainImage.file==null) null else mainImage.file.parentFile
-      val currLoc = folder.get()
-      if (images.size==1 && currLoc!=null && currLoc!=displLoc) setImage(0)
+      val locationDisplayed = if (mainImage.file==null) null else mainImage.file.parentFile
+      val locationCurrent = folder.get()
+      if (images.size==1 && locationCurrent!=null && locationCurrent!=locationDisplayed) setImage(0)
    }
 
    private fun setImage(index: Int) {
@@ -285,7 +285,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
 
    companion object: WidgetCompanion {
       override val name = "Image Viewer"
-      override val description = "Displays images in a directory or song location. Looks for images in subfolders."
+      override val description = "Displays images in a directory or song location. Looks for images in sub-folders."
       override val descriptionLong = """
          The widget displays an image in an input directory or input song's location. Displayed image can change automatically (slideshow) or by using the navigation icons.
          The widget can also follow playing or selected songs, displaying images in their parent directory.

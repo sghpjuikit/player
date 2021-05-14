@@ -52,5 +52,4 @@ class PcControls: StackPane() {
    companion object: StyleableCompanion() {
       val ORIENTATION by svMetaData<PcControls, Orientation>("-fx-orientation", enumConverter(), VERTICAL, PcControls::orientation)
    }
-
 }

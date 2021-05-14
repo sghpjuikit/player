@@ -60,7 +60,7 @@ import sp.it.util.ui.drag.set
 )
 class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeature {
 
-   private val selected = io.o.create<File>("Selected", null)
+   private val selected = io.o.create<File?>("Selected", null)
    private val locations by cList<File>().def(name = "Favourite locations", info = "Favourite locations").butElement { only(DIRECTORY) }
    private val tree = treeView<Any> {
       isShowRoot = false

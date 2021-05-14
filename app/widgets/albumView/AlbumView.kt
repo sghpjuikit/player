@@ -105,9 +105,9 @@ import sp.it.util.units.minutes
 )
 class AlbumView(widget: Widget): SimpleController(widget), SongReader {
 
-   val outputSelected = io.o.create<MetadataGroup>("Selected Album", null)
+   val outputSelected = io.o.create<MetadataGroup?>("Selected Album", null)
    val outputSelectedM = io.o.create<List<Metadata>>("Selected", listOf())
-   val inputSongs = io.i.create<List<Metadata>>("To display") { setItems(it) }
+   val inputSongs = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
    val gridShowFooter by cOr(APP.ui::gridShowFooter, Inherit(), onClose)
       .defInherit(APP.ui::gridShowFooter)

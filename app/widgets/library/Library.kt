@@ -102,7 +102,7 @@ import sp.it.util.ui.show
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
    private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
-   private val outputSelected = io.o.create<Metadata>("Selected", null)
+   private val outputSelected = io.o.create<Metadata?>("Selected", null)
    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
    val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)

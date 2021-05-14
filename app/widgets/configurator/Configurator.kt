@@ -81,7 +81,7 @@ import sp.it.util.units.millis
 )
 class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 
-   private val inputValue = io.i.create<Configurable<Any>>("To configure") { configure(it) }
+   private val inputValue = io.i.create<Configurable<Any?>?>("To configure", null) { configure(it) }
 
    private val groups = TreeView<Name>()
    private val editorsRoot = StackPane()

@@ -63,7 +63,7 @@ import java.io.File
 import javafx.stage.Window as WindowFX
 
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
-   private val outputSelected = io.o.create<Any>("Selected", null)
+   private val outputSelected = io.o.create<Any?>("Selected", null)
    private val tree = buildTreeView<Any>()
    private var highlighted: Node? = null
    val selectingNode = Subscribed { feature ->

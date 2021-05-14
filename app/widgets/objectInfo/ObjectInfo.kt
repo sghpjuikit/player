@@ -39,7 +39,7 @@ import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
 
 class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
-   private val inputItems = io.i.create<Any>("To display", null, ::open)
+   private val inputItems = io.i.create<Any?>("To display", null, ::open)
    private val info = Text()
    private val thumb = Thumbnail()
    private val openId = AtomicLong(1L)

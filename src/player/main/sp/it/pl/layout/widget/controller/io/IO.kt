@@ -8,6 +8,7 @@ import sp.it.util.type.type
 import java.util.HashMap
 import java.util.UUID
 import sp.it.util.collections.materialize
+import sp.it.util.functional.asIs
 import sp.it.util.type.isSupertypeOf
 
 class IO(private val id: UUID) {
@@ -58,7 +59,7 @@ class IO(private val id: UUID) {
          return i as Input<T>?
       }
 
-      inline fun <reified T> findInput(name: String): Input<T>? = findInput(type<T>(), name)
+      inline fun <reified T> findInput(name: String): Input<T>? = findInput(type(), name)
 
       inline fun <reified T> getInput(name: String): Input<T> = findInput(name)!!
 
@@ -75,7 +76,6 @@ class IO(private val id: UUID) {
 
       inline fun <reified T> create(name: String, initialValue: T): Output<T> = create(name, type(), initialValue)
 
-      @Suppress("UNCHECKED_CAST")
       fun <T> create(name: String, type: VType<T>, initialValue: T): Output<T> {
          failIf(mo[name]!=null) { "Output $name already exists" }
 
@@ -84,14 +84,13 @@ class IO(private val id: UUID) {
          return o
       }
 
-      @Suppress("UNCHECKED_CAST")
       fun <T> findOutput(type: VType<T>, name: String): Output<T>? {
          val i = mo[name]
          if (i!=null && !type.isSupertypeOf(i.type)) return null
-         return i as Output<T>?
+         return i.asIs()
       }
 
-      inline fun <reified T> findOutput(name: String): Output<T>? = findOutput(type<T>(), name)
+      inline fun <reified T> findOutput(name: String): Output<T>? = findOutput(type(), name)
 
       inline fun <reified T> getOutput(name: String): Output<T> = findOutput(name)!!
 
@@ -109,8 +108,9 @@ class IO(private val id: UUID) {
 
       inline fun <T, reified R> mapped(input: Input<T>, name: String, noinline mapper: (R) -> T) = mapped(input, name, type(), mapper)
 
+      @Suppress("unchecked_cast")
       fun <T, R> mapped(input: Input<T>, name: String, type: VType<R>, mapper: (R) -> T): Input<R> {
-         val io = InOutput<R>(id, name, type, null as R)
+         val io = InOutput(id, name, type, null as R)
          mio[name] = io
          mi[name] = io.i
          onDispose += input.bindMapped(io.o, mapper)

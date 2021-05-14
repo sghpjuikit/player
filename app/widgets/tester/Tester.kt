@@ -142,13 +142,13 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
 
       // Create test inputs/outputs
-      io.i.create<Number>("Int", 5) {}
-      io.i.create<Number?>("Int?", null) {}
-      io.i.create<MutableList<out Number>>("List out Int", null) {}
-      io.i.create<MutableList<Number>>("List Int", null) {}
-      io.i.create<MutableList<in Number>>("List in Int", null) {}
-      io.o.create<Int>("Nothing?", 5)
-      io.o.create<Number>("Int", 5)
+      io.i.create<Number>("Number", 5) {}
+      io.i.create<Number?>("Number?", null) {}
+      io.i.create<MutableList<out Number>>("List<out Number>", mutableListOf()) {}
+      io.i.create<MutableList<Number>>("List<Number>?", mutableListOf()) {}
+      io.i.create<MutableList<in Number>>("List<in Number>", mutableListOf()) {}
+      io.o.create<Int>("Int", 5)
+      io.o.create<Number?>("Number?", 5)
    }
 
    override fun close() {

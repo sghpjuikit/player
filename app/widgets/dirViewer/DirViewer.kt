@@ -139,7 +139,7 @@ import sp.it.util.ui.dsl
 class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature {
 
    private val outputSelectedSuppressor = Suppressor(false)
-   private val outputSelected = io.o.create<File>("Selected", null)
+   private val outputSelected = io.o.create<File?>("Selected", null)
    private val inputFile = io.i.create<List<File>>("Root directory", listOf()) {
       runIO {
          it.orEmpty().mapNotNull { if (it.isDirectory) it else it.parentFile }.toSet().toList()

@@ -794,11 +794,11 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
       private val propagatedPseudoClasses = setOf("hover", "highlighted", "selected", "drag-over")
 
-      private val currentTime = InOutput<LocalTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time").appWide().apply {
+      private val currentTime = InOutput<LocalTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time", LocalTime.now()).appWide().apply {
          Loop(Runnable { i.value = LocalTime.now().net { LocalTime.of(it.hour, it.minute, it.second) } }).start()
          i.isBound()
       }
-      private val currentDate = InOutput<LocalDate>(uuid("d445671f-7e25-4fa6-83de-e8e543ad0507"), "Current Date").appWide().apply {
+      private val currentDate = InOutput<LocalDate>(uuid("d445671f-7e25-4fa6-83de-e8e543ad0507"), "Current Date", LocalDate.now()).appWide().apply {
          Loop(Runnable { i.value = LocalDate.now() }).start()
       }
 

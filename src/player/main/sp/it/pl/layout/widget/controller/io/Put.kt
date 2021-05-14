@@ -4,11 +4,10 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.type.VType
 import sp.it.util.type.nullify
 
-open class Put<T>(type: VType<T>, name: String, initialValue: T): XPut<T> {
-   val name: String = name
-   val type: VType<T> = type
+abstract class Put<T>(val type: VType<*>, val name: String, val initialValue: T): XPut<T> {
+
    protected val monitors = mutableSetOf<(T) -> Unit>()
-   val initialValue: T = initialValue
+
    var value: T = initialValue
       set(v) {
          if (field!=v) {

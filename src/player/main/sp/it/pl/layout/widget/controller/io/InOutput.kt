@@ -1,19 +1,17 @@
 package sp.it.pl.layout.widget.controller.io
 
+import java.util.UUID
 import sp.it.util.type.VType
 import sp.it.util.type.type
-import java.util.UUID
 
 /** [XPut], that is a composition of [Input] and [Output]. */
-class InOutput<T>: XPut<T?> {
+class InOutput<T>: XPut<T> {
    @JvmField val o: Output<T>
    @JvmField val i: Input<T>
 
-   // private due to use of reified generics
-   @Suppress("UNCHECKED_CAST")
-   private constructor(id: UUID, name: String, type: VType<T>) {
-      this.o = Output(id, name, type)
-      this.i = object: Input<T>(name, type, null, { o.value = it }) {
+   constructor(id: UUID, name: String, type: VType<T>, initialValue: T) {
+      this.o = Output(id, name, type, initialValue)
+      this.i = object: Input<T>(name, type, initialValue, { o.value = it }) {
          override fun isAssignable(output: Output<*>) = output!==o && super.isAssignable(output)
       }
    }
@@ -23,12 +21,7 @@ class InOutput<T>: XPut<T?> {
    }
 
    companion object {
-
-      @Suppress("UNCHECKED_CAST")
-      @JvmStatic
-      operator fun <T> invoke(id: UUID, name: String, type: VType<T>): InOutput<T?> = InOutput(id, name, type)
-
-      inline operator fun <reified T: Any> invoke(id: UUID, name: String): InOutput<T?> = invoke(id, name, type())
+      inline operator fun <reified T> invoke(id: UUID, name: String, initialValue: T): InOutput<T> = InOutput(id, name, type(), initialValue)
    }
 
 }

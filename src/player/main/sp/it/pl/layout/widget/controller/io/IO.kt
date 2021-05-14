@@ -27,16 +27,12 @@ class IO(private val id: UUID) {
 
    inner class Inputs {
 
-      @Suppress("UNCHECKED_CAST")
-      @JvmOverloads
-      inline fun <reified T> create(name: String, initialValue: T? = null, noinline action: (T?) -> Unit) = create(name, type(), initialValue, action)
+      inline fun <reified T> create(name: String, initialValue: T, noinline action: (T) -> Unit) = create(name, type(), initialValue, action)
 
-      @Suppress("UNCHECKED_CAST")
-      @JvmOverloads
-      fun <T> create(name: String, type: VType<T>, initialValue: T? = null, action: (T?) -> Unit): Input<T?> {
+      fun <T> create(name: String, type: VType<T>, initialValue: T, action: (T) -> Unit): Input<T> {
          failIf(mi[name]!=null) { "Input $name already exists" }
 
-         val i: Input<T?> = Input(name, type, initialValue, action)
+         val i = Input(name, type, initialValue, action)
          mi[name] = i
          IOLayer.allInputs += i
          return i
@@ -68,8 +64,7 @@ class IO(private val id: UUID) {
 
       operator fun contains(name: String) = mi.containsKey(name)
 
-      operator fun contains(i: Input<*>) = mi.containsValue(i) // m.containsKey(i.name) <-- faster, but not correct
-
+      operator fun contains(i: Input<*>) = mi.containsValue(i)
       fun getSize(): Int = mi.size
 
       fun getInputs(): Collection<Input<*>> = mi.values
@@ -78,14 +73,13 @@ class IO(private val id: UUID) {
 
    inner class Outputs {
 
-      inline fun <reified T> create(name: String, value: T?): Output<T?> = create(name, type(), value)
+      inline fun <reified T> create(name: String, initialValue: T): Output<T> = create(name, type(), initialValue)
 
       @Suppress("UNCHECKED_CAST")
-      fun <T> create(name: String, type: VType<T>, value: T?): Output<T?> {
+      fun <T> create(name: String, type: VType<T>, initialValue: T): Output<T> {
          failIf(mo[name]!=null) { "Output $name already exists" }
 
-         val o = Output<T?>(id, name, type)
-         o.value = value
+         val o = Output(id, name, type, initialValue)
          mo[name] = o
          return o
       }
@@ -103,7 +97,7 @@ class IO(private val id: UUID) {
 
       operator fun contains(name: String) = mo.containsKey(name)
 
-      operator fun contains(i: Output<*>) = mo.containsValue(i) // m.containsKey(i.id.name) <--faster, but not correct
+      operator fun contains(i: Output<*>) = mo.containsValue(i)
 
       fun getSize(): Int = mo.size
 
@@ -113,10 +107,10 @@ class IO(private val id: UUID) {
 
    inner class InOutputs {
 
-      inline fun <T: Any, reified R> mapped(output: Input<T?>, name: String, noinline mapper: (R) -> T?) = mapped(output, name, type(), mapper)
+      inline fun <T, reified R> mapped(input: Input<T>, name: String, noinline mapper: (R) -> T) = mapped(input, name, type(), mapper)
 
-      fun <T: Any, R> mapped(input: Input<T?>, name: String, type: VType<R>, mapper: (R) -> T?): Input<R?> {
-         val io = InOutput(id, name, type)
+      fun <T, R> mapped(input: Input<T>, name: String, type: VType<R>, mapper: (R) -> T): Input<R> {
+         val io = InOutput<R>(id, name, type, null as R)
          mio[name] = io
          mi[name] = io.i
          onDispose += input.bindMapped(io.o, mapper)
@@ -125,10 +119,10 @@ class IO(private val id: UUID) {
          return io.i
       }
 
-      inline fun <T: Any, reified R: Any> mapped(output: Output<T?>, name: String, noinline mapper: (T) -> R?) = mapped(output, name, type<R>(), mapper)
+      inline fun <T, reified R> mapped(output: Output<T>, name: String, noinline mapper: (T) -> R) = mapped(output, name, type(), mapper)
 
-      fun <T: Any, R> mapped(output: Output<T?>, name: String, type: VType<R>, mapper: (T) -> R?): Output<R?> {
-         val io = InOutput(id, name, type)
+      fun <T, R> mapped(output: Output<T>, name: String, type: VType<R>, mapper: (T) -> R): Output<R> {
+         val io = InOutput(id, name, type, mapper(output.value))
          mio[name] = io
          mo[name] = io.o
          onDispose += io.i.bindMapped(output, mapper)
@@ -139,7 +133,7 @@ class IO(private val id: UUID) {
 
       operator fun contains(name: String) = mio.containsKey(name)
 
-      operator fun contains(i: InOutput<*>) = mio.containsValue(i) // m.containsKey(i.id.name) <--faster, but not correct
+      operator fun contains(i: InOutput<*>) = mio.containsValue(i)
 
       fun getSize(): Int = mio.size
 
@@ -148,8 +142,8 @@ class IO(private val id: UUID) {
 
    companion object {
 
-      private fun <T, R> Input<T?>.bindMapped(output: Output<out R?>, mapper: (R) -> T?): Subscription {
-         return output.sync { value = if (it==null) null else mapper(it) }
+      private fun <T, R> Input<T>.bindMapped(output: Output<out R>, mapper: (R) -> T): Subscription {
+         return output.attach { value = mapper(it) }
       }
 
    }

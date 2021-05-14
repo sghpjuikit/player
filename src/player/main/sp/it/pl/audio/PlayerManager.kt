@@ -76,7 +76,7 @@ import sp.it.util.reactive.onChange
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
-   val playing = InOutput<Metadata>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing").appWide()
+   val playing = InOutput<Metadata?>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", null).appWide()
    val playingSong = CurrentItem()
    val state = PlayerState.deserialize().apply {
       playback.loopMode attach { PlaylistManager.playingItemSelector.setSelector(it.selector()) }

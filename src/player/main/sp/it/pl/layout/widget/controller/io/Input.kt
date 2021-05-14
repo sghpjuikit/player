@@ -9,7 +9,6 @@ import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.jvmErasure
-import sp.it.util.type.nullable
 import sp.it.util.type.raw
 import sp.it.util.type.typeResolved
 import java.util.HashMap
@@ -20,11 +19,11 @@ import kotlin.reflect.full.isSubtypeOf
 import sp.it.util.functional.asIs
 import sp.it.util.type.estimateRuntimeType
 
-open class Input<T>: Put<T?> {
+open class Input<T>: Put<T> {
 
    private val sources = HashMap<Output<out T>, Subscription>()
 
-   constructor(name: String, type: VType<T>, initialValue: T? = null, action: (T?) -> Unit): super(type.nullable(), name, initialValue) {
+   constructor(name: String, type: VType<T>, initialValue: T, action: (T) -> Unit): super(type, name, initialValue) {
       attach(action)
    }
 
@@ -53,18 +52,16 @@ open class Input<T>: Put<T?> {
       failIf(!isAssignable(output)) { "Input<$type> can not bind to put<${output.type}>" }
 
       return output.sync { v ->
-         if (v!=null) {
-            when {
-               output.type isSubtypeOf type -> value = v
-               type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
-                  valueAny = v
-               }
-               type.jvmErasure==List::class -> {
-                  if (type.listType().raw.isInstance(v))
-                     valueAny = v
-               }
-               else -> {}
+         when {
+            output.type isSubtypeOf type -> value = v
+            type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
+               valueAny = v
             }
+            type.jvmErasure==List::class -> {
+               if (type.listType().raw.isInstance(v))
+                  valueAny = v
+            }
+            else -> {}
          }
       }
    }
@@ -74,21 +71,18 @@ open class Input<T>: Put<T?> {
       get() = value
       set(it) {
          value = when {
-            it==null -> null
+            it==null -> null as T
             type.jvmErasure==List::class -> when (it) {
-               is List<*> -> it as T?
-               else -> listOf(it) as T?
+               is List<*> -> it as T
+               else -> listOf(it) as T
             }
-            else -> it as T?
+            else -> it as T
          }
       }
 
    /** Sets value of this input to that of the specified output immediately and on every output value change. */
    @Idempotent
    fun bind(output: Output<out T>): Subscription {
-      // Normally we would use this::setValue, but we want to allow generalized binding, which supports subtyping
-      // and selective type filtering
-      // sources.computeIfAbsent(output, o -> o.monitor(this::setValue));
       sources.computeIfAbsent(output) { monitor(it) }
       IOLayer.addLinkForAll(this, output)
       return Subscription { unbind(output) }

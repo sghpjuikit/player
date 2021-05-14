@@ -119,7 +119,7 @@ import sp.it.util.units.millis
 
 class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
-   @JvmField var screenMaxScaling = 0.0
+   @JvmField var screenMaxScaling = 1.0
    /** Observable list of all JavaFX application windows, i.e., [javafx.stage.Stage.getWindows]. */
    @JvmField val windowsFx = WindowFx.getWindows().readOnly()
    /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */

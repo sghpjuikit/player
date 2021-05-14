@@ -484,7 +484,7 @@ class Metadata: Song, Serializable {
 
    override fun getFileSize() = FileSize.ofBytes(fileSizeInB)
 
-   /** @return file size in bytes or -1 if unknown */
+   /** @return file size in bytes or [FileSize.VALUE_NA] if unknown */
    fun getFileSizeInB() = fileSizeInB
 
    /** Encoding type, e.g.: MPEG-1 Layer 3 */

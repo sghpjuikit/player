@@ -4,7 +4,7 @@ import sp.it.util.functional.Try
 import java.io.File
 import sp.it.util.parsing.ConverterString
 
-/** File size. Supports values up to `2^63-1` bytes and unknown value. */
+/** File size. Supports values up to `2^63-1` bytes and unknown value [UNKNOWN]. */
 @Suppress("unused")
 data class FileSize(private val v: Long): Comparable<FileSize> {
 
@@ -14,32 +14,32 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
       if (v<-1) throw IllegalArgumentException("File size value= $v must be -1 or larger")
    }
 
-   /** @return value in bytes or -1 if unknown */
+   /** @return value in bytes or [VALUE_NA] if unknown */
    fun inBytes(): Long = v
 
-   /** @return value in kB or -1 if unknown */
-   fun inkBytes(): Long = if (v==-1L) -1 else v/Ki
+   /** @return value in kB or [VALUE_NA] if unknown */
+   fun inkBytes(): Long = if (v==VALUE_NA) VALUE_NA else v/Ki
 
-   /** @return value in MB or -1 if unknown */
-   fun inMBytes(): Long = if (v==-1L) -1 else v/Mi
+   /** @return value in MB or [VALUE_NA] if unknown */
+   fun inMBytes(): Long = if (v==VALUE_NA) VALUE_NA else v/Mi
 
-   /** @return value in GB or -1 if unknown */
-   fun inGBytes(): Long = if (v==-1L) -1 else v/Gi
+   /** @return value in GB or [VALUE_NA] if unknown */
+   fun inGBytes(): Long = if (v==VALUE_NA) VALUE_NA else v/Gi
 
-   /** @return value in TB or -1 if unknown */
-   fun inTBytes(): Long = if (v==-1L) -1 else v/Ti
+   /** @return value in TB or [VALUE_NA] if unknown */
+   fun inTBytes(): Long = if (v==VALUE_NA) VALUE_NA else v/Ti
 
-   /** @return value in PB or -1 if unknown */
-   fun inPBytes(): Long = if (v==-1L) -1 else v/Pi
+   /** @return value in PB or [VALUE_NA] if unknown */
+   fun inPBytes(): Long = if (v==VALUE_NA) VALUE_NA else v/Pi
 
-   /** @return value in EB or -1 if unknown */
-   fun inEBytes(): Long = if (v==-1L) -1 else v/Ei
+   /** @return value in EB or [VALUE_NA] if unknown */
+   fun inEBytes(): Long = if (v==VALUE_NA) VALUE_NA else v/Ei
 
    /** @return true iff the value is known/specific */
-   fun isKnown() = v!=-1L
+   fun isKnown() = v!=VALUE_NA
 
    /** @return true iff the value is not known/specific */
-   fun isUnknown() = v==-1L
+   fun isUnknown() = v==VALUE_NA
 
    override fun toString() = toS(this)
 

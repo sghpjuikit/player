@@ -42,7 +42,6 @@ import sp.it.pl.plugin.impl.LibraryPlugin
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.plugin.impl.PlaycountIncrementer
 import sp.it.pl.plugin.impl.ScreenRotator
-import sp.it.pl.plugin.impl.SoftecHelper
 import sp.it.pl.plugin.impl.SongDb
 import sp.it.pl.plugin.impl.StartScreen
 import sp.it.pl.plugin.impl.Tray
@@ -438,7 +437,6 @@ class App: Application(), GlobalConfigDelegator {
       installPlugin<Waifu2k>()
       installPlugin<WallpaperChanger>()
       installPlugin<StartScreen>()
-      installPlugin<SoftecHelper>()
    }
 
    private fun AppSearch.initForApp() {

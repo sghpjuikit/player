@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.window.stage
 
 import javafx.stage.Window as WindowFX
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import javafx.stage.StageStyle.TRANSPARENT
@@ -10,7 +9,6 @@ import sp.it.pl.layout.container.Layout
 import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
-import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
@@ -73,6 +71,12 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
          .def(name = "Allow header", info = "Whether header can be visible. Some windows do not support header.", editable = EditMode.APP)
       val headerVisible by cv(w.isHeaderVisible).readOnlyUnless(w.isHeaderAllowed)
          .def(name = "Show header", info = "Whether header is visible. Otherwise it will auto-hide.")
+      val alwaysOnTop by cv(w.alwaysOnTop)
+         .def(name = "On top", info = "Window will stay in foreground when other window is being interacted with.")
+      val fullscreen by cv(w.fullscreen)
+         .def(name = "Fullscreen", info = "Window will stay in foreground and span entire screen.")
+      val maximized by cv(w.maximized).readOnlyIf(w.fullscreen)
+         .def(name = "Maximized", info = "Whether window is maximized to specific area of the screen.")
 
       init {
          w.isMain attachFalse { main.value = it } on onClose

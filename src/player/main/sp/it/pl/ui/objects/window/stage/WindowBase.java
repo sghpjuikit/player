@@ -16,6 +16,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.WithSetterObservableValue;
 import sp.it.util.math.P;
@@ -51,40 +53,26 @@ public class WindowBase {
 	private double deMaxX = 0; // 0-1
 	private double deMaxY = 0; // 0-1
 
-	/**
-	 * Indicates whether the window has focus. Read-only. Use {@link #focus()}.
-	 */
-	public final ReadOnlyBooleanProperty focused = s.focusedProperty();
-	/**
-	 * Indicates whether this window is always on top. Window always on top
-	 * will not hide behind other windows.
-	 */
-	public final WithSetterObservableValue<Boolean> alwaysOnTop = toWritable(s.alwaysOnTopProperty(), consumer(s::setAlwaysOnTop));
-	/**
-	 * Indicates whether this window is in fullscreen.
-	 */
-	public final WithSetterObservableValue<Boolean> fullscreen = toWritable(s.fullScreenProperty(), consumer(it -> { FullProp.set(it); s.setFullScreen(it); }));
-	public final ObjectProperty<String> fullScreenExitHint = s.fullScreenExitHintProperty();
-	public final ObjectProperty<KeyCombination> fullScreenExitCombination = s.fullScreenExitKeyProperty();
-	/**
-	 * Indicates whether this window is maximized.
-	 */
-	public final ReadOnlyObjectProperty<Maximized> maximized = MaxProp.getReadOnlyProperty();
-	/**
-	 * Indicates whether the window is being moved.
-	 */
-	public final ReadOnlyBooleanProperty moving = isMoving.getReadOnlyProperty();
-	/**
-	 * Indicates whether and how the window is being resized.
-	 */
-	public final ReadOnlyObjectProperty<Resize> resizing = isResizing.getReadOnlyProperty();
-	/**
-	 * Defines whether this window is resizable. Programmatically it is still
-	 * possible to change the size of the Stage.
-	 */
-	public final BooleanProperty resizable = s.resizableProperty();
-	public final DoubleProperty opacity = s.opacityProperty();
-	public final ObservableMap<Object, Object> properties = s.getProperties();
+	/** Whether the window has focus. Read-only. Use {@link #focus()} */
+	public final @NotNull ReadOnlyBooleanProperty focused = s.focusedProperty();
+	/** Whether this window is always on top {@link javafx.stage.Stage#alwaysOnTopProperty()} */
+	public final @NotNull WithSetterObservableValue<@NotNull Boolean> alwaysOnTop = toWritable(s.alwaysOnTopProperty(), consumer(s::setAlwaysOnTop));
+	/** Whether this window is fullscreen {@link javafx.stage.Stage#fullScreenProperty()} */
+	public final @NotNull WithSetterObservableValue<@NotNull Boolean> fullscreen = toWritable(s.fullScreenProperty(), consumer(it -> { FullProp.set(it); s.setFullScreen(it); }));
+	/** {@link javafx.stage.Stage#fullScreenExitHintProperty} */
+	public final @NotNull ObjectProperty<@NotNull String> fullScreenExitHint = s.fullScreenExitHintProperty();
+	/** {@link javafx.stage.Stage#fullScreenExitKeyProperty} */
+	public final @NotNull ObjectProperty<@NotNull KeyCombination> fullScreenExitCombination = s.fullScreenExitKeyProperty();
+	/** Whether this window is maximized */
+	public final @NotNull WithSetterObservableValue<@NotNull Maximized> maximized = toWritable(MaxProp, consumer(it -> setMaximized(it)));
+	/** Whether the window is being moved */
+	public final @NotNull ReadOnlyBooleanProperty moving = isMoving.getReadOnlyProperty();
+	/** Whether and how the window is being resized */
+	public final @NotNull ReadOnlyObjectProperty<@NotNull Resize> resizing = isResizing.getReadOnlyProperty();
+	/** Whether this window is resizable. Programmatically it is still possible to change the size of the Stage */
+	public final @NotNull BooleanProperty resizable = s.resizableProperty();
+	public final @NotNull DoubleProperty opacity = s.opacityProperty();
+	public final @NotNull ObservableMap<@Nullable Object, @Nullable Object> properties = s.getProperties();
 
 
 	public WindowBase(Stage owner, StageStyle style) {
@@ -93,25 +81,25 @@ public class WindowBase {
 
 		// window properties may change externally so let us take notice
 		syncC(s.xProperty(), v -> {
-			if (!fullscreen.getValue() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && maximized.getValue()==NONE) {
 				X.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.yProperty(), v -> {
-			if (!fullscreen.getValue() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && maximized.getValue()==NONE) {
 				Y.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.widthProperty(), v ->  {
-			if (!fullscreen.getValue() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && maximized.getValue()==NONE) {
 				W.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
 		});
 		syncC(s.heightProperty(), v ->  {
-			if (!fullscreen.getValue() && isMaximized()==NONE) {
+			if (!fullscreen.getValue() && maximized.getValue()==NONE) {
 				H.setValue(v);
 				if (!isMoving.getValue()) updateScreen();
 			}
@@ -146,8 +134,8 @@ public class WindowBase {
 		deMaxX = (s.getX() - screen.getBounds().getMinX())/screen.getBounds().getWidth();  // just in case
 		deMaxY = (s.getY() - screen.getBounds().getMinY())/screen.getBounds().getHeight(); // -||-
 
-		if (FullProp.get()) s.setFullScreen(true);
-		if (MaxProp.get()!=NONE) applyMaximized();
+		if (fullscreen.getValue()) s.setFullScreen(true);
+		if (maximized.getValue()!=NONE) applyMaximized();
 	}
 
 	/**
@@ -226,21 +214,16 @@ public class WindowBase {
 		setMinimized(!isMinimized());
 	}
 
-	/** @return the value of the property maximized. */
-	public Maximized isMaximized() {
-		return MaxProp.get();
-	}
-
 	/**
 	 * Sets maximized state of this window to provided state. If the window is
 	 * in full screen mode this method is a no-op.
 	 */
-	public void setMaximized(Maximized val) {
+	private void setMaximized(Maximized val) {
 		// no-op if fullscreen
 		if (fullscreen.getValue()) return;
 
 		// prevent pointless change
-		Maximized old = isMaximized();
+		Maximized old = maximized.getValue();
 		if (old==val) return;
 
 		// remember window state if entering from non-maximized state
@@ -259,7 +242,7 @@ public class WindowBase {
 	}
 
 	private void applyMaximized() {
-		switch (MaxProp.getValue()) {
+		switch (maximized.getValue()) {
 			case ALL: maximizeAll(); break;
 			case LEFT: maximizeLeft(); break;
 			case RIGHT: maximizeRight(); break;
@@ -363,7 +346,7 @@ public class WindowBase {
 	 * Maximize/de-maximize this window. Switches between ALL and NONE maximize states.
 	 */
 	public void toggleMaximize() {
-		setMaximized(isMaximized()==ALL ? NONE : ALL);
+		setMaximized(maximized.getValue()==ALL ? NONE : ALL);
 	}
 
 	/** Snaps this window to the top edge of this window's screen. */

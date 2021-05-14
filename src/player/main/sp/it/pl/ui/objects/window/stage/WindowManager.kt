@@ -53,8 +53,8 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
-import sp.it.util.access.Values
 import sp.it.util.access.toggle
+import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
@@ -279,7 +279,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    fun focusedWindowToggleMaximize() = getFocused()?.toggleMaximize()
 
    @IsAction(name = "Maximized (toggle)", info = "Switch to different maximized states for active window.", keys = "SHIFT+F11")
-   fun focusedWindowToggleMaximizedState() = getFocused()?.let { it.isMaximized = Values.next(it.isMaximized) }
+   fun focusedWindowToggleMaximizedState() = getFocused()?.maximized?.toggleNext()
 
    @IsAction(name = "Fullscreen", info = "Switch fullscreen mode for active window.", keys = "F12")
    fun focusedWindowToggleFullscreen() = getFocused()?.fullscreen?.toggle()

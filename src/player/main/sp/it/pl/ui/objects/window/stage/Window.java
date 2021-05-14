@@ -22,6 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
@@ -152,13 +153,13 @@ public class Window extends WindowBase {
 	public final HBox rightHeaderBox = lookupId(root, "rightHeaderBox", HBox.class);
 	private final VBox frontContent = lookupId(root, "frontContent", VBox.class);
 
-	final ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
+	final @NotNull ReadOnlyBooleanWrapper isMainImpl = new ReadOnlyBooleanWrapper(false);
 	/** Whether this is main window. Closing main window closes the application. Only one window can be main. */
-	public final WithSetterObservableValue<Boolean> isMain = toWritable(isMainImpl, consumer(it -> { if (it) APP.windowManager.setAsMain(this); }));
+	public final @NotNull WithSetterObservableValue<@NotNull Boolean> isMain = toWritable(isMainImpl, consumer(it -> { if (it) APP.windowManager.setAsMain(this); }));
 	/** Whether this window is resizable/movable with mouse when left ALT is held. Default true on non Linux platform. */
-	public final BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
+	public final @NotNull BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
 	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non uniform bgr needs to be set for the effect to be visible. Default false. */
-	public Property<Boolean> transformBgrWithContent = new V<>(false);
+	public final @NotNull Property<@NotNull Boolean> transformBgrWithContent = new V<>(false);
 	/** Invoked just before this window closes, after layout closes. */
 	public final Disposer onClose = new Disposer();
 
@@ -219,7 +220,7 @@ public class Window extends WindowBase {
 		});
 		root.addEventFilter(MOUSE_PRESSED, e -> {
 			if (isMovingAlt && e.getButton()==SECONDARY) {
-				isMovingAltMaximized = isMaximized()==Maximized.NONE;
+				isMovingAltMaximized = maximized.getValue()==Maximized.NONE;
 				toggleMaximize();
 				e.consume();
 			}
@@ -308,21 +309,21 @@ public class Window extends WindowBase {
 		root.addEventFilter(KEY_PRESSED, e -> {
 			if (e.isAltDown() && e.isShiftDown()) {
 				if (e.getCode()==LEFT) {
-					if (maximized.get()==Maximized.LEFT) screen = previous(Screen.getScreens(), screen);
-					setMaximized(previous(maximizedValues, maximized.get()));
+					if (maximized.getValue()==Maximized.LEFT) screen = previous(Screen.getScreens(), screen);
+					maximized.setValue(previous(maximizedValues, maximized.getValue()));
 					e.consume();
 				}
 				if (e.getCode()==RIGHT) {
-					if (maximized.get()==Maximized.RIGHT) screen = next(Screen.getScreens(), screen);
-					setMaximized(next(maximizedValues, maximized.get()));
+					if (maximized.getValue()==Maximized.RIGHT) screen = next(Screen.getScreens(), screen);
+					maximized.setValue(next(maximizedValues, maximized.getValue()));
 					e.consume();
 				}
 				if (e.getCode()==UP) {
-					setMaximized(Maximized.ALL);
+					maximized.setValue(Maximized.ALL);
 					e.consume();
 				}
 				if (e.getCode()==DOWN) {
-					if (maximized.get()==Maximized.ALL) setMaximized(Maximized.NONE);
+					if (maximized.getValue()==Maximized.ALL) maximized.setValue(Maximized.NONE);
 					else minimize();
 					e.consume();
 				}
@@ -510,9 +511,9 @@ public class Window extends WindowBase {
 	));
 
 	/** Whether header can be ever visible. Default true. */
-	public final V<Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
+	public final @NotNull V<@NotNull Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
 	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
-	public final V<Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !fullscreen.getValue()));
+	public final @NotNull V<@NotNull Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !fullscreen.getValue()));
 
 	private void applyHeaderVisible(boolean headerOn) {
 		var hOn = headerOn && isHeaderAllowed.get();
@@ -603,7 +604,7 @@ public class Window extends WindowBase {
 		double SDw = 20; // horizontal snap activation distance
 		double SDh = 20; // vertical snap activation distance
 
-		if (isMaximized()==Maximized.NONE)
+		if (maximized.getValue()==Maximized.NONE)
 			setXY(X - appX, Y - appY);
 
 		// (imitate Windows Aero Snap)
@@ -632,9 +633,9 @@ public class Window extends WindowBase {
 		}
 
 		boolean isDeMaximize = to==Maximized.NONE && (mouseSpeed==0 || mouseSpeed>70);
-		boolean isMaximize = to!=Maximized.NONE && (isMaximized()!=Maximized.NONE || mouseSpeed<70);
+		boolean isMaximize = to!=Maximized.NONE && (maximized.getValue()!=Maximized.NONE || mouseSpeed<70);
 		if (isDeMaximize || isMaximize) {
-			setMaximized(to);
+			maximized.setValue(to);
 		}
 	}
 

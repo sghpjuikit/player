@@ -1,6 +1,5 @@
 package sp.it.pl.core
 
-import java.time.DateTimeException as DTE
 import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
 import de.jensd.fx.glyphs.GlyphIcons
@@ -232,16 +231,20 @@ object CoreConverter: Core {
       }
 
       val toS: (Any) -> String = defaultTos::invoke
-      fun <T: Number> FromS<T>.numberMessage(): FromS<T> = this compose { it.mapError { "Not a number" + it.nullIfBlank()?.let { ": $it" } } }
+      fun <T> FromS<T>.numberMessage(): FromS<T> = this compose { it.mapError { "Not a number" + it.nullIfBlank()?.let { ": $it" } } }
 
       addP<Boolean>(toS, { it.toBoolean() })
-      addT<Int>(toS, tryF(NFE::class) { it.toInt() }.numberMessage())
-      addT<Double>(toS, tryF(NFE::class) { it.toDouble() }.numberMessage())
+      addT<Byte>(toS, tryF(NFE::class) { it.toByte() })
+      addT<UByte>(toS, tryF(NFE::class) { it.toUByte() })
       addT<Short>(toS, tryF(NFE::class) { it.toShort() }.numberMessage())
+      addT<UShort>(toS, tryF(NFE::class) { it.toUShort() }.numberMessage())
+      addT<Int>(toS, tryF(NFE::class) { it.toInt() }.numberMessage())
+      addT<UInt>(toS, tryF(NFE::class) { it.toUInt() }.numberMessage())
+      addT<Double>(toS, tryF(NFE::class) { it.toDouble() }.numberMessage())
       addT<Long>(toS, tryF(NFE::class) { it.toLong() }.numberMessage())
+      addT<ULong>(toS, tryF(NFE::class) { it.toULong() }.numberMessage())
       addT<Float>(toS, tryF(NFE::class) { it.toFloat() }.numberMessage())
       addT<Char>(toS, tryF(OBE::class) { it[0] })
-      addT<Byte>(toS, tryF(NFE::class) { it.toByte() })
       addP<String>({ it }, { it })
       addT<StringSplitParser>(toS, StringSplitParser::fromString)
       addP<Path>(

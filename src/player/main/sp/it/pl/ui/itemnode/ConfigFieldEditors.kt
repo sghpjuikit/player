@@ -1137,13 +1137,13 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       @Suppress("RemoveExplicitTypeArguments")
       val scrollHandler = when (config.type.jvmErasure) {
          Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }
-//         UByte::class -> scrollHandler<UByte>(UByte.MIN_VALUE, UByte.MAX_VALUE, { a,b -> (a+b).toUByte() }) { it.toUByte() }
+         UByte::class -> onNumberScrolled<UByte>(UByte.MIN_VALUE, UByte.MAX_VALUE, { a,b -> (a+b).toUByte() }) { it.toUByte() }
          Short::class -> onNumberScrolled<Short>(Short.MIN_VALUE, Short.MAX_VALUE, { a,b -> (a+b).toShort() }) { it.toShort() }
-//         UShort::class -> scrollHandler<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
+         UShort::class -> onNumberScrolled<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
          Int::class -> onNumberScrolled<Int>(Int.MIN_VALUE, Int.MAX_VALUE, Int::plus) { it }
-//         UInt::class -> scrollHandler<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
+         UInt::class -> onNumberScrolled<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
          Long::class -> onNumberScrolled<Long>(Long.MIN_VALUE, Long.MAX_VALUE, Long::plus) { it.toLong() }
-//         ULong::class -> scrollHandler<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
+         ULong::class -> onNumberScrolled<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
          BigInteger::class -> onNumberScrolled<BigInteger>(null, null, BigInteger::plus) { it.toBigInteger() }
          else -> null
       }
@@ -1190,7 +1190,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    companion object {
-      private inline fun <reified T: Number> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (ScrollEvent) -> Unit = { it ->
+      private inline fun <reified T> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (ScrollEvent) -> Unit = { it ->
          val dv = it.deltaY.sign.roundToInt()
          val ov = config.value.asIs<T?>() ?: caster(0)
          val nv = when {

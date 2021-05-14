@@ -16,6 +16,7 @@ import java.util.ArrayList
 import java.util.HashSet
 import java.util.stream.Stream
 import kotlin.streams.asSequence
+import sp.it.util.functional.net
 
 /** Group of [Metadata] by some [Metadata.Field] providing some group data. */
 class MetadataGroup {
@@ -45,7 +46,7 @@ class MetadataGroup {
       for (m in ms) {
          albumSet += m.getAlbum()
          lengthSum += m.getLengthInMs()
-         sizeSum += m.getFileSizeInB()
+         sizeSum += m.getFileSizeInB().net { if (it==FileSize.VALUE_NA) 0L else it }
          ratingSum += m.getRatingPercentOr0()
          year += m.getYearAsInt()
       }

@@ -176,9 +176,9 @@ fun imgImplLoadFX(file: File, size: ImageSize, scaleExact: Boolean = false): Ima
          val iRatio = imageSize.x/imageSize.y
          val rRatio = requestedSize.x/requestedSize.y
          val neededSize = if (iRatio<rRatio) requestedSize.x.x2/(1 x iRatio) else requestedSize.y.x2*(iRatio x 1)
-         val sharpenSize = neededSize*1.5
+         val sharpenSize = neededSize*1.0 // 1.5
          val finalSize = sharpenSize min imageSize // should not surpass real size (javafx.scene.Image would)
-         ImageFx(file.toURI().toString(), finalSize.x, finalSize.y, true, true, isFxThread)
+         ImageFx(file.toURI().toString(), finalSize.x, finalSize.y, true, true, isFxThread).apply { println(" $finalSize   xx   ${width} x $height ") }
       }
    }
 }

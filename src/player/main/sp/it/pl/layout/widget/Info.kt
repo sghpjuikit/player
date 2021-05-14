@@ -103,6 +103,12 @@ interface WidgetCompanion: WidgetInfo {
    override val type: KClass<*>
       get() = this::class.java.enclosingClass!!.kotlin
 
+   /** Invoked by [WidgetFactory.init] */
+   fun init() = Unit
+
+   /** Invoked by [WidgetFactory.dispose] */
+   fun dispose() = Unit
+
 }
 
 /**

@@ -288,6 +288,7 @@ class WidgetManager {
       logger.info { "Registering $factory" }
 
       if (factory is WidgetFactory<*> && factory !in factoriesW) {
+         factory.init()
          factoriesW += factory
          factoriesObservableWImpl += factory
       }
@@ -304,6 +305,7 @@ class WidgetManager {
       if (factory is WidgetFactory<*>) factoriesObservableWImpl -= factory
       factoriesC -= factory
       factoriesObservableCImpl -= factory
+      if (factory is WidgetFactory<*>) factory.dispose()
    }
 
    private inner class WidgetMonitor constructor(val widgetDir: File) {
@@ -421,6 +423,7 @@ class WidgetManager {
                } else {
                   val widgetType = (type as Class<Controller>).kotlin
                   val widgetFactory = WidgetFactory(widgetType, widgetDir)
+                  unregisterFactory(widgetFactory)
                   registerFactory(widgetFactory)
                   if (initialized) widgetFactory.reloadAllOpen()
                }

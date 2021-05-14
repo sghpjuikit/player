@@ -22,6 +22,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.jvmName
 import sp.it.util.Locatable
+import sp.it.util.functional.toUnit
 import sp.it.util.text.decapital
 
 /** Component factory that creates component by deserializing it from file. */
@@ -48,6 +49,8 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
    override val summaryActions: List<ShortcutPane.Entry>
    override val location: File
    override val userLocation: File
+   /** Companion object of the controller */
+   val companion: WidgetCompanion?
    /** [KClass] of the controller created by [create]. */
    val controllerType: KClass<C>
    /** Whether this factory will be preferred on widget `find and create` requests. */
@@ -60,15 +63,11 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
     * @param location parent directory of the widget
     */
    constructor(controllerType: KClass<C>, location: File) {
-      val info = try {
-         controllerType.companionObjectInstance?.asIf<WidgetInfo>()
-      } catch (t: Throwable) {
-         // this can happen in dev environment due to binary incompatibility
-         null
-      }
-      val i: Widget.Info = null
-         ?: controllerType.findAnnotation()
-         ?: WidgetFactory::class.findAnnotation()!!
+      val companionObject = try { controllerType.companionObjectInstance } catch (t: Throwable) { null } // this can happen in dev environment due to binary incompatibility
+      val info = companionObject?.asIf<WidgetInfo>()
+      val i: Widget.Info = null ?: controllerType.findAnnotation() ?: WidgetFactory::class.findAnnotation()!!
+
+      this.companion = companionObject?.asIf<WidgetCompanion>()
       this.controllerType = controllerType
       this.location = location
       this.userLocation = APP.location.user.widgets/location.nameOrRoot
@@ -86,6 +85,21 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
       this.type = this.controllerType
       this.summaryActions = info?.summaryActions.orEmpty()
    }
+
+   /**
+    * Called on factory initialization, at which point the factory has not yet been used.
+    * Called at most once.
+    * Any shared widget state or global side effects (like loading native libraries) should be initialized here.
+    */
+   fun init() = companion?.init().toUnit()
+
+   /**
+    * Called on factory disposal, at which point no widgets produced by the factory exist.
+    * Called at most once.
+    * Any global side effects (like loading native libraries) or outside references to object instances of classes
+    * loaded by the factory's class loader must be disposed here.
+    */
+   fun dispose() = companion?.dispose().toUnit()
 
    override fun create(): Widget = Widget(UUID.randomUUID(), this, false)
 

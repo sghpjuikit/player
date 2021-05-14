@@ -17,13 +17,11 @@ import static java.lang.Math.random;
 import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toCollection;
-import static kotlin.text.StringsKt.capitalize;
 import static sp.it.util.Util.StringDirection.FROM_START;
 import static sp.it.util.dev.FailKt.failIf;
+import static sp.it.util.text.UtilKt.capitalLower;
 
-/**
- * Provides general purpose utility methods.
- */
+/** Provides general purpose utility methods. */
 @SuppressWarnings("unused")
 public interface Util {
 
@@ -138,7 +136,7 @@ public interface Util {
 
 	/** Same as {@link #enumToHuman(java.lang.Enum)}, for String. */
 	static String enumToHuman(String s) {
-		return capitalize(s.replace('_', ' ').toLowerCase());
+		return capitalLower(s.replace('_', ' '));
 	}
 
 	/**
@@ -187,7 +185,7 @@ public interface Util {
 	 * maintain consistency in number of length.
 	 *
 	 * @param n number to turn onto zero-padded string
-	 * @param len length to zeropad to number to zero-pad to
+	 * @param len length to zero-pad to number to zero-pad to
 	 * @param ch character to use. Notable characters are: ' ' or '0'
 	 * @return left zero-padded string to specified length
 	 */

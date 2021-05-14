@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap
 open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" }): Configurable<Any?> {
 
    private val methodLookup = MethodHandles.lookup()
-   private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').toLowerCase() }
+   private val namePostMapper: (String) -> String = { s -> s.replace(' ', '_').lowercase() }
    private val configToRawKeyMapper = nameMapper compose namePostMapper
    private val properties = ConcurrentHashMap<String, PropVal>()
    private val configs: MapSet<String, Config<*>> = MapSet(ConcurrentHashMap(), configToRawKeyMapper)

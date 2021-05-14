@@ -15,6 +15,7 @@ import kotlin.jvm.functions.Function3;
 import kotlin.jvm.functions.Function4;
 import kotlin.jvm.functions.Function5;
 import kotlin.jvm.functions.Function6;
+import org.jetbrains.annotations.NotNull;
 import sp.it.util.dev.SwitchException;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
@@ -149,7 +150,7 @@ public interface Functors {
 					return apply(i);
 				} catch (Exception e) {
 					for (Class<?> ec : ecs)
-						if (ec.isAssignableFrom(ec.getClass()))
+						if (ec.isAssignableFrom(e.getClass()))
 							return or;
 					throw e;
 				}
@@ -163,7 +164,7 @@ public interface Functors {
 					return apply(i);
 				} catch (Exception e) {
 					for (Class<?> ec : ecs)
-						if (ec.isAssignableFrom(ec.getClass()))
+						if (ec.isAssignableFrom(e.getClass()))
 							return or.get();
 					throw e;
 				}
@@ -177,7 +178,7 @@ public interface Functors {
 					return apply(i);
 				} catch (Exception e) {
 					for (Class<?> ec : ecs)
-						if (ec.isAssignableFrom(ec.getClass()))
+						if (ec.isAssignableFrom(e.getClass()))
 							return or.apply(i);
 					throw e;
 				}
@@ -185,7 +186,7 @@ public interface Functors {
 		}
 
 		@Override
-		default <R> F1<I,R> andThen(Function<? super O,? extends R> after) {
+		default <R> F1<I,R> andThen(@NotNull Function<? super O,? extends R> after) {
 			noNull(after);
 			return (I t) -> after.apply(apply(t));
 		}
@@ -213,7 +214,7 @@ public interface Functors {
 
 		// this change return type from Consumer to Function in a type safe way!!
 		@Override
-		default F1<I,Void> andThen(Consumer<? super I> after) {
+		default F1<I,Void> andThen(@NotNull Consumer<? super I> after) {
 			return i -> {
 				apply(i);
 				after.accept(i);
@@ -222,7 +223,7 @@ public interface Functors {
 		}
 
 		@Override
-		default <R> F1<R,O> compose(Function<? super R,? extends I> before) {
+		default <R> F1<R,O> compose(@NotNull Function<? super R,? extends I> before) {
 			noNull(before);
 			return (R v) -> apply(before.apply(v));
 		}
@@ -343,7 +344,7 @@ public interface Functors {
 	 * {@link sp.it.util.functional.Functors.F1} can not extend Predicate, doing so would not be type safe, hence this subclass.
 	 * This class also preserves predicate identity during predicate combination operations.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@FunctionalInterface
 	interface FP<I> extends F1<I,Boolean>, Predicate<I> {
 
@@ -363,7 +364,7 @@ public interface Functors {
 		}
 
 		@Override
-		default FP<I> and(Predicate<? super I> p) {
+		default FP<I> and(@NotNull Predicate<? super I> p) {
 			if (this==p) return this;
 			else if ((this==IS0 && p==ISNT0) || (this==ISNT0 && p==IS0)) return (FP) ISNT;
 			else if (p==ISNT || this==ISNT) return (FP) ISNT;
@@ -371,7 +372,7 @@ public interface Functors {
 		}
 
 		@Override
-		default FP<I> or(Predicate<? super I> p) {
+		default FP<I> or(@NotNull Predicate<? super I> p) {
 			if (this==p) return this;
 			else if ((this==IS0 && p==ISNT0) || (this==ISNT0 && p==IS0)) return (FP) IS;
 			else if (this==IS || p==IS) return (FP) IS;
@@ -474,7 +475,7 @@ public interface Functors {
 				try {
 					return apply(i1, i2, i3, i4, i5);
 				} catch (Exception e) {
-					for (Class<?> ec : ecs) if (ec.isAssignableFrom(ec.getClass())) return or;
+					for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
 					throw e;
 				}
 			};
@@ -499,7 +500,7 @@ public interface Functors {
 				try {
 					return apply(i1, i2, i3, i4, i5, i6);
 				} catch (Exception e) {
-					for (Class<?> ec : ecs) if (ec.isAssignableFrom(ec.getClass())) return or;
+					for (Class<?> ec : ecs) if (ec.isAssignableFrom(e.getClass())) return or;
 					throw e;
 				}
 			};

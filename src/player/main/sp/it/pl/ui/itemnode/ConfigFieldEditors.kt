@@ -163,7 +163,9 @@ import sp.it.util.access.editable
 import sp.it.util.access.toWritable
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.UnsealedEnumerator
+import sp.it.util.functional.filter
 import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.map
 import sp.it.util.functional.toOption
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.map
@@ -389,7 +391,7 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
          if (!suppressChanges)
             apply()
       }
-      
+
       // readonly
       isEditable sync { editor.readOnly.value = !it } on disposer
 
@@ -450,7 +452,7 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
       editor.value = config.value
       editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
-      
+
       // readonly
       isEditable syncTo editor.editable on disposer
    }
@@ -614,7 +616,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       chain.isHeaderVisible = true
 
       // readonly
-      chain.editable syncFrom when { lc.a.itemFactory is FailFactory -> vAlways(false) else -> isEditable } on disposer
+      chain.editable syncFrom when (lc.a.itemFactory) { is FailFactory -> vAlways(false) else -> isEditable } on disposer
 
       // bind list to chain
       chain.onUserItemAdded += {

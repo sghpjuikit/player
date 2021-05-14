@@ -6,7 +6,7 @@ import kotlin.text.Charsets.UTF_8
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.4.30"
+   kotlin("jvm") version "1.5.0"
    application
    id("com.github.ben-manes.versions") version "0.38.0"
 }
@@ -65,6 +65,7 @@ allprojects {
          "-Xno-call-assertions",
          "-Xno-param-assertions",
          "-Xjvm-default=all",
+         "-Xlambdas=indy",
          "-Xuse-experimental=kotlin.Experimental",
          "-Xstring-concat=indy-with-constants"
       )
@@ -84,14 +85,14 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.4.3")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.4.3")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.4.3")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.0-RC")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.0-RC")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.0-RC")
          implementation("org.jetbrains", "annotations", "20.1.0")
       }
 
       "JavaFX" group {
-         val version = "17-ea+8"
+         val version = "17-ea+9"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -118,12 +119,12 @@ allprojects {
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.7.0")
+         implementation("net.java.dev.jna", "jna-platform", "5.8.0")
          implementation("com.1stleg", "jnativehook", "2.1.0")
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "3.6.0")
+         implementation("com.github.f4b6a3", "uuid-creator", "3.7.0")
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.2.2")
          implementation("com.github.ajalt", "clikt", "2.1.0")
@@ -132,7 +133,7 @@ allprojects {
 
       "Image" group {
          implementation("com.github.umjammer", "javavp8decoder", "d51fe8f")
-         implementation("com.drewnoakes", "metadata-extractor", "2.15.0")
+         implementation("com.drewnoakes", "metadata-extractor", "2.16.0")
          fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.7.0")
          imageIO("bmp")
          imageIO("clippath")
@@ -152,13 +153,13 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.5.3")
-         implementation("io.ktor", "ktor-client-cio", "1.5.3")
+         implementation("io.ktor", "ktor-server-core", "1.5.4")
+         implementation("io.ktor", "ktor-client-cio", "1.5.4")
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.4.3")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.4.3")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.5.0")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.5.0")
       }
 
    }

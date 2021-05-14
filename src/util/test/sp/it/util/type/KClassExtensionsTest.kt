@@ -53,7 +53,7 @@ class KClassExtensionsTest: FreeSpec({
          TEnumWithMethodBody.C1::class.java.enumConstants shouldBe null  //  does not work, because each constant is own class
       }
 
-      "${Class::class.simpleName}.${Class<*>::enumValues.name}" {
+      "${Class::class.simpleName}.${Class<Any>::enumValues.name}" {
          // class is not enum
          shouldThrow<AssertionError> { TClass::class.java.enumValues }
          // simple enum
@@ -64,7 +64,7 @@ class KClassExtensionsTest: FreeSpec({
          TEnumWithMethodBody.C1::class.java.enumValues shouldBe arrayOf(TEnumWithMethodBody.C1, TEnumWithMethodBody.C2)
       }
 
-      "${KClass::class.simpleName}.${KClass<*>::enumValues.name}" {
+      "${KClass::class.simpleName}.${KClass<Any>::enumValues.name}" {
          // class is not enum
          shouldThrow<AssertionError> { TClass::class.enumValues }
          // simple enum

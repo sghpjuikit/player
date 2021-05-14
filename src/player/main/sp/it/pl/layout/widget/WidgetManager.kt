@@ -129,6 +129,8 @@ import sp.it.util.conf.EditMode
 import sp.it.util.conf.cList
 import sp.it.util.functional.Option
 import sp.it.util.functional.toTry
+import sp.it.util.text.capital
+import sp.it.util.text.decapital
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -304,8 +306,8 @@ class WidgetManager {
    }
 
    private inner class WidgetMonitor constructor(val widgetDir: File) {
-      val widgetName = widgetDir.name.capitalize()
-      val packageName  = widgetName.decapitalize()
+      val widgetName = widgetDir.name.capital()
+      val packageName  = widgetName.decapital()
       val classFqName  = "$packageName.$widgetName"
       val skinFile = widgetDir/"skin.css"
       val compileDir = widgetDir/"out"
@@ -318,7 +320,7 @@ class WidgetManager {
 
       fun findSrcFiles() = widgetDir.children().filter { it.hasExtension("java", "kt") }
 
-      fun findClassFile() = (compileDir/widgetName.decapitalize()/"$widgetName.class").takeIf { it.exists() }
+      fun findClassFile() = (compileDir/widgetName.decapital()/"$widgetName.class").takeIf { it.exists() }
 
       fun findClassFiles() = compileDir.walk().filter { it hasExtension "class" }
 
@@ -519,6 +521,7 @@ class WidgetManager {
                "-Xno-call-assertions",
                "-Xno-param-assertions",
                "-Xjvm-default=all",
+               "-Xlambdas=indy",
                "-Xuse-experimental=kotlin.Experimental",
                "-Xstring-concat=indy-with-constants",
                "-cp", '"' + computeClassPath() + '"',
@@ -907,24 +910,25 @@ enum class ComponentLoaderStrategy(val loader: ComponentLoader) {
 
 /** Strategy for opening a new component in ui. */
 @Suppress("ClassName")
-sealed class ComponentLoader: (Component) -> Any {
+sealed interface ComponentLoader: (Component) -> Any {
+
    /** Does not load component and leaves it upon the consumer to load and manage it appropriately. */
-   object CUSTOM: ComponentLoader() {
+   object CUSTOM: ComponentLoader {
       override operator fun invoke(c: Component) = Unit
    }
 
    /** Loads the component in a layout of a new window. */
-   object WINDOW: ComponentLoader() {
+   object WINDOW: ComponentLoader {
       override operator fun invoke(c: Component): Window = APP.windowManager.showWindow(c)
    }
 
    /** Loads the component in a layout of a new window. */
-   object DOCK: ComponentLoader() {
+   object DOCK: ComponentLoader {
       override operator fun invoke(c: Component): Window = APP.windowManager.slideWindow(c)
    }
 
    /** Loads the component as a standalone in a simplified layout of a new always on top fullscreen window on active screen. */
-   object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader() {
+   object WINDOW_FULLSCREEN_ACTIVE: ComponentLoader {
       override operator fun invoke(c: Component): Stage = WINDOW_FULLSCREEN(getScreenForMouse())(c)
    }
 
@@ -957,7 +961,7 @@ sealed class ComponentLoader: (Component) -> Any {
    }
 
    /** Loads the component as a standalone in a new [OverlayPane]. */
-   object OVERLAY: ComponentLoader() {
+   object OVERLAY: ComponentLoader {
       override operator fun invoke(c: Component): OverlayPane<Unit> {
 
          val op = object: OverlayPane<Unit>() {
@@ -1013,7 +1017,7 @@ sealed class ComponentLoader: (Component) -> Any {
    }
 
    /** Loads the component as a standalone widget in a simplified layout of a new popup. */
-   object POPUP: ComponentLoader() {
+   object POPUP: ComponentLoader {
       override operator fun invoke(c: Component): PopWindow {
          val l = Layout.openStandalone(anchorPane())
          val p = PopWindow().apply {

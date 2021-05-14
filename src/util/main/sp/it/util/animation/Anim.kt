@@ -252,7 +252,7 @@ open class Anim: Transition {
           * @throws RuntimeException if ranges do not give sum of 1
           */
          @S fun of(vararg subranges: Subrange): IF {
-            if (subranges.sumByDouble { it.fraction }!=1.0)
+            if (subranges.sumOf { it.fraction }!=1.0)
                throw RuntimeException("Sum of interpolator range must be 1.0")
 
             val ranges = ArrayList<Range>()

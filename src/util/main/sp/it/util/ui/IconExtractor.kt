@@ -34,7 +34,7 @@ object IconExtractor {
 
    fun getFileIcon(file: File): ImageFx? {
 
-      val ext = file.extension.toLowerCase()
+      val ext = file.extension.lowercase()
 
       // resolve links
       if (lnk==ext)

@@ -24,6 +24,8 @@ import sp.it.util.type.kType
 import sp.it.util.type.raw
 import sp.it.util.type.typeResolved
 import java.io.File
+import java.io.InputStream
+import java.io.SequenceInputStream
 import java.lang.reflect.GenericArrayType
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -53,9 +55,12 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaType
-import sp.it.util.collections.toStringPretty
+import kotlin.text.Charsets.UTF_8
+import sp.it.util.functional.andAlso
+import sp.it.util.type.VType
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
+import sp.it.util.type.type
 
 sealed class JsValue {
    fun asJsNull() = asIs<JsNull>()
@@ -111,14 +116,18 @@ class Json {
    init {
       typeAliases {
          // @formatter:off
+                 "char" alias Char::class
+              "boolean" alias Boolean::class
+                 "byte" alias Byte::class
+                "ubyte" alias UByte::class
+                "short" alias Short::class
+               "ushort" alias UShort::class
                   "int" alias Int::class
+                 "uint" alias UInt::class
+                 "long" alias Long::class
+                "ulong" alias ULong::class
                 "float" alias Float::class
                "double" alias Double::class
-                 "long" alias Long::class
-                "short" alias Short::class
-                 "char" alias Char::class
-                 "byte" alias Byte::class
-              "boolean" alias Boolean::class
                "number" alias Number::class
                "object" alias Any::class
               "big-int" alias java.math.BigInteger::class
@@ -200,6 +209,10 @@ class Json {
 
             when (value) {
                is Number -> JsNumber(value).withAmbiguity()
+               is UByte -> JsNumber(value.toByte()).withAmbiguity()
+               is UShort -> JsNumber(value.toShort()).withAmbiguity()
+               is UInt -> JsNumber(value.toInt()).withAmbiguity()
+               is ULong -> JsNumber(value.toLong()).withAmbiguity()
                is String -> JsString(value)
                is Enum<*> -> JsString(value.name).withAmbiguity()
                is Array<*> -> JsArray(value.map { toJsonValue(kType<Any>(), it) })
@@ -241,22 +254,31 @@ class Json {
       }
    }
 
-   fun ast(json: String): Try<JsValue, Throwable> = runTry {
-      val klaxonAst = Klaxon().parser().parse(json.reader().buffered())
+   fun ast(json: String): Try<JsValue, Throwable> = ast(json.byteInputStream(UTF_8), UTF_8)
+
+   fun ast(json: InputStream, charset: Charset = UTF_8): Try<JsValue, Throwable> = runTry {
+      val i = SequenceInputStream(SequenceInputStream(
+         "{ \"value\": ".byteInputStream(UTF_8),
+         json),
+         " }".byteInputStream(UTF_8)
+      )
+      val klaxonAst = Klaxon().parser().parse(i, charset).asIs<JsonObject>()["value"]
       fromKlaxonAST(klaxonAst)
    }
 
-   inline fun <reified T> fromJson(json: String): Try<T?, Throwable> = runTry {
-      val klaxonAst = Klaxon().parser().parse(json.reader().buffered())
-      val ast = fromKlaxonAST(klaxonAst)
-      fromJsonValueImpl<T>(ast)
+   fun <T> fromJson(type: VType<T>, json: String): Try<T?, Throwable> = fromJson(type, json.byteInputStream(UTF_8), UTF_8)
+
+   fun <T> fromJson(type: VType<T>, json: File, charset: Charset = UTF_8): Try<T?, Throwable> = fromJson(type, json.inputStream(), charset)
+
+   fun <T> fromJson(type: VType<T>, json: InputStream, charset: Charset = UTF_8): Try<T?, Throwable> = ast(json, charset).andAlso {
+      runTry { fromJsonValueImpl(type.type.javaType, it) as T }
    }
 
-   inline fun <reified T> fromJson(json: File, charset: Charset = Charsets.UTF_8): Try<T?, Throwable> = runTry {
-      val klaxonAst = Klaxon().parser().parse(json.bufferedReader(charset))
-      val ast = fromKlaxonAST(klaxonAst)
-      fromJsonValueImpl<T>(ast)
-   }
+   inline fun <reified T> fromJson(json: String): Try<T?, Throwable> = fromJson(type<T>(), json)
+
+   inline fun <reified T> fromJson(json: File, charset: Charset = UTF_8): Try<T?, Throwable> = fromJson(type<T>(), json, charset)
+
+   inline fun <reified T> fromJson(json: InputStream, charset: Charset = UTF_8): Try<T?, Throwable> = fromJson(type<T>(), json, charset)
 
    inline fun <reified T> fromJsonValue(value: JsValue): Try<T?, Throwable> = runTry { fromJsonValueImpl<T>(value) }
 
@@ -282,9 +304,13 @@ class Json {
                   Any::class -> value.value
                   Number::class -> value.value
                   Byte::class -> value.value.toByte()
+                  UByte::class -> value.value.toByte().toUByte()
                   Short::class -> value.value.toShort()
+                  UShort::class -> value.value.toShort().toUShort()
                   Int::class -> value.value.toInt()
+                  UInt::class -> value.value.toInt().toUInt()
                   Long::class -> value.value.toLong()
+                  ULong::class -> value.value.toLong().toULong()
                   Float::class -> value.value.toFloat()
                   Double::class -> value.value.toDouble()
                   BigInteger::class -> when (value.value) {
@@ -352,9 +378,14 @@ class Json {
                   ?: typeK
                when {
                   instanceType.isObject -> instanceType.objectInstance
+                  instanceType==Byte::class -> value.value["value"]?.asJsNumberValue()?.toByte()
+                  instanceType==UByte::class -> value.value["value"]?.asJsNumberValue()?.toShort()?.toUByte()
                   instanceType==Short::class -> value.value["value"]?.asJsNumberValue()?.toShort()
+                  instanceType==UShort::class -> value.value["value"]?.asJsNumberValue()?.toInt()?.toUShort()
                   instanceType==Int::class -> value.value["value"]?.asJsNumberValue()?.toInt()
+                  instanceType==UInt::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toUInt()
                   instanceType==Long::class -> value.value["value"]?.asJsNumberValue()?.toLong()
+                  instanceType==ULong::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toULong()
                   instanceType==Float::class -> value.value["value"]?.asJsNumberValue()?.toFloat()
                   instanceType==Double::class -> value.value["value"]?.asJsNumberValue()?.toDouble()
                   instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
@@ -484,12 +515,13 @@ fun fromKlaxonAST(ast: Any?): JsValue {
          ?: ast.array?.let { fromKlaxonAST(it) }
          ?: ast.obj?.let { fromKlaxonAST(it) }
          ?: ast.boolean?.let { fromKlaxonAST(it) }
-         ?: ast.boolean?.let { fromKlaxonAST(it) }
-         ?: ast.char?.let { JsString(it.toString()) }
+         ?: ast.inside?.asIf<Char>()?.let { JsString(it.toString()) }
          ?: ast.double?.let { JsNumber(it) }
          ?: ast.float?.let { JsNumber(it) }
          ?: ast.int?.let { JsNumber(it) }
          ?: ast.longValue?.let { JsNumber(it) }
+         ?: ast.inside?.asIf<BigInteger>()?.let { JsNumber(it) }
+         ?: ast.inside?.asIf<BigDecimal>()?.let { JsNumber(it) }
          ?: ast.string?.let { JsString(it) }
          ?: JsNull
       else -> fail { "Unrecognized klaxon AST representation=$ast" }

@@ -8,6 +8,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
+import java.util.Locale
 import java.util.Optional
 import java.util.Stack
 import java.util.logging.Level
@@ -64,6 +65,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.recurseBF
 import sp.it.util.functional.recurseDF
 import sp.it.util.functional.traverse
+import sp.it.util.text.decapital
 import sp.it.util.type.JavafxPropertyType.JavafxDoublePropertyType
 import sp.it.util.type.JavafxPropertyType.JavafxFloatPropertyType
 import sp.it.util.type.JavafxPropertyType.JavafxIntegerPropertyType
@@ -212,7 +214,7 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
                propertyName = methodName
                propertyName = propertyName.substringBeforeLast("Property", propertyName)
                propertyName = propertyName.substringAfter("get", propertyName)
-               propertyName = propertyName.decapitalize()
+               propertyName = propertyName.decapital()
                method.isAccessible = true
                var observable = method.call(o) as Observable?
                if (observable is Property<*> && observable.isBound) {

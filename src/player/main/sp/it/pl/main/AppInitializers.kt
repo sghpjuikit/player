@@ -137,13 +137,13 @@ fun InstanceName.initApp() {
 
 fun InstanceDescription.initApp() {
    Char::class describe {
-      "Bin" info "0b" + Integer.toBinaryString(it.toInt())
-      "Oct" info "0" + Integer.toOctalString(it.toInt())
-      "Dec" info it.toInt().toUi()
-      "Hex" info "0x" + Integer.toHexString(it.toInt())
-      "Unicode" info "U+" + Integer.toHexString(it.toInt()).padStart(4, '0')
+      "Bin" info "0b" + Integer.toBinaryString(it.code)
+      "Oct" info "0" + Integer.toOctalString(it.code)
+      "Dec" info it.code.toUi()
+      "Hex" info "0x" + Integer.toHexString(it.code)
+      "Unicode" info "U+" + Integer.toHexString(it.code).padStart(4, '0')
 
-      "Escape sequence" info "\\u" + Integer.toHexString(it.toInt()).padStart(4, '0')
+      "Escape sequence" info "\\u" + Integer.toHexString(it.code).padStart(4, '0')
    }
    Char32::class describe {
       "Bin" info "0b" + Integer.toBinaryString(it.toInt())
@@ -216,7 +216,7 @@ fun <T, P: OverlayPane<T>> P.initApp() = apply {
    APP.ui.viewDisplay syncTo display on d
    display sync { if (it is OverlayPane.Display) APP.ui.viewDisplay.value = it } on d
    displayBgr syncBiFrom APP.ui.viewDisplayBgr on d
-   // onHidden += d  // TODO: this can only work if OverlayPane is one-use, which it isnt
+   // onHidden += d  // TODO: this can only work if OverlayPane is one-use, which it isn't
 }
 
 fun ActionPane.initApp() = apply {

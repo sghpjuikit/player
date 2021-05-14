@@ -315,7 +315,7 @@ fun Screen.getWallpaperFile(): File? =
                User32.INSTANCE.GetMonitorInfo(hMonitor, info)
 
                if (info.rcWork.left==bounds.minX.toInt() && info.rcWork.right==bounds.maxX.toInt() && info.rcWork.top==bounds.minY.toInt() && info.rcWork.bottom==bounds.maxY.toInt()) {
-                  ord = String(info.szDevice).substringAfter("device")[0].toInt()
+                  ord = String(info.szDevice).substringAfter("device")[0].digitToInt()
                }
 
                1

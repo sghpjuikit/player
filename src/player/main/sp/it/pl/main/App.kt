@@ -17,6 +17,7 @@ import kotlin.text.Charsets.UTF_8
 import mu.KLogging
 import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.playlist.PlaylistManager
+import sp.it.pl.conf.Command
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.core.CoreEnv
 import sp.it.pl.core.CoreFunctors
@@ -41,6 +42,7 @@ import sp.it.pl.plugin.impl.LibraryPlugin
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.plugin.impl.PlaycountIncrementer
 import sp.it.pl.plugin.impl.ScreenRotator
+import sp.it.pl.plugin.impl.SoftecHelper
 import sp.it.pl.plugin.impl.SongDb
 import sp.it.pl.plugin.impl.StartScreen
 import sp.it.pl.plugin.impl.Tray
@@ -74,6 +76,8 @@ import sp.it.util.file.div
 import sp.it.util.file.type.MimeTypes
 import sp.it.util.functional.Try
 import sp.it.util.functional.apply_
+import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
@@ -86,6 +90,7 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
+import sp.it.util.type.raw
 import sp.it.util.ui.label
 import sp.it.util.units.uri
 
@@ -433,6 +438,7 @@ class App: Application(), GlobalConfigDelegator {
       installPlugin<Waifu2k>()
       installPlugin<WallpaperChanger>()
       installPlugin<StartScreen>()
+      installPlugin<SoftecHelper>()
    }
 
    private fun AppSearch.initForApp() {
@@ -453,9 +459,21 @@ class App: Application(), GlobalConfigDelegator {
          }
       }
       sources += Source("Actions") {
-         configuration.getConfigs().filterIsInstance<Action>().filter { it.isEditableByUserRightNow() }.asSequence()
+         configuration.getConfigs().asSequence().filterIsInstance<Action>().filter { it.isEditableByUserRightNow() }
       } by { it.name + it.keys } toSource {
          Entry.of(it)
+      }
+      sources += Source("Commands") {
+         configuration.getConfigs().asSequence().filter { it.type.type.raw==Command::class }
+            .mapNotNull { c -> c.value?.asIs<Command>()?.net { c to it } }
+      } by { (config, _) -> config.nameUi } toSource { (config, command) ->
+         Entry.of(
+            name = "Run command: ${config.nameUi} = ${command.toUi()}",
+            icon = IconMA.PLAY_ARROW,
+            graphics = null
+         ) {
+            command()
+         }
       }
       sources += Source("Skins") {
          ui.skins.asSequence()

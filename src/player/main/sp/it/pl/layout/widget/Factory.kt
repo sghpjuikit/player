@@ -22,6 +22,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.jvmName
 import sp.it.util.Locatable
+import sp.it.util.text.decapital
 
 /** Component factory that creates component by deserializing it from file. */
 interface ComponentFactory<out T: Component>: ComponentInfo {
@@ -108,7 +109,7 @@ class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
    override fun toString() = "${javaClass.simpleName} $name $launcher"
 }
 
-class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapitalize()) {
+class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapital()) {
    override val id = factoryId
    override val name = factoryId
    override val summaryActions = listOf<ShortcutPane.Entry>()

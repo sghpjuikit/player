@@ -1,10 +1,9 @@
 package sp.it.pl.ui.objects.image;
 
 import java.io.File;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -231,48 +230,27 @@ public class Thumbnail {
 	public void loadFile(File img) {
 		if (img==null) {
 			loadImage(null, null);
-		} else {
+		} else if (image.getValue()==null || !img.toURI().equals(URI.create(image.getValue().getUrl()))) {
 			imageFile = img;
 			ImageSize size = calculateImageLoadSize();
-			Image c = getCached(img, size);
-			if (c!=null) {
-				setImgA(c);
-			} else {
+			if (image.getValue()==null || !img.toURI().equals(URI.create(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
 				runIO(() -> ImageStandardLoader.INSTANCE.invoke(img, size)).useBy(FX, this::setImgA);
 			}
 		}
 	}
 
 	public void loadCover(Cover img) {
-		if (img==null)
+		if (img==null) {
 			loadImage(null, null);
-		else {
+		} else {
 			var size = calculateImageLoadSize();
-			runIO(() -> img.getImage(size)).useBy(FX, i -> loadImage(i, img.getFile()));
+			if (img.getFile()==null || image.getValue()==null || !img.getFile().toURI().equals(URI.create(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
+				runIO(() -> img.getImage(size)).useBy(FX, i -> loadImage(i, img.getFile()));
+			}
 		}
 	}
 
 	private long loadId = 0;    // prevents wasteful set image operations
-	private static final Map<String,Image> IMG_CACHE = new ConcurrentHashMap<>();   // caches images
-
-	public static Image getCached(String url, double w, double h) {
-		Image ci = url==null ? null : IMG_CACHE.get(url);
-		return ci!=null && (ci.getWidth()>=w || ci.getHeight()>=h) ? ci : null;
-	}
-
-	public static Image getCached(File file, ImageSize size) {
-		return getCached(file, size.width, size.height);
-	}
-
-	public static Image getCached(File file, double w, double h) {
-		String url;
-		try {
-			url = file.toURI().toURL().toString();
-		} catch (Exception e) {
-			url = null;
-		}
-		return getCached(url, w, h);
-	}
 
 	// set asynchronously
 	private void setImgA(Image i) {
@@ -287,15 +265,7 @@ public class Thumbnail {
 	}
 
 	// set synchronously
-	@SuppressWarnings("PointlessBooleanExpression")
 	private void setImg(Image i, long id) {
-		// cache
-		if (i!=null && false) {
-			Image ci = IMG_CACHE.get(i.getUrl());
-			if (ci==null || ci.getHeight()*ci.getWidth()<i.getHeight()*i.getWidth())
-				IMG_CACHE.put(i.getUrl(), i);
-		}
-
 		// ignore outdated loadings
 		if (id!=loadId) return;
 

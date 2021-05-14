@@ -487,14 +487,9 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             it.consume()
          }
 
-         val a = anim(250.millis) {
-            label.text.opacity = sqrt(it)
-            label.text.setScaleXY(0.9 + 0.1*sqrt(it))
-         }
          val valuePut = if (xPut is Input<*>) input else output
-         valuePut!!.sync { if (isDisplaying.value) a.playCloseDoOpen { label.text.text = valuePut.xPutToStr() } } on disposer
-         isDisplaying attachFalse { a.stop() } on disposer
-         disposer += a::stop
+         valuePut!!.sync { label.text.text = valuePut.xPutToStr() } on disposer
+         valuePut.attach { dataArrived(x, y) } on disposer
       }
 
       fun select(v: Boolean) {
@@ -722,7 +717,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             centerX = startX
             centerY = startY
          }
-         val a1 = PathTransition(1500.millis, this, pRunner).apply {
+         val a1 = PathTransition(1000.millis, this, pRunner).apply {
             rate = -1.0
             disposerAnimations += this
             then {
@@ -730,14 +725,14 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                disposerAnimations -= this
             }
          }
-         val ea1 = anim(300.millis) { eRunner.setScaleXY(sqrt(it)) }.apply {
+         val ea1 = anim(200.millis) { eRunner.setScaleXY(sqrt(it)) }.apply {
             delay = 0.millis
             disposerAnimations += this
             then {
                disposerAnimations -= this
             }
          }
-         val ea2 = PathTransition(1500.millis, this, eRunner).apply {
+         val ea2 = PathTransition(1000.millis, this, eRunner).apply {
             rate = -1.0
             delay = 150.millis
             disposerAnimations += this
@@ -746,7 +741,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                dataArrived(toX, toY)
             }
          }
-         val ea3 = anim(300.millis) { eRunner.setScaleXY(1 - sqrt(it)) }.apply {
+         val ea3 = anim(200.millis) { eRunner.setScaleXY(1 - sqrt(it)) }.apply {
             delay = 1500.millis
             disposerAnimations += this
             then {

@@ -124,6 +124,7 @@ import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
 import kotlin.reflect.cast
+import sp.it.util.async.runFX
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cList
@@ -792,19 +793,22 @@ class WidgetManager {
 
       /** @return new instance of a class represented by specified class file using one shot class loader or null if error */
       private fun loadClass(classFqName: String, compileDir: File, libFiles: Sequence<File>): Try<Class<*>, Throwable> {
-            return createControllerClassLoader(compileDir, libFiles).andAlso {
+            return createControllerClassLoader(compileDir, libFiles).andAlso { cl ->
                try {
                   runTry {
-                     it.loadClass(classFqName)
+                     cl.loadClass(classFqName).also {
+                        runFX(10.seconds) { runTry { cl.close() } } // TODO: remove delay
+                     }
                   }
                } catch (t: LinkageError) {
+                  runTry { cl.close() }
                   Try.error(t)
                }
          }
       }
 
       /** @return new class loader using specified files to load classes and resources from or null if error */
-      private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): Try<ClassLoader, Throwable> = runTry {
+      private fun createControllerClassLoader(compileDir: File, libFiles: Sequence<File>): Try<URLClassLoader, Throwable> = runTry {
          (libFiles + compileDir).map { it.toURI().toURL() }.asArray() let_ ::URLClassLoader
       }
 

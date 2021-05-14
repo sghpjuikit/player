@@ -410,6 +410,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
          lay += vBox(20, CENTER) {
             lay += anchorPane {
+               minWidth = 0.0
                minPrefMaxHeight = 500.0
 
                layFullArea += cover.pane
@@ -546,6 +547,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          override val name = "Steam"
          override fun build(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
       }
+
    }
 
 }

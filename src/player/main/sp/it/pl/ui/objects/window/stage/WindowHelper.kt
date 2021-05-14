@@ -1,6 +1,8 @@
 package sp.it.pl.ui.objects.window.stage
 
 import javafx.stage.Window as WindowFX
+import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
@@ -8,6 +10,8 @@ import sp.it.pl.layout.container.Layout
 import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
+import sp.it.pl.ui.objects.window.ShowArea
+import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
@@ -55,7 +59,7 @@ var WindowFX.popWindowOwner: WindowFX?
    set(value) = properties.put("popWindowOwner", value).toUnit()
 
 /** Open ui settings pertaining to the specified window. */
-fun openWindowSettings(w: Window, eventSource: Node) {
+fun openWindowSettings(w: Window, eventSource: Node?) {
    val onClose = Disposer()
    val c = object: ConfigurableBase<Any?>() {
 
@@ -106,7 +110,7 @@ fun openWindowSettings(w: Window, eventSource: Node) {
       title.value = "Window settings"
       isAutohide.value = false
       onHiding += onClose
-      show(DOWN_CENTER(eventSource))
+      show(if (eventSource==null) SCREEN_ACTIVE(CENTER) else DOWN_CENTER(eventSource))
 
       form.focusFirstConfigEditor()
    }

@@ -33,6 +33,10 @@ import java.awt.TrayIcon
 import java.awt.event.MouseAdapter
 import java.io.File
 import java.io.IOException
+import sp.it.pl.ui.objects.window.stage.openWindowSettings
+import sp.it.util.collections.materialize
+import sp.it.util.ui.dsl
+import sp.it.util.ui.menu
 
 class Tray: PluginBase() {
 
@@ -59,7 +63,16 @@ class Tray: PluginBase() {
       listOf(
          menuItem("Show actions") { APP.actions.openOpen() },
          menuItem("Settings") { APP.actions.openSettings() },
-         menuItem("New window") { APP.windowManager.createWindow() },
+         menu("Windows").dsl {
+            item("New window") { APP.windowManager.createWindow() }
+            menu("All") {
+               APP.windowManager.windows.materialize().asSequence().forEach { w ->
+                  menu("${w.stage.title} (${w.width} x ${w.height})") {
+                     item("Settings") { openWindowSettings(w, null) }
+                  }
+               }
+            }
+         },
          menuItem("Play/pause") { APP.audio.pauseResume() },
          menuItem("Disable tray") { APP.plugins.getRaw<Tray>()?.stop() },
          menuItem("Exit") { APP.close() }

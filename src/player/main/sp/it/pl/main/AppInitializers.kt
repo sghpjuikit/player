@@ -42,7 +42,13 @@ import sp.it.util.type.ObjectFieldMap
 import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
 import java.io.File
+import java.nio.file.attribute.FileTime
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Date
 import java.util.function.Consumer
+import javafx.util.Duration
 import kotlin.streams.asSequence
 
 fun File.verify() {
@@ -94,6 +100,13 @@ fun ClassName.initApp() {
             "List" alias List::class
              "Set" alias Set::class
              "Map" alias Map::class
+            "Time" alias FileTime::class
+            "Time" alias LocalTime::class
+            "Date" alias LocalDate::class
+        "DateTime" alias LocalDateTime::class
+        "DateTime" alias Date::class
+        "Duration" alias java.time.Duration::class
+        "Duration" alias Duration::class
    // @formatter:on
 }
 

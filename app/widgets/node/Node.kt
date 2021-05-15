@@ -138,7 +138,7 @@ class Node(widget: Widget): SimpleController(widget) {
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = listOf(
-         ShortcutPane.Entry("Node", "Edit component properties as widget inputs", PRIMARY.nameUi),
+         ShortcutPane.Entry("Node", "Edit component properties as widget inputs", SECONDARY.nameUi),
       )
       override val group = APP
 

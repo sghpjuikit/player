@@ -142,6 +142,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
 
       // Create test inputs/outputs
+      io.i.create<Any?>("Black hole", null) {}
       io.i.create<Number>("Number", 5) {}
       io.i.create<Number?>("Number?", null) {}
       io.i.create<MutableList<out Number>>("List<out Number>", mutableListOf()) {}

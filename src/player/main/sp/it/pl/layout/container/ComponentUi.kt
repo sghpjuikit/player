@@ -1,8 +1,8 @@
 package sp.it.pl.layout.container
 
 import javafx.event.EventHandler
-import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
@@ -17,6 +17,7 @@ import sp.it.util.async.runLater
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.functional.asIf
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1If
 import sp.it.util.ui.pseudoClassChanged
@@ -81,8 +82,8 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
 
       // switch to container/normal layout mode using right/left click
-       root.onMouseClicked = EventHandler {
-          if (isLayoutMode && !isContainerMode && it.button==SECONDARY) {
+       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
+          if (isLayoutMode && !isContainerMode) {
              if (container.children.isEmpty()) {
                 AppAnimator.closeAndDo(root) { container.close() }
              } else {
@@ -118,7 +119,9 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
    }
 
    internal fun setContainerMode(b: Boolean) {
+      println(b)
       if (isContainerMode==b) return
+      println("n")
 
       isContainerMode = b
       controls.get().root.toFront()

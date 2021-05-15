@@ -5,7 +5,7 @@ import javafx.geometry.BoundingBox
 import javafx.geometry.Bounds
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import sp.it.pl.layout.AltState
 import sp.it.pl.layout.Component
@@ -37,6 +37,7 @@ import sp.it.util.functional.runnable
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.maxSize
@@ -54,15 +55,10 @@ class FreeFormContainerUi(c: FreeFormContainer): ContainerUi<FreeFormContainer>(
       root.maxSize = Double.MAX_VALUE x Double.MAX_VALUE
 
       // add new widget on left click
-      var isEmptySpace = false
-      root.onMousePressed = EventHandler { e -> isEmptySpace = e.isEmptySpace() }
-      root.onMouseClicked = EventHandler { e ->
-         if (!isContainerMode && (APP.ui.isLayoutMode || !container.lockedUnder.value)) {
-            isEmptySpace = isEmptySpace && e.isEmptySpace()
-            if (e.button==PRIMARY && isEmptySpace && isAnyWindowResizing.isNotEmpty()) {
-               addEmptyWindowAt(e.x, e.y)
-               e.consume()
-            }
+      root.onEventDown(MOUSE_CLICKED, PRIMARY, false) { e ->
+         if (e.isStillSincePress && !isContainerMode && (APP.ui.isLayoutMode || !container.lockedUnder.value) && isAnyWindowResizing.isEmpty()) {
+            addEmptyWindowAt(e.x, e.y)
+            e.consume()
          }
       }
 
@@ -104,8 +100,6 @@ class FreeFormContainerUi(c: FreeFormContainer): ContainerUi<FreeFormContainer>(
       Icon(IconMD.VIEW_DASHBOARD, -1.0, autoLayoutTooltipText).onClickDo { autoLayoutAll() }.styleclass("header-icon").addExtraIcon()
       Icon(IconFA.HEADER, -1.0, "Show window headers.").onClickDo { container.showHeaders.toggle() }.styleclass("header-icon").addExtraIcon()
    }
-
-   private fun MouseEvent.isEmptySpace() = windows.values.none { it.x.value<x && it.y.value<y && it.x.value + it.w.value>x && it.y.value + it.h.value>y }
 
    fun load() {
       container.children.forEach(this::load)
@@ -177,6 +171,7 @@ class FreeFormContainerUi(c: FreeFormContainer): ContainerUi<FreeFormContainer>(
          w.resizeHalf()
          w.alignCenter()
          w.snappable.value = false
+         w.root.onEventDown(MOUSE_CLICKED, PRIMARY) {}
 
          val (wx, ww) = container.properties.net { it["${i}x"].asD() to it["${i}w"].asD() }
          val (wy, wh) = container.properties.net { it["${i}y"].asD() to it["${i}h"].asD() }

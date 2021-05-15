@@ -2263,7 +2263,9 @@ Shape, Text, TextFlow > * {
 /******************************* TIME-CLOCK-DIGITAL-IOS ****************************************************************
  * Extends VBox
  * pseudoclasses: readonly
- * properties: -fx-precision-min, -fx-precision-max
+ * properties:
+ *  -fx-precision-min [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
+ *  -fx-precision-max [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
  */
 .time-clock-digital-ios {
     -fx-padding: 1em;
@@ -2296,7 +2298,10 @@ Shape, Text, TextFlow > * {
 /******************************* DATE-CLOCK-DIGITAL-IOS ****************************************************************
  * Extends VBox
  * pseudoclasses: readonly
- * properties: -fx-precision-min, -fx-precision-max
+ * properties:
+ *  -fx-precision-min [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
+ *  -fx-precision-max [YEAR | MONTH | WEEK | DAY | HOUR | MINUTE | SECOND | MILLI | MICRO | NANO]
+ *  -fx-month-format [NUMBER | NAME_FULL | NAME_SHORT | NAME_NARROW ]
  */
 .date-clock-digital-ios {
     -fx-padding: 1em;
@@ -2305,6 +2310,7 @@ Shape, Text, TextFlow > * {
     -fx-fill-height: false;
     -fx-precision-max: MONTH;
     -fx-precision-min: DAY;
+    -fx-month-format: NAME_SHORT;
 }
 .date-clock-digital-ios-text:secondary {
     -fx-opacity: 0.4;

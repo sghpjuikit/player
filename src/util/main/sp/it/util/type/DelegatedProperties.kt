@@ -2,12 +2,29 @@ package sp.it.util.type
 
 import java.util.concurrent.atomic.AtomicReference
 import javafx.scene.Node
+import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KCallable
 import kotlin.reflect.KProperty
 import sp.it.util.functional.asIs
 import sp.it.util.functional.toUnit
+
+/**
+ * Read only constant property that returns the specified constant value.
+ * Use [ConstantReadOnlyPropertyDelegateProvider] when computing of the value requires the property
+ */
+class ConstantReadOnlyProperty<T, V>(val value: V): ReadOnlyProperty<T, V> {
+   override fun getValue(thisRef: T, property: KProperty<*>): V = value
+}
+
+/**
+ * Read only constant property that returns constant value created at the time of delegation by the specified supplier
+ * Use [ConstantReadOnlyProperty] when computing of the value does not require the property
+ */
+class ConstantReadOnlyPropertyDelegateProvider<T, V>(val value: (ref: T, property: KProperty<*>) -> V): PropertyDelegateProvider<T, ReadOnlyProperty<T, V>> {
+   override fun provideDelegate(thisRef: T, property: KProperty<*>) = ConstantReadOnlyProperty<T, V>(value(thisRef, property))
+}
 
 /** @return thread-safe [ReadWriteProperty] backed by [AtomicReference] */
 fun <T> atomic(initialValue: T) = object: ReadWriteProperty<Any?, T> {

@@ -1,12 +1,11 @@
 package sp.it.util.file.type
 
-import kotlin.properties.PropertyDelegateProvider
-import kotlin.properties.ReadOnlyProperty
 import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.net
 import sp.it.util.parsing.ConverterString
+import sp.it.util.type.ConstantReadOnlyPropertyDelegateProvider
 
 /**
  * Represents a mimetype.
@@ -40,10 +39,8 @@ class MimeType(val name: String, vararg extensions: String) {
       override fun ofS(s: String) = MimeTypes.ofType(s)?.net { Try.ok(it) } ?: Try.error("'$s' is not recognized mime type")
       override fun enumerateUnsealed() = MimeTypes.setOfMimeTypes()
 
-      private fun mime(vararg mimeExtension: String) = PropertyDelegateProvider<Any?, ReadOnlyProperty<Any?, MimeType>> { _, property ->
-         val m = MimeType(property.name.replace("∕", "/").replace("·", "."), *mimeExtension)
-         MimeTypes.register(m)
-         ReadOnlyProperty {_, _ -> m }
+      private fun mime(vararg mimeExtension: String) = ConstantReadOnlyPropertyDelegateProvider<Any?, MimeType> { _, property ->
+         MimeType(property.name.replace("∕", "/").replace("·", "."), *mimeExtension).also(MimeTypes::register)
       }
 
       val `unknown` = MimeType("spit-player/unknown")

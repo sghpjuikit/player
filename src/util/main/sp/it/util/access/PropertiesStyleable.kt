@@ -6,8 +6,6 @@ import javafx.css.StyleConverter
 import javafx.css.Styleable
 import javafx.css.StyleableObjectProperty
 import javafx.css.StyleableProperty
-import kotlin.properties.PropertyDelegateProvider
-import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMemberProperties
 import sp.it.util.dev.failIfNot
@@ -17,6 +15,8 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
+import sp.it.util.type.ConstantReadOnlyProperty
+import sp.it.util.type.ConstantReadOnlyPropertyDelegateProvider
 import sp.it.util.type.raw
 
 /**
@@ -47,27 +47,25 @@ abstract class StyleableCompanion {
  * Convenience construct for creating styleable JavaFX components' [CssMetaData].
  * Use inside companion object of the [Styleable] component, preferably [StyleableCompanion].
  */
-fun <S: Styleable, T> svMetaData(name: String, converter: StyleConverter<*, T>, initialValue: T, value: KProperty<StyleableProperty<T>>) = PropertyDelegateProvider<Any, ReadOnlyProperty<Any, CssMetaData<S, T>>> { _, _ ->
-   val m = object: CssMetaData<S, T>(name, converter, initialValue) {
+fun <S: Styleable, T> svMetaData(name: String, converter: StyleConverter<*, T>, initialValue: T, value: KProperty<StyleableProperty<T>>) = ConstantReadOnlyProperty<Any, CssMetaData<S, T>>(
+   object: CssMetaData<S, T>(name, converter, initialValue) {
       override fun isSettable(styleable: S) = value.getter.call(styleable).net { it !is Property<*> || !it.isBound }
       override fun getStyleableProperty(styleable: S) = value.getter.call(styleable)
    }
-   ReadOnlyProperty { _, _ -> m }
-}
+)
 
 /**
  * Convenience construct for creating styleable JavaFX components' [StyleableObjectProperty].
  * Use inside of the [Styleable] component, ideally using metadata defined by [svMetaData].
  */
-fun <T> sv(metadata: CssMetaData<out Styleable, T>) = PropertyDelegateProvider<Styleable, ReadOnlyProperty<Styleable, StyleableObjectProperty<T>>> { styleable, property ->
+fun <T> sv(metadata: CssMetaData<out Styleable, T>) = ConstantReadOnlyPropertyDelegateProvider<Styleable, StyleableObjectProperty<T>> { styleable, property ->
    val svInitialValue = metadata.asIs<CssMetaData<Styleable, T>>().getInitialValue(styleable)
-   val sv = object: StyleableObjectProperty<T>(svInitialValue) {
+   object: StyleableObjectProperty<T>(svInitialValue) {
       override fun invalidated() = get().toUnit()
       override fun getBean() = styleable
       override fun getName() = property.name
       override fun getCssMetaData() = metadata
    }
-   ReadOnlyProperty { _, _ -> sv }
 }
 
 inline fun <reified T: Enum<T>> enumConverter(): StyleConverter<String, T> = StyleConverter.getEnumConverter(T::class.java)

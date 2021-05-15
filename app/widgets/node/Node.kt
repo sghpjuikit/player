@@ -105,7 +105,7 @@ class Node(widget: Widget): SimpleController(widget) {
 
    fun storeInputs() {
       widget.properties["node-widget-inputs"] = io.i.getInputs().joinToString("-") {
-         it.name.encodeBase64() + "|" + if (it.isBound()) "" else it.value.toS().quote().encodeBase64()
+         it.name.encodeBase64() + "|" + if (it.isBoundUnless()) "" else it.value.toS().quote().encodeBase64()
       }
    }
 

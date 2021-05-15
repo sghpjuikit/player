@@ -2,6 +2,7 @@ package sp.it.pl.layout.widget.controller.io
 
 import java.time.LocalDate
 import java.time.LocalTime
+import javafx.animation.Interpolator
 import javafx.animation.PathTransition
 import javafx.animation.Transition
 import javafx.beans.property.DoubleProperty
@@ -22,6 +23,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Circle
+import javafx.scene.shape.CubicCurveTo
 import javafx.scene.shape.LineTo
 import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
@@ -39,6 +41,12 @@ import kotlin.math.withSign
 import kotlin.properties.Delegates.observable
 import kotlin.streams.asSequence
 import sp.it.pl.layout.container.SwitchContainerUi
+import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkConnection.BEZIER
+import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkConnection.ELECTRONIC
+import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkConnection.LINE
+import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkEffect.DOT
+import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkEffect.NONE
+import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkEffect.PATH
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
@@ -52,6 +60,10 @@ import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.Util.pyth
+import sp.it.util.access.StyleableCompanion
+import sp.it.util.access.enumConverter
+import sp.it.util.access.sv
+import sp.it.util.access.svMetaData
 import sp.it.util.access.v
 import sp.it.util.access.visible
 import sp.it.util.animation.Anim.Companion.anim
@@ -65,6 +77,7 @@ import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.collections.materialize
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.math.clip
 import sp.it.util.math.max
@@ -83,6 +96,7 @@ import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.type.type
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.show
@@ -149,7 +163,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
    private var animPos2 = 0.0
    private var animPos3 = 0.0
 
-   private var edit: EditIOLink? = null
+   private var edit: IOLinkEdit? = null
    private var editFrom: XNode? = null
    private var editTo: XNode? = null
    private var selected: XNode? = null
@@ -280,7 +294,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       if (eFrom==null) return
       selectNode(null)
 
-      val e = EditIOLink(eFrom)
+      val e = IOLinkEdit(eFrom)
       edit = e
       editFrom = eFrom
 
@@ -489,7 +503,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
          val valuePut = if (xPut is Input<*>) input else output
          valuePut!!.sync { label.text.text = valuePut.xPutToStr() } on disposer
-         valuePut.attach { dataArrived(x, y) } on disposer
+         valuePut.attach { if (isDisplaying.value) dataArrived(x, y) } on disposer
       }
 
       fun select(v: Boolean) {
@@ -584,7 +598,22 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       }
    }
 
-   private inner class IOLink(val input: Put<*>?, val output: Put<*>?): Path() {
+   abstract class IOLinkBase: Path() {
+      val dataConnection by sv<IOLinkConnection>(DATA_CONNECTION)
+      val dataEffect by sv<IOLinkEffect>(DATA_EFFECT)
+
+      override fun getCssMetaData() = classCssMetaData
+
+      companion object: StyleableCompanion() {
+         val DATA_CONNECTION by svMetaData<IOLinkBase, IOLinkConnection>("-fx-data-connection", enumConverter(), ELECTRONIC, IOLinkBase::dataConnection)
+         val DATA_EFFECT by svMetaData<IOLinkBase, IOLinkEffect>("-fx-data-effect", enumConverter(), PATH, IOLinkBase::dataEffect)
+      }
+
+      enum class IOLinkConnection { LINE, BEZIER, ELECTRONIC }
+      enum class IOLinkEffect { NONE, DOT, PATH }
+   }
+
+   private inner class IOLink(val input: Put<*>?, val output: Put<*>?): IOLinkBase() {
       var startX = 0.0
       var startY = 0.0
       var toX = 0.0
@@ -616,6 +645,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
          duplicateTo(effect)
          paneLinks.children += effect
          disposer += { paneLinks.children -= effect }
+         dataConnection attach { this@IOLayer.requestLayout() }
+         dataEffect attach { this@IOLayer.requestLayout() }
 
          disposer += { disposerAnimations.materialize().forEach { it.stopAndFinish() } }
 
@@ -636,6 +667,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             editBegin(outputNodes[output])
          }
       }
+
 
       fun onEditActive(active: Boolean) {
          isDisable = active
@@ -660,15 +692,29 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       @Suppress("LocalVariableName", "CanBeVal")
       fun lay(inX: Double, inY: Double, outX: Double, outY: Double) {
          layInit(inX, inY, outX, outY)
-
          val dx = (outX - inX).sign
          val dy = (outY - inY).sign
-         val inX_ = inX + linkGap*dx
-         val inY_ = inY + linkGap*dy
-         elements += MoveTo(inX + loX(dx, dy), inY + loY(dx, dy))
-         elements += LineTo(inX_, inY_)
-         layTo(inX_, inY_, outX - linkGap*dx, outY - linkGap*dy)
-         elements += LineTo(outX - loX(dx, dy), outY - loY(dx, dy))
+
+         when (dataConnection.value!!) {
+            ELECTRONIC -> {
+               val inX_ = inX + linkGap*dx
+               val inY_ = inY + linkGap*dy
+               elements += MoveTo(inX + loX(dx, dy), inY + loY(dx, dy))
+               elements += LineTo(inX_, inY_)
+               layTo(inX_, inY_, outX - linkGap*dx, outY - linkGap*dy)
+               elements += LineTo(outX - loX(dx, dy), outY - loY(dx, dy))
+            }
+            BEZIER -> {
+               val cx = dx*(1.0 max abs(outX-inX))*(abs(outY-inY).net { (it/500.0) min 1.0 })
+               elements += MoveTo(inX + loX(dx, 0.0), inY + loY(dx, 0.0))
+               elements += CubicCurveTo(inX + cx, inY, outX - cx, outY, outX - loX(dx, 0.0), outY - loY(dx, 0.0))
+            }
+            LINE -> {
+               elements += MoveTo(inX + loX(dx, 0.0), inY + loY(dx, 0.0))
+               elements += LineTo(outX - loX(dx, 0.0), outY - loY(dx, 0.0))
+            }
+         }
+
       }
 
       fun layInit(inX: Double, inY: Double, outX: Double, outY: Double) {
@@ -705,60 +751,72 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       private fun loY(x: Double, y: Double) = linkEndOffset*sin(atan2(y, x))
 
       fun dataSend() {
-         val lengthNormalized = 1.0 max length/100.0
+         val lengthNormalized = 30.0 max (length/4.0)
+         val middleDur = 1000.0
+         val speed = length/middleDur
+         val edgeDur = lengthNormalized/2.0/speed
 
-         val pRunner = Circle(3.0).apply {
-            styleClass += "iolink-effect-dot"
-            this@IOLayer.children += this
-         }
-         val eRunner = Circle(15*lengthNormalized).apply {
-            effectClip.children += this
-            setScaleXY(0.0)
-            centerX = startX
-            centerY = startY
-         }
-         val a1 = PathTransition(1000.millis, this, pRunner).apply {
-            rate = -1.0
-            disposerAnimations += this
-            then {
-               this@IOLayer.children -= pRunner
-               disposerAnimations -= this
-            }
-         }
-         val ea1 = anim(200.millis) { eRunner.setScaleXY(sqrt(it)) }.apply {
-            delay = 0.millis
-            disposerAnimations += this
-            then {
-               disposerAnimations -= this
-            }
-         }
-         val ea2 = PathTransition(1000.millis, this, eRunner).apply {
-            rate = -1.0
-            delay = 150.millis
-            disposerAnimations += this
-            then {
-               disposerAnimations -= this
-               dataArrived(toX, toY)
-            }
-         }
-         val ea3 = anim(200.millis) { eRunner.setScaleXY(1 - sqrt(it)) }.apply {
-            delay = 1500.millis
-            disposerAnimations += this
-            then {
-               disposerAnimations -= this
-               effectClip.children -= eRunner
-            }
-         }
+         when (dataEffect.value!!) {
+            NONE -> Unit
+            PATH -> {
+               val eRunner = Circle(lengthNormalized/2.0).apply {
+                  effectClip.children += this
+                  setScaleXY(0.0)
+                  centerX = startX
+                  centerY = startY
+               }
+               val ea1 = anim(edgeDur.millis) { eRunner.setScaleXY(it) }.apply {
+                  interpolator = Interpolator.LINEAR
+                  delay = 0.millis
+                  disposerAnimations += this
+                  then {
+                     disposerAnimations -= this
+                  }
+               }
+               val ea2 = PathTransition(middleDur.millis, this, eRunner).apply {
+                  rate = -1.0
+                  delay = edgeDur.millis
+                  interpolator = Interpolator.LINEAR
+                  disposerAnimations += this
+                  then {
+                     disposerAnimations -= this
+                  }
+               }
+               val ea3 = anim(edgeDur.millis) { eRunner.setScaleXY(1 - it) }.apply {
+                  delay = (edgeDur+middleDur).millis
+                  disposerAnimations += this
+                  interpolator = Interpolator.LINEAR
+                  then {
+                     disposerAnimations -= this
+                     effectClip.children -= eRunner
+                  }
+               }
 
-         a1.playFrom(a1.duration)
-         ea1.play()
-         ea2.playFrom(ea2.duration)
-         ea3.play()
+               ea1.play()
+               ea2.play()
+               ea3.play()
+            }
+            DOT -> {
+               val pRunner = Circle(3.0).apply {
+                  styleClass += "iolink-effect-dot"
+                  this@IOLayer.children += this
+               }
+               val a1 = PathTransition(1000.millis, this, pRunner).apply {
+                  rate = -1.0
+                  disposerAnimations += this
+                  interpolator = Interpolator.LINEAR
+                  then {
+                     this@IOLayer.children -= pRunner
+                     disposerAnimations -= this
+                  }
+               }
+               a1.playFrom(a1.duration)
+            }
+         }
       }
-
    }
 
-   private inner class EditIOLink(node: XNode) {
+   private inner class IOLinkEdit(node: XNode) {
       val link = IOLink(node.input, node.output)
       val isValueOnly = v(false)
 
@@ -791,16 +849,29 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       val allInputs = observableSet<Input<*>>()!!
       val allOutputs = observableSet<Output<*>>()!!
       val allInoutputs = observableSet<InOutput<*>>()!!
+      val generatingOutputRefs = observableSet<GeneratingOutputRef<*>>()!!
       private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
       private val propagatedPseudoClasses = setOf("hover", "highlighted", "selected", "drag-over")
 
-      private val currentTime = InOutput<LocalTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time", LocalTime.now()).appWide().apply {
-         Loop(Runnable { i.value = LocalTime.now().net { LocalTime.of(it.hour, it.minute, it.second) } }).start()
-         i.isBound()
-      }
-      private val currentDate = InOutput<LocalDate>(uuid("d445671f-7e25-4fa6-83de-e8e543ad0507"), "Current Date", LocalDate.now()).appWide().apply {
-         Loop(Runnable { i.value = LocalDate.now() }).start()
-      }
+      private val currentTime = GeneratingOutputRef<LocalTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time", type()) { ref ->
+         object: GeneratingOutput<LocalTime>(ref, LocalTime.now()) {
+            val generation = Loop(Runnable { i.value = LocalTime.now().net { LocalTime.of(it.hour, it.minute, it.second) } })
+            init { appWide() }
+            init { generation.start() }
+            override fun dispose() = generation.stop()
+         }
+      }.appWide()
+
+      private val currentDate = GeneratingOutputRef<LocalDate>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Date", type()) { ref ->
+         object: GeneratingOutput<LocalDate>(ref, LocalDate.now()) {
+            val generation = Loop(Runnable { i.value = LocalDate.now() })
+            init { appWide() }
+            init { generation.start() }
+            override fun dispose() = generation.stop()
+         }
+      }.appWide()
+
+
 
       fun addLinkForAll(i: Put<*>, o: Put<*>) {
          allLinks.put(i, o, Any())
@@ -810,6 +881,13 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
       fun remLinkForAll(i: Put<*>, o: Put<*>) {
          allLinks.remove2D(i, o)
          allLayers.forEach { it.remConnection(i, o) }
+
+         allInoutputs.asSequence().filterIsInstance<GeneratingOutput<*>>().find { it.o === o }.ifNotNull {
+            if (!it.o.isBound()) {
+               allInoutputs -= it
+               it.dispose()
+            }
+         }
       }
 
       @Suppress("UNCHECKED_CAST")
@@ -834,7 +912,7 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
             isManaged = false
             relocate(x - radius, y - radius)
 
-            anim(300.millis) {
+            anim(250.millis) {
                setScaleXY(4*sqrt(it))
                opacity = 1 - it*it
             }.then {

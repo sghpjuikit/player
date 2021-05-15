@@ -8,8 +8,8 @@ import java.util.UUID
 class Output<T>: Put<T> {
    val id: Id
 
-   constructor(id: UUID, name: String, type: VType<T>, initialValue: T): super(type, name, initialValue) {
-      this.id = Id(id, name)
+   constructor(ownerId: UUID, name: String, type: VType<T>, initialValue: T): super(type, name, initialValue) {
+      this.id = Id(ownerId, name)
    }
 
    /** Calls [sp.it.pl.layout.widget.controller.io.Input.bind] on specified input with this output. */
@@ -17,6 +17,22 @@ class Output<T>: Put<T> {
 
    /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on specified input with this output. */
    fun unbind(input: Input<in T>) = input.unbind(this)
+
+   /** @return true iff this output is bound to any [Input]. */
+   fun isBound(): Boolean {
+      return IOLayer.allLinks.keys.asSequence()
+         .filter { it.key1()==this || it.key2()==this }
+         .flatMap {
+            sequenceOf(it.key1(), it.key2()).mapNotNull {
+               when (it) {
+                  is Input<*> -> it
+                  is InOutput<*> -> it.i
+                  else -> null
+               }
+            }
+         }
+         .count()>0
+   }
 
    /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on all inputs bound to this output. */
    fun unbindAll() {

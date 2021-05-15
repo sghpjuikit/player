@@ -34,9 +34,14 @@ object WidgetIoManager {
       ios.forEach { io ->
          val c = io.widget.controller ?: return@forEach
          val i = c.io.i.getInputRaw(io.inputName)?.asIs<Input<Any?>>() ?: return@forEach
-         io.outputsIds.forEach {
-            val o = os[it]
-            if (o!=null) {
+         io.outputsIds.forEach { oId ->
+            // bind to outputs
+            os[oId].ifNotNull { o ->
+               i.bind(o)
+               iosToRem += io
+            }
+            // bind to generators
+            IOLayer.generatingOutputRefs.find { it.id == oId }.ifNotNull { o ->
                i.bind(o)
                iosToRem += io
             }

@@ -16,7 +16,9 @@ import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
+import sp.it.pl.layout.widget.controller.io.Output.Id
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.type.estimateRuntimeType
 
 open class Input<T>: Put<T> {
@@ -28,13 +30,16 @@ open class Input<T>: Put<T> {
    }
 
    /** @return true if this input can receive values from given output */
-   open fun isAssignable(output: Output<*>): Boolean = when {
-      output.type isSubtypeOf type -> true
-      type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
-         output.type.listType().isSubtypeOf(type.listType())
+   open fun isAssignable(output: Output<*>): Boolean = isAssignable(output.type)
+
+   /** @return true if this input can receive values of the specified type */
+   open fun isAssignable(oType: VType<*>): Boolean = when {
+      oType isSubtypeOf type -> true
+      type.jvmErasure==List::class && oType.jvmErasure==List::class -> {
+         oType.listType().isSubtypeOf(type.listType())
       }
       type.jvmErasure==List::class -> {
-         isAssignable(output.type.jvmErasure, type.listType().raw)
+         isAssignable(oType.jvmErasure, type.listType().raw)
       }
       else -> false
    }
@@ -83,8 +88,11 @@ open class Input<T>: Put<T> {
    /** Sets value of this input to that of the specified output immediately and on every output value change. */
    @Idempotent
    fun bind(output: Output<out T>): Subscription {
-      sources.computeIfAbsent(output) { monitor(it) }
-      IOLayer.addLinkForAll(this, output)
+      sources.computeIfAbsent(output) {
+         monitor(it).also {
+            IOLayer.addLinkForAll(this, output)
+         }
+      }
       return Subscription { unbind(output) }
    }
 
@@ -101,17 +109,32 @@ open class Input<T>: Put<T> {
       }
    }
 
-   /**
-    * @param exceptOwner id of outputs to be not considered as bindings even if this is bound to any of them
-    * @return true iff at least one [Output] is bound to this input using [bind]. ]
-    */
+   @Idempotent
+   fun bind(generatorRef: GeneratingOutputRef<*>): Subscription {
+      val o = null
+         ?: sources.keys.find {  it.id == generatorRef.id  }
+         ?: IOLayer.allInoutputs.find { it.o.id == generatorRef.id }?.o
+         ?: generatorRef.asIs<GeneratingOutputRef<Any?>>().block(generatorRef.asIs()).o
+
+      return bind(o.asIs<Output<T>>())
+   }
+
+   /** @return true iff any [Output] is bound to this input using [bind]. ] */
+   fun isBound(): Boolean = sources.keys.isNotEmpty()
+
+   /** @return true iff an [Output] with the specified id is bound to this input using [bind]. ] */
+   fun isBound(id: Id): Boolean = sources.keys.any { it.id==id }
+
+   /** @return true iff at least one [Output] with owner id other than specified is bound to this input using [bind]. ] */
    @JvmOverloads
-   fun isBound(exceptOwner: UUID? = null): Boolean = sources.keys.any { it.id.ownerId!=exceptOwner }
+   fun isBoundUnless(exceptOwner: UUID? = null): Boolean = sources.keys.any { it.id.ownerId!=exceptOwner }
 
    @Idempotent
    fun unbind(output: Output<*>) {
-      sources.remove(output)?.unsubscribe()
-      IOLayer.remLinkForAll(this, output)
+      sources.remove(output).ifNotNull {
+         it.unsubscribe()
+         IOLayer.remLinkForAll(this, output)
+      }
    }
 
    fun unbindAll() {

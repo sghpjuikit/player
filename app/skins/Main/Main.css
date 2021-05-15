@@ -3036,12 +3036,17 @@ Shape, Text, TextFlow > * {
  * Output -> Input connection line.
  * inherits: Path
  * pseudoclasses: highlighted - when line (including input/output) is hovered or edited
+ * attributes:
+ *  -fx-data-connection [LINE | BEZIER | ELECTRONIC]
+ *  -fx-data-effect [NONE | DOT | PATH]
  */
 .iolink {
     -fx-opacity: 0.5;
     -fx-stroke: -skin-def-font-color;
     -fx-stroke-width: 0.125em;
     -fx-fill: null; /* bgr of the shape the path makes - we do not want any*/
+    -fx-data-connection: BEZIER;
+    -fx-data-effect: PATH;
 }
 
 .iolink:hover,

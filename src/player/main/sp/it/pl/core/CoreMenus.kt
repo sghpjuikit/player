@@ -14,6 +14,7 @@ import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
+import sp.it.pl.layout.widget.controller.io.GeneratingOutputRef
 import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.layout.widget.controller.io.InOutput
 import sp.it.pl.layout.widget.controller.io.Input
@@ -333,14 +334,12 @@ object CoreMenus: Core {
             menu("Link") {
                item("From all identical") { it.bindAllIdentical() }
                item("To generated...") { input ->
-                  Config.forProperty(type<Output<Any?>>(), "Value", vn<Output<Any?>>(null)).constrain {
+                  Config.forProperty(type<GeneratingOutputRef<*>>(), "Generator", vn<GeneratingOutputRef<*>>(null)).constrain {
                      nonNull()
-                     uiConverter { "${it.id.ownerId} -> ${it.id.name}" }
-                     valuesIn { IOLayer.allInoutputs.asSequence().filter { input.isAssignable(it.o) }.map { it.o }.asIs() }
+                     uiConverter { it.name }
+                     valuesIn { IOLayer.generatingOutputRefs.asSequence().filter { input.isAssignable(it.type) && !input.isBound(it.id) } }
                   }.configure("Link ${input.name} to...") { c ->
-                     c.value.ifNotNull { output ->
-                        input.asIs<Input<Any?>>().bind(output)
-                     }
+                     c.value.ifNotNull(input::bind)
                   }
                }
             }

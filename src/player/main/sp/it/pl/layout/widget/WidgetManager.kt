@@ -800,11 +800,11 @@ class WidgetManager {
                try {
                   runTry {
                      cl.loadClass(classFqName).also {
-                        runFX(10.seconds) { runTry { cl.close() } } // TODO: remove delay
+//                        runFX(10.seconds) { runTry { cl.close() } } // TODO: remove delay
                      }
                   }
                } catch (t: LinkageError) {
-                  runTry { cl.close() }
+//                  runTry { cl.close() }
                   Try.error(t)
                }
          }

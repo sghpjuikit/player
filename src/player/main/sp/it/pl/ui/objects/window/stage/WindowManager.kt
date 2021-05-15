@@ -401,7 +401,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 //                  if (mwIsHover.value) hider()
                }
          }
-         mw.focused attachFalse { if (mwAutohide.value) mwShower.hide() }
+         mw.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
          mw.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
          mw.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
          mw.stage.scene.root.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
@@ -523,12 +523,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       shower()
 
       runFX(300.millis) {
-         mw.focused attachFalse {
-            if (mwAutohide.value)
-               runFX(50.millis) {   // TODO: is delay necessary?
-                  if (!mw.stage.isFocused && mw.stage.isShowing && !mw.stage.isOpenChild()) hider()
-               }
-         }
+         mw.stage.installHideOnFocusLost(mwAutohide, hider)
          mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
          mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { hider() }
       }

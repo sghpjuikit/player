@@ -9,6 +9,7 @@ import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser.GWL_STYLE
 import com.sun.jna.platform.win32.WinUser.SMTO_NORMAL
 import java.util.UUID
+import javafx.beans.value.ObservableValue
 import javafx.event.Event
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
@@ -69,6 +70,8 @@ import sp.it.pl.ui.objects.window.Resize.S
 import sp.it.pl.ui.objects.window.Resize.SE
 import sp.it.pl.ui.objects.window.Resize.SW
 import sp.it.pl.ui.objects.window.Resize.W
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
+import sp.it.util.access.focused
 import sp.it.util.access.showing
 import sp.it.util.action.ActionManager.keyActionsComponent
 import sp.it.util.action.ActionManager.keyManageLayout
@@ -80,6 +83,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.math.P
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
@@ -173,6 +177,17 @@ fun Parent.installWindowInteraction() = Subscription(
       }
    }
 )
+
+fun Stage.installHideOnFocusLost(isAutohide: ObservableValue<Boolean>, hider: () -> Unit): Subscription {
+   return focused attachFalse {
+      if (isAutohide.value) {
+         runFX(50.millis) {
+            if (!isFocused && isShowing && !APP.ui.layoutMode.value && !isOpenChild())
+               hider()
+         }
+      }
+   }
+}
 
 fun Stage.resizeTypeForCoordinates(at: P): Resize {
    val widths = listOf(0.0 - 100.0, width/3.0, 2*width/3.0, width + 100.0).windowed(2, 1, false).map { it[0] to it[1] }

@@ -16,7 +16,7 @@ import sp.it.util.ui.text
 /** Digital clock for [LocalDateTime] in Windows 8 Start Screen style. */
 class DateTimeClockWin: VBox() {
    /** Time value */
-   val value = v(LocalDateTime.now())
+   val value = v<LocalDateTime>(LocalDateTime.now())
    /** Updates graphics to display [value] */
    val update = Handler1<LocalDateTime>()
 

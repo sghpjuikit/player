@@ -30,7 +30,7 @@ class DateClockDigitalIos: HBox() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
-   val value = v(LocalDate.now())
+   val value = v<LocalDate>(LocalDate.now())
    /** Updates graphics to display [value] */
    val update = Handler1<LocalDate>()
    /** The smallest displayed unit */

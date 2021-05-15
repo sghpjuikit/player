@@ -19,7 +19,7 @@ class DateTimePickerContent(locale: Locale = Locale.getDefault()): HBox() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
-   val value = v(LocalDateTime.now())
+   val value = v<LocalDateTime>(LocalDateTime.now())
    /** Digital clock */
    val dateContent = DatePickerContent(locale)
    /** Analog clock */

@@ -21,7 +21,7 @@ class TimeClockDigital: StackPane() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
-   val value = v(LocalTime.now())
+   val value = v<LocalTime>(LocalTime.now())
    /** Updates graphics to display [value] */
    val update = Handler1<LocalTime>()
 

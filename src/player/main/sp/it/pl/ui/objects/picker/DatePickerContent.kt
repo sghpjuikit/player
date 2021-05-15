@@ -30,7 +30,7 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Date value */
-   val value = v(LocalDate.now())
+   val value = v<LocalDate>(LocalDate.now())
    private val yearMonth = v<YearMonth>(YearMonth.of(value.value.year, value.value.month)).apply {
       this@DatePickerContent.value attach { value = YearMonth.of(it.year, it.month) }
    }

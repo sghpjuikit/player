@@ -18,7 +18,7 @@ class TimePickerContent: VBox() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
-   val value = v(LocalTime.now())
+   val value = v<LocalTime>(LocalTime.now())
    /** Digital clock */
    val clockDigital = TimeClockDigital()
    /** Analog clock */

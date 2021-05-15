@@ -38,7 +38,7 @@ class TimeClockAnalog: StackPane() {
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
-   val value = v(LocalTime.now())
+   val value = v<LocalTime>(LocalTime.now())
    /** Unit the arrow displays and user sets by dragging the arrow. Default [Unit.HOUR] */
    val unit = v(Unit.HOUR)
    /** Updates graphics to display [value] */

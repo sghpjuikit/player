@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.image;
 
 import java.io.File;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import javafx.animation.Timeline;
@@ -41,6 +40,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.TransferMode.ANY;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static sp.it.pl.audio.playlist.PlaylistReaderKt.toAbsoluteURIOrNull;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
@@ -230,10 +230,10 @@ public class Thumbnail {
 	public void loadFile(File img) {
 		if (img==null) {
 			loadImage(null, null);
-		} else if (image.getValue()==null || !img.toURI().equals(URI.create(image.getValue().getUrl()))) {
+		} else if (image.getValue()==null || image.getValue().getUrl()==null || !img.getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl()))) {
 			imageFile = img;
 			ImageSize size = calculateImageLoadSize();
-			if (image.getValue()==null || !img.toURI().equals(URI.create(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
+			if (image.getValue()==null || image.getValue().getUrl()==null || !img.getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
 				runIO(() -> ImageStandardLoader.INSTANCE.invoke(img, size)).useBy(FX, this::setImgA);
 			}
 		}
@@ -244,7 +244,7 @@ public class Thumbnail {
 			loadImage(null, null);
 		} else {
 			var size = calculateImageLoadSize();
-			if (img.getFile()==null || image.getValue()==null || !img.getFile().toURI().equals(URI.create(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
+			if (img.getFile()==null || image.getValue()==null || image.getValue().getUrl()==null || !img.getFile().getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
 				runIO(() -> img.getImage(size)).useBy(FX, i -> loadImage(i, img.getFile()));
 			}
 		}

@@ -7,8 +7,6 @@ import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
-import javafx.scene.input.KeyCode.DELETE
-import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
@@ -28,11 +26,9 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
-import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
-import sp.it.pl.main.Widgets
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.isPlaying
 import sp.it.pl.main.setSongsAndFiles
@@ -70,8 +66,6 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncTo
-import sp.it.util.text.keys
-import sp.it.util.text.pluralUnit
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
@@ -83,38 +77,28 @@ import kotlin.streams.toList
 import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import javafx.scene.input.KeyCode.*
+import javafx.scene.input.MouseButton.SECONDARY
+import mu.KLogging
+import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
+import sp.it.util.text.*
 import sp.it.util.ui.show
+import sp.it.util.units.version
+import sp.it.util.units.year
 
 private typealias Metadatas = List<Metadata>
 private typealias MetadataGroups = List<MetadataGroup>
 private typealias CellFactory<T> = Callback<TableColumn<MetadataGroup, T>, TableCell<MetadataGroup, T>>
 
-@Info(
-   author = "Martin Polakovic",
-   name = Widgets.SONG_GROUP_TABLE_NAME,
-   description = "Provides database filtering.",
-   howto = "Available actions:\n" +
-      "    Song left click : Selects item\n" +
-      "    Song right click : Opens context menu\n" +
-      "    Song double click : Plays item\n" +
-      "    Type : search & filter\n" +
-      "    Press ENTER : Plays item\n" +
-      "    Press ESC : Clear selection & filter\n" +
-      "    Scroll : Scroll table vertically\n" +
-      "    Scroll + SHIFT : Scroll table horizontally\n" +
-      "    Column drag : swap columns\n" +
-      "    Column right click: show column menu\n" +
-      "    Click column : Sort - ascending | descending | none\n" +
-      "    Click column + SHIFT : Sorts by multiple columns\n",
-   version = "0.9.0",
-   year = "2015",
-   group = LIBRARY
-)
 class LibraryView(widget: Widget): SimpleController(widget) {
 
    private val table = FilteredTable(MetadataGroup::class.java, VALUE)
@@ -270,7 +254,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             t.getColumn(ColumnField.INDEX).ifPresent { it.setPrefWidth(t.computeIndexColumnWidth()) }
             // resize main column to span remaining space
             t.getColumn(VALUE).ifPresent { c ->
-               val sumW = t.columns.asSequence().filter { it.isVisible }.sumByDouble { it.width }
+               val sumW = t.columns.asSequence().filter { it.isVisible }.sumOf { it.width }
                val sbW = t.vScrollbarWidth
                c.setPrefWidth(t.width - (sbW + sumW - c.width))
             }
@@ -391,7 +375,39 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          }
       }
    }
-   companion object {
+
+   companion object: WidgetCompanion, KLogging() {
+      override val name = SONG_GROUP_TABLE_NAME
+      override val description = "Table of songs"
+      override val descriptionLong = "$description. Allows access to song database."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         Entry("Table", "Filter", keys(CONTROL, F)),
+         Entry("Table", "Filter (cancel)", ESCAPE.nameUi),
+         Entry("Table", "Filter (clear)", ESCAPE.nameUi),
+         Entry("Table", "Search", "Type text"),
+         Entry("Table", "Search (cancel)", ESCAPE.nameUi),
+         Entry("Table", "Selection (cancel)", ESCAPE.nameUi),
+         Entry("Table", "Scroll vertically", keys("Scroll")),
+         Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
+         Entry("Table columns", "Show column context menu", toUi()),
+         Entry("Table columns", "Swap columns", "Column drag"),
+         Entry("Table columns", "Sort - ${toUi()} | ${toUi()} | ${toUi()}", PRIMARY.nameUi),
+         Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
+         Entry("Table row", "Selects item", PRIMARY.nameUi),
+         Entry("Table row", "Show context menu", SECONDARY.nameUi),
+         Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
+         Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
+         Entry("Table row", "Add songs after row", "Drag & drop songs"),
+         Entry("Table footer", "Opens additional action menus", "Menu bar"),
+      )
+      override val group = LIBRARY
+
       private val pcPlaying = pseudoclass("played")
       private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
    }

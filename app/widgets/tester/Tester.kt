@@ -454,7 +454,7 @@ class Tester(widget: Widget): SimpleController(widget) {
 
    companion object: WidgetCompanion {
       override val name = TESTER_NAME
-      override val description = "Provides facilities for testing and development"
+      override val description = "Provides facilities & demos for testing and development"
       override val descriptionLong = "$description."
       override val icon = IconUN(0x2e2a)
       override val version = version(1, 0, 0)

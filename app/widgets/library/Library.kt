@@ -25,12 +25,10 @@ import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.Widget.Group.LIBRARY
-import sp.it.pl.layout.widget.Widget.Info
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
-import sp.it.pl.main.Widgets
 import sp.it.pl.main.audioExtensionFilter
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.setSongsAndFiles
@@ -69,36 +67,28 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import javafx.scene.input.KeyCode.CONTROL
+import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.F
+import javafx.scene.input.MouseButton.SECONDARY
+import mu.KLogging
+import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.Widgets.SONG_TABLE_NAME
+import sp.it.pl.main.toUi
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.show
+import sp.it.util.units.version
+import sp.it.util.units.year
 
-@Info(
-   author = "Martin Polakovic",
-   name = Widgets.SONG_TABLE_NAME,
-   description = "Provides access to database.",
-   howto = "Available actions:\n" +
-      "    Song left click : Selects item\n" +
-      "    Song right click : Opens context menu\n" +
-      "    Song double click : Plays item\n" +
-      "    Type : search & filter\n" +
-      "    Press ENTER : Plays item\n" +
-      "    Press ESC : Clear selection & filter\n" +
-      "    Scroll : Scroll table vertically\n" +
-      "    Scroll + SHIFT : Scroll table horizontally\n" +
-      "    Column drag : swap columns\n" +
-      "    Column right click: show column menu\n" +
-      "    Click column : Sort - ascending | descending | none\n" +
-      "    Click column + SHIFT : Sorts by multiple columns\n" +
-      "    Menu bar : Opens additional actions\n",
-   version = "1.0.0",
-   year = "2015",
-   group = LIBRARY
-)
 class Library(widget: Widget): SimpleController(widget), SongReader {
 
    private val table = FilteredTable(Metadata::class.java, Metadata.EMPTY.getMainField())
@@ -133,7 +123,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       table.headerVisible syncFrom tableShowHeader on onClose
       table.footerVisible syncFrom tableShowFooter on onClose
       table.items_info.textFactory = { all, list ->
-         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumByDouble { it.getLengthInMs() }.millis.toHMSMs()
+         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.getLengthInMs() }.millis.toHMSMs()
       }
 
       // add more menu items
@@ -268,7 +258,38 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       }
    }
 
-   companion object {
+   companion object: WidgetCompanion, KLogging() {
+      override val name = SONG_TABLE_NAME
+      override val description = "Table of songs"
+      override val descriptionLong = "$description. Allows access to song database."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(1, 0, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val summaryActions = listOf(
+         Entry("Table", "Filter", keys(CONTROL, F)),
+         Entry("Table", "Filter (cancel)", ESCAPE.nameUi),
+         Entry("Table", "Filter (clear)", ESCAPE.nameUi),
+         Entry("Table", "Search", "Type text"),
+         Entry("Table", "Search (cancel)", ESCAPE.nameUi),
+         Entry("Table", "Selection (cancel)", ESCAPE.nameUi),
+         Entry("Table", "Scroll vertically", keys("Scroll")),
+         Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
+         Entry("Table columns", "Show column context menu", toUi()),
+         Entry("Table columns", "Swap columns", "Column drag"),
+         Entry("Table columns", "Sort - ${toUi()} | ${toUi()} | ${toUi()}", PRIMARY.nameUi),
+         Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
+         Entry("Table row", "Selects item", PRIMARY.nameUi),
+         Entry("Table row", "Show context menu", SECONDARY.nameUi),
+         Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
+         Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
+         Entry("Table row", "Add songs after row", "Drag & drop songs"),
+         Entry("Table footer", "Opens additional action menus", "Menu bar"),
+      )
+      override val group = LIBRARY
+
       private val pcPlaying = pseudoclass("played")
       private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
    }

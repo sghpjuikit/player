@@ -21,7 +21,6 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
 import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.INSPECTOR_NAME
 import sp.it.pl.main.emScaled
@@ -48,9 +47,7 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.propagateESCAPE
 import sp.it.util.reactive.syncNonNullIntoWhile
-import sp.it.util.text.appendSent
 import sp.it.util.ui.expandToRootAndSelect
-import sp.it.util.ui.hBox
 import sp.it.util.ui.isAnyChildOf
 import sp.it.util.ui.lay
 import sp.it.util.ui.pickTopMostAt
@@ -61,6 +58,9 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 import java.io.File
 import javafx.stage.Window as WindowFX
+import sp.it.pl.main.IconMD
+import sp.it.util.ui.flowPane
+import sp.it.util.ui.label
 
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
    private val outputSelected = io.o.create<Any?>("Selected", null)
@@ -112,17 +112,20 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
          }
          propagateESCAPE()
       }
-      root.lay(TOP_RIGHT) += hBox(10, TOP_RIGHT) {
+      root.lay(TOP_RIGHT) += flowPane(10.0, 10.0) {
          isPickOnBounds = false
+         this.alignment = TOP_RIGHT
 
-         lay += Icon(IconMA.COLLECTIONS).apply {
+         lay += Icon(IconMD.ARROW_COLLAPSE).apply {
             tooltip("Inspect window")
             onClickDo { !selectingWindow }
          }
-         lay += Icon(IconMA.COLLECTIONS_BOOKMARK).apply {
+         lay += label("Window")
+         lay += Icon(IconMD.ARROW_COLLAPSE).apply {
             tooltip("Inspect element")
             onClickDo { !selectingNode }
          }
+         lay += label("Element")
          lay += Icon().blank()
       }
 
@@ -178,11 +181,8 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
 
    companion object: WidgetCompanion, KLogging() {
       override val name = INSPECTOR_NAME
-      override val description = "Displays hierarchies of application data"
-      override val descriptionLong = buildString {
-         appendSent("Displays hierarchies of all kinds of application data")
-         appendSent("Includes windows, widgets, file system and more. Allows editing if possible")
-      }
+      override val description = "Inspects hierarchies of data as tree"
+      override val descriptionLong = "Displays data as tree. Includes windows, ui, widgets, file system and more. Allows editing if possible."
       override val icon = IconUN(0x2e2a)
       override val version = version(1, 0, 0)
       override val isSupported = true
@@ -190,7 +190,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = listOf(
-         ShortcutPane.Entry("Data", "Add object", "Drag & drop object"),
+         ShortcutPane.Entry("Data", "Inspect object", "Drag & drop object"),
       )
       override val group = APP
 

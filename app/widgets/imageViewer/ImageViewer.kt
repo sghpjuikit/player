@@ -47,7 +47,6 @@ import sp.it.util.conf.def
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.div
-import sp.it.util.functional.invoke
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
@@ -65,7 +64,16 @@ import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
 import java.io.File
+import javafx.scene.input.KeyCode.*
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import kotlin.streams.toList
+import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
+import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
+import sp.it.util.access.toggleNext
+import sp.it.util.text.keys
+import sp.it.util.ui.anchorPane
+import sp.it.util.ui.layFullArea
+import sp.it.util.ui.minSize
 
 class ImageViewer(widget: Widget): SimpleController(widget) {
    private val inputLocation = io.i.create<File?>("Location", null) { dataChanged(it) }
@@ -75,7 +83,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
    private val navAnim: Anim
    private val folder = SimpleObjectProperty<File?>(null)
    private val images = mutableListOf<File>()
-   private val slideshow = fxTimer(ZERO, INDEFINITE) { nextImage() }
+   private val slideshow = fxTimer(ZERO, INDEFINITE) { visitNextImage() }
 
    val slideshowDur by cv(15.seconds).sync { slideshow.setTimeoutAndRestart(it) }
       .def(name = "Slideshow reload time", info = "Time between picture change.")
@@ -83,6 +91,8 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       .def(name = "Slideshow", info = "Turn slideshow on/off.")
    val showImage by cv(true).attach { mainImage.pane.isVisible = it }
       .def(name = "Show big image", info = "Show thumbnails.")
+   val fitFrom by cv(mainImage.fitFrom)
+      .def(name = "Fit from", info = "Image fitting.")
    val theaterMode by cv(false)
       .def(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
    var keepContentOnEmpty by c(true)
@@ -101,16 +111,30 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
 
       mainImage.borderVisible = true
       mainImage.isBorderToImage = true
-      root.lay += mainImage.pane
+
+      root.lay += anchorPane {
+         minSize = 0 x 0
+         layFullArea += mainImage.pane
+      }
+      root.onEventDown(KEY_PRESSED, ENTER) { images.getOrNull(activeImage)?.let { APP.actions.openImageFullscreen(it) } }
+      root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
+      root.onEventDown(KEY_PRESSED, HOME) { visitFirstImage() }
+      root.onEventDown(KEY_PRESSED, LEFT) { visitPrevImage() }
+      root.onEventDown(KEY_PRESSED, KP_LEFT) { visitPrevImage() }
+      root.onEventDown(KEY_PRESSED, RIGHT) { visitNextImage() }
+      root.onEventDown(KEY_PRESSED, KP_RIGHT) { visitNextImage() }
+      root.onEventDown(KEY_PRESSED, END) { visitLastImage() }
 
       val nextB = Icon(IconUN(0x02af8)).apply {
          styleclass("nav-icon")
          tooltip("Next image")
-         onClickDo { nextImage() }
-         isMouseTransparent = true
+         onClickDo { visitNextImage() }
       }
       val nextP = stackPane(nextB).apply {
-         onEventDown(MOUSE_CLICKED, PRIMARY) { nextB.onClickRunnable?.invoke() }
+         nextB.isFocusTraversable = false
+         nextB.focusOwner.value = this
+         nextB.onClickDelegateKeyTo(this)
+         nextB.onClickDelegateMouseTo(this)
          styleClass setToOne "nav-pane"
          prefWidthProperty().bind(root.widthProperty().divide(10))
          minWidth = 20.0
@@ -120,11 +144,13 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       val prevB = Icon(IconUN(0x2af7)).apply {
          styleclass("nav-icon")
          tooltip("Previous image")
-         onClickDo { prevImage() }
-         isMouseTransparent = true
+         onClickDo { visitPrevImage() }
       }
       val prevP = stackPane(prevB).apply {
-         onEventDown(MOUSE_CLICKED, PRIMARY) { prevB.onClickRunnable?.invoke() }
+         prevB.isFocusTraversable = false
+         prevB.focusOwner.value = this
+         prevB.onClickDelegateKeyTo(this)
+         prevB.onClickDelegateMouseTo(this)
          styleClass setToOne "nav-pane"
          prefWidthProperty().bind(root.widthProperty().divide(10))
          minWidth = 20.0
@@ -240,25 +266,17 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       }
    }
 
-   fun nextImage() {
-      if (images.size==1) return
-      if (images.isEmpty()) {
-         setImage(-1)
-      } else {
-         val index = if (activeImage>=images.size - 1) 0 else activeImage + 1
-         setImage(index)
-      }
-      if (slideshow.isRunning) slideshow.start()
-   }
+   fun visitLastImage() = visit { images.lastIndex }
 
-   fun prevImage() {
+   fun visitNextImage() = visit { if (activeImage>=images.lastIndex) 0 else activeImage + 1 }
+
+   fun visitPrevImage() = visit { if (activeImage<1) images.lastIndex else activeImage - 1 }
+
+   fun visitFirstImage() = visit { 0 }
+
+   private fun visit(block: () -> Int) {
       if (images.size==1) return
-      if (images.isEmpty()) {
-         setImage(-1)
-      } else {
-         val index = if (activeImage<1) images.size - 1 else activeImage - 1
-         setImage(index)
-      }
+      setImage(if (images.isEmpty()) -1 else block())
       if (slideshow.isRunning) slideshow.start()
    }
 
@@ -306,6 +324,14 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
          Entry("Image", "Show image context menu", "Thumbnail ${SECONDARY.nameUi}"),
          Entry("Image", "Show images for location of the 1st song", "Drag & Drop audio file"),
          Entry("Image", "Show images for location", "Drag & Drop file"),
+         Entry("Image", "Toggle fit from", keys(SPACE)),
+         Entry("Image", "Show fullscreen", keys(ENTER)),
+         Entry("Navigation", "First image", keys(HOME)),
+         Entry("Navigation", "Previous image", keys(LEFT)),
+         Entry("Navigation", "Previous image", keys(KP_LEFT)),
+         Entry("Navigation", "Next image", keys(RIGHT)),
+         Entry("Navigation", "Next image", keys(KP_RIGHT)),
+         Entry("Navigation", "Last image", keys(END)),
       )
       override val group = OTHER
    }

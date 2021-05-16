@@ -124,7 +124,7 @@ import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
 import kotlin.reflect.cast
-import sp.it.util.async.runFX
+import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.cList
@@ -1041,7 +1041,7 @@ sealed interface ComponentLoader: (Component) -> Any {
          }
          c.focus()
 
-         p.show(ShowArea.WINDOW_ACTIVE(Pos.CENTER))
+         p.show(WINDOW_ACTIVE(Pos.CENTER))
          return p
       }
    }

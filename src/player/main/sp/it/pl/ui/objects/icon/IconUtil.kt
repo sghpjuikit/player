@@ -18,6 +18,6 @@ var Icon.boundsType: TextBoundsType
       requestLayout()
    }
 
-fun Icon.onClickDelegateMouseTo(node: Node) = node.onEventUp(MOUSE_CLICKED, onMouseClicked!!::handle)
+fun Icon.onClickDelegateMouseTo(node: Node) = node.onEventUp(MOUSE_CLICKED) { onMouseClicked?.handle(it) }
 
-fun Icon.onClickDelegateKeyTo(node: Node) = node.onEventDown(KEY_RELEASED, onKeyReleased!!::handle)
+fun Icon.onClickDelegateKeyTo(node: Node) = node.onEventDown(KEY_RELEASED) { onKeyReleased?.handle(it) }

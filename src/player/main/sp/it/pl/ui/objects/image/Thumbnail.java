@@ -21,6 +21,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import kotlin.Unit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.image.ImageStandardLoader;
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.util.access.V;
@@ -54,6 +56,7 @@ import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
+import static sp.it.util.ui.image.FitFrom.INSIDE;
 import static sp.it.util.units.FactoriesKt.uri;
 
 /**
@@ -120,7 +123,7 @@ public class Thumbnail {
 			applyViewPort(imageView.getImage());
 
 			// resize thumbnail
-			if (fitFrom.getValue()==FitFrom.INSIDE) {
+			if (fitFrom.getValue()==INSIDE) {
 				imageView.setFitWidth(imgW);
 				imageView.setFitHeight(imgH);
 			} else {
@@ -139,16 +142,18 @@ public class Thumbnail {
 			// lay out border
 			if (isBorderVisible) {
 				if (borderToImage && imageView.getImage()!=null) {
+					var imgWf = fitFrom.getValue()==INSIDE ? min(imgW, W) : imgW;
+					var imgHf = fitFrom.getValue()==INSIDE ? min(imgH, H) : imgH;
 					if (ratioIMG.get()>ratioTHUMB.get()) {
-						double borderW = imgW;
+						double borderW = imgWf;
 						double borderWGap = (W - borderW)/2;
-						double borderH = imgW/ratioIMG.get();
+						double borderH = imgWf/ratioIMG.get();
 						double borderHGap = (H - borderH)/2;
 						border.resizeRelocate(borderWGap, borderHGap, borderW, borderH);
 					} else {
-						double borderW = imgH*ratioIMG.get();
+						double borderW = imgHf*ratioIMG.get();
 						double borderWGap = (W - borderW)/2;
-						double borderH = imgH;
+						double borderH = imgHf;
 						double borderHGap = (H - borderH)/2;
 						border.resizeRelocate(borderWGap, borderHGap, borderW, borderH);
 					}
@@ -167,9 +172,9 @@ public class Thumbnail {
 	 * reflect that. Thus calling getM() on this property may not provide the
 	 * expected result.
 	 */
-	public final ObjectProperty<Image> image = imageView.imageProperty();
+	public final @NotNull ObjectProperty<@Nullable Image> image = imageView.imageProperty();
 	private File imageFile = null;
-	public final V<FitFrom> fitFrom = new V<>(FitFrom.INSIDE);
+	public final @NotNull V<@NotNull FitFrom> fitFrom = new V<>(INSIDE);
 	private boolean isImgSmallerW = false;
 	private boolean isImgSmallerH = false;
 
@@ -311,7 +316,7 @@ public class Thumbnail {
 
 	private void applyViewPort(Image i) {
 		if (i!=null) {
-			if (fitFrom.get()==FitFrom.INSIDE) {
+			if (fitFrom.get()==INSIDE) {
 				imageView.setViewport(null);
 			} else {
 				isImgSmallerW = i.getWidth()<=imageView.getLayoutBounds().getWidth();
@@ -367,7 +372,7 @@ public class Thumbnail {
 	public File getFile() {
 		// Since we delay image loading or something, image.get() can be null, in that case we fall
 		// back to imageFile
-		String url = image.get()==null ? null : image.get().getUrl();
+		String url = image.getValue()==null ? null : image.getValue().getUrl();
 		try {
 			return url==null ? imageFile : toFileOrNull(uri(url));
 		} catch (IllegalArgumentException e) {

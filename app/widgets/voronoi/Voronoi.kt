@@ -54,13 +54,16 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.streams.asSequence
 import org.locationtech.jts.triangulate.VoronoiDiagramBuilder
+import sp.it.util.text.*
+import voronoi.Voronoi.CellGenerator.CIRCLES
+import voronoi.Voronoi.Highlighting.NONE
 
 @ExperimentalController("Only interesting as a demo.")
 class Voronoi(widget: Widget): SimpleController(widget) {
 
    private val canvas = RenderNode()
-   val displayed by cv(CellGenerator.CIRCLES).def(name = "Pattern", info = "Displayed structure") sync { canvas.displayedToBe = it }
-   val highlighting by cv(BY_DISTANCE_ORDER).def(name = "Highlighting", info = "Type of highlighting algorithm") sync { canvas.highlighting = it }
+   val displayed by cv(CIRCLES).def(name = "Pattern", info = "Displayed structure") sync { canvas.displayedToBe = it }
+   val highlighting by cv(BY_DISTANCE_VALUE).def(name = "Highlighting", info = "Type of highlighting algorithm") sync { canvas.highlighting = it }
 
    init {
       root.prefSize = 850.emScaled x 600.emScaled
@@ -92,9 +95,9 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       var highlighting = BY_DISTANCE_ORDER
 
       init {
-         onEventDown(MOUSE_PRESSED) { draggedCell = selectedCell }
-         onEventDown(MOUSE_RELEASED) { draggedCell = null }
-         onEventDown(MOUSE_DRAGGED) {
+         onEventDown(MOUSE_PRESSED, PRIMARY) { draggedCell = selectedCell }
+         onEventDown(MOUSE_RELEASED, PRIMARY) { draggedCell = null }
+         onEventDown(MOUSE_DRAGGED, PRIMARY) {
             mousePos = P(it.x, it.y)
             draggedCell?.x = it.x
             draggedCell?.y = it.y
@@ -143,6 +146,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          val distMax = 0.2*pyth(w, h)
          val distDiff = distMax - distMin
          val distances = when (highlighting) {
+            NONE -> cells.associateWith { opacityMin }
             BY_DISTANCE_VALUE -> cells.associateWith {
                val dist = (mousePos?.distance(it.x, it.y) ?: distMax).clip(distMin, distMax)
                val distNormalized = (1 - (dist - distMin)/distDiff).clip(opacityMin, opacityMax)
@@ -232,6 +236,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    )
 
    enum class Highlighting {
+      NONE,
       BY_DISTANCE_VALUE,
       BY_DISTANCE_ORDER
    }
@@ -409,8 +414,8 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
    companion object: WidgetCompanion, KLogging() {
       override val name = "Voronoi"
-      override val description = "Playground to experiment with and visualize voronoi diagrams"
-      override val descriptionLong = "$description.\nThe visualization is customizable."
+      override val description = "Playground to visualize and experiment with voronoi diagrams"
+      override val descriptionLong = "$description.\nThe visualization is customizable through settings."
       override val icon = IconUN(0x2e2a)
       override val version = version(1, 1, 0)
       override val isSupported = true
@@ -419,6 +424,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       override val contributor = ""
       override val summaryActions = listOf(
          Entry("Interact", "Highlight", "Move cursor"),
+         Entry("Interact", "Move cell", "${PRIMARY.nameUi} Drag"),
       )
       override val group = VISUALISATION
 

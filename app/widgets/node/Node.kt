@@ -4,7 +4,6 @@ import java.util.Base64
 import javafx.beans.value.WritableValue
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
-import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.reflect.full.createInstance
@@ -18,7 +17,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
-import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.vn
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cvn
@@ -138,7 +137,7 @@ class Node(widget: Widget): SimpleController(widget) {
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = listOf(
-         ShortcutPane.Entry("Node", "Edit component properties as widget inputs", SECONDARY.nameUi),
+         Entry("Node", "Edit component properties as widget inputs", SECONDARY.nameUi),
       )
       override val group = APP
 

@@ -87,7 +87,7 @@ import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
-import sp.it.util.reactive.syncNonNullIntoWhile
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTrue
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
@@ -141,9 +141,11 @@ fun Window.installStartLayoutPlaceholder() {
 
 }
 
-fun Stage.installWindowInteraction() = sceneProperty().syncNonNullIntoWhile(Scene::rootProperty) { it.installWindowInteraction() }
+fun Stage.installWindowInteraction() = sceneProperty().syncNonNullWhile { it.installWindowInteraction() }
 
-fun Parent.installWindowInteraction() = Subscription(
+fun Parent.installWindowInteraction() = sceneProperty().syncNonNullWhile { it.installWindowInteraction() }
+
+fun Scene.installWindowInteraction() = Subscription(
    // change volume on scroll
    onEventDown(SCROLL) {
       if (it.deltaY>0) APP.audio.volumeInc()
@@ -157,11 +159,11 @@ fun Parent.installWindowInteraction() = Subscription(
             it.consume()
          }
          if (it.code==F2 || it.code==keyShortcutsComponent) {
-            widgetFocused().ifNotNull(APP.actions::showShortcutsFor)
+            root?.widgetFocused().ifNotNull(APP.actions::showShortcutsFor)
             it.consume()
          }
          if (it.code==F3 || it.code==keyActionsComponent) {
-            widgetFocused().ifNotNull { APP.ui.actionPane.orBuild.show(it) }
+            root?.widgetFocused().ifNotNull { APP.ui.actionPane.orBuild.show(it) }
             it.consume()
          }
       }

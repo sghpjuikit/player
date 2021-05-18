@@ -1099,7 +1099,6 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             }
          }
       }
-      editor.onEventDown(KEY_PRESSED, ENTER) { apply() }
 
       // null
       fun handleNullEvent(e: KeyEvent) {

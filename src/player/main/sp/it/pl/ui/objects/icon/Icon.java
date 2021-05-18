@@ -53,6 +53,7 @@ import static java.lang.Math.sqrt;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
+import static javafx.scene.input.KeyCode.SPACE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -411,7 +412,7 @@ public class Icon extends StackPane {
 			}
 		});
 		setOnKeyReleased(action==null ? null : e -> {
-			if (!isMouseTransparent() && e.getCode()==ENTER) {
+			if (!isMouseTransparent() && (e.getCode()==ENTER || e.getCode()==SPACE)) {
 				if (focusOwner.getValue().isFocusTraversable() && !focusOwner.getValue().isFocused()) requestFocus();
 				action.invoke(this, null);
 				e.consume();

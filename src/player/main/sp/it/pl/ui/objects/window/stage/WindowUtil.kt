@@ -35,6 +35,7 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.*
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
@@ -366,7 +367,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
                   isFillHeight = false
                   isPickOnBounds = false
 
-                  onEventDown(MouseEvent.MOUSE_DRAGGED, Event::consume)
+                  onEventDown(MOUSE_DRAGGED, Event::consume)
                }
             }
          }
@@ -383,9 +384,9 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
       }
 
       fun borderRegion(w: Number, h: Number, mc: Cursor) = Region().apply {
-         onEventDown(MouseEvent.MOUSE_DRAGGED, onDragged)
-         onEventDown(MouseEvent.MOUSE_PRESSED, onDragStart)
-         onEventDown(MouseEvent.MOUSE_RELEASED, onDragEnd)
+         onEventDown(MOUSE_DRAGGED, PRIMARY, true, onDragged)
+         onEventDown(MOUSE_PRESSED, PRIMARY, true, onDragStart)
+         onEventDown(MOUSE_RELEASED, PRIMARY, true, onDragEnd)
          cursor = mc
          prefSize = w x h
       }

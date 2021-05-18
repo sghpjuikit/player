@@ -107,6 +107,7 @@ import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.onEventUp
 import sp.it.util.text.toChar32
 import sp.it.util.type.kTypeNothingNonNull
+import sp.it.util.ui.button
 import sp.it.util.ui.label
 import sp.it.util.ui.lookupSiblingUp
 
@@ -381,10 +382,15 @@ fun searchTextField() = SpitTextField().apply {
    }
 }
 
-fun okIcon(action: (Icon) -> Unit) = Icon().apply {
-   id = "okButton"
-   styleclass("form-ok-button")
-   onClickDo(action)
+fun okIcon(text: String = "", action: () -> Unit) = button(text) {
+   isDefaultButton = true
+   onAction = EventHandler { action() }
+   styleClass += "ok-button"
+   graphic = Icon().apply {
+      isFocusTraversable = false
+      isMouseTransparent = true
+      focusOwner.value = this@button
+   }
 }
 
 fun <N: Node> showFloating(title: String, content: (PopWindow) -> N): PopWindow = PopWindow().apply {

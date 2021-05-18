@@ -40,7 +40,7 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
    private val okPane = StackPane()
    private val warnText = text()
    private val warnFlow = TextFlowWithNoWidth()
-   private val okB = okIcon { ok() }
+   private val okB = okIcon { ok() }.apply { styleClass += "form-ok-button" }
    private var editorsPane = ConfigPane<Any?>()
    private val anchorOk = 90.0
    private val anchorWarn = 20.0

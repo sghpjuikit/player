@@ -2786,17 +2786,30 @@ Shape, Text, TextFlow > * {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
+/*
+ * Default button with an icon for accepting things.
+ * inherits: .button
+ */
+.ok-button,
+.ok-button:focused,
+.ok-button:hover {
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+}
+.ok-button .icon {
+    -glyph-name: "OctIcon.CHECK";
+    -glyph-size: 2em; /* 24 */
+}
+
 /************************************ FORM ***************************************************************************
  * Form containing configuration of an object, also referred to as property sheet or settings.
  */
 
 /*
- * inherits: .icon
+ * inherits: .ok-button
  */
-.form-ok-button {
-    -glyph-name: "OctIcon.CHECK";
-    -glyph-size: 2em; /* 24 */
-}
+.form-ok-button {}
+.form-ok-button .icon {}
 
 /*
  * Layout for .config-editor. Inherently LEFT aligned.

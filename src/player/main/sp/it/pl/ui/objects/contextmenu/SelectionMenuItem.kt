@@ -1,13 +1,15 @@
 package sp.it.pl.ui.objects.contextmenu
 
 import java.util.function.Consumer
+import javafx.event.ActionEvent.ACTION
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
-import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.ui.objects.icon.CheckIcon
+import sp.it.util.access.toggle
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Subscription
-import sp.it.util.reactive.onChange
+import sp.it.util.reactive.attachTrue
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.styleclassToggle
 
@@ -36,13 +38,10 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Boolean = false): M
       icon.gap(0)
 
       // action = toggle selection
-      installOnMouseClick { selected.setValue(!selected.value) }
+      installOnMouseClick { selected.toggle() }
 
       // hide open submenu arrow if no children
-      styleClass.add(STYLECLASS_NO_CHILDREN)
-      items.onChange {
-         styleclassToggle(STYLECLASS_NO_CHILDREN, items.isEmpty())
-      }
+      items.onChangeAndNow { styleclassToggle(STYLECLASS_NO_CHILDREN, items.isEmpty()) }
    }
 
    /**
@@ -56,7 +55,8 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Boolean = false): M
     */
    private fun installOnMouseClick(block: () -> Unit) {
       mouseClicking?.unsubscribe()
-      mouseClicking = onEventDown(MOUSE_CLICKED) { block() }
+      mouseClicking = onEventDown(ACTION) { block() }
+
       icon.onClickDo { block() }
    }
 
@@ -70,13 +70,13 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Boolean = false): M
        * @param inputSelected must be in [inputs], by object reference
        */
       fun <I> buildSingleSelectionMenu(inputs: Collection<I>, inputSelected: I, toNameUi: (I) -> String, action: Consumer<I>): List<MenuItem> = inputs.asSequence()
-         .map { input: I ->
+         .map { input ->
             SelectionMenuItem(toNameUi(input), input===inputSelected).apply {
                icon.styleclass(STYLECLASS_ICON_SINGLE_SEL)
-               installOnMouseClick {
+               installOnMouseClick { selected.value = true }
+               selected attachTrue {
                   parentMenu.ifNotNull { p ->
-                     p.items.forEach { i: MenuItem -> (i as SelectionMenuItem).selected.value = false }
-                     selected.value = true
+                     p.items.forEach { i: MenuItem -> (i as SelectionMenuItem).selected.value = i===this }
                      action.accept(input)
                   }
                }

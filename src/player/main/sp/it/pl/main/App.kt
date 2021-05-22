@@ -90,7 +90,9 @@ import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
 import sp.it.util.type.raw
+import sp.it.util.ui.hBox
 import sp.it.util.ui.label
+import sp.it.util.ui.lay
 import sp.it.util.units.uri
 
 lateinit var APP: App
@@ -486,46 +488,43 @@ class App: Application(), GlobalConfigDelegator {
       }
       sources += Source("Components - open") {
          widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
-      } by { "Open widget ${it.name}" } toSource {
-         val id = if (it is WidgetFactory<*>) it.id else it.name
+      } by { "Open widget ${it.name}" } toSource { c ->
+         val id = if (c is WidgetFactory<*>) c.id else c.name
          val strategyCB = SpitComboBox<ComponentLoaderStrategy>({ it.toUi() }).apply {
             items setTo ComponentLoaderStrategy.values()
             value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: ComponentLoaderStrategy.DOCK
          }
-         Entry.of(
-            name = "Open widget ${it.name}",
-            icon = IconFA.TH_LARGE,
-            infoΛ = { "Open widget ${it.name}" },
-            graphics = strategyCB
-         ) {
-            strategyCB.value.loader(it.create())
-            widgetManager.widgets.componentLastOpenStrategiesMap(id, strategyCB.value)
+         val processCB = SpitComboBox<String>({ it.toUi() }).apply {
+            items setTo listOf("Normal", "New process")
+            value = "Normal"
          }
-      }
-      sources += Source("Components - open (in new process)") {
-         widgetManager.factories.getComponentFactories().filter { it.isUsableByUser() }
-      } by { "Open widget ${it.name} (in new process)" } toSource { c ->
-         SimpleEntry(
-            name = "Open widget ${c.name} (in new process)",
-            icon = IconFA.REFRESH,
-            infoΛ = { "Open widget ${c.name}\n\nOpens the widget in new process." }
+         Entry.of(
+            name = "Open widget ${c.name}",
+            icon = IconFA.TH_LARGE,
+            infoΛ = { "Open widget ${c.name}" },
+            graphics = hBox { lay += strategyCB; lay += processCB }
          ) {
-            val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
-            f.runAsAppProgram(
-               "Launching component ${c.name} in new process",
-               "--singleton=false", "--stateless=true", "open-component", c.name
-            )
+            if (processCB.value == "Normal") {
+               strategyCB.value.loader(c.create())
+               widgetManager.widgets.componentLastOpenStrategiesMap(id, strategyCB.value)
+            } else {
+               val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
+               f.runAsAppProgram(
+                  "Launching component ${c.name} in new process",
+                  "--singleton=false", "--stateless=true", "open-component", c.name
+               )
+            }
          }
       }
       sources += Source("Components - recompile") {
          widgetManager.factories.getFactories().filter { it.isUsableByUser() }
-      } by { "Recompile widget ${it.name}" } toSource {
+      } by { "Recompile widget ${it.name}" } toSource { c ->
          SimpleEntry(
-            name = "Recompile widget ${it.name}",
+            name = "Recompile widget ${c.name}",
             icon = IconFA.TH_LARGE,
-            infoΛ = { "Recompile widget ${it.name} and reload all of its instances upon success" }
+            infoΛ = { "Recompile widget ${c.name} and reload all of its instances upon success" }
          ) {
-            widgetManager.factories.recompile(it)
+            widgetManager.factories.recompile(c)
          }
       }
    }

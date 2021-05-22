@@ -55,10 +55,10 @@ fun String?.nullIfEmpty() = this?.takeUnless { it.isEmpty() }
 fun String?.nullIfBlank() = this?.takeUnless { it.isBlank() }
 
 /** @return plural of this word if count is more than 1 or this word otherwise */
-fun String.plural(count: Int = 2) = org.atteo.evo.inflector.English.plural(this, count)!!
+fun String.plural(count: Int = 2): String = org.atteo.evo.inflector.English.plural(this, if (count==0) 2 else count)
 
-/** @return text in format 'x units', where x is the specified count amd units [String.plural] of this string */
-fun String.pluralUnit(count: Int = 2) = "$count " + plural(count)
+/** @return text in format 'x units', where x is the specified count and units is [String.plural] of this string */
+fun String.pluralUnit(count: Int = 2): String = "$count " + plural(count)
 
 /** @return true iff this string is nonempty palindrome */
 fun String.isPalindrome(): Boolean = !isEmpty() && isPalindromeOrEmpty()

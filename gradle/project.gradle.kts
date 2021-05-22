@@ -87,14 +87,14 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.0-RC")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.0-RC")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.0-RC")
-         implementation("org.jetbrains", "annotations", "20.1.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.0")
+         implementation("org.jetbrains", "annotations", "21.0.0")
       }
 
       "JavaFX" group {
-         val version = "17-ea+9"
+         val version = "17-ea+11"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -160,8 +160,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.5.0")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.5.0")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.6.0")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.6.0")
       }
 
    }

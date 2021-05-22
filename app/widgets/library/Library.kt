@@ -67,15 +67,12 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
-import javafx.scene.input.KeyCode.CONTROL
-import javafx.scene.input.KeyCode.ESCAPE
-import javafx.scene.input.KeyCode.F
-import javafx.scene.input.MouseButton.SECONDARY
 import mu.KLogging
 import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.main.Css.Pseudoclasses.played
+import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_TABLE_NAME
-import sp.it.pl.main.toUi
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -83,7 +80,6 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
-import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.show
 import sp.it.util.units.version
@@ -165,14 +161,13 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
          SpitTableRow<Metadata>().apply {
             onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setNplayFrom(table.items, r.index) } }
             onRightSingleClick { r, e ->
-               // prep selection for context menu
-               if (!r.isSelected)
-                  t.selectionModel.clearAndSelect(r.index)
-
-               contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
-               contextMenuInstance.show(table, e)
+               if (!r.isSelected) t.selectionModel.clearAndSelect(r.index)
+               ValueContextMenu<MetadataGroup>().apply {
+                  setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
+                  show(table, e)
+               }
             }
-            styleRuleAdd(pcPlaying) { APP.audio.playingSong.value.same(it) }
+            styleRuleAdd(pseudoclass(played)) { APP.audio.playingSong.value.same(it) }
          }
       }
       APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
@@ -233,18 +228,14 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       table.setItemsRaw(items)
    }
 
-   private fun addDirectory() {
-      chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
-         APP.ui.actionPane.orBuild.show(it)
-         lastAddDirLocation = it.parentFile
-      }
+   private fun addDirectory() = chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
+      APP.ui.actionPane.orBuild.show(it)
+      lastAddDirLocation = it.parentFile
    }
 
-   private fun addFiles() {
-      chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
-         APP.ui.actionPane.orBuild.show(it)
-         lastAddFilesLocation = getCommonRoot(it)
-      }
+   private fun addFiles() = chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
+      APP.ui.actionPane.orBuild.show(it)
+      lastAddFilesLocation = getCommonRoot(it)
    }
 
    fun removeSongs(songs: List<Song>) {
@@ -268,30 +259,10 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
-      override val summaryActions = listOf(
-         Entry("Table", "Filter", keys(CONTROL, F)),
-         Entry("Table", "Filter (cancel)", ESCAPE.nameUi),
-         Entry("Table", "Filter (clear)", ESCAPE.nameUi),
-         Entry("Table", "Search", "Type text"),
-         Entry("Table", "Search (cancel)", ESCAPE.nameUi),
-         Entry("Table", "Selection (cancel)", ESCAPE.nameUi),
-         Entry("Table", "Scroll vertically", keys("Scroll")),
-         Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
-         Entry("Table columns", "Show column context menu", toUi()),
-         Entry("Table columns", "Swap columns", "Column drag"),
-         Entry("Table columns", "Sort - ${toUi()} | ${toUi()} | ${toUi()}", PRIMARY.nameUi),
-         Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
-         Entry("Table row", "Selects item", PRIMARY.nameUi),
-         Entry("Table row", "Show context menu", SECONDARY.nameUi),
+      override val summaryActions = HelpEntries.Table + listOf(
          Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
-         Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
-         Entry("Table row", "Add songs after row", "Drag & drop songs"),
-         Entry("Table footer", "Opens additional action menus", "Menu bar"),
       )
       override val group = LIBRARY
-
-      private val pcPlaying = pseudoclass("played")
-      private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
    }
 
 }

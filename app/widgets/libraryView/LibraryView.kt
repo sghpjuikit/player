@@ -55,8 +55,6 @@ import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.values
 import sp.it.util.functional.asIs
-import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.ifNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.attach
@@ -78,12 +76,12 @@ import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 import javafx.scene.input.KeyCode.*
-import javafx.scene.input.MouseButton.SECONDARY
 import mu.KLogging
 import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.main.Css.Pseudoclasses.played
+import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
-import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -178,22 +176,15 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
       table.rowFactory = Callback { t ->
          SpitTableRow<MetadataGroup>().apply {
-            styleRuleAdd(pcPlaying) { it.isPlaying() }
+            styleRuleAdd(pseudoclass(played)) { it.isPlaying() }
             onLeftDoubleClick { _, _ -> playSelected() }
             onRightSingleClick { row, e ->
-               // prep selection for context menu
-               if (!row.isSelected)
-                  t.selectionModel.clearAndSelect(row.index)
-
-               t.selectionModel.selectedItems.takeIf { it.size==1 }?.first()
-                  .ifNotNull {
-                     contextMenuInstance.setItemsFor(it)
-                     contextMenuInstance.show(table, e)
-                  }
-                  .ifNull {
-                     contextMenuInstance.setItemsFor(MetadataGroup.groupOfUnrelated(filerSortInputList()))
-                     contextMenuInstance.show(table, e)
-                  }
+               if (!row.isSelected) t.selectionModel.clearAndSelect(row.index)
+               val data = t.selectionModel.selectedItems.takeIf { it.size==1 }?.first() ?: MetadataGroup.groupOfUnrelated(filerSortInputList())
+               ValueContextMenu<MetadataGroup>().apply {
+                  setItemsFor(data)
+                  show(table, e)
+               }
             }
          }
       }
@@ -386,30 +377,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
-      override val summaryActions = listOf(
-         Entry("Table", "Filter", keys(CONTROL, F)),
-         Entry("Table", "Filter (cancel)", ESCAPE.nameUi),
-         Entry("Table", "Filter (clear)", ESCAPE.nameUi),
-         Entry("Table", "Search", "Type text"),
-         Entry("Table", "Search (cancel)", ESCAPE.nameUi),
-         Entry("Table", "Selection (cancel)", ESCAPE.nameUi),
-         Entry("Table", "Scroll vertically", keys("Scroll")),
-         Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
-         Entry("Table columns", "Show column context menu", toUi()),
-         Entry("Table columns", "Swap columns", "Column drag"),
-         Entry("Table columns", "Sort - ${toUi()} | ${toUi()} | ${toUi()}", PRIMARY.nameUi),
-         Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
-         Entry("Table row", "Selects item", PRIMARY.nameUi),
-         Entry("Table row", "Show context menu", SECONDARY.nameUi),
+      override val summaryActions = HelpEntries.Table + listOf(
          Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
-         Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
-         Entry("Table row", "Add songs after row", "Drag & drop songs"),
-         Entry("Table footer", "Opens additional action menus", "Menu bar"),
       )
       override val group = LIBRARY
-
-      private val pcPlaying = pseudoclass("played")
-      private val contextMenuInstance by lazy { ValueContextMenu<MetadataGroup>() }
    }
 
 }

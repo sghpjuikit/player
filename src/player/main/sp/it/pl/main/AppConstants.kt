@@ -6,6 +6,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import sp.it.pl.layout.widget.WidgetManager.FactoryRef
 import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.Sort
 import sp.it.util.dev.failIf
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.MimeTypes
@@ -51,6 +52,9 @@ object Ui {
 
 object Css {
    const val DESCRIPTION = "description"
+   object Pseudoclasses {
+      const val played = "played"
+   }
 }
 
 object FileExtensions {
@@ -112,6 +116,25 @@ object Events {
 }
 
 object HelpEntries {
+    val Table = listOf(
+       Entry("Table", "Filter", keys("CTRL+F")),
+       Entry("Table", "Filter (cancel)", ESCAPE.nameUi),
+       Entry("Table", "Filter (clear)", ESCAPE.nameUi),
+       Entry("Table", "Search", "Type text"),
+       Entry("Table", "Search (cancel)", ESCAPE.nameUi),
+       Entry("Table", "Selection (cancel)", ESCAPE.nameUi),
+       Entry("Table", "Scroll vertically", keys("Scroll")),
+       Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
+       Entry("Table columns", "Show column context menu", SECONDARY.toUi()),
+       Entry("Table columns", "Swap columns", "Column drag"),
+       Entry("Table columns", "Sort ${Sort.values().joinToString(" | ") { it.toUi() }}", PRIMARY.nameUi),
+       Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
+       Entry("Table row", "Selects item", PRIMARY.nameUi),
+       Entry("Table row", "Show context menu", SECONDARY.nameUi),
+       Entry("Table row", "Move song within playlist", keys("CTRL+Drag")),
+       Entry("Table row", "Add items after row", "Drag & drop items"),
+       Entry("Table footer", "Opens additional action menus", "Menu bar"),
+    )
     val Grid = listOf(
       Entry("Grid", "Filter", keys("CTRL+F")),
       Entry("Grid", "Filter (cancel)", ESCAPE.nameUi),

@@ -4,7 +4,6 @@ import java.io.File
 import java.util.HashMap
 import java.util.Objects
 import java.util.UUID
-import java.util.function.Consumer
 import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.value.ChangeListener
 import javafx.geometry.Insets
@@ -24,7 +23,6 @@ import sp.it.pl.layout.widget.controller.LoadErrorController
 import sp.it.pl.layout.widget.controller.NoFactoryController
 import sp.it.pl.layout.widget.controller.io.IOLayer
 import sp.it.pl.layout.widget.controller.io.Input
-import sp.it.pl.layout.widget.controller.io.Output
 import sp.it.pl.main.APP
 import sp.it.util.Locatable
 import sp.it.util.access.readOnly

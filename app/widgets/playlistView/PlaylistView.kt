@@ -1,9 +1,7 @@
 package playlistView
 
 import javafx.scene.control.SelectionMode.MULTIPLE
-import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseButton.SECONDARY
 import javafx.stage.FileChooser
 import mu.KLogging
 import sp.it.pl.audio.playlist.Playlist
@@ -25,11 +23,9 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.PLAYLIST_NAME
 import sp.it.pl.main.emScaled
-import sp.it.pl.main.toUi
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.table.PlaylistTable
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.Sort
 import sp.it.util.access.toggle
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
@@ -62,6 +58,7 @@ import sp.it.util.units.year
 import java.io.File
 import java.util.UUID
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import sp.it.pl.main.HelpEntries
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
@@ -219,7 +216,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
    companion object: WidgetCompanion, KLogging() {
       override val name = PLAYLIST_NAME
-      override val description = "Contains playlist table"
+      override val description = "Playlist table controlling playback song order"
       override val descriptionLong = "$description. Highlights playing and unplayable songs"
       override val icon = IconUN(0x2e2a)
       override val version = version(1, 0, 0)
@@ -227,25 +224,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
-      override val summaryActions = listOf(
-         Entry("Table", "Filter", keys("CTRL+F")),
-         Entry("Table", "Filter (cancel)", KeyCode.ESCAPE.nameUi),
-         Entry("Table", "Filter (clear)", KeyCode.ESCAPE.nameUi),
-         Entry("Table", "Search", "Type text"),
-         Entry("Table", "Search (cancel)", KeyCode.ESCAPE.nameUi),
-         Entry("Table", "Selection (cancel)", KeyCode.ESCAPE.nameUi),
-         Entry("Table", "Scroll vertically", keys("Scroll")),
-         Entry("Table", "Scroll horizontally", keys("Scroll+SHIFT")),
-         Entry("Table columns", "Show column context menu", SECONDARY.toUi()),
-         Entry("Table columns", "Swap columns", "Column drag"),
-         Entry("Table columns", "Sort - ${Sort.ASCENDING.toUi()} | ${Sort.DESCENDING.toUi()} | ${Sort.NONE.toUi()}", PRIMARY.nameUi),
-         Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
-         Entry("Table row", "Selects item", PRIMARY.nameUi),
-         Entry("Table row", "Show context menu", SECONDARY.nameUi),
-         Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
-         Entry("Table row", "Move song within playlist", keys("Song drag+CTRL")),
-         Entry("Table row", "Add songs after row", "Drag & drop songs"),
-         Entry("Table footer", "Opens additional action menus", "Menu bar"),
+      override val summaryActions = HelpEntries.Table + listOf(
+         Entry("Table row", "Play item", "2x${PRIMARY.nameUi}"),
       )
       override val group = PLAYLIST
    }

@@ -104,10 +104,8 @@ public class SpitTableRow<T> extends TableRow<T> {
 	 */
 	public void updateStyleRules() {
 		if (isEmpty()) return;
-		styleRules.forEach(rule -> {
-			boolean v = rule.condition.test(getItem());
-			pseudoClassStateChanged(rule.pseudoclass, v);
-		});
+		var i = getItem();
+		styleRules.forEach(rule -> pseudoClassStateChanged(rule.pseudoclass, rule.condition.test(i)));
 	}
 
 	private static class Rule<T> {

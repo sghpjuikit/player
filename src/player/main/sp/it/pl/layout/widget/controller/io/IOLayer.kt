@@ -675,18 +675,38 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
       fun layInputs(inX: Double, inY: Double, outX: Double, outY: Double) {
          layInit(inX, inY, outX, outY)
-         elements += MoveTo(inX + loX(1.0, 1.0), inY - loY(1.0, 1.0))
-         elements += LineTo(inX + linkGap, inY - linkGap)
-         elements += LineTo(outX + linkGap, outY + linkGap)
-         elements += LineTo(outX + loX(1.0, 1.0), outY + loY(1.0, 1.0))
+         when (dataConnection.value!!) {
+            ELECTRONIC -> {
+               elements += MoveTo(inX + loX(1.0, 1.0), inY - loY(1.0, 1.0))
+               elements += LineTo(inX + linkGap, inY - linkGap)
+               elements += LineTo(outX + linkGap, outY + linkGap)
+               elements += LineTo(outX + loX(1.0, 1.0), outY + loY(1.0, 1.0))
+            }
+            BEZIER, LINE -> {
+               val dx = (outX - inX).sign
+               val dy = (outY - inY).sign
+               elements += MoveTo(inX + loX(dx, dy), inY + loY(dx, dy))
+               elements += LineTo(outX - loX(dx, dy), outY - loY(dx, dy))
+            }
+         }
       }
 
       fun layOutputs(inX: Double, inY: Double, outX: Double, outY: Double) {
          layInit(inX, inY, outX, outY)
-         elements += MoveTo(inX - loX(1.0, 1.0), inY + loY(1.0, 1.0))
-         elements += LineTo(inX - linkGap, inY + linkGap)
-         elements += LineTo(outX - linkGap, outY - linkGap)
-         elements += LineTo(outX - loX(1.0, 1.0), outY - loY(1.0, 1.0))
+         when (dataConnection.value!!) {
+            ELECTRONIC -> {
+               elements += MoveTo(inX - loX(1.0, 1.0), inY + loY(1.0, 1.0))
+               elements += LineTo(inX - linkGap, inY + linkGap)
+               elements += LineTo(outX - linkGap, outY - linkGap)
+               elements += LineTo(outX - loX(1.0, 1.0), outY - loY(1.0, 1.0))
+            }
+            BEZIER, LINE -> {
+               val dx = (outX - inX).sign
+               val dy = (outY - inY).sign
+               elements += MoveTo(inX + loX(dx, dy), inY + loY(dx, dy))
+               elements += LineTo(outX - loX(dx, dy), outY - loY(dx, dy))
+            }
+         }
       }
 
       @Suppress("LocalVariableName", "CanBeVal")
@@ -710,11 +730,10 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
                elements += CubicCurveTo(inX + cx, inY, outX - cx, outY, outX - loX(dx, 0.0), outY - loY(dx, 0.0))
             }
             LINE -> {
-               elements += MoveTo(inX + loX(dx, 0.0), inY + loY(dx, 0.0))
-               elements += LineTo(outX - loX(dx, 0.0), outY - loY(dx, 0.0))
+               elements += MoveTo(inX + loX(dx, dy), inY + loY(dx, dy))
+               elements += LineTo(outX - loX(dx, dy), outY - loY(dx, dy))
             }
          }
-
       }
 
       fun layInit(inX: Double, inY: Double, outX: Double, outY: Double) {

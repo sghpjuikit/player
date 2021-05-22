@@ -427,7 +427,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
 
       val filesOld = dir.children().toSet()
-      val ws = windows.filter { it!==dockWindow }
+      val ws = windows.filter { it!==dockWindow && it.layout!=null }
       logger.info { "Serializing ${ws.size} application windows" }
 
       // serialize - for now each window to its own file with .ws extension

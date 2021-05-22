@@ -3373,6 +3373,10 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: rgba(0,0,0,0);
     -glyph-gap: 0;
 }
+.icon-file-grid-cell:selected .icon {
+    -fx-fill: -skin-def-font-color-hover;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
 
 /***************************** FONT PICKER DIALOG *****************************
  * Font picker dialog

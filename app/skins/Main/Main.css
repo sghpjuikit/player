@@ -677,7 +677,7 @@
 /*********************************** Text *************************************/
 
 /* The reference for direct class !work when subclassing, hence TextFlow > * to allow TextFlow wrapping Text hack */
-Shape, Text, TextFlow > * {
+Shape, Text, SpitText, TextFlow > * {
     -fx-fill: -skin-def-font-color;
 }
 

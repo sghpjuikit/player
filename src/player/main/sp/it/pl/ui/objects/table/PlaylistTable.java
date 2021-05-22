@@ -6,9 +6,9 @@ import java.util.List;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumnBase;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -73,8 +73,10 @@ import static sp.it.util.units.DurationKt.toHMSMs;
  */
 public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
-	private static final PseudoClass STYLE_CORRUPT = pseudoclass("corrupt");
-	private static final PseudoClass STYLE_PLAYED = pseudoclass("played");
+	public static final Insets CELL_PADDING = new Insets(0.0, 8.0, 0.0, 8.0);
+	public static final double CELL_PADDING_WIDTH = CELL_PADDING.getLeft() + CELL_PADDING.getRight();
+	public static final PseudoClass STYLE_CORRUPT = pseudoclass("corrupt");
+	public static final PseudoClass STYLE_PLAYED = pseudoclass("played");
 	private static final ValueContextMenu<PlaylistSongGroup> contextMenu = new ValueContextMenu<>();
 
 	public final @NotNull V<@NotNull Boolean> scrollToPlaying = new V<>(true);
@@ -158,12 +160,12 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			var sw = getVScrollbarWidth();
 			var gap = 3;               // prevents horizontal slider from appearing
 
-			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth()));
+			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth() + CELL_PADDING_WIDTH));
 			getColumn(LENGTH).ifPresent(c -> {
 				var maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
 				var maxLengthText = toHMSMs(new Duration(maxLength));
 				var font = getFontOrNull(c);
-				var width = font == null ? 100.0 : computeTextWidth(font, maxLengthText) + 7;
+				var width = font == null ? 100.0 : computeTextWidth(font, maxLengthText) + 7 + CELL_PADDING_WIDTH;
 				c.setPrefWidth(width);
 			});
 
@@ -171,7 +173,8 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			if (mc!=null) {
 				double sumW = resize.getTable().getColumns().stream()
 						.filter(c -> c!=mc)
-						.mapToDouble(TableColumnBase::getWidth).sum();
+						.mapToDouble(c -> c.getWidth() + CELL_PADDING_WIDTH)
+						.sum();
 				mc.setPrefWidth(tw - sumW - sw - gap);
 			}
 			return true; // false/true, does not matter

@@ -1,6 +1,5 @@
 package sp.it.pl.ui.objects.table
 
-import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Label
@@ -13,6 +12,7 @@ import javafx.scene.control.skin.TableHeaderRow
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
+import sp.it.pl.ui.objects.table.PlaylistTable.CELL_PADDING
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.functional.asIs
 import sp.it.util.type.Util.getFieldValue
@@ -30,7 +30,7 @@ fun <T, X> ObjectField<T, X>.buildFieldedCell(): TableCell<T, X> = let { f ->
       init {
          alignment = if (f.type.isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
          textAlignment = if (f.type.isSubclassOf<String>()) LEFT else RIGHT
-         padding = Insets.EMPTY
+         padding = CELL_PADDING
       }
 
       override fun updateItem(item: X, empty: Boolean) {

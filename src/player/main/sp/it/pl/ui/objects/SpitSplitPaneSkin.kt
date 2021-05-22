@@ -25,8 +25,8 @@ open class SpitSplitPaneSkin(splitPane: SplitPane): SplitPaneSkin(splitPane) {
    private val onDispose = Disposer()
 
    init {
-      initFixConsumingMouseClicks()
       initHoverAnimation()
+      initFixConsumingMouseClicks()
    }
 
    override fun dispose() {
@@ -41,6 +41,7 @@ open class SpitSplitPaneSkin(splitPane: SplitPane): SplitPaneSkin(splitPane) {
          skinnable?.parent?.fireEvent(
             it.copyFor(it.source, skinnable?.parent!!)
          )
+         it.consume()
       }
    }
 

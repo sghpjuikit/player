@@ -10,6 +10,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.Pane
+import javafx.scene.layout.StackPane
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
@@ -74,9 +75,10 @@ import sp.it.util.units.seconds
 class Notifier: PluginBase() {
 
    private val onStop = Disposer()
-   private val ns = mutableListOf<Notification>()
+   private val ns = mutableSetOf<Notification>()
    private lateinit var songNotificationGui: Node
    private lateinit var songNotificationInfo: SongReader
+   private var statusNotificationInfo: StackPane? = null
 
    val notifySources by cList<NotifySource<Any>>()
       .noPersist().readOnly().butElement { uiConverter { it.name } }
@@ -224,11 +226,16 @@ class Notifier: PluginBase() {
    private fun playbackChange(status: Status) {
       if (status==PAUSED || status==PLAYING || status==STOPPED) {
          val title = "Playback change : $status"
-         val i = ItemInfo(false).apply {
-            read(APP.audio.playingSong.value)
+         val i = (statusNotificationInfo ?: StackPane()).apply {
+            lay += ItemInfo(false).apply {
+               read(APP.audio.playingSong.value)
+            }
          }
+         statusNotificationInfo = i
 
-         showNotification(title, i)
+         showNotification(title, i).apply {
+            onHidden += { statusNotificationInfo = null }
+         }
       }
    }
 

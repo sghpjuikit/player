@@ -50,6 +50,8 @@ import sp.it.util.ui.x2
 import kotlin.math.absoluteValue
 import kotlin.reflect.KProperty0
 import sp.it.util.access.toggle
+import sp.it.util.ui.hasFocus
+import sp.it.util.ui.size
 
 class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
    private val root1 = AnchorPane()
@@ -186,16 +188,25 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
             }
       }
 
+      // toggle collapsed mode
+      splitPane.onEventUp(MOUSE_CLICKED, PRIMARY, false) {
+         if (it.clickCount == 2 && isOverDivider(it)) {
+            collapsed = when {
+               collapsed != 0 -> 0
+               absoluteSize != 0 -> (absoluteSize-1)*2-1
+               else -> null
+                  ?: sequenceOf(root1 to -1, root2 to 1).find { it.first.hasFocus() }?.second
+                  ?: sequenceOf(root1 to -1, root2 to 1).minByOrNull { it.first.layoutBounds.size.let { it.x * it.y } }?.second
+                  ?: -1
+            }
+            it.consume()
+         }
+      }
       // toggle joined mode
       splitPane.onEventUp(MOUSE_CLICKED, SECONDARY, false) {
-         if (it.clickCount == 2) {
-            val vRaw = when (splitPane.orientation!!) {
-               HORIZONTAL -> splitPane.sceneToLocal(it.sceneX, 0.0).x/splitPane.width
-               VERTICAL -> splitPane.sceneToLocal(0.0, it.sceneY).y/splitPane.height
-            }
-            if ((splitPane.dividers[0].position-vRaw).absoluteValue<=collapsedActivatorDist) {
-               c.joined.toggle()
-            }
+         if (it.clickCount == 2 && isOverDivider(it)) {
+            c.joined.toggle()
+            it.consume()
          }
       }
    }
@@ -203,6 +214,14 @@ class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
    override fun buildControls() = super.buildControls().apply {
       val orientB = Icon(MAGIC, -1.0, "Change orientation").addExtraIcon(1).onClickDo { container.orientation.toggleNext() }.styleclass("header-icon")
       container.orientation sync { orientB.icon(if (it==VERTICAL) ELLIPSIS_V else ELLIPSIS_H) } on disposer
+   }
+
+   private fun isOverDivider(e: MouseEvent): Boolean {
+      val vRaw = when (splitPane.orientation!!) {
+         HORIZONTAL -> splitPane.sceneToLocal(e.sceneX, 0.0).x/splitPane.width
+         VERTICAL -> splitPane.sceneToLocal(0.0, e.sceneY).y/splitPane.height
+      }
+      return (splitPane.dividers[0].position-vRaw).absoluteValue<=collapsedActivatorDist
    }
 
    private fun updatePosition(position: Double = computePosition()) {

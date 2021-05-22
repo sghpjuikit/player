@@ -54,7 +54,6 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.reactive.syncFrom
 import sp.it.util.system.chooseFile
 import sp.it.util.system.chooseFiles
 import sp.it.util.text.pluralUnit
@@ -80,6 +79,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
+import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.show
 import sp.it.util.units.version
@@ -91,15 +91,15 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
    private val outputSelected = io.o.create<Metadata?>("Selected", null)
    private val inputItems = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
-   val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)
+   val tableOrient by cOr(APP.ui::tableOrient, table.nodeOrientationProperty(), Inherit(), onClose)
       .defInherit(APP.ui::tableOrient)
-   val tableZeropad by cOr(APP.ui::tableZeropad, Inherit(), onClose)
+   val tableZeropad by cOr(APP.ui::tableZeropad, table.zeropadIndex, Inherit(), onClose)
       .defInherit(APP.ui::tableZeropad)
-   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, Inherit(), onClose)
+   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, table.showOriginalIndex,  Inherit(), onClose)
       .defInherit(APP.ui::tableOrigIndex)
-   val tableShowHeader by cOr(APP.ui::tableShowHeader, Inherit(), onClose)
+   val tableShowHeader by cOr(APP.ui::tableShowHeader, table.headerVisible, Inherit(), onClose)
       .defInherit(APP.ui::tableShowHeader)
-   val tableShowFooter by cOr(APP.ui::tableShowFooter, Inherit(), onClose)
+   val tableShowFooter by cOr(APP.ui::tableShowFooter, table.footerVisible, Inherit(), onClose)
       .defInherit(APP.ui::tableShowFooter)
    private var lastAddFilesLocation by cn<File>(APP.location.user).noUi()
       .def(name = "Last add songs browse location", editable = EditMode.APP)
@@ -113,22 +113,15 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       // table properties
       table.selectionModel.selectionMode = MULTIPLE
       table.search.setColumn(TITLE)
-      table.nodeOrientationProperty() syncFrom tableOrient on onClose
-      table.zeropadIndex syncFrom tableZeropad on onClose
-      table.showOriginalIndex syncFrom tableOrigIndex on onClose
-      table.headerVisible syncFrom tableShowHeader on onClose
-      table.footerVisible syncFrom tableShowFooter on onClose
-      table.items_info.textFactory = { all, list ->
-         DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.getLengthInMs() }.millis.toHMSMs()
-      }
+      table.items_info.textFactory = { all, list -> DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.getLengthInMs() }.millis.toHMSMs() }
 
-      // add more menu items
+      // add menu items
       table.menuAdd.dsl {
          item("Add files") { addFiles() }
          item("Add directory") { addDirectory() }
       }
       table.menuRemove.dsl {
-         item("Remove selected songs from library") { removeSongs(table.selectedItems) }
+         item("Remove selected songs from library (${keys(DELETE)})") { removeSongs(table.selectedItems) }
          item("Remove all shown songs from library") { removeSongs(table.items) }
          item("Remove all songs from library") { APP.db.removeAllSongs() }
          item("Remove missing songs from library") {

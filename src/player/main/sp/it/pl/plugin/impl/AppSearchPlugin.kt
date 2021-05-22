@@ -65,7 +65,6 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.reactive.syncFrom
 import sp.it.util.system.Os
 import sp.it.util.system.isExecutable
 import sp.it.util.system.open
@@ -233,9 +232,9 @@ class AppSearchPlugin: PluginBase() {
       private val grid = GridView<Item, File>(Item::value, 50.emScaled.x2, 50.emScaled.x2)
       private val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
-      val gridShowFooter by cOr(APP.ui::gridShowFooter, Inherit(), onClose)
+      val gridShowFooter by cOr(APP.ui::gridShowFooter, grid.footerVisible, Inherit(), onClose)
          .defInherit(APP.ui::gridShowFooter)
-      val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+      val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Inherit(), onClose)
          .defInherit(APP.ui::gridCellAlignment)
       private val visitId = AtomicLong(0)
       private var item: Item? = null   // item, children of which are displayed
@@ -247,8 +246,6 @@ class AppSearchPlugin: PluginBase() {
          grid.filterPrimaryField = FileField.PATH
          grid.selectOn setTo listOf(KEY_PRESS, MOUSE_CLICK, MOUSE_HOVER)
          grid.cellFactory.value = { Cell() }
-         grid.cellAlign syncFrom gridCellAlignment on onClose
-         grid.footerVisible syncFrom gridShowFooter on onClose
          root.lay += grid
 
          grid.onEventDown(KEY_PRESSED, ENTER, false) { e ->

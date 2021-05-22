@@ -44,24 +44,21 @@ public class ImprovedTable<T> extends TableView<T> {
 	public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true) {
 		@Override
 		public void set(boolean v) {
-			super.set(v);
-			refreshColumn(columnIndex);
+			if (get()!=v) {
+				super.set(v);
+				refreshColumn(columnIndex);
+			}
 		}
 	};
 	/** Visibility of columns header. Default true. */
 	public final BooleanProperty headerVisible = new SimpleBooleanProperty(true) {
 		@Override
-		public boolean get() {
-			// return super.get();
-			Pane header = (Pane) lookup("TableHeaderRow");
-			return header==null || header.isVisible();
-		}
-
-		@Override
 		public void set(boolean v) {
-			super.set(v);
-			if (v) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
-			else getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
+			if (get()!=v) {
+				super.set(v);
+				if (v) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
+				else getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
+			}
 		}
 	};
 

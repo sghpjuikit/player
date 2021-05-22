@@ -15,6 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -49,7 +50,10 @@ import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.scene.input.KeyCode.A;
+import static javafx.scene.input.KeyCode.CONTROL;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
@@ -71,6 +75,7 @@ import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.attachSize;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.reactive.UtilKt.syncSize;
+import static sp.it.util.text.StringExtensionsKt.keys;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.UtilKt.menuItem;
 
@@ -266,48 +271,11 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 	};
 
-	/******************************* BOTTOM CONTROLS ******************************/
-
-	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
-	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
-	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-		menuItem("Select all", consumer(e -> selectAll())),
-		menuItem("Select none", consumer(e -> selectNone())),
-		menuItem("Select inverse", consumer(e -> selectInverse()))
-	);
-	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded(),
-		new Menu("Order by", null,
-			getFields().stream()
-				.filter(f -> f!=ColumnField.INDEX)
-				.map(f -> menuItem(f.name(), consumer(it -> sortBy(f, SortType.DESCENDING))))
-				.toArray(MenuItem[]::new)
-		),
-		menuItem("Order reverse", consumer(it -> sortReverse())),
-		menuItem("Order randomly", consumer(it -> sortRandomly()))
-	);
-	/** Table menubar in the bottom with menus. Feel free to modify. */
-	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder);
-	/**
-	 * Labeled in the bottom displaying information on table items and selection.
-	 * Feel free to provide custom implementation of {@link TableInfo#setTextFactory(kotlin.jvm.functions.Function2)}
-	 * to display different information. You may want to reuse
-	 * {@link TableInfo#DEFAULT_TEXT_FACTORY}.
-	 */
-	public final TableInfo<T> items_info = new TableInfo<>(new Label()); // can not bind here as table items list not ready
-	private final Label searchQueryLabel = new Label();
-	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, items_info.getNode());
-	private final HBox bottomRightPane = layHorizontally(5, CENTER_RIGHT, searchQueryLabel);
-	/**
-	 * Pane for controls in the bottom of the table.
-	 * Feel free to modify its content. Menubar and item info label are on the
-	 * left {@link BorderPane#leftProperty()}. Search query label is on the right {@link BorderPane#rightProperty()}.
-	 * Both wrapped in {@link HBox};
-	 */
-	public final BorderPane footerPane = new BorderPane(null, null, bottomRightPane, null, bottomLeftPane);
+/* --------------------- BOTTOM CONTROLS ---------------------------------------------------------------------------- */
 
 	/**
 	 * Visibility of the bottom controls and information panel.
-	 * Displays information about table items and menubar.
+	 * Displays information about table items and menu-bar.
 	 */
 	public final BooleanProperty footerVisible = new SimpleBooleanProperty(true) {
 		@Override
@@ -321,6 +289,49 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			}
 		}
 	};
+
+	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
+	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
+	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
+		menuItem("Select all (" + keys(CONTROL, A) + ")", consumer(e -> selectAll())),
+		menuItem("Select none (" + keys(ESCAPE) + ")", consumer(e -> selectNone())),
+		menuItem("Select inverse", consumer(e -> selectInverse()))
+	);
+	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.SORT).embedded(),
+		new Menu("Order by column", null,
+			fields.stream()
+				.filter(f -> f!=ColumnField.INDEX)
+				.map(f -> menuItem(f.name(), consumer(it -> sortBy(f, SortType.DESCENDING))))
+				.toArray(MenuItem[]::new)
+		),
+		menuItem("Order reverse", consumer(it -> sortReverse())),
+		menuItem("Order randomly", consumer(it -> sortRandomly()))
+	);
+	public final Menu menuColumns = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded().onClickDo(consumer(it -> columnMenu.show(this, Side.RIGHT, 0.0, 0.0))));
+	public final Menu menuExtra = new Menu("", new Icon(FontAwesomeIcon.TASKS).embedded(),
+		new SelectionMenuItem("Show filter (" + keys(CONTROL, F) + ")", filterVisible),
+		new SelectionMenuItem("Show header", headerVisible),
+		new SelectionMenuItem("Show footer", footerVisible)
+	);
+	/** Table menubar in the bottom with menus. Feel free to modify. */
+	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder, menuColumns, menuExtra);
+	/**
+	 * Labeled in the bottom displaying information on table items and selection.
+	 * Feel free to provide custom implementation of {@link TableInfo#setTextFactory(kotlin.jvm.functions.Function2)}
+	 * to display different information. You may want to reuse
+	 * {@link TableInfo#DEFAULT_TEXT_FACTORY}.
+	 */
+	public final TableInfo<T> items_info = new TableInfo<>(new Label()); // can not bind here as table items list not ready
+	private final Label searchQueryLabel = new Label();
+	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, items_info.getNode());
+	private final HBox bottomRightPane = layHorizontally(5, CENTER_RIGHT, searchQueryLabel);
+	/**
+	 * Pane for controls in the bottom of the table.
+	 * Feel free to modify its content. Menu-bar and item info label are on the
+	 * left {@link BorderPane#leftProperty()}. Search query label is on the right {@link BorderPane#rightProperty()}.
+	 * Both wrapped in {@link HBox};
+	 */
+	public final BorderPane footerPane = new BorderPane(null, null, bottomRightPane, null, bottomLeftPane);
 
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T,Object>> {
@@ -401,7 +412,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			columnMenu.getItems().add(menu);
 			columnMenu.addEventHandler(WINDOW_HIDDEN, e -> menu.getItems().clear());
 			columnMenu.addEventHandler(WINDOW_SHOWING, e -> menu.getItems().addAll(
-				SelectionMenuItem.Companion.buildSingleSelectionMenu(filter(getFieldsAll(), ObjectField::searchSupported), field, ObjectField::name, this::setColumn)
+				SelectionMenuItem.Companion.buildSingleSelectionMenu(filter(fieldsAll, ObjectField::searchSupported), field, ObjectField::name, this::setColumn)
 			));
 		}
 

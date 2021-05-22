@@ -43,7 +43,6 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.syncFrom
 import sp.it.util.system.saveFile
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
@@ -70,17 +69,17 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
    private var outputSelected = io.o.create<PlaylistSong?>("Selected", null)
    private var outputPlaying = io.o.create<PlaylistSong?>("Playing", null)
 
-   val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)
+   val tableOrient by cOr(APP.ui::tableOrient, table.nodeOrientationProperty(), Inherit(), onClose)
       .defInherit(APP.ui::tableOrient)
-   val tableZeropad by cOr(APP.ui::tableZeropad, Inherit(), onClose)
+   val tableZeropad by cOr(APP.ui::tableZeropad, table.zeropadIndex, Inherit(), onClose)
       .defInherit(APP.ui::tableZeropad)
-   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, Inherit(), onClose)
+   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, table.showOriginalIndex,  Inherit(), onClose)
       .defInherit(APP.ui::tableOrigIndex)
-   val tableShowHeader by cOr(APP.ui::tableShowHeader, Inherit(), onClose)
+   val tableShowHeader by cOr(APP.ui::tableShowHeader, table.headerVisible, Inherit(), onClose)
       .defInherit(APP.ui::tableShowHeader)
-   val tableShowFooter by cOr(APP.ui::tableShowFooter, Inherit(), onClose)
+   val tableShowFooter by cOr(APP.ui::tableShowFooter, table.footerVisible, Inherit(), onClose)
       .defInherit(APP.ui::tableShowFooter)
-   val scrollToPlaying by cv(true)
+   val scrollToPlaying by cv(table.scrollToPlaying)
       .def(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
    val playVisible by cv(false)
       .def(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
@@ -109,12 +108,6 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.items_info.textFactory = { all, list ->
          DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.timeMs }.millis.toHMSMs()
       }
-      table.nodeOrientationProperty() syncFrom tableOrient on onClose
-      table.zeropadIndex syncFrom tableZeropad on onClose
-      table.showOriginalIndex syncFrom tableOrigIndex on onClose
-      table.headerVisible syncFrom tableShowHeader on onClose
-      table.footerVisible syncFrom tableShowFooter on onClose
-      table.scrollToPlaying syncFrom scrollToPlaying on onClose
       table.defaultColumnInfo   // trigger menu initialization
       table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() }
          ?: table.defaultColumnInfo
@@ -159,7 +152,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          item("Remove duplicates") { playlist.removeDuplicates() }
          item("Remove all") { playlist.clear() }
       }
-      table.menuOrder.dsl {
+      table.menuExtra.dsl {
          item("Edit selected") { APP.widgetManager.widgets.use<SongReader>(NO_LAYOUT) { it.read(table.selectedItems) } }
          item("Save playlist") {
             saveFile(

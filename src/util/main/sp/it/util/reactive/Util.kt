@@ -18,6 +18,7 @@ import javafx.collections.SetChangeListener
 import javafx.scene.Node
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import sp.it.util.access.OrV
 import sp.it.util.async.runLater
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.dev.Experimental
@@ -292,6 +293,18 @@ infix fun <O> Property<O>.syncBiFrom(w: Property<O>): Subscription {
    value = w.value
    bindBidirectional(w)
    return Subscription { unbindBidirectional(w) }
+}
+
+/** Binds the two properties bi-directionally using the specified value as the initial value. The specified value may be set to [OrV.State.OVERRIDE] if this changes */
+infix fun <T> Property<T>.syncBiFromWithOverride(or: OrV<T>): Subscription {
+   return Subscription(
+      this syncFrom or,
+      this sync {
+         val wasSame = it==or.value
+         if (!wasSame) or.value = it
+         if (!or.override.value && !wasSame) or.override.value = true
+      }
+   )
 }
 
 /** @returns observable size of this list */

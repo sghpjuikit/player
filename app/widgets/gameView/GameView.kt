@@ -150,11 +150,12 @@ import sp.it.util.units.year
 
 class GameView(widget: Widget): SimpleController(widget) {
 
+   val grid = GridView<Item, File>({ it.value }, 50.x2, 10.x2)
    private val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
-   val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, grid.footerVisible, Override(false), onClose)
       .defInherit(APP.ui::gridShowFooter)
-   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Inherit(), onClose)
       .defInherit(APP.ui::gridCellAlignment)
    val gridCellSize by cv(CellSize.NORMAL)
       .def(name = "Thumbnail size", info = "Size of the thumbnail.").uiNoOrder() attach { applyCellSize() }
@@ -167,7 +168,6 @@ class GameView(widget: Widget): SimpleController(widget) {
    val filesRefresh by cr { viewGames() }
       .def(name = "Location (refresh)", info = "Reloads location and reloads the view.")
 
-   val grid = GridView<Item, File>({ it.value }, 50.x2, 10.x2)
    val placeholder = lazy {
       Placeholder(IconMD.FOLDER_PLUS, "Click to add directory to library") {
          chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window)
@@ -185,8 +185,6 @@ class GameView(widget: Widget): SimpleController(widget) {
          filterPrimaryField = FileField.NAME_FULL
          cellFactory.value = { Cell() }
          selectOn setTo GridView.SelectionOn.values()
-         cellAlign syncFrom gridCellAlignment on onClose
-         footerVisible syncFrom gridShowFooter on onClose
          grid.skinProperty() attach {
             it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {
                item("Refresh (${keys("F5")})") {

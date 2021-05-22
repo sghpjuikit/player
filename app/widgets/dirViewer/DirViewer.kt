@@ -142,11 +142,13 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    private val outputSelected = io.o.create<File?>("Selected", null)
    private val inputFile = io.i.create<List<File>>("Root directory", listOf()) {
       runIO {
-         it.orEmpty().mapNotNull { if (it.isDirectory) it else it.parentFile }.toSet().toList()
+         it.mapNotNull { if (it.isDirectory) it else it.parentFile }.toSet().toList()
       } ui {
          files setTo it
       }
    }
+
+   private val grid = GridView<Item, File>({ it.value }, 50.emScaled.x2, 5.emScaled.x2)
 
    private val files by cList<File>().butElement { only(DIRECTORY) }
       .def(name = "Location", info = "Root directories of the content.")
@@ -157,9 +159,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    private var filesMaterialized = files.materialize()
    private val filesEmpty = v(true).apply { files.onChangeAndNow { value = files.isEmpty() } }
 
-   val gridShowFooter by cOr(APP.ui::gridShowFooter, Inherit(), onClose)
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, grid.footerVisible, Inherit(), onClose)
       .defInherit(APP.ui::gridShowFooter)
-   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Inherit(), onClose)
       .defInherit(APP.ui::gridCellAlignment)
    val cellSize by cv(NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
@@ -175,7 +177,6 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
    val cellTextHeight = APP.ui.font.map { 43.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
-   private val grid = GridView<Item, File>({ it.value }, 50.emScaled.x2, 5.emScaled.x2)
    private val itemVisitId = AtomicLong(0)
    private var item: Item? = null
    private val placeholder = lazy {
@@ -203,8 +204,6 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       grid.search.field = FileField.PATH
       grid.filterPrimaryField = FileField.NAME_FULL
       grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } } on onClose
-      grid.cellAlign syncFrom gridCellAlignment on onClose
-      grid.footerVisible syncFrom gridShowFooter on onClose
       grid.skinProperty() attach {
          it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
             item("Refresh (${keys("F5")})") {

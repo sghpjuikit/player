@@ -24,7 +24,6 @@ import javafx.scene.layout.Pane;
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.ui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.util.Sort;
-import sp.it.util.access.fieldvalue.ColumnField;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.functional.Functors.F1;
 import static java.util.stream.Collectors.toList;
@@ -38,11 +37,14 @@ import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
+import static sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
+import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.type.TypesKt.getRaw;
 import static sp.it.util.type.Util.invokeMethodP0;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 
@@ -79,13 +81,30 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	private TableColumnInfo defColInfo;
 	private TableColumnInfo columnState;
+	/** Type of element of this table */
 	protected final Class<T> type;
+	/** All fields of this table viable as columns. The fields are string representable. */
+	public final List<ObjectField<T,?>> fields;
+	/** All fields for {@link sp.it.pl.ui.objects.table.FieldedTable#type} of this table. Not all may be viable to be used as columns. */
+	public final List<ObjectField<T,?>> fieldsAll;
 	public final Menu columnVisibleMenu = new Menu("Columns");
 	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
+		this.fieldsAll = (List) stream(APP.getClassFields().get(getKotlinClass(type)))
+			// TODO: support nested columns
+			//.flatMap(it -> stream(
+			//	it,
+			//	stream(APP.getClassFields().get(getRaw(it.getType().getType())))
+			//		.filter(itt -> itt != INDEX)
+			//		.map(itt -> it.flatMap((ObjectField) itt))
+			//))
+			.sorted(by(ObjectField::name))
+			.collect(toList());
+		this.fields = filter(fieldsAll, ObjectField::isTypeStringRepresentable);
 
 		setColumnFactory(f -> {
 			TableColumn<T,Object> c = new TableColumn<>(f.name());
@@ -110,31 +129,16 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		setTableMenuButtonVisible(false);
 	}
 
-	/** @return all fields of this table. The fields are string representable. */
-	public List<ObjectField<T,?>> getFields() {
-		return stream(APP.getClassFields().get(getKotlinClass(type)))
-			.filter(ObjectField::isTypeStringRepresentable)
-			.sorted(by(ObjectField::name))
-			.collect(toList());
-	}
-
-	/** @return all fields of this table. */
-	public List<ObjectField<T,?>> getFieldsAll() {
-		return stream(APP.getClassFields().get(getKotlinClass(type)))
-			.sorted(by(ObjectField::name))
-			.collect(toList());
-	}
-
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,?>> columnFactory) {
 		colFact = f -> {
-			TableColumn<T,?> c = f==ColumnField.INDEX ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
+			TableColumn<T,?> c = f==INDEX ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
 			c.setUserData(f);
 			return c;
 		};
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public <X> F1<? super ObjectField<? super T,X>,TableColumn<T,X>> getColumnFactory() {
 		return (F1) colFact;
 	}
@@ -158,8 +162,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public void setColumnVisible(ObjectField<T,?> f, boolean v) {
 		TableColumn<T,?> c = getColumn(f).orElse(null);
 		if (v && c==null) {
-			c = f==ColumnField.INDEX ? columnIndex : colFact.call(f);
-			c.setPrefWidth(f==ColumnField.INDEX ? computeIndexColumnWidth() : columnState.columns.get(f.name()).width);
+			c = f==INDEX ? columnIndex : colFact.call(f);
+			c.setPrefWidth(f==INDEX ? computeIndexColumnWidth() : columnState.columns.get(f.name()).width);
 			c.setVisible(v);
 			getColumns().add(c);
 		} else if (!v && c!=null) {
@@ -174,7 +178,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
 		state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {
 			// get or build column
-			TableColumn<T,?> tc = c.name.equals(ColumnField.INDEX.name())
+			TableColumn<T,?> tc = c.name.equals(INDEX.name())
 				? columnIndex
 				: colFact.call(nameToF(c.name));
 			// set width
@@ -206,9 +210,9 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			// generate column states
 			defColInfo = new TableColumnInfo();
 			defColInfo.nameKeyMapper = keyNameColMapper;
-			defColInfo.columns.addAll(map(getFields(), colStateFact));
+			defColInfo.columns.addAll(map(fields, colStateFact));
 			// insert index column state manually
-			defColInfo.columns.removeIf(f -> f.name.equals(ColumnField.INDEX.name()));
+			defColInfo.columns.removeIf(f -> f.name.equals(INDEX.name()));
 			defColInfo.columns.forEach(t -> t.position++);  //TODO: position should be immutable
 			defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
 			// leave sort order empty
@@ -340,14 +344,14 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	private ObjectField<T,?> nameToF(String name) {
 		String fieldName = keyNameColMapper.apply(name);
-		return getFields().stream()
+		return fields.stream()
 			.filter(f -> f.name().equals(fieldName)).findAny()
 			.orElseThrow(() -> new RuntimeException("Cant find '" + name + "' field"));
 	}
 
 	@SuppressWarnings({"unchecked"})
 	private ObjectField<T,?> nameToCF(String name) {
-		return ColumnField.INDEX.name().equals(name) ? (ObjectField<T,?>) ColumnField.INDEX : nameToF(name);
+		return INDEX.name().equals(name) ? (ObjectField<T,?>) INDEX : nameToF(name);
 	}
 
 }

@@ -23,6 +23,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
+import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.KEY_PRESS
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_CLICK
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn.MOUSE_HOVER
@@ -42,9 +43,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.syncFrom
 import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.drag.set
@@ -62,18 +61,14 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 
 class IconViewer(widget: Widget): SimpleController(widget) {
-   val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
-      .defInherit(APP.ui::gridShowFooter)
-   val gridCellAlignment by cOr<GridView.CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
-      .defInherit(APP.ui::gridCellAlignment)
+
+
    val iconSize = 60.emScaled
    val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, iconSize.x2 + (0 x 30.emScaled), 5.emScaled.x2).apply {
       styleClass += "icon-grid"
       search.field = StringGetter.of { value, _ -> value.name() }
       filterPrimaryField = IconField.NAME
       selectOn setTo listOf(MOUSE_HOVER, MOUSE_CLICK, KEY_PRESS)
-      cellAlign syncFrom gridCellAlignment on onClose
-      footerVisible syncFrom gridShowFooter on onClose
       cellFactory.value = {
          object: GridCell<GlyphIcons, GlyphIcons>() {
 
@@ -116,6 +111,11 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       }
       items setTo Glyphs.GLYPH_TYPES.sortedBy { it.simpleName.orEmpty() }
    }
+
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, iconsView.footerVisible, Override(false), onClose)
+      .defInherit(APP.ui::gridShowFooter)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, iconsView.cellAlign, Inherit(), onClose)
+      .defInherit(APP.ui::gridCellAlignment)
 
    init {
       root.prefSize = 700.emScaled x 500.emScaled

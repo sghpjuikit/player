@@ -18,6 +18,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import kotlin.Unit;
+import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistManager;
@@ -76,7 +77,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	private static final PseudoClass STYLE_PLAYED = pseudoclass("played");
 	private static final ValueContextMenu<PlaylistSongGroup> contextMenu = new ValueContextMenu<>();
 
-	public final V<Boolean> scrollToPlaying = new V<>(true);
+	public final @NotNull V<@NotNull Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
 	private final ArrayList<Integer> selectionTmp = new ArrayList<>();
 	private final Disposer disposer = new Disposer();

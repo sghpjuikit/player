@@ -63,7 +63,6 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
-import sp.it.util.reactive.syncTo
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
@@ -82,6 +81,7 @@ import sp.it.pl.main.Css.Pseudoclasses.played
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
+import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -90,6 +90,8 @@ import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
 import sp.it.util.text.*
 import sp.it.util.ui.show
+import sp.it.util.units.millis
+import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -104,15 +106,15 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    private val outputSelectedGroup = io.o.create("Selected", listOf<MetadataGroup>())
    private val outputSelectedSongs = io.io.mapped(outputSelectedGroup, "As Songs") { filterList(inputItems.value, true) }
 
-   val tableOrient by cOr(APP.ui::tableOrient, Inherit(), onClose)
+   val tableOrient by cOr(APP.ui::tableOrient, table.nodeOrientationProperty(), Inherit(), onClose)
       .defInherit(APP.ui::tableOrient)
-   val tableZeropad by cOr(APP.ui::tableZeropad, Inherit(), onClose)
+   val tableZeropad by cOr(APP.ui::tableZeropad, table.zeropadIndex, Inherit(), onClose)
       .defInherit(APP.ui::tableZeropad)
-   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, Inherit(), onClose)
+   val tableOrigIndex by cOr(APP.ui::tableOrigIndex, table.showOriginalIndex,  Inherit(), onClose)
       .defInherit(APP.ui::tableOrigIndex)
-   val tableShowHeader by cOr(APP.ui::tableShowHeader, Inherit(), onClose)
+   val tableShowHeader by cOr(APP.ui::tableShowHeader, table.headerVisible, Inherit(), onClose)
       .defInherit(APP.ui::tableShowHeader)
-   val tableShowFooter by cOr(APP.ui::tableShowFooter, Inherit(), onClose)
+   val tableShowFooter by cOr(APP.ui::tableShowFooter, table.footerVisible, Inherit(), onClose)
       .defInherit(APP.ui::tableShowFooter)
    val fieldFilter by cv<MField<*>>(CATEGORY).values(MField.all.filter { it.isTypeStringRepresentable() })
       .def(name = "Field", info = "Field by which the table groups the songs") attach {
@@ -131,13 +133,12 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       root.prefSize = 600.emScaled x 600.emScaled
       root.lay += table.root
 
+      // table properties
       table.selectionModel.selectionMode = MULTIPLE
       table.search.setColumn(VALUE)
-      tableOrient syncTo table.nodeOrientationProperty() on onClose
-      tableZeropad syncTo table.zeropadIndex on onClose
-      tableOrigIndex syncTo table.showOriginalIndex on onClose
-      tableShowHeader syncTo table.headerVisible on onClose
-      tableShowFooter syncTo table.footerVisible on onClose
+      table.items_info.textFactory = { all, list ->
+         DEFAULT_TEXT_FACTORY(all, list) + " " + "song".pluralUnit(list.sumOf { it.itemCount }.toInt())  + " - " + list.sumOf { it.lengthInMs }.millis.toHMSMs()
+      }
 
       // set up table columns
       table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MgField.valueOf(name).name() }
@@ -208,7 +209,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
       // add menu items
       table.menuRemove.dsl {
-         item("Remove songs in selected groups from library (${keys("DELETE")})") { removeSongs(ungroup(table.selectedItems)) }
+         item("Remove songs in selected groups from library (${keys(DELETE)})") { removeSongs(ungroup(table.selectedItems)) }
          item("Remove songs in all shown groups from library") { removeSongs(ungroup(table.items)) }
          item("Remove all songs from library") { APP.db.removeAllSongs() }
          item("Remove missing songs from library") {

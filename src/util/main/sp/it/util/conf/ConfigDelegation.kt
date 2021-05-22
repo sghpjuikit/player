@@ -39,6 +39,7 @@ import sp.it.util.access.OrV.OrValue
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.on
+import sp.it.util.reactive.syncBiFromWithOverride
 
 /** Non-observable non-null configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).nonNull()
@@ -70,6 +71,10 @@ fun <T: () -> Unit> cr(action: T): ConfR = ConfR(action).nonNull()
 fun <T: Any> cOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue) on unsubscriber }.nonNull()
 /** Inheritable observable nullable configurable value. Subscribed to the specified [parent] until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
 fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue) on unsubscriber }
+/** Inheritable observable non-null configurable value. Subscribed to the specified [parent] and [syncBiFromWithOverride]d to the specified [child] value, until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
+fun <T: Any> cOr(parent: KProperty0<Property<T>>, child: Property<T>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue).apply { child syncBiFromWithOverride this on unsubscriber } on unsubscriber }.nonNull()
+/** Inheritable observable nullable configurable value. Subscribed to the specified [parent] and [syncBiFromWithOverride]d to the specified [child] value, until the specified [unsubscriber] is called. Backed by [OrPropertyConfig]. */
+fun <T: Any?> cnOr(parent: KProperty0<Property<T>>, child: Property<T>, initialValue: OrValue.Initial<T> = Inherit(), unsubscriber: Unsubscriber): ConfVOr<T, OrV<T>> = ConfVOr { OrV(parent.call(), initialValue).apply { child syncBiFromWithOverride this on unsubscriber } on unsubscriber }
 /** Observable reified configurable list. Backed by [ListConfig]. */
 inline fun <reified T: Any?> cList(vararg initialItems: T): ConfL<T> = ConfL(ConfList(type(), observableArrayList(*initialItems))).nonNull()
 /** Observable reified configurable list. Backed by [ListConfig]. */

@@ -82,7 +82,6 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfImageLoaded
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.sync1IfNonNull
-import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.lay
@@ -109,17 +108,17 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
    val outputSelectedM = io.o.create<List<Metadata>>("Selected", listOf())
    val inputSongs = io.i.create<List<Metadata>>("To display", listOf()) { setItems(it) }
 
-   val gridShowFooter by cOr(APP.ui::gridShowFooter, Inherit(), onClose)
+   val grid = GridView<Album, MetadataGroup>(Album::items, 50.emScaled.x2, 5.emScaled.x2)
+
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, grid.footerVisible, Inherit(), onClose)
       .defInherit(APP.ui::gridShowFooter)
-   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Inherit(), onClose)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Inherit(), onClose)
       .defInherit(APP.ui::gridCellAlignment)
    val cellSize by cv(CellSize.NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    private val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
-
-   val grid = GridView<Album, MetadataGroup>(Album::items, 50.emScaled.x2, 5.emScaled.x2)
 
    init {
       root.prefSize = 800.emScaled x 800.emScaled
@@ -131,8 +130,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       grid.search.field = VALUE
       grid.filterPrimaryField = VALUE
       grid.cellFactory.value = { AlbumCell() }
-      grid.cellAlign syncFrom gridCellAlignment on onClose
-      grid.footerVisible syncFrom gridShowFooter on onClose
       grid.selectedItem attach {
          outputSelected.value = it?.items
          outputSelectedM.value = it?.items?.grouped.orEmpty()

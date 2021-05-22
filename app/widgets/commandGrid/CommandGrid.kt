@@ -60,10 +60,11 @@ import sp.it.util.units.year
 
 class CommandGrid(widget: Widget): SimpleController(widget) {
 
-   private val grid = GridView<Item, File>({ it.value }, 50.emScaled.x2, 5.emScaled.x2)
-   val gridShowFooter by cOr(APP.ui::gridShowFooter, Override(false), onClose)
+   val grid = GridView<Item, File>({ it.value }, 50.emScaled.x2, 5.emScaled.x2)
+
+   val gridShowFooter by cOr(APP.ui::gridShowFooter, grid.footerVisible, Override(false), onClose)
       .defInherit(APP.ui::gridShowFooter)
-   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, Override(CellGap.LEFT), onClose)
+   val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Override(CellGap.LEFT), onClose)
       .defInherit(APP.ui::gridCellAlignment)
    val cellSize by cv(GridView.CellSize.NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
@@ -80,8 +81,6 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       grid.cellFactory.value = { Cell() }
       grid.footerVisible.value = false
       grid.cellMaxColumns.value = 2
-      grid.cellAlign syncFrom gridCellAlignment on onClose
-      grid.footerVisible syncFrom gridShowFooter on onClose
       grid.onEventUp(SCROLL) { e ->
          if (e.isShortcutDown) {
             e.consume()

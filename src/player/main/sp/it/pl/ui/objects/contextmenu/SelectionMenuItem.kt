@@ -1,11 +1,13 @@
 package sp.it.pl.ui.objects.contextmenu
 
 import java.util.function.Consumer
+import javafx.beans.property.Property
 import javafx.event.ActionEvent.ACTION
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.util.access.toggle
+import sp.it.util.access.v
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attachTrue
@@ -24,13 +26,15 @@ import sp.it.util.ui.styleclassToggle
  *  *  Observable selection state
  *  *  Custom click implementation
  */
-class SelectionMenuItem(text: String? = "", selectedInitial: Boolean = false): Menu(text) {
+class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> = v(false)): Menu(text) {
    /** Selection icon */
    private val icon = CheckIcon(selectedInitial)
    /** Selection mouse click disposer */
    private var mouseClicking: Subscription? = null
    /** Selection state reflected by the icon. Changes on click. Default false. */
    val selected = icon.selected
+
+   constructor(text: String? = "", selectedInitial: Boolean = false): this(text, v(selectedInitial))
 
    init {
       graphic = icon
@@ -55,8 +59,7 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Boolean = false): M
     */
    private fun installOnMouseClick(block: () -> Unit) {
       mouseClicking?.unsubscribe()
-      mouseClicking = onEventDown(ACTION) { block() }
-
+      mouseClicking = onEventDown(ACTION) { if (!icon.isHover) block() }
       icon.onClickDo { block() }
    }
 

@@ -53,6 +53,9 @@ import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.uninstall
 import java.util.ArrayList
+import javafx.scene.layout.Pane
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.recurseDF
 
 class ConfigSearch: AutoCompletion<Entry> {
    private val textField: TextField
@@ -79,58 +82,81 @@ class ConfigSearch: AutoCompletion<Entry> {
 
             init {
                // set keys & allow typing
-               skinnable.onEventUp(KEY_PRESSED) {
-                  if (!ignoreEvent && (it.source==node || it.source==skinnable))
-                     if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
-                        when (it.code) {
+               skinnable.onEventUp(KEY_PRESSED) { e ->
+                  if (!ignoreEvent && (e.source==node || e.source==skinnable))
+                     if (e.isShortcutDown && (e.code==UP || e.code==DOWN)) {
+                        when (e.code) {
                            UP -> history.up(this@ConfigSearch)
                            DOWN -> history.down(this@ConfigSearch)
                            else -> Unit
                         }
-                        it.consume()
-                     } else if (it.code==BACK_SPACE) {
+                        e.consume()
+                     } else if (e.code==BACK_SPACE) {
                         textField.deletePreviousChar()
-                        it.consume()
-                     } else if (it.code==DELETE) {
+                        e.consume()
+                     } else if (e.code==DELETE) {
                         textField.deleteNextChar()
-                        it.consume()
-                     } else if (!it.code.isNavigationKey) {
+                        e.consume()
+                     } else if (!e.code.isNavigationKey) {
                         // We re-fire event on text field so we can type even though it
                         // does not have focus. This causes event stack overflow, so we
                         // defend with a flag.
                         if (!textField.isFocused) {
                            ignoreEvent = true
-                           completionTarget.fireEvent(it)
+                           completionTarget.fireEvent(e)
                         }
                      }
                   ignoreEvent = false
                }
-               node.onEventDown(KEY_PRESSED) {
-                  if (!ignoreEvent && it.source==node) {
-                     if (it.isControlDown && (it.code==UP || it.code==DOWN)) {
-                        when (it.code) {
+               node.onEventDown(KEY_PRESSED) { e ->
+                  if (!ignoreEvent && e.source==node) {
+                     if (e.isShortcutDown && (e.code==UP || e.code==DOWN)) {
+                        when (e.code) {
                            UP -> history.up(this@ConfigSearch)
                            DOWN -> history.down(this@ConfigSearch)
                            else -> Unit
                         }
-                        it.consume()
-                     } else if (it.isControlDown && it.code==A) {
+                        e.consume()
+                     } else if (e.isShortcutDown && e.code==A) {
                         textField.selectAll()
-                        it.consume()
-                     } else if (it.code==END) {
-                        if (it.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
-                        it.consume()
-                     } else if (it.code==HOME) {
-                        if (it.isShiftDown) textField.selectHome() else textField.positionCaret(0)
-                        it.consume()
-                     } else if (it.code==LEFT) {
-                        if (it.isControlDown) textField.selectPreviousWord() else textField.selectBackward()
-                        if (!it.isShiftDown) textField.deselect()
-                        it.consume()
-                     } else if (it.code==RIGHT) {
-                        if (it.isControlDown) textField.selectNextWord() else textField.selectForward()
-                        if (!it.isShiftDown) textField.deselect()
-                        it.consume()
+                        e.consume()
+                     } else if (e.code==END) {
+                        if (e.isShiftDown) textField.selectEnd() else textField.positionCaret(textField.length)
+                        e.consume()
+                     } else if (e.code==HOME) {
+                        if (e.isShiftDown) textField.selectHome() else textField.positionCaret(0)
+                        e.consume()
+                     } else if (e.code==LEFT) {
+                        if (e.isShortcutDown) textField.selectPreviousWord() else textField.selectBackward()
+                        if (!e.isShiftDown) textField.deselect()
+                        e.consume()
+                     } else if (e.code==RIGHT) {
+                        if (e.isShortcutDown) textField.selectNextWord() else textField.selectForward()
+                        if (!e.isShiftDown) textField.deselect()
+                        e.consume()
+                     } else if (e.code==TAB) {
+                        fun recurseGraphics() = node.selectionModel.selectedItem?.graphics?.recurseDF { if (it is Pane) it.children else listOf() }
+                        fun firstFocusableGraphics() = recurseGraphics()?.firstOrNull { it.isFocusTraversable }
+                        fun lastFocusableGraphics() = recurseGraphics()?.lastOrNull { it.isFocusTraversable }
+
+                        // improves TAB experience by focusing the graphics on the selected row instead of the 1st row
+                        if (node.isFocused) {
+                           if (e.isShiftDown) lastFocusableGraphics()?.requestFocus()
+                           else firstFocusableGraphics()?.requestFocus()
+                           e.consume()
+                        } else {
+                           if (e.isShiftDown) {
+                              firstFocusableGraphics()?.takeIf { it.isFocused }.ifNotNull {
+                                 node.requestFocus()
+                                 e.consume()
+                              }
+                           } else {
+                              lastFocusableGraphics()?.takeIf { it.isFocused }.ifNotNull {
+                                 node.requestFocus()
+                                 e.consume()
+                              }
+                           }
+                        }
                      }
                   }
                   ignoreEvent = false

@@ -110,9 +110,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		setTableMenuButtonVisible(false);
 	}
 
-	/**
-	 * Returns all fields of this table. The fields are string representable.
-	 */
+	/** @return all fields of this table. The fields are string representable. */
 	public List<ObjectField<T,?>> getFields() {
 		return stream(APP.getClassFields().get(getKotlinClass(type)))
 			.filter(ObjectField::isTypeStringRepresentable)
@@ -120,9 +118,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.collect(toList());
 	}
 
-	/**
-	 * Returns all fields of this table. The fields are string representable.
-	 */
+	/** @return all fields of this table. */
 	public List<ObjectField<T,?>> getFieldsAll() {
 		return stream(APP.getClassFields().get(getKotlinClass(type)))
 			.sorted(by(ObjectField::name))

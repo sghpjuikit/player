@@ -160,11 +160,6 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          item("Remove all") { playlist.clear() }
       }
       table.menuOrder.dsl {
-         menu("Order by") {
-            items(Field.all.asSequence(), { it.name() }) { table.sortBy(it) }
-         }
-         item("Order reverse") { playlist.reverse() }
-         item("Order randomly") { playlist.randomize() }
          item("Edit selected") { APP.widgetManager.widgets.use<SongReader>(NO_LAYOUT) { it.read(table.selectedItems) } }
          item("Save playlist") {
             saveFile(

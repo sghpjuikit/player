@@ -3,6 +3,7 @@ package sp.it.pl.ui.objects.table;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -10,6 +11,7 @@ import java.util.function.Predicate;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -17,9 +19,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollToEvent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
@@ -36,10 +40,12 @@ import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
+import sp.it.util.access.fieldvalue.ColumnField;
 import sp.it.util.access.fieldvalue.ObjectField;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -269,7 +275,16 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		menuItem("Select none", consumer(e -> selectNone())),
 		menuItem("Select inverse", consumer(e -> selectInverse()))
 	);
-	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
+	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded(),
+		new Menu("Order by", null,
+			getFields().stream()
+				.filter(f -> f!=ColumnField.INDEX)
+				.map(f -> menuItem(f.name(), consumer(it -> sortBy(f, SortType.DESCENDING))))
+				.toArray(MenuItem[]::new)
+		),
+		menuItem("Order reverse", consumer(it -> sortReverse())),
+		menuItem("Order randomly", consumer(it -> sortRandomly()))
+	);
 	/** Table menubar in the bottom with menus. Feel free to modify. */
 	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder);
 	/**
@@ -457,6 +472,22 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public void sort(Comparator<T> comparator) {
 		getSortOrder().clear();
 		allItems.sort(comparator);
+	}
+
+	public void sortRandomly() {
+		getSortOrder().clear();
+		FXCollections.shuffle(allItems);
+	}
+
+	public void sortReverse() {
+		if (getSortOrder().isEmpty()) {
+			FXCollections.reverse(allItems);
+		} else {
+			var sorts = getSortOrder().stream().collect(toMap(it -> it, it -> it.getSortType(), (x, y) -> y, LinkedHashMap::new));
+			getSortOrder().clear();
+			sorts.forEach((c, s) -> c.setSortType(s==SortType.ASCENDING ? SortType.DESCENDING : SortType.ASCENDING));
+			getSortOrder().setAll(sorts.keySet());
+		}
 	}
 
 /* --------------------- PLACEHOLDER -------------------------------------------------------------------------------- */

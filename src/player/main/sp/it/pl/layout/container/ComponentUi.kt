@@ -16,6 +16,7 @@ import sp.it.util.access.ref.LazyR
 import sp.it.util.async.runLater
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
+import sp.it.util.dev.printStacktrace
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
@@ -82,16 +83,21 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
 
       // switch to container/normal layout mode using right/left click
-       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
-          if (isLayoutMode && !isContainerMode) {
-             if (container.children.isEmpty()) {
-                AppAnimator.closeAndDo(root) { container.close() }
-             } else {
-                setContainerMode(true)
-             }
-             it.consume()
-          }
-       }
+      root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
+         if (isLayoutMode && (!isContainerMode)) {
+            if (container.children.isEmpty()) {
+               AppAnimator.closeAndDo(root) { container.close() }
+            } else {
+               setContainerMode(true)
+            }
+            it.consume()
+         }
+      }
+      root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
+         // always consume setContainerMode event when it is not possible to go any higher
+         if (isLayoutMode && (container.parent is Layout || container.parent is SwitchContainer))
+            it.consume()
+      }
    }
 
    protected open fun buildControls() = ContainerUiControls(this)
@@ -119,9 +125,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
    }
 
    internal fun setContainerMode(b: Boolean) {
-      println(b)
       if (isContainerMode==b) return
-      println("n")
 
       isContainerMode = b
       controls.get().root.toFront()

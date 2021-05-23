@@ -30,7 +30,7 @@
 package sp.it.pl.ui.objects.autocomplete
 
 import java.util.Objects
-import javafx.scene.control.TextField
+import javafx.scene.control.TextInputControl
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -45,12 +45,12 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
    /** String converter to be used to convert suggestions to strings. */
    protected val converter: (T) -> String
    /** [completionTarget] of more precise type. */
-   protected val completionTargetTyped: TextField
+   protected val completionTargetTyped: TextInputControl
    /** Disposer called on [dispose]. */
    protected val disposer = Disposer()
 
    /** Creates an auto-completion binding between the specified textField and suggestions. */
-   internal constructor(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): super(textField, allSuggestions, converter) {
+   internal constructor(textField: TextInputControl, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): super(textField, allSuggestions, converter) {
       this.completionTargetTyped = textField
       this.converter = converter
 
@@ -76,17 +76,17 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
 
       fun <T> defaultStringConverter(): (T) -> String = Objects::toString
 
-      fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): Subscription {
+      fun <T> autoComplete(textField: TextInputControl, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): Subscription {
          val a = AutoCompletion(textField, allSuggestions, converter)
          return Subscription { a.dispose() }
       }
 
-      fun <T> autoComplete(textField: TextField, allSuggestions: (String) -> Collection<T>) = autoComplete(textField, allSuggestions, defaultStringConverter())
+      fun <T> autoComplete(textField: TextInputControl, allSuggestions: (String) -> Collection<T>) = autoComplete(textField, allSuggestions, defaultStringConverter())
 
-      fun <T> autoComplete(textField: TextField, allSuggestions: Collection<T>) = autoComplete(textField, { allSuggestions })
+      fun <T> autoComplete(textField: TextInputControl, allSuggestions: Collection<T>) = autoComplete(textField, { allSuggestions })
 
       @SafeVarargs
-      fun <T> autoComplete(textField: TextField, vararg allSuggestions: T) = autoComplete(textField, listOf(allSuggestions))
+      fun <T> autoComplete(textField: TextInputControl, vararg allSuggestions: T) = autoComplete(textField, listOf(allSuggestions))
 
    }
 

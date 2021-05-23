@@ -1,5 +1,7 @@
 package sp.it.pl.ui.itemnode
 
+import com.twelvemonkeys.util.LinkedMap
+import com.twelvemonkeys.util.LinkedSet
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
 import javafx.beans.Observable
@@ -142,6 +144,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Locale
+import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.ScrollEvent
@@ -171,6 +174,7 @@ import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.map
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.syncTo
+import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
 
 private val warnTooltip = appTooltip("Erroneous value")
@@ -1060,7 +1064,8 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 }
 
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
-   override val editor = SpitTextField()
+   val isMultiline = c.type.jvmErasure.isSubclassOf<Collection<*>>() || c.type.jvmErasure.isSubclassOf<Map<*,*>>()
+   override val editor = if (isMultiline) TextArea() else SpitTextField()
    val obv = getObservableValue(c)
    private val converterRaw: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
    private val converter: (T) -> String = { get().toOption().filter { v -> v==it }.map { editor.text }.getOrSupply { converterRaw(it) } }
@@ -1176,16 +1181,32 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
    private fun showWarnButton(value: Try<*, String>) {
       val shouldBeVisible = value.isError && isEditable.value
-      editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
+      if (editor is SpitTextField) editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
       warnI.orNull()?.isVisible = shouldBeVisible
       warnTooltip.text = value.map { "" }.getAny()
    }
 
    private fun toS(o: Any?): String = when (o) {
-      null -> o.toUi()
-      is Collection<*> -> o.joinToString(", ", "[", "]") { it.toUi() }
-      is Map<*, *> -> o.entries.joinToString(", ", "[", "]") { it.key.toUi() + " -> " + it.value.toUi() }
-      else -> if (config.isEditable.isByUser) o.toS() else o.toUi()
+      null ->
+         o.toUi()
+      is Set<*> ->
+         if (isMultiline) o.asSequence().map { it.toUi() }.sorted().joinToString("\n")
+         else o.asSequence().map { it.toUi() }.sorted().joinToString(", ", "[", "]")
+      is LinkedSet<*> ->
+         if (isMultiline) o.joinToString("\n") { it.toUi() }
+         else o.joinToString(", ", "[", "]") { it.toUi() }
+      is Collection<*> ->
+         if (isMultiline) o.joinToString("\n") { it.toUi() }
+         else o.joinToString(", ", "[", "]") { it.toUi() }
+      is LinkedMap<*, *> ->
+         if (isMultiline) o.entries.asSequence().map { it.key.toUi() + " -> " + it.value.toUi() }.joinToString("\n")
+         else o.entries.asSequence().map { it.key.toUi() + " -> " + it.value.toUi() }.joinToString(", ", "[", "]")
+      is Map<*, *> ->
+         if (isMultiline) o.entries.asSequence().map { it.key.toUi() + " -> " + it.value.toUi() }.sorted().joinToString("\n")
+         else o.entries.asSequence().map { it.key.toUi() + " -> " + it.value.toUi() }.sorted().joinToString(", ", "[", "]")
+      else ->
+         if (config.isEditable.isByUser) o.toS()
+         else o.toUi()
    }
 
    companion object {

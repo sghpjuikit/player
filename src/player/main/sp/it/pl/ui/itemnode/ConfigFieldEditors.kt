@@ -102,7 +102,6 @@ import sp.it.util.functional.Util.by
 import sp.it.util.functional.and
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
-import sp.it.util.functional.getAny
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
@@ -177,7 +176,6 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
 
-private val warnTooltip = appTooltip("Erroneous value")
 private val actTooltip = appTooltip("Run action")
 private val globTooltip = appTooltip("Global shortcut"
    + "\n\nGlobal shortcuts can be used even when the application has no focus or window."
@@ -1077,7 +1075,6 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    private val warnI = lazy {
       Icon().apply {
          styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
-         tooltip(warnTooltip)
       }
    }
 
@@ -1183,7 +1180,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       val shouldBeVisible = value.isError && isEditable.value
       if (editor is SpitTextField) editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
       warnI.orNull()?.isVisible = shouldBeVisible
-      warnTooltip.text = value.map { "" }.getAny()
+      warnI.orNull()?.tooltip(value.switch().map { appTooltip(it) }.orNull())
    }
 
    private fun toS(o: Any?): String = when (o) {
@@ -1231,7 +1228,6 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
    private val warnI = lazy {
       Icon().apply {
          styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON)
-         tooltip(warnTooltip)
       }
    }
 
@@ -1323,7 +1319,7 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
       val shouldBeVisible = value.isError && isEditable.value
       editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
       warnI.orNull()?.isVisible = shouldBeVisible
-      warnTooltip.text = value.map { "" }.getAny()
+      warnI.orNull()?.tooltip(value.switch().map { appTooltip(it) }.orNull())
    }
 
 }

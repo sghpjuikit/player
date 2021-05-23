@@ -264,7 +264,7 @@ public class Icon extends StackPane {
 		return (Tooltip) getProperties().get("javafx.scene.control.Tooltip");
 	}
 
-	public final @NotNull Icon tooltip(String text) {
+	public final @NotNull Icon tooltip(@Nullable String text) {
 		boolean willBeEmpty = text==null || text.isEmpty();
 		if (!willBeEmpty) {
 			Tooltip old = getTooltip();
@@ -278,7 +278,7 @@ public class Icon extends StackPane {
 		return this;
 	}
 
-	public final @NotNull Icon tooltip(Tooltip t) {
+	public final @NotNull Icon tooltip(@Nullable Tooltip t) {
 		Tooltip old = getTooltip();
 		if (t!=null && (old!=t || old.getProperties().containsKey("was_setup"))) {
 			t.setWrapText(true);

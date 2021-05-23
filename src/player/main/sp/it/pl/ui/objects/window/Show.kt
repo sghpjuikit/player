@@ -54,8 +54,8 @@ enum class ShowArea(override val nameUi: String): NameUi {
          val maxY = ss.asSequence().map { it.maxY }.maxOrNull()!!
          null to Rectangle2D(minX, minY, maxX - minX, maxY - minY)
       }
-      WINDOW_MAIN -> APP.windowManager.getMain()?.stage?.let { it to it.bounds } ?: SCREEN_PRIMARY.bounds()
-      WINDOW_ACTIVE -> APP.windowManager.getFocusedWithChild()?.stage?.let { it to it.bounds } ?: SCREEN_PRIMARY.bounds()
+      WINDOW_MAIN -> APP.windowManager.getMain()?.stage?.let { it to it.bounds } ?: SCREEN_ACTIVE.bounds()
+      WINDOW_ACTIVE -> APP.windowManager.getFocusedWithChild()?.stage?.let { it to it.bounds } ?: SCREEN_ACTIVE.bounds()
    }
 
    private fun Window.offset(pos: Pos): P = when (pos) {

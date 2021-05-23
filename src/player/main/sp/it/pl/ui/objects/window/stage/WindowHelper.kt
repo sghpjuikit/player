@@ -95,10 +95,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
                nw.show()
                nw.initLayout(ow.detachLayout())
                if (ow.isMain.value) APP.windowManager.setAsMain(nw)
-               nw.stage.onIsShowing1st {
-                  ow.close()
-                  openWindowSettings(nw, nw.root)
-               }
+               nw.stage.onIsShowing1st { ow.close(); openWindowSettings(nw, nw.root) } on onClose
             }
          }
       }

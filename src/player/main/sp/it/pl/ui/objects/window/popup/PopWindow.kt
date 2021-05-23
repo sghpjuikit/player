@@ -48,6 +48,7 @@ import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
@@ -329,9 +330,7 @@ open class PopWindow {
                xy = shower(stage)
                onContentShown()
 
-               onIsShowing1st {
-                  initAutohide()
-               }
+               onIsShowing1st { initAutohide() } on tillHidden
             }
          } else {
             popup.apply {
@@ -414,7 +413,7 @@ open class PopWindow {
 
       infix fun Window.isParent(w: Window) = w isChild this
 
-      fun Window.onIsShowing1st(block: () -> Unit) = if (isShowing) block() else onEventDown1(WINDOW_SHOWN) { block() }.toUnit()
+      fun Window.onIsShowing1st(block: () -> Unit): Subscription = if (isShowing) { block(); Subscription() } else onEventDown1(WINDOW_SHOWN) { block() }
 
       private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwnerNoShow().apply { show() } }
 

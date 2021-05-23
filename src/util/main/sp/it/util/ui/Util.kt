@@ -94,6 +94,8 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.image.FitFrom.INSIDE
+import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.units.toEM
 import sp.it.util.units.uuid
 
@@ -187,13 +189,13 @@ fun <T: Node> Node.lookupSiblingUp(by: Int = 1): T = parent!!.asIs<Parent>().chi
 fun <T: Node> Node.lookupSiblingDown(by: Int = 1): T = parent!!.asIs<Parent>().childrenUnmodifiable.net { it.getOrNull(it.indexOf(this) + by)!! } as T
 
 /** @return whether this node shape contains the scene coordinates represented by the specified point */
-fun Node.containsScene(scenePoint: Point2D): Boolean = contains(sceneToLocal(scenePoint))
+fun Node.containsScene(scenePoint: Point2D): Boolean = contains(sceneToLocal(scenePoint)!!)
 
 /** @return whether this node shape contains the scene coordinates */
 fun Node.containsScene(sceneX: Double, sceneY: Double) = containsScene(Point2D(sceneX, sceneY))
 
 /** @return whether this node shape contains the screen coordinates represented by the specified point */
-fun Node.containsScreen(screenPoint: Point2D): Boolean = contains(screenToLocal(screenPoint))
+fun Node.containsScreen(screenPoint: Point2D): Boolean = contains(screenToLocal(screenPoint)!!)
 
 /** @return whether this node shape contains the screen coordinates */
 fun Node.containsScreen(screenX: Double, screenY: Double) = containsScene(Point2D(screenX, screenY))
@@ -476,8 +478,8 @@ fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
 fun ImageView.applyViewPort(i: Image?, fit: FitFrom) {
    if (i!=null) {
       when (fit) {
-         FitFrom.INSIDE -> viewport = null
-         FitFrom.OUTSIDE -> {
+         INSIDE -> viewport = null
+         OUTSIDE -> {
             val ratioIMG = i.width/i.height
             val ratioTHUMB = layoutBounds.width/layoutBounds.height
             when {

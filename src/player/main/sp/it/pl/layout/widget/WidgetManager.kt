@@ -575,7 +575,7 @@ class WidgetManager {
       }
    }
 
-   inner class Widgets: GlobalSubConfigDelegator("Widget management") {
+   inner class Widgets: GlobalSubConfigDelegator("Widgets") {
 
       /** Compilation order. Prioritizes currently open widgets. */
       private val compilationOrder: Comparator<WidgetMonitor>
@@ -586,7 +586,7 @@ class WidgetManager {
          }
       /** Plugin management ui. */
       private var settings by c(this).singleton().uiSingleton()
-         .def(name = "Widgets", info = "Manage application widgets", group = "Widgets")
+         .def(name = "Widgets", info = "Manage application widgets", group = "Widget management")
       val autoRecompile by cv(true)
          .def(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
       val recompile by cr { monitors.sortedWith(compilationOrder).forEach { it.scheduleCompilation() } }
@@ -1052,7 +1052,7 @@ sealed interface ComponentLoader: (Component) -> Any {
          p.onShown += {
             runLater {
                if (c is Widget)
-                  c.controller?.uiRoot()?.setMinPrefMaxSize(-1.0, -1.0)
+                  c.controller?.uiRoot()?.setMinPrefMaxSize(200.0, 200.0)
             }
          }
 

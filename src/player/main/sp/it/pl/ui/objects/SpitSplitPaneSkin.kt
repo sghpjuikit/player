@@ -6,13 +6,10 @@ import javafx.scene.control.skin.SplitPaneSkin
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.async.runLater
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.type.Util.getFieldValue
-import sp.it.util.ui.containsMouse
 import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.units.millis
 
@@ -52,7 +49,7 @@ open class SpitSplitPaneSkin(splitPane: SplitPane): SplitPaneSkin(splitPane) {
          dividers.forEach { it.opacity = o }
       }
 
-      skinnable.sync1IfInScene { runLater { a.applyAt(if (skinnable.containsMouse()) 1.0 else 0.0) } } on onDispose
+      a.applyAt(if (skinnable.isHover) 1.0 else 0.0)
       skinnable.onHoverOrDrag { a.playFromDir(it) } on onDispose
       onDispose += a::stop
       onDispose += { a.applyAt(1.0) }

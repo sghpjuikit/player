@@ -233,17 +233,20 @@ public class Icon extends StackPane {
 		isGlyphSetProgrammatically |= i!=null;
 		glyph = i;
 		setGlyphName(i==null ? "null" : GlyphsKt.id(i));
+		requestLayout();
 		return this;
 	}
 
 	public Icon size(@Nullable Number s) {
 //		isGlyphSizeSetProgrammatically = true;
 		setGlyphSize(s==null ? DEFAULT_ICON_SIZE : s.doubleValue());
+		requestLayout();
 		return this;
 	}
 
 	public Icon gap(@Nullable Number s) {
 		isGlyphGapSetProgrammatically = true;
+		requestLayout();
 		setGlyphGap(s==null ? DEFAULT_ICON_SIZE : s.doubleValue());
 		return this;
 	}

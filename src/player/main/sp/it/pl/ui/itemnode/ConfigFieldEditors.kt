@@ -798,9 +798,9 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                         styleClass += "text-weight-bold"
                      }
                      val label2 = label("")
-                     val root = hBox {
+                     val root = hBox(alignment = CENTER_LEFT) {
                         lay += icon
-                        lay(ALWAYS) += vBox {
+                        lay(ALWAYS) += vBox(alignment = CENTER_LEFT) {
                            lay += label1
                            lay += label2
                         }
@@ -808,7 +808,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
 
                      override fun updateItem(item: PluginBox<*>?, empty: Boolean) {
                         super.updateItem(item, empty)
-                        graphic = root
+                        graphic = item?.let { root }
                         icon.icon(IconOC.PLUG)
                         label1.text = item?.info?.name?.toS()
                         label2.text = item?.let { if (it.isBundled) "bundled" else it.info.version.toS() + "\t" + it.info.author.toS() }
@@ -906,9 +906,9 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         styleClass += "text-weight-bold"
                      }
                      val label2 = label("")
-                     val root = hBox {
+                     val root = hBox(alignment = CENTER_LEFT) {
                         lay += icon
-                        lay(ALWAYS) += vBox {
+                        lay(ALWAYS) += vBox(alignment = CENTER_LEFT) {
                            lay += label1
                            lay += label2
                         }
@@ -916,7 +916,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
 
                      override fun updateItem(item: ComponentFactory<*>?, empty: Boolean) {
                         super.updateItem(item, empty)
-                        graphic = root
+                        graphic = item?.let { root }
                         icon.icon(item.uiIcon)
                         label1.text = item?.name?.toS()
                         label2.text = when (item) {

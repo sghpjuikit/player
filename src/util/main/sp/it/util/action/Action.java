@@ -252,28 +252,26 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	private void registerLocal() {
-		if (!ActionManager.INSTANCE.isActionListening()) return; // make sure there is no illegal state
-
-		KeyCombination k = getKeysForLocalRegistering();
-//        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
-		// register for each app window separately
-		for (Window w : Stage.getWindows())
-			if (w.getScene()!=null)
-				w.getScene().getAccelerators().put(k, this);
+		if (!ActionManager.INSTANCE.isActionListening()) return;
+		var k = getKeysForLocalRegistering();
+		if (k!=NO_MATCH)
+			for (Window w : Stage.getWindows())
+				if (w.getScene()!=null)
+					w.getScene().getAccelerators().put(k, this);
 	}
 
 	private void unregisterLocal() {
-		KeyCombination k = getKeysForLocalRegistering();
-		// unregister for each app window separately
-//        Stage.getWindows().stream().map(Window::getScene).forEach(this::registerInScene);
+		var k = getKeysForLocalRegistering();
 		for (Window w : Stage.getWindows())
 			if (w.getScene()!=null)
 				w.getScene().getAccelerators().remove(k);
 	}
 
 	void registerInScene(Scene s) {
-		if (!ActionManager.INSTANCE.isActionListening()) return; // make sure there is no illegal state
-		s.getAccelerators().put(getKeysForLocalRegistering(), this);
+		if (!ActionManager.INSTANCE.isActionListening()) return;
+		var k = getKeysForLocalRegistering();
+		if (k!=NO_MATCH)
+			s.getAccelerators().put(getKeysForLocalRegistering(), this);
 	}
 
 	void unregisterInScene(Scene s) {
@@ -282,7 +280,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	}
 
 	private void registerGlobal() {
-		if (!ActionManager.INSTANCE.isActionListening()) return; // make sure there is no illegal state
+		if (!ActionManager.INSTANCE.isActionListening()) return;
 		ActionRegistrar.INSTANCE.getHotkeys().getValue().register(this, getKeys());
 	}
 

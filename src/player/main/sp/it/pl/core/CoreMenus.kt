@@ -4,6 +4,7 @@ import javafx.stage.Window as WindowFX
 import java.io.File
 import java.lang.reflect.Modifier
 import javafx.scene.Node
+import javafx.scene.Scene
 import javafx.scene.control.Menu
 import javafx.scene.input.KeyCode.SHORTCUT
 import sp.it.pl.audio.tagging.Metadata
@@ -182,6 +183,13 @@ object CoreMenus: Core {
             item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }
          }
          add<Node> {
+            menu("Inspect ui properties in") {
+               widgetItems<ConfiguringFeature> { w ->
+                  runIO { value.toConfigurableFx() } ui { w.configure(it) }
+               }
+            }
+         }
+         add<Scene> {
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w ->
                   runIO { value.toConfigurableFx() } ui { w.configure(it) }

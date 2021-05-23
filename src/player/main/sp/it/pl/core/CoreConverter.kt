@@ -4,12 +4,15 @@ import java.time.format.DateTimeParseException as DTPE
 import java.util.regex.PatternSyntaxException as PSE
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.net.URI
 import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
+import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -43,6 +46,7 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.conf.Command
+import sp.it.pl.core.CoreConverter.addT
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.feature.Feature
@@ -131,6 +135,18 @@ object CoreConverter: Core {
       override fun toS(o: Any?) = when (o) {
          null -> AppTexts.textNoVal
          is Boolean -> if (o) "yes" else "no"
+         is Byte -> NumberFormat.getIntegerInstance().format(o)
+         is UByte -> NumberFormat.getIntegerInstance().format(o)
+         is Short -> NumberFormat.getIntegerInstance().format(o)
+         is UShort -> NumberFormat.getIntegerInstance().format(o)
+         is Int -> NumberFormat.getIntegerInstance().format(o)
+         is UInt -> NumberFormat.getIntegerInstance().format(o)
+         is Long -> NumberFormat.getIntegerInstance().format(o)
+         is ULong -> NumberFormat.getIntegerInstance().format(o)
+         is Float -> NumberFormat.getInstance().format(o)
+         is Double -> NumberFormat.getInstance().format(o)
+         is BigInteger -> NumberFormat.getIntegerInstance().format(o)
+         is BigDecimal -> NumberFormat.getInstance().format(o)
          is Class<*> -> APP.className[o.kotlin]
          is KClass<*> -> APP.className[o]
          is KTypeProjection -> when (o) {
@@ -240,10 +256,10 @@ object CoreConverter: Core {
       addT<UShort>(toS, tryF(NFE::class) { it.toUShort() }.numberMessage())
       addT<Int>(toS, tryF(NFE::class) { it.toInt() }.numberMessage())
       addT<UInt>(toS, tryF(NFE::class) { it.toUInt() }.numberMessage())
-      addT<Double>(toS, tryF(NFE::class) { it.toDouble() }.numberMessage())
       addT<Long>(toS, tryF(NFE::class) { it.toLong() }.numberMessage())
       addT<ULong>(toS, tryF(NFE::class) { it.toULong() }.numberMessage())
       addT<Float>(toS, tryF(NFE::class) { it.toFloat() }.numberMessage())
+      addT<Double>(toS, tryF(NFE::class) { it.toDouble() }.numberMessage())
       addT<Char>(toS, tryF(OBE::class) { it[0] })
       addP<String>({ it }, { it })
       addT<StringSplitParser>(toS, StringSplitParser::fromString)

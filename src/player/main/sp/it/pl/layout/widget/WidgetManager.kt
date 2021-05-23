@@ -127,7 +127,9 @@ import kotlin.reflect.cast
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
+import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
+import sp.it.util.conf.uiConverter
 import sp.it.util.functional.Option
 import sp.it.util.functional.toTry
 import sp.it.util.text.capital
@@ -590,7 +592,7 @@ class WidgetManager {
          .def(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
 
       // TODO: use MapLike object with get/set operators
-      private val componentLastOpenStrategies by cList<String>()
+      private val componentLastOpenStrategies by cList<String>().butElement { uiConverter { it.replace("|", " -> ") } }
          .def(
             name = "Last used 'Open component' load strategy",
             info = "Last used 'Open component' load strategy per component",
@@ -600,7 +602,7 @@ class WidgetManager {
          get() = componentLastOpenStrategies.associate { it.substringBefore("|") to ComponentLoaderStrategy.valueOf(it.substringAfter("|")) }
       fun componentLastOpenStrategiesMap(id: String, strategy:ComponentLoaderStrategy) {
          val m = componentLastOpenStrategiesMap + (id to strategy)
-         componentLastOpenStrategies setTo m.entries.map { (a, b) -> "$a|$b" }
+         componentLastOpenStrategies setTo m.entries.map { (a, b) -> "$a|$b" }.sorted()
       }
 
       /** @return widgets based on search criteria */

@@ -59,11 +59,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
-import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
-import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.animation.Anim.mapTo01;
-import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.EventsKt.onEventUp;
@@ -110,12 +107,9 @@ public class Icon extends StackPane {
 	private Subscription focusOwnerS = null;
 	public DoubleProperty glyphOffsetX = node.translateXProperty();
 	public DoubleProperty glyphOffsetY = node.translateYProperty();
-	private final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GlyphsKt.id(ADJUST));
-	private boolean isGlyphSetProgrammatically = false;
-	private final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
-	private boolean isGlyphSizeSetProgrammatically = false;
-	private final SimpleStyleableObjectProperty<Number> gap = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_GAP, Icon.this, "glyphGap", DEFAULT_ICON_GAP);
-	private boolean isGlyphGapSetProgrammatically = false;
+	public final SimpleStyleableObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", GlyphsKt.id(ADJUST));
+	public final SimpleStyleableObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", DEFAULT_ICON_SIZE);
+	public final SimpleStyleableObjectProperty<Number> gap = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_GAP, Icon.this, "glyphGap", DEFAULT_ICON_GAP);
 	private double glyphScale = 1;
 
 	public Icon() {
@@ -167,7 +161,7 @@ public class Icon extends StackPane {
 						ra.get(this, Ahover).playFromDir(f);
 				}));
 
-			Subscription s2 = null;
+			Subscription s2;
 			if (fo==this) {
 				// unfortunately, when effects such as drop shadow are enabled, we need to check bounds
 				s2 = Subscription.Companion.invoke(
@@ -230,7 +224,6 @@ public class Icon extends StackPane {
 	}
 
 	public Icon icon(GlyphIcons i) {
-		isGlyphSetProgrammatically |= i!=null;
 		glyph = i;
 		setGlyphName(i==null ? "null" : GlyphsKt.id(i));
 		requestLayout();
@@ -238,14 +231,12 @@ public class Icon extends StackPane {
 	}
 
 	public Icon size(@Nullable Number s) {
-//		isGlyphSizeSetProgrammatically = true;
 		setGlyphSize(s==null ? DEFAULT_ICON_SIZE : s.doubleValue());
 		requestLayout();
 		return this;
 	}
 
 	public Icon gap(@Nullable Number s) {
-		isGlyphGapSetProgrammatically = true;
 		requestLayout();
 		setGlyphGap(s==null ? DEFAULT_ICON_SIZE : s.doubleValue());
 		return this;
@@ -508,93 +499,33 @@ public class Icon extends StackPane {
 	@SuppressWarnings("unchecked")
 	private interface StyleableProperties {
 
-		/**
-		 * Css -fx-fill: <a href="../doc-files/cssref.html#typepaint">&lt;paint&gt;</a>
-		 *
-		 * @see javafx.scene.shape.Shape#fillProperty()
-		 */
 		CssMetaData<Icon,Paint> FILL = new CssMetaData<>("-fx-fill", PaintConverter.getInstance(), Color.BLACK) {
-
-			@Override
-			public boolean isSettable(Icon node) {
-				return node.fillProperty()!=null || !node.fillProperty().isBound();
-			}
-
-			@Override
-			public StyleableProperty<Paint> getStyleableProperty(Icon node) {
-				return (StyleableProperty<Paint>) node.fillProperty();
-			}
-
-			@Override
-			public Paint getInitialValue(Icon node) {
-				return Color.BLACK;
-			}
-
+			@Override public boolean isSettable(Icon node) { return !node.fillProperty().isBound(); }
+			@Override public StyleableProperty<Paint> getStyleableProperty(Icon node) { return (StyleableProperty<Paint>) node.fillProperty(); }
+			@Override public Paint getInitialValue(Icon node) { return Color.BLACK; }
 		};
 
 		CssMetaData<Icon,Effect> EFFECT = new CssMetaData<>("-fx-effect", EffectConverter.getInstance()) {
-
-			@Override
-			public boolean isSettable(Icon node) {
-				return node.node.effectProperty()==null || !node.node.effectProperty().isBound();
-			}
-
-			@Override
-			public StyleableProperty<Effect> getStyleableProperty(Icon node) {
-				return (StyleableProperty<Effect>) node.effectProperty();
-			}
+			@Override public boolean isSettable(Icon node) { return !node.node.effectProperty().isBound(); }
+			@Override public StyleableProperty<Effect> getStyleableProperty(Icon node) { return (StyleableProperty<Effect>) node.effectProperty(); }
 		};
 
 		CssMetaData<Icon,String> GLYPH_NAME = new CssMetaData<>("-glyph-name", StyleConverter.getStringConverter(), "BLANK") {
-
-			@Override
-			public boolean isSettable(Icon styleable) {
-				return !styleable.isGlyphSetProgrammatically && (styleable.icon==null || !styleable.icon.isBound());
-			}
-
-			@Override
-			public StyleableProperty<String> getStyleableProperty(Icon styleable) {
-				return styleable.icon;
-			}
-
-			@Override
-			public String getInitialValue(Icon styleable) {
-				return "BLANK";
-			}
+			@Override public boolean isSettable(Icon styleable) { return !styleable.icon.isBound(); }
+			@Override public StyleableProperty<String> getStyleableProperty(Icon styleable) { return styleable.icon; }
+			@Override public String getInitialValue(Icon styleable) { return "BLANK"; }
 		};
 
 		CssMetaData<Icon,Number> GLYPH_SIZE = new CssMetaData<>("-glyph-size", StyleConverter.getSizeConverter(), DEFAULT_ICON_SIZE) {
-			@Override
-			public boolean isSettable(Icon styleable) {
-				return !styleable.isGlyphSizeSetProgrammatically && (styleable.size==null || !styleable.size.isBound());
-			}
-
-			@Override
-			public StyleableProperty<Number> getStyleableProperty(Icon styleable) {
-				return styleable.size;
-			}
-
-			@Override
-			public Number getInitialValue(Icon styleable) {
-				return DEFAULT_ICON_SIZE;
-			}
+			@Override public boolean isSettable(Icon styleable) { return !styleable.size.isBound(); }
+			@Override public StyleableProperty<Number> getStyleableProperty(Icon styleable) { return styleable.size; }
+			@Override public Number getInitialValue(Icon styleable) { return DEFAULT_ICON_SIZE; }
 		};
 
 		CssMetaData<Icon,Number> GLYPH_GAP = new CssMetaData<>("-glyph-gap", StyleConverter.getSizeConverter(), DEFAULT_ICON_GAP) {
-			@Override
-			public boolean isSettable(Icon styleable) {
-				return !styleable.isGlyphGapSetProgrammatically && (styleable.gap==null || !styleable.gap.isBound());
-			}
-
-			@Override
-			public StyleableProperty<Number> getStyleableProperty(Icon styleable) {
-				return styleable.gap;
-			}
-
-			@Override
-			public Number getInitialValue(Icon styleable) {
-				return DEFAULT_ICON_GAP;
-			}
+			@Override public boolean isSettable(Icon styleable) { return !styleable.gap.isBound(); }
+			@Override public StyleableProperty<Number> getStyleableProperty(Icon styleable) { return styleable.gap; }
+			@Override public Number getInitialValue(Icon styleable) { return DEFAULT_ICON_GAP; }
 		};
 
 		List<CssMetaData<? extends Styleable,?>> STYLEABLES = stream(
@@ -611,10 +542,6 @@ public class Icon extends StackPane {
 	@Override
 	public List<CssMetaData<? extends Styleable,?>> getCssMetaData() {
 		return getClassCssMetaData();
-	}
-
-	public Number convert(String sizeString) {
-		return getOr(APP.getConverter().general.ofS(getKotlinClass(Double.class), sizeString), DEFAULT_ICON_SIZE);
 	}
 
 }

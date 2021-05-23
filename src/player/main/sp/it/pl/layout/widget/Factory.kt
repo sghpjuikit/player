@@ -26,7 +26,7 @@ import sp.it.util.functional.toUnit
 import sp.it.util.text.decapital
 
 /** Component factory that creates component by deserializing it from file. */
-interface ComponentFactory<out T: Component>: ComponentInfo {
+sealed interface ComponentFactory<out T: Component>: ComponentInfo {
    fun create(): T
 }
 

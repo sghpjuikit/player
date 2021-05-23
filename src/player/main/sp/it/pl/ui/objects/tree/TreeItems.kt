@@ -118,15 +118,15 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Container<*> -> LayoutItem(o)
    is File -> FileTreeItem(o)
    is Node -> NodeTreeItem(o)
-   is Image -> tree("Image", tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
+   is Image -> tree(o, tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
    is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant.orNone()), tree("Image", o.image.orNone()), tree("Image file", o.iFile.orNone()))
-   is Scene -> tree("Scene", o.root)
+   is Scene -> tree(o, o.root)
    is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asAppWindow()?.layout).filterNotNull() })
    is Window -> tree(o.stage)
    is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
-   is MetadataGroup -> STreeItem<Any?>("Library songs", { o.grouped.asSequence() }, { o.grouped.isEmpty() })
-   is PlaylistSongGroup -> STreeItem<Any?>("Playlist songs", { o.songs.asSequence() }, { o.songs.isEmpty() })
+   is MetadataGroup -> STreeItem<Any?>(o, { o.grouped.asSequence() }, { o.grouped.isEmpty() })
+   is PlaylistSongGroup -> STreeItem<Any?>(o, { o.songs.asSequence() }, { o.songs.isEmpty() })
    is BooleanArray -> STreeItem<Any>(type<Array<BooleanArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
    is ByteArray -> STreeItem<Any>(type<Array<ByteArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
    is UByteArray -> STreeItem<Any>(type<Array<UByteArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
@@ -280,7 +280,11 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       }
       is Node -> o.toUi() + (if (o.parent==null && o===o.scene?.root) " (root)" else "")
       is Tooltip -> "Tooltip"
+      is MetadataGroup -> "Library songs"
+      is PlaylistSongGroup -> "Playlist songs"
+      is Image -> "Image"
       is PopupWindow -> "Popup"
+      is Scene -> "Scene"
       is WindowFX -> {
          val w = o.asAppWindow()
          if (w==null) {

@@ -125,15 +125,18 @@ import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
 import kotlin.reflect.cast
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
+import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
 import sp.it.util.conf.uiConverter
+import sp.it.util.conf.uiSingleton
 import sp.it.util.functional.Option
 import sp.it.util.functional.toTry
 import sp.it.util.text.capital
 import sp.it.util.text.decapital
+import sp.it.util.ui.setMinPrefMaxSize
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -582,8 +585,8 @@ class WidgetManager {
             return compareBy<WidgetMonitor> { 0 }.thenBy(isOpen).thenBy(WidgetMonitor::widgetName)
          }
       /** Plugin management ui. */
-      private var settings by c(this).singleton()
-         .def(name = "Widgets", info = "Manage application widgets")
+      private var settings by c(this).singleton().uiSingleton()
+         .def(name = "Widgets", info = "Manage application widgets", group = "Widgets")
       val autoRecompile by cv(true)
          .def(name = "Auto-compilation", info = "Automatic compilation and reloading of widgets when their source code changes")
       val recompile by cr { monitors.sortedWith(compilationOrder).forEach { it.scheduleCompilation() } }
@@ -1044,6 +1047,15 @@ sealed interface ComponentLoader: (Component) -> Any {
          c.focus()
 
          p.show(WINDOW_ACTIVE(Pos.CENTER))
+
+         // This helps certain cases, when pref size basically becomes min size
+         p.onShown += {
+            runLater {
+               if (c is Widget)
+                  c.controller?.uiRoot()?.setMinPrefMaxSize(-1.0, -1.0)
+            }
+         }
+
          return p
       }
    }

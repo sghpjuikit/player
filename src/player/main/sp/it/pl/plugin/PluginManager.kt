@@ -45,10 +45,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmName
+import sp.it.util.conf.uiSingleton
 
 class PluginManager: GlobalConfigDelegator {
    /** Plugin management ui. */
-   private var settings by c(this).singleton().def(name = "Plugins", info = "Manage application plugins", group = "Plugin management")
+   private var settings by c(this).singleton().uiSingleton().def(name = "Plugins", info = "Manage application plugins", group = "Plugin management")
    /** All installed plugins, observable, writable. */
    private val pluginsObservableImpl = observableArrayList<PluginBox<*>>()!!
    /** All installed plugins, observable, readable. */

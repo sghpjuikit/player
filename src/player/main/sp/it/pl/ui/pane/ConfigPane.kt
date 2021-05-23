@@ -18,6 +18,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.UiSingleton
 import sp.it.util.functional.asIf
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
@@ -137,11 +138,13 @@ class ConfigPane<T: Any?>: VBox {
    override fun layoutChildren() {
       val contentLeft = padding.left
       val contentWidth = if (width>0) width - padding.width else 200.0
+      val isSingleEditor = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
+      val lastEditor = children.lastOrNull()
       children.fold(0.0) { h, n ->
          val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
-         val pH = n.prefHeight(-1.0).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
-         n.relocate(contentLeft, h + p.top + spacing)
-         n.resize(contentWidth, pH)
+         val pH = n.prefHeight(contentWidth).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
+         if (isSingleEditor && n===lastEditor) n.resizeRelocate(contentLeft, h + p.top, contentWidth, height - h - p.top)
+         else n.resizeRelocate(contentLeft, h + p.top, contentWidth, pH)
          h + p.top + pH + p.bottom + spacing
       }
    }

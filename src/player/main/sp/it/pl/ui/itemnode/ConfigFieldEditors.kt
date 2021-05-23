@@ -148,10 +148,13 @@ import javafx.scene.control.TextField
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.ScrollEvent
 import javafx.scene.input.ScrollEvent.SCROLL
+import javafx.scene.layout.Region
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.reflect.KClass
 import sp.it.pl.core.UiStringHelper
+import sp.it.pl.layout.widget.NoFactoryFactory
+import sp.it.pl.layout.widget.TemplateFactory
 import sp.it.pl.ui.objects.textfield.ColorTextField
 import sp.it.pl.ui.objects.textfield.DateTextField
 import sp.it.pl.ui.objects.textfield.DateTimeTextField
@@ -163,6 +166,7 @@ import sp.it.pl.ui.objects.complexfield.ComplexTextField
 import sp.it.util.access.OrV
 import sp.it.util.access.editable
 import sp.it.util.access.toWritable
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.functional.filter
@@ -776,10 +780,11 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
    override val editor = stackPane {
       val d = onNodeDispose
       lay += vBox {
-         lay += label("Installed plugins:").apply {
+         lay += label("Installed plugins:") {
             styleClass += "h4p"
          }
-         lay += hBox {
+         lay(ALWAYS) += hBox {
+            isFillHeight = true
             lay += listView<PluginBox<*>> {
                pseudoClassChanged("no-fixed-cell-size", true)
                minPrefMaxWidth = 250.emScaled
@@ -795,7 +800,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                      val label2 = label("")
                      val root = hBox {
                         lay += icon
-                        lay += vBox {
+                        lay(ALWAYS) += vBox {
                            lay += label1
                            lay += label2
                         }
@@ -817,7 +822,10 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                d += { items = null }
                d += { pluginInfo.plugin = null }
             }
-            lay(ALWAYS) += pluginInfo
+            lay(ALWAYS) += pluginInfo.apply {
+               minWidth = 0.0
+               minWidth = 250.emScaled
+            }
          }
 
       }
@@ -880,10 +888,11 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
    override val editor = stackPane {
       val d = onNodeDispose
       lay += vBox {
-         lay += label("Installed widgets:").apply {
+         lay += label("Installed widgets:") {
             styleClass += "h4p"
          }
-         lay += hBox {
+         lay(ALWAYS) += hBox {
+            isFillHeight = true
             lay += listView<ComponentFactory<*>> {
                pseudoClassChanged("no-fixed-cell-size", true)
                minPrefMaxWidth = 250.emScaled
@@ -899,7 +908,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      val label2 = label("")
                      val root = hBox {
                         lay += icon
-                        lay += vBox {
+                        lay(ALWAYS) += vBox {
                            lay += label1
                            lay += label2
                         }
@@ -924,7 +933,10 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                d += { items = null }
                d += { widgetInfo.widget = null }
             }
-            lay(ALWAYS) += widgetInfo
+            lay(ALWAYS) += widgetInfo.apply {
+               minWidth = 0.0
+               prefWidth = 250.emScaled
+            }
          }
 
       }
@@ -954,6 +966,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      is WidgetFactory<*> -> {
                         lay += textColon("Id", value.id)
                         lay += textColon("Supported", value.isSupported)
+                        lay += textColon("Type", "Widget")
                         lay += textColon("Version", value.version)
                         lay += textColon("Year", value.year)
                         lay += textColon("Author", value.author)
@@ -969,8 +982,15 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                            }
                         }
                      }
+                     is TemplateFactory -> {
+                        lay += textColon("Type", "Predefined component")
+                     }
                      is DeserializingFactory -> {
+                        lay += textColon("Type", "Exported layout")
                         lay += textColon("File", value.launcher)
+                     }
+                     is NoFactoryFactory -> {
+                        lay += textColon("Type", "Substitute for 'missing component'")
                      }
                   }
                }
@@ -1062,9 +1082,9 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 }
 
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
-   val isMultiline = c.type.jvmErasure.isSubclassOf<Collection<*>>() || c.type.jvmErasure.isSubclassOf<Map<*,*>>()
-   override val editor = if (isMultiline) TextArea() else SpitTextField()
+   val isMultiline = c.hasConstraint<Constraint.Multiline>() || c.type.jvmErasure.isSubclassOf<Collection<*>>() || c.type.jvmErasure.isSubclassOf<Map<*,*>>()
    val obv = getObservableValue(c)
+   override val editor = if (isMultiline) TextArea() else SpitTextField()
    private val converterRaw: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
    private val converter: (T) -> String = { get().toOption().filter { v -> v==it }.map { editor.text }.getOrSupply { converterRaw(it) } }
    private val isObservable = obv!=null

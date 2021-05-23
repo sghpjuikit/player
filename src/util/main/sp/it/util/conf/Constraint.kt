@@ -83,6 +83,9 @@ interface Constraint<in T> {
       override fun message() = "Text must be at least $min and at most$max characters long"
    }
 
+   /** Use multi-line text area instead of text field as editor. Allowed for non-[String] values. [Collection] and [Map] is multiline by default. */
+   object Multiline: MarkerConstraint()
+
    object DurationNonNegative: Constraint<Duration> {
       override fun isValid(value: Duration?): Boolean {
          return value==null || value.greaterThanOrEqualTo(Duration.ZERO)
@@ -106,6 +109,7 @@ interface Constraint<in T> {
       override fun message() = "Value must not be null"
    }
 
+   /** Hints ui editor for [Config.isEnumerable] to use original order of the enumeration, i.e. no sort will be applied. */
    object PreserveOrder: MarkerConstraint()
 
    /** Avoid showing the config in ui. */
@@ -116,6 +120,9 @@ interface Constraint<in T> {
 
    /** Avoid persisting the config. Use for 'computed' configs. Configs with [Config.isEditable]==[EditMode.NONE] are not persistent by default. */
    object NoPersist: MarkerConstraint()
+
+   /** Use to make editor span entire available space. Applied if the editor is the only config in its group. */
+   object UiSingleton: MarkerConstraint()
 
    /** Use save file chooser in ui, allowing to define files that do not exist. */
    object FileOut: MarkerConstraint()
@@ -142,10 +149,12 @@ interface Constraint<in T> {
       override fun enumerateUnsealed() = enumerator()
    }
 
+   /** Hints ui editor to use the specified to-string converter instead of the default one. */
    class UiConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
    class UiElementConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
+   /** Hints ui editor to use the specified to-info-string converter to display extended information about the value. */
    class UiInfoConverter<T>(val converter: (T) -> String): MarkerConstraint()
 
    class ReadOnlyIf(val condition: ObservableValue<Boolean>): Constraint<Any?> {

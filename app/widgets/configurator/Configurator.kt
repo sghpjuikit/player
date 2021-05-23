@@ -111,11 +111,11 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
             lay += Icon().blank()
          }
          lay(ALWAYS) += splitPane {
-            setDividerPositions(0.25)
+            setDividerPositions(0.2)
 
             lay(false) += groups.apply {
                id = "groups"
-               prefWidth = 200.0
+               prefWidth = 200.emScaled
                leftAnchor
             }
             lay(true) += stackPane {
@@ -124,6 +124,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
                lay += scrollPane {
                   isFitToWidth = true
+                  isFitToHeight = true
                   prefSize = -1 x -1
                   vbarPolicy = ScrollBarPolicy.AS_NEEDED
 
@@ -148,7 +149,6 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    var selectedGroupPath by c("").noUi()
 
    init {
-      root.minSize = 400.emScaled x 400.emScaled
       root.prefSize = 1000.emScaled x 800.emScaled
       root.consumeScrolling()
       root.onEventDown(KEY_PRESSED, ESCAPE, consume = false) {

@@ -213,6 +213,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = HelpEntries.Table + listOf(
+         Entry("Table row", "Move song within playlist", keys("CTRL+Drag")),
          Entry("Table row", "Play item", "2x${PRIMARY.nameUi}"),
       )
       override val group = PLAYLIST

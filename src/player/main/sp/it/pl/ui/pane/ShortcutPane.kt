@@ -59,7 +59,7 @@ class ShortcutPane: OverlayPane<ShortcutPane.Info>() {
       hideEmptyShortcuts attach { if (isShown()) build(value) }
 
       content = vBox(5, CENTER) {
-         maxWidth = 750.emScaled
+         maxWidth = 800.emScaled
 
          lay += hBox(5, CENTER_RIGHT) {
             lay += CheckIcon(hideEmptyShortcuts)

@@ -4,11 +4,6 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.imaging.ImageProcessingException
 import com.sun.tools.attach.VirtualMachine
 import javafx.geometry.Pos.CENTER
-import javafx.scene.input.KeyCode.ENTER
-import javafx.scene.input.KeyCode.ESCAPE
-import javafx.scene.input.KeyCode.F1
-import javafx.scene.input.KeyCode.F2
-import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -55,8 +50,6 @@ import sp.it.util.reactive.sync1If
 import sp.it.util.system.browse
 import sp.it.util.system.open
 import sp.it.util.system.runCommand
-import sp.it.util.text.keys
-import sp.it.util.text.nameUi
 import sp.it.util.ui.bgr
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.stackPane
@@ -67,11 +60,14 @@ import java.io.File
 import java.io.IOException
 import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER_LEFT
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.*
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.SpitText
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.reactive.onEventDown
+import sp.it.util.text.*
 import sp.it.util.ui.hyperlink
 import sp.it.util.ui.lay
 import sp.it.util.ui.vBox
@@ -140,19 +136,44 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui", "Show focused widget help", ActionManager.keyShortcutsComponent.nameUi),
          Entry("Ui", "Show focused widget actions", ActionManager.keyActionsComponent.nameUi),
          Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
-         Entry("Ui > Table/List/Grid", "Select", PRIMARY.nameUi),
-         Entry("Ui > Table/List/Grid", "Show item context menu", SECONDARY.nameUi),
-         Entry("Ui > Table/List/Grid", "Filter", keys("CTRL+F")),
-         Entry("Ui > Table/List/Grid", "Filter (cancel)", ESCAPE.nameUi),
-         Entry("Ui > Table/List/Grid", "Filter (clear)", ESCAPE.nameUi),
-         Entry("Ui > Table/List/Grid", "Search", "Type text"),
-         Entry("Ui > Table/List/Grid", "Search (cancel)", ESCAPE.nameUi),
-         Entry("Ui > Table/List/Grid", "Selection (cancel)", ESCAPE.nameUi),
-         Entry("Ui > Table", "Show column menu", SECONDARY.nameUi),
-         Entry("Ui > Table", "Swap columns", "Column drag"),
-         Entry("Ui > Table", "Sort - ${Sort.ASCENDING.toUi()} | ${Sort.DESCENDING.toUi()} | ${Sort.NONE.toUi()}", SECONDARY.nameUi),
-         Entry("Ui > Table", "Sorts by multiple columns", "SHIFT+LMB"),
-         Entry("Ui > Table", "Opens additional action menus", "Footer > Menu bar")
+         Entry("Ui > Controls > Button/Icon", "Run action", PRIMARY.nameUi),
+         Entry("Ui > Controls > Button/Icon", "Run action", ENTER.nameUi),
+         Entry("Ui > Controls > Button/Icon", "Run action", SPACE.nameUi),
+         Entry("Ui > Controls > Button/Icon", "Run action (default)", ENTER.nameUi + " (anywhere)"),
+         Entry("Ui > Controls > List/Table/TreeTable", "Select", PRIMARY.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable", "Selection (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable", "Show item context menu", SECONDARY.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable", "Scroll vertically", keys("Scroll")),
+         Entry("Ui > Controls > List/Table/TreeTable", "Scroll horizontally", keys("Scroll+SHIFT")),
+         Entry("Ui > Controls > List/Table/TreeTable", "Filter", keys("CTRL+F")),
+         Entry("Ui > Controls > List/Table/TreeTable", "Filter (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable", "Filter (clear)", ESCAPE.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable", "Search", "Type text"),
+         Entry("Ui > Controls > List/Table/TreeTable", "Search (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable > Header", "Show column menu", SECONDARY.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable > Header", "Swap columns", "Column drag"),
+         Entry("Ui > Controls > List/Table/TreeTable > Header", "Sort - ${Sort.ASCENDING.toUi()} | ${Sort.DESCENDING.toUi()} | ${Sort.NONE.toUi()}", PRIMARY.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable > Header", "Sorts by multiple columns", keys("SHIFT+LMB")),
+         Entry("Ui > Controls > List/Table/TreeTable > Footer", "Opens additional action menus", "Menu bar"),
+         Entry("Ui > Controls > List/Table/TreeTable > Row", "Selects item", PRIMARY.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable > Row", "Show context menu", SECONDARY.nameUi),
+         Entry("Ui > Controls > List/Table/TreeTable > Row", "Move song within playlist", keys("CTRL+Drag")),
+         Entry("Ui > Controls > List/Table/TreeTable > Row", "Add items after row", "Drag & drop items"),
+         Entry("Ui > Controls > Grid", "Select", PRIMARY.nameUi),
+         Entry("Ui > Controls > Grid", "Selection (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Controls > Grid", "Show item context menu", SECONDARY.nameUi),
+         Entry("Ui > Controls > Grid", "Scroll vertically", keys("Scroll")),
+         Entry("Ui > Controls > Grid", "Scroll horizontally", keys("Scroll+SHIFT")),
+         Entry("Ui > Controls > Grid", "Filter", keys("CTRL+F")),
+         Entry("Ui > Controls > Grid", "Filter (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Controls > Grid", "Filter (clear)", ESCAPE.nameUi),
+         Entry("Ui > Controls > Grid", "Search", "Type text"),
+         Entry("Ui > Controls > Grid", "Search (cancel)", ESCAPE.nameUi),
+         Entry("Ui > Controls > Grid > Footer", "Opens additional action menus", "Menu bar"),
+         Entry("Ui > Controls > Grid > Cell", "Selects item", PRIMARY.nameUi),
+         Entry("Ui > Controls > Grid > Cell", "Show context menu", SECONDARY.nameUi),
+         Entry("Ui > Controls > Grid > Cell", "Move song within playlist", keys("CTRL+Drag")),
+         Entry("Ui > Controls > Grid > Cell", "Add items after row", "Drag & drop items"),
       )
       APP.ui.shortcutPane.orBuild.show(ShortcutPane.Info("", actionsStandard + actionsHardcoded))
    }

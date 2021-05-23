@@ -131,7 +131,6 @@ object HelpEntries {
        Entry("Table columns", "Sorts by multiple columns", keys("SHIFT+${PRIMARY.nameUi})")),
        Entry("Table row", "Selects item", PRIMARY.nameUi),
        Entry("Table row", "Show context menu", SECONDARY.nameUi),
-       Entry("Table row", "Move song within playlist", keys("CTRL+Drag")),
        Entry("Table row", "Add items after row", "Drag & drop items"),
        Entry("Table footer", "Opens additional action menus", "Menu bar"),
     )

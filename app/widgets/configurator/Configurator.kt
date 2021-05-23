@@ -64,6 +64,7 @@ import kotlin.math.sin
 import sp.it.util.access.focused
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.zip
+import sp.it.util.ui.minSize
 import sp.it.util.units.millis
 
 @Widget.Info(
@@ -147,7 +148,8 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    var selectedGroupPath by c("").noUi()
 
    init {
-      root.prefSize = 800.emScaled x 600.emScaled
+      root.minSize = 400.emScaled x 400.emScaled
+      root.prefSize = 1000.emScaled x 800.emScaled
       root.consumeScrolling()
       root.onEventDown(KEY_PRESSED, ESCAPE, consume = false) {
          if (filterTextField.text.isNotBlank()) {

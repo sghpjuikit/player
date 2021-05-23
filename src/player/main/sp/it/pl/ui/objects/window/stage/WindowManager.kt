@@ -563,7 +563,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    fun <T> showSettings(c: Configurable<T>, atNode: Node) = PopWindow().apply {
       title.value = "${c.toUi()} Settings"
       content.value = form(c).apply {
-         prefSize = 400.emScaled x 400.emScaled
+         prefSize = 600.emScaled x 600.emScaled
       }
       show(DOWN_CENTER(atNode))
    }

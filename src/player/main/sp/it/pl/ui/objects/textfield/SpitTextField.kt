@@ -36,9 +36,12 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.ui.showContextMenu
+import sp.it.util.access.editable
 import sp.it.util.collections.observableList
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.sync
+import sp.it.util.ui.pseudoClassChanged
 
 /** [TextField], which can be decorated with nodes inside on the left and right. */
 open class SpitTextField: TextField() {
@@ -53,6 +56,9 @@ open class SpitTextField: TextField() {
       styleClass += STYLECLASS
       minWidth = USE_PREF_SIZE
       maxWidth = USE_PREF_SIZE
+
+      // custom context menu
+      editable sync { pseudoClassChanged("editable", it) }
 
       // custom context menu
       contextMenuShower = { showContextMenu(this, it, this::getText, null) }

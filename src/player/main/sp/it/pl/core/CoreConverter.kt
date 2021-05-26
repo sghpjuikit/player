@@ -46,7 +46,6 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.conf.Command
-import sp.it.pl.core.CoreConverter.addT
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.feature.Feature
@@ -260,6 +259,8 @@ object CoreConverter: Core {
       addT<ULong>(toS, tryF(NFE::class) { it.toULong() }.numberMessage())
       addT<Float>(toS, tryF(NFE::class) { it.toFloat() }.numberMessage())
       addT<Double>(toS, tryF(NFE::class) { it.toDouble() }.numberMessage())
+      addT<BigInteger>(toS, tryF(NFE::class) { it.toBigInteger() }.numberMessage())
+      addT<BigDecimal>(toS, tryF(NFE::class) { it.toBigDecimal() }.numberMessage())
       addT<Char>(toS, tryF(OBE::class) { it[0] })
       addP<String>({ it }, { it })
       addT<StringSplitParser>(toS, StringSplitParser::fromString)

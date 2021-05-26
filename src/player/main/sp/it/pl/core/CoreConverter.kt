@@ -486,7 +486,7 @@ data class Parser<T>(val type: VType<T>, val args: List<ParserArg<*>>, val build
                         charAt += arg.value.length
                         output += arg.value
                      }
-                     else -> error = "Does not contain '$arg' at $charAt'"
+                     else -> error = "Does not contain '${arg.value}' at $charAt'"
                   }
                   is ParserArg.Arg<*> -> {
                      val valueAsText = if (isLast) text.substring(charAt) else text.substring(charAt).substringBefore(delimiter)

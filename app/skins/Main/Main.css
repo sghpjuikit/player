@@ -2044,6 +2044,21 @@ Shape, Text, SpitText, TextFlow > * {
 /*
  * inherits: .value-text-field
  */
+.number-text-field {
+    -fx-pref-column-count: 10;
+}
+/*
+ * Number increment/decrement buttons
+ * inherits: VBox with two .icon
+ */
+.number-text-field .number-text-field-buttons {
+    -fx-background-color: rgba(255,255,255,0.025);
+    -fx-padding: 0 0.5em 0 0.5em;
+}
+
+/*
+ * inherits: .value-text-field
+ */
 .mood-text-field {
     -fx-pref-column-count: 10;
 }

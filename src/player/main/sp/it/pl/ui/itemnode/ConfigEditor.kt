@@ -59,6 +59,7 @@ import sp.it.pl.core.UiStringHelper
 import sp.it.util.access.readOnly
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.functional.andAlso
 import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
 import sp.it.util.type.VType
@@ -103,7 +104,9 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
    abstract fun get(): Try<T, String>
 
-   fun getValid(): Try<T, String> = get().and { v ->
+   fun getValid(): Try<T, String> = get().andAlso { validate(it) }
+
+   fun validate(value: T): Try<T, String> = Try.ok(value).and { v ->
       if (!config.type.isNullable) ObjectNonNull.validate(v) else Try.ok()
    }.and { v ->
       config.constraints.map { it.validate(v) }.find { it.isError } ?: Try.ok()

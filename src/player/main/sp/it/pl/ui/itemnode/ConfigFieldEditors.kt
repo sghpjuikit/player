@@ -138,17 +138,27 @@ import sp.it.util.ui.text
 import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
 import java.io.File
+import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode.CEILING
+import java.math.RoundingMode.FLOOR
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Locale
+import javafx.event.Event
+import javafx.geometry.Pos
+import javafx.scene.control.Control
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent
 import javafx.scene.input.ScrollEvent.SCROLL
-import javafx.scene.layout.Region
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.reflect.KClass
@@ -169,6 +179,7 @@ import sp.it.util.access.toWritable
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.UnsealedEnumerator
+import sp.it.util.dev.SwitchException
 import sp.it.util.functional.filter
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.map
@@ -179,6 +190,7 @@ import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
+import sp.it.util.ui.centre
 
 private val actTooltip = appTooltip("Run action")
 private val globTooltip = appTooltip("Global shortcut"
@@ -1154,7 +1166,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             }
       }
 
-      // integers
+      // numbers
       @Suppress("RemoveExplicitTypeArguments")
       val scrollHandler = when (config.type.jvmErasure) {
          Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }
@@ -1163,12 +1175,27 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
          UShort::class -> onNumberScrolled<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
          Int::class -> onNumberScrolled<Int>(Int.MIN_VALUE, Int.MAX_VALUE, Int::plus) { it }
          UInt::class -> onNumberScrolled<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
+         Float::class -> onNumberScrolled<Float>(Float.MIN_VALUE, Float.MAX_VALUE, Float::plus) { it.toFloat() }
          Long::class -> onNumberScrolled<Long>(Long.MIN_VALUE, Long.MAX_VALUE, Long::plus) { it.toLong() }
+         Double::class -> onNumberScrolled<Double>(Double.MIN_VALUE, Double.MAX_VALUE, Double::plus) { it.toDouble() }
          ULong::class -> onNumberScrolled<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
          BigInteger::class -> onNumberScrolled<BigInteger>(null, null, BigInteger::plus) { it.toBigInteger() }
+         BigDecimal::class -> onNumberScrolled<BigDecimal>(null, null, BigDecimal::plus) { it.toBigDecimal() }
          else -> null
       }
-      if (scrollHandler!=null) editor.onEventDown(SCROLL, scrollHandler)
+      if (scrollHandler!=null) {
+         editor.styleClass += "number-text-field"
+         editor.onEventDown(SCROLL, scrollHandler)
+         if (editor is SpitTextField) {
+            editor.right += vBox(0.0, Pos.CENTER) {
+               styleClass += "number-text-field-buttons"
+               onEventDown(MOUSE_CLICKED, scrollHandler)
+               onEventDown(SCROLL, scrollHandler)
+               lay += Icon(IconFA.ANGLE_UP, 3.emScaled).apply { gap.value = 0.0; scale(1.7) }
+               lay += Icon(IconFA.ANGLE_DOWN, 3.emScaled).apply { gap.value = 0.0; scale(1.7) }
+            }
+         }
+      }
 
       // autocomplete
       config.findConstraint<UnsealedEnumerator<T>>().ifNotNull { e ->
@@ -1198,7 +1225,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
    private fun showWarnButton(value: Try<*, String>) {
       val shouldBeVisible = value.isError && isEditable.value
-      if (editor is SpitTextField) editor.right setTo if (shouldBeVisible) listOf(warnI.value) else listOf()
+      if (editor is SpitTextField) editor.right setTo editor.right.filter { it !== warnI.value }.plus(if (shouldBeVisible) listOf(warnI.value) else listOf())
       warnI.orNull()?.isVisible = shouldBeVisible
       warnI.orNull()?.tooltip(value.switch().map { appTooltip(it) }.orNull())
    }
@@ -1227,17 +1254,36 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    companion object {
-      private inline fun <reified T> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (ScrollEvent) -> Unit = { it ->
-         val dv = it.deltaY.sign.roundToInt()
-         val ov = config.value.asIs<T?>() ?: caster(0)
-         val nv = when {
-            ov==min && dv<0 -> ov
-            ov==max && dv>0 -> ov
-            else -> adder(ov, caster(dv))
+      private inline fun <reified T> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (Event) -> Unit = { it ->
+         if ((it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY) || (it is ScrollEvent && editor.isFocused)) {
+            val dv = when (it) {
+               is MouseEvent -> if (it.source.asIs<Node>().net { it.layoutBounds.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1
+               is ScrollEvent -> it.deltaY.sign.roundToInt()
+               else -> throw SwitchException(it)
+            }
+            val ov = config.value.asIs<T?>() ?: caster(0)
+            val nv = when {
+               ov==min && dv<0 -> ov
+               ov==max && dv>0 -> ov
+               else -> {
+                  val oov = when {
+                     ov is Float -> (if (dv<0) ceil(ov) else floor(ov)).asIs()
+                     ov is Double -> (if (dv<0) ceil(ov) else floor(ov)).asIs()
+                     ov is BigDecimal -> ov.setScale(0, if (dv<0) CEILING else FLOOR).asIs()
+                     else -> ov
+                  }
+
+                  adder(oov, caster(dv))
+               }
+            }
+
+            if (asIs<ConfigEditor<T>>().validate(nv).isOk) {
+               config.asIs<Config<T>>().value = nv
+               refreshValue()
+            }
+
+            it.consume()
          }
-         config.asIs<Config<T>>().value = nv
-         refreshValue()
-         it.consume()
       }
    }
 }

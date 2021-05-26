@@ -243,7 +243,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       // https://bugs.openjdk.java.net/browse/JDK-8092146
       // https://stackoverflow.com/questions/15509203/disable-treeitems-default-expand-collapse-on-double-click-javafx-2-2
       onEventUp(MouseEvent.ANY) {
-         if (!isEmpty && it.clickCount == 2 && it.isPrimaryButtonDown) {
+         if (!isEmpty && it.clickCount == 2 && it.button==PRIMARY) {
             if (it.eventType == MOUSE_CLICKED) doOnClick(it)
             it.consume()
          }

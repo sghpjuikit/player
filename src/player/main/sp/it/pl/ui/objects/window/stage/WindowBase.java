@@ -433,43 +433,40 @@ public class WindowBase {
 		// avoid when not desired
 		if (!APP.ui.getSnapping().get() || resizing.get()!=Resize.NONE) return;
 
-		double S = getEmScaled(APP.ui.getSnapDistance().getValue());
+		var w = sp.it.util.ui.UtilKt.getBounds(s);
+		var wc = new P(w.getMinX() + w.getWidth()/2.0, w.getMinY() + w.getHeight()/2.0);
+		var S = getEmScaled(APP.ui.getSnapDistance().getValue());
 
 		// snap to screen edges (x and y separately)
-		double SWm = screen.getBounds().getMinX();
-		double SHm = screen.getBounds().getMinY();
-		double SW = screen.getBounds().getMaxX();
-		double SH = screen.getBounds().getMaxY();
-		// x
-		if (abs(s.getX() - SWm)<S)
-			snapLeft();
-		else if (abs(s.getX() + s.getWidth() - SW)<S)
-			snapRight();
-		// y
-		if (abs(s.getY() - SHm)<S)
-			snapUp();
-		else if (abs(s.getY() + s.getHeight() - SH)<S)
-			snapDown();
+		var SWm = screen.getBounds().getMinX();
+		var SHm = screen.getBounds().getMinY();
+		var SW = screen.getBounds().getMaxX();
+		var SH = screen.getBounds().getMaxY();
+		var SC = new P(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2.0, screen.getBounds().getMinY() + screen.getBounds().getWidth()/2.0);
+
+		if (abs(w.getMinX() - SWm)<S) snapLeft();
+		else if (abs(w.getMaxX() - SW)<S) snapRight();
+		if (abs(w.getMinY() - SHm)<S) snapUp();
+		else if (abs(w.getMaxY() - SH)<S) snapDown();
+		if (abs(wc.getX() - SC.getX())<S) s.setX(SC.getX()-w.getWidth()/2.0);
+		if (abs(wc.getY() - SC.getY())<S) s.setY(SC.getY()-w.getHeight()/2.0);
 
 		// snap to other window edges
-		for (javafx.stage.Window w : Stage.getWindows()) {
-			if (!w.getProperties().containsKey(Window.keyWindowAppWindow)) continue;
+		for (javafx.stage.Window W : Stage.getWindows()) {
+			if (!W.getProperties().containsKey(Window.keyWindowAppWindow)) continue;
 
-			double WXS = w.getX() + w.getWidth();
-			double WXE = w.getX();
-			double WYS = w.getY() + w.getHeight();
-			double WYE = w.getY();
+			var WXS = W.getX() + W.getWidth();
+			var WXE = W.getX();
+			var WYS = W.getY() + W.getHeight();
+			var WYE = W.getY();
+			var WC = new P(W.getX() + W.getWidth()/2.0, W.getY() + W.getHeight()/2.0);
 
-			// x
-			if (Math.abs(WXS - s.getX())<S)
-				s.setX(WXS);
-			else if (Math.abs(s.getX() + s.getWidth() - WXE)<S)
-				s.setX(WXE - s.getWidth());
-			// y
-			if (Math.abs(WYS - s.getY())<S)
-				s.setY(WYS);
-			else if (Math.abs(s.getY() + s.getHeight() - WYE)<S)
-				s.setY(WYE - s.getHeight());
+			if (abs(w.getMinX() - WXS)<S) s.setX(WXS);
+			else if (abs(w.getMaxX() - WXE)<S) s.setX(WXE - w.getWidth());
+			if (abs(w.getMinX() - WYS)<S) s.setY(WYS);
+			else if (abs(w.getMaxY() - WYE)<S) s.setY(WYE - w.getHeight());
+			if (abs(wc.getX() - WC.getX())<S) s.setX(WC.getX() - w.getWidth()/2.0);
+			if (abs(wc.getY() - WC.getY())<S) s.setY(WC.getY() - w.getHeight()/2.0);
 		}
 	}
 

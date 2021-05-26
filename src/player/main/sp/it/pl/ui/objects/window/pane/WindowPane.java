@@ -204,23 +204,25 @@ public class WindowPane {
 			double wr = n.getLayoutX() + ((Pane) n).getWidth();
 			if (abs(x - wr)<snapDistance())
 				return wr;
-
 			if (abs(x + w.get() - n.getLayoutX())<snapDistance())
 				return n.getLayoutX() - w.get();
+			if (abs((x + w.get()/2.0) - (n.getLayoutX()+n.getLayoutBounds().getWidth()/2.0))<snapDistance())
+				return n.getLayoutX() - w.get()/2.0;
 		}
 		return x;
 	}
 
-	private double mapSnapY(double y, double right, double w, List<Node> windows) {
+	private double mapSnapY(double y, double bottom, double hi, List<Node> windows) {
 		for (Node n : windows) {
 			if (n==this.root) continue;
 
 			double wr = n.getLayoutY() + ((Pane) n).getHeight();
 			if (abs(y - wr)<snapDistance())
 				return wr;
-
 			if (abs(y + h.get() - n.getLayoutY())<snapDistance())
 				return n.getLayoutY() - h.get();
+			if (abs((y + h.get()/2.0) - (n.getLayoutY()+n.getLayoutBounds().getHeight()/2.0))<snapDistance())
+				return n.getLayoutY() - h.get()/2.0;
 		}
 		return y;
 	}

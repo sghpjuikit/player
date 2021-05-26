@@ -238,7 +238,7 @@ public class Icon extends StackPane {
 
 	public Icon gap(@Nullable Number s) {
 		requestLayout();
-		setGlyphGap(s==null ? DEFAULT_ICON_SIZE : s.doubleValue());
+		setGlyphGap(s==null ? DEFAULT_ICON_GAP : s.doubleValue());
 		return this;
 	}
 

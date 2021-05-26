@@ -276,7 +276,7 @@
 .choice-box > .label,
 .menu-button > .label,
 .color-picker > .label {
-    /*-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em;*/ /* 4 8 4 8 */
+    -fx-padding: 0.333333em 2em 0.333333em 1em; /* 4 8 4 8 */
     -fx-text-fill: -skin-def-font-color;
 }
 .choice-box > .open-button,
@@ -2017,25 +2017,29 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: transparent;
 }
 .value-text-field:editable .left-pane {
-    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-color: rgba(255,255,255,0.025);
 }
 .value-text-field .right-pane {
     -fx-background-color: transparent;
 }
 .value-text-field:editable .right-pane {
-    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-color: rgba(255,255,255,0.025);
+}
+
+/*
+ * Default icon style in
+ * inherits: .icon
+ */
+.value-text-field .icon {
+    -glyph-name: "FontAwesomeIcon.CARET_DOWN";
+    -glyph-size: 1em;
 }
 
 /*
  * Button that opens value picker for .value-text-field
  * inherits: .icon
  */
-.value-text-field .value-text-field-arrow {
-    -glyph-name: "FontAwesomeIcon.CARET_DOWN";
-    -glyph-size: 1.2em;
-    -fx-scale-x: 1;
-    -fx-scale-y: 1;
-}
+.value-text-field .value-text-field-arrow {}
 
 /*
  * inherits: .value-text-field
@@ -2049,6 +2053,12 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .file-text-field {
     -fx-pref-column-count: 10;
+}
+.file-text-field .file-text-field-type {
+    -glyph-size: 0.8em;
+}
+.file-text-field .file-text-field-type Text {
+    -fx-translate-x: 0.3em;
 }
 
 /*
@@ -2076,6 +2086,13 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: .value-text-field
  */
 .datetime-text-field {
+    -fx-pref-column-count: 10;
+}
+
+/*
+ * inherits: .value-text-field
+ */
+.color-text-field {
     -fx-pref-column-count: 10;
 }
 

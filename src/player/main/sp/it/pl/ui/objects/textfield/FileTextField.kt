@@ -45,7 +45,8 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?, val picker
       }
 
       if (constraint==FileActor.ANY) {
-         Icon(null, 7.0).onClickDo { type.toggleNext() }.tooltip("Switch mode between file and directory").apply {
+         Icon().onClickDo { type.toggleNext() }.tooltip("Switch mode between file and directory").apply {
+            styleclass("file-text-field-type")
             right.add(0, this)
             editable sync { isDisable = !it }
             type sync { icon(if (it==FILE) IconUN(0x1f4c4) else IconUN(0x1f4c1)) }

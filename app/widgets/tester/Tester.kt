@@ -2,6 +2,8 @@ package tester
 
 import java.io.File
 import java.lang.Math.PI
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -194,13 +196,22 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cvn(Pos)` by cvn<Pos>(null)
          val `cv(Key)` by cv<Key>(Key.A)
          val `cvn(Key)` by cvn<Key>(null)
+         val `cv(Byte)` by cv<Byte>(0)
+         val `cv(UByte)` by cv<UByte>(0u)
+         val `cv(Short)` by cv<Short>(0)
+         val `cv(UShort)` by cv<UShort>(0u)
          var `c(Int)` by c<Int>(0)
          var `cn(Int)` by cn<Int>(null)
          val `cv(Int)` by cv<Int>(0)
          val `cvn(Int)` by cvn<Int>(null)
          val `cv(Int)|0-100` by cv<Int>(0).between(0, 100)
          val `cvn(Int)|0-100` by cvn<Int>(null).between(0, 100)
-         var `c(File)` by c<File>(APP.location.spitplayer_exe)
+         val `cv(UInt)` by cv<UInt>(0u)
+         val `cv(ULong)` by cv<ULong>(0uL)
+         val `cv(Float)` by cv<Float>(0f)
+         val `cv(Double)` by cv<Double>(0.0)
+         val `cv(BigInteger)` by cv<BigInteger>(BigInteger.ZERO)
+         val `cv(BigDecimal)` by cv<BigDecimal>(BigDecimal.ZERO)
          var `cn(File)` by cn<File>(null)
          val `cv(File)` by cv<File>(APP.location.spitplayer_exe)
          val `cvn(File)` by cvn<File>(null)

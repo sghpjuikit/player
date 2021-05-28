@@ -37,7 +37,6 @@ import sp.it.pl.main.AppSearch.Source
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.impl.AppSearchPlugin
 import sp.it.pl.plugin.impl.DirSearchPlugin
-import sp.it.pl.plugin.impl.Guide
 import sp.it.pl.plugin.impl.LibraryPlugin
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.plugin.impl.PlaycountIncrementer
@@ -429,7 +428,6 @@ class App: Application(), GlobalConfigDelegator {
 
    private fun PluginManager.initForApp() {
       installPlugin<Tray>()
-      installPlugin<Guide>()
       installPlugin<Notifier>()
       installPlugin<PlaycountIncrementer>()
       installPlugin<LibraryPlugin>()

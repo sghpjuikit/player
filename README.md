@@ -7,7 +7,6 @@
 - [Features](#features)
 - [Download](#download)
 - [Screenshots](#screenshots)
-- [Issues](#issues)
 - [Copyright](#copyright)
 - [Contributing](CONTRIBUTING.md)
 
@@ -344,13 +343,14 @@ Which does not mean anything is permitted, it is the opposite. This will change 
 ##### widget modules
 
 This is a collection of source codes for widgets for this application, found in [app/widgets](/app/widgets).
-Unless necessary, widget's sources are under [The Unlicense](http://unlicense.org).
+For portability reasons, each widget specifies its licence.
+The common widget's sources are usually under [The Unlicense](http://unlicense.org). 
 
 ##### util module (sp.it.util)
 
 This is collection of useful utility methods/extension, with primary intention of supporting the player module of this project.
 
-All of the sources, unless specifically stated otherwise in the source code file, are under [The Unlicense](http://unlicense.org).
+All the sources, unless specifically stated otherwise in the source code file, are under [The Unlicense](http://unlicense.org).
 
 ##### demo module (sp.it.demo)
 

@@ -190,7 +190,7 @@ import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.syncTo
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
-import sp.it.util.ui.centre
+import sp.it.util.ui.hasFocus
 
 private val actTooltip = appTooltip("Run action")
 private val globTooltip = appTooltip("Global shortcut"
@@ -354,6 +354,12 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
       slider.value = config.value.toDouble()
       slider.valueProperty() attach { if (!slider.isValueChanging) apply() } on disposer
       v?.attach { slider.value = it.toDouble() }.orEmpty() on disposer
+
+      // increment/decrement
+      val scrollHandler = GeneralCE.onNumberScrolledHandler(this);
+      if (scrollHandler!=null) {
+         slider.onEventDown(SCROLL, scrollHandler)
+      }
 
       // readonly
       isEditable sync { editor.isDisable = !it } on disposer
@@ -1167,22 +1173,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       }
 
       // numbers
-      @Suppress("RemoveExplicitTypeArguments")
-      val scrollHandler = when (config.type.jvmErasure) {
-         Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }
-         UByte::class -> onNumberScrolled<UByte>(UByte.MIN_VALUE, UByte.MAX_VALUE, { a,b -> (a+b).toUByte() }) { it.toUByte() }
-         Short::class -> onNumberScrolled<Short>(Short.MIN_VALUE, Short.MAX_VALUE, { a,b -> (a+b).toShort() }) { it.toShort() }
-         UShort::class -> onNumberScrolled<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
-         Int::class -> onNumberScrolled<Int>(Int.MIN_VALUE, Int.MAX_VALUE, Int::plus) { it }
-         UInt::class -> onNumberScrolled<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
-         Float::class -> onNumberScrolled<Float>(Float.MIN_VALUE, Float.MAX_VALUE, Float::plus) { it.toFloat() }
-         Long::class -> onNumberScrolled<Long>(Long.MIN_VALUE, Long.MAX_VALUE, Long::plus) { it.toLong() }
-         Double::class -> onNumberScrolled<Double>(Double.MIN_VALUE, Double.MAX_VALUE, Double::plus) { it.toDouble() }
-         ULong::class -> onNumberScrolled<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
-         BigInteger::class -> onNumberScrolled<BigInteger>(null, null, BigInteger::plus) { it.toBigInteger() }
-         BigDecimal::class -> onNumberScrolled<BigDecimal>(null, null, BigDecimal::plus) { it.toBigDecimal() }
-         else -> null
-      }
+      val scrollHandler = onNumberScrolledHandler(this)
       if (scrollHandler!=null) {
          editor.styleClass += "number-text-field"
          editor.onEventDown(SCROLL, scrollHandler)
@@ -1254,11 +1245,31 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    companion object {
+
+      @Suppress("RemoveExplicitTypeArguments")
+      fun onNumberScrolledHandler(editor: ConfigEditor<*>) = editor.run {
+         when (config.type.jvmErasure) {
+            Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }
+            UByte::class -> onNumberScrolled<UByte>(UByte.MIN_VALUE, UByte.MAX_VALUE, { a,b -> (a+b).toUByte() }) { it.toUByte() }
+            Short::class -> onNumberScrolled<Short>(Short.MIN_VALUE, Short.MAX_VALUE, { a,b -> (a+b).toShort() }) { it.toShort() }
+            UShort::class -> onNumberScrolled<UShort>(UShort.MIN_VALUE, UShort.MAX_VALUE, { a,b -> (a+b).toUShort() }) { it.toUShort() }
+            Int::class -> onNumberScrolled<Int>(Int.MIN_VALUE, Int.MAX_VALUE, Int::plus) { it }
+            UInt::class -> onNumberScrolled<UInt>(UInt.MIN_VALUE, UInt.MAX_VALUE, UInt::plus) { it.toUInt() }
+            Float::class -> onNumberScrolled<Float>(Float.MIN_VALUE, Float.MAX_VALUE, Float::plus) { it.toFloat() }
+            Long::class -> onNumberScrolled<Long>(Long.MIN_VALUE, Long.MAX_VALUE, Long::plus) { it.toLong() }
+            Double::class -> onNumberScrolled<Double>(Double.MIN_VALUE, Double.MAX_VALUE, Double::plus) { it.toDouble() }
+            ULong::class -> onNumberScrolled<ULong>(ULong.MIN_VALUE, ULong.MAX_VALUE, ULong::plus) { it.toULong() }
+            BigInteger::class -> onNumberScrolled<BigInteger>(null, null, BigInteger::plus) { it.toBigInteger() }
+            BigDecimal::class -> onNumberScrolled<BigDecimal>(null, null, BigDecimal::plus) { it.toBigDecimal() }
+            else -> null
+         }
+      }
+
       private inline fun <reified T> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (Event) -> Unit = { it ->
-         if ((it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY) || (it is ScrollEvent && editor.isFocused)) {
+         if ((it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY) || (it is ScrollEvent && editor.hasFocus())) {
             val dv = when (it) {
-               is MouseEvent -> if (it.source.asIs<Node>().net { it.layoutBounds.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1
-               is ScrollEvent -> it.deltaY.sign.roundToInt()
+               is MouseEvent -> (if (it.source.asIs<Node>().net { it.layoutBounds.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1) * (if (it.isShortcutDown) 10 else 1)
+               is ScrollEvent -> it.deltaY.sign.roundToInt() * (if (it.isShortcutDown) 10 else 1)
                else -> throw SwitchException(it)
             }
             val ov = config.value.asIs<T?>() ?: caster(0)

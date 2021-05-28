@@ -343,8 +343,8 @@ Which does not mean anything is permitted, it is the opposite. This will change 
 
 ##### widget modules
 
-This is a collection of source codes for widgets for this application, found in `app/widgets`.
-All of the sources, are under [The Unlicense](http://unlicense.org).
+This is a collection of source codes for widgets for this application, found in [app/widgets](/app/widgets).
+Unless necessary, widget's sources are under [The Unlicense](http://unlicense.org).
 
 ##### util module (sp.it.util)
 

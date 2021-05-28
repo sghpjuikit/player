@@ -64,6 +64,7 @@ public class SpitTextFieldSkin extends TextFieldSkin {
 		if (!newLeft.isEmpty()) {
 			getChildren().remove(leftPane);
 			leftPane = new HBox(newLeft.toArray(Node[]::new));
+			leftPane.setManaged(false);
 			leftPane.getStyleClass().add("left-pane");
 			getChildren().add(leftPane);
 		} else {
@@ -75,6 +76,7 @@ public class SpitTextFieldSkin extends TextFieldSkin {
 		if (!newRight.isEmpty()) {
 			getChildren().remove(rightPane);
 			rightPane = new HBox(newRight.toArray(Node[]::new));
+			rightPane.setManaged(false);
 			rightPane.getStyleClass().add("right-pane");
 			getChildren().add(rightPane);
 		} else {

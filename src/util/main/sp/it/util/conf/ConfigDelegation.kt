@@ -37,6 +37,7 @@ import javafx.beans.property.Property
 import sp.it.util.access.OrV
 import sp.it.util.access.OrV.OrValue
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.functional.Try
 import sp.it.util.reactive.Unsubscriber
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncBiFromWithOverride
@@ -189,9 +190,9 @@ abstract class Conf<T: Any?>: ConstrainedDsl<T> {
       ?: findAnnotation<IsConfig>()?.toDef()
       ?: ConfigDef(name)
 
-   protected fun validateValue(v: T) {
-      constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }
-   }
+   protected fun validateValue(v: T) = constraints.forEach { it.validate(v).ifError { failIf(true) { "Value $v doesn't conform to: $it" } } }
+
+   protected fun validateValueSoft(v: T): Try<*,*> = if (constraints.any { it.validate(v).isError }) Try.error() else Try.ok()
 
    protected fun KCallable<*>.makeAccessible() = apply {
       isAccessible = true
@@ -246,7 +247,10 @@ class ConfL<T: Any?>(val list: ConfList<T>): Conf<ObservableList<T>>() {
       failIf(!isFinal) { "Property must be immutable" }
 
       val c = ListConfig(property.name, info, list, group, constraints, elementConstraints)
+      validateValue(c.value)
       ref.configurableValueSource.initialize(c)
+      validateValueSoft(c.value).ifError { c.setValueToDefault() }
+      // TODO: validate elements
 
       return object: ListConfig<T>(property.name, info, list, group, constraints, elementConstraints), RoProperty<ConfigDelegator, ObservableList<T>> {
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = list.list
@@ -265,7 +269,9 @@ class ConfCheckL<T: Any?, S: Boolean?>(val list: CheckList<T, S>): Conf<CheckLis
       failIf(!isFinal) { "Property must be immutable" }
 
       val c = CheckListConfig(property.name, info, list, group, constraints)
+      validateValue(c.value)
       ref.configurableValueSource.initialize(c)
+      validateValueSoft(c.value).ifError { c.setValueToDefault() }
 
       return CheckListConfig(property.name, info, list, group, constraints).registerConfig(ref)
    }
@@ -283,8 +289,9 @@ class ConfS<T: Any?>(private val initialValue: T): Conf<T>() {
       failIf(isFinal xor (info.editable===EditMode.NONE)) { "Property mutability does not correspond to specified editability=${info.editable}" }
 
       val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
-      ref.configurableValueSource.initialize(c)
       validateValue(c.value)
+      ref.configurableValueSource.initialize(c)
+      validateValueSoft(c.value).ifError { c.setValueToDefault() }
 
       return object: PropertyConfig<T>(type, property.name, info, constraints, vx(c.value), initialValue, group), RwProperty<ConfigDelegator, T> {
          @Suppress("UsePropertyAccessSyntax")
@@ -325,8 +332,9 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<Conf
       failIf(!isFinal) { "Property must be immutable" }
 
       val c = ValueConfig(type, property.name, "", initialValue, group, "", info.editable).addConstraints(constraints)
-      ref.configurableValueSource.initialize(c)
       validateValue(c.value)
+      ref.configurableValueSource.initialize(c)
+      validateValueSoft(c.value).ifError { c.setValueToDefault() }
 
       return object: PropertyConfig<T>(type, property.name, info, constraints, vFactory(c.value), initialValue, group), RoProperty<ConfigDelegator, W> {
          @Suppress("UNCHECKED_CAST")
@@ -409,8 +417,10 @@ class ConfVOr<T: Any?, W: OrV<T>>: Conf<OrValue<T>>, ConfigPropertyDelegator<Con
 
       return object: OrPropertyConfig<T>(type, property.name, info, constraints, elementConstraints, vFactory(), group), RoProperty<ConfigDelegator, W> {
          init {
-            ref.configurableValueSource.initialize(this)
+            // TODO: validate elements
             validateValue(this.value)
+            ref.configurableValueSource.initialize(this)
+            validateValueSoft(this.value).ifError { this.setValueToDefault() }
          }
          @Suppress("UNCHECKED_CAST")
          override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>): W = this.property as W

@@ -19,6 +19,8 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
+import sp.it.util.async.FX
+import sp.it.util.async.launch
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -134,9 +136,11 @@ class Layouter: ComponentUi {
          wasSelected = false
          AppAnimator.closeAndDo(wp.root) {
             root.children -= wp.root
-            container.addChild(index, factory.create())
-            if (APP.ui.isLayoutMode) container.show()
-            APP.actionStream("New widget")
+            FX.launch {
+               container.addChild(index, factory.create())
+               if (APP.ui.isLayoutMode) container.show()
+               APP.actionStream("New widget")
+            }
          }
       }
       wp.onCancel = {

@@ -25,6 +25,9 @@ import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
 import kotlin.math.ceil
 import sp.it.pl.core.CoreConverter
+import sp.it.util.async.FX
+import sp.it.util.async.launch
+import sp.it.util.async.runFX
 
 private val logger = KotlinLogging.logger {}
 
@@ -102,12 +105,14 @@ fun <T> T?.toUi(): String = CoreConverter.ui.toS(this)
 /** @return result of [sp.it.pl.core.CoreConverter.general].[sp.it.util.parsing.ConverterToString.toS] */
 fun <T> T?.toS(): String = CoreConverter.general.toS(this)
 
-/** Runs the specified block immediately or when application is [initialized](App.onStarted). */
-fun App.run1AppReady(block: () -> Unit) {
-   if (isInitialized.isOk) {
-      block()
-   } else {
-      onStarted += { run1AppReady(block) }
+/** Runs the specified block immediately or when application is [initialized](App.onStarted) on [runFX]. */
+fun App.run1AppReady(block: suspend () -> Unit) {
+   FX.launch {
+      if (isInitialized.isOk) {
+         block()
+      } else {
+         onStarted += { run1AppReady(block) }
+      }
    }
 }
 

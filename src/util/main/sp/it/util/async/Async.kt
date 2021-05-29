@@ -24,6 +24,9 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.javafx.JavaFx
 
 private val logger = KotlinLogging.logger { }
 
@@ -74,7 +77,7 @@ class AwtExecutor: Executor {
 }
 
 /** Executes the specified block on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
-class FxExecutor: Executor {
+class FxExecutor: Executor, CoroutineContext by Dispatchers.JavaFx {
    override fun execute(command: Runnable) = if (Platform.isFxApplicationThread()) command() else Platform.runLater(command)
 
    /**

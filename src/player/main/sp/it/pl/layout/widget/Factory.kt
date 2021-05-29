@@ -27,7 +27,7 @@ import sp.it.util.text.decapital
 
 /** Component factory that creates component by deserializing it from file. */
 sealed interface ComponentFactory<out T: Component>: ComponentInfo {
-   fun create(): T
+   suspend fun create(): T
 }
 
 /** Component factory that creates widgets. */
@@ -101,7 +101,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
     */
    fun dispose() = companion?.dispose().toUnit()
 
-   override fun create(): Widget = Widget(UUID.randomUUID(), this, false)
+   override suspend fun create(): Widget = Widget(UUID.randomUUID(), this, false)
 
    fun createRecompiled(id: UUID): Widget = Widget(id, this, true)
 
@@ -111,7 +111,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
 
 /** Component factory that creates component programmatically using a supplier. */
 class TemplateFactory<C: Component>(override val name: String, private val supplier: () -> C): ComponentFactory<C> {
-   override fun create() = supplier()
+   override suspend fun create() = supplier()
    override fun toString() = "${javaClass.simpleName} $name"
 }
 
@@ -119,7 +119,7 @@ class TemplateFactory<C: Component>(override val name: String, private val suppl
 class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
    override val name = launcher.nameWithoutExtension
 
-   override fun create() = APP.windowManager.instantiateComponent(launcher)!!
+   override suspend fun create() = APP.windowManager.instantiateComponent(launcher)!!
    override fun toString() = "${javaClass.simpleName} $name $launcher"
 }
 

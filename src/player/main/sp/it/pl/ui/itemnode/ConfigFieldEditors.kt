@@ -356,7 +356,7 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
       v?.attach { slider.value = it.toDouble() }.orEmpty() on disposer
 
       // increment/decrement
-      val scrollHandler = GeneralCE.onNumberScrolledHandler(this);
+      val scrollHandler = GeneralCE.onNumberScrolledHandler(this)
       if (scrollHandler!=null) {
          slider.onEventDown(SCROLL, scrollHandler)
       }
@@ -918,7 +918,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                   object: ListCell<ComponentFactory<*>>() {
                      val icon = Icon(null, 48.0).apply {
                         isFocusTraversable = false
-                        onClickDo(2) { APP.windowManager.showWindow(item.create()) }
+                        onClickDo(2) { APP.windowManager.showWindow(item) }
                      }
                      val label1 = label("") {
                         styleClass += "text-weight-bold"
@@ -1014,7 +1014,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                }
                lay(TOP_RIGHT) += Icon(value.uiIcon, 128.0).apply {
                   isFocusTraversable = false
-                  onClickDo(2) { APP.windowManager.showWindow(value.create()) }
+                  onClickDo(2) { APP.windowManager.showWindow(value) }
                }
             }
          }

@@ -7,9 +7,7 @@ import com.sun.jna.platform.win32.WinDef
 import javafx.collections.FXCollections.observableArrayList
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.layout.Pane
 import mu.KLogging
-import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
@@ -69,22 +67,27 @@ import sp.it.util.system.Os
 import sp.it.util.system.isExecutable
 import sp.it.util.system.open
 import sp.it.util.system.runAsProgram
-import sp.it.util.ui.anchorPane
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
+import javafx.geometry.Insets
+import javafx.scene.layout.AnchorPane
+import sp.it.pl.layout.container.Layout
 import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.async.FX
+import sp.it.util.async.launch
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
+import sp.it.util.ui.stackPane
 
 class AppSearchPlugin: PluginBase() {
 
@@ -176,32 +179,36 @@ class AppSearchPlugin: PluginBase() {
    @IsAction(name = "Open program launcher", info = "Opens program launcher widget", keys = "CTRL+P")
    fun openLauncher() {
       val f = userLocation/"MainProgramLauncher.fxwl"
-      val c = APP.windowManager.instantiateComponent(f) ?: widgetFactory.create()
+      var widgetLayout: Layout? = null
+      val widgetArea = AnchorPane()
 
       val op = object: OverlayPane<Unit>() {
 
          init {
             onHidden += {
-               c.exportFxwl(f) ui {
-                  c.close()
-                  removeFromParent()
-               }
+               widgetLayout?.child?.exportFxwl(f)?.block()
+               widgetLayout?.child?.close()
+               widgetLayout?.close()
+               widgetLayout = null
             }
          }
 
          override fun show(data: Unit) {
-            val componentRoot = c.load() as Pane
-            content = anchorPane {
-               lay(20) += componentRoot
+            content = stackPane {
+               padding = Insets(20.emScaled)
+               lay += widgetArea
             }
-            if (c is Widget) {
-               val parent = this
-               c.ui = object: ComponentUi {
-                  override val root = parent
-                  override fun show() {}
-                  override fun hide() {}
+
+            FX.launch {
+               val c = APP.windowManager.instantiateComponent(f) ?: widgetFactory.create()
+
+               Layout.openStandalone(widgetArea).apply {
+                  widgetLayout = this
+                  widgetArea.scene.root.properties[Window.keyWindowLayout] = this
+                  child = c
                }
             }
+
             super.show()
          }
 
@@ -210,11 +217,6 @@ class AppSearchPlugin: PluginBase() {
       op.displayBgr.value = APP.ui.viewDisplayBgr.value
       op.show(Unit)
       op.makeResizableByUser()
-      c.load().apply {
-         prefWidth(900.0)
-         prefHeight(700.0)
-      }
-      c.focus()
    }
 
    @Widget.Info(

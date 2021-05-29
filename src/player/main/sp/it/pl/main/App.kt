@@ -54,6 +54,8 @@ import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
+import sp.it.util.async.FX
+import sp.it.util.async.launch
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
 import sp.it.util.conf.GlobalConfigDelegator
@@ -503,8 +505,10 @@ class App: Application(), GlobalConfigDelegator {
             graphics = hBox { lay += strategyCB; lay += processCB }
          ) {
             if (processCB.value == "Normal") {
-               strategyCB.value.loader(c.create())
-               widgetManager.widgets.componentLastOpenStrategiesMap(id, strategyCB.value)
+               FX.launch {
+                  strategyCB.value.loader(c.create())
+                  widgetManager.widgets.componentLastOpenStrategiesMap(id, strategyCB.value)
+               }
             } else {
                val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
                f.runAsAppProgram(

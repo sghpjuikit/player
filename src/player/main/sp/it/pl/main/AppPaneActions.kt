@@ -9,6 +9,7 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.layout.Pane
 import javafx.stage.FileChooser.ExtensionFilter
+import kotlinx.coroutines.runBlocking
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -49,8 +50,10 @@ import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.async.FX
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runGet
+import sp.it.util.async.launch
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
 import sp.it.util.conf.ConfigurableBase
@@ -114,13 +117,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
       FastAction(IconFA.CSS3, ActionRegistrar["Open css guide"]),
       FastAction("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
-         ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create())
+         FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create()) }
       },
       FastAction("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
-         ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create())
+         FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create()) }
       },
       FastAction("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
-         ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create())
+         FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create()) }
       },
       FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"])
    )
@@ -143,7 +146,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMA.WIDGETS,
          {
             chooseFile("Open widget...", FILE, APP.location.user.layouts, ap.scene?.window, ExtensionFilter("Component", "*.fxwl"))
-               .ifOk { APP.windowManager.launchComponent(it) }
+               .ifOk { FX.launch { APP.windowManager.launchComponent(it) } }
          }
       ),
       FastAction(
@@ -464,13 +467,14 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                   content.children.getOrNull(0).asIf<Pane>()?.children?.getOrNull(2)?.opacity = (1 - it)*(1 - it)
                }.play()
 
+
                runIO {
                   if (conf.makeWritable.value) audioFiles.forEach { it.setWritable(true) }
                   task.runGet().toTry().orNull()
                }.ui { result ->
                   if (result!=null) {
                      if (conf.editInTagger.value) {
-                        val tagger = APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNull()?.create()
+                        val tagger = runBlocking { APP.widgetManager.factories.getFactory(SONG_TAGGER.id).orNull()?.create() }
                         val songs = if (conf.editOnlyAdded.value) result.converted else result.all
                         if (tagger!=null) {
                            anim(500.millis) {

@@ -36,7 +36,6 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.pl.main.withAppProgress
-import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.pane.OverlayPane
@@ -124,6 +123,7 @@ import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import javafx.stage.Window as WindowFX
 import kotlin.reflect.cast
+import kotlinx.coroutines.runBlocking
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
@@ -645,7 +645,7 @@ class WidgetManager {
                when (source) {
                   is WidgetUse.NewAnd -> {
                      val f = preferred.firstOrNull() ?: factories.getFactories().firstOrNull { !it.isIgnored && filter(it) }
-                     val w = f?.create()
+                     val w = runBlocking { f?.create() }
                      w?.let(source.layouter)
                      w
                   }

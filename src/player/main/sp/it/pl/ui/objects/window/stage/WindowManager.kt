@@ -30,12 +30,16 @@ import javafx.stage.StageStyle.UTILITY
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Duration.ZERO
 import kotlin.math.sqrt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.invoke
+import kotlinx.coroutines.javafx.*
 import mu.KLogging
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentDb
 import sp.it.pl.layout.container.Layout
 import sp.it.pl.layout.deduplicateIds
 import sp.it.pl.layout.exportFxwl
+import sp.it.pl.layout.widget.ComponentFactory
 import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
 import sp.it.pl.layout.widget.NoFactoryFactory
 import sp.it.pl.layout.widget.Widget
@@ -57,8 +61,10 @@ import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.async.FX
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut
+import sp.it.util.async.launch
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.observableList
@@ -76,10 +82,11 @@ import sp.it.util.file.Util.isValidatedDirectory
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
-import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
@@ -340,12 +347,14 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
          // content
          val dockComponentFile = APP.location.user.tmp / "DockComponent.fxwl"
-         val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
-         mw.s.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
-         mw.onClose += {
-            mwFocusRestoring.suppressed {
-               mw.s.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
-               mw.s.asLayout()?.child?.close()
+         FX.launch {
+            val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
+            mw.s.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
+            mw.onClose += {
+               mwFocusRestoring.suppressed {
+                  mw.s.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
+                  mw.s.asLayout()?.child?.close()
+               }
             }
          }
 
@@ -530,6 +539,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       return mw
    }
 
+   fun showWindow(c: ComponentFactory<*>): Unit = FX.launch { showWindow(c.create()) }.toUnit()
+
    fun showWindow(c: Component): Window {
       return create().apply {
          initLayout()
@@ -569,27 +580,33 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    /** Create, show and return component specified by the specified factoryId. */
-   fun launchComponent(factoryId: String): Component? = instantiateComponent(factoryId)?.apply { showWindow(this) }
+   suspend fun launchComponent(factoryId: String): Component? = Dispatchers.JavaFx {
+      instantiateComponent(factoryId).ifNotNull { showWindow(it) }
+   }
 
    /** Create, show and return component specified by its launcher file. */
-   fun launchComponent(launcher: File): Component? = instantiateComponent(launcher)?.apply { showWindow(this) }
+   suspend fun launchComponent(launcher: File): Component? = instantiateComponent(launcher)?.apply { showWindow(this) }
 
    /** Create component specified by its factoryId. */
-   fun instantiateComponent(factoryId: String): Component? {
+   suspend fun instantiateComponent(factoryId: String): Component? = Dispatchers.JavaFx {
       val f = null
          ?: APP.widgetManager.factories.getComponentFactoryByName(factoryId)
          ?: APP.widgetManager.factories.getFactory(factoryId).orNull()
-      return f?.create()
+      f?.create()
    }
 
    /** Create component specified by the launcher file. */
-   // TODO: put this on IO thread and reuse File.loadComponentFxwlJson()?
-   fun instantiateComponent(launcher: File): Component? {
-      if (!launcher.exists()) return null
-      val launcherContainsName = launcher.useLines { it.count()==1 }
+   suspend fun instantiateComponent(launcher: File): Component? = Dispatchers.JavaFx {
+      val id = Dispatchers.IO {
+         if (!launcher.exists()) null
+         else runTry { launcher.useLines { it.take(2).toList().net { if (it.size==1) it[0] else "" } } }.orNull()
+      }
 
-      return if (launcherContainsName) launcher.readTextTry().orNull()?.let(::instantiateComponent)
-      else APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.deduplicateIds()?.toDomain()
+      when (id) {
+         null -> null
+         "" -> APP.serializerJson.fromJson<ComponentDb>(launcher).orNull()?.deduplicateIds()?.toDomain()
+         else -> instantiateComponent(id)
+      }
    }
 
    companion object: KLogging() {

@@ -5,6 +5,7 @@ import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.layout.Pane
 import javafx.scene.robot.Robot
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.widget.controller.Controller
@@ -107,24 +108,24 @@ val introWidgetFactory = WidgetFactory(IntroWidget::class, APP.location.widgets/
 
 val initialTemplateFactory = TemplateFactory("Playback + Playlist") {
    BiContainer(VERTICAL).apply {
-      children += 1 to APP.widgetManager.factories.getFactory(PLAYBACK.id).orNone().create()
-      children += 2 to APP.widgetManager.factories.getFactory(PLAYLIST.id).orNone().create()
+      children += 1 to runBlocking { APP.widgetManager.factories.getFactory(PLAYBACK.id).orNone().create() }
+      children += 2 to runBlocking { APP.widgetManager.factories.getFactory(PLAYLIST.id).orNone().create() }
    }
 }
 
 fun testControlContainer() = BiContainer(HORIZONTAL).apply {
    children += 1 to BiContainer(VERTICAL).apply {
-      children += 1 to emptyWidgetFactory.create()
-      children += 2 to emptyWidgetFactory.create()
+      children += 1 to runBlocking { emptyWidgetFactory.create() }
+      children += 2 to runBlocking { emptyWidgetFactory.create() }
    }
    children += 2 to BiContainer(VERTICAL).apply {
       children += 1 to BiContainer(HORIZONTAL).apply {
-         children += 1 to emptyWidgetFactory.create()
-         children += 2 to emptyWidgetFactory.create()
+         children += 1 to runBlocking { emptyWidgetFactory.create() }
+         children += 2 to runBlocking { emptyWidgetFactory.create() }
       }
       children += 2 to BiContainer(HORIZONTAL).apply {
-         children += 1 to emptyWidgetFactory.create()
-         children += 2 to emptyWidgetFactory.create()
+         children += 1 to runBlocking { emptyWidgetFactory.create() }
+         children += 2 to runBlocking { emptyWidgetFactory.create() }
       }
    }
 

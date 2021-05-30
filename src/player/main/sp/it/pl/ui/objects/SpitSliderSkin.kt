@@ -76,7 +76,7 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
                if (isVertical) thumb.boundsInParent.centerY else thumb.boundsInParent.centerX,
                track.boundsInParent.height
             )
-         }
+         } on onDispose
       }
       children.add(1, fill)
    }

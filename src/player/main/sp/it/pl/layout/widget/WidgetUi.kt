@@ -114,7 +114,7 @@ class WidgetUi: ComponentUiBase<Widget> {
             content.layFullArea += widget.load()
 
             // put controls to new widget
-            widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } }
+            widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } } on disposer
             controls.title.textProperty() syncFrom widget.customName on disposer
             controls.propB.isDisable = widget.getConfigs().isEmpty()
             widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
@@ -125,7 +125,7 @@ class WidgetUi: ComponentUiBase<Widget> {
                animation.openAndDo(contentRoot, null)
 
                // put controls to new widget
-               widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } }
+               widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } } on disposer
                controls.title.textProperty() syncFrom widget.customName on disposer
                controls.propB.isDisable = widget.getConfigs().isEmpty()
                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer

@@ -36,7 +36,7 @@ class ColorTextField: ValueTextField<Color>() {
          }
       }
 
-      onValueChange += { picker.value = it ?: Color.WHITE }
+      onValueChange += { picker.value = it }
       picker.valueProperty() attach { valueChanging.suppressing { value = it } }
 
       // readonly

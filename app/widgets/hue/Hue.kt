@@ -19,7 +19,9 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readText
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.SwitchingProtocols
+import java.awt.Color.HSBtoRGB
 import javafx.event.EventHandler
+import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side.RIGHT
 import javafx.scene.Node
@@ -27,11 +29,22 @@ import javafx.scene.control.ContextMenu
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.control.TitledPane
+import javafx.scene.image.Image
+import javafx.scene.image.PixelFormat
+import javafx.scene.image.WritableImage
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
+import javafx.scene.input.MouseEvent.MOUSE_PRESSED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.VBox
+import javafx.scene.paint.Color
+import javafx.scene.shape.Circle
+import javafx.scene.text.TextAlignment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -65,7 +78,6 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.uiConverterElement
 import sp.it.util.conf.uiInfoConverter
 import sp.it.util.dev.Blocks
@@ -83,13 +95,10 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.suppressed
-import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.text.keys
 import sp.it.util.type.atomic
@@ -107,6 +116,22 @@ import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.util.Util.pyth
+import sp.it.util.conf.EditMode.NONE
+import sp.it.util.conf.cvn
+import sp.it.util.math.clip
+import sp.it.util.math.min
+import sp.it.util.reactive.Suppressor
+import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
+import sp.it.util.ui.centre
+import sp.it.util.ui.label
+import sp.it.util.ui.stackPane
 
 class Hue(widget: Widget): SimpleController(widget) {
 
@@ -268,25 +293,76 @@ class Hue(widget: Widget): SimpleController(widget) {
    }
 
    private val color = object: ConfigurableBase<Any?>() {
-      var avoidApplying = Suppressor(false)
+      val avoidApplying = Suppressor()
       val readOnly = v(true)
-      val hue by cv(0).readOnlyIf(readOnly).between(0, 65535).def(name = "Hue") attach { applyToSelected(null, it, null) }
-      val bri by cv(1).readOnlyIf(readOnly).between(1, 254).def(name = "Brightness") attach { applyToSelected(it, null, null) }
-      val sat by cv(0).readOnlyIf(readOnly).between(0, 254).def(name = "Saturation") attach { applyToSelected(null, null, it) }
+      val color by cvn<Color>(null).def(name = "Color", editable = NONE)
+      val hue by cv(0).between(0, 65535).def(name = "Color Hue", editable = NONE)
+      val sat by cv(0).between(0, 254).def(name = "Color Saturation", editable = NONE)
+      val bri by cv(1).between(1, 254).def(name = "Color Brightness", editable = NONE)
+      val configurable = this
+      var isDragged = false
+      val selectorRadius = 75.emScaled
+      val selector = Circle(5.emScaled).apply {
+         isManaged = false
+         isMouseTransparent = true
+         isVisible = false
+         stroke = Color.BLACK
+         strokeWidth = 1.0
+      }
+      val node = vBox {
+         alignment = TOP_CENTER
+         lay += form(configurable)
+         lay += stackPane {
+            this.lay += Thumbnail(selectorRadius*2, selectorRadius*2).run {
+               loadImage(drawGradientCir(selectorRadius.toInt()))
+
+               fun updateFromMouse(it: MouseEvent) {
+                  if (!readOnly.value) {
+                     val d = pane.layoutBounds.centre.distance(it.x x it.y)
+                     if (d < selectorRadius) {
+                        val o = 2-(d/selectorRadius).clip(0.5, 1.0)*2
+                        val c = image.value!!.pixelReader.getColor(it.x.toInt().clip(0, selectorRadius.toInt()*2), it.y.toInt().clip(0, selectorRadius.toInt()*2)).deriveColor(0.0, 1.0, 1.0, o)
+                        val cBri = 1 + ((c.opacity) * 253).toInt()
+                        val cHue = (c.hue/360.0*65535).toInt()
+                        val cSat = (c.saturation*245).toInt()
+                        changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat)))
+
+                        if (!isDragged) applyToSelected(cBri, cHue, cSat)
+                     }
+                  }
+               }
+               pane.onEventDown(MOUSE_PRESSED, PRIMARY) { isDragged = true }
+               pane.onEventDown(MOUSE_RELEASED, PRIMARY) { isDragged = false }
+               pane.onEventDown(MOUSE_RELEASED, PRIMARY) { updateFromMouse(it) }
+               pane.onEventDown(MOUSE_DRAGGED, PRIMARY) { if (isDragged) updateFromMouse(it) }
+
+               pane
+            }
+            this.lay += selector
+         }
+      }
 
       @Suppress("UNUSED_PARAMETER")
       fun changeToBulbGroup(group: HueGroup) {
-         avoidApplying.suppressingAlways {
-            bri.value = 1
+         avoidApplying.suppressing {
+            color.value = null
             hue.value = 0
             sat.value = 0
+            bri.value = 1
+            selector.isVisible = false
          }
       }
       fun changeToBulb(bulb: HueBulb) {
-         avoidApplying.suppressingAlways {
-            bri.value = bulb.state.bri
+         avoidApplying.suppressing {
+            val c = Color.hsb(bulb.state.hue.toDouble()*360.0/65535.0, bulb.state.sat.toDouble()/254.0, 1.0, bulb.state.bri.minus(1).toDouble()/253.0)
+            color.value = c
             hue.value = bulb.state.hue
             sat.value = bulb.state.sat
+            bri.value = bulb.state.bri
+            selector.isVisible = true
+            selector.centerX = selector.parent.layoutBounds.centerX + cos(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
+            selector.centerY = selector.parent.layoutBounds.centerY + sin(c.hue/360*2*PI + PI)*(selectorRadius*(if (c.opacity==1.0) 0.5*c.saturation else 1 - 0.5*c.opacity))
+            selector.fill = c
          }
       }
 
@@ -327,7 +403,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   lay += TitledPane("Scenes", scenesPane)
                }
             }
-            lay += form(color)
+            lay += color.node
          }
       }
 
@@ -379,7 +455,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                         }.show(this, RIGHT, 0.0, 0.0)
                   }
 
-                  HueCell(withText(group.name), this)
+                  HueCell(HueCellNode(this, group.name), this)
                }
             }.run {
                icon.hue = group
@@ -440,7 +516,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                      }.show(this, RIGHT, 0.0, 0.0)
                   }
 
-                  HueCell(withText(bulb.name), this)
+                  HueCell(HueCellNode(this, bulb.name), this)
                }
             }.run {
                icon.hue = bulb
@@ -464,7 +540,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                      }
                   }.show(this, RIGHT, 0.0, 0.0)
                }
-               withText(scene.name)
+               HueCellNode(this, scene.name)
             }
          }
          scenesPane.children += Icon(IconFA.PLUS).onClickDo {
@@ -493,7 +569,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       override val description = "Manages Phillips Hue bulbs, groups & scenes"
       override val descriptionLong = "$description."
       override val icon = IconUN(0x2e2a)
-      override val version = version(0, 0, 5)
+      override val version = version(0, 0, 6)
       override val isSupported = true
       override val year = year(2020)
       override val author = "spit"
@@ -517,6 +593,38 @@ class Hue(widget: Widget): SimpleController(widget) {
 
       fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
       inline fun <reified T> JsValue.to() = APP.serializerJson.json.fromJsonValue<T>(this).orThrow!!
+
+
+      fun drawGradientCir(radius: Int): Image {
+         return WritableImage(2*radius, 2*radius).apply {
+            val c = (radius).toDouble()
+            val opacityMask = (255 shl 16) or (255 shl 8) or 255
+            val pixels = IntArray(2*radius*2*radius) { i ->
+               val x = i.rem(2*radius)
+               val y = i.floorDiv(2*radius)
+               val dx = x-c
+               val dy = y-c
+               val d = pyth(dx, dy).min(c)/c
+               val a = atan2(dy, dx).plus(PI)/2/PI
+               if (d<=0.5) HSBtoRGB(a.toFloat(), (d*2).toFloat(), 1f)
+               else HSBtoRGB(a.toFloat(), 1f, 1f) and ((((2f-2*d)*255 + .5).toInt() shl 24) or opacityMask)
+            }
+            pixelWriter.setPixels(0, 0, 2*radius, 2*radius, PixelFormat.getIntArgbInstance(), pixels, 0, 2*radius)
+         }
+      }
+      fun drawGradientRec(radius: Int): Image {
+         return WritableImage(2*radius, 2*radius).apply {
+            val c = (radius).toDouble()
+            val opacityMask = (255 shl 16) or (255 shl 8) or 255
+            val pixels = IntArray(2*radius*2*radius) { i ->
+               val x = i.rem(2*radius)
+               val y = i.floorDiv(2*radius)
+               if (y<=radius) HSBtoRGB((x.toDouble()/2.0/c).toFloat(), (y.toDouble()/c).toFloat(), 1f)
+               else HSBtoRGB((x.toDouble()/2.0/c).toFloat(), 1f, 1f) and (((((2*radius-y).toFloat()/radius)*255 + .5).toInt() shl 24) or opacityMask)
+            }
+            pixelWriter.setPixels(0, 0, 2*radius, 2*radius, PixelFormat.getIntArgbInstance(), pixels, 0, 2*radius)
+         }
+      }
    }
 }
 
@@ -524,6 +632,17 @@ typealias HueBulbId = String
 typealias HueGroupId = String
 typealias HueSceneId = String
 
+class HueCellNode(icon: Icon, name: String): VBox(5.emScaled) {
+   init {
+      prefSize = 90.emScaled x 80.emScaled
+      alignment = TOP_CENTER
+      lay += icon
+      lay += label(name) {
+         isWrapText = true
+         textAlignment = TextAlignment.CENTER
+      }
+   }
+}
 class HueCell<T>(val node: Node, val icon: HueIcon<T>)
 class HueIcon<T>(i: GlyphIcons, size: Double, var hue: T): Icon(i, size)
 

@@ -22,10 +22,12 @@ class FontTextField: ValueTextField<Font>() {
       styleClass += STYLECLASS
       isEditable = true
       textProperty() attach {
-         valueChanging.suppressed {
-            APP.converter.general.ofS<Font>(it).ifOk {
-               runLater {
+         if (!valueChanging.isSuppressed) {
+            valueChanging.isSuppressed = true
+            runLater {
+               APP.converter.general.ofS<Font>(it).ifOk {
                   value = it
+                  valueChanging.isSuppressed = false
                }
             }
          }

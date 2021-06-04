@@ -18,7 +18,6 @@ import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
-import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.system.chooseFile
@@ -35,10 +34,12 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?, val picker
       isEditable = true
 
       textProperty() attach {
-         valueChanging.suppressed {
-            APP.converter.general.ofS<File>(it).ifOk {
-               runLater {
+         if (!valueChanging.isSuppressed) {
+            valueChanging.isSuppressed = true
+            runLater {
+               APP.converter.general.ofS<File>(it).ifOk {
                   value = it
+                  valueChanging.isSuppressed = false
                }
             }
          }

@@ -11,7 +11,6 @@ import sp.it.util.collections.setToOne
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
-import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.syncTo
 import sp.it.util.ui.minPrefMaxWidth
@@ -27,10 +26,12 @@ class ColorTextField: ValueTextField<Color>() {
       right setToOne picker
 
       textProperty() attach {
-         valueChanging.suppressed {
-            APP.converter.general.ofS<Color>(it).ifOk {
-               runLater {
+         if (!valueChanging.isSuppressed) {
+            valueChanging.isSuppressed = true
+            runLater {
+               APP.converter.general.ofS<Color>(it).ifOk {
                   value = it
+                  valueChanging.isSuppressed = false
                }
             }
          }

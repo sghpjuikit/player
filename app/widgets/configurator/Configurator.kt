@@ -61,10 +61,10 @@ import java.util.ArrayList
 import javafx.scene.input.KeyCode.ESCAPE
 import kotlin.math.PI
 import kotlin.math.sin
+import sp.it.pl.main.formEditorsUiToggleIcon
 import sp.it.util.access.focused
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.reactive.zip
-import sp.it.util.ui.minSize
 import sp.it.util.units.millis
 
 @Widget.Info(
@@ -99,6 +99,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
          lay(NEVER) += hBox(0, CENTER_RIGHT) {
             id = "header"
 
+            lay += formEditorsUiToggleIcon(editorsPane.ui)
             lay += CheckIcon(filterActions).icons(IconFA.COMPRESS).tooltip("No shortcuts\n\nHide shortcuts and action editors as they get in the way.")
             lay += filterTextField.apply {
                val focusAnim = anim(200.millis) { prefWidth = (25 + it*125).emScaled }.intpl { sin(PI/2*it) }.applyNow()
@@ -132,7 +133,9 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
                      prefSize = -1 x -1
                      isFocusTraversable = true
 
-                     lay += editorsPane
+                     lay += editorsPane.apply {
+                        ui.value = APP.ui.formLayout.value
+                     }
                   }
                }
             }

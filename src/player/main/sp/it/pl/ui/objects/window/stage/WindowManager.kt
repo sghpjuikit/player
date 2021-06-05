@@ -49,6 +49,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.formEditorsUiToggleIcon
 import sp.it.pl.main.toUi
 import sp.it.pl.main.windowOnTopIcon
 import sp.it.pl.main.windowPinIcon
@@ -575,6 +576,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       title.value = "${c.toUi()} Settings"
       content.value = form(c).apply {
          prefSize = 600.emScaled x 600.emScaled
+         headerIcons += formEditorsUiToggleIcon(editorUi)
       }
       show(DOWN_CENTER(atNode))
    }

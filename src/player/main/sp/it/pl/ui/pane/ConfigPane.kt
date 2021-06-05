@@ -5,12 +5,22 @@ import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
+import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextFlow
 import sp.it.pl.main.Css
+import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.labelForWithClick
+import sp.it.pl.ui.pane.ConfigPane.Layout.EXTENSIVE
+import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
+import sp.it.pl.ui.pane.ConfigPane.Layout.NORMAL
+import sp.it.util.access.StyleableCompanion
+import sp.it.util.access.enumConverter
+import sp.it.util.access.sv
+import sp.it.util.access.svMetaData
 import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.collections.materialize
@@ -26,13 +36,17 @@ import sp.it.util.functional.nullsFirst
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.type.propertyNullable
 import sp.it.util.type.raw
+import sp.it.util.ui.hBox
 import sp.it.util.ui.height
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.text
 import sp.it.util.ui.textFlow
 import sp.it.util.ui.width
@@ -44,6 +58,7 @@ class ConfigPane<T: Any?>: VBox {
    private val onChangeRaw = Runnable { onChange?.invoke() }
    private val onChangeOrConstraintRaw = Runnable { onChangeOrConstraint?.invoke() }
    val editable = v(true)
+   val ui by sv(UI)
    var onChange: Runnable? = null
    var onChangeOrConstraint: Runnable? = null
    var editorOrder: Comparator<Config<*>>? = compareByDefault
@@ -54,6 +69,8 @@ class ConfigPane<T: Any?>: VBox {
 
    constructor(): super(5.0) {
       styleClass += "form-config-pane"
+      ui sync { Layout.values().forEach { l -> pseudoClassChanged(l.name.lowercase(), l == it) } }
+      ui attach { buildUi(true) }
    }
 
    constructor(configs: Configurable<T>): this() {
@@ -73,34 +90,87 @@ class ConfigPane<T: Any?>: VBox {
             }
          }
          .toList()
-      editorNodes.forEach { it.onNodeDispose() }
+      buildUi(false)
+   }
+
+   private fun buildUi(soft: Boolean) {
+      val editorNodesOld = children.asSequence()
+         .mapNotNull {
+            if (buildUiKey in it.properties) it
+            else it.asIf<Pane>()?.children?.find { buildUiKey in it.properties }
+         }
+         .associateBy { it.configEditor ?: it.parent?.configEditor!! }
+
+      fun ConfigEditor<*>.buildNodeForThis() = editorNodesOld[this] ?: buildNode().apply {
+         properties[buildUiKey] = buildUiKey
+         isEditableAllowed syncFrom this@ConfigPane.editable
+      }
+
+      if (!soft)
+         editorNodes.forEach { it.onNodeDispose() }
+
       editorNodes = editors.flatMap { e ->
-         listOfNotNull(
-            when {
-               needsLabel -> label(e.config.nameUi) {
-                  styleClass += "form-config-pane-config-name"
-                  isPickOnBounds = false
-                  prefWidth = Region.USE_PREF_SIZE
-                  labelForWithClick setTo e.editor
+         when (ui.value) {
+            MINI -> listOf(
+               hBox(20.emScaled, CENTER_LEFT) {
+                  if (needsLabel)
+                     lay(ALWAYS) += label(e.config.nameUi) {
+                        styleClass += "form-config-pane-config-name"
+                        isPickOnBounds = false
+                        alignment = CENTER_LEFT
+                        minWidth = Region.USE_PREF_SIZE
+                        labelForWithClick setTo e.editor
+                     }
+                  lay += e.buildNodeForThis()
                }
-               else -> null
-            },
-            when {
-               e.config.info.isEmpty() || e.config.nameUi==e.config.info -> null
-               else -> textFlow {
-                  lay += text(e.config.info).apply {
+            )
+            NORMAL -> listOfNotNull(
+               when {
+                  e.config.info.isEmpty() || e.config.nameUi==e.config.info -> null
+                  else -> textFlow {
                      styleClass += Css.DESCRIPTION
                      styleClass += "form-config-pane-config-description"
+                     lay += text(e.config.info)
                   }
+               },
+               hBox(20.emScaled, CENTER_LEFT) {
+                  if (needsLabel)
+                     lay(ALWAYS) += label(e.config.nameUi) {
+                        styleClass += "form-config-pane-config-name"
+                        isPickOnBounds = false
+                        alignment = CENTER_LEFT
+                        minWidth = Region.USE_PREF_SIZE
+                        labelForWithClick setTo e.editor
+                     }
+                  lay += e.buildNodeForThis()
                }
-            },
-            e.buildNode()
-         ).onEach { n ->
-            e.isEditableAllowed syncFrom editable
+            )
+            EXTENSIVE -> listOfNotNull(
+               when {
+                  needsLabel -> label(e.config.nameUi) {
+                     styleClass += "form-config-pane-config-name"
+                     isPickOnBounds = false
+                     prefWidth = Region.USE_PREF_SIZE
+                     labelForWithClick setTo e.editor
+                  }
+                  else -> null
+               },
+               when {
+                  e.config.info.isEmpty() || e.config.nameUi==e.config.info -> null
+                  else -> textFlow {
+                     styleClass += Css.DESCRIPTION
+                     styleClass += "form-config-pane-config-description"
+                     lay += text(e.config.info)
+                  }
+               },
+               e.buildNodeForThis()
+            )
+         }.onEach { n ->
             n.configEditor = e
          }
       }
       children setTo editorNodes.sortedByConfigWith(editorOrder)
+
    }
 
    override fun getContentBias() = Orientation.HORIZONTAL
@@ -136,17 +206,17 @@ class ConfigPane<T: Any?>: VBox {
 
    // overridden because text nodes would not wrap
    override fun layoutChildren() {
-      val contentLeft = padding.left
-      val contentWidth = if (width>0) width - padding.width else 200.0
-      val isSingleEditor = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
-      val lastEditor = children.lastOrNull()
-      children.fold(0.0) { h, n ->
-         val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
-         val pH = n.prefHeight(contentWidth).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
-         if (isSingleEditor && n===lastEditor) n.resizeRelocate(contentLeft, h + p.top, contentWidth, height - h - p.top)
-         else n.resizeRelocate(contentLeft, h + p.top, contentWidth, pH)
-         h + p.top + pH + p.bottom + spacing
-      }
+         val contentLeft = padding.left
+         val contentWidth = if (width>0) width - padding.width else 200.0
+         val isSingleEditor = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
+         val lastEditor = children.lastOrNull()
+         children.fold(0.0) { h, n ->
+            val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
+            val pH = n.prefHeight(contentWidth).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
+            if (isSingleEditor && n===lastEditor) n.resizeRelocate(contentLeft, h + p.top, contentWidth, height - h - p.top)
+            else n.resizeRelocate(contentLeft, h + p.top, contentWidth, pH)
+            h + p.top + pH + p.bottom + spacing
+         }
    }
 
    // overridden because text nodes would interfere with in height calculation
@@ -176,7 +246,9 @@ class ConfigPane<T: Any?>: VBox {
       if (comparator == null) sortedBy { it.configEditor?.net(editors::indexOf) ?: 0 }
       else sortedWith(comparing({ it.configEditor?.config }, comparator.nullsFirst()))
 
-   companion object {
+   override fun getCssMetaData() = classCssMetaData
+
+   companion object: StyleableCompanion() {
       /** Order by declaration order, i.e., [Configurable.getConfigs]. */
       val compareByDeclaration = null
       /** Order by group, [Config.groupUi]. */
@@ -189,8 +261,14 @@ class ConfigPane<T: Any?>: VBox {
          .thenBy { it.nameUi.lowercase() }
       /** Default value of [ConfigPane.editorOrder] */
       val compareByDefault: Comparator<Config<*>> = compareByApp
+      /** Default value of [ConfigPane.ui] */
+      val uiDefault = EXTENSIVE
 
+      private val buildUiKey = Any()
       private var Node.configEditor by propertyNullable<ConfigEditor<*>>("config")
 
+      val UI by svMetaData<ConfigPane<*>, Layout>("-fx-ui", enumConverter(), EXTENSIVE, ConfigPane<*>::ui)
    }
+
+   enum class Layout { MINI, NORMAL, EXTENSIVE }
 }

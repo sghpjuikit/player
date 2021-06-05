@@ -50,6 +50,7 @@ import sp.it.pl.ui.itemnode.ListAreaNode;
 import sp.it.pl.ui.itemnode.ValueNode;
 import sp.it.pl.ui.objects.SpitComboBox;
 import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.pane.ConfigPane.Layout;
 import sp.it.util.access.V;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.conf.Config;
@@ -65,8 +66,8 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.TOP_CENTER;
 import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -112,6 +113,7 @@ import static sp.it.util.ui.Util.layVertically;
 import static sp.it.util.ui.UtilKt.label;
 import static sp.it.util.ui.UtilKt.menuItem;
 import static sp.it.util.ui.UtilKt.text;
+import static sp.it.util.ui.UtilKt.textFlow;
 
 @SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
 @Widget.Info(
@@ -492,22 +494,26 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             label("Action", consumer((it) ->
                 it.getStyleClass().add("form-config-pane-config-name")
             )),
-            text("Action that uses the data in text area", consumer(it -> {
+            textFlow(consumer(it -> {
                 it.getStyleClass().add(Css.DESCRIPTION);
                 it.getStyleClass().add("form-config-pane-config-description");
+                it.getChildren().add(text("Action that uses the data in text area", consumer(itt -> {})));
             })),
             actCB,
             label("Data", consumer((it) ->
                 it.getStyleClass().add("form-config-pane-config-name")
             )),
-            text("Map text areas to the action input.\nAction can have multiple inputs", consumer(it -> {
+            textFlow(consumer(it -> {
                 it.getStyleClass().add(Css.DESCRIPTION);
                 it.getStyleClass().add("form-config-pane-config-description");
+                it.getChildren().add(text("Map text areas to the action input.\nAction can have multiple inputs", consumer(itt -> {})));
             })),
             runB.withText(Side.RIGHT, "Apply")
         );
 
         public Applier() {
+            root.getStyleClass().add("form-config-pane");
+            root.pseudoClassStateChanged(getPseudoClass(Layout.EXTENSIVE.name().toLowerCase()), true);
             actCB.valueProperty().addListener((o,ov,nv) -> {
                 if (nv==null) return;
                 if (ins!=null) root.getChildren().remove(ins.node());
@@ -581,13 +587,14 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
         @Override
         public Node getNode() {
-            return layVertically(getEmScaled(10),TOP_CENTER,
+            var node = layVertically(getEmScaled(10),TOP_LEFT,
                 label("Output file name", consumer((it) ->
                     it.getStyleClass().add("form-config-pane-config-name")
                 )),
-                text("Output file name. Previous file will be overwritten.", consumer(it -> {
+                textFlow(consumer(it -> {
                     it.getStyleClass().add(Css.DESCRIPTION);
                     it.getStyleClass().add("form-config-pane-config-description");
+                    it.getChildren().add(text("Output file name. Previous file will be overwritten.", consumer(itt -> {})));
                 })),
                 layHorizontally(getEmScaled(10),CENTER_LEFT,
                     ConfigEditor.create(Config.forProperty(String.class, "File name", nam)).buildNode(),
@@ -597,12 +604,15 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 label("Output location", consumer((it) ->
                     it.getStyleClass().add("form-config-pane-config-name")
                 )),
-                text("Location the file will be saved to", consumer(it -> {
+                textFlow(consumer(it -> {
                     it.getStyleClass().add(Css.DESCRIPTION);
                     it.getStyleClass().add("form-config-pane-config-description");
+                    it.getChildren().add(text("Location the file will be saved to", consumer(itt -> {})));
                 })),
                 ConfigEditor.create(Config.forProperty(File.class, "Location", loc)).buildNode()
             );
+            node.getStyleClass().add("form-config-pane");
+            return node;
         }
     }
     private static class ActCreateDirs extends Act<Void> {
@@ -636,7 +646,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         public Node getNode() {
             Node n = ConfigEditor.create(Config.forProperty(File.class, "Location", loc)).buildNode();
             use_loc.syncC(v -> n.setDisable(!v));
-            return layVertically(getEmScaled(10),TOP_LEFT,
+            var node = layVertically(getEmScaled(10),TOP_LEFT,
                 label("Relative", consumer((it) ->
                     it.getStyleClass().add("form-config-pane-config-name")
                 )),
@@ -654,6 +664,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 })),
                 n
             );
+            node.getStyleClass().add("form-config-pane");
+            return node;
         }
     }
 

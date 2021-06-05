@@ -906,6 +906,28 @@ Features:
          const val name = "Tabs"
 
       }
+      object `form` {
+         /** Name of the group. */
+         const val name = "Form"
+
+         /** Initial value of forms' editors' layout.. */
+         object `layout`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Layout"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Initial value of forms' editors' layout."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Form"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+      }
       object `view` {
          /** Name of the group. */
          const val name = "View"

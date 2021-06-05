@@ -188,6 +188,11 @@ val appSetting = Setting.root {
       "Tabs" {
 
       }
+      "Form" {
+         config("Layout") {
+            info = "Initial value of forms' editors' layout."
+         }
+      }
       "View" {
          config("Overlay area") {
             info = "Covered area. Screen overlay provides more space than window, but it can disrupt work flow."

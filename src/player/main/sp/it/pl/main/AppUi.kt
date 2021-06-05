@@ -75,8 +75,10 @@ import sp.it.pl.main.AppSettings.ui as confUi
 import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.table as confTable
 import sp.it.pl.main.AppSettings.ui.grid as confGrid
+import sp.it.pl.main.AppSettings.ui.form as confForm
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.readOnly
 import sp.it.util.access.v
 import sp.it.util.conf.Constraint
@@ -166,6 +168,9 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    val snapping by cv(true) def confUi.snap
    /** [confUi.snapActivationDistance] */
    val snapDistance by cv(12.0) def confUi.snapActivationDistance
+
+   /** [confForm.layout] */
+   val formLayout by cv(ConfigPane.uiDefault) def confForm.layout
 
    /** [confTable.tableOrientation] */
    val tableOrient by cv(NodeOrientation.INHERIT) def confTable.tableOrientation

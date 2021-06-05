@@ -100,7 +100,9 @@ import kotlin.reflect.jvm.jvmName
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.toggle
+import sp.it.util.access.toggleNext
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.nonEmpty
 import sp.it.util.reactive.attachTrue
@@ -174,6 +176,8 @@ fun windowPinIcon(autohide: Property<Boolean>) = CheckIcon(autohide).apply {
    tooltip("Pin\n\nWindow will not close when other window is being interacted with")
    icons(IconMD.PIN)
 }
+
+fun formEditorsUiToggleIcon(mode: Property<ConfigPane.Layout>) = Icon(IconMD.WRAP).onClickDo { mode.toggleNext() }.tooltip("Toggle editor layout. Initial value can be set globally.")
 
 data class BulletBuilder(val text: String, val descriptionLabel: Label, var isReadOnly: Boolean = false, var onClick: () -> Unit = {}, var description: String? = null)
 
@@ -431,12 +435,15 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
             result.withProgress(progressIndicator)
          }
          result
+      }.apply {
+         editorUi.value = APP.ui.formLayout.value
+         onExecuteDone = { if (it.isOk && isShowing) hide() }
       }
 
-      form.onExecuteDone = { if (it.isOk && isShowing) hide() }
       content.value = form
       title.value = titleText
       isAutohide.value = false
+      headerIcons += Icon(IconMD.WRAP).onClickDo { form.editorUi.toggleNext() }
       show(shower)
 
       form.focusFirstConfigEditor()

@@ -2846,27 +2846,35 @@ Shape, Text, SpitText, TextFlow > * {
 /*
  * Layout for .config-editor. Inherently LEFT aligned.
  * inherits: VBox
+ * pseudoclasses: mini, normal, extensive
+ * attributes: -fx-ui [MINI | NORMAL | EXTENSIVE]
  */
 .form-config-pane {
     -fx-spacing: 0.25em;
     -fx-padding: 0 2em 0 2em;
+    -fx-ui: EXTENSIVE;
 }
 
 /*
  * Config name label in .form-config-pane
  * inherits: .label
  */
-.form-config-pane-config-name {
-    -fx-padding: 0.5em 0 0 0;
+.form-config-pane .form-config-pane-config-name {
     -fx-text-alignment: left;
+}
+.form-config-pane:extensive .form-config-pane-config-name {
+    -fx-padding: 0.5em 0 0 0;
 }
 
 /*
  * Config description text in .form-config-pane
- * inherits: Text, .description
+ * inherits: TextFlow, .description
  */
-.form-config-pane-config-description {
+.form-config-pane .form-config-pane-config-description {
     -fx-text-alignment: left;
+}
+.form-config-pane:normal .form-config-pane-config-description {
+    -fx-padding: 0.5em 0 0 0;
 }
 
 /************************************ SEARCH ***************************************************************************

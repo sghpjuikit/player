@@ -7,6 +7,7 @@ import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
 import sp.it.pl.layout.container.Layout
 import sp.it.pl.main.APP
+import sp.it.pl.main.formEditorsUiToggleIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
@@ -104,12 +105,14 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
    PopWindow().apply {
       val form = form(c, null).apply {
          editorOrder = compareByDeclaration
+         editorUi.value = APP.ui.formLayout.value
          onExecuteDone = { if (it.isOk && isShowing) hide() }
       }
 
       content.value = form
       title.value = "Window settings"
       isAutohide.value = false
+      headerIcons += formEditorsUiToggleIcon(form.editorUi)
       onHiding += onClose
       show(if (eventSource==null) SCREEN_ACTIVE(CENTER) else DOWN_CENTER(eventSource))
 

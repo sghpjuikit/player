@@ -7,6 +7,7 @@ import java.io.File
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos
+import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.image.Image
@@ -91,6 +92,8 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
+import sp.it.util.math.intersectsWith
+import sp.it.util.math.isBelow
 import sp.it.util.math.max
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -122,6 +125,7 @@ import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.ui.y
 import sp.it.util.units.millis
 
 class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
@@ -371,6 +375,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             private var showValue = 0.0 // 0..1, anything between means the window is transitioning to hide or show
             private val showAnim = anim(300.millis) {
                showValue = it
+               mw.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
                mw.setY(-(mw.H.value-2.0)*(1.0-it), false)
             }
             private val shower = fxTimer(ZERO, 1) {
@@ -483,6 +488,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    fun slideWindow(c: Component): Window {
       val screen = getScreenForMouse()
+      val showSide = if (Screen.getScreens().filter { it!==screen && it.bounds.y intersectsWith screen.bounds.y }.all { it.bounds.x isBelow screen.bounds.x }) Side.RIGHT else Side.LEFT
       val mwAutohide = v(true)
       val mw = create(createStageOwner(), windowStyle.value, false).apply {
          resizable.value = true
@@ -496,15 +502,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr
       }
       val content = borderPane {
-         padding = Insets(20.emScaled)
-         center = stackPane {
-            lay += anchorPane {
-               Layout.openStandalone(this).apply {
-                  mw.properties[Window.keyWindowLayout] = this
-               }
-            }
-         }
-         right = flowPane {
+
+         fun windowDecoration() = flowPane {
             orientation = VERTICAL
             lay += vBox {
                alignment = Pos.TOP_CENTER
@@ -512,11 +511,26 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                lay += windowOnTopIcon(mw)
             }
          }
+
+         center = stackPane {
+            padding = Insets(20.emScaled)
+            lay += anchorPane {
+               Layout.openStandalone(this).apply {
+                  mw.properties[Window.keyWindowLayout] = this
+               }
+            }
+         }
+         left = if (showSide!=Side.LEFT) null else windowDecoration()
+         right = if (showSide!=Side.RIGHT) null else windowDecoration()
       }
       mw.setContent(content)
 
       // auto-hiding
-      val showAnim = anim(400.millis) { mw.setX(screen.bounds.width-mw.W.value*it, false) }
+      val showAnim = anim(400.millis) {
+         mw.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
+         if (showSide==Side.RIGHT) mw.setX(screen.bounds.maxX-mw.W.value*it, false)
+         if (showSide==Side.LEFT) mw.setX(screen.bounds.minX-mw.W.value*(1-it), false)
+      }
       val shower = {
          showAnim.intpl { sqrt(sqrt(it)) }
          showAnim.playOpenDo { mw.s.asLayout()?.child = c }

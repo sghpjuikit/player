@@ -636,27 +636,6 @@ val DragEvent.sceneXy get() = P(sceneX, sceneY)
 /** ([DragEvent.screenX],[DragEvent.screenY]) */
 val DragEvent.screenXy get() = P(screenX, screenY)
 
-/** Left top corner of the bounds represented as point */
-val Rectangle2D.min get() = P(minX, minY)
-
-/** Bottom right corner of the bounds represented as point */
-val Rectangle2D.max get() = P(maxX, maxY)
-
-/** PositionLeft top corner of the bounds represented as point */
-val Rectangle2D.xy get() = min
-
-/** Size of the bounds represented as point */
-val Rectangle2D.size get() = P(width, height)
-
-/** Rectangle-relative position of the centre of this rectangle */
-val Rectangle2D.centre get() = P(centreX, centreY)
-
-/** Rectangle-relative x position of the centre of this rectangle */
-val Rectangle2D.centreX get() = minX + width/2
-
-/** Rectangle-relative y position of the centre of this rectangle */
-val Rectangle2D.centreY get() = minY + height/2
-
 operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)
 operator fun Point2D.plus(p: Point2D): Point2D = add(p)
 operator fun Point2D.times(p: Double): Point2D = multiply(p)

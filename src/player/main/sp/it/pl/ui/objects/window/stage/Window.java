@@ -124,6 +124,7 @@ import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.getScreenXy;
 import static sp.it.util.ui.UtilKt.getXy;
 import static sp.it.util.ui.UtilKt.initClip;
+import static sp.it.util.ui.UtilKt.pseudoClassToggle;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /** Window for application. */
@@ -160,6 +161,10 @@ public class Window extends WindowBase {
 	public final @NotNull BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
 	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non uniform bgr needs to be set for the effect to be visible. Default false. */
 	public final @NotNull Property<@NotNull Boolean> transformBgrWithContent = new V<>(false);
+	/** Whether window content has transparent decoration. Default false. */
+	public final @NotNull BooleanProperty transparentContent = new SimpleBooleanProperty(false);
+	/** Whether window shows on OS taskbar. Can only be set before window is shown. Default true. */
+	public final @NotNull BooleanProperty isTaskbarVisible = new SimpleBooleanProperty(false);
 	/** Invoked just before this window closes, after layout closes. */
 	public final Disposer onClose = new Disposer();
 
@@ -181,6 +186,9 @@ public class Window extends WindowBase {
 		fullScreenExitHint.setValue("");
 		fullScreenExitCombination.setValue(NO_MATCH);
 		attach(fullscreen, consumer(v -> applyHeaderVisible(!v && _headerVisible)));
+
+		// transparent
+		attach(transparentContent, consumer(it -> pseudoClassToggle(root, "transparent", it)));
 
 		// drag&drop
 		installDrag(

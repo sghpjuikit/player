@@ -21,6 +21,8 @@ class WindowDb(
    val onTop: Boolean = false,
    val maximized: Maximized = NONE,
    val transparent: Boolean? = null,
+   val transparentContent: Boolean? = null,
+   val isTaskbarVisible: Boolean = true,
    val opacity: Double? = null,
    val layout: RootContainerDb? = null
 ) {
@@ -38,6 +40,8 @@ class WindowDb(
       it.opacity.value = opacity ?: it.opacity.value
       it.opacityOverride = opacity!=null
       it.stageStyleOverride = transparent!=null
+      it.transparentContent.value = transparentContent
+      it.isTaskbarVisible.value = isTaskbarVisible
       it.initLayout(layout?.toDomain())
    }
 
@@ -55,14 +59,16 @@ class WindowDb(
          w.alwaysOnTop.value,
          w.maximized.value,
          w.s.style.net { it==TRANSPARENT }.takeIf { w.stageStyleOverride },
+         w.transparentContent.value,
+         w.isTaskbarVisible.value,
          w.opacity.value.takeIf { w.opacityOverride },
          w.layout?.toDb()
       )
    }
 }
 
-fun Window.recreateWith(stageStyle: StageStyle, onBottom: Boolean) = net { ow ->
-   APP.windowManager.create(null, stageStyle, ow.isMain.value).also { nw ->
+fun Window.recreateWith(stageStyle: StageStyle, isTaskbarVisible: Boolean, onBottom: Boolean) = net { ow ->
+   APP.windowManager.create(if (!isTaskbarVisible) APP.windowManager.createStageOwner() else null, stageStyle, ow.isMain.value).also { nw ->
       nw.X.value = ow.X.value
       nw.Y.value = ow.Y.value
       nw.W.value = ow.W.value
@@ -75,7 +81,9 @@ fun Window.recreateWith(stageStyle: StageStyle, onBottom: Boolean) = net { ow ->
       nw.alwaysOnTop.value = ow.alwaysOnTop.value
       nw.opacity.value = ow.opacity.value
       nw.opacityOverride = ow.opacityOverride
+      nw.transparentContent.value = ow.transparentContent.value
       nw.stageStyleOverride = ow.stageStyleOverride
+      nw.isTaskbarVisible.value = isTaskbarVisible
       if (onBottom) nw.stage.setNonInteractingOnBottom()
    }
 }

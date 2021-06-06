@@ -6,7 +6,7 @@
 
 // do not highlight as not content
 .window .header {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(0,0,0,0.01);
 }
 
 // top/bottom padding makes the content pop up more
@@ -27,6 +27,9 @@
         radial-gradient(center 0% 50%, radius 50%, -skin-def-font-color, transparent)
         transparent
         radial-gradient(center 100% 50%, radius 50%, -skin-def-font-color, transparent)
+}
+.window:transparent .switch-pane-tab-bgr {
+    -fx-border-color: rgba(0,0,0,0.01);
 }
 
 // disable focusing

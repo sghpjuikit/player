@@ -22,6 +22,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.Region
+import javafx.scene.paint.Color
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle
@@ -238,7 +239,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    fun create(canBeMain: Boolean = APP.isUiApp, state: WindowDb? = null) = create(
-      null,
+      state?.let { if (!it.isTaskbarVisible) APP.windowManager.createStageOwner() else null },
       (state?.transparent ?: windowStyleAllowTransparency.value).toWindowStyle(),
       state?.main ?: canBeMain
    )
@@ -250,6 +251,10 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       w.initialize()
 
+      if (style == TRANSPARENT) {
+         w.s.scene.fill = if (style == TRANSPARENT) Color.TRANSPARENT else Color.BLACK
+         w.s.scene.root.style = if (style == TRANSPARENT)  "-fx-background-color: null;" else ""
+      }
       windowOpacity sync { if (!w.opacityOverride) w.opacity.value = it } on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value
       w.isInteractiveOnLeftAlt.value = windowInteractiveOnLeftAlt.value

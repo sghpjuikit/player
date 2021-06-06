@@ -1800,7 +1800,7 @@ Shape, Text, SpitText, TextFlow > * {
 /************************************ WINDOW ***************************************************************************
  * Window. More specifically its root pane. 
  * inherits: .root
- * pseudoclasses: focused, hover, resized, moved, fullscreen
+ * pseudoclasses: focused, hover, resized, moved, fullscreen, transparent
  */
 .window {
     -fx-background-color: -skin-bgr-color;
@@ -1815,6 +1815,25 @@ Shape, Text, SpitText, TextFlow > * {
 .window:resized {}
 .window:moved {}
 .window:fullscreen {}
+
+.window:transparent {
+    -fx-background-color: rgba(0,0,0,0.01);
+    -fx-border-width: rgba(0,0,0,0.01);
+    -fx-border-color: rgba(0,0,0,0.01);
+}
+.window:focused:transparent {
+    -fx-background-color: rgba(0,0,0,0.01);
+    -fx-border-width: rgba(0,0,0,0.01);
+}
+.window:transparent .widget-ui {
+    -fx-background-color: rgba(0,0,0,0.01);
+}
+.window:transparent .widget-ui:active .widget-ui-content {
+    -fx-border-color: rgba(0,0,0,0.01);
+}
+.window:transparent .widget-ui-controls {
+    -fx-background-color: -skin-pane-color;
+}
 
 /*
  * Window background.
@@ -1887,7 +1906,6 @@ Shape, Text, SpitText, TextFlow > * {
 /** Widget area controls. Shown in layout mode. */
 .widget-ui-controls {
     -fx-padding: 1em;
-
     -fx-background-color: null;
 }
 

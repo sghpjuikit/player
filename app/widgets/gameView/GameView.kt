@@ -516,6 +516,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       override val author = "spit"
       override val contributor = ""
       override val summaryActions = HelpEntries.Grid + listOf(
+         Entry("Data", "Refresh", F5.nameUi),
          Entry("Grid cell", "Go to detail", ENTER.nameUi),
          Entry("Grid cell", "Play", keys("SHIFT+ENTER")),
          Entry("Game detail", "Back", BACK.nameUi),

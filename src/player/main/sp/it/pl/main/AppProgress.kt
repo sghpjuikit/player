@@ -56,6 +56,8 @@ import sp.it.util.units.millis
 import sp.it.util.units.uuid
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
+import javafx.animation.Interpolator.LINEAR
+import javafx.animation.Transition.INDEFINITE
 
 object AppProgress {
    private val tasksActive = ConcurrentHashMap<String, AppTask>()
@@ -192,8 +194,11 @@ object AppProgress {
                               })
                            }
 
+                           val ar = anim { rotate = 360*it }.dur(1000.millis).intpl(LINEAR).apply { cycleCount = INDEFINITE }
                            val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
                            updateIcon()
+                           state sync { if (it==ACTIVE) ar.play() }
+                           state attach { if (it==DONE_OK || it==DONE_ERROR || it==DONE_CANCEL) { ar.stop(); ar.applyAt(0.0) } }
                            state attach { a.playCloseDoOpen(::updateIcon) }
                         }
                      }

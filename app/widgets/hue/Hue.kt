@@ -32,6 +32,7 @@ import javafx.scene.control.TitledPane
 import javafx.scene.image.Image
 import javafx.scene.image.PixelFormat
 import javafx.scene.image.WritableImage
+import javafx.scene.input.KeyCode.F5
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -65,7 +66,6 @@ import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
@@ -83,7 +83,6 @@ import sp.it.util.conf.uiInfoConverter
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
-import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.file.json.JsNull
 import sp.it.util.file.json.JsObject
@@ -120,15 +119,23 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+import sp.it.pl.main.IconMD
+import sp.it.pl.main.IconOC
+import sp.it.pl.main.IconWH
+import sp.it.pl.main.textColon
 import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.cvn
+import sp.it.util.functional.asIf
 import sp.it.util.math.clip
 import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
+import sp.it.util.text.capitalLower
+import sp.it.util.text.nameUi
 import sp.it.util.ui.centre
 import sp.it.util.ui.label
 import sp.it.util.ui.stackPane
@@ -145,6 +152,7 @@ class Hue(widget: Widget): SimpleController(widget) {
    val bulbsPane = flowPane(10.emScaled, 10.emScaled)
    val groupsPane = flowPane(10.emScaled, 10.emScaled)
    val scenesPane = flowPane(10.emScaled, 10.emScaled)
+   val sensorsPane = flowPane(10.emScaled, 10.emScaled)
 
    private val hueBridgeUserDevice = "spit-player"
    private var hueBridgeUrl = "http://ip/api/user"
@@ -226,7 +234,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
 
       fun groups() = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/groups").printIt()
+         val response = client.get<String>("$hueBridgeUrl/groups")
          val groups = response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
          groups + HueGroup("0", "All", listOf(), HueGroupState(false, false))
       }
@@ -234,6 +242,11 @@ class Hue(widget: Widget): SimpleController(widget) {
       fun scenes() = runSuspending {
          val response = client.get<String>("$hueBridgeUrl/scenes")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
+      }
+
+      fun sensors() = runSuspending {
+         val response = client.get<String>("$hueBridgeUrl/sensors")
+         response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
       }
 
       fun toggleBulb(bulb: HueBulbId) = runSuspending {
@@ -283,15 +296,17 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
 
       fun deleteGroup(group: HueGroupId) = runSuspending {
-         client.delete<String>("$hueBridgeUrl/groups/$group").printIt()
+         client.delete<String>("$hueBridgeUrl/groups/$group")
       }
 
       fun deleteScene(group: HueSceneId) = runSuspending {
-         client.delete<String>("$hueBridgeUrl/scenes/$group").printIt()
+         client.delete<String>("$hueBridgeUrl/scenes/$group")
       }
 
    }
 
+   private val infoPane = vBox(30.emScaled)
+   private val devicePane = vBox(0, TOP_LEFT)
    private val color = object: ConfigurableBase<Any?>() {
       val avoidApplying = Suppressor()
       val readOnly = v(true)
@@ -376,9 +391,10 @@ class Hue(widget: Widget): SimpleController(widget) {
    }
 
    init {
-      root.prefSize = 500.emScaled x 500.emScaled
-      root.consumeScrolling()
+      root.prefSize = 900.emScaled x 600.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
+      root.consumeScrolling()
+      root.onEventDown(KEY_PRESSED, F5) { refresh() }
       root.lay += vBox(10.emScaled, TOP_LEFT) {
          lay += hBox {
             lay += Icon(IconMA.ROUTER).run {
@@ -401,9 +417,12 @@ class Hue(widget: Widget): SimpleController(widget) {
                   lay += TitledPane("Bulbs", bulbsPane)
                   lay += TitledPane("Groups", groupsPane)
                   lay += TitledPane("Scenes", scenesPane)
+                  lay += TitledPane("Sensors", sensorsPane)
                }
             }
-            lay += color.node
+            lay += infoPane.apply {
+               prefWidth = 200.emScaled
+            }
          }
       }
 
@@ -418,6 +437,25 @@ class Hue(widget: Widget): SimpleController(widget) {
    }
 
    fun refresh(): Fut<Any> = hueBridge.init() ui {
+      fun unfocusBulb() {
+         selectedBulbIcon?.pseudoClassChanged("edited", false)
+         selectedBulbIcon = null
+         selectedBulbId = null
+         color.readOnly.value = true
+         infoPane.lay -= color.node
+      }
+      fun unfocusBulbGroup() {
+         selectedGroupIcon?.hue?.lights?.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
+         selectedGroupIcon?.pseudoClassChanged("edited", false)
+         selectedGroupIcon = null
+         selectedGroupId = null
+         color.readOnly.value = true
+         infoPane.lay -= color.node
+      }
+      fun unfocusSensor() {
+         infoPane.lay -= devicePane
+      }
+
       hueBridge.groups() ui { groups ->
          groupsPane.children setTo groups.map { group ->
             hueBulbGroupCells.getOrPut(group.id) {
@@ -427,9 +465,8 @@ class Hue(widget: Widget): SimpleController(widget) {
                   fun toggleBulbGrouo() = hueBridge.toggleBulbGroup(group.id).thenRefresh()
                   fun deleteBulbGrouo() = hueBridge.deleteGroup(group.id).thenRefresh()
                   fun focusBulbGroup() {
-                     selectedBulbIcon?.pseudoClassChanged("edited", false)
-                     selectedBulbIcon = null
-                     selectedBulbId = null
+                     unfocusSensor()
+                     unfocusBulb()
                      selectedGroupIcon?.hue?.lights?.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
                      selectedGroupIcon?.pseudoClassChanged("edited", false)
                      selectedGroupIcon = this
@@ -437,6 +474,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                      pseudoClassChanged("edited", true)
                      hue.lights.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", true) }
                      color.readOnly.value = false
+                     infoPane.lay += color.node
                      color.changeToBulbGroup(hue)
                   }
 
@@ -492,15 +530,14 @@ class Hue(widget: Widget): SimpleController(widget) {
 
                   fun toggleBulb() = hueBridge.toggleBulb(bulb.id).thenRefresh()
                   fun focusBulb() {
-                     selectedGroupIcon?.hue?.lights?.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
-                     selectedGroupIcon?.pseudoClassChanged("edited", false)
-                     selectedGroupIcon = null
-                     selectedGroupId = null
+                     unfocusSensor()
+                     unfocusBulbGroup()
                      selectedBulbIcon?.pseudoClassChanged("edited", false)
                      selectedBulbIcon = this
                      selectedBulbId = bulb.id
                      pseudoClassChanged("edited", true)
                      color.readOnly.value = false
+                     infoPane.lay += color.node
                      color.changeToBulb(hue)
                   }
 
@@ -529,9 +566,17 @@ class Hue(widget: Widget): SimpleController(widget) {
       hueBridge.scenes() ui { scenes ->
          scenesPane.children setTo scenes.map { scene ->
             Icon(IconFA.LIGHTBULB_ALT, 40.0).run {
+               fun focusScene() {
+                  unfocusSensor()
+                  unfocusBulbGroup()
+                  unfocusBulb()
+               }
+
+               focusedProperty() attach { focusScene() }
+               onEventDown(KEY_PRESSED, SPACE) { focusScene() }
                onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  if (it.clickCount==2)
-                     hueBridge.applyScene(scene)
+                  if (it.clickCount==1) focusScene()
+                  if (it.clickCount==2) hueBridge.applyScene(scene)
                }
                onContextMenuRequested = EventHandler {
                   ContextMenu().dsl {
@@ -562,6 +607,48 @@ class Hue(widget: Widget): SimpleController(widget) {
             }
          }
       }
+      hueBridge.sensors() ui { scenes ->
+         sensorsPane.children setTo scenes.map { sensor ->
+            val icon = when (sensor.type) {
+               "ZLLTemperature" -> IconMD.THERMOMETER
+               "ZLLPresence" -> IconOC.BROADCAST
+               "ZLLLightLevel" -> IconWH.WU_CLEAR
+               "Daylight" -> IconWH.MOON_ALT_WAXING_GIBBOUS_2
+               else -> IconMA.SETTINGS_INPUT_ANTENNA
+            }
+            fun focusSensor() {
+               unfocusSensor()
+               unfocusBulbGroup()
+               unfocusBulb()
+               infoPane.lay += devicePane
+
+               devicePane.lay.clear()
+               when (sensor.type) {
+                  "ZLLTemperature" -> {
+                     sensor.state["temperature"]?.asIf<Number>().ifNotNull { devicePane.lay += textColon("Temperature", "${it.toDouble()/100}°C") }
+                  }
+                  "ZLLPresence" -> {
+                     sensor.state["presence"]?.asIf<Boolean>().ifNotNull { devicePane.lay += textColon("Presence", it) }
+                  }
+                  "Daylight" -> {
+                     sensor.state["daylight"]?.asIf<Boolean>().ifNotNull { devicePane.lay += textColon("Is daylight", it) }
+                  }
+                  else -> IconMA.SETTINGS_INPUT_ANTENNA
+               }
+               if (devicePane.lay.children.isNotEmpty()) devicePane.lay += label()
+               sensor.config.entries.sortedBy { it.key }.forEach { (name, value) ->
+                  devicePane.lay += textColon(name.capitalLower(), value)
+               }
+            }
+
+            Icon(icon, 40.0).run {
+               onEventDown(MOUSE_CLICKED, PRIMARY) {
+                  if (it.clickCount==1) focusSensor()
+               }
+               HueCellNode(this, sensor.name)
+            }
+         }
+      }
    }
 
    companion object: WidgetCompanion, KLogging() {
@@ -574,7 +661,9 @@ class Hue(widget: Widget): SimpleController(widget) {
       override val year = year(2020)
       override val author = "spit"
       override val contributor = ""
-      override val summaryActions = listOf<ShortcutPane.Entry>()
+      override val summaryActions = listOf(
+         Entry("Data", "Refresh", F5.nameUi),
+      )
       override val group = VISUALISATION
 
       private var hueBridgeApiKey by appProperty("")
@@ -631,6 +720,7 @@ class Hue(widget: Widget): SimpleController(widget) {
 typealias HueBulbId = String
 typealias HueGroupId = String
 typealias HueSceneId = String
+typealias HueSensorId = String
 
 class HueCellNode(icon: Icon, name: String): VBox(5.emScaled) {
    init {
@@ -659,6 +749,7 @@ data class HueSceneCreate(val name: String, val type: HueSceneType, val group: H
    constructor(name: String, lights: List<HueBulb>): this(name, LightScene, null, lights.map { it.id })
    constructor(name: String, group: HueGroupId): this(name, GroupScene, group, null)
 }
+data class HueSensor(val id: HueSensorId = "", val name: String, val type: String, val state: Map<String, Any?>, val config: Map<String, Any?>)
 
 enum class HueSceneType { LightScene, GroupScene }
 enum class HueGroupType(val value: String, val since: Double, val description: String) {

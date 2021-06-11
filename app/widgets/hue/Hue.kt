@@ -138,6 +138,7 @@ import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.centre
 import sp.it.util.ui.label
+import sp.it.util.ui.pseudoclass
 import sp.it.util.ui.stackPane
 
 class Hue(widget: Widget): SimpleController(widget) {
@@ -340,7 +341,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                         val cBri = 1 + ((c.opacity) * 253).toInt()
                         val cHue = (c.hue/360.0*65535).toInt()
                         val cSat = (c.saturation*245).toInt()
-                        changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat)))
+                        changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat, true)))
 
                         if (!isDragged) applyToSelected(cBri, cHue, cSat)
                      }
@@ -557,7 +558,9 @@ class Hue(widget: Widget): SimpleController(widget) {
                }
             }.run {
                icon.hue = bulb
+               icon.pseudoClassChanged("unreachable", !bulb.state.reachable)
                icon.pseudoClassChanged("on", bulb.state.on)
+               icon.isDisable = !bulb.state.reachable
 
                node
             }
@@ -642,6 +645,8 @@ class Hue(widget: Widget): SimpleController(widget) {
             }
 
             Icon(icon, 40.0).run {
+               styleclass("hue-sensor-icon")
+               pseudoClassChanged("unreachable", sensor.config["reachable"]?.asIf<Boolean>() ?: false)
                onEventDown(MOUSE_CLICKED, PRIMARY) {
                   if (it.clickCount==1) focusSensor()
                }
@@ -739,7 +744,7 @@ class HueIcon<T>(i: GlyphIcons, size: Double, var hue: T): Icon(i, size)
 data class HueBridge(val id: String, val name: String)
 data class HueBulbStateEditOn(val on: Boolean)
 data class HueBulbStateEditLight(val bri: Int?, val hue: Int?, val sat: Int?)
-data class HueBulbState(val on: Boolean, val bri: Int, val hue: Int, val sat: Int)
+data class HueBulbState(val on: Boolean, val bri: Int, val hue: Int, val sat: Int, val reachable: Boolean)
 data class HueBulb(val id: HueBulbId = "", val name: String, val productname: String, val state: HueBulbState)
 data class HueGroupState(val all_on: Boolean, val any_on: Boolean)
 data class HueGroup(val id: HueGroupId = "", val name: String, val lights: List<HueBulbId>, val state: HueGroupState)

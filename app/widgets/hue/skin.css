@@ -1,4 +1,5 @@
 
+.hue-group-icon {}
 .hue-group-icon:on Text {
     -fx-fill: -skin-def-font-color-hover;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 0.5em,0 , 0,0);
@@ -15,9 +16,13 @@
     -fx-effect: dropshadow(gaussian, -skin-def-font-color-hover, 0.5em,0 , 0,0);
 }
 
+.hue-bulb-icon {}
 .hue-bulb-icon:on Text {
     -fx-fill: -skin-def-font-color-hover;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 0.5em,0 , 0,0);
+}
+.hue-bulb-icon:unreachable {
+    -fx-opacity: 0.8;
 }
 .hue-bulb-icon:hover Text,
 .hue-bulb-icon:focused Text,
@@ -31,4 +36,9 @@
 .hue-bulb-icon:edited-group:on Text,
 .hue-bulb-icon:edited:on Text {
     -fx-effect: dropshadow(gaussian, -skin-def-font-color-hover, 0.5em,0 , 0,0);
+}
+
+.hue-sensor-icon {}
+.hue-sensor-icon:unreachable {
+    -fx-opacity: 0.8;
 }

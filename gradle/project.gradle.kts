@@ -90,7 +90,7 @@ allprojects {
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.0")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.0")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.0")
-         implementation("org.jetbrains", "annotations", "21.0.0")
+         implementation("org.jetbrains", "annotations", "21.0.1")
       }
 
       "JavaFX" group {
@@ -112,7 +112,7 @@ allprojects {
          implementation("org.slf4j", "slf4j-api")
          implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
          implementation("ch.qos.logback", "logback-classic", "1.2.3")
-         implementation("io.github.microutils", "kotlin-logging", "2.0.6")
+         implementation("io.github.microutils", "kotlin-logging", "2.0.8")
       }
 
       "Audio" group {
@@ -126,7 +126,7 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "3.7.0")
+         implementation("com.github.f4b6a3", "uuid-creator", "3.7.2")
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.2.2")
          implementation("com.github.ajalt", "clikt", "2.1.0")
@@ -155,8 +155,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.5.4")
-         implementation("io.ktor", "ktor-client-cio", "1.5.4")
+         implementation("io.ktor", "ktor-server-core", "1.6.0")
+         implementation("io.ktor", "ktor-client-cio", "1.6.0")
       }
 
       "Test" group {

@@ -26,6 +26,7 @@ import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side.RIGHT
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.control.TitledPane
@@ -128,7 +129,9 @@ import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.cvn
+import sp.it.util.conf.lengthMax
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.math.clip
 import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
@@ -138,7 +141,7 @@ import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
 import sp.it.util.ui.centre
 import sp.it.util.ui.label
-import sp.it.util.ui.pseudoclass
+import sp.it.util.ui.lookupId
 import sp.it.util.ui.stackPane
 
 class Hue(widget: Widget): SimpleController(widget) {
@@ -248,6 +251,12 @@ class Hue(widget: Widget): SimpleController(widget) {
       fun sensors() = runSuspending {
          val response = client.get<String>("$hueBridgeUrl/sensors")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
+      }
+
+      fun renameBulb(bulb: HueBulbId, name: String) = runSuspending {
+         client.put<String>("$hueBridgeUrl/lights/$bulb") {
+            body = """{"name": "$name"}"""
+         }
       }
 
       fun toggleBulb(bulb: HueBulbId) = runSuspending {
@@ -529,6 +538,13 @@ class Hue(widget: Widget): SimpleController(widget) {
                HueIcon(IconFA.LIGHTBULB_ALT, 40.0, bulb).run {
                   styleclass("hue-bulb-icon")
 
+                  fun rename() {
+                     object: ConfigurableBase<Any?>() {
+                        val name by cv(hue.name).lengthMax(32)
+                     }.configure("Rename bulb") {
+                        hueBridge.renameBulb(bulb.id, it.name.value).thenRefresh()
+                     }
+                  }
                   fun toggleBulb() = hueBridge.toggleBulb(bulb.id).thenRefresh()
                   fun focusBulb() {
                      unfocusSensor()
@@ -550,6 +566,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   }
                   onContextMenuRequested = EventHandler {
                      ContextMenu().dsl {
+                        item("Rename") { rename() }
                         item("Toggle on/off (${keys("SPACE")})") { toggleBulb() }
                      }.show(this, RIGHT, 0.0, 0.0)
                   }
@@ -561,6 +578,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                icon.pseudoClassChanged("unreachable", !bulb.state.reachable)
                icon.pseudoClassChanged("on", bulb.state.on)
                icon.isDisable = !bulb.state.reachable
+               node.asIs<HueCellNode>().name = bulb.name
 
                node
             }
@@ -728,11 +746,18 @@ typealias HueSceneId = String
 typealias HueSensorId = String
 
 class HueCellNode(icon: Icon, name: String): VBox(5.emScaled) {
+   var name: String = name
+      set(value) {
+         field = value
+         lookupId<Label>("nameLabel").text = value
+      }
+
    init {
       prefSize = 90.emScaled x 80.emScaled
       alignment = TOP_CENTER
       lay += icon
       lay += label(name) {
+         id = "nameLabel"
          isWrapText = true
          textAlignment = TextAlignment.CENTER
       }

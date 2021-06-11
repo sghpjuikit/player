@@ -73,14 +73,14 @@ interface Constraint<in T> {
       override fun message() = "String must not contain only whitespace characters"
    }
 
-   class StringLength(val min: Int, val max: Int): Constraint<String> {
+   class StringLength(val min: Int, val max: Int): Constraint<String?> {
 
       init {
          failIfNot(max>min) { "Max value must be greater than min value" }
       }
 
       override fun isValid(value: String?) = value==null || value.length in min..max
-      override fun message() = "Text must be at least $min and at most$max characters long"
+      override fun message() = "Text must be at least $min and at most $max characters long"
    }
 
    /** Use multi-line text area instead of text field as editor. Allowed for non-[String] values. [Collection] and [Map] is multiline by default. */

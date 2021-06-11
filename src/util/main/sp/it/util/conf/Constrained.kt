@@ -48,6 +48,12 @@ fun <T: Any?, C: ConstrainedDsl<T>> C.nonNull() = but(ObjectNonNull)
 fun <T: String, TN: T?, C: ConstrainedDsl<TN>> C.nonEmpty() = but(StringNonEmpty())
 /** Adds [StringNonBlank] */
 fun <T: String, TN: T?, C: ConstrainedDsl<TN>> C.nonBlank() = but(StringNonBlank())
+/** Adds [StringLength] with min filled */
+fun <T: String, TN: T?, C: ConstrainedDsl<TN>> C.lengthMin(min: Int) = but(StringLength(min, Integer.MAX_VALUE))
+/** Adds [StringLength] with max filled */
+fun <T: String, TN: T?, C: ConstrainedDsl<TN>> C.lengthMax(max: Int) = but(StringLength(0, max))
+/** Adds [StringLength] with min and max filled */
+fun <T: String, TN: T?, C: ConstrainedDsl<TN>> C.lengthBetween(min: Int, max: Int) = but(StringLength(min, max))
 /** Adds [NumberMinMax] with min filled */
 fun <T: Number, TN: T?, C: ConstrainedDsl<TN>> C.min(min: T) = but(NumberMinMax(min.toDouble(), null))
 /** Adds [NumberMinMax] with max filled */

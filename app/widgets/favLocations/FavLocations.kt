@@ -56,7 +56,7 @@ import sp.it.util.ui.drag.set
    description = "Displays favourite or convenient file locations. Useful after redirecting selected location to another widget",
    version = "1.0.1",
    year = "2020",
-   group = Widget.Group.APP
+   tags = []
 )
 class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeature {
 

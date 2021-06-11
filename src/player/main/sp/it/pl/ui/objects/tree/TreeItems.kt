@@ -156,7 +156,6 @@ fun treeApp(): TreeItem<Any> {
    return tree("App",
       tree("Behavior",
          tree("Widgets",
-            tree("Categories", Widget.Group.values().asList()),
             tree("Types", APP.widgetManager.factories.getFactoriesObservable().toJavaFx().sorted { a,b -> a.name.compareTo(b.name) }),
             tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })

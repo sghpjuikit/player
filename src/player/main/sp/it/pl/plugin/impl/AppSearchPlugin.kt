@@ -78,6 +78,7 @@ import java.util.concurrent.atomic.AtomicLong
 import javafx.geometry.Insets
 import javafx.scene.layout.AnchorPane
 import sp.it.pl.layout.container.Layout
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.util.Sort.ASCENDING
@@ -225,7 +226,7 @@ class AppSearchPlugin: PluginBase() {
       description = "Application menu and launcher",
       version = "0.8.0",
       year = "2016",
-      group = Widget.Group.OTHER
+      tags = [ LIBRARY ]
    )
    @ExperimentalController(reason = "DirView widget could be improved to be fulfill this widget's purpose. Also needs better UX.")
    class AppLauncher(widget: Widget): SimpleController(widget) {

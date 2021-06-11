@@ -33,7 +33,6 @@ import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.SongReadingKt;
 import sp.it.pl.layout.widget.Widget;
-import sp.it.pl.layout.widget.Widget.Group;
 import sp.it.pl.layout.widget.controller.LegacyController;
 import sp.it.pl.layout.widget.controller.SimpleController;
 import sp.it.pl.layout.widget.controller.io.Input;
@@ -73,6 +72,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
+import static sp.it.pl.main.WidgetTags.UTILITY;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
@@ -153,7 +153,7 @@ import static sp.it.util.ui.UtilKt.textFlow;
         + "\tDrag&drop text : Sets text as input\n",
     version = "0.8.0",
     year = "2015",
-    group = Group.APP
+    tags = UTILITY
 )
 @LegacyController
 public class Converter extends SimpleController implements Opener, SongWriter {

@@ -5,7 +5,7 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import mu.KLogging
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
@@ -158,7 +158,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       override val year = year(2021)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(UTILITY)
       override val summaryActions = listOf<ShortcutPane.Entry>()
-      override val group = DEVELOPMENT
    }
 }

@@ -57,7 +57,7 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.PLAYBACK
+import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
@@ -87,14 +87,12 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.file.div
-import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.math.clip
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
-import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
@@ -585,6 +583,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       override val year = year(2021)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(AUDIO)
       override val summaryActions = listOf(
          Entry("Controls", "Play previous song", "BMB"),
          Entry("Controls", "Play previous song", "back icon LMB"),
@@ -611,7 +610,6 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
          //         Entry("Seeker > Chapter popup > Edit", "Append new line", "Shift + Enter"),
          //         Entry("Seeker > Chapter popup > Edit", "Cancel edit", "Escape"),
       )
-      override val group = PLAYBACK
 
       fun GlyphIcons.icon(size: Double, block: (Boolean) -> Unit) = Icon(this, size).apply {
          boundsType = VISUAL

@@ -36,6 +36,20 @@ object Widgets {
    val TESTER = FactoryRef(TESTER_NAME, "Tester")
 }
 
+/** Widget's intended functionality. */
+object WidgetTags {
+   const val APP = "App"
+   const val LIBRARY = "Library"
+   const val IOT = "IoT"
+   const val VISUALISATION = "Visualisation"
+   const val DEVELOPMENT = "Development"
+   const val IMAGE = "Image"
+   const val AUDIO = "Audio"
+   const val VIDEO = "Video"
+   const val UTILITY = "Utility"
+   const val GAME = "Game"
+}
+
 object Actions {
    const val LAYOUT_MODE = "Layout overlay in/out"
    const val APP_SEARCH = "Search"

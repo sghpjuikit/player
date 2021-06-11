@@ -17,6 +17,7 @@ import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.jvm.jvmName
+import sp.it.util.text.ifNotEmpty
 
 interface ComponentInfo {
 
@@ -27,6 +28,8 @@ interface ComponentInfo {
    val summaryUi: String get() = name
 
 }
+
+typealias WidgetTag = String
 
 interface WidgetInfo: ComponentInfo {
 
@@ -57,14 +60,15 @@ interface WidgetInfo: ComponentInfo {
    /** Whether this widget is supported on the current platform */
    val isSupported: Boolean
 
-   /** Widget group */
-   val group: Widget.Group
+   /** Tags categorizing the widget. May be empty. */
+   val tags: Set<WidgetTag>
 
    /** Exact type of the widget (also denotes widget's controller type) */
    val type: KClass<*>
 
    /** All features the widget's controller implements */
-   val features get() = type.allSuperclasses.mapNotNull { it.findAnnotation<Feature>() }
+   val features
+      get() = type.allSuperclasses.mapNotNull { it.findAnnotation<Feature>() }
 
    /** @return true iff widget's controller implements given feature */
    fun hasFeature(feature: Feature) = hasFeature(feature.type)
@@ -75,18 +79,17 @@ interface WidgetInfo: ComponentInfo {
    /** @return true iff widget's controller implements all given features */
    fun hasFeatures(vararg features: KClass<*>) = features.all { hasFeature(it) }
 
-   val summaryActions get() = listOf<ShortcutPane.Entry>()
+   val summaryActions
+      get() = listOf<ShortcutPane.Entry>()
 
-   override val summaryUi: String get() {
-      val fs = features
-      return "Component: Widget ${name.toUi()}\n" +
-         ("Version: ${version.toUi()}\n") +
-         ("Year: ${year.toUi()}\n") +
-         (if (description.isEmpty()) "" else "Info: $description\n") +
-         (if (descriptionLong.isEmpty()) "" else "$descriptionLong\n") +
-         "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString { "\n\t${it.name} - ${it.description}" })
-   }
-
+   override val summaryUi: String
+      get() = """
+         |Component: Widget ${name.toUi()}
+         |Version: ${version.toUi()}
+         |Year: ${year.toUi()}
+         |${description.ifNotEmpty { "Info: $it\n" }}${descriptionLong.ifNotEmpty { "$it\n" }}Tags: ${tags.joinToString(", ")}
+         |Features: ${features.net { if (it.isEmpty()) "none" else it.joinToString { "\n\t${it.name} - ${it.description}" } }}
+      """.trimMargin()
 }
 
 /**

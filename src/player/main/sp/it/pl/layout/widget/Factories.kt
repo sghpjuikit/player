@@ -49,8 +49,8 @@ class EmptyWidget(widget: Widget): Controller(widget) {
       override val year = year(2014)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf<WidgetTag>()
       override val summaryActions = listOf<ShortcutPane.Entry>()
-      override val group = Widget.Group.OTHER
    }
 }
 
@@ -98,8 +98,8 @@ class IntroWidget(widget: Widget): Controller(widget) {
       override val year = year(2020)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf<WidgetTag>()
       override val summaryActions = listOf<ShortcutPane.Entry>()
-      override val group = Widget.Group.OTHER
    }
 }
 

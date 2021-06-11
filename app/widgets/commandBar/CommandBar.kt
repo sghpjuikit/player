@@ -11,6 +11,7 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import kotlin.math.roundToInt
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
@@ -126,6 +127,7 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
       override val year = year(2014)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(UTILITY)
       override val summaryActions = listOf(
          Entry("Bar", "Change icon size up", keys("CTRL+Scroll Up")),
          Entry("Bar", "Change icon size up", keys("CTRL+UP")),
@@ -134,7 +136,6 @@ class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
          Entry("Bar", "Open bar menu", SECONDARY.nameUi),
          Entry("Bar icon", "Open icon menu", SECONDARY.nameUi),
       )
-      override val group = Widget.Group.OTHER
 
       fun asConfigurable(icon: Icon): Configurable<*> = object: ConfigurableBase<Any?>() {
          val glyph by cv(icon.glyph).attach { icon.icon(it) }.values(Glyphs.GLYPHS).def(name = "Icon")

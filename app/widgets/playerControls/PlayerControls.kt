@@ -32,7 +32,6 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.PLAYBACK
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
@@ -76,6 +75,7 @@ import sp.it.util.units.year
 import java.io.File
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.FORWARD
+import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
 
@@ -229,6 +229,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       override val year = year(2014)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(AUDIO)
       override val summaryActions = listOf(
          Entry("Controls", "Play previous song", "BMB"),
          Entry("Controls", "Play previous song", "back icon LMB"),
@@ -255,7 +256,6 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          Entry("Seeker > Chapter popup > Edit", "Append new line", "Shift + Enter"),
          Entry("Seeker > Chapter popup > Edit", "Cancel edit", "Escape"),
       )
-      override val group = PLAYBACK
 
       fun GlyphIcons.icon(size: Double, block: (Boolean) -> Unit) = Icon(this, size).apply {
          boundsType = VISUAL

@@ -15,7 +15,6 @@ import javafx.stage.Window
 import javafx.util.Callback
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.APP
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.FileExplorerFeature
@@ -58,6 +57,8 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 import java.io.File
 import javafx.stage.Window as WindowFX
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.IconMD
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.label
@@ -189,10 +190,10 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf(
          ShortcutPane.Entry("Data", "Inspect object", "Drag & drop object"),
       )
-      override val group = APP
 
       private fun Node.traverseToFirst(test: (Node) -> Boolean) = traverse { it.parent }.find(test)
 

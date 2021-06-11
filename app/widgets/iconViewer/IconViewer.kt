@@ -11,7 +11,8 @@ import javafx.scene.layout.VBox
 import kotlin.reflect.KClass
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
@@ -61,8 +62,6 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 
 class IconViewer(widget: Widget): SimpleController(widget) {
-
-
    val iconSize = 60.emScaled
    val iconsView = GridView<GlyphIcons, GlyphIcons>({ it }, iconSize.x2 + (0 x 30.emScaled), 5.emScaled.x2).apply {
       styleClass += "icon-grid"
@@ -145,8 +144,8 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       override val year = year(2020)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = HelpEntries.Grid
-      override val group = DEVELOPMENT
    }
 }
 

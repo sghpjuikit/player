@@ -44,7 +44,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
    override val author: String
    override val contributor: String
    override val year: Year
-   override val group: Widget.Group
+   override val tags: Set<WidgetTag>
    override val type: KClass<*>
    override val summaryActions: List<ShortcutPane.Entry>
    override val location: File
@@ -81,7 +81,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
       this.contributor = info?.contributor ?: i.contributor
       this.year = info?.year ?: i.year.toIntOrNull()?.let { Year.of(it) } ?: Year.now()
       this.isSupported = info?.isSupported ?: true
-      this.group = info?.group ?: i.group
+      this.tags = info?.tags ?: i.tags.toSet()
       this.type = this.controllerType
       this.summaryActions = info?.summaryActions.orEmpty()
    }

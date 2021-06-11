@@ -5,7 +5,6 @@ import javafx.scene.text.Text
 import javafx.scene.text.TextFlow
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.APP
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.Opener
@@ -37,6 +36,8 @@ import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 
 class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    private val inputItems = io.i.create<Any?>("To display", null, ::open)
@@ -106,9 +107,9 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
       override val year = year(2020)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf(
          ShortcutPane.Entry("Data", "Set data", "Drag & drop object"),
       )
-      override val group = APP
    }
 }

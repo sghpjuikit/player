@@ -61,6 +61,7 @@ import java.util.ArrayList
 import javafx.scene.input.KeyCode.ESCAPE
 import kotlin.math.PI
 import kotlin.math.sin
+import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.formEditorsUiToggleIcon
 import sp.it.util.access.focused
 import sp.it.util.animation.Anim.Companion.anim
@@ -78,7 +79,7 @@ import sp.it.util.units.millis
    notes = "To do: generate active widget settings",
    version = "1.0.0",
    year = "2016",
-   group = Widget.Group.APP
+   tags = [ WidgetTags.APP ]
 )
 class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature {
 

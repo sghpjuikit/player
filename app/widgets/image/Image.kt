@@ -5,7 +5,7 @@ import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.OTHER
+import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ImageDisplayFeature
@@ -90,11 +90,11 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(IMAGE)
       override val summaryActions = listOf(
          Entry("Image", "Show image representing the file", "Drag & Drop file"),
          Entry("Image", "Toggle fit from", keys(SPACE)),
          Entry("Image", "Show fullscreen", keys(ENTER)),
       )
-      override val group = OTHER
    }
 }

@@ -10,8 +10,8 @@ import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSuperclassOf
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.APP
 import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.layout.widget.WidgetTag
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
@@ -136,10 +136,10 @@ class Node(widget: Widget): SimpleController(widget) {
       override val year = year(2021)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf<WidgetTag>()
       override val summaryActions = listOf(
          Entry("Node", "Edit component properties as widget inputs", SECONDARY.nameUi),
       )
-      override val group = APP
 
       fun Node?.javaFxProperties(): List<NodeInput> {
          if (this==null) return listOf()

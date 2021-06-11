@@ -3,7 +3,8 @@ package logger
 import javafx.scene.control.TextArea
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.DEVELOPMENT
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.TextDisplayFeature
@@ -55,7 +56,7 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf<ShortcutPane.Entry>()
-      override val group = DEVELOPMENT
    }
 }

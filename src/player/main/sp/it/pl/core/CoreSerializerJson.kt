@@ -45,7 +45,6 @@ class CoreSerializerJson: Core {
         "switch-container" alias SwitchContainerDb::class
                   "widget" alias WidgetDb::class
                   "window" alias WindowDb::class
-         "component-group" alias Widget.Group::class
        "component-loading" alias Widget.LoadType::class
              "orientation" alias javafx.geometry.Orientation::class
                 "prop-val" alias sp.it.util.file.properties.PropVal::class

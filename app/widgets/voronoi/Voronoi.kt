@@ -19,7 +19,7 @@ import javafx.scene.paint.Color
 import mu.KLogging
 import sp.it.pl.layout.widget.ExperimentalController
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.VISUALISATION
+import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.IconUN
@@ -426,7 +426,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          Entry("Interact", "Highlight", "Move cursor"),
          Entry("Interact", "Move cell", "${PRIMARY.nameUi} Drag"),
       )
-      override val group = VISUALISATION
+      override val tags = setOf(VISUALISATION)
 
       private var rand = Random()
 

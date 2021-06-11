@@ -83,7 +83,7 @@ import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.LIBRARY
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.SongReader
@@ -172,9 +172,11 @@ import java.time.Year
 import java.util.ArrayList
 import sp.it.pl.ui.objects.textfield.SpitTextField as DTextField
 import java.util.concurrent.atomic.AtomicLong
+import javafx.scene.layout.GridPane.REMAINING
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
+import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.util.access.focused
@@ -198,7 +200,7 @@ typealias Converter = (String) -> String
 
 class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
-   val inputValue = io.i.create<List<Song>>("Edit", listOf()) { read(it.orEmpty()) }
+   val inputValue = io.i.create<List<Song>>("Edit", listOf()) { read(it) }
 
    val coverV = ThumbnailWithAdd(IconFA.PLUS, "Change cover")
    val descriptionL = Label()
@@ -497,7 +499,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       ratingPF.setOnKeyReleased { updateRatingRaw() }
       ratingPF.setOnMousePressed { updateRatingRaw() }
 
-      read(inputValue.value.orEmpty())
+      read(inputValue.value)
    }
 
    private fun updateRatingRaw() = runTry {
@@ -932,7 +934,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      block()
                   }
                   fun layTextField(id: String, row: Int, column: Int = 1, block: DTextField.() -> Unit = {}) {
-                     lay(row = row, column = column, colSpan = GridPane.REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += dTextField {
+                     lay(row = row, column = column, colSpan = REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += dTextField {
                         this.id = id
                         block()
                      }
@@ -944,7 +946,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                   layTextField("albumArtistF", 3)
                   layTextField("composerF", 4)
                   layTextField("publisherF", 5)
-                  lay(row = 6, column = 1, colSpan = GridPane.REMAINING) += gridPane {
+                  lay(row = 6, column = 1, colSpan = REMAINING) += gridPane {
                      minSize = 0 x 0
                      maxSize = Double.MAX_VALUE.x2
                      columnConstraints += listOf(
@@ -965,7 +967,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                         alignment = CENTER_LEFT
                      }
                   }
-                  lay(row = 7, column = 1, colSpan = GridPane.REMAINING) += gridPane {
+                  lay(row = 7, column = 1, colSpan = REMAINING) += gridPane {
                      minSize = 0 x 0
                      maxSize = Double.MAX_VALUE.x2
                      columnConstraints += listOf(
@@ -996,23 +998,23 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                      descriptionNodeId = "ratingF"
                   }
                   layTextField("playcountF", 12)
-                  lay(row = 13, column = 1, hAlignment = HPos.LEFT, colSpan = GridPane.REMAINING) += textArea {
+                  lay(row = 13, column = 1, hAlignment = HPos.LEFT, colSpan = REMAINING) += textArea {
                      id = "commentF"
                      minSize = 0 x 0
                      maxSize = Double.MAX_VALUE.x2
                      styleClass += "tag-field"
                      isWrapText = true
                      textProperty() zip prefColumnCountProperty() sync { (txt, columns) ->
-                        prefRowCount = (txt.orEmpty().lineSequence().sumBy { 1 max ceil(it.length.toDouble()/columns.toDouble()).roundToInt() } - 1).clip(0,6)
+                        prefRowCount = (txt.orEmpty().lineSequence().sumOf { 1 max ceil(it.length.toDouble()/columns.toDouble()).roundToInt() } - 1).clip(0,6)
                      }
                   }
-                  lay(row = 14, column = 1, hAlignment = HPos.LEFT, colSpan = GridPane.REMAINING) += MoodItemNode().apply {
+                  lay(row = 14, column = 1, hAlignment = HPos.LEFT, colSpan = REMAINING) += MoodItemNode().apply {
                      id = "moodF"
                      minSize = 0 x 0
                      maxSize = Double.MAX_VALUE.x2
                      styleClass += "tag-field"
                   }
-                  lay(row = 15, column = 1, hAlignment = HPos.RIGHT, colSpan = GridPane.REMAINING) += stackPane {
+                  lay(row = 15, column = 1, hAlignment = HPos.RIGHT, colSpan = REMAINING) += stackPane {
                      minSize = 0 x 0
                      maxSize = Double.MAX_VALUE.x2
 
@@ -1037,7 +1039,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                   layTextField("playedLastF", 22)
                   layTextField("addedToLibraryF", 23)
                   lay += label()
-                  lay(row = 24, column = 1, colSpan = GridPane.REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += TagTextField(
+                  lay(row = 24, column = 1, colSpan = REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += TagTextField(
                      object: ConverterFromString<String> {
                         override fun ofS(s: String) = if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
                      }
@@ -1137,6 +1139,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(AUDIO, LIBRARY)
       override val summaryActions = listOf(
          ShortcutPane.Entry("Tagger > Cover", "Remove", "Drag cover away"),
          ShortcutPane.Entry("Tagger > Cover", "Add", "Drag & drop image file"),
@@ -1144,7 +1147,6 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          ShortcutPane.Entry("Tagger > Song list", "Edit", keys("Songs icon +${PRIMARY.nameUi}")),
          ShortcutPane.Entry("Tagger > Song list", "Add", keys("Drag & drop songs+SHIFT")),
       )
-      override val group = LIBRARY
 
       private val RATING_RAW_OF = Metadata.Field(type(), "Rating (raw)", "Song rating value in tag. Maximal value depends on tag type") {
          "${it.getRating() ?: AppTexts.textNoVal}/${it.getRatingMax()}"

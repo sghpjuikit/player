@@ -24,7 +24,7 @@ import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.LIBRARY
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
@@ -252,10 +252,10 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(LIBRARY)
       override val summaryActions = HelpEntries.Table + listOf(
          Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
       )
-      override val group = LIBRARY
    }
 
 }

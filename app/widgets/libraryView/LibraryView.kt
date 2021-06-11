@@ -25,7 +25,7 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.LIBRARY
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
@@ -195,7 +195,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
 
       // column context menu - add group by menu
-      val fieldMenu = Menu("Group by")
+      val fieldMenu = Menu("WidgetTags by")
       table.columnMenu.items.add(fieldMenu)
       table.columnMenu.onEventDown(WINDOW_HIDDEN) { fieldMenu.items.clear() }
       table.columnMenu.onEventDown(WINDOW_SHOWING) {
@@ -378,10 +378,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(LIBRARY)
       override val summaryActions = HelpEntries.Table + listOf(
          Entry("Table row", "Plays item", "2x${PRIMARY.nameUi}"),
       )
-      override val group = LIBRARY
    }
 
 }

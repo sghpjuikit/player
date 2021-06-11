@@ -24,7 +24,7 @@ import sp.it.pl.audio.tagging.MetadataGroup.Companion.groupsOf
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.LIBRARY
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.main.APP
@@ -100,7 +100,7 @@ import sp.it.util.units.minutes
    description = "Displays grid of albums and their covers.",
    version = "1.0.0",
    year = "2015",
-   group = LIBRARY
+   tags = [ LIBRARY ]
 )
 class AlbumView(widget: Widget): SimpleController(widget), SongReader {
 

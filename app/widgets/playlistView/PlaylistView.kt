@@ -10,7 +10,6 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.playlist.PlaylistSong.Field
 import sp.it.pl.audio.playlist.writeM3uPlaylist
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.PLAYLIST
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -57,6 +56,7 @@ import sp.it.util.units.year
 import java.io.File
 import java.util.UUID
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.HelpEntries
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
@@ -212,10 +212,10 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(AUDIO)
       override val summaryActions = HelpEntries.Table + listOf(
          Entry("Table row", "Move song within playlist", keys("CTRL+Drag")),
          Entry("Table row", "Play item", "2x${PRIMARY.nameUi}"),
       )
-      override val group = PLAYLIST
    }
 }

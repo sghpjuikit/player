@@ -80,6 +80,7 @@ import javafx.scene.control.ContentDisplay.RIGHT
 import javafx.scene.control.Hyperlink
 import kotlin.math.ceil
 import kotlin.math.floor
+import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appHyperlinkFor
 import sp.it.pl.main.detectContent
 import sp.it.util.functional.asIf
@@ -103,7 +104,7 @@ private typealias MField = Metadata.Field<*>
       """,
    version = "1.0.0",
    year = "2015",
-   group = Widget.Group.OTHER
+   tags = [ WidgetTags.AUDIO ]
 )
 class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    private val cover = ThumbnailWithAdd()

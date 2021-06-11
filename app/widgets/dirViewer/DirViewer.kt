@@ -16,7 +16,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.HBox
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
@@ -109,6 +108,7 @@ import java.util.concurrent.atomic.AtomicLong
 import javafx.scene.input.KeyCode.C
 import javafx.scene.input.KeyCode.SHORTCUT
 import kotlin.math.round
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.Df
 import sp.it.pl.main.Events.FileEvent
 import sp.it.pl.main.FileFilters.cvFileFilter
@@ -134,7 +134,7 @@ import sp.it.util.ui.dsl
    description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. " + "Intended as simple library",
    version = "0.7.0",
    year = "2015",
-   group = OTHER
+   tags = [ LIBRARY ]
 )
 class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature {
 

@@ -439,14 +439,9 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       val howto: String = "",
       /** Any words from the author. */
       val notes: String = "",
-      /** Group the widget should categorize under as. Default [Widget.Group.UNKNOWN] */
-      val group: Group = Group.UNKNOWN
+      /** Tags categorizing the widget. Default empty. */
+      val tags: Array<WidgetTag> = []
    )
-
-   /** Widget's intended functionality. */
-   enum class Group {
-      APP, PLAYBACK, PLAYLIST, LIBRARY, VISUALISATION, OTHER, DEVELOPMENT, UNKNOWN
-   }
 
    enum class LoadType {
       AUTOMATIC, MANUAL

@@ -31,10 +31,11 @@ import kotlin.math.sqrt
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.VISUALISATION
+import sp.it.pl.main.WidgetTags.AUDIO
+import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.main.IconUN
+import sp.it.pl.main.IconMD
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.animation.Loop
 import sp.it.util.conf.between
@@ -59,11 +60,6 @@ import spektrum.AmplitudeWeightCalculator.WeightWindow.dBZ
 import spektrum.Spektrum.BarPos
 
 class Spektrum(widget: Widget): SimpleController(widget) {
-
-
-
-
-
 
    val inputDevice by cv(AppConfig.inputDevice).sync { AppConfig.inputDevice = it }.valuesIn { AudioSystem.getMixerInfo().asSequence().filter { it.description.contains("Capture") }.map { it.name } }
       .def(name = "Audio input device", info = "")
@@ -148,14 +144,14 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       override val name = "Spektrum"
       override val description = "Spektrum"
       override val descriptionLong = "$description. Shows system audio spectrum"
-      override val icon = IconUN(0x2e2a)
+      override val icon = IconMD.POLL
       override val version = version(1, 0, 0)
       override val isSupported = true
       override val year = year(2021)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(AUDIO, VISUALISATION)
       override val summaryActions = listOf<Entry>()
-      override val group = VISUALISATION
    }
 
    class SpectralView(val spektrum: Spektrum, val spectralFFTService: FrequencyBarsFFTService): Canvas() {
@@ -187,8 +183,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                BarPos.TOP -> gc.fillRect(i*(barW+AppConfig.barGap), 0.0, barW, barH)
                BarPos.CIRCLE_IN, BarPos.CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> {
                   gc.lineWidth = (barW - AppConfig.barGap) max 1.0
-                  val max = min(h, w)/4.0 + (if (AppConfig.barAlignment==BarPos.CIRCLE_IN) 0.0 else barH/4.0)
-                  val min = min(h, w)/4.0 - (if (AppConfig.barAlignment==BarPos.CIRCLE_OUT) 0.0 else barH/8.0)
+                  val max = min(h, w)/4.0*1.5 + (if (AppConfig.barAlignment==BarPos.CIRCLE_IN) 0.0 else barH/4.0)
+                  val min = min(h, w)/4.0*1.5 - (if (AppConfig.barAlignment==BarPos.CIRCLE_OUT) 0.0 else barH/8.0)
                   val barCos = cos(i*2*PI/barCount)
                   val barSin = sin(i*2*PI/barCount)
                   gc.strokeLine(w/2 + max*barCos, h/2 + max*barSin, w/2 + min*barCos, h/2 + min*barSin)
@@ -686,55 +682,47 @@ class BarsHeightCalculator {
 }
 
 object AppConfig {
-
-   // Audio format
+   // audio format
    var inputDevice: String = "Primary Sound Capture"
    var sampleRate: Int = 48000
    var sampleSizeInBits: Int = 16
    var channels: Int = 1
    var signed: Boolean = true
    var bigEndian: Boolean = false
-
    // audio buffer settings
    var bufferSize: Int = 6000
    var bufferOverlap: Int = 4976
-
-   var resolutionHighQuality: Boolean = false
-
-   var minBarHeight: Int = 3
-   var maxBarHeight: Double = 750.0
-   var barGap: Int = 8
-   var barAlignment: BarPos = BarPos.CIRCLE_MIDDLE
-
+   // audio processinng
    var frequencyStart: Int = 35
    var frequencyCenter: Int = 1000
    var frequencyEnd: Int = 17000
    var octave: Int = 25
-
+   var resolutionHighQuality: Boolean = false
+   // audio level
    var maxLevel: String = "RMS"
    var weight: WeightWindow = dBZ
-
-   // spectral color
+   // color
    var spectralColorPosition: Int = 180
    var spectralColorRange: Int = 360
    var saturation: Int = 100
    var brightness: Int = 100
    var spectralColorInverted: Boolean = false
    var baseColor = Color.color(0.1, 0.1, 0.1)!!
-
-   // bar acceleration
+   // bars
+   var minBarHeight: Int = 3
+   var maxBarHeight: Double = 750.0
+   var barGap: Int = 8
+   var barAlignment: BarPos = BarPos.CIRCLE_MIDDLE
+   // bars animation
    var pixelsPerSecondDecay: Int = 250
    var accelerationFactor: Int = 10
-
-   // input signal
+   // audio signal processing
    var signalAmplification: Int = 138
    var signalThreshold: Int = -42
-
    // fft
    var timeFilterSize: Int = 2
    var interpolationResolution: Double = 6.0
    var zeroPadding: Int = 0
-
 }
 
 object AmplitudeWeightCalculator {
@@ -768,6 +756,7 @@ object AmplitudeWeightCalculator {
       return 20*log10(rcf) + 0.06
    }
 
+   @Suppress("EnumEntryName")
    enum class WeightWindow(val window: String) {
       dBA("dBA"),
       dBB("dBB"),

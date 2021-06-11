@@ -31,6 +31,8 @@ import javafx.util.Callback
 import kotlin.math.round
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.main.WidgetTags.GAME
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
@@ -515,6 +517,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       override val year = year(2016)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(LIBRARY, GAME)
       override val summaryActions = HelpEntries.Grid + listOf(
          Entry("Data", "Refresh", F5.nameUi),
          Entry("Grid cell", "Go to detail", ENTER.nameUi),
@@ -524,7 +527,6 @@ class GameView(widget: Widget): SimpleController(widget) {
          Entry("Game detail", "Back", BACK_SPACE.nameUi),
          Entry("Game detail", "Back", ESCAPE.nameUi),
       )
-      override val group = Widget.Group.LIBRARY
 
       private fun File.findImage(imageName: String) = children().find {
          val filename = it.name

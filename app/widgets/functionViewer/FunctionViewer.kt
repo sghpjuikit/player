@@ -16,7 +16,6 @@ import javafx.scene.shape.Path
 import kotlin.math.floor
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.DEVELOPMENT
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.emScaled
 import sp.it.util.access.V
@@ -47,6 +46,7 @@ import sp.it.util.units.millis
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import mu.KLogging
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.main.IconUN
 import sp.it.pl.ui.labelForWithClick
@@ -272,11 +272,11 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(UTILITY)
       override val summaryActions = listOf(
          ShortcutPane.Entry("Graph", "Zoom in/out", "Scroll"),
          ShortcutPane.Entry("Graph", "Shift axes", keys("LMB drag")),
       )
-      override val group = DEVELOPMENT
 
       fun ConfigEditor<*>.toHBox() = hBox(5, CENTER) {
          val n = buildNode()

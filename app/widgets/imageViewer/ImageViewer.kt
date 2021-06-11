@@ -15,7 +15,6 @@ import javafx.util.Duration.ZERO
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.OTHER
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
@@ -67,6 +66,7 @@ import java.io.File
 import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import kotlin.streams.toList
+import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
 import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.util.access.toggleNext
@@ -315,6 +315,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       override val year = year(2015)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(IMAGE)
       override val summaryActions = listOf(
          Entry("Song", "Toggle song detail", "Image ${PRIMARY.nameUi}"),
          Entry("Song", "Toggle song detail background", "Song detail ${SECONDARY.nameUi}"),
@@ -333,6 +334,5 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
          Entry("Navigation", "Next image", keys(KP_RIGHT)),
          Entry("Navigation", "Last image", keys(END)),
       )
-      override val group = OTHER
    }
 }

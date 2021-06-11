@@ -52,7 +52,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.Group.VISUALISATION
+import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.layout.widget.appProperty
 import sp.it.pl.layout.widget.controller.SimpleController
@@ -119,6 +119,7 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+import sp.it.pl.main.WidgetTags.IOT
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.IconWH
@@ -534,7 +535,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       hueBridge.bulbs() ui { bulbs ->
          bulbsPane.children setTo bulbs.map { bulb ->
             hueBulbCells.getOrPut(bulb.id) {
-               HueIcon(IconFA.LIGHTBULB_ALT, 40.0, bulb).run {
+               HueIcon(null, 40.0, bulb).run {
                   styleclass("hue-bulb-icon")
 
                   fun rename() {
@@ -685,10 +686,10 @@ class Hue(widget: Widget): SimpleController(widget) {
       override val year = year(2020)
       override val author = "spit"
       override val contributor = ""
+      override val tags = setOf(VISUALISATION, IOT, "Hue")
       override val summaryActions = listOf(
          Entry("Data", "Refresh", F5.nameUi),
       )
-      override val group = VISUALISATION
 
       private var hueBridgeApiKey by appProperty("")
       private var hueBridgeIp by appProperty("")

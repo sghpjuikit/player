@@ -59,7 +59,6 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
-import sp.it.pl.main.IconUN
 import sp.it.pl.main.configure
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.showFloating
@@ -586,7 +585,9 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
       hueBridge.scenes() ui { scenes ->
          scenesPane.children setTo scenes.map { scene ->
-            Icon(IconFA.LIGHTBULB_ALT, 40.0).run {
+            Icon(null, 40.0).run {
+               styleclass("hue-scene-icon")
+
                fun focusScene() {
                   unfocusSensor()
                   unfocusBulbGroup()
@@ -634,7 +635,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                "ZLLTemperature" -> IconMD.THERMOMETER
                "ZLLPresence" -> IconOC.BROADCAST
                "ZLLLightLevel" -> IconWH.WU_CLEAR
-               "Daylight" -> IconWH.MOON_ALT_WAXING_GIBBOUS_2
+               "Daylight" -> IconMA.TIMELAPSE
                else -> IconMA.SETTINGS_INPUT_ANTENNA
             }
             fun focusSensor() {
@@ -678,7 +679,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       override val name = "Hue Scenes"
       override val description = "Manages Phillips Hue bulbs, groups & scenes"
       override val descriptionLong = "$description."
-      override val icon = IconUN(0x2e2a)
+      override val icon = IconMD.LIGHTBULB_OUTLINE
       override val version = version(0, 0, 6)
       override val isSupported = true
       override val year = year(2020)
@@ -764,7 +765,7 @@ class HueCellNode(icon: Icon, name: String): VBox(5.emScaled) {
    }
 }
 class HueCell<T>(val node: Node, val icon: HueIcon<T>)
-class HueIcon<T>(i: GlyphIcons, size: Double, var hue: T): Icon(i, size)
+class HueIcon<T>(i: GlyphIcons?, size: Double, var hue: T): Icon(i, size)
 
 data class HueBridge(val id: String, val name: String)
 data class HueBulbStateEditOn(val on: Boolean)

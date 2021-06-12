@@ -455,7 +455,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          infoPane.lay -= color.node
       }
       fun unfocusBulbGroup() {
-         selectedGroupIcon?.hue?.lights?.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
+         hueBulbCells.values.map { it.icon.hue.id }.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
          selectedGroupIcon?.pseudoClassChanged("edited", false)
          selectedGroupIcon = null
          selectedGroupId = null
@@ -477,12 +477,12 @@ class Hue(widget: Widget): SimpleController(widget) {
                   fun focusBulbGroup() {
                      unfocusSensor()
                      unfocusBulb()
-                     selectedGroupIcon?.hue?.lights?.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
+                     hueBulbCells.values.map { it.icon.hue.id }.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", false) }
                      selectedGroupIcon?.pseudoClassChanged("edited", false)
                      selectedGroupIcon = this
                      selectedGroupId = group.id
                      pseudoClassChanged("edited", true)
-                     hue.lights.forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", true) }
+                     (if (group.id=="0") hueBulbCells.values.map { it.icon.hue.id } else hue.lights).forEach { hueBulbCells[it]?.icon?.pseudoClassChanged("edited-group", true) }
                      color.readOnly.value = false
                      infoPane.lay += color.node
                      color.changeToBulbGroup(hue)

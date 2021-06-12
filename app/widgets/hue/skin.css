@@ -36,10 +36,13 @@
 }
 .hue-bulb-icon:hover Text,
 .hue-bulb-icon:focused Text,
-.hue-bulb-icon:edited-group Text,
 .hue-bulb-icon:edited Text {
     -fx-fill: -skin-def-font-color-hover;
     -fx-effect: null;
+}
+.hue-bulb-icon:edited-group {
+    -fx-border-color: -fx-focus-color;
+    -fx-border-width: 1 0 0 0;
 }
 .hue-bulb-icon:hover:on Text,
 .hue-bulb-icon:focused:on Text,

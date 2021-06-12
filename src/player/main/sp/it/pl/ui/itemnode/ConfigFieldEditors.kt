@@ -428,7 +428,7 @@ open class EnumerableCE<T>(c: Config<T>, enumeration: Collection<T> = c.enumerat
                override fun updateItem(item: T, empty: Boolean) {
                   super.updateItem(item, empty)
                   super.setGraphic(infoIcon)
-                  infoIcon.tooltip(item.net(converter))
+                  infoIcon.tooltip(if (item==null && !isNullable) null.toUi() else item.net(converter))
                }
             }
          }

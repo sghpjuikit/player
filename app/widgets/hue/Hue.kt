@@ -1,8 +1,9 @@
-@file:Suppress("SpellCheckingInspection")
+@file:Suppress("SpellCheckingInspection", "EnumEntryName")
 
 package hue
 
 import de.jensd.fx.glyphs.GlyphIcons
+import hue.HueBulbConfPowerOn.*
 import hue.HueGroupType.LightGroup
 import hue.HueGroupType.Lightsource
 import hue.HueGroupType.Luminaire
@@ -132,6 +133,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.lengthMax
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.math.clip
 import sp.it.util.math.min
 import sp.it.util.reactive.Suppressor
@@ -158,9 +160,12 @@ class Hue(widget: Widget): SimpleController(widget) {
    val scenesPane = flowPane(10.emScaled, 10.emScaled)
    val sensorsPane = flowPane(10.emScaled, 10.emScaled)
 
-   private val hueBridgeUserDevice = "spit-player"
-   private var hueBridgeUrl = "http://ip/api/user"
    private val hueBridge = object {
+      val hueBridgeUserDevice = "spit-player"
+      lateinit var ip: String
+      lateinit var apiKey: String
+      lateinit var apiVersion: KotlinVersion
+      lateinit var url: String
 
       fun init() =
          runFX { hueBridgeIp }
@@ -174,12 +179,19 @@ class Hue(widget: Widget): SimpleController(widget) {
             }
             .then(IO) { (ip, apiKey) ->
                runBlocking {
-                  if (isAuthorizedApiKey(ip, apiKey)) ip to apiKey
-                  else ip to createApiKey(ip)
+                  if (isAuthorizedApiKey(ip, apiKey))
+                     arrayOf(ip, apiKey, apiVersion("http://$ip/api/$apiKey"))
+                  else {
+                     val apiKeyAuthorized = createApiKey(ip)
+                     arrayOf(ip, apiKeyAuthorized, apiVersion("http://$ip/api/$apiKeyAuthorized"))
+                  }
                }
-            }.ui { (ip, apiKey) ->
+            }.ui { data ->
+               ip = data[0]
+               apiKey = data[1]
+               apiVersion = KotlinVersion(data[2].substringBefore(".").toInt(), data[2].substringAfter(".").substringBefore(".").toInt(), data[2].substringAfter(".").substringAfter(".", "").toIntOrNull() ?: 0)
                hueBridgeApiKey = apiKey
-               hueBridgeUrl = "http://$ip/api/$apiKey"
+               url = "http://$ip/api/$apiKey"
             }
 
       @Blocks
@@ -232,85 +244,96 @@ class Hue(widget: Widget): SimpleController(widget) {
          return apiKey ?: fail { "Failed to obtain user Phillips Hue bridge api key" }
       }
 
+      suspend fun apiVersion(url: String): String {
+         val response = client.get<String>("$url/config")
+         return response.parseToJson().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
+      }
+
       fun bulbs() = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/lights")
+         val response = client.get<String>("$url/lights")
          response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
       }
 
       fun groups() = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/groups")
+         val response = client.get<String>("$url/groups")
          val groups = response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
          groups + HueGroup("0", "All", listOf(), HueGroupState(false, false))
       }
 
       fun scenes() = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/scenes")
+         val response = client.get<String>("$url/scenes")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
       }
 
       fun sensors() = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/sensors")
+         val response = client.get<String>("$url/sensors")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
       }
 
       fun renameBulb(bulb: HueBulbId, name: String) = runSuspending {
-         client.put<String>("$hueBridgeUrl/lights/$bulb") {
+         client.put<String>("$url/lights/$bulb") {
             body = """{"name": "$name"}"""
          }
       }
 
+      fun changePowerOn(bulb: HueBulbId, powerOn: HueBulbConfPowerOn) = runSuspending {
+         client.put<String>("$url/lights/$bulb/config") {
+            body = """{ "startup": {"mode": "$powerOn"} }"""
+         }
+      }
+
       fun toggleBulb(bulb: HueBulbId) = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/lights/$bulb")
+         val response = client.get<String>("$url/lights/$bulb")
          val on = response.parseToJson().to<HueBulb>().state.on
-         client.put<String>("$hueBridgeUrl/lights/$bulb/state") {
+         client.put<String>("$url/lights/$bulb/state") {
             body = HueBulbStateEditOn(!on).toJson().toPrettyS()
          }
       }
 
       fun toggleBulbGroup(group: HueGroupId) = runSuspending {
-         val response = client.get<String>("$hueBridgeUrl/groups/$group")
+         val response = client.get<String>("$url/groups/$group")
          val allOn = response.parseToJson().to<HueGroup>().copy(id = group).state.all_on
-         client.put<String>("$hueBridgeUrl/groups/$group/action") {
+         client.put<String>("$url/groups/$group/action") {
             body = HueBulbStateEditOn(!allOn).toJson().toPrettyS()
          }
       }
 
       fun applyBulbLight(bulb: HueBulbId, state: HueBulbStateEditLight) = runSuspending {
-         client.put<String>("$hueBridgeUrl/lights/$bulb/state") {
+         client.put<String>("$url/lights/$bulb/state") {
             body = state.toJson().asJsObject().withoutNullValues().toPrettyS()
          }
       }
 
       fun applyBulbGroupLight(group: HueGroupId, state: HueBulbStateEditLight) = runSuspending {
-         client.put<String>("$hueBridgeUrl/groups/$group/action") {
+         client.put<String>("$url/groups/$group/action") {
             body = state.toJson().asJsObject().withoutNullValues().toPrettyS()
          }
       }
 
       fun applyScene(scene: HueScene) = runSuspending {
-         client.put<String>("$hueBridgeUrl/groups/0/action") {
+         client.put<String>("$url/groups/0/action") {
             body = JsObject("scene" to JsString(scene.id)).toPrettyS()
          }
       }
 
       fun createGroup(group: HueGroupCreate) = runSuspending {
-         client.post<String>("$hueBridgeUrl/groups") {
+         client.post<String>("$url/groups") {
             body = group.toJson().toPrettyS()
          }
       }
 
       fun createScene(scene: HueSceneCreate) = runSuspending {
-         client.post<String>("$hueBridgeUrl/scenes") {
+         client.post<String>("$url/scenes") {
             body = scene.toJson().asJsObject().withoutNullValues().toPrettyS()
          }
       }
 
       fun deleteGroup(group: HueGroupId) = runSuspending {
-         client.delete<String>("$hueBridgeUrl/groups/$group")
+         client.delete<String>("$url/groups/$group")
       }
 
       fun deleteScene(group: HueSceneId) = runSuspending {
-         client.delete<String>("$hueBridgeUrl/scenes/$group")
+         client.delete<String>("$url/scenes/$group")
       }
 
    }
@@ -350,7 +373,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                         val cBri = 1 + ((c.opacity) * 253).toInt()
                         val cHue = (c.hue/360.0*65535).toInt()
                         val cSat = (c.saturation*245).toInt()
-                        changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat, true)))
+                        changeToBulb(HueBulb("", "", "", HueBulbState(true, cBri, cHue, cSat, true), mapOf()))
 
                         if (!isDragged) applyToSelected(cBri, cHue, cSat)
                      }
@@ -540,9 +563,21 @@ class Hue(widget: Widget): SimpleController(widget) {
 
                   fun rename() {
                      object: ConfigurableBase<Any?>() {
-                        val name by cv(hue.name).lengthMax(32)
+                        val name by cv(hue.name).lengthMax(32).def("Name")
                      }.configure("Rename bulb") {
                         hueBridge.renameBulb(bulb.id, it.name.value).thenRefresh()
+                     }
+                  }
+                  fun changePowerOn() {
+                     object: ConfigurableBase<Any?>(), Validated {
+                        val powerOn by cv(hue.confPowerOn ?: unknown).uiInfoConverter { it.description }.def("Behavior")
+                        override fun isValid() = when {
+                           !hueBridge.apiVersion.isAtLeast(1, 28) -> Try.error("Unsupported before apiVersion 1.28. Please update bridge.")
+                           powerOn.value == custom || powerOn.value == unknown -> Try.error("Value not supported")
+                           else -> Try.ok()
+                        }
+                     }.configure("Change power on behavior") {
+                        hueBridge.changePowerOn(bulb.id, it.powerOn.value).thenRefresh()
                      }
                   }
                   fun toggleBulb() = hueBridge.toggleBulb(bulb.id).thenRefresh()
@@ -568,6 +603,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                      ContextMenu().dsl {
                         item("Rename") { rename() }
                         item("Toggle on/off (${keys("SPACE")})") { toggleBulb() }
+                        if (hue.confPowerOn!=null) item("Power on behavior") { changePowerOn() }
                      }.show(this, RIGHT, 0.0, 0.0)
                   }
 
@@ -632,40 +668,27 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
       hueBridge.sensors() ui { scenes ->
          sensorsPane.children setTo scenes.map { sensor ->
-            val icon = when (sensor.type) {
-               "ZLLTemperature" -> IconMD.THERMOMETER
-               "ZLLPresence" -> IconOC.BROADCAST
-               "ZLLLightLevel" -> IconWH.WU_CLEAR
-               "Daylight" -> IconMA.TIMELAPSE
-               else -> IconMA.SETTINGS_INPUT_ANTENNA
-            }
-            fun focusSensor() {
-               unfocusSensor()
-               unfocusBulbGroup()
-               unfocusBulb()
-               infoPane.lay += devicePane
-
-               devicePane.lay.clear()
-               when (sensor.type) {
-                  "ZLLTemperature" -> {
-                     sensor.state["temperature"]?.asIf<Number>().ifNotNull { devicePane.lay += textColon("Temperature", "${it.toDouble()/100}°C") }
-                  }
-                  "ZLLPresence" -> {
-                     sensor.state["presence"]?.asIf<Boolean>().ifNotNull { devicePane.lay += textColon("Presence", it) }
-                  }
-                  "Daylight" -> {
-                     sensor.state["daylight"]?.asIf<Boolean>().ifNotNull { devicePane.lay += textColon("Is daylight", it) }
-                  }
-                  else -> IconMA.SETTINGS_INPUT_ANTENNA
-               }
-               if (devicePane.lay.children.isNotEmpty()) devicePane.lay += label()
-               sensor.config.entries.sortedBy { it.key }.forEach { (name, value) ->
-                  devicePane.lay += textColon(name.capitalLower(), value)
-               }
-            }
-
-            Icon(icon, 40.0).run {
+            Icon(sensor.icon, 40.0).run {
                styleclass("hue-sensor-icon")
+
+               fun focusSensor() {
+                  unfocusSensor()
+                  unfocusBulbGroup()
+                  unfocusBulb()
+                  infoPane.lay += devicePane
+
+                  devicePane.lay.clear()
+                  when (sensor.type) {
+                     "ZLLTemperature" -> sensor.stateTemperature.ifNotNull { devicePane.lay += textColon("Temperature", "$it°C") }
+                     "ZLLPresence" -> sensor.statePresence.ifNotNull { devicePane.lay += textColon("Presence", it) }
+                     "Daylight" -> sensor.stateDaylight.ifNotNull { devicePane.lay += textColon("Is daylight", it) }
+                     else -> IconMA.SETTINGS_INPUT_ANTENNA
+                  }
+                  if (devicePane.lay.children.isNotEmpty()) devicePane.lay += label()
+                  sensor.config.entries.sortedBy { it.key }.forEach { (name, value) ->
+                     devicePane.lay += textColon(name.capitalLower(), value)
+                  }
+               }
                pseudoClassChanged("unreachable", sensor.config["reachable"]?.asIf<Boolean>() ?: false)
                onEventDown(MOUSE_CLICKED, PRIMARY) {
                   if (it.clickCount==1) focusSensor()
@@ -746,7 +769,10 @@ typealias HueBulbId = String
 typealias HueGroupId = String
 typealias HueSceneId = String
 typealias HueSensorId = String
+typealias HueMap = Map<String,Any?>
 
+class HueIcon<T>(i: GlyphIcons?, size: Double, var hue: T): Icon(i, size)
+class HueCell<T>(val node: Node, val icon: HueIcon<T>)
 class HueCellNode(icon: Icon, name: String): VBox(5.emScaled) {
    var name: String = name
       set(value) {
@@ -765,14 +791,13 @@ class HueCellNode(icon: Icon, name: String): VBox(5.emScaled) {
       }
    }
 }
-class HueCell<T>(val node: Node, val icon: HueIcon<T>)
-class HueIcon<T>(i: GlyphIcons?, size: Double, var hue: T): Icon(i, size)
 
-data class HueBridge(val id: String, val name: String)
 data class HueBulbStateEditOn(val on: Boolean)
 data class HueBulbStateEditLight(val bri: Int?, val hue: Int?, val sat: Int?)
 data class HueBulbState(val on: Boolean, val bri: Int, val hue: Int, val sat: Int, val reachable: Boolean)
-data class HueBulb(val id: HueBulbId = "", val name: String, val productname: String, val state: HueBulbState)
+data class HueBulb(val id: HueBulbId = "", val name: String, val productname: String, val state: HueBulbState, val config: HueMap) {
+   val confPowerOn get() = config["startup"]?.asIf<HueMap>()?.get("mode")?.asIs<String>()?.net(HueBulbConfPowerOn::valueOf)
+}
 data class HueGroupState(val all_on: Boolean, val any_on: Boolean)
 data class HueGroup(val id: HueGroupId = "", val name: String, val lights: List<HueBulbId>, val state: HueGroupState)
 data class HueGroupCreate(val name: String, val type: String, val lights: List<HueBulbId>)
@@ -781,8 +806,26 @@ data class HueSceneCreate(val name: String, val type: HueSceneType, val group: H
    constructor(name: String, lights: List<HueBulb>): this(name, LightScene, null, lights.map { it.id })
    constructor(name: String, group: HueGroupId): this(name, GroupScene, group, null)
 }
-data class HueSensor(val id: HueSensorId = "", val name: String, val type: String, val state: Map<String, Any?>, val config: Map<String, Any?>)
+data class HueSensor(val id: HueSensorId = "", val name: String, val type: String, val state: HueMap, val config: HueMap) {
+   val stateTemperature get() = state["temperature"]?.asIf<Number>()?.net { it.toDouble()/100 }
+   val statePresence get() = state["presence"]?.asIf<Boolean>()
+   val stateDaylight get() = state["daylight"]?.asIf<Boolean>()
+   val icon: GlyphIcons get() = when (type) {
+      "ZLLTemperature" -> IconMD.THERMOMETER
+      "ZLLPresence" -> IconOC.BROADCAST
+      "ZLLLightLevel" -> IconWH.WU_CLEAR
+      "Daylight" -> IconMA.TIMELAPSE
+      else -> IconMA.SETTINGS_INPUT_ANTENNA
+   }
+}
 
+enum class HueBulbConfPowerOn(val value: String, val description: String) {
+   custom("Custom", "Custom settings defined in custom settings. Will be automatically set when providing “customsettings”. Not available for “On/Off Light”."),
+   lastonstate("Last on state", "Light keeps the setting when power failed. If light was off it returns to the last on state."),
+   powerfail("Powerfail", "Light keeps the setting when power failed. If light was off it stays off."),
+   safety("Safety", "Lights go back to Philips “bright light” safety setting (100% brightness @ 2700K)."),
+   unknown("Unknown", "Custom setting is not supported.")
+}
 enum class HueSceneType { LightScene, GroupScene }
 enum class HueGroupType(val value: String, val since: Double, val description: String) {
    Luminaire(

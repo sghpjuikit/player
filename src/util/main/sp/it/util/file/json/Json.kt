@@ -333,8 +333,7 @@ class Json {
                   when {
                      typeK==Any::class -> value.value.map { fromJsonValueImpl(jType<Any>(), it) }
                      Collection::class.isSuperclassOf(typeK) -> {
-                        val itemType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)
-                           ?: jType<Any>()
+                        val itemType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0) ?: jType<Any>()
                         val values = value.value.map { fromJsonValueImpl(itemType, it) }
                         when (typeK) {
                            Set::class -> HashSet(values)
@@ -391,11 +390,9 @@ class Json {
                      instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
                      instanceType==String::class -> value.value["value"]?.asJsStringValue()
                      instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
-                     instanceType.isSubclassOf<Map<*, *>>() -> {
-                        val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()?.kotlin
-                           ?: String::class
-                        val mapValueType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(1)
-                           ?: jType<Any>()
+                     instanceType==Any::class || instanceType.isSubclassOf<Map<*, *>>() -> {
+                        val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()?.kotlin ?: String::class
+                        val mapValueType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(1) ?: jType<Any>()
                         value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
                      }
                      else -> {

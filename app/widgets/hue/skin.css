@@ -40,6 +40,7 @@
     -fx-fill: -skin-def-font-color-hover;
     -fx-effect: null;
 }
+.hue-bulb-icon:edited,
 .hue-bulb-icon:edited-group {
     -fx-border-color: -fx-focus-color;
     -fx-border-width: 1 0 0 0;

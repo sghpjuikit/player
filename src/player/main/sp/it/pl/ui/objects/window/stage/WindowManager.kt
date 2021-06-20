@@ -538,7 +538,10 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
       val shower = {
          showAnim.intpl { sqrt(sqrt(it)) }
-         showAnim.playOpenDo { mw.s.asLayout()?.child = c }
+         showAnim.playOpenDo {
+            mw.s.asLayout()?.child = c
+            c.focus()
+         }
       }
       val hider = {
          showAnim.intpl { 1-sqrt(sqrt(1-it)) }

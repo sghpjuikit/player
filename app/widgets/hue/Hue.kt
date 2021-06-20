@@ -699,6 +699,8 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
    }
 
+   // https://developers.meethue.com/develop/hue-api/
+   // https://developers.meethue.com/develop/hue-api/supported-devices/
    companion object: WidgetCompanion, KLogging() {
       override val name = "Hue Scenes"
       override val description = "Manages Phillips Hue bulbs, groups & scenes"

@@ -65,7 +65,10 @@ import javafx.scene.input.KeyCode.*
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.SpitText
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.reactive.onEventDown
 import sp.it.util.text.*
 import sp.it.util.ui.hyperlink
@@ -237,11 +240,14 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = APP_SEARCH, info = "Display application search.", keys = "CTRL+SHIFT+I", global = true)
    fun showSearchPosScreen() {
-      PopWindow().apply {
-         content.value = APP.search.buildUi { hide() }
-         title.value = "Search for an action or option"
-         isAutohide.value = true
-         show(SCREEN_ACTIVE(CENTER))
+      APP.windowManager.windowsFx.find { it.scene?.root?.properties?.get(APP_SEARCH) == APP_SEARCH }.ifNotNull { it.asPopWindow()?.focus() }.ifNull {
+         PopWindow().apply {
+            content.value = APP.search.buildUi { hide() }
+            title.value = "Search for an action or option"
+            isAutohide.value = true
+            properties[APP_SEARCH] = APP_SEARCH
+            show(SCREEN_ACTIVE(CENTER))
+         }
       }
    }
 

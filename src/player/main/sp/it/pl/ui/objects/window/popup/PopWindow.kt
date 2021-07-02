@@ -32,6 +32,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
 import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.window.Shower
+import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.objects.window.stage.popWindowOwner
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -96,6 +97,7 @@ open class PopWindow {
 
          scene = scene {
             fill = Color.TRANSPARENT
+            installWindowInteraction()
          }
       }
    }
@@ -105,6 +107,7 @@ open class PopWindow {
          autoHideProperty() syncFrom isAutohide
          hideOnEscapeProperty() syncFrom isEscapeHide
          initPopWindow(this@PopWindow)
+         scene.installWindowInteraction()
 
          onEventUp(WINDOW_SHOWING) { onShowing() }
          onEventUp(WINDOW_SHOWN) { onShown() }

@@ -38,13 +38,18 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.main.IconMD
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.animation.Loop
+import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.between
+import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.conf.max
 import sp.it.util.conf.min
+import sp.it.util.conf.noUi
+import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesIn
+import sp.it.util.dev.ThreadSafe
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.math.max
@@ -55,75 +60,83 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.units.version
 import sp.it.util.units.year
-import spektrum.AmplitudeWeightCalculator.WeightWindow
-import spektrum.AmplitudeWeightCalculator.WeightWindow.dBZ
-import spektrum.Spektrum.BarPos
+import spektrum.WeightWindow.dBZ
 
 class Spektrum(widget: Widget): SimpleController(widget) {
 
-   val inputDevice by cv(AppConfig.inputDevice).sync { AppConfig.inputDevice = it }.valuesIn { AudioSystem.getMixerInfo().asSequence().filter { it.description.contains("Capture") }.map { it.name } }
+   val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() }
+      .valuesIn { AudioSystem.getMixerInfo().asSequence().filter { it.description.contains("Capture") }.map { it.name } }
       .def(name = "Audio input device", info = "")
-   val sampleRate by cv(AppConfig.sampleRate).sync { AppConfig.sampleRate = it }.values(listOf(44100, 48000))
+   val audioFormatChannels by c(1)
+      .def(name = "Audio format channels", info = "", editable = NONE).readOnly()
+   val audioFormatSigned by c(true)
+      .def(name = "Audio format signed", info = "", editable = NONE).readOnly()
+   val audioFormatBigEndian by c(false)
+      .def(name = "Audio format big endian", info = "", editable = NONE).readOnly()
+   val sampleSizeInBits by cv(16).readOnly().attach { audioEngine.restartOnNewThread() }
+      .def(name = "Audio sample in bits", info = "", editable = NONE)
+   val sampleRate by cv(48000).values(listOf(44100, 48000)).attach { audioEngine.restartOnNewThread() }
       .def(name = "Audio sample rate", info = "")
-   val bufferSize by cv(AppConfig.bufferSize).sync { AppConfig.bufferSize = it }.between(32, 24000)
+   val bufferSize by cv(6000).between(32, 24000).attach { audioEngine.restartOnNewThread() }
       .def(name = "Audio buffer size", info = "")
-   val bufferOverlap by cv(AppConfig.bufferOverlap).sync { AppConfig.bufferOverlap = it }.between(0, 23744)
+   val bufferOverlap by cv(4976).between(0, 23744).attach { audioEngine.restartOnNewThread() }
       .def(name = "Audio buffer overlap", info = "")
-   val zeroPadding by cv(AppConfig.zeroPadding).sync { AppConfig.zeroPadding = it }.between(0, 12256)
+   val zeroPadding by cv(0).between(0, 12256)
       .def(name = "Audio fft zero padding", info = "")
-   val maxLevel by cv(AppConfig.maxLevel).sync { AppConfig.maxLevel = it }.values(listOf("RMS", "Peak"))
+   val maxLevel by cv("RMS").values(listOf("RMS", "Peak"))
       .def(name = "Signal max level", info = "")
-   val weight by cv(AppConfig.weight).sync { AppConfig.weight = it }
+   var weight by c(dBZ)
       .def(name = "Signal weighting", info = "")
-   val signalAmplification by cv(AppConfig.signalAmplification).sync { AppConfig.signalAmplification = it }.between(0, 250)
+   val signalAmplification by cv(138).between(0, 250)
       .def(name = "Signal amplification (factor)", info = "")
-   val signalThreshold by cv(AppConfig.signalThreshold).sync { AppConfig.signalThreshold = it }.between(-90, 0)
+   val signalThreshold by cv(-42).between(-90, 0)
       .def(name = "Signal threshold (db)", info = "")
 
-   val frequencyStart by cv(AppConfig.frequencyStart).sync { AppConfig.frequencyStart = it }.between(0, 24000)
+   var frequencyStart by c(35).between(0, 24000)
       .def(name = "Frequency start", info = "")
-   val frequencyCenter by cv(AppConfig.frequencyCenter).sync { AppConfig.frequencyCenter = it }.between(0, 24000)
+   var frequencyCenter by c(1000).between(0, 24000)
       .def(name = "Frequency center", info = "")
-   val frequencyEnd by cv(AppConfig.frequencyEnd).sync { AppConfig.frequencyEnd = it }.between(0, 24000)
+   var frequencyEnd by c(17000).between(0, 24000)
       .def(name = "Frequency end", info = "")
-   val octave by cv(AppConfig.octave).sync { AppConfig.octave = it }.min(0).max(48)
+   var octave by c(25).between(0, 48)
       .def(name = "Octave (1/n)", info = "")
-   val resolutionHighQuality by cv(AppConfig.resolutionHighQuality).sync { AppConfig.resolutionHighQuality = it }
+   var resolutionHighQuality by c(false)
       .def(name = "Frequency precise resolution", info = "")
 
-   val pixelsPerSecondDecay by cv(AppConfig.pixelsPerSecondDecay).sync { AppConfig.pixelsPerSecondDecay = it }.between(0, 2000)
+   val pixelsPerSecondDecay by cv(250).between(0, 2000)
       .def(name = "Animation decay (pixels/s)", info = "")
-   val accelerationFactor by cv(AppConfig.accelerationFactor).sync { AppConfig.accelerationFactor = it }.between(0, 50)
+   val accelerationFactor by cv(10).between(0, 50)
       .def(name = "Animation decay acceleration (1/n)", info = "")
-   val timeFilterSize by cv(AppConfig.timeFilterSize).sync { AppConfig.timeFilterSize = it }.between(0, 100)
+   val timeFilterSize by cv(2).between(0, 100)
       .def(name = "Animation smoothness", info = "")
 
-   val minBarHeight by cv(AppConfig.minBarHeight).sync { AppConfig.minBarHeight = it }.min(0)
+   val barMinHeight by cv(3.0).min(0.0)
       .def(name = "Bar min height", info = "")
-   val maxBarHeight by cv(AppConfig.maxBarHeight).sync { AppConfig.maxBarHeight = it }.min(0)
+   val barMaxHeight by cv(750.0).min(0.0)
       .def(name = "Bar max height", info = "")
-   val barGap       by cv(AppConfig.barGap).sync { AppConfig.barGap = it }.min(0)
+   val barGap       by cv(8).min(0)
       .def(name = "Bar gap", info = "")
-   val barAlignment by cv(AppConfig.barAlignment).sync { AppConfig.barAlignment = it }
+   val barAlignment by cv(BarPos.CIRCLE_MIDDLE)
       .def(name = "Bar alignment", info = "")
 
-   val spectralColorPosition by cv(AppConfig.spectralColorPosition).sync { AppConfig.spectralColorPosition = it }.between(0, 360)
+   val spectralColorPosition by cv(180).between(0, 360)
       .def(name = "Color spectral position (degrees)", info = "")
-   val spectralColorRange by cv(AppConfig.spectralColorRange).sync { AppConfig.spectralColorRange = it }.between(0, 360)
+   val spectralColorRange by cv(360).between(0, 360)
       .def(name = "Color spectral range (degrees)", info = "")
-   val spectralColorInverted by cv(AppConfig.spectralColorInverted).sync { AppConfig.spectralColorInverted = it }
+   val spectralColorInverted by cv(false)
       .def(name = "Color spectral inverted", info = "")
-   val saturation by cv(AppConfig.saturation).sync { AppConfig.saturation = it }.between(0, 100)
+   val saturation by cv(100).between(0, 100)
       .def(name = "Color saturation (%)", info = "")
-   val brightness by cv(AppConfig.brightness).sync { AppConfig.brightness = it }.between(0, 100)
+   val brightness by cv(100).between(0, 100)
       .def(name = "Color brightness (%)", info = "")
-   val baseColor by cv(AppConfig.baseColor).sync { AppConfig.baseColor = it }
+   val baseColor by cv(Color.color(0.1, 0.1, 0.1)!!).noUi()
       .def(name = "Color Base", info = "")
 
+   val spectralFFTService = FrequencyBarsFFTService(this)
+   val audioEngine = TarsosAudioEngine(this)
+   val spectralView = SpectralView(this, spectralFFTService)
+
    init {
-      val spectralFFTService = FrequencyBarsFFTService()
-      val audioEngine = TarsosAudioEngine()
-      val spectralView = SpectralView(this, spectralFFTService)
 
       root.lay += spectralView.apply {
          heightProperty() syncFrom spektrum.root.heightProperty() on spektrum.onClose
@@ -133,7 +146,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       audioEngine.fttListenerList += spectralFFTService
 
       root.sync1IfInScene {
-         onClose += audioEngine::stop
+         onClose += audioEngine::dispose
          audioEngine.start()
          onClose += spectralView::stop
          spectralView.play()
@@ -145,21 +158,31 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       override val description = "Spektrum"
       override val descriptionLong = "$description. Shows system audio spectrum"
       override val icon = IconMD.POLL
-      override val version = version(1, 0, 0)
+      override val version = version(1, 1, 0)
       override val isSupported = true
       override val year = year(2021)
       override val author = "spit"
       override val contributor = ""
       override val tags = setOf(AUDIO, VISUALISATION)
       override val summaryActions = listOf<Entry>()
+
+      val openLines = mutableMapOf<Mixer, LineUses>()
+
+      override fun dispose() {
+         super.dispose()
+         openLines.values.forEach { it.line.close() }
+      }
    }
 
+   data class LineUses(val line: TargetDataLine, var count: Int)
+
    class SpectralView(val spektrum: Spektrum, val spectralFFTService: FrequencyBarsFFTService): Canvas() {
+      private val settings = spektrum
       private val loop = Loop({ _ -> updateBars(spectralFFTService.frequencyBarList) })
       private val gc = graphicsContext2D!!
 
       init {
-         spektrum.root.heightProperty() attach { AppConfig.maxBarHeight = it.toDouble() }
+         spektrum.root.heightProperty() attach { settings.barMaxHeight.value = it.toDouble() }
       }
 
       fun updateBars(frequencyBarList: List<FrequencyBar>) {
@@ -171,20 +194,20 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
          gc.save()
          frequencyBarList.forEachIndexed { i, bar ->
-            val barH = when (AppConfig.barAlignment) {
-               BarPos.CIRCLE_IN, BarPos.CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> bar.height*min(h, w)/2.0/AppConfig.maxBarHeight
+            val barH = when (settings.barAlignment.value) {
+               BarPos.CIRCLE_IN, BarPos.CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> bar.height*min(h, w)/2.0/settings.barMaxHeight.value
                else -> bar.height
             }
             gc.fill = bar.color
             gc.stroke = bar.color
-            when (AppConfig.barAlignment) {
-               BarPos.CENTER -> gc.fillRect(i*(barW+AppConfig.barGap), (h-barH)/2, barW, barH)
-               BarPos.BOTTOM -> gc.fillRect(i*(barW+AppConfig.barGap), h-barH, barW, barH)
-               BarPos.TOP -> gc.fillRect(i*(barW+AppConfig.barGap), 0.0, barW, barH)
+            when (settings.barAlignment.value) {
+               BarPos.CENTER -> gc.fillRect(i*barW, (h-barH)/2, (barW-settings.barGap.value) max 1.0, barH)
+               BarPos.BOTTOM -> gc.fillRect(i*barW, h-barH, (barW-settings.barGap.value) max 1.0, barH)
+               BarPos.TOP -> gc.fillRect(i*(barW+settings.barGap.value), 0.0, barW, barH)
                BarPos.CIRCLE_IN, BarPos.CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> {
-                  gc.lineWidth = (barW - AppConfig.barGap) max 1.0
-                  val max = min(h, w)/4.0*1.5 + (if (AppConfig.barAlignment==BarPos.CIRCLE_IN) 0.0 else barH/4.0)
-                  val min = min(h, w)/4.0*1.5 - (if (AppConfig.barAlignment==BarPos.CIRCLE_OUT) 0.0 else barH/8.0)
+                  gc.lineWidth = (barW - settings.barGap.value) max 1.0
+                  val max = min(h, w)/4.0*1.5 + (if (settings.barAlignment.value==BarPos.CIRCLE_IN) 0.0 else barH/4.0)
+                  val min = min(h, w)/4.0*1.5 - (if (settings.barAlignment.value==BarPos.CIRCLE_OUT) 0.0 else barH/8.0)
                   val barCos = cos(i*2*PI/barCount)
                   val barSin = sin(i*2*PI/barCount)
                   gc.strokeLine(w/2 + max*barCos, h/2 + max*barSin, w/2 + min*barCos, h/2 + min*barSin)
@@ -202,29 +225,163 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    enum class BarPos {
       BOTTOM, CENTER, TOP, CIRCLE_OUT, CIRCLE_MIDDLE, CIRCLE_IN
    }
+
+   object GlobalColorCalculator {
+      fun getGlobalColor(settings: Spektrum, frequencyBars: List<FrequencyBar>, startHz: Int, endHz: Int, peak: GlobalColorCalculatorPeak): Color {
+         if (frequencyBars.isEmpty())
+            return Color.BLACK
+
+         var sumIntensity = 0.0
+         var maxIntensity = 0.0
+         var sumRed = 0.0
+         var sumGreen = 0.0
+         var sumBlue = 0.0
+         var nrBars = 0
+         for (frequencyBar in frequencyBars) {
+            if (startHz<=frequencyBar.hz
+               && frequencyBar.hz<=endHz) {
+               val barHeight = frequencyBar.height
+               val barIntensity = barHeight/settings.barMaxHeight.value
+               val barColor = frequencyBar.color
+               sumRed += barColor.red*barIntensity
+               sumGreen += barColor.green*barIntensity
+               sumBlue += barColor.blue*barIntensity
+               sumIntensity += barIntensity
+               if (barIntensity>maxIntensity) {
+                  maxIntensity = barIntensity
+               }
+               nrBars++
+            }
+         }
+         val avgRed = sumRed/nrBars
+         val avgGreen = sumGreen/nrBars
+         val avgBlue = sumBlue/nrBars
+         val avgIntensity = sumIntensity/nrBars
+         var intensity = when (peak) {
+            GlobalColorCalculatorPeak.AVG -> avgIntensity
+            GlobalColorCalculatorPeak.MAX -> maxIntensity
+         }
+         intensity *= (settings.brightness.value/100.0)
+         var color = Color.color(avgRed, avgGreen, avgBlue)
+         color = settings.baseColor.value.interpolate(color, maxIntensity)
+         color = Color.hsb(color.hue, color.saturation, intensity)
+         return color
+      }
+
+   }
+   enum class GlobalColorCalculatorPeak { AVG, MAX }
+   class FrequencyBar(var hz: Double, var height: Double, var color: Color)
+
+   /**
+    * This class holds state information regarding to:
+    * - timeFiltering a.k.a smoothness
+    * - previous bar heights that are used in bad decay calculation
+    */
+   class FrequencyBarsFFTService(settings: Spektrum): FFTListener {
+      private val settings = settings
+      private val oldTime = System.currentTimeMillis()
+
+      // the hzBins and the amplitudes come in pairs and access to them needs to be synchronized
+      private val lock = ReentrantLock(true)
+
+      // all of the instances have the same input from the audio dispatcher
+      private var hzBins: DoubleArray? = null
+      private var amplitudes: DoubleArray? = null
+      private val fftTimeFilter = FFTTimeFilter(settings)
+      private val barsHeightCalculator = BarsHeightCalculator(settings)
+
+      override fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?) {
+         try {
+            lock.lock()
+            this.hzBins = hzBins
+            amplitudes = normalizedAmplitudes
+         } finally {
+            lock.unlock()
+         }
+      }
+
+      // return empty array
+      val frequencyBarList: List<FrequencyBar>
+         get() {
+            val returnBinz: DoubleArray?
+            var returnAmplitudes: DoubleArray?
+            try {
+               lock.lock()
+               returnBinz = hzBins
+               returnAmplitudes = amplitudes
+            } finally {
+               lock.unlock()
+            }
+            val frequencyBars: List<FrequencyBar>
+            if (returnAmplitudes!=null) {
+               returnAmplitudes = fftTimeFilter.filter(returnAmplitudes)
+               returnAmplitudes = barsHeightCalculator.processAmplitudes(returnAmplitudes)
+               frequencyBars = createFrequencyBars(returnBinz!!, returnAmplitudes!!)
+            } else {
+               // return empty array
+               frequencyBars = ArrayList()
+            }
+            return frequencyBars
+         }
+
+      fun createFrequencyBars(binsHz: DoubleArray, amplitudes: DoubleArray): List<FrequencyBar> {
+
+         fun setColor(frequencyBars: List<FrequencyBar>, pos: Double, saturation: Double, brightness: Double, i: Int) {
+            val color = Color.hsb(pos, saturation, brightness)
+            // interpolate opacity based on intensity
+            // color = settings.baseColor.value.interpolate(color, frequencyBars[i].height / settings.barMaxHeight.value);
+            frequencyBars[i].color = color
+         }
+
+         val frequencyBars = ArrayList<FrequencyBar>(binsHz.size)
+         for (i in binsHz.indices) {
+            frequencyBars.add(FrequencyBar(binsHz[i], amplitudes[i], Color.BLACK))
+         }
+         var pos = settings.spectralColorPosition.value.toDouble()
+         val range = settings.spectralColorRange.value.toDouble()
+         val saturation = settings.saturation.value/100.0
+         val brightness = settings.brightness.value/100.0
+         val inverted = settings.spectralColorInverted.value
+         if (!inverted) {
+            for (i in binsHz.indices) {
+               setColor(frequencyBars, pos, saturation, brightness, i)
+               pos += range/binsHz.size
+            }
+         } else {
+            for (i in binsHz.indices.reversed()) {
+               setColor(frequencyBars, pos, saturation, brightness, i)
+               pos += range/binsHz.size
+            }
+         }
+         return frequencyBars
+      }
+   }
 }
 
-class TarsosAudioEngine {
+class TarsosAudioEngine(settings: Spektrum) {
+   private val settings = settings
    private var dispatcher: AudioDispatcher? = null
    private var audioThread: Thread? = null
+   private var mixerRef: Mixer? = null
    val fttListenerList = LinkedList<FFTListener>()
 
    fun start() {
       runTry {
-         val mixer = mixer
-         val audioFormat = AudioFormat(AppConfig.sampleRate.toFloat(), AppConfig.sampleSizeInBits, AppConfig.channels, AppConfig.signed, AppConfig.bigEndian)
-         val line = getLine(mixer, audioFormat, AppConfig.bufferSize)
-         val stream = AudioInputStream(line)
-         val audioStream = JVMAudioInputStream(stream)
-         dispatcher = AudioDispatcher(audioStream, AppConfig.bufferSize, AppConfig.bufferOverlap).apply {
-            addAudioProcessor(AudioEngineRestartProcessor(this@TarsosAudioEngine))
-            addAudioProcessor(FFTAudioProcessor(audioFormat, fttListenerList))
+         obtainMixer().ifNotNull { mixer ->
+            mixerRef = mixer
+            val audioFormat = AudioFormat(settings.sampleRate.value.toFloat(), settings.sampleSizeInBits.value, settings.audioFormatChannels, settings.audioFormatSigned, settings.audioFormatBigEndian)
+            val line = obtainLine(mixer, audioFormat, settings.bufferSize.value)
+            val stream = AudioInputStream(line)
+            val audioStream = JVMAudioInputStream(stream)
+            dispatcher = AudioDispatcher(audioStream, settings.bufferSize.value, settings.bufferOverlap.value).apply {
+               addAudioProcessor(FFTAudioProcessor(audioFormat, fttListenerList, settings))
+            }
+            audioThread = Thread(dispatcher, "Spektrum widget audio-fft").apply {
+               isDaemon = true
+               start()
+            }
          }
-         audioThread = Thread(dispatcher, "Audio dispatching").apply {
-            isDaemon = true
-            start()
-         }
-      }
+      }.ifError { it.printStackTrace() }
    }
 
    fun stop() {
@@ -233,6 +390,18 @@ class TarsosAudioEngine {
          audioThread?.join((1*1000).toLong()) // wait for audio dispatcher to finish // TODO: remove?
       } catch (e: InterruptedException) {
       }
+
+      mixerRef.ifNotNull {
+         val lineUses = Spektrum.openLines[it]
+         if (lineUses!=null) {
+            lineUses.count--
+            if (lineUses.count == 0) {
+               Spektrum.openLines -= it
+               lineUses.line.stop()
+               lineUses.line.close()
+            }
+         }
+      }
    }
 
    fun restart() {
@@ -240,22 +409,37 @@ class TarsosAudioEngine {
       start()
    }
 
-   private val mixer: Mixer
-      get() = AudioSystem.getMixerInfo().find { AppConfig.inputDevice in it.name }
-         ?.net { info: Mixer.Info? -> AudioSystem.getMixer(info) }!!
+   @ThreadSafe
+   fun restartOnNewThread() {
+      val thread = Thread { restart() }
+      thread.isDaemon = true
+      thread.start()
+   }
 
-   private fun getLine(mixer: Mixer, audioFormat: AudioFormat, lineBuffer: Int): TargetDataLine {
-      val lineInfo = mixer.targetLineInfo.firstOrNull()
-      val line = mixer.getLine(lineInfo) as TargetDataLine
-      line.open(audioFormat, lineBuffer)
-      line.start()
-      return line
+   fun dispose() {
+      stop()
+   }
+
+   private fun obtainMixer(): Mixer? = AudioSystem.getMixerInfo().find { settings.inputDevice.value in it.name }?.net { AudioSystem.getMixer(it) }
+
+   private fun obtainLine(mixer: Mixer, audioFormat: AudioFormat, lineBuffer: Int): TargetDataLine {
+      val lineUses = Spektrum.openLines[mixer]
+      return if (lineUses==null) {
+         val lineInfo = mixer.targetLineInfo.firstOrNull()
+         val line = mixer.getLine(lineInfo) as TargetDataLine
+         line.open(audioFormat, lineBuffer)
+         line.start()
+         Spektrum.openLines[mixer] = Spektrum.LineUses(line, 1)
+         line
+      } else {
+         lineUses.count++
+         lineUses.line
+      }
    }
 }
 
 object OctaveGenerator {
-
-   private val cache: MutableMap<OctaveSettings, List<Double>> = HashMap()
+   private val cache = HashMap<OctaveSettings, List<Double>>()
 
    fun getOctaveFrequencies(centerFrequency_: Double, band: Double, lowerLimit_: Double, upperLimit_: Double): List<Double> {
       // set limits
@@ -325,149 +509,19 @@ object OctaveGenerator {
    }
 }
 
-class GlobalColorCalculator {
-   fun getGlobalColor(frequencyBars: List<FrequencyBar>, startHz: Int, endHz: Int, peak: Peak): Color {
-      if (frequencyBars.isEmpty())
-         return Color.BLACK
-
-      var sumIntensity = 0.0
-      var maxIntensity = 0.0
-      var sumRed = 0.0
-      var sumGreen = 0.0
-      var sumBlue = 0.0
-      var nrBars = 0
-      for (frequencyBar in frequencyBars) {
-         if (startHz<=frequencyBar.hz
-            && frequencyBar.hz<=endHz) {
-            val barHeight = frequencyBar.height
-            val barIntensity = barHeight/AppConfig.maxBarHeight
-            val barColor = frequencyBar.color
-            sumRed += barColor.red*barIntensity
-            sumGreen += barColor.green*barIntensity
-            sumBlue += barColor.blue*barIntensity
-            sumIntensity += barIntensity
-            if (barIntensity>maxIntensity) {
-               maxIntensity = barIntensity
-            }
-            nrBars++
-         }
-      }
-      val avgRed = sumRed/nrBars
-      val avgGreen = sumGreen/nrBars
-      val avgBlue = sumBlue/nrBars
-      val avgIntensity = sumIntensity/nrBars
-      var intensity = when (peak) {
-         Peak.AVG -> avgIntensity
-         Peak.MAX -> maxIntensity
-      }
-      intensity *= (AppConfig.brightness/100.0)
-      val baseColor = AppConfig.baseColor
-      var color = Color.color(avgRed, avgGreen, avgBlue)
-      color = baseColor.interpolate(color, maxIntensity)
-      color = Color.hsb(color.hue, color.saturation, intensity)
-      return color
-   }
-
-   enum class Peak { AVG, MAX }
-}
-
-class FrequencyBar(var hz: Double, var height: Double, var color: Color)
-
-/**
- * This class holds state information regarding to:
- * - timeFiltering a.k.a smoothness
- * - previous bar heights that are used in bad decay calculation
- */
-class FrequencyBarsFFTService: FFTListener {
-   private val oldTime = System.currentTimeMillis()
-
-   // the hzBins and the amplitudes come in pairs and access to them needs to be synchronized
-   private val lock = ReentrantLock(true)
-
-   // all of the instances have the same input from the audio dispatcher
-   private var hzBins: DoubleArray? = null
-   private var amplitudes: DoubleArray? = null
-   private val fftTimeFilter = FFTTimeFilter()
-   private val barsHeightCalculator = BarsHeightCalculator()
-
-   override fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?) {
-      try {
-         lock.lock()
-         this.hzBins = hzBins
-         amplitudes = normalizedAmplitudes
-      } finally {
-         lock.unlock()
-      }
-   }
-
-   // return empty array
-   val frequencyBarList: List<FrequencyBar>
-      get() {
-         val returnBinz: DoubleArray?
-         var returnAmplitudes: DoubleArray?
-         try {
-            lock.lock()
-            returnBinz = hzBins
-            returnAmplitudes = amplitudes
-         } finally {
-            lock.unlock()
-         }
-         val frequencyBars: List<FrequencyBar>
-         if (returnAmplitudes!=null) {
-            returnAmplitudes = fftTimeFilter.filter(returnAmplitudes)
-            returnAmplitudes = barsHeightCalculator.processAmplitudes(returnAmplitudes)
-            frequencyBars = FrequencyBarsCreator.createFrequencyBars(returnBinz!!, returnAmplitudes!!)
-         } else {
-            // return empty array
-            frequencyBars = ArrayList()
-         }
-         return frequencyBars
-      }
-}
-
 interface FFTListener {
    fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?)
 }
 
-object FrequencyBarsCreator {
-   fun createFrequencyBars(binsHz: DoubleArray, amplitudes: DoubleArray): List<FrequencyBar> {
-      val frequencyBars: MutableList<FrequencyBar> = java.util.ArrayList<FrequencyBar>(binsHz.size)
-      for (i in binsHz.indices) {
-         frequencyBars.add(FrequencyBar(binsHz[i], amplitudes[i], Color.BLACK))
-      }
-      var pos = AppConfig.spectralColorPosition.toDouble()
-      val range = AppConfig.spectralColorRange.toDouble()
-      val saturation = AppConfig.saturation/100.0
-      val brightness = AppConfig.brightness/100.0
-      val inverted = AppConfig.spectralColorInverted
-      if (!inverted) {
-         for (i in binsHz.indices) {
-            setColor(frequencyBars, pos, saturation, brightness, i)
-            pos += range/binsHz.size
-         }
-      } else {
-         for (i in binsHz.indices.reversed()) {
-            setColor(frequencyBars, pos, saturation, brightness, i)
-            pos += range/binsHz.size
-         }
-      }
-      return frequencyBars
-   }
-
-   private fun setColor(frequencyBars: List<FrequencyBar>, pos: Double, saturation: Double, brightness: Double, i: Int) {
-      val color = Color.hsb(pos, saturation, brightness)
-      // interpolate opacity based on intensity
-      // color = SpectralColorConfig.baseColor.interpolate(color, frequencyBars.get(i).getHeight() / AppConfig.maxBarHeight);
-      frequencyBars[i].color = color
-   }
-}
-
-class FFTAudioProcessor(private val audioFormat: AudioFormat, private val listenerList: List<FFTListener>): AudioProcessor {
+class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener>, settings: Spektrum): AudioProcessor {
+   private val audioFormat = audioFormat
+   private val listenerList = listenerList
+   private val settings = settings
    private val interpolator: UnivariateInterpolator = SplineInterpolator()
    private val windowFunction: WindowFunction = HannWindow()
    private val windowCorrectionFactor = 2.00
    override fun process(audioEvent: AudioEvent): Boolean {
-      val interpolation = AppConfig.zeroPadding
+      val interpolation = settings.zeroPadding.value
       val audioFloatBuffer = audioEvent.floatBuffer
 
       // the buffer must be copied into another array for processing otherwise strange behaviour
@@ -483,19 +537,20 @@ class FFTAudioProcessor(private val audioFormat: AudioFormat, private val listen
       val doublesAmplitudes = IntStream.range(0, amplitudes.size).mapToDouble { value: Int -> amplitudes[value].toDouble() }.toArray()
       val frequencyBins: DoubleArray
       val frequencyAmplitudes: DoubleArray
-      if (AppConfig.octave>0) {
-         val octaveFrequencies = OctaveGenerator.getOctaveFrequencies(AppConfig.frequencyCenter.toDouble(), AppConfig.octave.toDouble(), AppConfig.frequencyStart.toDouble(), AppConfig.frequencyEnd.toDouble())
+
+      if (settings.octave>0) {
+         val octaveFrequencies = OctaveGenerator.getOctaveFrequencies(settings.frequencyCenter.toDouble(), settings.octave.toDouble(), settings.frequencyStart.toDouble(), settings.frequencyEnd.toDouble())
          frequencyBins = DoubleArray(octaveFrequencies.size)
          frequencyAmplitudes = DoubleArray(octaveFrequencies.size)
 
          // calculate the frequency step
          // lowLimit/highLimit this is the resolution for interpolating and summing bins
-         val lowLimit = OctaveGenerator.getLowLimit(octaveFrequencies[0], AppConfig.octave.toDouble())
-         var step = 2.0.pow(1.0/AppConfig.octave)
+         val lowLimit = OctaveGenerator.getLowLimit(octaveFrequencies[0], settings.octave.toDouble())
+         var step = 2.0.pow(1.0/settings.octave)
 
          // improve resolution at the cost of performance
-         if (AppConfig.resolutionHighQuality)
-            step /= (AppConfig.octave/2.0)
+         if (settings.resolutionHighQuality)
+            step /= (settings.octave/2.0)
 
          // k is the frequency index
          var k = lowLimit
@@ -507,7 +562,7 @@ class FFTAudioProcessor(private val audioFormat: AudioFormat, private val listen
          val interpolateFunction = interpolator.interpolate(bins, doublesAmplitudes)
          for (i in octaveFrequencies.indices) {
             frequencyBins[m] = octaveFrequencies[i]
-            val highLimit = OctaveGenerator.getHighLimit(octaveFrequencies[i], AppConfig.octave.toDouble())
+            val highLimit = OctaveGenerator.getHighLimit(octaveFrequencies[i], settings.octave.toDouble())
 
             // group bins together
             while (k<highLimit) {
@@ -518,25 +573,25 @@ class FFTAudioProcessor(private val audioFormat: AudioFormat, private val listen
                k += step
 
                // reached upper limit
-               if (k>AppConfig.frequencyEnd || k>bins[bins.size - 1]) {
+               if (k>settings.frequencyEnd || k>bins[bins.size - 1]) {
                   break
                }
             }
             frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m]) // square root the energy
-            if (AppConfig.maxLevel=="RMS") {
+            if (settings.maxLevel.value=="RMS") {
                frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m].pow(2.0)/2) // calculate the RMS of the amplitude
             }
             frequencyAmplitudes[m] = 20*log10(frequencyAmplitudes[m]) // convert to logarithmic scale
-            frequencyAmplitudes[m] += AmplitudeWeightCalculator.getDbWeight(frequencyBins[m], AppConfig.weight) // use weight to adjust the spectrum
+            frequencyAmplitudes[m] += settings.weight.calculateAmplitudeWight(frequencyBins[m]) // use weight to adjust the spectrum
             m++
          }
       } else {
          var n = 0
          for (i in bins.indices) {
             val frequency = fft.binToHz(i, audioFormat.sampleRate)
-            if (AppConfig.frequencyStart<=frequency && frequency<=AppConfig.frequencyEnd) {
+            if (settings.frequencyStart<=frequency && frequency<=settings.frequencyEnd) {
                n++
-            } else if (frequency>AppConfig.frequencyEnd) {
+            } else if (frequency>settings.frequencyEnd) {
                break
             }
          }
@@ -545,16 +600,16 @@ class FFTAudioProcessor(private val audioFormat: AudioFormat, private val listen
          var m = 0
          for (i in bins.indices) {
             val frequency = fft.binToHz(i, audioFormat.sampleRate)
-            if (AppConfig.frequencyStart<=frequency && frequency<=AppConfig.frequencyEnd) {
+            if (settings.frequencyStart<=frequency && frequency<=settings.frequencyEnd) {
                frequencyBins[m] = frequency
                frequencyAmplitudes[m] = doublesAmplitudes[i]
                frequencyAmplitudes[m] = frequencyAmplitudes[m]/doublesAmplitudes.size // normalize (n/2)
                frequencyAmplitudes[m] = frequencyAmplitudes[m]*windowCorrectionFactor // apply window correction
-               if (AppConfig.maxLevel=="RMS") {
+               if (settings.maxLevel.value=="RMS") {
                   frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m].pow(2.0)/2) // calculate the RMS of the amplitude
                }
                frequencyAmplitudes[m] = 20*log10(frequencyAmplitudes[m]) // convert to logarithmic scale
-               frequencyAmplitudes[m] += AmplitudeWeightCalculator.getDbWeight(frequencyBins[m], AppConfig.weight) // use weight to adjust the spectrum
+               frequencyAmplitudes[m] += settings.weight.calculateAmplitudeWight(frequencyBins[m]) // use weight to adjust the spectrum
                m++
             }
          }
@@ -566,11 +621,12 @@ class FFTAudioProcessor(private val audioFormat: AudioFormat, private val listen
    override fun processingFinished() {}
 }
 
-class FFTTimeFilter {
+class FFTTimeFilter(settings: Spektrum) {
+   private val settings = settings
    private val historyAmps: Queue<DoubleArray?> = LinkedList()
 
    fun filter(amps: DoubleArray): DoubleArray {
-      val timeFilterSize = AppConfig.timeFilterSize
+      val timeFilterSize = settings.timeFilterSize.value
       if (timeFilterSize<2) {
          return amps
       }
@@ -598,10 +654,12 @@ class FFTTimeFilter {
    }
 }
 
-class BarsHeightCalculator {
+class BarsHeightCalculator(settings: Spektrum) {
+   private val settings = settings
    private var oldTime = System.nanoTime()
    private var oldAmplitudes: DoubleArray? = null
    private lateinit var oldDecayFactor: DoubleArray
+
    fun processAmplitudes(newAmplitudes: DoubleArray): DoubleArray? {
       // init on first run or if number of newAmplitudes has changed
       if (oldAmplitudes==null || oldAmplitudes!!.size!=newAmplitudes.size) {
@@ -609,7 +667,7 @@ class BarsHeightCalculator {
          oldDecayFactor = DoubleArray(newAmplitudes.size)
          return convertDbToPixels(newAmplitudes)
       }
-      val pixelsPerSecondDecay = AppConfig.pixelsPerSecondDecay
+      val pixelsPerSecondDecay = settings.pixelsPerSecondDecay.value
       val secondsPassed = secondsPassed
       val pixelAmplitudes = convertDbToPixels(newAmplitudes)
       oldAmplitudes = decayPixelsAmplitudes(oldAmplitudes!!, pixelAmplitudes, pixelsPerSecondDecay.toDouble(), secondsPassed)
@@ -617,10 +675,10 @@ class BarsHeightCalculator {
    }
 
    private fun convertDbToPixels(dbAmplitude: DoubleArray): DoubleArray {
-      val signalThreshold = AppConfig.signalThreshold
-      val maxBarHeight = AppConfig.maxBarHeight
-      val signalAmplification = AppConfig.signalAmplification
-      val minBarHeight = AppConfig.minBarHeight
+      val signalThreshold = settings.signalThreshold.value
+      val maxBarHeight = settings.barMaxHeight.value
+      val signalAmplification = settings.signalAmplification.value
+      val minBarHeight = settings.barMinHeight.value
       val pixelsAmplitude = DoubleArray(dbAmplitude.size)
       for (i in pixelsAmplitude.indices) {
          val maxHeight = abs(signalThreshold).toDouble()
@@ -636,7 +694,7 @@ class BarsHeightCalculator {
             newHeight = maxBarHeight
          } else if (newHeight<minBarHeight) {
             // below floor
-            newHeight = minBarHeight.toDouble()
+            newHeight = minBarHeight
          }
          pixelsAmplitude[i] = newHeight
       }
@@ -654,8 +712,8 @@ class BarsHeightCalculator {
          } else {
             //                double dbPerSecondDecay = (pixelsPerSecond + (0.01 * Math.pow(1.15, i) - 0.01)) * secondsPassed; // experiment with logarithmic function
             var dbPerSecondDecay = pixelsPerSecond*secondsPassed
-            if (AppConfig.accelerationFactor>0 && oldDecayFactor[i]<1) {
-               val accelerationStep = 1.0/AppConfig.accelerationFactor
+            if (settings.accelerationFactor.value>0 && oldDecayFactor[i]<1) {
+               val accelerationStep = 1.0/settings.accelerationFactor.value
                oldDecayFactor[i] = oldDecayFactor[i] + accelerationStep
                dbPerSecondDecay *= oldDecayFactor[i]
             }
@@ -681,129 +739,29 @@ class BarsHeightCalculator {
       }
 }
 
-object AppConfig {
-   // audio format
-   var inputDevice: String = "Primary Sound Capture"
-   var sampleRate: Int = 48000
-   var sampleSizeInBits: Int = 16
-   var channels: Int = 1
-   var signed: Boolean = true
-   var bigEndian: Boolean = false
-   // audio buffer settings
-   var bufferSize: Int = 6000
-   var bufferOverlap: Int = 4976
-   // audio processinng
-   var frequencyStart: Int = 35
-   var frequencyCenter: Int = 1000
-   var frequencyEnd: Int = 17000
-   var octave: Int = 25
-   var resolutionHighQuality: Boolean = false
-   // audio level
-   var maxLevel: String = "RMS"
-   var weight: WeightWindow = dBZ
-   // color
-   var spectralColorPosition: Int = 180
-   var spectralColorRange: Int = 360
-   var saturation: Int = 100
-   var brightness: Int = 100
-   var spectralColorInverted: Boolean = false
-   var baseColor = Color.color(0.1, 0.1, 0.1)!!
-   // bars
-   var minBarHeight: Int = 3
-   var maxBarHeight: Double = 750.0
-   var barGap: Int = 8
-   var barAlignment: BarPos = BarPos.CIRCLE_MIDDLE
-   // bars animation
-   var pixelsPerSecondDecay: Int = 250
-   var accelerationFactor: Int = 10
-   // audio signal processing
-   var signalAmplification: Int = 138
-   var signalThreshold: Int = -42
-   // fft
-   var timeFilterSize: Int = 2
-   var interpolationResolution: Double = 6.0
-   var zeroPadding: Int = 0
-}
-
-object AmplitudeWeightCalculator {
-   fun getDbWeight(frequency: Double, weight: WeightWindow?): Double = when (weight) {
-      WeightWindow.dBA -> getDbA(frequency)
-      WeightWindow.dBB -> getDbB(frequency)
-      WeightWindow.dBC -> getDbC(frequency)
-      else -> 0.0 // dbz, no weight
-   }
-
-   fun getDbA(frequency: Double): Double {
-      val raf = (12194.0.pow(2.0)*frequency.pow(4.0)
-         /((frequency.pow(2.0) + 20.6.pow(2.0))
-         *sqrt((frequency.pow(2.0) + 107.7.pow(2.0))*(frequency.pow(2.0) + 737.9.pow(2.0)))
-         *(frequency.pow(2.0) + 12194.0.pow(2.0))))
-      return 20*log10(raf) + 2.00
-   }
-
-   fun getDbB(frequency: Double): Double {
-      val rbf = (12194.0.pow(2.0)*frequency.pow(3.0)
-         /((frequency.pow(2.0) + 20.6.pow(2.0))
-         *sqrt(frequency.pow(2.0) + 158.5.pow(2.0))
-         *(frequency.pow(2.0) + 12194.0.pow(2.0))))
-      return 20*log10(rbf) + 0.17
-   }
-
-   fun getDbC(frequency: Double): Double {
-      val rcf = (12194.0.pow(2.0)*frequency.pow(2.0)
-         /((frequency.pow(2.0) + 20.6.pow(2.0))
-         *(frequency.pow(2.0) + 12194.0.pow(2.0))))
-      return 20*log10(rcf) + 0.06
-   }
-
-   @Suppress("EnumEntryName")
-   enum class WeightWindow(val window: String) {
-      dBA("dBA"),
-      dBB("dBB"),
-      dBC("dBC"),
-      dBZ("dBZ"),
-   }
-}
-
-class AudioEngineRestartProcessor(audioEngine: TarsosAudioEngine): AudioProcessor {
-   private var inputDevice: String = AppConfig.inputDevice
-   private var sampleRate: Int = AppConfig.sampleRate
-   private var bufferSize: Int = AppConfig.bufferSize
-   private var bufferOverlap: Int = AppConfig.bufferOverlap
-   private val audioEngine: TarsosAudioEngine = audioEngine
-
-   override fun process(audioEvent: AudioEvent?): Boolean {
-      if (isChangeDetected) {
-         // use another thread to restart the audio engine
-         val thread = Thread { audioEngine.restart() }
-         thread.isDaemon = true
-         thread.start()
-      }
-      return true
-   }
-
-   override fun processingFinished() {}
-
-   private val isChangeDetected: Boolean
-      get() {
-         var isChanged = false
-         if (inputDevice!=AppConfig.inputDevice) {
-            inputDevice = AppConfig.inputDevice
-            isChanged = true
-         }
-         if (sampleRate!=AppConfig.sampleRate) {
-            sampleRate = AppConfig.sampleRate
-            isChanged = true
-         }
-         if (bufferSize!=AppConfig.bufferSize) {
-            bufferSize = AppConfig.bufferSize
-            isChanged = true
-         }
-         if (bufferOverlap!=AppConfig.bufferOverlap) {
-            bufferOverlap = AppConfig.bufferOverlap
-            isChanged = true
-         }
-         return isChanged
-      }
-
+@Suppress("EnumEntryName")
+enum class WeightWindow(val calculateAmplitudeWight: (Double) -> Double) {
+   dBA({ f ->
+      val raf = (12194.0.pow(2.0)*f.pow(4.0)
+         /((f.pow(2.0) + 20.6.pow(2.0))
+         *sqrt((f.pow(2.0) + 107.7.pow(2.0))*(f.pow(2.0) + 737.9.pow(2.0)))
+         *(f.pow(2.0) + 12194.0.pow(2.0))))
+      20*log10(raf) + 2.00
+   }),
+   dBB({ f ->
+      val rbf = (12194.0.pow(2.0)*f.pow(3.0)
+         /((f.pow(2.0) + 20.6.pow(2.0))
+         *sqrt(f.pow(2.0) + 158.5.pow(2.0))
+         *(f.pow(2.0) + 12194.0.pow(2.0))))
+      20*log10(rbf) + 0.17
+   }),
+   dBC({ f ->
+      val rcf = (12194.0.pow(2.0)*f.pow(2.0)
+         /((f.pow(2.0) + 20.6.pow(2.0))
+         *(f.pow(2.0) + 12194.0.pow(2.0))))
+      20*log10(rcf) + 0.06
+   }),
+   dBZ({
+      0.0
+   })
 }

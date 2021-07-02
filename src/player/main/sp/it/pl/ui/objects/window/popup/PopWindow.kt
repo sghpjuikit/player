@@ -325,8 +325,7 @@ open class PopWindow {
                owner.asIs<Stage>().show()
                show()
                sizeToScene()
-               owner.asIs<Stage>().requestFocus()
-               requestFocus()
+               focus()
                xy = shower(stage)
                onContentShown()
 
@@ -343,6 +342,7 @@ open class PopWindow {
                if (animated.value) fadeIn()
                show(windowOwner ?: UNFOCUSED_OWNER)
                sizeToScene()
+               focus()
                xy = shower(this)
                onContentShown()
             }
@@ -357,6 +357,12 @@ open class PopWindow {
             it.consume()
          }
       } on tillHidden
+   }
+
+   /** Focuses this popup if it supports focus. */
+   fun focus() {
+      window?.asIf<Stage>()?.owner?.requestFocus()
+      window?.requestFocus()
    }
 
    /** Hides this popup. If is [animated], the hiding animation is started, otherwise happens immediately. */

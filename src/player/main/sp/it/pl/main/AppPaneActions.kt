@@ -22,12 +22,7 @@ import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.widget.ComponentLoader
-import sp.it.pl.layout.widget.ComponentLoaderProcess
-import sp.it.pl.layout.widget.ComponentLoaderProcess.NORMAL
-import sp.it.pl.layout.widget.ComponentLoaderStrategy
-import sp.it.pl.layout.widget.ComponentLoaderStrategy.DOCK
 import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -37,13 +32,14 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.orNone
-import sp.it.pl.layout.widget.openIn
 import sp.it.pl.layout.widget.openInConfigured
 import sp.it.pl.main.Widgets.ICON_BROWSER
 import sp.it.pl.main.Widgets.INSPECTOR
 import sp.it.pl.main.Widgets.SONG_TAGGER
 import sp.it.pl.main.Widgets.TESTER
 import sp.it.pl.plugin.impl.WallpaperChanger
+import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.objects.window.stage.clone
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
@@ -410,6 +406,14 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                }
             }
          }
+      )
+   )
+   ap.register<Window>(
+      FastAction(
+         "Clone",
+         "Shows new window with the same content and state as this one.",
+         IconFA.CLONE,
+         { it.clone() }
       )
    )
    ap.register<MultipleFiles>(

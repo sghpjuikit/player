@@ -41,6 +41,7 @@ import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
 import javafx.scene.robot.Robot
 import javafx.stage.Stage
+import javafx.stage.WindowEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -53,6 +54,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import sp.it.pl.layout.widget.WidgetIoManager
 import sp.it.pl.layout.widget.initialTemplateFactory
 import sp.it.pl.layout.widget.widgetFocused
 import sp.it.pl.main.APP
@@ -86,6 +88,7 @@ import sp.it.util.math.P
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.reactive.syncNonNullWhile
@@ -203,6 +206,14 @@ fun Stage.resizeTypeForCoordinates(at: P): Resize {
    }
    val resizes = listOf(NW, W, SW, N, ALL, S, NE, E, SE)
    return areas.find { at.toPoint2D() in it }?.let { resizes[areas.indexOf(it)] } ?: NONE
+}
+
+fun Window.clone() {
+   val w = toDb().copy(main = false).toDomain()
+   w.s.onEventDown1(WindowEvent.WINDOW_SHOWING) { w.update() }
+   w.show()
+   w.setXYToCenter()
+   WidgetIoManager.requestWidgetIOUpdate()
 }
 
 /**

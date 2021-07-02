@@ -8,7 +8,7 @@ import sp.it.pl.layout.RootContainerDb
 import sp.it.pl.main.APP
 import sp.it.util.functional.net
 
-class WindowDb(
+data class WindowDb(
    val x: Double = 0.0,
    val y: Double = 0.0,
    val w: Double = 400.0,
@@ -66,6 +66,8 @@ class WindowDb(
       )
    }
 }
+
+fun Window.toDb() = WindowDb(this)
 
 fun Window.recreateWith(stageStyle: StageStyle, isTaskbarVisible: Boolean, onBottom: Boolean) = net { ow ->
    APP.windowManager.create(if (!isTaskbarVisible) APP.windowManager.createStageOwner() else null, stageStyle, ow.isMain.value).also { nw ->

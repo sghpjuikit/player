@@ -33,6 +33,7 @@ import java.awt.TrayIcon
 import java.awt.event.MouseAdapter
 import java.io.File
 import java.io.IOException
+import sp.it.pl.ui.objects.window.stage.clone
 import sp.it.pl.ui.objects.window.stage.openWindowSettings
 import sp.it.util.collections.materialize
 import sp.it.util.ui.dsl
@@ -69,6 +70,7 @@ class Tray: PluginBase() {
                APP.windowManager.windows.materialize().asSequence().forEach { w ->
                   menu("${w.stage.title} (${w.width} x ${w.height})") {
                      item("Settings") { openWindowSettings(w, null) }
+                     item("Clone") { w.clone() }
                   }
                }
             }

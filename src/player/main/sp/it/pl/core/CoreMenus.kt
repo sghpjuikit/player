@@ -42,6 +42,9 @@ import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toMetadata
 import sp.it.pl.main.writeImage
 import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.objects.window.stage.asAppWindow
+import sp.it.pl.ui.objects.window.stage.clone
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.access.vn
 import sp.it.util.async.runIO
@@ -197,7 +200,11 @@ object CoreMenus: Core {
                }
             }
          }
+         add<Window> {
+            item("Clone") { it.clone() }
+         }
          add<WindowFX> {
+            value.asAppWindow().ifNotNull { w -> item("Clone") { w.clone() } }
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w ->
                   runIO { value.toConfigurableFx() } ui { w.configure(it) }
@@ -205,7 +212,7 @@ object CoreMenus: Core {
             }
          }
          add<Component> {
-            item("Clone") {it.openInConfigured() }
+            item("Clone") { it.openInConfigured() }
          }
          add<Configurable<*>> {
             menu("Inspect properties in") {

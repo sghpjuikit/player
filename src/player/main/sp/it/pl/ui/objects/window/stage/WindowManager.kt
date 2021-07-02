@@ -269,7 +269,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       logger.debug { "Creating default window" }
 
       return create(canBeMain).apply {
-         setXYScreenCenter()
+         setXYSizeInitial()
          initLayout()
          update()
 

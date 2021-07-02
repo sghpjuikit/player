@@ -28,9 +28,13 @@ import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
+import sp.it.pl.layout.widget.ComponentLoaderProcess
+import sp.it.pl.layout.widget.ComponentLoaderProcess.NORMAL
 import sp.it.pl.layout.widget.ComponentLoaderStrategy
+import sp.it.pl.layout.widget.ComponentLoaderStrategy.DOCK
 import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.WidgetManager
+import sp.it.pl.layout.widget.loadIn
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppSearch.Source
@@ -54,8 +58,6 @@ import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
-import sp.it.util.async.FX
-import sp.it.util.async.launch
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
 import sp.it.util.conf.GlobalConfigDelegator
@@ -492,11 +494,11 @@ class App: Application(), GlobalConfigDelegator {
          val id = if (c is WidgetFactory<*>) c.id else c.name
          val strategyCB = SpitComboBox<ComponentLoaderStrategy>({ it.toUi() }).apply {
             items setTo ComponentLoaderStrategy.values()
-            value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: ComponentLoaderStrategy.DOCK
+            value = widgetManager.widgets.componentLastOpenStrategiesMap[id] ?: DOCK
          }
-         val processCB = SpitComboBox<String>({ it.toUi() }).apply {
-            items setTo listOf("Normal", "New process")
-            value = "Normal"
+         val processCB = SpitComboBox<ComponentLoaderProcess>({ it.toUi() }).apply {
+            items setTo ComponentLoaderProcess.values()
+            value = NORMAL
          }
          Entry.of(
             name = "Open widget ${c.name}",
@@ -504,18 +506,7 @@ class App: Application(), GlobalConfigDelegator {
             infoΛ = { "Open widget ${c.name}" },
             graphics = hBox { lay += strategyCB; lay += processCB }
          ) {
-            if (processCB.value == "Normal") {
-               FX.launch {
-                  strategyCB.value.loader(c.create())
-                  widgetManager.widgets.componentLastOpenStrategiesMap(id, strategyCB.value)
-               }
-            } else {
-               val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
-               f.runAsAppProgram(
-                  "Launching component ${c.name} in new process",
-                  "--singleton=false", "--stateless=true", "open-component", c.name
-               )
-            }
+            c.loadIn(strategyCB.value, processCB.value)
          }
       }
       sources += Source("Components - recompile") {

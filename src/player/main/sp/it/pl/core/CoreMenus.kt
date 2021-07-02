@@ -10,6 +10,7 @@ import javafx.scene.input.KeyCode.SHORTCUT
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
+import sp.it.pl.layout.Component
 import sp.it.pl.layout.widget.WidgetSource
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
@@ -25,6 +26,7 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.feature.SongWriter
+import sp.it.pl.layout.widget.openInConfigured
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog
@@ -201,6 +203,9 @@ object CoreMenus: Core {
                   runIO { value.toConfigurableFx() } ui { w.configure(it) }
                }
             }
+         }
+         add<Component> {
+            item("Clone") {it.openInConfigured() }
          }
          add<Configurable<*>> {
             menu("Inspect properties in") {

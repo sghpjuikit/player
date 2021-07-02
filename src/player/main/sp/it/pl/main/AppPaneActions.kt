@@ -22,7 +22,12 @@ import sp.it.pl.layout.exportFxwl
 import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.widget.ComponentLoader
+import sp.it.pl.layout.widget.ComponentLoaderProcess
+import sp.it.pl.layout.widget.ComponentLoaderProcess.NORMAL
+import sp.it.pl.layout.widget.ComponentLoaderStrategy
+import sp.it.pl.layout.widget.ComponentLoaderStrategy.DOCK
 import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.widget.WidgetFactory
 import sp.it.pl.layout.widget.WidgetUse.ANY
 import sp.it.pl.layout.widget.WidgetUse.NEW
 import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
@@ -32,6 +37,8 @@ import sp.it.pl.layout.widget.feature.Opener
 import sp.it.pl.layout.widget.feature.PlaylistFeature
 import sp.it.pl.layout.widget.feature.SongReader
 import sp.it.pl.layout.widget.orNone
+import sp.it.pl.layout.widget.openIn
+import sp.it.pl.layout.widget.openInConfigured
 import sp.it.pl.main.Widgets.ICON_BROWSER
 import sp.it.pl.main.Widgets.INSPECTOR
 import sp.it.pl.main.Widgets.SONG_TAGGER
@@ -187,6 +194,12 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             saveFile("Export to...", APP.location.user.layouts, w.name, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
                .ifOk { w.exportFxwl(it) }
          }
+      ),
+      FastAction(
+         "Clone",
+         "Creates new component with the same content and state as this one.",
+         IconFA.CLONE,
+         { w -> w.openInConfigured() }
       )
    )
    ap.register<Widget>(

@@ -78,7 +78,6 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.functional.andAlso
 import sp.it.util.functional.asArray
-import sp.it.util.functional.asIf
 import sp.it.util.functional.compose
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifFalse
@@ -856,49 +855,6 @@ fun WidgetFactory<*>.isCompiling(disposer: Disposer): ObservableValue<Boolean> {
    }
 }
 
-fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
-   failIfNotFxThread()
-   WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
-
-   APP.widgetManager.widgets.findAll(OPEN).asSequence()
-      .filter { it.factory.id==widgetFactory.id }
-      .filter { it.isLoaded }
-      .materialize()
-      .forEach {
-         val widgetOld = it
-         val widgetNew = widgetFactory.createRecompiled(widgetOld.id).apply {
-            setStateFrom(widgetOld)
-            forceLoading = true
-         }
-         val wasFocused = widgetOld.focused.value
-         val widgetOldInputs = widgetOld.controller!!.io.i.getInputs().associate { it.name to it.value }
-         fun Widget.restoreAuxiliaryState() {
-            forceLoading = false
-            failIf(controller==null)
-            controller!!.io.i.getInputs().forEach { i -> widgetOldInputs[i.name].ifNotNull { i.valueAny = it } }
-            if (wasFocused) focus()
-         }
-
-         val p = widgetOld.parent
-         if (p!=null) {
-            val i = widgetOld.indexInParent()
-
-            val loadNotification = "reloading=" + widgetNew.id
-            p.properties[loadNotification] = loadNotification // in some situations container needs to know that after remove, add will come
-            p.removeChild(i)
-            p.addChild(i, widgetNew)
-            p.properties - loadNotification
-            widgetNew.restoreAuxiliaryState()
-         } else {
-            val parent = widgetOld.graphics!!.parent
-            val i = parent.childrenUnmodifiable.indexOf(widgetOld.graphics!!)
-            widgetOld.close()
-            parent.asIf<Pane?>()?.children?.add(i, widgetNew.load())
-            widgetNew.restoreAuxiliaryState()
-         }
-      }
-}
-
 /** Source for widgets when looking for a widget. */
 enum class WidgetSource {
    /** None. No widget will be found. */
@@ -909,6 +865,14 @@ enum class WidgetSource {
    OPEN_LAYOUT,
    /** All open standalone widgets - widgets not part of the layout, such as in popups. */
    OPEN_STANDALONE
+}
+
+/** Determines which process to use to load component .*/
+enum class ComponentLoaderProcess {
+   /** The process will load in this application instance.*/
+   NORMAL,
+   /** The process will load in another application instance as new process. */
+   NEW_PROCESS
 }
 
 /** Enumeration of parameter-less [ComponentLoader]s, that could be dynamically chosen to opening a widget .*/

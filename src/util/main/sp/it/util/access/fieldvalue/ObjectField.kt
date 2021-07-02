@@ -60,7 +60,7 @@ interface ObjectField<in V, out T>: StringGetter<V> {
     * @param comparatorTransformer function that transforms the underlying null-unsafe comparator into null-safe one
     */
    fun comparator(comparatorTransformer: (Comparator<Comparable<*>>) -> Comparator<Comparable<*>?>): Comparator<@UnsafeVariance V?> = when {
-      type.isSubclassOf<Comparable<*>>() -> comparing<V?, Comparable<*>?>({ if (it==null) null else getOf(it).asIs() }, comparatorTransformer(naturalOrder<Comparable<*>>().asIs()))
+      type.isSubclassOf<Comparable<*>>() -> comparing<V?, Comparable<*>?>({ if (it==null) null else getOf(it).asIs() }, comparatorTransformer(naturalOrder<Comparable<Comparable<*>>>().asIs()))
       else -> sp.it.util.functional.Util.SAME.asIs()
    }
 

@@ -6,9 +6,9 @@ import kotlin.text.Charsets.UTF_8
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.5.10"
+   kotlin("jvm") version "1.5.20"
    application
-   id("com.github.ben-manes.versions") version "0.38.0"
+   id("com.github.ben-manes.versions") version "0.39.0"
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code
@@ -94,7 +94,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "17-ea+11"
+         val version = "17-ea+14"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -155,8 +155,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.6.0")
-         implementation("io.ktor", "ktor-client-cio", "1.6.0")
+         implementation("io.ktor", "ktor-server-core", "1.6.1")
+         implementation("io.ktor", "ktor-client-cio", "1.6.1")
       }
 
       "Test" group {

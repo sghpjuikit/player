@@ -463,7 +463,7 @@ public class WindowBase {
 
 			if (abs(w.getMinX() - WXS)<S) s.setX(WXS);
 			else if (abs(w.getMaxX() - WXE)<S) s.setX(WXE - w.getWidth());
-			if (abs(w.getMinX() - WYS)<S) s.setY(WYS);
+			if (abs(w.getMinY() - WYS)<S) s.setY(WYS);
 			else if (abs(w.getMaxY() - WYE)<S) s.setY(WYE - w.getHeight());
 			if (abs(wc.getX() - WC.getX())<S) s.setX(WC.getX() - w.getWidth()/2.0);
 			if (abs(wc.getY() - WC.getY())<S) s.setY(WC.getY() - w.getHeight()/2.0);

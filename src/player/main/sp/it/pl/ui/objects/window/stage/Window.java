@@ -164,7 +164,7 @@ public class Window extends WindowBase {
 	/** Whether window content has transparent decoration. Default false. */
 	public final @NotNull BooleanProperty transparentContent = new SimpleBooleanProperty(false);
 	/** Whether window shows on OS taskbar. Can only be set before window is shown. Default true. */
-	public final @NotNull BooleanProperty isTaskbarVisible = new SimpleBooleanProperty(false);
+	public final @NotNull BooleanProperty isTaskbarVisible = new SimpleBooleanProperty(true);
 	/** Invoked just before this window closes, after layout closes. */
 	public final Disposer onClose = new Disposer();
 

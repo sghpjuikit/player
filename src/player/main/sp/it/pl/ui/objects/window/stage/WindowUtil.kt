@@ -334,7 +334,7 @@ fun <T: Node> Node.lookupId(id: String, type: Class<T>): T = lookup("#$id") as T
 
 fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent) -> Unit, onDragEnd: (MouseEvent) -> Unit) = stackPane {
    id = "root"
-   styleClass += "window"
+   styleClass += Window.scWindow
    prefSize = 400 x 600
 
    lay += stackPane {

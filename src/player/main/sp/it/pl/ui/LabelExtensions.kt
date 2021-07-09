@@ -19,7 +19,7 @@ val Label.labelForWithClick: WriteOnlyPropertyOperator<Node, Subscription>
 
       Subscription(
          onEventDown(MOUSE_CLICKED, PRIMARY) { _ ->
-            it.requestFocus()
+            if (it.isFocusTraversable) it.requestFocus()
 
             if (it is CheckBox) it.selectedProperty().toggle()
             if (it is NullCheckIcon) it.toggle()

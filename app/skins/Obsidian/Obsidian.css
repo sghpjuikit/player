@@ -47,6 +47,9 @@
     -fx-background-color: -skin-pane-color;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,1), 55,0.3 , 0,0);
 }
+.window:transparent .widget-ui-content {
+    -fx-background-color: transparent;
+}
 
 /* disable widget focus effect */
 .widget-ui:active .widget-ui-content {

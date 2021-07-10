@@ -239,9 +239,9 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    fun create(canBeMain: Boolean = APP.isUiApp, state: WindowDb? = null) = create(
-      state?.let { if (!it.isTaskbarVisible) APP.windowManager.createStageOwner() else null },
-      (state?.transparent ?: windowStyleAllowTransparency.value).toWindowStyle(),
-      state?.main ?: canBeMain
+      owner = state?.let { if (!it.isTaskbarVisible) APP.windowManager.createStageOwner() else null },
+      style = (state?.transparent ?: windowStyleAllowTransparency.value).toWindowStyle(),
+      canBeMain = state?.main ?: canBeMain
    )
 
    fun create(owner: Stage?, style: StageStyle, canBeMain: Boolean): Window {
@@ -312,7 +312,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
          val mwAutohide = v(true)
          val mwFocusRestoring = Suppressor()
-         val mw = dockWindow ?: create(createStageOwner(), UNDECORATED, false).apply {
+         val mw = dockWindow ?: create(createStageOwner(), windowStyle.value, false).apply {
             dockWindow = this
 
             resizable.value = true

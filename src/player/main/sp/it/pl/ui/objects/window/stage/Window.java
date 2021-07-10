@@ -82,6 +82,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.paint.Color.rgb;
+import static javafx.stage.StageStyle.TRANSPARENT;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
@@ -188,6 +189,7 @@ public class Window extends WindowBase {
 		attach(fullscreen, consumer(v -> applyHeaderVisible(!v && _headerVisible)));
 
 		// transparent
+		pseudoClassToggle(root, "transparent-allowed", s.getStyle()==TRANSPARENT);
 		attach(transparentContent, consumer(it -> pseudoClassToggle(root, "transparent", it)));
 
 		// drag&drop

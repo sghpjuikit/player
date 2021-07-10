@@ -146,7 +146,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** Required by skins that want to use transparent background colors. Determines [windowStyle]. Default false. */
    val windowStyleAllowTransparency by cv(false).attach { APP.actions.showSuggestRestartNotification() }.def(
       name = "Allow transparency",
-      info = "Required by skins that want to use transparent backgrounds. May degrade performance. Requires application restart."
+      info = "Required by skins that want to use transparent backgrounds. May degrade performance. A window may override this setting. Changing globally requires application restart."
    )
    /** Whether [Window.transformBgrWithContent] is true. Default false. */
    val windowStyleBgrWithContentTransformation by cv(false).def(
@@ -253,7 +253,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       if (style == TRANSPARENT) {
          w.s.scene.fill = if (style == TRANSPARENT) Color.TRANSPARENT else Color.BLACK
-         w.s.scene.root.style = if (style == TRANSPARENT)  "-fx-background-color: null;" else ""
       }
       windowOpacity sync { if (!w.opacityOverride) w.opacity.value = it } on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value

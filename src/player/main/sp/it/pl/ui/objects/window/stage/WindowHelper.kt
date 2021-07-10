@@ -27,6 +27,7 @@ import sp.it.util.conf.defInherit
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
@@ -58,8 +59,18 @@ var WindowFX.popWindowOwner: WindowFX?
    get() = properties["popWindowOwner"].asIf()
    set(value) = properties.put("popWindowOwner", value).toUnit()
 
+/** Currently shown window for [openWindowSettings] */
+var Window.settingsWindow: PopWindow?
+  get() = properties["settingsWindow"].asIs()
+  private set(value) = properties.put("settingsWindow", value).toUnit()
+
 /** Open ui settings pertaining to the specified window. */
 fun openWindowSettings(w: Window, eventSource: Node?) {
+   if (w.settingsWindow!=null) {
+      w.settingsWindow?.focus()
+      return
+   }
+
    val onClose = Disposer()
    val c = object: ConfigurableBase<Any?>() {
 
@@ -113,6 +124,9 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
    }
 
    PopWindow().apply {
+      w.settingsWindow = this
+      onClose += { w.settingsWindow = null }
+
       val form = form(c, null).apply {
          editorOrder = compareByDeclaration
          editorUi.value = APP.ui.formLayout.value
@@ -124,8 +138,8 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
       isAutohide.value = false
       headerIcons += formEditorsUiToggleIcon(form.editorUi)
       onHiding += onClose
-      show(if (eventSource==null) SCREEN_ACTIVE(CENTER) else DOWN_CENTER(eventSource))
 
+      show(if (eventSource==null) SCREEN_ACTIVE(CENTER) else DOWN_CENTER(eventSource))
       form.focusFirstConfigEditor()
    }
 }

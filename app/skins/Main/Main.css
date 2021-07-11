@@ -1826,6 +1826,9 @@ Shape, Text, SpitText, TextFlow > * {
 .window:transparent-allowed {
     -fx-background-color: rgba(0,0,0,0.005);
 }
+.window:transparent-allowed .widget-ui {
+     -fx-background-color: -skin-popup-def-bgr-color;
+ }
 
 .window:transparent {
     -fx-background-color: rgba(0,0,0,0.005);

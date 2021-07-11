@@ -24,26 +24,34 @@
     -fx-faint-focus-color: #ffcc66;
 }
 
-/* add obsidian background */
+/* obsidian background */
+.window,
+.window:focused {
+    -fx-background-color: radial-gradient(radius 100%, rgba(32,10,56,0.0) 40%, rgba(55,19,55,0.8) 80%, rgba(20,232,255,0) 100%);
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 55,0.3 , 0,0);
+    -fx-padding: 55;    // prevents visual cutoff of shadow effect
+    -fx-background-insets: 55;  // prevents incorrect bgr area due to padding
+}
 .popup,
 .popup:focused,
 .pop-window,
 .pop-window:window-focused {
-    -fx-background-color: radial-gradient(radius 110%, rgba(22,30,86,0.3) 40%, rgba(20,20,42,0.4) 80%, rgba(0,2,5,0.2) 100%);
+    -fx-background-color: radial-gradient(radius 110%, rgba(22,30,86,0.5) 40%, rgba(20,20,42,1) 80%, rgba(0,2,5,0.4) 100%);
     -fx-border-color: transparent;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,1), 55,0.3 , 0,0);
-}
-.window:focused,
-.window {
-    -fx-background-color:
-        radial-gradient(radius 100%, rgba(32,10,56,0.0) 40%, rgba(55,19,55,0.8) 80%, rgba(20,232,255,0) 100%);
-    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15,0.3 , 0,0);
 }
 .widget-ui {}
 .widget-ui-content {
     -fx-background-color: -skin-pane-color;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,1), 55,0.3 , 0,0);
 }
+
+
+/* obsidian background (transparency support) */
+.window:transparent-allowed .widget-ui {
+    -fx-background-color: radial-gradient(radius 100%, rgba(32,10,56,0.0) 40%, rgba(55,19,55,0.8) 80%, rgba(20,232,255,0) 100%);
+}
+.window:transparent .widget-ui,
 .window:transparent .widget-ui-content {
     -fx-background-color: transparent;
 }

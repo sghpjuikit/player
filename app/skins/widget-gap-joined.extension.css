@@ -8,6 +8,12 @@
 .window .header {
     -fx-background-color: rgba(0,0,0,0.01);
 }
+.window:transparent-allowed .header {
+     -fx-background-color: -skin-popup-def-bgr-color;
+}
+.window:transparent .header {
+    -fx-background-color: transparent;
+}
 
 // top/bottom padding makes the content pop up more
 // left/right padding is half of that because it stacks

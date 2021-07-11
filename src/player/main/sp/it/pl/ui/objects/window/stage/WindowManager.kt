@@ -316,6 +316,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
             resizable.value = true
             alwaysOnTop.value = true
+            root.styleClass += "window-dock"
 
             setSize(Screen.getPrimary().bounds.width, dockHeight.value)
             dockHeight attachTo H
@@ -498,6 +499,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          resizable.value = true
          alwaysOnTop.value = true
          isHeaderAllowed.value = false
+         root.styleClass += "window-slide"
 
          // show and apply state
          show()

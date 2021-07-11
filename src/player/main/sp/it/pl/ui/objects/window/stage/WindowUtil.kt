@@ -353,6 +353,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
 
       layFullArea += vBox {
          id = "frontContent"
+         initClip()
 
          lay += stackPane {
             id = "headerContainer"

@@ -36,15 +36,15 @@ class GpuNvidiaInfo: StackPane() {
                )
                .ui {
                   val valuesRaw = it.trim().splitTrimmed(",")
-                  fun String.valueOnly() = takeWhile { it.isDigit() }
-                  fun valueOutOf(i: Int) = valuesRaw[i].valueOnly() + "/" + valuesRaw[i+1]
+                  fun String.valueOnly() = trim().takeWhile { it.isDigit() }
+                  fun valueOutOf(i: Int) = valuesRaw[i].valueOnly() + "/" + valuesRaw[i+1].trim()
                   text.text = """
                      |Gpu: ${valuesRaw[9]}
                      |Driver: ${valuesRaw[8]}
                      |Memory: ${valueOutOf(6)}
                      |Clock:
-                     | Memory:  ${valueOutOf(0)}
-                     | Sm:  ${valuesRaw[2]} / ${valuesRaw[3]}
+                     | Memory: ${valueOutOf(0)}
+                     | Sm: ${valueOutOf(2)}
                      | Graphics: ${valueOutOf(4)}
                      |Draw: ${valuesRaw[10]}
                      """.trimMargin()

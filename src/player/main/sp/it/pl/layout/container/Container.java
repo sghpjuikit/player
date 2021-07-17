@@ -269,14 +269,6 @@ public abstract class Container<G extends ComponentUi> extends Component impleme
         getAllWidgets().findFirst().ifPresent(Widget::focus);
     }
 
-    /**
-     * Closes this container and its content. Can not be undone. Any direct or indirect children
-     * component will be closed.
-     * This has an effect of closing the whole layout branch spanning from this
-     * container.
-     * <p/>
-     * If this container is root (in case of {@link Layout}, only its children will close.
-     */
     @Override
     public void close() {
         super.close();

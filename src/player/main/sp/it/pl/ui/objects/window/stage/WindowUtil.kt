@@ -44,11 +44,8 @@ import javafx.stage.Stage
 import javafx.stage.WindowEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.javafx.JavaFx
@@ -80,6 +77,7 @@ import sp.it.util.action.ActionManager.keyActionsComponent
 import sp.it.util.action.ActionManager.keyManageLayout
 import sp.it.util.action.ActionManager.keyShortcuts
 import sp.it.util.action.ActionManager.keyShortcutsComponent
+import sp.it.util.async.flowTimer
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.functional.ifNotNull
@@ -283,7 +281,7 @@ fun Stage.setNonInteractingProgmanOnBottom() {
       if (r.equals(0)) logger.warn { "$logName Progman failed with code=${Kernel32.INSTANCE.GetLastError()}" }
 
       GlobalScope.launch(Dispatchers.JavaFx) {
-         startCoroutineTimer(0, 150).cancellable().take(4).mapNotNull {
+         flowTimer(0, 150).cancellable().take(4).mapNotNull {
             logger.debug { "$logName getting workerW at ${System.currentTimeMillis().localDateTimeFromMillis()}" }
             // Get WorkerW window
             var workerW: WinDef.HWND? = null
@@ -310,21 +308,6 @@ fun Stage.setNonInteractingProgmanOnBottom() {
          }
       }
 
-   }
-}
-
-/**
- * Flow produces the first item after the given initial delay and subsequent items with the given delay between them.
- * The items begin with 1 and represent the index in the sequence.
- */
-@Suppress("SameParameterValue")
-private fun startCoroutineTimer(delayMillis: Long, repeatMillis: Long): Flow<Int> = flow {
-   var i = 1
-   delay(delayMillis)
-   while (true) {
-      emit(i)
-      i++
-      delay(repeatMillis)
    }
 }
 

@@ -2320,7 +2320,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-border-color: -fx-focus-color;
 }
 
-/******************************* PC_CONTROLS ***************************************************************************
+/******************************* pc-controls ***************************************************************************
  * Extends StackPane
  * properties: -fx-orientation = [HORIZONTAL | VERTICAL]
  * pseudoclasses: horizontal, vertical
@@ -2344,6 +2344,11 @@ Shape, Text, SpitText, TextFlow > * {
 .pc-controls .icon {
     -glyph-size: 2em;
 }
+
+/******************************* gpu-nvidia-info ***********************************************************************
+ * Extends StackPane
+ */
+.gpu-nvidia-info {}
 
 /******************************* TIME-CLOCK-ANALOG *********************************************************************
  * inherits: StackPane

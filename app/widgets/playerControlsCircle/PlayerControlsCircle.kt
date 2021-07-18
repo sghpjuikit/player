@@ -4,21 +4,7 @@ import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import javafx.geometry.Insets
 import javafx.geometry.Pos
-import javafx.scene.CacheHint.ROTATE
-import javafx.scene.Group
 import javafx.scene.control.Label
-import javafx.scene.control.Slider
-import javafx.scene.input.KeyCode.DOWN
-import javafx.scene.input.KeyCode.END
-import javafx.scene.input.KeyCode.HOME
-import javafx.scene.input.KeyCode.KP_DOWN
-import javafx.scene.input.KeyCode.KP_LEFT
-import javafx.scene.input.KeyCode.KP_RIGHT
-import javafx.scene.input.KeyCode.KP_UP
-import javafx.scene.input.KeyCode.LEFT
-import javafx.scene.input.KeyCode.RIGHT
-import javafx.scene.input.KeyCode.UP
-import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.FORWARD
@@ -29,23 +15,14 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
-import javafx.scene.input.ScrollEvent.SCROLL
-import javafx.scene.layout.StackPane
 import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.UNKNOWN
 import javafx.scene.paint.Color.TRANSPARENT
-import javafx.scene.shape.Arc
-import javafx.scene.shape.ArcType
 import javafx.scene.shape.Circle
-import javafx.scene.shape.Rectangle
 import javafx.scene.text.TextBoundsType.VISUAL
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.absoluteValue
-import kotlin.math.atan2
-import kotlin.math.sign
-import kotlin.math.sin
 import mu.KLogging
 import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playback.PlaybackState
@@ -63,7 +40,6 @@ import sp.it.pl.layout.widget.controller.SimpleController
 import sp.it.pl.layout.widget.feature.HorizontalDock
 import sp.it.pl.layout.widget.feature.PlaybackFeature
 import sp.it.pl.main.APP
-import sp.it.pl.main.F
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
@@ -71,6 +47,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAudio
 import sp.it.pl.main.hasAudio
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.SliderCircular
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.boundsType
 import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
@@ -80,19 +57,14 @@ import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
 import sp.it.util.access.togglePrevious
-import sp.it.util.access.v
-import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.collections.observableList
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.file.div
 import sp.it.util.functional.traverse
-import sp.it.util.math.clip
-import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
@@ -109,16 +81,11 @@ import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.maxSize
-import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
-import sp.it.util.ui.xy
 import sp.it.util.units.divMillis
-import sp.it.util.units.millis
 import sp.it.util.units.minus
 import sp.it.util.units.times
 import sp.it.util.units.toHMSMs
@@ -133,7 +100,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
    val muteB = IconFA.VOLUME_UP.icon(24.0) { APP.audio.toggleMute() }
    val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.state.playback.loopMode.let { v -> if (it) v.toggleNext() else v.togglePrevious() } }
    val playbackButtons = listOf(f2, f3, f4)
-   val seeker = SeekerCircle(333.0.emScaled)
+   val seeker = SliderCircular(333.0.emScaled)
    val seekerChapters = observableList<Double>()
 
    val ps = APP.audio.state.playback
@@ -176,11 +143,11 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                      val i = 1.traverse { it + 1 }.first { csByLvl[it].orEmpty().none { (it - c).absoluteValue - 0.05<=cSpan } }
                      csByLvl.getOrPut(i, ::ArrayList) += c
 
-                     SeekerCircle((333 + i*30).emScaled).apply {
+                     SliderCircular((333 + i*30).emScaled).apply {
                         valueSymmetrical.value = true
                         valueStartAngle.value = -c*180 //-(0.8*cSpan)*180
                         value.value = cSpan*0.8
-                        styleClass += "seeker-circle-chapter"
+                        styleClass += "slider-circular-mark"
                      }
                   }
                }
@@ -239,7 +206,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                lay += stackPane(loopB) {
                   isMouseTransparent = true
                }
-               lay += SeekerCircle(100.emScaled).apply {
+               lay += SliderCircular(100.emScaled).apply {
                   val valueCount = LoopMode.values().size.toDouble() - 1.0
                   val mapping = LoopMode.values().associateWith {
                      when (it) {
@@ -268,7 +235,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                lay += stackPane(muteB) {
                   isMouseTransparent = true
                }
-               lay += SeekerCircle(100.emScaled).apply {
+               lay += SliderCircular(100.emScaled).apply {
                   blockIncrement.value = VolumeProperty.STEP
                   value attachTo ps.volume
                   ps.volume sync { value.value = it.toDouble() }
@@ -341,236 +308,6 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
             else -> IconUN(0x1f509)
          }
       )
-   }
-
-   /** Circular [Slider] with value always normalized to 0..1. */
-   class SeekerCircle(val W: Double): StackPane() {
-      /** Value, 0..1. Default 0. */
-      val value = v(0.0)
-
-      /** Represents [value] but changes only when [isValueChanging] is false. Default 0. */
-      val valueSoft = Handler1<Double>()
-
-      /** Value shown to user, 0..1. Mey differ from [value] due to [isAnimated] and [isValueChanging]. Default 0. */
-      val valueShown = v(value.value)
-
-      /** Whether user can change [value] through ui. Only if true. Default true. */
-      val editable = v(true)
-
-      /** Whether user is changing the value. */
-      val isValueChanging = v(false)
-
-      /** Whether animation between value changes is enabled. Default true. */
-      val isAnimated = v(true)
-
-      /** Value animation interpolator, see [isAnimated]. */
-      val valueAnimationInterpolator: F<Double, Double> = { sin(PI/2*it) }
-
-      /** Angle in degrees where the value starts. Default 0.0. */
-      val valueStartAngle = v(0.0)
-
-      /** Whether the value grows in both directions, ranging from 0-180 degrees. Default true. */
-      val valueSymmetrical = v(false)
-
-      /** Same as [Slider.blockIncrement] */
-      val blockIncrement = v(0.1)
-
-      /** Similar to as [Slider.showTickMarks] and [Slider.snapToTicks]. Default empty. */
-      val snaps = observableList<Double>()
-
-      private val anim = anim(200.millis) { valueShown.value = valueAnimFrom + it*(valueAnimTo - valueAnimFrom) }.intpl { valueAnimationInterpolator(it) }
-      private val animSuppressor = Suppressor()
-      private var valueAnimFrom = value.value
-      private var valueAnimTo = value.value
-
-      init {
-         styleClass += "seeker-circle"
-         editable sync { pseudoClassToggle("readonly", !editable.value) }
-         prefSize = W/2.0 x W/2.0
-         minSize = W/2.0 x W/2.0
-         maxSize = W/2.0 x W/2.0
-         isFocusTraversable = true
-         isPickOnBounds = false
-         onEventDown(KEY_PRESSED, HOME) { decrementToMin() }
-         onEventDown(KEY_PRESSED, DOWN) { decrement() }
-         onEventDown(KEY_PRESSED, KP_DOWN) { decrement() }
-         onEventDown(KEY_PRESSED, LEFT) { decrement() }
-         onEventDown(KEY_PRESSED, KP_LEFT) { decrement() }
-         onEventDown(KEY_PRESSED, RIGHT) { increment() }
-         onEventDown(KEY_PRESSED, KP_RIGHT) { increment() }
-         onEventDown(KEY_PRESSED, UP) { increment() }
-         onEventDown(KEY_PRESSED, KP_UP) { increment() }
-         onEventDown(KEY_PRESSED, END) { incrementToMax() }
-
-         value attach { if (!isValueChanging.value) valueSoft(it) }
-         value attachChanges { _, n ->
-            if (animSuppressor.isSuppressed) anim.stop()
-            animSuppressor.suppressed {
-               if (!isValueChanging.value) {
-                  valueAnimFrom = valueShown.value
-                  valueAnimTo = n
-                  if (isAnimated.value) anim.playFromStart() else valueShown.value = valueAnimTo
-               }
-            }
-         }
-
-         lay += Group().apply {
-            children += Rectangle().apply {
-               fill = null
-               width = W
-               height = W
-               isCache = true
-               isCacheShape = true
-               cacheHint = ROTATE
-            }
-            children += Circle(W/4.0).apply {
-               styleClass += "seeker-circle-bgr"
-               centerX = W/2.0
-               centerY = W/2.0
-               isCache = true
-               isCacheShape = true
-               cacheHint = ROTATE
-               valueShown zip valueSymmetrical sync { (v, vs) -> rotate = if (vs) 180.0*v else 0.0 }
-            }
-            children += Circle(W/4.0).apply {
-               styleClass += "seeker-circle-frg"
-               centerX = W/2.0
-               centerY = W/2.0
-               clip = Group().apply {
-                  scaleX = 2.0
-                  scaleY = 2.0
-                  children += Rectangle().apply {
-                     fill = TRANSPARENT
-                     width = W
-                     height = W
-                     isCache = true
-                     isCacheShape = true
-                     cacheHint = ROTATE
-                  }
-                  children += Arc().apply {
-                     this.type = ArcType.ROUND
-                     this.centerX = W/2.0
-                     this.centerY = W/2.0
-                     this.radiusX = W/4.0
-                     this.radiusY = W/4.0
-
-                     isCache = true
-                     isCacheShape = true
-                     cacheHint = ROTATE
-
-                     val updater = { _: Any? ->
-                        length = 360.0*valueShown.value
-                        startAngle = valueStartAngle.value - if (valueSymmetrical.value) 180.0*valueShown.value else 0.0
-                     }
-                     valueSymmetrical attach updater
-                     valueStartAngle attach updater
-                     valueShown attach updater
-                     updater(Unit)
-                  }
-               }
-
-               fun updateFromMouse(e: MouseEvent, anim: Boolean = true) {
-                  val polarPos = (e.xy - (centerX x centerY))
-                  val angleRad = atan2(polarPos.x, polarPos.y) + PI + valueStartAngle.value*PI/180.0
-                  val vNorm = (angleRad/2.0/PI + 0.25).rem(1.0)
-                  val vRaw = when {
-                     valueSymmetrical.value -> if (vNorm<=0.5) vNorm*2.0 else (1.0 - vNorm)*2.0
-                     else -> vNorm
-                  }
-                  val v = vRaw.clip().snap(e)
-                  if (editable.value) {
-                     if (isValueChanging.value && !anim) valueToAnimFalse(v)
-                     else valueToAnimTrue(v)
-                  }
-               }
-               onEventDown(SCROLL) { e ->
-                  if (e.deltaY.sign>0) increment() else decrement()
-                  e.consume()
-               }
-               onEventDown(MOUSE_PRESSED, PRIMARY) {
-                  this@SeekerCircle.requestFocus()
-                  if (editable.value) {
-                     updateFromMouse(it, true)
-                     isValueChanging.value = true
-                  }
-               }
-               onEventDown(MOUSE_RELEASED, PRIMARY) {
-                  if (isValueChanging.value) {
-                     isValueChanging.value = false
-                     updateFromMouse(it, false)
-                  }
-               }
-               onEventDown(MOUSE_DRAGGED, PRIMARY) {
-                  if (isValueChanging.value)
-                     updateFromMouse(it, false)
-               }
-               onEventDown(MOUSE_RELEASED, SECONDARY) {
-                  if (isValueChanging.value) {
-                     isValueChanging.value = false
-                     valueShownToActualAnimTrue()
-                  }
-               }
-               onEventDown(MOUSE_CLICKED, SECONDARY, false) {
-                  if (it.isPrimaryButtonDown)
-                     it.consume()
-               }
-               onEventDown(MOUSE_PRESSED, SECONDARY) {
-                  if (isValueChanging.value) {
-                     isValueChanging.value = false
-                     valueShownToActualAnimTrue()
-                  }
-               }
-            }
-         }
-      }
-
-      fun decrementToMin() {
-         if (editable.value) value.setValueOf { 0.0 }
-      }
-
-      fun decrement() {
-         if (editable.value) value.setValueOf { (it - blockIncrement.value).clip() }
-      }
-
-      fun increment() {
-         if (editable.value) value.setValueOf { (it + blockIncrement.value).clip() }
-      }
-
-      fun incrementToMax() {
-         if (editable.value) value.setValueOf { 1.0 }
-      }
-
-      private fun valueShownToActualAnimTrue() {
-         valueAnimFrom = valueShown.value
-         valueAnimTo = value.value
-         if (isAnimated.value) anim.playFromStart() else valueShown.value = valueAnimTo
-      }
-
-      private fun valueShownToActualAnimFalse() {
-         valueShown.value = value.value
-      }
-
-      private fun valueToAnimTrue(v: Double) {
-         value.value = v
-         if (!isValueChanging.value && value.value==v) valueSoft(v)
-      }
-
-      private fun valueToAnimFalse(v: Double) {
-         animSuppressor.suppressing {
-            valueShown.value = v
-            value.value = v
-            if (!isValueChanging.value && value.value==v) valueSoft(v)
-         }
-      }
-
-      private fun Double.clip(): Double = clip(0.0, 1.0)
-
-      private fun Double.snap(e: MouseEvent? = null): Double {
-         val snap = e!=null && !e.isShiftDown && !e.isShortcutDown
-         val snapBy = APP.ui.snapDistance.value/(2*PI*W/4.0)
-         val snaps = if (snap) snaps else setOf()
-         return snaps.minByOrNull { (it - this).absoluteValue }?.takeIf { (it - this).absoluteValue<=snapBy } ?: this
-      }
    }
 
    companion object: WidgetCompanion, KLogging() {

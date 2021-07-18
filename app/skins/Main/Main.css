@@ -3021,6 +3021,56 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-pref-height: 1.2em;
 }
 
+/********************************** slider-circular ********************************************************************
+ * Circular slider control.
+ * inherits: Arc, Shape
+ * pseudoclasses: focused, readonly
+ */
+.slider-circular {
+    -fx-max-width: 60;
+    -fx-max-height: 60;
+    -fx-background-color: radial-gradient(center 50% 50%, radius 100%, -skin-color-lighter, transparent 55%, transparent);
+    -fx-background-insets: 0;
+    -fx-background-radius: 100000; // makes the knob a circle for mouse interaction
+}
+.slider-circular .slider-circular-bgr {
+    -fx-fill: transparent;
+    -fx-stroke: rgba(220,220,220,0.2);
+    -fx-stroke-type: centered;
+    -fx-stroke-width: 11;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-line-join: miter;
+    -fx-stroke-dash-array: null;
+}
+.slider-circular .slider-circular-frg {
+    -fx-fill: transparent;
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-type: centered;
+    -fx-stroke-width: 11;
+    -fx-stroke-line-cap: butt;
+    -fx-stroke-line-join: miter;
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 10, 0.2 , 0,0);
+}
+.slider-circular:focused .slider-circular-bgr {
+    -fx-stroke-dash-array: 5 4;
+}
+.slider-circular:focused .slider-circular-frg {}
+
+/* inherits .slider-circular */
+.slider-circular-mark {
+    -fx-background-color: transparent;
+}
+.slider-circular-mark .slider-circular-bgr {
+    -fx-stroke: transparent;
+    -fx-stroke-width: 0;
+    -fx-effect: null;
+}
+.slider-circular-mark .slider-circular-frg {
+    -fx-stroke: rgba(220,220,220,0.2);
+    -fx-stroke-width: 11;
+    -fx-effect: null;
+}
+
 /********************************** MENU *******************************************************************************
  * Menu item with a check icon
  * inherits: .menu

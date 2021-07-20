@@ -1190,12 +1190,18 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
       // autocomplete
       config.findConstraint<UnsealedEnumerator<T>>().ifNotNull { e ->
-         // TODO support observable iterator, like EnumerableCE does
          val isSortable = config.constraints.none { it is PreserveOrder }
-         @Suppress("UNCHECKED_CAST")
-         val enumeration = if (isNullable) e.enumerateUnsealed() - (null as T) + (null as T) else e.enumerateUnsealed()
-         val enumerationSorted = if (isSortable) enumeration.sortedBy(converterRaw) else enumeration
-         autoComplete(editor, { t -> enumerationSorted.filter { it.toUi().contains(t, true) } }, converterRaw)
+         autoComplete(
+            editor,
+            { t ->
+               // TODO support observable iterator, like EnumerableCE does
+               @Suppress("UNCHECKED_CAST")
+               val enumeration = if (isNullable) e.enumerateUnsealed() - (null as T) + (null as T) else e.enumerateUnsealed()
+               val enumerationSorted = if (isSortable) enumeration.sortedBy(converterRaw) else enumeration
+               enumerationSorted.filter { it.toUi().contains(t, true) }
+            },
+            converterRaw
+         )
       }
 
       // readonly

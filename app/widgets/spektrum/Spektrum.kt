@@ -47,7 +47,7 @@ import sp.it.util.conf.min
 import sp.it.util.conf.noUi
 import sp.it.util.conf.readOnly
 import sp.it.util.conf.values
-import sp.it.util.conf.valuesIn
+import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
@@ -64,8 +64,8 @@ import spektrum.WeightWindow.dBZ
 
 class Spektrum(widget: Widget): SimpleController(widget) {
 
-   val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() }
-      .valuesIn { AudioSystem.getMixerInfo().asSequence().filter { it.description.contains("Capture") }.map { it.name } }
+   val inputDevice by cv("Primary Sound Capture").attach { audioEngine.restartOnNewThread() } // support refresh on audio device add/remove, see https://stackoverflow.com/questions/29667565/jna-detect-audio-device-arrival-remove
+      .valuesUnsealed { AudioSystem.getMixerInfo().filter { it.description.contains("Capture") }.map { it.name } }
       .def(name = "Audio input device", info = "")
    val audioFormatChannels by c(1)
       .def(name = "Audio format channels", info = "", editable = NONE).readOnly()
@@ -420,7 +420,9 @@ class TarsosAudioEngine(settings: Spektrum) {
       stop()
    }
 
-   private fun obtainMixer(): Mixer? = AudioSystem.getMixerInfo().find { settings.inputDevice.value in it.name }?.net { AudioSystem.getMixer(it) }
+   private fun obtainMixer(): Mixer? = AudioSystem.getMixerInfo()
+      .find { m -> settings.inputDevice.value.let { it.isNotBlank() && it in m.name } }
+      ?.net { AudioSystem.getMixer(it) }
 
    private fun obtainLine(mixer: Mixer, audioFormat: AudioFormat, lineBuffer: Int): TargetDataLine {
       val lineUses = Spektrum.openLines[mixer]

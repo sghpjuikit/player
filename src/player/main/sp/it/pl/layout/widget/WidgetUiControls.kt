@@ -27,9 +27,13 @@ import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.functional.asIf
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -73,7 +77,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
          val actB = headerIcon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
-         propB = headerIcon(IconFA.COGS, propIconText) { tryHideAfterSettings(); APP.windowManager.showSettings(area.widget, it) }
+         propB = headerIcon(IconFA.COGS, propIconText) { showSettings(it) }
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
          absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
          val loadB = CheckIcon().apply {
@@ -132,6 +136,17 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
       root.onEventDown(DRAG_DETECTED) { onDragDetected(it, root) }
       root.onEventDown(DRAG_DONE) { root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false) }
+   }
+
+   private fun showSettings(it: Icon) {
+      val key = "settingsWindow"
+      it.properties[key]?.asIf<PopWindow>().ifNotNull { it.focus() }.ifNull {
+         tryHideAfterSettings()
+         APP.windowManager.showSettings(area.widget, it).apply {
+            it.properties[key] = this
+            onHiding += { it.properties[key] = null }
+         }
+      }
    }
 
    private fun toggleLocked() = area.widget.locked.toggle()

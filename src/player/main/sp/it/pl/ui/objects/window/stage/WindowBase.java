@@ -401,6 +401,10 @@ public class WindowBase {
 		setXY(xy.getX(), xy.getY(), true);
 	}
 
+	public void setXY(P xy, boolean snap) {
+		setXY(xy.getX(), xy.getY(), snap);
+	}
+
 	/** Centers this window on its screen. */
 	public void setXYToCenter() {
 		setXYToCenter(screen);

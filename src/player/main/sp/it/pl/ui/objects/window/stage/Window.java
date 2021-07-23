@@ -602,20 +602,21 @@ public class Window extends WindowBase {
 		// if (!isMoving.get() || e.getButton() != PRIMARY) return;
 		if (!isMoving.get()) return;
 
-		double X = e.getScreenX();
-		double Y = e.getScreenY();
+		var snap = !e.isShortcutDown();
+		var X = e.getScreenX();
+		var Y = e.getScreenY();
 		screen = getScreen(X, Y);
-		double SWm = screen.getBounds().getMinX();
-		double SHm = screen.getBounds().getMinY();
-		double SW = screen.getBounds().getMaxX();
-		double SH = screen.getBounds().getMaxY();
-		double SW5 = screen.getBounds().getWidth()/5;
-		double SH5 = screen.getBounds().getHeight()/5;
-		double SDw = 20; // horizontal snap activation distance
-		double SDh = 20; // vertical snap activation distance
+		var SWm = screen.getBounds().getMinX();
+		var SHm = screen.getBounds().getMinY();
+		var SW = screen.getBounds().getMaxX();
+		var SH = screen.getBounds().getMaxY();
+		var SW5 = screen.getBounds().getWidth()/5;
+		var SH5 = screen.getBounds().getHeight()/5;
+		var SDw = 20; // horizontal snap activation distance
+		var SDh = 20; // vertical snap activation distance
 
 		if (maximized.getValue()==Maximized.NONE)
-			setXY(X - appX, Y - appY);
+			setXY(X - appX, Y - appY, snap);
 
 		// (imitate Windows Aero Snap)
 		Maximized to;
@@ -670,32 +671,33 @@ public class Window extends WindowBase {
 
 	private void resizeDo(MouseEvent e) {
 		if (isMovingAltMaximized) return;
+		var snap = !e.isShortcutDown();
 		var diff = getScreenXy(e).minus(resizeAltMouseStart);
 		Resize r = isResizing.getValue();
 		if (r==SE) {
-			setSize(resizeAltAppSize.plus(diff));
+			setSize(resizeAltAppSize.plus(diff), snap);
 		} else if (r==S) {
-			setSize(resizeAltAppSize.plus(diff.times(new P(0.0, 1.0))));
+			setSize(resizeAltAppSize.plus(diff.times(new P(0.0, 1.0))), snap);
 		} else if (r==E) {
-			setSize(resizeAltAppSize.plus(diff.times(new P(1.0, 0.0))));
+			setSize(resizeAltAppSize.plus(diff.times(new P(1.0, 0.0))), snap);
 		} else if (r==SW) {
-			setSize(resizeAltAppSize.minus(diff.times(new P(1.0, -1.0))));
-			setXY(resizeAltAppPos.plus(diff.times(new P(1.0, 0.0))));
+			setSize(resizeAltAppSize.minus(diff.times(new P(1.0, -1.0))), snap);
+			setXY(resizeAltAppPos.plus(diff.times(new P(1.0, 0.0))), snap);
 		} else if (r==Resize.W) {
-			setSize(resizeAltAppSize.minus(diff.times(new P(1.0, 0.0))));
-			setXY(resizeAltAppPos.plus(diff.times(new P(1.0, 0.0))));
+			setSize(resizeAltAppSize.minus(diff.times(new P(1.0, 0.0))), snap);
+			setXY(resizeAltAppPos.plus(diff.times(new P(1.0, 0.0))), snap);
 		} else if (r==NW) {
-			setSize(resizeAltAppSize.minus(diff));
-			setXY(resizeAltAppPos.plus(diff));
+			setSize(resizeAltAppSize.minus(diff), snap);
+			setXY(resizeAltAppPos.plus(diff), snap);
 		} else if (r==N) {
-			setSize(resizeAltAppSize.minus(diff.times(new P(0.0, 1.0))));
-			setXY(resizeAltAppPos.plus(diff.times(new P(0.0, 1.0))));
+			setSize(resizeAltAppSize.minus(diff.times(new P(0.0, 1.0))), snap);
+			setXY(resizeAltAppPos.plus(diff.times(new P(0.0, 1.0))), snap);
 		} else if (r==NE) {
-			setSize(resizeAltAppSize.plus(diff.times(new P(1.0, -1.0))));
-			setXY(resizeAltAppPos.plus(diff.times(new P(0.0, 1.0))));
+			setSize(resizeAltAppSize.plus(diff.times(new P(1.0, -1.0))), snap);
+			setXY(resizeAltAppPos.plus(diff.times(new P(0.0, 1.0))), snap);
 		} else if (r==ALL) {
-			setSize(resizeAltAppSize.plus(diff.times(2.0)));
-			setXY(resizeAltAppPos.minus(diff));
+			setSize(resizeAltAppSize.plus(diff.times(2.0)), snap);
+			setXY(resizeAltAppPos.minus(diff), snap);
 		}
 	}
 
@@ -728,28 +730,29 @@ public class Window extends WindowBase {
 
 	private void borderDragged(MouseEvent e) {
 		if (resizable.getValue()) {
-			Resize r = isResizing.get();
+			var snap = !e.isShortcutDown();
+			var r = isResizing.get();
 			if (r==SE)
-				setSize(e.getScreenX() - getX(), e.getScreenY() - getY());
+				setSize(e.getScreenX() - getX(), e.getScreenY() - getY(), snap);
 			else if (r==S)
-				setSize(getWidth(), e.getScreenY() - getY());
+				setSize(getWidth(), e.getScreenY() - getY(), snap);
 			else if (r==E)
-				setSize(e.getScreenX() - getX(), getHeight());
+				setSize(e.getScreenX() - getX(), getHeight(), snap);
 			else if (r==SW) {
-				setSize(getX() + getWidth() - e.getScreenX(), e.getScreenY() - getY());
-				setXY(e.getScreenX(), getY());
+				setSize(getX() + getWidth() - e.getScreenX(), e.getScreenY() - getY(), snap);
+				setXY(e.getScreenX(), getY(), snap);
 			} else if (r==Resize.W) {
-				setSize(getX() + getWidth() - e.getScreenX(), getHeight());
-				setXY(e.getScreenX(), getY());
+				setSize(getX() + getWidth() - e.getScreenX(), getHeight(), snap);
+				setXY(e.getScreenX(), getY(), snap);
 			} else if (r==NW) {
-				setSize(getX() + getWidth() - e.getScreenX(), getY() + getHeight() - e.getScreenY());
-				setXY(e.getScreenX(), e.getScreenY());
+				setSize(getX() + getWidth() - e.getScreenX(), getY() + getHeight() - e.getScreenY(), snap);
+				setXY(e.getScreenX(), e.getScreenY(), snap);
 			} else if (r==N) {
-				setSize(getWidth(), getY() + getHeight() - e.getScreenY());
-				setXY(getX(), e.getScreenY());
+				setSize(getWidth(), getY() + getHeight() - e.getScreenY(), snap);
+				setXY(getX(), e.getScreenY(), snap);
 			} else if (r==NE) {
-				setSize(e.getScreenX() - getX(), getY() + getHeight() - e.getScreenY());
-				setXY(getX(), e.getScreenY());
+				setSize(e.getScreenX() - getX(), getY() + getHeight() - e.getScreenY(), snap);
+				setXY(getX(), e.getScreenY(), snap);
 			}
 		}
 		e.consume();

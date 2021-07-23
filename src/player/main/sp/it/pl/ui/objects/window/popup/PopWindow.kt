@@ -43,6 +43,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
@@ -364,8 +365,12 @@ open class PopWindow {
 
    /** Focuses this popup if it supports focus. */
    fun focus() {
-      window?.asIf<Stage>()?.owner?.requestFocus()
-      window?.requestFocus()
+      window?.ifNotNull {
+         if (!it.isFocused) {
+            it.asIf<Stage>()?.owner?.requestFocus()
+            it.requestFocus()
+         }
+      }
    }
 
    /** Hides this popup. If is [animated], the hiding animation is started, otherwise happens immediately. */

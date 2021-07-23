@@ -431,42 +431,72 @@ public class WindowBase {
 	public void snap() {
 		// avoid snapping while isResizing. It leads to unwanted behavior
 		// avoid when not desired
-		if (!APP.ui.getSnapping().get() || resizing.get()!=Resize.NONE) return;
+		if (!APP.ui.getSnapping().get()) return;
 
+		var r = isResizing.getValue();
 		var w = sp.it.util.ui.UtilKt.getBounds(s);
 		var wc = new P(w.getMinX() + w.getWidth()/2.0, w.getMinY() + w.getHeight()/2.0);
 		var S = getEmScaled(APP.ui.getSnapDistance().getValue());
 
-		// snap to screen edges (x and y separately)
 		var SWm = screen.getBounds().getMinX();
 		var SHm = screen.getBounds().getMinY();
 		var SW = screen.getBounds().getMaxX();
 		var SH = screen.getBounds().getMaxY();
 		var SC = new P(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2.0, screen.getBounds().getMinY() + screen.getBounds().getWidth()/2.0);
 
-		if (abs(w.getMinX() - SWm)<S) snapLeft();
-		else if (abs(w.getMaxX() - SW)<S) snapRight();
-		if (abs(w.getMinY() - SHm)<S) snapUp();
-		else if (abs(w.getMaxY() - SH)<S) snapDown();
-		if (abs(wc.getX() - SC.getX())<S) s.setX(SC.getX()-w.getWidth()/2.0);
-		if (abs(wc.getY() - SC.getY())<S) s.setY(SC.getY()-w.getHeight()/2.0);
+		if (r==Resize.NONE) {
 
-		// snap to other window edges
-		for (javafx.stage.Window W : Stage.getWindows()) {
-			if (!W.getProperties().containsKey(Window.keyWindowAppWindow)) continue;
+			// snap to screen edges (x and y separately)
+			if (abs(w.getMinX() - SWm)<S) snapLeft();
+			else if (abs(w.getMaxX() - SW)<S) snapRight();
+			else if (abs(wc.getX() - SC.getX())<S) s.setX(SC.getX()-w.getWidth()/2.0);
+			if (abs(w.getMinY() - SHm)<S) snapUp();
+			else if (abs(w.getMaxY() - SH)<S) snapDown();
+			else if (abs(wc.getY() - SC.getY())<S) s.setY(SC.getY()-w.getHeight()/2.0);
 
-			var WXS = W.getX() + W.getWidth();
-			var WXE = W.getX();
-			var WYS = W.getY() + W.getHeight();
-			var WYE = W.getY();
-			var WC = new P(W.getX() + W.getWidth()/2.0, W.getY() + W.getHeight()/2.0);
+			// snap to other window edges
+			for (javafx.stage.Window W : Stage.getWindows()) {
+				if (!W.getProperties().containsKey(Window.keyWindowAppWindow)) continue;
 
-			if (abs(w.getMinX() - WXS)<S) s.setX(WXS);
-			else if (abs(w.getMaxX() - WXE)<S) s.setX(WXE - w.getWidth());
-			if (abs(w.getMinY() - WYS)<S) s.setY(WYS);
-			else if (abs(w.getMaxY() - WYE)<S) s.setY(WYE - w.getHeight());
-			if (abs(wc.getX() - WC.getX())<S) s.setX(WC.getX() - w.getWidth()/2.0);
-			if (abs(wc.getY() - WC.getY())<S) s.setY(WC.getY() - w.getHeight()/2.0);
+				var WXS = W.getX() + W.getWidth();
+				var WXE = W.getX();
+				var WYS = W.getY() + W.getHeight();
+				var WYE = W.getY();
+				var WC = new P(W.getX() + W.getWidth()/2.0, W.getY() + W.getHeight()/2.0);
+
+				if (abs(w.getMinX() - WXS)<S) s.setX(WXS);
+				else if (abs(w.getMaxX() - WXE)<S) s.setX(WXE - w.getWidth());
+				if (abs(w.getMinY() - WYS)<S) s.setY(WYS);
+				else if (abs(w.getMaxY() - WYE)<S) s.setY(WYE - w.getHeight());
+				if (abs(wc.getX() - WC.getX())<S) s.setX(WC.getX() - w.getWidth()/2.0);
+				if (abs(wc.getY() - WC.getY())<S) s.setY(WC.getY() - w.getHeight()/2.0);
+			}
+		}
+		if (r==Resize.W || r==Resize.SW || r==Resize.NW || r==Resize.ALL) {
+			if (abs(w.getMinX() - SWm)<S) {
+				setSize(w.getWidth() + (w.getMinX() - SWm), w.getHeight(), false);
+				snapLeft();
+				w = sp.it.util.ui.UtilKt.getBounds(s);
+			}
+		}
+		if (r==Resize.E || r==Resize.SE || r==Resize.NE || r==Resize.ALL) {
+			if (abs(w.getMaxX() - SW)<S) {
+				setSize(w.getWidth() - (w.getMaxX() - SW), w.getHeight(), false);
+				w = sp.it.util.ui.UtilKt.getBounds(s);
+			}
+		}
+		if (r==Resize.N || r==Resize.NW || r==Resize.NE || r==Resize.ALL) {
+			if (abs(w.getMinY() - SHm)<S) {
+				setSize(w.getWidth(), w.getHeight() + (w.getMinY() - SHm), false);
+				snapUp();
+				w = sp.it.util.ui.UtilKt.getBounds(s);
+			}
+		}
+		if (r==Resize.S || r==Resize.SW || r==Resize.SE || r==Resize.ALL) {
+			if (abs(w.getMaxY() - SH)<S) {
+				setSize(w.getWidth(), w.getHeight() - (w.getMaxY() - SH), false);
+				w = sp.it.util.ui.UtilKt.getBounds(s);
+			}
 		}
 	}
 
@@ -528,7 +558,7 @@ public class WindowBase {
 	 * @param width horizontal size of the window
 	 * @param height vertical size of the window
 	 */
-	public void setXYSize(double x, double y, double width, double height) {
+	public void setXYSize(double x, double y, double width, double height, boolean snap) {
 		if (fullscreen.getValue()) return;
 		MaxProp.set(Maximized.NONE);
 		s.setX(x);
@@ -541,18 +571,28 @@ public class WindowBase {
 		// if (snap) snap();
 		W.set(s.getWidth());
 		H.set(s.getHeight());
+		if (snap) snap();
 	}
 
-	/**
-	 * @param width horizontal size of the window
-	 * @param height vertical size of the window
-	 */
-	public void setSize(double width, double height) {
+	public void setXYSize(double x, double y, double width, double height) {
+		setXYSize(x, y, width, height, true);
+	}
+
+	public void setSize(double width, double height, boolean snap) {
 		if (fullscreen.getValue()) return;
 		s.setWidth(width);
 		s.setHeight(height);
 		W.set(s.getWidth());
 		H.set(s.getHeight());
+		if (snap) snap();
+	}
+
+	public void setSize(double width, double height) {
+		setSize(width, height, true);
+	}
+
+	public void setSize(P size, boolean snap) {
+		setSize(size.getX(), size.getY(), snap);
 	}
 
 	public void setSize(P size) {
@@ -572,7 +612,7 @@ public class WindowBase {
 	public void setXYSizeInitial() {
 		double w = screen.getBounds().getWidth()/2;
 		double h = screen.getBounds().getHeight()/2;
-		setXYSize(w/2, h/2, w, h);
+		setXYSize(w/2, h/2, w, h, false);
 	}
 
 	/** Sets the window visible and focuses it. */

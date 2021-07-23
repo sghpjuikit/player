@@ -318,13 +318,13 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             alwaysOnTop.value = true
             root.styleClass += "window-dock"
 
-            setSize(Screen.getPrimary().bounds.width, dockHeight.value)
+            setSize(Screen.getPrimary().bounds.width, dockHeight.value, false)
             dockHeight attachTo H
             H attach { dockHeight.value = it.toDouble() }
 
             APP.mouse.screens.onChangeAndNow {
                val s = Screen.getPrimary()
-               setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height)
+               setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height, false)
             } on onClose
          }
          val content = borderPane {

@@ -106,14 +106,18 @@ import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
 import javafx.scene.input.KeyCode.C
+import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.SHORTCUT
-import kotlin.math.round
+import javafx.scene.input.KeyCode.V
 import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.Df
 import sp.it.pl.main.Events.FileEvent
 import sp.it.pl.main.FileFilters.cvFileFilter
+import sp.it.pl.main.copyAs
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.pl.ui.objects.grid.GridView.CellSize
+import sp.it.pl.ui.objects.grid.GridView.CellSize.SMALL_24
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cOr
@@ -125,6 +129,8 @@ import sp.it.util.reactive.zip
 import sp.it.util.system.recycle
 import sp.it.util.text.keys
 import sp.it.util.text.resolved
+import sp.it.util.ui.drag.contains
+import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
 
@@ -206,17 +212,17 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } } on onClose
       grid.skinProperty() attach {
          it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
-            item("Refresh (${keys("F5")})") {
+            item("Refresh (${keys(F5)})") {
                revisitCurrent()
             }
          }
          it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
             item("Copy selected (${keys("${SHORTCUT.resolved} + C")})") {
-               copySelected()
+               copySelectedToClipboard()
             }
          }
          it?.asIs<GridViewSkin<*,*>>()?.menuRemove?.dsl {
-            item("Delete selected (${keys("DELETE")})") {
+            item("Delete selected (${keys(DELETE)})") {
                grid.selectedItem.value?.value?.recycle()
             }
          }
@@ -236,9 +242,16 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
             if (si!=null) doubleClickItem(si, it.isShiftDown)
          }
       }
+      grid.onEventDown(KEY_PRESSED, DELETE) { deleteSelected() }
       grid.onEventDown(KEY_PRESSED, C, false) {
          if (it.isShortcutDown) {
-            copySelected()
+            copySelectedToClipboard()
+            it.consume()
+         }
+      }
+      grid.onEventDown(KEY_PRESSED, V, false) {
+         if (it.isShortcutDown) {
+            pasteFromClipboard()
             it.consume()
          }
       }
@@ -408,7 +421,16 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
    }
 
-   fun copySelected() {
+   fun deleteSelected() {
+      grid.selectedItem.value?.value?.recycle()
+   }
+
+   fun pasteFromClipboard() {
+      if (Df.FILES in sysClipboard && files.size==1)
+         sysClipboard[Df.FILES].copyAs(files.firstOrNull()) { it.ui { revisitCurrent() } }
+   }
+
+   fun copySelectedToClipboard() {
       sysClipboard[Df.FILES] = grid.selectedItem.value?.value?.net { listOf(it) }
    }
 

@@ -28,6 +28,13 @@ import sp.it.pl.core.CoreConverter
 import sp.it.util.async.FX
 import sp.it.util.async.launch
 import sp.it.util.async.runFX
+import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.only
+import sp.it.util.dev.ThreadSafe
+import sp.it.util.file.FileType
+import sp.it.util.functional.ifFalse
 
 private val logger = KotlinLogging.logger {}
 
@@ -63,8 +70,33 @@ fun File.isSkinFile(): Boolean {
 
 fun File.isValidWidgetFile() = isValidFile(this) && isWidgetFile()
 
-fun File.isWidgetFile(): Boolean {
-   return path.endsWith(".fxml") && parentFile?.parentFile==APP.location.widgets
+fun File.isWidgetFile(): Boolean = path.endsWith(".fxml") && parentFile?.parentFile==APP.location.widgets
+
+/** Shows file copy dialog for this file */
+@ThreadSafe
+fun File.copyAs(to: File? = null, then: (Fut<Unit>) -> Unit = {}) = listOf(this).copyAs(to, then)
+
+/** Shows file copy dialog for this file collection */
+@ThreadSafe
+fun Iterable<File>.copyAs(to: File? = null, then: (Fut<Unit>) -> Unit = {}) = also { fs ->
+   runFX {
+      object: ConfigurableBase<Any?>() {
+         val file by cv(to ?: APP.location).only(FileType.DIRECTORY).def(name = "File")
+         val overwrite by cv(false).def(name = "Overwrite")
+         val onError by cv(OnErrorAction.SKIP).def(name = "On error")
+      }.configure("Copy as...") {
+         runIO {
+            fs.forEach { f ->
+               f.copyRecursively(it.file.value/f.name, it.overwrite.value) { _, e ->
+                  sp.it.pl.core.logger.warn(e) { "File copy failed" }
+                  it.onError.value
+               }.ifFalse {
+                  AppEventLog.push("File $f copy failed")
+               }
+            }
+         }.apply(then)
+      }
+   }
 }
 
 /** @return true iff this song is [Song.same] as the song that is currently playing */

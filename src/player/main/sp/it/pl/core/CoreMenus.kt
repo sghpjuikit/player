@@ -29,11 +29,11 @@ import sp.it.pl.layout.widget.feature.SongWriter
 import sp.it.pl.layout.widget.openInConfigured
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.Df.IMAGE
 import sp.it.pl.main.Df.PLAIN_TEXT
 import sp.it.pl.main.configure
+import sp.it.pl.main.copyAs
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
@@ -50,22 +50,15 @@ import sp.it.util.access.vn
 import sp.it.util.async.runIO
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
-import sp.it.util.conf.ConfigurableBase
-import sp.it.util.conf.cv
-import sp.it.util.conf.def
 import sp.it.util.conf.nonNull
-import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiConverter
 import sp.it.util.conf.valuesIn
 import sp.it.util.dev.Dsl
 import sp.it.util.dev.stacktraceAsString
-import sp.it.util.file.FileType.DIRECTORY
-import sp.it.util.file.div
 import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.asIs
-import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.browse
@@ -162,26 +155,14 @@ object CoreMenus: Core {
 
                item("Filename") { sysClipboard[PLAIN_TEXT] = it.nameOrRoot }
                item("File (${keys("${SHORTCUT.resolved} + C")})") { sysClipboard[FILES] = listOf(it) }
-               item("File As ...") { f ->
-                  object: ConfigurableBase<Any?>() {
-                     val file by cv(APP.location).only(DIRECTORY).def(name = "File")
-                     val overwrite by cv(false).def(name = "Overwrite")
-                     val onError by cv(OnErrorAction.SKIP).def(name = "On error")
-                  }.configure("Copy as...") {
-                     f.copyRecursively(it.file.value/f.name, it.overwrite.value) { _, e ->
-                        logger.warn(e) { "File copy failed" }
-                        it.onError.value
-                     }.ifFalse {
-                        AppEventLog.push("File $f copy failed")
-                     }
-                  }
-               }
+               item("File To ...") { it.copyAs() }
             }
          }
          addMany<File> {
             if (value.size>1) {
                menu("Copy (${keys("${SHORTCUT.resolved} + C")})") {
                   item("Files") { sysClipboard[FILES] = it.toList() }
+                  item("Files To ...") { it.copyAs() }
                }
             }
             item("Browse location") { APP.actions.browseMultipleFiles(it.asSequence()) }

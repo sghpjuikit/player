@@ -483,6 +483,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          titleL.text = ""
          infoT.text = ""
          fileTree.root = null
+         fileTree.requestFocus()
 
          runIO {
             object {

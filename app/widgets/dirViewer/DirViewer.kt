@@ -169,6 +169,8 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .defInherit(APP.ui::gridShowFooter)
    val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Inherit(), onClose)
       .defInherit(APP.ui::gridCellAlignment)
+   val cellType by cv(CellType.NORMAL).uiNoOrder().attach { applyCellType() }
+      .def(name = "View", info = "Size of the thumbnail.")
    val cellSize by cv(NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
@@ -262,16 +264,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          if (e.isShortcutDown) {
             e.consume()
             val isInc = e.deltaY<0 || e.deltaX>0
-            val useFreeStyle = e.isShiftDown
-            if (useFreeStyle) {
-               val preserveAspectRatio = true
-               val scaleUnit = 1.2
-               val w = grid.cellWidth.value
-               val h = grid.cellHeight.value
-               val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
-               var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
-               if (preserveAspectRatio) nh = nw/cellSizeRatio.value.ratio
-               applyCellSize(nw, nh)
+            if (e.isShiftDown) {
+               if (isInc) cellType.togglePrevious()
+               else cellType.toggleNext()
             } else {
                if (isInc) cellSize.togglePrevious()
                else cellSize.toggleNext()
@@ -434,11 +429,26 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       sysClipboard[Df.FILES] = grid.selectedItem.value?.value?.net { listOf(it) }
    }
 
-   private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
+
+   private fun applyCellType(type: CellType = cellType.value) {
+      cellSize.value = type.initialCellSize
+   }
+
+   private fun applyCellSize(type: CellType = cellType.value, width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
       item?.hRoot?.recurseBF { it.childrenRO().orEmpty() }.orEmpty().forEach { it.disposeCover() }
+      grid.cellMaxColumns.value = when (type) {
+         CellType.NORMAL -> null
+         CellType.LIST -> 1
+      }
       grid.itemsRaw.forEach { it.disposeCover() }
-      grid.cellWidth.value = width.emScaled
-      grid.cellHeight.value = height.emScaled + cellTextHeight.value
+      grid.cellWidth.value = when (type) {
+         CellType.NORMAL -> width.emScaled
+         CellType.LIST -> GridView.CELL_SIZE_UNBOUND
+      }
+      grid.cellHeight.value= when (type) {
+         CellType.NORMAL -> height.emScaled + cellTextHeight.value
+         CellType.LIST -> height.emScaled
+      }
       grid.horizontalCellSpacing.value = 10.emScaled
       grid.verticalCellSpacing.value = 10.emScaled
    }
@@ -474,6 +484,11 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    }
 
    private fun prodUserToSetupLocation() = chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window).ifOk { files setToOne it }
+
+   enum class CellType(val initialCellSize: CellSize) {
+      LIST(SMALL_24),
+      NORMAL(CellSize.NORMAL)
+   }
 
    private inner class IconCell: GridFileIconCell() {
 

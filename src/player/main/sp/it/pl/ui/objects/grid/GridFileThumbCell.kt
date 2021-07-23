@@ -20,7 +20,6 @@ import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.sleep
 import sp.it.util.async.threadFactory
 import sp.it.util.dev.ThreadSafe
-import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
@@ -185,12 +184,25 @@ open class GridFileThumbCell: GridCell<Item, File>() {
             val h = height
             val nameGap = 5.emScaled
             val th = computeCellTextHeight()
-            thumb!!.pane.resizeRelocate(x, y, w, h - th)
-            name.resizeRelocate(x + nameGap, h - th + nameGap, w-2*nameGap, th-2*nameGap)
-            r.x = x
-            r.y = y
-            r.width = w
-            r.height = h
+
+            if (gridView.value?.cellWidth?.value == CELL_SIZE_UNBOUND) {
+               name.alignment = Pos.CENTER_LEFT
+               text
+               thumb!!.pane.resizeRelocate(x, y, h, h)
+               name.resizeRelocate(h + nameGap, y, (w-h-2*nameGap) max 0.0, h)
+               r.x = x
+               r.y = y
+               r.width = h
+               r.height = h
+            } else {
+               name.alignment = Pos.CENTER
+               thumb!!.pane.resizeRelocate(x, y, w, h - th)
+               name.resizeRelocate(x + nameGap, h - th + nameGap, (w-2*nameGap) max 0.0, (th-2*nameGap) max 0.0)
+               r.x = x
+               r.y = y
+               r.width = w
+               r.height = h
+            }
          }
       }.apply {
          isSnapToPixel = true
@@ -213,9 +225,13 @@ open class GridFileThumbCell: GridCell<Item, File>() {
     * @implSpec called on fx application thread, must return positive width and height
     * @return size of an image to be loaded for the thumbnail
     */
-   protected fun computeThumbSize(): ImageSize = gridView.value
-      ?.let { ImageSize(it.cellWidth.value, it.cellHeight.value - computeCellTextHeight()) }
-      ?: ImageSize(100.0, 100.0)
+   protected fun computeThumbSize(): ImageSize = gridView.value.let {
+      when {
+         it == null -> ImageSize(100.0, 100.0)
+         it.cellWidth.value == CELL_SIZE_UNBOUND -> ImageSize(it.cellHeight.value, it.cellHeight.value)
+         else -> ImageSize(it.cellWidth.value , it.cellHeight.value - computeCellTextHeight())
+      }
+   }
 
    /**
     * @implSpec must be thread safe
@@ -262,7 +278,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          thumb!!.loadFile(null)
 
          val size = computeThumbSize()
-         failIf(size.width<=0 || size.height<=0)
+//         failIf(size.width<=0 || size.height<=0)
 
          loader.execute {
             if (!isInvalid(item, i)) {

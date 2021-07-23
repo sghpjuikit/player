@@ -94,6 +94,9 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    val cellWidth by sv<Double>(CELL_WIDTH)
    val cellHeight by sv<Double>(CELL_HEIGHT)
 
+   val cellWidthActual
+      get() = cellWidth.value.takeIf { it!=CELL_SIZE_UNBOUND } ?: width
+
    /** Cell gap layout strategy. Default [JUSTIFY]. */
    val cellAlign = V<CellGap>(CellGap.CENTER)
    /** Maximum number of cells in a horizontal row. Null indicates no limit. Default null. */
@@ -133,7 +136,18 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
 
    /** Predefined cell sizes. */
    enum class CellSize(val width: Double) {
-      SMALL(80.0), SMALLER(120.0), NORMAL(160.0), LARGE(240.0), VERY_LARGE(400.0), GIANT(600.0), EXTREME(800.0);
+      SMALL_12(12.0),
+      SMALL_24(24.0),
+      SMALL_36(36.0),
+      SMALL_48(48.0),
+      SMALL_60(60.0),
+      SMALL(80.0),
+      SMALLER(120.0),
+      NORMAL(160.0),
+      LARGE(240.0),
+      VERY_LARGE(400.0),
+      GIANT(600.0),
+      EXTREME(800.0)
    }
 
    /** Affects cell layout. */
@@ -213,6 +227,7 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
 
    companion object: StyleableCompanion() {
       const val STYLE_CLASS = "grid-view"
+      const val CELL_SIZE_UNBOUND = -1.0
 
       /** Creates an empty GridView with specified sizes. */
       inline operator fun <T: Any, reified F: Any> invoke(filterMapper: F1<T, F>, backingList: ObservableList<T>? = null): GridView<T, F> =
@@ -221,8 +236,8 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
       /** Creates an empty GridView with specified sizes. Convenience constructor. */
       inline operator fun <T: Any, reified F: Any> invoke(filterMapper: F1<T, F>, cellSize: P, gap: P, backingList: ObservableList<T>? = null): GridView<T, F> =
          GridView(filterMapper, backingList).apply {
-            this.cellWidth.value = cellSize.x
-            this.cellHeight.value = cellSize.y
+            cellWidth.value = cellSize.x
+            cellHeight.value = cellSize.y
             horizontalCellSpacing.value = gap.x
             verticalCellSpacing.value = gap.y
          }

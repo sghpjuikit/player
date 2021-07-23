@@ -59,6 +59,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.grid.GridView.CELL_SIZE_UNBOUND;
 import static sp.it.util.Util.clip;
 import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
@@ -613,7 +614,8 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			if (itemCount>0) {
 				// update cells
 				var grid = getSkinnable();
-				double cellWidth = grid.getCellWidth().getValue();
+				double cellWidthRaw = grid.getCellWidth().getValue();
+				double cellWidth = cellWidthRaw == CELL_SIZE_UNBOUND ? w : cellWidthRaw;
 				double cellHeight = grid.getCellHeight().getValue();
 				int columns = computeMaxCellsInRow();
 				double vGap = grid.getVerticalCellSpacing().getValue();
@@ -624,7 +626,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 				int viewStartRI = computeMinVisibleRowIndex();
 				int rowCount = computeVisibleRowCount();
 				int i = 0;
-				double xPosInitial = grid.getCellAlign().getValue().computeStartX(grid, w, columns);
+				double xPosInitial = cellWidthRaw == CELL_SIZE_UNBOUND ? 0.0 : grid.getCellAlign().getValue().computeStartX(grid, w, columns);
 				for (int rowI = viewStartRI; rowI<viewStartRI + rowCount; rowI++) {
 					double rowStartY = rowI*cellGapHeight;
 					double xPos = xPosInitial;
@@ -638,7 +640,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 						failIf(cell.getIndex()!=cellI);
 						failIf(item==null);
 
-						cell.resizeRelocate(snapPositionX(xPos), snapPositionY(yPos), snapSizeX(cellWidth), snapSizeY(cellHeight));
+						cell.resizeRelocate(snapPositionX(xPos), snapPositionY(yPos), snapSizeX(max(cellWidth, 10)), snapSizeY(max(cellHeight, 10)));
 						cell.update(cellI, item, cellI==skin.selectedCI);
 
 						xPos += cellGapWidth;
@@ -795,10 +797,15 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		/** @return the max number of cell per row */
 		public int computeMaxCellsInRow() {
-			var gap = getSkinnable().getHorizontalCellSpacing().getValue();
-			var maxColumnsRaw = getSkinnable().getCellMaxColumns().getValue();
-			var maxColumns = maxColumnsRaw != null ? maxColumnsRaw : Integer.MAX_VALUE;
-			return clip(1, (int) floor((computeRowWidth() + gap)/computeCellWidth()), maxColumns);
+			var cw = getSkinnable().getCellWidth().getValue();
+			if (cw ==GridView.CELL_SIZE_UNBOUND) {
+				return 1;
+			} else {
+				var gap = getSkinnable().getHorizontalCellSpacing().getValue();
+				var maxColumnsRaw = getSkinnable().getCellMaxColumns().getValue();
+				var maxColumns = maxColumnsRaw != null ? maxColumnsRaw : Integer.MAX_VALUE;
+				return clip(1, (int) floor((computeRowWidth() + gap)/(cw + gap)), maxColumns);
+			}
 		}
 
 		public int computeMaxRowsInView() {
@@ -815,10 +822,6 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			return getSkinnable().getCellHeight().getValue() + getSkinnable().getVerticalCellSpacing().getValue();
 		}
 
-		/** @return the width of a cell */
-		protected double computeCellWidth() {
-			return getSkinnable().getCellWidth().getValue() + getSkinnable().getHorizontalCellSpacing().getValue();
-		}
 	}
 
 	/** Pane which wraps a content and adds a vertical scrollbar on the right. */

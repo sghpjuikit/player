@@ -14,6 +14,7 @@ import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.SimpleSong;
+import sp.it.pl.ui.objects.grid.GridViewSkin;
 import sp.it.pl.ui.objects.image.Cover.CoverSource;
 import sp.it.pl.image.Image2PassLoader;
 import sp.it.util.HierarchicalBase;
@@ -63,8 +64,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	private volatile boolean coverFileLoaded = false;
 	private volatile boolean disposed = false;
 	public double loadProgress = 0;         // 0-1
-	public double lastScrollPosition = -1;  // -1
-	public int lastSelectedChild = -1;   // -1-N
+	public double lastScrollPosition = -1;  // -1 || 0-1
+	public int lastSelectedChild = GridViewSkin.NO_SELECT;   // GridViewSkin.NO_SELECT || 0-N
 	private HashMap<String, Object> properties = new HashMap<>();
 
 	public Item(Item parent, File value, FileType valueType) {
@@ -136,7 +137,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		coverLoading = null;
 		loadProgress = 0;
 		lastScrollPosition = -1;
-		lastSelectedChild = -1;
+		lastSelectedChild = GridViewSkin.NO_SELECT;
 	}
 
 	private void buildChildren() {

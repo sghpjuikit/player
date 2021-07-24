@@ -113,7 +113,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       }
    }
 
-   fun Icon.addExtraIcon(at: Int = 0) = apply { if (this !in icons.children) icons.children.add(2+at, this) }
+   fun Icon.addExtraIcon(at: Int = 0) = apply { if (this !in icons.children) icons.children.add(at, this) }
 
    private fun Icon?.remExtraIcon() = this?.let(icons.children::remove)
 

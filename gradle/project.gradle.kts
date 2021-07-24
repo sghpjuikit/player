@@ -86,14 +86,14 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.0")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.0")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.1")
          implementation("org.jetbrains", "annotations", "21.0.1")
       }
 
       "JavaFX" group {
-         val version = "17-ea+14"
+         val version = "18-ea+1"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -111,7 +111,7 @@ allprojects {
          implementation("org.slf4j", "slf4j-api")
          implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
          implementation("ch.qos.logback", "logback-classic", "1.2.3")
-         implementation("io.github.microutils", "kotlin-logging", "2.0.8")
+         implementation("io.github.microutils", "kotlin-logging", "2.0.10")
       }
 
       "Audio" group {
@@ -125,7 +125,7 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "3.7.2")
+         implementation("com.github.f4b6a3", "uuid-creator", "3.7.3")
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.2.2")
          implementation("com.github.ajalt", "clikt", "2.1.0")
@@ -159,8 +159,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.6.0")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.6.0")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.6.1")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.6.1")
       }
 
    }

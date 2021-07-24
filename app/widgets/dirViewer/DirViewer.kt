@@ -119,6 +119,7 @@ import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.grid.GridView.CellSize
 import sp.it.pl.ui.objects.grid.GridView.CellSize.SMALL_24
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.access.toggle
 import sp.it.util.conf.butElement
 import sp.it.util.conf.cOr
 import sp.it.util.conf.cr
@@ -263,13 +264,11 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       grid.onEventUp(SCROLL) { e ->
          if (e.isShortcutDown) {
             e.consume()
-            val isInc = e.deltaY<0 || e.deltaX>0
-            if (e.isShiftDown) {
-               if (isInc) cellType.togglePrevious()
-               else cellType.toggleNext()
-            } else {
-               if (isInc) cellSize.togglePrevious()
-               else cellSize.toggleNext()
+            val isDec = e.deltaY<0 || e.deltaX>0
+            when {
+               e.isAltDown -> cellSizeRatio.toggle(isDec) { it.ratio }
+               e.isShiftDown -> cellType.toggle(isDec)
+               else -> cellSize.toggle(isDec)
             }
          }
       }

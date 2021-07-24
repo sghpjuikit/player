@@ -74,8 +74,7 @@ import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.minus
-import sp.it.util.access.toggleNext
-import sp.it.util.access.togglePrevious
+import sp.it.util.access.toggle
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.FX
@@ -211,20 +210,19 @@ class GameView(widget: Widget): SimpleController(widget) {
             if (it.isShortcutDown) {
                it.consume()
 
-               val isInc = it.deltaY<0 || it.deltaX>0
+               val isDec = it.deltaY<0 || it.deltaX>0
                val useFreeStyle = it.isShiftDown
                if (useFreeStyle) {
                   val preserveAspectRatio = true
                   val scaleUnit = 1.2
                   val w = grid.cellWidth.value
                   val h = grid.cellHeight.value
-                  val nw = 50.0 max round(if (isInc) w*scaleUnit else w/scaleUnit)
-                  var nh = 50.0 max round(if (isInc) h*scaleUnit else h/scaleUnit)
+                  val nw = 50.0 max round(if (isDec) w*scaleUnit else w/scaleUnit)
+                  var nh = 50.0 max round(if (isDec) h*scaleUnit else h/scaleUnit)
                   if (preserveAspectRatio) nh = nw/gridCellSizeRatio.get().ratio
                   applyCellSize(nw, nh)
                } else {
-                  if (isInc) gridCellSize.togglePrevious()
-                  else gridCellSize.toggleNext()
+                  gridCellSize.toggle(isDec)
                }
             }
          }

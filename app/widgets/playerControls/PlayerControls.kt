@@ -76,8 +76,6 @@ import java.io.File
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.FORWARD
 import sp.it.pl.main.WidgetTags.AUDIO
-import sp.it.util.access.toggleNext
-import sp.it.util.access.togglePrevious
 
 class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature, HorizontalDock {
    val volume = Slider()
@@ -94,7 +92,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val f3 = IconUN(0x25c6).icon(128.0) { APP.audio.pauseResume() }
    val f4 = IconUN(0x2aa2).icon(72.0) { if (it) PlaylistManager.playNextItem() else APP.audio.seekForward(seekType.value) }
    val muteB = IconFA.VOLUME_UP.icon(24.0) { APP.audio.toggleMute() }
-   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.state.playback.loopMode.let { v -> if (it) v.toggleNext() else v.togglePrevious() } }
+   val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.state.playback.loopMode.toggle(it) }
    val playbackButtons = listOf(f2, f3, f4, seeker)
    private val layoutSmall = LayoutSmall()
    private val layoutBig = LayoutBig()

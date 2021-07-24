@@ -19,8 +19,7 @@ import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.OrV.OrValue.Initial.Override
-import sp.it.util.access.toggleNext
-import sp.it.util.access.togglePrevious
+import sp.it.util.access.toggle
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO
 import sp.it.util.conf.cOr
@@ -84,20 +83,19 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       grid.onEventUp(SCROLL) { e ->
          if (e.isShortcutDown) {
             e.consume()
-            val isInc = e.deltaY<0 || e.deltaX>0
+            val isDec = e.deltaY<0 || e.deltaX>0
             val useFreeStyle = e.isShiftDown
             if (useFreeStyle) {
                val preserveAspectRatio = true
                val scaleUnit = 1.2
                val w = grid.cellWidth.value
                val h = grid.cellHeight.value
-               val nw = 50.0 max kotlin.math.round(if (isInc) w*scaleUnit else w/scaleUnit)
-               var nh = 50.0 max kotlin.math.round(if (isInc) h*scaleUnit else h/scaleUnit)
+               val nw = 50.0 max kotlin.math.round(if (isDec) w*scaleUnit else w/scaleUnit)
+               var nh = 50.0 max kotlin.math.round(if (isDec) h*scaleUnit else h/scaleUnit)
                if (preserveAspectRatio) nh = nw/cellSizeRatio.value.ratio
                applyCellSize(nw, nh)
             } else {
-               if (isInc) cellSize.togglePrevious()
-               else cellSize.toggleNext()
+               cellSize.toggle(isDec)
             }
          }
       }

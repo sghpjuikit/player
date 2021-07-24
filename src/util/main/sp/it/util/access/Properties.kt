@@ -1,6 +1,5 @@
 package sp.it.util.access
 
-import javafx.beans.InvalidationListener
 import javafx.beans.Observable
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.BooleanBinding
@@ -10,10 +9,7 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.FloatProperty
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.LongProperty
-import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
-import javafx.beans.property.ReadOnlyBooleanProperty
-import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableBooleanValue
 import javafx.beans.value.ObservableDoubleValue
 import javafx.beans.value.ObservableFloatValue
@@ -22,12 +18,6 @@ import javafx.beans.value.ObservableLongValue
 import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
-import javafx.scene.Node
-import javafx.scene.control.ComboBox
-import javafx.scene.control.TextInputControl
-import javafx.scene.control.TreeItem
-import javafx.scene.text.TextAlignment
-import javafx.stage.Window
 import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.failIfNotFxThread
@@ -38,6 +28,7 @@ import sp.it.util.type.volatile
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
+import sp.it.util.type.enumValues
 
 val <T> KProperty0<T>.value: T
    get() = get()
@@ -69,11 +60,23 @@ inline fun <T> WritableValue<T>.transformValue(f: (T) -> T) { value = f(value) }
 /** Sets value to negated value of current value. */
 fun WritableValue<Boolean>.toggle() = transformValue { !it }
 
+/** Sets value to the enum value following or preceding the current value based on declaration order and the specified flag. Loop back to 1st/last value. */
+fun <T: Enum<T>> WritableValue<T>.toggle(next: Boolean) = if (next) toggleNext() else togglePrevious()
+
+/** Sets value to the enum value following or preceding the current value based order on by the specified comparator extractor and the specified flag. Loop back to 1st/last value. */
+fun <T: Enum<T>, R: Comparable<R>> WritableValue<T>.toggle(next: Boolean, by: (T) -> R?) = if (next) toggleNext(by) else togglePrevious(by)
+
 /** Sets value to the enum value following the current value based on declaration order. Loop back to 1st value. */
 fun <T: Enum<T>> WritableValue<T>.toggleNext() = transformValue { Values.next(it) }
 
+/** Sets value to the enum value following the current value based on order by the specified comparator extractor. Loop back to 1st value. */
+fun <T: Enum<T>, R: Comparable<R>> WritableValue<T>.toggleNext(by: (T) -> R?) = transformValue { Values.next(it::class.enumValues.sortedBy(by),  it) }
+
 /** Sets value to the enum value preceding the current value based on declaration order. Loop back to last value. */
 fun <T: Enum<T>> WritableValue<T>.togglePrevious() = transformValue { Values.previous(it) }
+
+/** Sets value to the enum value preceding the current value based on order by the specified comparator extractor. Loop back to last value. */
+fun <T: Enum<T>, R: Comparable<R>> WritableValue<T>.togglePrevious(by: (T) -> R?) = transformValue { Values.previous(it::class.enumValues.sortedBy(by),  it) }
 
 /** @return this property as a read-only property */
 fun <T> ObservableValue<T>.readOnly(): ObservableValue<T> = this

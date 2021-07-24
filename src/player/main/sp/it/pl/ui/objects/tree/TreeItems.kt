@@ -88,9 +88,13 @@ import java.nio.file.Path
 import java.util.ArrayList
 import java.util.Stack
 import javafx.stage.Window as WindowFX
+import javafx.scene.input.KeyCode.C
+import javafx.scene.input.KeyCode.DELETE
 import javax.swing.filechooser.FileSystemView
 import sp.it.pl.main.Df.FILES
+import sp.it.pl.main.sysClipboard
 import sp.it.util.access.expanded
+import sp.it.util.system.recycle
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.show
 
@@ -176,15 +180,43 @@ fun <T: Any> buildTreeView() = TreeView<T>().initTreeView()
 
 fun <T: Any> TreeView<T>.initTreeView() = apply {
 
-   onEventUp(KEY_PRESSED, ENTER) { doAction(selectionModel.selectedItem?.value, {}) }
+   onEventUp(KEY_PRESSED, ENTER) {
+      doAction(selectionModel.selectedItem?.value, {})
+   }
+   onEventUp(KEY_PRESSED, C, false) { e ->
+      if (e.isShortcutDown && !selectionModel.isEmpty) {
+         val items = selectionModel.selectedItems.asSequence()
+            .map { it.value }
+            .filterIsInstance<File>()
+            .toList()
+         if (items.isNotEmpty()) {
+            sysClipboard[FILES] = items
+            e.consume()
+         }
+      }
+   }
+   onEventUp(KEY_PRESSED, DELETE, false) { e ->
+      if (!selectionModel.isEmpty) {
+         val items = selectionModel.selectedItems.asSequence()
+            .map { it.value }
+            .filterIsInstance<File>()
+            .toList()
+         if (items.isNotEmpty()) {
+            items.forEach { it.recycle() }
+            e.consume()
+         }
+      }
+   }
    onEventDown(DRAG_DETECTED, PRIMARY, false) { e ->
       if (!selectionModel.isEmpty) {
          val items = selectionModel.selectedItems.asSequence()
             .map { it.value }
             .filterIsInstance<File>()
             .toList()
-         startDragAndDrop(*TransferMode.ANY)[FILES] = items
-         e.consume()
+         if (items.isNotEmpty()) {
+            startDragAndDrop(*TransferMode.ANY)[FILES] = items
+            e.consume()
+         }
       }
    }
 
@@ -466,6 +498,13 @@ class FileTreeItem: SimpleTreeItem<File> {
       }
       dirs += files
       return dirs
+   }
+
+   fun removeChild(file: File) {
+      if (!isFirstTimeChildren) {
+         children.removeIf { it.value==file }
+         children.forEach { if (it is FileTreeItem) it.removeChild(file) }
+      }
    }
 }
 

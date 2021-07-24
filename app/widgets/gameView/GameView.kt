@@ -39,6 +39,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog
+import sp.it.pl.main.Events.FileEvent
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
@@ -61,6 +62,7 @@ import sp.it.pl.ui.objects.image.FileCover
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.ui.objects.placeholder.show
+import sp.it.pl.ui.objects.tree.FileTreeItem
 import sp.it.pl.ui.objects.tree.buildTreeCell
 import sp.it.pl.ui.objects.tree.initTreeView
 import sp.it.pl.ui.objects.tree.tree
@@ -103,6 +105,7 @@ import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.readProperties
 import sp.it.util.file.readTextTry
 import sp.it.util.file.toFast
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
@@ -225,6 +228,9 @@ class GameView(widget: Widget): SimpleController(widget) {
                }
             }
          }
+         APP.actionStream.onEvent<FileEvent.Delete> { d ->
+            root.children.asSequence().filterIsInstance<GamePane>().firstOrNull()?.handleFileDeleted(d.file)
+         } on onClose
       }
 
 
@@ -505,6 +511,10 @@ class GameView(widget: Widget): SimpleController(widget) {
                animPar(animated) { i, node -> anim(300.millis) { node.opacity = it*it*it }.delay(200.millis*i) }.play()
             }
          }
+      }
+
+      fun handleFileDeleted(f: File) {
+         fileTree.root?.asIf<FileTreeItem>()?.removeChild(f)
       }
    }
 

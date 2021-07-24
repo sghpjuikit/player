@@ -39,8 +39,6 @@ import sp.it.util.Sort.ASCENDING
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
-import sp.it.util.access.toggleNext
-import sp.it.util.access.togglePrevious
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.onlyIfMatches
@@ -109,15 +107,20 @@ import javafx.scene.input.KeyCode.C
 import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.SHORTCUT
 import javafx.scene.input.KeyCode.V
+import mu.KLogging
+import sp.it.pl.layout.widget.WidgetCompanion
 import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.Df
 import sp.it.pl.main.Events.FileEvent
 import sp.it.pl.main.FileFilters.cvFileFilter
+import sp.it.pl.main.HelpEntries
+import sp.it.pl.main.IconUN
 import sp.it.pl.main.copyAs
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.grid.GridView.CellSize
 import sp.it.pl.ui.objects.grid.GridView.CellSize.SMALL_24
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.toggle
 import sp.it.util.conf.butElement
@@ -134,15 +137,9 @@ import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
+import sp.it.util.units.version
+import sp.it.util.units.year
 
-@Widget.Info(
-   author = "Martin Polakovic",
-   name = "Dir Viewer",
-   description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. " + "Intended as simple library",
-   version = "0.7.0",
-   year = "2015",
-   tags = [ LIBRARY ]
-)
 class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature {
 
    private val outputSelectedSuppressor = Suppressor(false)
@@ -483,6 +480,38 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    }
 
    private fun prodUserToSetupLocation() = chooseFile("Choose directory", DIRECTORY, APP.locationHome, root.scene.window).ifOk { files setToOne it }
+
+   @Widget.Info(
+      author = "Martin Polakovic",
+      name = "Dir Viewer",
+      description = "Displays directory hierarchy and files as thumbnails in a vertically scrollable grid. " + "Intended as simple library",
+      version = "0.7.0",
+      year = "2015",
+      tags = [ LIBRARY ]
+   )
+   companion object: WidgetCompanion, KLogging() {
+      override val name = "Dir Viewer"
+      override val description = "Dir Viewer"
+      override val descriptionLong = "Displays file hierarchy in a 2D vertically scrollable grid. Allows creation of customizable libraries."
+      override val icon = IconUN(0x2e2a)
+      override val version = version(0, 8, 0)
+      override val isSupported = true
+      override val year = year(2015)
+      override val author = "spit"
+      override val contributor = ""
+      override val tags = setOf(LIBRARY)
+      override val summaryActions = HelpEntries.Grid + listOf(
+         Entry("Data", "Refresh", F5.nameUi),
+         Entry("Grid cell", "Visit child file", ENTER.nameUi),
+         Entry("Grid cell", "Visit parent file", "2x${PRIMARY.nameUi}"),
+         Entry("Grid cell", "Visit parent file", BACK_SPACE.nameUi),
+         Entry("Grid cell", "Visit parent file", BACK.nameUi),
+         Entry("Grid cell", "Visit parent file", SECONDARY.nameUi),
+         Entry("Grid cell", "Delete file", DELETE.nameUi),
+         Entry("Grid cell", "Copy file", "CTRL+C"),
+         Entry("Grid cell", "Paste file", "CTRL+V"),
+      )
+   }
 
    enum class CellType(val initialCellSize: CellSize) {
       LIST(SMALL_24),

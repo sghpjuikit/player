@@ -266,45 +266,6 @@ Features:
       /** Name of the group. */
       const val name = "Plugins"
 
-      object `guide` {
-         /** Name of the group. */
-         const val name = "Guide"
-
-         /** Last viewed hint. Showed next time the guide opens.. */
-         object `hint`: ConfigDefinition {
-            /** Compile-time constant equivalent to [name]. */
-            const val cname: String = """Hint"""
-            /** Compile-time constant equivalent to [info]. */
-            const val cinfo: String = """Last viewed hint. Showed next time the guide opens."""
-            /** Compile-time constant equivalent to [group]. */
-            const val cgroup: String = """Plugins.Guide"""
-            /** Name of the config. */
-            override val name = cname
-            /** Group of the config. */
-            override val group = cgroup
-            /** Description of the config. */
-            override val info = cinfo
-            /** Editability of the config. */
-            override val editable = EditMode.APP
-         }
-         /** Show guide when application starts. Default true, but when guide is shown, it is set to false so the guide will never appear again on its own.. */
-         object `showGuideOnAppStart`: ConfigDefinition {
-            /** Compile-time constant equivalent to [name]. */
-            const val cname: String = """Show guide on app start"""
-            /** Compile-time constant equivalent to [info]. */
-            const val cinfo: String = """Show guide when application starts. Default true, but when guide is shown, it is set to false so the guide will never appear again on its own."""
-            /** Compile-time constant equivalent to [group]. */
-            const val cgroup: String = """Plugins.Guide"""
-            /** Name of the config. */
-            override val name = cname
-            /** Group of the config. */
-            override val group = cgroup
-            /** Description of the config. */
-            override val info = cinfo
-            /** Editability of the config. */
-            override val editable = EditMode.APP
-         }
-      }
       object `screenDock` {
          /** Name of the group. */
          const val name = "Screen Dock"

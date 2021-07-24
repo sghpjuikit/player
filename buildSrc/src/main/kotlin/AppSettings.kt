@@ -61,16 +61,6 @@ val appSetting = Setting.root {
       }
    }
    "Plugins" {
-      "Guide" {
-         config("Hint") {
-            info = "Last viewed hint. Showed next time the guide opens."
-            editable = APP
-         }
-         config("Show guide on app start") {
-            info = "Show guide when application starts. Default true, but when guide is shown, it is set to false so the guide will never appear again on its own."
-            editable = APP
-         }
-      }
       "Screen Dock" {
          config("Enable") {
             info = "Enable/disable this plugin. Whether application has docked window in the top of the screen"

@@ -1,9 +1,24 @@
 package sp.it.util.ui.image
 
+import java.awt.image.BufferedImage as ImageBf
+import javafx.scene.image.Image as ImageFx
+import javafx.scene.image.WritableImage as ImageWr
 import com.twelvemonkeys.image.ResampleOp
+import java.awt.Dimension
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.nio.IntBuffer
 import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
+import javafx.geometry.Rectangle2D
+import javafx.scene.image.PixelBuffer
+import javafx.scene.image.PixelFormat
+import javax.imageio.ImageIO
+import javax.imageio.ImageReader
+import javax.imageio.stream.ImageInputStream
 import mu.KotlinLogging
+import sp.it.util.async.runFX
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.Try
@@ -13,21 +28,22 @@ import sp.it.util.functional.runTry
 import sp.it.util.math.max
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
-import java.awt.Dimension
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import javax.imageio.ImageIO
-import javax.imageio.ImageReader
-import javax.imageio.stream.ImageInputStream
-import javafx.scene.image.Image as ImageFx
-import javafx.scene.image.WritableImage as ImageWr
-import java.awt.image.BufferedImage as ImageBf
 
 private val logger = KotlinLogging.logger {}
 
 @JvmOverloads
 fun ImageBf.toFX(to: ImageWr? = null) = SwingFXUtils.toFXImage(this, to)!!
+
+// https://github.com/javafxports/openjdk-jfx/pull/472#issuecomment-500547180
+fun ImageBf.toFXCustom(): ImageWr {
+   val bb = IntBuffer.allocate(width*height*Integer.BYTES)
+   val pb = PixelBuffer(width, height, bb, PixelFormat.getIntArgbPreInstance())
+   getRGB(0, 0, width, height, bb.array(), 0, width)
+   runFX {
+      pb.updateBuffer { Rectangle2D(0.0, 0.0, width.toDouble(), height.toDouble()) }
+   }
+   return ImageWr(pb)
+}
 
 @JvmOverloads
 fun ImageFx.toBuffered(to: ImageBf? = null): ImageBf? = SwingFXUtils.fromFXImage(this, to)

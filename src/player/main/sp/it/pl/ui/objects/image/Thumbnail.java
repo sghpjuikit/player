@@ -120,6 +120,7 @@ public class Thumbnail {
 			double imgW = min(W, maxImgW.get());
 			double imgH = min(H, maxImgH.get());
 
+			ratioTHUMB.setValue(H==0.0 ? 1 : W/H);
 			applyViewPort(imageView.getImage());
 
 			// resize thumbnail
@@ -135,6 +136,7 @@ public class Thumbnail {
 					imageView.setFitHeight(H);
 				}
 			}
+
 
 			// lay out other children (maybe introduced in subclass)
 			super.layoutChildren();
@@ -199,9 +201,6 @@ public class Thumbnail {
 		imageView.getStyleClass().add(styleclassImage);
 		imageView.setFitHeight(-1);
 		imageView.setFitWidth(-1);
-
-		ratioTHUMB.bind(root.widthProperty().divide(root.heightProperty()));
-		imageView.imageProperty().addListener((o, ov, nv) -> ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight()));
 		fitFrom.addListener((o, ov, nv) -> root.requestLayout());
 
 		// initialize values
@@ -274,6 +273,7 @@ public class Thumbnail {
 		// ignore outdated loadings
 		if (id!=loadId) return;
 
+		ratioIMG.setValue(i==null || i.getHeight()==0 ? 1.0 : i.getWidth()/i.getHeight());
 		applyViewPort(i);
 		imageView.setImage(i);
 

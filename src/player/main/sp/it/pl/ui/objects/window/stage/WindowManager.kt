@@ -424,8 +424,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
          mw.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
          mw.stage.scene.root.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
-         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { mwShower.hide() }
-         mw.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { mwShower.hide() }
+         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
          mw.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
          mw.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
          mwShower.showInitially()
@@ -557,7 +557,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       runFX(300.millis) {
          mw.stage.installHideOnFocusLost(mwAutohide, hider)
          mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
-         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { hider() }
+         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) hider() }
       }
 
       return mw

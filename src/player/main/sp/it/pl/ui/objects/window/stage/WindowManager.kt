@@ -58,6 +58,7 @@ import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
+import sp.it.pl.ui.objects.window.dock.DockWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
@@ -137,7 +138,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */
    @JvmField val windows = observableList<Window>()
    /** Dock window or null if none. */
-   @JvmField var dockWindow: Window? = null
+   @JvmField var dockWindow: DockWindow? = null
    /** Main application window, see [sp.it.pl.ui.objects.window.stage.Window.isMain]. */
    private var mainWindow: Window? = null
    /** 128x128 icon of the application */
@@ -199,7 +200,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    init {
       windowsFx.onItemAdded { w ->
          w.asAppWindow().ifNotNull {
-            if (it!==dockWindow) {
+            if (it!==dockWindow?.window) {
                windows += it
             }
          }
@@ -311,27 +312,28 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
          val mwAutohide = v(true)
          val mwFocusRestoring = Suppressor()
-         val mw = dockWindow ?: create(createStageOwner(), windowStyle.value, false).apply {
+         val mw = dockWindow ?: DockWindow(create(createStageOwner(), windowStyle.value, false)).apply {
             dockWindow = this
+            window.apply {
+               resizable.value = true
+               alwaysOnTop.value = true
+               root.styleClass += "window-dock"
 
-            resizable.value = true
-            alwaysOnTop.value = true
-            root.styleClass += "window-dock"
+               setSize(Screen.getPrimary().bounds.width, dockHeight.value, false)
+               dockHeight attachTo H
+               H attach { dockHeight.value = it.toDouble() }
 
-            setSize(Screen.getPrimary().bounds.width, dockHeight.value, false)
-            dockHeight attachTo H
-            H attach { dockHeight.value = it.toDouble() }
-
-            APP.mouse.screens.onChangeAndNow {
-               val s = Screen.getPrimary()
-               setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height, false)
-            } on onClose
+               APP.mouse.screens.onChangeAndNow {
+                  val s = Screen.getPrimary()
+                  setXYSize(s.bounds.minX, s.bounds.minY, s.bounds.width, height, false)
+               } on onClose
+            }
          }
          val content = borderPane {
             center = stackPane {
                lay += anchorPane {
                   Layout.openStandalone(this).apply {
-                     mw.properties[Window.keyWindowLayout] = this
+                     mw.window.properties[Window.keyWindowLayout] = this
                   }
                }
             }
@@ -340,7 +342,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                lay += vBox {
                   alignment = Pos.TOP_CENTER
                   lay += windowPinIcon(mwAutohide)
-                  lay += windowOnTopIcon(mw)
+                  lay += windowOnTopIcon(mw.window)
                }
                lay += vBox {
                   alignment = Pos.BOTTOM_CENTER
@@ -348,46 +350,48 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                      styleclass("header-icon")
                      tooltip("Close dock permanently")
                      onClickDo { dockShow.value = false }
-                     hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.onClose
+                     hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.window.onClose
                   }
                }
             }
          }
-         mw.setContent(content)
+         mw.window.setContent(content)
 
          // content
          val dockComponentFile = APP.location.user.tmp / "DockComponent.fxwl"
          FX.launch {
             val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
-            mw.s.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
-            mw.onClose += {
+            mw.window.stage.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
+            mw.window.onClose += {
                mwFocusRestoring.suppressed {
-                  mw.s.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
-                  mw.s.asLayout()?.child?.close()
+                  mw.window.stage.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
+                  mw.window.stage.asLayout()?.child?.close()
                }
             }
          }
 
          // show and apply state
-         mw.show()
-         mw.isHeaderAllowed.value = false
-         mw.update()
-         mw.back.style = "-fx-background-size: cover;" // disallow bgr stretching
-         mw.content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr
+         mw.window.show()
+         mw.window.isHeaderAllowed.value = false
+         mw.window.update()
+         mw.window.back.style = "-fx-background-size: cover;" // disallow bgr stretching
+         mw.window.content.style = "-fx-background-color: -skin-pane-color;" // imitate widget area bgr
 
          // auto-hiding
          val mwShower = object: Any() {
             private var showValue = 0.0 // 0..1, anything between means the window is transitioning to hide or show
             private val showAnim = anim(300.millis) {
                showValue = it
-               mw.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
-               mw.setY(-(mw.H.value-2.0)*(1.0-it), false)
+               mw.isShowing = it!=0.0
+               println(mw.isShowing)
+               mw.window.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
+               mw.window.setY(-(mw.window.H.value-2.0)*(1.0-it), false)
             }
             private val shower = fxTimer(ZERO, 1) {
                showAnim.intpl { sqrt(sqrt(it)) }
                showAnim.playOpenDo {
                   content.isMouseTransparent = false
-                  mw.focus()
+                  mw.window.focus()
                }
             }
             private val hider = {
@@ -406,7 +410,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                }
             }
             val isHover = v(false).apply {
-               dockHideInactive syncWhileTrue { APP.mouse.observeMousePosition { value = mw.root.containsScreen(APP.mouse.mousePosition) } } on mw.onClose
+               dockHideInactive syncWhileTrue { APP.mouse.observeMousePosition { value = mw.window.root.containsScreen(APP.mouse.mousePosition) } } on mw.window.onClose
             }
 
             fun hide() = if (showValue==1.0) hider() else Unit
@@ -420,17 +424,17 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 //                  if (mwIsHover.value) hider()
                }
          }
-         mw.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
-         mw.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
-         mw.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
-         mw.stage.scene.root.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
-         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
-         mw.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
-         mw.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
-         mw.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
+         mw.window.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
+         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, SPACE) { mwShower.show() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
+         mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
+         mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
          mwShower.showInitially()
       } else {
-         dockWindow?.close()
+         dockWindow?.window?.close()
          dockWindow = null
       }
    }
@@ -446,7 +450,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       }
 
       val filesOld = dir.children().toSet()
-      val ws = windows.filter { it!==dockWindow && it.layout!=null }
+      val ws = windows.filter { it!==dockWindow?.window && it.layout!=null }
       logger.info { "Serializing ${ws.size} application windows" }
 
       // serialize - for now each window to its own file with .ws extension

@@ -390,7 +390,7 @@ class App: Application(), GlobalConfigDelegator {
    private fun store() {
       if (isInitialized.isOk) {
          if (rank==MASTER && isStateful) audio.state.serialize()
-         if (rank==MASTER && isStateful) windowManager.dockWindow?.close()
+         if (rank==MASTER && isStateful) windowManager.dockWindow?.window?.close()
          if (rank==MASTER && isStateful) windowManager.serialize()
          if (rank==MASTER) configuration.save(name, location.user.application_properties)
       }

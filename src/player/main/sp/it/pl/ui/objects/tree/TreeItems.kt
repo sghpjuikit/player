@@ -323,7 +323,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
          } else {
             var n = "Window " + APP.windowManager.windows.indexOf(w)
             if (w===APP.windowManager.getMain()) n += " (main)"
-            if (w===APP.windowManager.dockWindow) n += " (dock)"
+            if (w===APP.windowManager.dockWindow?.window) n += " (dock)"
             n
          }
       }

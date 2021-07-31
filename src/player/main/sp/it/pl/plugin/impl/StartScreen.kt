@@ -55,7 +55,10 @@ class StartScreen: PluginBase() {
       APP.actionStream.onEventObject(Events.AppEvent.UserSessionEvent.Stop) { overlay.hide() }
    }
    private val overlayIsActive = Subscribed {
-      val shower = fxTimer(500.millis, 1) { overlay.orBuild.show(Unit) }
+      val shower = fxTimer(500.millis, 1) {
+         if (APP.windowManager.dockWindow?.isShowing!=true)
+            overlay.orBuild.show(Unit)
+      }
       overlaySleepHandler.subscribe()
       overlayUserHandler.subscribe()
 
@@ -69,7 +72,10 @@ class StartScreen: PluginBase() {
             mouseXy = mp
             if (!moved) {
                mouseIn = corners.any { mp in it }
-               if (!wasMouseIn && mouseIn) shower.start()
+               if (!wasMouseIn && mouseIn) {
+                  if (APP.windowManager.dockWindow?.isShowing!=true)
+                     shower.start()
+               }
             }
          },
          Subscription {

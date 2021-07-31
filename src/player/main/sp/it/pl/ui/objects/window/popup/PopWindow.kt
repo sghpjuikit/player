@@ -34,6 +34,7 @@ import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.objects.window.stage.popWindowOwner
+import sp.it.pl.ui.pane.OverlayPane.Companion.asOverlayWindow
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
@@ -417,7 +418,7 @@ open class PopWindow {
 
       fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
 
-      fun Window.isOpenChild(): Boolean = hasFileChooserOpen || Stage.getWindows().any { this isParent it }
+      fun Window.isOpenChild(): Boolean = hasFileChooserOpen ||  Stage.getWindows().any { it.asOverlayWindow()!=null } || Stage.getWindows().any { this isParent it }
 
       fun Window.isFocusedChild(): Boolean = hasFileChooserOpen || Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true
 

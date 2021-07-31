@@ -18,6 +18,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import javafx.stage.Stage
+import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_SHOWN
 import kotlin.math.abs
 import sp.it.pl.core.NameUi
@@ -25,6 +26,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.focused
 import sp.it.util.access.readOnly
 import sp.it.util.access.v
@@ -37,6 +39,7 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.toUnit
 import sp.it.util.math.P
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
@@ -286,6 +289,7 @@ abstract class OverlayPane<in T>: StackPane() {
 
             op.stage = createFMNTStage(screen, false).apply {
                scene = Scene(root)
+               initOverlayWindow(this@OverlayPane)
             }
 
             if (op !in root.children) {

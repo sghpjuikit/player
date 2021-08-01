@@ -60,8 +60,6 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.dock.DockWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.util.access.toggle
-import sp.it.util.access.toggleNext
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
@@ -287,18 +285,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       mainWindow = w
       mainWindow?.let { it.isMainImpl.value = true }
    }
-
-   @IsAction(name = "Close active window", keys = "CTRL+W", info = "Close focused window")
-   private fun focusedWindowClose() = getFocused()?.close()
-
-   @IsAction(name = "Maximize", info = "Switch maximized mode for active window.", keys = "F11")
-   fun focusedWindowToggleMaximize() = getFocused()?.toggleMaximize()
-
-   @IsAction(name = "Maximized (toggle)", info = "Switch to different maximized states for active window.", keys = "SHIFT+F11")
-   fun focusedWindowToggleMaximizedState() = getFocused()?.maximized?.toggleNext()
-
-   @IsAction(name = "Fullscreen", info = "Switch fullscreen mode for active window.", keys = "F12")
-   fun focusedWindowToggleFullscreen() = getFocused()?.fullscreen?.toggle()
 
    private fun showDockImpl(enable: Boolean) {
       if (!APP.isStateful) return

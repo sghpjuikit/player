@@ -84,7 +84,7 @@ public abstract class Search {
 		if (pressedKeyCode==keyCancel || pressedKeyCode==keyNextOccurrence) return;
 		if (pressedKeyCode==ESCAPE || pressedKeyCode==TAB || pressedKeyCode==ENTER || pressedKeyCode==DELETE) return;
 		if (pressedKeyCode==BACK_SPACE && !isActive()) return;
-		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown()) return;
+		if (pressedKeyCode.isNavigationKey() || pressedKeyCode.isFunctionKey() || e.isAltDown() || e.isShortcutDown() || e.isMetaDown()) return;
 		if (!isActive() && (e.isShiftDown() || pressedKeyCode==SPACE)) return;
 
 		var letter = e.getCharacter();
@@ -108,6 +108,7 @@ public abstract class Search {
 	 */
 	private void onKeyPress(KeyEvent e) {
 		if (e.isConsumed()) return;
+		if (e.isAltDown() || e.isShortcutDown() || e.isMetaDown()) return;
 		pressedKeyCode = e.getCode();
 		pressedKeyProcessed = false;
 

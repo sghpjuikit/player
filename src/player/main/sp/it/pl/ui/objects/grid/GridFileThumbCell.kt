@@ -41,6 +41,9 @@ import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
 import java.io.File
+import sp.it.pl.ui.objects.grid.GridView.Companion.CELL_SIZE_UNBOUND
+import sp.it.util.math.max
+import sp.it.util.units.em
 
 /**
  * GridCell implementation for file using [sp.it.pl.ui.objects.hierarchy.Item]
@@ -71,7 +74,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       FileType.FILE -> item.value.nameWithoutExtension
    }
 
-   protected open fun computeCellTextHeight(): Double = 40.0
+   protected open fun computeCellTextHeight(): Double = 2 * (font?.size ?: 1.em)
 
    protected open fun computeTask(r: () -> Unit): () -> Unit = r
 

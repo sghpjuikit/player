@@ -381,7 +381,11 @@ class TarsosAudioEngine(settings: Spektrum) {
                start()
             }
          }
-      }.ifError { it.printStackTrace() }
+      }.ifError {
+         // TODO: use logger
+         println("Using audio device '${settings.inputDevice.value}' failed")
+         it.printStackTrace()
+      }
    }
 
    fun stop() {

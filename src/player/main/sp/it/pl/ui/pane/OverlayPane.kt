@@ -357,6 +357,9 @@ abstract class OverlayPane<in T>: StackPane() {
       private const val IS_SHOWN = "visible"
       private const val ROOT_STYLECLASS = "overlay-pane"
       private const val CONTENT_STYLECLASS = "overlay-pane-content"
+
+      fun Window.initOverlayWindow(overlay: OverlayPane<*>): Unit = properties.put("overlayWindow", overlay).toUnit()
+      fun Window.asOverlayWindow(): OverlayPane<*>? = properties["overlayWindow"].asIf()
    }
 }
 

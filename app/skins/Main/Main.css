@@ -3036,8 +3036,8 @@ Shape, Text, SpitText, TextFlow > * {
 .slider-circular .slider-circular-bgr {
     -fx-fill: transparent;
     -fx-stroke: rgba(220,220,220,0.2);
-    -fx-stroke-type: centered;
-    -fx-stroke-width: 11;
+    -fx-stroke-type: inside;
+    -fx-stroke-width: 2;
     -fx-stroke-line-cap: butt;
     -fx-stroke-line-join: miter;
     -fx-stroke-dash-array: null;
@@ -3045,7 +3045,7 @@ Shape, Text, SpitText, TextFlow > * {
 .slider-circular .slider-circular-frg {
     -fx-fill: transparent;
     -fx-stroke: -fx-focus-color;
-    -fx-stroke-type: centered;
+    -fx-stroke-type: outside;
     -fx-stroke-width: 11;
     -fx-stroke-line-cap: butt;
     -fx-stroke-line-join: miter;

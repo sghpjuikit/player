@@ -263,8 +263,8 @@ application {
    mainClass.set("sp.it.pl.main.AppKt")
    applicationDefaultJvmArgs = listOf(
       "-Dfile.encoding=UTF-8",
-      "-ms" + ("player.memoryMin".prjProp ?: "50m"),
-      "-mx" + ("player.memoryMax".prjProp ?: "3g"),
+      "-Xms" + ("player.memoryMin".prjProp ?: "50m"),
+      "-Xmx" + ("player.memoryMax".prjProp ?: "3g"),
       "-XX:MinHeapFreeRatio=5",  // Hotspot gc only
       "-XX:MaxHeapFreeRatio=10",  // Hotspot gc only
       "-XX:+UseStringDeduplication",

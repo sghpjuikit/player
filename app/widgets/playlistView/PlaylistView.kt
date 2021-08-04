@@ -195,9 +195,9 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       val wasActive = dp.id==PlaylistManager.active
       PlaylistManager.playlists -= dp
       Playlist(id).apply {
+         PlaylistManager.playlists += this
          addPlaylistSongs(dp, 0)
          updatePlayingItem(dp.indexOfPlaying())
-         PlaylistManager.playlists += this
          if (wasActive) PlaylistManager.active = id
       }
    }

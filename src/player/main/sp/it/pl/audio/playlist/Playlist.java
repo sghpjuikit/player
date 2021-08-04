@@ -433,6 +433,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 						unplayable1st = null;
 						PlaylistManager.active = this.id;
 						PlaylistManager.playlists.forEach(p -> p.playingSongWrapper.set(p==this ? song : null));
+						playingSongWrapper.set(song);
 						APP.audio.play(song);
 					});
 				}

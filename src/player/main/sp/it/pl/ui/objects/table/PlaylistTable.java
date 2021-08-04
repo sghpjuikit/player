@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
@@ -81,9 +82,9 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 	public final @NotNull V<@NotNull Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
-	private final ArrayList<Integer> selectionTmp = new ArrayList<>();
 	private final Disposer disposer = new Disposer();
 
+	@SuppressWarnings("unchecked")
 	public PlaylistTable(Playlist playlist) {
 		super(PlaylistSong.class, NAME, playlist);
 
@@ -97,11 +98,11 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		// initialize column factories
 		setColumnFactory(f -> {
 			TableColumn<PlaylistSong,Object> c = new TableColumn<>(f.toString());
-			boolean hasPropertyGetter = f==(Object) NAME || f==(Object) LENGTH;
-			c.setCellValueFactory(hasPropertyGetter
-				? new PropertyValueFactory<>(f.name().toLowerCase())
-				: cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue()))
-			);
+
+			if (f==(Object) NAME) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getNameP());
+			else if (f==(Object) LENGTH) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getTimeP());
+			else c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue())));
+
 			c.setCellFactory(column -> buildFieldedCell(f));
 			c.setResizable(true);
 			return c;
@@ -151,7 +152,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 				// do not return - after resizing the resized column, we go resize
 				// the rest to always fill the table width
-				// true means the delta is reset and wont accumulate
+				// true means the delta is reset and won't accumulate
 				// return true;
 			}
 
@@ -190,11 +191,11 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		// move items on drag
 		addEventFilter(MOUSE_DRAGGED, e -> {
 			if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
-			// we cant move items when filter on & we cant cancel filter, user would freak out
-			//  if (itemsPredicate.get()!=null) return; // unreliable as non null predicates may have no effect
+			// we can't move items when filter on & we can't cancel filter, user would freak out
+			//  if (itemsPredicate.get()!=null) return; // unreliable as non-null predicates may have no effect
 			if (getItems().size()!=getItemsRaw().size()) return;
 
-			// transform any sort (if in effect) to actual table items, we cant change order on
+			// transform any sort (if in effect) to actual table items, we can't change order on
 			// items out of natural order
 			// note this is only called the 1st time (or not at all), not repeatedly
 			if (itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {

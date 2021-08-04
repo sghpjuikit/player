@@ -22,6 +22,7 @@ import sp.it.util.type.VType
 import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
 import java.net.URI
+import sp.it.util.functional.net
 
 /**
  * Song in playlist.
@@ -36,19 +37,21 @@ import java.net.URI
  */
 class PlaylistSong: Song {
 
-   private val uriP: SimpleObjectProperty<URI>
-   private val timeP: SimpleObjectProperty<Duration>
-   private val nameP: SimpleStringProperty
-
+   val uriP: SimpleObjectProperty<URI>
    override val uri: URI get() = uriP.get()
+
    private var artist: String? = null
    private var title: String? = null
+
+   val nameP: SimpleStringProperty
    val name: String get() = nameP.get()
+
+   val timeP: SimpleObjectProperty<Duration>
    val time: Duration get() = timeP.get()
 
    /**
     * Returns true if the item was marked updated. Once item is updated it will stay in that state. Updated item
-    * guarantees that all its values are valid, but does not guarantee that they are up to date. For manipulation
+    * guarantees that all its values are valid, but does not guarantee that they are up-to-date. For manipulation
     * within the application there should be no need to update the item again. If the item changes, the change should
     * be handled by the application.
     *
@@ -60,7 +63,7 @@ class PlaylistSong: Song {
     * Returns true if this item was marked corrupt last time it was checked to be corrupted. This doesn't necessarily
     * reflect the real value, instead returns cached value to avoid i/o when performance is critical, e.g., in tables.
     *
-    * If the validity of the check is prioritized, use [.isCorrupt]}.
+    * If the validity of the check is prioritized, use [.isCorrupt].
     *
     * @return cached corrupted value
     */

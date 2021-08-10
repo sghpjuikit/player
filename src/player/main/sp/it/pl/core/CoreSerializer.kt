@@ -71,6 +71,7 @@ object CoreSerializer: Core {
       val f = APP.location.user.library/(T::class.simpleName ?: T::class.jvmName)
       return f.writeSafely {
          runTry {
+            APP.location.user.library.mkdirs()
             ObjectOutputStream(it.outputStream()).use {
                it.writeObject(o)
             }

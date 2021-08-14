@@ -7,7 +7,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.controller.io.IO
-import sp.it.pl.layout.widget.feature.Feature
 import sp.it.pl.layout.widget.isCompiling
 import sp.it.pl.main.APP
 import sp.it.pl.main.appProgressIndicator

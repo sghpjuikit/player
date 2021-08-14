@@ -488,11 +488,10 @@ fun JsValue.toPrettyS(indent: String = "  ", newline: String = "\n"): String {
       is JsNumber -> value.toString()
       is JsArray ->
          if (value.isEmpty()) "[]"
-         else "[" + newline + indent + value.joinToString(",$newline") { it.toPrettyS() }.reIndent() + newline + "]"
+         else "[$newline$indent" + value.joinToString(",$newline") { it.toPrettyS() }.reIndent() + newline + "]"
       is JsObject ->
          if (value.isEmpty()) "{}"
-         else "{" + newline + indent + value.entries.asSequence().sortedBy { it.key }
-            .joinToString(",$newline") { it.key.toJsonString() + ": " + it.value.toPrettyS() }.reIndent() + newline + "}"
+         else "{$newline$indent" + value.entries.asSequence().sortedBy { it.key }.joinToString(",$newline") { it.key.toJsonString() + ": " + it.value.toPrettyS() }.reIndent() + newline + "}"
    }
 }
 

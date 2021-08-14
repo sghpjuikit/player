@@ -7,10 +7,8 @@ import sp.it.pl.layout.container.BiContainer
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.FreeFormContainer
 import sp.it.pl.main.APP
-import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.objects.icon.UnicodeIcon
 import sp.it.pl.ui.objects.picker.ContainerPicker.CellData
 import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.ALL
 import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.LAYOUTS

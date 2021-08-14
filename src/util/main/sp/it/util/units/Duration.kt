@@ -11,7 +11,7 @@ import sp.it.util.functional.runTry
 /** Converts to javafx [Dur] */
 val Duration.javafx: Dur get() = toMillis().millis
 
-/** @return human readable duration value in smallest possible units (millis if less than second, etc.)*/
+/** @return human-readable duration value in the smallest possible units (millis if less than second, etc.)*/
 fun Dur.formatToSmallestUnit(): String {
    val ms = toMillis()
    return when {
@@ -127,10 +127,10 @@ val Number.minutes: Dur get() = Dur.minutes(toDouble())
 val Number.hours: Dur get() = Dur.hours(toDouble())
 
 /** @return [Dur.minus]. */
-operator fun Dur.minus(d: Dur) = subtract(d)!!
+operator fun Dur.minus(d: Dur): Dur = subtract(d)
 
 /** @return [Dur.plus]. */
-operator fun Dur.plus(d: Dur) = add(d)!!
+operator fun Dur.plus(d: Dur): Dur = add(d)
 
 /** @return duration specified times shorter than this duration. */
 operator fun Dur.div(times: Number) = Dur(toMillis()/times.toDouble())

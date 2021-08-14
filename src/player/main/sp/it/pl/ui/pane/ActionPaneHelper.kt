@@ -9,7 +9,6 @@ import sp.it.util.action.Action
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
-import sp.it.util.collections.getElementType
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISNT

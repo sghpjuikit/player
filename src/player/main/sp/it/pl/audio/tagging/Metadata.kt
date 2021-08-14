@@ -210,7 +210,7 @@ class Metadata: Song, Serializable {
    /** Time this song was added to library as string or null if none */
    private var libraryAdded: String? = null
 
-   /** Creates metadata from an song, attempts to use as much data available, no i/o. */
+   /** Creates metadata from a song, attempts to use as much data available, no i/o. */
    constructor(song: Song) {
       id = song.uri.toString()
       if (song is PlaylistSong) {
@@ -355,10 +355,10 @@ class Metadata: Song, Serializable {
                val rat = body1.rating //returns null if empty
                val cou = body1.counter //returns null if empty
 
-               // i do not know why the values themselves are Long, but we only need int
+               // Do not know why the values themselves are Long, but we only need int
                // both for rating and playcount.
                // all is good until the tag is actually damaged and the int can really
-               // overflow during conversion and we get ArithmeticException
+               // overflow during conversion, and we get ArithmeticException,
                // so we catch it and ignore the value
                if (rating==null) {
                   try {
@@ -776,8 +776,8 @@ class Metadata: Song, Serializable {
        *
        * All fields are at their default values.
        *
-       * There are two ways to check whether Metadata object is EMPTY. Either use
-       * reference operator this == Metadata.EMPTY or call [.isEmpty].
+       * There are two ways to check whether Metadata object is [EMPTY]. Either use
+       * reference operator `this == EMPTY` or call [isEmpty].
        *
        * Note: The reference operator works, because there is always only one
        * instance of EMPTY metadata.

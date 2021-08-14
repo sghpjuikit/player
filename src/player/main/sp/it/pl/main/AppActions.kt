@@ -60,7 +60,6 @@ import java.io.File
 import java.io.IOException
 import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER_LEFT
-import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.*
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import sp.it.pl.plugin.impl.Notifier

@@ -40,7 +40,6 @@ import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.v
-import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runIO
 import sp.it.util.collections.insertEvery

@@ -369,7 +369,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             private val showAnim = anim(300.millis) {
                showValue = it
                mw.isShowing = it!=0.0
-               println(mw.isShowing)
                mw.window.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
                mw.window.setY(-(mw.window.H.value-2.0)*(1.0-it), false)
             }

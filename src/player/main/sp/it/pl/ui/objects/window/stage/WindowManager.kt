@@ -519,6 +519,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          right = if (showSide!=Side.RIGHT) null else windowDecoration()
       }
       mw.setContent(content)
+      mw.onClose += { mw.stage.asLayout()?.child?.close() }
 
       // auto-hiding
       val showAnim = anim(400.millis) {

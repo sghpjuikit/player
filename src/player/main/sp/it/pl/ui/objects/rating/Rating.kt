@@ -12,7 +12,7 @@ class Rating @JvmOverloads constructor(iconCount: Int = 5, initialRating: Double
    /** Rating value in 0-1. Value will clipped to range. Default 0. */
    @JvmField val rating = object: V<Double?>(initialRating) {
       override fun set(nv: Double?) {
-         super.set(nv?.let { it.clip(0.0, 1.0) })
+         super.set(nv?.clip(0.0, 1.0))
       }
    }
 

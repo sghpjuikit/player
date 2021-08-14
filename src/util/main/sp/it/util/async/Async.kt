@@ -44,7 +44,7 @@ operator fun Executor.invoke(block: () -> Unit) = execute(block)
  * Executes the specified block immediately on a new daemon thread.
  * Equivalent to:
  * ```
- * Thread thread = new Thread(action);
+ * var thread = new Thread(action);
  * thread.setDaemon(true);
  * thread.start();
  * ```
@@ -59,7 +59,7 @@ class NewThreadExecutor: Executor {
     * Executes the specified block immediately on a new daemon thread.
     * Equivalent to:
     * ```
-    * Thread thread = new Thread(action);
+    * var thread = new Thread(action);
     * thread.setDaemon(true);
     * thread.setName(threadName);
     * thread.start();
@@ -197,11 +197,11 @@ fun onlyIfMatches(counter: AtomicLong, r: Runnable): Runnable {
 }
 
 /** @return single thread executor using specified thread factory */
-fun oneTPExecutor() = Executors.newSingleThreadExecutor(threadFactory(true))!!
+fun oneTPExecutor(): ExecutorService = Executors.newSingleThreadExecutor(threadFactory(true))
 
 /** @return single thread executor keeping the thread alive for specified time and using specified thread factory */
 fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
-   ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory)
+   ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue(), threadFactory)
 
 /**
  * Resolves: https://stackoverflow.com/questions/19528304/how-to-get-the-threadpoolexecutor-to-increase-threads-to-max-before-queueing/19528305#19528305
@@ -210,7 +210,7 @@ fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
  * @return single thread executor keeping the thread alive for specified time and using specified thread factory
  */
 fun burstTPExecutor(maxPoolSize: Int, keepAliveTime: Duration, threadFactory: ThreadFactory): ExecutorService {
-   return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue<Runnable>(), threadFactory).apply {
+   return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue(), threadFactory).apply {
       allowCoreThreadTimeOut(true)
    }
 }

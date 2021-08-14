@@ -460,7 +460,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
     private class Applier {
-        private final SpitComboBox<Act<?>> actCB = new SpitComboBox<>(act -> act.name, AppTexts.INSTANCE.getTextNoVal());
+        private final SpitComboBox<Act<?>> actCB = new SpitComboBox<>(act -> act.name, AppTexts.textNoVal);
         Ins ins;
         BiConsumer<File,String> applier = (f, s) -> {
             File rf = f.getParentFile().getAbsoluteFile();

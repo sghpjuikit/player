@@ -646,7 +646,7 @@ class Metadata: Song, Serializable {
    }
 
    private fun readCoverFromTag(): ImageCover? = try {
-      readArtworkFromTag()?.let { ImageCover(it.imageOrNull, it.info ?: "") }
+      readArtworkFromTag()?.let { ImageCover(it.imageOrNull, it.info) }
    } catch (e: IOException) {
       null
    }

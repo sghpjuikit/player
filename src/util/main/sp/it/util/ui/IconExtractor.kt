@@ -88,7 +88,7 @@ object IconExtractor {
       else -> null
    }
 
-   private fun ImageSw.toImage(): ImageFx? {
+   private fun ImageSw.toImage(): ImageFx {
       val image = ImageBf(this.iconWidth, this.iconHeight, TYPE_INT_ARGB)
       paintIcon(null, image.graphics, 0, 0)
       return image.toFX()

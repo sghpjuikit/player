@@ -55,7 +55,7 @@ abstract class Song {
    }
 
    /** @return the suffix of the resource of this song or empty string if none, e.g.: mp3 */
-   fun getSuffix() = uri.path?.let { it.substringAfterLast('.', "") } ?: ""
+   fun getSuffix() = uri.path?.substringAfterLast('.', "") ?: ""
 
    /**
     * @return file format of this song as recognized by the application. It can differ from simple suffix string. This

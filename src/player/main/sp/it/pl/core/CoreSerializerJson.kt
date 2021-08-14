@@ -47,9 +47,9 @@ class CoreSerializerJson: Core {
                   "window" alias WindowDb::class
        "component-loading" alias Widget.LoadType::class
              "orientation" alias javafx.geometry.Orientation::class
-                "prop-val" alias sp.it.util.file.properties.PropVal::class
-              "1-prop-val" alias sp.it.util.file.properties.PropVal.PropVal1::class
-              "n-prop-val" alias sp.it.util.file.properties.PropVal.PropValN::class
+                "prop-val" alias PropVal::class
+              "1-prop-val" alias PropVal1::class
+              "n-prop-val" alias PropValN::class
          // @formatter:on
       }
 
@@ -62,7 +62,7 @@ class CoreSerializerJson: Core {
             }
 
             override fun fromJson(value: JsValue) = when (value) {
-               is JsString -> value.value.let { PropVal1(it) }
+               is JsString -> PropVal1(value.value)
                is JsArray -> value.value.mapNotNull { it.asJsStringValue() }.let { PropValN(it) }
                else -> fail { "Unexpected value=$value, which is not ${JsString::class} or ${JsArray::class}" }
             }
@@ -73,8 +73,10 @@ class CoreSerializerJson: Core {
    @Blocks
    inline fun <reified T: Any> toJson(t: T, file: File): Try<Nothing?, Throwable> {
       return file.writeSafely {
-         val text = json.toJsonValue<T>(t).toPrettyS()
-         it.writeTextTry(text, encoding)
+         it.writeTextTry(
+            json.toJsonValue(t).toPrettyS(),
+            encoding
+         )
       }.ifError {
          logger.error(it) { "Couldn't serialize " + t.javaClass + " to file=$file" }
       }

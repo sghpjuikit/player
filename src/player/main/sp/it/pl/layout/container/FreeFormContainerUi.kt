@@ -278,7 +278,7 @@ class FreeFormContainerUi(c: FreeFormContainer): ContainerUi<FreeFormContainer>(
 
       init {
          root.styleClass += "free-form-container-window"
-         offscreenFixOn.value = false
+         offScreenFixOn.value = false
       }
 
       override fun close() {

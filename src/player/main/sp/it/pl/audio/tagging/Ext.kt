@@ -72,5 +72,5 @@ val Artwork.imageOrNull: BufferedImage?
    }
 
 /** @return cover information */
-val Artwork.info: String?
+val Artwork.info: String
    get() = if (width<=0 || height <=0) "$description $mimeType" else "$description $mimeType ${width}x$height"

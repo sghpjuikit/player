@@ -161,7 +161,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                   if (root.isHover) {
                      val isDefBNeeded = defB==null && isEditable.value
                      if (isDefBNeeded) {
-                        defB = Icon(null, -1.0, null, Runnable { this.refreshDefaultValue() })
+                        defB = Icon(null, -1.0, null, { this.refreshDefaultValue() })
                         defB!!.tooltip(defTooltip)
                         defB!!.styleclass("config-editor-default-button")
                         defB!!.isManaged = false

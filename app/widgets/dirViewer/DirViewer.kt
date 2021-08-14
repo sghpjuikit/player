@@ -94,15 +94,14 @@ import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.install
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
-import sp.it.util.units.millis
 import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
+import javafx.geometry.Side
+import javafx.scene.control.ContextMenu
 import javafx.scene.input.KeyCode.C
 import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.SHORTCUT
@@ -127,6 +126,7 @@ import sp.it.util.conf.butElement
 import sp.it.util.conf.cOr
 import sp.it.util.conf.cr
 import sp.it.util.conf.defInherit
+import sp.it.util.file.div
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.reactive.zip
@@ -206,6 +206,8 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
    init {
       root.prefSize = 1000.emScaled x 700.emScaled
+      root.stylesheets += (location/"skin.css").toURI().toASCIIString()
+
 
       grid.search.field = FileField.PATH
       grid.filterPrimaryField = FileField.NAME_FULL
@@ -585,6 +587,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
             }
          },
          {
+            it.childrenRO().orEmpty().asSequence().filter { it.valType==DIRECTORY }
+         },
+         {
             if (it is TopItem && files.isEmpty()) prodUserToSetupLocation()
             else visit(it)
          }
@@ -601,21 +606,35 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
    }
 
-   private class Breadcrumbs<T>(converter: (T) -> String, onClick: (T) -> Unit): HBox() {
+   private class Breadcrumbs<T>(converter: (T) -> String, children: (T) -> Sequence<T>, onClick: (T) -> Unit): HBox() {
       val values = observableArrayList<T>()!!
 
       init {
          padding = Insets(10.0)
          spacing = 10.0
+         styleClass += "breadcrumbs"
 
          values.onChange {
-            children setTo values.map { value ->
+            var i = 0
+            this.children setTo values.map { value ->
                label(converter(value)) {
-                  val a = anim(150.millis) { setScaleXYByTo(it, 0.0, 5.0) }.intpl { it*it }
-                  onHoverOrDrag { a.playFromDir(it) }
-                  onEventDown(MOUSE_CLICKED) { onClick(value) }
+                  styleClass += "breadcrumb"
+                  onEventDown(MOUSE_CLICKED, PRIMARY) {
+                     onClick(value)
+                  }
                }
-            }.asSequence().insertEvery(1) { label(">") }
+            }.asSequence().insertEvery(1) {
+               label(">") {
+                  val ii = i
+                  styleClass += "breadcrumb-separator"
+                  onEventDown(MOUSE_CLICKED, PRIMARY) {
+                     ContextMenu().dsl {
+                        items(children(values[ii]), converter, onClick)
+                     }.show(this, Side.BOTTOM, 0.0, 0.0)
+                  }
+                  i++
+               }
+            }
          }
       }
 

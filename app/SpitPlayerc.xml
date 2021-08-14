@@ -27,7 +27,7 @@
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
     <runtimeBits>64</runtimeBits>
-    <opt>-Xms50m -Xmx4g -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -XX:+UseStringDeduplication -XX:+UseCompressedOops -Dfile.encoding=UTF-8 --illegal-access=permit</opt>
+    <opt> </opt>
   </jre>
   <messages>
     <startupErr>An error occurred while starting the application.</startupErr>

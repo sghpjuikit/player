@@ -48,6 +48,10 @@
 - [app/user/application.properties](app/user/application.properties)  
   User application properties, managed by application and editable through its ui
 
+## Dependencies
+
+- `./gradlew dependencies --configuration compileClasspath` shows dependency tree
+
 ## Running
 
 - `./gradlew build` compiles the application and widgets

@@ -828,7 +828,8 @@ fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
          }
       },
       onEventUp(MOUSE_EXITED) {
-         if (key in properties && !contains(it.x, it.y)) {
+         if (key in properties) {
+//         if (key in properties && !contains(it.x, it.y)) { // TODO: causes event not to trigger sometimes, why was it necessary?
             properties -= key
             on(false)
          }

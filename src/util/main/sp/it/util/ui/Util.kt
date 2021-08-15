@@ -7,6 +7,8 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Bounds
 import javafx.geometry.Insets
+import javafx.geometry.Orientation
+import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
@@ -23,6 +25,7 @@ import javafx.scene.control.ListView
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.Separator
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.SplitPane
 import javafx.scene.control.TableView
@@ -367,6 +370,7 @@ inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(bl
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
 inline fun hyperlink(text: String = "", block: Hyperlink.() -> Unit = {}) = Hyperlink(text).apply(block)
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
+inline fun separator(orientation: Orientation = HORIZONTAL, block: Separator.() -> Unit = {}) = Separator(orientation).apply(block)
 inline fun text(text: String = "", block: Text.() -> Unit = {}) = Text(text).apply(block)
 inline fun textField(text: String = "", block: TextField.() -> Unit = {}) = TextField(text).apply(block)
 inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextArea(text).apply(block)

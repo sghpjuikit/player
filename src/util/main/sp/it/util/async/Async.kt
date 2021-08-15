@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.javafx.JavaFx
 
 private val logger = KotlinLogging.logger { }
@@ -108,9 +109,7 @@ class FxLaterExecutor: Executor {
 }
 
 /** Executes the specified block on thread in an IO thread pool or immediately if called on such thread. */
-class IOExecutor: Executor {
-   private val e: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))
-
+class IOExecutor(private val e: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))): Executor, CoroutineContext by e.asCoroutineDispatcher() {
    override fun execute(it: Runnable) {
       if (Thread.currentThread().name.startsWith("io-")) it() else e(it)
    }

@@ -130,6 +130,7 @@ allprojects {
          implementation("org.atteo", "evo-inflector", "1.2.2")
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
+         implementation("com.github.oshi", "oshi-core", "5.8.0")
       }
 
       "Image" group {

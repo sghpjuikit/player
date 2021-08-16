@@ -5,6 +5,8 @@ plugins {
 
 idea {
    module {
+      contentRoot = null
+      sourceDirs.add(projectDir)
       inheritOutputDirs = false
       outputDir = file("out")
    }
@@ -13,7 +15,7 @@ idea {
 sourceSets {
    main {
       java.srcDir(".")
-      java.exclude("**.class")
+      java.exclude("out")
       resources.setSrcDirs(listOf<Any>())
    }
    test {

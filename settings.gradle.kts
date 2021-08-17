@@ -1,6 +1,8 @@
 // Gradle settings file for multi-project build. Executed during the initialization phase.
 // Defines all projects and build script classpath.
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.apply {
    projectDir = file(".")
    buildFileName = "gradle/project.gradle.kts"

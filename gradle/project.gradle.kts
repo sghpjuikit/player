@@ -184,7 +184,7 @@ sourceSets {
 }
 
 dependencies {
-   implementation(project(":util"))
+   implementation(projects.util)
 }
 
 tasks {

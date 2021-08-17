@@ -25,7 +25,7 @@ sourceSets {
 }
 
 dependencies {
-   compileOnly(rootProject)
-   compileOnly(project(":util"))
+   compileOnly(projects.player)
+   compileOnly(projects.util)
    compileOnly(files(projectDir.listFiles().orEmpty().filter { it.path.endsWith(".jar") }))
 }

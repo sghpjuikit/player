@@ -105,7 +105,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @return true if song is played.
 	 */
 	public boolean isPlaying(PlaylistSong song) {
-		return playingSongWrapper.get()==song;
+		return playingSongWrapper.getValue()==song;
 	}
 
 	/**
@@ -417,7 +417,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 							APP.audio.stop();
 							unplayable1st = null;
 						} else {
-							playingSongWrapper.set(song);
+							playingSongWrapper.setValue(song);
 							if (unplayable1st==null) unplayable1st = song;  // remember 1st unplayable
 							// try to play next song, note we don't use the supplier as a fallback 2nd time
 							// we use linear 'next time' supplier instead, to make sure we check every
@@ -432,8 +432,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 					runFX(() -> {
 						unplayable1st = null;
 						PlaylistManager.active = this.id;
-						PlaylistManager.playlists.forEach(p -> p.playingSongWrapper.set(p==this ? song : null));
-						playingSongWrapper.set(song);
+						PlaylistManager.playlists.add(this);
+						PlaylistManager.playlists.forEach(p -> p.playingSongWrapper.setValue(p==this ? song : null));
 						APP.audio.play(song);
 					});
 				}

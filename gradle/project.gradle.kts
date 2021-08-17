@@ -192,7 +192,7 @@ tasks {
    val copyLibs by creating(Sync::class) {
       group = "build"
       description = "Copies all libraries into the app dir"
-      from(configurations.compileClasspath, project(":util").configurations.compileClasspath)
+      from(configurations.runtimeClasspath, project(":util").configurations.runtimeClasspath)
       into(dirApp/"lib")
       duplicatesStrategy = EXCLUDE
    }

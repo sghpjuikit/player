@@ -100,6 +100,7 @@ import java.io.File
 import java.util.Stack
 import java.util.concurrent.atomic.AtomicLong
 import javafx.geometry.Side
+import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.KeyCode.C
 import javafx.scene.input.KeyCode.DELETE
@@ -126,6 +127,7 @@ import sp.it.util.conf.cOr
 import sp.it.util.conf.cr
 import sp.it.util.conf.defInherit
 import sp.it.util.file.div
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.reactive.zip
@@ -136,6 +138,7 @@ import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
+import sp.it.util.ui.isAnyChildOf
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -275,6 +278,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          FOLDER_PLUS,
          "Explore directory",
          { it.dragboard.hasFiles() },
+         { it.gestureSource?.asIf<Node>()?.isAnyChildOf(root)==true },
          { inputFile.value = it.dragboard.files }
       )
 

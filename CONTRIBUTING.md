@@ -1,26 +1,20 @@
 # Contributing
 
-- Language
-  - Kotlin: Latest version
-  - Java: JDK 9 or 10
-- IDE: due to use of Kotlin, Intellij IDEA is strongly recommended, although not required
-
 ## Preparations
 
 1. Clone the repository
   - `git clone https://github.com/sghpjuikit/player.git`
   - `cd player`
-1. Set up 64-bit JDK12  
-  - Download & install/extract [OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)
-  
-    To avoid problems, it is recommended to use project-local JDK
-  - Copy JDK contents to `<project-dir>/app/java`
-  - Create a `gradle.properties` file at project directory
-  - Add property: `org.gradle.java.home=/path/to/jdk`.
+1. Set up 64-bit JDK12
+  - Download & install/extract [OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)  
+    To avoid problems, it is recommended to use project-local JDK:
+    - Copy JDK contents to `<project-dir>/app/java`
+    - Create a `gradle.properties` file at project directory
+    - Add property: `org.gradle.java.home=/path/to/jdk`.
 1. Set up Vlc (Linux only)  
   64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
 
-#### Intellij IDEA
+#### IDE: Intellij IDEA
 
 1) Import Project -> Select project folder  
 1) Import from external model -> Gradle 
@@ -32,7 +26,29 @@
 1) Optionally enable external annotations and use those provided in [idea/annotations](.idea/annotations)   
    This will provide project specific deprecations and null type-safety for numerous JDK APIs   
    For more information about this see [official documentation](https://www.jetbrains.com/help/idea/external-annotations.html)
-   
+
+## Running project
+
+- `./gradlew build` compiles the application
+- `./gradlew run` compiles and runs the application
+- `./gradlew clean` cleans temporary files
+
+For more tasks:
+`./gradlew tasks`
+
+## Running application
+
+#### Windows
+- open `SpitPlayer.exe`
+
+#### Windows console
+- `./SpitPlayerc.exe` starts the application
+- `./SpitPlayerc.exe --help` shows help
+
+#### OSX & Linux
+- `./SpitPlayerc.sh` starts the application
+- `./SpitPlayerc.sh --help` shows help
+
 #### Properties
 
 - [gradle/wrapper/gradle-wrapper.properties](gradle/wrapper/gradle-wrapper.properties)  
@@ -47,19 +63,15 @@
   Project properties, defines gradle build configuration, like build files, etc.
 - [app/user/application.properties](app/user/application.properties)  
   User application properties, managed by application and editable through its ui
+- [app/SpitPlayer.l4j.ini](app/SpitPlayer.l4j.ini)  
+  User JVM arguments for [SpitPlayer.exe](app/SpitPlayer.exe)
+- [app/SpitPlayerc.l4j.ini](app/SpitPlayerc.l4j.ini)  
+  User JVM arguments for [SpitPlayerc.exe](app/SpitPlayerc.exe)
 
 ## Dependencies
 
 - `./gradlew dependencies --configuration compileClasspath` shows dependency tree
-
-## Running
-
-- `./gradlew build` compiles the application and widgets
-- `./gradlew run` compiles and runs the application
-- `./gradlew clean` cleans temporary files
-
-For more tasks: `./gradlew tasks`
-
+- 
 #### Debugging
 
 Use 'block current thread only' for breakpoints. 
@@ -71,22 +83,24 @@ Widgets are compiled and loaded by the application, their development is complet
 It also does not require an IDE or any setup whatsoever.
 
 The widgets bundled with the application are no different, but for convenience, they are part of the project as separate modules.
-This allows auto-completion, syntax highlighting as well as build failure when any widget fails to compile - they seem as though they are ordinary project source files.
+This allows auto-completion, syntax highlighting as well as build failure when any widget fails to compile - so they seem as though they are ordinary project source files.
 
-- Creating a widget is done by creating a widget directory   
-  To create widget `MyWidget` (unique technical name):
-   - Create `app/widgets/myWidget` widget directory (should be [java package name](https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html)
-   - `app/widgets/mywidget/MyWidget.kt` kotlin (.kt) or java (.java) source file
-   - declare package `package myWidget` which is the name of the directory
-   - there, declare a top level class `MyWidget` (must be the same as the name of the directory, capitalized [camel case](https://en.wikipedia.org/wiki/Camel_case))
-   - and extend `sp.it.pl.layout.widget.controller.SimpleController`
-   - optionally annotate your class with `sp.it.pl.layout.widget.Widget.Info`
-- To delete widget delete the widget directory
+Create widget `MyWidget`:
+  - create `app/widgets/myWidget` widget directory (use `camelCase` naming, no whitespace)
+  - `app/widgets/mywidget/MyWidget.kt` kotlin (.kt) or java (.java) source file
+  - declare package `package myWidget` which is the name of the directory
+  - there, declare a top level class `MyWidget` (must be the same as the name of the directory, capitalized [camel case](https://en.wikipedia.org/wiki/Camel_case))
+  - have the class extend `sp.it.pl.layout.widget.controller.SimpleController`
+  - annotate your class with `sp.it.pl.layout.widget.Widget.Info`
+
+Delete widget:
+- delete the widget directory
+  - if the application uses some resources, such as widget-only jar, the application must be closed first
 
 Developing a widget carries several conveniences:
 - Widget source files are monitored and open widget instances automatically reload when any source file is modified.  
   Simply hit `save` and watch the widget reload.
-- Widget dependencies are declared by being put into the widget's directory.  
+- Widget-only dependencies are declared by being put into the widget's directory.  
   For IDE to detect these and get auto-completion, simply `Refresh all Gradle projects`. This is done by customized build, which scans the widget directories for dependencies.
 
 Restrictions:
@@ -132,7 +146,7 @@ The project contains a shared code style in .idea/codeStyles for IDEA with defin
 
 ## Skins
 
-A skin is a css file that styles the elements of the application, similar to styling a html web site -
+A skin is a css file that styles the elements of the application, similar to styling a html website -
 see [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html). 
 Skins can depend on each other.
 
@@ -142,4 +156,4 @@ which also contains further instructions on how to create your own skin.
 
 Customize the appearance of the application by creating a new skin depending on the default skin and modifying what you want. 
 This way your changes won't be overridden by an update of the original skin.  
-If you feel like you added substantial value, feel free to submit a pull request so it can be incorporated into the application!
+If you feel like you added substantial value, feel free to submit a pull request, so it can be incorporated into the application!

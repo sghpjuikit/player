@@ -2,21 +2,20 @@
 # ![icon](app/resources/icons/icon48.png) Spit Player [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/uxtvscyxb7dewki6/branch/master?svg=true)](https://ci.appveyor.com/project/Xerus2000/player) [![Travis Build Status](https://travis-ci.org/sghpjuikit/player.svg?branch=master)](https://travis-ci.org/sghpjuikit/player)
 
 - [What is this?](#what-is-this)
-- [How do I run it?](CONTRIBUTING.md#running)
+- [Download -> Build -> Run](#use)
 - [Do I need this?](#do-i-need-this)
 - [Features](#features)
-- [Download](#download)
 - [Screenshots](#screenshots)
 - [Copyright](#copyright)
 - [Contributing](CONTRIBUTING.md)
 
 ## What is this?
 
-**Spit Player** is a desktop audio player and management application, with a modular ui/functionality capable of compiling and reloading its own parts.
+**Spit Player** is a desktop audio player and management application, with a modular ui/functionality capable of compiling and reloading its own parts. Uses VLC under hood.
 
-**Is this ready?** Yes and no. It is completely functional, but unprepared for release. An experimental release is due soon. This will mean no automatic updates, need to reimport the library, etc.
+**Is this ready?** Yes. I do not provide downloads, but you can easily build the application. See [how](#use). Well tested on Windows. Linux/OSX supported.
 
-**Looks like this:**
+**Can look like this:**
 
 ![Looks like this](assets/screenshots/screenshot_playlists.jpg)
 
@@ -26,24 +25,27 @@
 
 ## Do I need this?
 
-You decide. There are two main major use cases for this application:
+You decide. This application has been born out of frustration with how applications today look and are used.
+There are two main major use cases for this application:
 
-##### Audio management system
-You may ask, why another audio player? Because there is significant lack of such application for a power user. 
-
-It's not just about hitting a play button.
-Ever lost your entire library song ratings due to corrupted database file? Ever wanted to use timed comment?
-Ever needed multiple playlists or display/manipulate your songs in a way that wasn't possible for some reason? 
+##### Audio playback & management system
+Ever lost your entire library or song ratings due to corrupted database file?
+Ever wanted to have song chapters or other cool features?
+Ever needed multiple playlists or display/manipulate your songs in a way that wasn't possible for some reason?
 
 This application addresses a lot of such issues.
+However, it may lack features you may be used from other media players, so it may not be for you.
 
 ##### Multi-application
-Collection of unrelated mini-applications. Image browser, 0-pain media library creator, file renamer and more. 
+Ever wanted to do things your way?
 
-If you know Java/Kotlin, you can make your own app with a simple text editor and literally dozen lines of code - 
-without JDK, without IDE and without hassles of creating and deploying your application. 
-Just write your code, hit save and watch as it auto-compiles and runs as widget, which you can run as a standalone application! 
+Parts of the applications are called widgets and may run as standalone applications and be developed or changed while the application runs.
+This application provides several useful widgets, but most importantly the necessary tools for you to create your own.
+
+If you know Java/Kotlin, you can make your own app with a simple text editor and literally few lines of code.
+Just write your code, hit save and watch as it auto-compiles and runs as widget, which you can run as a standalone application with just an application run argument! 
 All that with included support for configurations, skins and full access to the internals.
+See [how](CONTRIBUTING.md#widgets).
 
 ## Features
 
@@ -52,7 +54,7 @@ All that with included support for configurations, skins and full access to the 
 - **Customizability** - User uses the application how he wants, not how it was designed to be used. 
     Therefore emphasis on customization, skins, settings, etc.
 - **Portability** - No installation (or need for java or other programs), run from anywhere, little/no trace, 
-    everything is packaged along (no hunting your library database file in hidden Windows directories...)
+    everything is packaged along. Any OS.
 - **Modular functionality** - User can launch or use only selected components he is interested in and 
     ignore everything else as if it was never there.
 - **Modular user interface** - User has the ability to 'make his own gui'. Completely custom component layout. 
@@ -61,18 +63,16 @@ All that with included support for configurations, skins and full access to the 
 - **Library independence** - Moving & renaming files will not result in loss of any information. Every single bit is in the tag. 
     Always. If you move on to different application or lose your library - you never lose data. Ever again.
 - **Usability** - Ease of use and efficient workflow due to minimalistic and unobtrusive graphical user interface design. 
-    Think shortcuts, swiping, icons instead buttons, closing with right click instead of trying to hit small button 
-    somewhere in the corner of whatever you are doing..., etc.
-- **Responsive** - fast and responsive. Minimal modal dialogs. No more stuck windows while your library is scanning 
-    that big fat audio collection of yours
+    Think shortcuts, swiping, icons, intuitive use, etc.
+- **Responsive** - fast and responsive. Minimal modal dialogs. No modal or blocked windows while your library is scanning 
+    that big fat audio collection
 - **Sexy** - Your way of sexy if you know a tiny bit about css.
 
 ### Play audio 
 
-- mp3, mp4, m4a, wav, ogg, flac, possibly more to come
-- file, http (over internet, support is limited to what javaFX can currently do - no flac & ogg).
+- anything Vlc player can play
 
-### Manage audio files
+### Manage audio
 
 Song database:
 - small footprint: in 10s of MBs for 10000s audio files
@@ -97,7 +97,7 @@ Tables:
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
 - cascading - link tables to other tables as filters and display only selected songs (e.g. show songs of autor A's  albums X,D,E in year Y in three linked tables reacting on table selection). Basically library widgets allow linking selection of the table as an input, while simultaneously providing its selection as an output to other tables. Use however library widgets (each having 1 table) you wish and link them up in any way you want.
 
-### Audio tag editing
+### Tag audio
 
 Spit Player supports reading & writing of song tags
 
@@ -135,7 +135,7 @@ The aim is to be interoperable with other players, where possible. Noteworthy or
   
 ### Configurability
 
-All settings and entire user interface layout serialize into a human readable and editable files. 
+All settings and entire user interface layout serialize into a human-readable and editable files. 
 These can be edited, backed up or switched between applications.
 
 ### Modularity
@@ -150,9 +150,9 @@ the widgets are (recompiled and then) reloaded with previous state and configura
 #### Widgets
 
 ##### Playback
-Controls for playback, like seeking. Supports chapters.
+Controls for playback, like seeking. Supports song chapters.
 ##### Playlist
-Table or playing songs. Of course it is possible to use more of themat once. Very handy to have a side-playlist sometimes.
+Table or playing songs. Of course, it is possible to use more of them once. Very handy to have a side-playlist sometimes.
 ##### FileInfo
 Shows cover and song metadata. Supports cover download (url drag & drop) and rating.
 ##### Tagger
@@ -279,9 +279,6 @@ Modules (widgets) are part of layout hierarchy, which can be manipulated, saved 
 - Crisp images in any size. Images load quickly and don't cause any lag (not even the big ones), 
 	images around 5000px are handled just fine, apart from the inevitable memory footprint.
 
-Platforms: Built on Java (thus possibility to use an nearly any desktop system), 
-actively tested on Windows and Linux.
-
 ## Screenshots
 
 <details>
@@ -311,50 +308,43 @@ actively tested on Windows and Linux.
 
 </details>
 
-## Download
+## Use
 
-Download link coming soon.
+Download link coming in the future.
+For build manually from the latest sources:
 
-- download zip
-- extract anywhere
-  - Windows: run `SpitPlayer.exe`
-  - Linux: run `bin/SpitPlayer`
-
-Starting the application for the first time will open a guide. It is recommended follow it to get the hang of the UX.
-
-#### Performance
-
-- Memory consumption is usually worse compared to native applications. 
-	A usual value is 250-450MB, but it depends on use case. Lots of widgets will use up more memory. 
-	Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great).
-	32-bit is more efficient (64-bit effectively doubles memory consumption), so there will only be a 32-bit version for now.
-- Using shadows on text or icons (in custom skins) can severely impact performance, 
-	but that is a common issue not specific to this application.
-- Visually big tables (Full-HD and beyond) with lots of text can impact performance
+1. [Download & prepare project](CONTRIBUTING.md#preparations)
+1. Build the application
+    1. `./gradlew build` builds the application
+    1. `./gradlew copyLibs` copies
+    1. `./gradlew jar` creates jar & copies dependencies to /lib
+    1. Standalone application is now build in [app](/app) directory
+1. Deploy application
+    - copy [app](/app) directory to whenever you want
+1. [Run application]
 
 # Copyright
 
-##### player module (sp.it.pl)
+##### player module (`sp.it.pl`)
 
 This is the application module, containing the source code for the functionality.
 For now, the sources are provided with **no licence**.   
-Which does not mean anything is permitted, it is the opposite. This will change shortly.
+Which does not mean anything is permitted, it is the opposite. This will change in the future.
 
 ##### widget modules
 
 This is a collection of source codes for widgets for this application, found in [app/widgets](/app/widgets).
-For portability reasons, each widget specifies its licence.
-The common widget's sources are usually under [The Unlicense](http://unlicense.org). 
+For portability reasons, each widget specifies its licence. Usually it is [The Unlicense](http://unlicense.org). 
 
-##### util module (sp.it.util)
+##### util module (`sp.it.util`)
 
 This is collection of useful utility methods/extension, with primary intention of supporting the player module of this project.
 
 All the sources, unless specifically stated otherwise in the source code file, are under [The Unlicense](http://unlicense.org).
 
-##### demo module (sp.it.demo)
+##### demo module (`sp.it.demo`)
 
 This is a collection of demonstrative projects found on the internet, mostly contributed as answers on stackoverflow.com.
 The sources are provided with **no licence**.   
-Which does not mean anything is permitted, it is the opposite. This is because it would be too time-consuming to hunt the
-authors/contributors and figure things out. If you need to use the code, there files contain information about where to find the authors of the code.
+Which does not mean anything is permitted, it is the opposite. This is because it would be too time-consuming to find the
+authors/contributors and figure things out. If you need to use the code, the files contain information about where to find the authors of the code.

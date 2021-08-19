@@ -6,9 +6,10 @@ import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
 import javafx.scene.Node
-import javafx.scene.input.MouseButton
-import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.StackPane
 import kotlin.math.abs
@@ -130,25 +131,23 @@ open class WindowPane(val owner: AnchorPane) {
 
    /** Installs move by dragging on provided Node, usually root. */
    fun moveOnDragOf(n: Node) {
-      n.addEventHandler(MOUSE_PRESSED) { e: MouseEvent ->
-         e.consume()
-         if (maximized.value==Maximized.ALL || !movable.value || e.button!=MouseButton.PRIMARY) return@addEventHandler
-         _moving.value = true
-         startX = x.value - e.sceneX
-         startY = y.value - e.sceneY
-      }
-      n.addEventHandler(MouseEvent.MOUSE_DRAGGED) { e: MouseEvent ->
-         if (moving.value) {
-            x.value = startX + e.sceneX
-            y.value = startY + e.sceneY
+      n.addEventHandler(MOUSE_DRAGGED) {
+         if (!moving.value && maximized.value!=Maximized.ALL && movable.value && it.button==PRIMARY) {
+            _moving.value = true
+            startX = x.value - it.sceneX
+            startY = y.value - it.sceneY
          }
-         e.consume()
+         if (moving.value) {
+            x.value = startX + it.sceneX
+            y.value = startY + it.sceneY
+         }
+         it.consume()
       }
-      n.addEventHandler(MouseEvent.MOUSE_RELEASED) { e: MouseEvent ->
+      n.addEventHandler(MOUSE_RELEASED) {
          if (_moving.value) {
             _moving.value = false
          }
-         e.consume()
+         it.consume()
       }
    }
 

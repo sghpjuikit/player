@@ -24,6 +24,7 @@ import sp.it.pl.ui.objects.window.pane.PaneWindowControls
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.async.runFX
+import sp.it.util.collections.observableSet
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
@@ -32,6 +33,7 @@ import sp.it.util.functional.runnable
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -39,22 +41,26 @@ import sp.it.util.ui.initClipToPadding
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
+import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 
 class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(c) {
    private val windows: MutableMap<Int, Window> = HashMap()
    private var isResizing = false
-   private val isAnyWindowResizing = mutableListOf<Int>()
+   private val isAnyWindowMoving = observableSet<Int>()
+   private val isAnyWindowResizing = observableSet<Int>()
    private val content = AnchorPane()
 
    init {
       root.minSize = 0 x 0
       root.maxSize = Double.MAX_VALUE x Double.MAX_VALUE
+      root.styleClass += "container-freeform-ui"
       root.layFullArea += content
 
       content.initClipToPadding()
-
+      isAnyWindowMoving.onChange { root.pseudoClassChanged(PC_MOVING, isAnyWindowMoving.isNotEmpty()) }
+      isAnyWindowResizing.onChange { root.pseudoClassChanged(PC_RESIZING, isAnyWindowResizing.isNotEmpty()) }
 
       // add new widget on left click
       content.onEventDown(MOUSE_CLICKED, PRIMARY, false) { e ->
@@ -153,6 +159,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
    fun closeWindow(i: Int) {
       isAnyWindowResizing -= i
+      isAnyWindowMoving -= i
       windows.remove(i).ifNotNull { w ->
          w.close()
          val c = container.children[i]
@@ -195,6 +202,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          container.showHeaders sync { w.updateHeader() } on w.disposer
          w.titleL.textProperty() syncFrom (if (c is Widget) c.customName else vAlways("")) on w.disposer
          w.resizing attach { if (it==Resize.NONE) runFX(100.millis) { isAnyWindowResizing -= i } else isAnyWindowResizing += i }
+         w.moving attach { if (it) isAnyWindowMoving += i else isAnyWindowMoving -= i }
 
          // prevent layouter closing when resize/move
          w.resizing sync { suppressHidingFor(w.borders, it!=Resize.NONE) }
@@ -273,13 +281,15 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
    }
 
    private data class BestRec(var relative: TupleM4, var absolute: Bounds)
+
    private data class TupleM4(var a: Double, var b: Double, var c: Double, var d: Double)
+
    private inner class Window(val i: Int, owner: AnchorPane?): PaneWindowControls(owner) {
       var ui: ComponentUi? = null
       var disposer = Disposer()
 
       init {
-         root.styleClass += "free-form-container-window"
+         root.styleClass += "container-free-form-window"
          offScreenFixOn.value = false
       }
 
@@ -317,6 +327,13 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          "Sets best size and position for the widget. Maximizes widget size " +
          "and tries to align it with other widgets so it does not cover other " +
          "widgets."
+
+      /** Styleclass. Applied on [root] as '.window'.  */
+      const val STYLECLASS = "window-resizing"
+      /** Pseudoclass active when this window is resized. Applied on [root].  */
+      const val PC_RESIZING = "window-resizing"
+      /** Pseudoclass active when this window is moved. Applied on [root].  */
+      const val PC_MOVING = "window-moving"
    }
 
 }

@@ -645,9 +645,7 @@ public class SwitchContainerUi implements ComponentUi {
             this.getStyleClass().add("switch-pane-tab");
 
             getChildren().add(bgr);
-            bgr.getChildren().add(
-                new StackPane()
-            );
+            bgr.getChildren().add(new StackPane());
             bgr.getChildren().get(0).getStyleClass().add("switch-pane-tab-bgr");
         }
 

@@ -18,11 +18,11 @@
 // top/bottom padding makes the content pop up more
 // left/right padding is half of that because it stacks
 .switch-pane-tab {
-    -fx-padding: 1em 0.5em 1em 0.5em;
+    -fx-padding: 0em 0.5em 0em 0.5em;
 }
 
 // tab gap simulates split-pane-divider
-.switch-pane-tab-bgr {
+.switch-pane-tab .switch-pane-tab-bgr {
     -fx-min-height: 222; // 2*split-pane-divider.padding
     -fx-pref-height: 222;
     -fx-max-height: 222;
@@ -34,7 +34,7 @@
         transparent
         radial-gradient(center 100% 50%, radius 50%, -skin-def-font-color, transparent)
 }
-.window:transparent .switch-pane-tab-bgr {
+.window:transparent .switch-pane-tab .switch-pane-tab-bgr {
     -fx-border-color: rgba(0,0,0,0.01);
 }
 

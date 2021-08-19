@@ -4,7 +4,7 @@ import javafx.scene.Node
 import javafx.scene.layout.AnchorPane
 import sp.it.pl.layout.RootContainerDb
 
-class Layout: UniContainer {
+class Layout: ContainerUni {
 
    /** Name of this container. */
    override val name = "Layout"
@@ -16,7 +16,7 @@ class Layout: UniContainer {
     * @param parentPane root node to load the layout into.
     * @return root node of the layout
     */
-   override fun load(parentPane: AnchorPane): Node {
+   override fun load(parentPane: AnchorPane?): Node {
       val n = super.load(parentPane)
       setParentRec()
       return n

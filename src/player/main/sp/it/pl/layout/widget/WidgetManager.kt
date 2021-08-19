@@ -7,7 +7,6 @@ import javafx.geometry.Pos
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
@@ -20,7 +19,7 @@ import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.layout.container.Container
 import sp.it.pl.layout.container.Layout
-import sp.it.pl.layout.container.SwitchContainer
+import sp.it.pl.layout.container.ContainerSwitch
 import sp.it.pl.layout.widget.WidgetSource.NONE
 import sp.it.pl.layout.widget.WidgetSource.OPEN
 import sp.it.pl.layout.widget.WidgetSource.OPEN_LAYOUT
@@ -608,7 +607,7 @@ class WidgetManager {
       }
 
       /** @return widgets based on search criteria */
-      fun findAll(source: WidgetSource): Sequence<Widget> = layouts.findAll(source).flatMap { it.allWidgets.asSequence() }
+      fun findAll(source: WidgetSource): Sequence<Widget> = layouts.findAll(source).flatMap { it.getAllWidgets() }
 
       /**
        * Returns widget fulfilling condition. Any widget can be returned (if it fulfills the condition), but:
@@ -924,7 +923,7 @@ sealed interface ComponentLoader: (Component) -> Any {
          }
          window.show()
          Layout.openStandalone(root).apply {
-            child = SwitchContainer().apply {
+            child = ContainerSwitch().apply {
                addChild(0, c)
             }
          }
@@ -960,7 +959,7 @@ sealed interface ComponentLoader: (Component) -> Any {
                content = anchorPane {
                   padding = Insets(20.0.emScaled)
                   layout = Layout.openStandalone(this).apply {
-                     child = SwitchContainer().apply {
+                     child = ContainerSwitch().apply {
                         addChild(0, c)
                      }
                   }
@@ -1005,7 +1004,7 @@ sealed interface ComponentLoader: (Component) -> Any {
             onHiding += { l.close() }
          }
 
-         l.child = SwitchContainer().apply {
+         l.child = ContainerSwitch().apply {
             addChild(0, c)
          }
          c.focus()

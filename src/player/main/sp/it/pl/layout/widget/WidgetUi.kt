@@ -4,7 +4,7 @@ import javafx.scene.layout.AnchorPane
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.container.ComponentUiBase
 import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.UniContainer
+import sp.it.pl.layout.container.ContainerUni
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
 import sp.it.pl.layout.widget.controller.io.IOLayer
@@ -99,7 +99,7 @@ class WidgetUi: ComponentUiBase<Widget> {
    private fun loadWidget() {
       disposer()
 
-      val isStandalone = widget.traverse<Component> { it.parent }.any { it is UniContainer && it.isStandalone.value }
+      val isStandalone = widget.traverse<Component> { it.parent }.any { it is ContainerUni && it.isStandalone.value }
       contentRoot.styleclassToggle(STYLECLASS, !isStandalone)
       content.styleclassToggle(CONTENT_STYLECLASS, !isStandalone)
 

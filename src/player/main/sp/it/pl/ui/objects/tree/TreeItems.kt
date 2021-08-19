@@ -469,7 +469,7 @@ class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.chil
 
 class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.ui?.root).filterNotNull() }, { false })
 
-class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence() else seqOf() })
+class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence().filterNotNull() else seqOf() })
 
 class FileTreeItem: SimpleTreeItem<File> {
    private val isLeaf: Boolean

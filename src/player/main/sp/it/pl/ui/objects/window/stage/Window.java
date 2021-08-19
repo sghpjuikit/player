@@ -27,8 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.container.Layout;
-import sp.it.pl.layout.container.SwitchContainer;
-import sp.it.pl.layout.container.SwitchContainerUi;
+import sp.it.pl.layout.container.ContainerSwitch;
+import sp.it.pl.layout.container.ContainerSwitchUi;
 import sp.it.pl.main.AppEventLog;
 import sp.it.pl.main.Df;
 import sp.it.pl.ui.objects.icon.Icon;
@@ -452,7 +452,7 @@ public class Window extends WindowBase {
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
 
 	private Layout layout;
-	private SwitchContainer topContainer;
+	private ContainerSwitch topContainer;
 
 	public Layout getLayout() {
 		return layout;
@@ -475,7 +475,7 @@ public class Window extends WindowBase {
 	}
 
 	public void initLayout() {
-		topContainer = new SwitchContainer();
+		topContainer = new ContainerSwitch();
 		Layout l = new Layout();
 		content.getChildren().clear();
 		l.load(content);
@@ -490,7 +490,7 @@ public class Window extends WindowBase {
 		s.getProperties().put(Window.keyWindowLayout, l);
 		content.getChildren().clear();
 		layout.load(content);
-		topContainer = (SwitchContainer) requireNonNull(l.getChild());
+		topContainer = (ContainerSwitch) requireNonNull(l.getChild());
 		topContainer.load();
 
 
@@ -540,12 +540,12 @@ public class Window extends WindowBase {
 	 *
 	 * @return layout aggregator, never null.
 	 */
-	public SwitchContainerUi getSwitchPane() {
+	public ContainerSwitchUi getSwitchPane() {
 		return topContainer==null ? null : topContainer.ui;
 	}
 
-	public SwitchContainer getTopContainer() {
-		return layout==null ? null : (SwitchContainer) layout.getChild();
+	public ContainerSwitch getTopContainer() {
+		return layout==null ? null : (ContainerSwitch) layout.getChild();
 	}
 
 	/**

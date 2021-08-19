@@ -53,7 +53,7 @@ import sp.it.util.access.toggle
 import sp.it.util.ui.hasFocus
 import sp.it.util.ui.size
 
-class BiContainerUi(c: BiContainer): ContainerUi<BiContainer>(c) {
+class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
    private val root1 = AnchorPane()
    private val root2 = AnchorPane()
    private val splitPane = SplitPane(root1, root2)

@@ -9,7 +9,7 @@ import javafx.scene.layout.StackPane
 import sp.it.pl.ui.objects.picker.ContainerPicker
 import sp.it.pl.ui.objects.picker.Picker
 import sp.it.pl.ui.objects.picker.WidgetPicker
-import sp.it.pl.layout.container.BiContainer
+import sp.it.pl.layout.container.ContainerBi
 import sp.it.pl.layout.container.ComponentUi
 import sp.it.pl.layout.container.Container
 import sp.it.pl.main.APP
@@ -127,7 +127,7 @@ class Layouter: ComponentUi {
 
    private fun showContainer(c: Container<*>) {
       container.addChild(index, c)
-      if (c is BiContainer) APP.actionStream("Divide layout")
+      if (c is ContainerBi) APP.actionStream("Divide layout")
    }
 
    private fun showWidgetArea(mode: WidgetPicker.Mode) {

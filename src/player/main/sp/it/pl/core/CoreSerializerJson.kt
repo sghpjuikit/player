@@ -8,7 +8,7 @@ import sp.it.pl.layout.NoComponentDb
 import sp.it.pl.layout.RootContainerDb
 import sp.it.pl.layout.SwitchContainerDb
 import sp.it.pl.layout.WidgetDb
-import sp.it.pl.layout.container.UniContainer
+import sp.it.pl.layout.container.ContainerUni
 import sp.it.pl.layout.widget.Widget
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
@@ -28,6 +28,7 @@ import sp.it.util.functional.Try.Java.error
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.text.Charsets.UTF_8
+import sp.it.pl.layout.UniContainerDb
 
 class CoreSerializerJson: Core {
 
@@ -39,7 +40,7 @@ class CoreSerializerJson: Core {
          // @formatter:off
             "no-container" alias NoComponentDb::class
           "root-container" alias RootContainerDb::class
-           "uni-container" alias UniContainer::class
+           "uni-container" alias UniContainerDb::class
             "bi-container" alias BiContainerDb::class
           "free-container" alias FreeFormContainerDb::class
         "switch-container" alias SwitchContainerDb::class

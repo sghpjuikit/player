@@ -13,7 +13,7 @@ import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import sp.it.pl.core.CoreMouse
-import sp.it.pl.layout.container.BiContainer
+import sp.it.pl.layout.container.ContainerBi
 import sp.it.pl.layout.container.ComponentUiControlsBase
 import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
 import sp.it.pl.layout.widget.Widget.LoadType.MANUAL
@@ -154,12 +154,12 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    private fun close() = AppAnimator.closeAndDo(area.contentRoot) { area.container.removeChild(area.index) }
 
    private fun toggleAbsSize() {
-      if (area.container is BiContainer)
-         area.container.ui.toggleAbsoluteSizeFor(area.index)
+      if (area.container is ContainerBi)
+         area.container.ui?.toggleAbsoluteSizeFor(area.index)
    }
 
    fun updateAbsB() {
-      if (area.container is BiContainer) {
+      if (area.container is ContainerBi) {
          absB.icon(if (area.container.absoluteSize.value==area.index) UNLINK else LINK)
          if (absB !in icons.children) icons.children.add(6, absB)
       } else {

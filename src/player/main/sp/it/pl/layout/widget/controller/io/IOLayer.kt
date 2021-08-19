@@ -39,8 +39,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.withSign
 import kotlin.properties.Delegates.observable
-import kotlin.streams.asSequence
-import sp.it.pl.layout.container.SwitchContainerUi
+import sp.it.pl.layout.container.ContainerSwitchUi
 import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkConnection.BEZIER
 import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkConnection.ELECTRONIC
 import sp.it.pl.layout.widget.controller.io.IOLayer.IOLinkBase.IOLinkConnection.LINE
@@ -112,7 +111,7 @@ private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, 
 /**
  * Display for [sp.it.pl.layout.widget.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
-class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
+class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    private val inputNodes = HashMap<Input<*>, XNode>()
    private val outputNodes = HashMap<Output<*>, XNode>()
    private val inoutputNodes = HashMap<InOutput<*>, InOutputNode>()
@@ -173,8 +172,8 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
 
    init {
       interact(doLayout = true, noMouse = false, noPick = false)
-      tTranslate = switchContainerUi.translateProperty()
-      tScaleX = switchContainerUi.zoomProperty()
+      tTranslate = containerSwitchUi.translateProperty()
+      tScaleX = containerSwitchUi.zoomProperty()
       tScaleX attach { requestLayout() } on disposer
       translateXProperty().bind(tTranslate.multiply(tScaleX))
       parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
@@ -362,12 +361,12 @@ class IOLayer(private val switchContainerUi: SwitchContainerUi): StackPane() {
    private fun xNodes(): Sequence<XNode> = (inputNodes.asSequence() + outputNodes.asSequence() + inoutputNodes.asSequence()).map { it.value }
 
    override fun layoutChildren() {
-      val headerOffset = switchContainerUi.root.localToScene(0.0, 0.0).y
+      val headerOffset = containerSwitchUi.root.localToScene(0.0, 0.0).y
       val translationOffset = tTranslate.value
 
       xNodes().forEach { it.graphics.isVisible = false }
 
-      switchContainerUi.container.rootParent?.allWidgets?.asSequence().orEmpty().filter { it?.controller!=null }.forEach { w ->
+      containerSwitchUi.container.rootParent?.getAllWidgets().orEmpty().filter { it.controller!=null }.forEach { w ->
          val c = w.controller!!
          val ins = c.io.i.getInputs().mapNotNull { inputNodes[it] }
          val ons = c.io.o.getOutputs().mapNotNull { outputNodes[it] }

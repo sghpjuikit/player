@@ -176,7 +176,32 @@ val appSetting = Setting.root {
          }
       }
       "Tabs" {
-
+         config("Discrete mode (D)") {
+            info = "Use discrete (D) and forbid seamless (S) tab switching. Tabs are always aligned. Seamless mode allows any tab position."
+         }
+         config("Switch drag distance (D)") {
+            info = "Required length of drag at" +
+               " which tab switch animation gets activated. Tab switch activates if" +
+               " at least one condition is fulfilled min distance or min fraction."
+         }
+         config("Switch drag distance coefficient (D)") {
+            info = "Defines distance from edge in percent of tab's width in which the tab switches."
+         }
+         config("Drag inertia (S)") {
+            info = "Inertia of the tab switch animation. Defines distance the dragging will travel after input has been stopped."
+         }
+         config("Snap distance coefficient (S)") {
+            info = "Defines distance from edge in " +
+               "percent of tab's width in which the tab auto-aligns. Setting to maximum " +
+               "(0.5) has effect of always snapping the tabs, while setting to minimum" +
+               " (0) has effect of disabling tab snapping."
+         }
+         config("Snap distance (S)") {
+            info = "Required distance from edge at which tabs align. Tab snap activates if at least one condition is fulfilled min distance or min fraction."
+         }
+         config("Zoom") {
+            info = "Zoom factor"
+         }
       }
       "Form" {
          config("Layout") {

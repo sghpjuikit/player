@@ -67,7 +67,7 @@ abstract class Component(state: ComponentDb) {
    /** Window containing this component or null if not loaded or not in any window. */
    val window: javafx.stage.Window?
       get() = when(this) {
-         is Container<*> -> root()?.scene?.window
+         is Container<*> -> root?.scene?.window
          is Widget -> graphics?.scene?.window
          else -> null
       }

@@ -45,7 +45,7 @@ import sp.it.util.ui.minSize
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 
-class FreeFormContainerUi(c: FreeFormContainer): ContainerUi<FreeFormContainer>(c) {
+class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(c) {
    private val windows: MutableMap<Int, Window> = HashMap()
    private var isResizing = false
    private val isAnyWindowResizing = mutableListOf<Int>()

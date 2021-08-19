@@ -41,8 +41,8 @@ abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
    /** Detaches the widget into standalone content in new window. */
    fun detach() {
       fun Component.size() = when (this) {
-         is Widget -> load().asIf<Region>()?.size ?: root.size
-         is Container<*> -> root.size
+         is Widget -> load().asIf<Region>()?.size ?: this@ComponentUiBase.root.size
+         is Container<*> -> root?.size ?: this@ComponentUiBase.root.size
          else -> failCase(this)
       }
 
@@ -94,7 +94,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       }
       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
          // always consume setContainerMode event when it is not possible to go any higher
-         if (isLayoutMode && (container.parent is Layout || container.parent is SwitchContainer))
+         if (isLayoutMode && (container.parent is Layout || container.parent is ContainerSwitch))
             it.consume()
       }
    }

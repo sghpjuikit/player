@@ -103,17 +103,17 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       val c = area.container.parent
 
       absB.remExtraIcon()
-      if (c is BiContainer) {
+      if (c is ContainerBi) {
          val isAbs = c.absoluteSize.value==area.container.indexInParent()!!
          absB = headerIcon(if (isAbs) IconFA.UNLINK else IconFA.LINK, "Resize container proportionally").addExtraIcon().onClickDo {
-            c.ui.toggleAbsoluteSizeFor(area.container.indexInParent()!!)
+            c.ui?.toggleAbsoluteSizeFor(area.container.indexInParent()!!)
          }
       }
 
       autoLayoutB.remExtraIcon()
-      if (c is FreeFormContainer) {
-         autoLayoutB = headerIcon(IconMD.VIEW_DASHBOARD, FreeFormContainerUi.autoLayoutTooltipText).addExtraIcon().onClickDo {
-            c.ui.autoLayout(area.container)
+      if (c is ContainerFreeForm) {
+         autoLayoutB = headerIcon(IconMD.VIEW_DASHBOARD, ContainerFreeFormUi.autoLayoutTooltipText).addExtraIcon().onClickDo {
+            c.ui?.autoLayout(area.container)
          }
       }
    }

@@ -38,7 +38,7 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
             area.detach()
             e.consume()
          } else {
-            if (area.component.parent !is FreeFormContainer) {
+            if (area.component.parent !is ContainerFreeForm) {
                val db = root.startDragAndDrop(*ANY)
                db[Df.COMPONENT] = area.component
                root.pseudoClassStateChanged(WidgetUi.PSEUDOCLASS_DRAGGED, true)

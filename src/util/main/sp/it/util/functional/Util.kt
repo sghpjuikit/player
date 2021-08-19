@@ -16,6 +16,8 @@ import java.util.function.Predicate
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.streams.toList
+import sp.it.util.collections.toStringPretty
+import sp.it.util.dev.printIt
 
 val Executor.kt: (Runnable) -> Unit get() = this::execute
 
@@ -298,6 +300,7 @@ fun <T> T.recurseBF(children: (T) -> Iterable<T>): Sequence<T> = sequence {
       val node = queue.remove()
       yield(node)
       queue += children(node)
+
    }
 }
 

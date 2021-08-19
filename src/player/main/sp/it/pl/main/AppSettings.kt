@@ -866,6 +866,125 @@ Features:
          /** Name of the group. */
          const val name = "Tabs"
 
+         /** Use discrete (D) and forbid seamless (S) tab switching. Tabs are always aligned. Seamless mode allows any tab position.. */
+         object `discreteMode(D)`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Discrete mode (D)"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Use discrete (D) and forbid seamless (S) tab switching. Tabs are always aligned. Seamless mode allows any tab position."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Tabs"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         /** Required length of drag at which tab switch animation gets activated. Tab switch activates if at least one condition is fulfilled min distance or min fraction.. */
+         object `switchDragDistance(D)`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Switch drag distance (D)"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Required length of drag at which tab switch animation gets activated. Tab switch activates if at least one condition is fulfilled min distance or min fraction."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Tabs"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         /** Defines distance from edge in percent of tab's width in which the tab switches.. */
+         object `switchDragDistanceCoefficient(D)`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Switch drag distance coefficient (D)"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Defines distance from edge in percent of tab's width in which the tab switches."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Tabs"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         /** Inertia of the tab switch animation. Defines distance the dragging will travel after input has been stopped.. */
+         object `dragInertia(S)`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Drag inertia (S)"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Inertia of the tab switch animation. Defines distance the dragging will travel after input has been stopped."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Tabs"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         /** Defines distance from edge in percent of tab's width in which the tab auto-aligns. Setting to maximum (0.5) has effect of always snapping the tabs, while setting to minimum (0) has effect of disabling tab snapping.. */
+         object `snapDistanceCoefficient(S)`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Snap distance coefficient (S)"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Defines distance from edge in percent of tab's width in which the tab auto-aligns. Setting to maximum (0.5) has effect of always snapping the tabs, while setting to minimum (0) has effect of disabling tab snapping."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Tabs"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         /** Required distance from edge at which tabs align. Tab snap activates if at least one condition is fulfilled min distance or min fraction.. */
+         object `snapDistance(S)`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Snap distance (S)"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Required distance from edge at which tabs align. Tab snap activates if at least one condition is fulfilled min distance or min fraction."""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Tabs"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
+         /** Zoom factor. */
+         object `zoom`: ConfigDefinition {
+            /** Compile-time constant equivalent to [name]. */
+            const val cname: String = """Zoom"""
+            /** Compile-time constant equivalent to [info]. */
+            const val cinfo: String = """Zoom factor"""
+            /** Compile-time constant equivalent to [group]. */
+            const val cgroup: String = """Ui.Tabs"""
+            /** Name of the config. */
+            override val name = cname
+            /** Group of the config. */
+            override val group = cgroup
+            /** Description of the config. */
+            override val info = cinfo
+            /** Editability of the config. */
+            override val editable = EditMode.USER
+         }
       }
       object `form` {
          /** Name of the group. */

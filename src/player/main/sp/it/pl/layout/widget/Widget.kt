@@ -119,7 +119,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    }
 
    private val configs = HashMap<String, Config<Any?>>()
-   override val configurableGroupPrefix: String? = null
+   override val configurableGroupPrefix = null
    override val configurableValueSource by lazy {
       object: ConfigValueSource {
 

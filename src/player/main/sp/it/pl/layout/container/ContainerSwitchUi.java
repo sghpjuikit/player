@@ -46,6 +46,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.util.Duration.millis;
+import static kotlin.streams.jdk8.StreamsKt.asStream;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.animation.interpolator.EasingMode.EASE_IN;
@@ -74,7 +75,7 @@ import static sp.it.util.ui.UtilKt.removeFromParent;
  * The content switches by invoking drag event using the right (secondary) mouse button.
  */
 @SuppressWarnings("WeakerAccess")
-public class SwitchContainerUi implements ComponentUi {
+public class ContainerSwitchUi implements ComponentUi {
 
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
@@ -102,7 +103,7 @@ public class SwitchContainerUi implements ComponentUi {
     private double byx = 0;
     private double tox = 0;
 
-    public SwitchContainerUi(SwitchContainer container) {
+    public ContainerSwitchUi(ContainerSwitch container) {
         this.container = container;
 
         root.setId("switch-pane-root");
@@ -450,7 +451,7 @@ public class SwitchContainerUi implements ComponentUi {
         int i = -1;
         for (Entry<Integer,Component> e : layouts.entrySet()) {
             Component cm = e.getValue();
-            boolean has = cm==c || (cm instanceof Container && ((Container<?>)cm).getAllChildren().anyMatch(ch -> ch==c));
+            boolean has = cm==c || (cm instanceof Container && asStream(((Container<?>)cm).getAllChildren()).anyMatch(ch -> ch==c));
             if (has) {
                 i = e.getKey();
                 alignTab(i);
@@ -602,7 +603,7 @@ public class SwitchContainerUi implements ComponentUi {
 
 /******************************************************************************/
 
-    public final SwitchContainer container;
+    public final ContainerSwitch container;
     private final Map<Integer,Component> layouts = new HashMap<>();
 
     public Map<Integer,Component> getComponents() {

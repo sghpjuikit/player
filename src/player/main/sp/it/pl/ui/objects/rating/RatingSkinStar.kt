@@ -11,6 +11,8 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 import sp.it.pl.main.IconFA
 import sp.it.util.collections.setTo
 import sp.it.util.math.clip
@@ -23,8 +25,6 @@ import sp.it.util.reactive.syncWhile
 import sp.it.util.ui.createIcon
 import sp.it.util.ui.hBox
 import sp.it.util.ui.pseudoClassChanged
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 /** Skin for [Rating] displaying the value as horizontal sequence of icons. Editable. */
 class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {

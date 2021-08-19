@@ -1,5 +1,9 @@
 package sp.it.pl.audio.playlist
 
+import java.io.File
+import java.net.URI
+import java.util.UUID
+import kotlin.streams.toList
 import sp.it.pl.audio.playlist.sequence.PlayingSequence
 import sp.it.pl.main.APP
 import sp.it.pl.main.audioExtensionFilter
@@ -18,10 +22,6 @@ import sp.it.util.system.chooseFile
 import sp.it.util.system.chooseFiles
 import sp.it.util.type.type
 import sp.it.util.units.uri
-import java.io.File
-import java.net.URI
-import java.util.UUID
-import kotlin.streams.toList
 
 /** Manages playlists. */
 object PlaylistManager: GlobalSubConfigDelegator("Playback") {

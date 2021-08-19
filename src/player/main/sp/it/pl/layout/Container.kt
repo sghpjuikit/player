@@ -1,15 +1,14 @@
 package sp.it.pl.layout
 
-import sp.it.pl.ui.objects.window.stage.asAppWindow
-import sp.it.util.conf.ConfigDelegator
-import javafx.scene.layout.AnchorPane
 import java.util.function.Consumer
 import javafx.scene.Node
-import kotlin.collections.HashMap
+import javafx.scene.layout.AnchorPane
 import org.slf4j.LoggerFactory
 import sp.it.pl.main.APP
+import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
+import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
 import sp.it.util.conf.Configurable
 import sp.it.util.functional.Util

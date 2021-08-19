@@ -2,10 +2,9 @@ package sp.it.pl.ui.objects
 
 import javafx.beans.property.Property
 import javafx.scene.control.ComboBox
-import sp.it.util.access.V
-import javafx.scene.control.skin.ComboBoxListViewSkin
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
+import javafx.scene.control.skin.ComboBoxListViewSkin
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
@@ -14,6 +13,7 @@ import javafx.util.Callback
 import javafx.util.StringConverter
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.ui.objects.search.Search
+import sp.it.util.access.V
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp

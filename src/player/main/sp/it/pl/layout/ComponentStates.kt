@@ -1,5 +1,7 @@
 package sp.it.pl.layout
 
+import java.io.File
+import java.util.UUID
 import javafx.geometry.Orientation
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
@@ -10,8 +12,6 @@ import sp.it.util.file.properties.PropVal
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import sp.it.util.text.splitTrimmed
-import java.io.File
-import java.util.UUID
 
 private val json = APP.serializerJson.json
 

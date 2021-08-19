@@ -1,5 +1,6 @@
 package sp.it.pl.plugin.impl
 
+import java.io.File
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
 import sp.it.pl.main.isImage
@@ -18,10 +19,9 @@ import sp.it.util.conf.uiOut
 import sp.it.util.file.FileType.FILE
 import sp.it.util.functional.Try
 import sp.it.util.reactive.Subscribed
-import sp.it.util.system.Os
-import java.io.File
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
+import sp.it.util.system.Os
 
 class Waifu2k: PluginBase() {
 

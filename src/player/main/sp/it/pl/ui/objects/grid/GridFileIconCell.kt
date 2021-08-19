@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects.grid
 
 import de.jensd.fx.glyphs.GlyphIcons
+import java.io.File
 import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
@@ -28,10 +29,9 @@ import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
+import sp.it.util.ui.show
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import java.io.File
-import sp.it.util.ui.show
 
 /**
  * GridCell implementation for file using [sp.it.pl.ui.objects.hierarchy.Item]

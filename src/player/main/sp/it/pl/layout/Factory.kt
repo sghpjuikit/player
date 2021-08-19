@@ -1,17 +1,6 @@
 package sp.it.pl.layout
 
 import de.jensd.fx.glyphs.GlyphIcons
-import sp.it.pl.layout.controller.Controller
-import sp.it.pl.layout.controller.NoFactoryController
-import sp.it.pl.main.APP
-import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.util.file.div
-import sp.it.util.file.nameOrRoot
-import sp.it.util.functional.asIf
-import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
-import sp.it.util.text.nullIfBlank
-import sp.it.util.text.split3
 import java.io.File
 import java.time.Year
 import java.util.UUID
@@ -20,9 +9,20 @@ import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.jvmName
+import sp.it.pl.layout.controller.Controller
+import sp.it.pl.layout.controller.NoFactoryController
+import sp.it.pl.main.APP
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.Locatable
+import sp.it.util.file.div
+import sp.it.util.file.nameOrRoot
+import sp.it.util.functional.asIf
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.toUnit
 import sp.it.util.text.decapital
+import sp.it.util.text.nullIfBlank
+import sp.it.util.text.split3
 
 /** Component factory that creates component by deserializing it from file. */
 sealed interface ComponentFactory<out T: Component>: ComponentInfo {

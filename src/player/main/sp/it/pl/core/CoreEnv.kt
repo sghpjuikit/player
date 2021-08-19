@@ -1,23 +1,24 @@
 package sp.it.pl.core
 
+import java.awt.desktop.AppReopenedEvent as AppReopenedEventFX
+import java.awt.desktop.ScreenSleepEvent as ScreenSleepEventFX
+import java.awt.desktop.SystemSleepEvent as SystemSleepEventFX
+import java.awt.desktop.UserSessionEvent as UserSessionEventFX
 import java.awt.Desktop
 import java.awt.desktop.AppForegroundEvent
 import java.awt.desktop.AppForegroundListener
 import java.awt.desktop.AppHiddenEvent
 import java.awt.desktop.AppHiddenListener
-import java.awt.desktop.AppReopenedEvent as AppReopenedEventFX
 import java.awt.desktop.AppReopenedListener
-import java.awt.desktop.ScreenSleepEvent as ScreenSleepEventFX
 import java.awt.desktop.ScreenSleepListener
-import java.awt.desktop.SystemSleepEvent as SystemSleepEventFX
 import java.awt.desktop.SystemSleepListener
-import java.awt.desktop.UserSessionEvent as UserSessionEventFX
 import java.awt.desktop.UserSessionListener
 import sp.it.pl.main.APP
 import sp.it.pl.main.Events
-import sp.it.pl.main.Events.AppEvent.AppHidingEvent.*
+import sp.it.pl.main.Events.AppEvent.AppHidingEvent.AppHidden
+import sp.it.pl.main.Events.AppEvent.AppHidingEvent.AppUnHidden
 import sp.it.pl.main.Events.AppEvent.AppReopenedEvent
-import sp.it.pl.main.Events.AppEvent.AppXGroundEvent.*
+import sp.it.pl.main.Events.AppEvent.AppXGroundEvent.AppMovedToBackground
 import sp.it.pl.main.Events.AppEvent.ScreenSleepEvent
 import sp.it.pl.main.Events.AppEvent.SystemSleepEvent
 import sp.it.pl.main.Events.AppEvent.UserSessionEvent

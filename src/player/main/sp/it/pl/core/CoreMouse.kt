@@ -9,7 +9,6 @@ import sp.it.util.collections.readOnly
 import sp.it.util.reactive.Subscription
 import sp.it.util.units.div
 import sp.it.util.units.seconds
-import java.util.HashSet
 
 /** Provides access to mouse position and mouse speed. By default lazy, i.e., consumes resources only if observed. */
 object CoreMouse: Core {

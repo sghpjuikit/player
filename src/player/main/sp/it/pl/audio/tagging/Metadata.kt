@@ -1,7 +1,16 @@
 package sp.it.pl.audio.tagging
 
+import kotlin.jvm.JvmField as F
+import java.io.File
+import java.io.IOException
+import java.io.Serializable
+import java.net.URI
+import java.time.DateTimeException
+import java.time.LocalDateTime
+import java.time.Year
 import javafx.scene.paint.Color
 import javafx.util.Duration
+import kotlin.math.pow
 import mu.KLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.tag.FieldKey
@@ -25,14 +34,14 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Chapter.Companion.chapter
 import sp.it.pl.audio.tagging.Metadata.Companion.EMPTY
 import sp.it.pl.audio.tagging.Metadata.Field
+import sp.it.pl.main.APP
+import sp.it.pl.main.isImage
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.image.Cover
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.pl.ui.objects.image.EmptyCover
 import sp.it.pl.ui.objects.image.FileCover
 import sp.it.pl.ui.objects.image.ImageCover
-import sp.it.pl.main.APP
-import sp.it.pl.main.isImage
-import sp.it.pl.main.toUi
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.Blocks
@@ -53,15 +62,6 @@ import sp.it.util.units.FileSize.Companion.sizeInBytes
 import sp.it.util.units.NofX
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.uri
-import java.io.File
-import java.io.IOException
-import java.io.Serializable
-import java.net.URI
-import java.time.DateTimeException
-import java.time.LocalDateTime
-import java.time.Year
-import kotlin.math.pow
-import kotlin.jvm.JvmField as F
 
 /**
  * Information about audio file, usually from audio file tag and header.

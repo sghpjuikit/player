@@ -1,9 +1,18 @@
 package sp.it.pl.main
 
+import java.io.File
 import javafx.scene.image.Image
 import javafx.stage.FileChooser
+import javax.imageio.ImageIO
+import kotlin.streams.asSequence
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
+import sp.it.pl.core.Parse
+import sp.it.pl.core.Parser
+import sp.it.pl.core.ParserOr
+import sp.it.util.access.v
+import sp.it.util.conf.but
+import sp.it.util.conf.cv
 import sp.it.util.dev.failIf
 import sp.it.util.file.FastFile
 import sp.it.util.file.FileType
@@ -13,31 +22,22 @@ import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.type.MimeExt
+import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.MimeGroup.Companion.video
+import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.mimeType
 import sp.it.util.functional.PF0
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIs
 import sp.it.util.functional.runTry
+import sp.it.util.parsing.ConverterString
 import sp.it.util.system.Os
+import sp.it.util.text.capital
+import sp.it.util.text.equalsNc
 import sp.it.util.text.plural
 import sp.it.util.type.type
 import sp.it.util.ui.image.toBuffered
-import java.io.File
-import javax.imageio.ImageIO
-import kotlin.streams.asSequence
-import sp.it.pl.core.Parse
-import sp.it.pl.core.Parser
-import sp.it.pl.core.ParserOr
-import sp.it.util.access.v
-import sp.it.util.conf.but
-import sp.it.util.conf.cv
-import sp.it.util.file.type.MimeExt
-import sp.it.util.file.type.MimeGroup
-import sp.it.util.file.type.MimeType
-import sp.it.util.functional.asIs
-import sp.it.util.parsing.ConverterString
-import sp.it.util.text.capital
-import sp.it.util.text.equalsNc
 
 private val logger = KotlinLogging.logger { }
 

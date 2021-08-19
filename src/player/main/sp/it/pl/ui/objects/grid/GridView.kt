@@ -1,6 +1,5 @@
 package sp.it.pl.ui.objects.grid
 
-import java.util.Comparator
 import java.util.function.Predicate
 import javafx.beans.property.ObjectProperty
 import javafx.collections.FXCollections

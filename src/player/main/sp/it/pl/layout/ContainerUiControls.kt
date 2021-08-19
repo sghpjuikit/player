@@ -6,7 +6,6 @@ import javafx.scene.input.DragEvent.DRAG_DONE
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.layout.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
@@ -15,6 +14,7 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim.Companion.anim

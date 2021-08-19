@@ -6,7 +6,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.text.Text
 import javafx.scene.text.TextBoundsType
 import sp.it.util.functional.asIs
-import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 

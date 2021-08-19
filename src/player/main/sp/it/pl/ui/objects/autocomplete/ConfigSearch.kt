@@ -25,6 +25,7 @@ import javafx.scene.input.KeyCode.UP
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import sp.it.pl.main.Css
@@ -38,6 +39,8 @@ import sp.it.util.access.minus
 import sp.it.util.action.Action
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Config
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.recurseDF
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -52,10 +55,6 @@ import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.uninstall
-import java.util.ArrayList
-import javafx.scene.layout.Pane
-import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.recurseDF
 
 class ConfigSearch: AutoCompletion<Entry> {
    private val textField: TextField

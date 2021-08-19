@@ -1,5 +1,18 @@
 package sp.it.pl.layout
 
+import javafx.stage.Window as WindowFX
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+import java.lang.ProcessBuilder.Redirect
+import java.net.URI
+import java.net.URLClassLoader
+import java.nio.file.Path
+import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
+import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
+import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
+import java.nio.file.WatchEvent.Kind
+import java.util.concurrent.TimeUnit
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Insets
@@ -11,10 +24,15 @@ import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.WindowEvent.WINDOW_HIDING
+import javax.tools.ToolProvider
+import kotlin.math.ceil
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
+import kotlin.streams.asSequence
+import kotlin.text.Charsets.UTF_8
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import sp.it.pl.core.NameUi
-import sp.it.pl.ui.objects.window.stage.Window
-import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.layout.WidgetSource.NONE
 import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.layout.WidgetSource.OPEN_LAYOUT
@@ -30,7 +48,10 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
@@ -41,16 +62,23 @@ import sp.it.util.async.burstTPExecutor
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runIO
+import sp.it.util.async.runLater
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
+import sp.it.util.collections.setTo
+import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.butElement
 import sp.it.util.conf.c
+import sp.it.util.conf.cList
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.singleton
+import sp.it.util.conf.uiConverter
+import sp.it.util.conf.uiSingleton
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -68,6 +96,7 @@ import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
 import sp.it.util.file.toURLOrNull
 import sp.it.util.file.unzip
+import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.functional.andAlso
@@ -79,6 +108,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.let_
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toTry
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
@@ -87,6 +117,8 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
 import sp.it.util.system.browse
+import sp.it.util.text.capital
+import sp.it.util.text.decapital
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.Util
 import sp.it.util.ui.anchorPane
@@ -94,42 +126,10 @@ import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.scrollText
+import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stylesheetToggle
 import sp.it.util.ui.text
 import sp.it.util.units.seconds
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.IOException
-import java.lang.ProcessBuilder.Redirect
-import java.net.URI
-import java.net.URLClassLoader
-import java.nio.file.Path
-import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
-import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
-import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
-import java.nio.file.WatchEvent.Kind
-import java.util.concurrent.TimeUnit
-import javax.tools.ToolProvider
-import kotlin.math.ceil
-import kotlin.reflect.KClass
-import kotlin.streams.asSequence
-import kotlin.text.Charsets.UTF_8
-import javafx.stage.Window as WindowFX
-import kotlin.reflect.cast
-import kotlinx.coroutines.runBlocking
-import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
-import sp.it.util.async.runLater
-import sp.it.util.collections.setTo
-import sp.it.util.conf.EditMode
-import sp.it.util.conf.butElement
-import sp.it.util.conf.cList
-import sp.it.util.conf.uiConverter
-import sp.it.util.conf.uiSingleton
-import sp.it.util.functional.Option
-import sp.it.util.functional.toTry
-import sp.it.util.text.capital
-import sp.it.util.text.decapital
-import sp.it.util.ui.setMinPrefMaxSize
 
 /** Handles operations with Widgets. */
 class WidgetManager {

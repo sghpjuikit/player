@@ -1,13 +1,13 @@
 package sp.it.pl.ui.objects.image
 
+import java.awt.image.BufferedImage
+import java.io.File
+import java.util.Objects
 import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.util.dev.Blocks
 import sp.it.util.ui.image.ImageSize
-import java.awt.image.BufferedImage
-import java.io.File
-import java.util.Objects
 
 interface Cover {
 

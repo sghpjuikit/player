@@ -1,5 +1,6 @@
 package sp.it.pl.layout
 
+import java.util.UUID
 import javafx.beans.InvalidationListener
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
@@ -14,7 +15,6 @@ import sp.it.util.conf.IsConfig
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
-import java.util.UUID
 
 /**
  * Defines wrapper of loadable graphical component.

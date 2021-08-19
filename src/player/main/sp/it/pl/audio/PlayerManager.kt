@@ -1,5 +1,7 @@
 package sp.it.pl.audio
 
+import java.io.File
+import java.net.URI
 import javafx.scene.media.MediaPlayer
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
@@ -15,6 +17,8 @@ import sp.it.pl.audio.playback.VlcPlayer
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_INFO
+import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
@@ -23,7 +27,9 @@ import sp.it.pl.audio.tagging.writeRating
 import sp.it.pl.layout.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
+import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.toggle
+import sp.it.util.access.toggleNext
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.EventReducer.toLast
@@ -34,45 +40,38 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
+import sp.it.util.conf.butElement
 import sp.it.util.conf.c
 import sp.it.util.conf.cList
 import sp.it.util.conf.cr
+import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
+import sp.it.util.conf.noPersist
+import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.conf.relativeTo
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.functional.Util.SAME
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.nullsLast
+import sp.it.util.inSort
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.onChange
 import sp.it.util.system.browse
 import sp.it.util.type.atomic
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
-import java.io.File
-import java.net.URI
-import java.util.ArrayList
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_INFO
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
-import sp.it.util.Sort.ASCENDING
-import sp.it.util.access.toggleNext
-import sp.it.util.conf.butElement
-import sp.it.util.conf.cv
-import sp.it.util.conf.noPersist
-import sp.it.util.conf.noUi
-import sp.it.util.functional.Util.SAME
-import sp.it.util.functional.asIs
-import sp.it.util.functional.nullsLast
-import sp.it.util.inSort
-import sp.it.util.reactive.onChange
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 

@@ -6,9 +6,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import sp.it.pl.ui.objects.picker.ContainerPicker
-import sp.it.pl.ui.objects.picker.Picker
-import sp.it.pl.ui.objects.picker.WidgetPicker
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.Df
@@ -16,6 +13,9 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.picker.ContainerPicker
+import sp.it.pl.ui.objects.picker.Picker
+import sp.it.pl.ui.objects.picker.WidgetPicker
 import sp.it.util.async.FX
 import sp.it.util.async.launch
 import sp.it.util.reactive.Disposer

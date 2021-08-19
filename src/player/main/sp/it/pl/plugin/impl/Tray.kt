@@ -1,5 +1,11 @@
 package sp.it.pl.plugin.impl
 
+import java.awt.Image
+import java.awt.SystemTray
+import java.awt.TrayIcon
+import java.awt.event.MouseAdapter
+import java.io.File
+import java.io.IOException
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.FORWARD
@@ -15,29 +21,23 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.window.stage.clone
+import sp.it.pl.ui.objects.window.stage.openWindowSettings
 import sp.it.util.async.runAwt
 import sp.it.util.async.runFX
+import sp.it.util.collections.materialize
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.syncFalse
+import sp.it.util.ui.dsl
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.createImageBlack
 import sp.it.util.ui.image.loadBufferedImage
-import sp.it.util.ui.menuItem
-import java.awt.Image
-import java.awt.SystemTray
-import java.awt.TrayIcon
-import java.awt.event.MouseAdapter
-import java.io.File
-import java.io.IOException
-import sp.it.pl.ui.objects.window.stage.clone
-import sp.it.pl.ui.objects.window.stage.openWindowSettings
-import sp.it.util.collections.materialize
-import sp.it.util.ui.dsl
 import sp.it.util.ui.menu
+import sp.it.util.ui.menuItem
 
 class Tray: PluginBase() {
 

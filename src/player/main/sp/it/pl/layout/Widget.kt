@@ -1,7 +1,6 @@
 package sp.it.pl.layout
 
 import java.io.File
-import java.util.HashMap
 import java.util.Objects
 import java.util.UUID
 import javafx.beans.property.ReadOnlyBooleanWrapper

@@ -1,15 +1,15 @@
 package sp.it.pl.layout
 
 import javafx.geometry.Orientation
-import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Orientation.HORIZONTAL
+import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.Node
 import sp.it.util.collections.filterNotNullValues
-import sp.it.util.dev.failIf
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnly
+import sp.it.util.dev.failIf
 
 /** [Container] containing two children split vertically or horizontally. */
 class ContainerBi: Container<ContainerBiUi> {

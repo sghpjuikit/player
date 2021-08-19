@@ -1,5 +1,6 @@
 package sp.it.pl.audio.playlist
 
+import java.net.URI
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.media.Media
@@ -21,7 +22,6 @@ import sp.it.util.identityHashCode
 import sp.it.util.type.VType
 import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
-import java.net.URI
 
 /**
  * Song in playlist.

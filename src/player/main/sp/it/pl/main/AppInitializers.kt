@@ -1,5 +1,14 @@
 package sp.it.pl.main
 
+import java.io.File
+import java.nio.file.attribute.FileTime
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Date
+import java.util.function.Consumer
+import javafx.util.Duration
+import kotlin.streams.asSequence
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
@@ -41,15 +50,6 @@ import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
 import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
-import java.io.File
-import java.nio.file.attribute.FileTime
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.util.Date
-import java.util.function.Consumer
-import javafx.util.Duration
-import kotlin.streams.asSequence
 
 fun File.verify() {
    if (!isAbsolute)

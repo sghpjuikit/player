@@ -1,14 +1,6 @@
 package sp.it.pl.layout
 
 import de.jensd.fx.glyphs.GlyphIcons
-import sp.it.pl.layout.feature.Feature
-import sp.it.pl.main.APP
-import sp.it.pl.main.toUi
-import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.util.file.properties.PropVal.PropVal1
-import sp.it.util.functional.net
-import sp.it.util.functional.toUnit
-import sp.it.util.text.camelToDotCase
 import java.time.Year
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
@@ -17,6 +9,14 @@ import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.jvm.jvmName
+import sp.it.pl.layout.feature.Feature
+import sp.it.pl.main.APP
+import sp.it.pl.main.toUi
+import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.file.properties.PropVal.PropVal1
+import sp.it.util.functional.net
+import sp.it.util.functional.toUnit
+import sp.it.util.text.camelToDotCase
 import sp.it.util.text.ifNotEmpty
 
 interface ComponentInfo {

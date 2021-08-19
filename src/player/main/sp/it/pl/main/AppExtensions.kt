@@ -1,40 +1,40 @@
 package sp.it.pl.main
 
+import java.io.File
+import java.io.InputStream
+import java.lang.ProcessBuilder.Redirect.PIPE
 import javafx.scene.text.Font
+import kotlin.math.ceil
 import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.read
+import sp.it.pl.core.CoreConverter
 import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.isExperimental
+import sp.it.util.async.FX
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
-import sp.it.util.async.runIO
-import sp.it.util.async.runNew
-import sp.it.util.dev.fail
-import sp.it.util.dev.failIfNotFxThread
-import sp.it.util.file.Util.isValidFile
-import sp.it.util.file.div
-import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.ifNull
-import sp.it.util.system.runAsProgram
-import sp.it.util.units.toEM
-import java.io.File
-import java.io.InputStream
-import java.lang.ProcessBuilder.Redirect.PIPE
-import kotlin.math.ceil
-import sp.it.pl.core.CoreConverter
-import sp.it.util.async.FX
 import sp.it.util.async.launch
 import sp.it.util.async.runFX
+import sp.it.util.async.runIO
+import sp.it.util.async.runNew
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.only
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.dev.fail
+import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
+import sp.it.util.file.Util.isValidFile
+import sp.it.util.file.div
 import sp.it.util.functional.ifFalse
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
+import sp.it.util.system.runAsProgram
+import sp.it.util.units.toEM
 
 private val logger = KotlinLogging.logger {}
 

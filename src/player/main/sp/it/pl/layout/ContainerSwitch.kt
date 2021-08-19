@@ -1,17 +1,17 @@
 package sp.it.pl.layout
 
+import sp.it.pl.main.AppSettings.ui.tabs as conf
 import javafx.scene.Node
 import sp.it.util.collections.filterNotNullValues
+import sp.it.util.conf.EditMode.APP
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.reactive.syncFrom
-import sp.it.pl.main.AppSettings.ui.tabs as conf
-import sp.it.util.conf.EditMode.APP
 import sp.it.util.conf.readOnly
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
+import sp.it.util.reactive.syncFrom
 
 class ContainerSwitch: Container<ContainerSwitchUi> {
 

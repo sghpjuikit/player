@@ -1,12 +1,12 @@
 package sp.it.pl.ui.objects.textfield
 
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.MOOD
+import sp.it.pl.main.APP
+import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.picker.MoodPicker
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.pl.main.APP
-import sp.it.pl.main.emScaled
 import sp.it.util.access.v
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x

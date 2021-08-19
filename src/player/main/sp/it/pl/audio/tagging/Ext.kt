@@ -1,5 +1,8 @@
 package sp.it.pl.audio.tagging
 
+import java.awt.image.BufferedImage
+import java.io.File
+import java.io.IOException
 import mu.KotlinLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
@@ -14,9 +17,6 @@ import org.jaudiotagger.tag.images.Artwork
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
 import sp.it.util.functional.Try
 import sp.it.util.math.clip
-import java.awt.image.BufferedImage
-import java.io.File
-import java.io.IOException
 
 private val logger = KotlinLogging.logger {}
 

@@ -1,13 +1,12 @@
 package sp.it.pl.web
 
-import sp.it.util.Util
+import sp.it.util.parsing.StringParseStrategy as Parse
+import java.net.URI
 import sp.it.util.Util.urlEncodeUtf8
 import sp.it.util.functional.Functors.F1
 import sp.it.util.parsing.StringParseStrategy.From.SINGLETON
 import sp.it.util.parsing.StringParseStrategy.To.CONSTANT
 import sp.it.util.units.uri
-import java.net.URI
-import sp.it.util.parsing.StringParseStrategy as Parse
 
 /** [java.net.URI] builder for searching a resource with a string. */
 interface SearchUriBuilder: F1<String, URI> {

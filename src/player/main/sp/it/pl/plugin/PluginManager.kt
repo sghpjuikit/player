@@ -2,6 +2,10 @@ package sp.it.pl.plugin
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.collections.FXCollections.observableArrayList
+import kotlin.reflect.KClass
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.jvmName
 import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.MASTER
@@ -24,6 +28,7 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.singleton
+import sp.it.util.conf.uiSingleton
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -41,11 +46,6 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.on
 import sp.it.util.units.version
-import kotlin.reflect.KClass
-import kotlin.reflect.full.companionObjectInstance
-import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.jvm.jvmName
-import sp.it.util.conf.uiSingleton
 
 class PluginManager: GlobalConfigDelegator {
    /** Plugin management ui. */

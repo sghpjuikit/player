@@ -12,6 +12,7 @@ import de.jensd.fx.glyphs.octicons.OctIconView
 import de.jensd.fx.glyphs.weathericons.WeatherIcon
 import de.jensd.fx.glyphs.weathericons.WeatherIconView
 import javafx.scene.text.Font
+import kotlin.reflect.KClass
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
@@ -20,7 +21,6 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.runTry
 import sp.it.util.text.Char32
 import sp.it.util.text.toChar32
-import kotlin.reflect.KClass
 import sp.it.util.type.enumValues
 
 object Glyphs {

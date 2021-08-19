@@ -17,8 +17,11 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
+import kotlin.math.absoluteValue
+import kotlin.reflect.KProperty0
 import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
 import sp.it.util.access.value
 import sp.it.util.collections.setToOne
@@ -36,17 +39,14 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTo
+import sp.it.util.ui.hasFocus
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setAnchors
-import sp.it.util.ui.x2
-import kotlin.math.absoluteValue
-import kotlin.reflect.KProperty0
-import sp.it.util.access.toggle
-import sp.it.util.ui.hasFocus
 import sp.it.util.ui.size
+import sp.it.util.ui.x2
 
 class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
    private val root1 = AnchorPane()

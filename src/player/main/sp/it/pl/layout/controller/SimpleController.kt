@@ -1,6 +1,7 @@
 package sp.it.pl.layout.controller
 
 import javafx.scene.layout.StackPane
+import kotlin.reflect.full.findAnnotation
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.layout.controller.io.Output
@@ -12,8 +13,6 @@ import sp.it.util.conf.toConfigurableByReflect
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
-import java.util.HashMap
-import kotlin.reflect.full.findAnnotation
 
 /**
  * Base controller implementation that provides

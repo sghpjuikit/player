@@ -1,7 +1,6 @@
 package sp.it.pl.ui.pane
 
 import javafx.geometry.HPos
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos

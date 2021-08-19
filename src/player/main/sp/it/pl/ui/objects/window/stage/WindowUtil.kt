@@ -35,7 +35,9 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
-import javafx.scene.input.MouseEvent.*
+import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
+import javafx.scene.input.MouseEvent.MOUSE_PRESSED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region

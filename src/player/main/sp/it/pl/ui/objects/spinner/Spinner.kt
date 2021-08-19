@@ -10,6 +10,7 @@ import javafx.scene.control.SkinBase
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Arc
 import javafx.scene.shape.Circle
+import kotlin.math.abs
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
@@ -21,7 +22,6 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
-import kotlin.math.abs
 
 /** Very simple custom [ProgressIndicator]. */
 class Spinner: ProgressIndicator {

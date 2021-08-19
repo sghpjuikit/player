@@ -1,6 +1,5 @@
 package sp.it.pl.layout
 
-import java.util.ArrayList
 import kotlin.reflect.jvm.jvmName
 import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.layout.controller.io.IOLayer

@@ -1,25 +1,24 @@
 package sp.it.pl.layout.controller.io
 
-import sp.it.pl.layout.WidgetSource.OPEN
-import sp.it.pl.main.APP
-import sp.it.util.dev.Idempotent
-import sp.it.util.dev.failIf
-import sp.it.util.reactive.Subscription
-import sp.it.util.type.VType
-import sp.it.util.type.argOf
-import sp.it.util.type.isSubtypeOf
-import sp.it.util.type.jvmErasure
-import sp.it.util.type.raw
-import sp.it.util.type.typeResolved
-import java.util.HashMap
 import java.util.UUID
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
+import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.layout.controller.io.Output.Id
+import sp.it.pl.main.APP
+import sp.it.util.dev.Idempotent
+import sp.it.util.dev.failIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.reactive.Subscription
+import sp.it.util.type.VType
+import sp.it.util.type.argOf
 import sp.it.util.type.estimateRuntimeType
+import sp.it.util.type.isSubtypeOf
+import sp.it.util.type.jvmErasure
+import sp.it.util.type.raw
+import sp.it.util.type.typeResolved
 
 open class Input<T>: Put<T> {
 

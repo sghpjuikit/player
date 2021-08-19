@@ -1,9 +1,9 @@
 package sp.it.pl.layout.controller.io
 
-import sp.it.util.collections.materialize
-import sp.it.util.type.VType
 import java.util.Objects
 import java.util.UUID
+import sp.it.util.collections.materialize
+import sp.it.util.type.VType
 
 class Output<T>: Put<T> {
    val id: Id

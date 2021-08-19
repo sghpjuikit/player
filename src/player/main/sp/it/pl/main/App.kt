@@ -50,9 +50,9 @@ import sp.it.pl.plugin.impl.StartScreen
 import sp.it.pl.plugin.impl.Tray
 import sp.it.pl.plugin.impl.Waifu2k
 import sp.it.pl.plugin.impl.WallpaperChanger
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
-import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.util.access.v
 import sp.it.util.action.Action

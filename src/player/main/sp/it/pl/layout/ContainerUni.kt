@@ -5,10 +5,8 @@ import sp.it.util.collections.setToOne
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnly
-import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
 import sp.it.util.ui.setAnchors
-
 
 /** [Container] containing one child spanning entire area. */
 open class ContainerUni: Container<ComponentUi> {

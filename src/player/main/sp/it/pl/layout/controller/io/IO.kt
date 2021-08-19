@@ -1,15 +1,14 @@
 package sp.it.pl.layout.controller.io
 
+import java.util.UUID
+import sp.it.util.collections.materialize
 import sp.it.util.dev.failIf
+import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.type.VType
-import sp.it.util.type.type
-import java.util.HashMap
-import java.util.UUID
-import sp.it.util.collections.materialize
-import sp.it.util.functional.asIs
 import sp.it.util.type.isSupertypeOf
+import sp.it.util.type.type
 
 class IO(private val id: UUID) {
    @JvmField val o = Outputs()

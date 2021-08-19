@@ -1,14 +1,18 @@
 package sp.it.pl.core
 
+import java.io.File
+import java.io.FileNotFoundException
+import kotlin.text.Charsets.UTF_8
 import mu.KLogging
-import sp.it.pl.ui.objects.window.stage.WindowDb
 import sp.it.pl.layout.BiContainerDb
 import sp.it.pl.layout.FreeFormContainerDb
 import sp.it.pl.layout.NoComponentDb
 import sp.it.pl.layout.RootContainerDb
 import sp.it.pl.layout.SwitchContainerDb
-import sp.it.pl.layout.WidgetDb
+import sp.it.pl.layout.UniContainerDb
 import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetDb
+import sp.it.pl.ui.objects.window.stage.WindowDb
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray
@@ -24,10 +28,6 @@ import sp.it.util.file.writeSafely
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Java.error
-import java.io.File
-import java.io.FileNotFoundException
-import kotlin.text.Charsets.UTF_8
-import sp.it.pl.layout.UniContainerDb
 
 class CoreSerializerJson: Core {
 

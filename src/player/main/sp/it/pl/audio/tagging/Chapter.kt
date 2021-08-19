@@ -1,10 +1,10 @@
 package sp.it.pl.audio.tagging
 
+import java.util.Objects
 import javafx.util.Duration
+import kotlin.math.floor
 import sp.it.util.functional.Try
 import sp.it.util.text.Strings
-import java.util.Objects
-import kotlin.math.floor
 
 /** Chapter is a text associated with specific point of time in a song. */
 class Chapter: Comparable<Chapter> {

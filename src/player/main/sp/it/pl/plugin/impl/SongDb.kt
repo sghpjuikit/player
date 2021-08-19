@@ -1,5 +1,8 @@
 package sp.it.pl.plugin.impl
 
+import java.net.URI
+import java.util.Collections.synchronizedMap
+import java.util.concurrent.ConcurrentHashMap
 import mu.KLogging
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.SimpleSong
@@ -28,9 +31,6 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orAlsoTry
 import sp.it.util.functional.orNull
 import sp.it.util.units.uuid
-import java.net.URI
-import java.util.Collections.synchronizedMap
-import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("unused")
 class SongDb {

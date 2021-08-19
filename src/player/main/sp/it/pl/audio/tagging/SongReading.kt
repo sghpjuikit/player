@@ -3,6 +3,7 @@ package sp.it.pl.audio.tagging
 import javafx.concurrent.Task
 import javafx.event.EventHandler
 import javafx.scene.media.Media
+import kotlin.streams.asSequence
 import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
@@ -12,8 +13,6 @@ import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
-import java.util.ArrayList
-import kotlin.streams.asSequence
 
 private val logger = KotlinLogging.logger { }
 

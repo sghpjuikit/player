@@ -2,6 +2,7 @@ package sp.it.pl.ui.pane
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.scene.Node
+import kotlin.reflect.KClass
 import sp.it.pl.ui.pane.GroupApply.FOR_ALL
 import sp.it.pl.ui.pane.GroupApply.FOR_EACH
 import sp.it.pl.ui.pane.GroupApply.NONE
@@ -12,7 +13,6 @@ import sp.it.util.collections.getElementClass
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISNT
-import kotlin.reflect.KClass
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class, *actions)
 

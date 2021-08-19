@@ -2,10 +2,10 @@ package sp.it.pl.ui.objects.window.stage
 
 import javafx.stage.StageStyle
 import javafx.stage.StageStyle.TRANSPARENT
-import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
-import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.pl.layout.RootContainerDb
 import sp.it.pl.main.APP
+import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
+import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.util.functional.net
 
 data class WindowDb(

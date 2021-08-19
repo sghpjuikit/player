@@ -1,5 +1,6 @@
 package sp.it.pl.audio
 
+import java.util.UUID
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -14,8 +15,6 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
-import java.util.ArrayList
-import java.util.UUID
 
 /** State of player. */
 class PlayerState {

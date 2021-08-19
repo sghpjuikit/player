@@ -10,7 +10,8 @@ import sp.it.util.Sort
 import sp.it.util.dev.failIf
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.MimeTypes
-import sp.it.util.text.*
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 
 object Widgets {
    const val CONVERTER_NAME = "Converter"

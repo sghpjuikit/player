@@ -3,7 +3,21 @@ package sp.it.pl.core
 import com.github.f4b6a3.uuid.UuidCreator
 import com.github.f4b6a3.uuid.enums.UuidLocalDomain
 import com.github.f4b6a3.uuid.enums.UuidNamespace
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URI
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.Charset
+import java.time.LocalDateTime
+import java.time.Year
+import java.util.Base64
+import java.util.Objects
+import java.util.UUID
+import java.util.regex.Pattern
 import javafx.util.Duration
+import kotlin.text.Charsets.UTF_8
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
 import sp.it.pl.main.APP
@@ -39,8 +53,10 @@ import sp.it.util.functional.Functors
 import sp.it.util.functional.Parameter
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util.IS0
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.math.StrExF
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.StringSplitParser
@@ -56,6 +72,7 @@ import sp.it.util.text.escapeXSI
 import sp.it.util.text.escapeXml10
 import sp.it.util.text.escapeXml11
 import sp.it.util.text.isPalindrome
+import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.unescapeCsv
 import sp.it.util.text.unescapeEcmaScript
 import sp.it.util.text.unescapeHtml3
@@ -72,23 +89,6 @@ import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
 import sp.it.util.units.RangeYear
 import sp.it.util.units.uri
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.net.URI
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.Charset
-import java.time.LocalDateTime
-import java.time.Year
-import java.util.Base64
-import java.util.Objects
-import java.util.UUID
-import java.util.regex.Pattern
-import kotlin.text.Charsets.UTF_8
-import sp.it.util.functional.getOrSupply
-import sp.it.util.math.StrExF
-import sp.it.util.text.lengthInCodePoints
 
 object CoreFunctors: Core {
 

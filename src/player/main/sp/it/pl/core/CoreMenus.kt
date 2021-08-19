@@ -66,7 +66,8 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
-import sp.it.util.text.*
+import sp.it.util.text.keys
+import sp.it.util.text.resolved
 import sp.it.util.type.type
 import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder

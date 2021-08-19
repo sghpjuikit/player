@@ -11,8 +11,8 @@ import sp.it.pl.ui.objects.picker.TimeClockPrecision.MINUTE
 import sp.it.pl.ui.objects.picker.TimeClockPrecision.SECOND
 import sp.it.util.access.StyleableCompanion
 import sp.it.util.access.enumConverter
-import sp.it.util.access.svMetaData
 import sp.it.util.access.sv
+import sp.it.util.access.svMetaData
 import sp.it.util.access.v
 import sp.it.util.collections.setTo
 import sp.it.util.reactive.Handler1

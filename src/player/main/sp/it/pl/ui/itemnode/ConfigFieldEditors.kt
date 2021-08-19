@@ -1272,7 +1272,10 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       }
 
       private inline fun <reified T> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (Event) -> Unit = { it ->
-         if ((it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY) || (it is ScrollEvent && editor.hasFocus())) {
+         val isEditable = this.isEditable.value
+         val isMouseEdit = it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY
+         val isScrollEdit = it is ScrollEvent && editor.hasFocus()
+         if (isEditable && (isMouseEdit || isScrollEdit)) {
             val dv = when (it) {
                is MouseEvent -> (if (it.source.asIs<Node>().net { it.layoutBounds.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1) * (if (it.isShortcutDown) 10 else 1)
                is ScrollEvent -> it.deltaY.sign.roundToInt() * (if (it.isShortcutDown) 10 else 1)

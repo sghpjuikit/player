@@ -44,8 +44,6 @@ class ContainerSwitch: Container<ContainerSwitchUi> {
       snapThresholdRel syncFrom Companion.snapThresholdRel on onClose
       snapThresholdAbs syncFrom Companion.snapThresholdAbs on onClose
       zoom syncFrom Companion.zoom on onClose
-
-      println(children)
    }
 
    override fun addChild(index: Int?, c: Component?) {

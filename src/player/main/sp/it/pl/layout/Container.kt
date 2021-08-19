@@ -14,7 +14,6 @@ import sp.it.util.conf.ConfigValueSource
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
-import sp.it.util.dev.printIt
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -92,8 +91,6 @@ abstract class Container<G: ComponentUi?>(state: ComponentDb): Component(state),
    val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
 
    init {
-      state.properties["padding"]?.let { it::class.printIt() }
-      state.properties["padding"].printIt()
       padding.value = state.properties["padding"].asIf<Insets>()
       padding attach { properties["padding"] = it }
    }

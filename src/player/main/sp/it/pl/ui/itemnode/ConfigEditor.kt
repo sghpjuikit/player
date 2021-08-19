@@ -320,7 +320,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
       @JvmStatic
       fun <T> create(config: Config<T>): ConfigEditor<T> {
-         fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && !type.isNullable && constraints.any { it is NumberMinMax && it.isClosed() }
+         fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && !type.isNullable && constraints.any { it is NumberMinMax && it.isClosed() && it.min!=Double.MIN_VALUE && it.max!=Double.MAX_VALUE }
          fun Config<*>.isComplex() = constraints.any { it is UiStringHelper<*> }
 
          return when {

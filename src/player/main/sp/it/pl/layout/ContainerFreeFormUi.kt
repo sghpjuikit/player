@@ -53,6 +53,8 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
       root.maxSize = Double.MAX_VALUE x Double.MAX_VALUE
       root.layFullArea += content
 
+      content.initClipToPadding()
+
 
       // add new widget on left click
       content.onEventDown(MOUSE_CLICKED, PRIMARY, false) { e ->

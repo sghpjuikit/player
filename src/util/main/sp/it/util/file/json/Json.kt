@@ -22,7 +22,6 @@ import sp.it.util.type.toRaw
 import sp.it.util.type.jType
 import sp.it.util.type.kType
 import sp.it.util.type.raw
-import sp.it.util.type.typeResolved
 import java.io.File
 import java.io.InputStream
 import java.io.SequenceInputStream
@@ -61,6 +60,7 @@ import sp.it.util.type.VType
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
 import sp.it.util.type.type
+import sp.it.util.type.typeOrAny
 
 sealed class JsValue {
    fun asJsNull() = asIs<JsNull>()
@@ -114,6 +114,7 @@ class Json {
    val keyMapConverter: ConverterDefault = Parsers.DEFAULT
 
    init {
+      @Suppress("SpellCheckingInspection")
       typeAliases {
          // @formatter:off
                  "char" alias Char::class
@@ -201,11 +202,13 @@ class Json {
             val isObject = type.isObject
             val isAmbiguous = typeAsRaw==Any::class || typeAsRaw.isSealed || isObject || type!=typeAsRaw
 
-            fun typeWitness() = "_type" to JsString(typeAliases.byType[type]
-               ?: type.qualifiedName
-               ?: fail { "Unable to serialize instance of type=$type: Type has no fully qualified name" })
+            fun typeWitness() = "_type" to JsString(
+               typeAliases.byType[type]
+                  ?: type.qualifiedName
+                  ?: fail { "Unable to serialize instance of type=$type: Type has no fully qualified name" }
+            )
 
-            fun JsValue.withAmbiguity() = if (isAmbiguous) JsObject(mapOf("value" to this, typeWitness())) else this
+            fun JsValue.withAmbiguity(a: Boolean = isAmbiguous) = if (a) JsObject(mapOf("value" to this, typeWitness())) else this
 
             when (value) {
                is Number -> JsNumber(value).withAmbiguity()
@@ -224,29 +227,31 @@ class Json {
                is FloatArray -> JsArray(value.map { toJsonValue(kType<Float>(), it) })
                is DoubleArray -> JsArray(value.map { toJsonValue(kType<Double>(), it) })
                is BooleanArray -> JsArray(value.map { toJsonValue(kType<Boolean>(), it) })
-               is Collection<*> -> JsArray(value.map { toJsonValue(typeAs.argOf(Collection::class, 0).typeResolved, it) })   // TODO: preserve collection/map type
-               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { toJsonValue(typeAs.argOf(Map::class, 1).typeResolved, it.value) })
+               is Collection<*> -> JsArray(value.map { toJsonValue(typeAs.argOf(Collection::class, 0).typeOrAny, it) })   // TODO: preserve collection/map type
+               is Map<*, *> -> JsObject(value.mapKeys { keyMapConverter.toS(it.key) }.mapValues { toJsonValue(typeAs.argOf(Map::class, 1).typeOrAny, it.value) })
                else -> {
-                  val converter = converters.byType.getElementOfSuper(value::class)
-                     .asIf<JsConverter<Any>>()
-                     ?.takeIf { it.canConvert(value) }
-                  if (converter!=null) {
-                     converter.toJson(value)
-                  } else {
-                     val values = type.memberProperties.asSequence()
-                        .filter { it.javaField!=null }
-                        .associate {
-                           it.isAccessible = true
-                           it.name to toJsonValue(it.returnType, it.getter.call(value))
-                        }
-                        .let {
-                           when {
-                              isObject -> mapOf(typeWitness())
-                              isAmbiguous -> (it + typeWitness())
-                              else -> it
+                  val converter = converters.byType.getElementOfSuper(value::class).asIf<JsConverter<Any>>()?.takeIf { it.canConvert(value) }
+                  when {
+                     converter!=null -> {
+                        val isStillAmbiguous = value !is String && typeAsRaw==Any::class
+                        converter.toJson(value).withAmbiguity(isStillAmbiguous)
+                     }
+                     else -> {
+                        val values = type.memberProperties.asSequence()
+                           .filter { it.javaField!=null }
+                           .associate {
+                              it.isAccessible = true
+                              it.name to toJsonValue(it.returnType, it.getter.call(value))
                            }
-                        }
-                     JsObject(values)
+                           .let {
+                              when {
+                                 isObject -> mapOf(typeWitness())
+                                 isAmbiguous -> (it + typeWitness())
+                                 else -> it
+                              }
+                           }
+                        JsObject(values)
+                     }
                   }
                }
             }
@@ -375,7 +380,9 @@ class Json {
                   val instanceType = null
                      ?: value.value["_type"]?.asJsStringValue()?.net { typeAliases.byAlias[it] ?: Class.forName(it).kotlin }
                      ?: typeK
+                  val converterValue = converters.byType.getElementOfSuper(instanceType).asIf<JsConverter<Any?>>()
                   when {
+                     converterValue!=null -> converterValue.fromJson(value.value["value"]!!)
                      instanceType.isObject -> instanceType.objectInstance
                      instanceType==Byte::class -> value.value["value"]?.asJsNumberValue()?.toByte()
                      instanceType==UByte::class -> value.value["value"]?.asJsNumberValue()?.toShort()?.toUByte()

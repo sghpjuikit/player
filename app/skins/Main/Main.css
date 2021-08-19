@@ -2018,6 +2018,7 @@ Shape, Text, SpitText, TextFlow > * {
 .widget-ui-controls {
     -fx-padding: 1em;
     -fx-background-color: null;
+    -fx-background-color: -skin-pane-color;
 }
 
 .widget-ui:layout-mode {

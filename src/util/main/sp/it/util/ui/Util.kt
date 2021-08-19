@@ -153,7 +153,7 @@ fun Node.isAnyChildOf(parent: Node) = parent.isAnyParentOf(this)
 /** @return this or direct or indirect parent of this that passes specified filter or null if no element passes */
 fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this) { it.parent }.find(filter)
 
-/** Removes this from its parent's children if possible (if parent is [Pane] or [Group]). Any child's focus is moved to parent. */
+/** Removes this from its parent's children if possible (parent is [Pane] or [Group]). Any child's focus is moved to parent. */
 fun Node.removeFromParent() {
    val p = parent
    val hasFocusedChild = scene?.focusOwner?.isAnyChildOf(this) ?: false
@@ -461,7 +461,7 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 
 /* ---------- CLIP -------------------------------------------------------------------------------------------------- */
 
-/** Installs clip mask to prevent displaying content outside of this node. */
+/** Installs clip mask to prevent displaying content outside this node. */
 @JvmOverloads
 fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
    val clip = Rectangle()
@@ -639,6 +639,8 @@ val DragEvent.sceneXy get() = P(sceneX, sceneY)
 
 /** ([DragEvent.screenX],[DragEvent.screenY]) */
 val DragEvent.screenXy get() = P(screenX, screenY)
+
+val Insets.size: P get() = (left+right) x (top+bottom)
 
 operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)
 operator fun Point2D.plus(p: Point2D): Point2D = add(p)

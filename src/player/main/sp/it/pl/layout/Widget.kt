@@ -136,7 +136,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       }
    }
 
-   /** Whether this factory will be preferred on widget `find and create` requests. */
+   /** Content padding or null if left up on skin to decide. */
    val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
 
    /** Whether this factory will be preferred on widget `find and create` requests. */

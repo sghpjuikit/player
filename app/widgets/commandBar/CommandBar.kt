@@ -56,7 +56,7 @@ import sp.it.util.units.year
 class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
 
    val iconSize by cv(1).min(1).max(20)
-      .def(name = "Icon size", info = "Size of icons specified in em units - application font size multiplies")
+      .def(name = "Icon size", info = "Size of icons specified in em units - application font size multiplies.")
    val icons by cList<Icon>(::icon, ::asConfigurable)
       .def(name = "Icons", info = "List of icons. Icon has an icon and command.")
    val iconPlusVisible by cv(true)

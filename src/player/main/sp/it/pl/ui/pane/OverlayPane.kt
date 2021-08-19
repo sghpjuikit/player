@@ -130,13 +130,13 @@ abstract class OverlayPane<in T>: StackPane() {
       styleClass += ROOT_STYLECLASS
 
       onEventDown(MOUSE_CLICKED, SECONDARY, false) {
-         if (isShown()) {
+         if (isShown() && !APP.ui.isLayoutMode) {
             hide()
             it.consume()
          }
       }
       onEventDown(KEY_PRESSED, ESCAPE, false) {
-         if (isShown()) {
+         if (isShown() && !APP.ui.isLayoutMode) {
             hide()
             it.consume()
          }

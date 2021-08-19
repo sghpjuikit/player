@@ -109,7 +109,7 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
 }
 
 /** Component factory that creates component programmatically using a supplier. */
-class TemplateFactory<C: Component>(override val name: String, private val supplier: () -> C): ComponentFactory<C> {
+class TemplateFactory<C: Component>(override val name: String, private val supplier: suspend () -> C): ComponentFactory<C> {
    override suspend fun create() = supplier()
    override fun toString() = "${javaClass.simpleName} $name"
 }

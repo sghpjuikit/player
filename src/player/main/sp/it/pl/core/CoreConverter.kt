@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter.ISO_DATE
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.time.format.DateTimeFormatter.ISO_INSTANT
 import java.time.format.DateTimeFormatter.ISO_TIME
+import java.util.UUID
 import java.util.function.BiFunction
 import java.util.regex.Pattern
 import javafx.geometry.Insets
@@ -286,6 +287,7 @@ object CoreConverter: Core {
             else File(it)
          }
       )
+      addT<UUID>(toS, tryF(IAE::class) { UUID.fromString(it) })
       addT<URI>(toS, tryF(IAE::class) { uri(it) })
       addT<Pattern>(toS, tryF(PSE::class) { Pattern.compile(it) })
       addP<Bitrate>(Bitrate)
@@ -399,9 +401,9 @@ object CoreConverter: Core {
 
 fun <T> Try<T, Throwable>.orMessage() = mapError { it.message ?: "Unknown error" }
 
-/** Denotes how the object shows as human readable text in UI. */
+/** Denotes how the object shows as human-readable text in UI. */
 interface NameUi {
-   /** Human readable name of this object displayed in user interface. */
+   /** Human-readable name of this object displayed in user interface. */
    val nameUi: String
 }
 

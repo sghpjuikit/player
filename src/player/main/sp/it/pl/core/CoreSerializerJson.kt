@@ -2,6 +2,8 @@ package sp.it.pl.core
 
 import java.io.File
 import java.io.FileNotFoundException
+import javafx.geometry.Insets
+import kotlin.reflect.KClass
 import kotlin.text.Charsets.UTF_8
 import mu.KLogging
 import sp.it.pl.layout.BiContainerDb
@@ -12,6 +14,7 @@ import sp.it.pl.layout.SwitchContainerDb
 import sp.it.pl.layout.UniContainerDb
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetDb
+import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.window.stage.WindowDb
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
@@ -28,6 +31,7 @@ import sp.it.util.file.writeSafely
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Java.error
+import sp.it.util.functional.asIs
 
 class CoreSerializerJson: Core {
 
@@ -67,6 +71,23 @@ class CoreSerializerJson: Core {
                else -> fail { "Unexpected value=$value, which is not ${JsString::class} or ${JsArray::class}" }
             }
          }
+
+         val classes = setOf(Insets::class)
+         // TODO: add all converters (causes app ui deserialization issue
+         // val classes = setOf(Insets::class)
+         // APP.converter.general.parsersFromS.keys.toMutableSet().apply {
+         //    retainAll(APP.converter.general.parsersToS.keys)
+         // }
+         classes.forEach {
+            it.asIs<KClass<Any>>() convert object: JsConverter<Any> {
+               val toS = APP.converter.general.parsersToS[it]!!
+               val ofS = APP.converter.general.parsersFromS[it]!!
+               override fun canConvert(value: Any) = it.isInstance(value)
+               override fun toJson(value: Any): JsValue = JsString(toS.apply(value).orThrow)
+               override fun fromJson(value: JsValue): Any? = ofS.apply(value.asJsString().value).orThrow
+            }
+         }
+
       }
    }
 

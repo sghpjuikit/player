@@ -30,6 +30,12 @@ inline fun <reified T: Any> jClass() = kClass<T>().java
 @OptIn(ExperimentalStdlibApi::class)
 inline fun <reified T> kType() = typeOf<T>()
 
+/** @return type [Any] as [KType] */
+fun kTypeAnyNonNull(): KType = kType<Any>()
+
+/** @return type [Any]? as [KType] */
+fun kTypeAnyNullable(): KType = kType<Any?>()
+
 /** @return type [Nothing] as [KType] */
 fun kTypeNothingNonNull(): KType = typeNothingNonNull().type
 

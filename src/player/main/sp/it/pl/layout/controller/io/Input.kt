@@ -18,7 +18,7 @@ import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.jvmErasure
 import sp.it.util.type.raw
-import sp.it.util.type.typeResolved
+import sp.it.util.type.typeOrNothing
 
 open class Input<T>: Put<T> {
 
@@ -149,6 +149,6 @@ open class Input<T>: Put<T> {
    override fun toString() = "$name, $type"
 
    companion object {
-      private fun VType<*>.listType() = type.argOf(List::class, 0).typeResolved
+      private fun VType<*>.listType() = type.argOf(List::class, 0).typeOrNothing
    }
 }

@@ -21,7 +21,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.type
-import sp.it.util.type.typeResolved
+import sp.it.util.type.typeOrNothing
 import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
@@ -325,7 +325,7 @@ class ConfV<T: Any?, W: WritableValue<T>>: Conf<T>, ConfigPropertyDelegator<Conf
    override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
-      val type = VType<T>(property.returnType.argOf(WritableValue::class, 0).typeResolved)
+      val type = VType<T>(property.returnType.argOf(WritableValue::class, 0).typeOrNothing)
       val group = info.computeConfigGroup(ref)
 
       val isFinal = property !is KMutableProperty
@@ -369,7 +369,7 @@ class ConfVRO<T: Any?, W: ObservableValue<T>>: Conf<T>, ConfigPropertyDelegator<
    override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
-      val type = VType<T>(property.returnType.argOf(ObservableValue::class, 0).typeResolved)
+      val type = VType<T>(property.returnType.argOf(ObservableValue::class, 0).typeOrNothing)
       val group = info.computeConfigGroup(ref)
 
       val isFinal = property !is KMutableProperty
@@ -409,7 +409,7 @@ class ConfVOr<T: Any?, W: OrV<T>>: Conf<OrValue<T>>, ConfigPropertyDelegator<Con
    override operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, W> {
       property.makeAccessible()
       val info = property.obtainConfigMetadata()
-      val type = VType<T>(property.returnType.argOf(WritableValue::class, 0).typeResolved)
+      val type = VType<T>(property.returnType.argOf(WritableValue::class, 0).typeOrNothing)
       val group = info.computeConfigGroup(ref)
 
       val isFinal = property !is KMutableProperty

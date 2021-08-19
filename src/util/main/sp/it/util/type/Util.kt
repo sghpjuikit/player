@@ -322,8 +322,12 @@ private object PaneProperties {
 
 
 /** [KTypeProjection.type] without variance. [KTypeProjection.STAR] resolves to non-null [Nothing] */
-val KTypeProjection.typeResolved: KType
+val KTypeProjection.typeOrNothing: KType
    get() = type ?: kTypeNothingNonNull()
+
+/** [KTypeProjection.type] without variance. [KTypeProjection.STAR] resolves to non-null [Any]? */
+val KTypeProjection.typeOrAny: KType
+   get() = type ?: kType<Any?>()
 
 /** True if this class is subclass of one of the top lvl javafx property interfaces, i.e. [ObservableValue] or [WritableValue] */
 val KClass<*>.isJavaFxObservableOrWritableValue
@@ -338,8 +342,8 @@ val KType.javaFxPropertyType: KType
    get() = when {
          raw.isJavaFxObservableOrWritableValue -> {
             val pt = when {
-               raw.isSubclassOf<ObservableValue<*>>() -> argOf(ObservableValue::class, 0).typeResolved
-               raw.isSubclassOf<WritableValue<*>>() -> argOf(WritableValue::class, 0).typeResolved
+               raw.isSubclassOf<ObservableValue<*>>() -> argOf(ObservableValue::class, 0).typeOrNothing
+               raw.isSubclassOf<WritableValue<*>>() -> argOf(WritableValue::class, 0).typeOrNothing
                else -> fail()
             }
 
@@ -348,10 +352,10 @@ val KType.javaFxPropertyType: KType
                pt.raw.isSubclassOf<Number>() -> {
                   val typename = raw.jvmName
                   when {
-                     "Integer" in typename -> type<JavafxIntegerPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
-                     "Float" in typename -> type<JavafxFloatPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
-                     "Long" in typename -> type<JavafxLongPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
-                     "Double" in typename -> type<JavafxDoublePropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
+                     "Integer" in typename -> type<JavafxIntegerPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
+                     "Float" in typename -> type<JavafxFloatPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
+                     "Long" in typename -> type<JavafxLongPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
+                     "Double" in typename -> type<JavafxDoublePropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
                      else -> pt
                   }
                }

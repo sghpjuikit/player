@@ -6,9 +6,9 @@ import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
-import sp.it.pl.layout.container.Layout
+import sp.it.pl.layout.Layout
 import sp.it.pl.layout.exportFxwl
-import sp.it.pl.layout.widget.introWidgetFactory
+import sp.it.pl.layout.introWidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.Events
 import sp.it.pl.main.IconUN

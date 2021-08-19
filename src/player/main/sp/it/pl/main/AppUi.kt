@@ -14,8 +14,8 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
 import mu.KLogging
-import sp.it.pl.layout.container.ContainerSwitch
-import sp.it.pl.layout.widget.WidgetSource.OPEN
+import sp.it.pl.layout.ContainerSwitch
+import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.main.AppSettings.ui.skin
 import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
 import sp.it.pl.main.AppSettings.ui.view.overlayArea
@@ -76,7 +76,7 @@ import sp.it.pl.main.AppSettings.ui.image as confImage
 import sp.it.pl.main.AppSettings.ui.table as confTable
 import sp.it.pl.main.AppSettings.ui.grid as confGrid
 import sp.it.pl.main.AppSettings.ui.form as confForm
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.readOnly

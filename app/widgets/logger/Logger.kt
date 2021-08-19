@@ -2,12 +2,12 @@ package logger
 
 import javafx.scene.control.TextArea
 import mu.KLogging
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.TextDisplayFeature
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.TextDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.LOGGER_NAME

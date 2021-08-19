@@ -82,12 +82,12 @@ import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.core.CoreMenus
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.LIBRARY
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.layout.widget.feature.SongWriter
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.SongReader
+import sp.it.pl.layout.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.AppTexts

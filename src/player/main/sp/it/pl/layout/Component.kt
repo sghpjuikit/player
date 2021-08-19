@@ -6,9 +6,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
-import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
+import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
 import sp.it.pl.main.APP
 import sp.it.util.access.V
 import sp.it.util.access.v
@@ -22,7 +20,7 @@ import java.util.UUID
  * Defines wrapper of loadable graphical component.
  * Basis for wrappers - containers or wrapped widgets.
  */
-abstract class Component(state: ComponentDb) {
+sealed class Component(state: ComponentDb) {
 
    /** Unique ID. Permanent. Persists application life cycle. */
    @JvmField val id: UUID
@@ -69,7 +67,6 @@ abstract class Component(state: ComponentDb) {
       get() = when(this) {
          is Container<*> -> root?.scene?.window
          is Widget -> graphics?.scene?.window
-         else -> null
       }
 
    init {
@@ -91,7 +88,7 @@ abstract class Component(state: ComponentDb) {
    /**
     * Removes this component from component graph (layout) and scene graph. Can not be undone.
     * This method is called for every child component (in any depth).
-    * If this container is [sp.it.pl.layout.container.Layout], only its children will close.
+    * If this container is [sp.it.pl.layout.Layout], only its children will close.
     */
    open fun close() {
       lockedUnder.dispose()

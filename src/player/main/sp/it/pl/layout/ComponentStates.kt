@@ -1,13 +1,6 @@
 package sp.it.pl.layout
 
 import javafx.geometry.Orientation
-import sp.it.pl.layout.container.ContainerBi
-import sp.it.pl.layout.container.ContainerFreeForm
-import sp.it.pl.layout.container.Layout
-import sp.it.pl.layout.container.ContainerSwitch
-import sp.it.pl.layout.container.ContainerUni
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify

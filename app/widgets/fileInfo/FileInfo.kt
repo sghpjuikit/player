@@ -42,9 +42,9 @@ import sp.it.pl.ui.objects.image.ThumbnailWithAdd
 import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.ui.pane.ImageFlowPane
 import sp.it.pl.ui.pane.SlowAction
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA

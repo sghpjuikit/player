@@ -30,11 +30,11 @@ import javafx.scene.text.TextAlignment.JUSTIFY
 import javafx.util.Callback
 import kotlin.math.round
 import mu.KLogging
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.GAME
 import sp.it.pl.main.WidgetTags.LIBRARY
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.AppError

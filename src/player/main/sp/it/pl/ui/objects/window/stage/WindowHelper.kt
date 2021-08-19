@@ -5,7 +5,7 @@ import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
-import sp.it.pl.layout.container.Layout
+import sp.it.pl.layout.Layout
 import sp.it.pl.main.APP
 import sp.it.pl.main.formEditorsUiToggleIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form

@@ -23,10 +23,10 @@ import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.LIBRARY
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.audioExtensionFilter
@@ -67,7 +67,7 @@ import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 import mu.KLogging
-import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.Css.Pseudoclasses.played
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconUN

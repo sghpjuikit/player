@@ -17,7 +17,7 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.ui.objects.placeholder.DragPane
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.widget.controller.io.Output
+import sp.it.pl.layout.controller.io.Output
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.onlyIfMatches

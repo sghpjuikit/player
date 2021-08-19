@@ -6,8 +6,8 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.read
-import sp.it.pl.layout.widget.ComponentFactory
-import sp.it.pl.layout.widget.isExperimental
+import sp.it.pl.layout.ComponentFactory
+import sp.it.pl.layout.isExperimental
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO

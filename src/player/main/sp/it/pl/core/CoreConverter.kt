@@ -47,8 +47,8 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.conf.Command
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.feature.Feature
+import sp.it.pl.layout.WidgetFactory
+import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.AppUi.SkinCss

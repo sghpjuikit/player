@@ -4,10 +4,10 @@ import javafx.scene.image.Image
 import javafx.scene.text.Text
 import javafx.scene.text.TextFlow
 import mu.KLogging
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.Opener
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.Opener
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.computeDataInfo

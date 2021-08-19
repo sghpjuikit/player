@@ -11,7 +11,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.image.Cover.CoverSource.ANY
 import sp.it.pl.ui.objects.rating.Rating
-import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.layout.feature.SongReader
 import sp.it.util.async.runIO
 import sp.it.util.identityHashCode
 import sp.it.util.ui.lay

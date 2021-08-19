@@ -15,8 +15,8 @@ import javafx.scene.shape.MoveTo
 import javafx.scene.shape.Path
 import kotlin.math.floor
 import sp.it.pl.ui.itemnode.ConfigEditor
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.emScaled
 import sp.it.util.access.V
 import sp.it.util.access.v
@@ -47,7 +47,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import mu.KLogging
 import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.IconUN
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.pane.ShortcutPane

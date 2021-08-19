@@ -52,11 +52,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.VISUALISATION
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.appProperty
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.appProperty
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA

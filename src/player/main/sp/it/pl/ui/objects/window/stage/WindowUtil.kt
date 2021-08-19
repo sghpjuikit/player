@@ -51,9 +51,9 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import sp.it.pl.layout.widget.WidgetIoManager
-import sp.it.pl.layout.widget.initialTemplateFactory
-import sp.it.pl.layout.widget.widgetFocused
+import sp.it.pl.layout.WidgetIoManager
+import sp.it.pl.layout.initialTemplateFactory
+import sp.it.pl.layout.widgetFocused
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconUN

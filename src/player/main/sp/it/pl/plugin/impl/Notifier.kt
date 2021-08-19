@@ -22,10 +22,10 @@ import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoAction
-import sp.it.pl.layout.widget.ComponentLoader.CUSTOM
-import sp.it.pl.layout.widget.WidgetUse.NEW
-import sp.it.pl.layout.widget.feature.SongReader
-import sp.it.pl.layout.widget.hasFeature
+import sp.it.pl.layout.ComponentLoader.CUSTOM
+import sp.it.pl.layout.WidgetUse.NEW
+import sp.it.pl.layout.feature.SongReader
+import sp.it.pl.layout.hasFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog

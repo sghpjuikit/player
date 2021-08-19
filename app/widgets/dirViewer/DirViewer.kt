@@ -29,10 +29,10 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.HBox
 import mu.KLogging
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
 import sp.it.pl.main.Events.FileEvent

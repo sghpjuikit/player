@@ -9,9 +9,6 @@ import javafx.scene.layout.StackPane
 import sp.it.pl.ui.objects.picker.ContainerPicker
 import sp.it.pl.ui.objects.picker.Picker
 import sp.it.pl.ui.objects.picker.WidgetPicker
-import sp.it.pl.layout.container.ContainerBi
-import sp.it.pl.layout.container.ComponentUi
-import sp.it.pl.layout.container.Container
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.Df

@@ -20,9 +20,9 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.file
 import mu.KLogging
-import sp.it.pl.layout.widget.WidgetUse.NEW
-import sp.it.pl.layout.widget.feature.ImageDisplayFeature
-import sp.it.pl.layout.widget.feature.PlaylistFeature
+import sp.it.pl.layout.WidgetUse.NEW
+import sp.it.pl.layout.feature.ImageDisplayFeature
+import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.orNull

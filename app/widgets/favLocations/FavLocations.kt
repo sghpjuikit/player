@@ -12,9 +12,9 @@ import javafx.scene.layout.Priority.NEVER
 import javafx.util.Callback
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.tree.tree
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.FileExplorerFeature
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.FileExplorerFeature
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.emScaled

@@ -4,8 +4,8 @@ import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.core.CoreSerializer
-import sp.it.pl.layout.widget.WidgetSource.OPEN
-import sp.it.pl.layout.widget.feature.PlaylistFeature
+import sp.it.pl.layout.WidgetSource.OPEN
+import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify

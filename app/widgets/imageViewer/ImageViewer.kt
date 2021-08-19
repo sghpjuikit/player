@@ -14,9 +14,9 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.util.Duration.ZERO
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD

@@ -8,8 +8,7 @@ import sp.it.pl.layout.NoComponentDb
 import sp.it.pl.layout.RootContainerDb
 import sp.it.pl.layout.SwitchContainerDb
 import sp.it.pl.layout.WidgetDb
-import sp.it.pl.layout.container.ContainerUni
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray

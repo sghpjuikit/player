@@ -40,12 +40,12 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoNothing
-import sp.it.pl.layout.widget.ExperimentalController
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.ExperimentalController
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.FileFilters
 import sp.it.pl.main.IconFA

@@ -43,10 +43,10 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.util.Callback
-import sp.it.pl.layout.widget.ComponentFactory
-import sp.it.pl.layout.widget.DeserializingFactory
-import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.WidgetManager
+import sp.it.pl.layout.ComponentFactory
+import sp.it.pl.layout.DeserializingFactory
+import sp.it.pl.layout.WidgetFactory
+import sp.it.pl.layout.WidgetManager
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
@@ -163,8 +163,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.reflect.KClass
 import sp.it.pl.core.UiStringHelper
-import sp.it.pl.layout.widget.NoFactoryFactory
-import sp.it.pl.layout.widget.TemplateFactory
+import sp.it.pl.layout.NoFactoryFactory
+import sp.it.pl.layout.TemplateFactory
 import sp.it.pl.ui.objects.textfield.ColorTextField
 import sp.it.pl.ui.objects.textfield.DateTextField
 import sp.it.pl.ui.objects.textfield.DateTimeTextField

@@ -17,11 +17,11 @@ import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.paint.Color
 import mu.KLogging
-import sp.it.pl.layout.widget.ExperimentalController
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.ExperimentalController
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.VISUALISATION
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.pane.ShortcutPane.Entry

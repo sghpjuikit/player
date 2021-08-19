@@ -30,11 +30,11 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.WidgetTags.VISUALISATION
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconMD
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.animation.Loop

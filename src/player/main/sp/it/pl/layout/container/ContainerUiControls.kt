@@ -15,8 +15,12 @@ import sp.it.pl.main.IconMD
 import sp.it.pl.main.contains
 import sp.it.pl.main.get
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.functional.asIf
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -54,11 +58,12 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
          }.apply {
             area.container.locked sync { icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
-
          lay += headerIcon(IconFA.GAVEL, "Actions\n\nDisplay additional action for this container.") {
             APP.ui.actionPane.orBuild.show(area.container)
          }
-
+         lay += headerIcon(IconFA.COGS, "Settings\n\nDisplays widget properties.") {
+            showSettings(it)
+         }
          lay += headerIcon(IconFA.TIMES, "Close widget") {
             area.container.close()
             APP.actionStream("Close widget")
@@ -109,6 +114,16 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
       if (c is FreeFormContainer) {
          autoLayoutB = headerIcon(IconMD.VIEW_DASHBOARD, FreeFormContainerUi.autoLayoutTooltipText).addExtraIcon().onClickDo {
             c.ui.autoLayout(area.container)
+         }
+      }
+   }
+
+   private fun showSettings(it: Icon) {
+      val key = "settingsWindow"
+      it.properties[key]?.asIf<PopWindow>().ifNotNull { it.focus() }.ifNull {
+         APP.windowManager.showSettings(area.container, it).apply {
+            it.properties[key] = this
+            onHiding += { it.properties[key] = null }
          }
       }
    }

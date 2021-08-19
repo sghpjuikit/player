@@ -767,8 +767,8 @@ class WidgetManager {
       /** @return layouts based on search criteria */
       fun findAll(source: WidgetSource): Sequence<Layout> = when (source) {
          NONE -> sequenceOf()
-         OPEN_LAYOUT -> APP.windowManager.windows.asSequence().mapNotNull { it.layout }.filter { !it.isStandalone }
-         OPEN_STANDALONE -> WindowFX.getWindows().asSequence().mapNotNull { it.asLayout() }.filter { it.isStandalone }
+         OPEN_LAYOUT -> APP.windowManager.windows.asSequence().mapNotNull { it.layout }.filter { !it.isStandalone.value }
+         OPEN_STANDALONE -> WindowFX.getWindows().asSequence().mapNotNull { it.asLayout() }.filter { it.isStandalone.value }
          OPEN -> findAll(OPEN_STANDALONE) + findAll(OPEN_LAYOUT)
       }
 

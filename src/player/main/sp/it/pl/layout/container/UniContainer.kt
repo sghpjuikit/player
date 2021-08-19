@@ -8,6 +8,9 @@ import sp.it.pl.layout.UniContainerDb
 import sp.it.pl.layout.widget.Widget
 import sp.it.pl.layout.widget.WidgetUi
 import sp.it.util.collections.setToOne
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.readOnly
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
 import sp.it.util.ui.setAnchors
@@ -16,8 +19,11 @@ import sp.it.util.ui.setAnchors
 /** [Container] containing one child spanning entire area. */
 open class UniContainer: Container<ComponentUi> {
 
+   /** Name of this container. */
    override val name = "UniContainer"
-   var isStandalone = false
+   /** Whether this container is designed as a root and overrides its ui decorations. Default `false`. */
+   val isStandalone by cv(false).readOnly().def(name = "Standalone", info = "Whether this container is designed as a root and overrides its ui decorations.")
+   /** Child of this container. Is always at index `1`. */
    private var childImpl: Component? = null
 
    /** Equal to [getChildren]`.get(1)` and [addChild]`(1, newChild)`. */

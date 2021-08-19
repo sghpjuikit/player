@@ -99,7 +99,7 @@ class WidgetUi: ComponentUiBase<Widget> {
    private fun loadWidget() {
       disposer()
 
-      val isStandalone = widget.traverse<Component> { it.parent }.any { it is UniContainer && it.isStandalone }
+      val isStandalone = widget.traverse<Component> { it.parent }.any { it is UniContainer && it.isStandalone.value }
       contentRoot.styleclassToggle(STYLECLASS, !isStandalone)
       content.styleclassToggle(CONTENT_STYLECLASS, !isStandalone)
 

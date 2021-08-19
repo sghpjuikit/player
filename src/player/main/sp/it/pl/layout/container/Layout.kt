@@ -6,6 +6,7 @@ import sp.it.pl.layout.RootContainerDb
 
 class Layout: UniContainer {
 
+   /** Name of this container. */
    override val name = "Layout"
 
    @JvmOverloads
@@ -28,7 +29,7 @@ class Layout: UniContainer {
    companion object {
       fun openStandalone(root: AnchorPane): Layout {
          val l = Layout()
-         l.isStandalone = true
+         l.isStandalone.value = true
          l.load(root)
          return l
       }

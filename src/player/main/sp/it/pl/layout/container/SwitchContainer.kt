@@ -12,11 +12,15 @@ import sp.it.util.conf.def
 import sp.it.util.reactive.syncFrom
 import java.util.HashMap
 import sp.it.pl.main.AppSettings.ui.tabs as conf
+import sp.it.util.conf.readOnly
 
 class SwitchContainer: Container<SwitchContainerUi> {
 
+   /** Name of this container. */
    override val name = "SwitchContainer"
-   val translate = v(0.0)
+   /** Position of within the infinite horizontal view in px. Default `0.0`. */
+   val translate by cv(0.0).readOnly().def(name = "Position", info = "Position of within the infinite horizontal view in px.")
+   /** Children of this container by index */
    private val children = HashMap<Int, Component>()
 
    @JvmOverloads

@@ -77,7 +77,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
          val actB = headerIcon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
-         propB = headerIcon(IconFA.COGS, propIconText) { showSettings(it) }
+         propB = headerIcon(IconFA.COGS, "Settings\n\n" + "Displays widget properties.") { showSettings(it) }
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
          absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
          val loadB = CheckIcon().apply {

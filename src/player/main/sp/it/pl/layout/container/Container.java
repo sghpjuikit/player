@@ -1,18 +1,25 @@
 package sp.it.pl.layout.container;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.layout.AltState;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.ComponentDb;
 import sp.it.pl.layout.widget.Widget;
 import sp.it.pl.main.AppKt;
 import sp.it.pl.ui.objects.window.stage.WindowHelperKt;
+import sp.it.util.conf.Config;
+import sp.it.util.conf.ConfigDelegator;
+import sp.it.util.conf.ConfigValueSource;
+import sp.it.util.conf.Configurable;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static sp.it.util.functional.Util.list;
@@ -54,13 +61,34 @@ import static sp.it.util.functional.Util.stream;
  behavior to work correctly.This is because indexOf() method returns invalid (but still number)
  index if component is not found. Therefore such index must be ignored.
  */
-public abstract class Container<G extends ComponentUi> extends Component implements AltState {
+public abstract class Container<G extends ComponentUi> extends Component implements Configurable<@Nullable Object>, ConfigDelegator, AltState {
 
     private AnchorPane rootImpl;
+
+    private final HashMap<String, Config<@Nullable Object>> configs = new HashMap<>();
+    @SuppressWarnings("unchecked")
+    private final ConfigValueSource configValueSource = new ConfigValueSource() {
+        @Override public void register(@NotNull Config<?> config) { configs.put(config.getName(), (Config<Object>) config); }
+        @Override public void initialize(@NotNull Config<?> config) {}
+    };
     public G ui;
 
     public Container(ComponentDb state) {
         super(state);
+    }
+
+    @Nullable @Override public String getConfigurableGroupPrefix() {
+        return null;
+    }
+
+    @NotNull @Override public ConfigValueSource getConfigurableValueSource() {
+        return configValueSource;
+    }
+
+    @NotNull @Override public Collection<Config<Object>> getConfigs() { return new ArrayList<>(configs.values()); }
+
+    @Nullable @Override public Config<@Nullable Object> getConfig(@NotNull String name) {
+        return configs.get(name);
     }
 
     /*

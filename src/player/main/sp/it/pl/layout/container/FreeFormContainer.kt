@@ -6,11 +6,16 @@ import sp.it.pl.layout.FreeFormContainerDb
 import sp.it.util.access.v
 import sp.it.util.collections.filterNotNullValues
 import java.util.HashMap
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
 
 class FreeFormContainer: Container<FreeFormContainerUi> {
 
+   /** Name of this container. */
    override val name = "FreeFormContainer"
-   val showHeaders = v(true)
+   /** Whether this container shows child window headers. Default true. */
+   val showHeaders by cv(true).def(name = "Show header", info = "Whether window headers are visible")
+   /** Children of this container by index */
    private val children = HashMap<Int, Component>()
 
    @JvmOverloads

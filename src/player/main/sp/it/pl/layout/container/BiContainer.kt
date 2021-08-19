@@ -6,21 +6,25 @@ import javafx.geometry.Orientation.HORIZONTAL
 import javafx.scene.Node
 import sp.it.pl.layout.BiContainerDb
 import sp.it.pl.layout.Component
-import sp.it.util.access.v
 import sp.it.util.collections.filterNotNullValues
 import sp.it.util.dev.failIf
 import java.util.HashMap
+import sp.it.util.conf.between
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.readOnly
 
 /** [Container] containing two children split vertically or horizontally. */
 class BiContainer: Container<BiContainerUi> {
 
+   /** Name of this container. */
    override val name = "BiContainer"
-   /** Orientation of this container. */
-   val orientation = v(VERTICAL)
+   /** Orientation of this container. Default [VERTICAL] */
+   val orientation by cv(VERTICAL).def(name = "Orientation", info = "Orientation of this container.")
    /**
-    * Position of the divider.
-    * * [0,1] range if [absoluteSize] 0
-    * * [0, Infinity) range of width ([orientation] == [HORIZONTAL]) or height ([orientation] == [VERTICAL]) of the absolute child if [absoluteSize] 1 or 2.
+    * Position of the divider in not collapsed state.
+    * * `[0,1]` range if [absoluteSize] 0
+    * * `[0, Infinity)` range of width ([orientation] == [HORIZONTAL]) or height ([orientation] == [VERTICAL]) of the absolute child if [absoluteSize] 1 or 2.
     *
     * This value goes hand in hand with [absoluteSize], which is the dominant property in this relationship. Therefore:
     * * This value must be set to value required by [absoluteSize].
@@ -28,13 +32,14 @@ class BiContainer: Container<BiContainerUi> {
     * * Initial value (before the component is displayed) will not be converted and should be provided in correct range.
     *   This is because the conversion depends on the actual ui size
     */
-   val position = v(0.5)
+   val position by cv(0.5).readOnly().between(0, Double.MAX_VALUE).def(name = "Position", info = "Position of the divider when not collapsed. Value is in [0,1] when no child has fixed size, otherwise value is in[0,∞) and refers to the size of the child.")
    /** Whether child is resized absolutely (retains its size on layout). 0 == none, 1 == child 1, 2 == child 2 */
-   val absoluteSize = v(0)
+   val absoluteSize by cv(0).between(0, 2).def(name = "Position fixed", info = "Whether specified child has fixed size. 0 == none, 1 == child 1, 2 == child 2.")
    /** Whether child is hidden so the other covers the entire space. 0 == none, -1 == child 1, 1 == child 2 */
-   val collapsed = v(0)
+   val collapsed by cv(0).between(-1, +1).def(name = "Collapsed", info = "Whether child is hidden so the other covers the entire space. 0 == none, -1 == child 1, 1 == child 2.")
    /** Whether the children should appear as one, i.e., the divider has little to no visibility */
-   val joined = v(false)
+   val joined by cv(false).def(name = "Joined", info = "Whether the children should appear as one, i.e., the divider has little to no visibility.")
+   /** Children of this container by index */
    private val children = HashMap<Int, Component>()
 
    constructor(state: BiContainerDb = BiContainerDb()): super(state) {

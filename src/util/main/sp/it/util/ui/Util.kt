@@ -94,6 +94,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
@@ -461,7 +462,7 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 
 /* ---------- CLIP -------------------------------------------------------------------------------------------------- */
 
-/** Installs clip mask to prevent displaying content outside this node. */
+/** Installs clip mask to prevent displaying content outside this node. Mask area may be padded with the specified value. */
 @JvmOverloads
 fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
    val clip = Rectangle()
@@ -475,6 +476,24 @@ fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
 
    setClip(clip)
    return clip
+}
+
+/** Installs clip mask to prevent displaying content outside this node. Mask area is padded with pane's padding. */
+fun Pane.initClipToPadding() {
+   val clip = Rectangle()
+
+   fun update() {
+      clip.x = padding.left
+      clip.y = padding.top
+      clip.width = this.width - padding.left - padding.right
+      clip.height = this.height - padding.top - padding.bottom
+   }
+
+   paddingProperty() attach { update() }
+   layoutBoundsProperty() attach { update() }
+   update()
+
+   setClip(clip)
 }
 
 /* ---------- IMAGE_VIEW -------------------------------------------------------------------------------------------- */

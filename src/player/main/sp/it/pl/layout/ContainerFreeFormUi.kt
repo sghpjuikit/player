@@ -35,6 +35,8 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.ui.initClipToPadding
+import sp.it.util.ui.layFullArea
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.x
@@ -44,13 +46,16 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
    private val windows: MutableMap<Int, Window> = HashMap()
    private var isResizing = false
    private val isAnyWindowResizing = mutableListOf<Int>()
+   private val content = AnchorPane()
 
    init {
       root.minSize = 0 x 0
       root.maxSize = Double.MAX_VALUE x Double.MAX_VALUE
+      root.layFullArea += content
+
 
       // add new widget on left click
-      root.onEventDown(MOUSE_CLICKED, PRIMARY, false) { e ->
+      content.onEventDown(MOUSE_CLICKED, PRIMARY, false) { e ->
          if (e.isStillSincePress && !isContainerMode && (APP.ui.isLayoutMode || !container.lockedUnder.value) && isAnyWindowResizing.isEmpty()) {
             addEmptyWindowAt(e.x, e.y)
             e.consume()
@@ -58,8 +63,8 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
       }
 
       // drag
-      root.onDragDone = EventHandler { root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false) }
-      root.installDrag(
+      content.onDragDone = EventHandler { content.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false) }
+      content.installDrag(
          IconFA.EXCHANGE, { "Move component here" },
          { Df.COMPONENT in it.dragboard },
          { it.dragboard[Df.COMPONENT]===container },
@@ -67,7 +72,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          { bestRec(it.x, it.y, null).absolute } // alternatively: e -> bestRec(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow())).absolute
       )
 
-      root.widthProperty() attach {
+      content.widthProperty() attach {
          isResizing = true
          windows.forEach { (i, w) ->
             w.snappable.value = false
@@ -78,7 +83,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          }
          isResizing = false
       }
-      root.heightProperty() attach {
+      content.heightProperty() attach {
          isResizing = true
          windows.forEach { (i, w) ->
             w.snappable.value = false
@@ -160,7 +165,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
    private fun getOrBuildWindow(i: Int, c: Component?): Window {
       return windows.getOrPut(i) {
-         val w = Window(i, root)
+         val w = Window(i, content)
 
          w.open()
          w.resizeHalf()
@@ -170,17 +175,17 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
          val (wx, ww) = container.properties.net { it["${i}x"].asD() to it["${i}w"].asD() }
          val (wy, wh) = container.properties.net { it["${i}y"].asD() to it["${i}h"].asD() }
-         if (wx!=null) w.x.value = wx*root.width
-         if (wy!=null) w.y.value = wy*root.height
-         if (wx!=null && ww!=null) w.w.value = ww*root.width - wx*root.width
-         if (wy!=null && wh!=null) w.h.value = wh*root.height - wy*root.height
+         if (wx!=null) w.x.value = wx*content.width
+         if (wy!=null) w.y.value = wy*content.height
+         if (wx!=null && ww!=null) w.w.value = ww*content.width - wx*content.width
+         if (wy!=null && wh!=null) w.h.value = wh*content.height - wy*content.height
 
-         w.x attach { if (!isResizing) container.properties["${i}x"] = it.toDouble()/root.width }
-         w.x attach { if (!isResizing) container.properties["${i}w"] = (it.toDouble() + w.w.value)/root.width }
-         w.y attach { if (!isResizing) container.properties["${i}y"] = it.toDouble()/root.height }
-         w.y attach { if (!isResizing) container.properties["${i}h"] = (it.toDouble() + w.h.value)/root.height }
-         w.w attach { if (!isResizing) container.properties["${i}w"] = (w.x.value + it.toDouble())/root.width }
-         w.h attach { if (!isResizing) container.properties["${i}h"] = (w.y.value + it.toDouble())/root.height }
+         w.x attach { if (!isResizing) container.properties["${i}x"] = it.toDouble()/content.width }
+         w.x attach { if (!isResizing) container.properties["${i}w"] = (it.toDouble() + w.w.value)/content.width }
+         w.y attach { if (!isResizing) container.properties["${i}y"] = it.toDouble()/content.height }
+         w.y attach { if (!isResizing) container.properties["${i}h"] = (it.toDouble() + w.h.value)/content.height }
+         w.w attach { if (!isResizing) container.properties["${i}w"] = (w.x.value + it.toDouble())/content.width }
+         w.h attach { if (!isResizing) container.properties["${i}h"] = (w.y.value + it.toDouble())/content.height }
          w.snapDistance syncFrom APP.ui.snapDistance on w.disposer
          w.snappable syncFrom APP.ui.snapping on w.disposer
          container.lockedUnder sync { w.resizable.value = !it } on w.disposer
@@ -203,7 +208,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
    /** Optimal size/position strategy returning greatest empty square.  */
    private fun bestRec(x: Double, y: Double, newW: Window?): BestRec {
-      val b = TupleM4(0.0, root.width, 0.0, root.height)
+      val b = TupleM4(0.0, content.width, 0.0, content.height)
       for (w in windows.values) {
          if (w===newW) continue  // ignore self
          val wl = w.x.get() + w.w.get()
@@ -216,7 +221,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          if (hb>y && hb<b.d) b.d = hb
       }
       b.a = 0.0
-      b.b = root.width
+      b.b = content.width
       for (w in windows.values) {
          if (w===newW) continue  // ignore self
          val wl = w.x.get() + w.w.get()
@@ -230,7 +235,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          }
       }
       return BestRec(
-         TupleM4(b.a/root.width, b.c/root.height, (b.b - b.a)/root.width, (b.d - b.c)/root.height),
+         TupleM4(b.a/content.width, b.c/content.height, (b.b - b.a)/content.width, (b.d - b.c)/content.height),
          BoundingBox(b.a, b.c, b.b - b.a, b.d - b.c)
       )
    }

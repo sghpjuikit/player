@@ -1,6 +1,7 @@
 package sp.it.pl.layout
 
 import java.util.function.Consumer
+import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.layout.AnchorPane
 import org.slf4j.LoggerFactory
@@ -11,11 +12,16 @@ import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.cvn
+import sp.it.util.conf.def
+import sp.it.util.dev.printIt
 import sp.it.util.functional.Util
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.recurseBF
 import sp.it.util.functional.toUnit
+import sp.it.util.reactive.attach
 
 /**
  * Component able to store other Components.
@@ -52,7 +58,7 @@ import sp.it.util.functional.toUnit
  * behavior to work correctly.This is because indexOf() method returns invalid (but still number)
  * index if component is not found. Therefore, such index must be ignored.
  */
-sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), Configurable<Any?>, ConfigDelegator, AltState {
+abstract class Container<G: ComponentUi?>(state: ComponentDb): Component(state), Configurable<Any?>, ConfigDelegator, AltState {
 
    /**
     * Root of this container. The container is attached to the scene
@@ -82,6 +88,15 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
 
    override fun getConfigs() = configs.values.toList()
 
+   /** Content padding or null if left up on skin to decide. */
+   val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
+
+   init {
+      state.properties["padding"]?.let { it::class.printIt() }
+      state.properties["padding"].printIt()
+      padding.value = state.properties["padding"].asIf<Insets>()
+      padding attach { properties["padding"] = it }
+   }
    /*
      * Properly links up this container with its children and propagates this
      * call down on the children and so on.

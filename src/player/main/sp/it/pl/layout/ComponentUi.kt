@@ -8,10 +8,12 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import sp.it.pl.layout.controller.io.IOLayer
 import sp.it.pl.main.AppAnimator
+import sp.it.pl.main.toS
 import sp.it.util.access.ref.LazyR
 import sp.it.util.async.runLater
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
+import sp.it.util.functional.net
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1If
@@ -70,6 +72,8 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
    constructor(container: C): super(container) {
       this.container = container
       root.styleClass += "container-ui"
+
+      container.padding sync { root.style = it?.net { "-fx-padding:${it.toS()};" } }
 
       // report component graphics changes
       root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }

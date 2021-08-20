@@ -57,7 +57,7 @@ import sp.it.util.reactive.attach
  * behavior to work correctly.This is because indexOf() method returns invalid (but still number)
  * index if component is not found. Therefore, such index must be ignored.
  */
-abstract class Container<G: ComponentUi?>(state: ComponentDb): Component(state), Configurable<Any?>, ConfigDelegator, AltState {
+sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), Configurable<Any?>, ConfigDelegator, AltState {
 
    /**
     * Root of this container. The container is attached to the scene

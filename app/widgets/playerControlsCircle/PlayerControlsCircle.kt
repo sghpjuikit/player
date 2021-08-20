@@ -154,7 +154,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                valueSymmetrical.value = true
                seekerChapters.onChange { snaps setTo seekerChapters }
                blockIncrement syncFrom seekType.flatMap {
-                  when (it) {
+                  when (it!!) {
                      Seek.RELATIVE -> APP.audio.seekUnitP
                      Seek.ABSOLUTE -> ps.duration zip APP.audio.seekUnitT map { (td, sd) -> sd.divMillis(td) }
                   }

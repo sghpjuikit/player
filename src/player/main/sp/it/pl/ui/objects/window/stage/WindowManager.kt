@@ -14,6 +14,7 @@ import javafx.scene.image.Image
 import javafx.scene.input.DragEvent.DRAG_ENTERED
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.KeyCode.Z
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -60,6 +61,7 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.dock.DockWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
@@ -417,6 +419,12 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.window.stage.scene.root.onEventDown(MOUSE_RELEASED, SECONDARY) { if (!APP.ui.isLayoutMode) mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(MOUSE_CLICKED, PRIMARY) { mwShower.show() }
          mw.window.stage.scene.root.onEventUp(MOUSE_ENTERED) { mwShower.showWithDelay() }
+         mw.window.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
+            if (it.isMetaDown) {
+               mwAutohide.toggle()
+               it.consume()
+            }
+         }
          mwShower.showInitially()
       } else {
          dockWindow?.window?.close()
@@ -548,6 +556,12 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          mw.stage.installHideOnFocusLost(mwAutohide, hider)
          mw.stage.scene.root.onEventDown(KEY_PRESSED, ESCAPE) { hider() }
          mw.stage.scene.root.onEventDown(MOUSE_CLICKED, SECONDARY) { if (!APP.ui.isLayoutMode) hider() }
+         mw.stage.scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
+            if (it.isMetaDown) {
+               mwAutohide.toggle()
+               it.consume()
+            }
+         }
       }
 
       return mw

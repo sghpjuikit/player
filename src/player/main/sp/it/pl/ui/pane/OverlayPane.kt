@@ -8,7 +8,9 @@ import javafx.scene.effect.BoxBlur
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.Z
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
@@ -29,21 +31,25 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.focused
 import sp.it.util.access.readOnly
+import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.visible
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
+import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.math.P
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach1If
+import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.fires
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -93,14 +99,25 @@ abstract class OverlayPane<in T>: StackPane() {
    val onHiding = Handler0()
    /** Handlers called just after this pane was hidden. */
    val onHidden = Handler0()
-   /** True between [onShowed] and [onHiding]. */
+   /** True between [onShowed] and [onHiding]. Default false. */
    private val isShowingImpl = v(false)
    /** True between [onShowed] and [onHiding]. Read-only. */
    val isShowing = isShowingImpl.readOnly()
-   /** True when focused and between [onShowed] and [onHiding]. */
+   /** True when focused and between [onShowed] and [onHiding]. Default false. */
    private val isShowingWithFocusImpl = v(false)
    /** True when focused and between [onShowed] and [onHiding]. Read-only. */
    val isShowingWithFocus = isShowingWithFocusImpl.readOnly()
+   /** True when losing focus should hide this pane. Default true. */
+   val isAutohide = v(true)
+   private val bgr = stackPane {
+      styleClass += STYLECLASS_BGR
+      onEventUp(MOUSE_CLICKED) {
+         opacity = Math.random()
+      }
+      onEventUp(SCROLL) {
+         opacity = (opacity + it.deltaX.sign*0.1).clip(0.0, 1.0)
+      }
+   }
    private val resizeB: Icon
    private var resizing: Subscription? = null
 
@@ -290,6 +307,12 @@ abstract class OverlayPane<in T>: StackPane() {
             op.stage = createFMNTStage(screen, false).apply {
                scene = Scene(root)
                initOverlayWindow(this@OverlayPane)
+               scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
+                  if (it.isMetaDown) {
+                     op.isAutohide.toggle()
+                     it.consume()
+                  }
+               }
             }
 
             if (op !in root.children) {

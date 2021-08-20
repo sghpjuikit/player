@@ -418,7 +418,7 @@ open class PopWindow {
 
       fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
 
-      fun Window.isOpenChild(): Boolean = hasFileChooserOpen ||  Stage.getWindows().any { it.asOverlayWindow()!=null } || Stage.getWindows().any { this isParent it }
+      fun Window.isOpenChild(): Boolean = hasFileChooserOpen ||  Stage.getWindows().any { it!=this && it.asOverlayWindow()!=null } || Stage.getWindows().any { this isParent it }
 
       fun Window.isFocusedChild(): Boolean = hasFileChooserOpen || Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true
 

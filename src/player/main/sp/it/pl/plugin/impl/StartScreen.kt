@@ -115,12 +115,6 @@ class StartScreen: PluginBase() {
                onShowed += { requestFocus() }
                installClipboardSupport()
                installWindowInteraction()
-               isShowingWithFocus attachFalse {
-                  runFX(50.millis) {
-                     if (!display.value.isWindowBased() || scene?.window?.net { !it.isFocused && it.isShowing && !it.isOpenChild() }==true)
-                        hide()
-                  }
-               }
 
                lay += widgetArea.apply {
                   val widgetSubscribed = Subscribed {

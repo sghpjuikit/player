@@ -137,6 +137,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui > Window", "Maximize/minimize (toggle)", keys("WIN+UP")),
          Entry("Ui > Window", "Maximize/minimize (toggle)", keys("WIN+DOWN")),
          Entry("Ui > Window", "On top (toggle)", keys("WIN+A")),
+         Entry("Ui > Window", "Autohide (toggle)", keys("WIN+Z")),
          Entry("Ui > Window", "Close", keys("WIN+Q")),
          Entry("Ui > Window", "Close", keys("ALT+F4")),
          Entry("Ui > Popup", "Close", ESCAPE.nameUi),

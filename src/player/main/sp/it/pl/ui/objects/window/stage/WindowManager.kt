@@ -31,7 +31,6 @@ import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
 import javafx.stage.StageStyle.UTILITY
 import javafx.stage.WindowEvent.WINDOW_SHOWING
-import javafx.util.Duration.ZERO
 import kotlin.math.sqrt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.invoke
@@ -61,12 +60,12 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.dock.DockWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.FX
-import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.launch
 import sp.it.util.async.runFX
@@ -79,7 +78,6 @@ import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
-import sp.it.util.conf.readOnlyUnless
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.Util.isValidatedDirectory
@@ -97,9 +95,7 @@ import sp.it.util.math.P
 import sp.it.util.math.intersectsWith
 import sp.it.util.math.isBelow
 import sp.it.util.math.max
-import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
@@ -109,16 +105,12 @@ import sp.it.util.reactive.onEventDown1
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
-import sp.it.util.reactive.suppressed
-import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncWhileTrue
 import sp.it.util.system.Os
 import sp.it.util.text.keys
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.borderPane
-import sp.it.util.ui.containsScreen
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.lay
@@ -173,8 +165,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       .def(name = "Allow empty window", info = "Automatically closes non-main window if it becomes empty.")
 
    val dockHoverDelay by cv(700.millis).def(confDock.showDelay)
-   val dockHideInactive by cv(true).def(confDock.hideOnIdle)
-   val dockHideInactiveDelay by cv(1500.millis).def(confDock.hideOnIdleDelay).readOnlyUnless(dockHideInactive)
+  // val dockHideInactive by cv(true).def(confDock.hideOnIdle)
+  // val dockHideInactiveDelay by cv(1500.millis).def(confDock.hideOnIdleDelay).readOnlyUnless(dockHideInactive)
    val dockShow by cv(false).def(confDock.enable) sync { showDockImpl(it) }
    val dockHeight by cv(40.0)
 
@@ -299,7 +291,6 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          if (dockWindow?.isShowing==true) return
 
          val mwAutohide = v(true)
-         val mwFocusRestoring = Suppressor()
          val mw = dockWindow ?: DockWindow(create(createStageOwner(), windowStyle.value, false)).apply {
             dockWindow = this
             window.apply {
@@ -351,10 +342,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
             mw.window.stage.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
             mw.window.onClose += {
-               mwFocusRestoring.suppressed {
-                  mw.window.stage.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
-                  mw.window.stage.asLayout()?.child?.close()
-               }
+               mw.window.stage.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
+               mw.window.stage.asLayout()?.child?.close()
             }
          }
 
@@ -374,7 +363,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                mw.window.opacity.value = 0.1 + 0.9*sqrt(sqrt(it))
                mw.window.setY(-(mw.window.H.value-2.0)*(1.0-it), false)
             }
-            private val shower = fxTimer(ZERO, 1) {
+            private val shower = {
                showAnim.intpl { sqrt(sqrt(it)) }
                showAnim.playOpenDo {
                   content.isMouseTransparent = false
@@ -382,35 +371,26 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                }
             }
             private val hider = {
-               shower.stop()
                showAnim.intpl { it*it*it*it }
                showAnim.playCloseDo {
                   content.isMouseTransparent = true
-                  mwFocusRestoring.suppressing {
-                     // return focus to previous window
-                     // does not work because the show() steals focus again, do we use popup as 2px high trigger and only show dock when necessary?
-                     // mw.stage.owner.hide()
-                     // mw.hide()
-                     // mw.stage.owner.asIs<Stage>().show()
-                     // mw.stage.show()
-                  }
                }
             }
-            val isHover = v(false).apply {
-               dockHideInactive syncWhileTrue { APP.mouse.observeMousePosition { value = mw.window.root.containsScreen(APP.mouse.mousePosition) } } on mw.window.onClose
-            }
+//            val isHover = v(false).apply {
+//               dockHideInactive syncWhileTrue { APP.mouse.observeMousePosition { value = mw.window.root.containsScreen(APP.mouse.mousePosition) } } on mw.window.onClose
+//            }
 
             fun hide() = if (showValue==1.0) hider() else Unit
-            fun show() = if (showValue==0.0) shower.runNow() else Unit
-            fun showWithDelay() = if (showValue==0.0) shower.start(dockHoverDelay.value) else Unit
+            fun show() = if (showValue==0.0 && windowsFx.none { it.isOverlayWindow() }) shower() else Unit
+            fun showWithDelay() = if (showValue==0.0) runFX(dockHoverDelay.value) { if (mw.window.stage.scene.root.isHover) show() }.toUnit() else Unit
             fun showInitially() = showAnim.applyAt(0.0).toUnit()
          }
-         mwShower.isHover attachFalse {
-            if (mwAutohide.value && dockHideInactive.value)
-               runFX(dockHideInactiveDelay.value) {
+//         mwShower.isHover attachFalse {
+//            if (mwAutohide.value && dockHideInactive.value)
+//               runFX(dockHideInactiveDelay.value) {
 //                  if (mwIsHover.value) hider()
-               }
-         }
+//               }
+//         }
          mw.window.stage.installHideOnFocusLost(mwAutohide) { mwShower.hide() }
          mw.window.stage.scene.root.onEventDown(DRAG_ENTERED) { mwShower.show() }
          mw.window.stage.scene.root.onEventDown(KEY_RELEASED, ESCAPE) { mwShower.hide() }

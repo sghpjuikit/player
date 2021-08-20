@@ -383,6 +383,7 @@ abstract class OverlayPane<in T>: StackPane() {
 
       fun Window.initOverlayWindow(overlay: OverlayPane<*>): Unit = properties.put("overlayWindow", overlay).toUnit()
       fun Window.asOverlayWindow(): OverlayPane<*>? = properties["overlayWindow"].asIf()
+      fun Window.isOverlayWindow(): Boolean = asOverlayWindow()!=null
    }
 }
 

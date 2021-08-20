@@ -16,6 +16,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
@@ -23,12 +24,13 @@ import javafx.stage.Stage
 import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_SHOWN
 import kotlin.math.abs
+import kotlin.math.sign
 import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
 import sp.it.util.access.focused
 import sp.it.util.access.readOnly
 import sp.it.util.access.toggle
@@ -46,6 +48,7 @@ import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.math.P
+import sp.it.util.math.clip
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach1If
@@ -146,6 +149,15 @@ abstract class OverlayPane<in T>: StackPane() {
       isVisible = false
       styleClass += ROOT_STYLECLASS
 
+      // autohide
+      isShowingWithFocus attachFalse {
+         if (isAutohide.value)
+            runFX(50.millis) {
+               if (display.value.isWindowBased() && scene?.window?.net { !it.isFocused && it.isShowing && !it.isOpenChild() }==true)
+                  hide()
+            }
+      }
+      // hide
       onEventDown(MOUSE_CLICKED, SECONDARY, false) {
          if (isShown() && !APP.ui.isLayoutMode) {
             hide()
@@ -274,7 +286,7 @@ abstract class OverlayPane<in T>: StackPane() {
                   op.toFront()
                }
                op.isVisible = true
-               op.requestFocus()     // 'bug fix' - we need focus or key events wont work
+               op.requestFocus()     // 'bug fix' - we need focus or key events won't work
 
                op.opacityNode = window.content
                op.blurNode = window.content
@@ -320,7 +332,7 @@ abstract class OverlayPane<in T>: StackPane() {
                op.toFront()
             }
             op.isVisible = true
-            op.requestFocus()     // 'bug fix' - we need focus or key events wont work
+            op.requestFocus()     // 'bug fix' - we need focus or key events won't work
 
             op.opacityNode = null
             op.blurNode = contentImg

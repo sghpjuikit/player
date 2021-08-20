@@ -11,7 +11,6 @@ import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
 import sp.it.pl.main.APP
 import sp.it.util.access.V
 import sp.it.util.access.v
-import sp.it.util.conf.IsConfig
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -23,18 +22,17 @@ import sp.it.util.reactive.on
 sealed class Component(state: ComponentDb) {
 
    /** Unique ID. Permanent. Persists application life cycle. */
-   @JvmField val id: UUID
+   val id: UUID
    /** Simple storage for component state. Persists application life cycle. */
-   @JvmField val properties = HashMap<String, Any?>()
+   val properties = HashMap<String, Any?>()
    /** Name. */
    abstract val name: String
    /** Denotes whether component loading is delayed until user manually requests it. */
-   @field:IsConfig(name = "Load type", info = "Manual type delays component loading until user manually requests it")
-   @JvmField val loadType = V(AUTOMATIC)
+   val loadType = V(AUTOMATIC)
    /** Whether this component is locked - prevents user from editing certain properties from ui. See [lockedUnder]. */
-   @JvmField val locked: BooleanProperty = SimpleBooleanProperty(false)
+   val locked: BooleanProperty = SimpleBooleanProperty(false)
    /** Whether this component or any of its [parent]s is [locked] */
-   @JvmField val lockedUnder = LockedProperty()
+   val lockedUnder = LockedProperty()
 
    /** Parent container. Root component has no parent. Every (loaded) component aside from root must have a parent. */
    var parent: Container<*>? = null
@@ -129,7 +127,6 @@ sealed class Component(state: ComponentDb) {
 
       // call when closing component
       fun dispose(): Unit = disposer()
-
    }
 
 }

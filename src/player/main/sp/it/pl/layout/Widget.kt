@@ -33,6 +33,7 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
+import sp.it.util.conf.noPersist
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
@@ -138,6 +139,15 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
 
    /** Content padding or null if left up on skin to decide. */
    val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
+
+   /** Whether this container loads eagerly or lazily by user. */
+   val loadTypeCfg by cv(loadType).noPersist().def(name = "Load type", info = "Whether this container loads eagerly or lazily by user")
+
+   /** Whether this container or any parent is locked. */
+   val lockedCfg by cv(locked).noPersist().def(name = "Locked", info = "Whether this widget is locked")
+
+   /** Whether this container or any parent is locked. */
+   val lockedUnderCfg by cvro(lockedUnder).noPersist().def(name = "Locked (under)", info = "Whether this widget or any parent is locked", editable = EditMode.APP)
 
    /** Whether this factory will be preferred on widget `find and create` requests. */
    val preferred by cv(false).def(name = "Is preferred", group = "widget",  info = "Prefer this widget on `find and create`. ")

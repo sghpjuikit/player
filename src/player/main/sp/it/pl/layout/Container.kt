@@ -12,8 +12,12 @@ import sp.it.util.conf.Config
 import sp.it.util.conf.ConfigDelegator
 import sp.it.util.conf.ConfigValueSource
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.EditMode
+import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
+import sp.it.util.conf.cvro
 import sp.it.util.conf.def
+import sp.it.util.conf.noPersist
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -89,6 +93,15 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
 
    /** Content padding or null if left up on skin to decide. */
    val padding by cvn<Insets>(null).def(name = "Padding", group = "widget",  info = "Content padding or null if left up on skin to decide`. ")
+
+   /** Whether this container loads eagerly or lazily by user. */
+   val loadTypeCfg by cv(loadType).noPersist().def(name = "Load type", info = "Whether this container loads eagerly or lazily by user")
+
+   /** Whether this container or any parent is locked. */
+   val lockedCfg by cv(locked).noPersist().def(name = "Locked", info = "Whether this container is locked")
+
+   /** Whether this container or any parent is locked. */
+   val lockedUnderCfg by cvro(lockedUnder).noPersist().def(name = "Locked (under)", info = "Whether this container or any parent is locked", editable = EditMode.APP)
 
    init {
       padding.value = state.properties["padding"].asIf<Insets>()

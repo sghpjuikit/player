@@ -47,8 +47,17 @@ var Window.stageStyleOverride: Boolean
    get() = properties["stageStyleOverride"].asIf<Boolean>() ?: false
    set(value) = properties.put("stageStyleOverride", value).toUnit()
 
-/** @return application window associated with this javafx window */
+/** @return application [Window] associated with this javafx window */
 fun WindowFX.asAppWindow() = properties[Window.keyWindowAppWindow] as? Window
+
+/** @return whether this [Window] */
+fun WindowFX.isAppWindow() = asAppWindow()!=null
+
+/** @return whether this [isAppWindow] and [Window.isMain] */
+fun WindowFX.isMainWindow() = asAppWindow()?.isMain?.value==true
+
+/** @return whether this [isAppWindow] and [Window.isMain] */
+fun Window.isMainWindow() = this.isMain.value
 
 /** @return application layout associated with this javafx window */
 fun WindowFX.asLayout() = null

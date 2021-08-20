@@ -56,8 +56,11 @@ import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.window.dock.isDockWindow
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.asAppWindow
+import sp.it.pl.ui.objects.window.stage.asLayout
+import sp.it.pl.ui.objects.window.stage.isMainWindow
 import sp.it.util.HierarchicalBase
 import sp.it.util.access.expanded
 import sp.it.util.access.toggle
@@ -124,7 +127,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Image -> tree(o, tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
    is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant.orNone()), tree("Image", o.image.orNone()), tree("Image file", o.iFile.orNone()))
    is Scene -> tree(o, o.root)
-   is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asAppWindow()?.layout).filterNotNull() })
+   is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asLayout()).filterNotNull() })
    is Window -> tree(o.stage)
    is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
@@ -321,8 +324,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
             o.asIf<Stage>()?.title.nullIfBlank() ?: "Window (generic)"
          } else {
             var n = "Window " + APP.windowManager.windows.indexOf(w)
-            if (w===APP.windowManager.getMain()) n += " (main)"
-            if (w===APP.windowManager.dockWindow?.window) n += " (dock)"
+            if (w.isMainWindow()) n += " (main)"
+            if (w.isDockWindow()) n += " (dock)"
             n
          }
       }

@@ -381,8 +381,8 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    init {
       root.prefSize = 400.0.emScaled x 400.0.emScaled
 
-      // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
-      APP.audio.onSongRefresh { refreshed -> if (!dataReading.hasEventsQueued()) refreshed.ifHasE(data, ::read) } on onClose
+      // keep updated content)
+      APP.audio.onSongRefresh(::data) { if (!dataReading.hasEventsQueued()) read(it) } on onClose
 
       fieldsM.onChangeAndNow {
          fieldsM.forEach { (field, selected) -> fieldConfigs[field]?.shouldBeVisible = selected }

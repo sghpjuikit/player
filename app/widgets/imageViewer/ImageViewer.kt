@@ -28,7 +28,7 @@ import sp.it.pl.main.hasImageFileOrUrl
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.isImage
 import sp.it.pl.main.toMetadata
-import sp.it.pl.ui.nodeinfo.ItemInfo
+import sp.it.pl.ui.nodeinfo.SongInfo
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
@@ -79,7 +79,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
    private val inputLocation = io.i.create<File?>("Location", null) { dataChanged(it) }
    private val inputLocationOf = io.io.mapped<File?, Song?>(inputLocation, "Location of") { it?.getLocation() }
    private val mainImage = Thumbnail()
-   private var itemPane: ItemInfo? = null
+   private var itemPane: SongInfo? = null
    private val navAnim: Anim
    private val folder = SimpleObjectProperty<File?>(null)
    private val images = mutableListOf<File>()
@@ -283,7 +283,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
    private fun applyTheaterMode(v: Boolean) {
       root.pseudoClassChanged("theater", v)
       if (v && itemPane==null) {
-         itemPane = ItemInfo(false).apply {
+         itemPane = SongInfo(false).apply {
             setValue(Metadata.EMPTY)
             onEventDown(MOUSE_CLICKED, SECONDARY) {
                styleclassToggle("block-alternative")

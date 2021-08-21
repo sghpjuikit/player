@@ -31,7 +31,7 @@ import sp.it.pl.main.AppError
 import sp.it.pl.main.AppEventLog
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.ui.nodeinfo.ItemInfo
+import sp.it.pl.ui.nodeinfo.SongInfo
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.popup.PopWindow
@@ -114,13 +114,13 @@ class Notifier: PluginBase() {
    } sync {
       when (it) {
          "Normal" -> {
-            val ii = ItemInfo(true)
+            val ii = SongInfo(true)
             songNotificationInfo = ii
             songNotificationGui = ii
             (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
          }
          "Normal - no cover" -> {
-            val ii = ItemInfo(false)
+            val ii = SongInfo(false)
             songNotificationInfo = ii
             songNotificationGui = ii
             (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
@@ -132,7 +132,7 @@ class Notifier: PluginBase() {
                (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
             }
             .ifNull {
-               val ii = ItemInfo(true)
+               val ii = SongInfo(true)
                songNotificationInfo = ii
                songNotificationGui = ii
                (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
@@ -227,7 +227,7 @@ class Notifier: PluginBase() {
       if (status==PAUSED || status==PLAYING || status==STOPPED) {
          val title = "Playback change : $status"
          val i = (statusNotificationInfo ?: StackPane()).apply {
-            lay += ItemInfo(false).apply {
+            lay += SongInfo(false).apply {
                read(APP.audio.playingSong.value)
             }
          }

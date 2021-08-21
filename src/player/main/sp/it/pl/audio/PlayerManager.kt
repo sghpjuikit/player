@@ -556,10 +556,12 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    companion object: KLogging()
 
    /**
-    * Adds songs refreshed event handler. When application updates song metadata it will fire this
-    * event. For example widget displaying song information may update that information, if the
-    * event contains the song.
+    * Adds songs refreshed event [handler] invoked when application updates some song metadata. Invoked on FX thread.
+    * E.g., ui may use this to update displayed song data.
     *
+    * * Song refresh may be invoked for various reasons, such as new song playing or modifying the song tag
+    * * Song refresh events may be joined to one event or one event may update multiple songs
+    * * The [handler] has no bearing on the refreshed songs and causes no additional operation
     *
     * Say, there is a widget with an input, displaying its value and sending it to its output, for
     * others to listen. And both are of [Song] type and updating the contents may be heavy
@@ -569,17 +571,20 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
     * input multiple times (by us and because it is bound) it should be checked whether input is
     * bound and then handled accordingly.
     *
-    *
     * But because the input can be bound to multiple outputs, we must check whether the input is
     * bound to the particular output it is displaying value of (and would be auto-updated from).
-    * This is potentially complex or impossible (with unfortunate
-    * [Object.equals] implementation).
-    * It is possible to use an [EventReducer] which will
-    * reduce multiple events into one, in such case always updating input is recommended.
+    * This is potentially complex or impossible (depending on [Object.equals] implementation).
+    * It is possible to use an [EventReducer] which will reduce multiple events into one, in such case always updating input is recommended.
     */
+
    fun onSongRefresh(handler: (MapSet<URI, Metadata>) -> Unit): Subscription {
       refreshHandlers.add(handler)
       return Subscription { refreshHandlers.remove(handler) }
+   }
+
+   /** [onSongRefresh] that monitors single song. Invoked on FX thread. */
+   fun onSongRefresh(song: () -> Song?, handler: (Metadata) -> Unit): Subscription = onSongRefresh { metadatas ->
+      song().ifNotNull { metadatas.ifHasK(it.uri, handler) }
    }
 
    /** Singleton variant of [refreshSongs].  */

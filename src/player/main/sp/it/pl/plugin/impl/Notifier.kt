@@ -19,6 +19,7 @@ import javafx.util.Duration
 import javafx.util.Duration.INDEFINITE
 import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
 import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoAction
@@ -33,6 +34,7 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.nodeinfo.SongInfo
 import sp.it.pl.ui.objects.SpitText
+import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.ui.objects.window.ShowArea
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.action.IsAction
@@ -76,9 +78,10 @@ class Notifier: PluginBase() {
 
    private val onStop = Disposer()
    private val ns = mutableSetOf<Notification>()
-   private lateinit var songNotificationGui: Node
+   private lateinit var songNotificationUi: Node
    private lateinit var songNotificationInfo: SongReader
-   private var statusNotificationInfo: StackPane? = null
+   private var songPlaybackNotificationUi: StackPane? = null
+   private val songRateNotificationUi by lazy { Rating() }
 
    val notifySources by cList<NotifySource<Any>>()
       .noPersist().readOnly().butElement { uiConverter { it.name } }
@@ -116,26 +119,26 @@ class Notifier: PluginBase() {
          "Normal" -> {
             val ii = SongInfo(true)
             songNotificationInfo = ii
-            songNotificationGui = ii
-            (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+            songNotificationUi = ii
+            (songNotificationUi as Pane).setPrefSize(-1.0, -1.0)
          }
          "Normal - no cover" -> {
             val ii = SongInfo(false)
             songNotificationInfo = ii
-            songNotificationGui = ii
-            (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+            songNotificationUi = ii
+            (songNotificationUi as Pane).setPrefSize(-1.0, -1.0)
          }
          else -> APP.widgetManager.widgets.find(it, NEW(CUSTOM))
             .ifNotNull { wf ->
-               songNotificationGui = wf.load()
+               songNotificationUi = wf.load()
                songNotificationInfo = wf.controller as SongReader
-               (songNotificationGui as Pane).setPrefSize(900.0, 500.0)
+               (songNotificationUi as Pane).setPrefSize(900.0, 500.0)
             }
             .ifNull {
                val ii = SongInfo(true)
                songNotificationInfo = ii
-               songNotificationGui = ii
-               (songNotificationGui as Pane).setPrefSize(-1.0, -1.0)
+               songNotificationUi = ii
+               (songNotificationUi as Pane).setPrefSize(-1.0, -1.0)
             }
       }
    }
@@ -204,7 +207,7 @@ class Notifier: PluginBase() {
       return showNotification(title, root, isPermanent)
    }
 
-   /** Hides hovered notification or last shown notification or does nothing if no showing.. */
+   /** Hides hovered notification or last shown notification or does nothing if no showing. */
    @IsAction(name = "Notification hide", info = "Hides hovered notification or last shown notification or does nothing if no showing.")
    fun hideNotification() {
       val n = ns.find { it.root.containsMouse() } ?: ns.lastOrNull()
@@ -214,27 +217,32 @@ class Notifier: PluginBase() {
    @IsAction(name = "Notify now playing", info = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
    fun showNowPlayingNotification() = songChange(APP.audio.playingSong.value)
 
+   fun showSongRatingChangedNotification(song: Song, rating: Double?) {
+      showNotification("Song rating changed", songRateNotificationUi)
+      songRateNotificationUi.rating.value = rating
+   }
+
    private fun songChange(song: Metadata) {
       if (!song.isEmpty()) {
          val title = "Now playing \t${song.getPlaylistIndexInfo()}"
          songNotificationInfo.read(song)
 
-         showNotification(title, songNotificationGui)
+         showNotification(title, songNotificationUi)
       }
    }
 
    private fun playbackChange(status: Status) {
       if (status==PAUSED || status==PLAYING || status==STOPPED) {
          val title = "Playback change : $status"
-         val i = (statusNotificationInfo ?: StackPane()).apply {
+         val i = (songPlaybackNotificationUi ?: StackPane()).apply {
             lay += SongInfo(false).apply {
                read(APP.audio.playingSong.value)
             }
          }
-         statusNotificationInfo = i
+         songPlaybackNotificationUi = i
 
          showNotification(title, i).apply {
-            onHidden += { statusNotificationInfo = null }
+            onHidden += { songPlaybackNotificationUi = null }
          }
       }
    }

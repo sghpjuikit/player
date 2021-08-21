@@ -94,6 +94,6 @@ fun Song.writeRating(rating: Double?) {
 
    write({ it.setRatingPercent(rating ?: -1.0) }) {
       if (it.isOk)
-         APP.plugins.use<Notifier> { it.showNotification("Song rating changed", Rating(initialRating = rating)) }
+         APP.plugins.use<Notifier> { it.showSongRatingChangedNotification(this, rating) }
    }
 }

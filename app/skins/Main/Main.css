@@ -2368,6 +2368,28 @@ Shape, Text, SpitText, TextFlow > * {
  * Extends StackPane
  */
 .gpu-nvidia-info {}
+.gpu-nvidia-info .clock-gr {}
+.gpu-nvidia-info .clock-sm {
+    -fx-background-color: null;
+}
+.gpu-nvidia-info .clock-mem {
+    -fx-background-color: null;
+}
+.gpu-nvidia-info .cpu-clock-min {
+    -fx-background-color: null;
+}
+
+.gpu-nvidia-info .cpu-clock-min .slider-circular-bgr {
+}
+.gpu-nvidia-info .cpu-clock-min .slider-circular-frg {
+    -fx-stroke-width: 7;
+}
+.gpu-nvidia-info .cpu-clock-max .slider-circular-bgr {
+    -fx-stroke-width: 0;
+}
+.gpu-nvidia-info .cpu-clock-max .slider-circular-frg {
+    -fx-stroke-width: 5;
+}
 
 /******************************* TIME-CLOCK-ANALOG *********************************************************************
  * inherits: StackPane

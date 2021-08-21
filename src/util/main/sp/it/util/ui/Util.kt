@@ -125,7 +125,7 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
    val fontSize = iconSize?.toEM()
    val s = icon.characterToString()
    val sb = StringBuilder(icons)
-   for (i in 0 until icons) sb.append(s)
+   repeat(icons) { sb.append(s) }
 
    val fontSizeCss = fontSize?.let { "-fx-font-size: ${fontSize}em;" }.orEmpty()
    return Text(sb.toString()).apply {

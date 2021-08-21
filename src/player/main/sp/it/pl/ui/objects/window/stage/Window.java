@@ -86,6 +86,7 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
@@ -306,22 +307,13 @@ public class Window extends WindowBase {
 		});
 
 		// hide header on long mouse exit if specified so
-		EventReducer<Boolean> headerContainerMouseExited = EventReducer.toLast(300, v -> {
-			if (!v) applyHeaderVisible(false);
-		});
-		headerContainer.addEventFilter(MOUSE_ENTERED_TARGET, e ->
-			headerContainerMouseExited.push(true)
-		);
-		headerContainer.addEventFilter(MOUSE_EXITED_TARGET, e -> {
-			if ((!isHeaderVisible.get() || fullscreen.getValue()) && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)    // TODO: 20?
-				headerContainerMouseExited.push(false);
-		});
+		var headerContainerMouseExited = EventReducer.<Boolean>toLast(1000, v -> { if (!v) applyHeaderVisible(false); });
+		root.addEventFilter(MOUSE_EXITED, e -> { if (!isHeaderVisible.get()) headerContainerMouseExited.push(false); } );
+		headerContainer.addEventFilter(MOUSE_ENTERED_TARGET, e -> headerContainerMouseExited.push(true) );
+		headerContainer.addEventFilter(MOUSE_EXITED_TARGET, e -> { if ((!isHeaderVisible.get() || fullscreen.getValue()) && !moving.get() && resizing.get()==NONE && (!root.isHover() || e.getY()>=20)) headerContainerMouseExited.push(false); });
 		fullscreen.addListener((o,ov,nv) -> applyHeaderVisible(_headerVisible));
 		s.addEventHandler(WINDOW_SHOWING, e -> applyHeaderVisible(_headerVisible));
-		header.heightProperty().addListener((o,ov,nv) -> {
-			if (!_headerVisible)
-				headerVisibleAnim.applyAt(1.0);
-		});
+		header.heightProperty().addListener((o,ov,nv) -> { if (!_headerVisible) headerVisibleAnim.applyAt(1.0); });
 
 		titleL.setMinWidth(0);
 

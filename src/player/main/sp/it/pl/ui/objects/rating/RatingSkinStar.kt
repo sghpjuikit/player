@@ -11,10 +11,11 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.layout.HBox
 import javafx.scene.shape.Rectangle
-import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import sp.it.pl.main.IconFA
 import sp.it.util.collections.setTo
+import sp.it.util.collections.setToOne
 import sp.it.util.math.clip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
@@ -87,8 +88,8 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
       foregroundIcons = createButton(IconFA.STAR).apply {
          styleClass += "strong"
       }
-      backgroundContainer.children += backgroundIcons
-      foregroundContainer.children += foregroundIcons
+      backgroundContainer.children setToOne backgroundIcons
+      foregroundContainer.children setToOne foregroundIcons
 
       updateClipAndStyle()
    }
@@ -107,7 +108,7 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
          x
       } else {
          val icons = skinnable.icons.value.toDouble()
-         ceil(x*icons)/icons
+         floor(x*icons)/icons
       }
    }
 
@@ -132,8 +133,8 @@ class RatingSkinStar(r: Rating): SkinBase<Rating>(r) {
    }
 
    private fun updateClipAndStyle(v: Double? = skinnable.rating.value) {
-      updateClip(v)
       updateStyle(v)
+      updateClip(v)
    }
 
    override fun layoutChildren(contentX: Double, contentY: Double, contentWidth: Double, contentHeight: Double) {

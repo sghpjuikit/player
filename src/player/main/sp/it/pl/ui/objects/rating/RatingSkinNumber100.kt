@@ -7,8 +7,8 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 
-/** Skin for [Rating] displaying the value as string. */
-class RatingSkinNumber(r: Rating): SkinBase<Rating>(r) {
+/** Skin for [Rating] displaying the value as 0-100 integer. */
+class RatingSkinNumber100(r: Rating): SkinBase<Rating>(r) {
 
    private val label = Label()
    private val onDispose = Disposer()
@@ -22,8 +22,12 @@ class RatingSkinNumber(r: Rating): SkinBase<Rating>(r) {
    }
 
    private fun update() {
-      val v = skinnable.rating.value?.let { if (skinnable.partialRating.value) it.toInt().toDouble() else it }
-      label.text = if (v==null) "" else "%.2f".format(v)
+      val s = skinnable
+      val v = s.rating.value?.let {
+         if (s.partialRating.value) (100 * ((s.icons.value*it).toInt()/s.icons.value.toDouble())).toInt()
+         else (it*100.0).toInt()
+      }
+      label.text = if (v==null) "" else "%d".format(v)
    }
 
    override fun dispose() {

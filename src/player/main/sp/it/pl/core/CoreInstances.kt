@@ -3,7 +3,9 @@ package sp.it.pl.core
 import javafx.scene.control.Skin
 import kotlin.reflect.KClass
 import sp.it.pl.ui.objects.rating.Rating
-import sp.it.pl.ui.objects.rating.RatingSkinNumber
+import sp.it.pl.ui.objects.rating.RatingSkinNumber1
+import sp.it.pl.ui.objects.rating.RatingSkinNumber100
+import sp.it.pl.ui.objects.rating.RatingSkinNumberPercent
 import sp.it.pl.ui.objects.rating.RatingSkinStar
 import sp.it.pl.web.BingImageSearchQBuilder
 import sp.it.pl.web.DuckDuckGoImageQBuilder
@@ -26,7 +28,9 @@ object CoreInstances: InstanceMap(), Core {
       )
       addInstances<KClass<out Skin<Rating>>>(
          RatingSkinStar::class,
-         RatingSkinNumber::class
+         RatingSkinNumber1::class,
+         RatingSkinNumber100::class,
+         RatingSkinNumberPercent::class
       )
    }
 

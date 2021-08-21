@@ -192,23 +192,29 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    val thumbnailAnimDur by cv(100.millis) def confImage.thumbnailAnimDuration
 
    /** [confUi.ratingIconAmount] */
-   val ratingIconCount by cv(5).between(0, 10) def confUi.ratingIconAmount
+   val ratingIconCount by cvn<Int>(null).between(0, 10) def confUi.ratingIconAmount attach { updateRatingStyle() }
    /** [confUi.ratingAllowPartial] */
-   val ratingIsPartial by cv(true) def confUi.ratingAllowPartial
+   val ratingIsPartial by cvn<Boolean>(null) def confUi.ratingAllowPartial attach { updateRatingStyle() }
    /** [confUi.ratingSkin] */
-   val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter {
-      it?.simpleName ?: "<none> (App skin decides)"
-   } def confUi.ratingSkin sync {
+   val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter { it?.simpleName ?: "<none> (App skin decides)" } def confUi.ratingSkin attach { updateRatingStyle() }
+
+   init {
+      updateRatingStyle()
+   }
+
+   fun updateRatingStyle() {
       val f = APP.locationTmp/"user-rating-skin.css"
-      if (it==null) {
+      if (ratingIconCount.value==null && ratingIsPartial.value==null && ratingSkin.value==null) {
          additionalStylesheets -= f
       } else {
-         val style = """.rating { -fx-skin: "${it.jvmName}"; }"""
+         val styleSkin = ratingSkin.value?.let { """-fx-skin: "${it.jvmName}"""; } ?: ""
+         val styleCount = ratingIconCount.value?.let { "-fx-icon-count: $it;" } ?: ""
+         val stylePartial = ratingIsPartial.value?.let { "-fx-partial: $it;" } ?: ""
+         val style = ".rating { $styleSkin $styleCount $stylePartial }".trimMargin()
          f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
          additionalStylesheets += f
       }
    }
-
    /**
     * Sets layout mode for all active components.
     *

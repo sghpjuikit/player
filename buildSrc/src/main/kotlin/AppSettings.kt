@@ -109,7 +109,7 @@ val appSetting = Setting.root {
          info = "Additional stylesheet files applied on `.root` of all windows. Override styles set by the skin. Applied in the specified order."
       }
       config("Font") {
-         info = "Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null retains font set by the skin."
+         info = "Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null lets skin decide."
       }
       config("Layout mode blur bgr") {
          info = "Layout mode use blur effect"
@@ -136,13 +136,13 @@ val appSetting = Setting.root {
          info = "Locked layout will not enter layout mode."
       }
       config("Rating skin") {
-         info = "Rating ui component skin"
+         info = "Rating ui component skin. Overrides value set by the skin. Null lets skin decide."
       }
       config("Rating icon amount") {
-         info = "Number of icons in rating control."
+         info = "Number of icons in rating control. Overrides value set by the skin. Null lets skin decide."
       }
       config("Rating allow partial") {
-         info = "Allow partial values for rating."
+         info = "Allow partial values for rating. Overrides value set by the skin. Null lets skin decide."
       }
       "Image" {
          config("Thumbnail anim duration") {

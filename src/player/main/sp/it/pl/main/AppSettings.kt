@@ -502,12 +502,12 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null retains font set by the skin.. */
+      /** Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null lets skin decide.. */
       object `font`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Font"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null retains font set by the skin."""
+         const val cinfo: String = """Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null lets skin decide."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Ui"""
          /** Name of the config. */
@@ -655,12 +655,12 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Rating ui component skin. */
+      /** Rating ui component skin. Overrides value set by the skin. Null lets skin decide.. */
       object `ratingSkin`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Rating skin"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Rating ui component skin"""
+         const val cinfo: String = """Rating ui component skin. Overrides value set by the skin. Null lets skin decide."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Ui"""
          /** Name of the config. */
@@ -672,12 +672,12 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Number of icons in rating control.. */
+      /** Number of icons in rating control. Overrides value set by the skin. Null lets skin decide.. */
       object `ratingIconAmount`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Rating icon amount"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Number of icons in rating control."""
+         const val cinfo: String = """Number of icons in rating control. Overrides value set by the skin. Null lets skin decide."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Ui"""
          /** Name of the config. */
@@ -689,12 +689,12 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Allow partial values for rating.. */
+      /** Allow partial values for rating. Overrides value set by the skin. Null lets skin decide.. */
       object `ratingAllowPartial`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Rating allow partial"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Allow partial values for rating."""
+         const val cinfo: String = """Allow partial values for rating. Overrides value set by the skin. Null lets skin decide."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Ui"""
          /** Name of the config. */

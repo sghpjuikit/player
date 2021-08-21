@@ -247,8 +247,6 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       init {
          contentDisplay = RIGHT
          graphic = rater.apply {
-            icons syncFrom APP.ui.ratingIconCount on onClose
-            partialRating syncFrom APP.ui.ratingIsPartial on onClose
             editable.value = true
             onRatingEdited = data::writeRating
          }

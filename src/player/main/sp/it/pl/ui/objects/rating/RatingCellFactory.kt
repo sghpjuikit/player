@@ -7,8 +7,6 @@ import javafx.scene.control.TableColumn
 import javafx.util.Callback
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.writeRating
-import sp.it.pl.main.APP
-import sp.it.util.reactive.syncFrom
 
 /** Cell factory for cells displaying nullable <0,1> [Double] value in [Rating] control. */
 object RatingCellFactory: Callback<TableColumn<Metadata, Double?>, TableCell<Metadata, Double?>> {
@@ -19,8 +17,6 @@ object RatingCellFactory: Callback<TableColumn<Metadata, Double?>, TableCell<Met
       init {
          contentDisplay = GRAPHIC_ONLY
          alignment = Pos.CENTER
-         r.icons syncFrom APP.ui.ratingIconCount
-         r.partialRating syncFrom APP.ui.ratingIsPartial
          r.editable.value = true
          if (c.userData==Metadata.Field.RATING)
             r.onRatingEdited = { c.tableView.items[index].writeRating(it) }

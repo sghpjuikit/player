@@ -1701,8 +1701,8 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: nothing
  * pseudoclasses: focused - when focusTraversable is true (default false) and if focused
  * properties:
- *   -glyph-name - String of the glyph
- *   -glyph-size - size
+ *   -glyph-name: String = id of the glyph
+ *   -glyph-size: Size
  */
 .icon {
     -fx-fill: -skin-def-font-color;
@@ -2971,8 +2971,15 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 /************************************ RATING ***************************************************************************
- * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
+ * Rating control displaying rating 0-1 value, usually as star icons'.
+ * skins: sp.it.pl.ui.objects.rating.RatingSkinStar
+ *        sp.it.pl.ui.objects.rating.RatingSkinNumber1
+ *        sp.it.pl.ui.objects.rating.RatingSkinNumber100
+ *        sp.it.pl.ui.objects.rating.RatingSkinNumberPercent
+ * attributes: -fx-icon-count: Int = number of icons
+ *             -fx-partial: Boolean = whether displayed value is round up to nearest fraction of a whole depending on -fx-icon-count
  */
+.rating {}
 
 /* Container for the control, use use for padding and such. */
 .rating > .container {
@@ -3429,10 +3436,10 @@ Shape, Text, SpitText, TextFlow > * {
  * Contains rows and each rows individual cells.
  * inherits: Control
  * properties:
- *   -fx-horizontal-cell-spacing: size
- *   -fx-vertical-cell-spacing: size
- *   -fx-cell-width: size
- *   -fx-cell-height: size
+ *   -fx-horizontal-cell-spacing: Size
+ *   -fx-vertical-cell-spacing: Size
+ *   -fx-cell-width: Size
+ *   -fx-cell-height: Size
  */
 .grid-view {
     -fx-border-width: 0;

@@ -8,7 +8,7 @@ app/kotlinc
 app/SpitPlayer.jar
 app/user
 app/vlc/
-app/widgets/**/*class
+app/widgets/**/out
 private/
 *.log
 

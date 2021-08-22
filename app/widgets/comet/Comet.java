@@ -482,7 +482,7 @@ public class Comet extends SimpleController {
 		new VoronoiMode(game)
 	);
 	@IsConfig(info = "Type of gameplay")
-	final Config<GameMode> mode = Config.forProperty(GameMode.class, "Mode", new V(modeInitial)).addConstraints(new ValueSealedSet<>(() -> modesAll));
+	final Config<GameMode> mode = Config.forProperty(GameMode.class, "Mode", new V<>(modeInitial)).addConstraints(new ValueSealedSet<>(() -> modesAll));
 	@IsConfig(nullable = true, info = "Effect to apply on the background layer")
 	final V<Effect> devCanvasBgrEffect = new V<Effect>(new Glow(0.3)).initAttachC(e -> gc_bgr.getCanvas().setEffect(e));
 	@IsConfig(info = "Enables blur effects. Experimental due to lack of polish.")
@@ -3892,7 +3892,7 @@ public class Comet extends SimpleController {
 			gc_bgr.strokeOval(x-radius,y-radius,d,d);
 		}
 		@Override void onHitParticles(SO o) {
-			repeat((int)(size*4), i -> 
+			repeat((int)(size*4), i ->
 				game.runNext.add(millis(randMN(100,300)), () -> {
 					double r = 50+radius*2;
 					double d = randAngleRad();

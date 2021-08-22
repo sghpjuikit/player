@@ -113,7 +113,6 @@ abstract class OverlayPane<in T>: StackPane() {
    /** True when losing focus should hide this pane. Default true. */
    val isAutohide = v(true)
    private val bgr = stackPane {
-      styleClass += STYLECLASS_BGR
       onEventUp(MOUSE_CLICKED) {
          opacity = Math.random()
       }

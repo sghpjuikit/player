@@ -110,7 +110,7 @@ class ConfigPane<T: Any?>: VBox {
          editorNodes.forEach { it.onNodeDispose() }
 
       editorNodes = editors.flatMap { e ->
-         when (ui.value) {
+         when (ui.value!!) {
             MINI -> listOf(
                hBox(20.emScaled, CENTER_LEFT) {
                   if (needsLabel)

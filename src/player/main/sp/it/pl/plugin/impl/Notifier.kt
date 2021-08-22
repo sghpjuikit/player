@@ -217,7 +217,7 @@ class Notifier: PluginBase() {
    @IsAction(name = "Notify now playing", info = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
    fun showNowPlayingNotification() = songChange(APP.audio.playingSong.value)
 
-   fun showSongRatingChangedNotification(song: Song, rating: Double?) {
+   fun showSongRatingChangedNotification(rating: Double?) {
       showNotification("Song rating changed", songRateNotificationUi)
       songRateNotificationUi.rating.value = rating
    }

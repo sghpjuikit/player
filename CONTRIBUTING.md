@@ -90,7 +90,7 @@ Create widget `MyWidget`:
   - `app/widgets/mywidget/MyWidget.kt` kotlin (.kt) or java (.java) source file
   - declare package `package myWidget` which is the name of the directory
   - there, declare a top level class `MyWidget` (must be the same as the name of the directory, capitalized [camel case](https://en.wikipedia.org/wiki/Camel_case))
-  - have the class extend `sp.it.pl.layout.container.SimpleController`
+  - have the class extend `sp.it.pl.layout.controller.SimpleController`
   - annotate your class with `sp.it.pl.layout.Widget.Info`
 
 Delete widget:

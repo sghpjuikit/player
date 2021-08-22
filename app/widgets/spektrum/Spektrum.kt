@@ -30,11 +30,11 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.WidgetTags.VISUALISATION
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconMD
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.animation.Loop
@@ -562,12 +562,11 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
          var k = lowLimit
 
          // m is the position in the frequency vectors
-         var m = 0
 
-         // setup the interpolator
+         // set up the interpolator
          val interpolateFunction = interpolator.interpolate(bins, doublesAmplitudes)
-         for (i in octaveFrequencies.indices) {
-            frequencyBins[m] = octaveFrequencies[i]
+         octaveFrequencies.indices.forEach { i ->
+            frequencyBins[i] = octaveFrequencies[i]
             val highLimit = OctaveGenerator.getHighLimit(octaveFrequencies[i], settings.octave.toDouble())
 
             // group bins together
@@ -575,7 +574,7 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
                var amplitude = interpolateFunction.value(k)
                amplitude /= doublesAmplitudes.size // normalize (n/2)
                amplitude *= windowCorrectionFactor // apply window correction
-               frequencyAmplitudes[m] = frequencyAmplitudes[m] + amplitude.pow(2.0) // sum up the "normalized window corrected" energy
+               frequencyAmplitudes[i] = frequencyAmplitudes[i] + amplitude.pow(2.0) // sum up the "normalized window corrected" energy
                k += step
 
                // reached upper limit
@@ -583,13 +582,12 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
                   break
                }
             }
-            frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m]) // square root the energy
+            frequencyAmplitudes[i] = sqrt(frequencyAmplitudes[i]) // square root the energy
             if (settings.maxLevel.value=="RMS") {
-               frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m].pow(2.0)/2) // calculate the RMS of the amplitude
+               frequencyAmplitudes[i] = sqrt(frequencyAmplitudes[i].pow(2.0)/2) // calculate the RMS of the amplitude
             }
-            frequencyAmplitudes[m] = 20*log10(frequencyAmplitudes[m]) // convert to logarithmic scale
-            frequencyAmplitudes[m] += settings.weight.calculateAmplitudeWight(frequencyBins[m]) // use weight to adjust the spectrum
-            m++
+            frequencyAmplitudes[i] = 20*log10(frequencyAmplitudes[i]) // convert to logarithmic scale
+            frequencyAmplitudes[i] += settings.weight.calculateAmplitudeWight(frequencyBins[i]) // use weight to adjust the spectrum
          }
       } else {
          var n = 0
@@ -603,20 +601,18 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
          }
          frequencyBins = DoubleArray(n)
          frequencyAmplitudes = DoubleArray(n)
-         var m = 0
-         for (i in bins.indices) {
+         bins.indices.forEach { i ->
             val frequency = fft.binToHz(i, audioFormat.sampleRate)
             if (settings.frequencyStart<=frequency && frequency<=settings.frequencyEnd) {
-               frequencyBins[m] = frequency
-               frequencyAmplitudes[m] = doublesAmplitudes[i]
-               frequencyAmplitudes[m] = frequencyAmplitudes[m]/doublesAmplitudes.size // normalize (n/2)
-               frequencyAmplitudes[m] = frequencyAmplitudes[m]*windowCorrectionFactor // apply window correction
+               frequencyBins[i] = frequency
+               frequencyAmplitudes[i] = doublesAmplitudes[i]
+               frequencyAmplitudes[i] = frequencyAmplitudes[i]/doublesAmplitudes.size // normalize (n/2)
+               frequencyAmplitudes[i] = frequencyAmplitudes[i]*windowCorrectionFactor // apply window correction
                if (settings.maxLevel.value=="RMS") {
-                  frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m].pow(2.0)/2) // calculate the RMS of the amplitude
+                  frequencyAmplitudes[i] = sqrt(frequencyAmplitudes[i].pow(2.0)/2) // calculate the RMS of the amplitude
                }
-               frequencyAmplitudes[m] = 20*log10(frequencyAmplitudes[m]) // convert to logarithmic scale
-               frequencyAmplitudes[m] += settings.weight.calculateAmplitudeWight(frequencyBins[m]) // use weight to adjust the spectrum
-               m++
+               frequencyAmplitudes[i] = 20*log10(frequencyAmplitudes[i]) // convert to logarithmic scale
+               frequencyAmplitudes[i] += settings.weight.calculateAmplitudeWight(frequencyBins[i]) // use weight to adjust the spectrum
             }
          }
       }

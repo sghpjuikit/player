@@ -24,9 +24,9 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.AVG_RATING
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
 import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.LIBRARY
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.emScaled
@@ -76,7 +76,7 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 import javafx.scene.input.KeyCode.*
 import mu.KLogging
-import sp.it.pl.layout.widget.WidgetCompanion
+import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.Css.Pseudoclasses.played
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconUN

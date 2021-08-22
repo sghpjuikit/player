@@ -50,6 +50,8 @@ interface Constraint<in T> {
       init {
          failIf(min==null && max==null) { "Min and max can not both be null" }
          failIf(min!=null && max!=null && max<min) { "Max value must be greater than or equal to min value" }
+         failIf(min!=null && min.isNaN()) { "Min can not both be NaN" }
+         failIf(max!=null && max.isNaN()) { "Max can not both be NaN" }
       }
 
       fun isClosed() = min!=null && max!=null
@@ -121,7 +123,7 @@ interface Constraint<in T> {
    /** Avoid persisting the config. Use for 'computed' configs. Configs with [Config.isEditable]==[EditMode.NONE] are not persistent by default. */
    object NoPersist: MarkerConstraint()
 
-   /** Use to make editor span entire available space. Applied if the editor is the only config in its group. */
+   /** Use so editor span entire available space. Applied if the editor is the only config in its group. */
    object UiSingleton: MarkerConstraint()
 
    /** Use save file chooser in ui, allowing to define files that do not exist. */

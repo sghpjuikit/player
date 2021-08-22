@@ -1,7 +1,6 @@
 package sp.it.pl.ui.pane
 
 import javafx.geometry.HPos
-import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
@@ -83,7 +82,7 @@ class InfoPane: OverlayPane<Unit>() {
             val group = label(it.key.capitalLower()) {
                styleClass += STYLECLASS_GROUP
             }
-            g.add(layVertically(0.0, Pos.CENTER, label(), group), 2, i)
+            g.add(layVertically(0.0, CENTER, label(), group), 2, i)
             GridPane.setValignment(group.parent, VPos.CENTER)
             GridPane.setHalignment(group.parent, HPos.LEFT)
 

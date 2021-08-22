@@ -8,7 +8,6 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
-import java.util.Locale
 import java.util.Optional
 import java.util.Stack
 import java.util.logging.Level
@@ -144,18 +143,18 @@ fun Type.toRaw(): Class<*> = let { type ->
  *
  * Examples:
  *
- * `Any` -> [Any.class]
- * `Any?` -> [Any.class]
- * `List<*>` -> [List.class, Any.class]
- * `List<Int?>` -> [List.class, Int.class]
- * `MutableList<out Int>` -> [List.class, Int.class]
- * `MutableList<in Int?>` -> [List.class, Int.class]
- * `MutableList<Int>` -> [List.class, Int.class]
- * `ArrayList<Int>` -> [ArrayList.class, Int.class]
+ * `Any` -> [Any::class]
+ * `Any?` -> [Any::class]
+ * `List<*>` -> [List::class, Any::class]
+ * `List<Int?>` -> [List::class, Int::class]
+ * `MutableList<out Int>` -> [List::class, Int::class]
+ * `MutableList<in Int?>` -> [List::class, Int::class]
+ * `MutableList<Int>` -> [List::class, Int::class]
+ * `ArrayList<Int>` -> [ArrayList::class, Int::class]
  *
  * @return sequence of classes representing the specified type and its generic type arguments
  */
-fun KType.toRawFlat(): Sequence<KClass<*>> = recurseDF { it.arguments.map { it.type ?: kType<Any?>() } }.mapNotNull { it.raw }
+fun KType.toRawFlat(): Sequence<KClass<*>> = recurseDF { it.arguments.map { it.type ?: kType<Any?>() } }.map { it.raw }
 
 /** Set specified property of this object to null. Use for disposal of read-only properties and avoiding memory leaks. */
 infix fun Any.nullify(property: KProperty<*>) {
@@ -167,15 +166,15 @@ infix fun Any.nullify(property: KProperty<*>) {
  * Returns sequence of class' all superclasses and interfaces in breadth first declaration order.
  * * For every declaration, super class precedes super interfaces, except for [Any], which (as the most generic) is always the last element.
  * * Interfaces, [Nothing], [Unit] still inherit from [Any] and will return it also
- * * May contain duplicates, if interface is inherited multiple times within the hierarchy or if the type is erased in Kotlin (such as [MutableList] erases to [List].
+ * * May contain duplicates, if interface is inherited multiple times within the hierarchy or if the type is erased in Kotlin (such as [MutableList] erases to [List]).
  */
 fun KClass<*>.superKClasses(): Sequence<KClass<*>> = superKClassesInc().drop(1)
 
 /**
- * Returns sequence of this class, its all superclasses and interfaces in breadth first declaration order.
+ * Returns sequence of this class, all its superclasses and interfaces in breadth first declaration order.
  * * For every declaration, super class precedes super interfaces, except for [Any], which (as the most generic) is always the last element.
  * * Interfaces, [Nothing], [Unit] still inherit from [Any] and will return it also
- * * May contain duplicates, if interface is inherited multiple times within the hierarchy or if the type is erased in Kotlin (such as [MutableList] erases to [List].
+ * * May contain duplicates, if interface is inherited multiple times within the hierarchy or if the type is erased in Kotlin (such as [MutableList] erases to [List]).
  */
 fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
    Any::class -> sequenceOf(Any::class)
@@ -191,7 +190,7 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
  * Javafx properties are obtained from public nameProperty() methods using reflection.
  */
 fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
-   // Best we can do to stop platform type from spreading around... This is better then nothing.
+   // Best we can do to stop platform type from spreading around... This is better than nothing.
    fun KType.resolveNullability(name: String): KType = when {
       this.isPlatformType -> when {
          o is Effect && name == "input"-> this.withNullability(true)
@@ -322,11 +321,15 @@ private object PaneProperties {
 }
 
 
-/** [KTypeProjection.type] without variance. [KTypeProjection.STAR] resolves to non null [Nothing] */
-val KTypeProjection.typeResolved: KType
+/** [KTypeProjection.type] without variance. [KTypeProjection.STAR] resolves to non-null [Nothing] */
+val KTypeProjection.typeOrNothing: KType
    get() = type ?: kTypeNothingNonNull()
 
-/** True if this class is subclass of one of the top lvl javafx property interfaces, i.e [ObservableValue] or [WritableValue] */
+/** [KTypeProjection.type] without variance. [KTypeProjection.STAR] resolves to non-null [Any]? */
+val KTypeProjection.typeOrAny: KType
+   get() = type ?: kType<Any?>()
+
+/** True if this class is subclass of one of the top lvl javafx property interfaces, i.e. [ObservableValue] or [WritableValue] */
 val KClass<*>.isJavaFxObservableOrWritableValue
    get() = isSubclassOf<ObservableValue<*>>() || isSubclassOf<WritableValue<*>>()
 
@@ -339,8 +342,8 @@ val KType.javaFxPropertyType: KType
    get() = when {
          raw.isJavaFxObservableOrWritableValue -> {
             val pt = when {
-               raw.isSubclassOf<ObservableValue<*>>() -> argOf(ObservableValue::class, 0).typeResolved
-               raw.isSubclassOf<WritableValue<*>>() -> argOf(WritableValue::class, 0).typeResolved
+               raw.isSubclassOf<ObservableValue<*>>() -> argOf(ObservableValue::class, 0).typeOrNothing
+               raw.isSubclassOf<WritableValue<*>>() -> argOf(WritableValue::class, 0).typeOrNothing
                else -> fail()
             }
 
@@ -349,10 +352,10 @@ val KType.javaFxPropertyType: KType
                pt.raw.isSubclassOf<Number>() -> {
                   val typename = raw.jvmName
                   when {
-                     "Integer" in typename -> type<JavafxIntegerPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
-                     "Float" in typename -> type<JavafxFloatPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
-                     "Long" in typename -> type<JavafxLongPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
-                     "Double" in typename -> type<JavafxDoublePropertyType>().type.argOf(JavafxPropertyType::class, 0).typeResolved
+                     "Integer" in typename -> type<JavafxIntegerPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
+                     "Float" in typename -> type<JavafxFloatPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
+                     "Long" in typename -> type<JavafxLongPropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
+                     "Double" in typename -> type<JavafxDoublePropertyType>().type.argOf(JavafxPropertyType::class, 0).typeOrNothing
                      else -> pt
                   }
                }
@@ -482,7 +485,7 @@ infix fun VType<*>.isSame(t: VType<*>): Boolean = type isSame t.type
  * Non-generic elements are estimated completely.
  * If any generic type parameter fails to be determined correctly, [KTypeProjection.STAR] will be used.
  *
- * Subsequent type estimates of the elements are resolved into best common super type.
+ * Subsequent type estimates of the elements are resolved into the best common super type.
  *
  * The returned type is guaranteed to be both run-time and compile-time compatible with every element, i.e,
  * each element can be assumed to be of the returned type as it is assignable to it.
@@ -545,7 +548,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
  *
  * The returned type is guaranteed to be both run-time and compile-time compatible with this value, i.e.,
  * this value can be assumed to be of the returned type as it is assignable to it.
- * However if this value is mutable, it may not be the case after mutating.
+ * However, if this value is mutable, it may not be the case after mutating.
  */
 @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
 fun <T> T.estimateRuntimeType(): VType<T> = when (this) {

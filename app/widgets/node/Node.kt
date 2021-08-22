@@ -9,10 +9,10 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSuperclassOf
 import mu.KLogging
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.WidgetTag
-import sp.it.pl.layout.widget.controller.SimpleController
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.WidgetTag
+import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS

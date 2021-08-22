@@ -1,6 +1,9 @@
 package sp.it.pl.ui.itemnode
 
+import java.util.function.BiPredicate
+import java.util.stream.Stream
 import javafx.util.Callback
+import kotlin.streams.asSequence
 import sp.it.util.collections.list.PrefList
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
@@ -14,11 +17,8 @@ import sp.it.util.functional.asIs
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.type.VType
-import sp.it.util.type.typeNothingNonNull
-import java.util.function.BiPredicate
-import java.util.stream.Stream
-import kotlin.streams.asSequence
 import sp.it.util.type.type
+import sp.it.util.type.typeNothingNonNull
 
 /**
  * Function editor with function chaining.

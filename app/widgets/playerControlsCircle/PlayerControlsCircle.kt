@@ -33,12 +33,12 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.AUDIO
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.HorizontalDock
-import sp.it.pl.layout.widget.feature.PlaybackFeature
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.HorizontalDock
+import sp.it.pl.layout.feature.PlaybackFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
@@ -154,7 +154,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                valueSymmetrical.value = true
                seekerChapters.onChange { snaps setTo seekerChapters }
                blockIncrement syncFrom seekType.flatMap {
-                  when (it) {
+                  when (it!!) {
                      Seek.RELATIVE -> APP.audio.seekUnitP
                      Seek.ABSOLUTE -> ps.duration zip APP.audio.seekUnitT map { (td, sd) -> sd.divMillis(td) }
                   }

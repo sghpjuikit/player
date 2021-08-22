@@ -89,7 +89,7 @@ allprojects {
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.1")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.1")
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.1")
-         implementation("org.jetbrains", "annotations", "21.0.1")
+         implementation("org.jetbrains", "annotations", "22.0.0")
       }
 
       "JavaFX" group {
@@ -125,11 +125,12 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "3.7.3")
+         implementation("com.github.f4b6a3", "uuid-creator", "4.0.0")
          implementation("net.objecthunter", "exp4j", "0.4.8")
-         implementation("org.atteo", "evo-inflector", "1.2.2")
+         implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
+         implementation("com.github.oshi", "oshi-core", "5.8.0")
       }
 
       "Image" group {
@@ -154,8 +155,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.6.1")
-         implementation("io.ktor", "ktor-client-cio", "1.6.1")
+         implementation("io.ktor", "ktor-server-core", "1.6.2")
+         implementation("io.ktor", "ktor-client-cio", "1.6.2")
       }
 
       "Test" group {

@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.image
 
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.DETAILS
+import java.io.File
 import javafx.scene.input.DragEvent.DRAG_EXITED
 import javafx.scene.input.DragEvent.DRAG_OVER
 import javafx.scene.input.MouseButton.PRIMARY
@@ -19,7 +20,6 @@ import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.file.FileType.FILE
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.chooseFile
-import java.io.File
 
 /**
  * Thumbnail which can accept an image file. A custom action invoked afterwards can be defined.

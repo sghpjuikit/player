@@ -18,8 +18,8 @@ open class SpitScrollPaneSkin(scrollPane: ScrollPane): ScrollPaneSkin(scrollPane
    fun initConsumeScrolling() {
       node.onEventDown(ScrollEvent.ANY) {
          fun ScrollBar?.isScrollingNeeded() = this!=null && visibleAmount < max
-         val vsb = Util.getScrollBar(skinnable, VERTICAL);
-         val hsb = Util.getScrollBar(skinnable, VERTICAL);
+         val vsb = Util.getScrollBar(skinnable, VERTICAL)
+         val hsb = Util.getScrollBar(skinnable, VERTICAL)
 
          if (vsb.isScrollingNeeded() || hsb.isScrollingNeeded())
             it.consume()

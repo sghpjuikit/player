@@ -1,6 +1,11 @@
 package sp.it.pl.main
 
+import javafx.scene.input.DataFormat as DataFormatFX
 import de.jensd.fx.glyphs.GlyphIcons
+import java.io.File
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicLong
+import java.util.function.Supplier
 import javafx.geometry.Bounds
 import javafx.scene.Node
 import javafx.scene.Scene
@@ -15,9 +20,9 @@ import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
-import sp.it.pl.ui.objects.placeholder.DragPane
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.widget.controller.io.Output
+import sp.it.pl.layout.controller.io.Output
+import sp.it.pl.ui.objects.placeholder.DragPane
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.onlyIfMatches
@@ -35,11 +40,6 @@ import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.handlerAccepting
 import sp.it.util.units.uri
-import java.io.File
-import java.io.IOException
-import java.util.concurrent.atomic.AtomicLong
-import java.util.function.Supplier
-import javafx.scene.input.DataFormat as DataFormatFX
 
 private val logger = KotlinLogging.logger {}
 private val dirTmp = File(System.getProperty("java.io.tmpdir"))

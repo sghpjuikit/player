@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.window.popup
 
+import javafx.stage.Window as WindowFx
 import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Insets
 import javafx.geometry.Pos.BOTTOM_RIGHT
@@ -22,7 +23,6 @@ import javafx.scene.paint.Color
 import javafx.stage.Popup
 import javafx.stage.Stage
 import javafx.stage.StageStyle.TRANSPARENT
-import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_HIDING
@@ -32,9 +32,10 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
 import sp.it.pl.main.windowPinIcon
 import sp.it.pl.ui.objects.window.Shower
+import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.objects.window.stage.popWindowOwner
-import sp.it.pl.ui.pane.OverlayPane.Companion.asOverlayWindow
+import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
@@ -83,7 +84,7 @@ import sp.it.util.units.millis
 
 open class PopWindow {
 
-   private var window: Window? = null
+   private var window: WindowFx? = null
    private val stage by lazy {
       stage(TRANSPARENT) {
          initOwner(APP.windowManager.createStageOwnerNoShow())
@@ -284,7 +285,7 @@ open class PopWindow {
 
    fun show(shower: Shower) = show(shower.owner, shower.show)
 
-   fun show(windowOwner: Window? = null, shower: (Window) -> P) {
+   fun show(windowOwner: WindowFx? = null, shower: (WindowFx) -> P) {
       tillHiding()
       tillHidden()
       runFX(100.millis) {
@@ -355,7 +356,7 @@ open class PopWindow {
       }
    }
 
-   private fun Window.initHideOnEscapeWhenNoFocus() {
+   private fun WindowFx.initHideOnEscapeWhenNoFocus() {
       scene.onEventDown(KEY_PRESSED) {
          if (it.code==ESCAPE && isEscapeHide.value) {
             hide()
@@ -405,30 +406,36 @@ open class PopWindow {
    }
 
    private fun hideChildPopWindows() {
-      Window.getWindows().mapNotNull { it.asPopWindow()?.takeIf { it.window?.popWindowOwner==window } }.forEach { it.hide() }
+      WindowFx.getWindows().mapNotNull { it.asPopWindow()?.takeIf { it.window?.popWindowOwner==window } }.forEach { it.hide() }
    }
 
    companion object {
 
-      fun Window.initFixHide() = apply { onEventUp(WINDOW_SHOWING) { properties["wasShown"] = true } }
+      fun WindowFx.initFixHide() = apply { onEventUp(WINDOW_SHOWING) { properties["wasShown"] = true } }
 
-      fun Window.hideFixed() = apply { if (isShowing && properties["wasShown"]==true) hide() }
+      fun WindowFx.hideFixed() = apply { if (isShowing && properties["wasShown"]==true) hide() }
 
-      fun Window.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
+      fun WindowFx.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
 
-      fun Window.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
+      fun WindowFx.asPopWindow(): PopWindow? = properties["popWindow"].asIf()
 
-      fun Window.isOpenChild(): Boolean = hasFileChooserOpen ||  Stage.getWindows().any { it.asOverlayWindow()!=null } || Stage.getWindows().any { this isParent it }
+      fun WindowFx.isPopWindow(): Boolean = asPopWindow()!=null
 
-      fun Window.isFocusedChild(): Boolean = hasFileChooserOpen || Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true
+      fun Window.asPopWindow(): PopWindow? = stage.asPopWindow()
 
-      fun Window.traverseOwners() = traverse { it.asPopWindow()?.window?.popWindowOwner ?: it.asIf<Stage>()?.owner }.drop(1)
+      fun Window.isPopWindow(): Boolean = stage.isPopWindow()
 
-      infix fun Window.isChild(w: Window) = traverseOwners().any { it===w }
+      fun WindowFx.isOpenChild(): Boolean = hasFileChooserOpen ||  Stage.getWindows().any { it!=this && it.isOverlayWindow() } || Stage.getWindows().any { this isParent it }
 
-      infix fun Window.isParent(w: Window) = w isChild this
+      fun WindowFx.isFocusedChild(): Boolean = hasFileChooserOpen || Stage.getWindows().find { it.isFocused }?.net { this isParent it }==true
 
-      fun Window.onIsShowing1st(block: () -> Unit): Subscription = if (isShowing) { block(); Subscription() } else onEventDown1(WINDOW_SHOWN) { block() }
+      fun WindowFx.traverseOwners() = traverse { it.asPopWindow()?.window?.popWindowOwner ?: it.asIf<Stage>()?.owner }.drop(1)
+
+      infix fun WindowFx.isChild(w: WindowFx) = traverseOwners().any { it===w }
+
+      infix fun WindowFx.isParent(w: WindowFx) = w isChild this
+
+      fun WindowFx.onIsShowing1st(block: () -> Unit): Subscription = if (isShowing) { block(); Subscription() } else onEventDown1(WINDOW_SHOWN) { block() }
 
       private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwnerNoShow().apply { show() } }
 

@@ -31,7 +31,6 @@ import sp.it.util.reactive.map
 import sp.it.util.type.type
 import sp.it.util.units.millis
 import sp.it.util.units.times
-import java.util.ArrayList
 
 /** Playcount incrementing service. */
 class PlaycountIncrementer: PluginBase() {

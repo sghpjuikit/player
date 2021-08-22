@@ -5,6 +5,7 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
+import kotlin.math.pow
 import mu.KLogging
 import sp.it.pl.audio.PlayerState
 import sp.it.pl.audio.Song
@@ -12,6 +13,7 @@ import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.main.APP
+import sp.it.util.access.readOnly
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
@@ -19,8 +21,6 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.reactive.attach1IfNonNull
 import sp.it.util.units.millis
-import kotlin.math.pow
-import sp.it.util.access.readOnly
 
 /** Audio player which abstracts away from the implementation. */
 class GeneralPlayer(state: PlayerState) {

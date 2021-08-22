@@ -1,22 +1,19 @@
 package sp.it.pl.audio.tagging
 
+import java.util.stream.Stream
 import javafx.util.Duration
+import kotlin.streams.asSequence
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.failCase
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.raw
 import sp.it.util.type.type
 import sp.it.util.units.FileSize
 import sp.it.util.units.RangeYear
 import sp.it.util.units.toHMSMs
-import java.util.ArrayList
-import java.util.HashSet
-import java.util.stream.Stream
-import kotlin.streams.asSequence
-import sp.it.util.functional.net
 
 /** Group of [Metadata] by some [Metadata.Field] providing some group data. */
 class MetadataGroup {

@@ -14,11 +14,11 @@ import javafx.scene.shape.Shape
 import javafx.stage.Window
 import javafx.util.Callback
 import mu.KLogging
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.FileExplorerFeature
-import sp.it.pl.layout.widget.feature.Opener
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.FileExplorerFeature
+import sp.it.pl.layout.feature.Opener
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.INSPECTOR_NAME

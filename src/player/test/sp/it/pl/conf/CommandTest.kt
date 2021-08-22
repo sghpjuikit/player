@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import java.io.File
 import sp.it.pl.conf.Command.DoFile.Op.BROWSE
 import sp.it.pl.core.CoreConverter
-import sp.it.pl.layout.widget.ComponentLoaderStrategy.DOCK
+import sp.it.pl.layout.ComponentLoaderStrategy.DOCK
 
 class CommandTest: FreeSpec({
 

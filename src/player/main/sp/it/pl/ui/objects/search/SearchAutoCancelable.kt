@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.search
 
+import sp.it.pl.main.AppSettings.search as conf
 import sp.it.pl.ui.objects.search.SearchAutoCancelable.Match.CONTAINS
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.conf.GlobalSubConfigDelegator
@@ -7,7 +8,6 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
-import sp.it.pl.main.AppSettings.search as conf
 
 /** Search that auto-cancels after given period of time. */
 abstract class SearchAutoCancelable: Search() {

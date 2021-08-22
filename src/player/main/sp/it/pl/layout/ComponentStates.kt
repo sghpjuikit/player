@@ -1,13 +1,8 @@
 package sp.it.pl.layout
 
+import java.io.File
+import java.util.UUID
 import javafx.geometry.Orientation
-import sp.it.pl.layout.container.BiContainer
-import sp.it.pl.layout.container.FreeFormContainer
-import sp.it.pl.layout.container.Layout
-import sp.it.pl.layout.container.SwitchContainer
-import sp.it.pl.layout.container.UniContainer
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.emptyWidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
@@ -17,8 +12,6 @@ import sp.it.util.file.properties.PropVal
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
 import sp.it.util.text.splitTrimmed
-import java.io.File
-import java.util.UUID
 
 private val json = APP.serializerJson.json
 
@@ -131,7 +124,7 @@ class SwitchContainerDb(
    val children: Map<Int, ComponentDb?> = mapOf(),
    properties: Map<String, Any?> = mapOf()
 ): ComponentDb(id, loading, locked, properties) {
-   override fun toDomain() = SwitchContainer(this)
+   override fun toDomain() = ContainerSwitch(this)
 }
 
 class UniContainerDb(
@@ -141,7 +134,7 @@ class UniContainerDb(
    val child: ComponentDb? = null,
    properties: Map<String, Any?> = mapOf()
 ): ComponentDb(id, loading, locked, properties) {
-   override fun toDomain() = UniContainer(this)
+   override fun toDomain() = ContainerUni(this)
 }
 
 class BiContainerDb(
@@ -156,7 +149,7 @@ class BiContainerDb(
    val children: Map<Int, ComponentDb?> = mapOf(),
    properties: Map<String, Any?> = mapOf()
 ): ComponentDb(id, loading, locked, properties) {
-   override fun toDomain() = BiContainer(this)
+   override fun toDomain() = ContainerBi(this)
 }
 
 class FreeFormContainerDb(
@@ -167,7 +160,7 @@ class FreeFormContainerDb(
    val children: Map<Int, ComponentDb?> = mapOf(),
    properties: Map<String, Any?> = mapOf()
 ): ComponentDb(id, loading, locked, properties) {
-   override fun toDomain() = FreeFormContainer(this)
+   override fun toDomain() = ContainerFreeForm(this)
 }
 
 class WidgetDb(

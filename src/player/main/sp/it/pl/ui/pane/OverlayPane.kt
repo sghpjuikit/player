@@ -8,12 +8,15 @@ import javafx.scene.effect.BoxBlur
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.Z
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
@@ -21,29 +24,35 @@ import javafx.stage.Stage
 import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_SHOWN
 import kotlin.math.abs
+import kotlin.math.sign
 import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
 import sp.it.util.access.focused
 import sp.it.util.access.readOnly
+import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.access.visible
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
+import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.math.P
+import sp.it.util.math.clip
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach1If
+import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.fires
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -93,14 +102,25 @@ abstract class OverlayPane<in T>: StackPane() {
    val onHiding = Handler0()
    /** Handlers called just after this pane was hidden. */
    val onHidden = Handler0()
-   /** True between [onShowed] and [onHiding]. */
+   /** True between [onShowed] and [onHiding]. Default false. */
    private val isShowingImpl = v(false)
    /** True between [onShowed] and [onHiding]. Read-only. */
    val isShowing = isShowingImpl.readOnly()
-   /** True when focused and between [onShowed] and [onHiding]. */
+   /** True when focused and between [onShowed] and [onHiding]. Default false. */
    private val isShowingWithFocusImpl = v(false)
    /** True when focused and between [onShowed] and [onHiding]. Read-only. */
    val isShowingWithFocus = isShowingWithFocusImpl.readOnly()
+   /** True when losing focus should hide this pane. Default true. */
+   val isAutohide = v(true)
+   private val bgr = stackPane {
+      styleClass += STYLECLASS_BGR
+      onEventUp(MOUSE_CLICKED) {
+         opacity = Math.random()
+      }
+      onEventUp(SCROLL) {
+         opacity = (opacity + it.deltaX.sign*0.1).clip(0.0, 1.0)
+      }
+   }
    private val resizeB: Icon
    private var resizing: Subscription? = null
 
@@ -129,14 +149,23 @@ abstract class OverlayPane<in T>: StackPane() {
       isVisible = false
       styleClass += ROOT_STYLECLASS
 
+      // autohide
+      isShowingWithFocus attachFalse {
+         if (isAutohide.value)
+            runFX(50.millis) {
+               if (display.value.isWindowBased() && scene?.window?.net { !it.isFocused && it.isShowing && !it.isOpenChild() }==true)
+                  hide()
+            }
+      }
+      // hide
       onEventDown(MOUSE_CLICKED, SECONDARY, false) {
-         if (isShown()) {
+         if (isShown() && !APP.ui.isLayoutMode) {
             hide()
             it.consume()
          }
       }
       onEventDown(KEY_PRESSED, ESCAPE, false) {
-         if (isShown()) {
+         if (isShown() && !APP.ui.isLayoutMode) {
             hide()
             it.consume()
          }
@@ -257,7 +286,7 @@ abstract class OverlayPane<in T>: StackPane() {
                   op.toFront()
                }
                op.isVisible = true
-               op.requestFocus()     // 'bug fix' - we need focus or key events wont work
+               op.requestFocus()     // 'bug fix' - we need focus or key events won't work
 
                op.opacityNode = window.content
                op.blurNode = window.content
@@ -290,6 +319,12 @@ abstract class OverlayPane<in T>: StackPane() {
             op.stage = createFMNTStage(screen, false).apply {
                scene = Scene(root)
                initOverlayWindow(this@OverlayPane)
+               scene.root.onEventDown(KEY_RELEASED, Z, consume = false) {
+                  if (it.isMetaDown) {
+                     op.isAutohide.toggle()
+                     it.consume()
+                  }
+               }
             }
 
             if (op !in root.children) {
@@ -297,7 +332,7 @@ abstract class OverlayPane<in T>: StackPane() {
                op.toFront()
             }
             op.isVisible = true
-            op.requestFocus()     // 'bug fix' - we need focus or key events wont work
+            op.requestFocus()     // 'bug fix' - we need focus or key events won't work
 
             op.opacityNode = null
             op.blurNode = contentImg
@@ -360,6 +395,7 @@ abstract class OverlayPane<in T>: StackPane() {
 
       fun Window.initOverlayWindow(overlay: OverlayPane<*>): Unit = properties.put("overlayWindow", overlay).toUnit()
       fun Window.asOverlayWindow(): OverlayPane<*>? = properties["overlayWindow"].asIf()
+      fun Window.isOverlayWindow(): Boolean = asOverlayWindow()!=null
    }
 }
 

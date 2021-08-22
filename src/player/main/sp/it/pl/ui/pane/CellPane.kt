@@ -1,10 +1,10 @@
 package sp.it.pl.ui.pane
 
 import javafx.scene.layout.Pane
-import sp.it.util.async.runLater
-import sp.it.util.math.max
 import kotlin.math.ceil
 import kotlin.math.floor
+import sp.it.util.async.runLater
+import sp.it.util.math.max
 
 /**
  * Pane displaying a grid of cells of the same size. Similar to [javafx.scene.layout.TilePane], the cells are always

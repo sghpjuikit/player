@@ -3,27 +3,36 @@ package sp.it.pl.main
 import com.drew.imaging.ImageMetadataReader
 import com.drew.imaging.ImageProcessingException
 import com.sun.tools.attach.VirtualMachine
+import java.io.File
+import java.io.IOException
+import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Pos.CENTER_LEFT
+import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.ComponentLoader.WINDOW_FULLSCREEN
-import sp.it.pl.layout.widget.WidgetUse.NEW
-import sp.it.pl.layout.widget.WidgetUse.NO_LAYOUT
-import sp.it.pl.layout.widget.controller.Controller
-import sp.it.pl.layout.widget.feature.ConfiguringFeature
-import sp.it.pl.layout.widget.feature.ImageDisplayFeature
-import sp.it.pl.layout.widget.feature.TextDisplayFeature
+import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetUse.NEW
+import sp.it.pl.layout.WidgetUse.NO_LAYOUT
+import sp.it.pl.layout.controller.Controller
+import sp.it.pl.layout.feature.ConfiguringFeature
+import sp.it.pl.layout.feature.ImageDisplayFeature
+import sp.it.pl.layout.feature.TextDisplayFeature
 import sp.it.pl.main.Actions.APP_SEARCH
+import sp.it.pl.plugin.impl.Notifier
+import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
 import sp.it.pl.ui.pane.OverlayPane
@@ -39,41 +48,32 @@ import sp.it.util.action.IsAction
 import sp.it.util.async.runFX
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.dev.Blocks
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.reactive.SHORTCUT
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.browse
 import sp.it.util.system.open
 import sp.it.util.system.runCommand
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.ui.bgr
 import sp.it.util.ui.getScreenForMouse
+import sp.it.util.ui.hyperlink
+import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 import sp.it.util.units.times
 import sp.it.util.units.uri
-import java.io.File
-import java.io.IOException
-import java.net.URISyntaxException
-import javafx.geometry.Pos.CENTER_LEFT
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCode.*
-import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import sp.it.pl.plugin.impl.Notifier
-import sp.it.pl.ui.objects.SpitText
-import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
-import sp.it.util.dev.ThreadSafe
-import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.ifNull
-import sp.it.util.reactive.onEventDown
-import sp.it.util.text.*
-import sp.it.util.ui.hyperlink
-import sp.it.util.ui.lay
-import sp.it.util.ui.vBox
 
 class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
@@ -137,6 +137,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui > Window", "Maximize/minimize (toggle)", keys("WIN+UP")),
          Entry("Ui > Window", "Maximize/minimize (toggle)", keys("WIN+DOWN")),
          Entry("Ui > Window", "On top (toggle)", keys("WIN+A")),
+         Entry("Ui > Window", "Autohide (toggle)", keys("WIN+Z")),
          Entry("Ui > Window", "Close", keys("WIN+Q")),
          Entry("Ui > Window", "Close", keys("ALT+F4")),
          Entry("Ui > Popup", "Close", ESCAPE.nameUi),

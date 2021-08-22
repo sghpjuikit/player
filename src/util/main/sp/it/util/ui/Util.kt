@@ -7,6 +7,8 @@ import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.geometry.Bounds
 import javafx.geometry.Insets
+import javafx.geometry.Orientation
+import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
@@ -23,6 +25,7 @@ import javafx.scene.control.ListView
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.ScrollPane
+import javafx.scene.control.Separator
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.SplitPane
 import javafx.scene.control.TableView
@@ -91,6 +94,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
@@ -121,7 +125,7 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
    val fontSize = iconSize?.toEM()
    val s = icon.characterToString()
    val sb = StringBuilder(icons)
-   for (i in 0 until icons) sb.append(s)
+   repeat(icons) { sb.append(s) }
 
    val fontSizeCss = fontSize?.let { "-fx-font-size: ${fontSize}em;" }.orEmpty()
    return Text(sb.toString()).apply {
@@ -150,7 +154,7 @@ fun Node.isAnyChildOf(parent: Node) = parent.isAnyParentOf(this)
 /** @return this or direct or indirect parent of this that passes specified filter or null if no element passes */
 fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this) { it.parent }.find(filter)
 
-/** Removes this from its parent's children if possible (if parent is [Pane] or [Group]). Any child's focus is moved to parent. */
+/** Removes this from its parent's children if possible (parent is [Pane] or [Group]). Any child's focus is moved to parent. */
 fun Node.removeFromParent() {
    val p = parent
    val hasFocusedChild = scene?.focusOwner?.isAnyChildOf(this) ?: false
@@ -367,6 +371,7 @@ inline fun borderPane(block: BorderPane.() -> Unit = {}) = BorderPane().apply(bl
 inline fun label(text: String = "", block: Label.() -> Unit = {}) = Label(text).apply(block)
 inline fun hyperlink(text: String = "", block: Hyperlink.() -> Unit = {}) = Hyperlink(text).apply(block)
 inline fun button(text: String = "", block: Button.() -> Unit = {}) = Button(text).apply(block)
+inline fun separator(orientation: Orientation = HORIZONTAL, block: Separator.() -> Unit = {}) = Separator(orientation).apply(block)
 inline fun text(text: String = "", block: Text.() -> Unit = {}) = Text(text).apply(block)
 inline fun textField(text: String = "", block: TextField.() -> Unit = {}) = TextField(text).apply(block)
 inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextArea(text).apply(block)
@@ -457,7 +462,7 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 
 /* ---------- CLIP -------------------------------------------------------------------------------------------------- */
 
-/** Installs clip mask to prevent displaying content outside of this node. */
+/** Installs clip mask to prevent displaying content outside this node. Mask area may be padded with the specified value. */
 @JvmOverloads
 fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
    val clip = Rectangle()
@@ -471,6 +476,24 @@ fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
 
    setClip(clip)
    return clip
+}
+
+/** Installs clip mask to prevent displaying content outside this node. Mask area is padded with pane's padding. */
+fun Pane.initClipToPadding() {
+   val clip = Rectangle()
+
+   fun update() {
+      clip.x = padding.left
+      clip.y = padding.top
+      clip.width = this.width - padding.left - padding.right
+      clip.height = this.height - padding.top - padding.bottom
+   }
+
+   paddingProperty() attach { update() }
+   layoutBoundsProperty() attach { update() }
+   update()
+
+   setClip(clip)
 }
 
 /* ---------- IMAGE_VIEW -------------------------------------------------------------------------------------------- */
@@ -635,6 +658,8 @@ val DragEvent.sceneXy get() = P(sceneX, sceneY)
 
 /** ([DragEvent.screenX],[DragEvent.screenY]) */
 val DragEvent.screenXy get() = P(screenX, screenY)
+
+val Insets.size: P get() = (left+right) x (top+bottom)
 
 operator fun Point2D.minus(p: Point2D): Point2D = subtract(p)
 operator fun Point2D.plus(p: Point2D): Point2D = add(p)
@@ -828,7 +853,8 @@ fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
          }
       },
       onEventUp(MOUSE_EXITED) {
-         if (key in properties && !contains(it.x, it.y)) {
+         if (key in properties) {
+//         if (key in properties && !contains(it.x, it.y)) { // TODO: causes event not to trigger sometimes, why was it necessary?
             properties -= key
             on(false)
          }

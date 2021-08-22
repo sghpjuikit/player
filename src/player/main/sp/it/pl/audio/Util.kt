@@ -1,5 +1,7 @@
 package sp.it.pl.audio
 
+import java.io.Serializable
+import java.util.UUID
 import javafx.scene.media.MediaPlayer.Status
 import sp.it.pl.audio.playback.PlaybackState
 import sp.it.pl.audio.playlist.Playlist
@@ -9,10 +11,6 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.util.units.millis
 import sp.it.util.units.uri
-import java.io.Serializable
-import java.net.URI
-import java.util.HashMap
-import java.util.UUID
 
 class MetadatasDB: HashMap<String, Metadata>, Serializable {
    constructor(): super()

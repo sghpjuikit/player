@@ -19,21 +19,21 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.file
+import java.io.File
+import java.net.URI
+import java.net.URLEncoder
+import kotlin.system.exitProcess
+import kotlin.text.Charsets.UTF_8
 import mu.KLogging
-import sp.it.pl.layout.widget.WidgetUse.NEW
-import sp.it.pl.layout.widget.feature.ImageDisplayFeature
-import sp.it.pl.layout.widget.feature.PlaylistFeature
+import sp.it.pl.layout.WidgetUse.NEW
+import sp.it.pl.layout.feature.ImageDisplayFeature
+import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.times
 import sp.it.util.units.uri
-import java.io.File
-import java.net.URI
-import java.net.URLEncoder
-import kotlin.system.exitProcess
-import kotlin.text.Charsets.UTF_8
 
 class AppCli {
    val cli = Cli()

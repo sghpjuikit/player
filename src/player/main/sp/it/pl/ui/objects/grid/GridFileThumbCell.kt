@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects.grid
 
+import java.io.File
 import javafx.geometry.Pos
 import javafx.scene.Parent
 import javafx.scene.control.Label
@@ -8,9 +9,10 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.StackPane
 import javafx.scene.shape.Rectangle
+import sp.it.pl.main.emScaled
+import sp.it.pl.ui.objects.grid.GridView.Companion.CELL_SIZE_UNBOUND
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.image.Thumbnail
-import sp.it.pl.main.emScaled
 import sp.it.util.JavaLegacy
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.animation.Anim
@@ -24,6 +26,7 @@ import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
 import sp.it.util.functional.orNull
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.doIfImageLoaded
 import sp.it.util.reactive.on
@@ -38,12 +41,9 @@ import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.x
+import sp.it.util.units.em
 import sp.it.util.units.millis
 import sp.it.util.units.minutes
-import java.io.File
-import sp.it.pl.ui.objects.grid.GridView.Companion.CELL_SIZE_UNBOUND
-import sp.it.util.math.max
-import sp.it.util.units.em
 
 /**
  * GridCell implementation for file using [sp.it.pl.ui.objects.hierarchy.Item]

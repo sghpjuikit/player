@@ -7,14 +7,14 @@ import javafx.scene.control.Slider
 import javafx.scene.input.KeyCode.LEFT
 import javafx.scene.input.KeyCode.RIGHT
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import kotlin.math.abs
 import sp.it.pl.audio.playback.BalanceProperty
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventUp
-import sp.it.util.reactive.syncFrom
-import kotlin.math.abs
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.zip
 
 class Balancer: Control {

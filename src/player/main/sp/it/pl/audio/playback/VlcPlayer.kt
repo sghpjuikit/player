@@ -1,13 +1,20 @@
 package sp.it.pl.audio.playback
 
+import java.io.File
+import java.io.IOException
+import java.net.URI
+import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
+import kotlin.math.roundToInt
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.*
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.main.AppError
@@ -30,7 +37,9 @@ import sp.it.util.file.unzip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.zip
 import sp.it.util.system.Os
+import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
@@ -48,13 +57,6 @@ import uk.co.caprica.vlcj.media.TrackType
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener
-import java.io.File
-import java.io.IOException
-import java.net.URI
-import javafx.geometry.Pos.TOP_CENTER
-import kotlin.math.roundToInt
-import sp.it.util.reactive.zip
-import sp.it.util.ui.label
 
 class VlcPlayer: GeneralPlayer.Play {
 

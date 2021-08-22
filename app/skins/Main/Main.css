@@ -1701,8 +1701,8 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: nothing
  * pseudoclasses: focused - when focusTraversable is true (default false) and if focused
  * properties:
- *   -glyph-name - String of the glyph
- *   -glyph-size - size
+ *   -glyph-name: String = id of the glyph
+ *   -glyph-size: Size
  */
 .icon {
     -fx-fill: -skin-def-font-color;
@@ -2018,6 +2018,7 @@ Shape, Text, SpitText, TextFlow > * {
 .widget-ui-controls {
     -fx-padding: 1em;
     -fx-background-color: null;
+    -fx-background-color: -skin-pane-color;
 }
 
 .widget-ui:layout-mode {
@@ -2057,12 +2058,30 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: -skin-pane-color-dragged;
 }
 
-.container-ui:layout-mode .free-form-container-window .header {
-    -fx-background-insets: 1 0 0 0;
-}
-.free-form-container-window .widget-ui:layout-mode {
+/*
+ * ContainerFreeForm ui
+ * pseudoclasses: window-resizing - when any window is being resized
+ *                window-moving - when any window is being moved
+ */
+.container-freeform-ui {}
+
+/*
+ * ContainerFreeForm ui window
+ */
+.container-freeform-ui .container-free-form-window {}
+.container-freeform-ui .container-free-form-window .widget-ui:layout-mode {
     -fx-background-insets: 0 1 1 1;
 }
+.container-freeform-ui:layout-mode .container-free-form-window .header {
+    -fx-background-insets: 1 0 0 0;
+}
+.container-freeform-ui:window-resizing .container-free-form-window,
+.container-freeform-ui:window-moving .container-free-form-window {
+    -fx-background-color: -skin-pane-color;
+}
+
+.switch-pane-tab {}
+.switch-pane-tab .switch-pane-tab-bgr {}
 
 /**********************************************************************************************************************/
 
@@ -2349,6 +2368,28 @@ Shape, Text, SpitText, TextFlow > * {
  * Extends StackPane
  */
 .gpu-nvidia-info {}
+.gpu-nvidia-info .clock-gr {}
+.gpu-nvidia-info .clock-sm {
+    -fx-background-color: null;
+}
+.gpu-nvidia-info .clock-mem {
+    -fx-background-color: null;
+}
+.gpu-nvidia-info .cpu-clock-min {
+    -fx-background-color: null;
+}
+
+.gpu-nvidia-info .cpu-clock-min .slider-circular-bgr {
+}
+.gpu-nvidia-info .cpu-clock-min .slider-circular-frg {
+    -fx-stroke-width: 7;
+}
+.gpu-nvidia-info .cpu-clock-max .slider-circular-bgr {
+    -fx-stroke-width: 0;
+}
+.gpu-nvidia-info .cpu-clock-max .slider-circular-frg {
+    -fx-stroke-width: 5;
+}
 
 /******************************* TIME-CLOCK-ANALOG *********************************************************************
  * inherits: StackPane
@@ -2952,8 +2993,15 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 /************************************ RATING ***************************************************************************
- * Rating control displaying number of 'stars'. The number of icons and glyph is customizable.
+ * Rating control displaying rating 0-1 value, usually as star icons'.
+ * skins: sp.it.pl.ui.objects.rating.RatingSkinStar
+ *        sp.it.pl.ui.objects.rating.RatingSkinNumber1
+ *        sp.it.pl.ui.objects.rating.RatingSkinNumber100
+ *        sp.it.pl.ui.objects.rating.RatingSkinNumberPercent
+ * attributes: -fx-icon-count: Int = number of icons
+ *             -fx-partial: Boolean = whether displayed value is round up to nearest fraction of a whole depending on -fx-icon-count
  */
+.rating {}
 
 /* Container for the control, use use for padding and such. */
 .rating > .container {
@@ -3410,10 +3458,10 @@ Shape, Text, SpitText, TextFlow > * {
  * Contains rows and each rows individual cells.
  * inherits: Control
  * properties:
- *   -fx-horizontal-cell-spacing: size
- *   -fx-vertical-cell-spacing: size
- *   -fx-cell-width: size
- *   -fx-cell-height: size
+ *   -fx-horizontal-cell-spacing: Size
+ *   -fx-vertical-cell-spacing: Size
+ *   -fx-cell-width: Size
+ *   -fx-cell-height: Size
  */
 .grid-view {
     -fx-border-width: 0;

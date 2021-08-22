@@ -25,7 +25,7 @@ import sp.it.util.type.raw
  */
 abstract class StyleableCompanion {
 
-   /** @return all [CssMetaData], including those of the superclass. JavaFX convention. */
+   /** @return all [CssMetaData], including those of the superclass. JavaFX's convention. */
    val classCssMetaData: List<CssMetaData<out Styleable, *>> by lazy {
       failIfNot(this::class.isCompanion) { "${StyleableCompanion::class} must be companion object of ${Styleable::class}" }
 
@@ -47,7 +47,7 @@ abstract class StyleableCompanion {
  * Convenience construct for creating styleable JavaFX components' [CssMetaData].
  * Use inside companion object of the [Styleable] component, preferably [StyleableCompanion].
  */
-fun <S: Styleable, T> svMetaData(name: String, converter: StyleConverter<*, T>, initialValue: T, value: KProperty<StyleableProperty<T>>) = ConstantReadOnlyProperty<Any, CssMetaData<S, T>>(
+inline fun <S: Styleable, reified T> svMetaData(name: String, converter: StyleConverter<*, T>, initialValue: T, value: KProperty<StyleableProperty<T>>) = ConstantReadOnlyProperty<Any, CssMetaData<S, T>>(
    object: CssMetaData<S, T>(name, converter, initialValue) {
       override fun isSettable(styleable: S) = value.getter.call(styleable).net { it !is Property<*> || !it.isBound }
       override fun getStyleableProperty(styleable: S) = value.getter.call(styleable)
@@ -56,15 +56,26 @@ fun <S: Styleable, T> svMetaData(name: String, converter: StyleConverter<*, T>, 
 
 /**
  * Convenience construct for creating styleable JavaFX components' [StyleableObjectProperty].
- * Use inside of the [Styleable] component, ideally using metadata defined by [svMetaData].
+ * Use inside the [Styleable] component, ideally using metadata defined by [svMetaData].
  */
-fun <T> sv(metadata: CssMetaData<out Styleable, T>) = ConstantReadOnlyPropertyDelegateProvider<Styleable, StyleableObjectProperty<T>> { styleable, property ->
+inline fun <reified T> sv(metadata: CssMetaData<out Styleable, T>) = ConstantReadOnlyPropertyDelegateProvider<Styleable, StyleableObjectProperty<T>> { styleable, property ->
    val svInitialValue = metadata.asIs<CssMetaData<Styleable, T>>().getInitialValue(styleable)
    object: StyleableObjectProperty<T>(svInitialValue) {
       override fun invalidated() = get().toUnit()
       override fun getBean() = styleable
       override fun getName() = property.name
       override fun getCssMetaData() = metadata
+      override fun set(v: T) {
+         when(T::class) {
+            Byte::class -> super.set(v?.asIs<Number>()?.toByte() as T)
+            Short::class -> super.set(v?.asIs<Number>()?.toShort() as T)
+            Int::class -> super.set(v?.asIs<Number>()?.toInt() as T)
+            Long::class -> super.set(v?.asIs<Number>()?.toLong() as T)
+            Float::class -> super.set(v?.asIs<Number>()?.toFloat() as T)
+            Double::class -> super.set(v?.asIs<Number>()?.toDouble() as T)
+            else -> super.set(v)
+         }
+      }
    }
 }
 

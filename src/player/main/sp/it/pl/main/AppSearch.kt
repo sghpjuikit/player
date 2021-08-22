@@ -1,5 +1,6 @@
 package sp.it.pl.main
 
+import sp.it.pl.main.AppSettings.search as conf
 import javafx.collections.ObservableList
 import javafx.scene.Node
 import sp.it.pl.core.NameUi
@@ -15,7 +16,6 @@ import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
-import sp.it.pl.main.AppSettings.search as conf
 
 class AppSearch: GlobalSubConfigDelegator(conf.name) {
    val sources by cList<Source>().def(conf.sources).noPersist().butElement(UiConverter<Source> { it.nameUi })

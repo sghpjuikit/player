@@ -1,7 +1,16 @@
 package sp.it.pl.audio.tagging
 
+import kotlin.jvm.JvmField as F
+import java.io.File
+import java.io.IOException
+import java.io.Serializable
+import java.net.URI
+import java.time.DateTimeException
+import java.time.LocalDateTime
+import java.time.Year
 import javafx.scene.paint.Color
 import javafx.util.Duration
+import kotlin.math.pow
 import mu.KLogging
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.tag.FieldKey
@@ -25,14 +34,14 @@ import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Chapter.Companion.chapter
 import sp.it.pl.audio.tagging.Metadata.Companion.EMPTY
 import sp.it.pl.audio.tagging.Metadata.Field
+import sp.it.pl.main.APP
+import sp.it.pl.main.isImage
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.image.Cover
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.pl.ui.objects.image.EmptyCover
 import sp.it.pl.ui.objects.image.FileCover
 import sp.it.pl.ui.objects.image.ImageCover
-import sp.it.pl.main.APP
-import sp.it.pl.main.isImage
-import sp.it.pl.main.toUi
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.Blocks
@@ -53,15 +62,6 @@ import sp.it.util.units.FileSize.Companion.sizeInBytes
 import sp.it.util.units.NofX
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.uri
-import java.io.File
-import java.io.IOException
-import java.io.Serializable
-import java.net.URI
-import java.time.DateTimeException
-import java.time.LocalDateTime
-import java.time.Year
-import kotlin.math.pow
-import kotlin.jvm.JvmField as F
 
 /**
  * Information about audio file, usually from audio file tag and header.
@@ -210,7 +210,7 @@ class Metadata: Song, Serializable {
    /** Time this song was added to library as string or null if none */
    private var libraryAdded: String? = null
 
-   /** Creates metadata from an song, attempts to use as much data available, no i/o. */
+   /** Creates metadata from a song, attempts to use as much data available, no i/o. */
    constructor(song: Song) {
       id = song.uri.toString()
       if (song is PlaylistSong) {
@@ -355,10 +355,10 @@ class Metadata: Song, Serializable {
                val rat = body1.rating //returns null if empty
                val cou = body1.counter //returns null if empty
 
-               // i do not know why the values themselves are Long, but we only need int
+               // Do not know why the values themselves are Long, but we only need int
                // both for rating and playcount.
                // all is good until the tag is actually damaged and the int can really
-               // overflow during conversion and we get ArithmeticException
+               // overflow during conversion, and we get ArithmeticException,
                // so we catch it and ignore the value
                if (rating==null) {
                   try {
@@ -646,7 +646,7 @@ class Metadata: Song, Serializable {
    }
 
    private fun readCoverFromTag(): ImageCover? = try {
-      readArtworkFromTag()?.let { ImageCover(it.imageOrNull, it.info ?: "") }
+      readArtworkFromTag()?.let { ImageCover(it.imageOrNull, it.info) }
    } catch (e: IOException) {
       null
    }
@@ -776,8 +776,8 @@ class Metadata: Song, Serializable {
        *
        * All fields are at their default values.
        *
-       * There are two ways to check whether Metadata object is EMPTY. Either use
-       * reference operator this == Metadata.EMPTY or call [.isEmpty].
+       * There are two ways to check whether Metadata object is [EMPTY]. Either use
+       * reference operator `this == EMPTY` or call [isEmpty].
        *
        * Note: The reference operator works, because there is always only one
        * instance of EMPTY metadata.

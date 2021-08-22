@@ -1,18 +1,15 @@
 package sp.it.pl.ui.objects.window.pane
 
-import javafx.beans.property.BooleanProperty
-import javafx.beans.property.DoubleProperty
-import javafx.beans.property.ObjectProperty
+import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.ReadOnlyBooleanWrapper
 import javafx.beans.property.ReadOnlyObjectWrapper
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ListChangeListener
 import javafx.scene.Node
-import javafx.scene.input.MouseButton
-import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.StackPane
 import kotlin.math.abs
@@ -21,9 +18,11 @@ import kotlin.math.ceil
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.window.Resize
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
+import sp.it.util.access.v
 import sp.it.util.reactive.onEventDown
 
 /** Window implemented as a [javafx.scene.layout.Pane] for in-application windows emulating window behavior. */
+@Suppress("PropertyName")
 open class WindowPane(val owner: AnchorPane) {
    @JvmField val root = StackPane()
    private val _x = 100.0
@@ -32,7 +31,7 @@ open class WindowPane(val owner: AnchorPane) {
    private val _h = 0.0
    @JvmField protected val _resizing = ReadOnlyObjectWrapper(Resize.NONE)
    @JvmField protected val _moving = ReadOnlyBooleanWrapper(false)
-   private val _focused = ReadOnlyBooleanWrapper(false)
+   @JvmField protected val _focused = ReadOnlyBooleanWrapper(false)
    @JvmField protected val _fullscreen = ReadOnlyBooleanWrapper(false)
    @JvmField val x = object: SimpleObjectProperty<Double>(50.0) {
       override fun setValue(nv: Double) {
@@ -42,7 +41,7 @@ open class WindowPane(val owner: AnchorPane) {
             v = mapSnap(v, v + w.value, w.value, owner.width)
             v = mapSnapX(v, owner.children)
          }
-         if (offscreenFixOn.value) v = offScreenXMap(v)
+         if (offScreenFixOn.value) v = offScreenXMap(v)
          super.setValue(v)
          root.layoutX = v
       }
@@ -55,35 +54,35 @@ open class WindowPane(val owner: AnchorPane) {
             v = mapSnap(v, v + h.value, h.value, owner.height)
             v = mapSnapY(v, owner.children)
          }
-         if (offscreenFixOn.value) v = offScreenYMap(v)
+         if (offScreenFixOn.value) v = offScreenYMap(v)
          super.setValue(v)
          root.layoutY = v
       }
    }
-   @JvmField val w = root.prefWidthProperty()
-   @JvmField val h = root.prefHeightProperty()
-   @JvmField val visible = root.visibleProperty()
-   @JvmField val opacity = root.opacityProperty()
+   @JvmField val w = root.prefWidthProperty()!!
+   @JvmField val h = root.prefHeightProperty()!!
+   @JvmField val visible = root.visibleProperty()!!
+   @JvmField val opacity = root.opacityProperty()!!
 
    /** Indicates whether this window is maximized */
-   @JvmField val maximized: ObjectProperty<Maximized> = SimpleObjectProperty(Maximized.NONE)
+   @JvmField val maximized = v(Maximized.NONE)
 
    /** Defines whether this window is resizable */
-   @JvmField  val movable: BooleanProperty = SimpleBooleanProperty(true)
+   @JvmField  val movable = v(true)
 
    /** Indicates whether the window is being moved */
-   @JvmField val moving = _moving.readOnlyProperty
+   @JvmField val moving: ReadOnlyBooleanProperty = _moving.readOnlyProperty
 
    /** Indicates whether and how the window is being resized */
-   @JvmField val resizing = _resizing.readOnlyProperty
+   @JvmField val resizing = _resizing.readOnlyProperty!!
 
    /** Defines whether this window is resizable */
-   @JvmField val resizable: BooleanProperty = SimpleBooleanProperty(true)
-   @JvmField val snappable: BooleanProperty = SimpleBooleanProperty(true)
-   @JvmField val snapDistance: DoubleProperty = SimpleDoubleProperty(5.0)
-   @JvmField val offscreenFixOn: BooleanProperty = SimpleBooleanProperty(true)
-   @JvmField val offScreenFixOffset: DoubleProperty = SimpleDoubleProperty(0.0)
-   @JvmField val focused = _focused.readOnlyProperty
+   @JvmField val resizable = v(true)
+   @JvmField val snappable = v(true)
+   @JvmField val snapDistance = v(5.0)
+   @JvmField val offScreenFixOn = v(true)
+   @JvmField val offScreenFixOffset = v(0.0)
+   @JvmField val focused: ReadOnlyBooleanProperty = _focused.readOnlyProperty
 
    private val snapDist get() = snapDistance.value.emScaled
    private val focusListener = ListChangeListener { c: ListChangeListener.Change<out Node> ->
@@ -132,25 +131,23 @@ open class WindowPane(val owner: AnchorPane) {
 
    /** Installs move by dragging on provided Node, usually root. */
    fun moveOnDragOf(n: Node) {
-      n.addEventHandler(MOUSE_PRESSED) { e: MouseEvent ->
-         e.consume()
-         if (maximized.value==Maximized.ALL || !movable.value || e.button!=MouseButton.PRIMARY) return@addEventHandler
-         _moving.value = true
-         startX = x.value - e.sceneX
-         startY = y.value - e.sceneY
-      }
-      n.addEventHandler(MouseEvent.MOUSE_DRAGGED) { e: MouseEvent ->
-         if (moving.value) {
-            x.value = startX + e.sceneX
-            y.value = startY + e.sceneY
+      n.addEventHandler(MOUSE_DRAGGED) {
+         if (!moving.value && maximized.value!=Maximized.ALL && movable.value && it.button==PRIMARY) {
+            _moving.value = true
+            startX = x.value - it.sceneX
+            startY = y.value - it.sceneY
          }
-         e.consume()
+         if (moving.value) {
+            x.value = startX + it.sceneX
+            y.value = startY + it.sceneY
+         }
+         it.consume()
       }
-      n.addEventHandler(MouseEvent.MOUSE_RELEASED) { e: MouseEvent ->
+      n.addEventHandler(MOUSE_RELEASED) {
          if (_moving.value) {
             _moving.value = false
          }
-         e.consume()
+         it.consume()
       }
    }
 

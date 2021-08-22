@@ -1,7 +1,7 @@
 package sp.it.pl.ui.objects.picker
 
-import sp.it.pl.layout.widget.ComponentFactory
-import sp.it.pl.layout.widget.WidgetFactory
+import sp.it.pl.layout.ComponentFactory
+import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled

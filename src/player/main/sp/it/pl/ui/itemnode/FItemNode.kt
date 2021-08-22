@@ -4,6 +4,7 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ComboBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
+import sp.it.pl.main.F
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.util.access.v
@@ -13,30 +14,24 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
-import sp.it.util.dev.fail
 import sp.it.util.functional.PF
 import sp.it.util.functional.Parameter
-import sp.it.util.functional.toUnit
+import sp.it.util.functional.asIs
+import sp.it.util.functional.compose
+import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sizes
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
-import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.zip
 import sp.it.util.type.VType
+import sp.it.util.type.isSubtypeOf
 import sp.it.util.ui.hBox
 import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.pseudoClassChanged
-import java.util.ArrayList
-import sp.it.pl.main.F
-import sp.it.util.collections.toStringPretty
-import sp.it.util.functional.asIs
-import sp.it.util.functional.compose
-import sp.it.util.functional.ifNotNull
-import sp.it.util.reactive.zip
-import sp.it.util.type.isSubtypeOf
 
 /**
  * Value node containing function.

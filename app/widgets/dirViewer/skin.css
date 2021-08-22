@@ -1,0 +1,18 @@
+
+.breadcrumbs {}
+
+.breadcrumb,
+.breadcrumb-separator {
+    -fx-label-padding: 0.25em;
+}
+
+.breadcrumb:hover,
+.breadcrumb-separator:hover {
+    -fx-text-fill: -fx-focus-color;
+    -fx-border-insets: -1;
+    -fx-background-color: ladder(hsb(180, 100%, 50%), transparent 0%, -fx-focus-color 100%);
+    -fx-background-radius: 0.5em;
+    -fx-border-color: -fx-focus-color;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 0.5em;
+}

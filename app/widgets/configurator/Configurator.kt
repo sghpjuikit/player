@@ -18,9 +18,9 @@ import sp.it.pl.ui.objects.tree.Name
 import sp.it.pl.ui.objects.tree.buildTreeCell
 import sp.it.pl.ui.objects.tree.tree
 import sp.it.pl.ui.pane.ConfigPane
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.ConfiguringFeature
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA

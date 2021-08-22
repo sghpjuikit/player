@@ -1,5 +1,9 @@
 package sp.it.pl.main
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
+import javafx.animation.Interpolator.LINEAR
+import javafx.animation.Transition.INDEFINITE
 import javafx.beans.property.ReadOnlyProperty
 import javafx.collections.FXCollections.observableArrayList
 import javafx.concurrent.Task
@@ -12,14 +16,14 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.window.NodeShow.RIGHT_UP
-import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.main.AppTask.State.ACTIVE
 import sp.it.pl.main.AppTask.State.DONE_CANCEL
 import sp.it.pl.main.AppTask.State.DONE_ERROR
 import sp.it.pl.main.AppTask.State.DONE_OK
 import sp.it.pl.main.AppTask.State.SCHEDULED
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.NodeShow.RIGHT_UP
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Loop
@@ -34,7 +38,6 @@ import sp.it.util.async.invoke
 import sp.it.util.async.runFX
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
-import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onItemSync
@@ -52,12 +55,9 @@ import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.vBox
+import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.units.millis
 import sp.it.util.units.uuid
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executor
-import javafx.animation.Interpolator.LINEAR
-import javafx.animation.Transition.INDEFINITE
 
 object AppProgress {
    private val tasksActive = ConcurrentHashMap<String, AppTask>()

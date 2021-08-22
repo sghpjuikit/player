@@ -1,8 +1,8 @@
 package sp.it.pl.ui.itemnode
 
+import java.util.function.Consumer
 import javafx.scene.Node
 import sp.it.util.functional.invoke
-import java.util.function.Consumer
 
 /** Graphics with a value, usually an ui editor. */
 interface ItemNode<out T> {

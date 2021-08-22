@@ -17,7 +17,7 @@ import sp.it.util.type.findAnnotationAny
 import sp.it.util.type.isPlatformType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
-import sp.it.util.type.typeResolved
+import sp.it.util.type.typeOrNothing
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
@@ -126,14 +126,14 @@ private fun <T: Any> annotatedConfig(p: KProperty<*>, instance: T, name: String,
             failIf(!isFinal) { "Property must be immutable" }
 
             val property = p.getter.call(instance) as OrV<T>
-            val propertyType = type.argOf(OrV::class, 0).typeResolved.resolveNullability()
+            val propertyType = type.argOf(OrV::class, 0).typeOrNothing.resolveNullability()
             OrPropertyConfig(VType(propertyType), name, def.toDef(), setOf(), setOf(), property, group).asIs()
          }
          typeRaw.isSubclassOf<WritableValue<*>>() -> {
             failIf(!isFinal) { "Property must be immutable" }
 
             val property = p.getter.call(instance) as WritableValue<T>
-            val propertyType = type.argOf(WritableValue::class, 0).typeResolved.resolveNullability()
+            val propertyType = type.argOf(WritableValue::class, 0).typeOrNothing.resolveNullability()
             PropertyConfig(VType(propertyType), name, def.toDef(), setOf(), property, property.value, group).asIs()
          }
          typeRaw.isSubclassOf<ObservableValue<*>>() -> {
@@ -141,7 +141,7 @@ private fun <T: Any> annotatedConfig(p: KProperty<*>, instance: T, name: String,
             failIf(def.editable!==EditMode.NONE) { "Property mutability requires usage of ${EditMode.NONE}" }
 
             val property = p.getter.call(instance) as ObservableValue<T>
-            val propertyType = type.argOf(ObservableValue::class, 0).typeResolved.resolveNullability()
+            val propertyType = type.argOf(ObservableValue::class, 0).typeOrNothing.resolveNullability()
             PropertyConfigRO(VType(propertyType), name, def.toDef(), setOf(), property, group).asIs()
          }
          typeRaw.isSubclassOf<ConfList<*>>() -> {

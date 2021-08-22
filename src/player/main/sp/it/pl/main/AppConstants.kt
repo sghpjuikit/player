@@ -4,13 +4,14 @@ import java.io.File
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
-import sp.it.pl.layout.widget.WidgetManager.FactoryRef
+import sp.it.pl.layout.WidgetManager.FactoryRef
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
 import sp.it.util.dev.failIf
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.MimeTypes
-import sp.it.util.text.*
+import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 
 object Widgets {
    const val CONVERTER_NAME = "Converter"

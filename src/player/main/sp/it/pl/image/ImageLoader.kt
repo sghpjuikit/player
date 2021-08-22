@@ -1,5 +1,9 @@
 package sp.it.pl.image
 
+import java.io.File
+import java.io.IOException
+import java.net.URI
+import java.util.zip.ZipFile
 import javafx.scene.image.Image
 import javafx.util.Duration
 import mu.KotlinLogging
@@ -40,10 +44,6 @@ import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.image.loadImagePsd
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
-import java.io.File
-import java.io.IOException
-import java.net.URI
-import java.util.zip.ZipFile
 
 private val logger = KotlinLogging.logger {}
 

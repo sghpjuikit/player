@@ -4,21 +4,35 @@ import com.twelvemonkeys.util.LinkedMap
 import com.twelvemonkeys.util.LinkedSet
 import de.jensd.fx.glyphs.GlyphIcons
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode.CEILING
+import java.math.RoundingMode.FLOOR
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Locale
 import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
+import javafx.event.Event
 import javafx.geometry.Insets
+import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Pos.TOP_RIGHT
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Control
 import javafx.scene.control.Label
 import javafx.scene.control.ListCell
 import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.Slider
+import javafx.scene.control.TextArea
+import javafx.scene.control.TextField
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT
@@ -29,6 +43,7 @@ import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyCode.META
 import javafx.scene.input.KeyCode.SHIFT
+import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyCode.TAB
 import javafx.scene.input.KeyCode.UNDEFINED
 import javafx.scene.input.KeyCombination.NO_MATCH
@@ -36,6 +51,11 @@ import javafx.scene.input.KeyCombination.keyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseEvent
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.ScrollEvent
+import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
@@ -43,10 +63,18 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.util.Callback
-import sp.it.pl.layout.widget.ComponentFactory
-import sp.it.pl.layout.widget.DeserializingFactory
-import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.WidgetManager
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.roundToInt
+import kotlin.math.sign
+import kotlin.reflect.KClass
+import sp.it.pl.core.UiStringHelper
+import sp.it.pl.layout.ComponentFactory
+import sp.it.pl.layout.DeserializingFactory
+import sp.it.pl.layout.NoFactoryFactory
+import sp.it.pl.layout.TemplateFactory
+import sp.it.pl.layout.WidgetFactory
+import sp.it.pl.layout.WidgetManager
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
@@ -60,17 +88,28 @@ import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode
-import sp.it.pl.ui.objects.textfield.EffectTextField
-import sp.it.pl.ui.objects.textfield.FileTextField
-import sp.it.pl.ui.objects.textfield.FontTextField
+import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.SpitComboBox.ImprovedComboBoxListCell
+import sp.it.pl.ui.objects.SpitSliderSkin
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
+import sp.it.pl.ui.objects.complexfield.ComplexTextField
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
+import sp.it.pl.ui.objects.textfield.ColorTextField
+import sp.it.pl.ui.objects.textfield.DateTextField
+import sp.it.pl.ui.objects.textfield.DateTimeTextField
+import sp.it.pl.ui.objects.textfield.EffectTextField
+import sp.it.pl.ui.objects.textfield.FileTextField
+import sp.it.pl.ui.objects.textfield.FontTextField
 import sp.it.pl.ui.objects.textfield.SpitTextField
+import sp.it.pl.ui.objects.textfield.TimeTextField
 import sp.it.pl.ui.pane.ConfigPane
+import sp.it.util.access.OrV
 import sp.it.util.access.Values
+import sp.it.util.access.editable
+import sp.it.util.access.toWritable
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.action.Action
@@ -81,6 +120,7 @@ import sp.it.util.conf.CheckListConfig
 import sp.it.util.conf.ConfList.Companion.FailFactory
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.conf.Constraint.FileOut
 import sp.it.util.conf.Constraint.FileRelative
@@ -88,6 +128,7 @@ import sp.it.util.conf.Constraint.IconConstraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.Constraint.PreserveOrder
+import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.UiConverter
 import sp.it.util.conf.Constraint.UiElementConverter
 import sp.it.util.conf.Constraint.UiInfoConverter
@@ -95,6 +136,8 @@ import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.PropertyConfigRO
+import sp.it.util.conf.UnsealedEnumerator
+import sp.it.util.dev.SwitchException
 import sp.it.util.dev.failCase
 import sp.it.util.file.FilePickerType
 import sp.it.util.functional.Try
@@ -102,14 +145,20 @@ import sp.it.util.functional.Util.by
 import sp.it.util.functional.and
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.filter
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
+import sp.it.util.functional.map
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toOption
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachFalse
+import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
@@ -119,14 +168,19 @@ import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.orEmpty
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
+import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.syncTo
 import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.text.nullIfBlank
+import sp.it.util.type.isSubclassOf
+import sp.it.util.type.jvmErasure
 import sp.it.util.type.raw
 import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
+import sp.it.util.ui.hasFocus
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.listView
@@ -137,60 +191,6 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.textFlow
 import sp.it.util.ui.vBox
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode.CEILING
-import java.math.RoundingMode.FLOOR
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.util.Locale
-import javafx.event.Event
-import javafx.geometry.Pos
-import javafx.scene.control.Control
-import javafx.scene.control.TextArea
-import javafx.scene.control.TextField
-import javafx.scene.input.KeyCode.SPACE
-import javafx.scene.input.MouseButton.PRIMARY
-import javafx.scene.input.MouseEvent
-import javafx.scene.input.MouseEvent.MOUSE_CLICKED
-import javafx.scene.input.ScrollEvent
-import javafx.scene.input.ScrollEvent.SCROLL
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.roundToInt
-import kotlin.math.sign
-import kotlin.reflect.KClass
-import sp.it.pl.core.UiStringHelper
-import sp.it.pl.layout.widget.NoFactoryFactory
-import sp.it.pl.layout.widget.TemplateFactory
-import sp.it.pl.ui.objects.textfield.ColorTextField
-import sp.it.pl.ui.objects.textfield.DateTextField
-import sp.it.pl.ui.objects.textfield.DateTimeTextField
-import sp.it.pl.ui.objects.textfield.TimeTextField
-import sp.it.pl.ui.labelForWithClick
-import sp.it.pl.ui.objects.SpitSliderSkin
-import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
-import sp.it.pl.ui.objects.complexfield.ComplexTextField
-import sp.it.util.access.OrV
-import sp.it.util.access.editable
-import sp.it.util.access.toWritable
-import sp.it.util.conf.Constraint
-import sp.it.util.conf.Constraint.ReadOnlyIf
-import sp.it.util.conf.UnsealedEnumerator
-import sp.it.util.dev.SwitchException
-import sp.it.util.functional.filter
-import sp.it.util.functional.getOrSupply
-import sp.it.util.functional.map
-import sp.it.util.functional.toOption
-import sp.it.util.reactive.attachFalse
-import sp.it.util.reactive.map
-import sp.it.util.reactive.suppressingAlways
-import sp.it.util.reactive.syncTo
-import sp.it.util.type.isSubclassOf
-import sp.it.util.type.jvmErasure
-import sp.it.util.ui.hasFocus
 
 private val actTooltip = appTooltip("Run action")
 private val globTooltip = appTooltip("Global shortcut"
@@ -1272,7 +1272,10 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       }
 
       private inline fun <reified T> ConfigEditor<*>.onNumberScrolled(min: T?, max: T?, crossinline adder: (T, T) -> T, crossinline caster: (Int) -> T): (Event) -> Unit = { it ->
-         if ((it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY) || (it is ScrollEvent && editor.hasFocus())) {
+         val isEditable = this.isEditable.value
+         val isMouseEdit = it is MouseEvent && it.eventType==MOUSE_CLICKED && it.button==PRIMARY
+         val isScrollEdit = it is ScrollEvent && editor.hasFocus()
+         if (isEditable && (isMouseEdit || isScrollEdit)) {
             val dv = when (it) {
                is MouseEvent -> (if (it.source.asIs<Node>().net { it.layoutBounds.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1) * (if (it.isShortcutDown) 10 else 1)
                is ScrollEvent -> it.deltaY.sign.roundToInt() * (if (it.isShortcutDown) 10 else 1)

@@ -1,6 +1,10 @@
 package sp.it.pl.ui.objects.tree
 
+import javafx.stage.Window as WindowFX
 import de.jensd.fx.glyphs.GlyphIcons
+import java.io.File
+import java.nio.file.Path
+import java.util.Stack
 import javafx.collections.FXCollections.emptyObservableList
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
@@ -16,6 +20,8 @@ import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
+import javafx.scene.input.KeyCode.C
+import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -27,29 +33,36 @@ import javafx.scene.input.TransferMode
 import javafx.scene.text.TextBoundsType.VISUAL
 import javafx.stage.PopupWindow
 import javafx.stage.Stage
+import javax.swing.filechooser.FileSystemView
 import mu.KotlinLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
-import sp.it.pl.ui.objects.image.Thumbnail
-import sp.it.pl.ui.objects.window.stage.Window
-import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.WidgetFactory
-import sp.it.pl.layout.widget.WidgetSource.OPEN
-import sp.it.pl.layout.widget.WidgetUse.ANY
-import sp.it.pl.layout.widget.feature.ConfiguringFeature
-import sp.it.pl.layout.widget.feature.Feature
+import sp.it.pl.layout.Container
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetFactory
+import sp.it.pl.layout.WidgetSource.OPEN
+import sp.it.pl.layout.WidgetUse.ANY
+import sp.it.pl.layout.feature.ConfiguringFeature
+import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
+import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.isSkinFile
 import sp.it.pl.main.isWidgetFile
+import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.window.dock.isDockWindow
+import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.objects.window.stage.asAppWindow
+import sp.it.pl.ui.objects.window.stage.asLayout
+import sp.it.pl.ui.objects.window.stage.isMainWindow
 import sp.it.util.HierarchicalBase
+import sp.it.util.access.expanded
 import sp.it.util.access.toggle
 import sp.it.util.async.executor.ExecuteN
 import sp.it.util.async.invoke
@@ -76,26 +89,15 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.system.open
+import sp.it.util.system.recycle
 import sp.it.util.text.nullIfBlank
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.nullify
 import sp.it.util.type.type
 import sp.it.util.ui.createIcon
+import sp.it.util.ui.drag.set
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.root
-import java.io.File
-import java.nio.file.Path
-import java.util.ArrayList
-import java.util.Stack
-import javafx.stage.Window as WindowFX
-import javafx.scene.input.KeyCode.C
-import javafx.scene.input.KeyCode.DELETE
-import javax.swing.filechooser.FileSystemView
-import sp.it.pl.main.Df.FILES
-import sp.it.pl.main.sysClipboard
-import sp.it.util.access.expanded
-import sp.it.util.system.recycle
-import sp.it.util.ui.drag.set
 import sp.it.util.ui.show
 
 private val logger = KotlinLogging.logger { }
@@ -125,7 +127,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Image -> tree(o, tree("Url", o.url.orNone()), "Width${o.width}", "Height${o.height}")
    is Thumbnail.ContextMenuData -> tree("Thumbnail", tree("Data", o.representant.orNone()), tree("Image", o.image.orNone()), tree("Image file", o.iFile.orNone()))
    is Scene -> tree(o, o.root)
-   is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asAppWindow()?.layout).filterNotNull() })
+   is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asLayout()).filterNotNull() })
    is Window -> tree(o.stage)
    is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
@@ -322,8 +324,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
             o.asIf<Stage>()?.title.nullIfBlank() ?: "Window (generic)"
          } else {
             var n = "Window " + APP.windowManager.windows.indexOf(w)
-            if (w===APP.windowManager.getMain()) n += " (main)"
-            if (w===APP.windowManager.dockWindow?.window) n += " (dock)"
+            if (w.isMainWindow()) n += " (main)"
+            if (w.isDockWindow()) n += " (dock)"
             n
          }
       }
@@ -469,7 +471,7 @@ class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.chil
 
 class WidgetItem(v: Widget): STreeItem<Any>(v, { seqOf(v.ui?.root).filterNotNull() }, { false })
 
-class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence() else seqOf() })
+class LayoutItem(v: Component): STreeItem<Component>(v, { if (v is Container<*>) v.children.values.asSequence().filterNotNull() else seqOf() })
 
 class FileTreeItem: SimpleTreeItem<File> {
    private val isLeaf: Boolean

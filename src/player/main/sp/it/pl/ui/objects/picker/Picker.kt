@@ -14,6 +14,10 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.text.TextAlignment
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.sqrt
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
@@ -39,10 +43,6 @@ import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
 import sp.it.util.units.millis
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.sqrt
 
 /**
  * Generic picker.

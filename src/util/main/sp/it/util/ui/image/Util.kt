@@ -32,7 +32,7 @@ import sp.it.util.ui.x2
 private val logger = KotlinLogging.logger {}
 
 @JvmOverloads
-fun ImageBf.toFX(to: ImageWr? = null) = SwingFXUtils.toFXImage(this, to)!!
+fun ImageBf.toFX(to: ImageWr? = null): ImageWr = SwingFXUtils.toFXImage(this, to)
 
 // https://github.com/javafxports/openjdk-jfx/pull/472#issuecomment-500547180
 fun ImageBf.toFXCustom(): ImageWr {

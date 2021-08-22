@@ -6,8 +6,11 @@ import javafx.scene.Node
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
+import kotlin.math.sqrt
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
+import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.functional.asIf
@@ -24,11 +27,8 @@ import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.size
-import sp.it.util.units.millis
-import kotlin.math.sqrt
-import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
-import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.util.ui.stackPane
+import sp.it.util.units.millis
 
 /**
  * Placeholder pane. Can invoke action and display its icon and multi-line information text.

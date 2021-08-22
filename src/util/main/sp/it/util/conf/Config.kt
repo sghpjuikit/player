@@ -33,7 +33,7 @@ import sp.it.util.type.jvmErasure
 import sp.it.util.type.rawJ
 import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
-import sp.it.util.type.typeResolved
+import sp.it.util.type.typeOrNothing
 
 /**
  * Represents of a configurable value.
@@ -205,7 +205,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
                   // TODO: use variance to get readOnly
                   val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, valueTyped)) EditMode.NONE else EditMode.USER
                   val def = ConfigDef(name, "", "", editable = isReadOnly)
-                  val itemType: VType<*> = VType<Any?>(type.type.argOf(ObservableList::class, 0).typeResolved)
+                  val itemType: VType<*> = VType<Any?>(type.type.argOf(ObservableList::class, 0).typeOrNothing)
                   ListConfig(name, def, ConfList(itemType, valueTyped.asIs()), "", setOf(), setOf()).asIs()
                }
                else -> forProperty(type, name, vx(value))

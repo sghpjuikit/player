@@ -1,5 +1,8 @@
 package sp.it.pl.plugin.impl
 
+import java.net.URI
+import java.util.Collections.synchronizedMap
+import java.util.concurrent.ConcurrentHashMap
 import mu.KLogging
 import sp.it.pl.audio.MetadatasDB
 import sp.it.pl.audio.SimpleSong
@@ -9,7 +12,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.core.CoreSerializer
-import sp.it.pl.layout.widget.controller.io.InOutput
+import sp.it.pl.layout.controller.io.InOutput
 import sp.it.pl.main.APP
 import sp.it.pl.main.withAppProgress
 import sp.it.util.async.future.Fut
@@ -28,9 +31,6 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orAlsoTry
 import sp.it.util.functional.orNull
 import sp.it.util.units.uuid
-import java.net.URI
-import java.util.Collections.synchronizedMap
-import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("unused")
 class SongDb {

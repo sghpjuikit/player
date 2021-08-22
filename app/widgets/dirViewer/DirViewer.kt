@@ -1,46 +1,74 @@
 package dirViewer
 
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS
+import java.io.File
+import java.util.Stack
+import java.util.concurrent.atomic.AtomicLong
 import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
+import javafx.geometry.Side
+import javafx.scene.Node
+import javafx.scene.control.ContextMenu
+import javafx.scene.input.DataFormat.FILES
 import javafx.scene.input.KeyCode.BACK_SPACE
+import javafx.scene.input.KeyCode.C
+import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.F5
+import javafx.scene.input.KeyCode.SHORTCUT
+import javafx.scene.input.KeyCode.V
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.BACK
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
+import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
+import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.HBox
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.ImagesDisplayFeature
+import mu.KLogging
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.ImagesDisplayFeature
 import sp.it.pl.main.APP
+import sp.it.pl.main.Df
+import sp.it.pl.main.Events.FileEvent
+import sp.it.pl.main.FileFilters.cvFileFilter
 import sp.it.pl.main.FileFlatter
+import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.appTooltipForData
+import sp.it.pl.main.copyAs
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
+import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.grid.GridFileIconCell
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
+import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.pl.ui.objects.grid.GridView.CellSize
 import sp.it.pl.ui.objects.grid.GridView.CellSize.NORMAL
+import sp.it.pl.ui.objects.grid.GridView.CellSize.SMALL_24
 import sp.it.pl.ui.objects.grid.GridViewSkin
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.ui.objects.placeholder.show
+import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.Util.enumToHuman
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
+import sp.it.util.access.toggle
 import sp.it.util.access.v
-import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runIO
 import sp.it.util.collections.insertEvery
@@ -48,10 +76,14 @@ import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.EditMode
+import sp.it.util.conf.butElement
 import sp.it.util.conf.cList
+import sp.it.util.conf.cOr
 import sp.it.util.conf.cn
+import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.defInherit
 import sp.it.util.conf.only
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
@@ -61,9 +93,14 @@ import sp.it.util.dev.failIf
 import sp.it.util.file.FileSort.DIR_FIRST
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.file.nameOrRoot
+import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.let_
+import sp.it.util.functional.net
 import sp.it.util.functional.nullsLast
 import sp.it.util.functional.recurseBF
 import sp.it.util.functional.traverse
@@ -83,60 +120,29 @@ import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.system.chooseFile
 import sp.it.util.system.edit
 import sp.it.util.system.open
-import sp.it.util.text.nameUi
-import sp.it.util.text.pluralUnit
-import sp.it.util.ui.Resolution
-import sp.it.util.ui.Util.layHeaderTop
-import sp.it.util.ui.image.FitFrom
-import sp.it.util.ui.install
-import sp.it.util.ui.label
-import sp.it.util.ui.lay
-import sp.it.util.ui.onHoverOrDrag
-import sp.it.util.ui.prefSize
-import sp.it.util.ui.setScaleXYByTo
-import sp.it.util.ui.x
-import sp.it.util.ui.x2
-import sp.it.util.units.millis
-import java.io.File
-import java.util.Stack
-import java.util.concurrent.atomic.AtomicLong
-import javafx.scene.input.KeyCode.C
-import javafx.scene.input.KeyCode.DELETE
-import javafx.scene.input.KeyCode.SHORTCUT
-import javafx.scene.input.KeyCode.V
-import mu.KLogging
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.main.WidgetTags.LIBRARY
-import sp.it.pl.main.Df
-import sp.it.pl.main.Events.FileEvent
-import sp.it.pl.main.FileFilters.cvFileFilter
-import sp.it.pl.main.HelpEntries
-import sp.it.pl.main.IconUN
-import sp.it.pl.main.copyAs
-import sp.it.pl.main.sysClipboard
-import sp.it.pl.ui.objects.grid.GridView.CellGap
-import sp.it.pl.ui.objects.grid.GridView.CellSize
-import sp.it.pl.ui.objects.grid.GridView.CellSize.SMALL_24
-import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.access.OrV.OrValue.Initial.Inherit
-import sp.it.util.access.toggle
-import sp.it.util.conf.butElement
-import sp.it.util.conf.cOr
-import sp.it.util.conf.cr
-import sp.it.util.conf.defInherit
-import sp.it.util.functional.asIs
-import sp.it.util.functional.net
-import sp.it.util.reactive.zip
 import sp.it.util.system.recycle
 import sp.it.util.text.keys
+import sp.it.util.text.nameUi
+import sp.it.util.text.pluralUnit
 import sp.it.util.text.resolved
+import sp.it.util.ui.Resolution
+import sp.it.util.ui.Util.layHeaderTop
 import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
+import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.install
+import sp.it.util.ui.isAnyChildOf
+import sp.it.util.ui.label
+import sp.it.util.ui.lay
+import sp.it.util.ui.prefSize
+import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -206,6 +212,8 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
    init {
       root.prefSize = 1000.emScaled x 700.emScaled
+      root.stylesheets += (location/"skin.css").toURI().toASCIIString()
+
 
       grid.search.field = FileField.PATH
       grid.filterPrimaryField = FileField.NAME_FULL
@@ -274,6 +282,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          FOLDER_PLUS,
          "Explore directory",
          { it.dragboard.hasFiles() },
+         { it.gestureSource?.asIf<Node>()?.isAnyChildOf(root)==true },
          { inputFile.value = it.dragboard.files }
       )
 
@@ -527,6 +536,11 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       override fun computeGraphics() {
          super.computeGraphics()
          root install appTooltipForData { item?.value }
+         root.onEventDown(DRAG_DETECTED, PRIMARY) {
+            item?.value.ifNotNull {
+               root.startDragAndDrop(*ANY)[FILES] = listOf(it)
+            }
+         }
       }
 
    }
@@ -539,7 +553,15 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       override fun computeGraphics() {
          super.computeGraphics()
          thumb!!.fitFrom syncFrom coverFitFrom on disposer
+         thumb!!.isDragEnabled = false
          root install appTooltipForData { thumb!!.representant }
+         root.onEventDown(DRAG_DETECTED, PRIMARY) {
+            item?.value.ifNotNull {
+               val db = root.startDragAndDrop(*ANY)
+               db.dragView = thumb?.getImage()
+               db[FILES] = listOf(it)
+            }
+         }
       }
 
       override fun computeTask(r: () -> Unit) = onlyIfMatches(itemVisitId, r)
@@ -585,6 +607,9 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
             }
          },
          {
+            it.childrenRO().orEmpty().asSequence().filter { it.valType==DIRECTORY }
+         },
+         {
             if (it is TopItem && files.isEmpty()) prodUserToSetupLocation()
             else visit(it)
          }
@@ -601,21 +626,35 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
    }
 
-   private class Breadcrumbs<T>(converter: (T) -> String, onClick: (T) -> Unit): HBox() {
+   private class Breadcrumbs<T>(converter: (T) -> String, children: (T) -> Sequence<T>, onClick: (T) -> Unit): HBox() {
       val values = observableArrayList<T>()!!
 
       init {
          padding = Insets(10.0)
          spacing = 10.0
+         styleClass += "breadcrumbs"
 
          values.onChange {
-            children setTo values.map { value ->
+            var i = 0
+            this.children setTo values.map { value ->
                label(converter(value)) {
-                  val a = anim(150.millis) { setScaleXYByTo(it, 0.0, 5.0) }.intpl { it*it }
-                  onHoverOrDrag { a.playFromDir(it) }
-                  onEventDown(MOUSE_CLICKED) { onClick(value) }
+                  styleClass += "breadcrumb"
+                  onEventDown(MOUSE_CLICKED, PRIMARY) {
+                     onClick(value)
+                  }
                }
-            }.asSequence().insertEvery(1) { label(">") }
+            }.asSequence().insertEvery(1) {
+               label(">") {
+                  val ii = i
+                  styleClass += "breadcrumb-separator"
+                  onEventDown(MOUSE_CLICKED, PRIMARY) {
+                     ContextMenu().dsl {
+                        items(children(values[ii]), converter, onClick)
+                     }.show(this, Side.BOTTOM, 0.0, 0.0)
+                  }
+                  i++
+               }
+            }
          }
       }
 

@@ -3,14 +3,12 @@ package sp.it.pl.ui.objects.picker
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
-import sp.it.pl.layout.container.BiContainer
-import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.container.FreeFormContainer
+import sp.it.pl.layout.Container
+import sp.it.pl.layout.ContainerBi
+import sp.it.pl.layout.ContainerFreeForm
 import sp.it.pl.main.APP
-import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.objects.icon.UnicodeIcon
 import sp.it.pl.ui.objects.picker.ContainerPicker.CellData
 import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.ALL
 import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.LAYOUTS
@@ -22,9 +20,9 @@ class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect:
    init {
       itemSupply = {
          sequenceOf(
-            CellData("Split Vertically", IconUN(0x2ff0), "Splits space to left and right layout.") { onContainerSelect(BiContainer(HORIZONTAL)) },
-            CellData("Split Horizontally", IconUN(0x2ff1), "Splits space to top and bottom layout.") { onContainerSelect(BiContainer(VERTICAL)) },
-            CellData("FreeForm", IconUN(0x2ffb), "Free form layout. Components behave like windows.") { onContainerSelect(FreeFormContainer()) }
+            CellData("Split Vertically", IconUN(0x2ff0), "Splits space to left and right layout.") { onContainerSelect(ContainerBi(HORIZONTAL)) },
+            CellData("Split Horizontally", IconUN(0x2ff1), "Splits space to top and bottom layout.") { onContainerSelect(ContainerBi(VERTICAL)) },
+            CellData("FreeForm", IconUN(0x2ffb), "Free form layout. Components behave like windows.") { onContainerSelect(ContainerFreeForm()) }
          ) + (
             if (APP.widgetManager.widgets.separateWidgets.value) {
                sequenceOf(

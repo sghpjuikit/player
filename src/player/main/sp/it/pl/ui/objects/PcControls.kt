@@ -40,7 +40,7 @@ class PcControls: StackPane() {
       )
 
       orientation sync {
-         children setToOne when (it) {
+         children setToOne when (it!!) {
             VERTICAL -> VBox(*icons)
             HORIZONTAL -> HBox(*icons)
          }

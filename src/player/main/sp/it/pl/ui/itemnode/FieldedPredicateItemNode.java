@@ -34,7 +34,7 @@ public class FieldedPredicateItemNode<V, F extends ObjectField<V,?>> extends Val
 
 	private static final Tooltip negTooltip = new Tooltip("Negate");
 
-	private final ComboBox<PredicateData<F>> typeCB = new SpitComboBox<>(t -> t.name, AppTexts.INSTANCE.getTextNoVal());
+	private final ComboBox<PredicateData<F>> typeCB = new SpitComboBox<>(t -> t.name, AppTexts.textNoVal);
 	private FItemNode<Object,Boolean> config;
 	private final CheckIcon negB = (CheckIcon) new CheckIcon(false).styleclass("filter-negate-icon");
 	private final HBox root = new HBox(5, negB, typeCB);

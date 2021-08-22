@@ -1,7 +1,6 @@
 package sp.it.util.conf
 
 
-import javafx.beans.property.Property
 import sp.it.util.functional.toUnit
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.FIELD

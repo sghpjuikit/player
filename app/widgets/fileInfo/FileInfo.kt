@@ -42,9 +42,9 @@ import sp.it.pl.ui.objects.image.ThumbnailWithAdd
 import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.ui.pane.ImageFlowPane
 import sp.it.pl.ui.pane.SlowAction
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.SongReader
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
@@ -247,8 +247,6 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       init {
          contentDisplay = RIGHT
          graphic = rater.apply {
-            icons syncFrom APP.ui.ratingIconCount on onClose
-            partialRating syncFrom APP.ui.ratingIsPartial on onClose
             editable.value = true
             onRatingEdited = data::writeRating
          }
@@ -381,8 +379,8 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    init {
       root.prefSize = 400.0.emScaled x 400.0.emScaled
 
-      // keep updated content (unless the content is scheduled for change, then this could cause invalid content)
-      APP.audio.onSongRefresh { refreshed -> if (!dataReading.hasEventsQueued()) refreshed.ifHasE(data, ::read) } on onClose
+      // keep updated content)
+      APP.audio.onSongRefresh(::data) { if (!dataReading.hasEventsQueued()) read(it) } on onClose
 
       fieldsM.onChangeAndNow {
          fieldsM.forEach { (field, selected) -> fieldConfigs[field]?.shouldBeVisible = selected }

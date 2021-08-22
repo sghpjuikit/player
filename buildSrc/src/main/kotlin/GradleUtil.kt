@@ -109,7 +109,7 @@ open class GenerateKtFileHierarchy: DefaultTask() {
       val hierarchy = Stack<Unit>()
       val paths = Stack<String>().apply { push(outRootPath) }
 
-      val sb = StringBuilder("").appendln(header).appendln()
+      val sb = StringBuilder("").appendLine(header).appendLine()
       fun StringBuilder.appendIndent() = (1..hierarchy.size).fold(this) { _, _ -> append(outIndent) }
       var isRoot = true
 
@@ -127,7 +127,7 @@ open class GenerateKtFileHierarchy: DefaultTask() {
             if (isFileEnd) {
                hierarchy.pop()
                paths.pop()
-               sb.appendIndent().appendln("}")
+               sb.appendIndent().appendLine("}")
             }
 
             if (isFileStart) {
@@ -158,8 +158,8 @@ open class GenerateKtFileHierarchy: DefaultTask() {
                   |
                   """.trimMargin()
 
-               def.lineSequence().forEach { sb.appendIndent().appendln(it) }
-               if (isFile) sb.appendIndent().appendln("}").appendln()
+               def.lineSequence().forEach { sb.appendIndent().appendLine(it) }
+               if (isFile) sb.appendIndent().appendLine("}").appendLine()
                comments.clear()
 
                if (!isFile) {
@@ -202,7 +202,7 @@ open class GenerateKtSettings: DefaultTask() {
             import sp.it.util.conf.ConfigDefinition
             import sp.it.util.conf.EditMode
          """.trimIndent()
-      val sb = StringBuilder("").appendln(header).appendln()
+      val sb = StringBuilder("").appendLine(header).appendLine()
 
       settings!!.writeClass(sb)
 
@@ -214,7 +214,7 @@ open class GenerateKtSettings: DefaultTask() {
    private fun Setting.writeClass(sb: StringBuilder, depth: Int = 0) {
       fun StringBuilder.appendIndentln(text: String) = apply {
          repeat(depth) { append(outIndent) }
-         appendln(text)
+         appendLine(text)
       }
       fun defName(text: String) = text.split(" ")
          .flatMap { it.split("-") }.joinToString("") { it.capitalize() }
@@ -225,7 +225,7 @@ open class GenerateKtSettings: DefaultTask() {
          is Setting.SettingRoot -> {
             sb.appendIndentln("/** Application settings hierarchy. */")
             sb.appendIndentln("object ${outFile.nameWithoutExtension.replace(" ", "")} {")
-            sb.appendln()
+            sb.appendLine()
             children.forEach { it.writeClass(sb, depth + 1) }
             sb.appendIndentln("}")
          }
@@ -233,7 +233,7 @@ open class GenerateKtSettings: DefaultTask() {
             sb.appendIndentln("object ${defName(name)} {")
             sb.appendIndentln("${outIndent}/** Name of the group. */")
             sb.appendIndentln("${outIndent}const val name = \"$name\"")
-            sb.appendln()
+            sb.appendLine()
             children.forEach { it.writeClass(sb, depth + 1) }
             sb.appendIndentln("}")
          }

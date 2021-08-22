@@ -1,5 +1,13 @@
 package sp.it.pl.main
 
+import javafx.stage.Window as WindowFX
+import sp.it.pl.main.AppSettings.ui as confUi
+import sp.it.pl.main.AppSettings.ui.form as confForm
+import sp.it.pl.main.AppSettings.ui.grid as confGrid
+import sp.it.pl.main.AppSettings.ui.image as confImage
+import sp.it.pl.main.AppSettings.ui.table as confTable
+import java.io.File
+import java.net.MalformedURLException
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections.observableSet
 import javafx.geometry.NodeOrientation
@@ -13,32 +21,42 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
+import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmName
 import mu.KLogging
-import sp.it.pl.layout.container.SwitchContainer
-import sp.it.pl.layout.widget.WidgetSource.OPEN
+import sp.it.pl.layout.ContainerSwitch
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.main.AppSettings.ui.skin
 import sp.it.pl.main.AppSettings.ui.view.actionViewer.closeWhenActionEnds
 import sp.it.pl.main.AppSettings.ui.view.overlayArea
 import sp.it.pl.main.AppSettings.ui.view.overlayBackground
 import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts
+import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.ui.pane.ActionPane
+import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.ErrorPane
 import sp.it.pl.ui.pane.InfoPane
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display
 import sp.it.pl.ui.pane.ScreenBgrGetter
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.access.readOnly
 import sp.it.util.access.toggle
+import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.collections.project
 import sp.it.util.collections.readOnly
 import sp.it.util.collections.setTo
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.appendInfo
 import sp.it.util.conf.between
+import sp.it.util.conf.butElement
 import sp.it.util.conf.c
+import sp.it.util.conf.cList
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
@@ -47,6 +65,7 @@ import sp.it.util.conf.uiConverter
 import sp.it.util.conf.values
 import sp.it.util.conf.valuesIn
 import sp.it.util.file.FileMonitor
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util
 import sp.it.util.file.children
 import sp.it.util.file.div
@@ -59,34 +78,15 @@ import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
+import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.asStyle
 import sp.it.util.ui.isAnyParentOf
-import sp.it.util.units.millis
-import java.io.File
-import java.net.MalformedURLException
-import kotlin.reflect.KClass
-import kotlin.reflect.jvm.jvmName
-import javafx.stage.Window as WindowFX
-import sp.it.pl.main.AppSettings.ui as confUi
-import sp.it.pl.main.AppSettings.ui.image as confImage
-import sp.it.pl.main.AppSettings.ui.table as confTable
-import sp.it.pl.main.AppSettings.ui.grid as confGrid
-import sp.it.pl.main.AppSettings.ui.form as confForm
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.ui.objects.grid.GridView.CellGap
-import sp.it.pl.ui.pane.ConfigPane
-import sp.it.util.access.readOnly
-import sp.it.util.access.v
-import sp.it.util.conf.Constraint
-import sp.it.util.conf.butElement
-import sp.it.util.conf.cList
-import sp.it.util.file.FileType.FILE
-import sp.it.util.reactive.onItemRemoved
 import sp.it.util.units.em
+import sp.it.util.units.millis
 
 class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
@@ -192,23 +192,29 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    val thumbnailAnimDur by cv(100.millis) def confImage.thumbnailAnimDuration
 
    /** [confUi.ratingIconAmount] */
-   val ratingIconCount by cv(5).between(0, 10) def confUi.ratingIconAmount
+   val ratingIconCount by cvn<Int>(null).between(0, 10) def confUi.ratingIconAmount attach { updateRatingStyle() }
    /** [confUi.ratingAllowPartial] */
-   val ratingIsPartial by cv(true) def confUi.ratingAllowPartial
+   val ratingIsPartial by cvn<Boolean>(null) def confUi.ratingAllowPartial attach { updateRatingStyle() }
    /** [confUi.ratingSkin] */
-   val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter {
-      it?.simpleName ?: "<none> (App skin decides)"
-   } def confUi.ratingSkin sync {
+   val ratingSkin by cvn<KClass<out Skin<Rating>>>(null).valuesIn(APP.instances).uiConverter { it?.simpleName ?: "<none> (App skin decides)" } def confUi.ratingSkin attach { updateRatingStyle() }
+
+   init {
+      updateRatingStyle()
+   }
+
+   fun updateRatingStyle() {
       val f = APP.locationTmp/"user-rating-skin.css"
-      if (it==null) {
+      if (ratingIconCount.value==null && ratingIsPartial.value==null && ratingSkin.value==null) {
          additionalStylesheets -= f
       } else {
-         val style = """.rating { -fx-skin: "${it.jvmName}"; }"""
+         val styleSkin = ratingSkin.value?.let { """-fx-skin: "${it.jvmName}"""; } ?: ""
+         val styleCount = ratingIconCount.value?.let { "-fx-icon-count: $it;" } ?: ""
+         val stylePartial = ratingIsPartial.value?.let { "-fx-partial: $it;" } ?: ""
+         val style = ".rating { $styleSkin $styleCount $stylePartial }".trimMargin()
          f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
          additionalStylesheets += f
       }
    }
-
    /**
     * Sets layout mode for all active components.
     *
@@ -321,7 +327,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    fun setZoomMode(v: Boolean) {
       if (v) APP.windowManager.getActive()?.switchPane?.zoom(v)
-      else APP.widgetManager.layouts.findAll(OPEN).forEach { it.child.asIf<SwitchContainer>()?.ui?.zoom(v) }
+      else APP.widgetManager.layouts.findAll(OPEN).forEach { it.child.asIf<ContainerSwitch>()?.ui?.zoom(v) }
    }
 
    @IsAction(name = "Layout zoom overlay in/out", info = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")

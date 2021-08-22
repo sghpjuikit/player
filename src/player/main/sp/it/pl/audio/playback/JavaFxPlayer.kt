@@ -12,7 +12,9 @@ import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playback.VolumeProperty.Companion.linToLog
 import sp.it.pl.audio.playlist.PlaylistManager
-import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.*
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
+import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.main.APP
 import sp.it.util.async.runIO
 import sp.it.util.reactive.Disposer

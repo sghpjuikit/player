@@ -94,8 +94,8 @@ public class ConverterDefault extends Converter {
 
     public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super Object, @NotNull Try<@NotNull String,@NotNull String>> parserFallbackToS = null;
     public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super @NotNull String, @NotNull Try<Object,@NotNull String>> parserFallbackFromS = null;
-    private final KClassMap<Function<? super Object, Try<String,String>>> parsersToS = new KClassMap<>();
-    private final KClassMap<Function<? super String, Try<Object,String>>> parsersFromS = new KClassMap<>();
+    public final KClassMap<Function<? super Object, Try<String,String>>> parsersToS = new KClassMap<>();
+    public final KClassMap<Function<? super String, Try<Object,String>>> parsersFromS = new KClassMap<>();
 
     public <T> void addParser(KClass<T> c, ConverterString<T> parser) {
         addParser(c, parser::toS, parser::ofS);

@@ -1,3 +1,5 @@
+@file:Suppress("CanBeParameter")
+
 package sp.it.util.functional
 
 import sp.it.util.conf.Constraint

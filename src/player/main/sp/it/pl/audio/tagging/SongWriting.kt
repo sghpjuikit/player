@@ -1,9 +1,9 @@
 package sp.it.pl.audio.tagging
 
 import sp.it.pl.audio.Song
-import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.main.APP
 import sp.it.pl.plugin.impl.Notifier
+import sp.it.pl.ui.objects.rating.Rating
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.dev.Blocks
@@ -94,6 +94,6 @@ fun Song.writeRating(rating: Double?) {
 
    write({ it.setRatingPercent(rating ?: -1.0) }) {
       if (it.isOk)
-         APP.plugins.use<Notifier> { it.showNotification("Song rating changed", Rating(initialRating = rating)) }
+         APP.plugins.use<Notifier> { it.showSongRatingChangedNotification(this, rating) }
    }
 }

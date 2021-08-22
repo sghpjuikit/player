@@ -3,13 +3,13 @@ package sp.it.pl.ui.nodeinfo
 import javafx.scene.control.Labeled
 import javafx.scene.control.ListView
 import javafx.scene.control.TableView
+import kotlin.properties.Delegates.observable
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.plus
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.pluralUnit
-import kotlin.properties.Delegates.observable
 
 /**
  * Provides information list-like view's items and item selection selection.

@@ -6,9 +6,9 @@ import sp.it.pl.core.Parse
 import sp.it.pl.core.Parser
 import sp.it.pl.core.ParserOr
 import sp.it.pl.core.orMessage
-import sp.it.pl.layout.widget.ComponentFactory
-import sp.it.pl.layout.widget.ComponentLoaderStrategy
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.ComponentFactory
+import sp.it.pl.layout.ComponentLoaderStrategy
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.APP
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar

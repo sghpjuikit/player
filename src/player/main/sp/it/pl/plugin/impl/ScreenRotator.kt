@@ -1,5 +1,6 @@
 package sp.it.pl.plugin.impl
 
+import javafx.scene.input.KeyCode as Key
 import javafx.geometry.Insets
 import javafx.geometry.Pos.BOTTOM_CENTER
 import javafx.geometry.Pos.BOTTOM_RIGHT
@@ -10,14 +11,14 @@ import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.layout.StackPane
 import javafx.stage.Screen
 import mu.KLogging
-import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
-import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.Values.previous
 import sp.it.util.action.IsAction
 import sp.it.util.async.runIO
@@ -33,7 +34,6 @@ import sp.it.util.ui.screen
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.em
-import javafx.scene.input.KeyCode as Key
 
 class ScreenRotator: PluginBase() {
    private val programFile = getResource(PROGRAM_FILE_NAME)

@@ -10,11 +10,11 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.ScrollEvent.SCROLL
 import kotlin.math.roundToInt
 import sp.it.pl.conf.Command
-import sp.it.pl.layout.widget.Widget
+import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.layout.widget.WidgetCompanion
-import sp.it.pl.layout.widget.controller.SimpleController
-import sp.it.pl.layout.widget.feature.HorizontalDock
+import sp.it.pl.layout.WidgetCompanion
+import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.layout.feature.HorizontalDock
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
@@ -56,7 +56,7 @@ import sp.it.util.units.year
 class CommandBar(widget: Widget): SimpleController(widget), HorizontalDock {
 
    val iconSize by cv(1).min(1).max(20)
-      .def(name = "Icon size", info = "Size of icons specified in em units - application font size multiplies")
+      .def(name = "Icon size", info = "Size of icons specified in em units - application font size multiplies.")
    val icons by cList<Icon>(::icon, ::asConfigurable)
       .def(name = "Icons", info = "List of icons. Icon has an icon and command.")
    val iconPlusVisible by cv(true)

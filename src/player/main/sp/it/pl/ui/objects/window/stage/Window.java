@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Component;
-import sp.it.pl.layout.container.Layout;
-import sp.it.pl.layout.container.SwitchContainer;
-import sp.it.pl.layout.container.SwitchContainerUi;
+import sp.it.pl.layout.ContainerSwitch;
+import sp.it.pl.layout.ContainerSwitchUi;
+import sp.it.pl.layout.Layout;
 import sp.it.pl.main.AppEventLog;
 import sp.it.pl.main.Df;
 import sp.it.pl.ui.objects.icon.Icon;
@@ -86,6 +86,7 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
@@ -306,22 +307,13 @@ public class Window extends WindowBase {
 		});
 
 		// hide header on long mouse exit if specified so
-		EventReducer<Boolean> headerContainerMouseExited = EventReducer.toLast(300, v -> {
-			if (!v) applyHeaderVisible(false);
-		});
-		headerContainer.addEventFilter(MOUSE_ENTERED_TARGET, e ->
-			headerContainerMouseExited.push(true)
-		);
-		headerContainer.addEventFilter(MOUSE_EXITED_TARGET, e -> {
-			if ((!isHeaderVisible.get() || fullscreen.getValue()) && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)    // TODO: 20?
-				headerContainerMouseExited.push(false);
-		});
+		var headerContainerMouseExited = EventReducer.<Boolean>toLast(1000, v -> { if (!v) applyHeaderVisible(false); });
+		root.addEventFilter(MOUSE_EXITED, e -> { if (!isHeaderVisible.get()) headerContainerMouseExited.push(false); } );
+		headerContainer.addEventFilter(MOUSE_ENTERED_TARGET, e -> headerContainerMouseExited.push(true) );
+		headerContainer.addEventFilter(MOUSE_EXITED_TARGET, e -> { if ((!isHeaderVisible.get() || fullscreen.getValue()) && !moving.get() && resizing.get()==NONE && (!root.isHover() || e.getY()>=20)) headerContainerMouseExited.push(false); });
 		fullscreen.addListener((o,ov,nv) -> applyHeaderVisible(_headerVisible));
 		s.addEventHandler(WINDOW_SHOWING, e -> applyHeaderVisible(_headerVisible));
-		header.heightProperty().addListener((o,ov,nv) -> {
-			if (!_headerVisible)
-				headerVisibleAnim.applyAt(1.0);
-		});
+		header.heightProperty().addListener((o,ov,nv) -> { if (!_headerVisible) headerVisibleAnim.applyAt(1.0); });
 
 		titleL.setMinWidth(0);
 
@@ -452,7 +444,7 @@ public class Window extends WindowBase {
 /* ---------- CONTENT ----------------------------------------------------------------------------------------------- */
 
 	private Layout layout;
-	private SwitchContainer topContainer;
+	private ContainerSwitch topContainer;
 
 	public Layout getLayout() {
 		return layout;
@@ -475,7 +467,7 @@ public class Window extends WindowBase {
 	}
 
 	public void initLayout() {
-		topContainer = new SwitchContainer();
+		topContainer = new ContainerSwitch();
 		Layout l = new Layout();
 		content.getChildren().clear();
 		l.load(content);
@@ -490,7 +482,7 @@ public class Window extends WindowBase {
 		s.getProperties().put(Window.keyWindowLayout, l);
 		content.getChildren().clear();
 		layout.load(content);
-		topContainer = (SwitchContainer) requireNonNull(l.getChild());
+		topContainer = (ContainerSwitch) requireNonNull(l.getChild());
 		topContainer.load();
 
 
@@ -540,12 +532,12 @@ public class Window extends WindowBase {
 	 *
 	 * @return layout aggregator, never null.
 	 */
-	public SwitchContainerUi getSwitchPane() {
+	public ContainerSwitchUi getSwitchPane() {
 		return topContainer==null ? null : topContainer.ui;
 	}
 
-	public SwitchContainer getTopContainer() {
-		return layout==null ? null : (SwitchContainer) layout.getChild();
+	public ContainerSwitch getTopContainer() {
+		return layout==null ? null : (ContainerSwitch) layout.getChild();
 	}
 
 	/**

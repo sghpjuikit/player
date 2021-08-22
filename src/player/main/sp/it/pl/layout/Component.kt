@@ -1,42 +1,38 @@
 package sp.it.pl.layout
 
+import java.util.UUID
 import javafx.beans.InvalidationListener
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
-import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.Widget.LoadType.AUTOMATIC
+import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
 import sp.it.pl.main.APP
 import sp.it.util.access.V
 import sp.it.util.access.v
-import sp.it.util.conf.IsConfig
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
-import java.util.UUID
 
 /**
  * Defines wrapper of loadable graphical component.
  * Basis for wrappers - containers or wrapped widgets.
  */
-abstract class Component(state: ComponentDb) {
+sealed class Component(state: ComponentDb) {
 
    /** Unique ID. Permanent. Persists application life cycle. */
-   @JvmField val id: UUID
+   val id: UUID
    /** Simple storage for component state. Persists application life cycle. */
-   @JvmField val properties = HashMap<String, Any?>()
+   val properties = HashMap<String, Any?>()
    /** Name. */
    abstract val name: String
    /** Denotes whether component loading is delayed until user manually requests it. */
-   @field:IsConfig(name = "Load type", info = "Manual type delays component loading until user manually requests it")
-   @JvmField val loadType = V(AUTOMATIC)
+   val loadType = V(AUTOMATIC)
    /** Whether this component is locked - prevents user from editing certain properties from ui. See [lockedUnder]. */
-   @JvmField val locked: BooleanProperty = SimpleBooleanProperty(false)
+   val locked: BooleanProperty = SimpleBooleanProperty(false)
    /** Whether this component or any of its [parent]s is [locked] */
-   @JvmField val lockedUnder = LockedProperty()
+   val lockedUnder = LockedProperty()
 
    /** Parent container. Root component has no parent. Every (loaded) component aside from root must have a parent. */
    var parent: Container<*>? = null
@@ -67,9 +63,8 @@ abstract class Component(state: ComponentDb) {
    /** Window containing this component or null if not loaded or not in any window. */
    val window: javafx.stage.Window?
       get() = when(this) {
-         is Container<*> -> root()?.scene?.window
+         is Container<*> -> root?.scene?.window
          is Widget -> graphics?.scene?.window
-         else -> null
       }
 
    init {
@@ -91,7 +86,7 @@ abstract class Component(state: ComponentDb) {
    /**
     * Removes this component from component graph (layout) and scene graph. Can not be undone.
     * This method is called for every child component (in any depth).
-    * If this container is [sp.it.pl.layout.container.Layout], only its children will close.
+    * If this container is [sp.it.pl.layout.Layout], only its children will close.
     */
    open fun close() {
       lockedUnder.dispose()
@@ -132,7 +127,6 @@ abstract class Component(state: ComponentDb) {
 
       // call when closing component
       fun dispose(): Unit = disposer()
-
    }
 
 }

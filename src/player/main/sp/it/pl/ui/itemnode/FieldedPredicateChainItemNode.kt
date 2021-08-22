@@ -1,5 +1,10 @@
 package sp.it.pl.ui.itemnode
 
+import java.lang.Integer.MAX_VALUE
+import java.util.function.BiPredicate
+import java.util.function.Predicate
+import java.util.function.Supplier
+import java.util.stream.Stream
 import javafx.beans.value.WritableValue
 import javafx.event.EventHandler
 import javafx.scene.Node
@@ -7,18 +12,12 @@ import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyCode.F
 import javafx.scene.input.KeyEvent
 import javafx.util.Callback
+import kotlin.streams.asSequence
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.asIs
 import sp.it.util.ui.isAnyParentOf
-import java.lang.Integer.MAX_VALUE
-import java.util.ArrayList
-import java.util.function.BiPredicate
-import java.util.function.Predicate
-import java.util.function.Supplier
-import java.util.stream.Stream
-import kotlin.streams.asSequence
 
 /** [ObjectField] [Predicate] chain. */
 open class FieldedPredicateChainItemNode<T, F: ObjectField<T, Any?>>: ChainValueNode<Predicate<T>, FieldedPredicateItemNode<T, F>, Predicate<T>> {

@@ -1,5 +1,7 @@
 package sp.it.pl.audio
 
+import java.io.File
+import java.net.URI
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.audio.tagging.Metadata
@@ -7,8 +9,6 @@ import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.net
 import sp.it.util.units.FileSize
-import java.io.File
-import java.net.URI
 
 /** Representation of audio resource based on [URI]. */
 abstract class Song {
@@ -55,7 +55,7 @@ abstract class Song {
    }
 
    /** @return the suffix of the resource of this song or empty string if none, e.g.: mp3 */
-   fun getSuffix() = uri.path?.let { it.substringAfterLast('.', "") } ?: ""
+   fun getSuffix() = uri.path?.substringAfterLast('.', "") ?: ""
 
    /**
     * @return file format of this song as recognized by the application. It can differ from simple suffix string. This

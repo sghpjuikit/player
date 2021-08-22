@@ -1,5 +1,17 @@
 package sp.it.pl.ui.itemnode
 
+import java.io.File
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets.ISO_8859_1
+import java.nio.charset.StandardCharsets.US_ASCII
+import java.nio.charset.StandardCharsets.UTF_16
+import java.nio.charset.StandardCharsets.UTF_16BE
+import java.nio.charset.StandardCharsets.UTF_16LE
+import java.nio.charset.StandardCharsets.UTF_8
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import javafx.beans.binding.BooleanBinding
 import javafx.collections.ObservableList
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -15,13 +27,19 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
-import sp.it.pl.layout.widget.WidgetManager
-import sp.it.pl.ui.objects.textfield.EffectTextField.Companion.EFFECT_TYPES
-import sp.it.pl.ui.objects.icon.Icon
+import kotlin.reflect.jvm.jvmErasure
+import sp.it.pl.core.UiStringHelper
+import sp.it.pl.layout.WidgetManager
 import sp.it.pl.main.appTooltip
 import sp.it.pl.plugin.PluginManager
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.textfield.EffectTextField.Companion.EFFECT_TYPES
+import sp.it.util.access.OrV.OrValue
+import sp.it.util.access.readOnly
+import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.animation.Anim
+import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
 import sp.it.util.collections.map.KClassMap
 import sp.it.util.conf.CheckList
@@ -33,36 +51,18 @@ import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
-import sp.it.util.access.OrV.OrValue
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
+import sp.it.util.functional.andAlso
 import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
+import sp.it.util.functional.net
+import sp.it.util.reactive.Disposer
+import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.units.millis
-import java.io.File
-import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets.ISO_8859_1
-import java.nio.charset.StandardCharsets.US_ASCII
-import java.nio.charset.StandardCharsets.UTF_16
-import java.nio.charset.StandardCharsets.UTF_16BE
-import java.nio.charset.StandardCharsets.UTF_16LE
-import java.nio.charset.StandardCharsets.UTF_8
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import javafx.beans.binding.BooleanBinding
-import kotlin.reflect.jvm.jvmErasure
-import sp.it.pl.core.UiStringHelper
-import sp.it.util.access.readOnly
-import sp.it.util.access.v
-import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.functional.andAlso
-import sp.it.util.functional.net
-import sp.it.util.reactive.Disposer
-import sp.it.util.type.VType
 
 private val defTooltip = appTooltip("Default value")
 private const val defBLayoutSize = 15.0
@@ -161,7 +161,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                   if (root.isHover) {
                      val isDefBNeeded = defB==null && isEditable.value
                      if (isDefBNeeded) {
-                        defB = Icon(null, -1.0, null, Runnable { this.refreshDefaultValue() })
+                        defB = Icon(null, -1.0, null, { this.refreshDefaultValue() })
                         defB!!.tooltip(defTooltip)
                         defB!!.styleclass("config-editor-default-button")
                         defB!!.isManaged = false
@@ -320,7 +320,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
       @JvmStatic
       fun <T> create(config: Config<T>): ConfigEditor<T> {
-         fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && !type.isNullable && constraints.any { it is NumberMinMax && it.isClosed() }
+         fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && !type.isNullable && constraints.any { it is NumberMinMax && it.isClosed() && it.min!=Double.MIN_VALUE && it.max!=Double.MAX_VALUE }
          fun Config<*>.isComplex() = constraints.any { it is UiStringHelper<*> }
 
          return when {

@@ -1,5 +1,8 @@
 package sp.it.pl.ui.objects.table
 
+import java.lang.Boolean.parseBoolean
+import java.lang.Double.parseDouble
+import java.lang.Integer.parseInt
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableColumn.SortType
 import javafx.scene.control.TableView
@@ -8,9 +11,6 @@ import sp.it.util.collections.setTo
 import sp.it.util.functional.Try
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
-import java.lang.Boolean.parseBoolean
-import java.lang.Double.parseDouble
-import java.lang.Integer.parseInt
 
 /** Data structure for holding complete table column information, mostly for serializing and deserializing. */
 class TableColumnInfo() {

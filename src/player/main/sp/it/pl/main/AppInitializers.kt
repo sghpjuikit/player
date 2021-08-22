@@ -1,16 +1,25 @@
 package sp.it.pl.main
 
+import java.io.File
+import java.nio.file.attribute.FileTime
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Date
+import java.util.function.Consumer
+import javafx.util.Duration
+import kotlin.streams.asSequence
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.container.Container
-import sp.it.pl.layout.widget.Widget
-import sp.it.pl.layout.widget.controller.io.InOutput
-import sp.it.pl.layout.widget.controller.io.Input
-import sp.it.pl.layout.widget.controller.io.Output
-import sp.it.pl.layout.widget.feature.Feature
+import sp.it.pl.layout.Container
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.controller.io.InOutput
+import sp.it.pl.layout.controller.io.Input
+import sp.it.pl.layout.controller.io.Output
+import sp.it.pl.layout.feature.Feature
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.OverlayPane
@@ -41,15 +50,6 @@ import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
 import sp.it.util.ui.image.getImageDim
 import sp.it.util.units.FileSize
-import java.io.File
-import java.nio.file.attribute.FileTime
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.util.Date
-import java.util.function.Consumer
-import javafx.util.Duration
-import kotlin.streams.asSequence
 
 fun File.verify() {
    if (!isAbsolute)

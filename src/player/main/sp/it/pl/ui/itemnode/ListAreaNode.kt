@@ -1,5 +1,8 @@
 package sp.it.pl.ui.itemnode
 
+import java.util.function.BiPredicate
+import java.util.function.Consumer
+import java.util.stream.Stream
 import javafx.event.Event
 import javafx.geometry.Pos
 import javafx.scene.control.ComboBox
@@ -12,6 +15,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.util.Callback
+import kotlin.streams.toList
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.itemnode.ListAreaNode.Transformation
 import sp.it.pl.ui.itemnode.ListAreaNode.TransformationRaw
@@ -63,6 +67,7 @@ import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.type.VType
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.isSubclassOf
@@ -75,12 +80,6 @@ import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.vBox
-import java.util.ArrayList
-import java.util.function.BiPredicate
-import java.util.function.Consumer
-import java.util.stream.Stream
-import kotlin.streams.toList
-import sp.it.util.reactive.zip
 
 /**
  * List editor with transformation ability. Editable area with function editor displaying the list contents.

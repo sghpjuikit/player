@@ -52,9 +52,9 @@ developer of those modules must manually specify/load those css files in code or
 
 Stylesheets can extend other stylesheets by importing them with `@import url("../skin-name/skin-name.css");`.
 Application skins are considered **userAgentStylesheet**, which means:
-- they provide all the styling. Unless the skin provides styling for all JavaFX controls, it should inherit either
-  skin that inherits default javaFx userAgentStylesheet **Modena.css** (like **Main**: `@import url("../Main/Main.css");`
-  or inherit it directly: `@import "com/sun/javafx/scene/control/skin/modena/modena.css";` 
+- they provide all the styling.  
+  Skin may wish to extend another skin (like **Main**: `@import url("../Main/Main.css");`).  
+  Skin that does not extend another is root skin and should provide complete styling.
 - have lower priority compared to normal stylesheets (see [priority](#priority))
 
 [Modena.css](https://gist.github.com/maxd/63691840fc372f22f470) always serves as the base skin. Any skin in the /skins

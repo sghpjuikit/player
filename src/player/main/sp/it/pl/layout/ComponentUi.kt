@@ -105,6 +105,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
       container.children.values.forEach {
          when (it) {
+            null -> {}
             is Container<*> -> it.show()
             is Widget -> it.ui?.show()
          }
@@ -119,6 +120,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
 
       container.children.values.forEach {
          when (it) {
+            null -> {}
             is Container<*> -> it.hide()
             is Widget -> it.ui?.hide()
          }

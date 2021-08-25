@@ -2,11 +2,13 @@
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import kotlin.text.Charsets.UTF_8
+//import org.gradle.jvm.toolchain.JvmImplementation.J9
+//import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTOPENJDK
 
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.5.20"
+   kotlin("jvm") version "1.5.30"
    application
    id("com.github.ben-manes.versions") version "0.39.0"
 }
@@ -21,6 +23,16 @@ fun Project.tests(configuration: Test.() -> Unit) {
 }
 
 // ----- build block
+
+// TODO: enable toolchain, automatize JDK setup & deploy, migrate to 16
+// java {
+//    toolchain {
+//       languageVersion.set(JavaLanguageVersion.of(12))
+//       vendor.set(ADOPTOPENJDK)
+//       implementation.set(J9)
+//    }
+//
+// }
 
 /** Working directory of the application */
 val dirApp = file("app")
@@ -58,8 +70,8 @@ allprojects {
    }
 
    tasks.withType<KotlinCompile> {
-      kotlinOptions.apiVersion = "1.5"
-      kotlinOptions.languageVersion = "1.5"
+      kotlinOptions.apiVersion = "1.6"
+      kotlinOptions.languageVersion = "1.6"
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
       kotlinOptions.freeCompilerArgs += listOf(
@@ -68,7 +80,7 @@ allprojects {
          "-Xno-param-assertions",
          "-Xjvm-default=all",
          "-Xlambdas=indy",
-         "-Xuse-experimental=kotlin.Experimental",
+         "-Xopt-in=kotlin.RequiresOptIn",
          "-Xstring-concat=indy-with-constants"
       )
       kotlinOptions.javaParameters = true
@@ -94,7 +106,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "18-ea+1"
+         val version = "18-ea+2"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -112,7 +124,7 @@ allprojects {
          implementation("org.slf4j", "slf4j-api")
          implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
          implementation("ch.qos.logback", "logback-classic", "1.2.3")
-         implementation("io.github.microutils", "kotlin-logging", "2.0.10")
+         implementation("io.github.microutils", "kotlin-logging", "2.0.11")
       }
 
       "Audio" group {
@@ -121,7 +133,7 @@ allprojects {
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.8.0")
+         implementation("net.java.dev.jna", "jna-platform", "5.9.0")
          implementation("com.1stleg", "jnativehook", "2.1.0")
       }
 
@@ -131,8 +143,8 @@ allprojects {
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
-         implementation("com.github.oshi", "oshi-core", "5.8.0")
-         implementation("com.sandec", "mdfx", "0.2.3")
+         implementation("com.github.oshi", "oshi-core", "5.8.1")
+         implementation("com.sandec", "mdfx", "0.2.4")
       }
 
       "Image" group {
@@ -162,8 +174,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.6.1")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.6.1")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "4.6.2")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "4.6.2")
       }
 
    }

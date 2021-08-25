@@ -44,6 +44,7 @@ import javafx.scene.layout.Region
 import javafx.scene.robot.Robot
 import javafx.stage.Stage
 import javafx.stage.WindowEvent
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.cancellable
@@ -258,6 +259,7 @@ fun Stage.setNonInteractingOnBottom() {
  *
  * @apiNote adjusts native window style. Based on: https://www.codeproject.com/articles/856020/draw-behind-desktop-icons-in-windows-plus
  */
+@OptIn(DelicateCoroutinesApi::class)
 @Suppress("LocalVariableName", "SpellCheckingInspection", "UNUSED_ANONYMOUS_PARAMETER")
 fun Stage.setNonInteractingProgmanOnBottom() {
    if (!Os.WINDOWS.isCurrent) return

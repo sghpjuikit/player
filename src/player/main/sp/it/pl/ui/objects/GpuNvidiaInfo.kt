@@ -10,6 +10,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import kotlin.math.roundToInt
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.flowOn
@@ -67,7 +68,7 @@ class GpuNvidiaInfo: StackPane() {
    private val gpuPow = Num01Ui("Draw", "gpu-pow", " W")
    private val gpuMem = Num01Ui("Memory", "gpu-mem", " MiB")
 
-   @OptIn(ExperimentalCoroutinesApi::class)
+   @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
    val monitor = Subscribed {
       var oldTicks by atomic(LongArray(CentralProcessor.TickType.values().size))
       val updater1 = flowTimer(0, 5000)

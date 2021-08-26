@@ -51,6 +51,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.isImage
 import sp.it.pl.main.onErrorNotify
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.CellGap
@@ -334,7 +335,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       val installLocation: File? = null
 
       /** Readme file. */
-      val infoFile = location/"play-howto.md"
+      val readmeFile = location/"README.md"
 
       /** Cover. */
       val cover by lazy {
@@ -397,7 +398,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       private lateinit var game: Game
       private val cover = Thumbnail()
       private val titleL = label()
-      private val infoT = text()
+      private val infoT = MdNode()
       private val fileTree = TreeView<File>()
       private val animated = ArrayList<Node>()
 
@@ -431,11 +432,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                      vbarPolicy = NEVER
 
                      content = vBox(20, CENTER) {
-                        lay += infoT.apply {
-                           alignment
-                           textAlignment = JUSTIFY
-                           wrappingWidthProperty() syncFrom widthProperty() - 200
-                        }
+                        lay += infoT
                         lay(ALWAYS) += fileTree.apply {
                            minHeight = 300.emScaled
                         }
@@ -445,7 +442,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                   minPrefMaxWidth = 200.0
 
                   lay += IconFA.EDIT icon {
-                     val file = game.infoFile
+                     val file = game.readmeFile
                      runIO {
                         file.createNewFile()
                         file.edit()
@@ -493,14 +490,15 @@ class GameView(widget: Widget): SimpleController(widget) {
             object {
                val title = g.name
                val location = g.location.toFast(DIRECTORY)
-               val info = g.infoFile.readTextTry().getOr("")
+               val infoFile = g.readmeFile
+               val info = g.readmeFile.readTextTry().getOr("")
                val coverImage = g.cover.getImage(cover.calculateImageLoadSize())
                val triggerLoading = g.settings
             }
          } ui {
             if (g===game) {
                cover.loadImage(it.coverImage)
-               infoT.text = it.info
+               infoT.readFile(g.readmeFile)
                fileTree.root = tree(it.location)
                titleL.text = ""
 

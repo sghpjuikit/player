@@ -3633,7 +3633,7 @@ Shape, Text, SpitText, TextFlow > * {
  */
 * {
     -mdfx-font-color: -skin-def-font-color;
-    -mdfx-link-color: blue;
+    -mdfx-link-color: -skin-focus-font-color;
     -mdfx-border-color-1: #888;
 
     -mdfx-bg-color-1: #ccc;
@@ -3657,66 +3657,60 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-strikethrough: true;
 }
 
-.markdown-text {
-    -fx-font-size: 16;
-    -fx-fill: -mdfx-font-color;
+.markdown-normal-flow {
+    -fx-line-spacing: 0.5em;
 }
 
-.markdown-normal-flow {
-    -fx-line-spacing: 5;
+.markdown-text {
+    -fx-font-size: 1em;
+    -fx-fill: -mdfx-font-color;
 }
 
 .markdown-heading .markdown-text {
     /*-fx-line-spacing: 100;*/
     -fx-fill: -mdfx-font-color;
 }
-.markdown-heading-1 { -fx-padding: 14;}
-.markdown-heading-2 { -fx-padding: 10;}
-.markdown-heading-3 { -fx-padding: 8; }
-.markdown-heading-4 { -fx-padding: 6; }
-.markdown-heading-5 { -fx-padding: 4; }
+.markdown-heading-1 { -fx-padding: 1.166667em; }
+.markdown-heading-2 { -fx-padding: 0.833333em; }
+.markdown-heading-3 { -fx-padding: 0.666667em; }
+.markdown-heading-4 { -fx-padding: 0.500000em; }
+.markdown-heading-5 { -fx-padding: 0.333333em; }
 
 .markdown-heading-1 .markdown-text {
-    -fx-font-size: 50;
+    -fx-font-size: 4em;
 }
-
 .markdown-heading-2 .markdown-text {
-    -fx-font-size: 38;
+    -fx-font-size: 3em;
 }
-
-
 .markdown-heading-3 .markdown-text {
-    -fx-font-size: 28;
+    -fx-font-size: 2.5em;
 }
-
 .markdown-heading-4 .markdown-text {
-    -fx-font-size: 24;
+    -fx-font-size: 2em;
 }
-
 .markdown-heading-5 .markdown-text {
-    -fx-font-size: 20;
+    -fx-font-size: 1.5em;
 }
 
 .markdown-link {
-    -fx-fill: -mdfx-link-color;
+    -fx-cursor: HAND;
+    -fx-fill: -fx-focus-color;
 }
 .markdown-link-hover {
     -fx-underline: true;
 }
 
-
-
 .markdown-paragraph-list {
-    -fx-spacing: 15;
+    -fx-spacing: 1.5em;
 }
 .markdown-listitem-dot {
-    -fx-font-size: 16;
+    -fx-font-size: 1em;
     -fx-text-fill: -mdfx-font-color;
 }
 
 .markdown-codeblock-box,
 .markdown-code {
-    -fx-padding: 0 8 0 8;
+    -fx-padding: 0 0.5em 0 0.5em;
 }
 .markdown-code {
     /*-fx-max-width: 300*/
@@ -3724,15 +3718,15 @@ Shape, Text, SpitText, TextFlow > * {
 .markdown-code,
 .markdown-codeblock {
     -fx-wrap-text: true;
-    -fx-font-size: 16;
+    -fx-font-size: 1em;
 }
 .markdown-codeblock-box,
 .markdown-code-background {
-    -fx-padding: 8;
-    -fx-border-radius: 8;
+    -fx-padding: 0.5em;
+    -fx-border-radius: 0.5em;
     -fx-border-color: -mdfx-border-color-1;
     -fx-border-width: 0.5;
-    -fx-background-radius: 8;
+    -fx-background-radius: 0.5em;
     -fx-background-color: #00000009; /*  -mdfx-bg-color-3*/
 }
 .markdown-code-background {

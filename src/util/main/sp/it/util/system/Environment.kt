@@ -152,6 +152,23 @@ fun URI.browse() {
 }
 
 /**
+ * Open this URI, in order:
+ * - if it is a file -> [File.open]
+ * - else -> [URI.browse]
+ */
+fun URI.open() {
+   logger.info { "Browsing uri=$this" }
+   runIO {
+      toFileOrNull()
+         .ifNotNull {
+            if (it.exists()) it.open()
+            else onNonExistentFileBrowse(it)
+         }
+         .ifNull { browse() }
+   }
+}
+
+/**
  * Edit this file, in order:
  * - if it is directory -> [open] is called
  * - if it is file -> open in system associated editor if any is available or [open] is called instead
@@ -190,7 +207,7 @@ fun File.edit() {
  * - if it is application skin, it will be applied
  * - if it is application component, it will be opened
  * - if it is directory, it will be opened in default system's browser
- * - if it it is file, it will be opened in the default associated program.
+ * - if it is file, it will be opened in the default associated program.
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */

@@ -3670,26 +3670,26 @@ Shape, Text, SpitText, TextFlow > * {
     /*-fx-line-spacing: 100;*/
     -fx-fill: -mdfx-font-color;
 }
-.markdown-heading-1 { -fx-padding: 1.166667em; }
-.markdown-heading-2 { -fx-padding: 0.833333em; }
-.markdown-heading-3 { -fx-padding: 0.666667em; }
-.markdown-heading-4 { -fx-padding: 0.500000em; }
-.markdown-heading-5 { -fx-padding: 0.333333em; }
+.markdown-heading-1 { -fx-padding: 1.166667em 0 1.166667em 0; }
+.markdown-heading-2 { -fx-padding: 0.833333em 0 0.833333em 0; }
+.markdown-heading-3 { -fx-padding: 0.666667em 0 0.666667em 0; }
+.markdown-heading-4 { -fx-padding: 0.500000em 0 0.500000em 0; }
+.markdown-heading-5 { -fx-padding: 0.333333em 0 0.333333em 0; }
 
 .markdown-heading-1 .markdown-text {
-    -fx-font-size: 4em;
-}
-.markdown-heading-2 .markdown-text {
-    -fx-font-size: 3em;
-}
-.markdown-heading-3 .markdown-text {
     -fx-font-size: 2.5em;
 }
-.markdown-heading-4 .markdown-text {
+.markdown-heading-2 .markdown-text {
     -fx-font-size: 2em;
 }
-.markdown-heading-5 .markdown-text {
+.markdown-heading-3 .markdown-text {
+    -fx-font-size: 1.75em;
+}
+.markdown-heading-4 .markdown-text {
     -fx-font-size: 1.5em;
+}
+.markdown-heading-5 .markdown-text {
+    -fx-font-size: 1.25em;
 }
 
 .markdown-link {

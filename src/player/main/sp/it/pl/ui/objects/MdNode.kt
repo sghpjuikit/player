@@ -4,23 +4,25 @@ import com.sandec.mdfx.MarkdownView
 import java.io.File
 import java.net.URI
 import java.util.concurrent.atomic.AtomicLong
+import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
+import javafx.scene.image.Image
+import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.StackPane
 import oshi.annotation.concurrent.ThreadSafe
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
-import sp.it.util.dev.printIt
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.onEventDown
-import sp.it.util.system.browse
+import sp.it.util.system.open
 import sp.it.util.ui.lay
 import sp.it.util.ui.scrollPane
 
@@ -48,22 +50,44 @@ class MdNode: StackPane() {
             }
             override fun setLink(node: Node?, link: String?, description: String?) {
                node?.onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  link?.trim()?.let { runTry { URI(it).resolveAsLink().printIt() }.orNull() }?.browse()
+                  link?.trim()?.let { runTry { URI(it).resolveAsLink() }.orNull() }?.open()
+               }
+            }
+
+            override fun generateImage(url: String): Node {
+               return if (url.isEmpty()) {
+                  Group()
+               } else {
+                  url.trim().let { runTry { URI(it).resolveAsLink() }.orNull() }
+                     ?.let {
+                        ImageView(runTry { Image(it.toURL().toExternalForm(), true) }.orNull())
+
+//                        Thumbnail(200.0, 200.0).apply {
+//                           loadImage(runTry { Image(it.toURL().toExternalForm(), true) }.orNull())
+//                        }.pane
+                     }
+                     ?: Group()
                }
             }
          }
       }
    }
 
-   private fun URI.resolveAsLink() = file?.net { it.toURI().resolve(this) } ?: this
+   private fun URI.asDirectory(): URI = toString().net { if (!it.endsWith("/")) URI.create("$it/") else this }
+
+   private fun URI.resolveAsLink() = when(scheme) {
+      null, "", "file" -> file?.parentFile?.absoluteFile?.net { it.toURI().asDirectory().resolve(path.removePrefix("/")) } ?: this
+      else -> this
+   }
 
    @ThreadSafe
-   fun readFile(f: File) {
+   fun readFile(f: File?) {
       val id = dataId.incrementAndGet()
       runIO {
-         f.readTextTry().printIt().orNull().orEmpty()
+         f?.readTextTry()?.orNull().orEmpty()
       } ui {
          if (dataId.get()==id) {
+            file = f
             text = it
             file = f
          }

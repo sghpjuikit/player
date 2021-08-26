@@ -80,6 +80,7 @@ import javafx.scene.control.ContentDisplay.RIGHT
 import javafx.scene.control.Hyperlink
 import kotlin.math.ceil
 import kotlin.math.floor
+import sp.it.pl.layout.controller.io.EqualizeBy.REF
 import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appHyperlinkFor
 import sp.it.pl.main.detectContent
@@ -117,7 +118,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
    private var data: Metadata = EMPTY
    private val dataReading = EventReducer.toLast<Song?>(200.0) { setValue(it) }
-   val dataIn = io.i.create<Song?>("To display", null, dataReading::push)
+   val dataIn = io.i.create<Song?>("To display", null, action = dataReading::push).apply { equalBy = REF }
    val dataOut = io.o.create<Metadata>("Displayed", EMPTY)
 
    val minColumnWidth by cv(150.0).attach { tiles.requestLayout() }.def(name = "Column width", info = "Minimal width for field columns.")
@@ -381,6 +382,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
       // keep updated content)
       APP.audio.onSongRefresh(::data) { if (!dataReading.hasEventsQueued()) read(it) } on onClose
+      APP.audio.onSongRefresh(::data) { if (!dataReading.hasEventsQueued()) println(it.getRating()) } on onClose
 
       fieldsM.onChangeAndNow {
          fieldsM.forEach { (field, selected) -> fieldConfigs[field]?.shouldBeVisible = selected }

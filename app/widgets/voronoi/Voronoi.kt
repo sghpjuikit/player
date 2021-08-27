@@ -1,9 +1,7 @@
 package voronoi
 
-import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.geom.Envelope
-import org.locationtech.jts.geom.Geometry
-import org.locationtech.jts.geom.GeometryFactory
+import java.util.Random
+import java.util.stream.IntStream
 import javafx.event.Event
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
@@ -16,13 +14,23 @@ import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.paint.Color
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.streams.asSequence
 import mu.KLogging
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.Envelope
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.triangulate.VoronoiDiagramBuilder
 import sp.it.pl.layout.ExperimentalController
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
@@ -38,30 +46,22 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
+import sp.it.util.text.*
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import sp.it.util.units.version
 import sp.it.util.units.year
+import voronoi.Voronoi.CellGenerator.CIRCLES
 import voronoi.Voronoi.Highlighting.BY_DISTANCE_ORDER
 import voronoi.Voronoi.Highlighting.BY_DISTANCE_VALUE
-import java.util.HashMap
-import java.util.Random
-import java.util.stream.IntStream
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.streams.asSequence
-import org.locationtech.jts.triangulate.VoronoiDiagramBuilder
-import sp.it.util.text.*
-import voronoi.Voronoi.CellGenerator.CIRCLES
 import voronoi.Voronoi.Highlighting.NONE
 
 @ExperimentalController("Only interesting as a demo.")
 class Voronoi(widget: Widget): SimpleController(widget) {
 
    private val canvas = RenderNode()
+   val pointCount by cv(200).def(name = "Points", info = "Number of generated points") sync { canvas.pointCount = it }
    val displayed by cv(CIRCLES).def(name = "Pattern", info = "Displayed structure") sync { canvas.displayedToBe = it }
    val highlighting by cv(BY_DISTANCE_VALUE).def(name = "Highlighting", info = "Type of highlighting algorithm") sync { canvas.highlighting = it }
 
@@ -88,9 +88,11 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       var selectedCell: P? = null  // null if none
       var mousePos: P? = null      // null if outside
       var loopId: Long = 0
-      private val inputOutputMap = HashMap<Coordinate, Cell>() // maps inputs to polygons
+      private val inputOutputMap = HashMap<Coordinate, Cell>() // input -> polygons
       val running = V(true)
       private var displayedCurrent: CellGenerator? = null
+      private var displayedPointCount: Int? = null
+      var pointCount: Int = 40
       var displayedToBe: CellGenerator? = null
       var highlighting = BY_DISTANCE_ORDER
 
@@ -113,15 +115,11 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
          loopId++
 
-         if (displayedCurrent!=displayedToBe) {
+         if (displayedCurrent!=displayedToBe || displayedPointCount!=pointCount) {
             displayedCurrent = displayedToBe
+            displayedPointCount = pointCount
             displayedCurrent?.let {
-               cells = it.generator(CellGeneratorSeed(w, h, 40)).toList()
-               cells.forEach {
-                  // add noise to avoid voronoi arithmetic problems
-                  it.x += randOf(-1, 1)*randMN(0.01, 0.012)
-                  it.y += randOf(-1, 1)*randMN(0.01, 0.012)
-               }
+               cells = it.generator(CellGeneratorSeed(w, h, pointCount)).toList()
             }
          }
 
@@ -188,7 +186,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          gc.save()
 
          runTry {
-            // the computation can fail under some circumstances, so lets defend against it with Try
+            // the computation can fail under some circumstances, so defend against it with Try
             diagram.getDiagram(GeometryFactory()) as Geometry
          }.ifError {
             logger.warn(it) { "Computation of Voronoi diagram failed" }
@@ -347,9 +345,44 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          cells.asSequence()
       }),
       HORIZONTAL_LINE({
-         IntStream.range(0, it.count).asSequence()
-            .map { i -> Cell(it.width*0.1 + it.width*0.8/it.count*i, it.height/2.0) }
-      })
+         (0..it.count).asSequence().map { i ->
+            Cell(it.width*0.1 + it.width*0.8/(it.count-1)*i, it.height/2.0)
+         }
+      }),
+      SPIRAL({
+         val periods = 3
+         val radiusMax = it.width/2.0 min it.height/2.0
+         (0..it.count).asSequence().map { i -> i.toDouble()/(it.count-1) }.map { i -> Cell(
+            it.width/2.0  + i*radiusMax * cos(i*periods*2*PI),
+            it.height/2.0 + i*radiusMax * sin(i*periods*2*PI)
+         )}
+      }),
+      PHYLLOTAXIS({
+         val theta = PI*(3.0 - sqrt(5.0))
+         val cellWidth = 45.0
+         val cellRadius = cellWidth/2.0
+
+         (0..it.count).asSequence().map { i ->
+            val iOffset = 0
+            val index = (i + iOffset) % it.count
+            val phyllotaxisX = cellRadius * sqrt(index.toDouble()) * cos(index * theta)
+            val phyllotaxisY = cellRadius * sqrt(index.toDouble()) * sin(index * theta)
+
+            Cell(
+               it.width/2.0  + phyllotaxisX - cellRadius,
+               it.height/2.0 + phyllotaxisY - cellRadius
+            )
+         }
+      }),
+      SINE({
+         val amplitude = 0.3 * it.height /2.0
+         val periods = 3
+
+         (0..it.count).asSequence().map { i -> i.toDouble()/(it.count-1) }.map { i -> Cell(
+            i*it.width,
+            it.height/2.0 + amplitude*sin(i*periods*2*PI)
+         )}
+      });
    }
 
    open class P(var x: Double, var y: Double) {

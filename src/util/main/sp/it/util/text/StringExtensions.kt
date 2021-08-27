@@ -42,7 +42,7 @@ fun String.char32At(at: Int): Char32 = codePointAt(at).toChar32()
 /** @return [Char32] at the specified index from the specified side or throws [IndexOutOfBoundsException]. */
 fun String.char32At(at: Int, dir: StringDirection): Char32 = when (dir) {
    FROM_START -> codePointAt(at).toChar32()
-   FROM_END -> codePointAt(lengthInCodePoints - at).toChar32()
+   FROM_END -> codePointAt(lengthInCodePoints - at - 1).toChar32()
 }
 
 /** @return [Char32] at the specified index or throws [IndexOutOfBoundsException]. */

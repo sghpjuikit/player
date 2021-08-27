@@ -2312,12 +2312,6 @@ interface Utils {
 				// random
 //				cells = Stream.generate(() -> Cell.random(W, H, .5)).limit(cellCount).toList();
 
-				// add noise to avoid arithmetic problem
-				cells.forEach(cell -> {
-					cell.x += Utils.randOf(-1,1)*randMN(0.01,0.012);
-					cell.y += Utils.randOf(-1,1)*randMN(0.01,0.012);
-				});
-
 				cells.stream().filter(cell -> cell.moving==null)
 					.forEach(c -> c.moving = (w,h) -> {
 						double x = c.x+c.dx;

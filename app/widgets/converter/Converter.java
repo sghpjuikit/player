@@ -39,7 +39,6 @@ import sp.it.pl.layout.controller.io.Input;
 import sp.it.pl.layout.controller.io.Output;
 import sp.it.pl.layout.feature.Opener;
 import sp.it.pl.layout.feature.SongWriter;
-import sp.it.pl.main.AppDragKt;
 import sp.it.pl.main.AppTexts;
 import sp.it.pl.main.Css;
 import sp.it.pl.main.Widgets;
@@ -72,13 +71,13 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
-import static sp.it.pl.main.WidgetTags.UTILITY;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppExtensionsKt.toUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
+import static sp.it.pl.main.WidgetTags.UTILITY;
 import static sp.it.util.JavaLegacyKt.typeListOfAny;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.async.AsyncKt.IO;
@@ -354,7 +353,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                         new ContextMenu(
                             menuItem("Set input data to empty" , consumer(it -> setInput(list(Unit.INSTANCE)))),
                             menuItem("Set input data to output data", consumer(it -> setInput(output))),
-                            menuItem("Set input data to lines of visible text", consumer(it -> setInput(Arrays.asList(getValAsText().split("\\n")))))
+                            menuItem("Set input data to lines of visible text", consumer(it -> setInput(Arrays.asList(getValAsText().split("\\n"))))),
+                            menuItem("Set input data to system clipboard", consumer(it -> setInput(list(getAny(Clipboard.getSystemClipboard())))))
                         ).show(THIS, Side.BOTTOM, 0, 0)
                     );
             var remI = new Icon(MINUS)
@@ -392,7 +392,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 installDrag(
                     getNode(), OctIcon.DATABASE, () -> "Set data to " + this.name.get() + " edit area",
                     e -> true,
-                    consumer(e -> setInput(unpackData(AppDragKt.getAny(e.getDragboard()))))
+                    consumer(e -> setInput(unpackData(getAny(e.getDragboard()))))
                 );
             }
 

@@ -3708,17 +3708,19 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-text-fill: -mdfx-font-color;
 }
 
-.markdown-codeblock-box,
 .markdown-code {
+    -fx-cursor: HAND;
     -fx-padding: 0 0.5em 0 0.5em;
+    -fx-wrap-text: true;
+    -fx-font-size: 1em;
 }
-.markdown-code {
-    /*-fx-max-width: 300*/
-}
-.markdown-code,
 .markdown-codeblock {
     -fx-wrap-text: true;
     -fx-font-size: 1em;
+}
+.markdown-codeblock-box {
+    -fx-padding: 0 0.5em 0 0.5em;
+    -fx-alignment: CENTER_LEFT;
 }
 .markdown-codeblock-box,
 .markdown-code-background {
@@ -3735,9 +3737,15 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 .markdown-code-anti-padding {
-    /*-fx-padding: -8;*/
-    -fx-border-color: red;
-    -fx-border-width: 1;
+    -fx-translate-x: 100;
+}
+.markdown-codeblock-box-icon {
+    -fx-padding: -0.5em;
+}
+.markdown-codeblock-box-icon .icon {
+    -fx-border-color: -mdfx-border-color-1;
+    -fx-border-width: 0.5 0 0 0.5;
+    -fx-border-radius: 0.5em 0 0 0;
 }
 
 .markdown-table-table {

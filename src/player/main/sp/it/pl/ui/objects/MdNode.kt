@@ -1,6 +1,5 @@
 package sp.it.pl.ui.objects
 
-import com.sandec.mdfx.MarkdownView
 import java.io.File
 import java.net.URI
 import java.util.concurrent.atomic.AtomicLong
@@ -36,7 +35,7 @@ class MdNode: StackPane() {
      set(value) {
         dataId.getAndIncrement()
         field = value
-        children[0].asIs<ScrollPane>().content.asIs<MarkdownView>().mdString = text
+        children[0].asIs<ScrollPane>().content.asIs<MdNodeContent>().mdString.value = text
      }
 
    init {
@@ -44,13 +43,13 @@ class MdNode: StackPane() {
          hbarPolicy = NEVER
          isFitToWidth = true
 
-         content = object: MarkdownView() {
+         content = object: MdNodeContent() {
             init {
                stylesheets.clear()
             }
-            override fun setLink(node: Node?, link: String?, description: String?) {
-               node?.onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  link?.trim()?.let { runTry { URI(it).resolveAsLink() }.orNull() }?.open()
+            override fun setLink(node: Node, link: String, description: String) {
+               node.onEventDown(MOUSE_CLICKED, PRIMARY) {
+                  runTry { URI(link.trim()).resolveAsLink() }.orNull()?.open()
                }
             }
 

@@ -24,3 +24,7 @@ Shape, Text, TextFlow > * {
 .label {
     -fx-effect: dropshadow(one-pass-box , rgba(0, 0, 210, 1), 0,0 , -2,-4);
 }
+.hyperlink,
+.markdown-link {
+    -fx-effect: none;
+}

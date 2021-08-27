@@ -144,9 +144,7 @@ allprojects {
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
          implementation("com.github.oshi", "oshi-core", "5.8.1")
-         implementation("com.sandec", "mdfx", "0.2.4") {
-            exclude("org.openjfx")
-         }
+         implementation("com.vladsch.flexmark", "flexmark-all", "0.62.2")
       }
 
       "Image" group {

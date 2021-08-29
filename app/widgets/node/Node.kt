@@ -10,12 +10,14 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSuperclassOf
+import kotlin.reflect.jvm.jvmName
 import mu.KLogging
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetTag
 import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.main.APP
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS
@@ -26,6 +28,7 @@ import sp.it.util.access.vn
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
+import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.file.div
 import sp.it.util.functional.asIf
@@ -57,7 +60,10 @@ import sp.it.util.units.year
 class Node(widget: Widget): SimpleController(widget) {
 
    /** The fully qualified name of the class of the node or null if none */
-   private val node by cvn<String>(null).def(name = "Component class", info = "Fully qualified name of the kotlin.reflect.KClass of the javafx.scene.Node component. Needs public no argument constructor.")
+   private val node by cvn<String>(null)
+      .valuesUnsealed { APP.instances.recommendedNodeClassesAsWidgets.map { it.jvmName } }
+      .def(name = "Component class", info = "Fully qualified name of the kotlin.reflect.KClass of the javafx.scene.Node component. Needs public no argument constructor.")
+
    /** The node instance or null if none */
    private val nodeInstance = vn<Node>(null).apply {
       node sync {
@@ -136,7 +142,7 @@ class Node(widget: Widget): SimpleController(widget) {
          if (property!=null && io.i.getInputs().none { it.name==property.name }) {
             val propertyValue = when (propertyValueS) {
                "" -> property.value.value
-               else -> sp.it.pl.main.APP.converter.general.ofS(property.type, propertyValueS).getOrSupply { property.value.value }
+               else -> APP.converter.general.ofS(property.type, propertyValueS).getOrSupply { property.value.value }
             }
 
             property.value.value = propertyValue

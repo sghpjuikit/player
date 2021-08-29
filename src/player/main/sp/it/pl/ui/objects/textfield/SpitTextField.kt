@@ -49,7 +49,7 @@ open class SpitTextField: TextField() {
    val left = observableList<Node>()
    /** Content on the right. Default empty.  */
    val right = observableList<Node>()
-   /** Context menu or null if falling back on [TextField] context menu behavior. Default null. */
+   /** Context menu or null if falling back on [TextField] context menu behavior. Default spit menu implementation. */
    var contextMenuShower: ((MouseEvent) -> Unit)? = null
 
    init {
@@ -57,7 +57,7 @@ open class SpitTextField: TextField() {
       minWidth = USE_PREF_SIZE
       maxWidth = USE_PREF_SIZE
 
-      // custom context menu
+      // editability
       editable sync { pseudoClassChanged("editable", it) }
 
       // custom context menu

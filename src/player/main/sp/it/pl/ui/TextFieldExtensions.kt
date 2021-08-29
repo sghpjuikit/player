@@ -3,6 +3,7 @@ package sp.it.pl.ui
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.TextField
+import javafx.scene.control.TextInputControl
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.SHIFT
@@ -19,7 +20,7 @@ import sp.it.util.ui.cutSelectedOrAll
 import sp.it.util.ui.dsl
 import sp.it.util.ui.show
 
-fun showContextMenu(tf: TextField, event: MouseEvent, textGetter: (() -> String?)?, valueGetter: (() -> Any?)?) {
+fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> String?)?, valueGetter: (() -> Any?)?) {
    fun MenuItem.disIf(condition: Boolean) = apply { isDisable = condition }
 
    ContextMenu().apply {

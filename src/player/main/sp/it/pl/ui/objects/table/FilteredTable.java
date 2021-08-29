@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects.table;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -24,7 +25,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollToEvent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
@@ -50,6 +50,8 @@ import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.scene.control.TableColumn.SortType.ASCENDING;
+import static javafx.scene.control.TableColumn.SortType.DESCENDING;
 import static javafx.scene.input.KeyCode.A;
 import static javafx.scene.input.KeyCode.CONTROL;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -301,7 +303,25 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		new Menu("Order by column", null,
 			fields.stream()
 				.filter(f -> f!=ColumnField.INDEX)
-				.map(f -> menuItem(f.name(), consumer(it -> sortBy(f, SortType.DESCENDING))))
+				.map(f -> menuItem(f.name(), consumer(it -> {
+					getColumn(f).ifPresentOrElse(
+						c -> {
+							var sorts = new ArrayList<>(getSortOrder());
+							var containedColumn = sorts.stream().anyMatch(cc -> cc == c);
+
+							getSortOrder().clear();
+							if (containedColumn) {
+								if (c.getSortType()==ASCENDING) sorts.remove(c);
+								c.setSortType(c.getSortType()==ASCENDING ? DESCENDING : ASCENDING);
+							} else {
+								c.setSortType(DESCENDING);
+								sorts.add(c);
+							}
+							getSortOrder().setAll(sorts);
+						},
+						() -> sortBy(f)
+					);
+				})))
 				.toArray(MenuItem[]::new)
 		),
 		menuItem("Order reverse", consumer(it -> sortReverse())),
@@ -496,7 +516,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		} else {
 			var sorts = getSortOrder().stream().collect(toMap(it -> it, it -> it.getSortType(), (x, y) -> y, LinkedHashMap::new));
 			getSortOrder().clear();
-			sorts.forEach((c, s) -> c.setSortType(s==SortType.ASCENDING ? SortType.DESCENDING : SortType.ASCENDING));
+			sorts.forEach((c, s) -> c.setSortType(s==ASCENDING ? DESCENDING : ASCENDING));
 			getSortOrder().setAll(sorts.keySet());
 		}
 	}

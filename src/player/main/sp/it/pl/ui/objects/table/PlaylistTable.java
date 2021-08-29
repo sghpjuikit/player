@@ -9,8 +9,9 @@ import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -25,13 +26,16 @@ import sp.it.pl.audio.playlist.Playlist;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.playlist.PlaylistManagerKt;
 import sp.it.pl.audio.playlist.PlaylistSong;
+import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.PlaylistSongGroup;
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.ui.objects.tablerow.SpitTableRow;
+import sp.it.util.Sort;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ColumnField;
 import sp.it.util.reactive.Disposer;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
+import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -48,11 +52,13 @@ import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
+import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
 import static sp.it.pl.ui.objects.table.TableUtilKt.getFontOrNull;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.functional.Util.SAME;
+import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.UtilKt.consumer;
@@ -61,6 +67,7 @@ import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.Util.computeTextWidth;
 import static sp.it.util.ui.Util.selectRows;
+import static sp.it.util.ui.UtilKt.menuItem;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.units.DurationKt.toHMSMs;
 
@@ -279,6 +286,22 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			return Unit.INSTANCE;
 		}));
 
+		// add sorting by db columns
+		menuOrder.getItems().add(
+			new Menu("Order by column (db)", null,
+				Metadata.Field.Companion.getAll().stream()
+					.filter(f -> f.isTypeStringRepresentable())
+					.sorted(by(f -> f.name()))
+					.map(f ->
+						new Menu(f.name(), null,
+							menuItem("Desc", consumer(it -> sortByDb(f, Sort.DESCENDING))),
+							menuItem("Asc", consumer(it -> sortByDb(f, Sort.ASCENDING)))
+						)
+					)
+					.toArray(MenuItem[]::new)
+			)
+		);
+
 		// reflect selection for whole application
 		getSelectionModel().selectedItemProperty().addListener(selItemListener);
 		getSelectionModel().getSelectedItems().addListener(selItemsListener);
@@ -359,4 +382,24 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		}
 	}
 
+/* --------------------- ORDER -------------------------------------------------------------------------------------- */
+
+	/**
+	 * Sorts songs by the specified field and order.
+	 * Songs are looked up by {@link sp.it.pl.plugin.impl.SongDb#getSong(sp.it.pl.audio.Song)}.
+	 * If the song is not found, null value is used. Nulls follow {@link java.util.Comparator#nullsLast(java.util.Comparator)}
+	 */
+	@SuppressWarnings("unchecked")
+	public void sortByDb(Metadata.Field<?> field, Sort order) {
+		if (field.isTypeStringRepresentable())
+			sort(
+				by(
+					song -> {
+						var songMetadata = APP.db.getSong(song);
+						return songMetadata==null ? null : (Comparable<Object>) field.getOf(songMetadata);
+					},
+					cc -> nullsLast(order.of(cc))
+				)
+			);
+	}
 }

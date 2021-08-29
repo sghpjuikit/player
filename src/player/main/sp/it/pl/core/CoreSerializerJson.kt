@@ -7,6 +7,7 @@ import kotlin.reflect.KClass
 import kotlin.text.Charsets.UTF_8
 import mu.KLogging
 import sp.it.pl.layout.BiContainerDb
+import sp.it.pl.layout.ContainerFreeFormUi
 import sp.it.pl.layout.FreeFormContainerDb
 import sp.it.pl.layout.NoComponentDb
 import sp.it.pl.layout.RootContainerDb
@@ -32,6 +33,7 @@ import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Java.error
 import sp.it.util.functional.asIs
+import sp.it.util.functional.invoke
 
 class CoreSerializerJson: Core {
 
@@ -46,6 +48,7 @@ class CoreSerializerJson: Core {
            "uni-container" alias UniContainerDb::class
             "bi-container" alias BiContainerDb::class
           "free-container" alias FreeFormContainerDb::class
+   "free-container-window" alias ContainerFreeFormUi.WindowPosition::class
         "switch-container" alias SwitchContainerDb::class
                   "widget" alias WidgetDb::class
                   "window" alias WindowDb::class
@@ -83,8 +86,8 @@ class CoreSerializerJson: Core {
                val toS = APP.converter.general.parsersToS[it]!!
                val ofS = APP.converter.general.parsersFromS[it]!!
                override fun canConvert(value: Any) = it.isInstance(value)
-               override fun toJson(value: Any): JsValue = JsString(toS.apply(value).orThrow)
-               override fun fromJson(value: JsValue): Any? = ofS.apply(value.asJsString().value).orThrow
+               override fun toJson(value: Any): JsValue = JsString(toS(value).orThrow)
+               override fun fromJson(value: JsValue): Any? = value.asJsStringValue()?.let { ofS(it).orThrow }
             }
          }
 

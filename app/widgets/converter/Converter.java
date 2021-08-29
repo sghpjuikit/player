@@ -573,14 +573,13 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
     }
     private static class WriteFileAct extends Act<Void> {
-        V<String> nam = new V<>("new_file");
-        V<String> ext = new V<>("txt");
+        V<String> nam = new V<>("new_file.txt");
         V<File> loc = new V<>(APP.getLocation());
 
         public WriteFileAct() {
             super("Write file", getKotlinClass(Void.class), 1, list("Contents"), (Consumer<Map<String,List<? extends String>>>) null);
             actionImpartial = data -> {
-                var file = new File(loc.get(), nam.get()+"."+ext.get());
+                var file = new File(loc.get(), nam.get());
                 var text = String.join("\n", data.get("Contents"));
                 writeTextTry(file, text);
             };
@@ -597,11 +596,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     it.getStyleClass().add("form-config-pane-config-description");
                     it.getChildren().add(text("Output file name. Previous file will be overwritten.", consumer(itt -> {})));
                 })),
-                layHorizontally(getEmScaled(10),CENTER_LEFT,
-                    ConfigEditor.create(Config.forProperty(String.class, "File name", nam)).buildNode(),
-                    new Label("."),
-                    ConfigEditor.create(Config.forProperty(String.class, "Extension", ext)).buildNode()
-                ),
+                ConfigEditor.create(Config.forProperty(String.class, "File name", nam)).buildNode(),
                 label("Output location", consumer((it) ->
                     it.getStyleClass().add("form-config-pane-config-name")
                 )),

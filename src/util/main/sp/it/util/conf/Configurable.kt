@@ -4,7 +4,6 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
-import java.util.ArrayList
 import kotlin.reflect.full.memberProperties
 
 /**
@@ -14,9 +13,9 @@ import kotlin.reflect.full.memberProperties
  * This can be used to store, restore or manipulate this state.
  *
  * Object can implement [Configurable] or be converted to it (e.g. [toConfigurableByReflect]). There is also choice to
- * use delegated configurable properties (e.g. [c], [cv], [cvn], etc).
+ * use delegated configurable properties (e.g. [c], [cv], [cvn], et.c).
  *
- * @param <T> parameter specifying generic parameter of the configs. Useful if all of the configs have the same generic
+ * @param <T> parameter specifying generic parameter of the configs. Useful if all the configs have the same generic
  * type argument.
  */
 interface Configurable<T> {
@@ -24,10 +23,10 @@ interface Configurable<T> {
    /** @return all configs of this configurable */
    fun getConfigs(): Collection<Config<T>>
 
-   /** @return config with given [Config.name] or null if does not exist */
+   /** @return config with given [Config.name] or null if it does not exist */
    fun getConfig(name: String): Config<T>?
 
-   /** @return config with given [Config.name] or throw exception if does not exist */
+   /** @return config with given [Config.name] or throw exception if it does not exist */
    fun getConfigOrThrow(name: String): Config<T> = getConfig(name) ?: fail { "Config field '$name' not found." }
 
    companion object {
@@ -79,11 +78,7 @@ fun Any.toConfigurableByReflect(): Configurable<*> = annotatedConfigs(this).toLi
 fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Configurable<*> = annotatedConfigs(fieldNamePrefix, category, this).toListConfigurable()
 
 /** @return configurable of configs representing all javafx properties of this object */
-fun Any.toConfigurableFx(): Configurable<*> {
-   val cs = ArrayList<Config<Any?>>()
-   forEachJavaFXProperty(this) { p, name, type -> cs.add(Config.forValue(VType(type), name, p)) }
-   return cs.toListConfigurable()
-}
+fun Any.toConfigurableFx(): Configurable<*> = forEachJavaFXProperty(this).map { (p, name, _, _, type) -> Config.forValue<Any?>(VType(type), name, p()) }.toList().toListConfigurable()
 
 /** @return configurable wrapping this list */
 fun <T> Collection<Config<out T>>.toListConfigurable() = ListConfigurable.heterogeneous(this)

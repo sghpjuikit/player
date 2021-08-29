@@ -45,10 +45,10 @@ import kotlin.reflect.KVariance
 import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.createType
+import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
-import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.full.withNullability
@@ -189,7 +189,7 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
  * Additional provided arguments are name of the property and its non-erased generic type.
  * Javafx properties are obtained from public nameProperty() methods using reflection.
  */
-fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
+fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
    // Best we can do to stop platform type from spreading around... This is better than nothing.
    fun KType.resolveNullability(name: String): KType = when {
       this.isPlatformType -> when {
@@ -203,108 +203,121 @@ fun forEachJavaFXProperty(o: Any, action: (Observable, String, KType) -> Unit) {
       else -> this
    }
 
-   for (method in o::class.memberFunctions) {
-      val methodName = method.name
-      val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
-      if (isPublished) {
-         var propertyName: String? = null
-         if (method.returnType.isSubtypeOf<Observable>()) {
-            try {
-               propertyName = methodName
-               propertyName = propertyName.substringBeforeLast("Property", propertyName)
-               propertyName = propertyName.substringAfter("get", propertyName)
-               propertyName = propertyName.decapital()
-               method.isAccessible = true
-               var observable = method.call(o) as Observable?
-               if (observable is Property<*> && observable.isBound) {
-                  val rop = ReadOnlyObjectWrapper<Any>()
-                  rop.bind(observable)
-                  observable = rop.readOnlyProperty
+   o::class.superKClassesInc().filter { !it.java.isInterface }.forEach { declaringClass ->
+      declaringClass.declaredMemberFunctions.forEach { method ->
+         val methodName = method.name
+         val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
+         if (isPublished) {
+            var propertyName: String? = null
+            if (method.returnType.isSubtypeOf<Observable>()) {
+               try {
+                  propertyName = methodName
+                  propertyName = propertyName.substringBeforeLast("Property", propertyName)
+                  propertyName = propertyName.substringAfter("get", propertyName)
+                  propertyName = propertyName.decapital()
+                  method.isAccessible = true
+                  val propertyType = method.returnType.javaFxPropertyType.resolveNullability(propertyName)
+                  val observableRaw = method.call(o) as Observable?
+                  if (observableRaw!=null) {
+                     val observable = {
+                        if (observableRaw is Property<*> && observableRaw.isBound) {
+                           val rop = ReadOnlyObjectWrapper<Any>()
+                           rop.bind(observableRaw)
+                           rop.readOnlyProperty
+                        } else {
+                           observableRaw
+                        }
+                     }
+                     yield(InspectedFxProperty(observable, propertyName, observableRaw !is WritableValue<*>, declaringClass, propertyType))
+                  } else {
+                     logger.warn { "Is null declaringClass='$declaringClass' propertyName=$propertyName propertyType=$propertyType" }
+                  }
+               } catch (e: Throwable) {
+                  logger.error(e) { "Could not obtain property '$propertyName' from class ${o::class} of object $o" }
                }
-               val propertyType = method.returnType.javaFxPropertyType.resolveNullability(propertyName)
-               if (observable!=null) {
-                  action(observable, propertyName, propertyType)
-               } else {
-                  logger.warn { "Is null property='$observable' propertyName=$propertyName propertyType=$propertyType" }
+            }
+         }
+      }
+      for (field in o::class.memberProperties) {
+         val fieldName = field.name
+         val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
+         if (isPublished) {
+            if (field.returnType.isSubtypeOf<Observable>()) {
+               try {
+                  field.isAccessible = true
+                  val propertyType = field.returnType.javaFxPropertyType.resolveNullability(fieldName)
+                  val observableRaw = field.getter.call(o) as Observable?
+                  if (observableRaw!=null) {
+                     val observable = {
+                        if (observableRaw is Property<*> && observableRaw.isBound) {
+                           val rop = ReadOnlyObjectWrapper<Any>()
+                           rop.bind(observableRaw)
+                           rop.readOnlyProperty
+                        } else {
+                           observableRaw
+                        }
+                     }
+                     yield(InspectedFxProperty(observable, fieldName, observableRaw !is WritableValue<*>, declaringClass, propertyType))
+                  } else {
+                     logger.warn { "Is null declaringClass='$declaringClass' propertyName=$fieldName propertyType=$propertyType" }
+                  }
+               } catch (e: IllegalAccessException) {
+                  logger.error(e) { "Could not obtain property '$fieldName' from object" }
                }
-            } catch (e: Throwable) {
-               logger.error(e) { "Could not obtain property '$propertyName' from class ${o::class} of object $o" }
             }
          }
       }
    }
-   for (field in o::class.memberProperties) {
-      val fieldName = field.name
-      val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
-      if (isPublished) {
-         if (field.returnType.isSubtypeOf<Observable>()) {
-            try {
-               field.isAccessible = true
-               var observable = field.getter.call(o) as Observable?
-               if (observable is Property<*> && observable.isBound) {
-                  val rop = ReadOnlyObjectWrapper<Any>()
-                  rop.bind(observable)
-                  observable = rop.readOnlyProperty
-               }
-               val propertyType = field.returnType.javaFxPropertyType.resolveNullability(fieldName)
-               if (observable!=null) {
-                  action(observable, fieldName, propertyType)
-               } else {
-                  logger.warn { "Is null property='$observable' propertyName=$fieldName propertyType=$propertyType" }
-               }
-            } catch (e: IllegalAccessException) {
-               logger.error(e) { "Could not obtain property '$fieldName' from object" }
-            }
-         }
-      }
-   }
+
 
    // add synthetic javafx layout properties for nodes in scene graph
    @Suppress("SpellCheckingInspection")
    if (o is Node) {
       when (o.parent) {
          is StackPane -> {
-            action(paneProperty(o, "stackpane-alignment", StackPane::getAlignment, StackPane::setAlignment), "L: Alignment", type<Pos?>().type)
-            action(paneProperty(o, "stackpane-margin", StackPane::getMargin, StackPane::setMargin), "L: Margin", type<Insets?>().type)
+            yield(InspectedFxProperty(paneProperty(o, "stackpane-alignment", StackPane::getAlignment, StackPane::setAlignment), "L: Alignment", false, StackPane::class, type<Pos?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "stackpane-margin", StackPane::getMargin, StackPane::setMargin), "L: Margin", false, StackPane::class, type<Insets?>().type))
          }
          is AnchorPane -> {
-            action(paneProperty(o, "pane-top-anchor", AnchorPane::getTopAnchor, AnchorPane::setTopAnchor), "L: Anchor (top)", type<Double?>().type)
-            action(paneProperty(o, "pane-right-anchor", AnchorPane::getRightAnchor, AnchorPane::setRightAnchor), "L: Anchor (right)", type<Double?>().type)
-            action(paneProperty(o, "pane-bottom-anchor", AnchorPane::getBottomAnchor, AnchorPane::setBottomAnchor), "L: Anchor (bottom)", type<Double?>().type)
-            action(paneProperty(o, "pane-left-anchor", AnchorPane::getLeftAnchor, AnchorPane::setLeftAnchor), "L: Anchor (left)", type<Double?>().type)
+            yield(InspectedFxProperty(paneProperty(o, "pane-top-anchor", AnchorPane::getTopAnchor, AnchorPane::setTopAnchor), "L: Anchor (top)", false, AnchorPane::class, type<Double?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "pane-right-anchor", AnchorPane::getRightAnchor, AnchorPane::setRightAnchor), "L: Anchor (right)", false, AnchorPane::class, type<Double?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "pane-bottom-anchor", AnchorPane::getBottomAnchor, AnchorPane::setBottomAnchor), "L: Anchor (bottom)", false, AnchorPane::class, type<Double?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "pane-left-anchor", AnchorPane::getLeftAnchor, AnchorPane::setLeftAnchor), "L: Anchor (left)", false, AnchorPane::class, type<Double?>().type))
          }
          is VBox -> {
-            action(paneProperty(o, "vbox-vgrow", VBox::getVgrow, VBox::setVgrow), "L: VGrow", type<Priority?>().type)
-            action(paneProperty(o, "vbox-margin", VBox::getMargin, VBox::setMargin), "L: Margin", type<Insets?>().type)
+            yield(InspectedFxProperty(paneProperty(o, "vbox-vgrow", VBox::getVgrow, VBox::setVgrow), "L: VGrow", false, VBox::class, type<Priority?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "vbox-margin", VBox::getMargin, VBox::setMargin), "L: Margin", false, VBox::class, type<Insets?>().type))
          }
          is HBox -> {
-            action(paneProperty(o, "hbox-vgrow", HBox::getHgrow, HBox::setHgrow), "L: HGrow", type<Priority?>().type)
-            action(paneProperty(o, "hbox-margin", HBox::getMargin, HBox::setMargin), "L: Margin", type<Insets?>().type)
+            yield(InspectedFxProperty(paneProperty(o, "hbox-vgrow", HBox::getHgrow, HBox::setHgrow), "L: HGrow", false, HBox::class, type<Priority?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "hbox-margin", HBox::getMargin, HBox::setMargin), "L: Margin", false, HBox::class, type<Insets?>().type))
          }
          is FlowPane -> {
-            action(paneProperty(o, "flowpane-margin", FlowPane::getMargin, FlowPane::setMargin), "L: Margin", type<Insets?>().type)
+            yield(InspectedFxProperty(paneProperty(o, "flowpane-margin", FlowPane::getMargin, FlowPane::setMargin), "L: Margin", false, FlowPane::class, type<Insets?>().type))
          }
          is BorderPane -> {
-            action(paneProperty(o, "borderpane-alignment", BorderPane::getAlignment, BorderPane::setAlignment), "L: Alignment", type<Pos?>().type)
-            action(paneProperty(o, "borderpane-margin", BorderPane::getMargin, BorderPane::setMargin), "L: Margin", type<Insets?>().type)
+            yield(InspectedFxProperty(paneProperty(o, "borderpane-alignment", BorderPane::getAlignment, BorderPane::setAlignment), "L: Alignment", false, BorderPane::class, type<Pos?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "borderpane-margin", BorderPane::getMargin, BorderPane::setMargin), "L: Margin", false, BorderPane::class, type<Insets?>().type))
          }
          is GridPane -> {
-            action(paneProperty(o, "gridpane-column", GridPane::getColumnIndex, GridPane::setColumnIndex), "L: Column index", type<Int?>().type)
-            action(paneProperty(o, "gridpane-column-span", GridPane::getColumnSpan, GridPane::setColumnSpan), "L: Column span", type<Int?>().type)
-            action(paneProperty(o, "gridpane-row", GridPane::getRowIndex, GridPane::setRowIndex), "L: Row index", type<Int?>().type)
-            action(paneProperty(o, "gridpane-row-span", GridPane::getRowSpan, GridPane::setRowSpan), "L: Row span", type<Int?>().type)
-            action(paneProperty(o, "gridpane-valignment", GridPane::getValignment, GridPane::setValignment), "L: Valignment", type<VPos?>().type)
-            action(paneProperty(o, "gridpane-halignment", GridPane::getHalignment, GridPane::setHalignment), "L: Halignment", type<HPos?>().type)
-            action(paneProperty(o, "gridpane-vgrow", GridPane::getVgrow, GridPane::setVgrow), "L: Vgrow", type<Priority?>().type)
-            action(paneProperty(o, "gridpane-hgrow", GridPane::getHgrow, GridPane::setHgrow), "L: Hgrow", type<Priority?>().type)
-            action(paneProperty(o, "gridpane-margin", HBox::getMargin, HBox::setMargin), "L: Margin", type<Insets?>().type)
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-column", GridPane::getColumnIndex, GridPane::setColumnIndex), "L: Column index", false, GridPane::class, type<Int?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-column-span", GridPane::getColumnSpan, GridPane::setColumnSpan), "L: Column span", false, GridPane::class, type<Int?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-row", GridPane::getRowIndex, GridPane::setRowIndex), "L: Row index", false, GridPane::class, type<Int?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-row-span", GridPane::getRowSpan, GridPane::setRowSpan), "L: Row span", false, GridPane::class, type<Int?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-valignment", GridPane::getValignment, GridPane::setValignment), "L: Valignment", false, GridPane::class, type<VPos?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-halignment", GridPane::getHalignment, GridPane::setHalignment), "L: Halignment", false, GridPane::class, type<HPos?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-vgrow", GridPane::getVgrow, GridPane::setVgrow), "L: Vgrow", false, GridPane::class, type<Priority?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-hgrow", GridPane::getHgrow, GridPane::setHgrow), "L: Hgrow", false, GridPane::class, type<Priority?>().type))
+            yield(InspectedFxProperty(paneProperty(o, "gridpane-margin", HBox::getMargin, HBox::setMargin), "L: Margin", false, GridPane::class, type<Insets?>().type))
          }
       }
    }
 }
 
+data class InspectedFxProperty(val observable: () -> Observable, val name: String, val isReadOnly: Boolean, val declaringClass: KClass<*>, val type: KType)
+
 private object PaneProperties {
-   inline fun <reified T: Any> paneProperty(o: Node, key: String, crossinline getter: (Node) -> T?, crossinline setter: (Node, T?) -> Unit): Observable =
+   inline fun <reified T: Any> paneProperty(o: Node, key: String, crossinline getter: (Node) -> T?, crossinline setter: (Node, T?) -> Unit): () -> Observable = {
       object: SimpleObjectProperty<T?>(getter(o)) {
          init {
             o.properties.addListener(MapChangeListener {
@@ -318,6 +331,7 @@ private object PaneProperties {
             setter(o, v)
          }
       }
+   }
 }
 
 

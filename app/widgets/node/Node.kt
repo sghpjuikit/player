@@ -1,14 +1,17 @@
 package node
 
 import java.util.Base64
+import java.util.concurrent.atomic.AtomicInteger
 import javafx.beans.value.WritableValue
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSuperclassOf
 import mu.KLogging
+import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetTag
@@ -16,6 +19,7 @@ import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.vn
@@ -25,6 +29,7 @@ import sp.it.util.conf.def
 import sp.it.util.dev.fail
 import sp.it.util.file.div
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
@@ -40,6 +45,8 @@ import sp.it.util.text.split2Partial
 import sp.it.util.text.splitTrimmed
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
+import sp.it.util.type.isSubtypeOf
+import sp.it.util.type.superKClassesInc
 import sp.it.util.ui.dsl
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.show
@@ -67,24 +74,36 @@ class Node(widget: Widget): SimpleController(widget) {
       root.onEventDown(MOUSE_CLICKED, SECONDARY) {
          if (it.isStillSincePress)
             ContextMenu().dsl {
+               menu("Widget") {
+                  items {
+                     CoreMenus.menuItemBuilders[this@Node.widget]
+                  }
+               }
                menu("Inputs") {
                   val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()
                   val properties = nodeInstance.value.javaFxProperties()
-                  properties.forEach { p ->
-                     item {
-                        SelectionMenuItem(p.name, p.name in propertiesWithInputs).apply {
-                           selected attachFalse {
-                              io.i.getInputs().find { it.name==p.name }.ifNotNull {
-                                 io.i.remove(it)
-                                 storeInputs()
+                  val propertiesByClass =  nodeInstance.value.javaFXSuperClasses().associateWith { listOf<NodeInput>() } + properties.groupBy { it.declaringClass }
+                  val i = AtomicInteger(-1)
+                  propertiesByClass.forEach { (declaringClass, properties) ->
+                     val namePrefix = if (i.incrementAndGet()==0) "" else "".padStart(i.get(), ' ') + "⌎ "
+                     menu(namePrefix + declaringClass.toUi()) {
+                        properties.forEach { p ->
+                           item {
+                              SelectionMenuItem(p.name, p.name in propertiesWithInputs).apply {
+                                 selected attachFalse {
+                                    io.i.getInputs().find { it.name==p.name }.ifNotNull {
+                                       io.i.remove(it)
+                                       storeInputs()
+                                    }
+                                 }
+                                 selected attachTrue {
+                                    io.i.create(p.name, p.type, p.value.value) {
+                                       p.value.value = it
+                                       storeInputs()
+                                    }
+                                    storeInputs()
+                                 }
                               }
-                           }
-                           selected attachTrue {
-                              io.i.create(p.name, p.type, p.value.value) {
-                                 p.value.value = it
-                                 storeInputs()
-                              }
-                              storeInputs()
                            }
                         }
                      }
@@ -141,20 +160,21 @@ class Node(widget: Widget): SimpleController(widget) {
          Entry("Node", "Edit component properties as widget inputs", SECONDARY.nameUi),
       )
 
-      fun Node?.javaFxProperties(): List<NodeInput> {
-         if (this==null) return listOf()
-
-         val properties = mutableListOf<NodeInput>()
-
-         forEachJavaFXProperty(this) { observable, name, type ->
-            if (observable is WritableValue<*>)
-               properties += NodeInput(name, observable, VType<Any?>(type))
-         }
-
-         return properties
+      fun Node?.javaFXSuperClasses(): Sequence<KClass<*>> = when(this) {
+         null -> sequenceOf()
+         else -> this::class.superKClassesInc().filter { !it.java.isInterface }
       }
 
-      data class NodeInput(val name: String, val value: WritableValue<*>, val type: VType<*>)
+      fun Node?.javaFxProperties(): Sequence<NodeInput> = when(this) {
+         null -> sequenceOf()
+         else -> forEachJavaFXProperty(this)
+            .filter { !it.isReadOnly && !it.type.isSubtypeOf<javafx.event.EventHandler<*>>() }
+            .map { NodeInput(it.name, it.declaringClass, { it.observable().asIs() }, VType<Any?>(it.type)) }
+      }
+
+      data class NodeInput(val name: String, val declaringClass: KClass<*>, val valueSupplier: () -> WritableValue<*>, val type: VType<*>) {
+         val value by lazy { valueSupplier() }
+      }
 
       fun String.ifNotEmpty(mapper: (String) -> String) = if (isEmpty()) "" else mapper(this)
       fun String.unquote() = if (startsWith("\"") && endsWith("\"")) drop(1).dropLast(1) else fail { "Must be quoted" }

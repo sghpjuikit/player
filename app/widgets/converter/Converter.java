@@ -261,7 +261,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     }),
                     widget.getCustomName().getValue() + "Editing song tags"
                 );
-            })
+            }) {{
+                isInputsFixedLength = false;
+            }}
         );
         acts.accumulate(new WriteFileAct());
         acts.accumulate(new ActCreateDirs());
@@ -546,22 +548,24 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             this.type = type;
             this.max = max;
             this.actionPartial = action;
+            this.isInputsFixedLength = false;
         }
         private Act(String name, KClass<Y> type, int max, Consumer<Map<String,List<? extends String>>> action) {
             this.name = name;
             this.type = type;
             this.max = max;
             this.actionImpartial = action;
+            this.isInputsFixedLength = false;
         }
         Act(String name, KClass<Y> type, int max, List<String> names, BiConsumer<Y,Map<String,? extends String>> action) {
             this(name, type, max, action);
             this.names = names;
-            isInputsFixedLength = true;
+            this.isInputsFixedLength = true;
         }
         Act(String name, KClass<Y> type, int max, List<String> names, Consumer<Map<String,List<? extends String>>> action) {
             this(name, type, max, action);
             this.names = names;
-            isInputsFixedLength = true;
+            this.isInputsFixedLength = true;
         }
 
         Node getNode() {
@@ -688,7 +692,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             input = new V<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in));
             configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name).addConstraints(new ValueSealedSet<>(() -> actions), PreserveOrder.INSTANCE));
             configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input).addConstraints(new ValueSealedSet<>(() -> tas), PreserveOrder.INSTANCE));
-            root = layHorizontally(getEmScaled(10), CENTER_LEFT, configEditorB.buildNode(), new Label("→"), configEditorA.buildNode());
+            root = layHorizontally(getEmScaled(10), CENTER_LEFT, configEditorA.buildNode(), new Label("←"), configEditorB.buildNode());
         }
 
         @Override

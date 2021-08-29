@@ -52,6 +52,7 @@ import sp.it.pl.ui.pane.ConfigPane.Layout;
 import sp.it.util.access.V;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.conf.Config;
+import sp.it.util.conf.Constraint.PreserveOrder;
 import sp.it.util.conf.Constraint.ValueSealedSet;
 import sp.it.util.file.Util;
 import sp.it.util.text.StringSplitParser.SplitData;
@@ -690,8 +691,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             super(null);
             name = new V<>(actions.stream().findFirst().orElse(null));
             input = new V<>(stream(tas).filter(ta -> ta.name.get().equalsIgnoreCase("out")).findAny().orElse(ta_in));
-            configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name).addConstraints(new ValueSealedSet<>(() -> actions)));
-            configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input).addConstraints(new ValueSealedSet<>(() -> tas)));
+            configEditorA = ConfigEditor.create(Config.forProperty(String.class, "", name).addConstraints(new ValueSealedSet<>(() -> actions), PreserveOrder.INSTANCE));
+            configEditorB = ConfigEditor.create(Config.forProperty(EditArea.class, "", input).addConstraints(new ValueSealedSet<>(() -> tas), PreserveOrder.INSTANCE));
             root = layHorizontally(getEmScaled(10), CENTER_LEFT, configEditorB.buildNode(), new Label("→"), configEditorA.buildNode());
         }
 

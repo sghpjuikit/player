@@ -241,14 +241,14 @@
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button > .arrow  {
     -fx-background-color: -skin-def-font-color;
     -fx-background-insets: 0;
-    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-padding: 0.2em 0.3125em 0.2em 0.3125em;
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
 
 
 .combo-box-base > .arrow-button {
+    -fx-padding: 0 0.5em 0em 0.5em;
     -fx-background-color: transparent;
-    -fx-opacity: 0.4;
 }
 .combo-box-base:editable > .arrow-button {
     -fx-background-color: transparent;
@@ -640,7 +640,7 @@
     -fx-background-radius: 0;
     -fx-text-fill: -skin-def-font-color;
     -fx-effect: null;
-    -fx-padding: 0 0 0 5;
+    -fx-padding: 0 0 0 0.5em;
     -fx-effect: null;
 }
 
@@ -687,11 +687,12 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: -skin-popup-def-bgr-color;
     -fx-background-insets: 0;
     -fx-effect: null;
+    -fx-padding: 0;
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    -fx-padding: 0 0 0 10;
+    -fx-padding: 0 0 0 0.5em;
     -fx-background-color: null;
-    -fx-text-fill:-skin-def-font-color;
+    -fx-text-fill: -skin-def-font-color;
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,

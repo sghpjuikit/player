@@ -89,13 +89,13 @@ class FItemNode<I, O>(typeIn: VType<I>, typeOutTargeted: VType<O>, functionPool:
                editorsNodes.children.clear()
                editors.clear()
                if (isTerminal) {
-                  function?.parameters.orEmpty().forEachIndexed { i, p ->
+                  function?.parameters.orEmpty().forEach { p ->
                      val editor = p.toConfig { generateValue() }.createEditor().apply {
                         if (p.description.isNotBlank())
                            editor install appTooltip(p.description)
                      }
                      editors += editor
-                     editorsNodes.lay(if (i==0) ALWAYS else SOMETIMES) += editor.buildNode(false)
+                     editorsNodes.lay(SOMETIMES) += editor.buildNode(false)
                   }
                } else {
                   val i = mapperNodes.children.indexOf(fCB) + 1

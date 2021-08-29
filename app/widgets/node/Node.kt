@@ -152,8 +152,8 @@ class Node(widget: Widget): SimpleController(widget) {
    }
 
    companion object: WidgetCompanion, KLogging() {
-      override val name = "Node"
-      override val description = "Displays component specified by class"
+      override val name = "Custom"
+      override val description = "Displays custom component specified by ${Node::class.jvmName} class"
       override val descriptionLong = "$description. This avoids the need to create widget wrappers for ui components."
       override val icon = IconUN(0x2e2a)
       override val version = version(1, 0, 0)

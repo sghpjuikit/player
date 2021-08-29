@@ -31,12 +31,16 @@ package sp.it.pl.ui.objects.autocomplete
 
 import java.util.Objects
 import javafx.scene.control.TextInputControl
+import javafx.scene.input.KeyCode.SPACE
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
 
 /**
- * Represents a binding between a text field and a auto-completion popup
+ * Represents a binding between a text field and an auto-completion popup
  *
  * @param <T> type of suggested objects
  */
@@ -62,6 +66,12 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
          if (!it)
             hideAutoCompletePopup()
       }
+      textField.onEventDown(KEY_PRESSED, SPACE, false) {
+         if (it.isShortcutDown) {
+            updateSuggestions("")
+            it.consume()
+         }
+      } on disposer
    }
 
    override fun dispose() = disposer()

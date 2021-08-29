@@ -6,6 +6,7 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.skin.ComboBoxListViewSkin
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
@@ -74,7 +75,7 @@ class SpitComboBox<T>(toStringConverter: (T) -> String, emptyText: String = text
 
       // SPACE shows popup
       onEventDown(KEY_PRESSED) {
-         if (!it.isConsumed && !readOnly.value && it.code==KeyCode.SPACE && !isShowing && !items.isEmpty()) {
+         if (!it.isConsumed && (!readOnly.value || it.isShortcutDown) && it.code==SPACE && !isShowing && !items.isEmpty()) {
             show()
             skinPopupListView().requestFocus()
          }

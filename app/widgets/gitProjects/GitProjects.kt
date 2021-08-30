@@ -54,6 +54,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
             minWidth = 200.emScaled
             lay += scrollPane {
                id = "projects"
+               isFitToHeight = true
                isFitToWidth = true
                vbarPolicy = AS_NEEDED
                hbarPolicy = AS_NEEDED

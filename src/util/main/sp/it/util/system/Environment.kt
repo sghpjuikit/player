@@ -186,13 +186,14 @@ fun File.edit() {
             try {
                Desktop.getDesktop().edit(this)
             } catch (e: IOException) {
-               val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
-               if (noApp) logger.info(e) { "Couldn't find an editor association for file=$this" }
+               val noApp1 = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+               val noApp2 = "Application not found" in e.message.orEmpty()
+               if (noApp1 || noApp2) logger.info(e) { "Couldn't find an editor association for file=$this" }
                else logger.error(e) { "Opening file=$this in system editor failed" }
 
-               if (noApp) open()
+               if (noApp1 || noApp2) open()
             } catch (e: IllegalArgumentException) {
-               // file does not exists, nothing to do
+               // file does not exist, nothing to do
             }
          } else {
             open()
@@ -224,11 +225,12 @@ fun File.open() {
                try {
                   Desktop.getDesktop().open(this)
                } catch (e: IOException) {
-                  val noApp = "No application is associated with the specified file for this operation" in e.message.orEmpty()
-                  if (noApp) logger.warn(e) { "Couldn't find an application association for file=$this" }
+                  val noApp1 = "No application is associated with the specified file for this operation" in e.message.orEmpty()
+                  val noApp2 = "Application not found" in e.message.orEmpty()
+                  if (noApp1 || noApp2) logger.warn(e) { "Couldn't find an application association for file=$this" }
                   else logger.error(e) { "Opening file=$this in native app failed" }
                } catch (e: IllegalArgumentException) {
-                  // file does not exists, nothing to do
+                  // file does not exist, nothing to do
                }
             }
          }

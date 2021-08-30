@@ -26,7 +26,6 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
-import javafx.scene.text.TextAlignment.JUSTIFY
 import javafx.util.Callback
 import kotlin.math.round
 import mu.KLogging
@@ -74,7 +73,6 @@ import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
-import sp.it.util.access.minus
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
@@ -143,7 +141,6 @@ import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.stackPane
-import sp.it.util.ui.text
 import sp.it.util.ui.typeText
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
@@ -482,7 +479,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
          cover.loadFile(null)
          titleL.text = ""
-         infoT.text = ""
+         infoT.text.value = ""
          fileTree.root = null
          fileTree.requestFocus()
 

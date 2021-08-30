@@ -13,6 +13,7 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.StackPane
 import oshi.annotation.concurrent.ThreadSafe
+import sp.it.util.access.v
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.file.readTextTry
@@ -20,6 +21,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.open
 import sp.it.util.ui.lay
@@ -31,12 +33,12 @@ class MdNode: StackPane() {
    /** Source of the displayed markdown. Relative links resolve against it. */
    private var file: File? = null
    /** Source of the displayed markdown. */
-   var text: String = ""
-     set(value) {
+   var text = v("").apply {
+      attach {
         dataId.getAndIncrement()
-        field = value
-        children[0].asIs<ScrollPane>().content.asIs<MdNodeContent>().mdString.value = text
-     }
+        children[0].asIs<ScrollPane>().content.asIs<MdNodeContent>().mdString.value = it
+      }
+   }
 
    init {
       lay += scrollPane {
@@ -87,7 +89,7 @@ class MdNode: StackPane() {
       } ui {
          if (dataId.get()==id) {
             file = f
-            text = it
+            text.value = it
             file = f
          }
       }
@@ -97,7 +99,7 @@ class MdNode: StackPane() {
    fun readText(text: String) {
       runFX {
          file = null
-         this.text = text
+         this.text.value = text
       }
    }
 

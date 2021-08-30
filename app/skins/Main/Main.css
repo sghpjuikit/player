@@ -761,6 +761,30 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-border-width: 0;
     -fx-padding: 0.2em 0.4em 0.2em 0.4em;
 }
+.menu > .right-container {
+    -fx-padding: 0 1em;
+}
+.menu > .right-container > .arrow {
+    -fx-padding: 0.25em 0.167em 0.25em 0.167em; /* 4.5 2 4.5 2 */
+    -fx-background-color: -skin-def-font-color;
+    -fx-shape: "M0,-4L4,0L0,4Z";
+    -fx-scale-shape: true;
+}
+.menu:focused > .right-container > .arrow {
+    -fx-background-color: -fx-focus-color;
+}
+.menu-up-arrow {
+    -fx-padding: 0.666667em 0.416667em 0.0em 0.416667em;  /* 8 5 0 5 */
+    -fx-background-color: -skin-def-font-color;
+    -fx-shape: "M0 1 L1 1 L.5 0 Z";
+    -fx-effect: innershadow( two-pass-box , rgba(0,0,0,0.6) , 4, 0.0 , 0 , 1 );
+}
+.menu-down-arrow {
+    -fx-background-color: -skin-def-font-color;
+    -fx-padding: 0.666667em 0.416667em 0.0em 0.416667em;  /* 8 5 0 5 */
+    -fx-shape: "M0 0 L1 0 L.5 1 Z";
+    -fx-effect: innershadow( two-pass-box , rgba(0,0,0,0.6) , 4, 0.0 , 0 , 1 );
+}
 
 /*******************************************************************************
  * MenuItem
@@ -3152,8 +3176,8 @@ Shape, Text, SpitText, TextFlow > * {
 /* hide the arrow if no children */
 .menu-nochildren > .right-container > .arrow,
 .menu-nochildren:focused > .right-container > .arrow {
-    -fx-padding: 0;
-    -fx-background-color: transparent;
+     -fx-padding: 0;
+     -fx-background-color: transparent;
 }
 
 

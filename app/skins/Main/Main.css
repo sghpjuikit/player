@@ -3764,10 +3764,11 @@ Shape, Text, SpitText, TextFlow > * {
 .markdown-code-anti-padding {
     -fx-translate-x: 100;
 }
-.markdown-codeblock-box-icon {
+.markdown-codeblock-box-icon-box {
     -fx-padding: -0.5em;
 }
-.markdown-codeblock-box-icon .icon {
+.markdown-codeblock-box-icon-box .icon {
+    -glyph-size: 1em;
     -fx-border-color: -mdfx-border-color-1;
     -fx-border-width: 0.5 0 0 0.5;
     -fx-border-radius: 0.5em 0 0 0;

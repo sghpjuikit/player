@@ -50,8 +50,8 @@ fun FencedCodeBlock.toNode(): Node {
    val s = Subscribed {
       val ip = stackPane {
          isPickOnBounds = true
-         styleClass += "markdown-codeblock-box-icon"
-         lay(BOTTOM_RIGHT) += Icon(FontAwesomeIcon.COPY, 35.0).onClickDo { Clipboard.getSystemClipboard()[PLAIN_TEXT] = text }
+         styleClass += "markdown-codeblock-box-icon-box"
+         lay(BOTTOM_RIGHT) += Icon(FontAwesomeIcon.COPY).onClickDo { Clipboard.getSystemClipboard()[PLAIN_TEXT] = text }
       }
       vbox.lay += ip
       Subscription { vbox.lay -= ip }

@@ -186,6 +186,11 @@ fun <T: Node> Node.lookupChildAt(at: Int): T = when (this) {
    else -> fail { "${this::class} can not have children" }
 }
 
+inline fun <reified T: Node> Node.lookupChildAs(): T = when (this) {
+   is Parent -> childrenUnmodifiable.asSequence().filterIsInstance<T>().first()
+   else -> fail { "${this::class} can not have children" }
+}
+
 @Suppress("UNCHECKED_CAST")
 fun <T: Node> Node.lookupSiblingUp(by: Int = 1): T = parent!!.asIs<Parent>().childrenUnmodifiable.net { it.getOrNull(it.indexOf(this) - by)!! } as T
 

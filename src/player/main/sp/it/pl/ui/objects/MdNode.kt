@@ -31,6 +31,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.open
 import sp.it.util.ui.lay
+import sp.it.util.ui.lookupChildAs
 import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.scrollPane
 
@@ -63,7 +64,7 @@ class MdNode: StackPane() {
                      val anchor = link.trim().drop(1)
                      val content = children[0].asIs<MdNodeHelper>()
                      content.lookupAll(".markdown-heading")
-                        .find { it.lookupChildAt<Text>(0).text.replace(' ', '-').equals(anchor, true) }
+                        .find { it.lookupChildAs<Text>().text.replace(' ', '-').equals(anchor, true) }
                         .ifNotNull {
                            val anchorPosition = content.sceneToLocal(it.localToScene(it.layoutBounds)).minY
                            val virtualHeight = this@scrollPane.content.layoutBounds.height-this@scrollPane.height

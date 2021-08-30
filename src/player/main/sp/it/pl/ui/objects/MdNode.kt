@@ -13,12 +13,15 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.StackPane
 import javafx.scene.text.Text
+import kotlin.math.sin
+import kotlin.math.sqrt
 import oshi.annotation.concurrent.ThreadSafe
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.getText
 import sp.it.pl.main.hasText
 import sp.it.pl.main.installDrag
 import sp.it.util.access.v
+import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.file.readTextTry
@@ -32,8 +35,8 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.system.open
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAs
-import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.scrollPane
+import sp.it.util.units.millis
 
 /** Node displaying markdown as native javafx scene-graph */
 class MdNode: StackPane() {
@@ -68,7 +71,9 @@ class MdNode: StackPane() {
                         .ifNotNull {
                            val anchorPosition = content.sceneToLocal(it.localToScene(it.layoutBounds)).minY
                            val virtualHeight = this@scrollPane.content.layoutBounds.height-this@scrollPane.height
-                           this@scrollPane.vvalue = anchorPosition/virtualHeight
+                           val ov = this@scrollPane.vvalue
+                           val nv = anchorPosition/virtualHeight
+                           anim(250.millis) { this@scrollPane.vvalue = ov + it*(nv-ov) }.intpl { sqrt(sin(Math.PI/2*it)) }.play()
                         }
                   } else {
                      runTry { URI(link.trim()).resolveAsLink() }.orNull()?.open()

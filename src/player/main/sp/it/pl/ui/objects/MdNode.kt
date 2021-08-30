@@ -13,6 +13,10 @@ import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.StackPane
 import oshi.annotation.concurrent.ThreadSafe
+import sp.it.pl.main.IconOC
+import sp.it.pl.main.getText
+import sp.it.pl.main.hasText
+import sp.it.pl.main.installDrag
 import sp.it.util.access.v
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
@@ -72,6 +76,17 @@ class MdNode: StackPane() {
             }
          }
       }
+
+      installDrag(
+         IconOC.MARKDOWN, "Display as markdown",
+         { it.dragboard.hasText() },
+         { readText(it.dragboard.getText()) }
+      )
+      installDrag(
+         IconOC.MARKDOWN, "Read & display as markdown",
+         { it.dragboard.hasFiles() },
+         { readFile(it.dragboard.files.first()) }
+      )
    }
 
    private fun URI.asDirectory(): URI = toString().net { if (!it.endsWith("/")) URI.create("$it/") else this }

@@ -3,10 +3,15 @@ package sp.it.pl.layout
 import javafx.event.EventHandler
 import javafx.geometry.BoundingBox
 import javafx.geometry.Bounds
+import javafx.geometry.Insets
+import javafx.geometry.Pos
+import javafx.geometry.Pos.*
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.memberProperties
 import sp.it.pl.layout.Layouter.Companion.suppressHidingFor
 import sp.it.pl.layout.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.layout.controller.io.IOLayer
@@ -21,20 +26,27 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.Resize
 import sp.it.pl.ui.objects.window.pane.PaneWindowControls
+import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.async.runFX
 import sp.it.util.collections.observableSet
+import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.cvn
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.net
+import sp.it.util.functional.ifNull
 import sp.it.util.functional.runnable
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.suppressed
+import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.initClipToPadding
@@ -50,7 +62,20 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
    private var isResizing = false
    private val isAnyWindowMoving = observableSet<Int>()
    private val isAnyWindowResizing = observableSet<Int>()
-   private val content = AnchorPane()
+   private val content = object: AnchorPane() {
+      override fun layoutChildren() {
+         println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+         super.layoutChildren()
+
+//         isResizing = true
+//         windows.forEach { (_, w) ->
+//            w.snappable.value = false
+//            w.updatePosition()
+//            w.snappable.value = APP.ui.snapping.value
+//         }
+//         isResizing = false
+      }
+   }
 
    init {
       root.minSize = 0 x 0
@@ -80,24 +105,32 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          { bestRec(it.x, it.y, null).absolute } // alternatively: e -> bestRec(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow())).absolute
       )
 
-      content.widthProperty() attach {
+//      content.widthProperty() attach {
+//         println("1 ${content.width}")
+//         isResizing = true
+//         windows.forEach { (_, w) ->
+//            w.snappable.value = false
+//            w.updatePosition()
+//            w.snappable.value = APP.ui.snapping.value
+//         }
+//         isResizing = false
+//      }
+//      content.heightProperty() attach {
+//         println("2 ${content.width}")
+//         isResizing = true
+//         windows.forEach { (_, w) ->
+//            w.snappable.value = false
+//            w.updatePosition()
+//            w.snappable.value = APP.ui.snapping.value
+//         }
+//         isResizing = false
+//      }
+      content.layoutBoundsProperty() attach {
+         println("3 ${content.width}")
          isResizing = true
-         windows.forEach { (i, w) ->
+         windows.forEach { (_, w) ->
             w.snappable.value = false
-            val (wx, ww) = container.properties.net { it["${i}x"].asD() to it["${i}w"].asD() }
-            if (wx!=null) w.x.value = wx*it.toDouble()
-            if (wx!=null && ww!=null) w.w.value = (ww - wx)*it.toDouble()
-            w.snappable.value = APP.ui.snapping.value
-         }
-         isResizing = false
-      }
-      content.heightProperty() attach {
-         isResizing = true
-         windows.forEach { (i, w) ->
-            w.snappable.value = false
-            val (wy, wh) = container.properties.net { it["${i}y"].asD() to it["${i}h"].asD() }
-            if (wy!=null) w.y.value = wy*it.toDouble()
-            if (wy!=null && wh!=null) w.h.value = (wh - wy)*it.toDouble()
+            w.updatePosition()
             w.snappable.value = APP.ui.snapping.value
          }
          isResizing = false
@@ -168,6 +201,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
             container.properties -= "${i}y"
             container.properties -= "${i}w"
             container.properties -= "${i}h"
+            container.properties -= "window-${i}"
          }
       }
    }
@@ -182,19 +216,13 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          w.snappable.value = false
          w.root.onEventDown(MOUSE_CLICKED, PRIMARY) {}
 
-         val (wx, ww) = container.properties.net { it["${i}x"].asD() to it["${i}w"].asD() }
-         val (wy, wh) = container.properties.net { it["${i}y"].asD() to it["${i}h"].asD() }
-         if (wx!=null) w.x.value = wx*content.width
-         if (wy!=null) w.y.value = wy*content.height
-         if (wx!=null && ww!=null) w.w.value = ww*content.width - wx*content.width
-         if (wy!=null && wh!=null) w.h.value = wh*content.height - wy*content.height
-
-         w.x attach { if (!isResizing) container.properties["${i}x"] = it.toDouble()/content.width }
-         w.x attach { if (!isResizing) container.properties["${i}w"] = (it.toDouble() + w.w.value)/content.width }
-         w.y attach { if (!isResizing) container.properties["${i}y"] = it.toDouble()/content.height }
-         w.y attach { if (!isResizing) container.properties["${i}h"] = (it.toDouble() + w.h.value)/content.height }
-         w.w attach { if (!isResizing) container.properties["${i}w"] = (w.x.value + it.toDouble())/content.width }
-         w.h attach { if (!isResizing) container.properties["${i}h"] = (w.y.value + it.toDouble())/content.height }
+         container.properties["window-${i}"].asIs<WindowPosition?>().ifNotNull(w.position::setTo)
+         container.properties["window-${i}"] = w.position
+         w.updatePosition()
+         w.x attach { w.positionUpdate() }
+         w.y attach { w.positionUpdate() }
+         w.w attach { w.positionUpdate() }
+         w.h attach { w.positionUpdate() }
          w.snapDistance syncFrom APP.ui.snapDistance on w.disposer
          w.snappable syncFrom APP.ui.snapping on w.disposer
          container.lockedUnder sync { w.resizable.value = !it } on w.disposer
@@ -252,14 +280,28 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
    /** Initializes position & size for i-th window, ignoring self w if passed as param.  */
    private fun storeBestRec(i: Int, x: Double, y: Double) {
-      val bestPos = bestRec(x, y, null).relative
+      val (rel, abs) = bestRec(x, y, null)
       // add empty window at index
       // the method call eventually invokes load() method below, with
       // component/child == null (3rd case)
-      container.properties["${i}x"] = bestPos.a
-      container.properties["${i}y"] = bestPos.b
-      container.properties["${i}w"] = bestPos.c + bestPos.a
-      container.properties["${i}h"] = bestPos.d + bestPos.b
+      container.properties["${i}x"] = rel.a
+      container.properties["${i}y"] = rel.b
+      container.properties["${i}w"] = rel.c + rel.a
+      container.properties["${i}h"] = rel.d + rel.b
+      container.properties["window-${i}"] = (container.properties["window-${i}"].asIs<WindowPosition?>() ?: WindowPosition()).apply {
+         minXAbs = abs.minX
+         minXRel = rel.a
+         maxXAbs = abs.maxX
+         maxXRel = rel.c + rel.a
+         minYAbs = abs.minY
+         minYRel = rel.b
+         maxYAbs = abs.maxY
+         maxYRel = rel.d + rel.b
+         wAbs = abs.width
+         wRel = abs.width/content.width
+         hAbs = abs.height
+         hRel = abs.height/content.height
+      }
    }
 
    private fun addEmptyWindowAt(x: Double, y: Double): Int {
@@ -298,6 +340,95 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          super.close()
       }
 
+
+      val position = WindowPosition()
+      val positionUpdate = Suppressor()
+      fun positionUpdate() {
+         if (!this@ContainerFreeFormUi.isResizing)
+         positionUpdate.suppressing {
+            updatePosition.suppressed {
+               position.minXAbs = x.value
+               position.minXRel = x.value/this@ContainerFreeFormUi.content.width
+               position.maxXAbs = x.value+w.value
+               position.maxXRel = (x.value+w.value)/this@ContainerFreeFormUi.content.width
+               position.minYAbs = y.value
+               position.minYRel = y.value/this@ContainerFreeFormUi.content.height
+               position.maxYAbs = y.value+h.value
+               position.maxYRel = (y.value+h.value)/this@ContainerFreeFormUi.content.height
+               position.wAbs = w.value
+               position.wRel = w.value/this@ContainerFreeFormUi.content.width
+               position.hAbs = h.value
+               position.hRel = h.value/this@ContainerFreeFormUi.content.height
+            }
+         }
+      }
+
+      val updatePosition = Suppressor()
+      fun updatePosition() {
+         if (this@ContainerFreeFormUi.content.width>0.0 && this@ContainerFreeFormUi.content.height>0.0)
+         updatePosition.suppressing {
+            positionUpdate.suppressed {
+               when (position.alignment) {
+                  TOP_LEFT -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  TOP_CENTER -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  TOP_RIGHT -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  CENTER_LEFT -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  CENTER_RIGHT -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  BOTTOM_LEFT -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  BOTTOM_CENTER -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  BOTTOM_RIGHT -> {
+                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                  }
+                  BASELINE_LEFT, BASELINE_CENTER, BASELINE_RIGHT, CENTER, null -> {
+                     x.value = (position.minXRel*this@ContainerFreeFormUi.content.width)
+                     y.value = (position.minYRel*this@ContainerFreeFormUi.content.height)
+                     w.value = (position.maxXRel*this@ContainerFreeFormUi.content.width)
+                     h.value = (position.maxYRel*this@ContainerFreeFormUi.content.height)
+                  }
+               }
+            }
+         }
+      }
+
+
       fun autoLayout() {
          val p = bestRec(w.value + w.value/2, y.value + h.value/2, this).absolute
          x.value = p.minX
@@ -311,12 +442,52 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
             isHeaderVisible = true
             rightHeaderBox.children += listOf(
                Icon(IconMD.VIEW_DASHBOARD, -1.0, autoLayoutTooltipText, { autoLayout() }).styleclass("header-icon"),
+               Icon(IconFA.COGS, -1.0, "Settings\n\n" + "Displays widget properties.").onClickDo { showSettings(it) }.styleclass("header-icon"),
                Icon(ICON_CLOSE, -1.0, "Close this component", { container.removeChild(i) }).styleclass("header-icon")
             )
          } else {
             isHeaderVisible = false
             rightHeaderBox.children.clear()
          }
+      }
+
+      fun showSettings(it: Icon) {
+         val key = "settingsWindow"
+         val settings = object: ConfigurableBase<Any?>() {
+            val margin by cvn(position.margin).attach { position.margin = it; updatePosition() }
+            val alignment by cvn(position.alignment).attach { position.alignment = it; updatePosition() }
+         }
+         it.properties[key]?.asIf<PopWindow>().ifNotNull { it.focus() }.ifNull {
+            APP.windowManager.showSettings(settings, it).apply {
+               it.properties[key] = this
+               onHiding += { it.properties[key] = null }
+            }
+         }
+      }
+   }
+
+   data class WindowPosition(
+      var margin: Insets?,
+      var alignment: Pos?,
+      var minXAbs: Double,
+      var minXRel: Double,
+      var maxXAbs: Double,
+      var maxXRel: Double,
+      var minYAbs: Double,
+      var minYRel: Double,
+      var maxYAbs: Double,
+      var maxYRel: Double,
+      var wAbs: Double,
+      var wRel: Double,
+      var hAbs: Double,
+      var hRel: Double
+   ) {
+      constructor(): this(null, null, 100.0, 1/3.0, 200.0, 2/3.0, 100.0, 1/3.0, 200.0, 2/3.0, 100.0, 1/3.0, 100.0, 1/3.0)
+
+      fun setTo(wp: WindowPosition) {
+         this::class.memberProperties
+            .map { it.asIs<KMutableProperty1<WindowPosition, Any?>>() }
+            .forEach { it.set(this, it.get(wp)) }
       }
    }
 

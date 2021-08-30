@@ -12,6 +12,7 @@ import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.StackPane
+import javafx.scene.text.Text
 import oshi.annotation.concurrent.ThreadSafe
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.getText
@@ -22,6 +23,7 @@ import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -29,6 +31,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.open
 import sp.it.util.ui.lay
+import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.scrollPane
 
 /** Node displaying markdown as native javafx scene-graph */
@@ -55,7 +58,20 @@ class MdNode: StackPane() {
             }
             override fun setLink(node: Node, link: String, description: String) {
                node.onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  runTry { URI(link.trim()).resolveAsLink() }.orNull()?.open()
+                  val isAnchor = link.startsWith("#")
+                  if (isAnchor) {
+                     val anchor = link.trim().drop(1)
+                     val content = children[0].asIs<MdNodeHelper>()
+                     content.lookupAll(".markdown-heading")
+                        .find { it.lookupChildAt<Text>(0).text.replace(' ', '-').equals(anchor, true) }
+                        .ifNotNull {
+                           val anchorPosition = content.sceneToLocal(it.localToScene(it.layoutBounds)).minY
+                           val virtualHeight = this@scrollPane.content.layoutBounds.height-this@scrollPane.height
+                           this@scrollPane.vvalue = anchorPosition/virtualHeight
+                        }
+                  } else {
+                     runTry { URI(link.trim()).resolveAsLink() }.orNull()?.open()
+                  }
                }
             }
 

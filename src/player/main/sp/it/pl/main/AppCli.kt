@@ -146,7 +146,7 @@ class Cli: CliktCommand(
                      files.forEach { APP.windowManager.launchComponent(it) }
                   }
                   files.all { it hasExtension md } -> {
-                     files.forEach { APP.actions.openMarkdown(it) }
+                     files.forEach { APP.actions.openMarkdownFile.action(it) }
                   }
                   else -> {
                      APP.ui.actionPane.orBuild.show(files)

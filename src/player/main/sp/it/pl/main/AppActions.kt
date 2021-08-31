@@ -36,6 +36,7 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
+import sp.it.pl.ui.pane.FastAction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.ShortcutPane.Entry
@@ -52,6 +53,8 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
+import sp.it.util.file.hasExtension
+import sp.it.util.file.type.MimeExt
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
@@ -412,24 +415,33 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }
 
-   fun openMarkdown(mdText: String) {
+   val openMarkdownFile = FastAction<File>(
+      "Open markdown",
+      "Opens markdown file.",
+      IconOC.MARKDOWN,
+      { it hasExtension MimeExt.md },
+   ) { mdFile ->
       APP.windowManager.createWindow().apply {
          detachLayout()
          setContent(
             MdNode().apply {
-               readText(mdText)
+               readFile(mdFile)
             }
          )
          show()
       }
    }
 
-   fun openMarkdown(mdFile: File) {
+   val openMarkdownText = FastAction<String>(
+      "Open markdown",
+      "Opens markdown text.",
+      IconOC.MARKDOWN,
+   ) { mdText ->
       APP.windowManager.createWindow().apply {
          detachLayout()
          setContent(
             MdNode().apply {
-               readFile(mdFile)
+               readText(mdText)
             }
          )
          show()

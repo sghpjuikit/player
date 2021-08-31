@@ -276,9 +276,8 @@ public class ActionPane extends OverlayPane<Object> {
 		show();
 	}
 
-	@SafeVarargs
 	@SuppressWarnings("unused")
-	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, SlowAction<T>... actions) {
+	public final <T> void show(Class<T> type, Fut<T> value, boolean exclusive, ActionData<?,?>... actions) {
 		data = value;
 		actionsIcons = list(actions);
 		use_registered_actions = !exclusive;

@@ -9,6 +9,8 @@ import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.layout.Pane
 import javafx.stage.FileChooser.ExtensionFilter
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.memberProperties
 import kotlinx.coroutines.runBlocking
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
@@ -41,6 +43,7 @@ import sp.it.pl.main.Widgets.TESTER
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.clone
+import sp.it.pl.ui.pane.ActionData
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
@@ -70,11 +73,11 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
-import sp.it.util.file.type.MimeExt.Companion.md
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -85,6 +88,8 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
+import sp.it.util.type.isSubtypeOf
+import sp.it.util.type.raw
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -94,6 +99,15 @@ import sp.it.util.units.millis
 
 @Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
+
+   // register app actions automatically
+   APP.actions::class.memberProperties.forEach {
+      if (it.returnType.isSubtypeOf<ActionData<*,*>>())
+         it.asIs<KProperty1<AppActions, ActionData<Any?,*>>>().get(APP.actions).net {
+            ap.register<Any>(it.type.raw, it)
+         }
+   }
+
    ap.register<Any?>(
       FastColAction<Any?>(
          "Set as data",
@@ -390,13 +404,6 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMD.IMPORT,
          { it hasExtension fxwl },
          { it.loadComponentFxwlJson() ui { it.ifNotNull { APP.windowManager.showWindow(it) } } }
-      ),
-      FastAction(
-         "Open markdown",
-         "Opens markdown file.",
-         IconOC.MARKDOWN,
-         { it hasExtension md },
-         { APP.actions.openMarkdown(it) }
       ),
       FastColAction(
          "Set created to last modified time",

@@ -13,6 +13,8 @@ import sp.it.util.collections.getElementClass
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISNT
+import sp.it.util.type.VType
+import sp.it.util.type.type
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class, *actions)
 
@@ -65,9 +67,10 @@ class ComplexActionData<R, T> {
 }
 
 /** Action. */
-abstract class ActionData<C, T> {
+class ActionData<C, T> {
 
    @JvmField val name: String
+   @JvmField val type: VType<T>
    @JvmField val description: String
    @JvmField val icon: GlyphIcons
    @JvmField val groupApply: GroupApply
@@ -79,8 +82,9 @@ abstract class ActionData<C, T> {
    @JvmField var preventClosing = false
    @JvmField var complexData: ((ActionPane) -> ComplexActionData<T, *>)? = null
 
-   protected constructor(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, condition: Test<T>, isLong: Boolean, action: Act<T>) {
+   constructor(name: String, type: VType<T>, description: String, icon: GlyphIcons, groupApply: GroupApply, condition: Test<T>, isLong: Boolean, action: Act<T>) {
       this.name = name
+      this.type = type
       this.description = description
       this.icon = icon
       this.groupApply = groupApply
@@ -130,59 +134,44 @@ abstract class ActionData<C, T> {
       }
    }
 
+   override fun toString() = "ActionData(\"$name\")"
 }
 
-/** Action that executes synchronously - simply consumes the input. */
-abstract class FastActionBase<C, T>: ActionData<C, T> {
-   protected constructor(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, constriction: Test<T>, action: Act<T>):
-      super(name, description, icon, groupApply, constriction, false, action)
-}
+/** [ActionData] that executes synchronously - simply consumes the input. */
+inline fun <C, reified T> FastActionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, noinline constriction: Test<T>, noinline action: Act<T>) = ActionData<C, T>(name, type<T>(), description, icon, groupApply, constriction, false, action)
 
-/** FastAction that consumes simple input - its type is the same as type of the action. */
-class FastAction<T>: FastActionBase<T, T> {
+/** [FastAction] that consumes simple input - its type is the same as type of the action. */
+inline fun <reified T> FastAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<T>) = FastActionBase<T, T>(name, description, icon, NONE, IS, action)
 
-   constructor(name: String, description: String, icon: GlyphIcons, action: Act<T>): super(name, description, icon, NONE, IS, action)
+/** [FastAction] that consumes simple input - its type is the same as type of the action. */
+inline fun <reified T> FastAction(name: String, description: String, icon: GlyphIcons, noinline constriction: Test<T>, noinline action: Act<T>) = FastActionBase<T, T>(name, description, icon, NONE, constriction, action)
 
-   constructor(name: String, description: String, icon: GlyphIcons, constriction: Test<T>, action: Act<T>): super(name, description, icon, NONE, constriction, action)
+/** [FastAction] that consumes simple input - its type is the same as type of the action. */
+inline fun <reified T> FastAction(icon: GlyphIcons, action: Action) = FastActionBase<T, T>(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, IS, { action.run() })
 
-   constructor(icon: GlyphIcons, action: Action): super(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, IS, { action.run() })
+/** [FastAction] that consumes collection input - its input type is collection of its type. */
+inline fun <reified T> FastColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = FastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, ISNT, action)
 
-}
+/** [FastAction] that consumes collection input - its input type is collection of its type. */
+inline fun <reified T> FastColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = FastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.none(constriction) }, action)
 
-/** FastAction that consumes collection input - its input type is collection of its type. */
-class FastColAction<T>: FastActionBase<T, Collection<T>> {
+/** [ActionData] that executes asynchronously - receives a future, processes the data and returns it. */
+inline fun <C, reified T> SlowActionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, noinline constriction: Test<T>, noinline action: Act<T>) = ActionData<C, T>(name, type<T>(), description, icon, groupApply, constriction, true, action)
 
-   constructor(name: String, description: String, icon: GlyphIcons, action: Act<Collection<T>>): super(name, description, icon, FOR_ALL, ISNT, action)
+/** [SlowActionBase] that processes simple input - its type is the same as type of the action. */
+inline fun <reified T> SlowAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<T>) = SlowActionBase<T, T>(name, description, icon, NONE, IS, action)
 
-   constructor(name: String, description: String, icon: GlyphIcons, constriction: Test<T>, action: Act<Collection<T>>): super(name, description, icon, FOR_ALL, { it.none(constriction) }, action)
+/** [SlowActionBase] that processes simple input - its type is the same as type of the action. */
+inline fun <reified T> SlowAction(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, noinline action: Act<T>) = SlowActionBase<T, T>(name, description, icon, groupApply, IS, action)
 
-}
+/** [SlowActionBase] that processes simple input - its type is the same as type of the action. */
+inline fun <reified T> SlowAction(name: String, description: String, icon: GlyphIcons, noinline constriction: Test<T>, noinline action: Act<T>) = SlowActionBase<T, T>(name, description, icon, NONE, constriction, action)
 
-/** Action that executes asynchronously - receives a future, processes the data and returns it. */
-abstract class SlowActionBase<C, T>: ActionData<C, T> {
-   protected constructor(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, constriction: Test<T>, action: Act<T>):
-      super(name, description, icon, groupApply, constriction, true, action)
-}
+/** [SlowActionBase] that processes collection input - its input type is collection of its type. */
+inline fun <reified T> SlowColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = SlowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, ISNT, action)
 
-/** SlowAction that processes simple input - its type is the same as type of the action. */
-class SlowAction<T>: SlowActionBase<T, T> {
-
-   constructor(name: String, description: String, icon: GlyphIcons, action: Act<T>): super(name, description, icon, NONE, IS, action)
-
-   constructor(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, action: Act<T>): super(name, description, icon, groupApply, IS, action)
-
-   constructor(name: String, description: String, icon: GlyphIcons, constriction: Test<T>, action: Act<T>): super(name, description, icon, NONE, constriction, action)
-
-}
-
-/** SlowAction that processes collection input - its input type is collection of its type. */
-class SlowColAction<T>: SlowActionBase<T, Collection<T>> {
-
-   constructor(name: String, description: String, icon: GlyphIcons, action: Act<Collection<T>>): super(name, description, icon, FOR_ALL, ISNT, action)
-
-   constructor(name: String, description: String, icon: GlyphIcons, constriction: Test<T>, action: Act<Collection<T>>): super(name, description, icon, FOR_ALL, { it.none(constriction) }, action)
-
-}
+/** [SlowActionBase] that processes collection input - its input type is collection of its type. */
+inline fun <reified T> SlowColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = SlowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.none(constriction) }, action)
 
 enum class GroupApply {
    FOR_EACH, FOR_ALL, NONE

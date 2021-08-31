@@ -399,25 +399,25 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       cover.onFileDropped = { file ->
          if (data.isFileBased())
             APP.ui.actionPane.orBuild.show(File::class.java, file, true,
-               SlowAction(
+               SlowAction<File>(
                   "Copy and set as album cover",
                   "Sets image as cover. Copies file to destination and renames it to 'cover' so it is recognized as album" +
                      " cover. Any previous cover file will be preserved by renaming.\n\nDestination: ${data.getLocation()!!.path}",
                   IconFA.PASTE,
                   { setAsCover(it, true) }
                ),
-               SlowAction(
+               SlowAction<File>(
                   "Copy to location",
                   "Copies image to destination. Any such existing file is overwritten.\n\nDestination: ${data.getLocation()!!.path}",
                   IconFA.COPY,
                   { setAsCover(it, false) }
                ),
-               SlowAction(
+               SlowAction<File>(
                   "Write to tag (single)", "Writes image as cover to song tag. Other songs of the song's album remain untouched.",
                   IconFA.TAG,
                   { tagAsCover(it, false) }
                ),
-               SlowAction(
+               SlowAction<File>(
                   "Write to tag (album)",
                   "Writes image as cover to all songs in this song's album. Only songs in the library are considered." +
                      " Songs with no album are ignored. At minimum the displayed song will be updated (even if not in" +

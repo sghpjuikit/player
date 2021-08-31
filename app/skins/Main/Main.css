@@ -3659,12 +3659,6 @@ Shape, Text, SpitText, TextFlow > * {
 * {
     -mdfx-font-color: -skin-def-font-color;
     -mdfx-link-color: -skin-focus-font-color;
-    -mdfx-border-color-1: #888;
-
-    -mdfx-bg-color-1: #ccc;
-    -mdfx-bg-color-2: #ddd;
-    -mdfx-bg-color-3: #eee;
-
     -mdfx-bq-color-border: #4488cc; /* the blockquote's border color */
     -mdfx-bq-color-background: #0000ff0c; /* the blockquote's background color */
 }
@@ -3776,25 +3770,19 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 .markdown-table-table {
-    -fx-vgap: -1;
-    -fx-hgap: -1;
+    -fx-vgap: 0;
+    -fx-hgap: 0;
 }
-
 .markdown-table-cell {
     -fx-padding: 8;
-    -fx-border-color: -mdfx-border-color-1;
-    -fx-border-width: 0;
+    -fx-border-color: rgba(255,255,255,0.05);
+    -fx-border-width: 0.5;
 }
-
 .markdown-table-even {
-    -fx-background-color: -mdfx-bg-color-1;
+    -fx-background-color: rgba(255,255,255,0.01);
 }
-.markdown-table-odd {
-    -fx-background-color: -mdfx-bg-color-2;
-}
-.markdown-table-cell-top {
-    -fx-background-color: -mdfx-bg-color-3;
-}
+.markdown-table-odd {}
+.markdown-table-cell-top {}
 .markdown-table-cell-top .markdown-normal-flow {
     -fx-alignment: center;
     -fx-text-alignment: center;

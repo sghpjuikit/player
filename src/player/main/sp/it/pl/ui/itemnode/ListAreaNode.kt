@@ -135,7 +135,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
     * is a [String] transformer.
     *
     * When [outputText] is edited, then if:
-    *  * output type is String: it is considered a transformation of that text and it will be
+    *  * output type is String: it is considered a transformation of that text, and it will be
     * reflected in this list, i.e., [getVal] and this will contain equal elements
     *  * output type is not String: it is considered arbitrary user change of the text representation
     * of transformation output (i.e., this list), but not the output itself.
@@ -168,7 +168,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
             val o = transformsValues.last()
             outputImpl setTo o
             val isManualEdit = transforms.chain.lastOrNull()?.chained?.getVal() is Transformation.Manual
-            if (!isManualEdit) textArea.text = o.asSequence().map { it.toString() }.joinToString("\n")
+            if (!isManualEdit) textArea.text = o.joinToString("\n")
             changeValue(textArea.text.lines())
          }
       }
@@ -257,7 +257,7 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
       class ByString(override val name: String, val f: (String) -> Any?): Transformation() {
          override val linkTypeIn = type<String>()
          override val linkTypeOut = type<String>()
-         override fun invoke(data: List<Any?>) = data.joinToString("\n") { it.toString() }.let(f).let(::collectionWrap).toList()
+         override fun invoke(data: List<Any?>) = data.joinToString("\n").let(f).let(::collectionWrap).toList()
       }
 
       class By1(override val name: String, override val linkTypeIn: VType<*>, override val linkTypeOut: VType<*>, val f: (List<*>) -> List<*>): Transformation() {

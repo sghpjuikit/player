@@ -329,7 +329,7 @@ For build manually from the latest sources:
 
 This is the application module, containing the source code for the functionality.
 For now, the sources are provided with **no licence**.   
-Which does not mean anything is permitted, it is the opposite. This will change in the future.
+Which does not mean anything is permitted, it is the opposite. This may change in the future.
 
 ##### widget modules
 

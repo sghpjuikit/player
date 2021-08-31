@@ -64,7 +64,6 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
    private val isAnyWindowResizing = observableSet<Int>()
    private val content = object: AnchorPane() {
       override fun layoutChildren() {
-         println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
          super.layoutChildren()
 
 //         isResizing = true
@@ -467,23 +466,21 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
    }
 
    data class WindowPosition(
-      var margin: Insets?,
-      var alignment: Pos?,
-      var minXAbs: Double,
-      var minXRel: Double,
-      var maxXAbs: Double,
-      var maxXRel: Double,
-      var minYAbs: Double,
-      var minYRel: Double,
-      var maxYAbs: Double,
-      var maxYRel: Double,
-      var wAbs: Double,
-      var wRel: Double,
-      var hAbs: Double,
-      var hRel: Double
+      var margin: Insets? = null,
+      var alignment: Pos? = null,
+      var minXAbs: Double = 100.0,
+      var minXRel: Double = 1/3.0,
+      var maxXAbs: Double = 200.0,
+      var maxXRel: Double = 1/3.0,
+      var minYAbs: Double = 100.0,
+      var minYRel: Double = 1/3.0,
+      var maxYAbs: Double = 200.0,
+      var maxYRel: Double = 2/3.0,
+      var wAbs: Double = 100.0,
+      var wRel: Double = 1/3.0,
+      var hAbs: Double = 100.0,
+      var hRel: Double = 1/3.0
    ) {
-      constructor(): this(null, null, 100.0, 1/3.0, 200.0, 2/3.0, 100.0, 1/3.0, 200.0, 2/3.0, 100.0, 1/3.0, 100.0, 1/3.0)
-
       fun setTo(wp: WindowPosition) {
          this::class.memberProperties
             .map { it.asIs<KMutableProperty1<WindowPosition, Any?>>() }

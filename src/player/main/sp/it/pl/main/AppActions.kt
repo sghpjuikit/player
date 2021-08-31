@@ -29,6 +29,7 @@ import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.TextDisplayFeature
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.plugin.impl.Notifier
+import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.window.ShowArea.SCREEN_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
@@ -409,6 +410,30 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
       }
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
+   }
+
+   fun openMarkdown(mdText: String) {
+      APP.windowManager.createWindow().apply {
+         detachLayout()
+         setContent(
+            MdNode().apply {
+               readText(mdText)
+            }
+         )
+         show()
+      }
+   }
+
+   fun openMarkdown(mdFile: File) {
+      APP.windowManager.createWindow().apply {
+         detachLayout()
+         setContent(
+            MdNode().apply {
+               readFile(mdFile)
+            }
+         )
+         show()
+      }
    }
 
    fun browseMultipleFiles(files: Sequence<File>) {

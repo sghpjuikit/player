@@ -33,6 +33,7 @@ import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.openInConfigured
 import sp.it.pl.layout.orNone
+import sp.it.pl.main.FileExtensions.fxwl
 import sp.it.pl.main.Widgets.ICON_BROWSER
 import sp.it.pl.main.Widgets.INSPECTOR
 import sp.it.pl.main.Widgets.SONG_TAGGER
@@ -69,6 +70,7 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.type.MimeExt.Companion.md
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -386,8 +388,15 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open widget",
          "Opens exported widget.",
          IconMD.IMPORT,
-         { it hasExtension "fxwl" },
+         { it hasExtension fxwl },
          { it.loadComponentFxwlJson() ui { it.ifNotNull { APP.windowManager.showWindow(it) } } }
+      ),
+      FastAction(
+         "Open markdown",
+         "Opens markdown file.",
+         IconOC.MARKDOWN,
+         { it hasExtension md },
+         { APP.actions.openMarkdown(it) }
       ),
       FastColAction(
          "Set created to last modified time",

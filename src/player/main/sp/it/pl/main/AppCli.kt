@@ -28,8 +28,10 @@ import mu.KLogging
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.PlaylistFeature
+import sp.it.pl.main.FileExtensions.fxwl
 import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
+import sp.it.util.file.type.MimeExt.Companion.md
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.times
@@ -140,8 +142,11 @@ class Cli: CliktCommand(
                      if (files.size==1) APP.actions.openImageFullscreen(files.first())
                      else APP.widgetManager.widgets.use<ImageDisplayFeature>(NEW) { it.showImages(files) }
                   }
-                  files.all { it hasExtension "fxwl" } -> {
+                  files.all { it hasExtension fxwl } -> {
                      files.forEach { APP.windowManager.launchComponent(it) }
+                  }
+                  files.all { it hasExtension md } -> {
+                     files.forEach { APP.actions.openMarkdown(it) }
                   }
                   else -> {
                      APP.ui.actionPane.orBuild.show(files)

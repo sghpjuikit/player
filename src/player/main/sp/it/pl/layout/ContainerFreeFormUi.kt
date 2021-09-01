@@ -13,6 +13,8 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.memberProperties
+import sp.it.pl.core.NameUi
+import sp.it.pl.layout.ContainerFreeFormUi.WindowPositionType.RELATIVE
 import sp.it.pl.layout.Layouter.Companion.suppressHidingFor
 import sp.it.pl.layout.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.layout.controller.io.IOLayer
@@ -33,7 +35,9 @@ import sp.it.util.access.vAlways
 import sp.it.util.async.runFX
 import sp.it.util.collections.observableSet
 import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
+import sp.it.util.conf.def
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -127,7 +131,6 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 //         isResizing = false
 //      }
       content.layoutBoundsProperty() attach {
-         println("3 ${content.width}")
          isResizing = true
          windows.forEach { (_, w) ->
             w.snappable.value = false
@@ -366,63 +369,53 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
       val updatePosition = Suppressor()
       fun updatePosition() {
-         if (this@ContainerFreeFormUi.content.width>0.0 && this@ContainerFreeFormUi.content.height>0.0)
+         val cnt = this@ContainerFreeFormUi.content
+         if (cnt.width>0.0 && cnt.height>0.0)
             updatePosition.suppressing {
                positionUpdate.suppressed {
+                  
+                  w.value = if (position.wType==RELATIVE) position.maxXRel*cnt.width else position.wAbs
+                  h.value = if (position.hType==RELATIVE) position.maxYRel*cnt.height else position.hAbs
                   when (position.alignment) {
                      TOP_LEFT -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else position.minXRel*cnt.width
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else position.minYRel*cnt.height
                      }
                      TOP_CENTER -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else (cnt.width-w.value)/2.0
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else position.minYRel*cnt.height
                      }
                      TOP_RIGHT -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else position.maxXRel*cnt.width-w.value
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else position.minYRel*cnt.height
                      }
                      CENTER_LEFT -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else position.minXRel*cnt.width
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else (cnt.height-h.value)/2.0
+                     }
+                     CENTER -> {
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else (cnt.width-w.value)/2.0
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else (cnt.height-h.value)/2.0
                      }
                      CENTER_RIGHT -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else position.maxXRel*cnt.width-w.value
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else (cnt.height-h.value)/2.0
                      }
                      BOTTOM_LEFT -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else position.minXRel*cnt.width
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else position.maxYRel*cnt.height-h.value
                      }
                      BOTTOM_CENTER -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else (cnt.width-w.value)/2.0
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else position.maxYRel*cnt.height-h.value
                      }
                      BOTTOM_RIGHT -> {
-                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                        x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else position.maxXRel*cnt.width-w.value
+                        y.value = if (position.hType==RELATIVE) position.minYRel*cnt.height else position.maxYRel*cnt.height-h.value
                      }
-                     BASELINE_LEFT, BASELINE_CENTER, BASELINE_RIGHT, CENTER, null -> {
-                        x.value = (position.minXRel*this@ContainerFreeFormUi.content.width)
-                        y.value = (position.minYRel*this@ContainerFreeFormUi.content.height)
-                        w.value = (position.maxXRel*this@ContainerFreeFormUi.content.width)
-                        h.value = (position.maxYRel*this@ContainerFreeFormUi.content.height)
+                     BASELINE_LEFT, BASELINE_CENTER, BASELINE_RIGHT, null -> {
+                        x.value = (position.minXRel*cnt.width)
+                        y.value = (position.minYRel*cnt.height)
                      }
                   }
                }
@@ -454,9 +447,16 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 
       fun showSettings(it: Icon) {
          val key = "settingsWindow"
-         val settings = object: ConfigurableBase<Any?>() {
-            val margin by cvn(position.margin).attach { position.margin = it; updatePosition() }
+         val settings = object: ConfigurableBase<Any?>(), NameUi {
+            override val nameUi = "Window $i"
+//            val margin by cvn(position.margin).attach { position.margin = it; updatePosition() }
+//               .def("Position margin", "Distance from edge, when alignment is set.")
             val alignment by cvn(position.alignment).attach { position.alignment = it; updatePosition() }
+               .def("Alignment", "Affects edge relative to which the position will be calculated.")
+            val wType by cv(position.wType).attach { position.wType = it; updatePosition() }
+               .def("Width type", "Absolute width means no resizing when container width changes. Relative width means portion of the container width.")
+            val hType by cv(position.hType).attach { position.hType = it; updatePosition() }
+               .def("Height type", "Absolute width means no resizing when container width changes. Relative width means portion of the container width.")
          }
          it.properties[key]?.asIf<PopWindow>().ifNotNull { it.focus() }.ifNull {
             APP.windowManager.showSettings(settings, it).apply {
@@ -480,14 +480,19 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
       var maxYRel: Double = 2/3.0,
       var wAbs: Double = 100.0,
       var wRel: Double = 1/3.0,
+      var wType: WindowPositionType = RELATIVE,
       var hAbs: Double = 100.0,
-      var hRel: Double = 1/3.0
+      var hRel: Double = 1/3.0,
+      var hType: WindowPositionType = RELATIVE,
    ) {
       fun setTo(wp: WindowPosition) {
          this::class.memberProperties
             .map { it.asIs<KMutableProperty1<WindowPosition, Any?>>() }
             .forEach { it.set(this, it.get(wp)) }
       }
+   }
+   enum class WindowPositionType {
+      RELATIVE, ABSOLUTE
    }
 
    companion object {

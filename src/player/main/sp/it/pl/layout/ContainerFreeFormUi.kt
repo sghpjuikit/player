@@ -8,6 +8,7 @@ import javafx.geometry.Pos
 import javafx.geometry.Pos.*
 import javafx.scene.Node
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.AnchorPane
 import kotlin.reflect.KMutableProperty1
@@ -49,6 +50,7 @@ import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.ui.initClipToPadding
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.maxSize
@@ -161,7 +163,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          is Widget -> {
             w.ui = null
                ?: run { if (w.ui is WidgetUi && (w.ui as WidgetUi?)!!.widget==c) w.ui else null }
-                  ?: run {
+               ?: run {
                   w.ui?.dispose()
                   WidgetUi(container, i, c).apply {
                      val lb = Icon(IconMD.VIEW_DASHBOARD, 12.0, layoutButtonTooltipText, { w.autoLayout() })
@@ -174,10 +176,11 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          null -> {
             w.ui = null
                ?: run { w.ui?.takeIf { it is Layouter } }
-                  ?: run {
+               ?: run {
                   w.ui?.dispose()
                   Layouter(container, i, w.borders).apply {
                      onCancel = runnable<Any> { container.removeChild(i) }
+                     root.onEventDown(MOUSE_CLICKED, SECONDARY) { hide() }
                   }
                }
             n = w.ui!!.root
@@ -224,8 +227,8 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          w.h attach { w.positionUpdate() }
          w.snapDistance syncFrom APP.ui.snapDistance on w.disposer
          w.snappable syncFrom APP.ui.snapping on w.disposer
-         container.lockedUnder sync { w.resizable.value = !it } on w.disposer
-         container.lockedUnder sync { w.movable.value = !it } on w.disposer
+         container.lockedUnder zip APP.ui.layoutMode sync { (l1, l2) -> w.resizable.value = (!l1 || l2) } on w.disposer
+         container.lockedUnder zip APP.ui.layoutMode sync { (l1, l2) -> w.movable.value = (!l1 || l2) } on w.disposer
          container.showHeaders sync { w.updateHeader() } on w.disposer
          w.titleL.textProperty() syncFrom (if (c is Widget) c.customName else vAlways("")) on w.disposer
          w.resizing attach { if (it==Resize.NONE) runFX(100.millis) { isAnyWindowResizing -= i } else isAnyWindowResizing += i }
@@ -339,92 +342,91 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          super.close()
       }
 
-
       val position = WindowPosition()
       val positionUpdate = Suppressor()
       fun positionUpdate() {
          if (!this@ContainerFreeFormUi.isResizing)
-         positionUpdate.suppressing {
-            updatePosition.suppressed {
-               position.minXAbs = x.value
-               position.minXRel = x.value/this@ContainerFreeFormUi.content.width
-               position.maxXAbs = x.value+w.value
-               position.maxXRel = (x.value+w.value)/this@ContainerFreeFormUi.content.width
-               position.minYAbs = y.value
-               position.minYRel = y.value/this@ContainerFreeFormUi.content.height
-               position.maxYAbs = y.value+h.value
-               position.maxYRel = (y.value+h.value)/this@ContainerFreeFormUi.content.height
-               position.wAbs = w.value
-               position.wRel = w.value/this@ContainerFreeFormUi.content.width
-               position.hAbs = h.value
-               position.hRel = h.value/this@ContainerFreeFormUi.content.height
+            positionUpdate.suppressing {
+               updatePosition.suppressed {
+                  position.minXAbs = x.value
+                  position.minXRel = x.value/this@ContainerFreeFormUi.content.width
+                  position.maxXAbs = x.value+w.value
+                  position.maxXRel = (x.value+w.value)/this@ContainerFreeFormUi.content.width
+                  position.minYAbs = y.value
+                  position.minYRel = y.value/this@ContainerFreeFormUi.content.height
+                  position.maxYAbs = y.value+h.value
+                  position.maxYRel = (y.value+h.value)/this@ContainerFreeFormUi.content.height
+                  position.wAbs = w.value
+                  position.wRel = w.value/this@ContainerFreeFormUi.content.width
+                  position.hAbs = h.value
+                  position.hRel = h.value/this@ContainerFreeFormUi.content.height
+               }
             }
-         }
       }
 
       val updatePosition = Suppressor()
       fun updatePosition() {
          if (this@ContainerFreeFormUi.content.width>0.0 && this@ContainerFreeFormUi.content.height>0.0)
-         updatePosition.suppressing {
-            positionUpdate.suppressed {
-               when (position.alignment) {
-                  TOP_LEFT -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  TOP_CENTER -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  TOP_RIGHT -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  CENTER_LEFT -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  CENTER_RIGHT -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  BOTTOM_LEFT -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  BOTTOM_CENTER -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  BOTTOM_RIGHT -> {
-                     x.value = position.minXRel*this@ContainerFreeFormUi.content.width
-                     y.value = position.minYRel*this@ContainerFreeFormUi.content.height
-                     w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
-                     h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
-                  }
-                  BASELINE_LEFT, BASELINE_CENTER, BASELINE_RIGHT, CENTER, null -> {
-                     x.value = (position.minXRel*this@ContainerFreeFormUi.content.width)
-                     y.value = (position.minYRel*this@ContainerFreeFormUi.content.height)
-                     w.value = (position.maxXRel*this@ContainerFreeFormUi.content.width)
-                     h.value = (position.maxYRel*this@ContainerFreeFormUi.content.height)
+            updatePosition.suppressing {
+               positionUpdate.suppressed {
+                  when (position.alignment) {
+                     TOP_LEFT -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     TOP_CENTER -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     TOP_RIGHT -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     CENTER_LEFT -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     CENTER_RIGHT -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     BOTTOM_LEFT -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     BOTTOM_CENTER -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     BOTTOM_RIGHT -> {
+                        x.value = position.minXRel*this@ContainerFreeFormUi.content.width
+                        y.value = position.minYRel*this@ContainerFreeFormUi.content.height
+                        w.value = position.maxXRel*this@ContainerFreeFormUi.content.width
+                        h.value = position.maxYRel*this@ContainerFreeFormUi.content.height
+                     }
+                     BASELINE_LEFT, BASELINE_CENTER, BASELINE_RIGHT, CENTER, null -> {
+                        x.value = (position.minXRel*this@ContainerFreeFormUi.content.width)
+                        y.value = (position.minYRel*this@ContainerFreeFormUi.content.height)
+                        w.value = (position.maxXRel*this@ContainerFreeFormUi.content.width)
+                        h.value = (position.maxYRel*this@ContainerFreeFormUi.content.height)
+                     }
                   }
                }
             }
-         }
       }
 
 

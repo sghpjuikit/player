@@ -195,7 +195,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
 
       // column context menu - add group by menu
-      val fieldMenu = Menu("WidgetTags by")
+      val fieldMenu = Menu("Group by")
       table.columnMenu.items.add(fieldMenu)
       table.columnMenu.onEventDown(WINDOW_HIDDEN) { fieldMenu.items.clear() }
       table.columnMenu.onEventDown(WINDOW_SHOWING) {

@@ -19,25 +19,23 @@ import javafx.stage.Stage
 import mu.KLogging
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.main.APP
+import sp.it.pl.main.App
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.ui.objects.window.stage.clone
-import sp.it.pl.ui.objects.window.stage.openWindowSettings
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.util.async.runAwt
 import sp.it.util.async.runFX
-import sp.it.util.collections.materialize
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.syncFalse
-import sp.it.util.ui.dsl
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.createImageBlack
 import sp.it.util.ui.image.loadBufferedImage
-import sp.it.util.ui.menu
 import sp.it.util.ui.menuItem
+import sp.it.util.ui.menuSeparator
 
 class Tray: PluginBase() {
 
@@ -59,31 +57,8 @@ class Tray: PluginBase() {
    private var contextMenu: ContextMenu? = null
    private var contextMenuOwner: Stage? = null
 
-   /** Right mouse click context menu items. */
-   var contextMenuItemsBuilder = {
-      listOf(
-         menuItem("Show actions") { APP.actions.openOpen() },
-         menuItem("Settings") { APP.actions.openSettings() },
-         menu("Windows").dsl {
-            item("New window") { APP.windowManager.createWindow() }
-            menu("All") {
-               APP.windowManager.windows.materialize().asSequence().forEach { w ->
-                  menu("${w.stage.title} (${w.width} x ${w.height})") {
-                     item("Settings") { openWindowSettings(w, null) }
-                     item("Clone") { w.clone() }
-                  }
-               }
-            }
-         },
-         menuItem("Play/pause") { APP.audio.pauseResume() },
-         menuItem("Disable tray") { APP.plugins.getRaw<Tray>()?.stop() },
-         menuItem("Exit") { APP.close() }
-      )
-   }
-
-
    override fun start() {
-      val cm = ContextMenu().apply {
+      val cm = ValueContextMenu<App>().apply {
          isAutoFix = true
          consumeAutoHidingEvents = false
       }
@@ -130,7 +105,9 @@ class Tray: PluginBase() {
                         SECONDARY -> runFX {
                            cmOwner.show()
                            cmOwner.requestFocus()
-                           cm.items += contextMenuItemsBuilder()
+                           cm.setItemsFor(APP)
+                           cm.items += menuSeparator()
+                           cm.items += menuItem("Disable tray") { APP.plugins.getRaw<Tray>()?.stop() }
                            cm.show(cmOwner, me.screenX, me.screenY - 40)
                         }
                         FORWARD -> PlaylistManager.use { it.playNextItem() }

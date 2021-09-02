@@ -20,7 +20,6 @@ import sp.it.pl.audio.playlist.readM3uPlaylist
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.addToLibTask
 import sp.it.pl.layout.Component
-import sp.it.pl.layout.ComponentLoader
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.WidgetUse.NEW
@@ -34,12 +33,8 @@ import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.layout.loadComponentFxwlJson
 import sp.it.pl.layout.openInConfigured
-import sp.it.pl.layout.orNone
 import sp.it.pl.main.FileExtensions.fxwl
-import sp.it.pl.main.Widgets.ICON_BROWSER
-import sp.it.pl.main.Widgets.INSPECTOR
 import sp.it.pl.main.Widgets.SONG_TAGGER
-import sp.it.pl.main.Widgets.TESTER
 import sp.it.pl.plugin.impl.WallpaperChanger
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.clone
@@ -63,11 +58,13 @@ import sp.it.util.async.future.runGet
 import sp.it.util.async.launch
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
+import sp.it.util.collections.map.KClassListMap
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyIf
 import sp.it.util.conf.readOnlyUnless
+import sp.it.util.dev.fail
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
@@ -97,16 +94,37 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.millis
 
+object ActionsPaneGenericActions {
+   val actionsAll = KClassListMap<ActionData<*, *>> { fail() }
+
+   inline fun <reified T> register(vararg actions: ActionData<T, *>) = actionsAll.accumulate(T::class, actions.asIterable())
+
+   init {
+      // register app actions automatically
+      APP.actions::class.memberProperties.forEach {
+         if (it.returnType.isSubtypeOf<ActionData<*,*>>())
+            it.asIs<KProperty1<AppActions, ActionData<Any?,*>>>().get(APP.actions).net {
+               actionsAll.accumulate(it.type.raw, it)
+            }
+      }
+
+      register<App>(
+         FastAction(IconFA.GEARS, ActionRegistrar["Open settings"]),
+         FastAction(IconUN(0x1f4c1), ActionRegistrar["Open app event log"]),
+      )
+   }
+}
+
+
+fun ActionPane.initGenericActions(): ActionPane = also { ap ->
+   ActionsPaneGenericActions.actionsAll.forEach { (kclass, actions) -> actions.forEach { ap.register<Any>(kclass.asIs(), it.asIs()) } }
+
+}
+
 @Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
+   ap.initGenericActions()
 
-   // register app actions automatically
-   APP.actions::class.memberProperties.forEach {
-      if (it.returnType.isSubtypeOf<ActionData<*,*>>())
-         it.asIs<KProperty1<AppActions, ActionData<Any?,*>>>().get(APP.actions).net {
-            ap.register<Any>(it.type.raw, it)
-         }
-   }
 
    ap.register<Any?>(
       FastColAction<Any?>(
@@ -125,26 +143,11 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<App>(
-      FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
-      FastColAction<App>("Developer tools", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
-      FastColAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
+      FastAction(IconFA.FOLDER, ActionRegistrar["Open app directory"]),
+      APP.actions.openGithubPage.asIs<ActionData<App, App>>(),
+      FastAction<App>("Developer tools", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
+      FastAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
       FastAction("Open help", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() },
-      FastAction(IconFA.SEND, ActionRegistrar["Open app directory"]),
-      FastAction(IconUN(0x1f4c1), ActionRegistrar["Open app event log"])
-   )
-   ap.register<AppDev>(
-      FastAction(IconFA.GITHUB, ActionRegistrar["Open on Github"]),
-      FastAction(IconFA.CSS3, ActionRegistrar["Open css guide"]),
-      FastAction("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
-         FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create()) }
-      },
-      FastAction("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
-         FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(INSPECTOR.id).orNone().create()) }
-      },
-      FastAction("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
-         FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(TESTER.id).orNone().create()) }
-      },
-      FastAction(IconMD.INFORMATION_OUTLINE, ActionRegistrar["Show system info"])
    )
    ap.register<AppOpen>(
       FastAction(

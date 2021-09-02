@@ -22,6 +22,7 @@ class ContextMenuGenerator {
 
    private val mNull = ArrayList<Builder>()
    private val mSingle = KClassListMap<Builder> { fail() }
+           var mSingleCustom: (KClass<*>) -> Builder = { { sequenceOf() } }
    private val mMany = KClassListMap<Builder> { fail() }
 
    operator fun invoke(block: ContextMenuGenerator.() -> Unit) = block()
@@ -59,14 +60,20 @@ class ContextMenuGenerator {
          val valueSingle = collectionUnwrap(value)
          val valueMulti = collectionWrap(value).takeUnless { it.isEmpty() }
 
-         val items1 = valueSingle?.net { it::class.superKClassesInc().associateWith { mSingle[it].orEmpty() } } ?: mapOf()
+         val items1 = valueSingle
+            ?.net { it::class.superKClassesInc().associateWith { mSingle[it].orEmpty() + mSingleCustom(it) } }
+            .orEmpty()
          val itemsNType = valueMulti?.getElementClass()?.kotlin
-         val itemsN = itemsNType?.net { it.superKClassesInc().associateWith { mMany[it].orEmpty() } } ?: mapOf()
+         val itemsN = itemsNType
+            ?.net {
+               it.superKClassesInc().associateWith { mMany[it].orEmpty() }
+            }
+            .orEmpty()
 
-         (items1.keys+itemsN.keys).asSequence()
+         (items1.keys + itemsN.keys).asSequence()
             .map { items1[it].orEmpty() + itemsN[it].orEmpty() }.filter { it.isNotEmpty() }
-            .map { it.asSequence().flatMap { it(value) }.sortedBy { it.text } }
-            .insertEvery(1) { sequenceOf(menuSeparator()) }
+            .map { it.asSequence().flatMap { it(value) }.sortedBy { it.text }.toList() }.filter { it.isNotEmpty() }
+            .insertEvery(1) { listOf(menuSeparator()) }
             .flatten()
       }
    }

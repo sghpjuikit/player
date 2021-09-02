@@ -1,5 +1,7 @@
 package sp.it.pl.ui.objects.window.stage;
 
+import java.awt.Rectangle;
+import java.util.Comparator;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -7,6 +9,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -25,12 +28,14 @@ import javafx.stage.StageStyle;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import oshi.SystemInfo;
 import sp.it.pl.layout.Component;
 import sp.it.pl.layout.ContainerSwitch;
 import sp.it.pl.layout.ContainerSwitchUi;
 import sp.it.pl.layout.Layout;
 import sp.it.pl.main.AppEventLog;
 import sp.it.pl.main.Df;
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.V;
@@ -45,11 +50,11 @@ import sp.it.util.reactive.Subscription;
 import sp.it.util.system.Os;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CIRCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GEARS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SEND;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE;
@@ -110,6 +115,7 @@ import static sp.it.pl.ui.objects.window.Resize.NW;
 import static sp.it.pl.ui.objects.window.Resize.S;
 import static sp.it.pl.ui.objects.window.Resize.SE;
 import static sp.it.pl.ui.objects.window.Resize.SW;
+import static sp.it.pl.ui.objects.window.stage.WindowHelperKt.bestRec;
 import static sp.it.pl.ui.objects.window.stage.WindowHelperKt.openWindowSettings;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.buildWindowLayout;
 import static sp.it.pl.ui.objects.window.stage.WindowUtilKt.installStartLayoutPlaceholder;
@@ -383,8 +389,11 @@ public class Window extends WindowBase {
 		});
 
 		setTitle("");
-		Icon propB = new Icon(GEARS, -1, ActionRegistrar.get("Open settings")).styleclass("header-icon");
-		Icon runB = new Icon(GAVEL, -1, ActionRegistrar.get("Open app actions")).styleclass("header-icon");
+		Icon menuB = new Icon(CARET_DOWN, -1, "Menu").styleclass("header-icon").onClickDo(consumer(icon -> {
+			var vm = new ValueContextMenu<>();
+			vm.setItemsFor(APP);
+			vm.show(icon, Side.BOTTOM, 0.0, 0.0);
+		}));
 		Icon lockB = new Icon(null, -1, ActionRegistrar.get("Toggle layout lock")).styleclass("header-icon");
 			on(syncC(APP.ui.getLayoutLocked(), it -> lockB.icon(it ? LOCK : UNLOCK)), onClose);
 		Icon lmB = new Icon(null, -1, ActionRegistrar.get("Layout zoom overlay in/out")).styleclass("header-icon");
@@ -394,7 +403,7 @@ public class Window extends WindowBase {
 		Icon errorB = new Icon(WARNING, -1).styleclass("header-icon").action(() -> APP.getActions().openAppEventLog()).tooltip("Event Log");
 			syncC(AppEventLog.INSTANCE.getHasErrors(), it -> errorB.icon(it ? WARNING : SEND));
 
-		leftHeaderBox.getChildren().addAll(propB, runB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
+		leftHeaderBox.getChildren().addAll(menuB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 

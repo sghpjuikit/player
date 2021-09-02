@@ -28,7 +28,11 @@ import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.layout.feature.SongWriter
 import sp.it.pl.layout.openInConfigured
 import sp.it.pl.main.APP
+import sp.it.pl.main.ActionsPaneGenericActions
+import sp.it.pl.main.App
+import sp.it.pl.main.AppDev
 import sp.it.pl.main.AppError
+import sp.it.pl.main.AppOpen
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.Df.IMAGE
 import sp.it.pl.main.Df.PLAIN_TEXT
@@ -45,6 +49,7 @@ import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.pl.ui.objects.window.stage.clone
+import sp.it.pl.ui.objects.window.stage.openWindowSettings
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.access.vn
 import sp.it.util.async.runIO
@@ -72,6 +77,7 @@ import sp.it.util.type.type
 import sp.it.util.ui.ContextMenuGenerator
 import sp.it.util.ui.MenuBuilder
 import sp.it.util.ui.drag.set
+import sp.it.util.ui.menuItem
 
 object CoreMenus: Core {
 
@@ -80,6 +86,15 @@ object CoreMenus: Core {
 
    override fun init() {
       menuItemBuilders {
+         mSingleCustom = { kClass ->
+            { value ->
+               ActionsPaneGenericActions.actionsAll[kClass].orEmpty().asSequence().map { action ->
+                  menuItem(action.name) {
+                     action.invoke(value)
+                  }
+               }
+            }
+         }
          addNull {
             menu("Inspect in") {
                item("Object viewer") { APP.ui.actionPane.orBuild.show(it) }
@@ -112,6 +127,24 @@ object CoreMenus: Core {
                      }
                   )
                }
+         }
+         add<App> {
+            menuFor("Developer tools", AppDev)
+            menuFor("Directory", value.location)
+            item("Open...") { APP.ui.actionPane.orBuild.show(AppOpen) }
+            menu("Windows") {
+               item("New window") { APP.windowManager.createWindow() }
+               menu("All") {
+                  APP.windowManager.windows.forEach { w ->
+                     menuFor("${w.stage.title} (${w.width} x ${w.height})", w)
+                  }
+               }
+            }
+            menu("Audio") {
+               item("Play/pause") { APP.audio.pauseResume() }
+            }
+            item("Restart") { APP.restart() }
+            item("Exit") { APP.close() }
          }
          add<File> {
             if (value.isAudio()) {
@@ -183,6 +216,7 @@ object CoreMenus: Core {
             }
          }
          add<Window> {
+            item("Settings") { openWindowSettings(it, null) }
             item("Clone") { it.clone() }
          }
          add<WindowFX> {

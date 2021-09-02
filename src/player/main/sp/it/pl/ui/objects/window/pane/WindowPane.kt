@@ -20,70 +20,93 @@ import sp.it.pl.ui.objects.window.Resize
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
 import sp.it.util.access.v
 import sp.it.util.reactive.onEventDown
+import sp.it.util.ui.sceneXy
+import sp.it.util.ui.x
 
 /** Window implemented as a [javafx.scene.layout.Pane] for in-application windows emulating window behavior. */
 @Suppress("PropertyName")
 open class WindowPane(val owner: AnchorPane) {
-   @JvmField val root = StackPane()
-   private val _x = 100.0
-   private val _y = 100.0
-   private val _w = 0.0
-   private val _h = 0.0
-   @JvmField protected val _resizing = ReadOnlyObjectWrapper(Resize.NONE)
-   @JvmField protected val _moving = ReadOnlyBooleanWrapper(false)
-   @JvmField protected val _focused = ReadOnlyBooleanWrapper(false)
-   @JvmField protected val _fullscreen = ReadOnlyBooleanWrapper(false)
-   @JvmField val x = object: SimpleObjectProperty<Double>(50.0) {
+   protected val _resizing = ReadOnlyObjectWrapper(Resize.NONE)
+   protected val _moving = ReadOnlyBooleanWrapper(false)
+   protected val _focused = ReadOnlyBooleanWrapper(false)
+   protected val _fullscreen = ReadOnlyBooleanWrapper(false)
+
+   /** This window's scene-graph */
+   val root = StackPane()
+
+   /** This window's left top corner horizontal position in its parent's area */
+   val x = object: SimpleObjectProperty<Double>(50.0) {
       override fun setValue(nv: Double) {
-         val tmp = ceil(nv).toInt()
-         var v = (tmp + tmp%2).toDouble()
+         var v = nv
          if (snappable.value) {
             v = mapSnap(v, v + w.value, w.value, owner.width)
             v = mapSnapX(v, owner.children)
          }
-         if (offScreenFixOn.value) v = offScreenXMap(v)
+         if (offScreenFixOn.value)
+            v = offScreenXMap(v)
          super.setValue(v)
          root.layoutX = v
       }
    }
-   @JvmField val y = object: SimpleObjectProperty<Double>(50.0) {
+
+   /** This window's left top corner vertical position in its parent's area */
+   val y = object: SimpleObjectProperty<Double>(50.0) {
       override fun setValue(nv: Double) {
-         val tmp = ceil(nv).toInt()
-         var v = (tmp + tmp%2).toDouble()
+         var v = nv
          if (snappable.value) {
             v = mapSnap(v, v + h.value, h.value, owner.height)
             v = mapSnapY(v, owner.children)
          }
-         if (offScreenFixOn.value) v = offScreenYMap(v)
+         if (offScreenFixOn.value)
+            v = offScreenYMap(v)
          super.setValue(v)
          root.layoutY = v
       }
    }
-   @JvmField val w = root.prefWidthProperty()!!
-   @JvmField val h = root.prefHeightProperty()!!
-   @JvmField val visible = root.visibleProperty()!!
-   @JvmField val opacity = root.opacityProperty()!!
+
+   /** This window's [Node.prefWidth] */
+   val w = root.prefWidthProperty()!!
+
+   /** This window's [Node.prefHeight] */
+   val h = root.prefHeightProperty()!!
+
+   /** This window's [Node.visible] */
+   val visible = root.visibleProperty()!!
+
+   /** This window's [Node.opacity] */
+   val opacity = root.opacityProperty()!!
 
    /** Indicates whether this window is maximized */
-   @JvmField val maximized = v(Maximized.NONE)
+   val maximized = v(Maximized.NONE)
 
    /** Defines whether this window is resizable */
-   @JvmField  val movable = v(true)
+   val movable = v(true)
 
    /** Indicates whether the window is being moved */
-   @JvmField val moving: ReadOnlyBooleanProperty = _moving.readOnlyProperty
+   val moving: ReadOnlyBooleanProperty = _moving.readOnlyProperty
 
    /** Indicates whether and how the window is being resized */
-   @JvmField val resizing = _resizing.readOnlyProperty!!
+   val resizing = _resizing.readOnlyProperty!!
 
-   /** Defines whether this window is resizable */
-   @JvmField val resizable = v(true)
-   @JvmField val snappable = v(true)
-   @JvmField val snapDistance = v(5.0)
-   @JvmField val offScreenFixOn = v(true)
-   @JvmField val offScreenFixOffset = v(0.0)
-   @JvmField val focused: ReadOnlyBooleanProperty = _focused.readOnlyProperty
+   /** Whether this window is resizable */
+   val resizable = v(true)
 
+   /** Whether this window can be snapped on move/resize */
+   val snappable = v(true)
+
+   /** Window snap activation distance */
+   val snapDistance = v(5.0)
+
+   /** Window this window can be off its parent's area */
+   val offScreenFixOn = v(true)
+
+   /** Windows's minimal distance from parent's area's edge */
+   val offScreenFixOffset = v(0.0)
+
+   /** Whether this window is focused. */
+   val focused: ReadOnlyBooleanProperty = _focused.readOnlyProperty
+
+   private var moveStart = 0 x 0
    private val snapDist get() = snapDistance.value.emScaled
    private val focusListener = ListChangeListener { c: ListChangeListener.Change<out Node> ->
       val i = c.list.size
@@ -91,6 +114,7 @@ open class WindowPane(val owner: AnchorPane) {
    }
 
    init {
+      // keep focused window on top
       root.onEventDown(MOUSE_PRESSED) { root.toFront() }
    }
 
@@ -126,20 +150,22 @@ open class WindowPane(val owner: AnchorPane) {
       h.value = owner.height/2
    }
 
-   @JvmField var startX = 0.0
-   @JvmField var startY = 0.0
-
    /** Installs move by dragging on provided Node, usually root. */
    fun moveOnDragOf(n: Node) {
       n.addEventHandler(MOUSE_DRAGGED) {
          if (!moving.value && maximized.value!=Maximized.ALL && movable.value && it.button==PRIMARY) {
             _moving.value = true
-            startX = x.value - it.sceneX
-            startY = y.value - it.sceneY
+            val r = snappable.value
+            if (it.isShortcutDown) snappable.value = false
+            moveStart = (x.value x y.value) - it.sceneXy
+            snappable.value = r
          }
          if (moving.value) {
-            x.value = startX + it.sceneX
-            y.value = startY + it.sceneY
+            val r = snappable.value
+            if (it.isShortcutDown) snappable.value = false
+            x.value = moveStart.x + it.sceneX
+            y.value = moveStart.y + it.sceneY
+            snappable.value = r
          }
          it.consume()
       }

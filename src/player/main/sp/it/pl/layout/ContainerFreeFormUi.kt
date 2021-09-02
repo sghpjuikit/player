@@ -110,27 +110,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          { bestRec(it.x, it.y, null).absolute } // alternatively: e -> bestRec(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow())).absolute
       )
 
-//      content.widthProperty() attach {
-//         println("1 ${content.width}")
-//         isResizing = true
-//         windows.forEach { (_, w) ->
-//            w.snappable.value = false
-//            w.updatePosition()
-//            w.snappable.value = APP.ui.snapping.value
-//         }
-//         isResizing = false
-//      }
-//      content.heightProperty() attach {
-//         println("2 ${content.width}")
-//         isResizing = true
-//         windows.forEach { (_, w) ->
-//            w.snappable.value = false
-//            w.updatePosition()
-//            w.snappable.value = APP.ui.snapping.value
-//         }
-//         isResizing = false
-//      }
-      content.layoutBoundsProperty() attach {
+      content.widthProperty() attach {
          isResizing = true
          windows.forEach { (_, w) ->
             w.snappable.value = false
@@ -139,6 +119,24 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          }
          isResizing = false
       }
+      content.heightProperty() attach {
+         isResizing = true
+         windows.forEach { (_, w) ->
+            w.snappable.value = false
+            w.updatePosition()
+            w.snappable.value = APP.ui.snapping.value
+         }
+         isResizing = false
+      }
+//      content.layoutBoundsProperty() attach {
+//         isResizing = true
+//         windows.forEach { (_, w) ->
+//            w.snappable.value = false
+//            w.updatePosition()
+//            w.snappable.value = APP.ui.snapping.value
+//         }
+//         isResizing = false
+//      }
    }
 
    override fun buildControls() = super.buildControls().apply {
@@ -228,6 +226,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          w.y attach { w.positionUpdate() }
          w.w attach { w.positionUpdate() }
          w.h attach { w.positionUpdate() }
+         w.resizing attach { if (it==Resize.NONE) w.positionUpdate() }
          w.snapDistance syncFrom APP.ui.snapDistance on w.disposer
          w.snappable syncFrom APP.ui.snapping on w.disposer
          container.lockedUnder zip APP.ui.layoutMode sync { (l1, l2) -> w.resizable.value = (!l1 || l2) } on w.disposer
@@ -374,8 +373,8 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
             updatePosition.suppressing {
                positionUpdate.suppressed {
                   
-                  w.value = if (position.wType==RELATIVE) position.maxXRel*cnt.width else position.wAbs
-                  h.value = if (position.hType==RELATIVE) position.maxYRel*cnt.height else position.hAbs
+                  w.value = if (position.wType==RELATIVE) position.wRel*cnt.width else position.wAbs
+                  h.value = if (position.hType==RELATIVE) position.hRel*cnt.height else position.hAbs
                   when (position.alignment) {
                      TOP_LEFT -> {
                         x.value = if (position.wType==RELATIVE) position.minXRel*cnt.width else position.minXRel*cnt.width

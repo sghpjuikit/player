@@ -798,6 +798,10 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-padding: 0.2em 0.4em 0.2em 0.4em;
 }
 
+.menu-item > .graphic-container {
+    -fx-padding: 0em 0.333em 0em -0.5em;
+}
+
 .menu-item:focused {
     -fx-background-color: transparent;
 }

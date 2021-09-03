@@ -354,10 +354,10 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     )
                     .action(THIS ->
                         new ContextMenu(
-                            menuItem("Set input data to empty" , consumer(it -> setInput(list(Unit.INSTANCE)))),
-                            menuItem("Set input data to output data", consumer(it -> setInput(output))),
-                            menuItem("Set input data to lines of visible text", consumer(it -> setInput(Arrays.asList(getValAsText().split("\\n"))))),
-                            menuItem("Set input data to system clipboard", consumer(it -> setInput(list(getAny(Clipboard.getSystemClipboard())))))
+                            menuItem("Set input data to empty" , null, consumer(it -> setInput(list(Unit.INSTANCE)))),
+                            menuItem("Set input data to output data", null, consumer(it -> setInput(output))),
+                            menuItem("Set input data to lines of visible text", null, consumer(it -> setInput(Arrays.asList(getValAsText().split("\\n"))))),
+                            menuItem("Set input data to system clipboard", null, consumer(it -> setInput(list(getAny(Clipboard.getSystemClipboard())))))
                         ).show(THIS, Side.BOTTOM, 0, 0)
                     );
             var remI = new Icon(MINUS)
@@ -367,9 +367,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     .tooltip("Add\n\nCreate new edit area")
                     .action(THIS ->
                         new ContextMenu(
-                            menuItem("With no data", consumer(it -> createNewAreaWithNoData())),
-                            menuItem("With input of this area", consumer(it -> createNewAreaWithInputData())),
-                            menuItem("With output of this area", consumer(it -> createNewAreaWithOutputNoData()))
+                            menuItem("With no data", null, consumer(it -> createNewAreaWithNoData())),
+                            menuItem("With input of this area", null, consumer(it -> createNewAreaWithInputData())),
+                            menuItem("With output of this area", null, consumer(it -> createNewAreaWithOutputNoData()))
                         ).show(THIS, Side.BOTTOM, 0, 0)
                     );
 

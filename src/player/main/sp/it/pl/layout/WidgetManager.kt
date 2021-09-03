@@ -718,12 +718,11 @@ class WidgetManager {
       /** @return all component factories (including widget factories), observable */
       fun getComponentFactoriesObservable() = factoriesObservableC
 
-      //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
+      /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
       inline fun <reified FEATURE: Any> getFactoriesWith(): Sequence<FactoryRef<FEATURE>> = getFactoriesWith(FEATURE::class)
 
-      //        /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
-      fun <FEATURE: Any> getFactoriesWith(feature: KClass<FEATURE>) =
-         factoriesW.streamV().asSequence().filter { it.hasFeature(feature) }.map { FactoryRef(it, feature) }
+      /** @return all widget factories that create widgets with specified feature (see [Widgets.use]) */
+      fun <FEATURE: Any> getFactoriesWith(feature: KClass<FEATURE>) = factoriesW.streamV().asSequence().filter { it.hasFeature(feature) }.map { FactoryRef(it, feature) }
 
       /**
        * Register the specified factory.
@@ -770,9 +769,11 @@ class WidgetManager {
 
    }
 
-   /** Lazy reified reference to a factory of widget with a feature, enabling convenient use of its feature */
+   /** Widget factory projection - lazy reified reference to a factory of widget with a feature, enabling convenient use of its feature */
    data class FactoryRef<out FEATURE: Any> constructor(val name: String, val id: String, private val feature: KClass<FEATURE>): NameUi {
       override val nameUi = name
+
+      fun toFactory(): WidgetFactory<*>? = APP.widgetManager.factoriesW[id]
 
       fun use(source: WidgetUse, action: (FEATURE) -> Unit) {
          APP.widgetManager.widgets

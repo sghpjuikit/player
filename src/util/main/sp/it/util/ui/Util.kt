@@ -382,7 +382,7 @@ inline fun textField(text: String = "", block: TextField.() -> Unit = {}) = Text
 inline fun textArea(text: String = "", block: TextArea.() -> Unit = {}) = TextArea(text).apply(block)
 inline fun textFlow(block: TextFlow.() -> Unit = {}) = TextFlow().apply(block)
 inline fun menu(text: String, graphics: Node? = null, block: (Menu).() -> Unit = {}) = Menu(text, graphics).apply(block)
-inline fun menuItem(text: String, crossinline action: (ActionEvent) -> Unit) = MenuItem(text).apply { onAction = EventHandler { action(it) } }
+inline fun menuItem(text: String, graphics: Node? = null, crossinline action: (ActionEvent) -> Unit) = MenuItem(text, graphics).apply { onAction = EventHandler { action(it) } }
 inline fun menuSeparator(block: SeparatorMenuItem.() -> Unit = {}) = SeparatorMenuItem().apply(block)
 inline fun <T> listView(block: ListView<T>.() -> Unit = {}) = ListView<T>().apply(block)
 inline fun <T> tableView(block: TableView<T>.() -> Unit = {}) = TableView<T>().apply(block)

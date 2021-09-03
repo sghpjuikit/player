@@ -43,7 +43,7 @@ open class MenuBuilder<M, V>(val owner: M, val value: V) {
    /** Create and [add] to items new menu items with text and action derived from specified source. */
    @Dsl
    @Suppress("RedundantLambdaArrow")
-   inline fun <A> items(source: Sequence<A>, crossinline text: (A) -> String, crossinline action: (A) -> Unit) = items { source.map { menuItem(text(it)) { _ -> action(it) } } }
+   inline fun <A> items(source: Sequence<A>, crossinline text: (A) -> String, crossinline graphics: (A) -> Node? = { null }, crossinline action: (A) -> Unit) = items { source.map { menuItem(text(it), graphics(it)) { _ -> action(it) } } }
 
    /** [add] to items the specified separator. */
    @Dsl

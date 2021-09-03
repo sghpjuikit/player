@@ -21,9 +21,11 @@ import sp.it.pl.ui.objects.rating.RatingSkinNumber100
 import sp.it.pl.ui.objects.rating.RatingSkinNumberPercent
 import sp.it.pl.ui.objects.rating.RatingSkinStar
 import sp.it.pl.web.BingImageSearchQBuilder
+import sp.it.pl.web.BingSearchQBuilder
 import sp.it.pl.web.DuckDuckGoImageQBuilder
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.GoogleImageQBuilder
+import sp.it.pl.web.GoogleQBuilder
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.pl.web.WikipediaQBuilder
 import sp.it.util.collections.observableSet
@@ -55,14 +57,16 @@ object CoreInstances: InstanceMap(), Core {
          DuckDuckGoQBuilder,
          DuckDuckGoImageQBuilder,
          WikipediaQBuilder,
+         BingSearchQBuilder,
          BingImageSearchQBuilder,
-         GoogleImageQBuilder
+         GoogleQBuilder,
+         GoogleImageQBuilder,
       )
       addInstances<KClass<out Skin<Rating>>>(
          RatingSkinStar::class,
          RatingSkinNumber1::class,
          RatingSkinNumber100::class,
-         RatingSkinNumberPercent::class
+         RatingSkinNumberPercent::class,
       )
    }
 

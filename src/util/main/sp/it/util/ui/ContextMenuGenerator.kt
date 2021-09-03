@@ -22,11 +22,17 @@ class ContextMenuGenerator {
 
    private val mNull = ArrayList<Builder>()
    private val mSingle = KClassListMap<Builder> { fail() }
-           var mSingleCustom: (KClass<*>) -> Builder = { { sequenceOf() } }
+   private var mSingleCustom: (KClass<*>) -> Builder = { { sequenceOf() } }
    private val mMany = KClassListMap<Builder> { fail() }
 
    operator fun invoke(block: ContextMenuGenerator.() -> Unit) = block()
 
+   /** Sets menu dynamic per class menu builder. Useful to generate menu by some class-based mechanism. */
+   fun addCustom(block: (KClass<*>) -> Builder) {
+      mSingleCustom = block
+   }
+
+   /** Adds menu builder for `null`. */
    @Suppress("UNCHECKED_CAST")
    fun addNull(block: ListMenuOwnerBlock<Nothing?>): Subscription {
       val b: Builder = { value -> ListMenuOwner(mutableListOf(), value as Nothing?).apply(block).owner.asSequence() }

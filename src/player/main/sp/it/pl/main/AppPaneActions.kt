@@ -131,21 +131,20 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Set as data",
          "Sets the selected data as input.",
          IconMD.DATABASE,
-         { it !is App && it !is AppDev && it !is AppOpen },
+         { it !is App && it !is AppHelp && it !is AppOpen },
          ap.converting { Try.ok(it) }
       ).preventClosing(),
       FastColAction(
          "Open in Converter",
          "Open data in Converter.",
          IconMD.SWAP_HORIZONTAL,
-         { it !is App && it !is AppDev && it !is AppOpen },
+         { it !is App && it !is AppHelp && it !is AppOpen },
          { f -> APP.widgetManager.widgets.use<Opener>(ANY) { it.open(f) } }   // TODO: make sure it opens Converter or support multiple Opener types
       )
    )
    ap.register<App>(
       FastAction(IconFA.FOLDER, ActionRegistrar["Open app directory"]),
-      APP.actions.openGithubPage.asIs<ActionData<App, App>>(),
-      FastAction<App>("Developer tools", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppDev) }).preventClosing(),
+      FastAction<App>("Help", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppHelp) }).preventClosing(),
       FastAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
       FastAction("Open help", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() },
    )
@@ -542,7 +541,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
 object AppOpen
 
 /** Denotes action pane data for 'App.Developer' actions. */
-object AppDev
+object AppHelp
 
 /** Denotes action pane data representing multiple files for browse actions. */
 class MultipleFiles(val files: Set<File>) {

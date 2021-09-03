@@ -294,8 +294,8 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 					.sorted(by(f -> f.name()))
 					.map(f ->
 						new Menu(f.name(), null,
-							menuItem("Desc", consumer(it -> sortByDb(f, Sort.DESCENDING))),
-							menuItem("Asc", consumer(it -> sortByDb(f, Sort.ASCENDING)))
+							menuItem("Desc", null, consumer(it -> sortByDb(f, Sort.DESCENDING))),
+							menuItem("Asc", null, consumer(it -> sortByDb(f, Sort.ASCENDING)))
 						)
 					)
 					.toArray(MenuItem[]::new)

@@ -295,15 +295,15 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
 	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-		menuItem("Select all (" + keys(CONTROL, A) + ")", consumer(e -> selectAll())),
-		menuItem("Select none (" + keys(ESCAPE) + ")", consumer(e -> selectNone())),
-		menuItem("Select inverse", consumer(e -> selectInverse()))
+		menuItem("Select all (" + keys(CONTROL, A) + ")", null, consumer(e -> selectAll())),
+		menuItem("Select none (" + keys(ESCAPE) + ")", null, consumer(e -> selectNone())),
+		menuItem("Select inverse", null, consumer(e -> selectInverse()))
 	);
 	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.SORT).embedded(),
 		new Menu("Order by column", null,
 			fields.stream()
 				.filter(f -> f!=ColumnField.INDEX)
-				.map(f -> menuItem(f.name(), consumer(it -> {
+				.map(f -> menuItem(f.name(), null, consumer(it -> {
 					getColumn(f).ifPresentOrElse(
 						c -> {
 							var sorts = new ArrayList<>(getSortOrder());
@@ -324,8 +324,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				})))
 				.toArray(MenuItem[]::new)
 		),
-		menuItem("Order reverse", consumer(it -> sortReverse())),
-		menuItem("Order randomly", consumer(it -> sortRandomly()))
+		menuItem("Order reverse", null, consumer(it -> sortReverse())),
+		menuItem("Order randomly", null, consumer(it -> sortRandomly()))
 	);
 	public final Menu menuColumns = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded().onClickDo(consumer(it -> columnMenu.show(this, Side.RIGHT, 0.0, 0.0))));
 	public final Menu menuExtra = new Menu("", new Icon(FontAwesomeIcon.TASKS).embedded(),

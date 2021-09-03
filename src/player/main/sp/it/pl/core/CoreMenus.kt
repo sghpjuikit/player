@@ -7,7 +7,6 @@ import java.lang.reflect.Modifier
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.Menu
-import javafx.scene.control.MenuItem
 import javafx.scene.input.KeyCode.A
 import javafx.scene.input.KeyCode.F
 import javafx.scene.input.KeyCode.F11
@@ -39,7 +38,7 @@ import sp.it.pl.layout.openInConfigured
 import sp.it.pl.main.APP
 import sp.it.pl.main.ActionsPaneGenericActions
 import sp.it.pl.main.App
-import sp.it.pl.main.AppDev
+import sp.it.pl.main.AppHelp
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppOpen
 import sp.it.pl.main.Df.FILES
@@ -104,10 +103,10 @@ object CoreMenus: Core {
 
    override fun init() {
       menuItemBuilders {
-         mSingleCustom = { kClass ->
+         addCustom { kClass ->
             { value ->
                ActionsPaneGenericActions.actionsAll[kClass].orEmpty().asSequence().map { action ->
-                  menuItem(action.name) {
+                  menuItem(action.name, action.icon.toCmUi()) {
                      action.invoke(value)
                   }
                }
@@ -136,6 +135,7 @@ object CoreMenus: Core {
                         .sortedBy { it.name }
                         .filter { it.parameterCount==0 && (it.returnType==Void::class.javaObjectType || it.returnType==Void::class.javaPrimitiveType || it.returnType==Unit::class.java) },
                      { it.name },
+                     { null },
                      {
                         runTry {
                            it(v)
@@ -147,7 +147,7 @@ object CoreMenus: Core {
                }
          }
          add<App> {
-            menuFor("Developer tools", AppDev)
+            menuFor("Help", AppHelp)
             menuFor("Directory", value.location)
             item("Open...") { APP.ui.actionPane.orBuild.show(AppOpen) }
             menu("Windows") {
@@ -234,29 +234,22 @@ object CoreMenus: Core {
             }
          }
          add<Window> {
-            item("Clone") { it.clone() }
-               .icon(IconFA.CLONE)
-            item("Close (" + keys(WINDOWS, Q) +")") { it.close() }
-               .icon(ICON_CLOSE)
-            item("Fullscreen (" + keys(WINDOWS, F11) + "/" + keys(WINDOWS, F12) + ")") { it.clone() }
-               .icon(if (value.fullscreen.value) IconMD.FULLSCREEN_EXIT else IconMD.FULLSCREEN)
-            menu("Maximize (" + keys(WINDOWS, F) + ")") {
-                  item(Maximized.ALL.toUi()) { it.maximized.value = Maximized.ALL }.icon(IconMA.BORDER_OUTER)
-                  item(Maximized.LEFT.toUi()) { it.maximized.value = Maximized.LEFT }.icon(IconMA.BORDER_LEFT)
-                  item(Maximized.RIGHT.toUi()) { it.maximized.value = Maximized.RIGHT }.icon(IconMA.BORDER_RIGHT)
-                  item(Maximized.LEFT_TOP.toUi()) { it.maximized.value = Maximized.LEFT_TOP }.icon(IconMA.BORDER_STYLE) { rotate = 0.0 }
-                  item(Maximized.RIGHT_TOP.toUi()) { it.maximized.value = Maximized.RIGHT_TOP }.icon(IconMA.BORDER_STYLE) { rotate = 90.0 }
-                  item(Maximized.RIGHT_BOTTOM.toUi()) { it.maximized.value = Maximized.RIGHT_BOTTOM }.icon(IconMA.BORDER_STYLE) { rotate = 180.0 }
-                  item(Maximized.LEFT_BOTTOM.toUi()) { it.maximized.value = Maximized.LEFT_BOTTOM }.icon(IconMA.BORDER_STYLE) { rotate = 270.0 }
-                  item(Maximized.NONE.toUi()) { it.maximized.value = Maximized.NONE }.icon(IconMA.BORDER_CLEAR)
-               }
-               .icon(IconMD.WINDOW_MAXIMIZE)
-            item("Minimize (" + keys(WINDOWS, G) + ")") { it.minimize() }
-               .icon(IconMD.WINDOW_MINIMIZE)
-            item("On top (" + keys(WINDOWS, A) + ")") { it.alwaysOnTop.toggle() }
-               .icon(if (value.alwaysOnTop.value) IconFA.SQUARE else IconFA.SQUARE_ALT)
-            item("Settings") { openWindowSettings(it, null) }
-               .icon(ICON_CONF)
+            item("Clone", IconFA.CLONE.toCmUi()) { it.clone() }
+            item("Close (" + keys(WINDOWS, Q) +")", ICON_CLOSE.toCmUi()) { it.close() }
+            item("Fullscreen (" + keys(WINDOWS, F11) + "/" + keys(WINDOWS, F12) + ")", if (value.fullscreen.value) IconMD.FULLSCREEN_EXIT.toCmUi() else IconMD.FULLSCREEN.toCmUi()) { it.clone() }
+            menu("Maximize (" + keys(WINDOWS, F) + ")", IconMD.WINDOW_MAXIMIZE.toCmUi()) {
+               item(Maximized.ALL.toUi(), IconMA.BORDER_OUTER.toCmUi()) { it.maximized.value = Maximized.ALL }
+               item(Maximized.LEFT.toUi(), IconMA.BORDER_LEFT.toCmUi()) { it.maximized.value = Maximized.LEFT }
+               item(Maximized.RIGHT.toUi(), IconMA.BORDER_RIGHT.toCmUi()) { it.maximized.value = Maximized.RIGHT }
+               item(Maximized.LEFT_TOP.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 0.0 }) { it.maximized.value = Maximized.LEFT_TOP }
+               item(Maximized.RIGHT_TOP.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 90.0 }) { it.maximized.value = Maximized.RIGHT_TOP }
+               item(Maximized.RIGHT_BOTTOM.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 180.0 }) { it.maximized.value = Maximized.RIGHT_BOTTOM }
+               item(Maximized.LEFT_BOTTOM.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 270.0 }) { it.maximized.value = Maximized.LEFT_BOTTOM }
+               item(Maximized.NONE.toUi(), IconMA.BORDER_CLEAR.toCmUi()) { it.maximized.value = Maximized.NONE }
+            }
+            item("Minimize (" + keys(WINDOWS, G) + ")", IconMD.WINDOW_MINIMIZE.toCmUi()) { it.minimize() }
+            item("On top (" + keys(WINDOWS, A) + ")", if (value.alwaysOnTop.value) IconFA.SQUARE.toCmUi() else IconFA.SQUARE_ALT.toCmUi()) { it.alwaysOnTop.toggle() }
+            item("Settings", ICON_CONF.toCmUi()) { openWindowSettings(it, null) }
          }
          add<WindowFX> {
             value.asAppWindow().ifNotNull { w -> item("Clone") { w.clone() } }
@@ -327,6 +320,7 @@ object CoreMenus: Core {
                   items(
                      APP.instances.getInstances<SearchUriBuilder>().asSequence(),
                      { "in ${it.name}" },
+                     { it.icon?.toCmUi() },
                      { it(value.getValueS("<none>")).browse() }
                   )
                }
@@ -362,6 +356,7 @@ object CoreMenus: Core {
                items(
                   APP.instances.getInstances<SearchUriBuilder>().asSequence(),
                   { "in ${it.name}" },
+                  { null },
                   { uriBuilder -> value.songs.firstOrNull()?.toMetadata { uriBuilder(it.getAlbumOrEmpty()).browse() } }
                )
             }
@@ -444,6 +439,7 @@ object CoreMenus: Core {
    private inline fun <reified W: Any> MenuBuilder<*, *>.widgetItems(crossinline action: (W) -> Unit) = items(
       source = APP.widgetManager.factories.getFactoriesWith<W>(),
       text = { it.name },
+      graphics = { it.toFactory()?.icon?.toCmUi() },
       action = { it.use(NO_LAYOUT) { action(it) } }
    )
 
@@ -456,6 +452,6 @@ object CoreMenus: Core {
       block()
    }
 
-   private inline fun MenuItem.icon(icon: GlyphIcons, block: (Icon).() -> Unit = {}) = apply { graphic = Icon(icon).apply(block) }
+   private inline fun GlyphIcons.toCmUi(block: (Icon).() -> Unit = {}) = Icon(this).apply(block)
 
 }

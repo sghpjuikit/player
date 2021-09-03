@@ -241,7 +241,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	public final Menu menuAdd = new Menu("", new Icon(PLAYLIST_PLUS).scale(1.3).embedded());
 	public final Menu menuRemove = new Menu("", new Icon(PLAYLIST_MINUS).scale(1.3).embedded());
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
-		menuItem("Select none", consumer(e -> selectNone()))
+		menuItem("Select none", null, consumer(e -> selectNone()))
 	);
 	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
 	/** Table menu bar in the bottom with menus. Feel free to modify. */

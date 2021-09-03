@@ -397,31 +397,31 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }
 
-   val openGithubPage = FastAction<AppDev>("Open on Github", "Opens Github page for this application.", IconFA.GITHUB) {
+   val openGithubPage = FastAction<AppHelp>("Open Github page", "Opens Github page for this application.", IconFA.GITHUB) {
       APP.githubUri.browse()
    }
 
-   val openCssReferenceGuide = FastAction<AppDev>("Open css guide", "Opens skin css reference guide.", IconFA.CSS3) {
+   val openCssReferenceGuide = FastAction<AppHelp>("Open css guide", "Opens skin css reference guide.", IconFA.CSS3) {
       uri("https://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
    }
 
-   val openIconBrowser = FastAction<AppDev>("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
+   val openIconBrowser = FastAction<AppHelp>("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
       FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create()) }
    }
 
-   val openUiInspector = FastAction<AppDev>("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
+   val openUiInspector = FastAction<AppHelp>("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
       FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(Widgets.INSPECTOR.id).orNone().create()) }
    }
 
-   val openUiTester = FastAction<AppDev>("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
+   val openUiTester = FastAction<AppHelp>("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
       FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(Widgets.TESTER.id).orNone().create()) }
    }
 
-   val openSystemProperties = FastAction<AppDev>("Show system properties", "Display system properties.", IconMD.INFORMATION_OUTLINE) {
+   val openSystemProperties = FastAction<AppHelp>("Show system properties", "Display system properties.", IconMD.INFORMATION_OUTLINE) {
       APP.ui.infoPane.orBuild.show(Unit)
    }
 
-   val printJavaProcesses = FastAction<AppDev>("Print running java processes", "Print running java processes", IconMD.RESPONSIVE) {
+   val printJavaProcesses = FastAction<AppHelp>("Print running java processes", "Print running java processes", IconMD.RESPONSIVE) {
       val text = VirtualMachine.list().joinToString("") {
          "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
       }

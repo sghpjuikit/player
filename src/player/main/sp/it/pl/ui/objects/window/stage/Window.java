@@ -9,7 +9,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -35,7 +34,6 @@ import sp.it.pl.layout.ContainerSwitchUi;
 import sp.it.pl.layout.Layout;
 import sp.it.pl.main.AppEventLog;
 import sp.it.pl.main.Df;
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.window.Resize;
 import sp.it.util.access.V;
@@ -50,23 +48,16 @@ import sp.it.util.reactive.Subscription;
 import sp.it.util.system.Os;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOUBLE_UP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CARET_RIGHT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CIRCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAVEL;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SEND;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.SQUARE_ALT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TH_LARGE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLOCK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.WARNING;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN_EXIT;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MAXIMIZE;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MINIMIZE;
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
@@ -178,7 +169,7 @@ public class Window extends WindowBase {
 	public final @NotNull WithSetterObservableValue<@NotNull Boolean> isMain = toWritable(isMainImpl, consumer(it -> { if (it) APP.windowManager.setAsMain(this); }));
 	/** Whether this window is resizable/movable with mouse when left ALT is held. Default true on non Linux platform. */
 	public final @NotNull BooleanProperty isInteractiveOnLeftAlt = new SimpleBooleanProperty(!Os.UNIX.isCurrent());
-	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non uniform bgr needs to be set for the effect to be visible. Default false. */
+	/** Whether {@link #backImage} translates and scales with content to provide a depth effect. A non-uniform bgr needs to be set for the effect to be visible. Default false. */
 	public final @NotNull Property<@NotNull Boolean> transformBgrWithContent = new V<>(false);
 	/** Whether window content has transparent decoration. Default false. */
 	public final @NotNull BooleanProperty transparentContent = new SimpleBooleanProperty(false);
@@ -389,11 +380,7 @@ public class Window extends WindowBase {
 		});
 
 		setTitle("");
-		Icon menuB = new Icon(CARET_DOWN, -1, "Menu").styleclass("header-icon").onClickDo(consumer(icon -> {
-			var vm = new ValueContextMenu<>();
-			vm.setItemsFor(APP);
-			vm.show(icon, Side.BOTTOM, 0.0, 0.0);
-		}));
+		Icon leftMenuB = WindowUtilKt.leftHeaderMenuIcon(this);
 		Icon lockB = new Icon(null, -1, ActionRegistrar.get("Toggle layout lock")).styleclass("header-icon");
 			on(syncC(APP.ui.getLayoutLocked(), it -> lockB.icon(it ? LOCK : UNLOCK)), onClose);
 		Icon lmB = new Icon(null, -1, ActionRegistrar.get("Layout zoom overlay in/out")).styleclass("header-icon");
@@ -403,23 +390,14 @@ public class Window extends WindowBase {
 		Icon errorB = new Icon(WARNING, -1).styleclass("header-icon").action(() -> APP.getActions().openAppEventLog()).tooltip("Event Log");
 			syncC(AppEventLog.INSTANCE.getHasErrors(), it -> errorB.icon(it ? WARNING : SEND));
 
-		leftHeaderBox.getChildren().addAll(menuB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
+		leftHeaderBox.getChildren().addAll(leftMenuB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
 		leftHeaderBox.setTranslateY(-4);
 		initClip(leftHeaderBox, new Insets(4, 0, 4, 0));
 
 		Icon miniB = new Icon(null, -1, "Toggle dock").styleclass("header-icon")
 			.onClickDo(consumer(it -> toggle(APP.windowManager.getDockShow())));
 		    syncC(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
-		Icon onTopB = new Icon(null, -1, "Always on top (" + keys(WINDOWS, A) + ")\n\nForbid hiding this window behind other application windows").styleclass("header-icon")
-			.onClickDo(consumer(it -> toggle(alwaysOnTop)));
-		    syncC(alwaysOnTop, it -> onTopB.icon(it ? SQUARE : SQUARE_ALT));
-		Icon fullsB = new Icon(null, -1, "Fullscreen (" + keys(WINDOWS, F11) + "/" + keys(WINDOWS, F12) + ")\n\nToggle fullscreen").scale(1.3).styleclass("header-icon")
-			.onClickDo(consumer(it -> toggle(fullscreen)));
-		    syncC(fullscreen, it -> fullsB.icon(it ? FULLSCREEN_EXIT : FULLSCREEN));
-		Icon minB = new Icon(WINDOW_MINIMIZE, -1, "Minimize application (" + keys(WINDOWS, G) + ")").styleclass("header-icon")
-			.onClickDo(consumer(it -> toggleMinimize()));
-		Icon maxB = new Icon(WINDOW_MAXIMIZE, -1, "Maximize (" + keys(WINDOWS, F) + ")\n\nToggle maximize").styleclass("header-icon")
-			.onClickDo(consumer(it -> toggleMaximize()));
+		Icon rightMenuB = WindowUtilKt.rightHeaderMenuIcon(this);
 		Icon closeB = new Icon(ICON_CLOSE, -1, "Close (" + keys(WINDOWS, Q) +")\n\nCloses window. If the ui.window is main, application closes as well.").styleclass("header-icon")
 			.onClickDo(consumer(it -> close()));
 		Icon mainB = new Icon(CIRCLE, -1).styleclass("header-icon").scale(0.4);
@@ -429,7 +407,7 @@ public class Window extends WindowBase {
 				? "Main window\n\nThis window is main app window\nClosing it will close application."
 				: "Main window\n\nThis window is not main app window\nClosing it will not close application."));
 
-		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, onTopB, fullsB, new Label(""), minB, maxB, closeB);
+		rightHeaderBox.getChildren().addAll(mainB, new Label(""), miniB, new Label(""), rightMenuB, closeB);
 		rightHeaderBox.setTranslateY(-4);
 		rightHeaderBox.getChildren().forEach(i -> i.setFocusTraversable(false));
 		initClip(rightHeaderBox, new Insets(4, 0, 4, 0));
@@ -579,7 +557,7 @@ public class Window extends WindowBase {
 
 	/** Whether header can be ever visible. Default true. */
 	public final @NotNull V<@NotNull Boolean> isHeaderAllowed = new V<>(true).initAttachC(v -> applyHeaderVisible(_headerVisible));
-	/** Visibility of the window header, including its buttons for control of the window (close, etc). Default true. */
+	/** Visibility of the window header, including its buttons for control of the window (close, etc.). Default true. */
 	public final @NotNull V<@NotNull Boolean> isHeaderVisible = new V<>(true).initAttachC(v -> applyHeaderVisible(v && !fullscreen.getValue()));
 
 	private void applyHeaderVisible(boolean headerOn) {
@@ -640,7 +618,7 @@ public class Window extends WindowBase {
 	private boolean isMovingAltMaximized = false;
 
 	private void moveStart(MouseEvent e) {
-		// disable when being resized, resize starts at mouse pressed so
+		// disable when being resized, resize starts at mouse pressed, so
 		// it can not consume drag detected event and prevent dragging
 		// should be fixed
 		if (e.getButton()!=PRIMARY || resizing.get()!=NONE) return;

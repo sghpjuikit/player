@@ -63,6 +63,7 @@ object Ui {
    const val STYLE_FONT_WEIGHT_BOLD = "text-weight-bold"
 
    @JvmField val ICON_CLOSE = IconUN(0x271b)
+   @JvmField val ICON_CONF = IconFA.GEARS
 }
 
 object Css {

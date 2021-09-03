@@ -15,6 +15,7 @@ import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Rectangle2D
+import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Cursor.E_RESIZE
 import javafx.scene.Cursor.NE_RESIZE
@@ -58,8 +59,12 @@ import sp.it.pl.layout.WidgetIoManager
 import sp.it.pl.layout.initialTemplateFactory
 import sp.it.pl.layout.widgetFocused
 import sp.it.pl.main.APP
+import sp.it.pl.main.App
 import sp.it.pl.main.AppAnimator
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.picker.ContainerPicker
 import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.pl.ui.objects.window.Resize
@@ -112,6 +117,19 @@ import sp.it.util.units.millis
 import sp.it.util.units.seconds
 
 private val logger = KotlinLogging.logger { }
+
+fun Window.leftHeaderMenuIcon() = Icon(IconFA.CARET_DOWN, -1.0, "App Menu").styleclass("header-icon").onClickDo {
+   ValueContextMenu<App>().apply {
+      setItemsFor(APP)
+      show(it, Side.BOTTOM, 0.0, 0.0)
+   }
+}
+fun Window.rightHeaderMenuIcon() = Icon(IconFA.CARET_DOWN, -1.0, "Window Menu").styleclass("header-icon").onClickDo {
+   ValueContextMenu<Window>().apply {
+      setItemsFor(this@rightHeaderMenuIcon)
+      show(it, Side.BOTTOM, 0.0, 0.0)
+   }
+}
 
 fun Window.installStartLayoutPlaceholder() {
 

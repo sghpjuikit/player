@@ -1,12 +1,21 @@
 package sp.it.pl.core
 
 import javafx.stage.Window as WindowFX
+import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.lang.reflect.Modifier
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.Menu
+import javafx.scene.control.MenuItem
+import javafx.scene.input.KeyCode.A
+import javafx.scene.input.KeyCode.F
+import javafx.scene.input.KeyCode.F11
+import javafx.scene.input.KeyCode.F12
+import javafx.scene.input.KeyCode.G
+import javafx.scene.input.KeyCode.Q
 import javafx.scene.input.KeyCode.SHORTCUT
+import javafx.scene.input.KeyCode.WINDOWS
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
@@ -36,6 +45,11 @@ import sp.it.pl.main.AppOpen
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.Df.IMAGE
 import sp.it.pl.main.Df.PLAIN_TEXT
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
+import sp.it.pl.main.IconMD
+import sp.it.pl.main.Ui.ICON_CLOSE
+import sp.it.pl.main.Ui.ICON_CONF
 import sp.it.pl.main.configure
 import sp.it.pl.main.copyAs
 import sp.it.pl.main.ifErrorNotify
@@ -44,13 +58,17 @@ import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toMetadata
+import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.window.stage.Window
+import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
 import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.pl.ui.objects.window.stage.clone
 import sp.it.pl.ui.objects.window.stage.openWindowSettings
 import sp.it.pl.web.SearchUriBuilder
+import sp.it.util.access.toggle
 import sp.it.util.access.vn
 import sp.it.util.async.runIO
 import sp.it.util.conf.Config
@@ -216,8 +234,29 @@ object CoreMenus: Core {
             }
          }
          add<Window> {
-            item("Settings") { openWindowSettings(it, null) }
             item("Clone") { it.clone() }
+               .icon(IconFA.CLONE)
+            item("Close (" + keys(WINDOWS, Q) +")") { it.close() }
+               .icon(ICON_CLOSE)
+            item("Fullscreen (" + keys(WINDOWS, F11) + "/" + keys(WINDOWS, F12) + ")") { it.clone() }
+               .icon(if (value.fullscreen.value) IconMD.FULLSCREEN_EXIT else IconMD.FULLSCREEN)
+            menu("Maximize (" + keys(WINDOWS, F) + ")") {
+                  item(Maximized.ALL.toUi()) { it.maximized.value = Maximized.ALL }.icon(IconMA.BORDER_OUTER)
+                  item(Maximized.LEFT.toUi()) { it.maximized.value = Maximized.LEFT }.icon(IconMA.BORDER_LEFT)
+                  item(Maximized.RIGHT.toUi()) { it.maximized.value = Maximized.RIGHT }.icon(IconMA.BORDER_RIGHT)
+                  item(Maximized.LEFT_TOP.toUi()) { it.maximized.value = Maximized.LEFT_TOP }.icon(IconMA.BORDER_STYLE) { rotate = 0.0 }
+                  item(Maximized.RIGHT_TOP.toUi()) { it.maximized.value = Maximized.RIGHT_TOP }.icon(IconMA.BORDER_STYLE) { rotate = 90.0 }
+                  item(Maximized.RIGHT_BOTTOM.toUi()) { it.maximized.value = Maximized.RIGHT_BOTTOM }.icon(IconMA.BORDER_STYLE) { rotate = 180.0 }
+                  item(Maximized.LEFT_BOTTOM.toUi()) { it.maximized.value = Maximized.LEFT_BOTTOM }.icon(IconMA.BORDER_STYLE) { rotate = 270.0 }
+                  item(Maximized.NONE.toUi()) { it.maximized.value = Maximized.NONE }.icon(IconMA.BORDER_CLEAR)
+               }
+               .icon(IconMD.WINDOW_MAXIMIZE)
+            item("Minimize (" + keys(WINDOWS, G) + ")") { it.minimize() }
+               .icon(IconMD.WINDOW_MINIMIZE)
+            item("On top (" + keys(WINDOWS, A) + ")") { it.alwaysOnTop.toggle() }
+               .icon(if (value.alwaysOnTop.value) IconFA.SQUARE else IconFA.SQUARE_ALT)
+            item("Settings") { openWindowSettings(it, null) }
+               .icon(ICON_CONF)
          }
          add<WindowFX> {
             value.asAppWindow().ifNotNull { w -> item("Clone") { w.clone() } }
@@ -416,5 +455,7 @@ object CoreMenus: Core {
       menuItemBuilders[value].forEach { this add it }
       block()
    }
+
+   private inline fun MenuItem.icon(icon: GlyphIcons, block: (Icon).() -> Unit = {}) = apply { graphic = Icon(icon).apply(block) }
 
 }

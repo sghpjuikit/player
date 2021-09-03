@@ -18,7 +18,7 @@ import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
-import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.isOpenChild
+import sp.it.pl.ui.objects.window.Resize.NONE
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.pane.OverlayPane
@@ -55,8 +55,9 @@ class StartScreen: PluginBase() {
       APP.actionStream.onEventObject(Events.AppEvent.UserSessionEvent.Stop) { overlay.hide() }
    }
    private val overlayIsActive = Subscribed {
+      fun showerCondition() = APP.windowManager.dockWindow?.isShowing!=true && APP.windowManager.windows.none { it.moving.value || it.resizing.value!=NONE }
       val shower = fxTimer(500.millis, 1) {
-         if (APP.windowManager.dockWindow?.isShowing!=true)
+         if (showerCondition())
             overlay.orBuild.show(Unit)
       }
       overlaySleepHandler.subscribe()
@@ -72,10 +73,8 @@ class StartScreen: PluginBase() {
             mouseXy = mp
             if (!moved) {
                mouseIn = corners.any { mp in it }
-               if (!wasMouseIn && mouseIn) {
-                  if (APP.windowManager.dockWindow?.isShowing!=true)
-                     shower.start()
-               }
+               if (!wasMouseIn && mouseIn && showerCondition())
+                  shower.start()
             }
          },
          Subscription {

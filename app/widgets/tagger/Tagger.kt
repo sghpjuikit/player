@@ -247,7 +247,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    val infoL: Label = root.lookupId("infoL")
    val placeholder: StackPane = subroot.lookupId("placeholder")
    val allSongs = observableArrayList<Song>()!!
-   val metadatas = mutableListOf<Metadata>()   // currently in gui active
+   val metadatas = mutableListOf<Metadata>()   // active in gui
    val fields: List<TagField<*,*>>
    var writing = false    // prevents external data change during writing
    var readingAddMode = false
@@ -337,9 +337,10 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          }
       }
    }
-   val tagField = object: TagField<String?, Set<String>>(TAGS, false) {
+   val tagFieldField = Metadata.Field(type(), TAGS.name(), TAGS.description()) { it.getTags() }
+   val tagField = object: TagField<String?, Set<String>>(tagFieldField, false) {
       private val originalItems = mutableSetOf<String>()
-      private val textTag = object: TextTagField<String?>(TAGS, tagsF.textField, false, uiConverter = { "" }) {
+      private val textTag = object: TextTagField<String?>(tagFieldField, tagsF.textField, false, uiConverter = { "" }) {
          override fun handleTextChange() = Unit
          override fun handleLooseFocus() = Unit
          override fun handleMouseClicked() = Unit

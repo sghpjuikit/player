@@ -6,7 +6,6 @@ import kotlin.streams.asSequence
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.dev.failCase
-import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
@@ -75,7 +74,7 @@ class MetadataGroup {
       fun toString(field: Metadata.Field<*>): String = if (this===VALUE) field.toString() else toString()
 
       @Suppress("UNCHECKED_CAST")
-      fun getMFType(field: Metadata.Field<*>): VType<T> = if (this===VALUE) field.type.asIs() else type
+      fun getMFType(field: Metadata.Field<*>): VType<*> = if (this===VALUE) field.typeGrouped else type
 
       override fun toS(o: T?, substitute: String): String {
          return when (this) {
@@ -92,7 +91,10 @@ class MetadataGroup {
       @Suppress("UNCHECKED_CAST")
       override fun toS(v: MetadataGroup, o: T?, substitute: String): String {
          return when (this) {
-            VALUE -> if (v.isAll) "<any>" else (v.field as Metadata.Field<Any>).toS(o, "<none>")
+            VALUE -> when {
+               v.isAll -> "<any>"
+               else -> v.field.toGroupedS(o, "<none>")
+            }
             LENGTH -> (o as Duration).toHMSMs()
             else -> toS(o, substitute)
          }
@@ -120,18 +122,15 @@ class MetadataGroup {
 
    companion object {
 
-      @JvmStatic
       fun groupOfUnrelated(ms: Collection<Metadata>) = MetadataGroup(Metadata.Field.PATH, true, null, ms)
 
-      @JvmStatic
       fun groupOf(f: Metadata.Field<*>, ms: Collection<Metadata>) = MetadataGroup(f, true, getAllValue(f), ms)
 
-      @JvmStatic
-      fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): Stream<MetadataGroup> {
-         val getGroupedOf = f.getGroupedOf()
-         return ms.groupBy { getGroupedOf(it) }
-            .entries.stream()
-            .map { (key, value) -> MetadataGroup(f, false, key, value) }
+      fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): List<MetadataGroup> {
+         val groups = HashMap<Any?, ArrayList<Metadata>>()
+         val accumulate = f.getGroupAccumulator { key, m -> groups.getOrPut(key, ::ArrayList) += m }
+         ms.forEach(accumulate)
+         return groups.map { (key, value) -> MetadataGroup(f, false, key, value) }
       }
 
       fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()

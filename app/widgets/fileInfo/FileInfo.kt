@@ -4,10 +4,8 @@ import fileInfo.FileInfo.Sort.ALPHANUMERIC
 import fileInfo.FileInfo.Sort.SEMANTIC
 import javafx.geometry.Insets
 import javafx.geometry.Orientation.VERTICAL
-import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.control.OverrunStyle.ELLIPSIS
-import javafx.scene.layout.TilePane
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.Metadata.Companion.EMPTY
@@ -76,15 +74,22 @@ import java.io.File
 import java.net.URI
 import java.nio.file.StandardCopyOption
 import java.util.ArrayList
+import javafx.geometry.HPos
+import javafx.geometry.VPos
 import javafx.scene.control.ContentDisplay.RIGHT
 import javafx.scene.control.Hyperlink
+import javafx.scene.layout.FlowPane
 import kotlin.math.ceil
 import kotlin.math.floor
+import sp.it.pl.audio.tagging.Metadata.Field.Companion.TAGS
 import sp.it.pl.layout.controller.io.EqualizeBy.REF
 import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appHyperlinkFor
 import sp.it.pl.main.detectContent
+import sp.it.pl.ui.objects.complexfield.TagTextField
+import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
+import sp.it.util.parsing.ConverterFromString
 import sp.it.util.ui.Util
 import sp.it.util.units.em
 
@@ -109,7 +114,7 @@ private typealias MField = Metadata.Field<*>
 )
 class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    private val cover = ThumbnailWithAdd()
-   private val tiles: TilePane = FieldsPane()
+   private val tiles: FlowPane = FieldsPane()
    private val layout = ImageFlowPane(cover, tiles)
    private val gap1 = Label(" ")
    private val gap2 = Label(" ")
@@ -119,7 +124,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    private var data: Metadata = EMPTY
    private val dataReading = EventReducer.toLast<Song?>(200.0) { setValue(it) }
    val dataIn = io.i.create<Song?>("To display", null, action = dataReading::push).apply { equalBy = REF }
-   val dataOut = io.o.create<Metadata>("Displayed", EMPTY)
+   val dataOut = io.o.create<Metadata?>("Displayed", null)
 
    val minColumnWidth by cv(150.0).attach { tiles.requestLayout() }.def(name = "Column width", info = "Minimal width for field columns.")
    val coverSource by cv(CoverSource.ANY).attach { setCover(it) }.def(name = "Cover source", info = "Source for cover image.")
@@ -131,7 +136,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    private val fieldsM by cCheckList(
       TITLE, TRACK_INFO, DISCS_INFO, LENGTH, ARTIST,
       ALBUM, ALBUM_ARTIST, YEAR, GENRE, COMPOSER,
-      PUBLISHER, CATEGORY, RATING, PLAYCOUNT, COMMENT,
+      PUBLISHER, CATEGORY, RATING, PLAYCOUNT, COMMENT, TAGS,
       FILESIZE, FILENAME, FORMAT, BITRATE, ENCODING, PATH, COVER
    )
    private val fieldsAll = fieldsM.all.mapIndexed { semanticIndex, field ->
@@ -139,11 +144,13 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          RATING -> RatingField(semanticIndex)
          COVER -> CoverField()
          PATH -> LocationField(semanticIndex)
+         TAGS -> TagsField(semanticIndex)
          COMMENT -> CommentField(semanticIndex)
          else -> LField(semanticIndex, field)
       }
    }
    private val fieldCover = fieldsAll.filterIsInstance<CoverField>().first()
+   private val fieldTag = fieldsAll.filterIsInstance<TagsField>().first()
    private val fieldRating = fieldsAll.filterIsInstance<RatingField>().first()
    private val fieldsL = fieldsAll.filterIsInstance<LField>()
    private val fieldConfigs = fieldsAll.associateBy { it.field }
@@ -264,6 +271,33 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       }
    }
 
+   private inner class TagsField(semanticIndex: Int): LField(semanticIndex, TAGS) {
+      private val originalItems = mutableSetOf<String>()
+      private val textTag = TagTextField(
+         object: ConverterFromString<String> {
+            override fun ofS(s: String) = if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
+         }
+      )
+
+      init {
+         contentDisplay = RIGHT
+         graphic = textTag.apply {
+            isEditable.value = false
+         }
+      }
+
+      override fun update(m: Metadata) {
+         text = "$name:"
+         originalItems setTo TAGS.getOf(m).orEmpty()
+         textTag.items setTo originalItems
+      }
+
+      override fun setHide() {
+         isDisable = false
+         if (!shouldBeVisible || (!showEmptyFields.value && isValueEmpty)) labels.remove(this)
+      }
+   }
+
    private inner class CommentField(semanticIndex: Int): LField(semanticIndex, COMMENT) {
 
       init {
@@ -351,7 +385,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    }
 
    @Suppress("MoveVariableDeclarationIntoWhen")
-   private inner class FieldsPane: TilePane(VERTICAL, 10.0, 0.0) {
+   private inner class FieldsPane: FlowPane(VERTICAL, 10.0, 0.0) {
       override fun layoutChildren() {
          val width = width
          val height = height
@@ -366,7 +400,8 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          // adhere to requested minimum size
          cellW = cellW max minColumnWidth.value
          val w = cellW
-         prefTileWidth = w
+//         this.prefWrapLength = w
+//         prefTileWidth = w
          labels.forEach { it.maxWidth = w }
          super.layoutChildren()
 
@@ -382,7 +417,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
       // keep updated content)
       APP.audio.onSongRefresh(::data) { if (!dataReading.hasEventsQueued()) read(it) } on onClose
-      APP.audio.onSongRefresh(::data) { if (!dataReading.hasEventsQueued()) println(it.getRating()) } on onClose
+      APP.audio.onSongRefresh(::data) { if (!dataReading.hasEventsQueued()) it.getRating() } on onClose
 
       fieldsM.onChangeAndNow {
          fieldsM.forEach { (field, selected) -> fieldConfigs[field]?.shouldBeVisible = selected }
@@ -433,8 +468,8 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       root.lay += layout
 
       // align tiles from left top & tile content to center left
-      tiles.alignment = Pos.TOP_LEFT
-      tiles.tileAlignment = Pos.CENTER_LEFT
+      tiles.rowValignment = VPos.CENTER
+      tiles.columnHalignment = HPos.LEFT
 
       root.installDrag(
          IconMA.DETAILS,

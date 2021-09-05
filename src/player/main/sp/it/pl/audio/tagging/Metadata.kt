@@ -49,8 +49,10 @@ import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.children
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.localDateTimeFromMillis
+import sp.it.util.text.splitNoEmpty
 import sp.it.util.text.toStrings
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
@@ -689,8 +691,11 @@ class Metadata: Song, Serializable {
    /** @return the color associated with this or null if none */
    fun getColor(): Color? = color?.let { APP.converter.general.ofS<Color?>(it).orNull() }
 
-   /** Tags joined into a string or null if none */
+   /** Tags joined into a string using [SEPARATOR_UNIT] or null if none */
    fun getTags(): String? = tags
+
+   /** Tags as sequence */
+   fun getTagsAsSequence(): Sequence<String>? = tags?.splitNoEmpty(SEPARATOR_UNIT.toString())
 
    /** @return time this song was first played or null if none */
    fun getTimePlayedFirst(): LocalDateTime? = playedFirst?.toLongOrNull()?.localDateTimeFromMillis()
@@ -838,12 +843,6 @@ class Metadata: Song, Serializable {
          else -> super.searchMatch(matcher)
       }
 
-      fun getGroupedOf(): (Metadata) -> Any? = when (this) {
-         FILESIZE -> { m -> GROUPS_FILESIZE[64 - java.lang.Long.numberOfLeadingZeros(m.fileSizeInB - 1)] }
-         RATING -> { m -> if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()] }
-         else -> { m -> getOf(m) }
-      }
-
       fun isFieldEmpty(m: Metadata): Boolean = when(this) {
          COVER -> m.readArtworkFromTag()==null
          else -> getOf(m)==getOf(EMPTY)
@@ -864,6 +863,27 @@ class Metadata: Song, Serializable {
             } else {
                o.toString()
             }
+         }
+      }
+
+      val typeGrouped: VType<*> get() = when (this) {
+         TAGS -> type<String>()
+         else -> type
+      }
+
+      fun getGroupAccumulator(groupAccumulator: (Any?, Metadata) -> Unit): (Metadata) -> Unit = when (this) {
+         FILESIZE -> { m -> groupAccumulator(GROUPS_FILESIZE[64 - java.lang.Long.numberOfLeadingZeros(m.fileSizeInB - 1)], m)  }
+         RATING -> { m -> groupAccumulator(if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()], m) }
+         TAGS -> { m -> m.getTagsAsSequence()?.forEach { tag -> groupAccumulator(tag, m) } ?: groupAccumulator(null, m) }
+         else -> { m -> groupAccumulator(getOf(m), m) }
+      }
+
+      @Suppress("UNCHECKED_CAST")
+      fun toGroupedS(o: Any?, substitute: String): String {
+         if (o==null || ""==o) return substitute
+         return when (this) {
+            TAGS -> o.asIs()
+            else -> toS(o as T?, substitute)
          }
       }
 
@@ -910,7 +930,7 @@ class Metadata: Song, Serializable {
          @F val LYRICS = this + field({ it.lyrics }, "Lyrics", "Lyrics for the song")
          @F val MOOD = this + field({ it.mood }, "Mood", "Mood the song evokes")
          @F val COLOR = this + field({ it.getColor() }, "Color", "Color the song evokes")
-         @F val TAGS = this + field({ it.tags }, "Tags", "Tags associated with this song")
+         @F val TAGS = this + field({ it.getTagsAsSequence()?.toSet() }, "Tags", "Tags associated with this song")
          @F val CHAPTERS = this + field({ it.getChapters() }, "Chapters", "Comments at specific time points of the song")
          @F val FULLTEXT = this + field({ it.getFulltext() }, "Fulltext", "All possible fields merged into single text. Use for searching.")
          @F val CUSTOM1 = this + field({ it.custom1 }, "Custom1", "Custom field 1")

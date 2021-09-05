@@ -186,7 +186,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       lastScrollPosition = grid.skinImpl?.position ?: 0.0
 
       runIO {
-         val mgs = groupsOf(ALBUM, list).toList()
+         val mgs = groupsOf(ALBUM, list)
          runFX {
             if (mgs.isNotEmpty()) {
                selectionStore()

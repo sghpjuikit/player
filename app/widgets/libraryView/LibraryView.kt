@@ -294,7 +294,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
       val f = fieldFilter.value
       runIO {
-         listOf(MetadataGroup.groupOf(f, list)) + MetadataGroup.groupsOf(f, list).toList()
+         listOf(MetadataGroup.groupOf(f, list)) + MetadataGroup.groupsOf(f, list)
       } ui {
          if (it.isNotEmpty()) {
             selectionStore()

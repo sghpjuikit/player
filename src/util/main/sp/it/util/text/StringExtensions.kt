@@ -228,3 +228,7 @@ fun String.split3(delimiter: String, ignoreCase: Boolean = false): Triple<String
 /** Same as Java's [String.split] with limit -1 (which is unsupported in Kotlin), i.e., trims empty elements */
 fun String.splitTrimmed(delimiter: String, ignoreCase: Boolean = false): List<String> =
    split(delimiter, ignoreCase = ignoreCase).dropWhile { it.isEmpty() }.dropLastWhile { it.isEmpty() }
+
+/** Same as Java's [String.split] with no empty string elements */
+fun String.splitNoEmpty(delimiter: String, ignoreCase: Boolean = false): Sequence<String> =
+   splitToSequence(delimiter, ignoreCase = ignoreCase).filter { it.isNotEmpty() }

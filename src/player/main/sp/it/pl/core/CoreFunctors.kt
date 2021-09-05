@@ -316,6 +316,9 @@ object CoreFunctors: Core {
          add("File", type<Song>(), type<File>()) { it.getFile() }
          add("URI", type<Song>(), type<URI>()) { it.uri }
 
+         add("Size", type<Collection<*>>(), type<Int>()) { it.size }
+         add("Size", type<Map<*, *>>(), type<Int>()) { it.size }
+
          addComparisons(type<Byte>(), 0.toByte())
          addComparisons(type<UByte>(), 0.toUByte())
          addComparisons(type<Short>(), 0.toShort())

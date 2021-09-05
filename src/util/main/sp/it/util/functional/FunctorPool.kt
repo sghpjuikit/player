@@ -49,7 +49,7 @@ class FunctorPool {
    fun <I, P1, P2, P3, O> add(name: String, i: VType<I>, o: VType<O>, p1: Parameter<P1>, p2: Parameter<P2>, p3: Parameter<P3>, pi: Boolean, po: Boolean, pio: Boolean, f: F4<in I, in P1, in P2, in P3, out O>) =
       addF(PF3(name, i, o, p1, p2, p3, f), pi, po, pio)
 
-   // TODO: add automatically in getters
+   // TODO: add automatically in getters, this causes duplication because Long is Number
    fun <C: Comparable<C>> addComparisons(c: VType<C>, defaultValue: C?) {
       val cn = c.nullable()
       val comparator = nullsFirst { a: C, b: C -> a.compareTo(b) }

@@ -232,6 +232,12 @@ open class ListAreaNode: ValueNode<List<String>>(listOf()) {
          override fun realize(args: List<*>) = Transformation.ByN(f.name, f.realize(args))
       }
 
+      class ByValue(val inputType: VType<*>, val outputType: VType<*>, val f: PF<List<*>, List<*>>): TransformationRaw() {
+         override val name = "value: ${f.name}"
+         override val parameters = f.parameters
+         override fun realize(args: List<*>) = Transformation.By1(f.name, inputType, outputType, f.realize(args))
+      }
+
    }
 
    sealed class Transformation {
@@ -320,6 +326,11 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
                   it.flatMap { tabulate0(times) { _ -> it } }
                }
             )
+
+            // ByValue
+            this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF0("join", type<List<Any?>>(), type<List<Int>>()) { listOf(it) })
+            this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF0("join to text", type<List<Any?>>(), type<List<Any?>>()) { listOf(it.joinToString("")) })
+            this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF0("flatten", type<List<Any?>>(), type<List<Any?>>()) { it.flatMap { if (it is Collection<*>) it else listOf(it) } })
 
             // ByString
             this += functions.getIO(type<String>(), type<Any?>()).map {

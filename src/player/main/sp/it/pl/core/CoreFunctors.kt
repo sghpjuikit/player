@@ -17,6 +17,8 @@ import java.util.Objects
 import java.util.UUID
 import java.util.regex.Pattern
 import javafx.util.Duration
+import kotlin.streams.asSequence
+import kotlin.streams.toList
 import kotlin.text.Charsets.UTF_8
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
@@ -73,6 +75,8 @@ import sp.it.util.text.escapeXml10
 import sp.it.util.text.escapeXml11
 import sp.it.util.text.isPalindrome
 import sp.it.util.text.lengthInCodePoints
+import sp.it.util.text.toChar32
+import sp.it.util.text.toPrintableNonWhitespace
 import sp.it.util.text.unescapeCsv
 import sp.it.util.text.unescapeEcmaScript
 import sp.it.util.text.unescapeHtml3
@@ -188,6 +192,14 @@ object CoreFunctors: Core {
          add("To Hex", type<Int>(), S) { "0x" + Integer.toHexString(it) }
          add("Function", type<Number>(), type<Double>(), p<StrExF>(StrExF("x"))) { it, f -> runTry { f(it.toDouble()) }.getOrSupply { Double.NaN } }
 
+         add("To Char16", type<Int>(), type<Char16?>()) { runTry { Char(it)}.orNull() }
+         add("To Char32", type<Int>(), type<Char32?>()) { Char32(it) }
+         add("To Char32", type<Char16>(), type<Char32>()) { Char32(it.code) }
+         add("To Int", type<Char16>(), type<Int>()) { it.code }
+         add("To Int", type<Char32>(), type<Int>()) { it.value }
+         add("View non-printable", type<Char16>(), type<Char32>()) { it.toChar32().toPrintableNonWhitespace() }
+         add("View non-printable", type<Char32>(), type<Char32>()) { it.toPrintableNonWhitespace() }
+
          add("To upper case", S, S) { it.uppercase() }
          add("To lower case", S, S) { it.lowercase() }
          add("Plural", S, S) { English.plural(it) }
@@ -215,6 +227,8 @@ object CoreFunctors: Core {
          add("After", S, B, p<String>("")) { it, y -> it>y }
          add("Before", S, B, p<String>("")) { it, y -> it<y }
          add("Char at", S, type<Char32>(), p(0), p<StringDirection>(FROM_START)) { it, i, dir -> runTry { it.char32At(i, dir) }.orNull() }
+         add("Chars", S, type<List<Char32>>()) { it.codePoints().mapToObj(::Char32).toList() }
+         add("View non-printable", S, S) { it.codePoints().asSequence().map { Char32(it).toPrintableNonWhitespace().toString() }.joinToString("") }
          add("Length", S, type<Int>()) { it.lengthInCodePoints }
          add("Is empty", S, B) { it.isEmpty() }
          add("Is palindrome", S, B) { it.isPalindrome() }
@@ -317,7 +331,10 @@ object CoreFunctors: Core {
          add("URI", type<Song>(), type<URI>()) { it.uri }
 
          add("Size", type<Collection<*>>(), type<Int>()) { it.size }
+         add("Is empty", type<Collection<*>>(), type<Int>()) { it.isEmpty() }
+         add("Element at", type<List<*>>(), type<Any?>(), p<Int>(0)) { it, i -> it[i] }
          add("Size", type<Map<*, *>>(), type<Int>()) { it.size }
+         add("Is empty", type<Map<*, *>>(), type<Int>()) { it.isEmpty() }
 
          addComparisons(type<Byte>(), 0.toByte())
          addComparisons(type<UByte>(), 0.toUByte())

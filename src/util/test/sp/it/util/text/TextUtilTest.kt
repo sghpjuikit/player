@@ -31,6 +31,7 @@ class TextUtilTest: FreeSpec({
    String::splitTrimmed.name - {
       "1:2:3".splitTrimmed(":") shouldBe listOf("1", "2", "3")
       ":2:".splitTrimmed(":") shouldBe listOf("2")
+      "::::".splitTrimmed(":") shouldBe listOf("", "", "")
    }
 
    String::camelToDashCase.name - {

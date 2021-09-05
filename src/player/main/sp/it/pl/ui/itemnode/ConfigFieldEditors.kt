@@ -1100,7 +1100,8 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 }
 
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
-   val isMultiline = c.hasConstraint<Constraint.Multiline>() || c.type.jvmErasure.isSubclassOf<Collection<*>>() || c.type.jvmErasure.isSubclassOf<Map<*,*>>()
+   val isCollection = c.type.jvmErasure.isSubclassOf<Collection<*>>() || c.type.jvmErasure.isSubclassOf<Map<*,*>>()
+   val isMultiline = c.hasConstraint<Constraint.Multiline>() || isCollection
    val obv = getObservableValue(c)
    override val editor = if (isMultiline) TextArea() else SpitTextField()
    private val converterRaw: (T) -> String = c.findConstraint<UiConverter<T>>()?.converter ?: ::toS
@@ -1204,8 +1205,12 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       }
 
       // readonly
-      isEditable syncTo editor.editable on disposer
-      isEditable sync { showWarnButton(getValid()) } on disposer
+      if (isCollection) {
+         editor.editable.value = false
+      } else {
+         isEditable syncTo editor.editable on disposer
+         isEditable sync { showWarnButton(getValid()) } on disposer
+      }
    }
 
    @Suppress("UNCHECKED_CAST")
@@ -1220,7 +1225,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
    }
 
    private fun showWarnButton(value: Try<*, String>) {
-      val shouldBeVisible = value.isError && isEditable.value
+      val shouldBeVisible = value.isError && isEditable.value && !isCollection
       if (editor is SpitTextField) editor.right setTo editor.right.filter { it !== warnI.value }.plus(if (shouldBeVisible) listOf(warnI.value) else listOf())
       warnI.orNull()?.isVisible = shouldBeVisible
       warnI.orNull()?.tooltip(value.switch().map { appTooltip(it) }.orNull())

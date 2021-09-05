@@ -46,10 +46,10 @@ import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
-import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
@@ -238,7 +238,8 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
             }
          }
       }
-      for (field in o::class.memberProperties) {
+
+      declaringClass.declaredMemberProperties.forEach { field ->
          val fieldName = field.name
          val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
          if (isPublished) {

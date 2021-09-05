@@ -610,7 +610,7 @@ public class MetadataWriter extends Song {
 	}
 
 	public void setTags(Set<String> tags) {
-		setTags(tags.isEmpty() ? "" : SEPARATOR_UNIT + tags.stream().collect(joining(String.valueOf(SEPARATOR_UNIT) + SEPARATOR_UNIT)));
+		setTags(tags.isEmpty() ? "" : SEPARATOR_UNIT + tags.stream().collect(joining(String.valueOf(SEPARATOR_UNIT))) + SEPARATOR_UNIT);
 	}
 
 	public void setTags(String tags) {

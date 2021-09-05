@@ -26,7 +26,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.pseudoClassChanged
-import sp.it.util.ui.styleclassToggle
+import sp.it.util.ui.pseudoClassToggle
 
 /** [TextField], which can be decorated with nodes inside on the left and right. */
 open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() {
@@ -67,7 +67,7 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
       // Read-only mode disables
       isEditable sync { editable ->
          textField.isEditable = editable
-         styleclassToggle("readonly", !editable)
+         pseudoClassToggle("readonly", !editable)
 
          lay -= textField
          if (editable) lay += textField
@@ -89,7 +89,7 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
    private fun TagNode<T>.closeTagIcon() = Icon(ICON_CLOSE).onClickDo { items -= tagItem }
 
    private fun TagNode<T>.updateEditable() = apply {
-      styleclassToggle("readonly", !isEditable.value)
+      pseudoClassToggle("readonly", !isEditable.value)
       graphic = if (isEditable.value) closeTagIcon() else null
    }
 

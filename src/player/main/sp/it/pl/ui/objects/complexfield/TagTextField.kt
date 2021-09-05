@@ -46,18 +46,22 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
       textField.focused attach { pseudoClassChanged("has-focus", it) }
 
       // ENTER commits tag, BACKSPACE removes last tag
-      textField.onEventDown(KEY_PRESSED, ENTER) {
-         if (isEditable.value)
+      textField.onEventDown(KEY_PRESSED, ENTER, false) {
+         if (isEditable.value) {
             converterString.ofS(textField.text ?: "").ifOk {
                textField.text = ""
                items += it
             }
+            it.consume()
+         }
       }
-      textField.onEventDown(KEY_PRESSED, BACK_SPACE) {
-         if (isEditable.value)
+      textField.onEventDown(KEY_PRESSED, BACK_SPACE, false) {
+         if (isEditable.value) {
             if (textField.text.isEmpty()) {
                items setTo items.toList().dropLast(1)
+               it.consume()
             }
+         }
       }
 
       // Read-only mode disables

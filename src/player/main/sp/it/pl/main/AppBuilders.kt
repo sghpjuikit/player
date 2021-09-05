@@ -487,7 +487,11 @@ fun Any?.detectContent(): Any? = when (this) {
    is Optional<*> -> this.orElse(null).detectContent()
    is Try.Error<*> -> this.value.detectContent()
    is Try.Ok<*> -> this.value.detectContent()
-   is Collection<*> -> collectionUnwrap(this).detectContent()
+   is Collection<*> -> when (size) {
+      0 -> null.detectContent()
+      1 -> first().detectContent()
+      else -> this
+   }
    else -> this
 }
 

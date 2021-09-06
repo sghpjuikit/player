@@ -1467,7 +1467,8 @@ Shape, Text, SpitText, TextFlow > * {
 .color-picker > .color-picker-label > .picker-color > .picker-color-rect {
     -fx-stroke: null;
     -fx-stroke-width: 1;
-    -fx-scale-x: 2.5;
+    -fx-translate-x: -0.3em;
+    -fx-scale-x: 1.5;
     -fx-scale-y: 1.5;
 }
 
@@ -2124,7 +2125,7 @@ Shape, Text, SpitText, TextFlow > * {
     /* use this to get nice not filled arrow */
     /* -fx-background-color: -fx-mark-highlight-color, -fx-mark-color; */
     -fx-background-insets: 1 0 -1 0, 0;
-    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-padding: 0.1em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
 
@@ -2214,7 +2215,9 @@ Shape, Text, SpitText, TextFlow > * {
  * Button that opens value picker for .value-text-field
  * inherits: .icon
  */
-.value-text-field .value-text-field-arrow {}
+.value-text-field .value-text-field-arrow {
+    -fx-fill: -skin-def-font-color;
+}
 
 /*
  * inherits: .value-text-field
@@ -2316,7 +2319,7 @@ Shape, Text, SpitText, TextFlow > * {
 .tag-text-field .tag-text-field-tag {
     -fx-content-display: right;
     -fx-label-padding: 0 0 0 0.5em;
-    -fx-border-width: 1;
+    -fx-border-width: 0.5;
     -fx-border-radius: 0.5em;
     -fx-border-color: -skin-def-font-color;
 }

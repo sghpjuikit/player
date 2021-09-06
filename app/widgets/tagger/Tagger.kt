@@ -1021,6 +1021,8 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
                      lay += dTextField {
                         id = "colorF"
+                        styleClass += "value-text-field"
+                        styleClass += "color-text-field"
                         minSize = 0 x 0
                         maxSize = Double.MAX_VALUE.x2
                         alignment = CENTER_LEFT

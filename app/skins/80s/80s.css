@@ -18,13 +18,13 @@
 /** Add shadow effect */
 .list-cell,
 .table-cell,
-Shape, Text, TextFlow > * {
-    -fx-effect: dropshadow(one-pass-box , rgba(0, 0, 210, 1), 0,0 , -2,-4);
-}
-.label {
+Shape, Text, TextFlow > *,
+.label,
+.arrow {
     -fx-effect: dropshadow(one-pass-box , rgba(0, 0, 210, 1), 0,0 , -2,-4);
 }
 .hyperlink,
-.markdown-link {
+.markdown-link,
+.color-picker-label {
     -fx-effect: none;
 }

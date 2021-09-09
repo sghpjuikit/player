@@ -104,6 +104,10 @@ open class WidgetFactory<C: Controller>: ComponentFactory<Widget>, WidgetInfo, L
 
    fun createRecompiled(id: UUID): Widget = Widget(id, this, true)
 
+   override fun equals(other: Any?) = other is WidgetFactory<*> && other.id == id
+
+   override fun hashCode() = id.hashCode()
+
    override fun toString() = "${javaClass.simpleName} $id $name $controllerType"
 
 }

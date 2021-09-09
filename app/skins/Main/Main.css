@@ -841,6 +841,11 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: transparent;
     -fx-background-radius: 0;
     -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.menu-bar > .container > .menu-button > .label {
+    -fx-padding: 0.25em;
 }
 
 /* Hide the down arrow for a menu placed in a menu bar */
@@ -848,6 +853,16 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-padding: 0.167em 0 0.250em 0; /* 2 0 3 0 */
     -fx-background-color: null;
     -fx-shape: null;
+}
+
+.menu-bar {
+    -fx-padding: 0.0em 0.666667em 0.0em 0.666667em; /* 0 8 0 8 */
+    -fx-spacing: 0.166667em; /* 2 */
+    -fx-background-color:
+        linear-gradient(to bottom, derive(-fx-base,75%) 0%, -fx-outer-border 90%),
+        linear-gradient(to bottom, derive(-fx-base,46.9%) 2%, derive(-fx-base,-2.1%) 95%);
+    -fx-background-insets: 0 0 0 0, 1 0 1 0;
+    -fx-background-radius: 0, 0 ;
 }
 
 /********************************* TabPane ************************************/
@@ -3408,7 +3423,7 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 /******************** INSPECTING ***********************************
- * A 'selected' node.
+ * Ui inspection's currently Inspected node.
  */
 .inspector-highlighted,
 .inspector-highlighted:hover,

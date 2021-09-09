@@ -118,13 +118,11 @@ object ActionsPaneGenericActions {
 
 fun ActionPane.initGenericActions(): ActionPane = also { ap ->
    ActionsPaneGenericActions.actionsAll.forEach { (kclass, actions) -> actions.forEach { ap.register<Any>(kclass.asIs(), it.asIs()) } }
-
 }
 
 @Suppress("RemoveExplicitTypeArguments")
 fun ActionPane.initActionPane(): ActionPane = also { ap ->
    ap.initGenericActions()
-
 
    ap.register<Any?>(
       FastColAction<Any?>(
@@ -244,11 +242,6 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<Song>(
-      SlowAction(
-         "Print raw metadata", "Prints all audio metadata to console.",
-         IconMA.IMAGE_ASPECT_RATIO,
-         { APP.actions.printAllAudioItemMetadata(it) }
-      ),
       FastColAction(
          "Add to new playlist",
          "Add songs to new playlist widget.",
@@ -314,22 +307,10 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          { it.recycle() }
       ),
       SlowAction(
-         "Print raw metadata", "Prints all image metadata to console.",
-         IconMA.IMAGE_ASPECT_RATIO,
-         { it.isImage() },
-         { APP.actions.printAllImageFileMetadata(it) }
-      ),
-      SlowAction(
          "Set as wallpaper", "Sets image as wallpaper.",
          IconMA.IMAGE_ASPECT_RATIO,
          { it.isImage() && APP.plugins.get<WallpaperChanger>()!=null },
          { f -> APP.plugins.use<WallpaperChanger> { it.wallpaperFile.value = f } }
-      ),
-      SlowAction(
-         "Print raw metadata", "Prints all audio metadata to console.",
-         IconMA.IMAGE_ASPECT_RATIO,
-         { it.isAudio() },
-         { APP.actions.printAllAudioFileMetadata(it) }
       ),
       FastAction(
          "Open (OS)", "Opens file in a native program associated with this file type.",

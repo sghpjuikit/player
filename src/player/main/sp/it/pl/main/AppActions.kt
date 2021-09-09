@@ -17,6 +17,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
 import mu.KLogging
+import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.layout.ComponentLoader
@@ -43,6 +44,7 @@ import sp.it.pl.ui.pane.FastAction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.pl.ui.pane.SlowAction
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.Sort
@@ -65,6 +67,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.net
 import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -338,18 +341,14 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   /**
-    * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
-    * such cases is undefined.
-    */
    @Blocks
-   fun printAllImageFileMetadata(file: File) {
+   val printAllImageFileMetadata = SlowAction<File>("Show image metadata", "Show image metadata", IconFA.INFO, { it.isImage() }) {
       failIfFxThread()
 
-      val title = "Metadata of " + file.path
+      val title = "File:" + it.path
       val text = try {
          val sb = StringBuilder()
-         ImageMetadataReader.readMetadata(file)
+         ImageMetadataReader.readMetadata(it)
             .directories
             .forEach {
                sb.append("\nName: ").append(it.name)
@@ -364,33 +363,36 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }
 
+
    @Blocks
-   fun printAllAudioItemMetadata(song: Song) {
+   val printAllAudioMetadata = SlowAction<Song>("Show metadata", "Show metadata", IconFA.INFO) {
       failIfFxThread()
 
-      if (song.isFileBased()) {
-         printAllAudioFileMetadata(song.getFile()!!)
+      if (it.isFileBased()) {
+         printAllAudioFileMetadata(it.getFile()!!)
       } else {
-         val text = "Metadata of ${song.uri}\n<only supported for files>"
+         val text = "Metadata of ${it.uri}\n<only supported for files>"
          runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
       }
    }
 
-   /**
-    * The check whether file exists, is accessible or of correct type/format is left on the caller and behavior in
-    * such cases is undefined.
-    */
    @Blocks
-   fun printAllAudioFileMetadata(file: File) {
+   val printAllAudioFileMetadata = SlowAction<File>("Show audio metadata", "Show audio metadata", IconFA.INFO, { it.isAudio() }) {
       failIfFxThread()
 
-      val title = "Metadata of ${file.path}"
-      val content = file.readAudioFile()
-         .map { af ->
-            "\nHeader:\n" +
-               af.audioHeader.toString().split("\n").joinToString("\n\t") +
-               "\nTag:" +
-               if (af.tag==null) " <none>" else af.tag.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" }
+      val title = "File:${it.path}"
+      val content = it.readAudioFile().map { it.audioHeader to it.tag }
+         .map { (header, tag) ->
+            "\nHeader %s:\n%s\nTag%s:%s".format(
+               "(" + header::class.toUi() + ")",
+               header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t"),
+               when (tag) {
+                  null -> ""
+                  is WavTag -> " (" + tag.activeTag::class.toUi() + ")"
+                  else -> " (" + tag::class.toUi() + ")"
+               },
+               tag?.net { it.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" } } ?: " <none>"
+            )
          }
          .getOrSupply { "\n${it.stacktraceAsString}" }
       val text = title + content
@@ -442,7 +444,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   val openMarkdownText = FastAction<String>("Open markdown", "Opens markdown text.", IconOC.MARKDOWN,) { mdText ->
+   val openMarkdownText = FastAction<String>("Open markdown", "Opens markdown text.", IconOC.MARKDOWN) { mdText ->
       APP.windowManager.createWindow().apply {
          detachLayout()
          setContent(

@@ -192,6 +192,7 @@ import sp.it.util.reactive.zip
 import sp.it.util.text.capital
 import sp.it.util.text.decapital
 import sp.it.util.text.splitTrimmed
+import sp.it.util.type.atomic
 import sp.it.util.type.property
 import sp.it.util.ui.show
 
@@ -1178,7 +1179,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
    }
 
    abstract class TagField<I, O>(val f: Metadata.Field<I>, val readOnly: Boolean = false) {
-      var state: ReadState<I?> = ReadState.Init
+      var state: ReadState<I?> by atomic(ReadState.Init)
       var committable = false
       abstract val outputValue: O
 

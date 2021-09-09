@@ -15,6 +15,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncFrom
@@ -28,6 +29,9 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
    private val wrapText by cv(false).def(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
    private val area = TextArea()
+   private val stdoutReader = Subscribed {
+      APP.systemout.addListener { area.appendText(it) }
+   }
 
    init {
       root.prefSize = 500.emScaled x 500.emScaled
@@ -41,17 +45,21 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
          text = "# This is redirected output (System.out) stream of this application.\n"
       }
 
-      APP.systemout.addListener { area.appendText(it) } on onClose
+      stdoutReader.subscribe()
+      stdoutReader on onClose
    }
 
-   override fun showText(text: String) = println(text)
+   override fun showText(text: String) {
+      stdoutReader.unsubscribe()
+      area.text = text
+   }
 
    companion object: WidgetCompanion, KLogging() {
       override val name = LOGGER_NAME
-      override val description = "Displays process output (stdout), which contains application logging"
-      override val descriptionLong = "$description.\nThe visualization is customizable."
+      override val description = "Displays text or application standard output (stdout), which contains application logging."
+      override val descriptionLong = "$description."
       override val icon = IconUN(0x2e2a)
-      override val version = version(1, 0, 0)
+      override val version = version(1, 1, 0)
       override val isSupported = true
       override val year = year(2015)
       override val author = "spit"

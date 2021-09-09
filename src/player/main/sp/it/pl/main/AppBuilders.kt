@@ -397,14 +397,14 @@ fun okIcon(text: String = "", action: () -> Unit) = button(text) {
    }
 }
 
-fun <N: Node> showFloating(title: String, content: (PopWindow) -> N): PopWindow = PopWindow().apply {
+fun <N: Node> showFloating(title: String, shower: Shower = WINDOW_ACTIVE(CENTER), content: (PopWindow) -> N): PopWindow = PopWindow().apply {
    this.title.value = title
    this.content.value = content(this)
 
-   show(WINDOW_ACTIVE(CENTER))
+   show(shower)
 }
 
-fun showConfirmation(text: String, action: () -> Unit) {
+fun showConfirmation(text: String, shower: Shower = WINDOW_ACTIVE(CENTER), action: () -> Unit) {
    PopWindow().apply {
       content.value = vBox(0, CENTER) {
          lay += SpitText(text).apply {
@@ -422,7 +422,7 @@ fun showConfirmation(text: String, action: () -> Unit) {
       headerVisible.value = false
       isAutohide.value = true
 
-      show(WINDOW_ACTIVE(CENTER))
+      show(shower)
    }
 }
 

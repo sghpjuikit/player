@@ -791,6 +791,7 @@ public class MetadataWriter extends Song {
 				for (int toSleep: list(0, 250, 1000)) {
 					try {
 						Thread.sleep(toSleep);
+						audioFile.setTag(tag);
 						audioFile.commit();
 						r = ok(true);
 						break;

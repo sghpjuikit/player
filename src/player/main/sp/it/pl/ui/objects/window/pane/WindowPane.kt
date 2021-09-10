@@ -13,12 +13,11 @@ import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.StackPane
 import kotlin.math.abs
-import kotlin.math.absoluteValue
-import kotlin.math.ceil
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.window.Resize
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
 import sp.it.util.access.v
+import sp.it.util.math.distance
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.sceneXy
 import sp.it.util.ui.x
@@ -191,7 +190,7 @@ open class WindowPane(val owner: AnchorPane) {
 
    private fun mapSnap(x: Double, right: Double, w: Double, owner_width: Double): Double = when {
       abs(x)<snapDist -> 0.0
-      abs(right - owner_width)<snapDist -> owner_width - w
+      right distance owner_width < snapDist -> owner_width - w
       else -> x
    }
 
@@ -200,13 +199,13 @@ open class WindowPane(val owner: AnchorPane) {
          .flatMap {
             sequence {
                val wr = it.layoutX + it.layoutBounds.width
-               if (abs(x - wr)<snapDist) yield(wr)
-               if (abs(x + w.value - it.layoutX)<snapDist) yield(it.layoutX - w.value)
-               if (abs(x + w.value/2.0 - (it.layoutX + it.layoutBounds.width/2.0))<snapDist) yield(it.layoutX - w.value/2.0)
+               if (x distance wr < snapDist) yield(wr)
+               if ((x + w.value) distance it.layoutX < snapDist) yield(it.layoutX - w.value)
+               if ((x + w.value/2.0) distance (it.layoutX + it.layoutBounds.width/2.0) < snapDist) yield(it.layoutX - w.value/2.0)
             }
          }
-         .minByOrNull { (it - x).absoluteValue }
-         ?.takeIf { (it - x).absoluteValue<snapDist }
+         .minByOrNull { it distance x }
+         ?.takeIf { it distance x < snapDist }
          ?: x
    }
 
@@ -215,13 +214,13 @@ open class WindowPane(val owner: AnchorPane) {
          .flatMap {
             sequence {
                val wr = it.layoutY + it.layoutBounds.height
-               if (abs(y - wr)<snapDist) yield(wr)
-               if (abs(y + h.value - it.layoutY)<snapDist) yield(it.layoutY - h.value)
-               if (abs(y + h.value/2.0 - (it.layoutY + it.layoutBounds.height/2.0))<snapDist) yield(it.layoutY - h.value/2.0)
+               if (y distance wr < snapDist) yield(wr)
+               if ((y + h.value) distance it.layoutY < snapDist) yield(it.layoutY - h.value)
+               if ((y + h.value/2.0) distance (it.layoutY + it.layoutBounds.height/2.0) < snapDist) yield(it.layoutY - h.value/2.0)
             }
          }
-         .minByOrNull { (it - y).absoluteValue }
-         ?.takeIf { (it - y).absoluteValue<snapDist }
+         .minByOrNull { it distance y }
+         ?.takeIf { it distance y < snapDist }
          ?: y
    }
 

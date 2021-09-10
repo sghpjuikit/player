@@ -17,7 +17,6 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
 import javafx.scene.layout.AnchorPane
-import kotlin.math.absoluteValue
 import kotlin.reflect.KProperty0
 import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.icon.Icon
@@ -30,6 +29,7 @@ import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
 import sp.it.util.functional.asIf
 import sp.it.util.math.clip
+import sp.it.util.math.distance
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -155,7 +155,7 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
                vSnap -> sequenceOf(0.0, 1.0, 0.5, if (splitPane.orientation==HORIZONTAL) splitPane.height/splitPane.width else splitPane.width/splitPane.height)
                else -> sequenceOf(0.0, 1.0)
             }
-            val v = (vSnaps.minByOrNull { (it-vRaw).absoluteValue }?.takeIf { (it-vRaw).absoluteValue<=collapsedActivatorDist } ?: vRaw).clip(0.0, 1.0)
+            val v = (vSnaps.minByOrNull { it distance vRaw }?.takeIf { it distance vRaw <= collapsedActivatorDist } ?: vRaw).clip(0.0, 1.0)
 
             val shouldBeCollapsed = v==0.0 || v==1.0
             if (shouldBeCollapsed) {
@@ -216,7 +216,7 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
          HORIZONTAL -> splitPane.sceneToLocal(e.sceneX, 0.0).x/splitPane.width
          VERTICAL -> splitPane.sceneToLocal(0.0, e.sceneY).y/splitPane.height
       }
-      return (splitPane.dividers[0].position-vRaw).absoluteValue<=collapsedActivatorDist
+      return splitPane.dividers[0].position distance vRaw <= collapsedActivatorDist
    }
 
    private fun updatePosition(position: Double = computePosition()) {

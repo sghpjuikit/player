@@ -5,6 +5,7 @@ import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.geometry.VPos
+import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.SplitPane
 import javafx.scene.layout.AnchorPane
@@ -58,6 +59,13 @@ interface ChildrenLay: Lay {
 
    /** Removes the specified children from [Pane.children] */
    operator fun minusAssign(children: Sequence<Node>) = this.children.removeAll(children.toList()).toUnit()
+
+}
+
+@JvmInline
+value class GroupLay(private val group: Group): ChildrenLay {
+
+   override val children: ObservableList<Node> get() = group.children
 
 }
 
@@ -169,6 +177,7 @@ value class GridPaneLay(private val pane: GridPane): ChildrenLay {
    }
 }
 
+val Group.lay get() = GroupLay(this)
 val Pane.lay get() = PaneLay(this)
 val HBox.lay get() = HBoxLay(this)
 val VBox.lay get() = VBoxLay(this)

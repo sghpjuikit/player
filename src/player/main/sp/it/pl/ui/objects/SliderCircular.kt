@@ -15,7 +15,6 @@ import javafx.scene.shape.ArcType
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Rectangle
 import kotlin.math.PI
-import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.sign
 import kotlin.math.sin
@@ -25,6 +24,7 @@ import sp.it.util.access.v
 import sp.it.util.animation.Anim
 import sp.it.util.collections.observableList
 import sp.it.util.math.clip
+import sp.it.util.math.distance
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -87,9 +87,6 @@ class SliderCircular(val W: Double): StackPane() {
    init {
       styleClass += "slider-circular"
       editable sync { pseudoClassToggle("readonly", !editable.value) }
-      prefSize = W/2.0 x W/2.0
-      minSize = W/2.0 x W/2.0
-      maxSize = W/2.0 x W/2.0
       isFocusTraversable = true
       isPickOnBounds = false
       onEventDown(KeyEvent.KEY_PRESSED, KeyCode.HOME) { decrementToMin() }
@@ -270,7 +267,7 @@ class SliderCircular(val W: Double): StackPane() {
       val snap = e!=null && !e.isShiftDown && !e.isShortcutDown
       val snapBy = APP.ui.snapDistance.value/(2*PI*W/4.0)
       val snaps = if (snap) snaps else setOf()
-      return snaps.minByOrNull { (it - this).absoluteValue }?.takeIf { (it - this).absoluteValue<=snapBy } ?: this
+      return snaps.minByOrNull { it distance this }?.takeIf { it distance this <= snapBy } ?: this
    }
 
 }

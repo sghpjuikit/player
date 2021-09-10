@@ -35,6 +35,7 @@ import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
+import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.ui.objects.SpitText
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.CheckIcon
@@ -494,6 +495,8 @@ fun Any?.detectContent(): Any? = when (this) {
    }
    else -> this
 }
+
+fun autocompleteSuggestionsFor(f: Metadata.Field<*>, text: String, ignoreCase: Boolean) = APP.db.itemUniqueValuesByField[f].orEmpty().filter { it.contains(text, ignoreCase) }
 
 @Suppress("UNUSED_VARIABLE")
 fun animShowNodes(nodes: List<Node>, block: (Int, Node, Double) -> Unit): ParallelTransition {

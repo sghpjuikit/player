@@ -2307,6 +2307,7 @@ Shape, Text, SpitText, TextFlow > * {
 /*
  * inherits: FlowPane
  * pseudoclasses: readonly, has-focus
+ * attributes: -fx-editable-by: [PLUS_NODE | TEXT_FIELD]
  */
 .tag-text-field {
     -fx-padding: 0.16667em;

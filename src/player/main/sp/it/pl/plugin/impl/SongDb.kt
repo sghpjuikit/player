@@ -1,5 +1,6 @@
 package sp.it.pl.plugin.impl
 
+import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.net.URI
 import java.util.Collections.synchronizedMap
 import java.util.concurrent.ConcurrentHashMap
@@ -36,7 +37,7 @@ import sp.it.util.units.uuid
 class SongDb {
 
    private var running = false
-   private lateinit var moods: Set<String>
+   private lateinit var moods: LinkedHashSet<String>
 
    /** All library songs. Use output for reading/observing. Using input does not change db and has little use. */
    val songs = InOutput<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "Song library", listOf()).appWide()
@@ -44,15 +45,15 @@ class SongDb {
    /** All library songs by [Song.id]. This is in memory db and should be used as read-only. */
    @ThreadSafe val songsById = MapSet(synchronizedMap(HashMap<String, Metadata>(2000)), { it.id })
 
-   /** Map of unique values per field gathered from [songsById] */
-   @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, Set<String>>()
+   /** Map of unique values per field gathered from [songsById], sorted by [CASE_INSENSITIVE_ORDER] ASC. */
+   @ThreadSafe val itemUniqueValuesByField = ConcurrentHashMap<Metadata.Field<*>, LinkedHashSet<String>>()
    val songListFile = APP.location.user.library/"MetadataIdsDB.txt"
 
    fun init() {
       if (running) return
       running = true
 
-      moods = APP.location.resources.moods_txt.readTextTry().orNull().orEmpty().lineSequence().toSet()
+      moods = APP.location.resources.moods_txt.readTextTry().orNull().orEmpty().lineSequence().sorted().toCollection(LinkedHashSet())
       runIO { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
    }
 
@@ -133,9 +134,9 @@ class SongDb {
          .filter { it.isAutoCompletable() }
          .forEach { f ->
             itemUniqueValuesByField[f] = songsById.asSequence()
-               .map { it.getFieldS(f, "") }
-               .filter { it.isNotBlank() }
-               .toSet()
+               .flatMap { f.autocompleteGetOf(it) }
+               .sortedWith(CASE_INSENSITIVE_ORDER)
+               .toCollection(LinkedHashSet())
          }
       itemUniqueValuesByField[Metadata.Field.MOOD] = moods
    }

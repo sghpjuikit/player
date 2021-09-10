@@ -82,11 +82,14 @@ import javafx.scene.layout.FlowPane
 import kotlin.math.ceil
 import kotlin.math.floor
 import sp.it.pl.audio.tagging.Metadata.Field.Companion.TAGS
+import sp.it.pl.audio.tagging.write
 import sp.it.pl.layout.controller.io.EqualizeBy.REF
 import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appHyperlinkFor
+import sp.it.pl.main.autocompleteSuggestionsFor
 import sp.it.pl.main.detectContent
 import sp.it.pl.ui.objects.complexfield.TagTextField
+import sp.it.pl.ui.objects.complexfield.TagTextField.EditableBy.PLUS_NODE
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.parsing.ConverterFromString
@@ -283,6 +286,18 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          contentDisplay = RIGHT
          graphic = textTag.apply {
             isEditable.value = false
+            editableBy.value = PLUS_NODE
+            itemAdder.value = {
+               val tags = data.getTagsAsSequence().orEmpty().toSet() + it
+               data.write { it.setTags(tags) }
+            }
+            itemRemover.value = {
+               val tags = data.getTagsAsSequence().orEmpty().toSet() - it
+               data.write { it.setTags(tags) }
+            }
+            autocompleteSuggestionProvider.value = {
+               autocompleteSuggestionsFor(TAGS, it, true)
+            }
          }
       }
 
@@ -290,6 +305,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          text = "$name:"
          originalItems setTo TAGS.getOf(m).orEmpty()
          textTag.items setTo originalItems
+         textTag.isEditable.value = m.isFileBased()
       }
 
       override fun setHide() {

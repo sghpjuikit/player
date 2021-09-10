@@ -54,7 +54,7 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
    protected val disposer = Disposer()
 
    /** Creates an auto-completion binding between the specified textField and suggestions. */
-   internal constructor(textField: TextInputControl, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): super(textField, allSuggestions, converter) {
+   internal constructor(textField: TextInputControl, suggestionProvider: (String) -> Collection<T>, converter: (T) -> String): super(textField, suggestionProvider, converter) {
       this.completionTargetTyped = textField
       this.converter = converter
 
@@ -86,17 +86,17 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
 
       fun <T> defaultStringConverter(): (T) -> String = Objects::toString
 
-      fun <T> autoComplete(textField: TextInputControl, allSuggestions: (String) -> Collection<T>, converter: (T) -> String): Subscription {
-         val a = AutoCompletion(textField, allSuggestions, converter)
+      fun <T> autoComplete(textField: TextInputControl, suggestionProvider: (String) -> Collection<T>, converter: (T) -> String): Subscription {
+         val a = AutoCompletion(textField, suggestionProvider, converter)
          return Subscription { a.dispose() }
       }
 
-      fun <T> autoComplete(textField: TextInputControl, allSuggestions: (String) -> Collection<T>) = autoComplete(textField, allSuggestions, defaultStringConverter())
+      fun <T> autoComplete(textField: TextInputControl, suggestionProvider: (String) -> Collection<T>) = autoComplete(textField, suggestionProvider, defaultStringConverter())
 
-      fun <T> autoComplete(textField: TextInputControl, allSuggestions: Collection<T>) = autoComplete(textField, { allSuggestions })
+      fun <T> autoComplete(textField: TextInputControl, suggestionProvider: Collection<T>) = autoComplete(textField, { suggestionProvider })
 
       @SafeVarargs
-      fun <T> autoComplete(textField: TextInputControl, vararg allSuggestions: T) = autoComplete(textField, listOf(allSuggestions))
+      fun <T> autoComplete(textField: TextInputControl, vararg suggestionProvider: T) = autoComplete(textField, listOf(suggestionProvider))
 
    }
 

@@ -829,8 +829,6 @@ class Metadata: Song, Serializable {
 
       constructor(type: VType<T>, name: String, description: String, extractor: (Metadata) -> T): super(type, extractor, name, description)
 
-      fun isAutoCompletable(): Boolean = this in AUTO_COMPLETABLE
-
       override fun isTypeStringRepresentable(): Boolean = this !in NOT_STRING_REPRESENTABLE
 
       override fun isTypeFilterable(): Boolean = this!=COVER
@@ -871,7 +869,7 @@ class Metadata: Song, Serializable {
          else -> type
       }
 
-      fun getGroupAccumulator(groupAccumulator: (Any?, Metadata) -> Unit): (Metadata) -> Unit = when (this) {
+      fun groupBuildAccumulator(groupAccumulator: (Any?, Metadata) -> Unit): (Metadata) -> Unit = when (this) {
          FILESIZE -> { m -> groupAccumulator(GROUPS_FILESIZE[64 - java.lang.Long.numberOfLeadingZeros(m.fileSizeInB - 1)], m)  }
          RATING -> { m -> groupAccumulator(if (m.rating==null) -1.0 else GROUPS_RATING[(m.getRatingPercent()!!*100/5).toInt()], m) }
          TAGS -> { m -> m.getTagsAsSequence()?.forEach { tag -> groupAccumulator(tag, m) } ?: groupAccumulator(null, m) }
@@ -879,12 +877,19 @@ class Metadata: Song, Serializable {
       }
 
       @Suppress("UNCHECKED_CAST")
-      fun toGroupedS(o: Any?, substitute: String): String {
+      fun groupToS(o: Any?, substitute: String): String {
          if (o==null || ""==o) return substitute
          return when (this) {
             TAGS -> o.asIs()
             else -> toS(o as T?, substitute)
          }
+      }
+
+      fun isAutoCompletable(): Boolean = this in AUTO_COMPLETABLE
+
+      fun autocompleteGetOf(m: Metadata): Sequence<String> = when (this) {
+         TAGS -> m.getTagsAsSequence().orEmpty()
+         else -> sequenceOf(getOf(m)).filterIsInstance<String>().filter { it.isNotBlank() }
       }
 
       override fun cVisible(): Boolean = VISIBLE.contains(this)
@@ -951,7 +956,7 @@ class Metadata: Song, Serializable {
             Field(type(), name, description, extractor)
 
          private val AUTO_COMPLETABLE = setOf<Field<*>>(
-            ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD
+            ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD, TAGS
          )
          private val VISIBLE = setOf<Field<*>>(
             TITLE, ALBUM, ARTIST, LENGTH, TRACK_INFO, DISCS_INFO, RATING, PLAYCOUNT

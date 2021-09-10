@@ -93,7 +93,7 @@ class MetadataGroup {
          return when (this) {
             VALUE -> when {
                v.isAll -> "<any>"
-               else -> v.field.toGroupedS(o, "<none>")
+               else -> v.field.groupToS(o, "<none>")
             }
             LENGTH -> (o as Duration).toHMSMs()
             else -> toS(o, substitute)
@@ -128,7 +128,7 @@ class MetadataGroup {
 
       fun groupsOf(f: Metadata.Field<*>, ms: Collection<Metadata>): List<MetadataGroup> {
          val groups = HashMap<Any?, ArrayList<Metadata>>()
-         val accumulate = f.getGroupAccumulator { key, m -> groups.getOrPut(key, ::ArrayList) += m }
+         val accumulate = f.groupBuildAccumulator { key, m -> groups.getOrPut(key, ::ArrayList) += m }
          ms.forEach(accumulate)
          return groups.map { (key, value) -> MetadataGroup(f, false, key, value) }
       }

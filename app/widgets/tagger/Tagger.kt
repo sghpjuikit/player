@@ -104,7 +104,6 @@ import sp.it.pl.main.isAudioEditable
 import sp.it.pl.main.isImageJaudiotagger
 import sp.it.pl.plugin.impl.Notifier
 import sp.it.pl.ui.objects.textfield.MoodItemNode
-import sp.it.pl.ui.objects.autocomplete.AutoCompletion
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Cover
@@ -177,7 +176,9 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
 import sp.it.pl.main.WidgetTags.AUDIO
+import sp.it.pl.main.autocompleteSuggestionsFor
 import sp.it.pl.ui.labelForWithClick
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
@@ -354,6 +355,9 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
             val committable = !readOnly && tagsF.items != originalItems
             tagsF.committable = committable
             tagsF.textField.committable = committable
+         }
+         tagsF.autocompleteSuggestionProvider.value = {
+            autocompleteSuggestionsFor(TAGS, it, true)
          }
       }
 
@@ -739,11 +743,8 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
 
          // auto-completion
          if (c is TextField && f.isAutoCompletable()) {
-            AutoCompletion.autoComplete(c) { text ->
-               APP.db.itemUniqueValuesByField[f].orEmpty().asSequence()
-                  .filter { it.contains(text, true) }
-                  .sorted()
-                  .toList()
+            autoComplete(c) {
+               autocompleteSuggestionsFor(f, it, true)
             }
          }
       }

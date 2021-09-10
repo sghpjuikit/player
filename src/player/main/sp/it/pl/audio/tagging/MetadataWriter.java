@@ -521,7 +521,7 @@ public class MetadataWriter extends Song {
 	 * @see #removeChapter(Chapter, Metadata)
 	 */
 	public void setChapters(Collection<Chapter> chapters) {
-		setCustom2(chapters.stream().map(Chapter::toString).collect(joining("|")));
+		setCustom2(chapters.stream().sorted().map(Chapter::toString).collect(joining("|")));
 	}
 
 	/**

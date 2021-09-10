@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.Group
 import javafx.scene.control.Label
 import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.BACK
@@ -19,10 +20,10 @@ import javafx.scene.media.MediaPlayer.Status
 import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.UNKNOWN
 import javafx.scene.paint.Color.TRANSPARENT
+import javafx.scene.shape.Arc
+import javafx.scene.shape.ArcType
 import javafx.scene.shape.Circle
 import javafx.scene.text.TextBoundsType.VISUAL
-import kotlin.math.abs
-import kotlin.math.absoluteValue
 import mu.KLogging
 import sp.it.pl.audio.PlayerManager.Seek
 import sp.it.pl.audio.playback.PlaybackState
@@ -33,6 +34,8 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.OFF
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
+import sp.it.pl.audio.tagging.Chapter
+import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.layout.WidgetCompanion
@@ -52,7 +55,9 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.boundsType
 import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
 import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
+import sp.it.pl.ui.objects.seeker.SongChapterEdit
 import sp.it.pl.ui.objects.seeker.bindTimeToSmooth
+import sp.it.pl.ui.objects.window.NodeShow.DOWN_RIGHT
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.toggle
 import sp.it.util.collections.observableList
@@ -61,6 +66,7 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.file.div
 import sp.it.util.functional.traverse
+import sp.it.util.math.distance
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo
@@ -68,6 +74,7 @@ import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.suppressed
@@ -79,6 +86,7 @@ import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
@@ -99,13 +107,9 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
    val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.state.playback.loopMode.toggle(it) }
    val playbackButtons = listOf(f2, f3, f4)
    val seeker = SliderCircular(333.0.emScaled)
-   val seekerChapters = observableList<Double>()
-
+   val seekerChapters = observableList<SeekerChapter>()
    val ps = APP.audio.state.playback
    val seekType by cv(Seek.RELATIVE).def(name = "Seek type", info = "Forward/backward buttons seek by time (absolute) or fraction of total duration (relative).")
-
-   //   val showChapters by cv(POPUP_SHARED) { dv -> seeker.chapterDisplayMode.apply { value = dv } }.def(name = "Chapters show", info = "Display chapter marks on seeker.")
-   //   val showChapOnHover by cv(HOVER) { dv -> seeker.chapterDisplayActivation.apply { value = dv } }.def(name = "Chapter open on", info = "Opens chapter also when mouse hovers over them.")
    val elapsedTime by cv(true).def(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
 
    init {
@@ -116,7 +120,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
       ps.volume sync { muteChanged(ps) } on onClose
-      APP.audio.playingSong.onUpdateAndNow { seekerChapters setTo it.getChapters().chapters.map { c -> c.time.divMillis(it.getLength()) } } on onClose
+      APP.audio.playingSong.onUpdateAndNow { seekerChapters setTo it.getChapters().chapters.mapIndexed { i, c -> SeekerChapter(it, c, i) } } on onClose
 
       root.onEventDown(MOUSE_CLICKED, BACK) { PlaylistManager.playPreviousItem() }
       root.onEventDown(MOUSE_CLICKED, FORWARD) { PlaylistManager.playNextItem() }
@@ -128,31 +132,39 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       )
 
       root.lay += hBox {
-         padding = Insets(10.emScaled)
-
          lay += stackPane {
+            padding = Insets(5.0)
             lay += stackPane {
-               seekerChapters.onChange {
-                  val cSpan = 0.1
-                  val cs = seekerChapters
+               seekerChapters.onChangeAndNow {
+                  val cSpan01 = 0.2
+                  val cSpanDeg = 0.8*cSpan01*180.0
                   val csByLvl = HashMap<Int, ArrayList<Double>>()
 
-                  children setTo cs.map { c ->
-                     val i = 1.traverse { it + 1 }.first { csByLvl[it].orEmpty().none { (it - c).absoluteValue - 0.05<=cSpan } }
-                     csByLvl.getOrPut(i, ::ArrayList) += c
+                  seeker.lookupChildAt<Group>(0).children.removeIf { "slider-circular-mark" in it.styleClass }
+                  seekerChapters.forEach { c ->
+                     val cLvl = 1.traverse { it + 1 }.first { csByLvl[it].orEmpty().none { it distance c.position01 <= cSpan01 } }
+                     csByLvl.getOrPut(cLvl, ::ArrayList) += c.position01
 
-                     SliderCircular((333 + i*30).emScaled).apply {
-                        valueSymmetrical.value = true
-                        valueStartAngle.value = -c*180 //-(0.8*cSpan)*180
-                        value.value = cSpan*0.8
+                     seeker.lookupChildAt<Group>(0).children += Arc().apply {
+                        centerX = seeker.W/2.0
+                        centerY = seeker.W/2.0
+                        radiusX = seeker.W/4.0 - cLvl*8.emScaled
+                        radiusY = seeker.W/4.0 - cLvl*8.emScaled
+                        type = ArcType.OPEN
                         styleClass += "slider-circular-mark"
+                        length = cSpanDeg
+                        startAngle = 360-c.position01*180 -cSpanDeg/2.0
+
+                        onEventDown(MOUSE_CLICKED, PRIMARY) {
+                           SongChapterEdit(c.song, c.i).showPopup(DOWN_RIGHT(seeker))
+                        }
                      }
                   }
                }
             }
             lay += seeker.apply {
                valueSymmetrical.value = true
-               seekerChapters.onChange { snaps setTo seekerChapters }
+               seekerChapters.onChange { snaps setTo seekerChapters.map { it.position01 } }
                blockIncrement syncFrom seekType.flatMap {
                   when (it!!) {
                      Seek.RELATIVE -> APP.audio.seekUnitP
@@ -214,7 +226,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                         PLAYLIST -> 1.0
                      }
                   }
-                  val mappingInv = { it: Double -> mapping.entries.minByOrNull { (_, v) -> abs(it - v) }!!.key }
+                  val mappingInv = { it: Double -> mapping.entries.minByOrNull { (_, v) -> it distance v }!!.key }
 
                   snaps setTo mapping.values
                   blockIncrement.value = 1.0/valueCount
@@ -308,12 +320,16 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       )
    }
 
+   data class SeekerChapter(val song: Metadata, val chapter: Chapter, val i: Int) {
+      val position01 = chapter.time divMillis song.getLength()
+   }
+
    companion object: WidgetCompanion, KLogging() {
       override val name = "Playback knobs"
       override val description = "Audio playback knob controls"
       override val descriptionLong = "$description."
       override val icon = IconUN(0x2e2a)
-      override val version = version(1, 0, 0)
+      override val version = version(1, 1, 0)
       override val isSupported = true
       override val year = year(2021)
       override val author = "spit"
@@ -335,6 +351,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
          Entry("Seeker", "Seek playback", "LMB"),
          Entry("Seeker", "Seek playback", "drag & release LMB"),
          Entry("Seeker", "Cancel seeking playback", "drag LMB + RMB"),
+         // TODO: document chapter behavior after testing
          //         Entry("Seeker > Chapter", "Add chapter", "seeker RMB"),
          //         Entry("Seeker > Chapter mark", "Open chapter", "Hover"),
          //         Entry("Seeker > Chapter popup", "Hide chapter", "LMB"),

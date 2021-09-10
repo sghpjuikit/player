@@ -11,17 +11,13 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.playback.PlaybackState;
 import sp.it.pl.audio.tagging.Chapter;
@@ -35,7 +31,6 @@ import sp.it.util.animation.interpolator.CircularInterpolator;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.async.executor.FxTimer;
 import sp.it.util.functional.Functors.F1;
-import sp.it.util.functional.Try;
 import sp.it.util.reactive.Subscription;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_DOWN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ANGLE_UP;
@@ -47,6 +42,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.REPLY;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TRASH_ALT;
 import static java.lang.Double.max;
 import static java.lang.Math.abs;
+import static javafx.geometry.Pos.CENTER;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.LEFT;
@@ -98,14 +94,14 @@ public final class Seeker extends AnchorPane {
 
 	private final Slider seeker = new Slider(0, 1, 0);
 	private final AddChapButton addB = new AddChapButton();
-	private final List<Chap> chapters = new ArrayList<>();
+	private final List<SeekerChapter> chapters = new ArrayList<>();
 	private final DoubleProperty seekerScaleY = seeker.scaleYProperty();
 	private boolean user_drag = false;
 
 	public Seeker() {
 		seeker.getStyleClass().add(STYLECLASS);
 		seeker.setManaged(false);
-		seeker.setLabelFormatter(new StringConverter<Double>() {
+		seeker.setLabelFormatter(new StringConverter<>() {
 			@Override public String toString(Double object) { return timeTot.getValue()==null ? "" : toHMSMs(timeTot.getValue().multiply(seeker.getValue())); }
 			@Override public Double fromString(String string) { return null; }
 		});
@@ -136,8 +132,8 @@ public final class Seeker extends AnchorPane {
 				double v = x/w;
 
 				// snap to chapter
-				Chap ch = minBy(chapters, chapterSnapDistance(), c -> abs(x - c.position*w)).orElse(null);
-				setSeekerValue(ch==null ? v : ch.position);
+				SeekerChapter ch = minBy(chapters, chapterSnapDistance(), c -> abs(x - c.position01*w)).orElse(null);
+				setSeekerValue(ch==null ? v : ch.position01);
 			}
 			e.consume();
 		});
@@ -156,8 +152,8 @@ public final class Seeker extends AnchorPane {
 				}
 			}
 		});
-		// We simulate mouse click with mouse released events) and should therefore consume it
-		// so if any parent node waits for it, it wont cause double behavior
+		// We simulate mouse click with mouse released events and should therefore consume it
+		// so if any parent node waits for it, it won't cause double behavior
 		seeker.addEventHandler(MOUSE_CLICKED, Event::consume);
 
 		// new chapter button
@@ -223,8 +219,8 @@ public final class Seeker extends AnchorPane {
 
 		if (!chapters.isEmpty()) {
 			double fix = 1 + chapters.get(0).getLayoutBounds().getWidth()/2; // bug fix
-			for (Chap c : chapters) {
-				c.relocate(clip(fix, w*c.position, getWidth() - fix), h/2 - c.getHeight()/2);
+			for (SeekerChapter c : chapters) {
+				c.relocate(clip(fix, w*c.position01, getWidth() - fix), h/2 - c.getHeight()/2);
 			}
 		}
 
@@ -242,9 +238,9 @@ public final class Seeker extends AnchorPane {
 
 //****************************** runners animation *****************************/
 
-	private static final double MA_ISIZE = 10;
-	private final Icon r1 = new Icon(ANGLE_DOWN, MA_ISIZE);
-	private final Icon r2 = new Icon(ANGLE_UP, MA_ISIZE);
+	private static final double MA_ICON_SIZE = 10;
+	private final Icon r1 = new Icon(ANGLE_DOWN, MA_ICON_SIZE);
+	private final Icon r2 = new Icon(ANGLE_UP, MA_ICON_SIZE);
 
 	private void maInstall() {
 		ma_init();
@@ -298,7 +294,7 @@ public final class Seeker extends AnchorPane {
 	/** Seeker snap to chapter activation distance. */
 	@NotNull public final DoubleProperty chapterSnapDistance = new SimpleDoubleProperty(15);
 	/** Chapter selected */
-	private Chap chapterSelected = null;
+	private SeekerChapter chapterSelected = null;
 
 	private final Anim selectChapAnim = new Anim(millis(500), p -> {
 		double h = getHeight();
@@ -316,10 +312,12 @@ public final class Seeker extends AnchorPane {
 		chapters.clear();
 
 		if (chapterDisplayMode.get().canBeShown()) {
-			for (Chapter ch : m.getChapters().getChapters()) {
-				Chap c = new Chap(ch, ch.getTime().toMillis()/m.getLength().toMillis());
-				getChildren().add(c);
-				chapters.add(c);
+			List<Chapter> chapterList = m.getChapters().getChapters();
+			for (int i = 0; i<chapterList.size(); i++) {
+				var c = chapterList.get(i);
+				var sc = new SeekerChapter(m, c, c.getTime().toMillis()/m.getLength().toMillis(), i);
+				getChildren().add(sc);
+				chapters.add(sc);
 			}
 		}
 	}
@@ -401,7 +399,7 @@ public final class Seeker extends AnchorPane {
 			fade.playCloseDo(null);
 		}
 
-		void select(Chap c) {
+		void select(SeekerChapter c) {
 			var oc = chapterDisplayActivation.get()==ChapterDisplayActivation.HOVER ? runnable(c::showPopup) : null;
 			chapterSelected = c;
 			setCenterX(c.getCenterX());                     // move this to chapter
@@ -432,7 +430,7 @@ public final class Seeker extends AnchorPane {
 		void addChap() {
 			double pos = getCenterX()/seeker.getWidth();
 			pos = clip(0, pos, 1);     // fixes outside of area bugs
-			Chap c = new Chap(pos);
+			SeekerChapter c = new SeekerChapter(APP.audio.getPlayingSong().getValue(), pos);
 			c.pseudoClassStateChanged(STYLE_CHAP_NEW, true);
 			chapters.add(c);
 			Seeker.this.getChildren().add(c);
@@ -440,11 +438,15 @@ public final class Seeker extends AnchorPane {
 		}
 	}
 
-	private final class Chap extends Region {
-		final double position;
+	private final class SeekerChapter extends Region {
+		final Metadata song;
 		final Chapter c;
-		boolean just_created;
-		private final V<Boolean> isEdited = new V<>(false);
+		final double position01;
+		final int i;
+		/** Whether this chapter is being created.  */
+		boolean isNew;
+		/** Whether editing is currently active.  */
+		public final V<Boolean> isEdited = new V<>(false);
 
 		StackPane content;
 		TextArea message;
@@ -460,15 +462,17 @@ public final class Seeker extends AnchorPane {
 			can_hide = true;
 		}));
 
-		Chap(double x) {
-			this(new Chapter(timeTot.get().multiply(x), ""), x);
-			just_created = true;
+		SeekerChapter(Metadata song, double position01) {
+			this(song, new Chapter(timeTot.get().multiply(position01), ""), position01, -1);
+			isNew = true;
 		}
 
-		Chap(Chapter ch, double pos) {
-			c = ch;
-			position = pos;
-			just_created = false;
+		SeekerChapter(Metadata song, Chapter chapter, double position01, int i) {
+			this.song = song;
+			this.c = chapter;
+			this.position01 = position01;
+			this.i = i;
+			isNew = false;
 
 			scaleYProperty().bind(seekerScaleY.multiply(0.5));
 			getStyleClass().add(STYLECLASS_CHAP);
@@ -489,7 +493,7 @@ public final class Seeker extends AnchorPane {
 		public void showPopupReal() {
 			// hide other popups if only one allowed
 			if (chapterDisplayMode.get()==ChapterDisplayMode.POPUP_SHARED)
-				chapters.stream().filter(f -> f!=this).forEach(Chap::hidePopup);
+				chapters.stream().filter(f -> f!=this).forEach(SeekerChapter::hidePopup);
 			// build popup if not yet
 			if (p==null) {
 				// text content
@@ -497,35 +501,25 @@ public final class Seeker extends AnchorPane {
 				message.setWrapText(true);
 				message.setEditable(false);
 				message.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-				Function1<Double,String> messageInterpolator = typeText(c.getText(), '\u2007');
+				var messageInterpolator = typeText(c.getText(), '\u2007');
 				messageAnimation = new Anim(millis(10*c.getText().length()), p -> message.setText(messageInterpolator.invoke(p))).delay(millis(200));
 				content = new StackPane(message);
-				content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-				content.setPrefSize(300, 200);
+				content.setPrefSize(getEmScaled(300), getEmScaled(200));
 				content.setPadding(new Insets(10));
 				content.addEventHandler(Event.ANY, e -> { if (isEdited.getValue()) e.consume(); });
 				content.autosize();
 				// buttons
 				editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
 				commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
-				delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
-					Metadata m = APP.audio.getPlayingSong().getValue();
-					write(m, consumer(it -> it.removeChapter(c, m)));
-				});
+				delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> write(song, consumer(it -> it.removeChapter(c, song))));
 				cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
-				nextB = new Icon(CHEVRON_RIGHT, 11, "Next chapter", () -> {
-					int i = Seeker.this.chapters.indexOf(this) + 1;
-					if (chapters.size()>i) {
-						hidePopup();
-						chapters.get(i).showPopup();
-					}
-				});
 				prevB = new Icon(CHEVRON_LEFT, 11, "Previous chapter", () -> {
-					int i = chapters.indexOf(this) - 1;
-					if (0<=i) {
-						hidePopup();
-						chapters.get(i).showPopup();
-					}
+					hidePopup();
+					chapters.get(i-1).showPopup();
+				});
+				nextB = new Icon(CHEVRON_RIGHT, 11, "Next chapter", () -> {
+					hidePopup();
+					chapters.get(i+1).showPopup();
 				});
 				int i = chapters.indexOf(this);
 				if (chapters.size() - 1==i)
@@ -539,7 +533,7 @@ public final class Seeker extends AnchorPane {
 				p.isEscapeHide().setValue(true);
 				p.getOnHidden().add(runnable(() -> {
 					if (isEdited.getValue()) cancelEdit();
-					hover.playCloseDo(just_created ? runnable(() -> Seeker.this.getChildren().remove(this)) : null);
+					hover.playCloseDo(isNew ? runnable(() -> Seeker.this.getChildren().remove(this)) : null);
 				}));
 				p.getTitle().setValue(toHMSMs(c.getTime()));
 				p.getHeaderIcons().setAll(prevB, nextB, editB, delB);
@@ -553,7 +547,7 @@ public final class Seeker extends AnchorPane {
 					if (e.getClickCount()==2) {
 						can_hide = false;
 						if (e.getButton()==SECONDARY) startEdit();
-						else if (e.getButton()==PRIMARY) seekTo();
+						if (e.getButton()==PRIMARY) seekTo();
 						e.consume();
 					}
 				});
@@ -564,17 +558,12 @@ public final class Seeker extends AnchorPane {
 				messageAnimation.play();
 			}
 
-			if (just_created) startEdit();
-		}
-
-		/** Returns whether editing is currently active. */
-		public boolean isEdited() {
-			return isEdited.getValue();
+			if (isNew) startEdit();
 		}
 
 		/** Starts editable mode. */
 		public void startEdit() {
-			if (isEdited()) return;
+			if (isEdited.getValue()) return;
 
 			// start edit
 			isEdited.setValue(true);
@@ -600,37 +589,34 @@ public final class Seeker extends AnchorPane {
 			});
 
 			// validation
-			Tooltip warnTooltip = appTooltip();
-			Icon warnB = new Icon();
-				 warnB.size(11);
-				 warnB.styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON);
-				 warnB.tooltip(warnTooltip);
+			var warnTooltip = appTooltip();
+			var warnB = new Icon();
+				warnB.size(11);
+				warnB.styleclass(STYLECLASS_CONFIG_EDITOR_WARN_BUTTON);
+				warnB.tooltip(warnTooltip);
 			syncC(ta.textProperty(), text -> {
-				Try<String,String> result = validateChapterText(text);
+				var result = validateChapterText(text);
 				warnB.setVisible(result.isError());
 				commitB.setDisable(result.isError());
 				warnTooltip.setText(getAny(result.map(t -> "")));
 			});
 
 			// maintain proper content
-			List<Node> children = new ArrayList<>(content.getChildren());
-			children.remove(message);
-			children.add(layHeaderRight(5, Pos.CENTER, ta, warnB));
+			var children = new ArrayList<>(content.getChildren());
+			    children.remove(message);
+			    children.add(layHeaderRight(5, CENTER, ta, warnB));
 			content.getChildren().setAll(children);
 			p.getHeaderIcons().setAll( commitB, cancelB);
 		}
 
 		/** Ends editable mode and applies changes. */
 		public void commitEdit() {
-			// apply new value only when changed
-			String text = ta.getText();
-			if (!c.getText().equals(text)) {
+			if (!c.getText().equals(ta.getText())) {
 				// persist changes visually
-				message.setText(text);
+				message.setText(ta.getText());
 				// and physically
-				c.setText(text);
-				Metadata m = APP.audio.getPlayingSong().getValue();
-				write(m, consumer(it -> it.addChapter(c, m)));
+				c.setText(ta.getText());
+				write(song, consumer(it -> it.addChapter(c, song)));
 			}
 			// maintain proper content
 			content.getChildren().remove(ta.getParent());
@@ -638,12 +624,12 @@ public final class Seeker extends AnchorPane {
 			p.getHeaderIcons().setAll( prevB, nextB, editB, delB);
 			// stop edit
 			isEdited.setValue(false);
-			if (just_created) Seeker.this.getChildren().remove(this);
+			if (isNew) Seeker.this.getChildren().remove(this);
 		}
 
 		/** Ends editable mode and discards all changes. */
 		public void cancelEdit() {
-			if (just_created) {
+			if (isNew) {
 				hidePopup();
 				chapters.remove(this);
 			} else {

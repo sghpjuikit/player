@@ -3151,19 +3151,15 @@ Shape, Text, SpitText, TextFlow > * {
 }
 .slider-circular:focused .slider-circular-frg {}
 
-/* inherits .slider-circular */
+/* inherits Arc */
 .slider-circular-mark {
-    -fx-background-color: transparent;
-}
-.slider-circular-mark .slider-circular-bgr {
-    -fx-stroke: transparent;
-    -fx-stroke-width: 0;
-    -fx-effect: null;
-}
-.slider-circular-mark .slider-circular-frg {
+    -fx-fill: transparent;
     -fx-stroke: rgba(220,220,220,0.2);
     -fx-stroke-width: 11;
-    -fx-effect: null;
+}
+.slider-circular-mark:hover {
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 12;
 }
 
 /********************************** MENU *******************************************************************************

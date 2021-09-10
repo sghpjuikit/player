@@ -3121,6 +3121,7 @@ Shape, Text, SpitText, TextFlow > * {
  * pseudoclasses: focused, readonly
  */
 .slider-circular {
+    -fx-padding: -11; // must be same as -fx-stroke-width if -fx-stroke-type = outside, or half if = center, or 0 if = inside
     -fx-max-width: 60;
     -fx-max-height: 60;
     -fx-background-color: radial-gradient(center 50% 50%, radius 100%, -skin-color-lighter, transparent 55%, transparent);

@@ -27,8 +27,8 @@ interface FileExplorerFeature {
    /**
     * Explores the first common file in the file system hierarchy.
     *  *  if empty, does nothing
-    *  *  if has one file, explores the file
-    *  *  if has multiple files, explores their first common parent directory.
+    *  *  if one file, explores the file
+    *  *  if multiple files, explores their first common parent directory.
     */
    fun exploreCommonFileOf(files: Collection<File>) = Util.getCommonFile(files)?.let(::exploreFile).toUnit()
 }
@@ -41,10 +41,7 @@ interface ImageDisplayFeature {
    /** Displays the image. */
    fun showImage(imgFile: File?)
 
-   /**
-    * Attempts to displays the images. Depends on implementation. By default
-    * 1st image is displayed if available.
-    */
+   /** Attempts to display the images. Depends on implementation. By default, 1st image is displayed if available. */
    fun showImages(images: Collection<File>) = showImage(images.firstOrNull())
 }
 

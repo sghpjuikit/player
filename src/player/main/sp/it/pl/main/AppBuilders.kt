@@ -161,7 +161,7 @@ fun formIcon(icon: GlyphIcons, text: String, action: () -> Unit) = Icon(icon, 25
    withText(Side.RIGHT, text)
 }
 
-/** @return standardized always on top icon associated with the specified window */
+/** @return standardized on-top icon associated with the specified window */
 fun windowOnTopIcon(window: Window) = Icon().apply {
    styleclass("header-icon")
    styleclass("window-top-icon")
@@ -202,7 +202,7 @@ inline fun bullet(text: String, descriptionLabel: Label, block: @Dsl BulletBuild
    }
 }
 
-/** @return standardized hyperlink for a [File] that that [File.browse]s it on click */
+/** @return standardized hyperlink for a [File], that [File.browse]s it on click */
 fun appHyperlinkFor(f: File) = hyperlink(f.toUi()) {
    textOverrun = LEADING_ELLIPSIS
    onEventDown(MOUSE_CLICKED, PRIMARY) {
@@ -211,7 +211,7 @@ fun appHyperlinkFor(f: File) = hyperlink(f.toUi()) {
    }
 }
 
-/** @return standardized hyperlink for a [File] that that [File.browse]s it on click */
+/** @return standardized hyperlink for a [File], that [File.browse]s it on click */
 fun appHyperlinkFor(u: URI) = hyperlink(u.toUi()) {
    textOverrun = LEADING_ELLIPSIS
    onEventDown(MOUSE_CLICKED, PRIMARY) {

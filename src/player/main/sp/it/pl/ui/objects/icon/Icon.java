@@ -88,11 +88,11 @@ public class Icon extends StackPane {
 
 
 	// animation builder, & reusable supplier
-	private static final F1<Icon,Anim> Apress = i -> {
+	private static final F1<Icon,Anim> A_PRESS = i -> {
 		double s = signum(i.node.getScaleX());
 		return new Anim(millis(80), p -> setScaleXY(i.node, s*(1 - 0.3*sqrt(p)), 1 - 0.3*sqrt(p)));
 	};
-	private static final F1<Icon,Anim> Ahover = i -> {
+	private static final F1<Icon,Anim> A_HOVER = i -> {
 		double s = signum(i.node.getScaleX());
 		return new Anim(millis(80), p -> setScaleXY(i.node, s*(1 + 0.2*sqrt(p)), 1 + 0.2*sqrt(p)));
 	};
@@ -158,7 +158,7 @@ public class Icon extends StackPane {
 			var s1 = attach(fo.focusedProperty(), consumer(f -> {
 					pseudoClassStateChanged(pseudoclass("focused"), f);
 					if (isAnimated.get() && !(!f && isHover()))
-						ra.get(this, Ahover).playFromDir(f);
+						ra.get(this, A_HOVER).playFromDir(f);
 				}));
 
 			Subscription s2;
@@ -212,7 +212,7 @@ public class Icon extends StackPane {
 		return click_runnable instanceof Action ? (Action) click_runnable : Action.NONE;
 	}
 
-	private final LazyR<Anim> ra = new LazyR<>(() -> Ahover.apply(this));
+	private final LazyR<Anim> ra = new LazyR<>(() -> A_HOVER.apply(this));
 	private boolean isSelected = false;
 	public final V<Boolean> isAnimated = new V<>(true);
 
@@ -220,7 +220,7 @@ public class Icon extends StackPane {
 		if (value==isSelected) return;
 		isSelected = value;
 		pseudoClassStateChanged(pseudoclass("hover"), focusOwner.getValue().isFocused() || value);
-		if (isAnimated.get()) ra.get(this, Ahover).playFromDir(value);
+		if (isAnimated.get()) ra.get(this, A_HOVER).playFromDir(value);
 	}
 
 	public Icon icon(GlyphIcons i) {

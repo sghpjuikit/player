@@ -51,16 +51,16 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
    /** Name of this config. */
    abstract val name: String
 
-   /** Human readable [name]. Short, single line. */
+   /** Human-readable [name]. Short, single line. */
    abstract val nameUi: String
 
    /** Semantic category/group path using '.' separator. */
    abstract val group: String
 
-   /** Human readable [group]. Short, single line. */
+   /** Human-readable [group]. Short, single line. */
    val groupUi: String get() = group.split(".").joinToString(" > ")
 
-   /** Human readable description. Potentially multiple lines. */
+   /** Human-readable description. Potentially multiple lines. */
    abstract val info: String
 
    /** Editability. This can be further restricted with constraints. */
@@ -219,15 +219,15 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
        * methods will not do anything). If the property already is config, it is
        * returned.
        *
-       * @param name of of the config, will be used as gui name
-       * @param property underlying property for the config. The property must be instance of any of:
+       * @param name of the config, will be used as gui name
+       * @param property underlying property for the config. The property must be an instance of any:
        *  *  [Config]
        *  *  [ConfList]
        *  *  [OrV]
        *  *  [WritableValue]
        *  *  [ObservableValue]
        *
-       * so standard javafx properties will all work. If not instance of any of the above, runtime exception will be thrown.
+       * so standard javafx properties will all work. If not instance of the above, runtime exception will be thrown.
        */
       fun <T> forProperty(type: VType<T>, name: String, property: Any?): Config<T> = null
          ?: forPropertyImpl(type, name, property)

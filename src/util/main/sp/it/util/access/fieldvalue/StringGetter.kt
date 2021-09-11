@@ -5,7 +5,7 @@ interface StringGetter<in V> {
 
    /**
     * Converts the value to a string representation.
-    * When the object signifies empty value, a substitute is returned. The semantics of empty is left up for
+    * When the object signifies empty value, a substitute is returned. The semantics of `empty` is left up for
     * implementation.
     *
     * @param value original object

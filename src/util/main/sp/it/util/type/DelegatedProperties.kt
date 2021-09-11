@@ -53,7 +53,7 @@ fun <SOURCE, T> KCallable<SOURCE>.map(mapper: (SOURCE) -> T) = ReadOnlyProperty<
  * @param or supplier for value when read of the returned property does not see any value associated with the key in the map
  * @return [ReadWriteProperty] that delegates to [Node.properties] of this node by the specified key.
  * Every read casts and therefore asserts the value's proper runtime type (hence the reified parameter).
- * Every write writes over any previously set value.
+ * Every set writes over any previously set value.
  */
 inline fun <reified T: Any> Node.property(key: String? = null, crossinline or: () -> T) = object: ReadWriteProperty<Any?, T> {
    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = properties.put(key ?: property.name, value).toUnit()
@@ -65,7 +65,7 @@ inline fun <reified T: Any> Node.property(key: String? = null, crossinline or: (
  * @param or supplier for value when read of the returned property does not see any value associated with the key in the map
  * @return [ReadWriteProperty] that delegates to [Node.properties] of the node by the specified key.
  * Every read casts and therefore asserts the value's proper runtime type (hence the reified parameter).
- * Every write writes over any previously set value.
+ * Every set writes over any previously set value.
  */
 inline fun <reified T: Any> property(key: String? = null, crossinline or: Node.() -> T) = object: ReadWriteProperty<Node, T> {
    override fun setValue(thisRef: Node, property: KProperty<*>, value: T) = thisRef.properties.put(key ?: property.name, value).toUnit()

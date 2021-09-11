@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 import sp.it.util.reactive.Subscription;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static sp.it.util.async.AsyncKt.runFX;
@@ -16,7 +17,7 @@ import static sp.it.util.async.AsyncKt.runFX;
  * any count easily and without interfering with each other or the original stream. In addition,
  * execute on fx thread.
  * <p/>
- * It is not recommended to create multiple instances, instead observe this stream with multiple listeners..
+ * It is not recommended creating multiple instances, instead observe this stream with multiple listeners.
  */
 public class SystemOutListener extends PrintStream {
     private final SystemOutDuplicateStream stream;
@@ -60,11 +61,9 @@ public class SystemOutListener extends PrintStream {
         }
 
         @Override
-        public void write(byte[] b, int off, int len) {
+        public void write(byte @NotNull [] b, int off, int len) {
             // copied from super.write(...) implementation
-            if (b==null) {
-                throw new NullPointerException();
-            } else if ((off<0) || (off>b.length) || (len<0) || (off + len>b.length) || (off + len<0)) {
+            if ((off<0) || (off>b.length) || (len<0) || (off + len>b.length) || (off + len<0)) {
                 throw new IndexOutOfBoundsException();
             } else if (len==0) {
                 return;

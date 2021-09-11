@@ -15,19 +15,19 @@ import sp.it.util.type.isSubclassOf
 interface ObjectField<in V, out T>: StringGetter<V> {
 
    /**
-    * Returns whether this value has human readable string representation. This
+    * Returns whether this value has human-readable string representation. This
     * denotes, whether this type should be attempted to be displayed as text (not if it is String),
     * e.g., when generating generic table columns.
     *
     * The type does not have to be String for this field to be string representable. Any type
-    * can be string representable as long as it provides a string converter producing human
-    * readable string (compact enough to be used in gui such as tables). Example of string field
+    * can be string representable as long as it provides a string converter producing human-readable
+    * string (compact enough to be used in gui such as tables). Example of string field
     * that is not string representable would be a fulltext field - field that is a concatenation
     * of all string fields, used for fulltext search.
     *
     * Default implementation returns true.
     *
-    * @return whether the field can be displayed as a human readable text in a gui
+    * @return whether the field can be displayed as a human-readable text in a gui
     */
    fun isTypeStringRepresentable(): Boolean = true
 

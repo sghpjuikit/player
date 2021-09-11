@@ -113,7 +113,7 @@ public interface Util {
 	}
 
 	/**
-	 * Checks and formats String so it can be safely used for naming a File.
+	 * Checks and formats String, so it can be safely used for naming a File.
 	 * Replaces any {@code '/', '\', ':', '*', '?', '<', '>', '|'} with '_'.
 	 *
 	 * @return string with any filename forbidden character replaced by '_'
@@ -123,7 +123,7 @@ public interface Util {
 	}
 
 	/**
-	 * Converts enum constant to 'human readable' string.
+	 * Converts enum constant to more human-readable string.
 	 * <ul>
 	 * <li> first letter upper case
 	 * <li> other letters lower case,
@@ -262,7 +262,7 @@ public interface Util {
 	}
 
 	/**
-	 * Returns n random elements from the source list. Source list wont be changed.
+	 * Returns n random elements from the source list. Source list won't be changed.
 	 *
 	 * @return specified number of random elements from the list
 	 * @throws java.lang.RuntimeException if list does not have enough elements

@@ -106,7 +106,7 @@ public interface Util {
 	 *
 	 * @param <E> the type of element to be compared
 	 * @param <C> the type of the extracted value to compare by
-	 * @param extractor the function used to extract non null value to compare by
+	 * @param extractor the function used to extract non-null value to compare by
 	 * @return comparator that compares by an extracted comparable value
 	 * @throws NullPointerException if argument is null
 	 */
@@ -121,7 +121,7 @@ public interface Util {
 	 * <p/>
 	 * Easy and concise way to compare objects without code duplication.
 	 *
-	 * @param extractor the function used to extract non null {@code String} value to compare by the object.
+	 * @param extractor the function used to extract non-null {@code String} value to compare by the object.
 	 */
 	static <E> Comparator<E> byNC(Function<E,String> extractor) {
 		return (a, b) -> extractor.apply(a).compareToIgnoreCase(extractor.apply(b));
@@ -137,7 +137,7 @@ public interface Util {
 	 *
 	 * @param <E> the type of element to be compared
 	 * @param <C> the type of the extracted value to compare by
-	 * @param extractor the function used to extract non null value to compare by
+	 * @param extractor the function used to extract non-null value to compare by
 	 * @param comparator the {@code Comparator} used to compare the sort key
 	 * @return comparator that compares by an extracted value using the specified {@code Comparator}
 	 * @throws NullPointerException if any argument is null
@@ -188,7 +188,7 @@ public interface Util {
 
 /* ---------- SUPPLIERS --------------------------------------------------------------------------------------------- */
 
-	/** Returns the first supplied non null value or null if all supplied values are null. */
+	/** Returns the first supplied non-null value or null if all supplied values are null. */
 	@SafeVarargs
 	static <I> I firstNotNull(Supplier<I>... suppliers) {
 		for (Supplier<I> s : suppliers) {
@@ -497,7 +497,7 @@ public interface Util {
 	@SafeVarargs
 	static <T> Set<T> set(T... ts) {
 		HashSet<T> s = new HashSet<>(ts.length);
-		for (T t : ts) s.add(t);
+		Collections.addAll(s, ts);
 		return s;
 	}
 
@@ -505,7 +505,7 @@ public interface Util {
 	@SafeVarargs
 	static <T> List<T> list(T... ts) {
 		ArrayList<T> s = new ArrayList<>(ts.length);
-		for (T t : ts) s.add(t);
+		Collections.addAll(s, ts);
 		return s;
 	}
 
@@ -667,7 +667,7 @@ public interface Util {
 	 *
 	 * @param map map to search keys in
 	 * @param from the first and smallest key to check
-	 * @return the smallest nonexistent integer key key
+	 * @return the smallest nonexistent integer key
 	 */
 	@SuppressWarnings({"OptionalGetWithoutIsPresent"})
 	static int findFirstEmptyKey(Map<Integer,?> map, int from) {

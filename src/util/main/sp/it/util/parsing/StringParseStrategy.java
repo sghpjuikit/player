@@ -10,11 +10,11 @@ import static sp.it.util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /**
  * Indicates that the class has defined strategy for parsing to and from String.
- * This gives hint to parser as to how the parsing should be done.
+ * Gives hint to parser as to how the parsing should be done.
  * <p/>
  * The strategy for parsing from and to String must be consistent, i.e. parsing
  * from string the object was parsed into must not fail and be able to return
- * non null value.
+ * Non-null value.
  *
  * @see #from() for more details
  * @see #to() for more details
@@ -44,7 +44,7 @@ public @interface StringParseStrategy {
 	 * <p/>
 	 * Enumerate all exceptions (runtime or checked) that can be thrown as a
 	 * result of to string conversion failure. Exceptions due to programming
-	 * error or other causes should not be listed).
+	 * error or other causes should not be listed.
 	 * <p/>
 	 * Default value is empty array.
 	 */

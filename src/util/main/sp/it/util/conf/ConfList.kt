@@ -18,7 +18,7 @@ open class ConfList<T> private constructor(
 ) {
    val isSimpleItemType = itemFactory==null
 
-   constructor(itemType: VType<T>, items: ObservableList<T> = observableArrayList<T>()):
+   constructor(itemType: VType<T>, items: ObservableList<T> = observableArrayList()):
       this(itemType, null, computeSimpleItemToConfigurable<T>(itemType), items)
 
    @Suppress("UNCHECKED_CAST")

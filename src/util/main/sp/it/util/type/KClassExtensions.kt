@@ -5,12 +5,12 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 
-/** True iff this class is a enum. [Class.isEnum] does not work for enums with class method bodies. See [Class.enumValues]. */
+/** True iff this class is an enum. [Class.isEnum] does not work for enums with class method bodies. See [Class.enumValues]. */
 val Class<*>.isEnumClass: Boolean
    @Suppress("DEPRECATION")
    get() = isEnum || Enum::class.java.isAssignableFrom(this)
 
-/** True iff this class is a enum. See [KClass.enumValues]. */
+/** True iff this class is an enum. See [KClass.enumValues]. */
 val KClass<*>.isEnum: Boolean
    get() = java.isEnumClass
 

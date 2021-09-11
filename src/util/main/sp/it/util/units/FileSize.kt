@@ -4,7 +4,7 @@ import sp.it.util.functional.Try
 import java.io.File
 import sp.it.util.parsing.ConverterString
 
-/** File size. Supports values up to `2^63-1` bytes and unknown value [UNKNOWN]. */
+/** File size. Supports up to `2^63-1` bytes and unknown value [UNKNOWN]. */
 @Suppress("unused")
 data class FileSize(private val v: Long): Comparable<FileSize> {
 

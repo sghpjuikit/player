@@ -40,7 +40,7 @@ public class WindowsShortcut {
 	 * therefore any code needing to loop through several files should first check this.
 	 *
 	 * @param file the potential link
-	 * @return true if may be a link, false otherwise
+	 * @return true if it may be a link, false otherwise
 	 * @throws IOException if an IOException is thrown while reading from the file
 	 */
 	public static boolean isPotentialValidLink(File file) throws IOException {
@@ -220,10 +220,12 @@ public class WindowsShortcut {
 	 * convert two bytes into a short note, this is little endian because it's
 	 * for an Intel only OS.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private static int bytesToWord(byte[] bytes, int off) {
 		return ((bytes[off + 1]&0xff)<<8)|(bytes[off]&0xff);
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	private static int bytesToDWord(byte[] bytes, int off) {
 		return (bytesToWord(bytes, off + 2)<<16)|bytesToWord(bytes, off);
 	}

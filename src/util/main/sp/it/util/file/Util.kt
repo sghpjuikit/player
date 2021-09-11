@@ -79,7 +79,7 @@ infix fun File.isSiblingOf(sibling: File) = parentFile==sibling.parentFile
  * Safe version of [File.listFiles]
  *
  * Normally, that method returns null if parameter is not a directory, but also when I/O
- * error occurs. For example when parameter refers to a directory on a non existent partition,
+ * error occurs. For example when parameter refers to a directory on a non-existent partition,
  * e.g., residing on hdd that has been disconnected temporarily.
  *
  * @return child files of the directory or empty if parameter not a directory or I/O error occurs
@@ -186,31 +186,31 @@ fun Sequence<String>.writeLnToFileTry(file: File, charset: Charset = Charsets.UT
 fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(charset) }
 
 /**
- * Invokes the specified block that saves this file (from now on TARGET file) with safe temporary file saving
- * semantics. In order to guarantee no loss of data (not even on on subsequent failures of subsequent repeat of this
- * function) it uses two temporary files WRITE for writing new data and BACKUP for storing original data.
+ * Invokes the specified block that saves this file (from now on `TARGET` file) with safe temporary file saving
+ * semantics. In order to guarantee no loss of data (not even on subsequent failures of subsequent repeat of this
+ * function) it uses two temporary files `WRITE` for writing new data and `BACKUP` for storing original data.
  *
  * Steps:
- * - 1 write to WRITE file (overwrites any existing file)
- *   - 1.1 if 1 fails delete WRITE file (this can also fail, but that is inconsequential, it's mere cleanup)
- * - 2 delete existing BACKUP file (safe, TARGET file contains original data, BACKUP file is from previous invocation)
- *   - if 2 fails we still have original data in TARGET, which we haven't touched
- * - 3 rename TARGET file to BACKUP file, i.e., make backup
- *   - if 3 fails we still have original data in TARGET, which we haven't touched
- * - 4 rename WRITE file to TARGET file
- *   - 4.1 if 4 fails reverse 3 - rename BACKUP back to TARGET, on success everything is well, on fail we at least still
- *     have original data in BACKUP (although user will have to manually recover the data)
- * - 5 delete BACKUP file
+ * - 1 write to `WRITE` file (overwrites any existing file)
+ *   - 1.1 if 1 fails delete `WRITE` file (this can also fail, but that is inconsequential, it's mere cleanup)
+ * - 2 delete existing `BACKUP` file (safe, `TARGET` file contains original data, `BACKUP` file is from previous invocation)
+ *   - if 2 fails we still have original data in `TARGET`, which we haven't touched
+ * - 3 rename `TARGET` file to `BACKUP` file, i.e., make backup
+ *   - if 3 fails we still have original data in `TARGET`, which we haven't touched
+ * - 4 rename `WRITE` file to `TARGET` file
+ *   - 4.1 if 4 fails reverse 3 - rename `BACKUP` back to `TARGET`, on success everything is well, on fail we at least still
+ *     have original data in `BACKUP` (although user will have to manually recover the data)
+ * - 5 delete `BACKUP` file
  *
  * Guarantees:
- * - TARGET file never contains corrupted data (although it may not exist)
- * - BACKUP file never contains corrupted data (although it may not exist)
- * - TARGET or BACKUP exists, i.e, data is never lost
+ * - `TARGET` file never contains corrupted data (although it may not exist)
+ * - `BACKUP` file never contains corrupted data (although it may not exist)
+ * - `TARGET` or `BACKUP` exists, i.e, data is never lost
  *
  * Notable:
- * - WRITE file may contain corrupted data, but may also contain valid, more actual data than BACKUP
+ * - `WRITE` file may contain corrupted data, but may also contain valid, more actual data than `BACKUP`
  * - If this functions returns Ok, every step succeeded and no temporary files are left behind
- * - If this functions returns Error, data writing still may have succeeded and may even be in the TARGET file, but
+ * - If this functions returns Error, data writing still may have succeeded and may even be in the `TARGET` file, but
  * one of the steps 1-5 failed and there may also be temporary files left behind.
  *
  * Concurrency:

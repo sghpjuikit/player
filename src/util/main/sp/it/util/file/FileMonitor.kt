@@ -35,7 +35,7 @@ import kotlin.concurrent.thread
  * about the exact event timing or delays, event deduplication, performance or even event capture as [WatchService] is
  * known to fail to observe events in some scenarios.
  *
- * It is not simple to monitor files (in a cross platform way):
+ * It is not simple to monitor files (in a cross-platform way):
  *
  * - target
  * [WatchService] allows us to only monitor a directory.
@@ -44,11 +44,11 @@ import kotlin.concurrent.thread
  * - Modification events.
  *
  * Events can fire multiple times when application uses safe-rewrite saving or in various other scenarios. OSes also
- * behave differently and some fire MODIFY on CREATE too.
+ * behave differently and some fire `MODIFY` on `CREATE` too.
  * Solvable using event reducer & checking modification times
  * - Recursive monitoring
  *
- * CREATE and DELETE events are fired for files and directories up to level 2 (children of
+ * `CREATE` and `DELETE` events are fired for files and directories up to level 2 (children of the
  * children of the monitored directory, e.g.,  mon_dir/lvl1/file.txt). MODIFIED events will
  * be thrown for any direct child.
  *

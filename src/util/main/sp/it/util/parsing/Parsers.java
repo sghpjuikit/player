@@ -8,7 +8,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -26,6 +25,7 @@ public interface Parsers {
 
     ConverterDefault DEFAULT = new ConverterDefault();
 
+    @SuppressWarnings("deprecation")
     static Method getValueOfStatic(Class<?> type) {
         if (type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
             type = type.getEnclosingClass();
@@ -185,7 +185,7 @@ public interface Parsers {
         static <T> Invokable<T> of(Constructor<T> c) {
             return new Invokable<>() {
                 @Override
-                public final T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
+                public T invoke(Object... params) throws IllegalAccessException, InvocationTargetException {
                     try {
                         // We must skip the null object receiver - 1st parameter
                         return c.newInstance(stream(params).skip(1).toArray());
@@ -199,10 +199,10 @@ public interface Parsers {
                     return listRO(c.getParameters());
                 }
 
-                @SuppressWarnings("unchecked")
+                @SuppressWarnings({"unchecked", "rawtypes"})
                 @Override
                 public Collection<Class<? extends Throwable>> getExceptionTypes() {
-                    return (List) listRO(c.getExceptionTypes());
+                    return (Collection) listRO(c.getExceptionTypes());
                 }
             };
         }
@@ -220,10 +220,10 @@ public interface Parsers {
                     return listRO(m.getParameters());
                 }
 
-                @SuppressWarnings("unchecked")
+                @SuppressWarnings({"unchecked", "rawtypes"})
                 @Override
                 public Collection<Class<? extends Throwable>> getExceptionTypes() {
-                    return (List) listRO(m.getExceptionTypes());
+                    return (Collection) listRO(m.getExceptionTypes());
                 }
             };
         }

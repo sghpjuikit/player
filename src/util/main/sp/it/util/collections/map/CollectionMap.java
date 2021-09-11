@@ -29,8 +29,7 @@ public class CollectionMap<E, K, C extends Collection<E>> extends AccumulationMa
 	/**
 	 * Multi key get returning the combined content of the cache buckets.
 	 *
-	 * @return list containing all elements of all cache buckets / accumulation containers assigned to keys in the given
-	 * collection.
+	 * @return list containing all elements of all cache buckets / accumulation containers assigned to the keys in the given collection.
 	 */
 	public C getElementsOf(Collection<K> keys) {
 		C out = cacheFactory.get();

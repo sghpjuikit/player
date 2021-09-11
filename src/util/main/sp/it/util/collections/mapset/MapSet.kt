@@ -11,7 +11,7 @@ import kotlin.collections.MutableMap.MutableEntry
  * **This class is *not* a general-purpose `Set` implementation!  While this class implements the `Set` interface, it
  * intentionally violates `Set's` general contract, which mandates the use of the `equals` method when comparing
  * objects. This class is designed for use only in cases wherein reference-equality
- * semantics are required. Developer should be careful when passing it as such (e.g. by returning
+ * semantics are required. Developer should be careful when passing it as such, e.g., by returning
  * it from a method with a [Set] only signature.**
  *
  * The underlying map hashing the elements by key is [HashMap] by default,
@@ -25,7 +25,7 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
 
    /**
     * Function transforming element to its key. Used for all collection
-    * operations, e.g add(), addAll(), remove(), etc. Two elements are mapped
+    * operations, e.g, add(), addAll(), remove(), etc. Two elements are mapped
     * to the same key if this function produces the same key for them.
     *
     * Note, that if the function returned a constant, this set would become singleton set. Using [Object.hashCode]

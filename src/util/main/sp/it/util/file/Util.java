@@ -95,7 +95,7 @@ public interface Util {
 	static File getCommonRoot(Collection<File> files) {
 		int size = files.size();
 		if (size==0) return null;
-		if (size==1) return files.stream().findFirst().map(f -> f.isDirectory() ? f : f.getParentFile()).get();
+		if (size==1) return files.stream().findFirst().map(f -> f.isDirectory() ? f : f.getParentFile()).orElseThrow();
 
 		File d = null;
 		for (File f : files) {
@@ -111,7 +111,7 @@ public interface Util {
 	static File getCommonFile(Collection<File> files) {
 		int size = files.size();
 		if (size==0) return null;
-		if (size==1) return files.stream().findFirst().get();
+		if (size==1) return files.stream().findFirst().orElseThrow();
 
 		File d = null;
 		for (File f : files) {
@@ -120,7 +120,7 @@ public interface Util {
 				if (d.toPath().compareTo(f.toPath())<0) d = f;
 			}
 		}
-		return d==null ? null : d;
+		return d;
 	}
 
 	/**
@@ -212,6 +212,7 @@ public interface Util {
 	 *
 	 * @throws IOException when bad url or input or output file inaccessible
 	 */
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static void saveFileAs(String url, File file) throws IOException {
 		if (file.exists()) file.delete();
 		if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
@@ -283,6 +284,7 @@ public interface Util {
 	 * @param f file to rename, if does not exist nothing happens
 	 * @param name new file name without suffix
 	 */
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static void renameFile(File f, String name) {
 		File rf = f.getParentFile().getAbsoluteFile();
 		f.renameTo(new File(rf, filenamizeString(name)));
@@ -294,11 +296,12 @@ public interface Util {
 	 * @param f file to rename, if does not exist nothing happens
 	 * @param name new file name without suffix
 	 */
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static void renameFileNoSuffix(File f, String name) {
 		File rf = f.getParentFile().getAbsoluteFile();
 		int dot = f.getPath().lastIndexOf('.');
 		String p = f.getPath();
-		String ext = dot==-1 ? "" : p.substring(dot, p.length());
+		String ext = dot==-1 ? "" : p.substring(dot);
 		f.renameTo(new File(rf, filenamizeString(name) + ext));
 	}
 

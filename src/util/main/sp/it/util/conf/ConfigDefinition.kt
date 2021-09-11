@@ -16,11 +16,11 @@ import kotlin.reflect.KProperty0
  * For more information about the intention and use read [Config], [ConfigDelegator], [Conf.def].
  */
 interface ConfigDefinition {
-   /** Name of the config. Human readable. Default value is always "". */
+   /** Name of the config. Human-readable. Default value is always "". */
    val name: String
    /** Group of the config. Hierarchical. Default value is always "". */
    val group: String
-   /** Description of the config. Human readable. Default value is always "". */
+   /** Description of the config. Human-readable. Default value is always "". */
    val info: String
    /** Editability of the config. Determines whether operations can be performed by user or application. Default is always true. */
    val editable: EditMode

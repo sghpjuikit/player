@@ -9,4 +9,5 @@ data class ImageSize(@JvmField val width: Double, @JvmField val height: Double) 
    constructor(size: Dimension): this(size.width, size.height)
 
    operator fun div(by: Double) = ImageSize(width/by, height/by)
+
 }

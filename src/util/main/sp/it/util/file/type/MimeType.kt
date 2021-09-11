@@ -11,11 +11,9 @@ import sp.it.util.type.ConstantReadOnlyPropertyDelegateProvider
  * Represents a mimetype.
  *
  * See more at:
- *
  *  * http://stackoverflow.com/questions/51438/getting-a-files-mime-type-in-java
  *  * http://stackoverflow.com/questions/7904497/is-there-an-enum-with-mime-types-in-java
  *  * http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/net/MediaType.html
- *
  */
 class MimeType(val name: String, vararg extensions: String) {
    val group: String = name.substringBefore("/")

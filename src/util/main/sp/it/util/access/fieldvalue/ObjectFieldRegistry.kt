@@ -15,7 +15,7 @@ import sp.it.util.parsing.ConverterString
  * [ObjectField] per type manager.
  *
  * [ObjectField] instances are often defined in sets per type they are targeting. It is often desired to make this set
- * enum-like (i.e., add management like values(), valueOf(text), etc). A companion is a good target for this.
+ * enum-like (i.e., add management like values(), valueOf(text), etc.). A companion is a good target for this.
  *
  * So the structure ends up like this:
  * ```

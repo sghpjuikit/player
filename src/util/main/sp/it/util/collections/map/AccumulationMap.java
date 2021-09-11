@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import kotlin.jvm.functions.Function1;
 
 /**
- * Map accumulating multiple values of key into into single cumulative value. It accumulates elements E to accumulation
+ * Map accumulating multiple values of key into single cumulative value. It accumulates elements E to accumulation
  * buckets C based on key K derived from the elements.
  *
  * @param <E> element that will be split/accumulated
@@ -79,7 +79,7 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 	/**
 	 * Multi key get.
 	 *
-	 * @return list containing of all cache buckets / accumulation containers assigned to keys in the given collection.
+	 * @return list containing of all cache buckets / accumulation containers assigned to the keys in the given collection
 	 */
 	public List<C> getCacheOf(Collection<K> keys) {
 		List<C> out = new ArrayList<>();

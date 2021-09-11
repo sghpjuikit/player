@@ -7,7 +7,7 @@ import java.util.UUID
 /** Equivalent to [KotlinVersion]. */
 fun version(major: Int, minor: Int, patch: Int) = KotlinVersion(major, minor, patch)
 
-/** Equivalent to [Year.of[]. */
+/** Equivalent to [Year.of]. */
 fun year(year: Int): Year = Year.of(year)
 
 /** Equivalent to [UUID.randomUUID]. */

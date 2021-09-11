@@ -19,6 +19,7 @@ import javax.imageio.ImageReader
 import javax.imageio.stream.ImageInputStream
 import mu.KotlinLogging
 import sp.it.util.async.runFX
+import sp.it.util.dev.Blocks
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.Try
@@ -201,8 +202,9 @@ fun imgImplLoadFX(file: File, size: ImageSize, scaleExact: Boolean = false): Ima
 
 /**
  * Returns image size in pixels or error if unable to find out.
- * Does i/o, but does not read whole image into memory.
+ * Involves an i/o operation, but does not read whole image into memory.
  */
+@Blocks
 fun getImageDim(f: File): Try<Dimension, Throwable> {
    val stream = ImageIO.createImageInputStream(f) ?: return run {
       logger.warn { "Problem finding out image size for $f, could not create image input stream" }

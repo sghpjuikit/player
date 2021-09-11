@@ -73,7 +73,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	/**
 	 * Creates new action.
 	 *
-	 * @param name action name. Must be be unique for each action. Also human readable.
+	 * @param name action name. Must be unique for each action. Also, human-readable.
 	 * @param action Code that gets executed on {@link #run()}
 	 * @param info value for the final info property
 	 * @param keys Key combination for activating this action as a hotkey. See {@link #setKeys(java.lang.String)}
@@ -116,8 +116,8 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	/**
 	 * Returns the key combination for activating this action as a hotkey.
 	 * The output of this method is always valid parsable string for method
-	 * {@link #setKeys(java.lang.String)}. Use to assign keys of this action to
-	 * another action or to get the keys as human readable String.
+	 * {@link #setKeys(java.lang.String)}. Use it to assign keys of this action to
+	 * another action or to get the keys as human-readable String.
 	 *
 	 * @return the key combination for shortcut of this action or "" if no valid value.
 	 */

@@ -22,7 +22,7 @@ class Handler0: MutableSet<() -> Unit> by LinkedHashSet(2), () -> Unit {
       return Subscription { remove(block) }
    }
 
-   /** Adds specified block to this so it is removed after it runs. */
+   /** Adds specified block to this, so it is removed after it runs. */
    infix fun attach1(block: () -> Unit): Subscription {
       val r = RemovingF(block)
       add(r)

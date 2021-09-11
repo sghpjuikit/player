@@ -48,7 +48,7 @@ open class Anim: Transition {
 
    /** The side effect of the animation called in each loop. */
    val applier: DoubleConsumer
-   /** Position of the animation after the interpolation transformation. May be outside of 0-1 range. */
+   /** Position of the animation after the interpolation transformation. May be outside 0-1 range. */
    val position: DoubleProperty = SimpleDoubleProperty(0.0)
    /**
     * Whether animation should start from beginning/end if it is at the end/beginning. Default true.
@@ -238,14 +238,14 @@ open class Anim: Transition {
       companion object {
 
          /**
-          * Returns interpolator as sequential combination of interpolators. Use
+          * Returns interpolator as sequential combination of interpolators. Use it
           * to achieve not continuous function by putting the interpolators
           * one after another and then mapping the resulting f back to 0-1.
           * The final interpolator will be divided into subranges in which each
           * respective interpolator will be used with the input in the range
           * mapped back to 0-1.
           *
-          * For example pseudo code: of(0.2,x->0.5, 0.8,x->0.1) will
+          * For example pseudocode: `of(0.2,x->0.5, 0.8,x->0.1)` will
           * produce interpolator returning 0.5 for x <=0.2 and 0.1 for x > 0.2
           *
           * @param subranges interpolators of ranges covering range 0-1 in an increasing order

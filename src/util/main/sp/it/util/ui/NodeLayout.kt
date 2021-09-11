@@ -30,8 +30,8 @@ interface Lay {
    operator fun plusAssign(children: Sequence<Node>) = children.forEach { this += it }
 
    /**
-    * Lays the child produced by the specified block onto this if block is not null. Allows conditional content using
-    * [sp.it.util.functional.supplyIf] and [sp.it.util.functional.supplyUnless].
+    * Lays the child produced by the specified block onto this if block is not null.
+    * Allows conditional content using [sp.it.util.functional.supplyIf] and [sp.it.util.functional.supplyUnless].
     */
    operator fun plusAssign(child: (() -> Node)?) = child?.net { plusAssign(it()) }.toUnit()
 }

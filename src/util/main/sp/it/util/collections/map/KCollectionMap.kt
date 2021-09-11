@@ -19,8 +19,7 @@ open class KCollectionMap<E, K, C: MutableCollection<E>>(cacheFactory: Supplier<
    /**
     * Multi key get returning the combined content of the cache buckets.
     *
-    * @return list containing all elements of all cache buckets / accumulation containers assigned to keys in the given
-    * collection.
+    * @return list containing all elements of all cache buckets / accumulation containers assigned to the keys in the given collection
     */
    fun getElementsOf(vararg keys: K): Sequence<E> = keys.asSequence().flatMap { this[it]?.asSequence().orEmpty() }
 

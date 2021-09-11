@@ -92,7 +92,7 @@ public class Map2D<K1, K2, E> extends HashMap<Key<K1,K2>,E> {
 			return (K1) (switched ? key2 : key1);
 		}
 
-		/** Returns 2st sub-key according to the order at creation time. */
+		/** Returns 2nd sub-key according to the order at creation time. */
 		@SuppressWarnings("unchecked")
 		public K2 key2() {
 			return (K2) (switched ? key1 : key2);
@@ -110,7 +110,7 @@ public class Map2D<K1, K2, E> extends HashMap<Key<K1,K2>,E> {
 		@Override
 		public boolean equals(Object obj) {
 			if (this==obj) return true;
-			return obj instanceof Key && key1.equals(((Key) obj).key1) && key2.equals(((Key) obj).key2);
+			return obj instanceof Key && key1.equals(((Key<?,?>) obj).key1) && key2.equals(((Key<?,?>) obj).key2);
 		}
 
 		@Override

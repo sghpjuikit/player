@@ -84,7 +84,7 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
    /**
     * Activates listening process for hotkeys. Not running this method will cause hotkeys to not
     * get invoked.
-    * Must not be ran more than once.
+    * Must not be run more than once.
     * Does nothing if not supported.
     *
     * @param ignoreGlobal disables global shortcut listening (global shortcuts will become dysfunctional - no-op)
@@ -99,7 +99,7 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 
    /**
     * Deactivates listening process for hotkeys (global and local), causing them to stop working.
-    * Frees resources. This method should should always be ran when [startActionListening]
+    * Frees resources. This method should always be run when [startActionListening]
     * was invoked. Not doing so may prevent the application from closing successfully, due to non
     * daemon thread involved here.
     */
@@ -140,8 +140,8 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 
    /**
     * Deactivates listening process for global hotkeys. Frees resources. This
-    * method should should always be ran at the end of application's life cycle
-    * if [startGlobalListening] ()} was invoked at least once.
+    * method should always be run at the end of application's life cycle
+    * if [startGlobalListening] was invoked at least once.
     * Not doing so might prevent from the application to close successfully,
     * because bgr listening thread will not close.
     */

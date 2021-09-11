@@ -44,7 +44,7 @@ class ClassName {
     *  *  registered name of class
     *  *  registered name of first superclass in inheritance order
     *  *  registered name of first interface (no order)
-    *  *  human readable name derived from class
+    *  *  human-readable name derived from class
     *
     * Lazy and cached. O(1).
     */
@@ -64,7 +64,7 @@ class ClassName {
    companion object {
 
       private fun of(type: KClass<*>): String = when {
-         type.java.isAnonymousClass -> of(type.java.superclass.asIs<Class<*>>().kotlin)  // anonymous classes have no human readable name, use superclass
+         type.java.isAnonymousClass -> of(type.java.superclass.asIs<Class<*>>().kotlin)  // anonymous classes have no human-readable name, use superclass
          else -> type.simpleName ?: type.jvmName
       }
 

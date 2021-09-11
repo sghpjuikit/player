@@ -47,7 +47,7 @@ import static sp.it.util.type.Util.getMethodAnnotated;
  * Only one converter can be registered per single class.
  * <p/>
  * Converter lookup is polymorphic. This means that if there is no converter for given type, converter
- * for any supertype or interface the type extends will be looked up as well. Hence adding
+ * for any supertype or interface the type extends will be looked up as well. Hence, adding
  * converter for given type effectively adds it for the entire subclass hierarchy, unless overridden.
  * <p/>
  * Each converter must adhere to convention:
@@ -216,7 +216,7 @@ public class ConverterDefault extends Converter {
             }
         }
 
-        // try to fall back to Enum.valueOf method (use case insensitive search)
+        // try to fall back to Enum.valueOf method (use case-insensitive search)
         if (ofS==null) {
             if (isEnumClass(type)) {
                 ofS = (s) -> {

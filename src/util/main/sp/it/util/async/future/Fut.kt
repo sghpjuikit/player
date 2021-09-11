@@ -36,7 +36,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    /** [then] with [FX] executor. Intended for simple and declarative use of asynchronous computation from ui. */
    infix fun <R> ui(block: (T) -> R) = then(FX, block)
 
-   /** [then] which returns the original value. Intended for (blocking) side-effects. */
+   /** [then] which returns the original value. Intended for (blocking) side effects. */
    fun use(executor: Executor = defaultExecutor, block: (T) -> Unit) = then(executor) { block(it); it }
 
    /** Legacy version of [use] for Java taking a [Consumer]. */

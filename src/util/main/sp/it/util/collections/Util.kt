@@ -59,7 +59,7 @@ fun <E: Any> Collection<E?>.getElementType(): KType = when {
             }.orNull()
          }
          ?: run {
-            // Find lowest common element type
+            // Find the lowest common element type
             fun KClass<*>.estimateType() = createType(typeParameters.map { STAR })
             asSequence().filterNotNull()
                .map { it::class }.distinct()

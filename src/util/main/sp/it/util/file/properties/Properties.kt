@@ -49,7 +49,7 @@ sealed class PropVal {
  *
  * Supports multi-value by multiple entries with the same key.
  *
- * The text will be read in [UTF_8] and no escaping will considered. See [writeProperties].
+ * The text will be read in [UTF_8] and no escaping will be considered. See [writeProperties].
  *
  * Error can be:
  * * [java.io.FileNotFoundException] when file is a directory or can not be created or opened

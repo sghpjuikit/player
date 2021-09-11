@@ -32,7 +32,7 @@ public class PrefList<E> extends ArrayList<E> {
 	}
 
 	/**
-	 * Get preferred item. First item if no preferred is set.
+	 * Get preferred item. First item if none preferred is set.
 	 *
 	 * @return preferred item or first if none or null list empty
 	 */

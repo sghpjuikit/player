@@ -347,7 +347,7 @@ public interface Util {
 	/**
 	 * Convenience method to make it easier to select given rows of the
 	 * TableView via its SelectionModel.
-	 * This methods provides alternative to TableViewSelectionModel.selectIndices()
+	 * This method provides alternative to TableViewSelectionModel.selectIndices()
 	 * that requires array parameter. This method makes the appropriate conversions
 	 * and selects the items using List parameter
 	 * <p/>
@@ -453,7 +453,7 @@ public interface Util {
 		s.initOwner(owner);
 		s.setAlwaysOnTop(true);
 
-		// Modality causes issue with focus not being returned to the correct window, unfortunately, this cant stay on
+		// Modality causes issue with focus not being returned to the correct window, unfortunately, this can't stay on
 		// s.initModality(APPLICATION_MODAL); // eliminates focus stealing from apps and taskbar being visible
 
 		if (show) s.show();
@@ -466,7 +466,7 @@ public interface Util {
 		// s.setWidth(screen.getVisualBounds().getWidth()/Screen.getPrimary().getOutputScaleX()*screen.getOutputScaleX());
 		// s.setHeight(screen.getVisualBounds().getHeight()/Screen.getPrimary().getOutputScaleY()*screen.getOutputScaleY());
 
-		// Fullscreen window is the got to choice, but fullscreen has its own share of problems.., like focus
+		// Fullscreen window is the got to choice, but fullscreen has its own share of problems, like focus
 		// stealing and the consequent disappearance of the window (nearly impossible to bring it back).
 		// s.setFullScreen(true);
 		// s.setFullScreenExitHint("");

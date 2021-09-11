@@ -63,7 +63,7 @@ private abstract class MappedObservableValue<O>: ObservableValue<O> {
  * * The returned observable holds forever reference to this observable.
  * * This observable holds reference to the returned observable if the returned observable is observed.
  *
- * Therefore to garbage collect the observable:
+ * Therefore, to garbage collect the observable:
  * * If this and returned observable share lifecycle, no action is necessary
  * * If this observable outlives the returned observable, remove all listeners from the returned observable at the end of its life
  * * If the returned observable outlives this observable, remove any reference to this observable at the end of its life
@@ -98,7 +98,7 @@ infix fun <T, O> ObservableValue<T>.map(mapper: (T) -> O): ObservableValue<O> = 
  * * The returned observable holds forever reference to this observable.
  * * This observable holds reference to the returned observable if the returned observable is observed.
  *
- * Therefore to garbage collect the observable:
+ * Therefore, to garbage collect the observable:
  * * If this and returned observable share lifecycle, no action is necessary
  * * If this observable outlives the returned observable, remove all listeners from the returned observable at the end of its life
  * * If the returned observable outlives this observable, remove any reference to this observable at the end of its life
@@ -139,7 +139,7 @@ infix fun <T, O> ObservableValue<T>.flatMap(mapper: (T) -> ObservableValue<O>): 
  * * The returned observable holds forever reference to this observable.
  * * This observable holds reference to the returned observable if the returned observable is observed.
  *
- * Therefore to garbage collect the observable:
+ * Therefore, to garbage collect the observable:
  * * If this and returned observable share lifecycle, no action is necessary
  * * If this observable outlives the returned observable, remove all listeners from the returned observable at the end of its life
  * * If the returned observable outlives this observable, remove any reference to this observable at the end of its life
@@ -187,7 +187,7 @@ infix fun <O> ObservableValue<O>.attachWhile(block: (O) -> Subscription): Subscr
    return outer + inner
 }
 
-/** Sets a disposable block to be fired on every non null value change. The block is disposed on the next change (null or not). */
+/** Sets a disposable block to be fired on every non-null value change. The block is disposed on the next change (null or not). */
 infix fun <O: Any> ObservableValue<O?>.attachNonNullWhile(block: (O) -> Subscription) = attachWhile { it ->
    it?.net(block).orEmpty()
 }
@@ -202,7 +202,7 @@ infix fun <O> ObservableValue<O>.syncWhile(block: (O) -> Subscription): Subscrip
    return outer + inner
 }
 
-/** Sets a disposable block to be fired immediately and on every non null value change. The block is disposed on the next change (null or not). */
+/** Sets a disposable block to be fired immediately and on every non-null value change. The block is disposed on the next change (null or not). */
 infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscription) = syncWhile { it ->
    it?.net(block).orEmpty()
 }
@@ -210,10 +210,10 @@ infix fun <O: Any> ObservableValue<O?>.syncNonNullWhile(block: (O) -> Subscripti
 /** Sets the value of this observable to the specified property immediately and on every value change. */
 infix fun <O> ObservableValue<O>.syncTo(w: WritableValue<in O>) = sync { w.value = it }
 
-/** Sets the value the specified observable to the this property immediately and on every value change. */
+/** Sets the value of the specified observable to this property immediately and on every value change. */
 infix fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>) = o syncTo this
 
-/** Sets the value the specified observable to the this property immediately and on every value change. */
+/** Sets the value of the specified observable to this property immediately and on every value change. */
 @Experimental("Questionable API")
 fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>, disposer: Disposer) = syncFrom(o) on disposer
 
@@ -235,10 +235,10 @@ infix fun <O> ObservableValue<O>.attachChanges(block: (O, O) -> Unit): Subscript
    return Subscription { removeListener(l) }
 }
 
-/** Sets the value of the specified observable to the this property on every value change. */
+/** Sets the value of the specified observable to this property on every value change. */
 infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>) = attach { w.value = it }
 
-/** Sets the mapped value the specified observable to the this property on every value change. */
+/** Sets the mapped value the specified observable to this property on every value change. */
 infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
 /** Sets a block to be fired if the value is true on every value change. */
@@ -343,7 +343,7 @@ fun <O, R> ObservableValue<O>.syncIntoWhile(extractor: (O) -> ObservableValue<R>
    return outer + inner + superInner
 }
 
-/** Sets block to be resubscribed immediately and on every non null change of the extracted observable of the value until value changes. */
+/** Sets block to be resubscribed immediately and on every non-null change of the extracted observable of the value until value changes. */
 fun <O: Any?, R: Any> ObservableValue<O>.syncNonNullIntoWhile(extractor: (O) -> ObservableValue<R?>, block: (R) -> Subscription) = syncIntoWhile(extractor) { it?.net(block).orEmpty() }
 
 /** [sync1If], that does not run immediately (even if the value passes the condition). */
@@ -364,14 +364,14 @@ inline fun <T> ObservableValue<T>.attach1If(crossinline condition: (T) -> Boolea
  * Runs block (consuming the property's value) as soon as the condition is met. Useful to execute initialization,
  * for example to wait for nonnull value.
  *
- * The block runs immediately if current value already meets the condition. Otherwise registers a one-time
+ * The block runs immediately if current value already meets the condition. Otherwise, registers a one-time
  * listener, which will run the block when the value changes to such that the condition is met.
  *
  * It is guaranteed:
  *  *  block executes at most once
  *
  * It is not guaranteed:
- *  *  block will execute, because the value may never meet the condition or it was unsubscribed before it happened
+ *  *  block will execute, because the value may never meet the condition, or it was unsubscribed before it happened
  *
  * @param condition test the value must pass for the action to execute
  * @param block action receiving the value as argument and that runs exactly once when the condition is first met
@@ -392,7 +392,7 @@ inline fun <T> ObservableValue<T>.attach1IfNonNull(crossinline action: (T) -> Un
 fun <T> ObservableValue<T>.sync1IfNonNull(action: (T) -> Unit) = sync1If({ it!=null }, action)
 
 /**
- * Runs block once node is in scene graph and after proper layout, i.e., its scene being non null and after executing
+ * Runs block once node is in scene graph and after proper layout, i.e., its scene being non-null and after executing
  * a layout pass. The block will never run in current scene pulse as [runLater] will be invoked at least once.
  */
 fun Node.sync1IfInScene(block: () -> Unit): Subscription {

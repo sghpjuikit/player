@@ -38,7 +38,7 @@ import static sp.it.util.functional.Util.repeat;
  * <p/>
  * For example parsing expression '%one%:%two%,%three%' will split string
  * 'abc:def,ghi' into list containing elements 'abc','def','ghi' and string
- * 'abc:def' into list containing: 'abc',null,null because the 3nd delimiter is
+ * 'abc:def' into list containing: 'abc',null,null because the 3rd delimiter is
  * not present.
  */
 public class StringSplitParser implements Function<String,List<String>> {
@@ -108,6 +108,7 @@ public class StringSplitParser implements Function<String,List<String>> {
 		return StringSplitParser.fromString("%all%").getOrThrow();
 	}
 
+	@SuppressWarnings("StringConcatenationInLoop")
 	@Dependency("toString")
 	public static Try<StringSplitParser, String> fromString(String expression) {
 		StringSplitParser ssp = new StringSplitParser(expression);

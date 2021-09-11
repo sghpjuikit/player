@@ -14,7 +14,7 @@ interface MapByKClass<E> {
    /**
     * Returns elements mapped to one of (in that order):
     *  * specified class
-    *  * any of specified class' superclasses up to Object.class
+    *  * any of specified class' superclasses up to Object::class
     *  * any of specified class' interfaces
     *
     * or empty list if no such mapping exists.
@@ -27,7 +27,7 @@ interface MapByKClass<E> {
    /**
     * Returns elements mapped to one of (in that order):
     *  * specified class
-    *  * any of specified class' superclasses up to Object.class
+    *  * any of specified class' superclasses up to Object::class
     *  * any of specified class' interfaces
     *  * [Void].class or [Nothing].class
     *
@@ -42,7 +42,7 @@ interface MapByKClass<E> {
    /**
     * Returns first element mapped to one of (in that order):
     *  * specified class
-    *  * any of specified class' superclasses up to Object.class
+    *  * any of specified class' superclasses up to Object::class
     *  * any of specified class' interfaces
     * or null if no such mapping exists.
     */
@@ -52,7 +52,7 @@ interface MapByKClass<E> {
    /**
     * Returns first element mapped to one of (in that order):
     *  * specified class
-    *  * any of specified class' superclasses up to Object.class
+    *  * any of specified class' superclasses up to Object::class
     *  * any of specified class' interfaces
     *  * [Void].class or [Nothing].class
     * or null if no such mapping exists.

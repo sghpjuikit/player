@@ -545,10 +545,12 @@ class GameView(widget: Widget): SimpleController(widget) {
       private infix fun GlyphIcons.icon(block: (Icon) -> Unit) = Icon(this).size(40.0).onClickDo(block)
 
       private object GogQBuilder: WebSearchUriBuilder {
+         override val icon = IconTx("GOG")
          override val name = "GOG"
          override fun build(q: String): URI = URI.create("https://www.gog.com/games?sort=popularity&page=1&search=$q")
       }
       private object SteamQBuilder: WebSearchUriBuilder {
+         override val icon = IconMD.STEAM
          override val name = "Steam"
          override fun build(q: String): URI = URI.create("https://store.steampowered.com/search/?term=$q")
       }

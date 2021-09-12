@@ -228,6 +228,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 							String d = f.description();
 
 							SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible);
+							m.setUserData(f);
 							m.getSelected().addListener((o,ov,nv) -> setColumnVisible(f, nv));
 							if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
 

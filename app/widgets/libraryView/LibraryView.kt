@@ -90,6 +90,7 @@ import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
 import sp.it.util.text.*
 import sp.it.util.ui.show
+import sp.it.util.ui.tableColumn
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
@@ -145,22 +146,23 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.setColumnFactory { f ->
          if (f is MgField<*>) {
             val mf = fieldFilter.value
-            TableColumn<MetadataGroup, Any>(f.toString(mf)).apply {
+            tableColumn<MetadataGroup, Any?>(f.toString(mf)) {
                cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
                cellFactory = when (f) {
                   AVG_RATING -> RatingCellFactory.asIs()
-                  W_RATING -> CellFactory<Double?> {
-                     object: TableCell<MetadataGroup, Double?>() {
-                        init {
-                           alignment = CENTER_RIGHT
-                        }
+                  W_RATING ->
+                     CellFactory<Double?> {
+                        object: TableCell<MetadataGroup, Double?>() {
+                           init {
+                              alignment = CENTER_RIGHT
+                           }
 
-                        override fun updateItem(item: Double?, empty: Boolean) {
-                           super.updateItem(item, empty)
-                           text = if (empty) null else String.format("%.2f", item)
+                           override fun updateItem(item: Double?, empty: Boolean) {
+                              super.updateItem(item, empty)
+                              text = if (empty) null else "%.2f".format(item)
+                           }
                         }
-                     }
-                  }.asIs()
+                     }.asIs()
                   else -> CellFactory {
                      f.buildFieldedCell().apply {
                         alignment = if (f.getMFType(mf).isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT
@@ -169,7 +171,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                }
             }
          } else {
-            TableColumn<MetadataGroup, Any>(f.name()).apply {
+            tableColumn<MetadataGroup, Any?>(f.name()) {
                cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
                cellFactory = Callback { f.buildFieldedCell() }
             }
@@ -206,6 +208,13 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             { fieldFilter.setValue(it) }
          )
       }
+      // column context menu - maintain VALUE name
+      fun updateValueName() {
+         table.columnVisibleMenu.items.find { it.userData == VALUE }?.text = VALUE.toString(fieldFilter.value)
+         table.search.menu.items.find { it.userData == VALUE }?.text = VALUE.toString(fieldFilter.value)
+      }
+      fieldFilter attach { updateValueName() }
+      table.columnMenu.onEventDown(WINDOW_SHOWING) { updateValueName() }
 
       // add menu items
       table.menuRemove.dsl {
@@ -270,6 +279,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
    }
 
    private fun applyData(refreshItems: Boolean = true) {
+
       // rebuild value column
       table.getColumn(VALUE).ifPresent {
          val t = table.getColumnFactory<Any>().call(VALUE)

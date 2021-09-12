@@ -77,6 +77,7 @@ class SelectionMenuItem(text: String? = "", selectedInitial: Property<Boolean> =
             SelectionMenuItem(toNameUi(input), input===inputSelected).apply {
                icon.styleclass(STYLECLASS_ICON_SINGLE_SEL)
                installOnMouseClick { selected.value = true }
+               userData = input
                selected attachTrue {
                   parentMenu.ifNotNull { p ->
                      p.items.forEach { i: MenuItem -> (i as SelectionMenuItem).selected.value = i===this }

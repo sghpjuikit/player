@@ -82,6 +82,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.show
+import sp.it.util.ui.tableColumn
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -133,7 +134,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
       // set up table columns
       table.setColumnFactory { field ->
-         TableColumn<Metadata, Any?>(field.name()).apply {
+         tableColumn<Metadata, Any?>(field.name()) {
             cellFactory = when (field) {
                RATING -> RatingCellFactory.asIs()
                else -> Callback { field.buildFieldedCell() }

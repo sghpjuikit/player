@@ -423,7 +423,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		/**
 		 * Menu item for displaying and selecting {link {@link #field}}.
 		 */
-		private final Menu menu = new Menu("Search column");
+		public final Menu menu = new Menu("Search column");
 
 		{
 			columnMenu.getItems().add(menu);

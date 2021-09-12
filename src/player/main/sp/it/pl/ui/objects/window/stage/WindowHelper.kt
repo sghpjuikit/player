@@ -1,7 +1,11 @@
 package sp.it.pl.ui.objects.window.stage
 
 import javafx.stage.Window as WindowFX
+import java.awt.Rectangle
+import javafx.geometry.BoundingBox
+import javafx.geometry.Bounds
 import javafx.geometry.Pos.CENTER
+import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.stage.StageStyle.TRANSPARENT
 import javafx.stage.StageStyle.UNDECORATED
@@ -152,4 +156,36 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
       show(if (eventSource==null) SCREEN_ACTIVE(CENTER) else DOWN_CENTER(eventSource))
       form.focusFirstConfigEditor()
    }
+}
+
+
+fun bestRec(area: Rectangle2D, at: P, newW: Collection<Rectangle>): Bounds {
+   data class TupleM4(var a: Double, var b: Double, var c: Double, var d: Double)
+   val b = TupleM4(area.minX, area.width, area.minY, area.height)
+   for (w in newW) {
+      if (w===newW) continue  // ignore self
+      val wl = w.x + w.width
+      if (wl<at.x && wl>b.a) b.a = wl.toDouble()
+      val wr = w.x
+      if (wr>at.x && wr<b.b) b.b = wr.toDouble()
+      val ht = w.y + w.height
+      if (ht<at.y && ht>b.c) b.c = ht.toDouble()
+      val hb = w.y
+      if (hb>at.y && hb<b.d) b.d = hb.toDouble()
+   }
+   b.a = area.minX
+   b.b = area.width
+   for (w in newW) {
+      if (w===newW) continue  // ignore self
+      val wl = w.x + w.width
+      val wr = w.x
+      val ht = w.y + w.height
+      val hb = w.y
+      val inTheWay = !(ht<at.y && ht<=b.c || hb>at.y && hb>=b.d)
+      if (inTheWay) {
+         if (wl<at.x && wl>b.a) b.a = wl.toDouble()
+         if (wr>at.x && wr<b.b) b.b = wr.toDouble()
+      }
+   }
+   return BoundingBox(b.a, b.c, b.b - b.a, b.d - b.c)
 }

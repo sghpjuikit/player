@@ -1,7 +1,7 @@
 package sp.it.pl.ui.objects.window.stage;
 
 import java.awt.Rectangle;
-import java.util.Comparator;
+import java.util.Set;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -62,7 +62,9 @@ import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
+import static java.util.Comparator.comparingInt;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.KeyCode.A;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.F;
@@ -240,7 +242,36 @@ public class Window extends WindowBase {
 		root.addEventFilter(MOUSE_PRESSED, e -> {
 			if (isMovingAlt && e.getButton()==SECONDARY) {
 				isMovingAltMaximized = maximized.getValue()==Maximized.NONE;
-				toggleMaximize();
+
+				if (e.isShiftDown()) {
+					var appWindowsWhitelist = APP.windowManager.windows.stream()
+						// ignore self
+						.filter(w -> w!=this)
+						// ignore collapsed dock
+						.filter(w -> APP.windowManager.dockWindow==null || !APP.windowManager.dockWindow.isShowing() || w!=APP.windowManager.dockWindow.getWindow())
+						.map(i -> new Rectangle((int) i.getX(), (int) i.getY(), (int) i.getWidth(), (int) i.getHeight()))
+						.collect(toSet());
+					var windowTitleBlacklist = Set.of("", "Program Manager");
+					var processId = APP.getProcess().pid();
+					var topWindow = new SystemInfo().getOperatingSystem()
+						.getDesktopWindows(true)
+						.stream()
+						.filter(w -> !windowTitleBlacklist.contains(w.getTitle()))
+						.filter(w -> w.getOwningProcessId()!=processId || appWindowsWhitelist.contains(w.getLocAndSize()))
+						.max(comparingInt(r -> r.getOrder()))
+						.map(w -> w.getLocAndSize())
+						.orElse(null);
+
+					if (topWindow!=null) {
+						var b = bestRec(screen.getBounds(), new P(e.getScreenX(), e.getScreenY()), list(topWindow));
+						setXYSize(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
+					} else {
+						toggleMaximize();
+					}
+				} else {
+					toggleMaximize();
+				}
+
 				e.consume();
 			}
 			if (isInteractiveOnLeftAlt.getValue() && e.isAltDown() && !APP.ui.isLayoutMode()) {

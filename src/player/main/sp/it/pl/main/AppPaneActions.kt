@@ -8,6 +8,7 @@ import javafx.concurrent.Worker.State.SCHEDULED
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.stage.FileChooser.ExtensionFilter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
@@ -463,7 +464,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
 
       hBox(50, CENTER) {
          val content = this
-         lay += vBox(50, CENTER) {
+         lay(ALWAYS) += vBox(50, CENTER) {
             lay += ConfigPane(conf)
             lay += vBox(10, CENTER_LEFT) {
                opacity = 0.0

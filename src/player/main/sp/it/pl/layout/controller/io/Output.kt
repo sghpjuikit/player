@@ -12,10 +12,10 @@ class Output<T>: Put<T> {
       this.id = Id(ownerId, name)
    }
 
-   /** Calls [sp.it.pl.layout.widget.controller.io.Input.bind] on specified input with this output. */
+   /** Calls [sp.it.pl.layout.controller.io.Input.bind] on specified input with this output. */
    fun bind(input: Input<in T>) = input.bind(this)
 
-   /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on specified input with this output. */
+   /** Calls [sp.it.pl.layout.controller.io.Input.unbind] on specified input with this output. */
    fun unbind(input: Input<in T>) = input.unbind(this)
 
    /** @return true iff this output is bound to any [Input]. */
@@ -34,7 +34,7 @@ class Output<T>: Put<T> {
          .count()>0
    }
 
-   /** Calls [sp.it.pl.layout.widget.controller.io.Input.unbind] on all inputs bound to this output. */
+   /** Calls [sp.it.pl.layout.controller.io.Input.unbind] on all inputs bound to this output. */
    fun unbindAll() {
       IOLayer.allLinks.keys.asSequence()
          .filter { it.key1()==this || it.key2()==this }

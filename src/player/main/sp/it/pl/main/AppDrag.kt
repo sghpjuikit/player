@@ -71,7 +71,7 @@ object Df {
    @JvmField val SONGS = DataFormatAppOnly<List<Song>>("application/sp.it.player-items")
    /** Data Format for [sp.it.pl.layout.Component]. */
    @JvmField val COMPONENT = DataFormatAppOnly<Component>("application/sp.it.player-component")
-   /** Data Format for widget [sp.it.pl.layout.widget.controller.io.Output] linking. */
+   /** Data Format for widget [sp.it.pl.layout.controller.io.Output] linking. */
    @JvmField val WIDGET_OUTPUT = DataFormatAppOnly<Output<*>>("application/sp.it.player-widget-output")
    /** Data Format for [sp.it.pl.audio.tagging.MetadataGroup]. */
    @JvmField val METADATA_GROUP = DataFormatAppOnly<MetadataGroup>("application/sp.it.player-metadata-group")
@@ -153,7 +153,7 @@ fun Clipboard.setSongsAndFiles(items: List<Song>) {
 
 /**
  * Returns true if dragboard contains one or more songs, audio files, urls or directories.
- * Files denoting directories are considered, but not visited. Hence true does not guarantee presence of any song.
+ * Files denoting directories are considered, but not visited. Hence, true does not guarantee presence of any song.
  *
  * Inspects [Df.SONGS], [Df.FILES], [Df.URL] in this exact order
  *

@@ -29,12 +29,12 @@ import sp.it.util.units.millis
  * Defines behavior and ui of [Widget].
  *
  * Companion:
- * The class should be accompanied by [sp.it.pl.layout.widget.WidgetCompanion].
+ * The class should be accompanied by [sp.it.pl.layout.WidgetCompanion].
  *
  * Providing API:
  * Controller is instantiated dynamically (using constructor) and normally the class is provided to the application
  * by user, so it is impossible to refer to the exact class and use the API. Exposing API by implementing interfaces
- * avoids this problem. See [sp.it.pl.layout.widget.feature.Feature].
+ * avoids this problem. See [sp.it.pl.layout.feature.Feature].
  *
  * Nonetheless, encapsulation is still recommended, i.e., standard public/private rules apply.
  *
@@ -52,7 +52,7 @@ import sp.it.util.units.millis
  * automatically. Note that it is not auto-restored. For that either use [SimpleController] or [LegacyController].
  *
  * Global [shared instance] state:
- * See [sp.it.pl.layout.widget.appProperty].
+ * See [sp.it.pl.layout.appProperty].
  */
 abstract class Controller(widget: Widget): Configurable<Any?>, Locatable by widget {
 
@@ -74,7 +74,7 @@ abstract class Controller(widget: Widget): Configurable<Any?>, Locatable by widg
 
 }
 
-/** Controller for [Widget] with no [sp.it.pl.layout.widget.WidgetFactory]. */
+/** Controller for [Widget] with no [sp.it.pl.layout.WidgetFactory]. */
 class NoFactoryController(widget: Widget): SimpleController(widget) {
    init {
       root.lay += vBox(5, CENTER) {

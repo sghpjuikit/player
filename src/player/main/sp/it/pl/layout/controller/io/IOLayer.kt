@@ -109,7 +109,7 @@ import sp.it.util.units.uuid
 private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, T>
 
 /**
- * Display for [sp.it.pl.layout.widget.controller.io.XPut] of components, displaying their relations as am editable graph.
+ * Display for [sp.it.pl.layout.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
 class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    private val inputNodes = HashMap<Input<*>, XNode>()
@@ -598,8 +598,8 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    }
 
    abstract class IOLinkBase: Path() {
-      val dataConnection by sv<IOLinkConnection>(DATA_CONNECTION)
-      val dataEffect by sv<IOLinkEffect>(DATA_EFFECT)
+      val dataConnection by sv(DATA_CONNECTION)
+      val dataEffect by sv(DATA_EFFECT)
 
       override fun getCssMetaData() = classCssMetaData
 

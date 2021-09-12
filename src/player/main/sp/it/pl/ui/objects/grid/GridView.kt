@@ -72,26 +72,26 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    val itemsShown: ObservableList<T> = itemsSorted
 
    /**
-    * Selection change activation strategies. Can be combined. Empty set will cause this grid ignore selection
+    * Selection change activation strategies. Can be combined. Empty set will cause this grid to ignore selection.
     * By default, ([SelectionOn.MOUSE_CLICK],[SelectionOn.KEY_PRESS]).
     */
    val selectOn = observableSet(SelectionOn.MOUSE_CLICK, SelectionOn.KEY_PRESS)!!
    /** Selected item. */
    val selectedItem = V<T?>(null)
-   /** Selected items. Intended for immediate consumption (may be backed by an observable). */
+   /** Selected items. Intended for immediate consumption (it may be backed by an observable). */
    val selectedItems: Sequence<T>
       get() = sequenceOf(selectedItem.value).filterNotNull()
-   /** [selectedItems] or [itemsShown] if none selected. Intended for immediate consumption (may be backed by an observable). */
+   /** [selectedItems] or [itemsShown] if none selected. Intended for immediate consumption (it may be backed by an observable). */
    val selectedOrAllItems: Sequence<T>
       get() = selectedItem.value?.let { sequenceOf(it) } ?: itemsShown.asSequence()
 
-   /** [selectedOrAllItems] if orAll is true or [selectedItems]. Intended for immediate consumption (may be backed by an observable). */
+   /** [selectedOrAllItems] if orAll is true or [selectedItems]. Intended for immediate consumption (it may be backed by an observable). */
    fun getSelectedOrAllItems(orAll: Boolean): Sequence<T> = if (orAll) selectedOrAllItems else selectedItems
 
-   val horizontalCellSpacing by sv<Double>(HORIZONTAL_CELL_SPACING)
-   val verticalCellSpacing by sv<Double>(VERTICAL_CELL_SPACING)
-   val cellWidth by sv<Double>(CELL_WIDTH)
-   val cellHeight by sv<Double>(CELL_HEIGHT)
+   val horizontalCellSpacing by sv(HORIZONTAL_CELL_SPACING)
+   val verticalCellSpacing by sv(VERTICAL_CELL_SPACING)
+   val cellWidth by sv(CELL_WIDTH)
+   val cellHeight by sv(CELL_HEIGHT)
 
    val cellWidthActual
       get() = cellWidth.value.takeIf { it!=CELL_SIZE_UNBOUND } ?: width

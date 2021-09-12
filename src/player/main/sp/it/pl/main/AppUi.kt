@@ -316,7 +316,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    @IsAction(name = "Layout zoom in/out", info = "Toggles layout zoom in/out.")
    fun toggleZoomMode() = APP.windowManager.getActive()?.switchPane?.toggleZoom()
 
-   fun setLayoutNzoom(v: Boolean) {
+   fun setLayoutAndZoom(v: Boolean) {
       if (isLayoutMode && APP.windowManager.getActive()?.switchPane?.isZoomed!=true) {
          setZoomMode(true)
       } else {
@@ -331,8 +331,8 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    @IsAction(name = "Layout zoom overlay in/out", info = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")
-   fun toggleLayoutNzoom() {
-      setLayoutNzoom(!layoutMode.value)
+   fun toggleLayoutAndZoom() {
+      setLayoutAndZoom(!layoutMode.value)
    }
 
    /**

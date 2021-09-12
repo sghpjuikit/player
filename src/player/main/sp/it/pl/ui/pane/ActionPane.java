@@ -23,7 +23,6 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -189,7 +188,8 @@ public class ActionPane extends OverlayPane<Object> {
 //				resizeB, Pos.BOTTOM_RIGHT
 			)
 		);
-		getContent().setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+		getContent().setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE); // TODO: apply on content change?, fix null
 
 		// put some padding of the content from edge
 		// note: The content is user-resizable now, sp we do not use bind, but set maxSize on show
@@ -524,8 +524,8 @@ public class ActionPane extends OverlayPane<Object> {
 				.useBy(FX, it -> actionProgress.setProgress(-1))
 				// run action and obtain output
 				.useBy(NEW, action::invoke)
-				// 1) the actions may invoke some action on FX thread, so we give it some by waiting a bit
-				// 2) very short actions 'pretend'r a while
+				// 1) the actions may invoke some action on FX thread, so we give it some time by waiting a bit
+				// 2) very short actions 'pretend' to be busy for a while
 				.thenWait(millis(150))
 				.useBy(FX, it -> actionProgress.setProgress(1))
 				.useBy(FX, it -> doneHide(action));

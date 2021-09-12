@@ -70,7 +70,6 @@ import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
-import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.attach;
@@ -105,7 +104,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * @param type exact type of the item displayed in the table
 	 * @param mainField field to determine primary filtering field and search column. Can be null. Initializes {@link
 	 * sp.it.pl.ui.objects.table.FilteredTable.Search#field} and {@link #primaryFilterField}.
-	 * @param backing_list non null backing list of items to be displayed in the table
+	 * @param backing_list non-null backing list of items to be displayed in the table
 	 */
 	public FilteredTable(Class<T> type, ObjectField<T,?> mainField, ObservableList<T> backing_list) {
 		super(type);
@@ -138,7 +137,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		filterPane.getNode().setVisible(false);
 		var filterKeyHandler = filterPane.buildToggleOnKeyHandler(filterVisible, this);
 		filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
-		addEventHandler(KEY_PRESSED, filterKeyHandler);  // filter would ignore first key stroke when filter turns visible
+		addEventHandler(KEY_PRESSED, filterKeyHandler);  // filter would ignore first key-stroke when filter turns visible
 
 		// selecting
 		addEventHandler(KEY_PRESSED, e -> {
@@ -168,9 +167,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 				search.updateSearchStyles();
 		}));
 
-		onChange(getItems(), runnable(() -> {
-			resizeIndexColumn();
-		}));
+		onChange(getItems(), runnable(() -> resizeIndexColumn()));
 		footerVisible.set(true);
 
 		initPlaceholder();
@@ -187,7 +184,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	}
 
 	/**
-	 * Return the items assigned to this this table. Includes the filtered out items.
+	 * Return the items assigned to this table. Includes the filtered out items.
 	 * <p/>
 	 * This list can be modified, but it is recommended to use {@link #setItemsRaw(java.util.Collection)}
 	 * to change the items in the table.
@@ -201,7 +198,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * <p/>
 	 * Do not use {@link #setItems(javafx.collections.ObservableList)} or
 	 * {@code getItems().setAll(new_items)}. It will cause the filters to stop
-	 * working. The first replaces the table item list (instance of {@link FilteredList},
+	 * working. The first replaces the table item list (instance of {@link FilteredList}),
 	 * which must not happen. The second would throw an exception as FilteredList
 	 * is not directly modifiable.
 	 */
@@ -238,8 +235,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * Filter is displayed in the top of the table.
 	 * <p/>
 	 * Setting filter visible will
-	 * also make it focused (to allow writing filter query immediatelly). If you
-	 * wish for the filter to gain focus set this proeprty to true (focus will
+	 * also make it focused (to allow writing filter query immediately). If you
+	 * wish for the filter to gain focus set this property to true (focus will
 	 * be set even if filter already was visible).
 	 * <p/>
 	 * Setting filter invisible will also clear any search query and effectively
@@ -303,7 +300,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		new Menu("Order by column", null,
 			fields.stream()
 				.filter(f -> f!=ColumnField.INDEX)
-				.map(f -> menuItem(f.name(), null, consumer(it -> {
+				.map(f -> menuItem(f.name(), null, consumer(it ->
 					getColumn(f).ifPresentOrElse(
 						c -> {
 							var sorts = new ArrayList<>(getSortOrder());
@@ -320,8 +317,8 @@ public class FilteredTable<T> extends FieldedTable<T> {
 							getSortOrder().setAll(sorts);
 						},
 						() -> sortBy(f)
-					);
-				})))
+					)
+				)))
 				.toArray(MenuItem[]::new)
 		),
 		menuItem("Order reverse", null, consumer(it -> sortReverse())),
@@ -333,7 +330,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		new SelectionMenuItem("Show header", headerVisible),
 		new SelectionMenuItem("Show footer", footerVisible)
 	);
-	/** Table menubar in the bottom with menus. Feel free to modify. */
+	/** Table menu-bar in the bottom with menus. Feel free to modify. */
 	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder, menuColumns, menuExtra);
 	/**
 	 * Labeled in the bottom displaying information on table items and selection.
@@ -374,7 +371,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 	@SuppressWarnings("unchecked")
 	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
-		return stream(APP.getClassFields().get(getKotlinClass(filterType)))
+		return APP.getClassFields().get(getKotlinClass(filterType)).stream()
 			.filter(ObjectField::isTypeFilterable)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))
@@ -387,7 +384,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	/**
 	 * Shows original item's index in the unfiltered list when filter is on.
 	 * False will display index within filtered list. In other words false
-	 * will cause items to always be indexed from 1 to items.size. This has only
+	 * will cause items to always be indexed from 1 to items.size. Only has
 	 * effect when filter is in effect.
 	 */
 	public final BooleanProperty showOriginalIndex = new SimpleBooleanProperty(true) {

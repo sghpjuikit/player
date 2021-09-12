@@ -819,9 +819,9 @@ class Metadata: Song, Serializable {
       }
 
       @Suppress("UNCHECKED_CAST")
-      private val FIELDS_FULLTEXT: List<Field<String>> = Field.all.asSequence()
-         .filter { it.type.raw.isSubclassOf<String>() }
-         .map { it as Field<String> }
+      private val FIELDS_FULLTEXT: List<Field<String?>> = Field.all.asSequence()
+         .filter { it.type.raw.isSubclassOf<String?>() }
+         .map { it as Field<String?> }
          .toList()
    }
 
@@ -829,7 +829,7 @@ class Metadata: Song, Serializable {
 
       constructor(type: VType<T>, name: String, description: String, extractor: (Metadata) -> T): super(type, extractor, name, description)
 
-      override fun isTypeStringRepresentable(): Boolean = this !in NOT_STRING_REPRESENTABLE
+      override fun isTypeStringRepresentable(): Boolean = this !in FIELDS_NOT_STRING_REPRESENTABLE
 
       override fun isTypeFilterable(): Boolean = this!=COVER
 
@@ -838,6 +838,7 @@ class Metadata: Song, Serializable {
       override fun searchMatch(matcher: (String) -> Boolean): (Metadata) -> Boolean = when (this) {
          CHAPTERS -> { m -> getOf(m).strings.any(matcher) }
          FULLTEXT -> { m -> getOf(m).strings.any(matcher) }
+         TAGS -> { m -> m.getTagsAsSequence().orEmpty().any(matcher) }
          else -> super.searchMatch(matcher)
       }
 
@@ -885,14 +886,14 @@ class Metadata: Song, Serializable {
          }
       }
 
-      fun isAutoCompletable(): Boolean = this in AUTO_COMPLETABLE
+      fun isAutoCompletable(): Boolean = this in FIELDS_AUTO_COMPLETABLE
 
       fun autocompleteGetOf(m: Metadata): Sequence<String> = when (this) {
          TAGS -> m.getTagsAsSequence().orEmpty()
          else -> sequenceOf(getOf(m)).filterIsInstance<String>().filter { it.isNotBlank() }
       }
 
-      override fun cVisible(): Boolean = VISIBLE.contains(this)
+      override fun cVisible(): Boolean = FIELDS_VISIBLE.contains(this)
 
       override fun cWidth(): Double = when(this) {
          PATH, TITLE, COMMENT -> 300.0
@@ -955,17 +956,20 @@ class Metadata: Song, Serializable {
          private inline fun <reified T> field(noinline extractor: (Metadata) -> T, name: String, description: String) =
             Field(type(), name, description, extractor)
 
-         private val AUTO_COMPLETABLE = setOf<Field<*>>(
+         private val FIELDS_AUTO_COMPLETABLE = setOf<Field<*>>(
             ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD, TAGS
          )
-         private val VISIBLE = setOf<Field<*>>(
+
+         private val FIELDS_VISIBLE = setOf<Field<*>>(
             TITLE, ALBUM, ARTIST, LENGTH, TRACK_INFO, DISCS_INFO, RATING, PLAYCOUNT
          )
-         private val NOT_STRING_REPRESENTABLE = setOf<Field<*>>(
+
+         private val FIELDS_NOT_STRING_REPRESENTABLE = setOf<Field<*>>(
             COVER, // can not be converted to string
             CHAPTERS, // raw string form unsuitable for viewing
             FULLTEXT // purely for search purposes
          )
+
          private val GROUPS_FILESIZE = Array(65) {
             when (it) {
                0 -> FileSize(1)
@@ -975,6 +979,7 @@ class Metadata: Song, Serializable {
                else -> failCase(it)
             }
          }
+
          private val GROUPS_RATING = (0..20).map { it*5/100.0 }.toDoubleArray()
       }
 

@@ -80,10 +80,11 @@ public class FontPickerContent extends GridPane {
 	private final ObservableList<FontStyle> filteredStyleList = observableArrayList();
 	private final ObservableList<Double> filteredSizeList = observableArrayList(fontSizes);
 
+	@SuppressWarnings("SpellCheckingInspection")
+	private final TextArea sampleArea = new TextArea("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
 	private final ListView<String> fontListView = new ListView<>(filteredFontList);
 	private final ListView<FontStyle> styleListView = new ListView<>(filteredStyleList);
 	private final ListView<Double> sizeListView = new ListView<>(filteredSizeList);
-	private final TextArea sampleArea = new TextArea("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
 
 	public FontPickerContent() {
 		setHgap(HGAP);

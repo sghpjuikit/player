@@ -139,7 +139,7 @@ class App: Application(), GlobalConfigDelegator {
    val locationTmp = File(System.getProperty("java.io.tmpdir")) apply_ verify
    /** Home directory of the os. */
    val locationHome = File(System.getProperty("user.home")) apply_ verify
-   /** Uri for Github website for project of this application. */
+   /** Uri for GitHub website for project of this application. */
    val githubUri = uri("https://www.github.com/sghpjuikit/player/")
    /** Process of this application. Same as [ProcessHandle.current] */
    val process = ProcessHandle.current()!!

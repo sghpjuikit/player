@@ -14,7 +14,6 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Pane
 import javafx.scene.shape.Rectangle
 import kotlin.math.round
-import kotlin.streams.toList
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
@@ -230,7 +229,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
 
    private fun play(items: List<Metadata>) {
       if (items.isEmpty()) return
-      PlaylistManager.use { it.setNplay(items.stream().sorted(APP.audio.songOrderComparator)) }
+      PlaylistManager.use { it.setAndPlay(items.stream().sorted(APP.audio.songOrderComparator)) }
    }
 
    // restoring selection if table items change, we want to preserve as many selected items as possible - when selection

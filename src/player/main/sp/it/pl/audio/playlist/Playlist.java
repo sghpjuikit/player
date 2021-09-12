@@ -136,7 +136,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		return stream().anyMatch(song::same);
 	}
 
-	/** Returns true iff any song on this playlist is being played played. */
+	/** Returns true iff any song on this playlist is being played. */
 	public boolean containsPlaying() {
 		return indexOfPlaying()>=0;
 	}
@@ -181,7 +181,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	}
 
 	/**
-	 * Duplicates the songs if they are in playlist. If they arent, does nothing.
+	 * Duplicates the songs if they are in playlist. If they aren't, does nothing.
 	 * Duplicates will appear on the next index following the last song's index.
 	 *
 	 * @param songs songs to duplicate
@@ -201,7 +201,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	}
 
 	/**
-	 * Duplicates the songs if they are in playlist. If they arent, does nothing.
+	 * Duplicates the songs if they are in playlist. If they aren't, does nothing.
 	 * Each duplicate will appear at index right after its original - sort of
 	 * couples will appear.
 	 *
@@ -226,7 +226,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	/**
 	 * Moves/shifts all specified songs by specified distance.
 	 * Selected songs retain their relative positions. Items stop moving when
-	 * any of them hits end/start of the playlist. Items wont rotate the list.
+	 * any of them hits end/start of the playlist. Items won't rotate the list.
 	 *
 	 * @apiNote If this method requires real time response (for example reacting on mouse drag in table), it is important
 	 * to 'cache' the behavior and allow values >1 && <-1 so the moved songs don't lag behind.
@@ -325,7 +325,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	/**
 	 * Updates all not updated songs.
 	 * <p/>
-	 * If some song is not on playlist it will also be updated but it will have
+	 * If some song is not on playlist it will also be updated, but it will have
 	 * no effect on this playlist (but will on others, if they contain it).
 	 *
 	 * @param songs songs to update.
@@ -346,11 +346,11 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	/**
 	 * Use to completely refresh playlist.
 	 * Updates all songs on playlist. This method guarantees that all songs
-	 * will be up to date.
+	 * will be up-to-date.
 	 * After this method is invoked, every song will be updated at least once
 	 * and reflect metadata written in the physical file.
 	 * <p>
-	 * Utilizes bgr thread. Its safe to call this method without any performance
+	 * Utilizes bgr thread. It's safe to call this method without any performance
 	 * impact.
 	 */
 	public void updateItems() {
@@ -367,11 +367,11 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 				return;
 			}
 		}
-		addNplay(uri);
+		addAndPlay(uri);
 	}
 
 	/** Adds a new PlaylistSong to the end of the Playlist and plays it */
-	public void addNplay(URI uri) {
+	public void addAndPlay(URI uri) {
 		addUri(uri);
 		playLastItem();
 	}
@@ -408,7 +408,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public void playItem(PlaylistSong song, UnaryOperator<PlaylistSong> altSupplier) {
 		if (song!=null && transform().contains(song)) {
 			runIO(() -> {
-				// we cant play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
+				// we can't play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
 				boolean unplayable = song.isCorrupt();  // potentially blocking
 				if (unplayable) {
 					boolean isNonePlayable = unplayable1st==song && stream().allMatch(PlaylistSong::isCorrupt); // potentially blocking
@@ -469,8 +469,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @param songs songs to be on the  playlist.
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplay(Collection<? extends Song> songs) {
-		setNplay(songs.stream());
+	public void setAndPlay(Collection<? extends Song> songs) {
+		setAndPlay(songs.stream());
 	}
 
 	/**
@@ -483,8 +483,8 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @param from index of song to play from
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplayFrom(Collection<? extends Song> songs, int from) {
-		setNplayFrom(songs.stream(), from);
+	public void setAndPlayFrom(Collection<? extends Song> songs, int from) {
+		setAndPlayFrom(songs.stream(), from);
 	}
 
 	/**
@@ -495,7 +495,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @param songs songs.
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplay(Stream<? extends Song> songs) {
+	public void setAndPlay(Stream<? extends Song> songs) {
 		noNull(songs);
 		setAll(songs.map(Song::toPlaylist).collect(toList()));
 		playFirstItem();
@@ -511,7 +511,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @param from index of song to play from
 	 * @throws NullPointerException if param null.
 	 */
-	public void setNplayFrom(Stream<? extends Song> songs, int from) {
+	public void setAndPlayFrom(Stream<? extends Song> songs, int from) {
 		noNull(songs);
 		setAll(songs.map(Song::toPlaylist).collect(toList()));
 		playItem(get(from));
@@ -536,7 +536,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	/**
 	 * Adds new songs to end of this playlist, based on the urls (String). Use
 	 * this method for URL based Items.
-	 * Malformed url's will be ignored.
+	 * Malformed urls will be ignored.
 	 *
 	 * @throws NullPointerException when param null.
 	 */
@@ -556,7 +556,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 	/**
 	 * Adds new song to specified index of playlist.
-	 * Dont use for physical files..
+	 * Don't use for physical files.
 	 *
 	 * @throws NullPointerException when param null.
 	 */

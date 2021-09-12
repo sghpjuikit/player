@@ -42,10 +42,10 @@ import sp.it.pl.ui.pane.ActionData
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
-import sp.it.pl.ui.pane.FastAction
-import sp.it.pl.ui.pane.FastColAction
-import sp.it.pl.ui.pane.SlowAction
-import sp.it.pl.ui.pane.SlowColAction
+import sp.it.pl.ui.pane.fastAction
+import sp.it.pl.ui.pane.fastColAction
+import sp.it.pl.ui.pane.slowAction
+import sp.it.pl.ui.pane.slowColAction
 import sp.it.pl.ui.pane.register
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
@@ -109,8 +109,8 @@ object ActionsPaneGenericActions {
       }
 
       register<App>(
-         FastAction(IconFA.GEARS, ActionRegistrar["Open settings"]),
-         FastAction(IconUN(0x1f4c1), ActionRegistrar["Open app event log"]),
+         fastAction(IconFA.GEARS, ActionRegistrar["Open settings"]),
+         fastAction(IconUN(0x1f4c1), ActionRegistrar["Open app event log"]),
       )
    }
 }
@@ -125,14 +125,14 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
    ap.initGenericActions()
 
    ap.register<Any?>(
-      FastColAction<Any?>(
+      fastColAction<Any?>(
          "Set as data",
          "Sets the selected data as input.",
          IconMD.DATABASE,
          { it !is App && it !is AppHelp && it !is AppOpen },
          ap.converting { Try.ok(it) }
       ).preventClosing(),
-      FastColAction(
+      fastColAction(
          "Open in Converter",
          "Open data in Converter.",
          IconMD.SWAP_HORIZONTAL,
@@ -141,25 +141,25 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<App>(
-      FastAction(IconFA.FOLDER, ActionRegistrar["Open app directory"]),
-      FastAction<App>("Help", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppHelp) }).preventClosing(),
-      FastAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
-      FastAction("Open help", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() },
+      fastAction(IconFA.FOLDER, ActionRegistrar["Open app directory"]),
+      fastAction<App>("Help", "Set of actions for advanced users", IconOC.CIRCUIT_BOARD, { ap.show(AppHelp) }).preventClosing(),
+      fastAction<App>("Open...", "Set of actions to open things", IconMD.OPEN_IN_APP, { ap.show(AppOpen) }).preventClosing(),
+      fastAction("Open help", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() },
    )
    ap.register<AppOpen>(
-      FastAction(
+      fastAction(
          "Select file",
          "Open file chooser to select files",
          IconUN(0x1f4c4),
          ap.converting { chooseFiles("Select file...", null, ap.scene?.window) }
       ),
-      FastAction(
+      fastAction(
          "Select directory",
          "Open file chooser to select directory",
          IconUN(0x1f4c1),
          ap.converting { chooseFile("Select directory...", DIRECTORY, null, ap.scene?.window) }
       ),
-      FastAction(
+      fastAction(
          "Open widget",
          "Open file chooser to open an exported widget",
          IconMA.WIDGETS,
@@ -168,7 +168,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                .ifOk { FX.launch { APP.windowManager.launchComponent(it) } }
          }
       ),
-      FastAction(
+      fastAction(
          "Open skin",
          "Open file chooser to find a skin",
          IconMA.BRUSH,
@@ -177,7 +177,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                .ifOk { APP.ui.setSkin(it) }
          }
       ),
-      FastAction(
+      fastAction(
          "Open audio files",
          "Open file chooser to find a audio files",
          IconMD.MUSIC_NOTE,
@@ -188,7 +188,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<Any>(
-      FastAction(
+      fastAction(
          "Detect content",
          "Tries to detect and convert the content of the text into more specific one",
          IconFA.SEARCH_PLUS,
@@ -196,7 +196,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<Component>(
-      FastAction(
+      fastAction(
          "Export",
          "Creates a launcher for this component with its current settings. \n" +
             "Opening the launcher with this application will open this component with current settings " +
@@ -207,7 +207,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                .ifOk { w.exportFxwl(it) }
          }
       ),
-      FastAction(
+      fastAction(
          "Clone",
          "Creates new component with the same content and state as this one.",
          IconFA.CLONE,
@@ -215,7 +215,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<Widget>(
-      FastAction(
+      fastAction(
          "Export default",
          "Creates a launcher for this component with no settings. \n" +
             "Opening the launcher with this application will open this component with no settings " +
@@ -226,7 +226,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
                .ifOk { w.exportFxwlDefault(it) }
          }
       ),
-      FastAction(
+      fastAction(
          "Use as default",
          "Uses settings of this widget as default settings when creating widgets of this type. This " +
             "overrides the default settings of the widget set by the developer. For using multiple widget " +
@@ -234,7 +234,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconMD.SETTINGS_BOX,
          { it.storeDefaultConfigs() }
       ),
-      FastAction(
+      fastAction(
          "Clear default",
          "Removes any overridden default settings for this widget type. New widgets will start with no settings.",
          IconMD.SETTINGS_BOX,
@@ -242,19 +242,19 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<Song>(
-      FastColAction(
+      fastColAction(
          "Add to new playlist",
          "Add songs to new playlist widget.",
          IconMD.PLAYLIST_PLUS,
          { songs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addItems(songs) } }
       ),
-      FastColAction(
+      fastColAction(
          "Add to existing playlist",
          "Add songs to existing playlist widget if possible or to a new one if not.",
          IconMD.PLAYLIST_PLUS,
          { songs -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addItems(songs) } }
       ),
-      FastColAction(
+      fastColAction(
          "Update from file",
          "Updates library data for the specified songs from their file metadata. The difference between the data " +
             "in the database and real metadata cab be a result of a bug or file edited externally. " +
@@ -262,7 +262,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconFA.REFRESH,
          { APP.audio.refreshSongs(it) }
       ),
-      FastColAction<Song>(
+      fastColAction<Song>(
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
          IconMD.DATABASE_PLUS,
@@ -273,13 +273,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             addToLibraryConsumer(op).gui
          )
       },
-      FastColAction(
+      fastColAction(
          "Remove from library",
          "Removes all specified songs from library. After this library will contain none of these songs.",
          IconMD.DATABASE_MINUS,
          { APP.db.removeSongs(it) }
       ),
-      FastColAction(
+      fastColAction(
          "Show",
          "Shows songs in a table.",
          IconMA.COLLECTIONS,
@@ -289,7 +289,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             }
          }
       ),
-      FastColAction(
+      fastColAction(
          "Show as Group",
          "Group songs in a table.",
          IconMA.COLLECTIONS,
@@ -301,94 +301,94 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<File>(
-      FastAction(
+      fastAction(
          "Recycle", "Moves file to recycle bin.",
          IconMA.DELETE,
          { it.recycle() }
       ),
-      SlowAction(
+      slowAction(
          "Set as wallpaper", "Sets image as wallpaper.",
          IconMA.IMAGE_ASPECT_RATIO,
          { it.isImage() && APP.plugins.get<WallpaperChanger>()!=null },
          { f -> APP.plugins.use<WallpaperChanger> { it.wallpaperFile.value = f } }
       ),
-      FastAction(
+      fastAction(
          "Open (OS)", "Opens file in a native program associated with this file type.",
          IconMA.OPEN_IN_NEW,
          { it.open() }
       ),
-      FastAction(
+      fastAction(
          "Edit (OS)", "Edit file in a native editor program associated with this file type.",
          IconFA.EDIT,
          { it.edit() }
       ),
-      FastAction(
+      fastAction(
          "Browse (OS)", "Browse file in a native file system browser.",
          IconFA.FOLDER_OPEN_ALT,
          { it.browse() }
       ),
-      FastColAction(
+      fastColAction(
          "Add to new playlist",
          "Add songs to new playlist widget.",
          IconMD.PLAYLIST_PLUS,
          { it.isAudio() },
          { fs -> APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { it.playlist.addFiles(fs) } }
       ),
-      SlowAction(
+      slowAction(
          "Open playlist",
          "Add songs to new playlist widget.",
          IconMD.PLAYLIST_PLAY,
          { it.isM3uPlaylist() },
-         { f -> PlaylistManager.use { it.setNplay(readM3uPlaylist(f)) } }
+         { f -> PlaylistManager.use { it.setAndPlay(readM3uPlaylist(f)) } }
       ),
-      SlowColAction(
+      slowColAction(
          "Find files",
          "Looks for files recursively in the the data.",
          IconMD.FILE_FIND,
          ap.converting { fs -> Try.ok(FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()) }
       ),
-      SlowColAction<File>(
+      slowColAction<File>(
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",
          IconMD.DATABASE_PLUS,
          { }
       ).preventClosing { addToLibraryConsumer(it) },
-      FastColAction(
+      fastColAction(
          "Add to existing playlist",
          "Add songs to existing playlist widget if possible or to a new one if not.",
          IconMD.PLAYLIST_PLUS,
          { it.isAudio() },
          { f -> APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { it.playlist.addFiles(f) } }
       ),
-      FastAction(
+      fastAction(
          "Apply skin",
          "Apply skin on the application.",
          IconMD.BRUSH,
          { f -> f.isValidSkinFile() },
          { f -> APP.ui.setSkin(f) }
       ),
-      FastAction(
+      fastAction(
          "View image",
          "Opens image in an image viewer widget.",
          IconFA.IMAGE,
          { it.isImage() },
          { img_file -> APP.widgetManager.widgets.use<ImageDisplayFeature>(NO_LAYOUT) { it.showImage(img_file) } }
       ),
-      FastColAction(
+      fastColAction(
          "View image",
          "Opens images in an image browser widget.",
          IconFA.IMAGE,
          { it.isImage() },
          { img_files -> APP.widgetManager.widgets.use<ImagesDisplayFeature>(NO_LAYOUT) { it.showImages(img_files) } }
       ),
-      FastAction(
+      fastAction(
          "Open widget",
          "Opens exported widget.",
          IconMD.IMPORT,
          { it hasExtension fxwl },
          { it.loadComponentFxwlJson() ui { it.ifNotNull { APP.windowManager.showWindow(it) } } }
       ),
-      FastColAction(
+      fastColAction(
          "Set created to last modified time",
          "Sets created time to last modified time for the file. Useful after a file copy destroyed this value.",
          IconFA.CLOCK_ALT,
@@ -408,7 +408,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<Window>(
-      FastAction(
+      fastAction(
          "Clone",
          "Shows new window with the same content and state as this one.",
          IconFA.CLONE,
@@ -416,19 +416,19 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       )
    )
    ap.register<MultipleFiles>(
-      FastAction(
+      fastAction(
          "Browse each",
          "Browse each file individually. May have performance implications if too many.",
          IconMD.FOLDER_MULTIPLE,
          { it.browseEach() }
       ),
-      FastAction(
+      fastAction(
          "Browse each location",
          "Browse each unique location. May have performance implications if too many.",
          IconMD.FOLDER_MULTIPLE_OUTLINE,
          { it.browseEachLocation() }
       ),
-      FastAction(
+      fastAction(
          "Browse shared root",
          "Browse parent location of all files or do nothing if no such single location exists.",
          IconMD.FOLDER_OUTLINE,

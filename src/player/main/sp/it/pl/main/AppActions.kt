@@ -40,11 +40,11 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
-import sp.it.pl.ui.pane.FastAction
+import sp.it.pl.ui.pane.fastAction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.pl.ui.pane.SlowAction
+import sp.it.pl.ui.pane.slowAction
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.Sort
@@ -342,7 +342,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
    @Blocks
-   val printAllImageFileMetadata = SlowAction<File>("Show image metadata", "Show image metadata", IconFA.INFO, { it.isImage() }) {
+   val printAllImageFileMetadata = slowAction<File>("Show image metadata", "Show image metadata", IconFA.INFO, { it.isImage() }) {
       failIfFxThread()
 
       val title = "File:" + it.path
@@ -365,7 +365,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
 
    @Blocks
-   val printAllAudioMetadata = SlowAction<Song>("Show metadata", "Show metadata", IconFA.INFO) {
+   val printAllAudioMetadata = slowAction<Song>("Show metadata", "Show metadata", IconFA.INFO) {
       failIfFxThread()
 
       if (it.isFileBased()) {
@@ -377,7 +377,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
    @Blocks
-   val printAllAudioFileMetadata = SlowAction<File>("Show audio metadata", "Show audio metadata", IconFA.INFO, { it.isAudio() }) {
+   val printAllAudioFileMetadata = slowAction<File>("Show audio metadata", "Show audio metadata", IconFA.INFO, { it.isAudio() }) {
       failIfFxThread()
 
       val title = "File:${it.path}"
@@ -399,31 +399,31 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }
 
-   val openGithubPage = FastAction<AppHelp>("Open Github page", "Opens Github page for this application.", IconFA.GITHUB) {
+   val openGithubPage = fastAction<AppHelp>("Open Github page", "Opens Github page for this application.", IconFA.GITHUB) {
       APP.githubUri.browse()
    }
 
-   val openCssReferenceGuide = FastAction<AppHelp>("Open css guide", "Opens skin css reference guide.", IconFA.CSS3) {
+   val openCssReferenceGuide = fastAction<AppHelp>("Open css guide", "Opens skin css reference guide.", IconFA.CSS3) {
       uri("https://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
    }
 
-   val openIconBrowser = FastAction<AppHelp>("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
+   val openIconBrowser = fastAction<AppHelp>("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
       FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create()) }
    }
 
-   val openUiInspector = FastAction<AppHelp>("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
+   val openUiInspector = fastAction<AppHelp>("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
       FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(Widgets.INSPECTOR.id).orNone().create()) }
    }
 
-   val openUiTester = FastAction<AppHelp>("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
+   val openUiTester = fastAction<AppHelp>("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
       FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(Widgets.TESTER.id).orNone().create()) }
    }
 
-   val openSystemProperties = FastAction<AppHelp>("Show system properties", "Display system properties.", IconMD.INFORMATION_OUTLINE) {
+   val openSystemProperties = fastAction<AppHelp>("Show system properties", "Display system properties.", IconMD.INFORMATION_OUTLINE) {
       APP.ui.infoPane.orBuild.show(Unit)
    }
 
-   val printJavaProcesses = FastAction<AppHelp>("Print running java processes", "Print running java processes", IconMD.RESPONSIVE) {
+   val printJavaProcesses = fastAction<AppHelp>("Print running java processes", "Print running java processes", IconMD.RESPONSIVE) {
       val text = VirtualMachine.list().joinToString("") {
          "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
       }
@@ -432,7 +432,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   val openMarkdownFile = FastAction<File>("Open markdown", "Opens markdown file.", IconOC.MARKDOWN, { it hasExtension MimeExt.md }) { mdFile ->
+   val openMarkdownFile = fastAction<File>("Open markdown", "Opens markdown file.", IconOC.MARKDOWN, { it hasExtension MimeExt.md }) { mdFile ->
       APP.windowManager.createWindow().apply {
          detachLayout()
          setContent(
@@ -444,7 +444,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   val openMarkdownText = FastAction<String>("Open markdown", "Opens markdown text.", IconOC.MARKDOWN) { mdText ->
+   val openMarkdownText = fastAction<String>("Open markdown", "Opens markdown text.", IconOC.MARKDOWN) { mdText ->
       APP.windowManager.createWindow().apply {
          detachLayout()
          setContent(

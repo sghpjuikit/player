@@ -1,7 +1,6 @@
 package library
 
 import javafx.scene.control.SelectionMode.MULTIPLE
-import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.ENTER
@@ -153,7 +152,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       // row behavior
       table.rowFactory = Callback { t ->
          SpitTableRow<Metadata>().apply {
-            onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setNplayFrom(table.items, r.index) } }
+            onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setAndPlayFrom(table.items, r.index) } }
             onRightSingleClick { r, e ->
                if (!r.isSelected) t.selectionModel.clearAndSelect(r.index)
                ValueContextMenu<MetadataGroup>().apply {
@@ -172,7 +171,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       table.onEventDown(KEY_PRESSED, ENTER, false) {
          if (!it.isConsumed) {
             if (!table.selectionModel.isEmpty) {
-               PlaylistManager.use { it.setNplayFrom(table.items, table.selectionModel.selectedIndex) }
+               PlaylistManager.use { it.setAndPlayFrom(table.items, table.selectionModel.selectedIndex) }
                it.consume()
             }
          }

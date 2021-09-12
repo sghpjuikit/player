@@ -16,7 +16,7 @@
 - Is `VLC` be bundled?  
 No.  
 It will be auto-discovered if proper version is installed on the operating system.
-Otherwise user will be prompted to let the application setup `VLC` automatically or asked to do it on his own.
+Otherwise, user will be prompted to let the application setup `VLC` automatically or asked to do it on his own.
 
 - Are (`Java`) libs bundled?  
 Yes.
@@ -60,12 +60,12 @@ These are called initial templates. Some are in the `app/templates` directory, s
 And with that:
 
 - Is application be usable once user downloads it?  
-No, `JDK` is missing so it will not start at all. `VLC` is missing so playback will not be possible.
+No, `JDK` is missing, so it will not start at all. `VLC` is missing so playback will not be possible.
 
 - Is this application be portable?
 Yes, on all platforms. See [Privacy](#privacy-&-security) for details
 
-- Is there an installation wizzard to avoid extra installation steps?
+- Is there an installation wizard to avoid extra installation steps?
 No. Perhaps in the future.
 
 - Does the application provide any file associations or such settings?
@@ -91,14 +91,14 @@ As console application: open `./SpitPlayerc.exe` file
 
 The difference between `./SpitPlayer.exe` and `./SpitPlayerc.exe` is that
 - `./SpitPlayer.exe` launched from terminal/commandline does not wait for process end and shows no output (stdout/stderr).   
-  Recommended to start the application normally, from file explorer or by shortcut.
+  Recommended using for starting the application normally, from file explorer or by shortcut.
 - `./SpitPlayerc.exe` launched from outside terminal will open new commandline window
-  Recommended to start the application from terminal, particularly to see its output or use its commands like help.
+  Recommended using for starting the application from terminal, particularly to see its output or use its commands like help.
 
 From terminal (using bash):
 - `cd /drive-letter/path/to/application/directory`
 - `./SpitPlayerc.exe` to launch the application as console application
-- for options and commands see help using `./SpitPlayerc -h` or `./SpitPlayerc --help`
+- for options and commands see help to use `./SpitPlayerc -h` or `./SpitPlayerc --help`
 
 ##### Linux
 
@@ -106,7 +106,7 @@ From terminal:
 - `cd /path/to/application/directory`
 - `chmod +x SpitPlayer.sh` to make the launcher executable
 - `./SpitPlayer.sh` to launch the application
-- for options and commands see help using `./SpitPlayer -h` or `./SpitPlayer --help`
+- for options and commands see help to use `./SpitPlayer -h` or `./SpitPlayer --help`
 
 ## Stopping
 
@@ -114,11 +114,11 @@ The application stops running when the main window is closed.
 
 The main window has a designated icon in its header. Using this icon, it is possible to make any window main window. There is always exactly one main window at any time.
 
-When the application is stopped, necessary settings and application state (like all windows and their content) is saved so it can be restored on the next application start.
+When the application is stopped, necessary settings and application state (like all windows and their content) is saved, so it can be restored on the next application start.
 
 ## Privacy & Security
 
-This application tries to be as private/secure as possible within reason and is certainly less invasive then majority of
+This application tries to be as private/secure as possible within reason and is certainly less invasive than the majority of
 apps you already use. But it may not run with 0 trace and, as everything else, may be exploited.
 
 The application is developed as to follow certain privacy/security policies as well as complete transparency about 
@@ -135,7 +135,7 @@ The application:
   This application does open a network port for the sole reason of communicating among its app instances on the same 
   machine (`Java RMI`).
 - does not collect any data (to help improve the UX or any other nonsense like that) except generating standard logs.
-  These logs may be essential for bug reporting, should a user open an issue. These (if accessed) can be used to trace user activity (to an extend, and depending on logging settings), but only user can share the log files, as application never reads them.
+  These logs may be essential for bug reporting, should a user open an issue. These (if accessed) can be used to trace user activity (to an extent, and depending on logging settings), but only user can share the log files, as application never reads them.
   
   This may not apply to the underlying `VLC` player doing the actual playback and this application is unaware and does 
   not attempt to prevent it from its own logging.
@@ -143,7 +143,7 @@ The application:
 - does not use any website or cloud storage
 - does not execute any malicious behavior unless exploited by a 3rd party.
  
-  The application could run malicious widget/plugin (such as key logger) if user or 3rd party provides it. The application automatically 
+  The application could run malicious widget/plugin (such as keylogger) if user or 3rd party provides it. The application automatically 
   compiles and loads widget class files provided in the `app/widgets` directory and currently this behavior can not be disabled.
   
 - is portable, hence
@@ -179,7 +179,7 @@ The application supports only single playback.
 ### Playlists
 
 The application supports multiple playlists. These can be open and managed (used by widgets) simultaneously.
-However at most one playlist can be *active*, i.e. be source of playback.
+However, at most one playlist can be *active*, i.e. be source of playback.
 
 Widgets that implements `PlaylistFeature` (like the provided `Playlist` widget) can be bound to a (single) playlist.
 It is up to the widget when and how it creates and disposes of the playlist.
@@ -209,7 +209,7 @@ Widget loading can be:
 - AUTOMATIC, which means the widget instance loads with the layout
 - MANUAL, which postpones widget instance loading until user clicks on the widget. Until then the widget does not function and displays a placeholder ui.
 
-Manually loaded widgets make it possible for relatively large number of widgets to exist in the layout with minor overhead. This technique is suitable for those widgets user does not need to be readily available.
+Manually loaded widgets make it possible for relatively large number of widgets to exist in the layout with minor overhead. This technique is suitable for those widgets, that user does not need to be readily available.
 
 Note that widget inputs and outputs do not exist until widget instance is loaded, so if other widgets link to not yet loaded widget, the connection links will not receive any input. Linking will be delayed until the widget loads.
 
@@ -219,7 +219,7 @@ Widget instance loading can be changed
 
 #### Export widgets
 
-Alternative to manual loading is exporting component into the file. This technique is suitable for those widgets user does not need to use often or as part of standard application use.
+Alternative to manual loading is exporting component into the file. This technique is suitable for those widgets, that user does not need to use often or as part of standard application use.
 
 Pros:
 - any part of the layout can be exported, with multiple widgets or even entire window layout
@@ -230,7 +230,7 @@ Cons:
 
 #### Launch widgets in new process
 
-Widget or exported component can be launched in new independent process as another application instance. This technique is suitable for those widgets user wishes to run as standalone applications.
+Widget or exported component can be launched in new independent process as another application instance. This technique is suitable for those widgets, that user wishes to run as standalone applications.
 
 Pros:
 - independent memory
@@ -247,6 +247,6 @@ More running plugins will consumer more memory.
 
 When application detects problem it will display a message notifying the user along with all the details and logs.
 
-Problems, feedback or requests can be provided on the application github page, which can also be opened through the application. Search for `Github` in the application search.
+Problems, feedback or requests can be provided on the application GitHub page, which can also be opened through the application. Search for `GitHub` in the application search.
 
 The logs can be found in the application `app/user/log` directory.

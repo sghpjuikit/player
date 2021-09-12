@@ -171,12 +171,12 @@ object CoreMenus: Core {
                menu("Playback") {
                   item("Play") {
                      APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
-                        p.playlist.addNplay(it.toURI())
+                        p.playlist.addAndPlay(it.toURI())
                      }
                   }
                   item("Play (new playlist)") {
                      APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
-                        p.playlist.addNplay(it.toURI())
+                        p.playlist.addAndPlay(it.toURI())
                      }
                   }
                   item("Enqueue") {
@@ -273,12 +273,12 @@ object CoreMenus: Core {
             menu("Playback") {
                item("Play songs") {
                   APP.widgetManager.widgets.use<PlaylistFeature>(ANY) { p ->
-                     p.playlist.setNplay(it.grouped)
+                     p.playlist.setAndPlay(it.grouped)
                   }
                }
                item("Play songs (new playlist)") {
                   APP.widgetManager.widgets.use<PlaylistFeature>(NEW) { p ->
-                     p.playlist.setNplay(it.grouped)
+                     p.playlist.setAndPlay(it.grouped)
                   }
                }
                item("Enqueue songs") {

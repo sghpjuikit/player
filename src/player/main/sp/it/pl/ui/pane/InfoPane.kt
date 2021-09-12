@@ -1,6 +1,7 @@
 package sp.it.pl.ui.pane
 
-import javafx.geometry.HPos
+import javafx.geometry.HPos.LEFT
+import javafx.geometry.HPos.RIGHT
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.VPos
@@ -68,9 +69,9 @@ class InfoPane: OverlayPane<Unit>() {
       g.rowConstraints.clear()
       g.columnConstraints.clear()
 
-      g.columnConstraints += ColumnConstraints(550.0, 550.0, 550.0, Priority.NEVER, HPos.RIGHT, false)
+      g.columnConstraints += ColumnConstraints(550.0, 550.0, 550.0, Priority.NEVER, RIGHT, false)
       g.columnConstraints += ColumnConstraints(10.0)
-      g.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, Priority.ALWAYS, HPos.LEFT, false)
+      g.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, ALWAYS, LEFT, false)
 
       var i = -1
       computeProperties().asSequence()
@@ -84,7 +85,7 @@ class InfoPane: OverlayPane<Unit>() {
             }
             g.add(layVertically(0.0, CENTER, label(), group), 2, i)
             GridPane.setValignment(group.parent, VPos.CENTER)
-            GridPane.setHalignment(group.parent, HPos.LEFT)
+            GridPane.setHalignment(group.parent, LEFT)
 
             // property rows
             for (n in it.value) {

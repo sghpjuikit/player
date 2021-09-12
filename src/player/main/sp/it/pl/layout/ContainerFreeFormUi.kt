@@ -70,9 +70,8 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
    private val isAnyWindowMoving = observableSet<Int>()
    private val isAnyWindowResizing = observableSet<Int>()
    private val content = object: AnchorPane() {
-      override fun layoutChildren() {
-         super.layoutChildren()
-
+//      override fun layoutChildren() {
+//         super.layoutChildren()
 //         isResizing = true
 //         windows.forEach { (_, w) ->
 //            w.snappable.value = false
@@ -80,7 +79,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
 //            w.snappable.value = APP.ui.snapping.value
 //         }
 //         isResizing = false
-      }
+//      }
    }
 
    init {

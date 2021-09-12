@@ -332,7 +332,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
    private fun play(items: Metadatas) {
       if (items.isNotEmpty())
-         PlaylistManager.use { it.setNplay(items) }
+         PlaylistManager.use { it.setAndPlay(items) }
    }
 
    private fun selectionStore() {

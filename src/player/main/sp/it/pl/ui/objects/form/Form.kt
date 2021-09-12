@@ -103,9 +103,9 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
    fun okPermitted() = isExecutable.value && (isParallelExecutable.value || !isExecuting.value)
 
    /**
-    * Invokes [okPermitted] - if gives false, throws exception.
-    * Invokes [validate] - if gives [Error], does nothing.
-    * Otherwise invokes [onExecute] and subsequently [onExecuteDone]. In this time span [isExecuting] is true.
+    * Invokes [okPermitted] - if it gives false, throws exception.
+    * Invokes [validate] - if it gives [Error], does nothing.
+    * Otherwise, invokes [onExecute] and subsequently [onExecuteDone]. In this time span [isExecuting] is true.
     */
    fun ok() {
       if (!okPermitted()) fail { "Not permitted, only executable if ${::okPermitted.name} gives true" }

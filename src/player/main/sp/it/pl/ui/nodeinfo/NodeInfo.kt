@@ -17,13 +17,13 @@ interface NodeInfo<B> {
    fun setVisible(v: Boolean)
 
    /** Binds and sets visible true. */
-   fun showNbind(b: B) {
+   fun showAndBind(b: B) {
       bind(b)
       setVisible(true)
    }
 
    /** Unbinds and sets visible false. */
-   fun hideNunbind() {
+   fun hideAndUnbind() {
       unbind()
       setVisible(false)
    }

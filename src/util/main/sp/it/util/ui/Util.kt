@@ -28,6 +28,7 @@ import javafx.scene.control.ScrollPane
 import javafx.scene.control.Separator
 import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.control.SplitPane
+import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
@@ -386,6 +387,7 @@ inline fun menuItem(text: String, graphics: Node? = null, crossinline action: (A
 inline fun menuSeparator(block: SeparatorMenuItem.() -> Unit = {}) = SeparatorMenuItem().apply(block)
 inline fun <T> listView(block: ListView<T>.() -> Unit = {}) = ListView<T>().apply(block)
 inline fun <T> tableView(block: TableView<T>.() -> Unit = {}) = TableView<T>().apply(block)
+inline fun <T, V> tableColumn(text: String = "", block: TableColumn<T,V>.() -> Unit = {}) = TableColumn<T,V>(text).apply(block)
 inline fun <T> treeView(block: TreeView<T>.() -> Unit = {}) = TreeView<T>().apply(block)
 inline fun <T> treeTableView(block: TreeTableView<T>.() -> Unit = {}) = TreeTableView<T>().apply(block)
 fun <T> listViewCellFactory(cellFactory: ListCell<T>.(T?, Boolean) -> Unit) = Callback<ListView<T>, ListCell<T>> {

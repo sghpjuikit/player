@@ -146,8 +146,8 @@ public class StringSplitParser implements Function<String,List<String>> {
 	}
 
 	public static class Split {
-		public String parse_key;
-		public String split;
+		public final String parse_key;
+		public final String split;
 
 		public Split(String parse_key, String split) {
 			this.parse_key = parse_key;

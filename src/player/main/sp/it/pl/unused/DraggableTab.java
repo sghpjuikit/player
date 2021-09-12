@@ -31,9 +31,9 @@ public class DraggableTab extends Tab {
 	static final Set<TabPane> tabPanes = new HashSet<>();
 	private static final Stage markerStage;
 
-	private Label nameLabel;
-	private SpitText dragText;
-	private Stage dragStage;
+	private final Label nameLabel;
+	private final SpitText dragText;
+	private final Stage dragStage;
 	private boolean detachable;
 
 	static {

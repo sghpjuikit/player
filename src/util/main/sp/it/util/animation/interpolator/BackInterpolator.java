@@ -52,7 +52,7 @@ import javafx.beans.property.SimpleDoubleProperty;
  */
 public class BackInterpolator extends EasingInterpolator {
 
-	private DoubleProperty amplitude = new SimpleDoubleProperty(this, "amplitude", 1.70158);
+	private final DoubleProperty amplitude = new SimpleDoubleProperty(this, "amplitude", 1.70158);
 
 	/**
 	 * Default constructor. Initializes the interpolator with ease out mode.

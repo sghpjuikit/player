@@ -87,6 +87,7 @@ public class JavaLegacy {
 	}
 
 	private static class WindowsSuspend {
+		@SuppressWarnings("UnusedReturnValue")
 		public static native boolean SetSuspendState(boolean hibernate, boolean forceCritical, boolean disableWakeEvent);
 
 		static {

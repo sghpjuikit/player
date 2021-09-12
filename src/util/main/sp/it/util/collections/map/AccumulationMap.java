@@ -25,17 +25,17 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 	 * Extracts keys from elements. Determines the splitting parts of the caching  strategy, e.g. using a predicate
 	 * would split the original collection on two parts - elements that test true, and elements that test false.
 	 */
-	public Function1<? super E,? extends K> keyMapper;
+	public final Function1<? super E,? extends K> keyMapper;
 	/**
 	 * Builds cache bucket/accumulation container when there is none for the given key during accumulation.
 	 */
-	public Supplier<? extends C> cacheFactory;
+	public final Supplier<? extends C> cacheFactory;
 	/**
 	 * Defines how the elements will be accumulated into the cache bucket. If the bucket is a collection, you probably
 	 * wish to use {@code (element, collection) -> collection.add(element);}, but different reducing strategies can be
 	 * used, for example {@code (element,sum) -> sum+number;}
 	 */
-	public BiConsumer<? super E,? super C> cacheAccumulator;
+	public final BiConsumer<? super E,? super C> cacheAccumulator;
 
 	public AccumulationMap(Function1<? super E,? extends K> keyMapper, Supplier<? extends C> cacheFactory, BiConsumer<? super E,? super C> cacheAccumulator) {
 		this.keyMapper = keyMapper;
@@ -90,8 +90,4 @@ public class AccumulationMap<E, K, C> extends HashMap<K,C> {
 		return out;
 	}
 
-	@Override
-	public void clear() {
-		super.clear();
-	}
 }

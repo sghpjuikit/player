@@ -326,7 +326,7 @@ public class ContainerSwitchUi implements ComponentUi {
 
     private double lastX = 0;
     private double nowX = 0;
-    private FxTimer measurePulse = fxTimer(millis(100), INDEFINITE, runnable(() -> {
+    private final FxTimer measurePulse = fxTimer(millis(100), INDEFINITE, runnable(() -> {
         lastX = nowX;
         nowX = ui.getTranslateX();
     }));

@@ -249,7 +249,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	/**
 	 * Labeled in the bottom displaying information on table items and selection.
 	 * Feel free to provide custom implementation of {@link TableInfo#setTextFactory(kotlin.jvm.functions.Function2)}
-	 * to display different information. You may want to reuse {@link TableInfo#DEFAULT_TEXT_FACTORY}.
+	 * to display different information. You may want to reuse {@link sp.it.pl.ui.nodeinfo.TableInfo.Companion#getDEFAULT_TEXT_FACTORY()}.
 	 */
 	public final GridInfo<T,F> itemsInfo = new GridInfo<>(new Label(), null);
 	private final HBox bottomLeftPane = layHorizontally(5, CENTER_LEFT, menus, itemsInfo.getNode());
@@ -433,7 +433,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		private double viewStart = 0;
 		private boolean needsRemoveCachedCells = false;
 		private boolean needsRebuildCells = true;
-		private double scrollSpeedMultiplier = 3;
+		private final double scrollSpeedMultiplier = 3;
 
 		public Flow(GridViewSkin<T,F> skin) {
 			this.skin = skin;

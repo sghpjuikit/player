@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import static java.util.Objects.requireNonNull;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.dev.DebugKt.logger;
 
@@ -51,6 +52,7 @@ public interface Util {
 	 * @return whether the directory is usable.
 	 * @throws NullPointerException if param null
 	 */
+	@SuppressWarnings("ConstantConditions")
 	static boolean isValidatedDirectory(File dir) {
 		boolean validity = true;
 		if (!dir.exists()) validity &= dir.mkdirs();
@@ -215,7 +217,7 @@ public interface Util {
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static void saveFileAs(String url, File file) throws IOException {
 		if (file.exists()) file.delete();
-		if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+		if (!requireNonNull(file.getParentFile()).exists()) file.getParentFile().mkdirs();
 		URL u = new URL(url);
 		try (
 			InputStream is = u.openStream();
@@ -249,6 +251,7 @@ public interface Util {
 	 * Renames file by suffixing it with a number, utilizing
 	 * {@link #findFirstNonExistent(java.io.File, java.lang.String, java.lang.String, int)}
 	 */
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static void renameAsOld(File f) {
 		if (f!=null && f.exists()) {
 			// remove name
@@ -281,24 +284,24 @@ public interface Util {
 	/**
 	 * Renames file (with extension suffix).
 	 *
-	 * @param f file to rename, if does not exist nothing happens
+	 * @param f file to rename, if it does not exist, nothing happens
 	 * @param name new file name without suffix
 	 */
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static void renameFile(File f, String name) {
-		File rf = f.getParentFile().getAbsoluteFile();
+		File rf = requireNonNull(f.getParentFile()).getAbsoluteFile();
 		f.renameTo(new File(rf, filenamizeString(name)));
 	}
 
 	/**
 	 * Renames file (extension suffix remains the same).
 	 *
-	 * @param f file to rename, if does not exist nothing happens
+	 * @param f file to rename, if it does not exist, nothing happens
 	 * @param name new file name without suffix
 	 */
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static void renameFileNoSuffix(File f, String name) {
-		File rf = f.getParentFile().getAbsoluteFile();
+		File rf = requireNonNull(f.getParentFile()).getAbsoluteFile();
 		int dot = f.getPath().lastIndexOf('.');
 		String p = f.getPath();
 		String ext = dot==-1 ? "" : p.substring(dot);

@@ -62,8 +62,8 @@ public interface EventReducer<E> {
 	}
 
 	abstract class EventReducerBase<E> implements EventReducer<E> {
-		protected Consumer<? super E> action;
-		protected double inter_period;
+		protected final Consumer<? super E> action;
+		protected final double inter_period;
 		protected final F2<E,E,E> r;
 		protected E e;
 

@@ -16,8 +16,6 @@ import java.util.function.Predicate
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.streams.toList
-import sp.it.util.collections.toStringPretty
-import sp.it.util.dev.printIt
 
 val Executor.kt: (Runnable) -> Unit get() = this::execute
 
@@ -68,7 +66,7 @@ fun <T> runnable(runnable: Runnable): () -> Unit = { runnable() }
 /** @return value if it has been initialized or null otherwise */
 fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 
-/** @return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
+/** @return value or null if empty (note, that if the value is nullable, this destroys the information of null origin) */
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
 /** @return ok with the value of this optional or error if this is empty optional */
@@ -99,21 +97,21 @@ fun <T, E> Try<T, E>.toOption(): Option<T> = when (this) {
 /** @return this result represented as a [Try] */
 fun <T> Result<T>.toTry(): Try<T, Throwable> = fold({ Try.ok(it) }, { Try.error(it) })
 
-/** @return value or null if error (if the value is nullable, this destroys the information of null's origin) */
+/** @return value or null if error (note, that if the value is nullable, this destroys the information of null origin) */
 fun <R, E> Try<R, E>.orNull(): R? = getOr(null)
 
-/** @return value or null if empty (if the value is nullable, this destroys the information of null's origin) */
+/** @return value or null if empty (note, that if the value is nullable, this destroys the information of null origin) */
 infix fun <R, E> Try<R, E>.orNull(onError: (E) -> Unit): R? = ifError(onError).getOr(null)
 
 /**
  * Run the specified block if the condition is true
- * @return the result or null (if the value is nullable, this destroys the information of null's origin)
+ * @return the result or null (note, that if the value is nullable, this destroys the information of null origin)
  */
 fun <R> runIf(condition: Boolean, block: () -> R): R? = if (condition) block() else null
 
 /**
  * Run the specified block if the condition is false
- * @return null or the result (if the value is nullable, this destroys the information of null's origin)
+ * @return null or the result (note, that if the value is nullable, this destroys the information of null origin)
  */
 fun <R> runUnless(condition: Boolean, block: () -> R): R? = if (condition) block() else null
 
@@ -124,7 +122,7 @@ fun <T> supplyIf(test: Boolean, block: () -> T): (() -> T)? = if (test) block el
 fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyIf(!testNegated, block)
 
 /**
- * Type-safe [let] with non null -> non null transformation and safe null propagation.
+ * Type-safe [let] with non-null -> non-null transformation and safe null propagation.
  *
  * The difference from [let] is in semantics.
  *
@@ -138,16 +136,16 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  *  no longer transparent. We can either wrap the mapping result R into Maybe(R) in the mapper lambda or adjust
  *  this in signature of some unrelated method. The latter introduces unwanted and fragile dependencies. The former
  *  involves boilerplate and internal inconsistency. If returning nullable result requires us to always use Maybe(R),
- *  why returning non-null result does not require use of Some(R). Further, if mapper changes signature from non null
+ *  why returning non-null result does not require use of Some(R). Further, if mapper changes signature from non-null
  *  to nullable result, we introduce a bug the monad can not catch.
  * The model operates on:
  * * None -> None
  * * Some(T) -> Some(R)
  * The model's map() allows:
- * * None -> None         yes
- * * Some(T) -> Some(R)   yes
- * * Some(T) -> None      no (and pointless, but can be achieved using flatMap())
- * * None -> Some(R)      no
+ * * None -> None         `yes`
+ * * Some(T) -> Some(R)   `yes`
+ * * Some(T) -> None      `no` (and pointless, but can be achieved using flatMap())
+ * * None -> Some(R)      `no`
  * This model is imperfect for capturing nullability, because it requires entire system to use it (which brings
  * considerable readability/maintenance/performance overhead) or otherwise suffer from nullability-emptiness mismatch at
  * the boundary. It is however suitable for capturing emptiness alone.
@@ -156,7 +154,7 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  * The analogy with Maybe is that None == Optional.empty() and Some(T: Any) = Optional.of(T).
  * Optional betrays monadic model with the idea of null propagation. If the mapping results in null, empty optional is
  * returned. Empty optional (i.e. null) can be considered a terminal value sink, and [Optional.map] a chain a reduction,
- * which reduces into a non null value only if none of the mappers returned null.
+ * which reduces into a non-null value only if none of the mappers returned null.
  * This prevents further mapping in the chain and also makes the semantics of the empty optional ambiguous,
  * as its origin is lost. The benefit is cognitive simplicity in that mapping never has to account for null input - the
  * idea of null propagation makes sense when dealing with nullability (as opposed to dealing with 'emptiness').
@@ -186,10 +184,11 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  * Unlike Optional model, the lack of determinism here is consistent (and recoverable), and again a consequence of
  * nullability being a broader concept than 'emptiness'. I.e., the monadic model's 'emptiness' semantics can still be
  * defined on top of it:
- * * None -> None         == ?: null or ?.let { it }
- * * None -> Some(R)      == ?: R!! or ?.let { when it==null -> R!! else -> it }
- * * Some(T) -> Some(R)   == .let { R!! }
- * * Some(T) -> None      == .let { null }
+ *
+ * * `None -> None         == ?: null or ?.let { it }`
+ * * `None -> Some(R)      == ?: R!! or ?.let { when it==null -> R!! else -> it }`
+ * * `Some(T) -> Some(R)   == .let { R!! }`
+ * * `Some(T) -> None      == .let { null }`
  *
  * First, mapping only on None (in chain) is conceptually pointless, None -> None leads to no gain and None -> Some(T)
  * is simply a recovery operation (almost always only at the tail of the chain), which ?: operator fulfills very well.
@@ -198,18 +197,18 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  * to allow that, ?.let {} is necessary. This means the mapper always knows whether to expect null or not, yet the fact
  * remains transparent to it. Also notice how ?.let {} unifies the nullability with monadic world. The correctness of
  * the monadic model is only guaranteed so long as we are within monadic bounds - never using the actual null!, however
- * here, the correctness is guaranteed at compile time, without ever breaking the illusion of being outside of the
+ * here, the correctness is guaranteed at compile time, without ever breaking the illusion of being outside the
  * monadic boundaries - they simply disappear. This is because the entire codebase is within them, something only
  * possible because of the zero overhead of nullable type system.
  *
- * Third, notice that ?.let {} carries the Optional's semantics of null propagation, but .let {} carries entirely new
+ * Third, notice that ?.let {} carries the Optional semantics of null propagation, but .let {} carries entirely new
  * semantics of null propagation
- * * In Optional model, the terminal null sink makes sure only non null mapping takes place. Developer hence must expect
+ * * In Optional model, the terminal null sink makes sure only non-null mapping takes place. Developer hence must expect
  * that in mapping chain ...map().map().map()... not all mappers may be called. Every time the mapper returns Maybe(R),
  * we lose the ability to reason about the meaning of null, but retain the awareness than no null will ever be mapped.
  * * With monadic approach all mappers in the mapping chain are always called and always with the result of previous
  * mapper. The Some(T) and None branch are completely separate branches and only intersect with explicit use of
- * flatMap(). In the absence of null sink we retain the null semantics, but lose ability to distinguish non null
+ * flatMap(). In the absence of null sink we retain the null semantics, but lose ability to distinguish non-null
  * and nullable inputs (without breaking through the monadic boundary using flatMap()).
  * * With .let {}, all mappers are invoked, but safely. But the Some(T) branch and None branch are one and the same -
  * there is only maybe(T) branch. This makes null just like any other value and resembles Some(null) in monadic model.
@@ -218,8 +217,8 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  * This is equivalent to Optional model, we lose the null semantics.
  *
  * No matter, it seems [let] can not preserve null semantics. Only monadic model seems to get this right, but only at
- * the cost of making the mapping inputs ambiguous. The reason let is unable to restrict nullability of the result
- * of the mapping is because the relationship between nullable and non null types is asymmetric (one is subtype of
+ * the cost of making the mapping inputs ambiguous. The reason `let` is unable to restrict nullability of the result
+ * of the mapping is because the relationship between nullable and non-null types is asymmetric (one is subtype of
  * the other), single .let {} method can never fully restrict all intentions of the mapping return type - the type
  * system only allows return type Maybe(T).
  *
@@ -231,8 +230,8 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  * The behavior we desire is to not compile. What if we want let {} to return Some(N), i.e., forbid returning null to
  * preserve its semantics? For that we must be able to differentiate between null propagation strategies, in the same
  * way we already made mappers aware of nullability of their input at the compilation level using .let {} versus
- * ?.let {}. Because the input is contravariant, changing no-null.let {} into nullable.let {} is guaranteed to fail,
- * however the return type is covariant and as such requires separate method with specifically non null output
+ * ?.let {}. Because the input is contravariant, changing `non-null.let {}` into `nullable.let {}` is guaranteed to fail,
+ * however the return type is covariant and as such requires separate method with specifically non-null output
  * signature.
  *
  * This is such method.
@@ -313,5 +312,5 @@ inline fun <reified E> Stream<E>.asArray() = toList().toTypedArray()
 /** @return null-safe comparator wrapper putting nulls at the end */
 fun <T> Comparator<T>.nullsLast(): Comparator<T?> = Comparator.nullsLast(this) as Comparator<T?>
 
-/** @return null-safe comparator wrapper putting nulls at the the start */
+/** @return null-safe comparator wrapper putting nulls at the start */
 fun <T> Comparator<T>.nullsFirst(): Comparator<T?> = Comparator.nullsFirst(this) as Comparator<T?>

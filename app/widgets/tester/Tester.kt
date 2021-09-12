@@ -63,6 +63,16 @@ import sp.it.util.access.vn
 import sp.it.util.access.vx
 import sp.it.util.action.ActionManager
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.animation.interpolator.BackInterpolator
+import sp.it.util.animation.interpolator.CircularInterpolator
+import sp.it.util.animation.interpolator.CubicInterpolator
+import sp.it.util.animation.interpolator.EasingMode.EASE_IN
+import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.animation.interpolator.ExponentialInterpolator
+import sp.it.util.animation.interpolator.QuadraticInterpolator
+import sp.it.util.animation.interpolator.QuarticInterpolator
+import sp.it.util.animation.interpolator.QuinticInterpolator
+import sp.it.util.animation.interpolator.SineInterpolator
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
@@ -269,26 +279,36 @@ class Tester(widget: Widget): SimpleController(widget) {
    }
 
    fun testInterpolators() {
+      fun Interpolator.toF(): (Double) -> Double = { this.interpolate(0.0, 1.0, it) }
       val interpolators = mapOf<String, (Double) -> Double>(
-         "LINEAR (JavaFx)" to { it -> Interpolator.LINEAR.interpolate(0.0, 1.0, it) },
-         "EASE_BOTH (JavaFx)" to { it -> Interpolator.EASE_BOTH.interpolate(0.0, 1.0, it) },
-         "EASE_IN (JavaFx)" to { it -> Interpolator.EASE_IN.interpolate(0.0, 1.0, it) },
-         "EASE_OUT (JavaFx)" to { it -> Interpolator.EASE_OUT.interpolate(0.0, 1.0, it) },
-         "x" to { it -> it },
-         "x^2" to { it -> it*it },
-         "x^3" to { it -> it*it*it },
-         "x^4" to { it -> it*it*it*it },
-         "x^-2 (sqrt(x))" to { it -> sqrt(it) },
-         "x^-4 (sqrt(sqrt(x)))" to { it -> sqrt(sqrt(it)) },
-         "log2 N(20)" to { it -> log2(1.0 + (it*1024*1024))/20.0 },
-         "log2 N(10)" to { it -> log2(1.0 + (it*1024))/10.0 },
-         "log2 N(4)" to { it -> log2(1.0 + (it*16))/4.0 },
-         "log2 N(2)" to { it -> log2(1.0 + (it*4))/2.0 },
-         "exp2 N(20)" to { it -> 20.0.pow(10*(it - 1)) },
-         "exp2 N(10)" to { it -> 10.0.pow(10*(it - 1)) },
-         "exp2 N(4)" to { it -> 4.0.pow(10*(it - 1)) },
-         "exp2 N(2)" to { it -> 2.0.pow(10*(it - 1)) },
-         "sin" to { it -> sin(PI/2*it) },
+         "javaFx: LINEAR" to Interpolator.LINEAR.toF(),
+         "javaFx: EASE_BOTH" to Interpolator.EASE_BOTH.toF(),
+         "javaFx: EASE_IN" to Interpolator.EASE_IN.toF(),
+         "javaFx: EASE_OUT" to Interpolator.EASE_OUT.toF(),
+         "spit: sine" to SineInterpolator(EASE_IN).toF(),
+         "spit: cubic" to CubicInterpolator(EASE_IN).toF(),
+         "spit: quintic" to QuinticInterpolator(EASE_IN).toF(),
+         "spit: circular" to CircularInterpolator(EASE_IN).toF(),
+         "spit: quadratic" to QuadraticInterpolator(EASE_IN).toF(),
+         "spit: quartic" to QuarticInterpolator(EASE_IN).toF(),
+         "spit: exponential" to ExponentialInterpolator(EASE_IN).toF(),
+         "spit: back" to BackInterpolator(EASE_IN).toF(),
+         "spit: elastic" to ElasticInterpolator(EASE_IN).toF(),
+         "math: x" to { it -> it },
+         "math: x^2" to { it -> it*it },
+         "math: x^3" to { it -> it*it*it },
+         "math: x^4" to { it -> it*it*it*it },
+         "math: x^-2 (sqrt(x))" to { it -> sqrt(it) },
+         "math: x^-4 (sqrt(sqrt(x)))" to { it -> sqrt(sqrt(it)) },
+         "math: log2 N(20)" to { it -> log2(1.0 + (it*1024*1024))/20.0 },
+         "math: log2 N(10)" to { it -> log2(1.0 + (it*1024))/10.0 },
+         "math: log2 N(4)" to { it -> log2(1.0 + (it*16))/4.0 },
+         "math: log2 N(2)" to { it -> log2(1.0 + (it*4))/2.0 },
+         "math: exp2 N(20)" to { it -> 20.0.pow(10*(it - 1)) },
+         "math: exp2 N(10)" to { it -> 10.0.pow(10*(it - 1)) },
+         "math: exp2 N(4)" to { it -> 4.0.pow(10*(it - 1)) },
+         "math: exp2 N(2)" to { it -> 2.0.pow(10*(it - 1)) },
+         "math: sin" to { it -> sin(PI/2*it) },
       )
       onContentChange()
       content.children setToOne scrollPane {

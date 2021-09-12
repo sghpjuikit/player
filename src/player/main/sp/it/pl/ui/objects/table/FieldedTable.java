@@ -89,11 +89,10 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public final Menu columnVisibleMenu = new Menu("Columns");
 	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
 	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
-		this.fieldsAll = (List) stream(APP.getClassFields().get(getKotlinClass(type)))
+		this.fieldsAll = stream(APP.getClassFields().get(getKotlinClass(type)))
 			// TODO: support nested columns
 			//.flatMap(it -> stream(
 			//	it,

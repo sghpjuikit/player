@@ -339,7 +339,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * Labeled in the bottom displaying information on table items and selection.
 	 * Feel free to provide custom implementation of {@link TableInfo#setTextFactory(kotlin.jvm.functions.Function2)}
 	 * to display different information. You may want to reuse
-	 * {@link TableInfo#DEFAULT_TEXT_FACTORY}.
+	 * {@link sp.it.pl.ui.nodeinfo.TableInfo.Companion#getDEFAULT_TEXT_FACTORY()}.
 	 */
 	public final TableInfo<T> items_info = new TableInfo<>(new Label()); // can not bind here as table items list not ready
 	private final Label searchQueryLabel = new Label();
@@ -364,7 +364,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "SimplifyOptionalCallChains"})
 	private PredicateData<ObjectField<T,Object>> getPrimaryFilterPredicate() {
 		return Optional.ofNullable(primaryFilterField)
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
@@ -426,7 +426,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		/**
 		 * Menu item for displaying and selecting {link {@link #field}}.
 		 */
-		private Menu menu = new Menu("Search column");
+		private final Menu menu = new Menu("Search column");
 
 		{
 			columnMenu.getItems().add(menu);

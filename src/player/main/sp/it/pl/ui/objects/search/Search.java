@@ -145,7 +145,7 @@ public abstract class Search {
 	/**
 	 * Returns whether search is active.
 	 * <p/>
-	 * Every search must be ended, either automatically {@link sp.it.pl.ui.objects.search.SearchAutoCancelable#isCancelable},
+	 * Every search must be ended, either automatically {@link sp.it.pl.ui.objects.search.SearchAutoCancelable.Companion#isCancelable()},
 	 * or manually {@link #cancel()}.
 	 */
 	public boolean isActive() {

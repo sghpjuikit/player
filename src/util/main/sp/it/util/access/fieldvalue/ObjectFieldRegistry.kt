@@ -18,19 +18,18 @@ import sp.it.util.parsing.ConverterString
  * enum-like (i.e., add management like values(), valueOf(text), etc.). A companion is a good target for this.
  *
  * So the structure ends up like this:
- * ```
- * MyType {
- *    MyTypeField: ObjectField<MyType, T> {
- *       companion object {
- *          val FIELD_1 = ...
- *          val FIELD_2 = ...
- *          val FIELD_N = ...
  *
- *          // management code
- *       }
- *    }
- * }
- * ```
+ *     MyType {
+ *        MyTypeField: ObjectField<MyType, T> {
+ *           companion object {
+ *              val FIELD_1 = ...
+ *              val FIELD_2 = ...
+ *              val FIELD_N = ...
+ *
+ *              // management code
+ *           }
+ *        }
+ *     }
  *
  * Making the field companion inherit from this type will
  * * provide all management for free
@@ -38,17 +37,16 @@ import sp.it.util.parsing.ConverterString
  * * registers fields instances to [Functors.pool] using [sp.it.util.functional.FunctorPool.add]
  *
  * Usage:
- * ```
- * MyType {
- *    MyTypeField: ObjectField<MyType, T> {
- *       companion object: ObjectFieldRegistry<MyType, MyTypeField>(MyType::class) {
- *          val FIELD_1 = this + ...
- *          val FIELD_2 = this + ...
- *          val FIELD_N = this + ...
- *       }
- *    }
- * }
- * ```
+ *
+ *     MyType {
+ *        MyTypeField: ObjectField<MyType, T> {
+ *           companion object: ObjectFieldRegistry<MyType, MyTypeField>(MyType::class) {
+ *              val FIELD_1 = this + ...
+ *              val FIELD_2 = this + ...
+ *              val FIELD_N = this + ...
+ *           }
+ *        }
+ *     }
  */
 abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val type: KClass<V>): ConverterString<F> {
 

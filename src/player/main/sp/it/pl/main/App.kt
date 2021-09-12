@@ -139,8 +139,10 @@ class App: Application(), GlobalConfigDelegator {
    val locationTmp = File(System.getProperty("java.io.tmpdir")) apply_ verify
    /** Home directory of the os. */
    val locationHome = File(System.getProperty("user.home")) apply_ verify
-   /** Uri for github website for project of this application. */
+   /** Uri for Github website for project of this application. */
    val githubUri = uri("https://www.github.com/sghpjuikit/player/")
+   /** Process of this application. Same as [ProcessHandle.current] */
+   val process = ProcessHandle.current()!!
 
    /** Rank this application instance started with. [MASTER] if started as the first instance, [SLAVE] otherwise. */
    val rankAtStart: Rank = if (getInstances()>1) SLAVE else MASTER

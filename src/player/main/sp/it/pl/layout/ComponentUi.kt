@@ -40,6 +40,7 @@ abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
       fun Component.size() = when (this) {
          is Widget -> load().asIf<Region>()?.size ?: this@ComponentUiBase.root.size
          is Container<*> -> root?.size ?: this@ComponentUiBase.root.size
+         else -> fail()
       }
 
       val c = component
@@ -108,6 +109,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
             null -> {}
             is Container<*> -> it.show()
             is Widget -> it.ui?.show()
+            else -> fail()
          }
       }
    }
@@ -123,6 +125,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
             null -> {}
             is Container<*> -> it.hide()
             is Widget -> it.ui?.hide()
+            else -> fail()
          }
       }
    }

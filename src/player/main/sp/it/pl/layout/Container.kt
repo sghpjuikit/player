@@ -18,6 +18,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
+import sp.it.util.dev.fail
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -222,6 +223,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
          when (it) {
             is Container<*> -> it.children.values.asSequence().filterNotNull().asIterable()
             is Widget -> listOf()
+            else -> fail()
          }
       }
 

@@ -5,6 +5,7 @@ import sp.it.util.collections.setToOne
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.readOnly
+import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.ui.setAnchors
 
@@ -41,6 +42,7 @@ open class ContainerUni: Container<ComponentUi> {
             ui = ui.takeIf { it is Layouter } ?: Layouter(this, 1).disposeUi()
             ui!!.root
          }
+         else -> fail()
       }
 
       root!!.children setToOne n

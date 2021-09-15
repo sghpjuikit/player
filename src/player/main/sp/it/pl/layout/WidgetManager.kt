@@ -579,7 +579,7 @@ class WidgetManager {
             val isOpen = WidgetMonitor::widgetName compose openFactories::contains compose { if (it) 0 else 1 }
             return compareBy<WidgetMonitor> { 0 }.thenBy(isOpen).thenBy(WidgetMonitor::widgetName)
          }
-      /** Plugin management ui. */
+      /** Widget management ui. */
       private var settings by c(this).singleton().uiSingleton()
          .def(name = "Widgets", info = "Manage application widgets", group = "Widget management")
       val autoRecompile by cv(true)

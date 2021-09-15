@@ -80,7 +80,7 @@ class ConfigPane<T: Any?>: VBox {
    fun configure(configurable: Configurable<*>?) {
       alignment = CENTER_LEFT
       isFillWidth = false
-      needsLabel = configurable !is Config<*>
+
       editors = configurable?.getConfigs().orEmpty().asSequence()
          .filter { !it.hasConstraint<Constraint.NoUi>() }
          .map {
@@ -90,6 +90,11 @@ class ConfigPane<T: Any?>: VBox {
             }
          }
          .toList()
+
+      val isConfig = configurable is Config<*>
+      val isSingletonConfig = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
+      needsLabel = !isConfig && !isSingletonConfig
+
       buildUi(false)
    }
 

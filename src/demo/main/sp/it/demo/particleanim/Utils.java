@@ -9,21 +9,18 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
+import static javafx.scene.paint.Color.*;
 
 class Utils {
 
 	/**
 	 * Clamp value between min and max
 	 */
+	@SuppressWarnings({"SameParameterValue", "ManualMinMaxCalculation"})
 	static double clamp(double value, double min, double max) {
-
-		if (value<min)
-			return min;
-
-		if (value>max)
-			return max;
-
-		return value;
+		if (value<min) return min;
+		else if (value>max) return max;
+		else return value;
 	}
 
 	/**
@@ -41,7 +38,7 @@ class Utils {
 		WritableImage wi;
 
 		SnapshotParameters parameters = new SnapshotParameters();
-		parameters.setFill(Color.TRANSPARENT);
+		parameters.setFill(TRANSPARENT);
 
 		int imageWidth = (int) node.getBoundsInLocal().getWidth();
 		int imageHeight = (int) node.getBoundsInLocal().getHeight();
@@ -76,11 +73,11 @@ class Utils {
 			double threshold = 0.9;
 			double threshold2 = 0.4;
 			if (opacity>=threshold) {
-				color = Color.YELLOW.interpolate(Color.WHITE, Utils.map(opacity, threshold, 1, 0, 1));
+				color = YELLOW.interpolate(WHITE, Utils.map(opacity, threshold, 1, 0, 1));
 			} else if (opacity>=threshold2) {
-				color = Color.RED.interpolate(Color.YELLOW, Utils.map(opacity, threshold2, threshold, 0, 1));
+				color = RED.interpolate(YELLOW, Utils.map(opacity, threshold2, threshold, 0, 1));
 			} else {
-				color = Color.BLACK.interpolate(Color.RED, Utils.map(opacity, 0, threshold2, 0, 1));
+				color = BLACK.interpolate(RED, Utils.map(opacity, 0, threshold2, 0, 1));
 			}
 
 			// create gradient image with given color

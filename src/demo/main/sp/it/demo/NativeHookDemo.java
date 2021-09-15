@@ -26,7 +26,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.text.BadLocationException;
@@ -40,6 +39,8 @@ import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseInputListener;
 import org.jnativehook.mouse.NativeMouseWheelEvent;
 import org.jnativehook.mouse.NativeMouseWheelListener;
+import static java.awt.event.ActionEvent.*;
+import static javax.swing.KeyStroke.getKeyStroke;
 
 /**
  * A demonstration of how to use the JNativeHook library (https://github.com/kwhat/jnativehook).
@@ -52,14 +53,15 @@ import org.jnativehook.mouse.NativeMouseWheelListener;
  */
 class NativeHookDemo extends JFrame implements ActionListener, ItemListener, NativeKeyListener, NativeMouseInputListener, NativeMouseWheelListener, WindowListener {
 
-	private JMenu menuSubListeners;
-	private JMenuItem menuItemQuit, menuItemClear;
-	private JCheckBoxMenuItem menuItemEnable, menuItemKeyboardEvents, menuItemButtonEvents, menuItemMotionEvents, menuItemWheelEvents;
-	private JTextArea txtEventInfo;
+	private final JMenu menuSubListeners;
+	private final JMenuItem menuItemQuit, menuItemClear;
+	private final JCheckBoxMenuItem menuItemEnable, menuItemKeyboardEvents, menuItemButtonEvents, menuItemMotionEvents, menuItemWheelEvents;
+	private final JTextArea txtEventInfo;
 	private static final Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
 
+	@SuppressWarnings("MagicConstant")
 	public NativeHookDemo() {
-		// Setup the main window.
+		// Set up the main window.
 		setTitle("JNativeHook Demo");
 		setLayout(new BorderLayout());
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -75,7 +77,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 
 		menuItemQuit = new JMenuItem("Quit", KeyEvent.VK_Q);
 		menuItemQuit.addActionListener(this);
-		menuItemQuit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, ActionEvent.ALT_MASK));
+		menuItemQuit.setAccelerator(getKeyStroke(KeyEvent.VK_F4, ALT_MASK));
 		menuItemQuit.getAccessibleContext().setAccessibleDescription("Exit the program");
 		menuFile.add(menuItemQuit);
 
@@ -86,7 +88,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 
 		menuItemClear = new JMenuItem("Clear", KeyEvent.VK_C);
 		menuItemClear.addActionListener(this);
-		menuItemClear.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK + ActionEvent.SHIFT_MASK));
+		menuItemClear.setAccelerator(getKeyStroke(KeyEvent.VK_C, CTRL_MASK + SHIFT_MASK));
 		menuItemClear.getAccessibleContext().setAccessibleDescription("Clear the screen");
 		menuView.add(menuItemClear);
 
@@ -95,7 +97,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 		menuItemEnable = new JCheckBoxMenuItem("Enable Native Hook");
 		menuItemEnable.addItemListener(this);
 		menuItemEnable.setMnemonic(KeyEvent.VK_H);
-		menuItemEnable.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK + ActionEvent.SHIFT_MASK));
+		menuItemEnable.setAccelerator(getKeyStroke(KeyEvent.VK_H, CTRL_MASK + SHIFT_MASK));
 		menuView.add(menuItemEnable);
 
 		// Create the listeners sub menu.
@@ -106,25 +108,25 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 		menuItemKeyboardEvents = new JCheckBoxMenuItem("Keyboard Events");
 		menuItemKeyboardEvents.addItemListener(this);
 		menuItemKeyboardEvents.setMnemonic(KeyEvent.VK_K);
-		menuItemKeyboardEvents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, ActionEvent.CTRL_MASK + ActionEvent.SHIFT_MASK));
+		menuItemKeyboardEvents.setAccelerator(getKeyStroke(KeyEvent.VK_K, CTRL_MASK + SHIFT_MASK));
 		menuSubListeners.add(menuItemKeyboardEvents);
 
 		menuItemButtonEvents = new JCheckBoxMenuItem("Button Events");
 		menuItemButtonEvents.addItemListener(this);
 		menuItemButtonEvents.setMnemonic(KeyEvent.VK_B);
-		menuItemButtonEvents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, ActionEvent.CTRL_MASK + ActionEvent.SHIFT_MASK));
+		menuItemButtonEvents.setAccelerator(getKeyStroke(KeyEvent.VK_B, CTRL_MASK + SHIFT_MASK));
 		menuSubListeners.add(menuItemButtonEvents);
 
 		menuItemMotionEvents = new JCheckBoxMenuItem("Motion Events");
 		menuItemMotionEvents.addItemListener(this);
 		menuItemMotionEvents.setMnemonic(KeyEvent.VK_M);
-		menuItemMotionEvents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, ActionEvent.CTRL_MASK + ActionEvent.SHIFT_MASK));
+		menuItemMotionEvents.setAccelerator(getKeyStroke(KeyEvent.VK_M, CTRL_MASK + SHIFT_MASK));
 		menuSubListeners.add(menuItemMotionEvents);
 
 		menuItemWheelEvents = new JCheckBoxMenuItem("Wheel Events");
 		menuItemWheelEvents.addItemListener(this);
 		menuItemWheelEvents.setMnemonic(KeyEvent.VK_W);
-		menuItemWheelEvents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK + ActionEvent.SHIFT_MASK));
+		menuItemWheelEvents.setAccelerator(getKeyStroke(KeyEvent.VK_W, CTRL_MASK + SHIFT_MASK));
 		menuSubListeners.add(menuItemWheelEvents);
 
 		setJMenuBar(menuBar);
@@ -192,10 +194,10 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 				txtEventInfo.append("Error: " + ex.getMessage() + "\n");
 			}
 
-			// Set the enable menu item to the state of the hook.
+			// Set the `enable menu` item to the state of the hook.
 			menuItemEnable.setState(GlobalScreen.isNativeHookRegistered());
 
-			// Set enable/disable the sub-menus based on the enable menu item's state.
+			// Set enable/disable the sub-menus based on the `enable menu` item's state.
 			menuSubListeners.setEnabled(menuItemEnable.getState());
 		} else if (item==menuItemKeyboardEvents) {
 			// Keyboard checkbox was changed, adjust listeners accordingly
@@ -375,7 +377,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 			txtEventInfo.setCaretPosition(txtEventInfo.getDocument().getLength());
 		}
 
-		// Enable all of the listeners.
+		// Enable all the listeners.
 		menuItemKeyboardEvents.setSelected(true);
 		menuItemButtonEvents.setSelected(true);
 		menuItemMotionEvents.setSelected(true);
@@ -404,24 +406,25 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 	 * @param args unused.
 	 */
 	public static void main(String[] args) {
-		StringBuffer copyright = new StringBuffer("\n")
-				.append("JNativeHook: Global keyboard and mouse hooking for Java.\n")
-				.append("Copyright (C) 2006-2016 Alexander Barker.  All Rights Received.\n")
-				.append("https://github.com/kwhat/jnativehook/\n")
-				.append("\n")
-				.append("JNativeHook is free software: you can redistribute it and/or modify\n")
-				.append("it under the terms of the GNU Lesser General Public License as published\n")
-				.append("by the Free Software Foundation, either version 3 of the License, or\n")
-				.append("(at your option) any later version.\n")
-				.append("\n")
-				.append("JNativeHook is distributed in the hope that it will be useful,\n")
-				.append("but WITHOUT ANY WARRANTY; without even the implied warranty of\n")
-				.append("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n")
-				.append("GNU General Public License for more details.\n")
-				.append("\n")
-				.append("You should have received a copy of the GNU Lesser General Public License\n")
-				.append("along with this program.  If not, see <http://www.gnu.org/licenses/>.\n");
-		System.out.println(copyright);
+		System.out.println(
+			"\n" +
+			"JNativeHook: Global keyboard and mouse hooking for Java.\n" +
+			"Copyright (C) 2006-2016 Alexander Barker.  All Rights Received.\n" +
+			"https://github.com/kwhat/jnativehook/\n" +
+			"\n" +
+			"JNativeHook is free software: you can redistribute it and/or modify\n" +
+			"it under the terms of the GNU Lesser General Public License as published\n" +
+			"by the Free Software Foundation, either version 3 of the License, or\n" +
+			"(at your option) any later version.\n" +
+			"\n" +
+			"JNativeHook is distributed in the hope that it will be useful,\n" +
+			"but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
+			"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
+			"GNU General Public License for more details.\n" +
+			"\n" +
+			"You should have received a copy of the GNU Lesser General Public License\n" +
+			"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+		);
 
 		SwingUtilities.invokeLater(NativeHookDemo::new);
 	}
@@ -431,7 +434,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 	 *
 	 * @see java.util.Formatter
 	 */
-	private final class LogFormatter extends Formatter {
+	private static final class LogFormatter extends Formatter {
 		@Override
 		public String format(LogRecord record) {
 			StringBuilder line = new StringBuilder();
@@ -448,7 +451,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 					PrintWriter pw = new PrintWriter(sw);
 					record.getThrown().printStackTrace(pw);
 					pw.close();
-					line.append(sw.toString());
+					line.append(sw);
 					sw.close();
 				} catch (Exception ex) { /* Do Nothing */ }
 			}

@@ -10,7 +10,6 @@ import java.util.Set;
 import javafx.scene.image.Image;
 import kotlin.Unit;
 import kotlin.sequences.Sequence;
-import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.SimpleSong;
@@ -29,7 +28,8 @@ import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.ImageSize;
 import static java.util.stream.Collectors.toList;
 import static kotlin.io.FilesKt.getNameWithoutExtension;
-import static kotlin.streams.jdk8.StreamsKt.asStream;
+import static kotlin.sequences.SequencesKt.forEach;
+import static kotlin.sequences.SequencesKt.map;
 import static sp.it.pl.audio.tagging.SongReadingKt.read;
 import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
@@ -41,6 +41,7 @@ import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.FileType.DIRECTORY;
 import static sp.it.util.file.FileType.FILE;
 import static sp.it.util.functional.Util.list;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.ui.image.UtilKt.toBuffered;
 import static sp.it.util.ui.image.UtilKt.toFX;
@@ -56,7 +57,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public final @NotNull FileType valType;
 	/** Children representing filtered files. Must not be accessed outside fx application thread. */
 	protected volatile List<Item> children = null;
-	/** All children files. Super set of {@link #children}. Must not be accessed outside fx application thread. */
+	/** All file children. Super set of {@link #children}. Must not be accessed outside fx application thread. */
 	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
 	public volatile Fut<Unit> coverLoading = null;
 	public volatile Image cover = null;           // cover cache
@@ -68,7 +69,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public int lastSelectedChild = GridViewSkin.NO_SELECT;   // GridViewSkin.NO_SELECT || 0-N
 	private HashMap<String, Object> properties = new HashMap<>();
 
-	public Item(Item parent, File value, FileType valueType) {
+	public Item(Item parent, File value, @NotNull FileType valueType) {
 		super(value, parent);
 		this.valType = valueType;
 	}
@@ -84,12 +85,12 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return children;
 	}
 
-	public void removeChild(Item item) {
+	public void removeChild(@NotNull Item item) {
 		failIfNotFxThread();
 		if (disposed) return;
 		if (children == null) return;
 		children.remove(item);
-		all_children.remove(item);
+		if (item.value!=null) all_children.remove(item.value.getPath().toLowerCase());
 	}
 
 	/** Dispose of this as to never be used again. */
@@ -146,7 +147,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		var all = new HashSet<String>();
 		var dirs = new ArrayList<Item>();
 		var files = new ArrayList<Item>();
-		asStream(childrenFiles()).forEach(f -> {
+
+		forEach(childrenFiles(), consumer(f -> {
 			if (!disposed) {
 				all.add(f.getPath().toLowerCase());
 				FileType type = FileType.Companion.invoke(f);
@@ -156,7 +158,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					if (filterChildFile(f)) files.add(createItem(this, f, type));
 				}
 			}
-		});
+		}));
 
 		if (!disposed) {
 			var cs = new ArrayList<Item>(dirs.size() + files.size());
@@ -168,7 +170,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	}
 
 	protected Sequence<File> childrenFiles() {
-		return SequencesKt.map(UtilKt.children(value), CachingFile::new);
+		return map(UtilKt.children(value), CachingFile::new);
 	}
 
 	protected boolean filterChildFile(File f) {
@@ -293,12 +295,12 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				coverFile = value;
 			}
 			if (coverFile==null) {
-				File i = null;
-				if (i==null)
+				File i;
 					i = getImage(value.getParentFile(), getNameWithoutExtension(value));
 				if (i==null && parent!=null && getCoverStrategy().useParentCoverIfNone)
 					i = parent.getCoverFile();
-				coverFile = i;
+				if (i!=null)
+					coverFile = i;
 			}
 			if (coverFile==null && isVideo(value) && getHParent()!=null) {
 				var n = getNameWithoutExtension(value);
@@ -318,6 +320,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return children();
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	private void property(String key, Object o) {
 		failIfNotFxThread();
 		var root = getHRoot();
@@ -325,6 +328,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		root.properties.put(key, o);
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	private Object property(String key) {
 		var root = getHRoot();
 		return root.properties==null ? null : root.properties.get(key);
@@ -351,7 +355,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		public boolean useComposedDirCover;
 		/** Has no effect if {@link #useParentCoverIfNone} is true. */
 		public boolean useNativeIconIfNone;
-		public boolean useVideoFrameCover = true;
+		public boolean useVideoFrameCover;
 
 		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone, boolean useNativeIconIfNone, boolean useVideoFrameCover) {
 			this.useParentCoverIfNone = useParentCoverIfNone;

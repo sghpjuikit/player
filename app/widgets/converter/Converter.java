@@ -478,7 +478,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             if (action==null) return;
 
             if (action.isPartial()) {
-                boolean empty = source.isEmpty() || ins.values().count()==0;
+                boolean empty = source.isEmpty() || ins.values().findAny().isEmpty();
                 if (empty) return;
 
                 boolean in_out_type_match = true;   //action.type.isInstance(source.get(0));    // TODO: implement properly

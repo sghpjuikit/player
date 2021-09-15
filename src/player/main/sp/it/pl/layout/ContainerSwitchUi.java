@@ -41,7 +41,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.util.Duration.millis;
-import static kotlin.streams.jdk8.StreamsKt.asStream;
+import static kotlin.sequences.SequencesKt.any;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.clip;
 import static sp.it.util.animation.interpolator.EasingMode.EASE_IN;
@@ -257,9 +257,9 @@ public class ContainerSwitchUi implements ComponentUi {
         if (c instanceof Container) {
             if (tab.ui!=null) tab.ui.dispose();
 
-            n = ((Container) c).load(tab);
-            as = (Container) c;
-            tab.ui = ((Container) c).ui;
+            n = ((Container<?>) c).load(tab);
+            as = (Container<?>) c;
+            tab.ui = ((Container<?>) c).ui;
         } else if (c instanceof Widget) {
             tab.ui = firstNotNull(
                 () -> tab.ui instanceof WidgetUi && ((WidgetUi) tab.ui).getWidget()==c ? tab.ui : null,
@@ -446,7 +446,7 @@ public class ContainerSwitchUi implements ComponentUi {
         int i = -1;
         for (Entry<Integer,Component> e : layouts.entrySet()) {
             Component cm = e.getValue();
-            boolean has = cm==c || (cm instanceof Container && asStream(((Container<?>)cm).getAllChildren()).anyMatch(ch -> ch==c));
+            boolean has = cm==c || (cm instanceof Container && any(((Container<?>)cm).getAllChildren(), ch -> ch==c));
             if (has) {
                 i = e.getKey();
                 alignTab(i);
@@ -621,13 +621,13 @@ public class ContainerSwitchUi implements ComponentUi {
 
     @Override
     public void show() {
-        layouts.values().forEach(c -> { if (c instanceof Container) ((Container) c).show(); });
+        layouts.values().forEach(c -> { if (c instanceof Container) ((Container<?>) c).show(); });
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.show(); });
     }
 
     @Override
     public void hide() {
-        layouts.values().forEach(c -> { if (c instanceof Container) ((Container) c).hide(); });
+        layouts.values().forEach(c -> { if (c instanceof Container) ((Container<?>) c).hide(); });
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.hide(); });
     }
 

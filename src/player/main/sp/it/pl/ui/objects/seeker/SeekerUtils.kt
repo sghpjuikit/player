@@ -8,7 +8,6 @@ import javafx.beans.value.ObservableValue
 import javafx.event.Event
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER
-import javafx.scene.Node
 import javafx.scene.control.TextArea
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE

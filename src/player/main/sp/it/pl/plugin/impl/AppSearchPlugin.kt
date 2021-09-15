@@ -62,6 +62,7 @@ import sp.it.util.conf.only
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
+import sp.it.util.file.FileType.FILE
 import sp.it.util.file.div
 import sp.it.util.file.isParentOrSelfOf
 import sp.it.util.file.parentDirOrRoot
@@ -344,15 +345,15 @@ class AppSearchPlugin: PluginBase() {
 
       }
 
-      private open class FItem(parent: Item?, value: File?, type: FileType?): Item(parent, value, type) {
+      private open class FItem(parent: Item?, value: File?, type: FileType): Item(parent, value, type) {
 
          override fun createItem(parent: Item, value: File, type: FileType) = null
-            ?: value.getPortableAppExe(type)?.net { FItem(parent, it, FileType.FILE) }
+            ?: value.getPortableAppExe(type)?.net { FItem(parent, it, FILE) }
             ?: FItem(parent, value, type)
 
       }
 
-      private inner class TopItem: FItem(null, null, null) {
+      private inner class TopItem: FItem(null, null, DIRECTORY) {
 
          init {
             coverStrategy = CoverStrategy(false, false, true, true)

@@ -21,14 +21,14 @@ class Settings {
 
 	// particle parameters
 	public static int PARTICLE_WIDTH = 40;
-	public static int PARTICLE_HEIGHT = PARTICLE_WIDTH;
+	public static int PARTICLE_HEIGHT = 40;
 	public static double PARTICLE_LIFE_SPAN_MAX = 256;
 	public static double PARTICLE_MAX_SPEED = 4;
 
 	// just some artificial strength value that matches our needs. 
 	public static double REPELLER_STRENGTH = 500;
 
-	// gravity. use negative if you want the particles to always go up, eg new Vector2D( 0,-0.04);
+	// gravity. use negative if you want the particles to always go up, e.g. new Vector2D( 0,-0.04);
 	public static Vector2D FORCE_GRAVITY = new Vector2D(0, 0);
 
 }

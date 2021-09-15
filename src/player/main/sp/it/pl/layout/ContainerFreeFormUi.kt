@@ -293,7 +293,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
       container.properties["${i}y"] = rel.b
       container.properties["${i}w"] = rel.c + rel.a
       container.properties["${i}h"] = rel.d + rel.b
-      container.properties["window-${i}"] = (container.properties["window-${i}"].asIs<WindowPosition?>() ?: WindowPosition()).apply {
+      container.properties["window-${i}"] = (container.properties["window-${i}"].asIs() ?: WindowPosition()).apply {
          minXAbs = abs.minX
          minXRel = rel.a
          maxXAbs = abs.maxX

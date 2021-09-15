@@ -40,7 +40,7 @@ import sp.it.pl.main.WidgetTags.DEVELOPMENT
 import sp.it.pl.main.WidgetTags.UTILITY
 
 class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
-   private val inputItems = io.i.create<Any?>("To display", null, ::open)
+   private val inputItems = io.i.create("To display", null, ::open)
    private val info = Text()
    private val thumb = Thumbnail()
    private val openId = AtomicLong(1L)

@@ -608,10 +608,10 @@ class WidgetManager {
 
       /**
        * Returns widget fulfilling condition. Any widget can be returned (if it fulfills the condition), but:
-       * * if there exists preferred widget it will always be returned first
-       * * if no widget is available it will be attempted to be created if allowed
-       * * if created, preferred factory will be used first
-       * * if all methods fail, null is returned
+       * * when there exists preferred widget it will always be returned first
+       * * when no widget is available it will be attempted to be created if allowed
+       * * when there are usable widgets already loaded, the one with preferred factory will be used first
+       * * when all methods fail, null is returned
        *
        * @param filter condition the widget must fulfill
        * @param source where and how the widget will be found/constructed
@@ -671,7 +671,7 @@ class WidgetManager {
       fun use(name: String, source: WidgetUse, action: (Widget) -> Unit) =
          find(name, source).focusWithWindow().ifNotNull(action).toUnit()
 
-      /** Select next widget or the first if no selected among the widgets in the specified window. */
+      /** Select next widget or the first if none selected among the widgets in the specified window. */
       fun selectNextWidget(root: Container<*>) {
          val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
          if (all.size<=1) return
@@ -679,7 +679,7 @@ class WidgetManager {
          all.getOrNull(i)?.focusAndTraverse()
       }
 
-      /** Select previous widget or the first if no selected among the widgets in the specified window. */
+      /** Select previous widget or the first if none selected among the widgets in the specified window. */
       fun selectPreviousWidget(root: Container<*>) {
          val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
          if (all.size<=1) return
@@ -800,9 +800,10 @@ class WidgetManager {
             return createControllerClassLoader(compileDir, libFiles).andAlso { cl ->
                try {
                   runTry {
-                     cl.loadClass(classFqName).also {
-//                        runFX(10.seconds) { runTry { cl.close() } } // TODO: remove delay
-                     }
+                     cl.loadClass(classFqName)
+//                        .also {
+//                           runFX(10.seconds) { runTry { cl.close() } } // TODO: remove delay
+//                        }
                   }
                } catch (t: LinkageError) {
 //                  runTry { cl.close() }

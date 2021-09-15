@@ -23,7 +23,7 @@ import sp.it.util.ui.pseudoClassChanged
 /** Component for controlling pc with actions such as shutdown, restart, etc. */
 class PcControls: StackPane() {
    /** Layout orientation */
-   val orientation by sv<Orientation>(ORIENTATION)
+   val orientation by sv(ORIENTATION)
 
    init {
       styleClass += "pc-controls"

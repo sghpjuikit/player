@@ -1,7 +1,6 @@
 package sp.it.pl.audio.playlist
 
 import java.io.File
-import java.net.URI
 import java.util.UUID
 import kotlin.streams.toList
 import sp.it.pl.audio.playlist.sequence.PlayingSequence
@@ -146,9 +145,7 @@ fun Playlist.addOrEnqueueFolder(add: Boolean) {
  */
 fun Playlist.addOrEnqueueUrl(add: Boolean) {
    ValueConfig(
-      type<URI>(),
-      "Url",
-      uri("https://www.example.com"),
+      type(), "Url", uri("https://www.example.com"),
       "Direct uri a file, e.g., a file on the web. The url should end with file audio file suffix like."
    ).configure(if (add) "Add url song." else "Play url song.") {
       if (add) {

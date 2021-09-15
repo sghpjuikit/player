@@ -11,7 +11,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -21,10 +20,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A small GUId app. that shows many system and environment properties.
- * Designed to be compatible with Java 1.4+ (hence many requirements like no foreach, no generics, no StringBuilder..).
  *
  * @author Andrew Thompson
  * @version 2008-06-29
@@ -32,14 +31,9 @@ import javax.swing.border.EmptyBorder;
  */
 class SystemPropertiesDemo {
 
-	private static String sentence = "The quick brown fox jumped over the lazy dog.";
-	private static String sep = System.getProperty("line.separator");
-	private static String fontText =
-		sentence +
-			sep +
-			sentence.toUpperCase() +
-			sep +
-			"0123456789 !@#$%^&*()_+ []\\;',./ {}|:\"<>?";
+	private static final String sentence = "The quick brown fox jumped over the lazy dog.";
+	private static final String sep = System.getProperty("line.separator");
+	private static final String fontText = sentence + sep + sentence.toUpperCase() + sep + "0123456789 !@#$%^&*()_+ []\\;',./ {}|:\"<>?";
 
 	private static String[] convertObjectToSortedStringArray(Object[] unsorted) {
 		String[] sorted = new String[unsorted.length];
@@ -67,16 +61,12 @@ class SystemPropertiesDemo {
 	private static String valueToString(String property, Object value) {
 		if (value instanceof Color) {
 			Color color = (Color) value;
-			String converted =
-				"<div style='width: 100%; height: 100%; " +
-					"background-color: #" +
-					Integer.toHexString(color.getRed()) +
-					Integer.toHexString(color.getGreen()) +
-					Integer.toHexString(color.getBlue()) +
-					";'>" +
-					value.toString() +
-					"</div>";
-			return converted;
+			return "<div style='width: 100%; height: 100%; " +
+				"background-color: #" +
+				Integer.toHexString(color.getRed()) +
+				Integer.toHexString(color.getGreen()) +
+				Integer.toHexString(color.getBlue()) +
+				";'>" + value + "</div>";
 		} else if (property.toLowerCase().endsWith("path") ||
 			property.toLowerCase().endsWith("dirs")) {
 			return delimitedToHtmlList(
@@ -88,12 +78,12 @@ class SystemPropertiesDemo {
 	}
 
 	private static String delimitedToHtmlList(String values, String delimiter) {
-		String[] parts = values.split(delimiter);
-		StringBuffer sb = new StringBuffer();
+		var parts = values.split(delimiter);
+		var sb = new StringBuilder();
 		sb.append("<ol>");
-		for (int ii = 0; ii < parts.length; ii++) {
+		for (String part : parts) {
 			sb.append("<li>");
-			sb.append(parts[ii]);
+			sb.append(part);
 			sb.append("</li>");
 		}
 		return sb.toString();
@@ -123,38 +113,32 @@ class SystemPropertiesDemo {
 
 	public static void main(String[] args) {
 		JTabbedPane tabPane = new JTabbedPane();
-		StringBuffer sb;
+		StringBuilder sb;
 		String header = "<html><body><table border=1 width=100%>";
 
-		sb = new StringBuffer(header);
+		sb = new StringBuilder(header);
 		Properties prop = System.getProperties();
 		String[] propStrings = convertObjectToSortedStringArray(
 			prop.stringPropertyNames().toArray());
-		for (int ii = 0; ii < propStrings.length; ii++) {
-			sb.append(
-				dataPairToTableRow(
-					propStrings[ii],
-					System.getProperty(propStrings[ii])));
+		for (String propString : propStrings) {
+			sb.append(dataPairToTableRow(propString, System.getProperty(propString)));
 		}
 		tabPane.addTab(
 			"System",
 			getOutputWidgetForContent(sb.toString()));
 
-		sb = new StringBuffer(header);
-		Map environment = System.getenv();
+		sb = new StringBuilder(header);
+		var environment = System.getenv();
 		String[] envStrings = convertObjectToSortedStringArray(
 			environment.keySet().toArray());
-		for (int ii = 0; ii < envStrings.length; ii++) {
-			sb.append(
-				dataPairToTableRow(
-					envStrings[ii],
-					environment.get(envStrings[ii])));
+		for (String envString : envStrings) {
+			sb.append(dataPairToTableRow(envString, environment.get(envString)));
 		}
 		tabPane.addTab(
 			"Environment",
 			getOutputWidgetForContent(sb.toString()));
 
-		sb = new StringBuffer(header);
+		sb = new StringBuilder(header);
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] gs = ge.getScreenDevices();
 		for (int j = 0; j < gs.length; j++) {
@@ -196,13 +180,13 @@ class SystemPropertiesDemo {
 		JPanel fontExampleCol = new JPanel(new GridLayout(0, 1, 2, 2));
 		fontTable.add(fontNameCol, BorderLayout.WEST);
 		fontTable.add(fontExampleCol, BorderLayout.CENTER);
-		for (int ii = 0; ii < fonts.length; ii++) {
-			fontNameCol.add(new JLabel(fonts[ii]));
-			fontExampleCol.add(getExampleOfFont(fonts[ii]));
+		for (String font : fonts) {
+			fontNameCol.add(new JLabel(font));
+			fontExampleCol.add(getExampleOfFont(font));
 		}
 		tabPane.add("Fonts", new JScrollPane(fontTable));
 
-		sb = new StringBuffer(header);
+		sb = new StringBuilder(header);
 
 		sb.append("<thead>");
 		sb.append("<tr>");
@@ -237,7 +221,7 @@ class SystemPropertiesDemo {
 			}
 			sb.append(dataPairToTableRow(
 				prefix +
-					locale.toString() +
+					locale +
 					suffix,
 				prefix +
 					locale.getDisplayLanguage() +
@@ -254,7 +238,6 @@ class SystemPropertiesDemo {
 		tabPane.add("Locales",
 			getOutputWidgetForContent(sb.toString()));
 
-		Locale.getDefault();
 		int border = 5;
 		JPanel p = new JPanel(new BorderLayout());
 		p.setBorder(new EmptyBorder(border, border, border, border));
@@ -270,7 +253,7 @@ class SystemPropertiesDemo {
 		f.setVisible(true);
 	}
 
-	private static class SortableLocale implements Comparable {
+	private static class SortableLocale implements Comparable<SortableLocale> {
 
 		Locale locale;
 
@@ -286,11 +269,8 @@ class SystemPropertiesDemo {
 			return locale;
 		}
 
-		public int compareTo(Object object2) {
-			SortableLocale locale2 = (SortableLocale) object2;
-			//Locale locale2 = (Locale)object2;
-			return locale.toString().compareTo(
-				locale2.toString());
+		public int compareTo(@NotNull SortableLocale l) {
+			return locale.toString().compareTo(l.toString());
 		}
 	}
 

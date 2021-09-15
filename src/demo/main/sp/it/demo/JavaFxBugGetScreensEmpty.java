@@ -18,7 +18,7 @@ class JavaFxBugGetScreensEmpty extends Application {
 	public void start(Stage stage) {
 
 		Screen.getScreens().addListener((Change<?> event) -> {
-			System.out.println("");
+			System.out.println();
 			System.out.println(Screen.getPrimary());
 			System.out.println(Screen.getScreens().size());
 		});

@@ -574,7 +574,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
    }
 
-   private open inner class FItem(parent: Item?, value: File?, type: FileType?): Item(parent, value, type) {
+   private open inner class FItem(parent: Item?, value: File?, type: FileType): Item(parent, value, type) {
 
       override fun createItem(parent: Item, value: File, type: FileType) = FItem(parent, value, type)
 
@@ -582,7 +582,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
    }
 
-   private inner class TopItem: FItem(null, null, null) {
+   private inner class TopItem: FItem(null, null, DIRECTORY) {
 
       init {
          coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true)

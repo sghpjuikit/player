@@ -42,9 +42,9 @@ import sp.it.util.reactive.Handler1
 open class AutoCompletePopup<T>: PopupControl() {
    /** Presented suggestions. */
    val suggestions = observableArrayList<T>()!!
-   /** The converter used to turn a suggestion into a string  */
+   /** The converter used to turn a suggestion into a string. */
    var converter: StringConverter<T>? = null
-   /** The maximum number of rows to be visible in the popup. Affects the height of the popup. By default 10. */
+   /** The maximum number of rows to be visible in the popup. Affects the height of the popup. Default 10. */
    val visibleRowCount = v(10)
    /** Suggestion handlers */
    val onSuggestion = Handler1<T>()
@@ -57,7 +57,7 @@ open class AutoCompletePopup<T>: PopupControl() {
       styleClass += STYLE_CLASS
    }
 
-   /** Shows this popup right below the specified node. Node must be attached to scene graph in a window.  */
+   /** Shows this popup right below the specified node. Node must be attached to scene graph in a window. */
    fun show(node: Node) {
       if (isShowing) return
 

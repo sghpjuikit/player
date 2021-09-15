@@ -19,7 +19,6 @@ import javafx.util.Duration
 import javafx.util.Duration.INDEFINITE
 import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
 import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
-import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoAction

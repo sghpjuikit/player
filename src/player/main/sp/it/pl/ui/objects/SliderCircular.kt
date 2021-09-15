@@ -35,9 +35,6 @@ import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.lay
-import sp.it.util.ui.maxSize
-import sp.it.util.ui.minSize
-import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.x
 import sp.it.util.ui.xy

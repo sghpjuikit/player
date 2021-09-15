@@ -22,7 +22,6 @@ import sp.it.util.type.VType
 import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
 import java.net.URI
-import sp.it.util.functional.net
 
 /**
  * Song in playlist.

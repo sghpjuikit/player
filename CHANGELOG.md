@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Implement `Wallpaper` plugin to retain wallpaper when application closes
     - Implement `Notifier` plugin setting that shows enabled notification types
 - Widgets
-    - Implement multiple ways to open widgets (configurable by user), i.e window, popup, overlay, etc
+    - Implement multiple ways to open widgets (configurable by user), i.e., window, popup, overlay, etc
     - Implement widget metadata (simple)
     - Implement widget management settings
     - Implement widget global state
@@ -93,7 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         - improves UX by adjusting layout automatically depending on visible fields (unifies cover & rating with other fields)
     - Improve `ImageViewer` widget UX
         - remove ability to display thumbnails (use grid widget for this)     
-- Display date & time in UI in human readable format
+- Display date & time in UI in human-readable format
 - Hide technical settings from UI
 - Avoid persisting computed and other unwanted settings
 - Handle icon focus traversal (TAB) and action invoking (ENTER) better
@@ -129,7 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Settings editors UX
 - GridView focus not applied properly sometimes
 - GridView search style not discarded on cancel
-- GridView search sometimes not selecting proper item
+- GridView search not selecting proper item sometimes
 - GridView scrolling when selecting last row
 - GridView cover size change throws exceptions
 - Overlay settings change not taking effect
@@ -154,7 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Application skin setting not restored properly
 - Application rating skin not allowing null value sometimes
 - Plugins
-  - Non running plugins are instantiated
+  - Non-running plugins are instantiated
   - `Waiffu2k` plugin waiffu2k binary config is not persisted
   - `Waiffu2k` plugin scaling coefficient not configurable
   - `Guide` is now a plugin and can be disabled completely

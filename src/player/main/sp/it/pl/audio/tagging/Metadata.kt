@@ -238,7 +238,7 @@ class Metadata: Song, Serializable {
       val header = this.audioHeader
       bitrate = header.bitRateAsNumber.toInt()*(if (header.isVariableBitRate) -1 else 1)
       lengthInMs = (1000*header.trackLength).toDouble()
-      encodingType = header.format.orNull()   // format and encoding type are switched in jaudiotagger library...
+      encodingType = header.format.orNull()   // format and encoding type are switched in jaudiotagger library
       channels = header.channels.orNull()
       sampleRate = header.sampleRate.orNull()
    }

@@ -104,18 +104,18 @@ object CoreFunctors: Core {
          // Negated predicates are disabled, user interface should provide negation ability
          // or simply generate all the negations when needed (and reuse functors while at it).
 
-         // Adding identity function here is impossible as its type is erased to Object -> Object
+         // Adding identity function here is impossible as its type is erased to Object -> Object,
          // and we need its proper type X -> X (otherwise it erases type in function chains). Single
          // instance per class is required for Identity function.
          // Unfortunately:
-         //     - we cant put it to functor pool, as we do not know which classes will need it
-         //     - we cant put it to functor pool on requests, as the returned functors for class X
+         //     - we can't put it to functor pool, as we do not know which classes will need it
+         //     - we can't put it to functor pool on requests, as the returned functors for class X
          //       return functors for X and all superclasses of X, which causes IDENTITY function
          //       to be inserted multiple times, even worse, only one of them has proper signature!
-         //     - hence we cant even return Set to prevent duplicates, as the order of class iteration
+         //     - hence we can't even return Set to prevent duplicates, as the order of class iteration
          //       is undefined. In addition, functors are actually wrapped.
          // Solution is to insert the proper IDENTITY functor into results, after they were
-         // collected. This guarantees single instance and correct signature. The downside is that
+         // collected. This will guarantee single instance and correct signature. The downside is that
          // the functor pool does not contain IDENTITY functor at all, meaning the pool must never
          // be accessed directly. Additionally, question arises, whether IDENTITY functor should be
          // inserted when no functors are returned.
@@ -347,8 +347,8 @@ object CoreFunctors: Core {
          addComparisons(type<ULong>(), 0L.toULong())
          addComparisons(type<Double>(), 0.0)
 
-         // Else function should be of dynamic type and just one, but then we cant provide default values for parameters,
-         // this are, for now, mandatory
+         // Else function should be of dynamic type and just one, but then we can't provide default values for parameters,
+         // theses are, for now, mandatory
          add("else", type<String?>(), type<String>(), p("")) { it, or -> it ?: or }
          add("else", type<Byte?>(), type<Byte>(), p(0.toByte())) { it, or -> it ?: or }
          add("else", type<Short?>(), type<Short>(), p(0.toShort())) { it, or -> it ?: or }

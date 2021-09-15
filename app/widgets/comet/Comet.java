@@ -1391,7 +1391,7 @@ public class Comet extends SimpleController {
 			rocket.dy = 0;
 			rocket.direction = spawning.get().computeStartingAngle(game.players.size(),id.get());
 			rocket.energy = game.settings.PLAYER_ENERGY_INITIAL;
-			rocket.engine.enabled = false; // cant use engine.off() as it could produce unwanted behavior
+			rocket.engine.enabled = false; // can't use engine.off() as it could produce unwanted behavior
 			rocket.voronoiArea = null;
 			rocket.voronoiAreaCenterDistance = null;
 			rocket.changeAbility(ability_type.get());
@@ -1443,7 +1443,7 @@ public class Comet extends SimpleController {
 		}
 
 		double computeRotSpeed(long pressedMsAgo) {
-			// Shooting at long distance becomes hard due to 'smallest rotation angle' being too big so
+			// Shooting at long distance becomes hard due to 'smallest rotation angle' being too big, so
 			// we slow down rotation within the first ROT_LIMIT ms after key press and reduce rotation
 			// limit temporarily without decreasing maneuverability.
 			double r = pressedMsAgo<game.settings.ROT_LIMIT
@@ -1612,7 +1612,7 @@ public class Comet extends SimpleController {
 			void onDoLoop(){}
 		}
 	}
-	/** Object with engine, gun and other space ship characteristics. */
+	/** Object with engine, gun and other spaceship characteristics. */
 	abstract class Ship extends PO {
 		double energy = 0;
 		double energy_buildup_rate;
@@ -2051,7 +2051,7 @@ public class Comet extends SimpleController {
 			}
 			void onHit(PO a) {
 				// Makes for unbalanced game mechanics, because it is too predictable.
-				// Instead drain energy constantly while active. This makes for killer suspense when player holds
+				// Instead, drain energy constantly while active. This makes for killer suspense when player holds
 				// shield active for a prolonged amount of time due to fear of death only to drain its power in vain.
 				// energy -= min(energy,kineticEto(a));
 
@@ -2179,7 +2179,7 @@ public class Comet extends SimpleController {
 				int sync_index_real = sync_index * 50/((int)KSradius-20); // adjusts speed (slow down)
 				double energy_fullness = KSenergy/KSenergy_max;
 				// 1% margin enables 'always full' shields by using high energy
-				// accumulation rate. The short lived shield damage will thus be transparent.
+				// accumulation rate. The short-lived shield damage will thus be transparent.
 				boolean energy_full = energy_fullness>0.99;
 				gc.setGlobalAlpha(energy_fullness);
 				gc.setStroke(COLOR_DB);
@@ -2305,7 +2305,7 @@ public class Comet extends SimpleController {
 			public void doLoop() {
 				Rocket r = (Rocket)Ship.this;
 				drawHudLine(gc, game.field, x,y, 40, r.bulletRange, cosdir, sindir, game.colors.hud);
-				// drawHudCircle(gc, game.field, x,y,r.bulletRange, HUD_COLOR); // nah drawing ranges is more cool
+				// drawHudCircle(gc, game.field, x,y,r.bulletRange, HUD_COLOR); // nah drawing ranges is cooler
 				drawHudCircle(gc, game.field, x,y,r.bulletRange,r.direction,D30, game.colors.hud);
 				drawHudCircle(gc, game.field, x,y,r.bulletRange,r.direction+D360/3,PI/8, game.colors.hud);
 				drawHudCircle(gc, game.field, x,y,r.bulletRange,r.direction-D360/3,PI/8, game.colors.hud);
@@ -2502,7 +2502,7 @@ public class Comet extends SimpleController {
 
 		double discpos = 0; // 0-1, 0=close, 1=far
 		double discdspeed = 0;
-		double disc_forceJump(double pos) { return pos>=1 ? -2*discdspeed : 0.01; } // jump force
+		double disc_forceJump(double pos) { return pos>=1 ? -2*discdspeed : 0.01; } // jump effect force
 		double disc_forceBio(double pos) { return pos<0.5 ? 0.01 : -0.01; } // standard force
 		double interUfoForce(Ufo u){
 			double d = distance(u);

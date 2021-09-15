@@ -422,8 +422,8 @@ public class ContainerSwitchUi implements ComponentUi {
     }
 
     /**
-     * Scrolls to tab on provided position. Positions are (-infinity;infinity)
-     * with 0 being the main.
+     * Scrolls to the tab at the provided position.
+     * Positions are (-infinity;infinity) with 0 being the main.
      *
      * @param i position
      * @return index of current tab after aligning
@@ -553,7 +553,7 @@ public class ContainerSwitchUi implements ComponentUi {
     }
 
     /**
-     * Use to animate or manipulate zooming
+     * Used to animate or manipulate zooming
      *
      * @return zoom scale property taking on values from (0,1>
      */

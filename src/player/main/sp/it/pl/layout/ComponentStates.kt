@@ -31,7 +31,7 @@ fun Component.exportFxwl(f: File) = runIO {
    }
 }
 
-/** Creates a launcher for this widget with default (no predefined) settings.  */
+/** Creates a launcher for this widget with default (none predefined) settings.  */
 fun Widget.exportFxwlDefault(f: File) = runIO {
    f.writeTextTry(factory.id).ifErrorNotify {
       AppError(

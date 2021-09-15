@@ -17,7 +17,7 @@ class BalanceProperty: SimpleDoubleProperty {
 
    constructor(v: Double): super(v.clip(MIN, MAX))
 
-   /** Sets the value. Value outside of minimal-maximal value range will be clipped. */
+   /** Sets the value. Value outside minimal-maximal value range will be clipped. */
    override fun set(v: Double) {
       super.set(v.clip(MIN, MAX))
    }

@@ -132,12 +132,12 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
    }
 
    /**
-    * Use to get the control node for setting and displaying the value to
-    * attach it to a scene graph.
+    * Create the editor node for setting and displaying the value to attach it to a scene graph.
     *
     * @param managedControl default true, set false to avoid controls affecting size measurement (particularly helpful
     * with text fields, which can 'expand' layout beyond expected width due to
-    * [javafx.scene.control.TextField.prefColumnCountProperty]. I.e., use true to expand and false to shrink.
+    * [javafx.scene.control.TextField.prefColumnCountProperty]).
+    * I.e., use true to expand and false to shrink.
     *
     * @return setter control for this field
     */

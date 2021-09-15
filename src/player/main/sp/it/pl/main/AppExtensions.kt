@@ -41,10 +41,10 @@ private val logger = KotlinLogging.logger {}
 /** @return whether user can use this factory, exactly: APP.developerMode || ![ComponentFactory.isExperimental] */
 fun ComponentFactory<*>.isUsableByUser() = APP.developerMode.value || !isExperimental()
 
-/** Returns value of this number of scaled [sp.it.util.units.EM]s, ceil-ed to nearest integer, where scaled EM is current application font size */
+/** Returns value of this number of scaled [sp.it.util.units.EM]s, ceil-ed to the nearest integer, where scaled EM is current application font size */
 val Number.emScaled: Double get() = fontScaled(APP.ui.font.value)
 
-/** Returns value of this number of scaled [sp.it.util.units.EM]s, ceil-ed to nearest integer, where scaled EM is font size */
+/** Returns value of this number of scaled [sp.it.util.units.EM]s, ceil-ed to the nearest integer, where scaled EM is font size */
 fun Number.fontScaled(font: Font?): Double = ceil(toDouble()*(font?.size?.toEM() ?: 1.0))
 
 /**

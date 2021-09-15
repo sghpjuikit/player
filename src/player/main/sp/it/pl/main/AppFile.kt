@@ -186,7 +186,7 @@ data class FileFilter(val value: PF0<File, Boolean>) {
  * Pool of file filters intended for simple enum-like file filter selection in UI.
  *
  * Because we can not yet serialize functions (see [PF0] and [sp.it.util.parsing.Converter]), it is useful to define
- * predicates not from function pool, but hardcoded filters, which are enumerable and we look up by name.
+ * predicates not from function pool, but hardcoded filters, which are enumerable, and we look up by name.
  */
 object FileFilters {
 

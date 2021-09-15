@@ -16,7 +16,7 @@ object AppSettings {
          /** Name of the group. */
          const val name = "Logging"
 
-         /** Logging level for logging to standard output. */
+         /** Logging level for logging to standard output */
          object `level(stdout)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Level (stdout)"""
@@ -33,7 +33,7 @@ object AppSettings {
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Logging level for logging to file. */
+         /** Logging level for logging to file */
          object `level(file)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Level (file)"""
@@ -55,7 +55,7 @@ object AppSettings {
          /** Name of the group. */
          const val name = "Settings"
 
-         /** Saves settings to the default application properties file. */
+         /** Saves settings to the default application properties file */
          object `saveSettings`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Save settings"""
@@ -72,7 +72,7 @@ object AppSettings {
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Saves/exports settings to a file. */
+         /** Saves/exports settings to a file */
          object `saveSettingsToFile`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Save settings to file..."""
@@ -89,7 +89,7 @@ object AppSettings {
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Loads settings to default values. Discards all non-default settings.. */
+         /** Loads settings to default values. Discards all non-default settings. */
          object `loadDefaultSettings`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Load default settings"""
@@ -106,7 +106,7 @@ object AppSettings {
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Loads settings from default application properties file. Discards any unsaved settings.. */
+         /** Loads settings from default application properties file. Discards any unsaved settings. */
          object `loadSettings`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Load settings"""
@@ -123,7 +123,7 @@ object AppSettings {
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Loads/imports settings from default application properties file. */
+         /** Loads/imports settings from default application properties file */
          object `loadSettingsFromFile`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Load settings from file..."""
@@ -145,7 +145,7 @@ object AppSettings {
 User may wish to run certain components as separate processes. In order to make these lightweight and safe, certain features might be disabled or delegated to the primary application instance called `MASTER`.
 Other instances are called `SLAVE` instances. They can be thought of as single-purpose short-lived one-off programs.
 The rank is determined at instance start up. If no other instances (of any rank) are running, the instance becomes `MASTER`, otherwise it becomes `SLAVE`. The rank can not be specified at startup or changed later.
-Closing `MASTER` instance will not close `SLAVE` instances nor turn them into `MASTER` instance.. */
+Closing `MASTER` instance will not close `SLAVE` instances nor turn them into `MASTER` instance. */
       object `rank`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Rank"""
@@ -171,7 +171,7 @@ Features:
   * Widgets will not recompile when application jars are modified (Prevents recompilation on every application build)
   * Enables menu items that call object's methods using reflection
   * Shows experimental widgets
-  * Shows class information about objects in object details. */
+  * Shows class information about objects in object details */
       object `developerMode`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Developer mode"""
@@ -193,7 +193,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Closes this application. */
+      /** Closes this application */
       object `close`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Close"""
@@ -210,7 +210,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Restarts this application. */
+      /** Restarts this application */
       object `restart`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Restart"""
@@ -227,7 +227,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Loads last application state if not yet loaded. */
+      /** Loads last application state if not yet loaded */
       object `startNormally`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Start normally"""
@@ -244,7 +244,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Run JVM garbage collector using 'System.gc()'. Requires developer mode enabled.. */
+      /** Run JVM garbage collector using 'System.gc()'. Requires developer mode enabled. */
       object `runGarbageCollector`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Run garbage collector"""
@@ -270,7 +270,7 @@ Features:
          /** Name of the group. */
          const val name = "Screen Dock"
 
-         /** Enable/disable this plugin. Whether application has docked window in the top of the screen. */
+         /** Enable/disable this plugin. Whether application has docked window in the top of the screen */
          object `enable`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Enable"""
@@ -287,7 +287,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Component displayed as content in the dock. */
+         /** Component displayed as content in the dock */
          object `content`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Content"""
@@ -304,7 +304,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Mouse hover time it takes for the dock to show. */
+         /** Mouse hover time it takes for the dock to show */
          object `showDelay`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Show delay"""
@@ -321,7 +321,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Hide dock when no mouse activity is detected. */
+         /** Hide dock when no mouse activity is detected */
          object `hideOnIdle`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Hide on idle"""
@@ -338,7 +338,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Mouse away time it takes for the dock to hide. */
+         /** Mouse away time it takes for the dock to hide */
          object `hideOnIdleDelay`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Hide on idle delay"""
@@ -361,7 +361,7 @@ Features:
       /** Name of the group. */
       const val name = "Search"
 
-      /** Sources providing potential search results. */
+      /** Sources providing potential search results */
       object `sources`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Sources"""
@@ -378,7 +378,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.APP
       }
-      /** Algorithm for text matching.. */
+      /** Algorithm for text matching. */
       object `searchAlgorithm`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Search algorithm"""
@@ -395,7 +395,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Algorithm for text matching will ignore case.. */
+      /** Algorithm for text matching will ignore case. */
       object `searchIgnoreCase`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Search ignore case"""
@@ -412,7 +412,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Maximal time delay between key strokes. Search text is reset after the delay runs out.. */
+      /** Maximal time delay between key strokes. Search text is reset after the delay runs out. */
       object `searchDelay`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Search delay"""
@@ -429,7 +429,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Deactivates search after period of inactivity.. */
+      /** Deactivates search after period of inactivity. */
       object `searchAutoCancel`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Search auto-cancel"""
@@ -446,7 +446,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Period of inactivity after which search is automatically deactivated.. */
+      /** Period of inactivity after which search is automatically deactivated. */
       object `searchAutoCancelDelay`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Search auto-cancel delay"""
@@ -468,7 +468,7 @@ Features:
       /** Name of the group. */
       const val name = "Ui"
 
-      /** Skin of the application. Determines single stylesheet file applied on `.root` of all windows.. */
+      /** Skin of the application. Determines single stylesheet file applied on `.root` of all windows. */
       object `skin`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Skin"""
@@ -485,7 +485,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Additional stylesheet files applied on `.root` of all windows. Override styles set by the skin. Applied in the specified order.. */
+      /** Additional stylesheet files applied on `.root` of all windows. Override styles set by the skin. Applied in the specified order. */
       object `skinExtensions`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Skin extensions"""
@@ -502,7 +502,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null lets skin decide.. */
+      /** Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null lets skin decide. */
       object `font`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Font"""
@@ -519,7 +519,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Layout mode use blur effect. */
+      /** Layout mode use blur effect */
       object `layoutModeBlurBgr`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Layout mode blur bgr"""
@@ -536,7 +536,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Layout mode use fade effect. */
+      /** Layout mode use fade effect */
       object `layoutModeFadeBgr`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Layout mode fade bgr"""
@@ -553,7 +553,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Layout mode fade effect intensity.. */
+      /** Layout mode fade effect intensity. */
       object `layoutModeFadeIntensity`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Layout mode fade intensity"""
@@ -570,7 +570,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Layout mode blur effect intensity.. */
+      /** Layout mode blur effect intensity. */
       object `layoutModeBlurIntensity`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Layout mode blur intensity"""
@@ -587,7 +587,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Duration of layout mode transition effects.. */
+      /** Duration of layout mode transition effects. */
       object `layoutModeAnimLength`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Layout mode anim length"""
@@ -604,7 +604,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Allows snapping feature for windows and controls.. */
+      /** Allows snapping feature for windows and controls. */
       object `snap`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Snap"""
@@ -621,7 +621,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Distance at which snap feature gets activated. */
+      /** Distance at which snap feature gets activated */
       object `snapActivationDistance`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Snap activation distance"""
@@ -638,7 +638,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Locked layout will not enter layout mode.. */
+      /** Locked layout will not enter layout mode. */
       object `lockLayout`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Lock layout"""
@@ -655,7 +655,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Rating ui component skin. Overrides value set by the skin. Null lets skin decide.. */
+      /** Rating ui component skin. Overrides value set by the skin. Null lets skin decide. */
       object `ratingSkin`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Rating skin"""
@@ -672,7 +672,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Number of icons in rating control. Overrides value set by the skin. Null lets skin decide.. */
+      /** Number of icons in rating control. Overrides value set by the skin. Null lets skin decide. */
       object `ratingIconAmount`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Rating icon amount"""
@@ -689,7 +689,7 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Allow partial values for rating. Overrides value set by the skin. Null lets skin decide.. */
+      /** Allow partial values for rating. Overrides value set by the skin. Null lets skin decide. */
       object `ratingAllowPartial`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Rating allow partial"""
@@ -710,7 +710,7 @@ Features:
          /** Name of the group. */
          const val name = "Image"
 
-         /** Preferred hover scale animation duration for thumbnails.. */
+         /** Preferred hover scale animation duration for thumbnails. */
          object `thumbnailAnimDuration`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Thumbnail anim duration"""
@@ -737,7 +737,7 @@ Features:
          /** Name of the group. */
          const val name = "Table"
 
-         /** Orientation of the table. */
+         /** Orientation of the table */
          object `tableOrientation`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Table orientation"""
@@ -754,7 +754,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Adds 0s for number length consistency. */
+         /** Adds 0s for number length consistency */
          object `zeropadNumbers`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Zeropad numbers"""
@@ -771,7 +771,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Show unfiltered table item index when filter applied. */
+         /** Show unfiltered table item index when filter applied */
          object `searchShowOriginalIndex`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Search show original index"""
@@ -788,7 +788,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Show table header with columns. */
+         /** Show table header with columns */
          object `showTableHeader`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Show table header"""
@@ -805,7 +805,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Show table controls at the bottom of the table. Displays menu bar and table content information.. */
+         /** Show table controls at the bottom of the table. Displays menu bar and table content information. */
          object `showTableFooter`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Show table footer"""
@@ -827,7 +827,7 @@ Features:
          /** Name of the group. */
          const val name = "Grid"
 
-         /** Determines horizontal alignment of the grid cells within the grid.. */
+         /** Determines horizontal alignment of the grid cells within the grid. */
          object `cellAlignment`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Cell alignment"""
@@ -844,7 +844,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Show grid controls at the bottom of the table. Displays menu bar and table content information.. */
+         /** Show grid controls at the bottom of the table. Displays menu bar and table content information. */
          object `showGridFooter`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Show grid footer"""
@@ -866,7 +866,7 @@ Features:
          /** Name of the group. */
          const val name = "Tabs"
 
-         /** Use discrete (D) and forbid seamless (S) tab switching. Tabs are always aligned. Seamless mode allows any tab position.. */
+         /** Use discrete (D) and forbid seamless (S) tab switching. Tabs are always aligned. Seamless mode allows any tab position. */
          object `discreteMode(D)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Discrete mode (D)"""
@@ -883,7 +883,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Required length of drag at which tab switch animation gets activated. Tab switch activates if at least one condition is fulfilled min distance or min fraction.. */
+         /** Required length of drag at which tab switch animation gets activated. Tab switch activates if at least one condition is fulfilled min distance or min fraction. */
          object `switchDragDistance(D)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Switch drag distance (D)"""
@@ -900,7 +900,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Defines distance from edge in percent of tab's width in which the tab switches.. */
+         /** Defines distance from edge in percent of tab's width in which the tab switches. */
          object `switchDragDistanceCoefficient(D)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Switch drag distance coefficient (D)"""
@@ -917,7 +917,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Inertia of the tab switch animation. Defines distance the dragging will travel after input has been stopped.. */
+         /** Inertia of the tab switch animation. Defines distance the dragging will travel after input has been stopped. */
          object `dragInertia(S)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Drag inertia (S)"""
@@ -934,7 +934,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Defines distance from edge in percent of tab's width in which the tab auto-aligns. Setting to maximum (0.5) has effect of always snapping the tabs, while setting to minimum (0) has effect of disabling tab snapping.. */
+         /** Defines distance from edge in percent of tab's width in which the tab auto-aligns. Setting to maximum (0.5) has effect of always snapping the tabs, while setting to minimum (0) has effect of disabling tab snapping. */
          object `snapDistanceCoefficient(S)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Snap distance coefficient (S)"""
@@ -951,7 +951,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Required distance from edge at which tabs align. Tab snap activates if at least one condition is fulfilled min distance or min fraction.. */
+         /** Required distance from edge at which tabs align. Tab snap activates if at least one condition is fulfilled min distance or min fraction. */
          object `snapDistance(S)`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Snap distance (S)"""
@@ -968,7 +968,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Zoom factor. */
+         /** Zoom factor */
          object `zoom`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Zoom"""
@@ -990,7 +990,7 @@ Features:
          /** Name of the group. */
          const val name = "Form"
 
-         /** Initial value of forms' editors' layout.. */
+         /** Initial value of forms' editors' layout. */
          object `layout`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Layout"""
@@ -1012,7 +1012,7 @@ Features:
          /** Name of the group. */
          const val name = "View"
 
-         /** Covered area. Screen overlay provides more space than window, but it can disrupt work flow.. */
+         /** Covered area. Screen overlay provides more space than window, but it can disrupt work flow. */
          object `overlayArea`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Overlay area"""
@@ -1029,7 +1029,7 @@ Features:
             /** Editability of the config. */
             override val editable = EditMode.USER
          }
-         /** Background image source. */
+         /** Background image source */
          object `overlayBackground`: ConfigDefinition {
             /** Compile-time constant equivalent to [name]. */
             const val cname: String = """Overlay background"""
@@ -1050,7 +1050,7 @@ Features:
             /** Name of the group. */
             const val name = "Action Viewer"
 
-            /** Closes the chooser when action finishes running.. */
+            /** Closes the chooser when action finishes running. */
             object `closeWhenActionEnds`: ConfigDefinition {
                /** Compile-time constant equivalent to [name]. */
                const val cname: String = """Close when action ends"""
@@ -1072,7 +1072,7 @@ Features:
             /** Name of the group. */
             const val name = "Shortcut Viewer"
 
-            /** Displays only shortcuts that have keys assigned. */
+            /** Displays only shortcuts that have keys assigned */
             object `hideUnassignedShortcuts`: ConfigDefinition {
                /** Compile-time constant equivalent to [name]. */
                const val cname: String = """Hide unassigned shortcuts"""

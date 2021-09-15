@@ -20,8 +20,8 @@ class ContainerBi: Container<ContainerBiUi> {
    val orientation by cv(VERTICAL).def(name = "Orientation", info = "Orientation of this container.")
    /**
     * Position of the divider in not collapsed state.
-    * * `[0,1]` range if [absoluteSize] 0
-    * * `[0, Infinity)` range of width ([orientation] == [HORIZONTAL]) or height ([orientation] == [VERTICAL]) of the absolute child if [absoluteSize] 1 or 2.
+    * * `0-1` range if [absoluteSize] 0
+    * * `0-Infinity` range of width ([orientation] == [HORIZONTAL]) or height ([orientation] == [VERTICAL]) of the absolute child if [absoluteSize] 1 or 2.
     *
     * This value goes hand in hand with [absoluteSize], which is the dominant property in this relationship. Therefore:
     * * This value must be set to value required by [absoluteSize].

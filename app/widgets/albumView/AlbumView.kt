@@ -533,7 +533,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
                   // Has a positive effect when hundreds of covers load at once
                   sleep(5)
 
-                  // Executing this on FX thread would allow us avoid volatiles for invalid checks and futures
+                  // Executing this on FX thread would allow us to avoid volatiles for invalid checks and futures
                   // I do not know which is better. Out of fear we will need thread-safety in the future, I'm using this approach
                   if (!isInvalid(item, i))
                      item.computeCover(size) ui { setCoverPost(item, i, it.file, it.image) }

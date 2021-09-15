@@ -34,7 +34,7 @@ interface Cover {
       TAG,
       /** Use parent directory image as source */
       DIRECTORY,
-      /** Use all of the sources in their respective order and return first find */
+      /** Use all sources in their respective order and return first find */
       ANY
    }
 
@@ -62,7 +62,7 @@ data class FileCover(private val file: File?, private val description: String? =
 class ImageCover: Cover {
    private val imageI: Image?
    private val imageB: BufferedImage?
-   /** Human readable information about the cover or null if none. No guarantees about the format. */
+   /** Human-readable information about the cover or null if none. No guarantees about the format. */
    val description: String?
 
    constructor(image: Image?, description: String?) {

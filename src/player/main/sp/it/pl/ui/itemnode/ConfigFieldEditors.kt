@@ -452,7 +452,7 @@ class KeyCodeCE(c: Config<KeyCode?>): EnumerableCE<KeyCode?>(c) {
 //      editor.onKeyTyped = EventHandler { it.consume() }
       editor.onEventUp(KEY_PRESSED) {
          // UP, DOWN, LEFT, RIGHT arrow keys and potentially others (any which cause selection change) do not fire
-         // KEY_PRESSED event. Hence set the KeyEvent.ANY. Causes the value to be set twice, but that's idempotent
+         // KEY_PRESSED event. Hence, set the KeyEvent.ANY. Causes the value to be set twice, but that's idempotent
          if (isEditable.value && it.code!=UNDEFINED && !it.code.isArrowKey && !it.code.isNavigationKey && it.code!=TAB && it.code!=SPACE) {
             editor.value = it.code
          }
@@ -1285,8 +1285,8 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
                is ScrollEvent -> it.deltaY.sign.roundToInt() * (if (it.isShortcutDown) 10 else 1)
                else -> throw SwitchException(it)
             }
-            val ov = config.value.asIs<T?>() ?: caster(0)
-            val nv = when {
+            val ov: T = config.value.asIs() ?: caster(0)
+            val nv: T = when {
                ov==min && dv<0 -> ov
                ov==max && dv>0 -> ov
                else -> {

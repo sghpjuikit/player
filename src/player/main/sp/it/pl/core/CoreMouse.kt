@@ -10,7 +10,7 @@ import sp.it.util.reactive.Subscription
 import sp.it.util.units.div
 import sp.it.util.units.seconds
 
-/** Provides access to mouse position and mouse speed. By default lazy, i.e., consumes resources only if observed. */
+/** Provides access to mouse position and mouse speed. By default, lazy, i.e., consumes resources only if observed. */
 object CoreMouse: Core {
    private const val pulseFrequency = 10 // Hz
    private var pulse: FxTimer? = null
@@ -30,7 +30,7 @@ object CoreMouse: Core {
       return Subscription { unsubscribe(action) }
    }
 
-   /** Observe mouse position in in px/second. */
+   /** Observe mouse position speed in px/second. */
    fun observeMouseVelocity(action: (Double) -> Unit): Subscription {
       velocitySubscribers += action
       pulseUpdate()

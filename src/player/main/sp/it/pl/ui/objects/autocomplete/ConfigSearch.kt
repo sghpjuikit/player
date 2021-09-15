@@ -97,7 +97,7 @@ class ConfigSearch: AutoCompletion<Entry> {
                         textField.deleteNextChar()
                         e.consume()
                      } else if (!e.code.isNavigationKey) {
-                        // We re-fire event on text field so we can type even though it
+                        // We re-fire event on text field, so we can type even though it
                         // does not have focus. This causes event stack overflow, so we
                         // defend with a flag.
                         if (!textField.isFocused) {

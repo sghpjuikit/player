@@ -63,10 +63,10 @@ public class AppInstanceComm {
 	 * will receive it. Run when application starts.
 	 */
 	public void fireNewInstanceEvent(List<String> params) {
-		// use rmi to fire an another instance launched event to the
+		// use rmi to fire another instance launched event to the
 		// already running application instance
 		try {
-			// tutorials say we must must set a SecurityManager
+			// tutorials say we must set a SecurityManager
 			// however it forbids the below to execute
 			// maybe because RMISecurityManager is deprecated
 			// if (System.getSecurityManager() == null)

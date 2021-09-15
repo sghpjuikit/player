@@ -17,9 +17,9 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 /**
- * Demo for JavaFX Path Transition and bezier curves.
+ * Demo for JavaFX Path Transition and Bézier curves.
  *
- * @author James_D (github)
+ * @author James_D (GitHub)
  * @see <a href="https://stackoverflow.com/questions/32359955/updating-an-animation-in-javafx-path-transition-over-an-adjustable-curve</a>
  */
 public class BezierDemo extends Application {
@@ -63,13 +63,13 @@ public class BezierDemo extends Application {
 			}
 
 			@Override
-			protected void interpolate(double frac) {
+			protected void interpolate(double at) {
 				Point2D start = new Point2D(curve.getStartX(), curve.getStartY());
 				Point2D control1 = new Point2D(curve.getControlX1(), curve.getControlY1());
 				Point2D control2 = new Point2D(curve.getControlX2(), curve.getControlY2());
 				Point2D end = new Point2D(curve.getEndX(), curve.getEndY());
 
-				Point2D center = bezier(frac, start, control1, control2, end);
+				Point2D center = bezier(at, start, control1, control2, end);
 
 				double width = rectPath.getBoundsInLocal().getWidth() ;
 				double height = rectPath.getBoundsInLocal().getHeight() ;
@@ -77,7 +77,7 @@ public class BezierDemo extends Application {
 				rectPath.setTranslateX(center.getX() - width /2);
 				rectPath.setTranslateY(center.getY() - height / 2);
 
-				Point2D tangent = bezierDeriv(frac, start, control1, control2, end);
+				Point2D tangent = bezierDerive(at, start, control1, control2, end);
 				double angle = Math.toDegrees(Math.atan2(tangent.getY(), tangent.getX()));
 				rectPath.setRotate(angle);
 			}
@@ -107,7 +107,7 @@ public class BezierDemo extends Application {
 		return bezier(t, leftArray).multiply(1-t).add(bezier(t, rightArray).multiply(t));
 	}
 
-	private Point2D bezierDeriv(double t, Point2D... points) {
+	private Point2D bezierDerive(double t, Point2D... points) {
 		if (points.length == 2) {
 			return points[1].subtract(points[0]);
 		}
@@ -115,8 +115,8 @@ public class BezierDemo extends Application {
 		System.arraycopy(points, 0, leftArray, 0, points.length - 1);
 		Point2D[] rightArray = new Point2D[points.length - 1];
 		System.arraycopy(points, 1, rightArray, 0, points.length - 1);
-		return bezier(t, leftArray).multiply(-1).add(bezierDeriv(t, leftArray).multiply(1-t))
-			.add(bezier(t, rightArray)).add(bezierDeriv(t, rightArray).multiply(t));
+		return bezier(t, leftArray).multiply(-1).add(bezierDerive(t, leftArray).multiply(1-t))
+			.add(bezier(t, rightArray)).add(bezierDerive(t, rightArray).multiply(t));
 	}
 
 
@@ -124,7 +124,7 @@ public class BezierDemo extends Application {
 	/**
 	 * Create draggable anchor points
 	 */
-	class Anchor extends Circle {
+	static class Anchor extends Circle {
 		Anchor(Color color, DoubleProperty x, DoubleProperty y) {
 			super(x.get(), y.get(), 10);
 			setFill(color.deriveColor(1, 1, 1, 0.5));
@@ -175,6 +175,6 @@ public class BezierDemo extends Application {
 		}
 
 		// records relative x and y co-ordinates.
-		private class Delta { double x, y; }
+		private static class Delta { double x, y; }
 	}
 }

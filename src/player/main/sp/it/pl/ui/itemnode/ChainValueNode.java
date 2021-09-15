@@ -83,12 +83,12 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		this(1, initialValue, chainedFactory);
 	}
 
-	/** Creates unlimited chain of i initial chained elements. */
+	/** Creates unlimited chain of initial chained elements. */
 	public ChainValueNode(int initialLength, REDUCED_VAL initialValue, Callback<Integer, C> chainedFactory) {
 		this(initialLength, Integer.MAX_VALUE, initialValue, chainedFactory);
 	}
 
-	/** Creates limited chain of i initial chained elements. */
+	/** Creates limited chain of initial chained elements. */
 	public ChainValueNode(int initialLength, int maxChainLength, REDUCED_VAL initialValue, Callback<Integer, C> chainedFactory) {
 		this(initialValue);
 
@@ -231,7 +231,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 		return i>=0 && i<chain.size() && chain.get(i).chained!=null ? chain.get(i).chained.getVal() : null;
 	}
 
-	/** Return individual chained values that are enabled and non null. */
+	/** Return individual chained values that are enabled and non-null. */
 	public Stream<VAL> getValues() {
 		return chain.stream().filter(g -> g.on.getValue())
 				.map(g -> g.chained.getVal())

@@ -235,8 +235,8 @@ public class ActionPane extends OverlayPane<Object> {
 
 	private boolean use_registered_actions = true;
 	private Object data;
-	private List<ActionData> actionsIcons;
-	private final List<ActionData> actionsData = new ArrayList<>();
+	private List<ActionData<?,?>> actionsIcons;
+	private final List<ActionData<?,?>> actionsData = new ArrayList<>();
 	private static final double CONTENT_SIZE_SCALE = 0.65;
 
 	protected void show() {
@@ -260,8 +260,8 @@ public class ActionPane extends OverlayPane<Object> {
 		failIfNotFxThread();
 
 		data = collectionUnwrap(data);
-		Class c = data==null ? Void.class : data.getClass();
-		show(c, data);
+		var c = data==null ? Void.class : data.getClass();
+		show((Class<Object>) c, data);
 	}
 
 	public final <T> void show(Class<T> type, T value) {
@@ -295,7 +295,7 @@ public class ActionPane extends OverlayPane<Object> {
 	@SuppressWarnings("unchecked")
 	private <DATA, NEW_DATA> void doneHide(ActionData<?, DATA> action) {
 		if (action.isComplex) {
-			ComplexActionData<DATA, NEW_DATA> complexAction = (ComplexActionData) action.complexData.invoke(this);
+			var complexAction = (ComplexActionData<DATA, NEW_DATA>) action.complexData.invoke(this);
 			showIcons = false;
 			insteadIcons = () -> (Node) complexAction.gui.invoke((NEW_DATA) action.prepInput(getData()));
 			var newData = complexAction.input.invoke(action.prepInputExact(getData()));
@@ -344,7 +344,6 @@ public class ActionPane extends OverlayPane<Object> {
 			return d;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void setData(Object d) {
 		failIfNotFxThread();
 
@@ -354,7 +353,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 		// set content
 		data = collectionUnwrap(d);
-		boolean isDataReady = !(data instanceof Fut && !((Fut)data).isDone());
+		boolean isDataReady = !(data instanceof Fut && !((Fut<?>)data).isDone());
 		if (isDataReady) {
 			data = collectionUnwrap(futureUnwrapOrThrow(data));
 			setDataInfo(data, true);
@@ -363,7 +362,7 @@ public class ActionPane extends OverlayPane<Object> {
 			setDataInfo(null, false);
 			// obtain data & invoke again
 			data = withProgress(
-				((Fut) data).useBy(FX, this::setData),
+				((Fut<?>) data).useBy(FX, this::setData),
 				dataProgress
 			);
 		}
@@ -380,18 +379,18 @@ public class ActionPane extends OverlayPane<Object> {
 		tablePane.getChildren().clear();
 		var gap = 0.0;
 		var priority = NEVER;
-		if (data instanceof Collection && !((Collection)data).isEmpty()) {
-			Collection<Object> items = (Collection) data;
-			Class itemType = getElementClass(items);
+		if (data instanceof Collection && !((Collection<?>) data).isEmpty()) {
+			Collection<?> items = (Collection<?>) data;
+			Class<?> itemType = getElementClass(items);
 			if (!APP.getClassFields().get(getKotlinClass(itemType)).isEmpty()) {
-				FilteredTable<Object> t = new FilteredTable<>(itemType, null);
+				var t = new FilteredTable<>((Class<Object>) itemType, null);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
-					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV(f.getOf(cf.getValue())));
+					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
 					c.setCellFactory(col -> (TableCell) buildFieldedCell(f));
 					c.setResizable(true);
-					return (TableColumn)c;
+					return (TableColumn<Object, ?>) c;
 				});
 				t.setColumnState(t.getDefaultColumnInfo());
 				tablePane.getChildren().setAll(t.getRoot());
@@ -441,15 +440,15 @@ public class ActionPane extends OverlayPane<Object> {
 		if (use_registered_actions) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
 		actionsData.removeIf(a -> {
 			if (a.groupApply==FOR_ALL) {
-				return (boolean) a.condition.invoke(collectionWrap(d));
+				return ((ActionData<?, Object>) a).condition.invoke(collectionWrap(d));
 			}
 			if (a.groupApply==FOR_EACH) {
-				Stream<Object> ds = d instanceof Collection ? ((Collection)d).stream() : stream(d);
-				return ds.noneMatch(it -> (boolean) a.condition.invoke(it));
+				Stream<Object> ds = d instanceof Collection ? ((Collection<Object>) d).stream() : stream(d);
+				return ds.noneMatch(it -> ((ActionData<?, Object>) a).condition.invoke(it));
 			}
 			if (a.groupApply==NONE) {
 				Object o = collectionUnwrap(d);
-				return o instanceof Collection || !((boolean) a.condition.invoke(o));
+				return o instanceof Collection || !((ActionData<?, Object>) a).condition.invoke(o);
 			}
 			throw new SwitchException(a.groupApply);
 		});
@@ -481,7 +480,7 @@ public class ActionPane extends OverlayPane<Object> {
 				 i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
 
 				 // Long descriptions require scrollbar, but because mouse hovers on icon, scrolling
-				 // is not possible. Hence we detect scrolling above mouse and pass it to the
+				 // is not possible. Hence, we detect scrolling above mouse and pass it to the
 				 // scrollbar. A bit unintuitive, but works like a charm and description remains
 				 // fully readable.
 				 i.addEventHandler(ScrollEvent.ANY, e -> {

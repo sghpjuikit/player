@@ -91,7 +91,6 @@ allprojects {
    repositories {
       mavenCentral()
       maven("https://jitpack.io")
-      maven("https://sandec.jfrog.io/artifactory/repo")
    }
 
    dependencies {
@@ -99,9 +98,9 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.1")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.1")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.5.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.5.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.5.2")
          implementation("org.jetbrains", "annotations", "22.0.0")
       }
 
@@ -138,12 +137,12 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "4.0.0")
+         implementation("com.github.f4b6a3", "uuid-creator", "4.1.1")
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
-         implementation("com.github.oshi", "oshi-core", "5.8.1")
+         implementation("com.github.oshi", "oshi-core", "5.8.2")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.62.2")
       }
 
@@ -169,8 +168,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.6.2")
-         implementation("io.ktor", "ktor-client-cio", "1.6.2")
+         implementation("io.ktor", "ktor-server-core", "1.6.3")
+         implementation("io.ktor", "ktor-client-cio", "1.6.3")
       }
 
       "Test" group {

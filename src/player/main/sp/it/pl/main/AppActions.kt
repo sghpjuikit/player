@@ -400,7 +400,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
    val openGithubPage = fastAction<AppHelp>("Open Github page", "Opens Github page for this application.", IconFA.GITHUB) {
-      APP.githubUri.browse()
+      APP.projectGithubUri.browse()
    }
 
    val openCssReferenceGuide = fastAction<AppHelp>("Open css guide", "Opens skin css reference guide.", IconFA.CSS3) {

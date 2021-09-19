@@ -140,7 +140,9 @@ class App: Application(), GlobalConfigDelegator {
    /** Home directory of the os. */
    val locationHome = File(System.getProperty("user.home")) apply_ verify
    /** Uri for GitHub website for project of this application. */
-   val githubUri = uri("https://www.github.com/sghpjuikit/player/")
+   val projectGithubUri = uri("https://www.github.com/sghpjuikit/player/")
+   /** Uri for JetBrains Space website for project of this application. */
+   val projectSpaceUri = uri("https://spit.jetbrains.space")
    /** Process of this application. Same as [ProcessHandle.current] */
    val process = ProcessHandle.current()!!
 
@@ -340,7 +342,7 @@ class App: Application(), GlobalConfigDelegator {
 
             AppEventLog.push(
                "Application did not start successfully and will close.",
-               "Please fill an issue at $githubUri providing the logs in ${location.user.log}." +
+               "Please fill an issue at $projectGithubUri providing the logs in ${location.user.log}." +
                "\nThe exact problem was:\n ${it.stacktraceAsString}"
             )
             AppEventLog.showDetailForLastError()

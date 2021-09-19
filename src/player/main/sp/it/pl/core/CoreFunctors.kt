@@ -17,6 +17,7 @@ import java.util.Objects
 import java.util.UUID
 import java.util.regex.Pattern
 import javafx.util.Duration
+import kotlin.reflect.KClass
 import kotlin.streams.asSequence
 import kotlin.streams.toList
 import kotlin.text.Charsets.UTF_8
@@ -140,8 +141,10 @@ object CoreFunctors: Core {
          val pRegex = p("Regex", "Regular expression", Pattern.compile(""))
 
          add("Is null", type<Any?>(), B, IS0)
-         add("Class (Kotlin)", type<Any?>(), type<Class<*>>()) { if (it==null) Nothing::class else it::class }
+         add("Class (Kotlin)", type<Any?>(), type<KClass<*>>()) { if (it==null) Nothing::class else it::class }
          add("Class (Java)", type<Any?>(), type<Class<*>>()) { if (it==null) Void::class.java else it::class.java }
+         add("Is", type<Class<*>>(), B, p<Class<*>>(Unit::class.java)) { it, c -> it===c }
+         add("Is", type<KClass<*>>(), B, p<KClass<*>>(Unit::class)) { it, c -> it===c }
          add("Type", type<Any?>(), type<VType<Any?>>()) { it.estimateRuntimeType() }
          add("To String", type<Any?>(), S) { Objects.toString(it) }
          add("To application UI text", type<Any?>(), S) { it.toUi() }

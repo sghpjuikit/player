@@ -23,7 +23,9 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.FILE
+import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.find1stExistingParentDir
+import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.toFast
 import sp.it.util.file.toFileOrNull
@@ -75,7 +77,9 @@ object EnvironmentContext {
 @JvmOverloads
 fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<Process> {
    return runIO {
-      val commandRaw = listOf(absolutePath, *arguments)
+      val f = if (Os.WINDOWS.isCurrent && hasExtension("lnk")) WindowsShortcut.targetedFile(this).orNull() ?: this
+              else this
+      val commandRaw = listOf(f.absolutePath, *arguments)
       val command = runAsProgramArgsTransformer(commandRaw)
       val process = ProcessBuilder(command)
          .directory(parentDirOrRoot)
@@ -370,14 +374,14 @@ private fun File.openWindowsExplorerAndSelect() =
    }
 
 /**
- * This is best estimate only, and only checks file extension.
+ * This is best estimate only.
  *
  * @return true if the file is an executable file
  */
 @Blocks(false)
 fun File.isExecutable(): Boolean = when (Os.current) {
-   Os.WINDOWS -> path.endsWith(".exe", true) || path.endsWith(".bat", true)
-   else -> path.endsWith(".sh")
+   Os.WINDOWS -> hasExtension("exe", "bat") || (this.hasExtension("lnk") && WindowsShortcut.targetedFile(this).orNull()?.isExecutable()==true)
+   else -> hasExtension("sh")
 }
 
 var Window.hasFileChooserOpen: Boolean

@@ -58,7 +58,7 @@ open class Picker<E> {
    val root = ScrollPane(tiles)
    /** Invoked when item is selected. Default implementation does nothing. */
    var onSelect: (E) -> Unit = {}
-   /** Invoked when user user cancels the picking. Default implementation does nothing. */
+   /** Invoked when user cancels the picking. Default implementation does nothing. */
    var onCancel: () -> Unit = {}
    /** It may be desirable to consume the mouse click event that caused the cancellation. Default false. */
    var consumeCancelEvent = false
@@ -66,7 +66,7 @@ open class Picker<E> {
    var iconConverter: (E) -> GlyphIcons? = { null }
    /** Cell text factory producing name/title of the item. Default implementation calls [Any.toString] */
    var textConverter: (E) -> String = Any?::toString
-   /** Cell detail text text factory producing description of the item. Default implementation returns empty string. */
+   /** Cell detail text factory producing description of the item. Default implementation returns empty string. */
    var infoConverter: (E) -> String = { "" }
    /** Supplier that returns items to be displayed. Default implementation returns empty sequence. */
    var itemSupply: () -> Sequence<E> = { sequenceOf() }
@@ -150,7 +150,7 @@ open class Picker<E> {
    }
 
    @Suppress("UNCHECKED_CAST")
-   private fun getCells() = tiles.children.filter { !it.properties.containsKey(KEY_EMPTY_CELL) } as List<Region>
+   private fun getCells() = tiles.children.filter { KEY_EMPTY_CELL !in it.properties } as List<Region>
 
    private inner class CellPane: Pane() {
 

@@ -4,7 +4,7 @@ import javafx.stage.Window as WindowFX
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
-import java.lang.ProcessBuilder.Redirect
+import java.lang.ProcessBuilder.Redirect.PIPE
 import java.net.URI
 import java.net.URLClassLoader
 import java.nio.file.Path
@@ -536,11 +536,11 @@ class WidgetManager {
 
             val process = ProcessBuilder(command)
                .directory(APP.location)
-               .redirectOutput(Redirect.PIPE)
-               .redirectError(Redirect.PIPE)
+               .redirectOutput(PIPE)
+               .redirectError(PIPE)
                .start()
 
-            process.waitFor(1, TimeUnit.MINUTES)
+            process.waitFor(90, TimeUnit.SECONDS)
 
             val success = process.exitValue()
             val textStdout = process.inputStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()

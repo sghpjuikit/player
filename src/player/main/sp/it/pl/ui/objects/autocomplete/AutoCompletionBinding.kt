@@ -115,7 +115,7 @@ abstract class AutoCompletionBinding<T> {
    abstract fun dispose()
 
    /** Set the current text the user has entered */
-   protected fun updateSuggestions(userText: String) {
+   fun updateSuggestions(userText: String) {
       if (!ignoreInputChanges)
          suggestionProviderEventReducer.push(userText)
    }

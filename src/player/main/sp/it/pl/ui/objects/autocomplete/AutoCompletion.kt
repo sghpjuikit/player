@@ -33,6 +33,7 @@ import java.util.Objects
 import javafx.scene.control.TextInputControl
 import javafx.scene.input.KeyCode.SPACE
 import javafx.scene.input.KeyEvent.KEY_PRESSED
+import sp.it.util.functional.asIf
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -88,6 +89,7 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
 
       fun <T> autoComplete(textField: TextInputControl, suggestionProvider: (String) -> Collection<T>, converter: (T) -> String): Subscription {
          val a = AutoCompletion(textField, suggestionProvider, converter)
+         textField.properties["autocomplete"] = a
          return Subscription { a.dispose() }
       }
 
@@ -97,6 +99,8 @@ open class AutoCompletion<T>: AutoCompletionBinding<T> {
 
       @SafeVarargs
       fun <T> autoComplete(textField: TextInputControl, vararg suggestionProvider: T) = autoComplete(textField, listOf(suggestionProvider))
+
+      inline fun <reified T> of(textField: TextInputControl): AutoCompletion<T>? = textField.properties["autocomplete"].asIf()
 
    }
 

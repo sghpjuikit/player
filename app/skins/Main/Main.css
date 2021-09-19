@@ -2252,13 +2252,6 @@ Shape, Text, SpitText, TextFlow > * {
 /*
  * inherits: .value-text-field
  */
-.mood-text-field {
-    -fx-pref-column-count: 10;
-}
-
-/*
- * inherits: .value-text-field
- */
 .file-text-field {
     -fx-pref-column-count: 10;
 }

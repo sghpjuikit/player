@@ -4,7 +4,87 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2021 09 19]
+
+- Added smart window resize (`window drag + SHIFT + LMB`) - resize window to available screen area  
+  This behavior may be tweaked in the future, and leveraged more extensively.
+- Fix wrong table group column name in some table column menus
+- Implement running programs through .lnk files
+- Implement `Class` & `KClass` editor autocomplete  
+  It is difficult to obtain loaded class list, so instead hardcoded list is provided by developer in form of a resource file.
+  More entries may be added to the list in the future.
+- Improve markdown styling and UX
+- clean up code, fix warnings
+
+## [2021 09 10]
+
+- Much improved handling of song's `TAGS: Set<String>` tag. The field:
+  - has better editor
+  - is displayed and can be quick-edited through **FileInfo** widget
+  - supports autocompletion
+  - supports song table grouping
+- improved song chapters support in **PlayerControlsCircle** widget's circular seeker
+  - layout and sizing issues
+  - chapter hover effect
+  - chapter click shows chapter popup & edit
+- more converting functions
+- fixes related to styling `MenuBar`, song tagging (`wav`), threading issues, reflection, and more
+
+The tags grouping was tricky, because it is a multivalued tag.
+Now that multivalued tags are supported, artist tag could also become `List<String>`, which would fix long-standing issue of grouping by artist.
+Adding song chapters through circular seeker is ot yet done, because it is not clear what the UX should be like.
+
+## [2021 09 03]
+
+- improved **Node** widget with better context menu & class suggestions. Also renamed to **Custom**.
+- Improved ComboBox styling & autocompletion UX
+- Improved table sorting through context menu & add playlist table sorting by db columns. It is finally possible to sort playlist by rating
+- Improve **Converter** widget layout and Action settings
+- Improved TextArea context menu
+- Improve markdown node (drag&drop, anchors, animations)
+- Improve ContainerFreeForm (resizing, absolute sizes, position aligning)
+- Simplify window header & introduce window context menus
+- Unify App actions, App context menu, Tray context menu, Window context menu
+- More minor tweaks
+
+The new context menus are an important addition and solve the issue of feature discoverability. I wanted to avoid this for years, but there simply is no better (compact) way. Anyway, now I can add Help/Documentation/About pages
+
+The markdown still needs more work with link resolving as well as file monitoring and automatic reload. [RichTextFX](https://github.com/FXMisc/RichTextFX) may be used to produce more optimized and powerful UI.
+
+## [2021 08 27]
+
+- Support for Markdown text was implemented.
+  - **GameView** widget is now using this for game info
+  - new **GitProjects** widget has been implemented to browse git projects. It simply lists git projects in a directory and shows the `README.md` files. More features may come later
+- **Kotlin** `1.5.30`. In the future I'll use gradle jvm toolchain so JVM sets up automatically. This will alleviate the remaining pains when setting up the project.
+- Added cool stuff to **Voronoi** visualisation widget
+
+Finally, an app user documentation can be written, as markdown of course. This will take a while and probably result in improving UX all around.
+
+What's next? Well, as is, the application is very polished and has a lot of powerful features. I'd consider this state more or less ready for making available to anyone out there.
+
+1. Right now, I'd like to keep improving the window system to make it easier to set up desktop-level widgets.
+   Improving the Node widget will be necessary as well as discovery of recommended ui components for Node widget.
+   This also involves more FreeFormContainer features, such as absolute resizing, snapping and styling.
+1. I also want to integrate context menus and object actions (icons in `ActionPane` overlay) more closely, so that these are merely a different UX for the same thing.
+   This requires implicit action parameter handling in menu (probably by displaying a Form for each parameter) and more convenient navigation in `ActionPane` (back & forth, custom ui, etc.).
+   This also several other technicalities, so it will be challenging to come up with pleasant solution.
+   The actions will probably end up defined as custom objects (and registered in global pool) rather than ordinary functions, which is unfortunate, but maybe special delegated properties could help.
+1. Better initial experience & application documentation would also be nice, for example there is still no **About page**.
+   Window headers are also too cluttered, maybe ordinary menu bar would be a better idea. Window headers could be their own components as well.
+
+## [2021 08 21]
+
+- improved how windows & window headers auto-hide and improved styling. The reworked functionalities make the application much more pleasant to use.
+- improved `GpuNvidiaInfo` UI, although it requires more work.
+
+## [2021 08 19]
+
+- improved documentation, provided commands to build executable application from source  
+  I'm thinking this may actually be better than doing releases, will see.
+- improved `Container`s. They now have settings and support padding. Free-form has several issues fixed, further improving its use in various use-cases.
+
+## Older
 
 ### Added
 - Rename application to `Spit Player`

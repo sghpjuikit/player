@@ -292,7 +292,6 @@ public class MdNodeHelper extends VBox {
 			VBox oldRoot = root;
 
 			VBox newRoot = new VBox();
-			newRoot.getStyleClass().add("markdown-vbox1");
 			newRoot.getStyleClass().add("markdown-paragraph-list");
 			newRoot.setFillWidth(true);
 
@@ -303,7 +302,6 @@ public class MdNodeHelper extends VBox {
 			dot.getStyleClass().add("markdown-text");
 
 			HBox hbox = new HBox();
-			hbox.getStyleClass().add("markdown-hbox1");
 			hbox.getChildren().add(dot);
 			hbox.setAlignment(Pos.TOP_LEFT);
 			HBox.setHgrow(newRoot,Priority.ALWAYS);
@@ -506,8 +504,6 @@ public class MdNodeHelper extends VBox {
 			flow = new TextFlow();
 			flow.getStyleClass().add("markdown-normal-flow");
 			TextFlow container = flow;
-			//  println("grid: " + grid)
-			//  javafx.scene.layout.GridPane.setHGrow(container, ALWAYS)
 			flow.setPrefWidth(9999);
 			flow.getStyleClass().add("markdown-table-cell");
 			if (gridY== 0) {

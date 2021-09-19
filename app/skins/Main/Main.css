@@ -3810,13 +3810,3 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-border-insets: 10 10 10 10;
     -fx-padding: 10 10 10 10;
 }
-
-/*
-.markdown-hbox1 {
-  -fx-background-color: red;
-}
-.markdown-vbox1 {
-  -fx-background-color: orange;
-}
-*/
-

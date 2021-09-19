@@ -139,7 +139,6 @@ public class MdNodeHelper extends VBox {
 			this.getChildren().add(root);
 			return null;
 		});
-
 	}
 
 
@@ -278,6 +277,12 @@ public class MdNodeHelper extends VBox {
 
 				flow.getStyleClass().add("markdown-heading-" + heading.getLevel());
 				flow.getStyleClass().add("markdown-heading");
+				flow.addEventHandler(MOUSE_CLICKED, e -> {
+					if (e.getButton() == PRIMARY) {
+						parent.scrollToAnchor(heading.getAnchorRefText().replace(" ", "-"));
+						e.consume();
+					}
+				});
 
 				visitor.visitChildren(heading);
 			}

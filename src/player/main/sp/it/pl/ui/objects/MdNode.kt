@@ -34,7 +34,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.system.open
 import sp.it.util.ui.lay
-import sp.it.util.ui.lookupChildAs
+import sp.it.util.ui.lookupChildAsOrNull
 import sp.it.util.ui.scrollPane
 import sp.it.util.units.millis
 
@@ -62,21 +62,9 @@ class MdNode: StackPane() {
             }
             override fun setLink(node: Node, link: String, description: String) {
                node.onEventDown(MOUSE_CLICKED, PRIMARY) {
-                  val isAnchor = link.startsWith("#")
-                  if (isAnchor) {
-                     val anchor = link.trim().drop(1)
-                     val content = children[0].asIs<MdNodeHelper>()
-                     content.lookupAll(".markdown-heading")
-                        .find { it.lookupChildAs<Text>().text.replace(' ', '-').equals(anchor, true) }
-                        .ifNotNull {
-                           val anchorPosition = content.sceneToLocal(it.localToScene(it.layoutBounds)).minY
-                           val virtualHeight = this@scrollPane.content.layoutBounds.height-this@scrollPane.height
-                           val ov = this@scrollPane.vvalue
-                           val nv = anchorPosition/virtualHeight
-                           anim(250.millis) { this@scrollPane.vvalue = ov + it*(nv-ov) }.intpl { sqrt(sin(Math.PI/2*it)) }.play()
-                        }
-                  } else {
-                     runTry { URI(link.trim()).resolveAsLink() }.orNull()?.open()
+                  when {
+                     link.startsWith("#") -> scrollToAnchor(link)
+                     else -> runTry { URI(link.trim()).resolveAsLink() }.orNull()?.open()
                   }
                }
             }
@@ -94,6 +82,20 @@ class MdNode: StackPane() {
 //                        }.pane
                      }
                      ?: Group()
+               }
+            }
+
+            override fun scrollToAnchor(anchor: String) {
+               println(anchor)
+               val content = children[0].asIs<MdNodeHelper>()
+               val anchorText = anchor.trim().removePrefix("#")
+               val anchorNode = content.lookupAll(".markdown-heading").find { it.lookupChildAsOrNull<Text>()?.text?.replace(' ', '-').equals(anchorText, true) }
+               anchorNode.ifNotNull {
+                  val anchorPosition = content.sceneToLocal(it.localToScene(it.layoutBounds)).minY
+                  val virtualHeight = this@scrollPane.content.layoutBounds.height-this@scrollPane.height
+                  val ov = this@scrollPane.vvalue
+                  val nv = anchorPosition/virtualHeight
+                  anim(250.millis) { this@scrollPane.vvalue = ov + it*(nv - ov) }.intpl { sqrt(sin(Math.PI/2*it)) }.play()
                }
             }
          }

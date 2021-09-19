@@ -1,4 +1,3 @@
-
 /*
    Copied and adapted from `com.sandec.mdfx.impl.MDFXNodeHelper` from JPro-one/markdown-javafx-renderer (https://github.com/JPro-one/markdown-javafx-renderer)
 

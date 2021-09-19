@@ -45,4 +45,5 @@ open class MdNodeContent: VBox() {
 
    open fun generateImage(url: String): Node = Group()
 
+   open fun scrollToAnchor(anchor: String): Unit = Unit
 }

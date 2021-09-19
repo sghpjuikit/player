@@ -18,6 +18,7 @@ import mu.KLogging
 import sp.it.pl.audio.PlayerManager
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.conf.Command
+import sp.it.pl.core.CoreConfiguration
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.core.CoreEnv
 import sp.it.pl.core.CoreFunctors
@@ -202,7 +203,10 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    /** Configuration core. */
-   val configuration = MainConfiguration.apply { rawAdd(location.user.application_properties) }
+   val configuration = MainConfiguration.apply {
+      rawAdd(location.user.application_properties)
+      CoreConfiguration
+   }
 
    /** Logging core. */
    val logging = CoreLogging(location.resources/"log_configuration.xml", location.user.log, actionStream)

@@ -130,20 +130,37 @@ object `AppLocation`: Dir(File("").absolutePath) {
       /** Description of this file. Compile-time constant. Same as documentation for this object. */
       const val fileDescription: String = """Directory containing application resources."""
    
-      /** File child [`Moods_txt`]. */
-      val `moods_txt` = `Moods_txt`
+      /** File child [`Moods_yml`]. */
+      val `moods_yml` = `Moods_yml`
       
       /**
        * Compile-time object representing file `File("").absolutePath/"resources"`, usable in annotations.
        * 
-       * File containing predefined audio mood tag values. Value per line. UTF8.
+       * Contains predefined audio mood tag values. Value per line. UTF8. For autocompletion.
        */
-      object `Moods_txt`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.txt") {
+      object `Moods_yml`: Fil(File("").absolutePath + separator + "resources" + separator + "moods.yml") {
       
-         /** Same as [getName]. Compile-time constant. `moods.txt`.*/
-         const val fileName: String = """moods.txt"""
+         /** Same as [getName]. Compile-time constant. `moods.yml`.*/
+         const val fileName: String = """moods.yml"""
          /** Description of this file. Compile-time constant. Same as documentation for this object. */
-         const val fileDescription: String = """File containing predefined audio mood tag values. Value per line. UTF8."""
+         const val fileDescription: String = """Contains predefined audio mood tag values. Value per line. UTF8. For autocompletion."""
+      
+      }
+
+      /** File child [`Classes_yml`]. */
+      val `classes_yml` = `Classes_yml`
+      
+      /**
+       * Compile-time object representing file `File("").absolutePath/"resources"`, usable in annotations.
+       * 
+       * Contains predefined classes' fully qualified names. Value per line. UTF8. For autocompletion.
+       */
+      object `Classes_yml`: Fil(File("").absolutePath + separator + "resources" + separator + "classes.yml") {
+      
+         /** Same as [getName]. Compile-time constant. `classes.yml`.*/
+         const val fileName: String = """classes.yml"""
+         /** Description of this file. Compile-time constant. Same as documentation for this object. */
+         const val fileDescription: String = """Contains predefined classes' fully qualified names. Value per line. UTF8. For autocompletion."""
       
       }
 

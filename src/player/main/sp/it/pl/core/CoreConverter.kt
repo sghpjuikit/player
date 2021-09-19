@@ -329,7 +329,7 @@ object CoreConverter: Core {
       )
       addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
       addP<Effect>(fx.toConverterOf<Effect?>().asIs())
-      addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it) })
+      addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it, false, null) })
       addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) {
          val defaultKClassToStringPrefix = "class"
          val sanitized = it.trim().removePrefix(defaultKClassToStringPrefix).trim()
@@ -337,7 +337,7 @@ object CoreConverter: Core {
             "kotlin.Any" -> Any::class
             "kotlin.Unit" -> Unit::class
             "kotlin.Nothing" -> Nothing::class
-            else -> Class.forName(sanitized).kotlin
+            else -> Class.forName(sanitized, false, null).kotlin
          }
 
       })

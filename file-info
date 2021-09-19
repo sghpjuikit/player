@@ -17,8 +17,10 @@ app {
   }
   # Directory containing application resources.
   resources {
-    # File containing predefined audio mood tag values. Value per line. UTF8.
-    moods.txt
+    # Contains predefined audio mood tag values. Value per line. UTF8. For autocompletion.
+    moods.yml
+    # Contains predefined classes' fully qualified names. Value per line. UTF8. For autocompletion.
+    classes.yml
     # Directory containing application icons.
     icons {
       # Icon, 16px.

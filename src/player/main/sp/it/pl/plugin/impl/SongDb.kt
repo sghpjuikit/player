@@ -53,7 +53,7 @@ class SongDb {
       if (running) return
       running = true
 
-      moods = APP.location.resources.moods_txt.readTextTry().orNull().orEmpty().lineSequence().sorted().toCollection(LinkedHashSet())
+      moods = APP.location.resources.moods_yml.readTextTry().orNull().orEmpty().lineSequence().filterNot { it.startsWith("#") || it.isBlank() }.sorted().toCollection(LinkedHashSet())
       runIO { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
    }
 

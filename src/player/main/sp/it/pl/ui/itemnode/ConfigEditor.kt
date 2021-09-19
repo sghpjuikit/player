@@ -27,11 +27,14 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
+import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmErasure
 import sp.it.pl.core.UiStringHelper
 import sp.it.pl.layout.WidgetManager
 import sp.it.pl.main.appTooltip
 import sp.it.pl.plugin.PluginManager
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.textfield.EffectTextField.Companion.EFFECT_TYPES
 import sp.it.util.access.OrV.OrValue
@@ -46,6 +49,7 @@ import sp.it.util.conf.CheckList
 import sp.it.util.conf.CheckListConfig
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
+import sp.it.util.conf.ConfigurationContext
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.Constraint.ObjectNonNull
@@ -61,6 +65,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
+import sp.it.util.type.rawJ
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.units.millis
 
@@ -330,7 +335,16 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             }
             config.isComplex() -> ComplexCE(config.asIs())
             config.isMinMax() -> SliderCE(config.asIs())
-            else -> editorBuilders[config.type.jvmErasure]?.invoke(config) ?: GeneralCE(config)
+            else -> null
+               ?: editorBuilders[config.type.jvmErasure]?.invoke(config)
+               ?: GeneralCE(config).apply {
+                  if (!config.hasConstraint<Constraint.ValueSealedSet<*>>() && !config.hasConstraint<Constraint.ValueUnsealedSet<*>>() && AutoCompletion.of<Any?>(editor)==null) {
+                     when (config.type.rawJ) {
+                        Class::class.java -> autoComplete(editor) { text -> ConfigurationContext.unsealedEnumeratorClasses.filter { it.contains(text, true) } }
+                        KClass::class.java -> autoComplete(editor) { text -> ConfigurationContext.unsealedEnumeratorClasses.filter { it.contains(text, true) } }
+                     }
+                  }
+               }
          }.apply {
             editor.onNodeDispose += { disposer() }
          }.asIs()

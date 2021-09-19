@@ -25,6 +25,7 @@ Shape, Text, TextFlow > *,
 }
 .hyperlink,
 .markdown-link,
+.markdown-code-background,
 .color-picker-label {
     -fx-effect: none;
 }

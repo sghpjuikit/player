@@ -3672,8 +3672,8 @@ Shape, Text, SpitText, TextFlow > * {
 * {
     -mdfx-font-color: -skin-def-font-color;
     -mdfx-link-color: -skin-focus-font-color;
-    -mdfx-bq-color-border: #4488cc; /* the blockquote's border color */
-    -mdfx-bq-color-background: #0000ff0c; /* the blockquote's background color */
+    -mdfx-bq-color-border: rgba(255,255,255,0.2);
+    -mdfx-bq-color-background: #0000ff0c;
 }
 
 .markdown-text {
@@ -3757,27 +3757,23 @@ Shape, Text, SpitText, TextFlow > * {
 }
 .markdown-codeblock-box,
 .markdown-code-background {
-    -fx-padding: 0.5em;
+    -fx-padding: 1em;
     -fx-border-radius: 0.5em;
-    -fx-border-color: -mdfx-border-color-1;
+    -fx-border-color: -mdfx-bq-color-border;
     -fx-border-width: 0.5;
     -fx-background-radius: 0.5em;
-    -fx-background-color: #00000009; /*  -mdfx-bg-color-3*/
-}
-.markdown-code-background {
-    -fx-border-width: 0;
-    -fx-background-color: #0000AA10;  /*  -mdfx-bg-color-3*/
+    -fx-background-color: #FFFFFF05;
 }
 
 .markdown-code-anti-padding {
     -fx-translate-x: 100;
 }
 .markdown-codeblock-box-icon-box {
-    -fx-padding: -0.5em;
+    -fx-padding: -1em;
 }
 .markdown-codeblock-box-icon-box .icon {
     -glyph-size: 1em;
-    -fx-border-color: -mdfx-border-color-1;
+    -fx-border-color: -mdfx-bq-color-border;
     -fx-border-width: 0.5 0 0 0.5;
     -fx-border-radius: 0.5em 0 0 0;
 }
@@ -3788,7 +3784,7 @@ Shape, Text, SpitText, TextFlow > * {
 }
 .markdown-table-cell {
     -fx-padding: 8;
-    -fx-border-color: rgba(255,255,255,0.05);
+    -fx-border-color: rgba(255,255,255,0.1);
     -fx-border-width: 0.5;
 }
 .markdown-table-even {

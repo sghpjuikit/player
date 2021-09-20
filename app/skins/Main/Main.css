@@ -3736,7 +3736,7 @@ Shape, Text, SpitText, TextFlow > * {
 .markdown-paragraph-list {
     -fx-spacing: 1.5em;
 }
-.markdown-listitem-dot {
+.markdown-list-item-dot {
     -fx-font-size: 1em;
     -fx-text-fill: -mdfx-font-color;
 }

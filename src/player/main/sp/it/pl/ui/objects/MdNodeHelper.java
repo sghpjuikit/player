@@ -298,7 +298,7 @@ public class MdNodeHelper extends VBox {
 			orderedListCounter += 1;
 
 			Label dot = new Label(text);
-			dot.getStyleClass().add("markdown-listitem-dot");
+			dot.getStyleClass().add("markdown-list-item-dot");
 			dot.getStyleClass().add("markdown-text");
 
 			HBox hbox = new HBox();

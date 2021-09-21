@@ -93,7 +93,8 @@ import sp.it.pl.ui.objects.complexfield.TagTextField.EditableBy.PLUS_NODE
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.parsing.ConverterFromString
-import sp.it.util.ui.Util
+import sp.it.util.reactive.attach
+import sp.it.util.ui.Util.computeTextWidth
 import sp.it.util.units.em
 
 private typealias MField = Metadata.Field<*>
@@ -276,11 +277,15 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
    private inner class TagsField(semanticIndex: Int): LField(semanticIndex, TAGS) {
       private val originalItems = mutableSetOf<String>()
-      private val textTag = TagTextField(
+      private val textTag = object: TagTextField<String>(
          object: ConverterFromString<String> {
             override fun ofS(s: String) = if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
          }
-      )
+      ) {
+         // the textTag need to shrink based on available space
+         init { this@TagsField.widthProperty() attach { requestLayout() } }
+         override fun computePrefWidth(height: Double) = this@TagsField.width - graphicTextGap - computeTextWidth(font, text.orEmpty()) - 5.emScaled
+      }
 
       init {
          contentDisplay = RIGHT
@@ -423,7 +428,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
          // hyperlinks width fix
          labels.forEach {
-            it.graphic?.asIf<Hyperlink>()?.maxWidth = w - it.graphicTextGap - Util.computeTextWidth(it.font, it.text)
+            it.graphic?.asIf<Hyperlink>()?.maxWidth = w - it.graphicTextGap - computeTextWidth(it.font, it.text)
          }
       }
    }

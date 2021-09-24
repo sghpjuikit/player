@@ -108,7 +108,7 @@ class CoreSerializerJson: Core {
 
    // TODO: error handling on call sites
    @Blocks
-   inline fun <reified T> fromJson(file: File): Try<T?, Throwable> {
+   inline fun <reified T> fromJson(file: File): Try<T, Throwable> {
       return if (!file.exists())
          error<T, Throwable>(Exception("Couldn't deserialize ${T::class} from file $file", FileNotFoundException(file.absolutePath)))
       else

@@ -731,7 +731,7 @@ class Hue(widget: Widget): SimpleController(widget) {
       }
 
       fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
-      inline fun <reified T> JsValue.to() = APP.serializerJson.json.fromJsonValue<T>(this).orThrow!!
+      inline fun <reified T> JsValue.to() = APP.serializerJson.json.fromJsonValue<T>(this).orThrow
 
 
       fun drawGradientCir(radius: Int): Image {

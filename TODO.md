@@ -15,7 +15,6 @@
 - Implement **Playback Knobs** widget writable chapters
 - song order in ui, editable
 - Implement **Object Info** widget scale image use Object Info in form
-- Improve Json serialization to use type nullability info from type when converting json to T
 - Improve Json serialization to support graph cycles
 - `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
 - Improve **Tooltip** text layout

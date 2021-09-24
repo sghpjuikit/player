@@ -18,16 +18,11 @@ import sp.it.util.parsing.Parsers
 import sp.it.util.text.escapeJson
 import sp.it.util.type.argOf
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.toRaw
-import sp.it.util.type.jType
 import sp.it.util.type.kType
 import sp.it.util.type.raw
 import java.io.File
 import java.io.InputStream
 import java.io.SequenceInputStream
-import java.lang.reflect.GenericArrayType
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.Charset
@@ -53,12 +48,12 @@ import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
-import kotlin.reflect.jvm.javaType
 import kotlin.text.Charsets.UTF_8
 import sp.it.util.functional.andAlso
 import sp.it.util.type.VType
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
+import sp.it.util.type.kTypeAnyNullable
 import sp.it.util.type.type
 import sp.it.util.type.typeOrAny
 
@@ -82,7 +77,7 @@ sealed class JsValue {
    override fun toString() = "${this::class} ${toPrettyS()}"
 }
 
-interface JsRoot
+sealed interface JsRoot
 
 object JsNull: JsValue()
 
@@ -191,6 +186,8 @@ class Json {
 
    inline fun <reified T: Any> toJsonValue(value: T?): JsValue = toJsonValue(kType<T>(), value)
 
+   fun <T> toJsonValue(typeAs: VType<T>, value: T): JsValue = toJsonValue(typeAs.type, value)
+
    fun toJsonValue(typeAs: KType, value: Any?): JsValue {
       return when (value) {
          null -> JsNull
@@ -271,37 +268,40 @@ class Json {
       fromKlaxonAST(klaxonAst)
    }
 
-   fun <T> fromJson(type: VType<T>, json: String): Try<T?, Throwable> = fromJson(type, json.byteInputStream(UTF_8), UTF_8)
+   fun <T> fromJson(type: VType<T>, json: String): Try<T, Throwable> = fromJson(type, json.byteInputStream(UTF_8), UTF_8)
 
-   fun <T> fromJson(type: VType<T>, json: File, charset: Charset = UTF_8): Try<T?, Throwable> = fromJson(type, json.inputStream(), charset)
+   fun <T> fromJson(type: VType<T>, json: File, charset: Charset = UTF_8): Try<T, Throwable> = fromJson(type, json.inputStream(), charset)
 
    @Suppress("unchecked_cast")
-   fun <T> fromJson(type: VType<T>, json: InputStream, charset: Charset = UTF_8): Try<T?, Throwable> = ast(json, charset).andAlso {
-      runTry { fromJsonValueImpl(type.type.javaType, it) as T }
+   fun <T> fromJson(type: VType<T>, json: InputStream, charset: Charset = UTF_8): Try<T, Throwable> = ast(json, charset).andAlso {
+      runTry { fromJsonValueImpl(type.type, it) as T }
    }
 
-   inline fun <reified T> fromJson(json: String): Try<T?, Throwable> = fromJson(type<T>(), json)
+   inline fun <reified T> fromJson(json: String): Try<T, Throwable> = fromJson(type(), json)
 
-   inline fun <reified T> fromJson(json: File, charset: Charset = UTF_8): Try<T?, Throwable> = fromJson(type<T>(), json, charset)
+   inline fun <reified T> fromJson(json: File, charset: Charset = UTF_8): Try<T, Throwable> = fromJson(type(), json, charset)
 
-   inline fun <reified T> fromJson(json: InputStream, charset: Charset = UTF_8): Try<T?, Throwable> = fromJson(type<T>(), json, charset)
+   inline fun <reified T> fromJson(json: InputStream, charset: Charset = UTF_8): Try<T, Throwable> = fromJson(type(), json, charset)
 
-   inline fun <reified T> fromJsonValue(value: JsValue): Try<T?, Throwable> = runTry { fromJsonValueImpl<T>(value) }
+   inline fun <reified T> fromJsonValue(value: JsValue): Try<T, Throwable> = runTry { fromJsonValueImpl(value) }
 
-   fun fromJsonValue(typeTargetJ: Type, value: JsValue): Try<Any?, Throwable> = runTry { fromJsonValueImpl(typeTargetJ, value) }
+   @Suppress("unchecked_cast")
+   fun <T> fromJsonValue(type: VType<T>, value: JsValue): Try<T, Throwable> = runTry { fromJsonValueImpl(type.type, value) as T }
 
-   inline fun <reified T> fromJsonValueImpl(value: JsValue): T? = fromJsonValueImpl(jType<T>(), value) as T?
+   fun fromJsonValue(type: KType, value: JsValue): Try<Any?, Throwable> = runTry { fromJsonValueImpl(type, value) }
 
-   fun fromJsonValueImpl(typeTargetJ: Type, value: JsValue): Any? {
-      val typeJ = typeTargetJ.toRaw()
-      val typeK = typeJ.kotlin
+   inline fun <reified T> fromJsonValueImpl(value: JsValue): T = fromJsonValueImpl(kType<T>(), value) as T
+
+   fun fromJsonValueImpl(typeTarget: KType, value: JsValue): Any? {
+      val typeK = typeTarget.raw
+      val typeJ = typeK.java
       val converter = converters.byType.getElementOfSuper(typeK).asIf<JsConverter<Any?>>()
       return when {
          converter!=null -> converter.fromJson(value)
          value::class==typeK -> return value
          else -> {
             when (value) {
-               is JsNull -> null
+               is JsNull -> if (typeTarget.isMarkedNullable) null else fail { "null is not $typeTarget" }
                is JsTrue -> true
                is JsFalse -> false
                is JsNumber -> {
@@ -336,9 +336,9 @@ class Json {
                }
                is JsArray -> {
                   when {
-                     typeK==Any::class -> value.value.map { fromJsonValueImpl(jType<Any>(), it) }
+                     typeK==Any::class -> value.value.map { fromJsonValueImpl(kTypeAnyNullable(), it) }
                      Collection::class.isSuperclassOf(typeK) -> {
-                        val itemType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0) ?: jType<Any>()
+                        val itemType = typeTarget.argOf(Collection::class, 0).typeOrAny
                         val values = value.value.map { fromJsonValueImpl(itemType, it) }
                         when (typeK) {
                            Set::class -> HashSet(values)
@@ -361,18 +361,31 @@ class Json {
                            else -> fail { "Unsupported collection type=$typeK" }
                         }
                      }
-                     typeK===Array<Any?>::class -> {
-                        val arrayType = typeTargetJ.asIf<GenericArrayType>()?.genericComponentType ?: jType<Any>()
+                     typeK==ByteArray::class -> value.value.map { fromJsonValueImpl<Byte>(it) }.toByteArray()
+                     typeK==CharArray::class -> value.value.map { fromJsonValueImpl<Char>(it) }.toCharArray()
+                     typeK==ShortArray::class -> value.value.map { fromJsonValueImpl<Short>(it) }.toShortArray()
+                     typeK==IntArray::class -> value.value.map { fromJsonValueImpl<Int>(it) }.toIntArray()
+                     typeK==LongArray::class -> value.value.map { fromJsonValueImpl<Long>(it) }.toLongArray()
+                     typeK==FloatArray::class -> value.value.map { fromJsonValueImpl<Float>(it) }.toFloatArray()
+                     typeK==DoubleArray::class -> value.value.map { fromJsonValueImpl<Double>(it) }.toDoubleArray()
+                     typeK==BooleanArray::class -> value.value.map { fromJsonValueImpl<Boolean>(it) }.toBooleanArray()
+                     typeJ.isArray -> {
+                        val arrayType = typeTarget.argOf(Array::class, 0).typeOrAny
+                        // TODO: implement generic arrays properly, so far fails with ClassCastException
+                        // val array = java.lang.reflect.Array.newInstance(arrayType.raw.java, value.value.size)
+                        // value.value.map { fromJsonValueImpl(arrayType, it) }.forEachIndexed { i, e -> java.lang.reflect.Array.set(array, i, e) }
+                        // println()
+                        // println(typeTarget)
+                        // println(typeK)
+                        // println(typeJ)
+                        // println("-")
+                        // println(arrayType)
+                        // println(arrayType.raw)
+                        // println(arrayType.raw.java)
+                        // println(array::class)
+
                         value.value.map { fromJsonValueImpl(arrayType, it) }.toTypedArray()
                      }
-                     typeK===ByteArray::class -> value.value.mapNotNull { fromJsonValueImpl<Byte>(it) }.toByteArray()
-                     typeK===CharArray::class -> value.value.mapNotNull { fromJsonValueImpl<Char>(it) }.toCharArray()
-                     typeK===ShortArray::class -> value.value.mapNotNull { fromJsonValueImpl<Short>(it) }.toShortArray()
-                     typeK===IntArray::class -> value.value.mapNotNull { fromJsonValueImpl<Int>(it) }.toIntArray()
-                     typeK===LongArray::class -> value.value.mapNotNull { fromJsonValueImpl<Long>(it) }.toLongArray()
-                     typeK===FloatArray::class -> value.value.mapNotNull { fromJsonValueImpl<Float>(it) }.toFloatArray()
-                     typeK===DoubleArray::class -> value.value.mapNotNull { fromJsonValueImpl<Double>(it) }.toDoubleArray()
-                     typeK===BooleanArray::class -> value.value.mapNotNull { fromJsonValueImpl<Boolean>(it) }.toBooleanArray()
                      else -> fail { "Unsupported collection type=$typeK" }
                   }
                }
@@ -397,9 +410,14 @@ class Json {
                      instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
                      instanceType==String::class -> value.value["value"]?.asJsStringValue()
                      instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
-                     instanceType==Any::class || instanceType.isSubclassOf<Map<*, *>>() -> {
-                        val mapKeyType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(0)?.toRaw()?.kotlin ?: String::class
-                        val mapValueType = typeTargetJ.asIf<ParameterizedType>()?.actualTypeArguments?.get(1) ?: jType<Any>()
+                     instanceType==Any::class -> {
+                        val mapKeyType = type<String>()
+                        val mapValueType = kType<Any?>()
+                        value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
+                     }
+                     instanceType.isSubclassOf<Map<*, *>>() -> {
+                        val mapKeyType = typeTarget.argOf(Map::class, 0).typeOrAny.net { VType<Any?>(it) }
+                        val mapValueType = typeTarget.argOf(Map::class, 1).typeOrAny
                         value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
                      }
                      else -> {
@@ -411,7 +429,7 @@ class Json {
                               if (it.isOptional) null
                               else fail { "Type=$instanceType constructor parameter=${it.name} is missing" }
                            } else {
-                              it to fromJsonValueImpl(it.type.javaType, argJs)
+                              it to fromJsonValueImpl(it.type, argJs)
                            }
                         }.toMap()
 

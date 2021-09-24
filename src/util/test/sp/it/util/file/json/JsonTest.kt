@@ -5,7 +5,6 @@ import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
-import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.ArrayDeque
@@ -18,12 +17,11 @@ import java.util.SortedSet
 import java.util.Stack
 import java.util.TreeSet
 import java.util.Vector
-import kotlin.reflect.jvm.javaType
+import kotlin.reflect.KType
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.net
-import sp.it.util.type.jType
 import sp.it.util.type.kType
-import sp.it.util.type.toRaw
+import sp.it.util.type.raw
 import sp.it.util.type.type
 
 class JsonTest: FreeSpec({
@@ -35,7 +33,7 @@ class JsonTest: FreeSpec({
          j.fromJson<UByte>("55") shouldBe Ok(55L.toUByte())
          j.fromJson<Int>("55") shouldBe Ok(55)
          j.fromJson<Double>("55") shouldBe Ok(55.0)
-         j.fromJson<Any>("null") shouldBe Ok(null)
+         j.fromJson<Any?>("null") shouldBe Ok(null)
       }
    }
    "Reading" - {
@@ -45,18 +43,20 @@ class JsonTest: FreeSpec({
 
             val json = JsNull
 
-            j.fromJsonValue<Any>(json).orThrow shouldBe null
-            j.fromJsonValue<Any?>(json).orThrow shouldBe null
-            j.fromJsonValue<String>(json).orThrow shouldBe null
-            j.fromJsonValue<String?>(json).orThrow shouldBe null
-            j.fromJsonValue<Int>(json).orThrow shouldBe null
-            j.fromJsonValue<Int?>(json).orThrow shouldBe null
-            j.fromJsonValue<UInt>(json).orThrow shouldBe null
-            j.fromJsonValue<UInt?>(json).orThrow shouldBe null
-            j.fromJsonValue<List<*>>(json).orThrow shouldBe null
-            j.fromJsonValue<List<*>?>(json).orThrow shouldBe null
-            j.fromJsonValue<Data?>(json).orThrow shouldBe null
-            j.fromJsonValue<Data?>(json).orThrow shouldBe null
+            j.fromJsonValue<Any>(json).errorOrThrow.message shouldBe "null is not kotlin.Any"
+            j.fromJsonValue<Any?>(json) shouldBe Ok(null)
+            j.fromJsonValue<String>(json).errorOrThrow.message shouldBe "null is not kotlin.String"
+            j.fromJsonValue<String?>(json) shouldBe Ok(null)
+            j.fromJsonValue<Unit>(json).errorOrThrow.message shouldBe "null is not kotlin.Unit"
+            j.fromJsonValue<Unit?>(json) shouldBe Ok(null)
+            j.fromJsonValue<Int>(json).errorOrThrow.message shouldBe "null is not kotlin.Int"
+            j.fromJsonValue<Int?>(json) shouldBe Ok(null)
+            j.fromJsonValue<UInt>(json).errorOrThrow.message shouldBe "null is not kotlin.UInt"
+            j.fromJsonValue<UInt?>(json) shouldBe Ok(null)
+            j.fromJsonValue<List<*>>(json).errorOrThrow.message shouldBe "null is not kotlin.collections.List<*>"
+            j.fromJsonValue<List<*>?>(json) shouldBe Ok(null)
+            j.fromJsonValue<Data>(json).errorOrThrow.message shouldBe "null is not sp.it.util.file.json.`JsonTest\$1\$2\$1\$1\$Data`"
+            j.fromJsonValue<Data?>(json) shouldBe Ok(null)
          }
       }
       "JsNumber" - {
@@ -100,16 +100,32 @@ class JsonTest: FreeSpec({
             val json = JsArray(listOf(JsNull, JsNull))
 
             j.fromJsonValue<Any>(json).orThrow shouldBe listOf(null, null)
+            j.fromJsonValue<Any?>(json).orThrow shouldBe listOf(null, null)
+            j.fromJsonValue<Array<*>>(json).orThrow shouldBe arrayOf<Any?>(null, null)
+            j.fromJsonValue<Array<Any>>(json).errorOrThrow.message shouldBe "null is not kotlin.Any"
+            j.fromJsonValue<Array<Any?>>(json).orThrow shouldBe arrayOf<Any?>(null, null)
+            j.fromJsonValue<Array<Data>>(json).errorOrThrow.message shouldBe "null is not sp.it.util.file.json.`JsonTest\$1\$2\$3\$1\$Data`"
+//            j.fromJsonValue<Array<Data?>>(json).orThrow shouldBe arrayOf<Data?>(null, null) // TODO: enable
             j.fromJsonValue<List<*>>(json).orThrow shouldBe listOf(null, null)
-            j.fromJsonValue<List<Any>>(json).orThrow shouldBe listOf(null, null)
-            j.fromJsonValue<List<Data>>(json).orThrow shouldBe listOf(null, null)
+            j.fromJsonValue<List<Any>>(json).errorOrThrow.message shouldBe "null is not kotlin.Any"
+            j.fromJsonValue<List<Any?>>(json).orThrow shouldBe listOf(null, null)
+            j.fromJsonValue<List<Data>>(json).errorOrThrow.message shouldBe "null is not sp.it.util.file.json.`JsonTest\$1\$2\$3\$1\$Data`"
+            j.fromJsonValue<List<Data?>>(json).orThrow shouldBe listOf(null, null)
+            j.fromJsonValue<ByteArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Byte"
+            j.fromJsonValue<CharArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Char"
+            j.fromJsonValue<ShortArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Short"
+            j.fromJsonValue<IntArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Int"
+            j.fromJsonValue<LongArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Long"
+            j.fromJsonValue<FloatArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Float"
+            j.fromJsonValue<DoubleArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Double"
+            j.fromJsonValue<BooleanArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Boolean"
          }
          "to exact collection item number type" {
             val json = JsArray(listOf(JsNumber(1)))
 
-            j.fromJsonValue<List<Byte>>(json).orThrow!!.first().shouldBeInstance<Byte>()
-            j.fromJsonValue<List<Int>>(json).orThrow!!.first().shouldBeInstance<Int>()
-            j.fromJsonValue<List<Double>>(json).orThrow!!.first().shouldBeInstance<Double>()
+            j.fromJsonValue<List<Byte>>(json).orThrow.first().shouldBeInstance<Byte>()
+            j.fromJsonValue<List<Int>>(json).orThrow.first().shouldBeInstance<Int>()
+            j.fromJsonValue<List<Double>>(json).orThrow.first().shouldBeInstance<Double>()
          }
          "to exact collection type" {
             val json = JsArray(listOf(JsNumber(1), JsNumber(1)))
@@ -163,23 +179,23 @@ class JsonTest: FreeSpec({
             argIns(Double.MIN_VALUE),
             argIns(Double.MAX_VALUE)
          ) { type, valueIn ->
-            val valueOut1 = j.toJsonValue(type.type, valueIn).net { j.fromJsonValue(type.type.javaType, it) }.orThrow!!
+            val valueOut1 = j.toJsonValue(type, valueIn).net { j.fromJsonValue(type, it) }.orThrow
             valueIn shouldBe valueOut1
             valueIn::class shouldBeSameInstanceAs valueOut1::class
 
-            val valueOut2 = j.toJsonValue(type.type, valueIn).toCompactS().net { j.fromJson(type, it) }.orThrow!!
+            val valueOut2 = j.toJsonValue(type, valueIn).toCompactS().net { j.fromJson(type, it) }.orThrow
             valueIn shouldBe valueOut2
             valueIn::class shouldBeSameInstanceAs valueOut2::class
 
-            val valueOut3 = j.toJsonValue(kType<Any>(), valueIn).net { j.fromJsonValue(jType<Any>(), it) }.orThrow!!
+            val valueOut3 = j.toJsonValue(type<Any>(), valueIn).net { j.fromJsonValue(type<Any>(), it) }.orThrow
             valueIn shouldBe valueOut3
             valueIn::class shouldBeSameInstanceAs valueOut3::class
 
-            val valueOut4 = j.toJsonValue(kType<Any>(), valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow!!
+            val valueOut4 = j.toJsonValue(type<Any>(), valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow
             valueIn shouldBe valueOut4
             valueIn::class shouldBeSameInstanceAs valueOut4::class
 
-            val valueOut5 = j.toJsonValue(type.type, valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow!!
+            val valueOut5 = j.toJsonValue(type.type, valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow
             valueIn shouldBe valueOut5
             valueIn::class shouldBeSameInstanceAs valueOut5::class
          }
@@ -188,6 +204,6 @@ class JsonTest: FreeSpec({
 })
 
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
-private infix fun Any?.shouldBeInstance(type: Type) = type.toRaw().isInstance(this) shouldBe true
-private inline fun <reified T: Any> arg() = row(jType<T>())
+private infix fun Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true
+private inline fun <reified T: Any> arg() = row(kType<T>())
 private inline fun <reified T: Any> argIns(arg: T) = row(type<T>(), arg)

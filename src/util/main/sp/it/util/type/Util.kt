@@ -41,7 +41,7 @@ import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KTypeProjection.Companion.invariant
-import kotlin.reflect.KVariance
+import kotlin.reflect.KVariance.*
 import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.createType
@@ -397,22 +397,27 @@ fun KType.withPlatformTypeNullability(nullable: Boolean): KType {
  * Because `in Nothing` and `out Any?` and `*` are equal, the result is normalized to `*`, i.e [KTypeProjection.STAR].
  */
 fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
-   return when (val c = classifier) {
-      is KTypeParameter -> fail { "Type parameter not a candidate $this $i" }
-      is KClass<*> -> {
+   val c = classifier
+   return when {
+      argType.java.isArray -> {
+         if (raw.java.isArray) arguments.getOrNull(i) ?: fail { "Not found $this $i" }
+         else fail { "Not found $this $i" }
+      }
+      c is KTypeParameter -> fail { "Type parameter not a candidate $this $i" }
+      c is KClass<*> -> {
          val argument = when (c) {
             argType -> arguments.getOrNull(i)
                ?.let {
                   when (it.variance) {
-                     KVariance.IN, KVariance.OUT, null -> it
-                     KVariance.INVARIANT -> when {
+                     IN, OUT, null -> it
+                     INVARIANT -> when {
                         argType.isSubclassOf<Iterable<*>>() -> {
                            if (this.toString().startsWith("kotlin.collections.Mutable")) it
-                           else it.copy(variance = KVariance.OUT)
+                           else it.copy(variance = OUT)
                         }
                         argType.isSubclassOf<Map<*, *>>() && i==1 -> {
                            if (this.toString().startsWith("kotlin.collections.Mutable")) it
-                           else it.copy(variance = KVariance.OUT)
+                           else it.copy(variance = OUT)
                         }
                         else -> it
                      }
@@ -425,8 +430,8 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
                st.find { it.classifier==argType }?.arguments?.getOrNull(i)
                   ?.let {
                      when (it.variance) {
-                        KVariance.IN, KVariance.OUT, null -> it
-                        KVariance.INVARIANT -> it //KTypeProjection(c.typeParameters.get().variance, it.type)
+                        IN, OUT, null -> it
+                        INVARIANT -> it //KTypeProjection(c.typeParameters.get().variance, it.type)
                      }
                   }
                   ?.let {
@@ -447,8 +452,8 @@ fun KType.argOf(argType: KClass<*>, i: Int): KTypeProjection {
       else -> fail { "Unknown error" }
    }.let {
       when {
-         it.variance==KVariance.OUT && it.type==Any::class.createType(nullable = true) -> STAR
-         it.variance==KVariance.IN && it.type==typeNothingNonNull().type -> STAR
+         it.variance==OUT && it.type==Any::class.createType(nullable = true) -> STAR
+         it.variance==IN && it.type==typeNothingNonNull().type -> STAR
          else -> it
       }
    }

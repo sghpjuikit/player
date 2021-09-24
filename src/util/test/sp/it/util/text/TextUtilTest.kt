@@ -29,9 +29,20 @@ class TextUtilTest: FreeSpec({
    }
 
    String::splitTrimmed.name - {
+      "".splitTrimmed(":") shouldBe listOf("")
+      "1".splitTrimmed(":") shouldBe listOf("1")
       "1:2:3".splitTrimmed(":") shouldBe listOf("1", "2", "3")
       ":2:".splitTrimmed(":") shouldBe listOf("2")
       "::::".splitTrimmed(":") shouldBe listOf("", "", "")
+      ":1:2:3:".splitTrimmed(":") shouldBe listOf("1", "2", "3")
+   }
+
+   String::splitNoEmpty.name - {
+      "".splitNoEmpty(":").toList() shouldBe listOf()
+      "1".splitNoEmpty(":").toList() shouldBe listOf("1")
+      "1:2:".splitNoEmpty(":").toList() shouldBe listOf("1", "2")
+      "::::".splitNoEmpty(":").toList() shouldBe listOf()
+      ":1::2:".splitNoEmpty(":").toList() shouldBe listOf("1", "2")
    }
 
    String::camelToDashCase.name - {

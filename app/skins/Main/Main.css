@@ -3690,6 +3690,7 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 .markdown-normal-flow {
+    -fx-padding: 0.3em;
     -fx-line-spacing: 0.5em;
 }
 
@@ -3734,11 +3735,12 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 .markdown-paragraph-list {
-    -fx-spacing: 1.5em;
+    -fx-spacing: 0.5em;
 }
 .markdown-list-item-dot {
     -fx-font-size: 1em;
     -fx-text-fill: -mdfx-font-color;
+    -fx-padding: 0.3em 0.3em 0 0.3em;
 }
 
 .markdown-code {
@@ -3768,9 +3770,6 @@ Shape, Text, SpitText, TextFlow > * {
 .markdown-code-anti-padding {
     -fx-translate-x: 100;
 }
-.markdown-codeblock-box-icon-box {
-    -fx-padding: -1em;
-}
 .markdown-codeblock-box-icon-box .icon {
     -glyph-size: 1em;
     -fx-border-color: -mdfx-bq-color-border;
@@ -3796,7 +3795,6 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-alignment: center;
     -fx-text-alignment: center;
 }
-
 .markdown-hbox1 {
     -fx-spacing: 0;
     -fx-padding: 8;

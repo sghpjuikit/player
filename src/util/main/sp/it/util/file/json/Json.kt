@@ -209,10 +209,10 @@ class Json {
 
             when (value) {
                is Number -> JsNumber(value).withAmbiguity()
-               is UByte -> JsNumber(value.toByte()).withAmbiguity()
-               is UShort -> JsNumber(value.toShort()).withAmbiguity()
-               is UInt -> JsNumber(value.toInt()).withAmbiguity()
-               is ULong -> JsNumber(value.toLong()).withAmbiguity()
+               is UByte -> JsNumber(value.toShort()).withAmbiguity()
+               is UShort -> JsNumber(value.toInt()).withAmbiguity()
+               is UInt -> JsNumber(value.toLong()).withAmbiguity()
+               is ULong -> JsNumber(value.toString().toBigInteger()).withAmbiguity()
                is String -> JsString(value)
                is Enum<*> -> JsString(value.name).withAmbiguity()
                is Array<*> -> JsArray(value.map { toJsonValue(kType<Any>(), it) })
@@ -309,13 +309,13 @@ class Json {
                      Any::class -> value.value
                      Number::class -> value.value
                      Byte::class -> value.value.toByte()
-                     UByte::class -> value.value.toByte().toUByte()
+                     UByte::class -> value.value.toShort().toUByte()
                      Short::class -> value.value.toShort()
-                     UShort::class -> value.value.toShort().toUShort()
+                     UShort::class -> value.value.toInt().toUShort()
                      Int::class -> value.value.toInt()
-                     UInt::class -> value.value.toInt().toUInt()
+                     UInt::class -> value.value.toLong().toUInt()
                      Long::class -> value.value.toLong()
-                     ULong::class -> value.value.toLong().toULong()
+                     ULong::class -> value.value.toString().toULong()
                      Float::class -> value.value.toFloat()
                      Double::class -> value.value.toDouble()
                      BigInteger::class -> when (value.value) {
@@ -324,8 +324,9 @@ class Json {
                         else -> BigInteger.valueOf(value.value.toLong())
                      }
                      BigDecimal::class -> when (value.value) {
-                        is BigDecimal -> value.value.toBigInteger()
-                        else -> BigDecimal.valueOf(value.value.toDouble())
+                        is BigInteger -> value.value.toBigDecimal()
+                        is BigDecimal -> value.value
+                        else -> BigDecimal(value.value.toString())
                      }
                      else -> fail { "Unsupported number type=$typeK" }
                   }
@@ -385,7 +386,7 @@ class Json {
                   val converterValue = converters.byType.getElementOfSuper(instanceType).asIf<JsConverter<Any?>>()
                   when {
                      converterValue!=null -> converterValue.fromJson(value.value["value"]!!)
-                     instanceType.isObject -> instanceType.objectInstance
+                     instanceType==String::class -> value.value["value"]?.asJsStringValue()
                      instanceType==Byte::class -> value.value["value"]?.asJsNumberValue()?.toByte()
                      instanceType==UByte::class -> value.value["value"]?.asJsNumberValue()?.toShort()?.toUByte()
                      instanceType==Short::class -> value.value["value"]?.asJsNumberValue()?.toShort()
@@ -396,8 +397,10 @@ class Json {
                      instanceType==ULong::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toULong()
                      instanceType==Float::class -> value.value["value"]?.asJsNumberValue()?.toFloat()
                      instanceType==Double::class -> value.value["value"]?.asJsNumberValue()?.toDouble()
+                     instanceType==BigInteger::class -> value.value["value"]?.asJsNumberValue()?.toLong()?.toBigInteger()
+                     instanceType==BigDecimal::class -> value.value["value"]?.asJsNumberValue()?.toDouble()?.toBigDecimal()
                      instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
-                     instanceType==String::class -> value.value["value"]?.asJsStringValue()
+                     instanceType.isObject -> instanceType.objectInstance
                      instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
                      instanceType==Any::class -> {
                         val mapKeyType = type<String>()

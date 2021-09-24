@@ -45,7 +45,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.text.nameUi
 import sp.it.util.text.split2Partial
-import sp.it.util.text.splitTrimmed
+import sp.it.util.text.splitNoEmpty
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
 import sp.it.util.type.isSubtypeOf
@@ -134,7 +134,8 @@ class Node(widget: Widget): SimpleController(widget) {
    }
 
    fun restoreInputs() {
-      widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitTrimmed("-").forEach {
+      widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitNoEmpty("-").forEach {
+         println()
          val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
          val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64() to propertyValueBase64.ifNotEmpty { it.decodeBase64().unquote() }
          val properties = nodeInstance.value.javaFxProperties()

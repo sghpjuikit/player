@@ -371,20 +371,9 @@ class Json {
                      typeK==BooleanArray::class -> value.value.map { fromJsonValueImpl<Boolean>(it) }.toBooleanArray()
                      typeJ.isArray -> {
                         val arrayType = typeTarget.argOf(Array::class, 0).typeOrAny
-                        // TODO: implement generic arrays properly, so far fails with ClassCastException
-                        // val array = java.lang.reflect.Array.newInstance(arrayType.raw.java, value.value.size)
-                        // value.value.map { fromJsonValueImpl(arrayType, it) }.forEachIndexed { i, e -> java.lang.reflect.Array.set(array, i, e) }
-                        // println()
-                        // println(typeTarget)
-                        // println(typeK)
-                        // println(typeJ)
-                        // println("-")
-                        // println(arrayType)
-                        // println(arrayType.raw)
-                        // println(arrayType.raw.java)
-                        // println(array::class)
-
-                        value.value.map { fromJsonValueImpl(arrayType, it) }.toTypedArray()
+                        val array = java.lang.reflect.Array.newInstance(arrayType.raw.java, value.value.size)
+                        value.value.map { fromJsonValueImpl(arrayType, it) }.forEachIndexed { i, e -> java.lang.reflect.Array.set(array, i, e) }
+                        array
                      }
                      else -> fail { "Unsupported collection type=$typeK" }
                   }

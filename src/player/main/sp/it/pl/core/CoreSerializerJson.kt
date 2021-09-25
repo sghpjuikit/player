@@ -70,7 +70,7 @@ class CoreSerializerJson: Core {
 
             override fun fromJson(value: JsValue) = when (value) {
                is JsString -> PropVal1(value.value)
-               is JsArray -> value.value.mapNotNull { it.asJsStringValue() }.let { PropValN(it) }
+               is JsArray -> PropValN(value.value.mapNotNull { it.asJsStringValue() })
                else -> fail { "Unexpected value=$value, which is not ${JsString::class} or ${JsArray::class}" }
             }
          }

@@ -3258,6 +3258,9 @@ Shape, Text, SpitText, TextFlow > * {
  *                node-selected - when .inode/.onode/.ionode has pseudoclass 'selected'
  *                node-hover - when .inode/.onode/.ionode has pseudoclass 'hover'
  */
+.inode-text {
+    -fx-font-size: 0.9em;   /* improves readability */
+}
 .inode-text: node-hover,
 .inode-text: node-drag-over,
 .inode-text: node-highlighted,
@@ -3271,7 +3274,6 @@ Shape, Text, SpitText, TextFlow > * {
 .ionode-text: node-highlighted,
 .ionode-text: node-selected {
     -fx-fill: -fx-focus-color;
-    -fx-font-size: 0.9em;   /* improves readability */
 }
 
 /*

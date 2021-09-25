@@ -95,7 +95,7 @@ class Node(widget: Widget): SimpleController(widget) {
                      menu(namePrefix + declaringClass.toUi()) {
                         properties.forEach { p ->
                            item {
-                              SelectionMenuItem(p.name, p.name in propertiesWithInputs).apply {
+                              SelectionMenuItem(p.name + ": " + p.type.toUi(), p.name in propertiesWithInputs).apply {
                                  selected attachFalse {
                                     io.i.getInputs().find { it.name==p.name }.ifNotNull {
                                        io.i.remove(it)

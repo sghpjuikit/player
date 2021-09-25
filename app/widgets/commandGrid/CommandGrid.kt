@@ -1,6 +1,8 @@
 package commandGrid
 
 import java.io.File
+import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.ScrollEvent.SCROLL
 import mu.KLogging
 import sp.it.pl.conf.Command
@@ -44,6 +46,7 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
@@ -99,6 +102,12 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
             }
          }
       }
+      grid.onEventDown(KEY_PRESSED, ENTER) {
+         if (!it.isConsumed) {
+            grid.selectedItem.value?.doubleClickItem()
+            it.consume()
+         }
+      }
 
       root.lay += grid
 
@@ -122,11 +131,13 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       grid.cellHeight.value = height.emScaled + cellTextHeight.value
    }
 
+   private fun Item.cellAction(): Fut<Command> =  value.net { runIO { it.readTextTry().andAlso(Command::ofS).orNull() ?: Command.DoNothing } }
+
+   private fun Item.doubleClickItem() = cellAction().ui { it() }.toUnit()
+
    private inner class Cell: GridFileThumbCell() {
 
       private val disposer = Disposer()
-
-      private fun Item.cellAction(): Fut<Command> =  value.net { runIO { it.readTextTry().andAlso(Command::ofS).orNull() ?: Command.DoNothing } }
 
       override fun computeCellTextHeight(): Double = cellTextHeight.value
 
@@ -138,7 +149,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
       override fun computeTask(r: () -> Unit) = r
 
-      override fun onAction(i: Item, edit: Boolean) = i.cellAction().ui { it() }.toUnit()
+      override fun onAction(i: Item, edit: Boolean) = i.doubleClickItem()
 
       override fun dispose() {
          disposer()
@@ -147,11 +158,11 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
    }
 
    companion object: WidgetCompanion, KLogging() {
-      override val name = "CommandGrid"
+      override val name = "Command Grid"
       override val description = "Grid of commands - two-dimensional toolbar"
       override val descriptionLong = "$description. Commands are specified as .spit-command files in widget's user directory."
       override val icon = IconUN(0x2e2a)
-      override val version = version(1, 0, 0)
+      override val version = version(1, 0, 1)
       override val isSupported = true
       override val year = year(2021)
       override val author = "spit"

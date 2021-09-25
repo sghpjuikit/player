@@ -1,22 +1,51 @@
 package sp.it.util.text
 
+import io.ktor.utils.io.core.toByteArray
+import java.nio.charset.Charset
+import java.text.BreakIterator
+import java.util.Locale
 import javafx.scene.input.KeyCode
 import javafx.scene.input.MouseButton
+import kotlin.streams.asSequence
+import kotlin.text.Charsets.UTF_8
 import sp.it.util.Util.StringDirection
 import sp.it.util.Util.StringDirection.FROM_END
 import sp.it.util.Util.StringDirection.FROM_START
 import sp.it.util.action.Action
 import sp.it.util.dev.failIf
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.system.Os
-import java.text.BreakIterator
-import java.util.Locale
-import kotlin.streams.asSequence
-import sp.it.util.functional.net
 
 /** @return true iff this string is equal to the specified string, ignoring the case */
 infix fun String.equalsNc(other: String) = this.equals(other, ignoreCase = true)
+
+/** @return sequence of all [Char16] (typed version of [String.chars]) */
+fun String.chars16(): Sequence<Char16> = chars().asSequence().map { it.toChar16() }
+
+/** @return sequence of all [Char32] (typed version of [String.codePoints]) */
+fun String.chars32(): Sequence<Char32> = codePoints().asSequence().map { it.toChar32() }
+
+/** @return sequence of all [Grapheme] */
+fun String.graphemes(): Sequence<Grapheme> = sequence {
+   val counter = BreakIterator.getCharacterInstance(Locale.ROOT)
+   counter.setText(this@graphemes)
+
+   var start = counter.first()
+   var end = counter.next()
+   while (end!=BreakIterator.DONE) {
+      yield(this@graphemes.substring(start, end))
+      start = end
+      end = counter.next()
+   }
+}
+
+/** Length of this string in bytes in [UTF_8] */
+val String.lengthInBytes: Int get() = lengthInBytes()
+
+/** Length of this string in bytes the specified encoding */
+fun String.lengthInBytes(charset: Charset = UTF_8): Int = toByteArray(charset).size
 
 /** Length of this string in characters */
 val String.lengthInChars: Int get() = length
@@ -26,18 +55,18 @@ val String.lengthInCodePoints: Int get() = codePointCount(0, length)
 
 /** Length of this string in graphemes */
 val String.lengthInGraphemes: Int get() {
+   val counter = BreakIterator.getCharacterInstance(Locale.ROOT)
+   counter.setText(this)
    var graphemeCount = 0
-   val graphemeCounter = BreakIterator.getCharacterInstance(Locale.ROOT)
-   graphemeCounter.setText(this)
-   while (graphemeCounter.next()!=BreakIterator.DONE) graphemeCount++
+   while (counter.next()!=BreakIterator.DONE) graphemeCount++
    return graphemeCount
 }
 
-/** @return [Char16] at the specified index or throws [IndexOutOfBoundsException]. */
+/** @return [Char16] at the specified char16 index or throws [IndexOutOfBoundsException]. */
 fun String.char16At(at: Int): Char16 = get(at)
 
-/** @return [Char32] at the specified index or throws [IndexOutOfBoundsException]. */
-fun String.char32At(at: Int): Char32 = codePointAt(at).toChar32()
+/** @return [Char32] at the specified char32 index or throws [IndexOutOfBoundsException]. */
+fun String.char32At(at: Int): Char32 = codePointAt(offsetByCodePoints(0, at)).toChar32()
 
 /** @return [Char32] at the specified index from the specified side or throws [IndexOutOfBoundsException]. */
 fun String.char32At(at: Int, dir: StringDirection): Char32 = when (dir) {
@@ -45,8 +74,15 @@ fun String.char32At(at: Int, dir: StringDirection): Char32 = when (dir) {
    FROM_END -> codePointAt(lengthInCodePoints - at - 1).toChar32()
 }
 
-/** @return [Char32] at the specified index or throws [IndexOutOfBoundsException]. */
-fun String.graphemeAt(at: Int): Char32 = codePointAt(at).toChar32()  // TODO: verify this is ok
+/** @return [Grapheme] at the specified grapheme index or throws [IndexOutOfBoundsException]. */
+fun String.graphemeAt(at: Int): Grapheme {
+   val counter = BreakIterator.getCharacterInstance(Locale.ROOT)
+   counter.setText(this)
+   repeat(at) { counter.next() }
+   val from = counter.current()
+   val to = counter.next().net { if (it==BreakIterator.DONE) length else it }
+   return substring(from, to)
+}
 
 /** @return this string or null if it is null or [String.isEmpty] */
 fun String?.nullIfEmpty() = this?.takeUnless { it.isEmpty() }

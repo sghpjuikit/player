@@ -1,6 +1,6 @@
 package sp.it.util.text
 
-/** 32-bit Unicode character, [Int]. See [Character] and [Char16]. Has full Unicode code-unit range support. See e.g. [String.codePointAt]. */
+/** 32-bit Unicode character, [Int]. See [Character] and [Char16]. Has full Unicode code-unit range support. See e.g. [String.char32At]. */
 data class Char32(val value: Int) {
    fun toInt() = value
    override fun toString() = String(IntArray(1) { value }, 0, 1)

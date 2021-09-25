@@ -19,6 +19,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.WidgetSource
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.WidgetUse.NEW
@@ -59,6 +60,7 @@ import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toMetadata
 import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
+import sp.it.pl.plugin.PluginBox
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.window.stage.Window
@@ -385,6 +387,11 @@ object CoreMenus: Core {
                menuFor("Cover file", value.fsImageFile)
             if (value.representant!=null)
                menuFor(value.representant)
+         }
+         add<ComponentFactory<*>> {
+            item("New") { APP.windowManager.showWindow(it) }
+         }
+         add<PluginBox<*>> {
          }
          add<WidgetSource> {
             item("Show open widget instances") {

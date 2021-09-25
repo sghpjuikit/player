@@ -24,6 +24,7 @@ import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Pos.TOP_RIGHT
+import javafx.geometry.Side
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.Control
@@ -94,6 +95,7 @@ import sp.it.pl.ui.objects.SpitComboBox.ImprovedComboBoxListCell
 import sp.it.pl.ui.objects.SpitSliderSkin
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.complexfield.ComplexTextField
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
@@ -248,9 +250,10 @@ open class BoolCE(c: Config<Boolean?>): ConfigEditor<Boolean?>(c) {
    }
 }
 
+// TODO: impl disposing properly
+@Suppress("RemoveExplicitTypeArguments")
 class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
    override val editor = FlowPane()
-   // TODO: impl disposing properly
    private val oCE = create(Config.forProperty<OrV.State>("Override", c.property.override.map { OrV.State.of(it) }.toWritable { c.property.override.value = it.override }).addConstraints(ReadOnlyIf(isEditable, true)))
    private val vCE = create(Config.forProperty<T>(c.valueType, "", c.property.real).addConstraints(ReadOnlyIf(isEditable, true)).addConstraints(*c.elementConstraints.toTypedArray()))
 
@@ -259,7 +262,7 @@ class OrCE<T>(c: OrPropertyConfig<T>): ConfigEditor<OrV.OrValue<T>>(c) {
       editor.lay += listOf(oCE.buildNode(), vCE.buildNode())
    }
 
-   override fun get(): Try<OrV.OrValue<T>, String> = oCE.get().and(vCE.get()).map { config.value }
+   override fun get() = oCE.get().and(vCE.get()).map { config.value }
 
    override fun refreshValue() {
       oCE.refreshValue()
@@ -797,55 +800,51 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
    private val pluginInfo = PluginInfoPane()
    override val editor = stackPane {
       val d = onNodeDispose
-      lay += vBox {
-         lay += label("Installed plugins:") {
-            styleClass += "h4p"
-         }
-         lay(ALWAYS) += hBox {
-            isFillHeight = true
-            lay += listView<PluginBox<*>> {
-               pseudoClassChanged("no-fixed-cell-size", true)
-               minPrefMaxWidth = 250.emScaled
-               cellFactory = Callback {
-                  object: ListCell<PluginBox<*>>() {
-                     val icon = Icon(null, 48.0).apply {
-                        isFocusTraversable = false
-                        isMouseTransparent = true
-                     }
-                     val label1 = label("") {
-                        styleClass += "text-weight-bold"
-                     }
-                     val label2 = label("")
-                     val root = hBox(alignment = CENTER_LEFT) {
-                        lay += icon
-                        lay(ALWAYS) += vBox(alignment = CENTER_LEFT) {
-                           lay += label1
-                           lay += label2
-                        }
-                     }
+      lay += hBox(10.emScaled) {
+         isFillHeight = true
+         lay += listView<PluginBox<*>> {
+            pseudoClassChanged("no-fixed-cell-size", true)
+            minPrefMaxWidth = 250.emScaled
+            cellFactory = Callback {
+               object: ListCell<PluginBox<*>>() {
+                  val icon = Icon(null, 48.0).apply {
+                     isFocusTraversable = false
+                     isMouseTransparent = true
+                  }
+                  val label1 = label("") {
+                     styleClass += "text-weight-bold"
+                  }
+                  val label2 = label("")
+                  val root = hBox(alignment = CENTER_LEFT) {
+                     icon.focusOwner.value = this
 
-                     override fun updateItem(item: PluginBox<*>?, empty: Boolean) {
-                        super.updateItem(item, empty)
-                        graphic = item?.let { root }
-                        icon.icon(IconOC.PLUG)
-                        label1.text = item?.info?.name?.toS()
-                        label2.text = item?.let { if (it.isBundled) "bundled" else it.info.version.toS() + "\t" + it.info.author.toS() }
+                     lay += icon
+                     lay(ALWAYS) += vBox(alignment = CENTER_LEFT) {
+                        lay += label1
+                        lay += label2
                      }
                   }
-               }
-               selectionModel.selectionMode = SINGLE
-               selectionModel.selectedItemProperty() sync { pluginInfo.plugin = it }
-               d += { selectionModel.clearSelection() }
-               items = APP.plugins.pluginsObservable.toJavaFx().sorted { a, b -> a.info.name.compareTo(b.info.name) }
-               d += { items = null }
-               d += { pluginInfo.plugin = null }
-            }
-            lay(ALWAYS) += pluginInfo.apply {
-               minWidth = 0.0
-               minWidth = 250.emScaled
-            }
-         }
 
+                  override fun updateItem(item: PluginBox<*>?, empty: Boolean) {
+                     super.updateItem(item, empty)
+                     graphic = item?.let { root }
+                     icon.icon(IconOC.PLUG)
+                     label1.text = item?.info?.name?.toS()
+                     label2.text = item?.let { if (it.isBundled) "bundled" else it.info.version.toS() + "\t" + it.info.author.toS() }
+                  }
+               }
+            }
+            selectionModel.selectionMode = SINGLE
+            selectionModel.selectedItemProperty() sync { pluginInfo.plugin = it }
+            d += { selectionModel.clearSelection() }
+            items = APP.plugins.pluginsObservable.toJavaFx().sorted { a, b -> a.info.name.compareTo(b.info.name) }
+            d += { items = null }
+            d += { pluginInfo.plugin = null }
+         }
+         lay(ALWAYS) += pluginInfo.apply {
+            minWidth = 0.0
+            minWidth = 250.emScaled
+         }
       }
    }
 
@@ -856,45 +855,53 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
    private class PluginInfoPane: StackPane() {
       val disposer = Disposer()
       var plugin: PluginBox<*>? = null
-         set(value) {
-            field = value
+         set(p) {
+            field = p
             children.clear()
             disposer()
-            if (value!=null) {
+            if (p!=null) {
                alignment = TOP_LEFT
 
-               lay(TOP_RIGHT) += Icon(value.info.icon ?: IconFA.PLUG, 128.0).apply {
-                  isFocusTraversable = false
-                  isMouseTransparent = true
-               }
                lay += vBox {
-                  lay += label(value.info.name.toUi()) {
-                     styleClass += listOf("h4", "h4p", "text-weight-bold")
+                  lay += hBox(0.0, CENTER_LEFT) {
+                     lay += label(p.info.name.toUi()) {
+                        styleClass += listOf("h4", "h4p", "text-weight-bold")
+                     }
+                     lay += Icon(IconFA.CARET_DOWN, -1.0, "${p.info.name} Menu").styleclass("header-icon").onClickDo {
+                        ValueContextMenu<Any?>().apply {
+                           setItemsFor(p)
+                           show(it, Side.BOTTOM, 0.0, 0.0)
+                        }
+                     }
                   }
-                  lay += textColon("Name", value.info.name)
-                  lay += textColon("Supported", value.info.isSupported)
+                  lay += textColon("Name", p.info.name)
+                  lay += textColon("Supported", p.info.isSupported)
                   lay += hBox(0, CENTER_LEFT) {
                      lay += label("Enabled: ")
                      lay += CheckIcon().apply {
                         gap(0)
-                        selected syncFrom value.enabled on disposer
-                        onClickDo { value.enabled.toggle() }
+                        selected syncFrom p.enabled on disposer
+                        onClickDo { p.enabled.toggle() }
                      }
                   }
-                  if (value.isBundled) {
-                     lay += text("Version: " + value.info.version.toUi() + " (bundled)")
+                  if (p.isBundled) {
+                     lay += text("Version: " + p.info.version.toUi() + " (bundled)")
                   } else {
-                     lay += textColon("Version", value.info.version)
-                     lay += textColon("Author", value.info.author)
+                     lay += textColon("Version", p.info.version)
+                     lay += textColon("Author", p.info.author)
                   }
-                  lay += textColon("Location", value.location)
-                  lay += textColon("Location (user data)", value.userLocation)
-                  lay += textColon("Enabled by default", value.info.isEnabledByDefault)
-                  lay += textColon("Runs in SLAVE application", value.info.isSingleton.not())
+                  lay += textColon("Location", p.location)
+                  lay += textColon("Location (user data)", p.userLocation)
+                  lay += textColon("Enabled by default", p.info.isEnabledByDefault)
+                  lay += textColon("Runs in SLAVE application", p.info.isSingleton.not())
                   lay += textFlow {
                      styleClass += "h4p"
-                     lay += text(value.info.description.toUi())
+                     lay += text(p.info.description.toUi())
                   }
+               }
+               lay(TOP_RIGHT) += Icon(p.info.icon ?: IconFA.PLUG, 128.0).apply {
+                  isFocusTraversable = false
+                  isMouseTransparent = true
                }
             }
          }
@@ -905,58 +912,54 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
    private val widgetInfo = WidgetInfoPane()
    override val editor = stackPane {
       val d = onNodeDispose
-      lay += vBox {
-         lay += label("Installed widgets:") {
-            styleClass += "h4p"
-         }
-         lay(ALWAYS) += hBox {
-            isFillHeight = true
-            lay += listView<ComponentFactory<*>> {
-               pseudoClassChanged("no-fixed-cell-size", true)
-               minPrefMaxWidth = 250.emScaled
-               cellFactory = Callback {
-                  object: ListCell<ComponentFactory<*>>() {
-                     val icon = Icon(null, 48.0).apply {
-                        isFocusTraversable = false
-                        onClickDo(2) { APP.windowManager.showWindow(item) }
-                     }
-                     val label1 = label("") {
-                        styleClass += "text-weight-bold"
-                     }
-                     val label2 = label("")
-                     val root = hBox(alignment = CENTER_LEFT) {
-                        lay += icon
-                        lay(ALWAYS) += vBox(alignment = CENTER_LEFT) {
-                           lay += label1
-                           lay += label2
-                        }
-                     }
+      lay += hBox(10.emScaled) {
+         isFillHeight = true
+         lay += listView<ComponentFactory<*>> {
+            pseudoClassChanged("no-fixed-cell-size", true)
+            minPrefMaxWidth = 250.emScaled
+            cellFactory = Callback {
+               object: ListCell<ComponentFactory<*>>() {
+                  val icon = Icon(null, 48.0).apply {
+                     isFocusTraversable = false
+                     isMouseTransparent = true
+                  }
+                  val label1 = label("") {
+                     styleClass += "text-weight-bold"
+                  }
+                  val label2 = label("")
+                  val root = hBox(alignment = CENTER_LEFT) {
+                     icon.focusOwner.value = this
 
-                     override fun updateItem(item: ComponentFactory<*>?, empty: Boolean) {
-                        super.updateItem(item, empty)
-                        graphic = item?.let { root }
-                        icon.icon(item.uiIcon)
-                        label1.text = item?.name?.toS()
-                        label2.text = when (item) {
-                           is WidgetFactory<*> -> item.version.toS() + "\t" + item.author.toS()
-                           else -> null
-                        }
+                     lay += icon
+                     lay(ALWAYS) += vBox(alignment = CENTER_LEFT) {
+                        lay += label1
+                        lay += label2
+                     }
+                  }
+
+                  override fun updateItem(item: ComponentFactory<*>?, empty: Boolean) {
+                     super.updateItem(item, empty)
+                     graphic = item?.let { root }
+                     icon.icon(item.uiIcon)
+                     label1.text = item?.name?.toS()
+                     label2.text = when (item) {
+                        is WidgetFactory<*> -> item.version.toS() + "\t" + item.author.toS()
+                        else -> null
                      }
                   }
                }
-               selectionModel.selectionMode = SINGLE
-               selectionModel.selectedItemProperty() sync { widgetInfo.widget = it }
-               d += { selectionModel.clearSelection() }
-               items = APP.widgetManager.factories.getComponentFactoriesObservable().toJavaFx().sorted { a, b -> a.name.compareTo(b.name) }.asIs()
-               d += { items = null }
-               d += { widgetInfo.widget = null }
             }
-            lay(ALWAYS) += widgetInfo.apply {
-               minWidth = 0.0
-               prefWidth = 250.emScaled
-            }
+            selectionModel.selectionMode = SINGLE
+            selectionModel.selectedItemProperty() sync { widgetInfo.widget = it }
+            d += { selectionModel.clearSelection() }
+            items = APP.widgetManager.factories.getComponentFactoriesObservable().toJavaFx().sorted { a, b -> a.name.compareTo(b.name) }.asIs()
+            d += { items = null }
+            d += { widgetInfo.widget = null }
          }
-
+         lay(ALWAYS) += widgetInfo.apply {
+            minWidth = 0.0
+            prefWidth = 250.emScaled
+         }
       }
    }
 
@@ -968,34 +971,42 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
 
       val disposer = Disposer()
       var widget: ComponentFactory<*>? = null
-         set(value) {
-            field = value
+         set(f) {
+            field = f
             children.clear()
             disposer()
-            if (value!=null) {
+            if (f!=null) {
                alignment = TOP_LEFT
 
                lay += vBox {
-                  lay += label(value.name.toUi()) {
-                     styleClass += listOf("h4", "h4p", "text-weight-bold")
+                  lay += hBox(0.0, CENTER_LEFT) {
+                     lay += label(f.name.toUi()) {
+                        styleClass += listOf("h4", "h4p", "text-weight-bold")
+                     }
+                     lay += Icon(IconFA.CARET_DOWN, -1.0, "${f.name} Menu").styleclass("header-icon").onClickDo {
+                        ValueContextMenu<Any?>().apply {
+                           setItemsFor(f)
+                           show(it, Side.BOTTOM, 0.0, 0.0)
+                        }
+                     }
                   }
-                  lay += textColon("Name", value.name)
-                  when (value) {
+                  lay += textColon("Name", f.name)
+                  when (f) {
                      is WidgetFactory<*> -> {
-                        lay += textColon("Id", value.id)
-                        lay += textColon("Supported", value.isSupported)
+                        lay += textColon("Id", f.id)
+                        lay += textColon("Supported", f.isSupported)
                         lay += textColon("Type", "Widget")
-                        lay += textColon("Version", value.version)
-                        lay += textColon("Year", value.year)
-                        lay += textColon("Author", value.author)
-                        lay += textColon("Contributor", value.contributor)
-                        lay += textColon("Location", value.location)
-                        lay += textColon("Location (user data)", value.userLocation)
+                        lay += textColon("Version", f.version)
+                        lay += textColon("Year", f.year)
+                        lay += textColon("Author", f.author)
+                        lay += textColon("Contributor", f.contributor)
+                        lay += textColon("Location", f.location)
+                        lay += textColon("Location (user data)", f.userLocation)
                         lay += textFlow {
                            styleClass += "h4p"
-                           lay += text(value.descriptionLong.toUi())
+                           lay += text(f.descriptionLong.toUi())
                            lay += text {
-                              val fs = value.features
+                              val fs = f.features
                               "Features: " + (if (fs.isEmpty()) "none" else fs.joinToString("\n") { "\t${it.name} - ${it.description}" })
                            }
                         }
@@ -1005,16 +1016,16 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      }
                      is DeserializingFactory -> {
                         lay += textColon("Type", "Exported layout")
-                        lay += textColon("File", value.launcher)
+                        lay += textColon("File", f.launcher)
                      }
                      is NoFactoryFactory -> {
                         lay += textColon("Type", "Substitute for 'missing component'")
                      }
                   }
                }
-               lay(TOP_RIGHT) += Icon(value.uiIcon, 128.0).apply {
+               lay(TOP_RIGHT) += Icon(f.uiIcon, 128.0).apply {
                   isFocusTraversable = false
-                  onClickDo(2) { APP.windowManager.showWindow(value) }
+                  isMouseTransparent = true
                }
             }
          }

@@ -1,5 +1,4 @@
 ## Currently considered
-- `WidgetFactory` context menu + add to `WidgetsCE`/`PluginsCe`
 - action refactor
   - Next all `ActionPane` actions will be migrated to `AppActions.kt`, so they can be accessed type-safely.
   - Next configurable properties will be used to avoid reflection & manual registering per class holder (AppActions).

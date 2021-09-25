@@ -4,6 +4,8 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.LINK
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UNLINK
 import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.geometry.Side
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.effect.BoxBlur
 import javafx.scene.input.DragEvent.DRAG_DONE
@@ -39,6 +41,7 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.ui.centre
+import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.pseudoClassChanged
@@ -47,7 +50,7 @@ import sp.it.util.ui.toP
 
 class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    val title = Label()
-   val propB: Icon
+   val menuB: Icon
    val absB: Icon
    val lockB: Icon
 
@@ -74,8 +77,14 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          prefColumns = 10
 
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
-         val actB = headerIcon(IconFA.GAVEL, actIconText) { APP.ui.actionPane.orBuild.show(area.widget) }
-         propB = headerIcon(IconFA.COGS, "Settings\n\n" + "Displays widget properties.") { showSettings(it) }
+         menuB = headerIcon(IconFA.CARET_DOWN, "Widget menu") { i ->
+            ContextMenu().dsl {
+               item("Open Settings", Icon(IconFA.COGS)) { showSettings(i) }
+               item("Open Actions", Icon(IconFA.GAVEL)) { APP.ui.actionPane.orBuild.show(area.widget) }
+            }.apply {
+               show(i, Side.BOTTOM, 0.0, 0.0)
+            }
+         }
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
          absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
          val loadB = CheckIcon().apply {
@@ -86,7 +95,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
             selected attach { area.widget.loadType.value = if (it) AUTOMATIC else MANUAL }
          }
 
-         lay += listOf(loadB, absB, lockB, propB, actB, closeB)
+         lay += listOf(loadB, absB, lockB, menuB, closeB)
       }
 
       // build animations

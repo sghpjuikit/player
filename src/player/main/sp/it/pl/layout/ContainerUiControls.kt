@@ -2,6 +2,8 @@ package sp.it.pl.layout
 
 import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.geometry.Side
+import javafx.scene.control.ContextMenu
 import javafx.scene.input.DragEvent.DRAG_DONE
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
@@ -25,6 +27,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.removeFromParent
@@ -58,11 +61,13 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
          }.apply {
             area.container.locked sync { icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
-         lay += headerIcon(IconFA.GAVEL, "Actions\n\nDisplay additional action for this container.") {
-            APP.ui.actionPane.orBuild.show(area.container)
-         }
-         lay += headerIcon(IconFA.COGS, "Settings\n\nDisplays widget properties.") {
-            showSettings(it)
+         lay += headerIcon(IconFA.CARET_DOWN, "Container menu") { i ->
+            ContextMenu().dsl {
+               item("Open Settings", Icon(IconFA.COGS)) { showSettings(i) }
+               item("Open Actions", Icon(IconFA.GAVEL)) { APP.ui.actionPane.orBuild.show(area.container) }
+            }.apply {
+               show(i, Side.BOTTOM, 0.0, 0.0)
+            }
          }
          lay += headerIcon(IconFA.TIMES, "Close widget") {
             area.container.close()

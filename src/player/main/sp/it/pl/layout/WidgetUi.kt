@@ -112,7 +112,6 @@ class WidgetUi: ComponentUiBase<Widget> {
             // put controls to new widget
             widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } } on disposer
             controls.title.textProperty() syncFrom widget.customName on disposer
-            controls.propB.isDisable = widget.getConfigs().isEmpty()
             widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
          }
          widget.loadType.value==MANUAL -> {
@@ -123,7 +122,6 @@ class WidgetUi: ComponentUiBase<Widget> {
                // put controls to new widget
                widget.padding sync { content.style = it?.net { "-fx-padding:${it.toS()};" } } on disposer
                controls.title.textProperty() syncFrom widget.customName on disposer
-               controls.propB.isDisable = widget.getConfigs().isEmpty()
                widget.locked sync { controls.lockB.icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
 
                manualLoadPane = buildManualLoadPane()

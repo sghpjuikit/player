@@ -192,7 +192,7 @@ import sp.it.util.reactive.onChange
 import sp.it.util.reactive.zip
 import sp.it.util.text.capital
 import sp.it.util.text.decapital
-import sp.it.util.text.splitTrimmed
+import sp.it.util.text.splitNoEmpty
 import sp.it.util.type.atomic
 import sp.it.util.type.property
 import sp.it.util.ui.show
@@ -398,7 +398,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                tagsF.textField.originalPromptText = AppTexts.textNoVal
             }
             is ReadState.Same<String?> -> {
-               val items = s.value.orEmpty().splitTrimmed(SEPARATOR_UNIT.toString()).toSet()
+               val items = s.value.orEmpty().splitNoEmpty(SEPARATOR_UNIT.toString()).toSet()
                originalItems setTo items
                tagsF.items setTo items
                tagsF.textField.originalPromptText = ""

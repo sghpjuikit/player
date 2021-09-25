@@ -10,7 +10,7 @@ import sp.it.util.async.executor.EventReducer
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
-import sp.it.util.text.splitTrimmed
+import sp.it.util.text.splitNoEmpty
 
 object WidgetIoManager {
    val ios = ArrayList<WidgetIo>()
@@ -53,7 +53,7 @@ object WidgetIoManager {
 class WidgetIo(widget: Widget, input_name: String, outputs: String) {
    val widget: Widget = widget
    val inputName: String = input_name
-   val outputsIds: List<Output.Id> = outputs.splitTrimmed(":").map { Output.Id.fromString(it) }
+   val outputsIds: List<Output.Id> = outputs.splitNoEmpty(":").map { Output.Id.fromString(it) }.toList()
 
    override fun toString() = "${this::class.jvmName} ${widget.name}.$inputName -> $outputsIds"
 }

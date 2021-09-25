@@ -11,7 +11,7 @@ import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.orNull
-import sp.it.util.text.splitTrimmed
+import sp.it.util.text.splitNoEmpty
 
 private val json = APP.serializerJson.json
 
@@ -61,7 +61,7 @@ fun ComponentDb.deduplicateIds(): ComponentDb {
    fun UUID.ddOrSame() = ids[this] ?: this
    fun Map<String, Any?>.dd() = mapValues { (k, v) ->
       if (k.startsWith("io") && v is String) {
-         v.splitTrimmed(":").joinToString(":") {
+         v.splitNoEmpty(":").joinToString(":") {
             v.substringBeforeLast(",") + "," + UUID.fromString(v.substringAfterLast(",")).ddOrSame().toString()
          }
       } else {

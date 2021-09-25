@@ -91,9 +91,8 @@ class ConfigPane<T: Any?>: VBox {
          }
          .toList()
 
-      val isConfig = configurable is Config<*>
       val isSingletonConfig = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
-      needsLabel = !isConfig && !isSingletonConfig
+      needsLabel = !isSingletonConfig
 
       buildUi(false)
    }

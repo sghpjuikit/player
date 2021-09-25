@@ -329,7 +329,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
                      styleclass("header-icon")
                      tooltip("Close dock permanently")
                      onClickDo { dockShow.value = false }
-                     hoverProperty() sync { icon(if (it) IconFA.ANGLE_DOUBLE_DOWN else IconFA.ANGLE_DOWN) } on mw.window.onClose
+                     hoverProperty() sync { icon(it, IconFA.ANGLE_DOUBLE_DOWN, IconFA.ANGLE_DOWN) } on mw.window.onClose
                   }
                }
             }

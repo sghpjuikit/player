@@ -286,7 +286,7 @@ public class Comet extends SimpleController {
 					new Icon(MaterialDesignIcon.NUMERIC_6_BOX_OUTLINE,15,"Start 6 player game",() -> game.start(6)),
 					new Icon(MaterialDesignIcon.NUMERIC_7_BOX_OUTLINE,15,"Start 7 player game",() -> game.start(7)),
 					new Icon(MaterialDesignIcon.NUMERIC_8_BOX_OUTLINE,15,"Start 8 player game",() -> game.start(8)),
-					new Icon(null,16){{ syncC(game.paused, it -> icon(it ? MaterialDesignIcon.PLAY : MaterialDesignIcon.PAUSE)); }}.action(() -> game.pause(!game.paused.get())),
+					new Icon(null,16){{ syncC(game.paused, it -> icon(it, MaterialDesignIcon.PLAY, MaterialDesignIcon.PAUSE)); }}.action(() -> game.pause(!game.paused.get())),
 					new Icon(FontAwesomeIcon.GEARS,14,"Settings").action(e -> APP.windowManager.showSettings(toConfigurableByReflect(this),e)),
 					new Icon(FontAwesomeIcon.INFO,14,"How to play").action(() -> new HowToPane().show(game))
 				),

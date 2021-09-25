@@ -59,7 +59,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             area.container.locked.toggle()
             APP.actionStream("Widget layout lock")
          }.apply {
-            area.container.locked sync { icon(if (it) IconFA.LOCK else IconFA.UNLOCK) } on disposer
+            area.container.locked sync { icon(it, IconFA.LOCK, IconFA.UNLOCK) } on disposer
          }
          lay += headerIcon(IconFA.CARET_DOWN, "Container menu") { i ->
             ContextMenu().dsl {

@@ -43,7 +43,7 @@ class CheckIcon: Icon {
    fun icons(selectedIcon: GlyphIcons, unselectedIcon: GlyphIcons): CheckIcon {
       styleclassRemove(STYLECLASS_DISABLING)
       s?.unsubscribe()
-      s = selected sync { icon(if (it) selectedIcon else unselectedIcon) }
+      s = selected sync { icon(it, selectedIcon, unselectedIcon) }
       return this
    }
 

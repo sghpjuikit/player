@@ -223,6 +223,10 @@ public class Icon extends StackPane {
 		if (isAnimated.get()) ra.get(this, A_HOVER).playFromDir(value);
 	}
 
+	public Icon icon(boolean test, GlyphIcons ifTrue, GlyphIcons ifFalse) {
+		return icon(test? ifTrue : ifFalse);
+	}
+
 	public Icon icon(GlyphIcons i) {
 		glyph = i;
 		setGlyphName(i==null ? "null" : GlyphsKt.id(i));

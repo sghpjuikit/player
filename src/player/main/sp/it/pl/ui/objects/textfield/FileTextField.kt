@@ -50,7 +50,7 @@ class FileTextField(val constraint: FileActor, val relativeTo: File?, val picker
             styleclass("file-text-field-type")
             right.add(0, this)
             editable sync { isDisable = !it }
-            type sync { icon(if (it==FILE) IconUN(0x1f4c4) else IconUN(0x1f4c1)) }
+            type sync { icon(it==FILE, IconUN(0x1f4c4), IconUN(0x1f4c1)) }
          }
       }
 

@@ -413,13 +413,13 @@ public class Window extends WindowBase {
 		setTitle("");
 		Icon leftMenuB = WindowUtilKt.leftHeaderMenuIcon(this);
 		Icon lockB = new Icon(null, -1, ActionRegistrar.get("Toggle layout lock")).styleclass("header-icon");
-			on(syncC(APP.ui.getLayoutLocked(), it -> lockB.icon(it ? LOCK : UNLOCK)), onClose);
+			on(syncC(APP.ui.getLayoutLocked(), it -> lockB.icon(it, LOCK, UNLOCK)), onClose);
 		Icon lmB = new Icon(null, -1, ActionRegistrar.get("Layout zoom overlay in/out")).styleclass("header-icon");
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
-			on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it ? TH : TH_LARGE)), onClose);
+			on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it, TH, TH_LARGE)), onClose);
 		Icon errorB = new Icon(WARNING, -1).styleclass("header-icon").action(() -> APP.getActions().openAppEventLog()).tooltip("Event Log");
-			syncC(AppEventLog.INSTANCE.getHasErrors(), it -> errorB.icon(it ? WARNING : SEND));
+			syncC(AppEventLog.INSTANCE.getHasErrors(), it -> errorB.icon(it, WARNING, SEND));
 
 		leftHeaderBox.getChildren().addAll(leftMenuB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);
 		leftHeaderBox.setTranslateY(-4);
@@ -427,7 +427,7 @@ public class Window extends WindowBase {
 
 		Icon miniB = new Icon(null, -1, "Toggle dock").styleclass("header-icon")
 			.onClickDo(consumer(it -> toggle(APP.windowManager.getDockShow())));
-		    syncC(miniB.hoverProperty(), it -> miniB.icon(it ? ANGLE_DOUBLE_UP : ANGLE_UP));
+		    syncC(miniB.hoverProperty(), it -> miniB.icon(it, ANGLE_DOUBLE_UP, ANGLE_UP));
 		Icon rightMenuB = WindowUtilKt.rightHeaderMenuIcon(this);
 		Icon closeB = new Icon(ICON_CLOSE, -1, "Close (" + keys(WINDOWS, Q) +")\n\nCloses window. If the ui.window is main, application closes as well.").styleclass("header-icon")
 			.onClickDo(consumer(it -> close()));

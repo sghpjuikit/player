@@ -108,7 +108,7 @@ class ErrorPane: OverlayPane<Any>() {
                      onClickDo {
                         stage?.let {
                            it.isAlwaysOnTop = !it.isAlwaysOnTop
-                           icon(if (it.isAlwaysOnTop) IconFA.SQUARE else IconFA.SQUARE_ALT)
+                           icon(it.isAlwaysOnTop, IconFA.SQUARE, IconFA.SQUARE_ALT)
                         }
                      }
                   }

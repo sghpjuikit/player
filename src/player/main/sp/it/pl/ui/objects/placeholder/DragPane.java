@@ -33,8 +33,8 @@ import static sp.it.util.reactive.UtilKt.attach;
  * each other, e.g. drag accepting node can be a child of already drag accepting pane. The highlighted area then
  * activates for the topmost drag accepting node
  * <p/>
- * The node should be drag accepting - have a drag over handler/filter. The condition under which the node accepts the
- * drag (e.g. only text) should be expressed as a {@link Predicate} and used when installing this pane. Otherwise it
+ * The node should be accepting drag - have a drag over handler/filter. The condition under which the node accepts the
+ * drag (e.g. only text) should be expressed as a {@link Predicate} and used when installing this pane. Otherwise, it
  * will be shown for drag of any content and confuse user.
  * <p/>
  * See {@link #install(javafx.scene.Node, de.jensd.fx.glyphs.GlyphIcons, String, kotlin.jvm.functions.Function1)}
@@ -48,7 +48,7 @@ public class DragPane extends Placeholder {
 	private static final GlyphIcons DEFAULT_ICON = CLIPBOARD;
 	public static final SingleR<DragPane,Data> PANE = new SingleR<>(DragPane::new,
 		(p, data) -> {
-			p.icon.icon(data.icon==null ? DEFAULT_ICON : data.icon);
+			p.icon.icon(data.icon==null, DEFAULT_ICON, data.icon);
 			p.info.setText(data.info.get());
 			p.whileActiveOfSibling = data.whileActive;
 		}

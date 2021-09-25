@@ -91,7 +91,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
             styleclass("header-icon")
             tooltip("Switch between automatic or manual widget loading.")
             area.widget.loadType sync { selected.setValue(it==AUTOMATIC) }
-            selected sync { icon(if (it) IconOC.UNFOLD else IconOC.FOLD) }
+            selected sync { icon(it, IconOC.UNFOLD, IconOC.FOLD) }
             selected attach { area.widget.loadType.value = if (it) AUTOMATIC else MANUAL }
          }
 
@@ -167,7 +167,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
    fun updateAbsB() {
       if (area.container is ContainerBi) {
-         absB.icon(if (area.container.absoluteSize.value==area.index) UNLINK else LINK)
+         absB.icon(area.container.absoluteSize.value==area.index, UNLINK, LINK)
          if (absB !in icons.children) icons.children.add(6, absB)
       } else {
          icons.children -= absB

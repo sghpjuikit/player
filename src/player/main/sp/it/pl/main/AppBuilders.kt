@@ -167,7 +167,7 @@ fun windowOnTopIcon(window: Window) = Icon().apply {
    styleclass("window-top-icon")
    tooltip("On top\n\nWindow will stay in foreground when other window is being interacted with")
    onClickDo { window.alwaysOnTop.toggle() }
-   window.alwaysOnTop sync { icon(if (it) IconFA.SQUARE else IconFA.SQUARE_ALT) }
+   window.alwaysOnTop sync { icon(it, IconFA.SQUARE, IconFA.SQUARE_ALT) }
 }
 
 fun windowPinIcon(autohide: Property<Boolean>) = CheckIcon(autohide).apply {

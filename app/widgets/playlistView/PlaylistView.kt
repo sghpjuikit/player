@@ -115,7 +115,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.filterPane.buttonAdjuster.value = { i ->
          i.onClickDo { playVisible.toggle() }
          playVisible sync {
-            i.icon(if (it) IconFA.FILTER else IconMD.FILTER_OUTLINE)
+            i.icon(it, IconFA.FILTER, IconMD.FILTER_OUTLINE)
             i.tooltip(
                if (it) "Disable filter for playback. Causes the playback to ignore the filter."
                else "Enable filter for playback. Causes the playback to play only displayed items."

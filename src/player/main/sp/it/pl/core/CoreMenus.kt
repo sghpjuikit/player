@@ -42,6 +42,7 @@ import sp.it.pl.main.App
 import sp.it.pl.main.AppHelp
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppOpen
+import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.Df.IMAGE
 import sp.it.pl.main.Df.PLAIN_TEXT
@@ -78,7 +79,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.nonNull
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiConverter
-import sp.it.util.conf.valuesIn
+import sp.it.util.conf.values
 import sp.it.util.dev.Dsl
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.isParentOf
@@ -404,12 +405,12 @@ object CoreMenus: Core {
             menuFor("Value", value.value)
             menu("Link") {
                item("From all identical") { it.bindAllIdentical() }
-               item("To generated...") { input ->
-                  Config.forProperty(type<GeneratingOutputRef<*>>(), "Generator", vn<GeneratingOutputRef<*>>(null)).constrain {
+               item("From generator...") { input ->
+                  Config.forProperty(type<GeneratingOutputRef<*>?>(), "Generator", vn<GeneratingOutputRef<*>>(null)).constrain {
                      nonNull()
-                     uiConverter { it.name }
-                     valuesIn { IOLayer.generatingOutputRefs.asSequence().filter { input.isAssignable(it.type) && !input.isBound(it.id) } }
-                  }.configure("Link ${input.name} to...") { c ->
+                     uiConverter { it?.name ?: textNoVal }
+                     values { listOf(null) + IOLayer.generatingOutputRefs.filter { input.isAssignable(it.type) && !input.isBound(it.id) } }
+                  }.configure("Link '${input.name}' input to...") { c ->
                      c.value.ifNotNull(input::bind)
                   }
                }

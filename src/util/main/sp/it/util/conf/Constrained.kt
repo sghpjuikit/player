@@ -84,7 +84,7 @@ fun <T: Any?, C: ConstrainedDsl<T>> C.readOnlyUnless(condition: ObservableValue<
 /** Adds [PreserveOrder] */
 fun <T: Any?, C: ConstrainedDsl<T>> C.uiNoOrder() = but(PreserveOrder)
 /** Adds [Constraint.ValueSealedSet] using the specified enumerator */
-fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: () -> Collection<T>) = but(ValueUnsealedSet { enumerator() })
+fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: () -> Collection<T>) = but(ValueSealedSet { enumerator() })
 /** Adds [Constraint.ValueSealedSet] using the specified collection as enumerator */
 fun                <T: Any?, C: ConstrainedDsl<T>> C.values(enumerator: Collection<T>) = but(ValueSealedSet { enumerator })
 /** Adds [Constraint.ValueSealedSet] using the specified enumerator */

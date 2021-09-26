@@ -34,6 +34,10 @@
   - make writing to tag handle errors properly (& report read-only files)
 
 ## Potential future work
+- Optimize markdown & support selection
+  Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
+- Implement multi0valued **Song.Artist** support
+  Should work like tags
 - Named widgets to avoid cloning
   Basically preconfigured **Node** widgets for recommended `Node` classes.
 - Show progress for file downloads progress, [Inspiration](https://betterprogramming.pub/show-download-progress-in-kotlin-style-64d157995e27)  

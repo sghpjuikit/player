@@ -1,22 +1,42 @@
 # Changelog
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [2.1.0] 2021 09 2
 
-## [2021 09 19]
+- Improve widget i/o system
+  - Avoid creating ui elements for i/o in other windows
+    - Improves performance
+    - Removes visual artefacts
+  - Implement context menus for linking/unlinking widget i/o
+  - Implement support for application-wide `Input` and `Output`
+  - Implement **Song Library** and **Playing song** as `Output` instead of `InOutput`
+  - Remove ui support for application-wide i/o
+- Improve markdown styling
+- Improve Json serialization for arrays, unsigned numbers and nullable types
+- Improve String char16, char32, grapheme facilities
+- Improve widget & plugin settings UX
+  - Add context menu support for ComponentFactory & PluginBox
+  - Simplify & improve layout
+  - Improve interaction (remove obscure behavior, add hover effects)
+- Improve component ui controls header icons  
+  **Settings** and **Actions** icons were merged into **Menu icon**, which is more flexible as well as consistent with window headers.
+  In the future, the menu may be customizable through `CoreMenus`.
+- Improve code
+- Fix several widget serialization/deserialization issues
 
-- Added smart window resize (`window drag + SHIFT + LMB`) - resize window to available screen area  
+## [2.0.0] 2021 09 19
+
+- Implement smart window resize (`window drag + SHIFT + LMB`) - resize window to available screen area  
   This behavior may be tweaked in the future, and leveraged more extensively.
-- Fix wrong table group column name in some table column menus
 - Implement running programs through .lnk files
 - Implement `Class` & `KClass` editor autocomplete  
   It is difficult to obtain loaded class list, so instead hardcoded list is provided by developer in form of a resource file.
   More entries may be added to the list in the future.
 - Improve markdown styling and UX
-- clean up code, fix warnings
+- Improve code
+- Fix wrong table group column name in some table column menus
 
-## [2021 09 10]
+## [2.0.0] 2021 09 10
 
 - Much improved handling of song's `TAGS: Set<String>` tag. The field:
   - has better editor
@@ -32,9 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The tags grouping was tricky, because it is a multivalued tag.
 Now that multivalued tags are supported, artist tag could also become `List<String>`, which would fix long-standing issue of grouping by artist.
-Adding song chapters through circular seeker is ot yet done, because it is not clear what the UX should be like.
+Adding song chapters through circular seeker is not yet done, because it is not clear what the UX should be like.
 
-## [2021 09 03]
+## [2.0.0] 2021 09 03
 
 - improved **Node** widget with better context menu & class suggestions. Also renamed to **Custom**.
 - Improved ComboBox styling & autocompletion UX
@@ -51,7 +71,7 @@ The new context menus are an important addition and solve the issue of feature d
 
 The markdown still needs more work with link resolving as well as file monitoring and automatic reload. [RichTextFX](https://github.com/FXMisc/RichTextFX) may be used to produce more optimized and powerful UI.
 
-## [2021 08 27]
+## [2.0.0] 2021 08 27
 
 - Support for Markdown text was implemented.
   - **GameView** widget is now using this for game info

@@ -799,7 +799,7 @@ fun <T> TreeItem<T>.isChildOf(parent: TreeItem<T>) = parent.isParentOf(this)
 /** @return true iff this is direct or indirect child of the specified tree item */
 fun <T> TreeItem<T>.isAnyChildOf(parent: TreeItem<T>) = parent.isAnyParentOf(this)
 
-val <T> TreeItem<T>.root: TreeItem<T> get() = traverse { it.parent }.first()
+val <T> TreeItem<T>.root: TreeItem<T> get() = traverse { it.parent }.last()
 
 fun <T> TreeItem<T>.expandToRoot() = generateSequence(this) { it.parent }.forEach { it.setExpanded(true) }
 

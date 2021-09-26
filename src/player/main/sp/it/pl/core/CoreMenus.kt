@@ -28,7 +28,11 @@ import sp.it.pl.layout.controller.io.GeneratingOutputRef
 import sp.it.pl.layout.controller.io.IOLayer
 import sp.it.pl.layout.controller.io.InOutput
 import sp.it.pl.layout.controller.io.Input
+import sp.it.pl.layout.controller.io.InputRef
 import sp.it.pl.layout.controller.io.Output
+import sp.it.pl.layout.controller.io.OutputRef
+import sp.it.pl.layout.controller.io.boundOutputs
+import sp.it.pl.layout.controller.io.boundInputs
 import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.FileExplorerFeature
 import sp.it.pl.layout.feature.Opener
@@ -404,13 +408,22 @@ object CoreMenus: Core {
          add<Input<*>> {
             menuFor("Value", value.value)
             menu("Link") {
+               item("From...") { input ->
+                  Config.forProperty(type<OutputRef?>(), "Output", vn(null)).constrain {
+                     nonNull()
+                     uiConverter { it?.name ?: textNoVal }
+                     values { listOf(null) + IOLayer.allOutputRefs().filter { input.isAssignable(it) && !input.isBound(it) } }
+                  }.configure("Link '${input.name}' input to...") { c ->
+                     c.value.ifNotNull { input.bindAny(it.output) }
+                  }
+               }
                item("From all identical") { it.bindAllIdentical() }
                item("From generator...") { input ->
-                  Config.forProperty(type<GeneratingOutputRef<*>?>(), "Generator", vn<GeneratingOutputRef<*>>(null)).constrain {
+                  Config.forProperty(type<GeneratingOutputRef<*>?>(), "Generator", vn(null)).constrain {
                      nonNull()
                      uiConverter { it?.name ?: textNoVal }
                      values { listOf(null) + IOLayer.generatingOutputRefs.filter { input.isAssignable(it.type) && !input.isBound(it.id) } }
-                  }.configure("Link '${input.name}' input to...") { c ->
+                  }.configure("Link '${input.name}' input from...") { c ->
                      c.value.ifNotNull(input::bind)
                   }
                }
@@ -422,13 +435,30 @@ object CoreMenus: Core {
                }
             }
             menu("Unlink") {
-               item("All inbound") { it.unbindAll() }
+               menu("One") {
+                  items(value.boundOutputs(), { it.name }) { value.unbind(it) }
+               }
+               item("All") { it.unbindAll() }
             }
          }
          add<Output<*>> {
             menuFor("Value", value.value)
+            menu("Link") {
+               item("To...") { output ->
+                  Config.forProperty(type<InputRef?>(), "Input", vn(null)).constrain {
+                     nonNull()
+                     uiConverter { it?.name ?: textNoVal }
+                     values { listOf(null) + IOLayer.allInputRefs().filter { it.input.isAssignable(output) && !it.input.isBound(output) } }
+                  }.configure("Link '${output.id.name}.${output.name}' input to...") { c ->
+                     c.value.ifNotNull { it.input.bindAny(output) }
+                  }
+               }
+            }
             menu("Unlink") {
-               item("All outbound") { it.unbindAll() }
+               menu("One") {
+                  items(value.boundInputs(), { it.name }) { value.unbind(it) }
+               }
+               item("All") { it.unbindAll() }
             }
          }
          add<InOutput<*>> {

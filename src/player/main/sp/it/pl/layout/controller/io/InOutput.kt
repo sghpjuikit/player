@@ -12,10 +12,6 @@ open class InOutput<T>(id: UUID, name: String, type: VType<T>, initialValue: T):
       override fun isAssignable(output: Output<*>) = output!==o && super.isAssignable(output)
    }
 
-   fun appWide() = apply {
-      IOLayer.allInoutputs += this
-   }
-
    companion object {
       inline operator fun <reified T> invoke(id: UUID, name: String, initialValue: T): InOutput<T> = InOutput(id, name, type(), initialValue)
    }
@@ -24,9 +20,6 @@ open class InOutput<T>(id: UUID, name: String, type: VType<T>, initialValue: T):
 
 data class GeneratingOutputRef<T>(val ownerId: UUID, val name: String, val type: VType<T>, val block: (GeneratingOutputRef<T>) -> GeneratingOutput<T>) {
    val id = Id(ownerId, name)
-   fun appWide() = apply {
-      IOLayer.generatingOutputRefs += this
-   }
 }
 
 open class GeneratingOutput<T>(ref: GeneratingOutputRef<T>, initialValue: T): InOutput<T>(ref.id.ownerId, ref.id.name, ref.type, initialValue) {

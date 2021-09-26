@@ -27,7 +27,7 @@ object WidgetIoManager {
             it.io.o.getOutputs().forEach { os[it.id] = it }
          }
       }
-      IOLayer.allInoutputs.forEach { os[it.o.id] = it.o }
+      IOLayer.allInoutputs().forEach { os[it.o.id] = it.o }
 
       val iosToRem = mutableSetOf<WidgetIo>()
       ios.forEach { io ->

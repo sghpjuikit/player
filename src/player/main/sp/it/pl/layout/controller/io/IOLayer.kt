@@ -2,6 +2,7 @@ package sp.it.pl.layout.controller.io
 
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 import javafx.animation.Interpolator
 import javafx.animation.PathTransition
 import javafx.animation.Transition
@@ -39,7 +40,10 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.withSign
 import kotlin.properties.Delegates.observable
+import sp.it.pl.layout.Component
 import sp.it.pl.layout.ContainerSwitchUi
+import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetSource
 import sp.it.pl.layout.controller.io.IOLayer.IOLinkBase.IOLinkConnection.BEZIER
 import sp.it.pl.layout.controller.io.IOLayer.IOLinkBase.IOLinkConnection.ELECTRONIC
 import sp.it.pl.layout.controller.io.IOLayer.IOLinkBase.IOLinkConnection.LINE
@@ -212,11 +216,11 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
          else av.dur(300.millis).playClose()
       } on disposer
 
-      allInputs.onItemSync { addInput(it) } on disposer
+//      allInputs.onItemSync { addInput(it) } on disposer
       allInputs.onItemRemoved { remInput(it) } on disposer
-      allOutputs.onItemSync { addOutput(it) } on disposer
+//      allOutputs.onItemSync { addOutput(it) } on disposer
       allOutputs.onItemRemoved { remOutput(it) } on disposer
-      allInoutputs.onItemSync { addInOutput(it) } on disposer
+//      allInoutputs.onItemSync { addInOutput(it) } on disposer
       allInoutputs.onItemRemoved { remInOutput(it) } on disposer
 
       allLayers += this
@@ -233,7 +237,6 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    }
 
    private fun addInput(i: Input<*>) {
-      allInputs += i
       inputNodes.computeIfAbsent(i) {
          val n = InputNode(i)
          i.getSources().forEach { o -> links.computeIfAbsent(Key(i, o), Compute { IOLink(i, o) }) }
@@ -243,25 +246,21 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    }
 
    private fun remInput(i: Input<*>) {
-      allInputs -= i
       inputNodes.remove(i)?.let { it.disposer() }
       links.removeIf { it.key1()==i || it.key2()==i }.forEach { it.disposer() }
    }
 
    private fun addOutput(o: Output<*>) {
-      allOutputs += o
       outputNodes.computeIfAbsent(o) { OutputNode(o) }
       requestLayout()
    }
 
    private fun remOutput(o: Output<*>) {
-      allOutputs -= o
       outputNodes.remove(o)?.let { it.disposer() }
       links.removeIf { it.key1()==o || it.key2()==o }.forEach { it.disposer() }
    }
 
    private fun addInOutput(io: InOutput<*>) {
-      allInoutputs += io
       inoutputNodes.computeIfAbsent(io) {
          val n = InOutputNode(io)
          inputNodes[io.i] = n
@@ -273,7 +272,6 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    }
 
    private fun remInOutput(io: InOutput<*>) {
-      allInoutputs -= io
       inputNodes -= io.i
       outputNodes -= io.o
       inoutputNodes.remove(io)?.let { it.disposer() }
@@ -867,9 +865,67 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
       val allInputs = observableSet<Input<*>>()!!
       val allOutputs = observableSet<Output<*>>()!!
       val allInoutputs = observableSet<InOutput<*>>()!!
+      val allInputsApp = observableSet<Input<*>>()!!
+      val allOutputsApp = observableSet<Output<*>>()!!
+      val allInoutputsApp = observableSet<InOutput<*>>()!!
       val generatingOutputRefs = observableSet<GeneratingOutputRef<*>>()!!
       private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
       private val propagatedPseudoClasses = setOf("hover", "highlighted", "selected", "drag-over")
+
+      fun allInputs(): Sequence<Input<*>> = allInputs.asSequence() + allInputsApp.asSequence() + allInoutputs().map { it.i }
+      fun allOutputs(): Sequence<Output<*>> = allOutputs.asSequence() + allOutputsApp.asSequence() + allInoutputs().map { it.o }
+      fun allInoutputs(): Sequence<InOutput<*>> = allInoutputs.asSequence() + allInoutputsApp.asSequence()
+      fun allInputRefs(): Sequence<InputRef> = (allInputs.asSequence() + allInputsApp.asSequence()).map { it.toRef() } + allInoutputs().map { it.toInputRef() }
+      fun allOutputRefs(): Sequence<OutputRef> = (allOutputs.asSequence() + allOutputsApp.asSequence()).map { it.toRef() } + allInoutputs().map { it.toOutputRef() }
+
+      fun componentPutAdded(id: UUID, put: Put<*>) {
+         APP.widgetManager.widgets.findAll(WidgetSource.OPEN).find { it.id == id }.ifNotNull { w ->
+            val s = w.window?.scene ?: return
+            val l = allLayers.find { it.scene === s } ?: return
+            when (put) {
+               is Input<*> -> {
+                  allInputs += put
+                  l.addInput(put)
+               }
+               is Output<*> -> {
+                  allOutputs += put
+                  l.addOutput(put)
+               }
+               is InOutput<*> -> {
+                  allInoutputs += put
+                  l.addInOutput(put)
+               }
+            }
+         }
+      }
+      fun componentPutRemoved(id: UUID, put: Put<*>) {
+         when (put) {
+            is Input<*> -> allInputs -= put
+            is Output<*> -> allOutputs -= put
+            is InOutput<*> -> allInoutputs -= put
+         }
+      }
+      fun componentSceneChanged(c: Widget) {
+         allInputs -= c.controller?.io?.i?.getInputs().orEmpty()
+         allOutputs -= c.controller?.io?.o?.getOutputs().orEmpty()
+         allInoutputs -= c.controller?.io?.io?.getInOutputs().orEmpty()
+
+         val s = c.window?.scene ?: return
+         val l = allLayers.find { it.scene === s } ?: return
+
+         allInputs += c.controller?.io?.i?.getInputs().orEmpty()
+                      c.controller?.io?.i?.getInputs().orEmpty().forEach { l.addInput(it) }
+         allOutputs += c.controller?.io?.o?.getOutputs().orEmpty()
+                       c.controller?.io?.o?.getOutputs().orEmpty().forEach { l.addOutput(it) }
+         allInoutputs += c.controller?.io?.io?.getInOutputs().orEmpty()
+                         // c.controller?.io?.io?.getInOutputs().orEmpty().forEach { l.addInOutput(it) } // undesirable
+      }
+
+      fun requestLayoutFor(c: Component) {
+         val s = c.window?.scene ?: return
+         val l = allLayers.find { it.scene === s } ?: return
+         l.requestLayout()
+      }
 
       private val currentTime = GeneratingOutputRef<LocalTime>(uuid("c86ed924-e2df-43be-99ba-4564ddc2660a"), "Current Time", type()) { ref ->
          object: GeneratingOutput<LocalTime>(ref, LocalTime.now()) {
@@ -900,16 +956,14 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
          allLinks.remove2D(i, o)
          allLayers.forEach { it.remConnection(i, o) }
 
-         allInoutputs.asSequence().filterIsInstance<GeneratingOutput<*>>().find { it.o === o }.ifNotNull {
+         allInoutputs().asSequence().filterIsInstance<GeneratingOutput<*>>().find { it.o === o }.ifNotNull {
             if (!it.o.isBound()) {
                allInoutputs -= it
+               allInoutputsApp -= it
                it.dispose()
             }
          }
       }
-
-      @Suppress("UNCHECKED_CAST")
-      private fun Input<*>.bindAny(output: Output<*>) = (this as Input<Any?>).bind(output as Output<Any?>)
 
       private fun <T> Put<T>.xPutToStr(): String = "$name : ${type.toUi()}\n${APP.instanceName[value]}"
 
@@ -941,3 +995,17 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    }
 
 }
+
+fun Input<*>.boundOutputs(): Sequence<Output<*>> = getSources().asSequence()
+
+fun Output<*>.boundInputs(): Sequence<Input<*>> = IOLayer.allLinks.keys.asSequence()
+   .mapNotNull { if (it.key1()==value) it.key2() else if (it.key2()==value) it.key1() else null }
+   .filterIsInstance<Input<*>>().distinct()
+
+fun <T> Input<T>.appWide() = apply { IOLayer.allInputsApp += this }
+
+fun <T> Output<T>.appWide() = apply { IOLayer.allOutputsApp += this }
+
+fun <T> InOutput<T>.appWide() = apply { IOLayer.allInoutputsApp += this }
+
+fun <T> GeneratingOutputRef<T>.appWide() = apply { IOLayer.generatingOutputRefs += this }

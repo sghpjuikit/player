@@ -77,8 +77,8 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       container.padding sync { root.style = it?.net { "-fx-padding:${it.toS()};" } }
 
       // report component graphics changes
-      root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
-      root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+      root.parentProperty() sync { IOLayer.requestLayoutFor(container) }
+      root.layoutBoundsProperty() sync { IOLayer.requestLayoutFor(container) }
 
       // switch to container/normal layout mode using right/left click
       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {

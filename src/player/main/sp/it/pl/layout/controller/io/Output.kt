@@ -16,7 +16,7 @@ class Output<T>: Put<T> {
    fun bind(input: Input<in T>) = input.bind(this)
 
    /** Calls [sp.it.pl.layout.controller.io.Input.unbind] on specified input with this output. */
-   fun unbind(input: Input<in T>) = input.unbind(this)
+   fun unbind(input: Input<*>) = input.unbind(this)
 
    /** @return true iff this output is bound to any [Input]. */
    fun isBound(): Boolean {

@@ -242,8 +242,8 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          w.moving sync { suppressHidingFor(w.borders, it) }
 
          // report component graphics changes
-         w.root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
-         w.root.boundsInParentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+         w.root.parentProperty() sync { IOLayer.requestLayoutFor(container) }
+         w.root.boundsInParentProperty() sync { IOLayer.requestLayoutFor(container) }
 
          w
       }

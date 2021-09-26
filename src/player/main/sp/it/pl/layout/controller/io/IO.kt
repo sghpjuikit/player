@@ -34,7 +34,7 @@ class IO(private val id: UUID) {
 
          val i = Input(name, type, initialValue, action)
          mi[name] = i
-         IOLayer.allInputs += i
+         IOLayer.componentPutAdded(id, i)
          return i
       }
 
@@ -42,7 +42,7 @@ class IO(private val id: UUID) {
          i.unbindAll()
          i.dispose()
          mi -= i.name
-         IOLayer.allInputs -= i
+         IOLayer.componentPutRemoved(id, i)
       }
 
       fun removeAll() {

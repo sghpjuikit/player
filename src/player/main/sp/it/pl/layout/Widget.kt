@@ -45,6 +45,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
 import sp.it.util.ui.findParent
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.onNodeDispose
@@ -218,7 +219,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    override val name: String
       get() = customName.value
 
-   /** Initializes (if not yet) and returns non null [controller] and [graphics]. */
+   /** Initializes (if not yet) and returns non-null [controller] and [graphics]. */
    @Idempotent
    override fun load(): Node {
       if (graphics==null) {
@@ -232,6 +233,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
                graphics = controller!!.uiRoot()
                val isLegacy = controller!!.javaClass.isAnnotationPresent(LegacyController::class.java)
                if (isLegacy) restoreConfigs()
+               graphics!!.sceneProperty() attach { IOLayer.componentSceneChanged(this) }
                updateIO()
             } catch (e: Throwable) {
                val c = LoadErrorController(this)
@@ -267,13 +269,13 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
 
       controller?.let { c ->
          controller = null
-         val `is` = c.io.i.getInputs()
-         val os = c.io.o.getOutputs()
-         IOLayer.allInputs.removeAll(`is`)
-         IOLayer.allOutputs.removeAll(os)
+         val ips = c.io.i.getInputs()
+         val ops = c.io.o.getOutputs()
+         ips.forEach { IOLayer.componentPutRemoved(id, it) }
+         ops.forEach { IOLayer.componentPutRemoved(id, it) }
          c.close()
-         `is`.forEach { it.dispose() }
-         os.forEach { it.dispose() }
+         ips.forEach { it.dispose() }
+         ops.forEach { it.dispose() }
       }
 
       graphics?.onNodeDispose()
@@ -418,10 +420,9 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    // we need to create i/o nodes and i/o connections
    private fun updateIO() {
       // because widget inputs can be bound to other widget outputs, and because widgets can be
-      // loaded passively (then its i/o does not exists yet), we need to update all widget i/os
+      // loaded passively (then its i/o does not exist yet), we need to update all widget i/os
       // because we do not know which bind to this widget
-      IOLayer.allInputs += controller!!.io.i.getInputs()
-      IOLayer.allOutputs += controller!!.io.o.getOutputs()
+      IOLayer.componentSceneChanged(this)
       requestWidgetIOUpdate()
    }
 

@@ -85,6 +85,10 @@ class WidgetUi: ComponentUiBase<Widget> {
          { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
       )
 
+      // report component graphics changes
+      root.parentProperty() sync { IOLayer.requestLayoutFor(widget) }
+      root.layoutBoundsProperty() sync { IOLayer.requestLayoutFor(widget) }
+
       root.sceneProperty() attach { updateStandalone() }
 
       loadWidget()

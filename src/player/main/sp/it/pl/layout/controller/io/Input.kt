@@ -28,9 +28,6 @@ open class Input<T>: Put<T> {
       attach(action)
    }
 
-   /** @return true if this input can receive values from given output */
-   open fun isAssignable(output: Output<*>): Boolean = isAssignable(output.type)
-
    /** @return true if this input can receive values of the specified type */
    open fun isAssignable(oType: VType<*>): Boolean = when {
       oType isSubtypeOf type -> true
@@ -42,6 +39,12 @@ open class Input<T>: Put<T> {
       }
       else -> false
    }
+
+   /** @return true if this input can receive values from given output */
+   open fun isAssignable(output: Output<*>): Boolean = isAssignable(output.type)
+
+   /** @return true if this input can receive values from given output */
+   open fun isAssignable(output: OutputRef): Boolean = isAssignable(output.output)
 
    private fun isAssignable(type1: KClass<*>, type2: KClass<*>) = type1.isSubclassOf(type2) || type2.isSubclassOf(type1)
 
@@ -104,22 +107,32 @@ open class Input<T>: Put<T> {
          allWidgets.asSequence()
             .filter { it.factory==factory }
             .map { it.controller!!.io.o.getOutputs().find { it.id.name==id.name }!! }
-            .forEach { (this as Input<Any?>).bind(it as Output<Any?>) }
+            .forEach { bindAny(it) }
       }
    }
 
    @Idempotent
    fun bind(generatorRef: GeneratingOutputRef<*>): Subscription {
-      val o = null
-         ?: sources.keys.find {  it.id == generatorRef.id  }
-         ?: IOLayer.allInoutputs.find { it.o.id == generatorRef.id }?.o
-         ?: generatorRef.asIs<GeneratingOutputRef<Any?>>().block(generatorRef.asIs()).o
-
-      return bind(o.asIs<Output<T>>())
+      return bindAny(
+         null
+            ?: sources.keys.find {  it.id == generatorRef.id  }
+            ?: IOLayer.allInoutputs().find { it.o.id == generatorRef.id }?.o
+            ?: generatorRef.asIs<GeneratingOutputRef<Any?>>().block(generatorRef.asIs()).o
+      )
    }
+
+   /** Unsafe [bind]. Use with combination of [isAssignable]. */
+   @Suppress("UNCHECKED_CAST")
+   fun bindAny(output: Output<*>): Subscription = (this as Input<Any?>).bind(output as Output<Any?>)
 
    /** @return true iff any [Output] is bound to this input using [bind]. ] */
    fun isBound(): Boolean = sources.keys.isNotEmpty()
+
+   /** @return true iff the specified [Output] is bound to this input using [bind]. ] */
+   fun isBound(o: Output<*>): Boolean = isBound(o.id)
+
+   /** @return true iff the specified [Output] is bound to this input using [bind]. ] */
+   fun isBound(o: OutputRef): Boolean = isBound(o.output)
 
    /** @return true iff an [Output] with the specified id is bound to this input using [bind]. ] */
    fun isBound(id: Id): Boolean = sources.keys.any { it.id==id }

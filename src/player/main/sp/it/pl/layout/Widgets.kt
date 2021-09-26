@@ -137,7 +137,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             p.properties[loadNotification] = loadNotification // in some situations, container needs to know that after remove, add will come
             p.removeChild(i)
             p.addChild(i, widgetNew)
-            p.properties - loadNotification
+            p.properties -= loadNotification
             widgetNew.restoreAuxiliaryState()
          } else {
             val parent = widgetOld.graphics!!.parent

@@ -108,16 +108,12 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       padding.value = state.properties["padding"].asIf<Insets>()
       padding attach { properties["padding"] = it }
    }
-   /*
-     * Properly links up this container with its children and propagates this
-     * call down on the children and so on.
-     * This method is required to fully setParentRec the layout after deserialization
-     * because some field values can not be serialized and need to be manually
-     * initialized.
-     * Use on layout reload, immediately after the container.load() method.
-     */
-   // TODO: remove
-   fun setParentRec() {
+
+   /**
+    * Sets this as [parent] for all [children] recursively.
+    * Required after deserialization, call just before the children are loaded.
+    */
+   protected fun setParentRec() {
       for (c in children.values) {
          if (c is Container<*>) {
             c.parent = this
@@ -180,7 +176,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       val i2 = toParent.indexOf(w2)
       val w1n = w1?.name ?: "null"
       val w2n = w2?.name ?: "null"
-      LoggerFactory.getLogger(Container::class.java).info("Swapping widgets {} and {}", w1n, w2n)
+      LoggerFactory.getLogger(Container::class.java).info("Swapping components {} and {}", w1n, w2n)
       c1.addChild(i1, w2)
       toParent.addChild(i2, w1)
       c1.closeWindowIfEmpty()

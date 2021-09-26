@@ -15,9 +15,6 @@ open class ContainerUni: Container<ComponentUi> {
    /** Name of this container. */
    override val name = "ContainerUni"
 
-   /** Whether this container is designed as a root and overrides its ui decorations. Default `false`. */
-   val isStandalone by cv(false).readOnly().def(name = "Standalone", info = "Whether this container is designed as a root and overrides its ui decorations.")
-
    /** Convenience for `[children][1]` and `addChild(1, newChild)`. */
    var child: Component?
       get() = children[1]
@@ -56,10 +53,9 @@ open class ContainerUni: Container<ComponentUi> {
       if (index==null) return
       failIf(index!=1) { "Index=$index must be 1" }
 
-      if (c is Container<*>) c.parent = this
       children[1] = c
-      if (root!=null) load()
       setParentRec()
+      if (root!=null) load()
    }
 
    override fun validChildIndexes() = sequenceOf(1)

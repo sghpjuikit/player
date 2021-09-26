@@ -22,7 +22,7 @@ import sp.it.util.reactive.on
  */
 sealed class Component(state: ComponentDb) {
 
-   /** Unique ID. Permanent. Persists application life cycle. */
+   /** Unique ID. Permanent. Persists application life cycle, but it may be regenerated to guarantee uniqueness. */
    val id: UUID
    /** Simple storage for component state. Persists application life cycle. */
    val properties = HashMap<String, Any?>()

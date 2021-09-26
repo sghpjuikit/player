@@ -69,8 +69,8 @@ class ContainerBi: Container<ContainerBiUi> {
       if (c==null) children.remove(index)
       else children[index] = c
 
-      ui?.setComponent(index, c)
       setParentRec()
+      ui?.setComponent(index, c)
    }
 
    fun swapChildren() {

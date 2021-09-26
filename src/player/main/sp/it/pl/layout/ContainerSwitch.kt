@@ -52,8 +52,8 @@ class ContainerSwitch: Container<ContainerSwitchUi> {
       if (c==null) children.remove(index)
       else children[index] = c
 
-      ui?.addTab(index, c)
       setParentRec()
+      ui?.addTab(index, c)
    }
 
    override fun validChildIndexes() = generateSequence(0) { if (it>0) -it else -it + 1 } // 0,+1,-1,+2,-2,+3,-3, ...

@@ -18,6 +18,7 @@ import sp.it.pl.ui.objects.placeholder.Placeholder
 import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -84,9 +85,7 @@ class WidgetUi: ComponentUiBase<Widget> {
          { e -> e.dragboard[Df.COMPONENT].swapWith(this.container, this.index) }
       )
 
-      // report component graphics changes
-      root.parentProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
-      root.layoutBoundsProperty() sync { IOLayer.allLayers.forEach { it.requestLayout() } }
+      root.sceneProperty() attach { updateStandalone() }
 
       loadWidget()
       if (APP.ui.isLayoutMode) show() else hide()
@@ -94,10 +93,7 @@ class WidgetUi: ComponentUiBase<Widget> {
 
    private fun loadWidget() {
       disposer()
-
-      val isStandalone = widget.traverse<Component> { it.parent }.any { it is ContainerUni && it.isStandalone.value }
-      contentRoot.styleclassToggle(STYLECLASS, !isStandalone)
-      content.styleclassToggle(CONTENT_STYLECLASS, !isStandalone)
+      updateStandalone()
 
       when {
          widget.isLoaded || widget.forceLoading || widget.loadType.value==AUTOMATIC -> {
@@ -129,6 +125,12 @@ class WidgetUi: ComponentUiBase<Widget> {
             }
          }
       }
+   }
+
+   private fun updateStandalone() {
+      val isStandalone = widget.traverse<Component> { it.parent }.any { it is Layout && it.isStandalone.value }
+      contentRoot.styleclassToggle(STYLECLASS, !isStandalone)
+      content.styleclassToggle(CONTENT_STYLECLASS, !isStandalone)
    }
 
    override fun show() = controls.show()

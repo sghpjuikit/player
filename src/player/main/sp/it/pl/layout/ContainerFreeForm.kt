@@ -25,8 +25,8 @@ class ContainerFreeForm: Container<ContainerFreeFormUi> {
       if (c==null) children.remove(index)
       else children[index] = c
 
-      ui?.load(index, c)
       setParentRec()
+      ui?.load(index, c)
    }
 
    override fun removeChild(index: Int?) {

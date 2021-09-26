@@ -2,11 +2,16 @@ package sp.it.pl.layout
 
 import javafx.scene.Node
 import javafx.scene.layout.AnchorPane
+import sp.it.util.conf.cv
+import sp.it.util.conf.def
+import sp.it.util.conf.readOnly
 
 class Layout: ContainerUni {
 
    /** Name of this container. */
    override val name = "Layout"
+   /** Whether this container is designed as a root and overrides its ui decorations. Default `false`. */
+   val isStandalone by cv(false).readOnly().def(name = "Standalone", info = "Whether this container is designed as a root and overrides its ui decorations.")
 
    @JvmOverloads
    constructor(state: RootContainerDb = RootContainerDb()): super(state.toUni())
@@ -16,8 +21,8 @@ class Layout: ContainerUni {
     * @return root node of the layout
     */
    override fun load(parentPane: AnchorPane?): Node {
-      val n = super.load(parentPane)
       setParentRec()
+      val n = super.load(parentPane)
       return n
    }
 

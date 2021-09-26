@@ -78,6 +78,7 @@ import sp.it.util.async.executor.EventReducer
 import sp.it.util.collections.map.Map2D
 import sp.it.util.collections.map.Map2D.Key
 import sp.it.util.collections.materialize
+import sp.it.util.dev.markUsed
 import sp.it.util.dev.failCase
 import sp.it.util.functional.Util.forEachCartesianHalfNoSelf
 import sp.it.util.functional.ifNotNull
@@ -386,20 +387,6 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
             n.graphics.autosize()
             n.updatePosition(calcScaleX(baseX + ww - padding), calcScaleY(baseY + ohx*(i + 1)))
          }
-      }
-
-      val ioMinWidthX = 200.0
-      val ioGapX = 10.0
-      var ioOffsetX = 0.0
-      val ioOffsetYShift = -10.0
-      var ioOffsetY = height - 150.0
-      val ions = inoutputNodes.values.asSequence().sortedBy { it.inoutput!!.o.id.ownerId }.toList()
-      for (n in ions) {
-         n.graphics.isVisible = true
-         n.graphics.autosize()
-         n.updatePosition(ioOffsetX, ioOffsetY)
-         ioOffsetX += (n.graphics.layoutBounds.width max ioMinWidthX) + ioGapX
-         ioOffsetY += ioOffsetYShift
       }
 
       drawGraph()
@@ -898,6 +885,7 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
          }
       }
       fun componentPutRemoved(id: UUID, put: Put<*>) {
+         id.markUsed()
          when (put) {
             is Input<*> -> allInputs -= put
             is Output<*> -> allOutputs -= put

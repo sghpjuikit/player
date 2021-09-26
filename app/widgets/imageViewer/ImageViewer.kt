@@ -200,7 +200,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       onClose += slideshow::stop
       onClose += root.sync1IfInScene {
          if (!inputLocation.isBoundUnless(widget.id) && !inputLocationOf.isBoundUnless(widget.id) && !widget.isDeserialized)
-            inputLocationOf.bind(APP.audio.playing.o)
+            inputLocationOf.bind(APP.audio.playing)
 
          folder sync { readThumbnails() }
       }

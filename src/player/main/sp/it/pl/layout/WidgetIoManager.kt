@@ -1,11 +1,9 @@
 package sp.it.pl.layout
 
 import kotlin.reflect.jvm.jvmName
-import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.layout.controller.io.IOLayer
 import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.layout.controller.io.Output
-import sp.it.pl.main.APP
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.functional.asIs
@@ -21,14 +19,7 @@ object WidgetIoManager {
    fun updateWidgetIo() {
       failIfNotFxThread()
 
-      val os = HashMap<Output.Id, Output<*>>()
-      APP.widgetManager.widgets.findAll(OPEN).forEach { w ->
-         w.controller.ifNotNull {
-            it.io.o.getOutputs().forEach { os[it.id] = it }
-         }
-      }
-      IOLayer.allInoutputs().forEach { os[it.o.id] = it.o }
-
+      val os = IOLayer.allOutputs().associateBy { it.id }
       val iosToRem = mutableSetOf<WidgetIo>()
       ios.forEach { io ->
          val c = io.widget.controller ?: return@forEach

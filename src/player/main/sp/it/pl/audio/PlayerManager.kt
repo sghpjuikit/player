@@ -24,7 +24,7 @@ import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
 import sp.it.pl.audio.tagging.writeRating
-import sp.it.pl.layout.controller.io.InOutput
+import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.appWide
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
@@ -70,13 +70,14 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.system.browse
 import sp.it.util.type.atomic
+import sp.it.util.type.type
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
 
 class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
-   val playing = InOutput<Metadata?>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", null).appWide()
+   val playing = Output<Metadata?>(uuid("876dcdc9-48de-47cd-ab1d-811eb5e95158"), "Playing", type(), null).appWide()
    val playingSong = CurrentItem()
    val state = PlayerState.deserialize().apply {
       playback.loopMode attach { PlaylistManager.playingItemSelector.setSelector(it.selector()) }
@@ -165,7 +166,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    val onPlaybackAt: MutableList<PlayTimeHandler> = ArrayList()
 
    fun initialize() {
-      playingSong.onUpdate { _, n -> playing.i.value = n }
+      playingSong.onUpdate { _, n -> playing.value = n }
 
       // use jaudiotagger for total time value (fixes incorrect values coming from player classes)
       playingSong.onChange { _, n -> state.playback.duration.value = n.getLength() }
@@ -672,8 +673,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
             // refresh playing song data
             mm.ifHasE(playingSong.value) { playingSong.update(it) }
-
-            if (playing.i.value!=null) mm.ifHasE(playing.i.value!!) { playing.i.value = it }
+            playing.value.ifNotNull { pv -> mm.ifHasE(pv) { playing.value = it } }
 
             // refresh rest
             refreshHandlers.forEach { it(mm) }

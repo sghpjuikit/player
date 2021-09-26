@@ -268,7 +268,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
       table.selectedItems.onChange { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
       table.selectionModel.selectedItemProperty() attach { selLast = it?.getValueS("") ?: "null" } on onClose
-      root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs.o) } on onClose
+      root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs) } on onClose
 
       applyData(false)
    }

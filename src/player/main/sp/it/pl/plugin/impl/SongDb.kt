@@ -13,7 +13,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.core.CoreSerializer
-import sp.it.pl.layout.controller.io.InOutput
+import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.appWide
 import sp.it.pl.main.APP
 import sp.it.pl.main.withAppProgress
@@ -32,6 +32,7 @@ import sp.it.util.file.writeSafely
 import sp.it.util.functional.net
 import sp.it.util.functional.orAlsoTry
 import sp.it.util.functional.orNull
+import sp.it.util.type.type
 import sp.it.util.units.uuid
 
 @Suppress("unused")
@@ -40,8 +41,8 @@ class SongDb {
    private var running = false
    private lateinit var moods: LinkedHashSet<String>
 
-   /** All library songs. Use output for reading/observing. Using input does not change db and has little use. */
-   val songs = InOutput<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "Song library", listOf()).appWide()
+   /** All library songs. Use output for reading/observing. Setting its [Output.value] does not change db and has little use outside [SongDb]. */
+   val songs = Output<List<Metadata>>(uuid("396d2407-7040-401e-8f85-56bc71288818"), "Song library", type(), listOf()).appWide()
 
    /** All library songs by [Song.id]. This is in memory db and should be used as read-only. */
    @ThreadSafe val songsById = MapSet(synchronizedMap(HashMap<String, Metadata>(2000)), { it.id })
@@ -125,7 +126,7 @@ class SongDb {
       updateSongValues()
 
       runFX {
-         songs.i.value = l
+         songs.value = l
       }
    }
 

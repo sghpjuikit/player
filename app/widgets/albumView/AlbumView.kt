@@ -167,7 +167,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       }
       grid.selectedItem attach { if (!selIgnore) selectedItemsReducer.push(null) } on onClose
       grid.selectedItem attach { selLast = it?.name ?: "null" } on onClose
-      root.sync1IfInScene { inputSongs.bindDefaultIf1stLoad(APP.db.songs.o) } on onClose
+      root.sync1IfInScene { inputSongs.bindDefaultIf1stLoad(APP.db.songs) } on onClose
 
       onClose += { grid.itemsRaw.forEach { it.dispose() } }
       root.sync1IfInScene { applyCellSize() } on onClose

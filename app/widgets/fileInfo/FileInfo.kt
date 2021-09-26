@@ -226,7 +226,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       if (file==null || !data.isFileBased()) return
 
       val items = when {
-         includeAlbum -> APP.db.songs.o.value.asSequence()
+         includeAlbum -> APP.db.songs.value.asSequence()
             .filter { it.getAlbum()!=null && it.getAlbum()==data.getAlbum() }
             .toHashSet() + data
          else -> setOf(data)
@@ -499,6 +499,6 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
          { it.dragboard.getAudio().firstOrNull()?.let { read(it) } }
       )
 
-      root.sync1IfInScene { dataIn.bindDefaultIf1stLoad(APP.audio.playing.o) } on onClose
+      root.sync1IfInScene { dataIn.bindDefaultIf1stLoad(APP.audio.playing) } on onClose
    }
 }

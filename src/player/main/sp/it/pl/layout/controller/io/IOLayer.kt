@@ -95,7 +95,6 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
-import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile

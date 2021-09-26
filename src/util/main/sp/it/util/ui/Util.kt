@@ -33,7 +33,6 @@ import javafx.scene.control.TableView
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
 import javafx.scene.control.Tooltip
-import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeTableView
 import javafx.scene.control.TreeView
 import javafx.scene.image.Image
@@ -106,13 +105,6 @@ import sp.it.util.units.uuid
 
 private val logger = KotlinLogging.logger {}
 
-/* ---------- COLOR ------------------------------------------------------------------------------------------------- */
-
-/** @return color with same r,g,b values but specified opacity */
-fun Color.alpha(opacity: Double): Color {
-   return Color(red, green, blue, opacity)
-}
-
 /* ---------- ICON -------------------------------------------------------------------------------------------------- */
 
 fun createIcon(icon: GlyphIcons, iconSize: Double? = null) = Text(icon.characterToString()).apply {
@@ -144,7 +136,7 @@ fun Node.hasFocus(): Boolean = scene?.focusOwner?.traverse { it.parent }.orEmpty
 fun Node.isParentOf(child: Node) = child.parent===this
 
 /** @return true iff this is direct or indirect parent of the specified node */
-fun Node.isAnyParentOf(child: Node) = generateSequence(child) { it.parent }.drop(1).any { it===this }
+fun Node.isAnyParentOf(child: Node) = generateSequence(child.parent) { it.parent }.any { it===this }
 
 /** @return true iff this is direct child of the specified node */
 fun Node.isChildOf(parent: Node) = parent.isParentOf(this)
@@ -783,58 +775,6 @@ fun typeText(text: String, padLength: Char? = null): (Double) -> String {
          sbOriginal.substring(0, i)
       }
    }
-}
-
-/* ---------- TREE VIEW --------------------------------------------------------------------------------------------- */
-
-/** @return true iff this is direct parent of the specified tree item */
-fun <T> TreeItem<T>.isParentOf(child: TreeItem<T>) = child.parent===this
-
-/** @return true iff this is direct or indirect parent of the specified tree item */
-fun <T> TreeItem<T>.isAnyParentOf(child: TreeItem<T>) = generateSequence(child) { it.parent }.drop(1).any { it===this }
-
-/** @return true iff this is direct child of the specified tree item */
-fun <T> TreeItem<T>.isChildOf(parent: TreeItem<T>) = parent.isParentOf(this)
-
-/** @return true iff this is direct or indirect child of the specified tree item */
-fun <T> TreeItem<T>.isAnyChildOf(parent: TreeItem<T>) = parent.isAnyParentOf(this)
-
-val <T> TreeItem<T>.root: TreeItem<T> get() = traverse { it.parent }.last()
-
-fun <T> TreeItem<T>.expandToRoot() = generateSequence(this) { it.parent }.forEach { it.setExpanded(true) }
-
-fun <T> TreeItem<T>.expandToRootAndSelect(tree: TreeView<in T>) = tree.expandToRootAndSelect(this)
-
-@Suppress("UNCHECKED_CAST")
-fun <T> TreeView<T>.expandToRootAndSelect(item: TreeItem<out T>) {
-   item.expandToRoot()
-   this.scrollToCenter(item as TreeItem<T>)
-   selectionModel.clearAndSelect(getRow(item))
-}
-
-/** Scrolls to the row, so it is visible in the vertical center of the table. Does nothing if index out of bounds.  */
-fun <T> TreeView<T>.scrollToCenter(i: Int) {
-   var index = i
-   val items = expandedItemCount
-   if (index<0 || index>=items) return
-
-   val fixedCellHeightNotSet = fixedCellSize<=0
-   if (fixedCellHeightNotSet) {
-      scrollTo(i)
-      // TODO: improve
-   } else {
-      val rows = height/fixedCellSize
-      index -= (rows/2).toInt()
-      index = 0 max index min items - rows.toInt() + 1
-      scrollTo(index)
-   }
-}
-
-/** Scrolls to the item, so it is visible in the vertical center of the table. Does nothing if item not in table.  */
-fun <T> TreeView<T>.scrollToCenter(item: TreeItem<T>) {
-   item.expandToRoot()
-   generateSequence(item) { it.parent }.toList().asReversed()
-   scrollToCenter(getRow(item))
 }
 
 /* ---------- EVENT ------------------------------------------------------------------------------------------------- */

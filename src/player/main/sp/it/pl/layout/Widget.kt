@@ -84,7 +84,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
     * Null controller means that either the [load] hasn't been called yet, or [close] has already been called.
     *
     * The controller is provided by the [factory], specifically its [WidgetFactory.create] method. However:
-    * * If [load] encounters a error, an instance of [LoadErrorController] is used.
+    * * If [load] encounters an error, an instance of [LoadErrorController] is used.
     * * If [factory] is not available (e.g., when deserializing widget), an instance of [NoFactoryController] is used.
     */
    var controller: Controller? = null
@@ -182,7 +182,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
     * Whether this widget is active/focused.
     *
     * Each window has 0 or 1 active widgets.
-    * Focused widget may not contain actual focus (for example when it widget has no focus traversable content).
+    * Focused widget may not contain actual focus (for example when it has no focus traversable content).
     * Default false.
     */
    val focused by cvro(false) { focusedImpl.readOnlyProperty.readOnly() }.def(
@@ -299,7 +299,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       loadType.value = w.loadType.value
       locked.value = w.locked.value
 
-      // if this widget is loaded we apply state, otherwise its done when it loads
+      // if this widget is loaded we apply state, otherwise it is done when it loads
       if (controller!=null) restoreConfigs()
       properties.entries.stream()
          .filter { it.key.startsWith("io") }

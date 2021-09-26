@@ -23,7 +23,6 @@
 - Write application documentation
 - Implement `app.stateful` on/off config
 - Implement data info tooltip progress
-- `Node.isAnyParentOf` not implemented optimally
 - drag & drop playlist file support in audio
 - `image.toFX(null)` creates null `Image.url`, which disables some image menu behavior
 - `Configuration.propertiesRaw` are not synced with configs, should be?
@@ -36,7 +35,7 @@
 
 ## Potential future work
 - Named widgets to avoid cloning
-  Basically persisted settings of widgets, better Templates (persisted layouts)
+  Basically preconfigured **Node** widgets for recommended `Node` classes.
 - Show progress for file downloads progress, [Inspiration](https://betterprogramming.pub/show-download-progress-in-kotlin-style-64d157995e27)  
   Must work for downloading up `kotlinc` and `Vlc`
 - Support table column hierarchy, i.e., nested columns, e.g., `Metadata.File.Size`  

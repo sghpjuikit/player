@@ -342,7 +342,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
             val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
             mw.window.stage.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
             mw.window.onClose += {
-               mw.window.stage.asLayout()?.child?.exportFxwl(dockComponentFile)?.block()
+               mw.window.stage.asLayout()?.child.exportFxwl(dockComponentFile).block()
                mw.window.stage.asLayout()?.child?.close()
             }
          }

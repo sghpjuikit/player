@@ -128,7 +128,7 @@ class StartScreen: PluginBase() {
                      }
 
                      Subscription {
-                        widgetLayout?.child?.exportFxwl(ssComponentFile)?.block()
+                        widgetLayout?.child.exportFxwl(ssComponentFile).block()
                         widgetLayout?.child?.close()
                         widgetLayout?.close()
                         widgetLayout = null

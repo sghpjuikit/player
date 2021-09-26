@@ -188,7 +188,7 @@ class AppSearchPlugin: PluginBase() {
 
          init {
             onHidden += {
-               widgetLayout?.child?.exportFxwl(f)?.block()
+               widgetLayout?.child.exportFxwl(f).block()
                widgetLayout?.child?.close()
                widgetLayout?.close()
                widgetLayout = null

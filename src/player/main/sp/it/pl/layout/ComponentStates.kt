@@ -15,6 +15,9 @@ import sp.it.util.text.splitNoEmpty
 
 private val json = APP.serializerJson.json
 
+/**[Component.toDb] or [NoComponentDb] */
+fun Component?.toDb(): ComponentDb = this?.toDb() ?: NoComponentDb
+
 /**
  * Creates a launcher for this component as given file. Launcher is a
  * file, opening which by this application opens this component with its
@@ -22,10 +25,10 @@ private val json = APP.serializerJson.json
  *
  * See [File.loadComponentFxwlJson]
  */
-fun Component.exportFxwl(f: File) = runIO {
+fun Component?.exportFxwl(f: File) = runIO {
    APP.serializerJson.toJson(toDb(), f).ifErrorNotify {
       AppError(
-         "Unable to export component launcher for $name into $f.",
+         "Unable to export component launcher for ${this?.name} into ${f}.",
          "Reason:\n${it.stacktraceAsString}"
       )
    }

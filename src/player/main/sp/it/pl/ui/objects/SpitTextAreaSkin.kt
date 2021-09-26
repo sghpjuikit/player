@@ -29,9 +29,7 @@ class SpitTextAreaSkin(control: TextArea): TextAreaSkin(control) {
 
    override fun dispose() {
       disposer()
-      runCatching {
-         super.dispose()
-      }
+      super.dispose()
    }
 
 }

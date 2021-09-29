@@ -7,6 +7,7 @@ import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -60,7 +61,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
                hbarPolicy = AS_NEEDED
             }
          }
-         lay += md
+         lay(ALWAYS) += md
       }
 
       inputFile.sync {

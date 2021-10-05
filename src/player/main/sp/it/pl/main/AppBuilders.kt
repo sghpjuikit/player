@@ -467,7 +467,7 @@ fun Any?.detectContent(): Any? = when (this) {
       this=="false" -> false
       this.lengthInChars==1 -> this[0].detectContent()
       this.lengthInCodePoints==1 -> this.char32At(0).detectContent()
-      this.lengthInGraphemes==1 -> this.graphemeAt(0).detectContent()
+      this.lengthInGraphemes==1 -> this.graphemeAt(0)
       else -> null
          ?: this.toShortOrNull()
          ?: this.toIntOrNull()

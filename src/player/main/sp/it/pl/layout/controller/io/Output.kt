@@ -22,15 +22,7 @@ class Output<T>: Put<T> {
    fun isBound(): Boolean {
       return IOLayer.allLinks.keys.asSequence()
          .filter { it.key1()==this || it.key2()==this }
-         .flatMap {
-            sequenceOf(it.key1(), it.key2()).mapNotNull {
-               when (it) {
-                  is Input<*> -> it
-                  is InOutput<*> -> it.i
-                  else -> null
-               }
-            }
-         }
+         .flatMap { sequenceOf(it.key1(), it.key2()).mapNotNull { it as? Input<*> } }
          .count()>0
    }
 
@@ -38,15 +30,7 @@ class Output<T>: Put<T> {
    fun unbindAll() {
       IOLayer.allLinks.keys.asSequence()
          .filter { it.key1()==this || it.key2()==this }
-         .flatMap {
-            sequenceOf(it.key1(), it.key2()).mapNotNull {
-               when (it) {
-                  is Input<*> -> it
-                  is InOutput<*> -> it.i
-                  else -> null
-               }
-            }
-         }
+         .flatMap { sequenceOf(it.key1(), it.key2()).mapNotNull { it as? Input<*> } }
          .materialize()
          .forEach { it.unbind(this) }
    }

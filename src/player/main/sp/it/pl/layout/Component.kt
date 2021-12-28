@@ -11,7 +11,6 @@ import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
 import sp.it.pl.main.APP
 import sp.it.util.access.V
 import sp.it.util.access.v
-import sp.it.util.dev.fail
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -66,7 +65,6 @@ sealed class Component(state: ComponentDb) {
       get() = when(this) {
          is Container<*> -> root?.scene?.window
          is Widget -> graphics?.scene?.window
-         else -> fail()
       }
 
    init {

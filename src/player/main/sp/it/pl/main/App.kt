@@ -300,27 +300,32 @@ class App: Application(), GlobalConfigDelegator {
    @JvmField val plugins = PluginManager()
 
    override fun init() {
-      // init cores
-      classFields.initApp()
-      className.initApp()
-      instanceName.initApp()
-      instanceInfo.initApp()
-      serializer.init()
-      serializerJson.init()
-      imageIo.init()
-      instances.init()
-      contextMenus.init()
-      mouse.init()
-      functors.init()
+      runTry {
+         // init cores
+         classFields.initApp()
+         className.initApp()
+         instanceName.initApp()
+         instanceInfo.initApp()
+         serializer.init()
+         serializerJson.init()
+         imageIo.init()
+         instances.init()
+         contextMenus.init()
+         mouse.init()
+         functors.init()
 
-      // init app stuff
-      search.initForApp()
-      appCommunicator.initApp()
+         // init app stuff
+         search.initForApp()
+         appCommunicator.initApp()
 
-      // start parts that can be started from non application fx thread
-      ActionManager.onActionRunPost += { APP.actionStream(it.name) }
-      ActionManager.startActionListening(rankAtStart==SLAVE)
-      if (rankAtStart==MASTER) appCommunicator.start()
+         // start parts that can be started from non application fx thread
+         ActionManager.onActionRunPost += { APP.actionStream(it.name) }
+         ActionManager.startActionListening(rankAtStart==SLAVE)
+         if (rankAtStart==MASTER) appCommunicator.start()
+      }.ifError {
+         it.printStackTrace()
+         throw it
+      }
    }
 
    override fun start(primaryStage: Stage) {

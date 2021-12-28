@@ -512,6 +512,6 @@ sealed class ParserArg<T> {
 
    data class Arg<T>(override val type: VType<T>): ParserArg<T>()
    data class Val(val value: String): ParserArg<String>() {
-      override val type: VType<String> = VType(String::class.createType())
+      override val type: VType<String> = type()
    }
 }

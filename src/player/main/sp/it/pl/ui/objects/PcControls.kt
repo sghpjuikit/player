@@ -1,5 +1,6 @@
 package sp.it.pl.ui.objects
 
+import javafx.css.StyleableObjectProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Orientation.HORIZONTAL
 import javafx.geometry.Orientation.VERTICAL
@@ -23,7 +24,7 @@ import sp.it.util.ui.pseudoClassChanged
 /** Component for controlling pc with actions such as shutdown, restart, etc. */
 class PcControls: StackPane() {
    /** Layout orientation */
-   val orientation by sv(ORIENTATION)
+   val orientation: StyleableObjectProperty<Orientation> by sv(ORIENTATION)
 
    init {
       styleClass += "pc-controls"

@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.complexfield
 
 import javafx.collections.FXCollections.observableSet
 import javafx.collections.ObservableSet
+import javafx.css.StyleableObjectProperty
 import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.input.KeyCode.BACK_SPACE
@@ -51,7 +52,7 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
    /** Whether user can add to or remove from [items]. */
    val isEditable = v(true)
    /** The way user can add to [items]. */
-   val editableBy by sv(EDITABLE_BY)
+   val editableBy: StyleableObjectProperty<EditableBy> by sv(EDITABLE_BY)
    /** Text field for new [items]. [TextField.isEditable] if [isEditable] and [EditableBy.TEXT_FIELD]. The last child in this [TagTextField], not a child if not editable. */
    val textField = TextField("")
    /** [TagNode] for new [items]. if [isEditable] and [EditableBy.PLUS_NODE]. The last child in this [TagTextField], not a child if not editable. */

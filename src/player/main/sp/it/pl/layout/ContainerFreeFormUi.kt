@@ -38,7 +38,6 @@ import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
-import sp.it.util.dev.fail
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -187,7 +186,6 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
             n = w.ui!!.root
             a = w.ui
          }
-         else -> fail()
       }
       w.moveOnDragOf(w.root)
       w.setContent(n)
@@ -373,7 +371,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          if (cnt.width>0.0 && cnt.height>0.0)
             updatePosition.suppressing {
                positionUpdate.suppressed {
-                  
+
                   w.value = if (position.wType==RELATIVE) position.wRel*cnt.width else position.wAbs
                   h.value = if (position.hType==RELATIVE) position.hRel*cnt.height else position.hAbs
                   when (position.alignment) {

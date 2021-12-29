@@ -1,4 +1,7 @@
 ## Currently considered
+- fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
+- implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
+- document all used libraries, how they are used, why, where not to use them, etc.
 - action refactor
   - Next all `ActionPane` actions will be migrated to `AppActions.kt`, so they can be accessed type-safely.
   - Next configurable properties will be used to avoid reflection & manual registering per class holder (AppActions).
@@ -38,7 +41,7 @@
   Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
 - Implement multi0valued **Song.Artist** support
   Should work like tags
-- Named widgets to avoid cloning
+- Named **Node** widgets
   Basically preconfigured **Node** widgets for recommended `Node` classes.
 - Show progress for file downloads progress, [Inspiration](https://betterprogramming.pub/show-download-progress-in-kotlin-style-64d157995e27)  
   Must work for downloading up `kotlinc` and `Vlc`

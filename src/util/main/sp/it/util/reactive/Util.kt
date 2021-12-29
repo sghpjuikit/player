@@ -238,7 +238,7 @@ infix fun <O> ObservableValue<O>.attachChanges(block: (O, O) -> Unit): Subscript
 /** Sets the value of the specified observable to this property on every value change. */
 infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>) = attach { w.value = it }
 
-/** Sets the mapped value the specified observable to this property on every value change. */
+/** Sets the value of this specified observable to this property on every value change. */
 infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
 /** Sets a block to be fired if the value is true on every value change. */

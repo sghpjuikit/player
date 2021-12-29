@@ -89,6 +89,7 @@ import sp.it.util.text.unescapeXml
 import sp.it.util.type.VType
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.type
+import sp.it.util.type.withPlatformTypeNullability
 import sp.it.util.units.Bitrate
 import sp.it.util.units.FileSize
 import sp.it.util.units.NofX
@@ -126,7 +127,6 @@ object CoreFunctors: Core {
          // symbols can be found at https://www.alt-codes.net/math-symbols-list
 
          // assumption guarantees
-         // We are making some assumptions by not declaring and letting compiler infer the reified type parameters
          failIf(p(StringSplitParser.singular()).type!=type<StringSplitParser>())
          failIf(p(Pattern.compile("")).type!=type<Pattern>())
          failIf(p(0).type!=type<Int>())
@@ -365,7 +365,7 @@ object CoreFunctors: Core {
    }
 
    private inline fun <reified TYPE> p(defaultValue: TYPE): Parameter<TYPE> =
-      Parameter(type(), defaultValue)
+      Parameter(VType(type<TYPE>().type.withPlatformTypeNullability(false)), defaultValue)
    private inline fun <reified TYPE> p(name: String, description: String, defaultValue: TYPE, vararg constraints: Constraint<TYPE>): Parameter<TYPE> =
       Parameter(name, description, type(), defaultValue, constraints.toSet())
 }

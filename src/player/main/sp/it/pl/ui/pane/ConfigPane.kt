@@ -1,6 +1,7 @@
 package sp.it.pl.ui.pane
 
 import java.util.Comparator.comparing
+import javafx.css.StyleableObjectProperty
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER_LEFT
@@ -58,7 +59,7 @@ class ConfigPane<T: Any?>: VBox {
    private val onChangeRaw = Runnable { onChange?.invoke() }
    private val onChangeOrConstraintRaw = Runnable { onChangeOrConstraint?.invoke() }
    val editable = v(true)
-   val ui by sv(UI)
+   val ui: StyleableObjectProperty<Layout> by sv(UI)
    var onChange: Runnable? = null
    var onChangeOrConstraint: Runnable? = null
    var editorOrder: Comparator<Config<*>>? = compareByDefault

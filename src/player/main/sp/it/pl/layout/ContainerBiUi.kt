@@ -281,7 +281,6 @@ class ContainerBiUi(c: ContainerBi): ContainerUi<ContainerBi>(c) {
             ui.value = ui.value.takeIf { it is Layouter } ?: Layouter(container, i).closeUi(ui).showIfLM()
             ui.value!!.root
          }
-         else -> fail()
       }
 
       r.children.setToOne(n)

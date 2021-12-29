@@ -6,6 +6,7 @@ import java.time.format.TextStyle.FULL
 import java.time.format.TextStyle.NARROW
 import java.time.format.TextStyle.SHORT
 import java.util.Locale
+import javafx.css.StyleableObjectProperty
 import javafx.geometry.Orientation.VERTICAL
 import javafx.scene.control.Separator
 import javafx.scene.input.ScrollEvent.SCROLL
@@ -41,11 +42,11 @@ class DateClockDigitalIos: HBox() {
    /** Updates graphics to display [value] */
    val update = Handler1<LocalDate>()
    /** Format for displaying month */
-   val formatMonth by sv(FORMAT_MONTH)
+   val formatMonth: StyleableObjectProperty<MonthFormat> by sv(FORMAT_MONTH)
    /** The smallest displayed unit */
-   val precisionMin by sv(PRECISION_MIN)
+   val precisionMin: StyleableObjectProperty<TimeClockPrecision> by sv(PRECISION_MIN)
    /** The largest displayed unit */
-   val precisionMax by sv(PRECISION_MAX)
+   val precisionMax: StyleableObjectProperty<TimeClockPrecision> by sv(PRECISION_MAX)
 
    init {
       styleClass += "date-clock-digital-ios"

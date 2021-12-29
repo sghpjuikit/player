@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 import sp.it.util.dev.Dependency;
 import sp.it.util.functional.Try;
 import static java.util.Collections.emptyMap;
@@ -104,7 +105,7 @@ public class StringSplitParser implements Function<String,List<String>> {
 		return expression;
 	}
 
-	public static StringSplitParser singular() {
+	public static @NotNull StringSplitParser singular() {
 		return StringSplitParser.fromString("%all%").getOrThrow();
 	}
 

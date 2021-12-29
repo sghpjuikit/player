@@ -8,6 +8,7 @@ import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import javafx.collections.transformation.SortedList
 import javafx.css.StyleConverter
+import javafx.css.StyleableObjectProperty
 import javafx.event.Event.ANY
 import javafx.event.EventHandler
 import javafx.scene.control.Control
@@ -88,10 +89,10 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    /** [selectedOrAllItems] if orAll is true or [selectedItems]. Intended for immediate consumption (it may be backed by an observable). */
    fun getSelectedOrAllItems(orAll: Boolean): Sequence<T> = if (orAll) selectedOrAllItems else selectedItems
 
-   val horizontalCellSpacing by sv(HORIZONTAL_CELL_SPACING)
-   val verticalCellSpacing by sv(VERTICAL_CELL_SPACING)
-   val cellWidth by sv(CELL_WIDTH)
-   val cellHeight by sv(CELL_HEIGHT)
+   val horizontalCellSpacing: StyleableObjectProperty<Double> by sv(HORIZONTAL_CELL_SPACING)
+   val verticalCellSpacing: StyleableObjectProperty<Double> by sv(VERTICAL_CELL_SPACING)
+   val cellWidth: StyleableObjectProperty<Double> by sv(CELL_WIDTH)
+   val cellHeight: StyleableObjectProperty<Double> by sv(CELL_HEIGHT)
 
    val cellWidthActual
       get() = cellWidth.value.takeIf { it!=CELL_SIZE_UNBOUND } ?: width

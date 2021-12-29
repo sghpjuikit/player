@@ -135,7 +135,6 @@ class Node(widget: Widget): SimpleController(widget) {
 
    fun restoreInputs() {
       widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitNoEmpty("-").forEach {
-         println()
          val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
          val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64() to propertyValueBase64.ifNotEmpty { it.decodeBase64().unquote() }
          val properties = nodeInstance.value.javaFxProperties()

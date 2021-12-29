@@ -27,7 +27,6 @@ inline fun <reified T: Any> kClass() = T::class
 inline fun <reified T: Any> jClass() = kClass<T>().java
 
 /** @return type representing the generic type argument of this method (obtained using [typeOf]) */
-@OptIn(ExperimentalStdlibApi::class)
 inline fun <reified T> kType() = typeOf<T>()
 
 /** @return type [Any] as [KType] */

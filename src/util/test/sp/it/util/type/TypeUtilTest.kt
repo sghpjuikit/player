@@ -46,9 +46,13 @@ class TypeUtilTest: FreeSpec({
 
    "Method" - {
       "Assumptions" {
-         // Mutable collections erase to collections
+         // Mutable collections classes erase to collections
          Collection::class shouldBe MutableCollection::class
          List::class shouldBe MutableList::class
+
+         // Mutable collections types !erase to collections
+         type<Collection<Int>>() shouldNotBe type<MutableCollection<Int>>()
+         type<List<Int>>() shouldNotBe type<MutableList<Int>>()
 
          // Nothing erases to Void
          Nothing::class shouldBe Void::class
@@ -168,10 +172,12 @@ class TypeUtilTest: FreeSpec({
          type<Contravariant<Int?>>() isSubtypeOf type<SubContravariant<Int>>() shouldBe false
 
          // list
-         type<List<Int>>() isSubtypeOf type<List<Number>>() shouldBe true // true, because List is covariant
-         type<List<Int>>() isSubtypeOf type<MutableList<Number>>() shouldBe true // true, because MutableList erases to List
-         type<List<Int>>() isSubtypeOf type<MutableList<in Number>>() shouldBe true // true, because MutableList erases to List
-         type<List<Int>>() isSubtypeOf type<MutableList<out Number>>() shouldBe true // true, because MutableList erases to List
+         type<List<Int>>() isSubtypeOf type<List<Number>>() shouldBe true // List is covariant
+         type<MutableList<Int>>() isSubtypeOf type<MutableList<Number>>() shouldBe false // MutableList is invariant
+         type<MutableList<in Number>>() isSubtypeOf type<MutableList<in Int>>() shouldBe true // MutableList is invariant
+         type<MutableList<out Int>>() isSubtypeOf type<MutableList<out Number>>() shouldBe true // MutableList is invariant
+         type<MutableList<Int>>() isSubtypeOf type<List<Number>>() shouldBe true
+         type<MutableList<out Int>>() isSubtypeOf type<List<Number>>() shouldBe true
 
          // star (declaration variance)
          type<Covariant<Int>>() isSubtypeOf type<Covariant<*>>() shouldBe true
@@ -236,6 +242,12 @@ class TypeUtilTest: FreeSpec({
             fun fn4(): MutableList<out Int?>? = null
          }
 
+         o2::fn4.returnType shouldBe kType<MutableList<out Int?>?>()
+         o2::fn4.returnType.javaFxPropertyType shouldBe kType<MutableList<out Int?>?>()
+         o2::fn4.returnType.javaFxPropertyType.classifier shouldBe List::class
+         o2::fn4.returnType.javaFxPropertyType.withPlatformTypeNullability(false) shouldBe kType<List<out Int?>?>()
+         o2::fn4.returnType.javaFxPropertyType.withPlatformTypeNullability(true) shouldBe kType<List<out Int?>?>()
+
          forAll(
             rowProp<Double>(o1::getWidth),
             rowProp<Double>(o1::widthProperty),
@@ -261,7 +273,7 @@ class TypeUtilTest: FreeSpec({
             rowProp<MutableList<in Int?>?>(o2::fn3),
             rowProp<MutableList<out Int?>?>(o2::fn4)
          ) { property, type ->
-            property.javaFxPropertyType.withPlatformTypeNullability(false) shouldBe type.type
+            property.javaFxPropertyType.withPlatformTypeNullability(false) shouldBe type.type.withPlatformTypeNullability(false)
          }
       }
 
@@ -335,22 +347,6 @@ class TypeUtilTest: FreeSpec({
          )
       }
 
-      KType::argOf.name + " preconditions" {
-         List::class.toString() shouldBe "class kotlin.collections.List"
-         MutableList::class.toString() shouldBe "class kotlin.collections.List"
-         type<List<*>>().type.toString() shouldBe "kotlin.collections.List<*>"
-         type<MutableList<*>>().type.toString() shouldBe "kotlin.collections.List<*>"
-
-         List::class.isSubclassOf<MutableList<*>>() shouldBe true
-         List::class.isSubclassOf(MutableList::class) shouldBe true
-         MutableList::class.isSubclassOf<List<*>>() shouldBe true
-         MutableList::class.isSubclassOf(List::class) shouldBe true
-
-         List::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
-         MutableList::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
-         ArrayList::class.allSupertypes.toString() shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
-      }
-
       KClass<*>::union.name {
          // self
          Int::class union Int::class shouldBe Int::class
@@ -378,6 +374,22 @@ class TypeUtilTest: FreeSpec({
          // interface
          Int::class union Comparable::class shouldBe Comparable::class
          listOf<Int>()::class union List::class shouldBe List::class
+      }
+
+      KType::argOf.name + " preconditions" {
+         List::class.toString() shouldBe "class kotlin.collections.List"
+         MutableList::class.toString() shouldBe "class kotlin.collections.List"
+         type<List<*>>().type.toString() shouldBe "kotlin.collections.List<*>"
+         type<MutableList<*>>().type.toString() shouldBe "kotlin.collections.MutableList<*>"
+
+         List::class.isSubclassOf<MutableList<*>>() shouldBe true
+         List::class.isSubclassOf(MutableList::class) shouldBe true
+         MutableList::class.isSubclassOf<List<*>>() shouldBe true
+         MutableList::class.isSubclassOf(List::class) shouldBe true
+
+         List::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
+         MutableList::class.allSupertypes.toString() shouldBe "[kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, kotlin.Any]"
+         ArrayList::class.allSupertypes.toString() shouldBe "[java.util.AbstractList<E!>, java.util.AbstractCollection<E!>, kotlin.collections.MutableCollection<E!>, kotlin.collections.Iterable<E>, kotlin.Any, kotlin.collections.MutableList<E!>, kotlin.collections.Collection<E>, kotlin.collections.Iterable<E>, java.util.RandomAccess, kotlin.Cloneable, java.io.Serializable, kotlin.collections.MutableList<E>]"
       }
 
       "!${KType::argOf.name}" {
@@ -434,7 +446,7 @@ class TypeUtilTest: FreeSpec({
          ::mmm.returnType.classifier.asIs<KClass<*>>().allSuperclasses.printIt()
          ::mmm.returnType.classifier.asIs<KClass<*>>().typeParameters.printIt()
 
-         io.kotest.data.forAll(
+         forAll(
             // supertypes argument lookup
             xxx<Y31<Long>, Y1<*, *>, Int>(1, INVARIANT),
             xxx<Y32<Long>, Y1<*, *>, Int?>(1, INVARIANT),

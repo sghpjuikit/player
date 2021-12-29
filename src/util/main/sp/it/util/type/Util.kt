@@ -381,6 +381,7 @@ val KType.javaFxPropertyType: KType
       }
 
 
+// TODO: since Kotlin 1.6.30, MutableCollection retains type, but classifier here loses it, fix for all Mutable types
 fun KType.withPlatformTypeNullability(nullable: Boolean): KType {
    return classifier
       ?.net {

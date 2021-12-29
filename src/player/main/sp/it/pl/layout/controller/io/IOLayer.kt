@@ -8,6 +8,7 @@ import javafx.animation.PathTransition
 import javafx.animation.Transition
 import javafx.beans.property.DoubleProperty
 import javafx.collections.FXCollections.observableSet
+import javafx.css.StyleableObjectProperty
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.input.DragEvent.DRAG_ENTERED
@@ -582,8 +583,8 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    }
 
    abstract class IOLinkBase: Path() {
-      val dataConnection by sv(DATA_CONNECTION)
-      val dataEffect by sv(DATA_EFFECT)
+      val dataConnection: StyleableObjectProperty<IOLinkConnection> by sv(DATA_CONNECTION)
+      val dataEffect: StyleableObjectProperty<IOLinkEffect> by sv(DATA_EFFECT)
 
       override fun getCssMetaData() = classCssMetaData
 
@@ -864,7 +865,7 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
       fun allInputRefs(): Sequence<InputRef> = (allInputs.asSequence() + allInputsApp.asSequence()).map { it.toRef() } + allInoutputs().map { it.toInputRef() }
       fun allOutputRefs(): Sequence<OutputRef> = (allOutputs.asSequence() + allOutputsApp.asSequence()).map { it.toRef() } + allInoutputs().map { it.toOutputRef() }
 
-      fun componentPutAdded(id: UUID, put: Put<*>) {
+      fun componentPutAdded(id: UUID, put: XPut<*>) {
          APP.widgetManager.widgets.findAll(WidgetSource.OPEN).find { it.id == id }.ifNotNull { w ->
             val s = w.window?.scene ?: return
             val l = allLayers.find { it.scene === s } ?: return
@@ -884,7 +885,7 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
             }
          }
       }
-      fun componentPutRemoved(id: UUID, put: Put<*>) {
+      fun componentPutRemoved(id: UUID, put: XPut<*>) {
          id.markUsed()
          when (put) {
             is Input<*> -> allInputs -= put

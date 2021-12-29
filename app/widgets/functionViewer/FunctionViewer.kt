@@ -1,59 +1,64 @@
 package functionViewer
 
+import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.geometry.Pos.TOP_LEFT
 import javafx.scene.Cursor.CROSSHAIR
+import javafx.scene.canvas.Canvas
+import javafx.scene.canvas.GraphicsContext
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.AnchorPane
-import javafx.scene.layout.Pane
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.paint.Color
-import javafx.scene.shape.Line
-import javafx.scene.shape.LineTo
-import javafx.scene.shape.MoveTo
-import javafx.scene.shape.Path
 import kotlin.math.floor
-import sp.it.pl.ui.itemnode.ConfigEditor
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
+import mu.KLogging
 import sp.it.pl.layout.Widget
+import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
+import sp.it.pl.ui.itemnode.ConfigEditor
+import sp.it.pl.ui.labelForWithClick
+import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.V
 import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
+import sp.it.util.conf.cv
 import sp.it.util.functional.net
+import sp.it.util.functional.traverse
 import sp.it.util.math.P
 import sp.it.util.math.StrExF
+import sp.it.util.math.clip
 import sp.it.util.math.max
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachFrom
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.text.keys
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.initClip
 import sp.it.util.ui.initMouseDrag
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
-import sp.it.util.ui.minPrefMaxHeight
-import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.layFullArea
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.size
+import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.millis
-import kotlin.math.pow
-import kotlin.math.roundToInt
-import mu.KLogging
-import sp.it.pl.main.WidgetTags.UTILITY
-import sp.it.pl.layout.WidgetCompanion
-import sp.it.pl.main.IconUN
-import sp.it.pl.ui.labelForWithClick
-import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.util.conf.cv
-import sp.it.util.functional.traverse
-import sp.it.util.text.keys
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -61,13 +66,13 @@ private typealias Fun = (Double) -> Double
 private typealias Num = Double
 
 class FunctionViewer(widget: Widget): SimpleController(widget) {
-   private val function by cv(StrExF("x")).apply { attach { plotAnimated(it) } }
+   private val function by cv(StrExF("x")) attach { plotAnimated(it) }
    private var functionPlotted = function.value as Fun
    private val functionEditor = ConfigEditor.create(Config.forProperty<StrExF>("Function", function))
-   private val xMin by cv(-1.0).apply { attach { plot() } }
-   private val xMax by cv(+1.0).apply { attach { plot() } }
-   private val yMin by cv(-1.0).apply { attach { plot() } }
-   private val yMax by cv(+1.0).apply { attach { plot() } }
+   private val xMin by cv(-1.0) attach { plot() }
+   private val xMax by cv(+1.0) attach { plot() }
+   private val yMin by cv(-1.0) attach { plot() }
+   private val yMax by cv(+1.0) attach { plot() }
    private val plot = Plot()
    private val plotAnimation = anim(700.millis) { plot.animation.value = 1.0 - it*it*it*it }
    private var updateCoord: (P) -> Unit = {}
@@ -125,21 +130,30 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
       root.setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
       root.lay += plot
-      root.lay += anchorPane {
-         lay(null, 10, 10, null) += label {
-            isMouseTransparent = true
-            updateCoord = { text = "[${it.x} ${it.y}]" }
-         }
-         lay(0, null, null, 0) += vBox(5) {
-            isFillWidth = false
+      root.lay += stackPane {
+         isManaged = false
+         root.widthProperty() attach { resizeRelocate(0.0, 0.0, root.width, root.height) }
+         root.heightProperty() attach { resizeRelocate(0.0, 0.0, root.width, root.height) }
 
-            lay += functionEditor.toHBox()
-            lay += xMin.createEditor("xMin").toHBox()
-            lay += xMax.createEditor("xMax").toHBox()
-            lay += yMin.createEditor("yMin").toHBox()
-            lay += yMax.createEditor("yMax").toHBox()
+         lay += stackPane {
+
+            lay(BOTTOM_RIGHT) += label {
+               isMouseTransparent = true
+               updateCoord = { text = "[${it.x} ${it.y}]" }
+            }
+            lay(TOP_LEFT) += vBox(5) {
+               isFillWidth = false
+
+               lay += functionEditor.toHBox()
+               lay += xMin.createEditor("xMin").toHBox()
+               lay += xMax.createEditor("xMax").toHBox()
+               lay += yMin.createEditor("yMin").toHBox()
+               lay += yMax.createEditor("yMax").toHBox()
+            }
          }
       }
+
+      root.sync1IfInScene { plot() } on onClose
    }
 
    override fun focus() = functionEditor.focusEditor()
@@ -151,31 +165,46 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
    fun plotAnimated(f: Fun = functionPlotted) = plotAnimation.playOpenDoClose { plot(f) }
 
-   inner class Plot: Pane() {
+   inner class Plot: AnchorPane() {
       val animation = v(1.0)
-      val coordRoot: AnchorPane
-      val pathRoot: AnchorPane
+      val coordRoot: Canvas
+      val pathRoot: Canvas
+      val pathGc: GraphicsContext
+      val coordGc: GraphicsContext
       val displayOutside = false // true can make scaleY animations prettier
       var ignorePlotting = false
 
       init {
-         setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+         setMinSize(0.0, 0.0)
          setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
          setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
-         pathRoot = anchorPane {
-            minPrefMaxWidth = USE_COMPUTED_SIZE
-            minPrefMaxHeight = USE_COMPUTED_SIZE
-            initClip()
-            animation sync { opacity = it }
-         }
-         coordRoot = anchorPane {
-            minPrefMaxWidth = USE_COMPUTED_SIZE
-            minPrefMaxHeight = USE_COMPUTED_SIZE
-         }
+         pathRoot = Canvas()
+         pathGc = pathRoot.graphicsContext2D
+         coordRoot = Canvas()
+         coordGc = coordRoot.graphicsContext2D
          isMouseTransparent = true
 
-         lay += coordRoot
-         lay += pathRoot
+         layFullArea += anchorPane {
+            setMinSize(0.0, 0.0)
+            setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+            setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+            layFullArea += coordRoot.apply {
+               this.widthProperty() attachFrom this@anchorPane.widthProperty()
+               this.heightProperty() attachFrom this@anchorPane.heightProperty()
+            }
+         }
+         layFullArea += anchorPane {
+            setMinSize(0.0, 0.0)
+            setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+            setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
+            initClip()
+            animation sync { opacity = it }
+
+            layFullArea += pathRoot.apply {
+               this.widthProperty() attachFrom this@anchorPane.widthProperty()
+               this.heightProperty() attachFrom this@anchorPane.heightProperty()
+            }
+         }
 
          layoutBoundsProperty() sync { plot(functionPlotted) }
       }
@@ -183,32 +212,73 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       fun plot(function: Fun) {
          if (ignorePlotting) return
 
+         pathGc.clearRect(0.0, 0.0, pathRoot.width, pathRoot.height)
+         coordGc.clearRect(0.0, 0.0, coordRoot.width, coordRoot.height)
+
          // draw function
-         val paths = ArrayList<Path>()
-         val xInc = (xMax.value - xMin.value)/(1.0 max width)
+         val xIncMax = (xMax.value - xMin.value)/(1.0 max width)
+         val xIncDistMax = 4*sqrt(2*xIncMax.pow(2))
+         val xIncDistMin = xIncDistMax/4.0
+         var xInc = xIncMax
          var x = xMin.value + xInc
          var previousValue: P? = null
-         var path: Path? = null
+         var path: Any? = null
+         lateinit var moveTo: P
          while (x<xMax.value) {
             try {
                val y = function(x)
+//               println("$previousValue $x $y")
                val isOutside = !displayOutside && y !in yMin.value..yMax.value
                val wasOutside = !displayOutside && previousValue?.net { it.y !in yMin.value..yMax.value } ?: true
+
                if (path==null) {
-                  path = Path().apply {
-                     stroke = Color.ORANGE
-                     strokeWidth = 2.0
-                     fill = Color.TRANSPARENT
-                     elements += MoveTo(mapX(previousValue?.x ?: x), mapY(previousValue?.y ?: y))
+                  if (!isOutside) {
+
+//                     TODO: implement look-around to fix clipping for steep functions like 1/x
+//                     if (previousValue!=null) {
+//                        val xIncDist = previousValue.distance(x, y)
+//                        if (xIncDist>xIncDistMax) {
+//                           x -= xInc
+//                           xInc /= 2.0
+//                           x += xInc
+//                           continue
+//                        }
+//                        if (xIncDist<xIncDistMin) {
+//                           x -= xInc
+//                           xInc *= 2.0
+//                           x += xInc
+//                           continue
+//                        }
+//                     }
+
+                     path = Any()
+                     moveTo = P(mapX(previousValue?.x ?: x), mapY(previousValue?.y ?: y))
                   }
-                  paths += path
+                  if (!wasOutside || !isOutside) {
+                     pathGc.globalAlpha = 1.0
+                     pathGc.stroke = Color.ORANGE
+                     pathGc.lineWidth = 2.0
+                     pathGc.fill = Color.TRANSPARENT
+                     pathGc.setLineDashes()
+                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMin.value, yMax.value)))
+                  }
                } else {
-                  if (!(wasOutside && isOutside))
-                     path.elements += LineTo(mapX(x), mapY(y))
+                  if (!wasOutside || !isOutside) {
+                     pathGc.globalAlpha = 1.0
+                     pathGc.stroke = Color.ORANGE
+                     pathGc.lineWidth = 2.0
+                     pathGc.fill = Color.TRANSPARENT
+                     pathGc.setLineDashes()
+                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMin.value, yMax.value)))
+                  }
                }
 
-               previousValue = previousValue?.apply { this.x = x; this.y = y; } ?: P(x, y)
-               if (isOutside) path = null
+               if (isOutside)
+                  path = null
+
+               previousValue = P(x, y)
+               moveTo = P(mapX(previousValue.x), mapY(previousValue.y))
+
             } catch (e: ArithmeticException) {
                previousValue = null
                path = null
@@ -216,43 +286,36 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
             x += xInc
          }
-         pathRoot.children setTo paths.asSequence()
-
-         coordRoot.children.clear()
 
          // draw axes
          if (0.0 in xMin.value..xMax.value) {
-            coordRoot.children += Line(mapX(0.0).precise, 0.0, mapX(0.0).precise, height.precise).apply {
-               stroke = Color.AQUA
-               opacity = 0.4
-               strokeWidth = 2.0
-               strokeDashArray += 2.0
-            }
+            coordGc.stroke = Color.AQUA
+            coordGc.globalAlpha = 0.4
+            coordGc.lineWidth = 2.0
+            coordGc.setLineDashes(2.0)
+            coordGc.strokeLine(mapX(0.0).precise, 0.0, mapX(0.0).precise, height.precise)
          }
          if (0.0 in yMin.value..yMax.value) {
-            coordRoot.children += Line(0.0, mapY(0.0).precise, width.precise, mapY(0.0).precise).apply {
-               stroke = Color.AQUA
-               opacity = 0.4
-               strokeWidth = 2.0
-               strokeDashArray += 2.0
-            }
+            coordGc.stroke = Color.AQUA
+            coordGc.globalAlpha = 0.4
+            coordGc.lineWidth = 2.0
+            coordGc.setLineDashes(2.0)
+            coordGc.strokeLine(0.0, mapY(0.0).precise, width.precise, mapY(0.0).precise)
          }
 
          (xMin.value..xMax.value).axes().forEach { axe ->
-            coordRoot.children += Line(mapX(axe).precise, 0.0, mapX(axe).precise, height.precise).apply {
-               stroke = Color.AQUA
-               opacity = 0.4
-               strokeWidth = 1.0
-               strokeDashArray += 4.0
-            }
+            coordGc.stroke = Color.AQUA
+            coordGc.globalAlpha = 0.4
+            coordGc.lineWidth = 1.0
+            coordGc.setLineDashes(4.0)
+            coordGc.strokeLine(mapX(axe).precise, 0.0, mapX(axe).precise, height.precise)
          }
          (yMin.value..yMax.value).axes().forEach { axe ->
-            coordRoot.children += Line(0.0, mapY(axe).precise, width.precise, mapY(axe).precise).apply {
-               stroke = Color.AQUA
-               opacity = 0.4
-               strokeWidth = 1.0
-               strokeDashArray += 4.0
-            }
+            coordGc.stroke = Color.AQUA
+            coordGc.globalAlpha = 0.4
+            coordGc.lineWidth = 1.0
+            coordGc.setLineDashes(4.0)
+            coordGc.strokeLine(0.0, mapY(axe).precise, width.precise, mapY(axe).precise)
          }
       }
 

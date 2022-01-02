@@ -8,6 +8,7 @@ import sp.it.util.functional.orNull
 
 object CoreConfiguration {
    init {
+      ConfigurationContext.toUiConverter = CoreConverter.ui
       runIO {
          ConfigurationContext.unsealedEnumeratorClasses = APP.location.resources.classes_yml.readTextTry().orNull().orEmpty().lineSequence()
             .filterNot { it.startsWith("#") || it.isBlank() }

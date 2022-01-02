@@ -6,7 +6,7 @@ import sp.it.util.functional.Try
 interface ConverterString<T>: ConverterToString<T>, ConverterFromString<T>
 
 /** Object to String converter. */
-interface ConverterToString<in T> {
+fun interface ConverterToString<in T> {
 
    /** @return text the object has been converted to */
    fun toS(o: T): String
@@ -14,7 +14,7 @@ interface ConverterToString<in T> {
 }
 
 /** String to Object converter. */
-interface ConverterFromString<out T> {
+fun interface ConverterFromString<out T> {
 
    /** @return object converted from the text or error */
    fun ofS(s: String): Try<T, String>

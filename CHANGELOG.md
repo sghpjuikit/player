@@ -1,7 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.1.0] 2021 09 2
+## [Latest]
+
+- Improve value constraint messages with values (uses human-readable converter)
+
+## [2.1.0] 2021 09 26
 
 - Improve widget i/o system
   - Avoid creating ui elements for i/o in other windows

@@ -1,6 +1,7 @@
 package sp.it.util.conf
 
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.parsing.ConverterToString
 import sp.it.util.type.atomic
 
 object ConfigurationContext {
@@ -12,5 +13,9 @@ object ConfigurationContext {
     */
    @ThreadSafe
    var unsealedEnumeratorClasses by atomic<Set<String>>(setOf())
+
+   /** Used to convert value to human-readable text when necessary. Default [Any.toString].  */
+   @ThreadSafe
+   var toUiConverter by atomic<ConverterToString<Any?>>(ConverterToString { "$it" })
 
 }

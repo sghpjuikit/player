@@ -131,8 +131,8 @@ object CoreConverter: Core {
    @JvmField val general = Parsers.DEFAULT!!
 
    /** Default ui to string converter. */
-   @JvmField val ui = object: ConverterToString<Any?> {
-      override fun toS(o: Any?) = when (o) {
+   @JvmField val ui = ConverterToString<Any?> { o ->
+      when (o) {
          null -> AppTexts.textNoVal
          is Boolean -> if (o) "yes" else "no"
          is Byte -> NumberFormat.getIntegerInstance().format(o)

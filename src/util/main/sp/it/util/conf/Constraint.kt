@@ -14,6 +14,7 @@ import sp.it.util.dev.failIfNot
 import sp.it.util.file.FileType
 import sp.it.util.functional.Try
 import java.io.File
+import sp.it.util.conf.ConfigurationContext.toUiConverter
 
 interface Constraint<in T> {
 
@@ -45,6 +46,7 @@ interface Constraint<in T> {
 
    class FileRelative(val to: File): MarkerConstraint()
 
+   // TODO: support BigDecimal & BigInteger
    class NumberMinMax(val min: Double?, val max: Double?): Constraint<Number?> {
 
       init {
@@ -59,8 +61,8 @@ interface Constraint<in T> {
       override fun isValid(value: Number?) = value==null || ((min==null || value.toDouble()>=min) && (max==null || value.toDouble()<=max))
       override fun message() = when {
          isClosed() -> "Number must be in range $min - $max"
-         min!=null -> "Number must be at least $min"
-         max!=null -> "Number must be at most $max"
+         min!=null -> "Number must be at least ${toUiConverter.toS(min)}"
+         max!=null -> "Number must be at most ${toUiConverter.toS(max)}"
          else -> fail()
       }
    }
@@ -82,7 +84,7 @@ interface Constraint<in T> {
       }
 
       override fun isValid(value: String?) = value==null || value.length in min..max
-      override fun message() = "Text must be at least $min and at most $max characters long"
+      override fun message() = "Text must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)} characters long"
    }
 
    /** Use multi-line text area instead of text field as editor. Allowed for non-[String] values. [Collection] and [Map] is multiline by default. */
@@ -103,12 +105,12 @@ interface Constraint<in T> {
 
    object HasNonNullElements: Constraint<Collection<*>> {
       override fun isValid(value: Collection<*>?) = value==null || value.all { it!=null }
-      override fun message() = "All items of the list must be non null"
+      override fun message() = "No item may be ${toUiConverter.toS(null)}"
    }
 
    object ObjectNonNull: Constraint<Any?> {
       override fun isValid(value: Any?) = value!=null
-      override fun message() = "Value must not be null"
+      override fun message() = "Value must not be ${toUiConverter.toS(null)}"
    }
 
    /** Hints ui editor for [Config.isEnumerable] to use original order of the enumeration, i.e. no sort will be applied. */

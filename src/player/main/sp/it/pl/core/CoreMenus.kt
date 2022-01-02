@@ -327,7 +327,7 @@ object CoreMenus: Core {
             if (value.field==Metadata.Field.ALBUM)
                menu("Search cover in") {
                   items(
-                     APP.instances.getInstances<SearchUriBuilder>().asSequence(),
+                     APP.instances.getInstancesAsSeq<SearchUriBuilder>(),
                      { "in ${it.name}" },
                      { it.icon?.toCmUi() },
                      { it(value.getValueS("<none>")).browse() }
@@ -363,7 +363,7 @@ object CoreMenus: Core {
             item("Explore directory") { APP.actions.browseMultipleFiles(it.songs.asSequence().mapNotNull { it.getFile() }) }
             menu("Search album cover") {
                items(
-                  APP.instances.getInstances<SearchUriBuilder>().asSequence(),
+                  APP.instances.getInstancesAsSeq<SearchUriBuilder>(),
                   { "in ${it.name}" },
                   { null },
                   { uriBuilder -> value.songs.firstOrNull()?.toMetadata { uriBuilder(it.getAlbumOrEmpty()).browse() } }

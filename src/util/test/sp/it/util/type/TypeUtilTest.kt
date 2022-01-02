@@ -245,8 +245,8 @@ class TypeUtilTest: FreeSpec({
          o2::fn4.returnType shouldBe kType<MutableList<out Int?>?>()
          o2::fn4.returnType.javaFxPropertyType shouldBe kType<MutableList<out Int?>?>()
          o2::fn4.returnType.javaFxPropertyType.classifier shouldBe List::class
-         o2::fn4.returnType.javaFxPropertyType.withPlatformTypeNullability(false) shouldBe kType<List<out Int?>?>()
-         o2::fn4.returnType.javaFxPropertyType.withPlatformTypeNullability(true) shouldBe kType<List<out Int?>?>()
+         o2::fn4.returnType.javaFxPropertyType.withPlatformTypeNullability(false) shouldBe kType<List<Int?>?>()
+         o2::fn4.returnType.javaFxPropertyType.withPlatformTypeNullability(true) shouldBe kType<List<Int?>?>()
 
          forAll(
             rowProp<Double>(o1::getWidth),

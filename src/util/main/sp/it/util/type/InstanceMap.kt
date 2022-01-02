@@ -51,4 +51,16 @@ open class InstanceMap {
       }
    }
 
+   /** [Sequence] version of [getInstances] */
+   @Suppress("UNCHECKED_CAST", "RemoveExplicitTypeArguments")
+   inline fun <reified T: Any?> getInstancesAsSeq(): Sequence<T> {
+      val seq = getInstances<T>(kType<T>()).asSequence()
+      val isNullable = null is T
+      return if (isNullable) {
+         seq + (null as T)
+      } else {
+         seq
+      }
+   }
+
 }

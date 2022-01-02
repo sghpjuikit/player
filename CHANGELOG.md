@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. Format base
 ## [Latest]
 
 - Improve value constraint messages with values (uses human-readable converter)
+- Improve **Function Viewer**
+  - Handle very large numbers correctly
+  - Add validations
+  - Use `BigDecimal` for coordinates
+  - Use human-readable text for numbers where possible (avoids scientific notation)
+  - Hide coordinates label when mouse is not hovering
 
 ## [2.1.0] 2021 09 26
 

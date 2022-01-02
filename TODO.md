@@ -1,8 +1,9 @@
 ## Currently considered
-- fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
-- implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
-- document all used libraries, how they are used, why, where not to use them, etc.
-- action refactor
+- Support App.locale: Locale settings (will require app restart) for converters
+- Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
+- Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
+- Document all used libraries, how they are used, why, where not to use them, etc.
+- Action refactor
   - Next all `ActionPane` actions will be migrated to `AppActions.kt`, so they can be accessed type-safely.
   - Next configurable properties will be used to avoid reflection & manual registering per class holder (AppActions).
   - Next integrate with `Action`, define all configurable actions in the same manner, adding icon to Action & keys to ActionData 
@@ -26,7 +27,7 @@
 - Write application documentation
 - Implement `app.stateful` on/off config
 - Implement data info tooltip progress
-- drag & drop playlist file support in audio
+- Drag & drop playlist file support in audio
 - `image.toFX(null)` creates null `Image.url`, which disables some image menu behavior
 - `Configuration.propertiesRaw` are not synced with configs, should be?
 - Improve **Tagger** widget
@@ -55,7 +56,7 @@
   `ComboBoxSkin` is most probably not sufficiently extendable for this. 
 - Implement `OverlayPane` autohide/onTop icons  
   Dock windows already have this feature. Overlay already supports the shortcuts, so this is very low priority.
-- Implement multi-screen support for `Dock`  
+- Implement multiple-screen support for `Dock`  
   It is not clear how it should behave - be duplicated or displayed on screen with mouse?
 - Implement [virtual keyboard](https://github.com/comtel2000/fx-experience)  
   Useful to control pc without mouse. This would be an interesting addition. But needs lots of work

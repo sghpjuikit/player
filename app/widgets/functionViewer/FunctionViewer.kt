@@ -1,5 +1,6 @@
 package functionViewer
 
+import java.math.BigDecimal
 import javafx.geometry.Pos.BOTTOM_RIGHT
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -23,6 +24,7 @@ import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.itemnode.ConfigEditor
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.pane.ShortcutPane
@@ -31,7 +33,9 @@ import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
+import sp.it.util.conf.between
 import sp.it.util.conf.cv
+import sp.it.util.conf.getDelegateConfig
 import sp.it.util.functional.net
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
@@ -52,6 +56,7 @@ import sp.it.util.ui.initMouseDrag
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
+import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.size
@@ -64,18 +69,22 @@ import sp.it.util.units.year
 
 private typealias Fun = (Double) -> Double
 private typealias Num = Double
+private typealias NumRange = ClosedFloatingPointRange<Double>
+private typealias BigNum = BigDecimal
+private typealias BigNumRange = ClosedRange<BigDecimal>
 
 class FunctionViewer(widget: Widget): SimpleController(widget) {
    private val function by cv(StrExF("x")) attach { plotAnimated(it) }
    private var functionPlotted = function.value as Fun
    private val functionEditor = ConfigEditor.create(Config.forProperty<StrExF>("Function", function))
-   private val xMin by cv(-1.0) attach { plot() }
-   private val xMax by cv(+1.0) attach { plot() }
-   private val yMin by cv(-1.0) attach { plot() }
-   private val yMax by cv(+1.0) attach { plot() }
+   private val xMin by cv(BigDecimal("-1.0")).between(BIG_NUM_MIN, BIG_NUM_MAX) attach { plot() }
+   private val xMax by cv(BigDecimal("+1.0")).between(BIG_NUM_MIN, BIG_NUM_MAX) attach { plot() }
+   private val yMin by cv(BigDecimal("-1.0")).between(BIG_NUM_MIN, BIG_NUM_MAX) attach { plot() }
+   private val yMax by cv(BigDecimal("+1.0")).between(BIG_NUM_MIN, BIG_NUM_MAX) attach { plot() }
    private val plot = Plot()
    private val plotAnimation = anim(700.millis) { plot.animation.value = 1.0 - it*it*it*it }
-   private var updateCoord: (P) -> Unit = {}
+   private var coordTxtUpdate: (ClosedRange<BigDecimal>) -> Unit = {}
+   private var coordVisUpdate: (Boolean) -> Unit = {}
 
    init {
       root.prefSize = 500.emScaled x 500.emScaled
@@ -84,14 +93,14 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          val size = root.size
          val posUi = P(it.x, it.y)
          val posRel = (posUi/size).invertY()
-         val range = P(xMax.value - xMin.value, yMax.value - yMin.value)
-         val pos = P(xMin.value, yMin.value) + range*posRel
-         updateCoord(pos)
+         val range = (xMax.value - xMin.value)..(yMax.value - yMin.value)
+         val pos = (xMin.value..yMin.value) + range*posRel
+         coordTxtUpdate(pos)
       }
       root.onEventDown(SCROLL) {
-         val scale = 1.2
+         val scale = 1.2.toBigDecimal()
          val isInc = it.deltaY<0 || it.deltaX>0
-         val rangeOld = P(xMax.value - xMin.value, yMax.value - yMin.value)
+         val rangeOld = (xMax.value - xMin.value)..(yMax.value - yMin.value)
          val rangeNew = if (isInc) rangeOld*scale else rangeOld/scale
          val rangeDiff = rangeNew - rangeOld
          val size = root.size
@@ -99,10 +108,10 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          val posRelMin = (posUi/size).invertY()
          val posRelMax = P(1.0, 1.0) - posRelMin
          plot.ignorePlotting = true
-         xMin.value -= rangeDiff.x*posRelMin.x
-         xMax.value += rangeDiff.x*posRelMax.x
-         yMin.value -= rangeDiff.y*posRelMin.y
-         yMax.value += rangeDiff.y*posRelMax.y
+         xMin.value = (xMin.value - rangeDiff.start*posRelMin.x).clipToNum()
+         xMax.value = (xMax.value + rangeDiff.start*posRelMax.x).clipToNum()
+         yMin.value = (yMin.value - rangeDiff.endInclusive*posRelMin.y).clipToNum()
+         yMax.value = (yMax.value + rangeDiff.endInclusive*posRelMax.y).clipToNum()
          plot.ignorePlotting = false
          plot()
 
@@ -111,22 +120,23 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       root.initMouseDrag(
          mutableListOf<Num>(),
          {
-            it.data setTo listOf(xMin.value, xMax.value, yMin.value, yMax.value)
+            it.data setTo listOf(xMin.valueNum, xMax.valueNum, yMin.valueNum, yMax.valueNum)
          },
          {
             val size = root.size
-            val diffRel = (it.diff/size) //.invertY()
+            val diffRel = (it.diff/size)
             val range = P(it.data[1] - it.data[0], it.data[3] - it.data[2])
             val diff = diffRel*range
             plot.ignorePlotting = true
-            xMin.value = it.data[0] - diff.x
-            xMax.value = it.data[1] - diff.x
-            yMin.value = it.data[2] + diff.y
-            yMax.value = it.data[3] + diff.y
+            xMin.value = (it.data[0] - diff.x).clipToNum().toBigDecimal()
+            xMax.value = (it.data[1] - diff.x).clipToNum().toBigDecimal()
+            yMin.value = (it.data[2] + diff.y).clipToNum().toBigDecimal()
+            yMax.value = (it.data[3] + diff.y).clipToNum().toBigDecimal()
             plot.ignorePlotting = false
             plot()
          }
       )
+      root.onHoverOrDrag { coordVisUpdate(it) } on onClose
 
       root.setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
       root.lay += plot
@@ -139,16 +149,17 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
             lay(BOTTOM_RIGHT) += label {
                isMouseTransparent = true
-               updateCoord = { text = "[${it.x} ${it.y}]" }
+               coordTxtUpdate = { text = "[${it.start.toUi()} ${it.endInclusive.toUi()}]" }
+               coordVisUpdate = { isVisible = it }
             }
             lay(TOP_LEFT) += vBox(5) {
                isFillWidth = false
 
                lay += functionEditor.toHBox()
-               lay += xMin.createEditor("xMin").toHBox()
-               lay += xMax.createEditor("xMax").toHBox()
-               lay += yMin.createEditor("yMin").toHBox()
-               lay += yMax.createEditor("yMax").toHBox()
+               lay += ConfigEditor.create(::xMin.getDelegateConfig()).toHBox()
+               lay += ConfigEditor.create(::xMax.getDelegateConfig()).toHBox()
+               lay += ConfigEditor.create(::yMin.getDelegateConfig()).toHBox()
+               lay += ConfigEditor.create(::yMax.getDelegateConfig()).toHBox()
             }
          }
       }
@@ -173,6 +184,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       val coordGc: GraphicsContext
       val displayOutside = false // true can make scaleY animations prettier
       var ignorePlotting = false
+      val isInvalidRange get() = xMin.valueNum>=xMax.valueNum || yMin.valueNum>=yMax.valueNum
 
       init {
          setMinSize(0.0, 0.0)
@@ -211,25 +223,33 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
       fun plot(function: Fun) {
          if (ignorePlotting) return
+         if (isInvalidRange) return
+
+         val xMinNum = xMin.valueNum
+         val xMaxNum = xMax.valueNum
+         val yMinNum = yMin.valueNum
+         val yMaxNum = yMax.valueNum
 
          pathGc.clearRect(0.0, 0.0, pathRoot.width, pathRoot.height)
          coordGc.clearRect(0.0, 0.0, coordRoot.width, coordRoot.height)
 
          // draw function
-         val xIncMax = (xMax.value - xMin.value)/(1.0 max width)
+         fun mapX(x: Num) = (x - xMinNum)/(xMaxNum - xMinNum)*width
+         fun mapY(y: Num) = (1 - (y - yMinNum)/(yMaxNum - yMinNum))*height
+         val xIncMax = (xMaxNum - xMinNum)/(1.0 max width)
          val xIncDistMax = 4*sqrt(2*xIncMax.pow(2))
          val xIncDistMin = xIncDistMax/4.0
          var xInc = xIncMax
-         var x = xMin.value + xInc
+         var x = xMinNum + xInc
          var previousValue: P? = null
          var path: Any? = null
          lateinit var moveTo: P
-         while (x<xMax.value) {
+         while (x<xMaxNum) {
             try {
                val y = function(x)
 //               println("$previousValue $x $y")
-               val isOutside = !displayOutside && y !in yMin.value..yMax.value
-               val wasOutside = !displayOutside && previousValue?.net { it.y !in yMin.value..yMax.value } ?: true
+               val isOutside = !displayOutside && y !in yMinNum..yMaxNum
+               val wasOutside = !displayOutside && previousValue?.net { it.y !in yMinNum..yMaxNum } ?: true
 
                if (path==null) {
                   if (!isOutside) {
@@ -260,7 +280,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
                      pathGc.lineWidth = 2.0
                      pathGc.fill = Color.TRANSPARENT
                      pathGc.setLineDashes()
-                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMin.value, yMax.value)))
+                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMinNum, yMaxNum)))
                   }
                } else {
                   if (!wasOutside || !isOutside) {
@@ -269,7 +289,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
                      pathGc.lineWidth = 2.0
                      pathGc.fill = Color.TRANSPARENT
                      pathGc.setLineDashes()
-                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMin.value, yMax.value)))
+                     pathGc.strokeLine(moveTo.x, moveTo.y, mapX(x), mapY(y.clip(yMinNum, yMaxNum)))
                   }
                }
 
@@ -288,14 +308,14 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          }
 
          // draw axes
-         if (0.0 in xMin.value..xMax.value) {
+         if (0.0 in xMinNum..xMaxNum) {
             coordGc.stroke = Color.AQUA
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 2.0
             coordGc.setLineDashes(2.0)
             coordGc.strokeLine(mapX(0.0).precise, 0.0, mapX(0.0).precise, height.precise)
          }
-         if (0.0 in yMin.value..yMax.value) {
+         if (0.0 in yMinNum..yMaxNum) {
             coordGc.stroke = Color.AQUA
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 2.0
@@ -303,14 +323,14 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             coordGc.strokeLine(0.0, mapY(0.0).precise, width.precise, mapY(0.0).precise)
          }
 
-         (xMin.value..xMax.value).axes().forEach { axe ->
+         (xMinNum..xMaxNum).axes().forEach { axe ->
             coordGc.stroke = Color.AQUA
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 1.0
             coordGc.setLineDashes(4.0)
             coordGc.strokeLine(mapX(axe).precise, 0.0, mapX(axe).precise, height.precise)
          }
-         (yMin.value..yMax.value).axes().forEach { axe ->
+         (yMinNum..yMaxNum).axes().forEach { axe ->
             coordGc.stroke = Color.AQUA
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 1.0
@@ -318,10 +338,6 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             coordGc.strokeLine(0.0, mapY(axe).precise, width.precise, mapY(axe).precise)
          }
       }
-
-      private fun mapX(x: Num) = (x - xMin.value)/(xMax.value - xMin.value)*width
-
-      private fun mapY(y: Num) = (1 - (y - yMin.value)/(yMax.value - yMin.value))*height
 
    }
 
@@ -354,11 +370,28 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          lay += n
       }
 
-      fun V<Double>.createEditor(name: String) = ConfigEditor.create(Config.forProperty<Num>(name, this))
+      val V<BigNum>.valueNum: Double get() = value.clipToNum().toDouble().clipToNum()
 
       val Double.precise: Double get() = roundToInt().toDouble()
 
-      fun ClosedFloatingPointRange<Double>.axes(): Sequence<Double> {
+      const val NUM_MIN = -Double.MAX_VALUE
+      const val NUM_MAX = +Double.MAX_VALUE
+      val BIG_NUM_MIN = NUM_MIN.toBigDecimal()
+      val BIG_NUM_MAX = NUM_MAX.toBigDecimal()
+
+      fun Num.clipToNum() = clip(NUM_MIN, NUM_MAX)
+      
+      fun BigNum.clipToNum() = clip(BIG_NUM_MIN, BIG_NUM_MAX)
+      
+      operator fun BigNum.times(v: Double) = this*v.toBigDecimal()
+      
+      operator fun BigNumRange.times(v: P) = start*v.x.toBigDecimal()..endInclusive*v.y.toBigDecimal()
+      operator fun BigNumRange.times(v: BigNum) = start*v..endInclusive*v
+      operator fun BigNumRange.div(v: BigNum) = start/v..endInclusive/v
+      operator fun BigNumRange.minus(v: BigNumRange) = start-v.start..endInclusive-v.endInclusive
+      operator fun BigNumRange.plus(v: BigNumRange) = start+v.start..endInclusive+v.endInclusive
+      
+      fun NumRange.axes(): Sequence<Double> {
          val axeRange = endInclusive-start
          return when {
             axeRange==0.0 -> sequenceOf()

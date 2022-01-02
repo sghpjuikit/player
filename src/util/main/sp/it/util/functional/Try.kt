@@ -75,11 +75,13 @@ sealed class Try<out R, out E> {
    data class Ok<R>(val value: R): Try<R, Nothing>() {
       override val isOk = true
       override val isError = false
+      override fun toString() = if (value==null) "Ok" else "Ok($value)"
    }
 
    data class Error<E>(val value: E): Try<Nothing, E>() {
       override val isOk = false
       override val isError = true
+      override fun toString() = if (value==null) "Error" else "Error($value)"
    }
 
    companion object {

@@ -2,8 +2,8 @@
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import kotlin.text.Charsets.UTF_8
-//import org.gradle.jvm.toolchain.JvmImplementation.J9
-//import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTOPENJDK
+import org.gradle.jvm.toolchain.JvmImplementation.J9
+import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTOPENJDK
 
 // ----- plugin block; evaluated before the script itself
 
@@ -24,38 +24,23 @@ fun Project.tests(configuration: Test.() -> Unit) {
 
 // ----- build block
 
-// TODO: enable toolchain, automatize JDK setup & deploy, migrate to 16
-// java {
-//    toolchain {
-//       languageVersion.set(JavaLanguageVersion.of(12))
-//       vendor.set(ADOPTOPENJDK)
-//       implementation.set(J9)
-//    }
-//
-// }
-
 /** Working directory of the application */
 val dirApp = file("app")
-val dirJDKSystem = file("org.gradle.java.home".prjProp ?: "java.home".sysProp ?: failIO { "property 'org.gradle.java.home' not set up" })
 val dirJdk = dirApp/"java"
-val kotlinVersion: String by extra {
-   buildscript.configurations["classpath"]
-      .resolvedConfiguration.firstLevelModuleDependencies
-      .find { it.moduleName=="org.jetbrains.kotlin.jvm.gradle.plugin" }!!.moduleVersion
-}
-val javaSupportedVersions = arrayOf(JavaVersion.VERSION_12)
-val javaVersion = JavaVersion.current().also {
-   require(it in javaSupportedVersions) {
-      "" +
-         "Java version $it can't be used.\n" +
-         "Set one of ${javaSupportedVersions.joinToString()} in 'gradle.properties'" +
-         "file (in project directory) with 'org.gradle.java.home' pointing to a supported JDK version.\n" +
-         "Currently org.gradle.java.home=${"org.gradle.java.home".prjProp}"
-   }
-}
+val javaVersionSupported = JavaVersion.VERSION_12
 
 allprojects {
    apply(plugin = "kotlin")
+
+   kotlin {
+      jvmToolchain {
+         (this as JavaToolchainSpec).apply {
+            languageVersion.set(JavaLanguageVersion.of(12))
+            vendor.set(ADOPTOPENJDK)
+            implementation.set(J9)
+         }
+      }
+   }
 
    buildDir = file("player.buildDir".prjProp ?: rootDir/".gradle-build")/name
 
@@ -67,6 +52,8 @@ allprojects {
       options.compilerArgs = listOf(
          "-Xlint:unchecked"
       )
+      sourceCompatibility = javaVersionSupported.majorVersion
+         targetCompatibility = javaVersionSupported.majorVersion
    }
 
    tasks.withType<KotlinCompile> {
@@ -84,8 +71,7 @@ allprojects {
          "-Xstring-concat=indy-with-constants"
       )
       kotlinOptions.javaParameters = true
-      kotlinOptions.jdkHome = dirJdk.path
-      kotlinOptions.jvmTarget = javaVersion.majorVersion
+      kotlinOptions.jvmTarget = javaVersionSupported.majorVersion
    }
 
    repositories {
@@ -200,7 +186,11 @@ sourceSets {
 dependencies {
    implementation(projects.util)
 }
-
+val compiler = javaToolchains.compilerFor {
+   languageVersion.set(JavaLanguageVersion.of(12))
+   vendor.set(ADOPTOPENJDK)
+   implementation.set(J9)
+}
 tasks {
 
    val copyLibs by creating(Sync::class) {
@@ -214,8 +204,9 @@ tasks {
    val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
-      jdkLocation = dirJDKSystem
+      jdkLocation = compiler.get().metadata.installationPath.asFile
       linkLocation = dirJdk
+      println(compiler.get().metadata.installationPath.asFile)
    }
 
    @Suppress("UNUSED_VARIABLE")
@@ -247,6 +238,7 @@ tasks {
    }
 
    "run"(JavaExec::class) {
+      dependsOn(linkJdk)
       dependsOn(jar)  // the widgets need the jar on the classpath
       workingDir = dirApp
       args = listOf("--dev")
@@ -254,10 +246,6 @@ tasks {
 
    "build" {
       dependsOn(":widgets:build")
-   }
-
-   "compileKotlin" {
-      dependsOn(linkJdk)
    }
 
    "clean"(Delete::class) {

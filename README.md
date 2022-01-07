@@ -47,6 +47,22 @@ Just write your code, hit save and watch as it auto-compiles and runs as widget,
 All that with included support for configurations, skins and full access to the internals.
 See [how](CONTRIBUTING.md#widgets).
 
+## Use
+
+Download link coming in the future.
+For build manually from the latest sources:
+
+1. [Download & prepare project](CONTRIBUTING.md#preparations)
+2. Build the application
+    1. `./gradlew build` builds the application
+    1. `./gradlew jar` creates jar & copies dependencies to /lib
+    1. Standalone application is now build in [app](/app) directory
+3. Deploy application
+    1. `./gradlew linkJdk`to link [app/java](/app/java) to JDK
+    1. copy [app](/app) directory to whenever you want
+        - to be fully portable, turn the link [app/java](/app/java) into a directory (remove link, copy target directory with same name) 
+4. [Run application](CONTRIBUTING.md#running-application)
+
 ## Features
 
 ### Guiding Principles
@@ -307,21 +323,6 @@ Modules (widgets) are part of layout hierarchy, which can be manipulated, saved 
 ![Screenshot](assets/screenshots/screenshot_old2.png)
 
 </details>
-
-## Use
-
-Download link coming in the future.
-For build manually from the latest sources:
-
-1. [Download & prepare project](CONTRIBUTING.md#preparations)
-1. Build the application
-    1. `./gradlew build` builds the application
-    1. `./gradlew copyLibs` copies
-    1. `./gradlew jar` creates jar & copies dependencies to /lib
-    1. Standalone application is now build in [app](/app) directory
-1. Deploy application
-    - copy [app](/app) directory to whenever you want
-1. [Run application]
 
 # Copyright
 

@@ -5,14 +5,18 @@
 1. Clone the repository
   - `git clone https://github.com/sghpjuikit/player.git`
   - `cd player`
-1. Set up 64-bit JDK12
-  - Download & install/extract [OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)  
-    To avoid problems, it is recommended to use project-local JDK:
-    - Copy JDK contents to `<project-dir>/app/java`
-    - Create a `gradle.properties` file at project directory
-    - Add property: `org.gradle.java.home=/path/to/jdk`.
-1. Set up Vlc (Linux only)  
-  64-bit VLC must be installed on your system or in the `app/vlc` directory (portable version). Obtain latest [here](https://www.videolan.org/vlc/).
+1. Set up Java
+  JDK is downloaded and set up automatically during gradle build through java [toolchain](https://docs.gradle.org/current/userguide/toolchains.html)  
+  For manual JDK setup or when automatic setup fails for some reason:
+    - Download & install/extract [64-bit OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)  
+      To avoid problems, it is recommended to use project-local JDK:
+      - Copy JDK contents to `<project-dir>/app/java`
+      - Create a `gradle.properties` file at project directory
+      - Add property: `org.gradle.java.home=/path/to/jdk`.
+2. Set up Vlc
+  The program is downloaded and set up automatically during initial application start - this is currently not supported on Linux. (Linux only)  
+  For manual Vlc setup:
+    - 64-bit Vlc must be installed on your system or portable version placed in the `app/vlc` directory. Obtain latest [here](https://www.videolan.org/vlc/), in case of issues use version 3.
 
 #### IDE: Intellij IDEA
 

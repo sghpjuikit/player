@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- **Kotlin** `1.6.10`
 - Improve value constraint messages with values (uses human-readable converter)
 - Improve **Function Viewer**
   - Handle very large numbers correctly

@@ -218,7 +218,7 @@ import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 
-@SuppressWarnings({"unused","UnnecessaryLocalVariable","SameParameterValue","UnusedReturnValue"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "SameParameterValue", "UnusedReturnValue", "unchecked"})
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Comet",

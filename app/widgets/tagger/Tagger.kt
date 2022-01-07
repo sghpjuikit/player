@@ -292,7 +292,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       }
 
       override fun setEditable(v: Boolean) {
-         coverContainer.isDisable = (!readOnly && v)
+         coverContainer.isDisable = readOnly || !v
       }
 
       override fun complete() {

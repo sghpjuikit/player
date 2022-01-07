@@ -46,9 +46,7 @@ class FileField<T>: ObjectFieldBase<File, T> {
 
    @Suppress("RemoveExplicitTypeArguments")
    companion object: ObjectFieldRegistry<File, FileField<*>>(File::class) {
-      var toSConverter: ConverterToString<Any?> = object: ConverterToString<Any?> {
-         override fun toS(o: Any?) = Parsers.DEFAULT.toS(o)
-      }
+      var toSConverter: ConverterToString<Any?> = ConverterToString<Any?> { o -> Parsers.DEFAULT.toS(o) }
 
       val PATH = this + FileField("Path", "Path", type<String>()) { it.path }
       val NAME = this + FileField("Name", "Name", type<String>()) { if (it.isDirectory) it.nameOrRoot else it.nameWithoutExtension }

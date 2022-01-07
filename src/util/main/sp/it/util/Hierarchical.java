@@ -38,7 +38,7 @@ public interface Hierarchical<H extends Hierarchical<H>> {
 	default H getHRoot() {
 		H i = (H) this, p;
 
-		// Depending on implementation, this may perform sub-optimally as it calls getHParent twice
+		// Depending on implementation, this may perform suboptimally as it calls getHParent twice
 		// Hence, we optimize it to the below
 		// while (!i.isHRoot())
 		//	  i = i.getHParent();

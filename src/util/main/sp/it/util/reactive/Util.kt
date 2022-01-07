@@ -242,16 +242,16 @@ infix fun <O> ObservableValue<O>.attachTo(w: WritableValue<in O>) = attach { w.v
 infix fun <O> WritableValue<O>.attachFrom(o: ObservableValue<out O>): Subscription = o attachTo this
 
 /** Sets a block to be fired if the value is true on every value change. */
-infix fun ObservableValue<Boolean>.attachTrue(block: (Boolean) -> Unit) = attach { if (it) block(it) }
+infix fun ObservableValue<Boolean>.attachTrue(block: (Boolean) -> Unit) = attach { if (it) block(true) }
 
 /** Sets a block to be fired if the value is false on every value change. */
-infix fun ObservableValue<Boolean>.attachFalse(block: (Boolean) -> Unit) = attach { if (!it) block(it) }
+infix fun ObservableValue<Boolean>.attachFalse(block: (Boolean) -> Unit) = attach { if (!it) block(false) }
 
 /** Sets a block to be fired if the value is true immediately and on every value change. */
-infix fun ObservableValue<Boolean>.syncTrue(block: (Boolean) -> Unit) = sync { if (it) block(it) }
+infix fun ObservableValue<Boolean>.syncTrue(block: (Boolean) -> Unit) = sync { if (it) block(true) }
 
 /** Sets a block to be fired if the value is false immediately and on every value change. */
-infix fun ObservableValue<Boolean>.syncFalse(block: (Boolean) -> Unit) = sync { if (!it) block(it) }
+infix fun ObservableValue<Boolean>.syncFalse(block: (Boolean) -> Unit) = sync { if (!it) block(false) }
 
 /** Sets a block to be fired immediately and on every list size change. */
 infix fun <T> ObservableList<T>.syncSize(block: (Int) -> Unit): Subscription {

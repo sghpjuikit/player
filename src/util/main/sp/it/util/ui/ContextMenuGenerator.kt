@@ -60,7 +60,7 @@ class ContextMenuGenerator {
 
    operator fun get(value: Any?): Sequence<MenuItem> = when (value) {
       null -> {
-         mNull.asSequence().flatMap { it(value) }
+         mNull.asSequence().flatMap { it(null) }
       }
       else -> {
          val valueSingle = collectionUnwrap(value)

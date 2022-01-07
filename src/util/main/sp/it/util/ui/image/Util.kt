@@ -50,6 +50,7 @@ fun ImageBf.toFXCustom(): ImageWr {
 fun ImageFx.toBuffered(to: ImageBf? = null): ImageBf? = SwingFXUtils.fromFXImage(this, to)
 
 /** Scales image to requested size. Size must not be 0. */
+@Suppress("KotlinConstantConditions")
 private fun ImageBf.toScaledDown(W: Int, H: Int, down: Boolean, up: Boolean): ImageBf = when {
    !down && !up -> this
    down && up -> {
@@ -167,7 +168,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
 }
 
 /**
- * Loads image file into a javaFx's [ImageFx].
+ * Loads image file into as [ImageFx].
  *
  * The image loading executes on background thread if called on [javafx.application.Platform.isFxApplicationThread] or
  * current thread otherwise.

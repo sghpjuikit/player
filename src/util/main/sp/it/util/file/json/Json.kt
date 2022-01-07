@@ -230,7 +230,7 @@ class Json {
                   val converter = converters.byType.getElementOfSuper(value::class).asIf<JsConverter<Any>>()?.takeIf { it.canConvert(value) }
                   when {
                      converter!=null -> {
-                        val isStillAmbiguous = value !is String && typeAsRaw==Any::class
+                        val isStillAmbiguous = typeAsRaw==Any::class
                         converter.toJson(value).withAmbiguity(isStillAmbiguous)
                      }
                      else -> {

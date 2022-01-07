@@ -16,6 +16,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df.PLAIN_TEXT
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.infoIcon
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
@@ -44,7 +45,7 @@ class InfoPane: OverlayPane<Unit>() {
       styleClass += STYLECLASS
 
       content = vBox(5, CENTER) {
-         maxWidth = 800.0
+         maxWidth = 900.emScaled
 
          lay += hBox(5, CENTER_RIGHT) {
             lay += infoIcon("System information viewer\n\nDisplays available system properties. Click on the property to copy the value.")
@@ -69,7 +70,7 @@ class InfoPane: OverlayPane<Unit>() {
       g.rowConstraints.clear()
       g.columnConstraints.clear()
 
-      g.columnConstraints += ColumnConstraints(550.0, 550.0, 550.0, Priority.NEVER, RIGHT, false)
+      g.columnConstraints += ColumnConstraints(550.emScaled, 550.emScaled, 550.emScaled, Priority.NEVER, RIGHT, false)
       g.columnConstraints += ColumnConstraints(10.0)
       g.columnConstraints += ColumnConstraints(-1.0, -1.0, -1.0, ALWAYS, LEFT, false)
 

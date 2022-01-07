@@ -128,7 +128,7 @@ allprojects {
 
       "Audio" group {
          implementation("uk.co.caprica", "vlcj", "4.7.1")
-         implementation("org.bitbucket.ijabz", "jaudiotagger", "35ea31b")
+         implementation("net.jthink", "jaudiotagger", "3.0.1")
       }
 
       "Native" group {

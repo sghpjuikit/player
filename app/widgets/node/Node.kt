@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import javafx.beans.value.WritableValue
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import kotlin.reflect.KClass
@@ -16,8 +17,11 @@ import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetTag
+import sp.it.pl.layout.WidgetUi
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppError
+import sp.it.pl.main.AppEventLog
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toS
@@ -30,6 +34,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.div
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -66,9 +71,15 @@ class Node(widget: Widget): SimpleController(widget) {
 
    /** The node instance or null if none */
    private val nodeInstance = vn<Node>(null).apply {
-      node sync {
-         val isDifferentClass = value?.net { it::class.java.name }!=it
-         if (isDifferentClass) value = runTry { Class.forName(it)?.kotlin?.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node? }.orNull()
+      node sync { c ->
+         val isDifferentClass = value?.net { it::class.java.name }!=c
+         if (isDifferentClass)
+            value = runTry { Class.forName(c)?.kotlin?.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node? }
+               .ifError {
+                  if (it !is ClassNotFoundException && it !is ClassNotFoundException)
+                     AppEventLog.push(AppError("Failed to instantiate $c", "Reason: ${it.stacktraceAsString}"))
+               }
+               .orNull()
       }
    }
 
@@ -86,9 +97,10 @@ class Node(widget: Widget): SimpleController(widget) {
                   }
                }
                menu("Inputs") {
+                  val node = nodeInstance.value
                   val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()
-                  val properties = nodeInstance.value.javaFxProperties()
-                  val propertiesByClass =  nodeInstance.value.javaFXSuperClasses().associateWith { listOf<NodeInput>() } + properties.groupBy { it.declaringClass }
+                  val properties = node.javaFxProperties()
+                  val propertiesByClass =  node.javaFXSuperClasses().associateWith { listOf<NodeInput>() } + properties.groupBy { it.declaringClass }
                   val i = AtomicInteger(-1)
                   propertiesByClass.forEach { (declaringClass, properties) ->
                      val namePrefix = if (i.incrementAndGet()==0) "" else "".padStart(i.get(), ' ') + "⌎ "
@@ -188,4 +200,5 @@ class Node(widget: Widget): SimpleController(widget) {
       fun String.encodeBase64(): String = Base64.getEncoder().encodeToString(toByteArray())
       fun String.decodeBase64() = String(Base64.getDecoder().decode(toByteArray()))
    }
+
 }

@@ -2111,7 +2111,9 @@ Shape, Text, SpitText, TextFlow > * {
 /*
  * ContainerFreeForm ui window
  */
-.container-freeform-ui .container-free-form-window {}
+.container-freeform-ui .container-free-form-window {
+    -fx-padding: 1;
+}
 .container-freeform-ui .container-free-form-window .widget-ui:layout-mode {
     -fx-background-insets: 0 1 1 1;
 }

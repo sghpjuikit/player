@@ -69,7 +69,7 @@ class DateClockDigitalIos: HBox() {
                styleClass += "date-clock-digital-ios-text"
                styleClass += "date-clock-digital-ios-text-month"
                pseudoClassChanged("secondary", by!=0)
-               update += { text = formatMonth.value.formatter((it.monthValue + by + 12)%12) }
+               update += { text = formatMonth.value.formatter(it.plusMonths(by.toLong()).monthValue) }
             }
          }
          onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusMonths(-e.deltaY.sign.toLong()) } }
@@ -80,7 +80,7 @@ class DateClockDigitalIos: HBox() {
                styleClass += "date-clock-digital-ios-text"
                styleClass += "date-clock-digital-ios-text-day"
                pseudoClassChanged("secondary", by!=0)
-               update += { text = "%02d".format((it.dayOfMonth + by + it.lengthOfMonth())%it.lengthOfMonth()) }
+               update += { text = "%02d".format(it.plusDays(by.toLong()).dayOfMonth) }
             }
          }
          onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusDays(-e.deltaY.sign.toLong()) } }

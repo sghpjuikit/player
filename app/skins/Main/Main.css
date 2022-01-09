@@ -2120,6 +2120,9 @@ Shape, Text, SpitText, TextFlow > * {
 .container-freeform-ui:layout-mode .container-free-form-window .header {
     -fx-background-insets: 1 0 0 0;
 }
+.container-freeform-ui:layout-mode .container-free-form-window {
+    -fx-cursor: MOVE;
+}
 .container-freeform-ui:window-resizing .container-free-form-window,
 .container-freeform-ui:window-moving .container-free-form-window {
     -fx-background-color: -skin-pane-color;

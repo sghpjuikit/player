@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -66,6 +67,7 @@ import static java.util.Comparator.comparingInt;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 import static javafx.scene.input.KeyCode.A;
+import static javafx.scene.input.KeyCode.ALT;
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyCode.F11;
@@ -77,6 +79,7 @@ import static javafx.scene.input.KeyCode.RIGHT;
 import static javafx.scene.input.KeyCode.UP;
 import static javafx.scene.input.KeyCode.WINDOWS;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -222,6 +225,16 @@ public class Window extends WindowBase {
 		//
 		// note the poor impl. only borders must be Regions!
 		syncC(resizable, it -> front.getChildren().stream().filter(c -> c.getClass().equals(Region.class)).forEach(c -> c.setMouseTransparent(!it)));
+
+		// window move hint cursor
+		root.addEventHandler(KEY_PRESSED, e -> {
+			if (e.getCode() == ALT && isInteractiveOnLeftAlt.getValue())
+				root.setCursor(Cursor.MOVE);
+		});
+		root.addEventFilter(KEY_RELEASED, e -> {
+			if (e.getCode() == ALT)
+				root.setCursor(Cursor.DEFAULT);
+		});
 
 		// app dragging
 		header.addEventHandler(DRAG_DETECTED, this::moveStart);

@@ -89,7 +89,7 @@ class Layouter: ComponentUi {
             cp.onCancel()
             it.consume()
          }
-      }
+      } on disposer
    }
 
    override fun show() = showControls(true)
@@ -149,7 +149,7 @@ class Layouter: ComponentUi {
          }
       }
       wp.buildContent()
-      wp.consumeCancelEvent = true // we need right click to not close container
+      wp.consumeCancelEvent = true // we need right-click to not close container
 
       root.lay += wp.root
       AppAnimator.openAndDo(wp.root, null)

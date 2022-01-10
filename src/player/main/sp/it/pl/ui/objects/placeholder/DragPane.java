@@ -9,6 +9,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import kotlin.jvm.functions.Function1;
 import sp.it.util.access.ref.SingleR;
+import sp.it.util.math.P;
 import sp.it.util.reactive.Disposer;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.CLIPBOARD;
 import static javafx.scene.input.DragEvent.DRAG_DONE;
@@ -106,7 +107,7 @@ public class DragPane extends Placeholder {
 	 * @param area Optionally, the highlighting can have specified size and position. Normally it mirrors the size and
 	 * position of the node. This function is called repeatedly (on DRAG_OVER event, which behaves like MOUSE_MOVE ) and
 	 * may be used to calculate size and position of the highlight. The result can be a portion of the node's area and
-	 * even react on mouse drag moving across the node.
+	 * even react on mouse drag moving across the node. The resulting bounds will be shifted by the parent's (left, top) padding.
 	 */
 	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> info, Function1<? super DragEvent, Boolean> cond, Function1<? super DragEvent, Boolean> except, Function1<? super DragEvent, ? extends Bounds> area) {
 		var d = new Data(info, icon, cond);
@@ -125,13 +126,14 @@ public class DragPane extends Placeholder {
 						if (p!=null && !p.getChildren().contains(dp)) {
 							dp.animateShow(node);
 							p.getChildren().add(dp);
-							Bounds b = area==null ? node.getBoundsInParent() : area.invoke(e);
-							double w = b.getWidth();
-							double h = b.getHeight();
+							var b = area==null ? node.getBoundsInParent() : area.invoke(e);
+							var padding = area==null ? new P(0.0, 0.0) : new P(p.snappedLeftInset(), p.snappedTopInset());
+							var w = b.getWidth();
+							var h = b.getHeight();
 							dp.setMaxSize(w, h);
 							dp.setPrefSize(w, h);
 							dp.setMinSize(w, h);
-							dp.resizeRelocate(b.getMinX(), b.getMinY(), w, h);
+							dp.resizeRelocate(padding.getX() + b.getMinX(), padding.getY() + b.getMinY(), w, h);
 							dp.toFront();
 							dp.setVisible(true);
 						}
@@ -142,13 +144,15 @@ public class DragPane extends Placeholder {
 
 			if (area!=null && node.getProperties().containsKey(ACTIVE)) {
 				var dp = PANE.getM(d);
+				var p = (Pane) dp.getParent();
+				var padding = area==null ? new P(0.0, 0.0) : new P(p.snappedLeftInset(), p.snappedTopInset());
 				var b = area.invoke(e);
 				var w = b.getWidth();
 				var h = b.getHeight();
 				dp.setMaxSize(w, h);
 				dp.setPrefSize(w, h);
 				dp.setMinSize(w, h);
-				dp.resizeRelocate(b.getMinX(), b.getMinY(), w, h);
+				dp.resizeRelocate(padding.getX() + b.getMinX(), padding.getY() + b.getMinY(), w, h);
 				dp.toFront();
 				dp.setVisible(true);
 			}

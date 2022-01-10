@@ -26,6 +26,7 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.runIO
 import sp.it.util.conf.cOr
 import sp.it.util.conf.cv
+import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
 import sp.it.util.conf.uiNoOrder
@@ -70,6 +71,8 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       .defInherit(APP.ui::gridCellAlignment)
    val cellSize by cv(GridView.CellSize.NORMAL).uiNoOrder().attach { applyCellSize() }
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
+   val cellMaxColumns by cvn(2)
+      .def(name = "Maximum width", info = "Maximum number of cells in a horizontal row. Null indicates no limit.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    val coverFitFrom by cv(FitFrom.OUTSIDE)
@@ -82,7 +85,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
       grid.cellFactory.value = { Cell() }
       grid.footerVisible.value = false
-      grid.cellMaxColumns.value = 2
+      grid.cellMaxColumns syncFrom cellMaxColumns
       grid.onEventUp(SCROLL) { e ->
          if (e.isShortcutDown) {
             e.consume()

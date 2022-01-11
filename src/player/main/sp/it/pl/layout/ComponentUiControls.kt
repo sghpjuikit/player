@@ -8,6 +8,7 @@ import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.TilePane
 import sp.it.pl.main.Df
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.set
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.ui.height
@@ -37,7 +38,7 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
             area.detach()
             e.consume()
          } else {
-            if (area.component.parent !is ContainerFreeForm) {
+            if (area.component.parent !is ContainerFreeForm || e.y<=20.emScaled) {
                val db = root.startDragAndDrop(*ANY)
                db[Df.COMPONENT] = area.component
                root.pseudoClassStateChanged(WidgetUi.PSEUDOCLASS_DRAGGED, true)

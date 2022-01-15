@@ -3467,7 +3467,7 @@ Shape, Text, SpitText, TextFlow > * {
 .drag-pane:hover {
     -fx-border-insets: 1.5em;
     -fx-border-color: rgba(255,255,255, 0.2);
-    -fx-border-style: segments(10, 15, 15, 15);
+    -fx-border-style: segments(8, 10);
     -fx-border-radius: 0;
     -fx-border-width: 2;
 }

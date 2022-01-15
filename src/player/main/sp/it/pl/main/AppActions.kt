@@ -20,6 +20,7 @@ import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
+import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentLoader
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.Widget
@@ -29,6 +30,7 @@ import sp.it.pl.layout.controller.Controller
 import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.TextDisplayFeature
+import sp.it.pl.layout.openInConfigured
 import sp.it.pl.layout.orNone
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.main.Widgets.ICON_BROWSER
@@ -454,6 +456,10 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          )
          show()
       }
+   }
+
+   val componentClone = fastAction<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w ->
+      w.openInConfigured()
    }
 
    fun browseMultipleFiles(files: Sequence<File>) {

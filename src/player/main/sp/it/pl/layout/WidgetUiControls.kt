@@ -14,18 +14,15 @@ import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
+import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
-import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
-import sp.it.pl.layout.Widget.LoadType.MANUAL
 import sp.it.pl.layout.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions
 import sp.it.pl.main.AppAnimator
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconOC
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.emScaled
-import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
@@ -36,10 +33,8 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
-import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
-import sp.it.util.reactive.sync
 import sp.it.util.ui.centre
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
@@ -81,21 +76,15 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
             ContextMenu().dsl {
                item("Open Settings", Icon(IconFA.COGS)) { showSettings(i) }
                item("Open Actions", Icon(IconFA.GAVEL)) { APP.ui.actionPane.orBuild.show(area.widget) }
+               items { CoreMenus.menuItemBuilders[area.widget] }
             }.apply {
                show(i, Side.BOTTOM, 0.0, 0.0)
             }
          }
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
          absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }
-         val loadB = CheckIcon().apply {
-            styleclass("header-icon")
-            tooltip("Switch between automatic or manual widget loading.")
-            area.widget.loadType sync { selected.setValue(it==AUTOMATIC) }
-            selected sync { icon(it, IconOC.UNFOLD, IconOC.FOLD) }
-            selected attach { area.widget.loadType.value = if (it) AUTOMATIC else MANUAL }
-         }
 
-         lay += listOf(loadB, absB, lockB, menuB, closeB)
+         lay += listOf(absB, lockB, menuB, closeB)
       }
 
       // build animations
@@ -168,7 +157,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
    fun updateAbsB() {
       if (area.container is ContainerBi) {
          absB.icon(area.container.absoluteSize.value==area.index, UNLINK, LINK)
-         if (absB !in icons.children) icons.children.add(6, absB)
+         if (absB !in icons.children) icons.children.add(0, absB)
       } else {
          icons.children -= absB
       }

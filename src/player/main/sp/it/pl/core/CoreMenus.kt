@@ -20,6 +20,9 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentFactory
+import sp.it.pl.layout.ComponentUiBase
+import sp.it.pl.layout.Container
+import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.WidgetUse.NEW
@@ -66,6 +69,7 @@ import sp.it.pl.main.toMetadata
 import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
 import sp.it.pl.plugin.PluginBox
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.window.stage.Window
@@ -88,6 +92,7 @@ import sp.it.util.dev.Dsl
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
@@ -268,9 +273,6 @@ object CoreMenus: Core {
                }
             }
          }
-         add<Component> {
-            item("Clone") { it.openInConfigured() }
-         }
          add<Configurable<*>> {
             menu("Inspect properties in") {
                widgetItems<ConfiguringFeature> { it.configure(value) }
@@ -395,6 +397,22 @@ object CoreMenus: Core {
          }
          add<ComponentFactory<*>> {
             item("New") { APP.windowManager.showWindow(it) }
+         }
+         add<Component> {
+            menu("Load type") {
+               items {
+                  SelectionMenuItem.buildSingleSelectionMenu(Widget.LoadType.values().toList(), value.loadType.value, { it.toUi() }) { value.loadType.value = it }.asSequence()
+               }
+            }
+            item("Close") { it.close() }
+            item("Detach") {
+               when(it) {
+                  is Container<*> -> it.ui?.asIf<ComponentUiBase<*>>()?.detach()
+                  is Widget -> it.ui?.asIf<ComponentUiBase<*>>()?.detach()
+               }
+            }
+         }
+         add<Widget> {
          }
          add<PluginBox<*>> {
          }

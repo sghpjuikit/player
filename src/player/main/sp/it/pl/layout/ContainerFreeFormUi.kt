@@ -169,7 +169,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
                   w.ui?.dispose()
                   WidgetUi(container, i, c).apply {
                      val lb = Icon(IconMD.VIEW_DASHBOARD, 12.0, layoutButtonTooltipText, { w.autoLayout() })
-                     controls.icons.children.add(1, lb)
+                     controls.icons.children.add(0, lb)
                   }
                }
             n = w.ui!!.root

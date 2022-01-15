@@ -207,12 +207,6 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
             saveFile("Export to...", APP.location.user.layouts, w.name, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
                .ifOk { w.exportFxwl(it) }
          }
-      ),
-      fastAction(
-         "Clone",
-         "Creates new component with the same content and state as this one.",
-         IconFA.CLONE,
-         { w -> w.openInConfigured() }
       )
    )
    ap.register<Widget>(

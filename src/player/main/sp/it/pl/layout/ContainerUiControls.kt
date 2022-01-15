@@ -8,6 +8,7 @@ import javafx.scene.input.DragEvent.DRAG_DONE
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.WidgetUi.Companion.PSEUDOCLASS_DRAGGED
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df
@@ -65,6 +66,7 @@ class ContainerUiControls(override val area: ContainerUi<*>): ComponentUiControl
             ContextMenu().dsl {
                item("Open Settings", Icon(IconFA.COGS)) { showSettings(i) }
                item("Open Actions", Icon(IconFA.GAVEL)) { APP.ui.actionPane.orBuild.show(area.container) }
+               items { CoreMenus.menuItemBuilders[area.container] }
             }.apply {
                show(i, Side.BOTTOM, 0.0, 0.0)
             }

@@ -25,6 +25,8 @@ import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.withNullability
+import sp.it.util.functional.Option
+import sp.it.util.functional.map
 import sp.it.util.text.ifNotEmpty
 import sp.it.util.type.kTypeNothingNonNull
 import sp.it.util.type.kTypeNothingNullable
@@ -41,9 +43,14 @@ fun <T> Set<T>.materialize() = toSet()
 /** @return new map containing elements of this map, e.g. for safe iteration */
 fun <K, V> Map<K, V>.materialize() = toMap()
 
+/** @return human-readable string of this map */
 fun <K,V> Map<K,V>.toStringPretty(indent: String = "  "): String = asSequence().joinToString("\n") { "$indent$it" }.ifNotEmpty { "{\n$it\n}" }.ifEmpty { "{}" }
 
+/** @return human-readable string of this iterable */
 fun <T> Iterable<T>.toStringPretty(indent: String = "  "): String = asSequence().joinToString("\n") { "$indent$it" }.ifNotEmpty { "(\n$it\n)" }.ifEmpty { "()" }
+
+/** @return human-readable string of this iterable */
+fun <K, V> Map<K, V>.keyOf(value: V): Option<K> = Option(entries.find { it.value==value }).map { it.key }
 
 /** @return the most specific common supertype of all elements */
 fun <E: Any> Collection<E?>.getElementType(): KType = when {

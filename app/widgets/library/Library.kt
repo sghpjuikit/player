@@ -69,8 +69,10 @@ import mu.KLogging
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.Css.Pseudoclasses.played
 import sp.it.pl.main.HelpEntries
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_TABLE_NAME
+import sp.it.pl.main.installDrag
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -185,12 +187,15 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
          }
       }
 
+      // drag % drop
       table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
          if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
             table.startDragAndDrop(*ANY).setSongsAndFiles(table.selectedItemsCopy)
             it.consume()
          }
       }
+      // drag % drop - prevent parent
+      root.installDrag(IconFA.PLUS, "Add to library", { true }, { true }, {})
 
       table.consumeScrolling()
 

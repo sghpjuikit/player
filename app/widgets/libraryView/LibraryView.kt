@@ -78,9 +78,13 @@ import javafx.scene.input.KeyCode.*
 import mu.KLogging
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.Css.Pseudoclasses.played
+import sp.it.pl.main.Df
 import sp.it.pl.main.HelpEntries
+import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
+import sp.it.pl.main.contains
+import sp.it.pl.main.installDrag
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.pane.ShortcutPane.Entry
@@ -238,12 +242,16 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             APP.db.removeSongs(table.selectedItems.flatMap { it.grouped })
          }
       }
+
+      // drag % drop
       table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
          if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
             table.startDragAndDrop(*ANY).setSongsAndFiles(filerSortInputList())
             it.consume()
          }
       }
+      // drag % drop - prevent parent
+      root.installDrag(IconFA.PLUS, "Add to library", { Df.SONGS in it.dragboard }, { true }, {})
 
       table.consumeScrolling()
 

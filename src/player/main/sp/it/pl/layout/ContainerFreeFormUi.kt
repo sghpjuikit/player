@@ -33,6 +33,7 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
 import sp.it.util.async.runFX
+import sp.it.util.collections.keyOf
 import sp.it.util.collections.observableSet
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
@@ -43,6 +44,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
+import sp.it.util.functional.orNull
 import sp.it.util.functional.runnable
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
@@ -106,7 +108,7 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          { Df.COMPONENT in it.dragboard },
          { it.dragboard[Df.COMPONENT]===container },
          { it.dragboard[Df.COMPONENT].swapWith(container, addEmptyWindowAt(it.x, it.y)) },
-         { bestRec(it.x, it.y, null).absolute } // alternatively: e -> bestRec(e.getX(),e.getY(),DragUtilKt.get(e, Df.COMPONENT).getWindow())).absolute
+         { bestRec(it.x, it.y, getWindow(container.children.keyOf(it.dragboard[Df.COMPONENT]).orNull())).absolute }
       )
 
       content.widthProperty() attach {
@@ -207,6 +209,8 @@ class ContainerFreeFormUi(c: ContainerFreeForm): ContainerUi<ContainerFreeForm>(
          }
       }
    }
+
+   private fun getWindow(i: Int?): Window? = if (i==null) null else windows[i]
 
    private fun getOrBuildWindow(i: Int, c: Component?): Window {
       return windows.getOrPut(i) {

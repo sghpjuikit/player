@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.Nullable;
 import sp.it.util.access.ref.SingleR;
 import sp.it.util.math.P;
 import sp.it.util.reactive.Disposer;
@@ -49,8 +50,9 @@ public class DragPane extends Placeholder {
 	private static final GlyphIcons DEFAULT_ICON = CLIPBOARD;
 	public static final SingleR<DragPane,Data> PANE = new SingleR<>(DragPane::new,
 		(p, data) -> {
-			p.icon.icon(data.icon==null, DEFAULT_ICON, data.icon);
-			p.info.setText(data.info.get());
+			p.getIcon().icon(data.icon==null, DEFAULT_ICON, data.icon);
+			p.getInfo().setText(data.info.get());
+			p.setFadeContent(data.fadeContent);
 			p.whileActiveOfSibling = data.whileActive;
 		}
 	);
@@ -109,8 +111,8 @@ public class DragPane extends Placeholder {
 	 * may be used to calculate size and position of the highlight. The result can be a portion of the node's area and
 	 * even react on mouse drag moving across the node. The resulting bounds will be shifted by the parent's (left, top) padding.
 	 */
-	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> info, Function1<? super DragEvent, Boolean> cond, Function1<? super DragEvent, Boolean> except, Function1<? super DragEvent, ? extends Bounds> area) {
-		var d = new Data(info, icon, cond);
+	public static void install(Node node, GlyphIcons icon, Supplier<? extends String> info, Function1<? super DragEvent, Boolean> cond, @Nullable Function1<? super DragEvent, Boolean> except, @Nullable Function1<? super DragEvent, ? extends Bounds> area) {
+		var d = new Data(info, icon, cond, area);
 		node.getProperties().put(INSTALLED, d);
 		node.addEventHandler(DRAG_OVER, e -> {
 			if (!node.getProperties().containsKey(ACTIVE)) { // guarantees cond executes only once
@@ -126,14 +128,15 @@ public class DragPane extends Placeholder {
 						if (p!=null && !p.getChildren().contains(dp)) {
 							dp.animateShow(node);
 							p.getChildren().add(dp);
-							var b = area==null ? node.getBoundsInParent() : area.invoke(e);
+							var b = area==null ? p.sceneToLocal(node.localToScene(node.getLayoutBounds())) : area.invoke(e);
 							var padding = area==null ? new P(0.0, 0.0) : new P(p.snappedLeftInset(), p.snappedTopInset());
 							var w = b.getWidth();
 							var h = b.getHeight();
+							dp.setMinSize(0.0, 0.0);
 							dp.setMaxSize(w, h);
 							dp.setPrefSize(w, h);
-							dp.setMinSize(w, h);
 							dp.resizeRelocate(padding.getX() + b.getMinX(), padding.getY() + b.getMinY(), w, h);
+							dp.requestLayout();
 							dp.toFront();
 							dp.setVisible(true);
 						}
@@ -145,14 +148,15 @@ public class DragPane extends Placeholder {
 			if (area!=null && node.getProperties().containsKey(ACTIVE)) {
 				var dp = PANE.getM(d);
 				var p = (Pane) dp.getParent();
-				var padding = area==null ? new P(0.0, 0.0) : new P(p.snappedLeftInset(), p.snappedTopInset());
+				var padding = new P(p.snappedLeftInset(), p.snappedTopInset());
 				var b = area.invoke(e);
 				var w = b.getWidth();
 				var h = b.getHeight();
+				dp.setMinSize(0.0, 0.0);
 				dp.setMaxSize(w, h);
 				dp.setPrefSize(w, h);
-				dp.setMinSize(w, h);
 				dp.resizeRelocate(padding.getX() + b.getMinX(), padding.getY() + b.getMinY(), w, h);
+				dp.requestLayout();
 				dp.toFront();
 				dp.setVisible(true);
 			}
@@ -177,18 +181,21 @@ public class DragPane extends Placeholder {
 		private final Supplier<? extends String> info;
 		private final GlyphIcons icon;
 		private final Function1<? super DragEvent, Boolean> cond;
+		private final boolean fadeContent;
 		private final Disposer whileActive = new Disposer();
 
-		public Data(Supplier<? extends String> info, GlyphIcons icon) {
+		public Data(Supplier<? extends String> info, GlyphIcons icon, @Nullable Function1<? super DragEvent, ? extends Bounds> area) {
 			this.info = info;
 			this.icon = icon;
 			this.cond = IS;
+			this.fadeContent = area!=null;
 		}
 
-		public Data(Supplier<? extends String> info, GlyphIcons icon, Function1<? super DragEvent, Boolean> cond) {
+		public Data(Supplier<? extends String> info, GlyphIcons icon, Function1<? super DragEvent, Boolean> cond, @Nullable Function1<? super DragEvent, ? extends Bounds> area) {
 			this.info = info;
 			this.icon = icon;
 			this.cond = cond;
+			this.fadeContent = area!=null;
 		}
 	}
 
@@ -196,7 +203,7 @@ public class DragPane extends Placeholder {
 
 	private DragPane() {
 		super(DEFAULT_ICON, "", runnable(() -> {}));
-		icon.styleclass(STYLECLASS_ICON);
+		getIcon().styleclass(STYLECLASS_ICON);
 		getStyleClass().add(STYLECLASS);
 		setMouseTransparent(true);   // must not interfere with events
 		setManaged(false);           // must not interfere with layout

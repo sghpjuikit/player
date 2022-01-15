@@ -1,9 +1,10 @@
 package sp.it.pl.ui.objects.placeholder
 
 import de.jensd.fx.glyphs.GlyphIcons
-import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER
 import javafx.scene.Node
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.StackPane
 import javafx.scene.text.TextAlignment
 import kotlin.math.sqrt
@@ -28,6 +29,8 @@ import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.removeFromParent
 import sp.it.util.ui.size
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.vBox
+import sp.it.util.ui.x2
 import sp.it.util.units.millis
 
 /**
@@ -37,8 +40,9 @@ import sp.it.util.units.millis
  */
 open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () -> Unit): StackPane() {
 
-   @JvmField val icon = Icon()
-   @JvmField val info = SpitText()
+   val icon = Icon()
+   val info = SpitText()
+   var fadeContent = true
    private var s: Subscription? = null
    private var s2: Subscription? = null
 
@@ -64,20 +68,27 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
          }
       }
 
-      lay += layHeaderBottom(8.0, Pos.CENTER,
-         stackPane {
+      lay += vBox(8.0, CENTER) {
+         minSize = 0.x2
+         lay(ALWAYS) += stackPane {
+            minSize = 0.x2
             isMouseTransparent = true
             lay += icon
-         },
-         info
-      )
+         }
+         lay += info
+      }
       isVisible = false
    }
 
    /** Invoke just after [showFor] to get animation effect. [animateHide] must then be called after [hide]! */
    fun animateShow(n: Node) {
       if (n.placeholderAnim==null) {
-         n.placeholderAnim = anim(250.millis) { n.opacity = 1-ALMOST_TRANSPARENT*sqrt(it); opacity = sqrt(it) }.apply { playOpen() }
+         n.placeholderAnim = anim(250.millis) {
+            n.opacity = if (fadeContent) 1.0 else 1-ALMOST_TRANSPARENT*sqrt(it)
+            opacity = sqrt(it)
+         }.apply {
+            playOpen()
+         }
          s2?.unsubscribe()
          s2 = Subscription {
             n.placeholderAnim?.stop()
@@ -93,7 +104,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
       s2 = null
    }
 
-   /** Shows this placeholder so it is topmost child of specified node (or its first [Pane] parent), [visible] is true and optionally [icon].[focused] is true. */
+   /** Shows this placeholder, so it is topmost child of specified node (or its first [Pane] parent), [visible] is true and optionally [icon].[focused] is true. */
    fun showFor(n: Node, focus: Boolean = true) {
       val p = n.traverse { it.parent }.filterIsInstance<Pane>().firstOrNull()
       if (p!=null && this !in p.children) {
@@ -101,10 +112,12 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
          p.lay += this
          s?.unsubscribe()
          s = n.layoutBoundsProperty().sync {
-            minSize = it.size
-            prefSize = it.size
-            maxSize = it.size
-            resizeRelocate(it.minX, it.minY, it.width, it.height)
+            var b = p.sceneToLocal(n.localToScene(it))
+            minSize = 0.x2
+            prefSize = b.size
+            maxSize = b.size
+            resizeRelocate(b.minX, b.minY, b.width, b.height)
+            requestLayout()
          }
          toFront()
          isVisible = true
@@ -112,7 +125,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
       }
    }
 
-   /** Hides this placeholder so it is not a child of any node and [visible] is false. */
+   /** Hides this placeholder, so it is not a child of any node and [visible] is false. */
    fun hide() {
       s?.unsubscribe()
       s = null

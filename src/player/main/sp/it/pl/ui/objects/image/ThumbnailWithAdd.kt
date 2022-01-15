@@ -32,7 +32,7 @@ class ThumbnailWithAdd constructor(dragIcon: GlyphIcons = DETAILS, dragDescripti
    var onFileDropped: (Fut<File?>) -> Unit = {}
    /** Action for when image is highlighted. Default does nothing. */
    var onHighlight: (Boolean) -> Unit = {}
-   private val dragData = DragPane.Data({ dragDescription }, dragIcon)
+   private val dragData = DragPane.Data({ dragDescription }, dragIcon, null)
 
    init {
       // highlight on hover | drag

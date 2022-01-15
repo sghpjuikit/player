@@ -67,6 +67,9 @@ fun <T> runnable(runnable: Runnable): () -> Unit = { runnable() }
 fun <T> Lazy<T>.orNull() = if (isInitialized()) value else null
 
 /** @return value or null if empty (note, that if the value is nullable, this destroys the information of null origin) */
+fun <T> Option<T>.orNull(): T? = this.getOr(null)
+
+/** @return value or null if empty (note, that if the value is nullable, this destroys the information of null origin) */
 fun <T> Optional<T>.orNull(): T? = orElse(null)
 
 /** @return ok with the value of this optional or error if this is empty optional */

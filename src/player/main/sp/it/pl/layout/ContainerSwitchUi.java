@@ -15,7 +15,6 @@ import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
@@ -70,9 +69,9 @@ import static sp.it.util.ui.UtilKt.removeFromParent;
  * The content switches by invoking drag event using the right (secondary) mouse button.
  */
 @SuppressWarnings("WeakerAccess")
-public class ContainerSwitchUi implements ComponentUi {
+public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
 
-    private final AnchorPane root = new AnchorPane();
+    private final AnchorPane root;
     private final AnchorPane zoom = new AnchorPane();
     private final AnchorPane ui = new AnchorPane() {
         @Override
@@ -99,7 +98,9 @@ public class ContainerSwitchUi implements ComponentUi {
     private double tox = 0;
 
     public ContainerSwitchUi(ContainerSwitch container) {
+        super(container);
         this.container = container;
+        this.root = getRoot();
 
         root.setId("switch-pane-root");
         zoom.setId("switch-pane-zoom");
@@ -613,20 +614,16 @@ public class ContainerSwitchUi implements ComponentUi {
         return layouts.get(currTab());
     }
 
-    @NotNull
-    @Override
-    public Pane getRoot() {
-        return root;
-    }
-
     @Override
     public void show() {
+        super.show();
         layouts.values().forEach(c -> { if (c instanceof Container) ((Container<?>) c).show(); });
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.show(); });
     }
 
     @Override
     public void hide() {
+        super.hide();
         layouts.values().forEach(c -> { if (c instanceof Container) ((Container<?>) c).hide(); });
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.hide(); });
     }

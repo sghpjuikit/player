@@ -92,7 +92,7 @@ abstract class ContainerUi<C: Container<*>>: ComponentUiBase<C> {
       }
       root.onEventDown(MOUSE_CLICKED, SECONDARY, false) {
          // always consume setContainerMode event when it is not possible to go any higher
-         if (isLayoutMode && (container.parent is Layout || container.parent is ContainerSwitch))
+         if (isLayoutMode && container.parent is Layout)
             it.consume()
       }
    }

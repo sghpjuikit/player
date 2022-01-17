@@ -469,14 +469,23 @@ fun Any?.detectContent(): Any? = when (this) {
       this.lengthInCodePoints==1 -> this.char32At(0).detectContent()
       this.lengthInGraphemes==1 -> this.graphemeAt(0)
       else -> null
-         ?: this.toShortOrNull()
-         ?: this.toIntOrNull()
-         ?: this.toLongOrNull()
-         ?: this.toFloatOrNull()
+         ?: this.toBigIntegerOrNull()?.let {
+            when {
+               it in Byte.MIN_VALUE.toInt().toBigInteger()..Byte.MAX_VALUE.toInt().toBigInteger() -> it.toByte()
+               it in Short.MIN_VALUE.toInt().toBigInteger()..Short.MAX_VALUE.toInt().toBigInteger() -> it.toShort()
+               it in Int.MIN_VALUE.toBigInteger()..Int.MAX_VALUE.toBigInteger() -> it.toInt()
+               it in Long.MIN_VALUE.toBigInteger()..Long.MAX_VALUE.toBigInteger() -> it.toLong()
+               else -> it
+            }
+         }
+         ?: this.toBigDecimalOrNull()?.let {
+            when {
+               it in Float.MIN_VALUE.toBigDecimal()..Float.MAX_VALUE.toBigDecimal() -> it.toFloat()
+               it in Double.MIN_VALUE.toBigDecimal()..Double.MAX_VALUE.toBigDecimal() -> it.toFloat()
+               else -> it
+            }
+         }
          ?: this.toDoubleOrNull()
-         ?: this.toBigIntegerOrNull()
-         ?: this.toBigDecimalOrNull()
-         ?: this.toByteOrNull()
          ?: this.takeIf { it.startsWith("U+") || it.startsWith("\\u") }?.let { it.substring(2).toIntOrNull(16)?.toChar32() }
          ?: APP.serializerJson.json.ast(this).orNull()
          ?: runTry { uri(this) }.orNull()?.net { it.toFileOrNull() ?: it }

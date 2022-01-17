@@ -76,6 +76,7 @@ import sp.it.util.text.escapeXml10
 import sp.it.util.text.escapeXml11
 import sp.it.util.text.isPalindrome
 import sp.it.util.text.lengthInCodePoints
+import sp.it.util.text.sentences
 import sp.it.util.text.toChar32
 import sp.it.util.text.toPrintableNonWhitespace
 import sp.it.util.text.unescapeCsv
@@ -86,6 +87,7 @@ import sp.it.util.text.unescapeJava
 import sp.it.util.text.unescapeJson
 import sp.it.util.text.unescapeXSI
 import sp.it.util.text.unescapeXml
+import sp.it.util.text.words
 import sp.it.util.type.VType
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.type
@@ -220,8 +222,12 @@ object CoreFunctors: Core {
          add("Remove chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> removeChars(it, amount, from) }
          add("Retain chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> retainChars(it, amount, from) }
          add("Trim", S, S) { it.trim() }
-         add("Split", S, type<StringSplitParser.SplitData>(), p(StringSplitParser.singular())) { it, splitter -> split(it, splitter) }
-         add("Split-join", S, S, p(StringSplitParser.singular()), p(StringSplitParser.singular())) { it, splitter, joiner -> splitJoin(it, splitter, joiner) }
+         add("Split", S, type<List<String>>(), p(" ")) { it, d -> it.split(d) }
+         add("Split to lines", S, type<List<String>>()) { it.lines() }
+         add("Split to words", S, type<List<String>>()) { it.words().map { it.trim() }.filter { it.isNotEmpty() }.toList() }
+         add("Split to sentences", S, type<List<String>>()) { it.sentences().map { it.trim() }.filter { it.isNotEmpty() }.toList() }
+         add("Split*", S, type<StringSplitParser.SplitData>(), p(StringSplitParser.singular())) { it, splitter -> split(it, splitter) }
+         add("Split*Join", S, S, p(StringSplitParser.singular()), p(StringSplitParser.singular())) { it, splitter, joiner -> splitJoin(it, splitter, joiner) }
          add("Is", S, B, p<String>(""), pNoCase) { it, phrase, noCase -> it.equals(phrase, noCase) }
          add("Contains", S, B, p<String>(""), pNoCase, false, false, true) { it, phrase, noCase -> it.contains(phrase, noCase) }
          add("Ends with", S, B, p<String>(""), pNoCase) { it, phrase, noCase -> it.endsWith(phrase, noCase) }
@@ -336,6 +342,8 @@ object CoreFunctors: Core {
          add("Size", type<Collection<*>>(), type<Int>()) { it.size }
          add("Is empty", type<Collection<*>>(), type<Int>()) { it.isEmpty() }
          add("Element at", type<List<*>>(), type<Any?>(), p<Int>(0)) { it, i -> it[i] }
+         add("Distinct", type<Iterable<*>>(), type<Set<*>>()) { it.toHashSet() }
+         add("Histogram", type<Iterable<*>>(), type<Map<*, Int>>()) { it.groupBy { it }.mapValues { (_,v) -> v.size } }
          add("Size", type<Map<*, *>>(), type<Int>()) { it.size }
          add("Is empty", type<Map<*, *>>(), type<Int>()) { it.isEmpty() }
 

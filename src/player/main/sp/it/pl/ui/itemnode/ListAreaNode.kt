@@ -37,6 +37,7 @@ import sp.it.util.collections.setTo
 import sp.it.util.collections.tabulate0
 import sp.it.util.conf.AccessConfig
 import sp.it.util.conf.Config
+import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.NumberMinMax
 import sp.it.util.conf.EditMode
 import sp.it.util.dev.fail
@@ -328,9 +329,10 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
             )
 
             // ByValue
+            val separator = Parameter("Separator", "Separator", type<String>(), "", setOf(Constraint.Multiline))
             this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF0("join", type<List<Any?>>(), type<List<Int>>()) { listOf(it) })
-            this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF0("join to text", type<List<Any?>>(), type<List<Any?>>()) { listOf(it.joinToString("")) })
-            this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF0("flatten", type<List<Any?>>(), type<List<Any?>>()) { it.flatMap { if (it is Collection<*>) it else listOf(it) } })
+            this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF1("join to text", type<List<Any?>>(), type<List<Any?>>(), separator) { it, s -> listOf(it.joinToString(s)) })
+            this += TransformationRaw.ByValue(type<Any?>(), type<Any?>(), PF0("flatten", type<List<Any?>>(), type<List<Any?>>()) { it.flatMap { if (it is Collection<*>) it else if (it is Map<*,*>) it.entries else listOf(it) } })
 
             // ByString
             this += functions.getIO(type<String>(), type<Any?>()).map {

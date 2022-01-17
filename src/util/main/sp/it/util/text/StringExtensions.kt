@@ -41,6 +41,35 @@ fun String.graphemes(): Sequence<Grapheme> = sequence {
    }
 }
 
+/** @return sequence of all words */
+fun String.words(): Sequence<String> = sequence {
+   val counter = BreakIterator.getWordInstance(Locale.ROOT)
+   counter.setText(this@words)
+
+   var start = counter.first()
+   var end = counter.next()
+   while (end!=BreakIterator.DONE) {
+      val word = this@words.substring(start, end)
+      if (Character.isLetterOrDigit(word.codePointAt(0))) yield(word)
+      start = end
+      end = counter.next()
+   }
+}
+
+/** @return sequence of all sentences  */
+fun String.sentences(): Sequence<String> = sequence {
+   val counter = BreakIterator.getSentenceInstance(Locale.ROOT)
+   counter.setText(this@sentences)
+
+   var start = counter.first()
+   var end = counter.next()
+   while (end!=BreakIterator.DONE) {
+      yield(this@sentences.substring(start, end).trimEnd())
+      start = end
+      end = counter.next()
+   }
+}
+
 /** Length of this string in bytes in [UTF_8] */
 val String.lengthInBytes: Int get() = lengthInBytes()
 
@@ -57,9 +86,37 @@ val String.lengthInCodePoints: Int get() = codePointCount(0, length)
 val String.lengthInGraphemes: Int get() {
    val counter = BreakIterator.getCharacterInstance(Locale.ROOT)
    counter.setText(this)
-   var graphemeCount = 0
-   while (counter.next()!=BreakIterator.DONE) graphemeCount++
-   return graphemeCount
+   var count = 0
+   while (counter.next()!=BreakIterator.DONE) count++
+   return count
+}
+
+/** Length of this string in lines, see [lineSequence] */
+val String.lengthInLines: Int get() = lineSequence().count()
+
+/** Length of this string in words */
+val String.lengthInWords: Int get() {
+   val counter = BreakIterator.getWordInstance(Locale.ROOT)
+   counter.setText(this)
+   var count = 0
+   var start = counter.first()
+   var end = counter.next()
+   while (end!=BreakIterator.DONE) {
+      val word = this@lengthInWords.substring(start, end)
+      if (Character.isLetterOrDigit(word.codePointAt(0))) count++
+      start = end
+      end = counter.next()
+   }
+   return count
+}
+
+/** Length of this string in sentences */
+val String.lengthInSentences: Int get() {
+   val counter = BreakIterator.getSentenceInstance(Locale.ROOT)
+   counter.setText(this)
+   var count = 0
+   while (counter.next()!=BreakIterator.DONE) count++
+   return count
 }
 
 /** @return [Char16] at the specified char16 index or throws [IndexOutOfBoundsException]. */

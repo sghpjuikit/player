@@ -8,7 +8,22 @@ All notable changes to this project will be documented in this file. Format base
 - Implement window move hint cursor - show MOVE cursor when ALT is pressed
 - Implement **FreeFormContainer** window move hint cursor - show MOVE cursor in layout mode
 - Implement **FreeFormContainer** window styling - show gap between windows
+- Improve component controls
+  - Remove lock icon from component control header icons
+  - Expose **ContainerSwitch** ui controls via ui, like every other container
+- Improve context menus
+  - Add more items for component
+  - Unify Custom widget menu with widget controls header icons menu
+- Improve song drag & drop UX - do not show placeholder for song tables
+- Improve component drag & drop UX
+  - Fix **FreeFormContainer** component swap closing component sometimes
+  - Fix drag & drop placeholder sometimes at wrong position
+  - Fix **FreeFormContainer** component move preventing component drag
+  - Fix incorrect placeholder size sometimes
+  - Avoid fading out content when placeholder does not cover entire area
 - Improve editor constraint messages with values (uses human-readable converter)
+- Improve **Command Grid**
+  - Add max cell columns settings
 - Improve **Function Viewer**
   - Handle very large numbers correctly
   - Add validations

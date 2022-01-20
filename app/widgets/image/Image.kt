@@ -54,6 +54,7 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       thumb.isDragEnabled = true
       thumb.fitFrom syncFrom fitFrom on onClose
       root.lay += thumb.pane
+      root.isFocusTraversable = true
 
       root.onEventDown(KEY_PRESSED, ENTER) { file.value?.let { APP.actions.openImageFullscreen(it) } }
       root.onEventDown(KEY_PRESSED, SPACE) { fitFrom.toggleNext() }
@@ -70,6 +71,8 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
 
       file sync { inputFile.value = it }
    }
+
+   override fun focus() = root.requestFocus()
 
    override fun showImage(imgFile: File?) {
       inputFile.value = imgFile
@@ -92,8 +95,8 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
       override val contributor = ""
       override val tags = setOf(IMAGE)
       override val summaryActions = listOf(
-         Entry("Image", "Show image representing the file", "Drag & Drop file"),
-         Entry("Image", "Toggle fit from", keys(SPACE)),
+         Entry("Image", "Change image", "Drag & Drop file"),
+         Entry("Image", "Toggle fit from inside/outside", keys(SPACE)),
          Entry("Image", "Show fullscreen", keys(ENTER)),
       )
    }

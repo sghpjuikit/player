@@ -74,8 +74,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
          menuB = headerIcon(IconFA.CARET_DOWN, "Widget menu") { i ->
             ContextMenu().dsl {
-               item("Open Settings", Icon(IconFA.COGS)) { showSettings(i) }
-               item("Open Actions", Icon(IconFA.GAVEL)) { APP.ui.actionPane.orBuild.show(area.widget) }
+               item("Open settings", Icon(IconFA.COGS)) { showSettings(i) }
                items { CoreMenus.menuItemBuilders[area.widget] }
             }.apply {
                show(i, Side.BOTTOM, 0.0, 0.0)

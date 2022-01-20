@@ -11,6 +11,7 @@ import javafx.scene.input.KeyCode.A
 import javafx.scene.input.KeyCode.F
 import javafx.scene.input.KeyCode.F11
 import javafx.scene.input.KeyCode.F12
+import javafx.scene.input.KeyCode.F2
 import javafx.scene.input.KeyCode.G
 import javafx.scene.input.KeyCode.Q
 import javafx.scene.input.KeyCode.SHORTCUT
@@ -42,7 +43,6 @@ import sp.it.pl.layout.feature.Opener
 import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.layout.feature.SongWriter
-import sp.it.pl.layout.openInConfigured
 import sp.it.pl.main.APP
 import sp.it.pl.main.ActionsPaneGenericActions
 import sp.it.pl.main.App
@@ -64,11 +64,13 @@ import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.imageWriteExtensionFilter
 import sp.it.pl.main.isAudio
 import sp.it.pl.main.isImage
+import sp.it.pl.main.showFloating
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toMetadata
 import sp.it.pl.main.toUi
 import sp.it.pl.main.writeImage
 import sp.it.pl.plugin.PluginBox
+import sp.it.pl.ui.itemnode.WidgetsCE.WidgetInfoPane
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Thumbnail
@@ -81,6 +83,7 @@ import sp.it.pl.ui.pane.ActionData
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.access.toggle
 import sp.it.util.access.vn
+import sp.it.util.action.ActionManager
 import sp.it.util.async.runIO
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
@@ -102,6 +105,7 @@ import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
 import sp.it.util.text.keys
+import sp.it.util.text.nameUi
 import sp.it.util.text.resolved
 import sp.it.util.type.type
 import sp.it.util.ui.ContextMenuGenerator
@@ -413,6 +417,9 @@ object CoreMenus: Core {
             }
          }
          add<Widget> {
+            item("Show info") { w -> showFloating(w.factory.name + " info") { WidgetInfoPane(w.factory) } }
+            item("Show help (${F2.nameUi} | ${ActionManager.keyShortcutsComponent.nameUi})") { APP.actions.showShortcutsFor(it) }
+            item("Show actions (${ActionManager.keyActionsComponent.nameUi})", IconFA.GAVEL.toCmUi()) { APP.actions.showShortcutsFor(it) }
          }
          add<PluginBox<*>> {
          }

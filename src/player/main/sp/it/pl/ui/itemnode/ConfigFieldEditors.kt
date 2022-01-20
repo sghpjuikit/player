@@ -111,6 +111,7 @@ import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.OrV
 import sp.it.util.access.Values
 import sp.it.util.access.editable
+import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toWritable
 import sp.it.util.access.toggle
 import sp.it.util.access.vAlways
@@ -944,6 +945,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      label1.text = item?.name?.toS()
                      label2.text = when (item) {
                         is WidgetFactory<*> -> item.version.toS() + "\t" + item.author.toS()
+                        is DeserializingFactory -> FileField.TIME_MODIFIED.getOfS(item.launcher, "")
                         else -> null
                      }
                   }
@@ -967,7 +969,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
 
    override fun refreshValue() {}
 
-   private class WidgetInfoPane: StackPane() {
+   class WidgetInfoPane(widget: ComponentFactory<*>? = null): StackPane() {
 
       val disposer = Disposer()
       var widget: ComponentFactory<*>? = null
@@ -1029,6 +1031,10 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                }
             }
          }
+
+      init {
+         this.widget = widget
+      }
    }
 
    companion object {

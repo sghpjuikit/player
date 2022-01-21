@@ -10,7 +10,7 @@ import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTOPENJDK
 plugins {
    kotlin("jvm") version "1.6.10"
    application
-   id("com.github.ben-manes.versions") version "0.39.0"
+   id("com.github.ben-manes.versions") version "0.41.0"
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code
@@ -91,7 +91,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "18-ea+9"
+         val version = "18-ea+10"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -128,7 +128,7 @@ allprojects {
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
-         implementation("com.github.oshi", "oshi-core", "5.8.5")
+         implementation("com.github.oshi", "oshi-core", "6.1.0")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.62.2")
       }
 

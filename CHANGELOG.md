@@ -8,9 +8,12 @@ All notable changes to this project will be documented in this file. Format base
 - Implement window move hint cursor - show MOVE cursor when ALT is pressed
 - Implement **FreeFormContainer** window move hint cursor - show MOVE cursor in layout mode
 - Implement **FreeFormContainer** window styling - show gap between windows
+- Implement more functors (word/sentence splitting, list operators)
 - Improve component controls
   - Remove lock icon from component control header icons
   - Expose **ContainerSwitch** ui controls via ui, like every other container
+  - More Component context menu entries
+  - unify **Custom** widget menu with any widget controls header icons menu
 - Improve context menus
   - Add more items for component
   - Unify Custom widget menu with widget controls header icons menu
@@ -22,15 +25,18 @@ All notable changes to this project will be documented in this file. Format base
   - Fix incorrect placeholder size sometimes
   - Avoid fading out content when placeholder does not cover entire area
 - Improve editor constraint messages with values (uses human-readable converter)
-- Improve **Command Grid**
+- Improve widget **Command Grid**
   - Add max cell columns settings
-- Improve **Function Viewer**
+- Improve widget **Image**
+  - Make focusable
+- Improve widget **Function Viewer**
   - Handle very large numbers correctly
   - Add validations
   - Use `BigDecimal` for coordinates
   - Use human-readable text for numbers where possible (avoids scientific notation)
   - Hide coordinates label when mouse is not hovering
 - Fix `DateClockDigitalIos` crashing for some dates
+- Fix slow selecting lots of items in table (original JavaFX bug)
 
 ## [2.1.0] 2021 09 26
 

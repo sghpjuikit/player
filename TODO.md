@@ -124,7 +124,7 @@
 ## External bugs
 - [ ] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support
   open
-- [ ] [jfx-481](https://github.com/javafxports/openjdk-jfx/issues/481) JavaFx: table `CTRL+A` performance  
+- [x] [jfx-481](https://bugs.openjdk.java.net/browse/JDK-8197991) JavaFx: table `CTRL+A` performance  
   open
 - [ ] [jfx-409](https://github.com/javafxports/openjdk-jfx/issues/409) JavaFx: table columns performance  
   open

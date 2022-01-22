@@ -106,7 +106,6 @@ class ActionData<C, T> {
 
    @Suppress("UNCHECKED_CAST")
    fun invokeDoable(data: Any?): Boolean {
-      println(description)
       return when (groupApply) {
          FOR_ALL -> condition(collectionWrap(data) as T)
          FOR_EACH -> when (data) {

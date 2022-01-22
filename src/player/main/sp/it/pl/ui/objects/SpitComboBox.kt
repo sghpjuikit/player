@@ -31,7 +31,7 @@ class SpitComboBox<T>(toStringConverter: (T) -> String, emptyText: String = text
    val readOnly: Property<Boolean> = V(false)
    /** Text for when no value is selected. Default `"<none>"`  */
    val emptyText: String = emptyText
-   /** String converter for cell value factory if non null. Default is Object::toString  */
+   /** String converter for cell value factory if non-null. Default is Object::toString  */
    val toStringConverter: (T) -> String = toStringConverter
    /** String converter for cell value factory. Delegates to [toStringConverter] and [emptyText]. Set to [converterProperty].  */
    val toStringConverterFx: StringConverter<T?> = object: StringConverter<T?>() {
@@ -43,15 +43,15 @@ class SpitComboBox<T>(toStringConverter: (T) -> String, emptyText: String = text
       public override fun doSearch(query: String) {
          val items = skinPopupListView()
 
-         // scroll to match
-         if (!getItems().isEmpty()) {
-            for (i in getItems().indices) {
-               val e = getItems()[i]
-               val es = toStringConverterFx.toString(e)
-               if (isMatchNth(es, query)) {
+            // scroll to match
+            if (!getItems().isEmpty()) {
+               for (i in getItems().indices) {
+                  val e = getItems()[i]
+                  val es = toStringConverterFx.toString(e)
+                  if (isMatchNth(es, query)) {
                   items.scrollTo(i)
-                  // items.getSelectionModel().select(i); // TODO: make this work reasonably well
-                  break
+                     // items.getSelectionModel().select(i); // TODO: make this work reasonably well
+                     break
                }
             }
          }
@@ -61,7 +61,7 @@ class SpitComboBox<T>(toStringConverter: (T) -> String, emptyText: String = text
    }
 
    init {
-      converter = toStringConverterFx // we need to set the converter specifically or the combobox cell wont get updated sometimes
+      converter = toStringConverterFx // we need to set the converter specifically or the combobox cell won't get updated sometimes
       cellFactory = Callback { ImprovedComboBoxListCell(this) }
       buttonCell = cellFactory.call(null)
       value = null

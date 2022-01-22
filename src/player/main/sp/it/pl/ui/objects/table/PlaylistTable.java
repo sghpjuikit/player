@@ -32,7 +32,7 @@ import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.ui.objects.tablerow.SpitTableRow;
 import sp.it.util.Sort;
 import sp.it.util.access.V;
-import sp.it.util.access.fieldvalue.ColumnField;
+import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import sp.it.util.reactive.Disposer;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.Comparator.nullsLast;
@@ -69,7 +69,6 @@ import static sp.it.util.ui.Util.computeTextWidth;
 import static sp.it.util.ui.Util.selectRows;
 import static sp.it.util.ui.UtilKt.menuItem;
 import static sp.it.util.ui.UtilKt.pseudoclass;
-import static sp.it.util.units.DurationKt.toHMSMs;
 
 /**
  * Playlist table GUI component.
@@ -93,7 +92,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 	@SuppressWarnings("unchecked")
 	public PlaylistTable(Playlist playlist) {
-		super(PlaylistSong.class, NAME, playlist);
+		super(PlaylistSong.class, NAME.INSTANCE, playlist);
 
 		playlist.setTransformationToItemsOf(getItems());
 
@@ -106,8 +105,8 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		setColumnFactory(f -> {
 			TableColumn<PlaylistSong,Object> c = new TableColumn<>(f.toString());
 
-			if (f==(Object) NAME) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getNameP());
-			else if (f==(Object) LENGTH) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getTimeP());
+			if (f==(Object) NAME.INSTANCE) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getNameP());
+			else if (f==(Object) LENGTH.INSTANCE) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getTimeP());
 			else c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue())));
 
 			c.setCellFactory(column -> buildFieldedCell(f));
@@ -154,7 +153,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 			// handle column resize (except index)
 			if (resize.getColumn()!=null && resize.getColumn()!=columnIndex) {
-				getColumn(NAME).ifPresent(it -> it.setPrefWidth(it.getWidth() - resize.getDelta()));
+				getColumn(NAME.INSTANCE).ifPresent(it -> it.setPrefWidth(it.getWidth() - resize.getDelta()));
 				resize.getColumn().setPrefWidth(resize.getColumn().getWidth() + resize.getDelta());
 
 				// do not return - after resizing the resized column, we go resize
@@ -168,16 +167,16 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			var sw = getVScrollbarWidth();
 			var gap = 3;               // prevents horizontal slider from appearing
 
-			getColumn(ColumnField.INDEX).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth() + CELL_PADDING_WIDTH));
-			getColumn(LENGTH).ifPresent(c -> {
+			getColumn(INDEX.INSTANCE).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth() + CELL_PADDING_WIDTH));
+			getColumn(LENGTH.INSTANCE).ifPresent(c -> {
 				var maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
-				var maxLengthText = toHMSMs(new Duration(maxLength));
+				var maxLengthText = LENGTH.INSTANCE.toS(new Duration(maxLength), "");
 				var font = getFontOrNull(c);
 				var width = font == null ? 100.0 : computeTextWidth(font, maxLengthText) + 7 + CELL_PADDING_WIDTH;
 				c.setPrefWidth(width);
 			});
 
-			TableColumn<?,?> mc = isColumnVisible(NAME) ? getColumn(NAME).orElse(null) : getColumn(TITLE).orElse(null);
+			TableColumn<?,?> mc = isColumnVisible(NAME.INSTANCE) ? getColumn(NAME.INSTANCE).orElse(null) : getColumn(TITLE.INSTANCE).orElse(null);
 			if (mc!=null) {
 				double sumW = resize.getTable().getColumns().stream()
 						.filter(c -> c!=mc)

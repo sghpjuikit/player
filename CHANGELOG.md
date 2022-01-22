@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. Format base
 ## [Latest]
 
 - **Kotlin** `1.6.10`
+- Implement application locale settings
+- Implement locale-specific formatting for data in various parts of the application
 - Implement **Node** widget object instantiation error notification
 - Implement window move hint cursor - show MOVE cursor when ALT is pressed
 - Implement **FreeFormContainer** window move hint cursor - show MOVE cursor in layout mode
@@ -37,6 +39,7 @@ All notable changes to this project will be documented in this file. Format base
   - Hide coordinates label when mouse is not hovering
 - Fix `DateClockDigitalIos` crashing for some dates
 - Fix slow selecting lots of items in table (original JavaFX bug)
+- Fix song group table showing incorrect selection statistics sometimes
 
 ## [2.1.0] 2021 09 26
 

@@ -17,8 +17,8 @@ import sp.it.pl.audio.playback.VlcPlayer
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_INFO
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK_INFO
+import sp.it.pl.audio.tagging.Metadata.Field.DISCS_INFO
+import sp.it.pl.audio.tagging.Metadata.Field.TRACK_INFO
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone

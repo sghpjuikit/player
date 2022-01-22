@@ -36,30 +36,30 @@ import sp.it.util.file.type.MimeGroup
 
 private val logger = KotlinLogging.logger { }
 
-class FileField<T>: ObjectFieldBase<File, T> {
+@Suppress("RemoveExplicitTypeArguments", "ClassName")
+sealed class FileField<T>: ObjectFieldBase<File, T> {
 
-   private constructor(name: String, description: String, type: VType<T>, extractor: (File) -> T): super(type, extractor, name, description)
-
-   override fun toS(o: T?, substitute: String) = if (o==null) substitute else toSConverter.toS(o)
+   private constructor(name: String, description: String, type: VType<T>, extractor: (File) -> T): super(type, extractor, name, description, { o, or -> if (o==null) or else toSConverter.toS(o)})
 
    override fun cWidth(): Double = 160.0
 
-   @Suppress("RemoveExplicitTypeArguments")
+   object PATH: FileField<String>("Path", "Path", type(), { it.path })
+   object NAME: FileField<String>("Name", "Name", type(), { if (it.isDirectory) it.nameOrRoot else it.nameWithoutExtension })
+   object NAME_FULL: FileField<String>("Filename", "Filename", type(), { it.nameOrRoot })
+   object EXTENSION: FileField<String>("Extension", "Extension", type(), { if (it.isDirectory) "" else it.extension })
+   object SIZE: FileField<FileSize>("Size", "Size", type(), { if (it is CachingFile) it.fileSize else it.readFileSize() })
+   object TIME_ACCESSED: FileField<FileTime?>("Time Accessed", "Time Accessed", type(), { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() })
+   object TIME_MODIFIED: FileField<LocalDateTime?>("Time Modified", "Time Modified", type(), { if (it is CachingFile) it.timeModified else it.readTimeModified() })
+   object TIME_CREATED: FileField<FileTime?>("Time Created", "Time Created", type(), { if (it is CachingFile) it.timeCreated else it.readTimeCreated() })
+   object TYPE: FileField<FileType>("Type", "Type", type(), { FileType(it) })
+   object MIME: FileField<MimeType>("Mime Type", "Mime Type", type(), { it.mimeType() })
+   object MIME_GROUP: FileField<String>("Mime Group", "Mime Group", type(), { it.mimeType().group })
+   object IS_HIDDEN: FileField<Boolean>("Is hidden", "Is hidden", type(), { if (it.isAbsolute && it.name.isEmpty()) false else it.isHidden }) // File::isHidden gives true for roots, hence the check
+
    companion object: ObjectFieldRegistry<File, FileField<*>>(File::class) {
       var toSConverter: ConverterToString<Any?> = ConverterToString<Any?> { o -> Parsers.DEFAULT.toS(o) }
 
-      val PATH = this + FileField("Path", "Path", type<String>()) { it.path }
-      val NAME = this + FileField("Name", "Name", type<String>()) { if (it.isDirectory) it.nameOrRoot else it.nameWithoutExtension }
-      val NAME_FULL = this + FileField("Filename", "Filename", type<String>()) { it.nameOrRoot }
-      val EXTENSION = this + FileField("Extension", "Extension", type<String>()) { if (it.isDirectory) "" else it.extension }
-      val SIZE = this + FileField("Size", "Size", type<FileSize>()) { if (it is CachingFile) it.fileSize else it.readFileSize() }
-      val TIME_ACCESSED = this + FileField("Time Accessed", "Time Accessed", type<FileTime?>()) { if (it is CachingFile) it.timeAccessed else it.readTimeAccessed() }
-      val TIME_MODIFIED = this + FileField("Time Modified", "Time Modified", type<LocalDateTime?>()) { if (it is CachingFile) it.timeModified else it.readTimeModified() }
-      val TIME_CREATED = this + FileField("Time Created", "Time Created", type<FileTime?>()) { if (it is CachingFile) it.timeCreated else it.readTimeCreated() }
-      val TYPE = this + FileField("Type", "Type", type<FileType>()) { FileType(it) }
-      val MIME = this + FileField("Mime Type", "Mime Type", type<MimeType>()) { it.mimeType() }
-      val MIME_GROUP = this + FileField("Mime Group", "Mime Group", type<String>()) { it.mimeType().group }
-      val IS_HIDDEN = this + FileField("Is hidden", "Is hidden", type<Boolean>()) { if (it.isAbsolute && it.name.isEmpty()) false else it.isHidden } // File::isHidden gives true for roots, hence the check
+      init { register(PATH, NAME, NAME_FULL, EXTENSION, SIZE, TIME_ACCESSED, TIME_MODIFIED, TIME_CREATED, TYPE, MIME, MIME_GROUP, IS_HIDDEN) }
    }
 
 }

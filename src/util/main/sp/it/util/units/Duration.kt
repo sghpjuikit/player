@@ -28,11 +28,12 @@ fun Dur.formatToSmallestUnit(): String {
  * Returns string representation of the duration in the format h:m:s - 00:00:00.
  * If padZero is true, any single digit value is padded with '0'.
  * Leading units that are 0 are left out.
- * Example:
- * 1:00:06
- * 4:45
- * 34
  *
+ * Examples:
+ * * 1:00:06
+ * * 4:05
+ * * 34
+ * * 5
  * @return formatted duration
  */
 @Dependency("sp.it.util.units.durationOfHMSMs")
@@ -51,10 +52,11 @@ fun Dur.toHMSMs(include_zeros: Boolean = true): String {
       }
    } else {
       when {
-         hours>99 -> String.format("%3d:%2d:%2d", hours, minutes, seconds)
-         hours>0 -> String.format("%2d:%2d:%2d", hours, minutes, seconds)
-         minutes>0 -> String.format("%2d:%2d", minutes, seconds)
-         else -> String.format("%2d", seconds)
+         hours>99 -> String.format("%d:%2d:%2d", hours, minutes, seconds)
+         hours>0 -> String.format("%2d:%02d:%02d", hours, minutes, seconds)
+         minutes>9 -> String.format("%2d:%02d", minutes, seconds)
+         minutes>0 -> String.format("%1d:%02d", minutes, seconds)
+         else -> String.format("0:%02d", seconds)
       }
    }
 }

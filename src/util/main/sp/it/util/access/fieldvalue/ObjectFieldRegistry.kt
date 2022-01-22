@@ -57,8 +57,11 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
    private val allImpl = MapSet<String, F> { it.name() }
    val all: Set<F> = allImpl
 
+   /** Registers the specified fields. */
+   fun <X: F> register(vararg field: X) = field.forEach { this + it }
+
    /** Registers the specified field and returns it. */
-   infix operator fun <X: F> plus(field: X) = field.also { f ->
+   infix operator fun <X: F> plus(field: X): X = field.also { f ->
       allImpl += f
 
       ObjectFieldMap.DEFAULT.add(type, all)

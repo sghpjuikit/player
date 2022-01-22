@@ -1,5 +1,4 @@
 ## Currently considered
-- Support App.locale: Locale settings (will require app restart) for converters
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Document all used libraries, how they are used, why, where not to use them, etc.

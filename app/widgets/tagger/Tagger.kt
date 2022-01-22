@@ -49,35 +49,35 @@ import javafx.scene.text.TextAlignment
 import javafx.util.Callback
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.ADDED_TO_LIBRARY
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.ALBUM
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.ALBUM_ARTIST
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.ARTIST
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.CATEGORY
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.COLOR
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.COMMENT
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.COMPOSER
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.COVER
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.CUSTOM1
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.CUSTOM2
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.CUSTOM3
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.CUSTOM4
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.CUSTOM5
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISC
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.DISCS_TOTAL
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.FIRST_PLAYED
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.GENRE
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.LAST_PLAYED
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.LYRICS
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.MOOD
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.PLAYCOUNT
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.PUBLISHER
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.RATING
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.TAGS
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.TITLE
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACK
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.TRACKS_TOTAL
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.YEAR
+import sp.it.pl.audio.tagging.Metadata.Field.ADDED_TO_LIBRARY
+import sp.it.pl.audio.tagging.Metadata.Field.ALBUM
+import sp.it.pl.audio.tagging.Metadata.Field.ALBUM_ARTIST
+import sp.it.pl.audio.tagging.Metadata.Field.ARTIST
+import sp.it.pl.audio.tagging.Metadata.Field.CATEGORY
+import sp.it.pl.audio.tagging.Metadata.Field.COLOR
+import sp.it.pl.audio.tagging.Metadata.Field.COMMENT
+import sp.it.pl.audio.tagging.Metadata.Field.COMPOSER
+import sp.it.pl.audio.tagging.Metadata.Field.COVER
+import sp.it.pl.audio.tagging.Metadata.Field.CUSTOM1
+import sp.it.pl.audio.tagging.Metadata.Field.CUSTOM2
+import sp.it.pl.audio.tagging.Metadata.Field.CUSTOM3
+import sp.it.pl.audio.tagging.Metadata.Field.CUSTOM4
+import sp.it.pl.audio.tagging.Metadata.Field.CUSTOM5
+import sp.it.pl.audio.tagging.Metadata.Field.DISC
+import sp.it.pl.audio.tagging.Metadata.Field.DISCS_TOTAL
+import sp.it.pl.audio.tagging.Metadata.Field.FIRST_PLAYED
+import sp.it.pl.audio.tagging.Metadata.Field.GENRE
+import sp.it.pl.audio.tagging.Metadata.Field.LAST_PLAYED
+import sp.it.pl.audio.tagging.Metadata.Field.LYRICS
+import sp.it.pl.audio.tagging.Metadata.Field.MOOD
+import sp.it.pl.audio.tagging.Metadata.Field.PLAYCOUNT
+import sp.it.pl.audio.tagging.Metadata.Field.PUBLISHER
+import sp.it.pl.audio.tagging.Metadata.Field.RATING
+import sp.it.pl.audio.tagging.Metadata.Field.TAGS
+import sp.it.pl.audio.tagging.Metadata.Field.TITLE
+import sp.it.pl.audio.tagging.Metadata.Field.TRACK
+import sp.it.pl.audio.tagging.Metadata.Field.TRACKS_TOTAL
+import sp.it.pl.audio.tagging.Metadata.Field.YEAR
 import sp.it.pl.audio.tagging.readTask
 import sp.it.pl.audio.tagging.setOnDone
 import sp.it.pl.audio.tagging.write
@@ -186,7 +186,6 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
 import sp.it.util.math.clip
 import sp.it.util.math.max
-import sp.it.util.parsing.ConverterFromString
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.zip
@@ -339,7 +338,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          }
       }
    }
-   val tagFieldField = Metadata.Field(type(), TAGS.name(), TAGS.description()) { it.getTags() }
+   val tagFieldField = Metadata.Field(type(), { it.getTags() }, { o, or -> o ?: or }, TAGS.name(), TAGS.description())
    val tagField = object: TagField<String?, Set<String>>(tagFieldField, false) {
       private val originalItems = mutableSetOf<String>()
       private val textTag = object: TextTagField<String?>(tagFieldField, tagsF.textField, false, uiConverter = { "" }) {
@@ -1153,9 +1152,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
          ShortcutPane.Entry("Tagger > Song list", "Add", keys("Drag & drop songs+SHIFT")),
       )
 
-      private val RATING_RAW_OF = Metadata.Field(type(), "Rating (raw)", "Song rating value in tag. Maximal value depends on tag type") {
-         "${it.getRating() ?: AppTexts.textNoVal}/${it.getRatingMax()}"
-      }
+      private val RATING_RAW_OF = Metadata.Field(type(), { "${it.getRating() ?: AppTexts.textNoVal}/${it.getRatingMax()}" }, { o, or -> o ?: or }, "Rating (raw)", "Song rating value in tag. Maximal value depends on tag type")
 
       private fun Label.computeIdFromText() = text.split(" ").joinToString("") { it.capital() }.decapital() + "L"
 

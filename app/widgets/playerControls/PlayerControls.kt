@@ -30,7 +30,7 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.PLAYLIST
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.RANDOM
 import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.BITRATE
+import sp.it.pl.audio.tagging.Metadata.Field.BITRATE
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController

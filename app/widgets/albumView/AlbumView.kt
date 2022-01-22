@@ -17,10 +17,10 @@ import kotlin.math.round
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.ALBUM
+import sp.it.pl.audio.tagging.Metadata.Field.ALBUM
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.MetadataGroup.Companion.groupsOf
-import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
+import sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.LIBRARY

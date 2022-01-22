@@ -17,12 +17,12 @@ import javafx.util.Callback
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.CATEGORY
+import sp.it.pl.audio.tagging.Metadata.Field.CATEGORY
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.MetadataGroup.Companion.ungroup
-import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.AVG_RATING
-import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.VALUE
-import sp.it.pl.audio.tagging.MetadataGroup.Field.Companion.W_RATING
+import sp.it.pl.audio.tagging.MetadataGroup.Field.AVG_RATING
+import sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE
+import sp.it.pl.audio.tagging.MetadataGroup.Field.W_RATING
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.LIBRARY

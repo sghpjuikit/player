@@ -130,7 +130,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,?>> columnFactory) {
 		colFact = f -> {
-			TableColumn<T,?> c = f==INDEX ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
+			TableColumn<T,?> c = f==INDEX.INSTANCE ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
 			c.setUserData(f);
 			return c;
 		};
@@ -160,8 +160,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public void setColumnVisible(ObjectField<T,?> f, boolean v) {
 		TableColumn<T,?> c = getColumn(f).orElse(null);
 		if (v && c==null) {
-			c = f==INDEX ? columnIndex : colFact.call(f);
-			c.setPrefWidth(f==INDEX ? computeIndexColumnWidth() : columnState.columns.get(f.name()).width);
+			c = f==INDEX.INSTANCE ? columnIndex : colFact.call(f);
+			c.setPrefWidth(f==INDEX.INSTANCE ? computeIndexColumnWidth() : columnState.columns.get(f.name()).width);
 			c.setVisible(v);
 			getColumns().add(c);
 		} else if (!v && c!=null) {
@@ -176,7 +176,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
 		state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {
 			// get or build column
-			TableColumn<T,?> tc = c.name.equals(INDEX.name())
+			TableColumn<T,?> tc = c.name.equals(INDEX.INSTANCE.name())
 				? columnIndex
 				: colFact.call(nameToF(c.name));
 			// set width
@@ -210,7 +210,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			defColInfo.nameKeyMapper = keyNameColMapper;
 			defColInfo.columns.addAll(map(fields, colStateFact));
 			// insert index column state manually
-			defColInfo.columns.removeIf(f -> f.name.equals(INDEX.name()));
+			defColInfo.columns.removeIf(f -> f.name.equals(INDEX.INSTANCE.name()));
 			defColInfo.columns.forEach(t -> t.position++);  //TODO: position should be immutable
 			defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
 			// leave sort order empty
@@ -350,7 +350,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	@SuppressWarnings({"unchecked"})
 	private ObjectField<T,?> nameToCF(String name) {
-		return INDEX.name().equals(name) ? (ObjectField<T,?>) INDEX : nameToF(name);
+		return INDEX.INSTANCE.name().equals(name) ? (ObjectField<T,?>) INDEX.INSTANCE : nameToF(name);
 	}
 
 }

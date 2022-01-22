@@ -710,49 +710,49 @@ public class MetadataWriter extends Song {
 	}
 
 	public void setFieldS(Metadata.Field<?> field, String data) {
-		if (field==Metadata.Field.PATH ||
-			field==Metadata.Field.FILENAME ||
-			field==Metadata.Field.FORMAT ||
-			field==Metadata.Field.FILESIZE ||
-			field==Metadata.Field.ENCODING ||
-			field==Metadata.Field.BITRATE ||
-			field==Metadata.Field.CHANNELS ||
-			field==Metadata.Field.SAMPLE_RATE ||
-			field==Metadata.Field.LENGTH) return;
-		if (field==Metadata.Field.ENCODER) { setEncoder(data); return; }
-		if (field==Metadata.Field.TITLE) { setTitle(data); return; }
-		if (field==Metadata.Field.ALBUM) { setAlbum(data); return; }
-		if (field==Metadata.Field.ARTIST) { setArtist(data); return; }
-		if (field==Metadata.Field.ALBUM_ARTIST) { setAlbum_artist(data); return; }
-		if (field==Metadata.Field.COMPOSER) { setComposer(data); return; }
-		if (field==Metadata.Field.PUBLISHER) { setPublisher(data); return; }
-		if (field==Metadata.Field.TRACK) { setTrack(data); return; }
-		if (field==Metadata.Field.TRACKS_TOTAL) { setTracksTotal(data); return; }
-		if (field==Metadata.Field.TRACK_INFO) { NofX.Companion.ofS(data).ifOkUse(this::setTracksInfo); return; }
-		if (field==Metadata.Field.DISC) { setDisc(data); return; }
-		if (field==Metadata.Field.DISCS_TOTAL) { setDiscsTotal(data); return; }
-		if (field==Metadata.Field.DISCS_INFO) { NofX.Companion.ofS(data).ifOkUse(this::setDiscsInfo); return; }
-		if (field==Metadata.Field.GENRE) { setGenre(data); return; }
-		if (field==Metadata.Field.YEAR) { setYear(data); return; }
-		if (field==Metadata.Field.COVER) return;
-		if (field==Metadata.Field.RATING) { setRatingPercent(data); return; }
-		if (field==Metadata.Field.RATING_RAW) { setRating(data); return; }
-		if (field==Metadata.Field.PLAYCOUNT) { setPlaycount(data); return; }
-		if (field==Metadata.Field.CATEGORY) { setCategory(data); return; }
-		if (field==Metadata.Field.COMMENT) { setComment(data); return; }
-		if (field==Metadata.Field.LYRICS) { setLyrics(data); return; }
-		if (field==Metadata.Field.MOOD) { setMood(data); return; }
-		if (field==Metadata.Field.COLOR) { setCustomField(TAG_ID_COLOR, data); return; }
-		if (field==Metadata.Field.TAGS) { setCustomField(TAG_ID_TAGS, data); return; }
-		if (field==Metadata.Field.CHAPTERS) return;
-		if (field==Metadata.Field.CUSTOM1) { setCustom1(data); return; }
-		if (field==Metadata.Field.CUSTOM2) { setCustom2(data); return; }
-		if (field==Metadata.Field.CUSTOM3) { setCustom3(data); return; }
-		if (field==Metadata.Field.CUSTOM4) { setCustom4(data); return; }
-		if (field==Metadata.Field.CUSTOM5) { setCustom5(data); return; }
-		if (field==Metadata.Field.FIRST_PLAYED) { setCustomField(TAG_ID_PLAYED_FIRST, data); return; }
-		if (field==Metadata.Field.LAST_PLAYED) { setCustomField(TAG_ID_PLAYED_LAST, data); return; }
-		if (field==Metadata.Field.ADDED_TO_LIBRARY) { setCustomField(TAG_ID_LIB_ADDED, data); return; }
+		if (field==Metadata.Field.PATH.INSTANCE ||
+			field==Metadata.Field.FILENAME.INSTANCE ||
+			field==Metadata.Field.FORMAT.INSTANCE ||
+			field==Metadata.Field.FILESIZE.INSTANCE ||
+			field==Metadata.Field.ENCODING.INSTANCE ||
+			field==Metadata.Field.BITRATE.INSTANCE ||
+			field==Metadata.Field.CHANNELS.INSTANCE ||
+			field==Metadata.Field.SAMPLE_RATE.INSTANCE ||
+			field==Metadata.Field.LENGTH.INSTANCE) return;
+		if (field==Metadata.Field.ENCODER.INSTANCE) { setEncoder(data); return; }
+		if (field==Metadata.Field.TITLE.INSTANCE) { setTitle(data); return; }
+		if (field==Metadata.Field.ALBUM.INSTANCE) { setAlbum(data); return; }
+		if (field==Metadata.Field.ARTIST.INSTANCE) { setArtist(data); return; }
+		if (field==Metadata.Field.ALBUM_ARTIST.INSTANCE) { setAlbum_artist(data); return; }
+		if (field==Metadata.Field.COMPOSER.INSTANCE) { setComposer(data); return; }
+		if (field==Metadata.Field.PUBLISHER.INSTANCE) { setPublisher(data); return; }
+		if (field==Metadata.Field.TRACK.INSTANCE) { setTrack(data); return; }
+		if (field==Metadata.Field.TRACKS_TOTAL.INSTANCE) { setTracksTotal(data); return; }
+		if (field==Metadata.Field.TRACK_INFO.INSTANCE) { NofX.Companion.ofS(data).ifOkUse(this::setTracksInfo); return; }
+		if (field==Metadata.Field.DISC.INSTANCE) { setDisc(data); return; }
+		if (field==Metadata.Field.DISCS_TOTAL.INSTANCE) { setDiscsTotal(data); return; }
+		if (field==Metadata.Field.DISCS_INFO.INSTANCE) { NofX.Companion.ofS(data).ifOkUse(this::setDiscsInfo); return; }
+		if (field==Metadata.Field.GENRE.INSTANCE) { setGenre(data); return; }
+		if (field==Metadata.Field.YEAR.INSTANCE) { setYear(data); return; }
+		if (field==Metadata.Field.COVER.INSTANCE) return;
+		if (field==Metadata.Field.RATING.INSTANCE) { setRatingPercent(data); return; }
+		if (field==Metadata.Field.RATING_RAW.INSTANCE) { setRating(data); return; }
+		if (field==Metadata.Field.PLAYCOUNT.INSTANCE) { setPlaycount(data); return; }
+		if (field==Metadata.Field.CATEGORY.INSTANCE) { setCategory(data); return; }
+		if (field==Metadata.Field.COMMENT.INSTANCE) { setComment(data); return; }
+		if (field==Metadata.Field.LYRICS.INSTANCE) { setLyrics(data); return; }
+		if (field==Metadata.Field.MOOD.INSTANCE) { setMood(data); return; }
+		if (field==Metadata.Field.COLOR.INSTANCE) { setCustomField(TAG_ID_COLOR, data); return; }
+		if (field==Metadata.Field.TAGS.INSTANCE) { setCustomField(TAG_ID_TAGS, data); return; }
+		if (field==Metadata.Field.CHAPTERS.INSTANCE) return;
+		if (field==Metadata.Field.CUSTOM1.INSTANCE) { setCustom1(data); return; }
+		if (field==Metadata.Field.CUSTOM2.INSTANCE) { setCustom2(data); return; }
+		if (field==Metadata.Field.CUSTOM3.INSTANCE) { setCustom3(data); return; }
+		if (field==Metadata.Field.CUSTOM4.INSTANCE) { setCustom4(data); return; }
+		if (field==Metadata.Field.CUSTOM5.INSTANCE) { setCustom5(data); return; }
+		if (field==Metadata.Field.FIRST_PLAYED.INSTANCE) { setCustomField(TAG_ID_PLAYED_FIRST, data); return; }
+		if (field==Metadata.Field.LAST_PLAYED.INSTANCE) { setCustomField(TAG_ID_PLAYED_LAST, data); return; }
+		if (field==Metadata.Field.ADDED_TO_LIBRARY.INSTANCE) { setCustomField(TAG_ID_LIB_ADDED, data); return; }
 		throw new SwitchException(field);
 	}
 

@@ -1,6 +1,6 @@
 package sp.it.pl.ui.objects.textfield
 
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.MOOD
+import sp.it.pl.audio.tagging.Metadata.Field.MOOD
 import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete

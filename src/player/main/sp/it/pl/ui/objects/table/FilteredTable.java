@@ -41,7 +41,7 @@ import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.search.SearchAutoCancelable;
 import sp.it.util.access.V;
-import sp.it.util.access.fieldvalue.ColumnField;
+import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import sp.it.util.access.fieldvalue.ObjectField;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
@@ -137,7 +137,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		filterPane.getNode().setVisible(false);
 		var filterKeyHandler = filterPane.buildToggleOnKeyHandler(filterVisible, this);
 		filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
-		addEventHandler(KEY_PRESSED, filterKeyHandler);  // filter would ignore first key-stroke when filter turns visible
+		addEventHandler(KEY_PRESSED, filterKeyHandler);  // filter would ignore first keystroke when filter turns visible
 
 		// selecting
 		addEventHandler(KEY_PRESSED, e -> {
@@ -299,7 +299,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.SORT).embedded(),
 		new Menu("Order by column", null,
 			fields.stream()
-				.filter(f -> f!=ColumnField.INDEX)
+				.filter(f -> f!=INDEX.INSTANCE)
 				.map(f -> menuItem(f.name(), null, consumer(it ->
 					getColumn(f).ifPresentOrElse(
 						c -> {

@@ -2,7 +2,9 @@ package sp.it.util.units
 
 import sp.it.util.functional.Try
 import java.io.File
+import java.util.Locale
 import sp.it.util.parsing.ConverterString
+import sp.it.util.parsing.ConverterToUiString
 
 /** File size. Supports up to `2^63-1` bytes and unknown value [UNKNOWN]. */
 @Suppress("unused")
@@ -45,20 +47,20 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
 
    override fun compareTo(other: FileSize) = v.compareTo(other.v)
 
-   companion object: ConverterString<FileSize> {
+   companion object: ConverterString<FileSize>, ConverterToUiString<FileSize> {
 
       /** `1024^1` */
       const val Ki: Long = 1024
       /** `1024^2` */
       const val Mi = Ki*Ki
       /** `1024^3` */
-      const val Gi = Ki*Mi
+      const val Gi = Mi*Ki
       /** `1024^4` */
-      const val Ti = Mi*Mi
+      const val Ti = Gi*Ki
       /** `1024^5` */
       const val Pi = Ti*Ki
       /** `1024^6` */
-      const val Ei = Ti*Mi
+      const val Ei = Pi*Ki
       /** `0` */
       const val VALUE_MIN: Long = 0
       /** `2^63-1` */
@@ -80,22 +82,24 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
       /** @return file size of this file */
       fun File.size() = FileSize(this)
 
-      override fun toS(o: FileSize): String {
+      override fun toUiS(o: FileSize, locale: Locale): String {
          if (o.v==VALUE_NA) return VALUE_NA_S
          val eb = o.v/Ei.toDouble()
-         if (eb>=1) return String.format("%.2f EiB", eb)
+         if (eb>=1) return "%.2f EiB".format(locale, eb)
          val pb = o.v/Pi.toDouble()
-         if (pb>=1) return String.format("%.2f PiB", pb)
+         if (pb>=1) return "%.2f PiB".format(locale, pb)
          val tb = o.v/Ti.toDouble()
-         if (tb>=1) return String.format("%.2f TiB", tb)
+         if (tb>=1) return "%.2f TiB".format(locale, tb)
          val gb = o.v/Gi.toDouble()
-         if (gb>=1) return String.format("%.2f GiB", gb)
+         if (gb>=1) return "%.2f GiB".format(locale, gb)
          val mb = o.v/Mi.toDouble()
-         if (mb>=1) return String.format("%.2f MiB", mb)
+         if (mb>=1) return "%.2f MiB".format(locale, mb)
          val kb = o.v/Ki.toDouble()
-         if (kb>1) return String.format("%.2f kiB", kb)
-         return String.format("%d B", o.v)
+         if (kb>1) return "%.2f kiB".format(locale, kb)
+         return "%d B".format(locale, o.v)
       }
+
+      override fun toS(o: FileSize): String = toUiS(o, Locale.ROOT)
 
       override fun ofS(s: String): Try<FileSize, String> {
          if (s==VALUE_NA_S) return Try.ok(UNKNOWN)

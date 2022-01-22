@@ -19,14 +19,13 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
 import sp.it.pl.ui.objects.tablerow.SpitTableRow;
 import sp.it.util.Util;
-import sp.it.util.access.fieldvalue.ColumnField;
+import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -194,7 +193,7 @@ public class ImprovedTable<T> extends TableView<T> {
 		c.setCellFactory(buildIndexColumnCellFactory());
 		c.setSortable(false);
 		c.setResizable(false);
-		c.setUserData(ColumnField.INDEX);
+		c.setUserData(INDEX.INSTANCE);
 		return c;
 	}
 
@@ -232,7 +231,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
 	/** Returns vertical scrollbar width or 0 if not visible. */
 	public double getVScrollbarWidth() {
-		VirtualFlow virtualFlow = getFieldValue(getSkin(), "flow");
+		var virtualFlow = getFieldValue(getSkin(), "flow");
 		if (virtualFlow!=null) {
 			ScrollBar virtualScrollBar = getFieldValue(virtualFlow, "vbar"); // com.sun...VirtualScrollBar.class
 			return virtualScrollBar!=null && virtualScrollBar.isVisible() ? virtualScrollBar.getWidth() : 0;

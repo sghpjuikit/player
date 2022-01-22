@@ -6,7 +6,6 @@ import javafx.scene.media.Media
 import javafx.util.Duration
 import org.jaudiotagger.tag.FieldKey
 import sp.it.pl.audio.Song
-import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.main.APP
@@ -14,7 +13,6 @@ import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
 import sp.it.util.async.runFX
 import sp.it.util.dev.ThreadSafe
-import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.functional.orNull
 import sp.it.util.identityHashCode
@@ -22,6 +20,8 @@ import sp.it.util.type.VType
 import sp.it.util.type.type
 import sp.it.util.units.toHMSMs
 import java.net.URI
+import sp.it.pl.audio.tagging.AudioFileFormat
+import sp.it.pl.main.toUi
 
 /**
  * Song in playlist.
@@ -187,39 +187,23 @@ class PlaylistSong: Song {
       it.isCorruptCached = isCorruptCached
    }
 
-   class Field<T>: ObjectFieldBase<PlaylistSong, T> {
+   sealed class Field<T>: ObjectFieldBase<PlaylistSong, T> {
 
-      private constructor(type: VType<T>, name: String, description: String, extractor: (PlaylistSong) -> T): super(type, extractor, name, description)
+      private constructor(name: String, description: String, type: VType<T>, extractor: (PlaylistSong) -> T, toUi: (T?, String) -> String): super(type, extractor, name, description, toUi)
 
-      override fun toS(o: T?, substitute: String): String {
-         return when (this) {
-            NAME, TITLE, ARTIST -> if (""==o) substitute else o.toString()
-            PATH, FORMAT -> o.toString()
-            LENGTH -> (o as Duration).toHMSMs()
-            else -> failCase(this)
-         }
-      }
-
-      override fun cWidth(): Double = when (this) {
-         NAME -> 400.0
-         TITLE -> 250.0
-         ARTIST -> 150.0
-         LENGTH -> 60.0
-         PATH -> 400.0
-         FORMAT -> 60.0
-         else -> 60.0
-      }
+      override fun cWidth(): Double = when (this) { NAME -> 400.0; TITLE -> 250.0; ARTIST -> 150.0; LENGTH -> 60.0; PATH -> 400.0; FORMAT -> 60.0 }
 
       override fun cVisible(): Boolean = this===NAME || this===LENGTH
 
-      @Suppress("RemoveExplicitTypeArguments")
+      object NAME: Field<String>("Name", "'Song artist' - 'Song title'", type(), { it.name }, { o, or -> if (o=="" || o==null) or else o.toUi() })
+      object TITLE: Field<String?>("Title", "Song title", type(), { it.title }, { o, or -> if (o=="" || o==null) or else o.toUi() })
+      object ARTIST: Field<String?>("Artist", "Song artist", type(), { it.artist }, { o, or -> if (o=="" || o==null) or else o.toUi() })
+      object LENGTH: Field<Duration>("Time", "Song length", type(), { it.time }, { o, or -> o?.toHMSMs(false) ?: or })
+      object PATH: Field<String>("Path", "Song file path", type(), { it.getPathAsString() }, { o, or -> o?.toUi() ?: or })
+      object FORMAT: Field<AudioFileFormat>("Format", "Song file type", type(), { it.getFormat() }, { o, or -> o?.toUi() ?: or })
+
       companion object: ObjectFieldRegistry<PlaylistSong, Field<*>>(PlaylistSong::class) {
-         @JvmField val NAME = this + Field(type<String>(), "Name", "'Song artist' - 'Song title'") { it.name }
-         @JvmField val TITLE = this + Field(type<String>(), "Title", "Song title") { it.title }
-         @JvmField val ARTIST = this + Field(type<String>(), "Artist", "Song artist") { it.artist }
-         @JvmField val LENGTH = this + Field(type<Duration>(), "Time", "Song length") { it.time }
-         @JvmField val PATH = this + Field(type<String>(), "Path", "Song file path") { it.getPathAsString() }
-         @JvmField val FORMAT = this + Field(type<AudioFileFormat>(), "Format", "Song file type") { it.getFormat() }
+         init { register(NAME, TITLE, ARTIST, LENGTH, PATH, FORMAT)}
       }
 
    }

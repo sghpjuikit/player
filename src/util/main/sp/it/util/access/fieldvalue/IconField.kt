@@ -4,14 +4,14 @@ import de.jensd.fx.glyphs.GlyphIcons
 import sp.it.util.type.VType
 import sp.it.util.type.type
 
-class IconField<T>: ObjectFieldBase<GlyphIcons, T> {
+sealed class IconField<T>: ObjectFieldBase<GlyphIcons, T> {
 
-   private constructor(name: String, description: String, type: VType<T>, extractor: (GlyphIcons) -> T): super(type, extractor, name, description)
+   private constructor(name: String, description: String, type: VType<T>, extractor: (GlyphIcons) -> T, toUi: (T?, String) -> String): super(type, extractor, name, description, toUi)
 
-   override fun toS(o: T?, substitute: String): String = o?.toString() ?: substitute
+   object NAME: IconField<String>("Name", "Name of the icon glyph", type(), { it.name() }, { o, or -> o ?: or })
 
    companion object: ObjectFieldRegistry<GlyphIcons, IconField<*>>(GlyphIcons::class) {
-      val NAME = this + IconField("Name", "Name of the icon glyph", type<String>()) { it.name() }
+      init { register(NAME) }
    }
 
 }

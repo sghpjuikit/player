@@ -24,7 +24,6 @@ import java.time.format.DateTimeFormatter.ISO_DATE
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.time.format.DateTimeFormatter.ISO_INSTANT
 import java.time.format.DateTimeFormatter.ISO_TIME
-import java.util.IllformedLocaleException
 import java.util.Locale
 import java.util.UUID
 import java.util.function.BiFunction
@@ -71,7 +70,6 @@ import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.action.Action
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.file.json.JsValue
@@ -137,6 +135,7 @@ object CoreConverter: Core {
    @JvmField val ui = ConverterToString<Any?> { o ->
       when (o) {
          null -> AppTexts.textNoVal
+         is String -> o
          is Boolean -> if (o) "yes" else "no"
          is Byte -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
          is UByte -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
@@ -164,9 +163,7 @@ object CoreConverter: Core {
             }
          }
          is KType -> {
-            val suffix = when {
-               o.isPlatformType -> "!"; o.isMarkedNullable -> "?"; else -> ""
-            }
+            val suffix = when { o.isPlatformType -> "!"; o.isMarkedNullable -> "?"; else -> "" }
             o.classifier.toUi() + o.arguments.joinToString(", ") { it.toUi() }.nullIfBlank()?.let { "<$it>" }.orEmpty() + suffix
          }
          is VType<*> -> o.type.toUi()
@@ -180,6 +177,7 @@ object CoreConverter: Core {
          is LocalTime -> o.format(timeFormatter)
          is Duration -> o.formatToSmallestUnit()
          is FileTime -> o.toInstant().toLocalDateTime().format(dateTimeFormatter)
+         is FileSize -> FileSize.toUiS(o, APP.locale.value)
          is Effect -> o::class.toUi()
          is Component -> o.name
          is PluginBase -> o.name
@@ -196,6 +194,8 @@ object CoreConverter: Core {
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)
             o::class.isObject -> enumToHuman(o::class.simpleName)
+            // TODO: good idea but probably reduces performance, put the converters in MapByKClass first
+            // o::class.companionObjectInstance is ConverterToUiString<*> -> o::class.companionObjectInstance.asIs<ConverterToUiString<Any>>().toUiS(o, APP.locale.value)
             else -> general.toS(o)
          }
       }
@@ -296,7 +296,7 @@ object CoreConverter: Core {
       addT<Pattern>(toS, tryF(PSE::class) { Pattern.compile(it) })
       addP<Bitrate>(Bitrate)
       addT<Duration>(toS, ::durationOfHMSMs)
-      addT<Locale>({ it.toLanguageTag() }, tryF(Throwable::class) { Locale.Builder().setLanguageTag(it.printIt()).build().printIt() })
+      addT<Locale>({ it.toLanguageTag() }, tryF(Throwable::class) { Locale.Builder().setLanguageTag(it).build() })
       addT<Charset>({ it.name() }, tryF(Throwable::class) { Charset.forName(it) })
       addT<Instant>({ ISO_INSTANT.format(it) }, tryF(DTPE::class) { Instant.parse(it) })
       addT<LocalTime>({ ISO_TIME.format(it) }, tryF(DTPE::class) { LocalTime.parse(it, ISO_TIME) })

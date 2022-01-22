@@ -3,14 +3,13 @@ package sp.it.util.access.fieldvalue
 import sp.it.util.type.VType
 import sp.it.util.type.type
 
-class ColumnField: ObjectFieldBase<Any, Int> {
+sealed class ColumnField: ObjectFieldBase<Any, Int> {
 
-   private constructor(type: VType<Int>, extractor: (Any) -> Int, name: String, description: String): super(type, extractor, name, description)
+   constructor(type: VType<Int>, extractor: (Any) -> Int, name: String, description: String, toUi: (Any?, String) -> String): super(type, extractor, name, description, toUi)
 
-   override fun toS(o: Int?, substitute: String): String = ""
+   object INDEX: ColumnField(type(), { -1 }, "#", "Index of the item in the list", { o, or -> o?.let { "" } ?: or })
 
    companion object: ObjectFieldRegistry<Any, ColumnField>(Any::class) {
-      @JvmField val INDEX = this + ColumnField(type(), { -1 }, "#", "Index of the item in the list")
+      init { register(INDEX) }
    }
-
 }

@@ -1,9 +1,18 @@
 package sp.it.util.parsing
 
+import java.util.Locale
 import sp.it.util.functional.Try
 
 /** String-Object converter. */
 interface ConverterString<T>: ConverterToString<T>, ConverterFromString<T>
+
+/** Object to String converter. */
+fun interface ConverterToUiString<in T> {
+
+   /** @return human-readable text the object has been converted to */
+   fun toUiS(o: T, locale: Locale): String
+
+}
 
 /** Object to String converter. */
 fun interface ConverterToString<in T> {

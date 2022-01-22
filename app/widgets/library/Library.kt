@@ -12,8 +12,8 @@ import javafx.util.Callback
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.RATING
-import sp.it.pl.audio.tagging.Metadata.Field.Companion.TITLE
+import sp.it.pl.audio.tagging.Metadata.Field.RATING
+import sp.it.pl.audio.tagging.Metadata.Field.TITLE
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu

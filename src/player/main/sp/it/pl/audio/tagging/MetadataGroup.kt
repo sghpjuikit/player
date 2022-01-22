@@ -1,11 +1,9 @@
 package sp.it.pl.audio.tagging
 
-import java.util.stream.Stream
 import javafx.util.Duration
-import kotlin.streams.asSequence
+import sp.it.pl.main.toUi
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.fieldvalue.ObjectFieldRegistry
-import sp.it.util.dev.failCase
 import sp.it.util.functional.net
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
@@ -65,9 +63,10 @@ class MetadataGroup {
 
    override fun toString() = "$field: $value, items: $itemCount, albums: $albumCount, length: ${getLength()}, size: ${getFileSize()}, avgRating: $avgRating, wighted rating: $weighRating, year: $year"
 
-   class Field<T>: ObjectFieldBase<MetadataGroup, T> {
+   @Suppress("ClassName")
+   sealed class Field<T>: ObjectFieldBase<MetadataGroup, T> {
 
-      private constructor(type: VType<T>, extractor: (MetadataGroup) -> T, name: String, description: String): super(type, extractor, name, description)
+      private constructor(type: VType<T>, extractor: (MetadataGroup) -> T, toUi: (T?, String) -> String, name: String, description: String): super(type, extractor, name, description, toUi)
 
       fun toString(group: MetadataGroup): String = toString(group.field)
 
@@ -76,44 +75,22 @@ class MetadataGroup {
       @Suppress("UNCHECKED_CAST")
       fun getMFType(field: Metadata.Field<*>): VType<*> = if (this===VALUE) field.typeGrouped else type
 
-      override fun toS(o: T?, substitute: String): String {
-         return when (this) {
-            VALUE -> if (o==null || ""==o) "<none>" else o.toString()
-            ITEMS, ALBUMS, LENGTH, SIZE, AVG_RATING, W_RATING -> o!!.toString()
-            YEAR -> {
-               val y = o as RangeYear?
-               if (y==null || !y.hasSpecific()) substitute else y.toString()
-            }
-            else -> failCase(this)
-         }
-      }
-
-      @Suppress("UNCHECKED_CAST")
-      override fun toS(v: MetadataGroup, o: T?, substitute: String): String {
-         return when (this) {
-            VALUE -> when {
-               v.isAll -> "<any>"
-               else -> v.field.groupToS(o, "<none>")
-            }
-            LENGTH -> (o as Duration).toHMSMs()
-            else -> toS(o, substitute)
-         }
-      }
-
       override fun cVisible(): Boolean = this!==AVG_RATING && this!==YEAR && this!==W_RATING
 
       override fun cWidth(): Double = if (this===VALUE) 250.0 else 70.0
 
-      @Suppress("RemoveExplicitTypeArguments")
+      object VALUE: Field<Any?>(type(), { it.value }, { o, or -> o?.toUi() ?: or }, "Value", "Song field to group by")
+      object ITEMS: Field<Long>(type(), { it.itemCount }, { o, or -> o?.toUi() ?: or }, "Items", "Number of songs in the group")
+      object ALBUMS: Field<Long>(type(), { it.albumCount }, { o, or -> o?.toUi() ?: or }, "Albums", "Number of albums in the group")
+      object LENGTH: Field<Duration>(type(), { it.getLength() }, { o, or -> o?.toHMSMs(false) ?: or }, "Length", "Total length of the group")
+      object SIZE: Field<FileSize>(type(), { it.getFileSize() }, { o, or -> o?.toUi() ?: or }, "Size", "Total file size of the group")
+      object AVG_RATING: Field<Double>(type(), { it.avgRating }, { o, or -> o?.toUi() ?: or }, "Avg rating", "Average rating of the group = sum(rating)/items")
+      object W_RATING: Field<Double>(type(), { it.weighRating }, { o, or -> o?.toUi() ?: or }, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items")
+      object YEAR: Field<RangeYear>(type(), { it.year }, { o, or -> if (o==null || !o.hasSpecific()) or else o.toUi() }, "Year", "Year or years of songs in the group")
+
       companion object: ObjectFieldRegistry<MetadataGroup, Field<*>>(MetadataGroup::class) {
-         @JvmField val VALUE = this + Field(type<Any>(), { it.value }, "Value", "Song field to group by")
-         @JvmField val ITEMS = this + Field(type<Long>(), { it.itemCount }, "Items", "Number of songs in the group")
-         @JvmField val ALBUMS = this + Field(type<Long>(), { it.albumCount }, "Albums", "Number of albums in the group")
-         @JvmField val LENGTH = this + Field(type<Duration>(), { it.getLength() }, "Length", "Total length of the group")
-         @JvmField val SIZE = this + Field(type<FileSize>(), { it.getFileSize() }, "Size", "Total file size of the group")
-         @JvmField val AVG_RATING = this + Field(type<Double>(), { it.avgRating }, "Avg rating", "Average rating of the group = sum(rating)/items")
-         @JvmField val W_RATING = this + Field(type<Double>(), { it.weighRating }, "W rating", "Weighted rating of the group = sum(rating) = avg_rating*items")
-         @JvmField val YEAR = this + Field(type<RangeYear>(), { it.year }, "Year", "Year or years of songs in the group")
+
+         init { register(VALUE, ITEMS, ALBUMS, LENGTH, SIZE, AVG_RATING, W_RATING, YEAR) }
 
          @JvmStatic override fun valueOf(text: String) = super.valueOf(text) ?: VALUE
       }
@@ -135,8 +112,7 @@ class MetadataGroup {
 
       fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.flatMapTo(HashSet()) { it.grouped }
 
-      // TODO: this may need some work"
-      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.isSubclassOf<String>()) "" else null
+      private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.isSubclassOf<String>()) "<any>" else null
 
    }
 }

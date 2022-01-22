@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 import javafx.beans.property.DoubleProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -39,7 +38,6 @@ import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.dev.DebugKt;
-import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.Try;
 import sp.it.util.type.ClassName;
@@ -70,16 +68,12 @@ import static sp.it.pl.main.AppProgressKt.withProgress;
 import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
-import static sp.it.pl.ui.pane.GroupApply.FOR_ALL;
-import static sp.it.pl.ui.pane.GroupApply.FOR_EACH;
-import static sp.it.pl.ui.pane.GroupApply.NONE;
 import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.NEW;
 import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.collections.UtilKt.collectionUnwrap;
-import static sp.it.util.collections.UtilKt.collectionWrap;
 import static sp.it.util.collections.UtilKt.getElementClass;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.functional.TryKt.getOr;
@@ -431,27 +425,13 @@ public class ActionPane extends OverlayPane<Object> {
 	    else return "Data: n/a\nType: n/a\n";
 	}
 
-	@SuppressWarnings("unchecked")
 	private void showIcons(Object d) {
 		var dataType = getUnwrappedType(d);
 		// get suitable actions
 		actionsData.clear();
 		actionsData.addAll(actionsIcons);
 		if (use_registered_actions) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
-		actionsData.removeIf(a -> {
-			if (a.groupApply==FOR_ALL) {
-				return ((ActionData<?, Object>) a).condition.invoke(collectionWrap(d));
-			}
-			if (a.groupApply==FOR_EACH) {
-				Stream<Object> ds = d instanceof Collection ? ((Collection<Object>) d).stream() : stream(d);
-				return ds.noneMatch(it -> ((ActionData<?, Object>) a).condition.invoke(it));
-			}
-			if (a.groupApply==NONE) {
-				Object o = collectionUnwrap(d);
-				return o instanceof Collection || !((ActionData<?, Object>) a).condition.invoke(o);
-			}
-			throw new SwitchException(a.groupApply);
-		});
+		actionsData.removeIf(a -> !a.invokeDoable(d));
 
 		if (!showIcons) {
 			dataInfo.setOpacity(1.0);

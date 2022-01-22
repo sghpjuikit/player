@@ -105,20 +105,27 @@ class ActionData<C, T> {
    }
 
    @Suppress("UNCHECKED_CAST")
+   fun invokeDoable(data: Any?): Boolean {
+      println(description)
+      return when (groupApply) {
+         FOR_ALL -> condition(collectionWrap(data) as T)
+         FOR_EACH -> when (data) {
+            is Collection<*> -> (data as Collection<T>).all(condition)
+            else -> condition(data as T)
+         }
+         NONE -> data !is Collection<*> && condition(data as T)
+      }
+   }
+
+   @Suppress("UNCHECKED_CAST")
    operator fun invoke(data: Any?) {
       when (groupApply) {
          FOR_ALL -> action(collectionWrap(data) as T)
-         FOR_EACH -> {
-            if (data is Collection<*>) {
-               (data as Collection<T>).forEach(action)
-            } else {
-               action(data as T)
-            }
+         FOR_EACH -> when (data) {
+               is Collection<*> -> (data as Collection<T>).forEach(action)
+               else -> action(data as T)
          }
-         NONE -> {
-            if (data is Collection<*>) fail { "Action with $groupApply can not use collection" }
-            action(data as T)
-         }
+         NONE -> action(data as T)
       }
    }
 
@@ -128,10 +135,7 @@ class ActionData<C, T> {
    fun prepInput(data: Any?): Any? = when (groupApply) {
       FOR_ALL -> collectionWrap(data)
       FOR_EACH -> fail { "Action with $groupApply should never get here" }
-      NONE -> {
-         if (data is Collection<*>) fail { "Action with $groupApply can not use collection" }
-         data
-      }
+      NONE -> data
    }
 
    override fun toString() = "ActionData(\"$name\")"

@@ -56,5 +56,5 @@ inline fun Suppressor.suppressing(block: () -> Unit) {
    }
 
    if (!isSuppressed)
-      suppressingAlways(block)
+      suppressingAlways { block() }
 }

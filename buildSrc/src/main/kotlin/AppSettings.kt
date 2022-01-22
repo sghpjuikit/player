@@ -3,6 +3,11 @@ import EditMode.NONE
 
 val appSetting = Setting.root {
    "App" {
+      config("Locale") {
+         info = "Application locale.\n" +
+            "Locale represents geographical, political, or cultural region. It determines such things as formatting (numbers, dates) among other things.\n" +
+            "Requires application restart to take effect."
+      }
       "Logging" {
          config("Level (stdout)") {
             info = "Logging level for logging to standard output"

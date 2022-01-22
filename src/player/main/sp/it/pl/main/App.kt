@@ -6,6 +6,7 @@ import com.sun.tools.attach.VirtualMachine
 import java.io.File
 import java.lang.management.ManagementFactory
 import java.net.URLConnection
+import java.util.Locale
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.scene.image.Image
@@ -61,6 +62,7 @@ import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfigurationContext
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.c
@@ -71,7 +73,9 @@ import sp.it.util.conf.def
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
+import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.isValidatedDirectory
@@ -187,7 +191,6 @@ class App: Application(), GlobalConfigDelegator {
    val parameterProcessor = AppCli()
 
    init {
-      location.user.layouts
       parameterProcessor.process(fetchArguments())
 
       if (rankAtStart==SLAVE) {
@@ -253,6 +256,8 @@ class App: Application(), GlobalConfigDelegator {
    /** Object functions core. */
    val functors = CoreFunctors
 
+   /** Application locale. */
+   val locale by cv(Locale.ENGLISH).valuesUnsealed { Locale.getAvailableLocales().toList() } def conf.locale attach { actions.showSuggestRestartNotification() }
    /** Developer mode. Enables certain features useful for developers or power users. */
    val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) } def conf.developerMode
    /** Action that calls [System.gc]. */

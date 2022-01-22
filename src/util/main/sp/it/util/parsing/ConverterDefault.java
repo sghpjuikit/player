@@ -147,7 +147,7 @@ public class ConverterDefault extends Converter {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T> Function<? super String,Try<T,String>> findOfSparser(KClass<T> c) {
-        return (Function) firstNotNull(
+        return (Function<? super String,Try<T,String>>) firstNotNull(
             () -> parsersFromS.getElementOfSuper(c),
             () -> buildOfSParser(getJavaObjectType(c)),
             () -> parserFallbackFromS==null ? null : s -> (Try<T,String>) ((BiFunction) parserFallbackFromS).apply(c, s),
@@ -157,7 +157,7 @@ public class ConverterDefault extends Converter {
 
     @SuppressWarnings({"unchecked", "rawtypes", "RedundantCast"})
     private <T> Function<? super T,Try<String,String>> findToSparser(KClass<T> c) {
-        return (Function) firstNotNull(
+        return (Function<? super T,Try<String,String>>) firstNotNull(
             () -> parsersToS.getElementOfSuper(c),
             () -> buildToSParser(getJavaObjectType(c)),
             () -> parserFallbackToS==null ? null : o -> (Try<String,String>) ((BiFunction) parserFallbackToS).apply(c, o),

@@ -9,6 +9,7 @@ import java.math.BigInteger
 import java.net.URI
 import java.net.URL
 import java.net.URLDecoder
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
@@ -23,6 +24,8 @@ import java.time.format.DateTimeFormatter.ISO_DATE
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.time.format.DateTimeFormatter.ISO_INSTANT
 import java.time.format.DateTimeFormatter.ISO_TIME
+import java.util.IllformedLocaleException
+import java.util.Locale
 import java.util.UUID
 import java.util.function.BiFunction
 import java.util.regex.Pattern
@@ -34,7 +37,6 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
 import javafx.util.Duration
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.relativeToOrSelf
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -69,6 +71,7 @@ import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.action.Action
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.fail
+import sp.it.util.dev.printIt
 import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.file.json.JsValue
@@ -135,18 +138,18 @@ object CoreConverter: Core {
       when (o) {
          null -> AppTexts.textNoVal
          is Boolean -> if (o) "yes" else "no"
-         is Byte -> NumberFormat.getIntegerInstance().format(o)
-         is UByte -> NumberFormat.getIntegerInstance().format(o)
-         is Short -> NumberFormat.getIntegerInstance().format(o)
-         is UShort -> NumberFormat.getIntegerInstance().format(o)
-         is Int -> NumberFormat.getIntegerInstance().format(o)
-         is UInt -> NumberFormat.getIntegerInstance().format(o)
-         is Long -> NumberFormat.getIntegerInstance().format(o)
-         is ULong -> NumberFormat.getIntegerInstance().format(o)
-         is Float -> NumberFormat.getInstance().format(o)
-         is Double -> NumberFormat.getInstance().format(o)
-         is BigInteger -> NumberFormat.getIntegerInstance().format(o)
-         is BigDecimal -> NumberFormat.getInstance().format(o)
+         is Byte -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is UByte -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is Short -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is UShort -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is Int -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is UInt -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is Long -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is ULong -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is Float -> NumberFormat.getInstance(APP.locale.value).format(o)
+         is Double -> NumberFormat.getInstance(APP.locale.value).format(o)
+         is BigInteger -> NumberFormat.getIntegerInstance(APP.locale.value).format(o)
+         is BigDecimal -> NumberFormat.getInstance(APP.locale.value).format(o)
          is Class<*> -> APP.className[o.kotlin]
          is KClass<*> -> APP.className[o]
          is KTypeProjection -> when (o) {
@@ -170,6 +173,8 @@ object CoreConverter: Core {
          is NameUi -> o.nameUi
          is MouseButton -> o.nameUi
          is Action -> o.nameUi + o.keysUi().nullIfBlank()?.net { " (${o.keysUi()})" }.orEmpty()
+         is Locale -> o.getDisplayName(APP.locale.value)
+         is Charset -> o.displayName(APP.locale.value)
          is LocalDateTime -> o.format(dateTimeFormatter)
          is LocalDate -> o.format(dateFormatter)
          is LocalTime -> o.format(timeFormatter)
@@ -202,7 +207,6 @@ object CoreConverter: Core {
       FileField.toSConverter = ui
    }
 
-   @OptIn(ExperimentalPathApi::class)
    @Suppress("RemoveExplicitTypeArguments")
    private fun ConverterDefault.init() = apply {
 
@@ -292,6 +296,8 @@ object CoreConverter: Core {
       addT<Pattern>(toS, tryF(PSE::class) { Pattern.compile(it) })
       addP<Bitrate>(Bitrate)
       addT<Duration>(toS, ::durationOfHMSMs)
+      addT<Locale>({ it.toLanguageTag() }, tryF(Throwable::class) { Locale.Builder().setLanguageTag(it.printIt()).build().printIt() })
+      addT<Charset>({ it.name() }, tryF(Throwable::class) { Charset.forName(it) })
       addT<Instant>({ ISO_INSTANT.format(it) }, tryF(DTPE::class) { Instant.parse(it) })
       addT<LocalTime>({ ISO_TIME.format(it) }, tryF(DTPE::class) { LocalTime.parse(it, ISO_TIME) })
       addT<LocalDate>({ ISO_DATE.format(it) }, tryF(DTPE::class) { LocalDate.parse(it, ISO_DATE) })

@@ -12,6 +12,27 @@ object AppSettings {
       /** Name of the group. */
       const val name = "App"
 
+      /** Application locale.
+Locale represents geographical, political, or cultural region. It determines such things as formatting (numbers, dates) among other things.
+Requires application restart to take effect. */
+      object `locale`: ConfigDefinition {
+         /** Compile-time constant equivalent to [name]. */
+         const val cname: String = """Locale"""
+         /** Compile-time constant equivalent to [info]. */
+         const val cinfo: String = """Application locale.
+Locale represents geographical, political, or cultural region. It determines such things as formatting (numbers, dates) among other things.
+Requires application restart to take effect."""
+         /** Compile-time constant equivalent to [group]. */
+         const val cgroup: String = """App"""
+         /** Name of the config. */
+         override val name = cname
+         /** Group of the config. */
+         override val group = cgroup
+         /** Description of the config. */
+         override val info = cinfo
+         /** Editability of the config. */
+         override val editable = EditMode.USER
+      }
       object `logging` {
          /** Name of the group. */
          const val name = "Logging"

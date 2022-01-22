@@ -305,15 +305,15 @@ object CoreMenus: Core {
                }
             }
             menu("Library") {
-               item("Update songs from file") { APP.db.refreshSongsFromFile(it.grouped) }
+               item("Update songs from file") { APP.db.refreshSongsFromFile(it.grouped.toList()) }
                item("Remove songs from library") { APP.db.removeSongs(it.grouped) }
             }
             menu("Show in") {
                widgetItems<SongReader> {
-                  it.read(value.grouped) }
+                  it.read(value.grouped.toList()) }
             }
             menu("Edit tags in") {
-               widgetItems<SongWriter> { it.read(value.grouped) }
+               widgetItems<SongWriter> { it.read(value.grouped.toList()) }
             }
             if (value.grouped.size==1) {
                value.grouped.firstOrNull()?.getFile().ifNotNull {

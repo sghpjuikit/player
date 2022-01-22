@@ -130,7 +130,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       grid.cellFactory.value = { AlbumCell() }
       grid.selectedItem attach {
          outputSelected.value = it?.items
-         outputSelectedM.value = it?.items?.grouped.orEmpty()
+         outputSelectedM.value = it?.items?.grouped.orEmpty().toList()
       }
       grid.onEventDown(KEY_PRESSED, ENTER) { playSelected() }
       grid.onEventUp(SCROLL) { e ->

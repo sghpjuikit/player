@@ -26,13 +26,13 @@ class MetadataGroup {
    val avgRating: Double
    val weighRating: Double
    val year: RangeYear
-   val grouped: List<Metadata>
+   val grouped: LinkedHashSet<Metadata>
 
    private constructor(field: Metadata.Field<*>, isAll: Boolean, value: Any?, ms: Collection<Metadata>) {
       this.field = field
       this.isAll = isAll
       this.value = value
-      grouped = ArrayList(ms)
+      grouped = LinkedHashSet(ms)
       itemCount = ms.size.toLong()
       year = RangeYear()
       val albumSet = HashSet<String?>()
@@ -133,9 +133,7 @@ class MetadataGroup {
          return groups.map { (key, value) -> MetadataGroup(f, false, key, value) }
       }
 
-      fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
-
-      fun ungroup(groups: Stream<MetadataGroup>): Set<Metadata> = groups.asSequence().flatMap { it.grouped.asSequence() }.toSet()
+      fun ungroup(groups: Collection<MetadataGroup>): Set<Metadata> = groups.flatMapTo(HashSet()) { it.grouped }
 
       // TODO: this may need some work"
       private fun getAllValue(f: Metadata.Field<*>): Any? = if (f.type.isSubclassOf<String>()) "" else null

@@ -278,9 +278,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
    private inner class TagsField(semanticIndex: Int): LField(semanticIndex, TAGS) {
       private val originalItems = mutableSetOf<String>()
       private val textTag = object: TagTextField<String>(
-         object: ConverterFromString<String> {
-            override fun ofS(s: String) = if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
-         }
+         ConverterFromString { if (it.isBlank()) Try.error("Must not be blank") else Try.ok(it) }
       ) {
          // the textTag need to shrink based on available space
          init { this@TagsField.widthProperty() attach { requestLayout() } }

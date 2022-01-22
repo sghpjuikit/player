@@ -65,6 +65,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.jvmErasure
+import sp.it.util.type.raw
 import sp.it.util.type.rawJ
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.units.millis
@@ -325,7 +326,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
       @JvmStatic
       fun <T> create(config: Config<T>): ConfigEditor<T> {
-         fun Config<*>.isMinMax() = type.isSubclassOf<Number>() && !type.isNullable && constraints.any { it is NumberMinMax && it.isClosed() && it.min!=Double.MIN_VALUE && it.max!=Double.MAX_VALUE }
+         fun Config<*>.isMinMax() = !type.isNullable && type.raw in listOf<KClass<*>>(Int::class, Double::class, Float::class, Long::class, Short::class) && constraints.any { it is NumberMinMax && it.isClosed() && it.min!=Double.MIN_VALUE && it.max!=Double.MAX_VALUE }
          fun Config<*>.isComplex() = constraints.any { it is UiStringHelper<*> }
 
          return when {

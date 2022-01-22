@@ -1250,13 +1250,13 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
    private fun toS(o: Any?): String = when (o) {
       null ->
-         o.toUi()
-      is Set<*> ->
-         if (isMultiline) o.asSequence().map { it.toUi() }.sorted().joinToString("\n")
-         else o.asSequence().map { it.toUi() }.sorted().joinToString(", ", "[", "]")
+         null.toUi()
       is LinkedSet<*> ->
          if (isMultiline) o.joinToString("\n") { it.toUi() }
          else o.joinToString(", ", "[", "]") { it.toUi() }
+      is Set<*> ->
+         if (isMultiline) o.asSequence().map { it.toUi() }.sorted().joinToString("\n")
+         else o.asSequence().map { it.toUi() }.sorted().joinToString(", ", "[", "]")
       is Collection<*> ->
          if (isMultiline) o.joinToString("\n") { it.toUi() }
          else o.joinToString(", ", "[", "]") { it.toUi() }

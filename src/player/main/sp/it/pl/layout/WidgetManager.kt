@@ -296,8 +296,9 @@ class WidgetManager {
       }
    }
 
-   private fun unregisterFactory(factory: ComponentFactory<*>) {
-      logger.info { "Unregistering $factory" }
+   private fun unregisterFactory(factory: ComponentFactory<*>, isRegistering: Boolean = false) {
+      if (!isRegistering)
+         logger.info { "Unregistering $factory" }
 
       if (factory is WidgetFactory<*>) factoriesW -= factory
       if (factory is WidgetFactory<*>) factoriesObservableWImpl -= factory
@@ -421,7 +422,7 @@ class WidgetManager {
                } else {
                   val widgetType = (type as Class<Controller>).kotlin
                   val widgetFactory = WidgetFactory(widgetType, widgetDir)
-                  unregisterFactory(widgetFactory)
+                  unregisterFactory(widgetFactory, true)
                   registerFactory(widgetFactory)
                   if (initialized) widgetFactory.reloadAllOpen()
                }

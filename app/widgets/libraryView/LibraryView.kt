@@ -142,7 +142,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.selectionModel.selectionMode = MULTIPLE
       table.search.setColumn(VALUE)
       table.items_info.textFactory = { all, list ->
-         DEFAULT_TEXT_FACTORY(all, list) + " " + "song".pluralUnit(list.sumOf { it.itemCount }.toInt())  + " - " + list.sumOf { it.lengthInMs }.millis.toHMSMs()
+         val allItem = list.find { it.isAll }
+         DEFAULT_TEXT_FACTORY(all, list) + " " +
+            "song".pluralUnit(allItem?.itemCount?.toInt() ?: list.sumOf { it.itemCount }.toInt())  + " - " +
+            (allItem?.lengthInMs ?: list.sumOf { it.lengthInMs }).millis.toHMSMs()
       }
 
       // set up table columns

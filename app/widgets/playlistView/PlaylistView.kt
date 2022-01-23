@@ -56,11 +56,16 @@ import sp.it.util.units.year
 import java.io.File
 import java.util.UUID
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import java.util.function.Consumer
+import sp.it.pl.audio.Song
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.HelpEntries
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
+import sp.it.util.functional.invoke
+import sp.it.util.reactive.sync1If
+import sp.it.util.units.NofX
 
 class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
@@ -98,8 +103,18 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
 
       playVisible sync { pv ->
          playlist.setTransformation(
-            if (pv) { _: List<PlaylistSong> -> table.items.materialize().toList() }
-            else { it: List<PlaylistSong> -> it.asSequence().sortedWith(table.itemsComparator.value).toList() }
+            object: Playlist.Transformer() {
+               override fun transform(original: List<PlaylistSong>, then: Consumer<in List<PlaylistSong>>) {
+                  table.itemsSorting.sync1If({ it==false }) {
+                     then(transformNow(original))
+                  }
+               }
+               override fun transformNow(original: List<PlaylistSong>): List<PlaylistSong> {
+                  return if (pv) table.items.materialize()
+                  else original.materialize().sortedWith(table.itemsComparator.value)
+               }
+               override fun index(song: Song): NofX = NofX(playlist.indexOfFirst { it.same(song) }, playlist.size)
+            }
          )
       } on onClose
 
@@ -108,9 +123,9 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       table.items_info.textFactory = { all, list ->
          DEFAULT_TEXT_FACTORY(all, list) + " - " + list.sumOf { it.timeMs }.millis.toHMSMs()
       }
+
       table.defaultColumnInfo   // trigger menu initialization
-      table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() }
-         ?: table.defaultColumnInfo
+      table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo
 
       table.filterPane.buttonAdjuster.value = { i ->
          i.onClickDo { playVisible.toggle() }

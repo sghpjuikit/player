@@ -93,6 +93,7 @@ class TableColumnInfo() {
                it.sortType = sortType
             }
          }
+         table.sort()
       }
 
       override fun toString() = sorts.joinToString(S2) { (first, second) -> first + S3 + second }

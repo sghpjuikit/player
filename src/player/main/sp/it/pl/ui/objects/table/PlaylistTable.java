@@ -3,6 +3,7 @@ package sp.it.pl.ui.objects.table;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -23,6 +24,7 @@ import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.playlist.Playlist;
+import sp.it.pl.audio.playlist.Playlist.Transformer;
 import sp.it.pl.audio.playlist.PlaylistManager;
 import sp.it.pl.audio.playlist.PlaylistManagerKt;
 import sp.it.pl.audio.playlist.PlaylistSong;
@@ -34,6 +36,7 @@ import sp.it.util.Sort;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import sp.it.util.reactive.Disposer;
+import sp.it.util.units.NofX;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toList;
@@ -94,7 +97,21 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	public PlaylistTable(Playlist playlist) {
 		super(PlaylistSong.class, NAME.INSTANCE, playlist);
 
-		playlist.setTransformationToItemsOf(getItems());
+		var items = getItems();
+		playlist.setTransformation(new Transformer() {
+			@Override public void transform(List<PlaylistSong> original, Consumer<? super List<PlaylistSong>> then) {
+				then.accept(items);
+			}
+
+			@Override public List<PlaylistSong> transformNow(List<PlaylistSong> original) {
+				return items;
+			}
+
+			@Override public NofX index(Song song) {
+				for (int i = 0; i<items.size(); i++) if (items.get(i).same(song)) return new NofX(i, items.size());
+				return new NofX(-1, items.size());
+			}
+		});
 
 		VBox.setVgrow(this, Priority.ALWAYS);
 
@@ -126,7 +143,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 					selectNone();
 			});
 			// left double click -> play
-			row.onLeftDoubleClick((r, e) -> getPlaylist().playItem(r.getItem()));
+			row.onLeftDoubleClick((r, e) -> getPlaylist().playTransformedItem(r.getItem()));
 			// right click -> show context menu
 			row.onRightSingleClick((r, e) -> {
 				// prep selection for context menu
@@ -240,7 +257,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			// play selected
 			if (e.getCode()==KeyCode.ENTER) {
 				if (!getSelectedItems().isEmpty())
-					getPlaylist().playItem(getSelectedItems().get(0));
+					getPlaylist().playTransformedItem(getSelectedItems().get(0));
 			}
 			// delete selected
 			if (e.getCode()==KeyCode.DELETE) {

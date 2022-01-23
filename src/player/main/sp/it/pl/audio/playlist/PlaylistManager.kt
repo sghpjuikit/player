@@ -51,11 +51,11 @@ object PlaylistManager: GlobalSubConfigDelegator("Playback") {
 
    /** Plays first item on playlist. */
    @IsAction(name = "Play first", info = "Plays first item on playlist.", keys = "ALT+W", global = true)
-   fun playFirstItem() = use { it.playFirstItem() }
+   fun playFirstItem() = use { it.playTransformedFirst() }
 
    /** Plays last item on playlist. */
    @IsAction(name = "Play last", info = "Plays last item on playlist.", global = true)
-   fun playLastItem() = use { it.playLastItem() }
+   fun playLastItem() = use { it.playTransformedLast() }
 
    /** Plays next item on playlist according to its selector logic. */
    @IsAction(name = "Play next", info = "Plays next item on playlist.", keys = "ALT+Z", global = true)
@@ -109,7 +109,7 @@ fun Playlist.addOrEnqueueFiles(add: Boolean) {
          APP.audio.stop()
          clear()
          addFiles(files)
-         playFirstItem()
+         playTransformedFirst()
       }
    }
 }
@@ -133,7 +133,7 @@ fun Playlist.addOrEnqueueFolder(add: Boolean) {
          APP.audio.stop()
          clear()
          addFiles(files)
-         playFirstItem()
+         playTransformedFirst()
       }
    }
 }
@@ -154,7 +154,7 @@ fun Playlist.addOrEnqueueUrl(add: Boolean) {
          APP.audio.stop()
          clear()
          addUri(it.value)
-         playFirstItem()
+         playTransformedFirst()
       }
    }
 }

@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **FreeFormContainer** window move hint cursor - show MOVE cursor in layout mode
 - Implement **FreeFormContainer** window styling - show gap between windows
 - Implement more functors (word/sentence splitting, list operators)
+- Improve tables
+  - Sort performance (up to 50 times faster)
+  - Loading performance (sorting does not block ui now)
 - Improve component controls
   - Remove lock icon from component control header icons
   - Expose **ContainerSwitch** ui controls via ui, like every other container

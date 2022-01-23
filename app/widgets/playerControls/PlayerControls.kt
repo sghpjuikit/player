@@ -156,7 +156,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    private fun playFile(file: File) {
       PlaylistManager.use {
          it.addUri(file.toURI())
-         it.playLastItem()
+         it.playTransformedLast()
       }
    }
 

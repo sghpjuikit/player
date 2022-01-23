@@ -7,15 +7,17 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -64,6 +66,7 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
@@ -89,7 +92,9 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public ObjectField<T,?> primaryFilterField;
 	private final ObservableList<T> allItems;
 	private final FilteredList<T> filteredItems;
-	private final SortedList<T> sortedItems;
+	private final ObservableList<T> sortedItems;
+	private final ReadOnlyObjectWrapper<Boolean> itemsSortingWrapper = new ReadOnlyObjectWrapper<>(false);
+	public final ReadOnlyObjectProperty<Boolean> itemsSorting = itemsSortingWrapper.getReadOnlyProperty();
 	final VBox root = new VBox(this);
 
 	/**
@@ -111,11 +116,30 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 		allItems = noNull(backing_list);
 		filteredItems = allItems.filtered(null);
-		sortedItems = filteredItems.sorted(null);
+		sortedItems = observableArrayList();
 		itemsPredicate = filteredItems.predicateProperty();
+		onChange(filteredItems, runnable(() -> sort()));
+
+		var isInitialSort = new AtomicBoolean(true);
+		setSortPolicy(it -> {
+			if (!isInitialSort.getAndSet(false)) {
+				itemsSortingWrapper.setValue(true);
+				updateComparator();
+				var fi = new ArrayList<>(filteredItems);
+				var c = itemsComparator.get();
+				runIO(() -> {
+					fi.sort(c);
+					return null;
+				}).ui(i -> {
+					sortedItems.setAll(fi);
+					itemsSortingWrapper.setValue(false);
+					return null;
+				});
+			}
+			return true;
+		});
 
 		setItems(sortedItems);
-		sortedItems.comparatorProperty().bind(comparatorProperty());
 		VBox.setVgrow(this, ALWAYS);
 
 		items_info.bind(this);

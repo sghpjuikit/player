@@ -345,7 +345,7 @@ object CoreMenus: Core {
                   menuFor("File", it)
                }
             }
-            item("Play songs (${keys("ENTER")})") { it.playlist.playItem(it.songs.firstOrNull()) }
+            item("Play songs (${keys("ENTER")})") { it.playlist.playTransformedItem(it.songs.firstOrNull()) }
             menu("Show in") {
                widgetItems<SongReader> {
                   it.read(value.songs)

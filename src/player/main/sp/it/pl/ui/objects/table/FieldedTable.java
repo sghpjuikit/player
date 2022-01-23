@@ -5,13 +5,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ListChangeListener;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -49,7 +51,7 @@ import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 
 /**
  * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
- * potentially additional features (e.g. filtering - {@link FilteredTable}.
+ * potentially additional features (e.g. filtering - {@link FilteredTable}).
  * <p/>
  * Supports column state serialization and deserialization - it is possible to
  * restore previous state. This includes column order, column names, sort order,
@@ -66,7 +68,7 @@ import static sp.it.util.ui.ContextMenuExtensionsKt.show;
  * Only visible columns are built.
  * <p/>
  * Has redesigned menu for column visibility. The table header button opening it is
- * hidden by default and the menu can also be shown by right click on the table
+ * hidden by default and the menu can also be shown by right-click on the table
  * header.
  * <p/>
  *
@@ -110,9 +112,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			c.setCellFactory(col -> buildFieldedCell(f));
 			return c;
 		});
-
-		// install comparator updating part I
-		getSortOrder().addListener((ListChangeListener<Object>) this::updateComparator);
 
 		// show the column control menu on right click ( + hide if shown )
 		addEventHandler(MOUSE_CLICKED, e -> {
@@ -213,7 +212,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			defColInfo.columns.removeIf(f -> f.name.equals(INDEX.INSTANCE.name()));
 			defColInfo.columns.forEach(t -> t.position++);  //TODO: position should be immutable
 			defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
-			// leave sort order empty
 
 			columnState = defColInfo;
 			// build new table column menu
@@ -258,13 +256,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 				Logger.getLogger(FieldedTable.class.getName()).log(Level.SEVERE, null, ex);
 			}
 
-			// install comparator updating part II
-			// we need this because sort order list changes do not reflect
-			// every sort change (when only ASCENDING-DESCENDING is changed
-			// there is no list change event.
-			h.setOnMouseReleased(this::updateComparator);
-			h.setOnMouseClicked(this::updateComparator);
-
 		}
 		return defColInfo;
 	}
@@ -295,7 +286,14 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 * The value is never null, rather {@link sp.it.util.functional.Util#SAME} is used to indicate no
 	 * particular order.
 	 */
-	public final ObjectProperty<Comparator<? super T>> itemsComparator = new SimpleObjectProperty<>(SAME);
+	private final ReadOnlyObjectWrapper<Comparator<? super T>> itemsComparatorWrapper = new ReadOnlyObjectWrapper<>(SAME);
+
+	public final ReadOnlyObjectProperty<Comparator<? super T>> itemsComparator = itemsComparatorWrapper.getReadOnlyProperty();
+
+	@SuppressWarnings({"unchecked", "unused"})
+	public final ObjectProperty<BiFunction<? super ObjectField<?, ?>, ? super Sort, ? extends Comparator<?>>> itemsComparatorFieldFactory = new SimpleObjectProperty<>((f, sort) ->
+		f.comparator(sort==Sort.DESCENDING ? Comparator::nullsFirst : Comparator::nullsLast)
+	);
 
 	/**
 	 * Sorts the items by the field. Sorting does not operate on table's sort
@@ -322,23 +320,24 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 */
 	public void sortBy(ObjectField<T,?> field, SortType type) {
 		getColumn(field).ifPresent(c -> sortBy(c, type));
-		updateComparator(null);
 	}
 
 /* --------------------- UTIL --------------------------------------------------------------------------------------- */
 
-	// sort order -> comparator, never null
+	/** Sets {@link #itemsComparator} to comparator build from {@link #getSortOrder()}} */
 	@SuppressWarnings({"unchecked", "unused"})
-	private void updateComparator(Object ignored) {
-		Comparator<? super T> c = getSortOrder().stream()
-			.map(column -> {
-				ObjectField<T,?> field = (ObjectField<T,?>) column.getUserData();
-				Sort sort = Sort.of(column.getSortType());
-				return sort.of(field.comparator(Comparator::nullsFirst));
-			})
-			.reduce(Comparator::thenComparing)
-			.orElse((Comparator<T>) SAME);
-		itemsComparator.setValue(c);
+	protected void updateComparator() {
+		itemsComparatorWrapper.setValue(
+			getSortOrder().stream()
+				.map(column -> {
+					var field = (ObjectField<T,?>) column.getUserData();
+					var sort = Sort.of(column.getSortType());
+					var comparator = (Comparator<T>) itemsComparatorFieldFactory.get().apply(field, sort);
+					return sort.of(comparator);
+				})
+				.reduce(Comparator::thenComparing)
+				.orElse((Comparator<T>) SAME)
+		);
 	}
 
 	private ObjectField<T,?> nameToF(String name) {

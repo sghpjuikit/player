@@ -1,5 +1,11 @@
 package libraryView
 
+import sp.it.pl.audio.tagging.Metadata.Field as MField
+import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
+import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import java.util.Comparator.comparing
+import java.util.function.BiFunction
+import java.util.function.Supplier
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.control.Menu
@@ -7,6 +13,7 @@ import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
+import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
@@ -14,6 +21,8 @@ import javafx.scene.input.TransferMode.ANY
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Callback
+import kotlin.streams.toList
+import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
@@ -25,21 +34,35 @@ import sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE
 import sp.it.pl.audio.tagging.MetadataGroup.Field.W_RATING
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.LIBRARY
+import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
+import sp.it.pl.main.Css.Pseudoclasses.played
+import sp.it.pl.main.Df
+import sp.it.pl.main.HelpEntries
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconUN
+import sp.it.pl.main.WidgetTags.LIBRARY
+import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
+import sp.it.pl.main.contains
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.installDrag
 import sp.it.pl.main.isPlaying
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
+import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
+import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.Sort.DESCENDING
+import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.executor.EventReducer
@@ -50,12 +73,18 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
+import sp.it.util.conf.cOr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.defInherit
 import sp.it.util.conf.noUi
 import sp.it.util.conf.values
+import sp.it.util.functional.Util.SAME
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
+import sp.it.util.functional.nullsFirst
+import sp.it.util.functional.nullsLast
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
@@ -63,38 +92,15 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync1IfInScene
+import sp.it.util.text.*
 import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.dsl
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.pseudoclass
-import sp.it.util.ui.x
-import java.util.function.Supplier
-import kotlin.streams.toList
-import sp.it.pl.audio.tagging.Metadata.Field as MField
-import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
-import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
-import javafx.scene.input.KeyCode.*
-import mu.KLogging
-import sp.it.pl.layout.WidgetCompanion
-import sp.it.pl.main.Css.Pseudoclasses.played
-import sp.it.pl.main.Df
-import sp.it.pl.main.HelpEntries
-import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconUN
-import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
-import sp.it.pl.main.contains
-import sp.it.pl.main.installDrag
-import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
-import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.access.OrV.OrValue.Initial.Inherit
-import sp.it.util.conf.cOr
-import sp.it.util.conf.defInherit
-import sp.it.util.functional.asIf
-import sp.it.util.text.*
 import sp.it.util.ui.show
 import sp.it.util.ui.tableColumn
+import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import sp.it.util.units.version
@@ -141,6 +147,15 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       // table properties
       table.selectionModel.selectionMode = MULTIPLE
       table.search.setColumn(VALUE)
+      table.itemsComparatorFieldFactory.value = BiFunction { field, sort ->
+         when(field) {
+            VALUE -> when {
+               fieldFilter.value.typeGrouped.isSubclassOf<Comparable<*>>() -> comparing<MetadataGroup, Comparable<Any?>?> { if (it==null) null.asIs() else VALUE.getOfS(it, "").asIs() }.let { if (sort===DESCENDING) it.nullsFirst() else it.nullsLast() }
+               else -> SAME
+            }
+            else -> field.comparator { c -> if (sort===DESCENDING) c.nullsFirst() else c.nullsLast() }
+         }
+      }
       table.items_info.textFactory = { all, list ->
          val allItem = list.find { it.isAll }
          DEFAULT_TEXT_FACTORY(all, list) + " " +

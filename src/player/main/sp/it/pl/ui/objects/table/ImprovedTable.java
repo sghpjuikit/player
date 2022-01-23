@@ -118,7 +118,7 @@ public class ImprovedTable<T> extends TableView<T> {
 	public void updateStyleRules() {
 		for (TableRow<T> row : getRows()) {
 			if (row instanceof SpitTableRow) {
-				((SpitTableRow) row).updateStyleRules();
+				((SpitTableRow<T>) row).updateStyleRules();
 			}
 		}
 	}
@@ -333,9 +333,9 @@ public class ImprovedTable<T> extends TableView<T> {
 	 * Fixes lack of generic compile time safety of {@link TableView#setColumnResizePolicy(javafx.util.Callback)},
 	 * which unfortunately has generic declaration removed - java bug.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setColumnResizePolicySafe(Callback<TableView.ResizeFeatures<T>,Boolean> policy) {
-		setColumnResizePolicy((Callback) policy);
+		setColumnResizePolicy((Callback<ResizeFeatures, Boolean>) (Object) policy);
 	}
 
 	final void resizeIndexColumn() {

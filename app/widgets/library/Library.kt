@@ -65,6 +65,8 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import javafx.scene.Node
+import javafx.scene.control.TableCell
 import mu.KLogging
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.Css.Pseudoclasses.played
@@ -79,9 +81,14 @@ import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
+import sp.it.util.dev.printExecutionTime
+import sp.it.util.dev.printIt
 import sp.it.util.functional.asIf
+import sp.it.util.functional.traverse
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
+import sp.it.util.ui.menu
+import sp.it.util.ui.menuItem
 import sp.it.util.ui.show
 import sp.it.util.ui.tableColumn
 import sp.it.util.units.version
@@ -159,6 +166,11 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
                if (!r.isSelected) t.selectionModel.clearAndSelect(r.index)
                ValueContextMenu<MetadataGroup>().apply {
                   setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
+                  this.items += menu("gg") {
+                     this.items += menuItem("hh") {
+                        e.source.asIf<Node>()?.traverse { it.parent }?.filterIsInstance<TableCell<*,*>>()?.firstOrNull()?.text.printIt()
+                     }
+                  }
                   show(table, e)
                }
             }
@@ -223,7 +235,9 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
    fun setItems(items: List<Metadata>?) {
       if (items==null) return
-      table.setItemsRaw(items)
+      printExecutionTime {
+         table.setItemsRaw(items)
+      }
    }
 
    private fun addDirectory() = chooseFile("Add folder to library", DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {

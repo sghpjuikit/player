@@ -267,7 +267,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
    private fun playFile(file: File) {
       PlaylistManager.use {
          it.addUri(file.toURI())
-         it.playLastItem()
+         it.playTransformedLast()
       }
    }
 

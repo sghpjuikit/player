@@ -10,19 +10,20 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.util.Duration;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.Song;
 import sp.it.util.async.executor.EventReducer;
 import sp.it.util.collections.mapset.MapSet;
+import sp.it.util.units.NofX;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -70,17 +71,35 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
-	private Function1<? super List<PlaylistSong>, ? extends List<PlaylistSong>> transformer = x -> x;
-
-	private List<PlaylistSong> transform() {
-		return transformer.invoke(this);
+	abstract public static class Transformer {
+		public abstract void transform(List<PlaylistSong> original, Consumer<? super List<PlaylistSong>> then);
+		public abstract List<PlaylistSong> transformNow(List<PlaylistSong> original);
+		public abstract NofX index(Song song);
 	}
 
-	public void setTransformationToItemsOf(ObservableList<PlaylistSong> transformed) {
-		transformer = original -> transformed;
+	private Transformer transformer = new Transformer() {
+		@Override public void transform(List<PlaylistSong> original, Consumer<? super List<PlaylistSong>> then) {
+			then.accept(original);
+		}
+		@Override public List<PlaylistSong> transformNow(List<PlaylistSong> original) {
+			return original;
+		}
+
+		@Override public NofX index(Song song) {
+			for (int i = 0; i<size(); i++) if (get(i).same(song)) return new NofX(i, size());
+			return new NofX(-1, size());
+		}
+	};
+
+	private List<PlaylistSong> transformNow() {
+		return transformer.transformNow(this);
 	}
 
-	public void setTransformation(Function1<? super List<PlaylistSong>, ? extends List<PlaylistSong>> transformer) {
+	private void transform(Consumer<? super List<PlaylistSong>> then) {
+		transformer.transform(this, then);
+	}
+
+	public void setTransformation(Transformer transformer) {
 		this.transformer = transformer;
 	}
 
@@ -99,16 +118,6 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 	/**
-	 * Returns true if specified song is playing song on the playlist. There can
-	 * only be one song in the application for which this method returns true.
-	 *
-	 * @return true if song is played.
-	 */
-	public boolean isPlaying(PlaylistSong song) {
-		return playingSongWrapper.getValue()==song;
-	}
-
-	/**
 	 * Returns index of the first same song in playlist.
 	 *
 	 * @return song index. -1 if not in playlist.
@@ -116,10 +125,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * @see Song#same(sp.it.pl.audio.Song)
 	 */
 	public int indexOfSame(Song song) {
-		List<PlaylistSong> transformed = transform();
-		for (int i = 0; i<transformed.size(); i++)
-			if (transformed.get(i).same(song)) return i;
-		return -1;
+		return transformer.index(song).getN();
 	}
 
 	/** @return index of playing song or -1 if no song is playing */
@@ -127,18 +133,29 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		return playingSongWrapper.get()==null ? -1 : indexOf(playingSongWrapper.get());
 	}
 
-	public @Nullable PlaylistSong getPlaying() {
-		return playingSongWrapper.get();
-	}
-
 	/** @return true when playlist contains songs same as the parameter */
 	public boolean containsSame(Song song) {
 		return stream().anyMatch(song::same);
 	}
 
-	/** Returns true iff any song on this playlist is being played. */
+	/** @return true iff any song on this playlist is being played. */
 	public boolean containsPlaying() {
 		return indexOfPlaying()>=0;
+	}
+
+	/** @return song on this playlist that is being played. */
+	public @Nullable PlaylistSong getPlaying() {
+		return playingSongWrapper.get();
+	}
+
+	/**
+	 * Returns true if specified song is playing song on the playlist.
+	 * There is only one {@link sp.it.pl.audio.playlist.PlaylistSong} in the application for which this method returns true.
+	 *
+	 * @return true if song is played.
+	 */
+	public boolean isPlaying(PlaylistSong song) {
+		return playingSongWrapper.getValue()==song;
 	}
 
 	/** Removes all unplayable songs from this playlist. */
@@ -363,7 +380,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public void playUri(URI uri) {
 		for (PlaylistSong song : this) {
 			if(song.same(uri)) {
-				playItem(song);
+				playTransformedItem(song);
 				return;
 			}
 		}
@@ -373,22 +390,38 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	/** Adds a new PlaylistSong to the end of the Playlist and plays it */
 	public void addAndPlay(URI uri) {
 		addUri(uri);
-		playLastItem();
+		playTransformedLast(); // TODO: what if transformed !contain it?
 	}
 
-	// this will stay private or there would be bugs due to using bad index
-	// use transformed
-	private void playItem(int index) {
-		try {
-			playItem(transform().get(index));
-		} catch (IndexOutOfBoundsException ex) {
-			APP.audio.stop();
-		}
+	private void playTransformedIndex(Function<List<PlaylistSong>, Integer> selector) {
+		transform(items -> {
+			try {
+				playItem(items.get(selector.apply(items)), p -> PlaylistManager.playingItemSelector.getNext(p, items));
+			} catch (IndexOutOfBoundsException ex) {
+				APP.audio.stop();
+			}
+		});
+	}
+
+	/** Plays first song on playlist. */
+	public void playTransformedFirst() {
+		playTransformedIndex(songs -> 0);
+	}
+
+	/** Plays last song on playlist. */
+	public void playTransformedLast() {
+		playTransformedIndex(songs -> songs.size()-1);
+	}
+
+	private void playTransformedItem(Function<List<PlaylistSong>, PlaylistSong> selector) {
+		transform(items ->
+			playItem(selector.apply(items), p -> PlaylistManager.playingItemSelector.getNext(p, items))
+		);
 	}
 
 	/** Plays given song. Does nothing if song not on playlist or null. */
-	public void playItem(PlaylistSong song) {
-		playItem(song, p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
+	public void playTransformedItem(PlaylistSong song) {
+		playTransformedItem(items -> song);
 	}
 
 	volatile private PlaylistSong unplayable1st = null;
@@ -405,60 +438,54 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 * played the process repeats until song to play is found or no song is
 	 * playable.
 	 */
-	public void playItem(PlaylistSong song, UnaryOperator<PlaylistSong> altSupplier) {
-		if (song!=null && transform().contains(song)) {
-			runIO(() -> {
-				// we can't play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
-				boolean unplayable = song.isCorrupt();  // potentially blocking
-				if (unplayable) {
-					boolean isNonePlayable = unplayable1st==song && stream().allMatch(PlaylistSong::isCorrupt); // potentially blocking
-					runFX(() -> {
-						if (isNonePlayable) {
-							APP.audio.stop();
-							unplayable1st = null;
+	public void playItem(@Nullable PlaylistSong song, UnaryOperator<PlaylistSong> altSupplier) {
+		if (song!=null) {
+			transform(items -> {
+				if (items.contains(song)) {
+					runIO(() -> {
+						// we can't play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
+						boolean unplayable = song.isCorrupt();  // blocking
+						if (unplayable) {
+							boolean isNonePlayable = unplayable1st==song && stream().allMatch(PlaylistSong::isCorrupt); // blocking
+							runFX(() -> {
+								if (isNonePlayable) {
+									APP.audio.stop();
+									unplayable1st = null;
+								} else {
+									playingSongWrapper.setValue(song);
+									if (unplayable1st==null) unplayable1st = song;  // remember 1st unplayable
+									// try to play next song, note we don't use the supplier as a fallback 2nd time
+									// we use linear 'next time' supplier instead, to make sure we check every
+									// song on a completely unplayable playlist and exactly once. Say provided
+									// one selects random song - we could get into potentially infinite loop or
+									// check songs multiple times or even skip playable songs to check completely!
+									// playItem(alt_supplier.apply(song),alt_supplier);
+									playTransformedItem(altSupplier.apply(song));
+								}
+							});
 						} else {
-							playingSongWrapper.setValue(song);
-							if (unplayable1st==null) unplayable1st = song;  // remember 1st unplayable
-							// try to play next song, note we don't use the supplier as a fallback 2nd time
-							// we use linear 'next time' supplier instead, to make sure we check every
-							// song on a completely unplayable playlist and exactly once. Say provided
-							// one selects random song - we could get into potentially infinite loop or
-							// check songs multiple times or even skip playable songs to check completely!
-							// playItem(alt_supplier.apply(song),alt_supplier);
-							playItem(altSupplier.apply(song));
+							runFX(() -> {
+								unplayable1st = null;
+								PlaylistManager.active = this.id;
+								PlaylistManager.playlists.add(this);
+								PlaylistManager.playlists.forEach(p -> p.playingSongWrapper.setValue(p==this ? song : null));
+								APP.audio.play(song);
+							});
 						}
-					});
-				} else {
-					runFX(() -> {
-						unplayable1st = null;
-						PlaylistManager.active = this.id;
-						PlaylistManager.playlists.add(this);
-						PlaylistManager.playlists.forEach(p -> p.playingSongWrapper.setValue(p==this ? song : null));
-						APP.audio.play(song);
 					});
 				}
 			});
 		}
 	}
 
-	/** Plays first song on playlist. */
-	public void playFirstItem() {
-		playItem(0);
-	}
-
-	/** Plays last song on playlist. */
-	public void playLastItem() {
-		playItem(transform().size() - 1);
-	}
-
 	/** Plays next song on playlist according to its selector logic. */
 	public void playNextItem() {
-		playItem(PlaylistManager.playingItemSelector.getNext(getPlaying(), transform()), p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
+		playItem(PlaylistManager.playingItemSelector.getNext(getPlaying(), transformNow()), p -> PlaylistManager.playingItemSelector.getNext(p, transformNow()));
 	}
 
 	/** Plays previous song on playlist according to its selector logic. */
 	public void playPreviousItem() {
-		playItem(PlaylistManager.playingItemSelector.getPrevious(getPlaying(), transform()), p -> PlaylistManager.playingItemSelector.getPrevious(p, transform()));
+		playItem(PlaylistManager.playingItemSelector.getPrevious(getPlaying(), transformNow()), p -> PlaylistManager.playingItemSelector.getPrevious(p, transformNow()));
 	}
 
 	/**
@@ -498,7 +525,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public void setAndPlay(Stream<? extends Song> songs) {
 		noNull(songs);
 		setAll(songs.map(Song::toPlaylist).collect(toList()));
-		playFirstItem();
+		playTransformedFirst();
 	}
 
 	/**
@@ -514,11 +541,11 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	public void setAndPlayFrom(Stream<? extends Song> songs, int from) {
 		noNull(songs);
 		setAll(songs.map(Song::toPlaylist).collect(toList()));
-		playItem(get(from));
+		playTransformedItem(get(from));
 	}
 
 	public PlaylistSong getNextPlaying() {
-		return PlaylistManager.playingItemSelector.getNext(getPlaying(), transform());
+		return PlaylistManager.playingItemSelector.getNext(getPlaying(), transformNow());
 	}
 
 /* ------------------------------------------------------------------------------------------------------------------ */

@@ -135,7 +135,7 @@ class Cli: CliktCommand(
                   files.all { it.isAudio() } -> {
                      APP.widgetManager.widgets.use<PlaylistFeature>(NEW) {
                         it.playlist.addFiles(files)
-                        it.playlist.playFirstItem()
+                        it.playlist.playTransformedFirst()
                      }
                   }
                   files.all { it.isImage() } -> {

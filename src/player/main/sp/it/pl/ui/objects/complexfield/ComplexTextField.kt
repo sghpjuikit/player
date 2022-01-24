@@ -43,7 +43,7 @@ private typealias ArgValue = Pair<String, () -> Unit>
 /** [TextField], which can be filled with value with the help of [UiStringHelper]. */
 open class ComplexTextField<T>(val parser: UiStringHelper<T>): FlowPane() {
    /** Behavior executing when value changes. */
-   val onValueChange = Handler1<T?>()
+   val onValueChange = Handler1<T>()
    /** Whether user can (indirectly) edit [valueText]. */
    val isEditable = v(true)
    /** Text value representing the value. Read-write */

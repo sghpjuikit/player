@@ -7,16 +7,16 @@ All notable changes to this project will be documented in this file. Format base
 - Implement application locale settings
 - Implement locale-specific formatting for data in various parts of the application
 - Implement **Node** widget object instantiation error notification
-- Implement window move hint cursor - show MOVE cursor when ALT is pressed
-- Implement **FreeFormContainer** window move hint cursor - show MOVE cursor in layout mode
-- Implement **FreeFormContainer** window styling - show gap between windows
+- Implement window move hint cursor - show **MOVE** cursor when **ALT** is pressed
+- Implement **FreeForm** container window move hint cursor - show **MOVE** cursor in layout mode
+- Implement **FreeForm** container window styling (show gap between windows)
 - Implement more functors (word/sentence splitting, list operators)
 - Improve tables
-  - Sort performance (up to 50 times faster)
-  - Loading performance (sorting does not block ui now)
+  - Sorting performance (up to 50 times faster)
+  - Widget/ui loading performance (sorting does not block ui now)
 - Improve component controls
   - Remove lock icon from component control header icons
-  - Expose **ContainerSwitch** ui controls via ui, like every other container
+  - Expose **Switch** container ui controls via ui, like every other container
   - More Component context menu entries
   - unify **Custom** widget menu with any widget controls header icons menu
 - Improve context menus
@@ -24,9 +24,9 @@ All notable changes to this project will be documented in this file. Format base
   - Unify Custom widget menu with widget controls header icons menu
 - Improve song drag & drop UX - do not show placeholder for song tables
 - Improve component drag & drop UX
-  - Fix **FreeFormContainer** component swap closing component sometimes
+  - Fix **FreeForm** container window closing sometimes after swapping content
   - Fix drag & drop placeholder sometimes at wrong position
-  - Fix **FreeFormContainer** component move preventing component drag
+  - Fix **FreeForm** container window move preventing component drag
   - Fix incorrect placeholder size sometimes
   - Avoid fading out content when placeholder does not cover entire area
 - Improve editor constraint messages with values (uses human-readable converter)
@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file. Format base
   - Add max cell columns settings
 - Improve widget **Image**
   - Make focusable
+- Improve & refactor code, update dependencies
 - Improve widget **Function Viewer**
   - Handle very large numbers correctly
   - Add validations
@@ -41,8 +42,43 @@ All notable changes to this project will be documented in this file. Format base
   - Use human-readable text for numbers where possible (avoids scientific notation)
   - Hide coordinates label when mouse is not hovering
 - Fix `DateClockDigitalIos` crashing for some dates
-- Fix slow selecting lots of items in table (original JavaFX bug)
+- Fix slow selecting of lots of items in table, such as when **CTRL + A** is used (original JavaFX bug)
 - Fix song group table showing incorrect selection statistics sometimes
+
+I took a little break from coding, but I am back. This version brings major improvements, so I am bumping up to **3.0.0**.
+
+First, the project is now finally using **Kotlin**/**Java** toolchain, which automates **JDK** setup into a build.
+Yes, it means the build does not require any JDK installed!
+So developers can now simply clone the repository and build/run through **Gradle** with no extra steps, without leaving **CLI**.
+The build is much simplified, as most of the Java checking/setup has been removed.
+Previously, migrating **Java** was a headache, but not anymore. I plan to use **Java 17**, a much-needed upgrade from **12**.
+
+As for the application, several areas have received major upgrade.
+
+Tables are the heart of the library as well as pride of this player.
+This version finally fixes slow selecting, which could in large tables take up to several minutes!
+
+Table sorting has been identified to cause problems, such as taking up to several seconds in some scenarios!
+After some refactor, the speedup has turned out to be huge, for **Song Table (Big)**, which is the view-everything table, the reduction was 2.5s -> 50ms.
+50ms still blocks ui for 3 frames (on 60Hz display), enough to cause ui loading problems, particularly during animations.
+UI loading in general is problematic, because the single-threaded nature of UI frameworks will not allow for optimization.
+But, I managed to make sorting for all tables asynchronous. This was tricky because in some scenarios the application must not expect the items in correct order.
+But now table performance does not degrade with item count. UI responsiveness when table is loading or sorting is now 60hz smooth!
+
+I also simplified widget/container controls. There is fewer icons and much better menu.
+The changes provided a noticeable performance gain while moving/zooming the UI, which is now 60Hz smooth as well.
+In edit mode, the layout can be traversed by **RMB**/**LMB**, and now it includes **Switch** container, which, as top container, was not previously accessible.
+
+**FreeForm** container, which provides windows-in-window, can be used in screen overlays or bottom-most screen overlays.
+Therefore, proper functioning is absolutely integral. After more use/testing several problems have been identified.
+With this update, it has become much easier to use thx to improved styling and drag&drop, which it relies on in lots of situations.
+This component is complicated, and I will continue to improve it.
+
+Besides these changes, many smaller improvements and fixes have been made.
+Both the project and the application have never been in better state.
+
+For the future, I have no exact plans yet. I will continue to go through the backlog - it contains lots of non-trivial ideas.
+However, the priority will also be to keep improving UX.
 
 ## [2.1.0] 2021 09 26
 

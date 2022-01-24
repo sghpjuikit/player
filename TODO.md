@@ -23,7 +23,6 @@
 - Improve **kotlinc**/**vlc**/**mpeg** setup should not be `Future`, but restartable `Task`
 - `ObsListConfig.setDefaultValue` not removing disabled items
 - Fix manual widget loading not rebinding widget inputs properly
-- Write application documentation
 - Implement `app.stateful` on/off config
 - Implement data info tooltip progress
 - Drag & drop playlist file support in audio
@@ -117,6 +116,15 @@
   - https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
 - improve process handling  
   Look into [NuProcess](https://github.com/brettwooldridge/NuProcess)
+- Improve I/O to support cross-window  
+  Challenging. See [issue](/TODO-ISSUES.md#io-ui)
+- Write documentation
+  See [issue](/TODO-ISSUES.md#documentation)
+- Support ComboBox search  
+  Challenging. See [issue](/TODO-ISSUES.md#searchable-combobox)
+- Use less/sass/kotlin dsl for css  
+  Too much work. See [issue](/TODO-ISSUES.md#styling)
+  
 
 ## Bugs
 

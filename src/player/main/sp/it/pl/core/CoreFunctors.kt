@@ -340,12 +340,12 @@ object CoreFunctors: Core {
          add("URI", type<Song>(), type<URI>()) { it.uri }
 
          add("Size", type<Collection<*>>(), type<Int>()) { it.size }
-         add("Is empty", type<Collection<*>>(), type<Int>()) { it.isEmpty() }
+         add("Is empty", type<Collection<*>>(), type<Boolean>()) { it.isEmpty() }
          add("Element at", type<List<*>>(), type<Any?>(), p<Int>(0)) { it, i -> it[i] }
          add("Distinct", type<Iterable<*>>(), type<Set<*>>()) { it.toHashSet() }
          add("Histogram", type<Iterable<*>>(), type<Map<*, Int>>()) { it.groupBy { it }.mapValues { (_,v) -> v.size } }
          add("Size", type<Map<*, *>>(), type<Int>()) { it.size }
-         add("Is empty", type<Map<*, *>>(), type<Int>()) { it.isEmpty() }
+         add("Is empty", type<Map<*, *>>(), type<Boolean>()) { it.isEmpty() }
 
          addComparisons(type<Byte>(), 0.toByte())
          addComparisons(type<UByte>(), 0.toUByte())

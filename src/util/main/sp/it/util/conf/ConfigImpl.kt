@@ -44,27 +44,35 @@ import sp.it.util.type.jvmErasure
 
 interface ConfigImpl {
 
-   abstract class ConfigBase<T> constructor(
-      override val type: VType<T>,
-      override val name: String,
-      override val nameUi: String,
-      override val defaultValue: T,
-      override val group: String,
-      override val info: String,
-      override val isEditable: EditMode
-   ): Config<T>() {
+   abstract class ConfigBase<T>: Config<T> {
 
+      final override val type: VType<T>
+      final override val name: String
+      final override val nameUi: String
+      final override val defaultValue: T
+      final override val group: String
+      final override val info: String
+      final override val isEditable: EditMode
       private var constraintsImpl: HashSet<Constraint<T>>? = null
-
-      override val constraints
+      final override val constraints
          get() = constraintsImpl.orEmpty()
 
-      constructor(type: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, value: T, group: String): this(type, name, c.name.ifEmpty { name }, value, group, c.info, c.editable) {
-         constraintsImpl = if (constraints.isEmpty()) null else HashSet(constraints)
+      constructor(type: VType<T>, name: String, nameUi: String, defaultValue: T, group: String, info: String, isEditable: EditMode): super() {
+         this.type = type
+         this.name = name
+         this.nameUi = nameUi
+         this.defaultValue = defaultValue
+         this.group = group
+         this.info = info
+         this.isEditable = isEditable
 
          type.jvmErasure.companionObjectInstance.asIf<UnsealedEnumerator<T>>()?.ifNotNull {
             addConstraints(ValueUnsealedSet { it.enumerateUnsealed() })
          }
+      }
+
+      constructor(type: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, value: T, group: String): this(type, name, c.name.ifEmpty { name }, value, group, c.info, c.editable) {
+         addConstraints(constraints)
       }
 
       @SafeVarargs

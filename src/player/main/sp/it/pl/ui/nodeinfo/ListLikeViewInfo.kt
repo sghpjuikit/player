@@ -12,7 +12,7 @@ import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.pluralUnit
 
 /**
- * Provides information list-like view's items and item selection selection.
+ * Provides information list-like view's items and item selection.
  *
  * @param <E> type of element in the list
  * @param <VIEW> type of view that has list of elements
@@ -113,7 +113,7 @@ class GridInfo<E: Any, F: Any> @JvmOverloads constructor(node: Labeled, bindable
 
    override fun bind(bindable: GridView<E, F>) {
       unbind()
-         val listAll = bindable.itemsRaw
+         val listAll = bindable.itemsFiltered
          val listSelected = bindable.selectedItem
          updateText = { updateTextImpl(listAll, bindable.selectedItems.toList()) }
 

@@ -5,6 +5,7 @@ import java.util.function.Consumer
 import java.util.stream.Stream
 import javafx.event.Event
 import javafx.geometry.Pos
+import javafx.scene.control.ComboBox
 import javafx.scene.control.TextArea
 import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.V
@@ -15,14 +16,10 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.util.Callback
 import kotlin.streams.toList
-import sp.it.pl.core.Parser
-import sp.it.pl.core.ParserArg
-import sp.it.pl.core.ParserOr
-import sp.it.pl.core.UiStringHelper
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.itemnode.ListAreaNode.Transformation
 import sp.it.pl.ui.itemnode.ListAreaNode.TransformationRaw
-import sp.it.pl.ui.objects.complexfield.ComplexTextField
+import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.util.Sort
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.Sort.DESCENDING
@@ -65,11 +62,13 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.sizes
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.suppressingAlways
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.zip
 import sp.it.util.type.VType
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.isSubclassOf

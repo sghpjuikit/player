@@ -1,8 +1,13 @@
 package sp.it.pl.ui.pane
 
 import de.jensd.fx.glyphs.GlyphIcons
+import javafx.event.ActionEvent
+import javafx.event.Event
 import javafx.scene.Node
+import javafx.scene.control.MenuItem
+import javafx.stage.Window
 import kotlin.reflect.KClass
+import sp.it.pl.main.APP
 import sp.it.pl.ui.pane.GroupApply.FOR_ALL
 import sp.it.pl.ui.pane.GroupApply.FOR_EACH
 import sp.it.pl.ui.pane.GroupApply.NONE
@@ -13,6 +18,7 @@ import sp.it.util.collections.getElementClass
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.Util.ISNT
+import sp.it.util.functional.asIf
 import sp.it.util.type.VType
 import sp.it.util.type.type
 
@@ -51,9 +57,15 @@ fun futureUnwrapOrThrow(o: Any?): Any? = when (o) {
 }
 
 private typealias Test<T> = (T) -> Boolean
-private typealias Act<T> = (T) -> Unit
+private typealias Act<T> = ActContext.(T) -> Unit
 
-interface ConvertingConsumer<T>: Act<T>
+data class ActContext(val window: Window?, val a: ActionPane?,  val node: Node?, val event: Event?) {
+   constructor(window: Window): this(window, null, null, null)
+   constructor(node: Node): this(node.scene?.window, null, node, null)
+   constructor(event: ActionEvent): this(event.source.asIf<MenuItem>()?.parentPopup?.ownerWindow, null, event.source.asIf<MenuItem>()?.parentPopup?.ownerNode, event)
+
+   val apOrApp: ActionPane get() = a ?: APP.ui.actionPane.orBuild
+}
 
 class ComplexActionData<R, T> {
    @JvmField val gui: (T) -> Node
@@ -63,7 +75,6 @@ class ComplexActionData<R, T> {
       this.gui = gui
       this.input = input
    }
-
 }
 
 /** Action. */
@@ -91,7 +102,6 @@ class ActionData<C, T> {
       this.condition = condition
       this.isLong = isLong
       this.action = action
-      if (action is ConvertingConsumer<*>) preventClosing = true
    }
 
    fun preventClosing() = apply {
@@ -117,14 +127,15 @@ class ActionData<C, T> {
    }
 
    @Suppress("UNCHECKED_CAST")
-   operator fun invoke(data: Any?) {
+   operator fun invoke(context: ActContext, data: Any?) {
+      println(context)
       when (groupApply) {
-         FOR_ALL -> action(collectionWrap(data) as T)
+         FOR_ALL -> context.action(collectionWrap(data) as T)
          FOR_EACH -> when (data) {
-               is Collection<*> -> (data as Collection<T>).forEach(action)
-               else -> action(data as T)
+               is Collection<*> -> (data as Collection<T>).forEach { context.action(it) }
+               else -> context.action(data as T)
          }
-         NONE -> action(data as T)
+         NONE -> context.action(data as T)
       }
    }
 

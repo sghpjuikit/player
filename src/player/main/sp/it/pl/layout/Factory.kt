@@ -122,7 +122,7 @@ class TemplateFactory<C: Component>(override val name: String, private val suppl
 class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
    override val name = launcher.nameWithoutExtension
 
-   override suspend fun create() = APP.windowManager.instantiateComponent(launcher)!!
+   override suspend fun create() = APP.windowManager.instantiateComponent(launcher)!!.apply { factoryDeserializing = this@DeserializingFactory }
    override fun toString() = "${javaClass.simpleName} $name $launcher"
 }
 

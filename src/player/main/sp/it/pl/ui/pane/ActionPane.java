@@ -38,8 +38,6 @@ import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.dev.DebugKt;
-import sp.it.util.functional.Functors.F1;
-import sp.it.util.functional.Try;
 import sp.it.util.type.ClassName;
 import sp.it.util.type.InstanceDescription;
 import sp.it.util.type.InstanceName;
@@ -493,7 +491,7 @@ public class ActionPane extends OverlayPane<Object> {
 	private void runAction(ActionData<?,?> action, Object data) {
 		if (!action.isLong) {
 			try {
-				action.invoke(data);
+				action.invoke(new ActContext(this), data);
 				doneHide(action);
 			} catch (Throwable e) {
 				DebugKt.logger(ActionPane.class).error("Running action={} failed", action.name, e);
@@ -502,7 +500,7 @@ public class ActionPane extends OverlayPane<Object> {
 			fut(data)
 				.useBy(FX, it -> actionProgress.setProgress(-1))
 				// run action and obtain output
-				.useBy(NEW, action::invoke)
+				.useBy(NEW, it -> action.invoke(new ActContext(this), it))
 				// 1) the actions may invoke some action on FX thread, so we give it some time by waiting a bit
 				// 2) very short actions 'pretend' to be busy for a while
 				.thenWait(millis(150))
@@ -520,13 +518,6 @@ public class ActionPane extends OverlayPane<Object> {
 		iconPaneComplex.getParent().getChildrenUnmodifiable().forEach(n -> n.setVisible(false));
 		iconPaneComplex.setVisible(true);
 		iconPaneComplex.getChildren().setAll(insteadIcons.get());
-	}
-
-	public <I> ConvertingConsumer<? super I> converting(F1<? super I,Try<?,?>> converter) {
-		return d -> {
-			converter.apply(d).ifOkUse(result -> runFX(() -> ActionPane.this.show(result)));
-			return Unit.INSTANCE;
-		};
 	}
 
 }

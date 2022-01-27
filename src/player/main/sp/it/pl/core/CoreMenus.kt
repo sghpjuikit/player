@@ -79,6 +79,7 @@ import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized
 import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.pl.ui.objects.window.stage.clone
 import sp.it.pl.ui.objects.window.stage.openWindowSettings
+import sp.it.pl.ui.pane.ActContext
 import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.access.toggle
 import sp.it.util.access.vn
@@ -123,8 +124,8 @@ object CoreMenus: Core {
             { value ->
                ActionsPaneGenericActions.actionsAll[kClass].orEmpty().asSequence().filter { it.invokeDoable(value) }.map { action ->
                   menuItem(action.name, action.icon.toCmUi()) {
-                     if (action.isLong) runIO { action.invoke(value) }
-                     else action(value)
+                     if (action.isLong) runIO { action(ActContext(it), value) }
+                     else action(ActContext(it), value)
                   }
                }
             }

@@ -1,5 +1,6 @@
 package sp.it.pl.layout
 
+import java.io.File
 import java.util.UUID
 import javafx.beans.InvalidationListener
 import javafx.beans.property.BooleanProperty
@@ -9,8 +10,10 @@ import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import sp.it.pl.layout.Widget.LoadType.AUTOMATIC
 import sp.it.pl.main.APP
+import sp.it.pl.main.toS
 import sp.it.util.access.V
 import sp.it.util.access.v
+import sp.it.util.functional.orNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -39,6 +42,15 @@ sealed class Component(state: ComponentDb) {
       set(value) {
          field = value
          lockedUnder.init(value)
+      }
+
+   var factoryDeserializing: DeserializingFactory?
+      get() {
+         return APP.converter.general.ofS<File?>(properties["factory"].toString()).orNull()
+            ?.let { f -> APP.widgetManager.factories.getComponentFactories().filterIsInstance<DeserializingFactory>().find { it.launcher==f } }
+      }
+      set(value) {
+         properties["factory"] = value?.launcher.toS()
       }
 
    init {

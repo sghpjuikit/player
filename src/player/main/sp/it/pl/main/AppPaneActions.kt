@@ -33,7 +33,6 @@ import sp.it.pl.layout.feature.Opener
 import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.layout.loadComponentFxwlJson
-import sp.it.pl.layout.openInConfigured
 import sp.it.pl.main.FileExtensions.fxwl
 import sp.it.pl.main.Widgets.SONG_TAGGER
 import sp.it.pl.plugin.impl.WallpaperChanger
@@ -46,9 +45,9 @@ import sp.it.pl.ui.pane.ConfigPane
 import sp.it.pl.ui.pane.GroupApply.FOR_ALL
 import sp.it.pl.ui.pane.fastAction
 import sp.it.pl.ui.pane.fastColAction
+import sp.it.pl.ui.pane.register
 import sp.it.pl.ui.pane.slowAction
 import sp.it.pl.ui.pane.slowColAction
-import sp.it.pl.ui.pane.register
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
@@ -58,6 +57,7 @@ import sp.it.util.async.FX
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runGet
 import sp.it.util.async.launch
+import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
 import sp.it.util.collections.map.KClassListMap
@@ -73,7 +73,6 @@ import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.setCreated
-import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
@@ -127,7 +126,7 @@ object ActionsPaneGenericActions {
 
 
 fun ActionPane.initGenericActions(): ActionPane = also { ap ->
-   ActionsPaneGenericActions.actionsAll.forEach { (kclass, actions) -> actions.forEach { ap.register<Any>(kclass.asIs(), it.asIs()) } }
+   ActionsPaneGenericActions.actionsAll.forEach { (kClass, actions) -> actions.forEach { ap.register<Any>(kClass.asIs(), it.asIs()) } }
 }
 
 @Suppress("RemoveExplicitTypeArguments")
@@ -140,7 +139,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Sets the selected data as input.",
          IconMD.DATABASE,
          { it !is App && it !is AppHelp && it !is AppOpen },
-         ap.converting { Try.ok(it) }
+         { apOrApp.show(it) }
       ).preventClosing(),
       fastColAction(
          "Open in Converter",
@@ -157,24 +156,25 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
       fastAction("Open help", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() },
    )
    ap.register<AppOpen>(
-      fastAction(
+      fastAction<AppOpen>(
          "Select file",
          "Open file chooser to select files",
          IconUN(0x1f4c4),
-         ap.converting { chooseFiles("Select file...", null, ap.scene?.window) }
-      ),
-      fastAction(
+         { chooseFiles("Select file...", null, window).ifOk(apOrApp::show) }
+      ).preventClosing(),
+      fastAction<AppOpen>(
          "Select directory",
          "Open file chooser to select directory",
          IconUN(0x1f4c1),
-         ap.converting { chooseFile("Select directory...", DIRECTORY, null, ap.scene?.window) }
-      ),
+         { chooseFile("Select directory...", DIRECTORY, null, window).ifOk(apOrApp::show) }
+      ).preventClosing(),
       fastAction(
          "Open widget",
          "Open file chooser to open an exported widget",
          IconMA.WIDGETS,
          {
-            chooseFile("Open widget...", FILE, APP.location.user.layouts, ap.scene?.window, ExtensionFilter("Component", "*.fxwl"))
+
+            chooseFile("Open widget...", FILE, APP.location.user.layouts, window, ExtensionFilter("Component", "*.fxwl"))
                .ifOk { FX.launch { APP.windowManager.launchComponent(it) } }
          }
       ),
@@ -183,7 +183,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open file chooser to find a skin",
          IconMA.BRUSH,
          {
-            chooseFile("Open skin...", FILE, APP.location.skins, ap.scene?.window, ExtensionFilter("Skin", "*.css"))
+            chooseFile("Open skin...", FILE, APP.location.skins, window, ExtensionFilter("Skin", "*.css"))
                .ifOk { APP.ui.setSkin(it) }
          }
       ),
@@ -192,58 +192,18 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Open file chooser to find a audio files",
          IconMD.MUSIC_NOTE,
          {
-            chooseFiles("Open audio...", APP.locationHome, ap.scene?.window, audioExtensionFilter())
+            chooseFiles("Open audio...", APP.locationHome, window, audioExtensionFilter())
                .map { runLater { APP.ui.actionPane.orBuild.show(it) } }   // may auto-close on finish, delay show()
          }
       )
    )
    ap.register<Any>(
-      fastAction(
+      fastAction<Any>(
          "Detect content",
          "Tries to detect and convert the content of the text into more specific one",
          IconFA.SEARCH_PLUS,
-         ap.converting { Try.ok(it.detectContent()) }
-      )
-   )
-   ap.register<Component>(
-      fastAction(
-         "Export",
-         "Creates a launcher for this component with its current settings. \n" +
-            "Opening the launcher with this application will open this component with current settings " +
-            "as if it were a standalone application.",
-         IconMD.EXPORT,
-         { w ->
-            saveFile("Export to...", APP.location.user.layouts, w.name, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
-               .ifOk { w.exportFxwl(it) }
-         }
-      )
-   )
-   ap.register<Widget>(
-      fastAction(
-         "Export default",
-         "Creates a launcher for this component with no settings. \n" +
-            "Opening the launcher with this application will open this component with no settings " +
-            "as if it were a standalone application. ",
-         IconMD.EXPORT,
-         { w ->
-            saveFile("Export to...", APP.location.user.layouts, w.name, ap.scene.window, ExtensionFilter("Component", "*.fxwl"))
-               .ifOk { w.exportFxwlDefault(it) }
-         }
-      ),
-      fastAction(
-         "Use as default",
-         "Uses settings of this widget as default settings when creating widgets of this type. This " +
-            "overrides the default settings of the widget set by the developer. For using multiple widget " +
-            "configurations at once, use 'Export' instead.",
-         IconMD.SETTINGS_BOX,
-         { it.storeDefaultConfigs() }
-      ),
-      fastAction(
-         "Clear default",
-         "Removes any overridden default settings for this widget type. New widgets will start with no settings.",
-         IconMD.SETTINGS_BOX,
-         { it.clearDefaultConfigs() }
-      )
+         { apOrApp.show(it.detectContent()) }
+      ).preventClosing()
    )
    ap.register<Song>(
       fastColAction(
@@ -345,12 +305,15 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          { it.isM3uPlaylist() },
          { f -> PlaylistManager.use { it.setAndPlay(readM3uPlaylist(f)) } }
       ),
-      slowColAction(
+      slowColAction<File>(
          "Find files",
          "Looks for files recursively in the the data.",
          IconMD.FILE_FIND,
-         ap.converting { fs -> Try.ok(FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()) }
-      ),
+         { fs ->
+            val rfs = FileFlatter.ALL.flatten(fs).map { CachingFile(it) }.toList()
+            runFX { apOrApp.show(rfs) }
+         }
+      ).preventClosing(),
       slowColAction<File>(
          "Add to library",
          "Add songs to library. The process is customizable and it is also possible to edit the songs in the tag editor.",

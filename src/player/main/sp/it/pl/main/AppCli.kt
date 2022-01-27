@@ -29,6 +29,7 @@ import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.PlaylistFeature
 import sp.it.pl.main.FileExtensions.fxwl
+import sp.it.pl.ui.pane.ActContext
 import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.type.MimeExt.Companion.md
@@ -146,7 +147,7 @@ class Cli: CliktCommand(
                      files.forEach { APP.windowManager.launchComponent(it) }
                   }
                   files.all { it hasExtension md } -> {
-                     files.forEach { APP.actions.openMarkdownFile.action(it) }
+                     files.forEach { APP.actions.openMarkdownFile.action(ActContext(null, null, null, null), it) }
                   }
                   else -> {
                      APP.ui.actionPane.orBuild.show(files)

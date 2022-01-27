@@ -15,6 +15,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color.BLACK
+import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Screen
 import javax.imageio.ImageIO
 import mu.KLogging
@@ -28,6 +29,8 @@ import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.controller.Controller
+import sp.it.pl.layout.exportFxwl
+import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.TextDisplayFeature
@@ -94,6 +97,7 @@ import sp.it.util.reactive.sync1If
 import sp.it.util.system.browse
 import sp.it.util.system.open
 import sp.it.util.system.runCommand
+import sp.it.util.system.saveFile
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.bgr
@@ -313,7 +317,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    @IsAction(name = "Open web dictionary", info = "Opens website dictionary for given word", keys = "CTRL + SHIFT + E", global = true)
    fun openDictionary() {
       configureString("Look up in dictionary...", "Word") {
-         uri("http://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
+         uri("https://www.thefreedictionary.com/${urlEncodeUtf8(it)}").browse()
       }
    }
 
@@ -388,7 +392,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       failIfFxThread()
 
       if (it.isFileBased()) {
-         printAllAudioFileMetadata(it.getFile()!!)
+         printAllAudioFileMetadata(this, it.getFile()!!)
       } else {
          val text = "Metadata of ${it.uri}\n<only supported for files>"
          runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
@@ -479,6 +483,53 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       w.openInConfigured()
    }
 
+   val componentExport = fastAction<Component>(
+      "Export",
+      "Creates a launcher for this component with its current settings.\n" +
+         "Opening the launcher with this application will open this component with current settings",
+      IconMD.EXPORT,
+      { w ->
+         saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
+            .ifOk { w.exportFxwl(it) }
+      }
+   )
+
+   val componentExportedSave = fastAction<Component>(
+      "Save",
+      "Exports this component with its current settings to the launcher file it was loaded from.",
+      IconMD.EXPORT,
+      { w -> w.factoryDeserializing!=null },
+      { w -> w.exportFxwl(w.factoryDeserializing!!.launcher) }
+   )
+
+   val widgetExportDefault = fastAction<Widget>(
+      "Export default",
+      "Creates a launcher for this component with no settings.\n" +
+         "Opening the launcher with this application will open this component with no settings " +
+         "as if it were a standalone application. ",
+      IconMD.EXPORT,
+      { w ->
+         saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
+            .ifOk { w.exportFxwlDefault(it) }
+      }
+   )
+
+   val widgetUseAsDefault = fastAction<Widget>(
+      "Use as default",
+      "Uses settings of this widget as default settings when creating widgets of this type. This " +
+         "overrides the default settings of the widget set by the developer. For using multiple widget " +
+         "configurations at once, use 'Export' instead.",
+      IconMD.SETTINGS_BOX,
+      { it.storeDefaultConfigs() }
+   )
+
+   val widgetClearDefault = fastAction<Widget>(
+      "Clear default",
+      "Removes any overridden default settings for this widget type. New widgets will start with no settings.",
+      IconMD.SETTINGS_BOX,
+      { it.clearDefaultConfigs() }
+   )
+
    val convertImage = fastColAction<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, { it.isImage12Monkey() }) { ii ->
       when (ii.size) {
          0 -> {}
@@ -493,7 +544,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
                val preserveTimeModified by c(true).def(name = "Preserve ${FileField.TIME_MODIFIED}")
             }.configure("Convert image") {
                runIO {
-                  ImageIO.write(ImageIO.read(it.fileFrom), "png", it.fileTo);
+                  ImageIO.write(ImageIO.read(it.fileFrom), "png", it.fileTo)
                   if (it.preserveTimeCreated) it.fileFrom.creationTime().orNull().ifNotNull { t -> it.fileTo.setCreated(t) }
                   if (it.preserveTimeModified) it.fileTo.setLastModified(it.fileFrom.lastModified())
                }
@@ -510,7 +561,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
                runIO {
                   ii.forEach { i ->
                      runTry {
-                        ImageIO.write(ImageIO.read(i), suffix, it.fileTo / "${i.nameWithoutExtension}.$suffix");
+                        ImageIO.write(ImageIO.read(i), suffix, it.fileTo / "${i.nameWithoutExtension}.$suffix")
                         if (it.preserveTimeCreated) i.creationTime().orNull().ifNotNull { t -> it.fileTo.setCreated(t) }
                         if (it.preserveTimeModified) it.fileTo.setLastModified(i.lastModified())
                      }

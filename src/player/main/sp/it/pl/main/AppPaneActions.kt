@@ -43,6 +43,7 @@ import sp.it.pl.ui.pane.ActionData
 import sp.it.pl.ui.pane.ActionPane
 import sp.it.pl.ui.pane.ComplexActionData
 import sp.it.pl.ui.pane.ConfigPane
+import sp.it.pl.ui.pane.GroupApply.FOR_ALL
 import sp.it.pl.ui.pane.fastAction
 import sp.it.pl.ui.pane.fastColAction
 import sp.it.pl.ui.pane.slowAction
@@ -86,6 +87,7 @@ import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
+import sp.it.util.type.argOf
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.raw
 import sp.it.util.ui.hBox
@@ -105,7 +107,13 @@ object ActionsPaneGenericActions {
       APP.actions::class.memberProperties.forEach {
          if (it.returnType.isSubtypeOf<ActionData<*,*>>())
             it.asIs<KProperty1<AppActions, ActionData<Any?,*>>>().get(APP.actions).net {
-               actionsAll.accumulate(it.type.raw, it)
+               actionsAll.accumulate(
+                  when (it.groupApply) {
+                     FOR_ALL -> it.type.type.argOf(Collection::class, 0).type?.raw ?: Any::class
+                     else -> it.type.raw
+                  },
+                  it
+               )
             }
       }
 

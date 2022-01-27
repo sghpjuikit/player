@@ -72,6 +72,7 @@ import sp.it.util.file.FileType.FILE
 import sp.it.util.file.Util.getCommonRoot
 import sp.it.util.file.hasExtension
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.setCreated
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -397,14 +398,12 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          IconFA.CLOCK_ALT,
          {
             it.forEach {
-               val p = it.toPath()
                try {
                   val time = Files.readAttributes(it.toPath(), BasicFileAttributes::class.java)?.lastModifiedTime()!!
-                  Files.setAttribute(p, "creationTime", time)
+                  it.setCreated(time).ifError { throw it }
                } catch (e: Throwable) {
                   e.printStackTrace()
-                  // TODO:
-//                  logger.error(e) { "Failed to change the creation time to last modified time file=$it" }
+                  // TODO: logger.error(e) { "Failed to change the creation time to last modified time file=$it" }
                }
             }
          }

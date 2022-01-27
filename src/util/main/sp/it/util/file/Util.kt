@@ -1,15 +1,9 @@
 package sp.it.util.file
 
-import mu.KotlinLogging
-import sp.it.util.dev.Blocks
-import sp.it.util.dev.fail
-import sp.it.util.functional.Try
-import sp.it.util.functional.and
-import sp.it.util.functional.ifFalse
-import sp.it.util.functional.runTry
 import java.io.File
 import java.io.FileFilter
 import java.io.FilenameFilter
+import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URI
 import java.net.URISyntaxException
@@ -17,7 +11,16 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.FileTime
 import java.util.zip.ZipFile
+import mu.KotlinLogging
+import sp.it.util.dev.Blocks
+import sp.it.util.dev.fail
+import sp.it.util.functional.Try
+import sp.it.util.functional.and
+import sp.it.util.functional.ifFalse
+import sp.it.util.functional.runTry
 
 private val logger = KotlinLogging.logger { }
 
@@ -294,5 +297,22 @@ fun File.unzip(target: File, pathTransformer: (String) -> String = { it }) {
             }
          }
       }
+   }
+}
+
+fun File.creationTime(): Try<FileTime?, IOException> {
+   return try {
+      Try.ok(Files.readAttributes(toPath(), BasicFileAttributes::class.java)?.lastModifiedTime())
+   } catch (e: IOException) {
+      Try.error(e)
+   }
+}
+
+fun File.setCreated(time: FileTime): Try<Nothing?, IOException> {
+   return try {
+      Files.setAttribute(toPath(), "creationTime", time)
+      Try.ok()
+   } catch (e: IOException) {
+      Try.error(e)
    }
 }

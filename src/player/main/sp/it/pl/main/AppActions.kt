@@ -16,6 +16,7 @@ import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.Screen
+import javax.imageio.ImageIO
 import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Song
@@ -46,30 +47,46 @@ import sp.it.pl.ui.pane.fastAction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.pl.ui.pane.fastColAction
 import sp.it.pl.ui.pane.slowAction
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.Sort
 import sp.it.util.Util.urlEncodeUtf8
+import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.ActionManager
 import sp.it.util.action.ActionRegistrar
 import sp.it.util.action.IsAction
 import sp.it.util.async.FX
 import sp.it.util.async.launch
 import sp.it.util.async.runFX
+import sp.it.util.async.runIO
+import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.c
+import sp.it.util.conf.def
+import sp.it.util.conf.values
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
+import sp.it.util.file.creationTime
+import sp.it.util.file.div
 import sp.it.util.file.hasExtension
+import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.setCreated
 import sp.it.util.file.type.MimeExt
+import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.mimeType
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -460,6 +477,48 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    val componentClone = fastAction<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w ->
       w.openInConfigured()
+   }
+
+   val convertImage = fastColAction<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, { it.isImage12Monkey() }) { ii ->
+      when (ii.size) {
+         0 -> {}
+         1 -> {
+            object: ConfigurableBase<Any?>() {
+               var i = ii.first()
+               val fileFrom by c(i).def(editable = EditMode.NONE)
+               val typeFrom by c(i.mimeType()).def(editable = EditMode.NONE)
+               var fileTo by c(File(i.absolutePath.substringBeforeLast(".") + ".png"))
+               val typeTo by c(MimeType.`image∕png`).def(editable = EditMode.NONE)
+               val preserveTimeCreated by c(true).def(name = "Preserve ${FileField.TIME_CREATED}")
+               val preserveTimeModified by c(true).def(name = "Preserve ${FileField.TIME_MODIFIED}")
+            }.configure("Convert image") {
+               runIO {
+                  ImageIO.write(ImageIO.read(it.fileFrom), "png", it.fileTo);
+                  if (it.preserveTimeCreated) it.fileFrom.creationTime().orNull().ifNotNull { t -> it.fileTo.setCreated(t) }
+                  if (it.preserveTimeModified) it.fileTo.setLastModified(it.fileFrom.lastModified())
+               }
+            }
+         }
+         else -> {
+            object: ConfigurableBase<Any?>() {
+               var fileTo by c(ii.first().parentDirOrRoot)
+               var typeTo by c(MimeType.`image∕png`).values(listOf(MimeType.`image∕png`, MimeType.`image∕jpeg`))
+               val preserveTimeCreated by c(true).def(name = "Preserve ${FileField.TIME_CREATED}")
+               val preserveTimeModified by c(true).def(name = "Preserve ${FileField.TIME_MODIFIED}")
+            }.configure("Convert image") {
+               val suffix = it.typeTo.extension!!
+               runIO {
+                  ii.forEach { i ->
+                     runTry {
+                        ImageIO.write(ImageIO.read(i), suffix, it.fileTo / "${i.nameWithoutExtension}.$suffix");
+                        if (it.preserveTimeCreated) i.creationTime().orNull().ifNotNull { t -> it.fileTo.setCreated(t) }
+                        if (it.preserveTimeModified) it.fileTo.setLastModified(i.lastModified())
+                     }
+                  }
+               }
+            }
+         }
+      }
    }
 
    fun browseMultipleFiles(files: Sequence<File>) {

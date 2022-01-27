@@ -156,7 +156,7 @@ inline fun <reified T> fastAction(icon: GlyphIcons, action: Action) = fastAction
 inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, ISNT, action)
 
 /** [fastAction] that consumes collection input - its input type is collection of its type. */
-inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.none(constriction) }, action)
+inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.all(constriction) }, action)
 
 /** [ActionData] that executes asynchronously - receives a future, processes the data and returns it. */
 inline fun <C, reified T> slowActionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, noinline constriction: Test<T>, noinline action: Act<T>) = ActionData<C, T>(name, type(), description, icon, groupApply, constriction, true, action)
@@ -174,7 +174,7 @@ inline fun <reified T> slowAction(name: String, description: String, icon: Glyph
 inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, ISNT, action)
 
 /** [slowActionBase] that processes collection input - its input type is collection of its type. */
-inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.none(constriction) }, action)
+inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.all(constriction) }, action)
 
 enum class GroupApply {
    FOR_EACH, FOR_ALL, NONE

@@ -3,11 +3,14 @@ package gitProjects
 import java.io.File
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
+import javafx.scene.control.Hyperlink
 import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Priority.ALWAYS
+import javafx.scene.layout.VBox
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -15,6 +18,7 @@ import sp.it.pl.main.IconFA
 import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.MdNode
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.async.runIO
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
@@ -24,6 +28,7 @@ import sp.it.util.conf.def
 import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.file.children
+import sp.it.util.functional.asIs
 import sp.it.util.functional.net
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
@@ -35,6 +40,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.lookupId
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
@@ -72,6 +78,12 @@ class GitProjects(widget: Widget): SimpleController(widget) {
                lay += it.map { f ->
                   hyperlink(f.name) {
                      onEventDown(MOUSE_CLICKED, PRIMARY) { select(f) }
+                     onEventDown(MOUSE_CLICKED, SECONDARY) {
+                        ValueContextMenu<Any?>().apply {
+                           setItemsFor(f)
+                           show(this@hyperlink, it)
+                        }
+                     }
                   }
                }
             }
@@ -82,6 +94,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
 
    fun select(project: File) {
       selection = project.name
+      root.lookupId<ScrollPane>("projects").content.asIs<VBox>().children.forEach { it.asIs<Hyperlink>().isUnderline = it.asIs<Hyperlink>().text == project.name }
       md.readFile(project.children().find { it.name.equalsNc("README.md") })
    }
 

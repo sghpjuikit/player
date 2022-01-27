@@ -1043,11 +1043,9 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                   layTextField("playedLastF", 22)
                   layTextField("addedToLibraryF", 23)
                   lay += label()
-                  lay(row = 24, column = 1, colSpan = REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += TagTextField(
-                     object: ConverterFromString<String> {
-                        override fun ofS(s: String) = if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
-                     }
-                  ).apply {
+                  lay(row = 24, column = 1, colSpan = REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += TagTextField {
+                     s -> if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
+                  }.apply {
                      id = "tagsF"
                      styleClass += "tag-field"
                      textField.descriptionNodeId = "tagsF"

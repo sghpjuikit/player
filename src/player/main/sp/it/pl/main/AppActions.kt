@@ -63,12 +63,15 @@ import sp.it.util.action.IsAction
 import sp.it.util.async.FX
 import sp.it.util.async.launch
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
+import sp.it.util.async.runIoParallel
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.but
 import sp.it.util.conf.c
+import sp.it.util.conf.cn
 import sp.it.util.conf.def
+import sp.it.util.conf.noUi
 import sp.it.util.conf.values
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
@@ -89,7 +92,6 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
 import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -531,43 +533,21 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    )
 
    val convertImage = fastColAction<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, { it.isImage12Monkey() }) { ii ->
-      when (ii.size) {
-         0 -> {}
-         1 -> {
-            object: ConfigurableBase<Any?>() {
-               var i = ii.first()
-               val fileFrom by c(i).def(editable = EditMode.NONE)
-               val typeFrom by c(i.mimeType()).def(editable = EditMode.NONE)
-               var fileTo by c(File(i.absolutePath.substringBeforeLast(".") + ".png"))
-               val typeTo by c(MimeType.`image∕png`).def(editable = EditMode.NONE)
-               val preserveTimeCreated by c(true).def(name = "Preserve ${FileField.TIME_CREATED}")
-               val preserveTimeModified by c(true).def(name = "Preserve ${FileField.TIME_MODIFIED}")
-            }.configure("Convert image") {
-               runIO {
-                  ImageIO.write(ImageIO.read(it.fileFrom), "png", it.fileTo)
-                  if (it.preserveTimeCreated) it.fileFrom.creationTime().orNull().ifNotNull { t -> it.fileTo.setCreated(t) }
-                  if (it.preserveTimeModified) it.fileTo.setLastModified(it.fileFrom.lastModified())
-               }
-            }
-         }
-         else -> {
-            object: ConfigurableBase<Any?>() {
-               var fileTo by c(ii.first().parentDirOrRoot)
-               var typeTo by c(MimeType.`image∕png`).values(listOf(MimeType.`image∕png`, MimeType.`image∕jpeg`))
-               val preserveTimeCreated by c(true).def(name = "Preserve ${FileField.TIME_CREATED}")
-               val preserveTimeModified by c(true).def(name = "Preserve ${FileField.TIME_MODIFIED}")
-            }.configure("Convert image") {
-               val suffix = it.typeTo.extension!!
-               runIO {
-                  ii.forEach { i ->
-                     runTry {
-                        ImageIO.write(ImageIO.read(i), suffix, it.fileTo / "${i.nameWithoutExtension}.$suffix")
-                        if (it.preserveTimeCreated) i.creationTime().orNull().ifNotNull { t -> it.fileTo.setCreated(t) }
-                        if (it.preserveTimeModified) it.fileTo.setLastModified(i.lastModified())
-                     }
-                  }
-               }
-            }
+      object: ConfigurableBase<Any?>() {
+         val fileFrom by cn(ii.firstOrNull()).def(editable = EditMode.NONE).but { if (ii.size!=1) noUi() }.def(name = "Source image file")
+         val typeFrom by cn(ii.firstOrNull()?.mimeType()).def(editable = EditMode.NONE).but { if (ii.size!=1) noUi() }.def(name = "Source image type")
+         var dirTo by c(ii.first().parentDirOrRoot).def(name = "Destination image folder")
+         var typeTo by c(MimeType.`image∕png`).values(listOf(MimeType.`image∕png`, MimeType.`image∕jpeg`)).def(name = "Destination image type")
+         var preserveTimeCreated by c(true).def(name = "Preserve '${FileField.TIME_CREATED}'")
+         var preserveTimeModified by c(true).def(name = "Preserve '${FileField.TIME_MODIFIED}'")
+         var parallel by c(true).def(name = "Run in parallel", info = "Runs Recommended for SSD, but may slow down on HDD.")
+      }.configure("Convert image") {
+         val suffix = it.typeTo.extension!!
+         runIoParallel(if (it.parallel) Runtime.getRuntime().availableProcessors() else 1, items = ii) { i ->
+            val fileTo = it.dirTo / "${i.nameWithoutExtension}.$suffix"
+            ImageIO.write(ImageIO.read(i), suffix, fileTo)
+            if (it.preserveTimeCreated) i.creationTime().orNull().ifNotNull { t -> fileTo.setCreated(t) }
+            if (it.preserveTimeModified) fileTo.setLastModified(i.lastModified())
          }
       }
    }

@@ -28,17 +28,23 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.javafx.JavaFx
+import sp.it.util.async.future.Fut
+import sp.it.util.collections.materialize
+import sp.it.util.dev.Experimental
+import sp.it.util.functional.Try
+import sp.it.util.functional.runTry
 
 private val logger = KotlinLogging.logger { }
 
 operator fun Executor.invoke(block: Runnable) = execute(block)
 operator fun Executor.invoke(block: () -> Unit) = execute(block)
 
-@JvmField val AWT = AwtExecutor()
-@JvmField val FX = FxExecutor()
-@JvmField val FX_LATER = FxLaterExecutor()
+@JvmField val AWT = AwtExecutor
+@JvmField val FX = FxExecutor
+@JvmField val FX_LATER = FxLaterExecutor
 @JvmField val NEW = NewThreadExecutor()
-@JvmField val IO = IOExecutor()
+@JvmField val IO_LATER = IOLaterExecutor()
+@JvmField val IO = IOExecutor(IO_LATER)
 @JvmField val CURR = Executor { it() }
 
 /**
@@ -73,12 +79,12 @@ class NewThreadExecutor: Executor {
 }
 
 /** Executes the specified block on awt thread, immediately if called on awt thread, or using [EventQueue.invokeLater] otherwise. */
-class AwtExecutor: Executor {
+object AwtExecutor: Executor {
    override fun execute(command: Runnable) = if (EventQueue.isDispatchThread()) command() else EventQueue.invokeLater(command)
 }
 
 /** Executes the specified block on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
-class FxExecutor: Executor, CoroutineContext by Dispatchers.JavaFx {
+object FxExecutor: Executor, CoroutineContext by Dispatchers.JavaFx {
    override fun execute(command: Runnable) = if (Platform.isFxApplicationThread()) command() else Platform.runLater(command)
 
    /**
@@ -89,7 +95,7 @@ class FxExecutor: Executor, CoroutineContext by Dispatchers.JavaFx {
     * * less than zero exception is thrown.
     * * more than zero, blocked is invoked after the delay
     */
-   operator fun invoke(delay: Duration) = when {
+   operator fun invoke(delay: Duration): Executor = when {
       delay<ZERO -> fail()
       delay>ZERO -> Executor {
          val time = System.currentTimeMillis().toDouble()
@@ -104,15 +110,18 @@ class FxExecutor: Executor, CoroutineContext by Dispatchers.JavaFx {
 }
 
 /** Executes the specified block on fx thread using [Platform.runLater]. */
-class FxLaterExecutor: Executor {
+object FxLaterExecutor: Executor {
    override fun execute(command: Runnable) = Platform.runLater(command)
 }
 
 /** Executes the specified block on thread in an IO thread pool or immediately if called on such thread. */
-class IOExecutor(private val e: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))): Executor, CoroutineContext by e.asCoroutineDispatcher() {
-   override fun execute(it: Runnable) {
-      if (Thread.currentThread().name.startsWith("io-")) it() else e(it)
-   }
+class IOExecutor(private val e: IOLaterExecutor): Executor, CoroutineContext by e.asCoroutineDispatcher() {
+   override fun execute(it: Runnable) = if (Thread.currentThread().name.startsWith("io-")) it() else e(it)
+}
+
+/** Executes the specified block on thread in an IO thread pool. */
+class IOLaterExecutor(private val e: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))): Executor, CoroutineContext by e.asCoroutineDispatcher() {
+   override fun execute(it: Runnable) = e(it)
 }
 
 /** Sleeps currently executing thread for specified duration. When interrupted, returns.  */
@@ -171,6 +180,14 @@ fun <T> runIO(block: () -> T) = runOn(IO, block)
 
 /** Legacy version of [runIO] for Java taking a [Runnable]. */
 fun runIO(block: Runnable) = runIO(block.kt)
+
+/** Runs the specified block for each specified item using the max specified parallelism, blocks until finish and returns results.  */
+@Experimental("does not handle errors correctly")
+fun <T, R> runIoParallel(parallelism: Int = Runtime.getRuntime().availableProcessors(), items: Collection<T>, block: (T) -> R): Fut<List<Try<R,Throwable>>> = runIO {
+   val windowSize = items.size/parallelism
+   items.windowed(windowSize, windowSize, true).map { runOn(IO_LATER) { it.map { runTry { block(it) } } } }.materialize()
+      .flatMap { it.getDone().toTry().orThrow } // TODO: handle errors correctly
+}
 
 /** Executes the specified block periodically with given time period (1st call is already delayed). */
 fun runPeriodic(period: Duration, block: () -> Unit): Subscription {

@@ -302,7 +302,7 @@ fun File.unzip(target: File, pathTransformer: (String) -> String = { it }) {
 
 fun File.creationTime(): Try<FileTime?, IOException> {
    return try {
-      Try.ok(Files.readAttributes(toPath(), BasicFileAttributes::class.java)?.lastModifiedTime())
+      Try.ok(Files.readAttributes(toPath(), BasicFileAttributes::class.java)?.creationTime())
    } catch (e: IOException) {
       Try.error(e)
    }

@@ -97,7 +97,7 @@ val appSetting = Setting.root {
          info = "Algorithm for text matching will ignore case."
       }
       config("Search delay") {
-         info = "Maximal time delay between key strokes. Search text is reset after the delay runs out."
+         info = "Maximal time delay between keystrokes. Search text is reset after the delay runs out."
       }
       config("Search auto-cancel") {
          info = "Deactivates search after period of inactivity."

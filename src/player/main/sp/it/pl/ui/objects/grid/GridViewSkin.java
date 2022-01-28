@@ -205,7 +205,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			// Newly created cells that 'appear' right under mouse cursor will not receive hover event
 			// Normally we would update the selection after the cells get updated, but that happens also on regular
 			// selection change, which would stop working properly.
-			// Hence we find such cells and select them here
+			// Hence, we find such cells and select them here
 			if (getSkinnable().getSelectOn().contains(SelectionOn.MOUSE_HOVER)) {
 				flow.getCells()
 					.filter(it -> it.isHover() && !it.isSelected()).findAny()
@@ -814,7 +814,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			return clip(1, (int) floor((getSkinnable().getHeight() + gap)/computeRowHeight()), Integer.MAX_VALUE);
 		}
 
-		/** @return the width of a row (should be GridView.width - GridView.Scrollbar.width) */
+		/** @return the width of a row (should be `GridView.width - GridView.Scrollbar.width`) */
 		protected double computeRowWidth() {
 			return getSkinnable().getWidth();
 		}
@@ -906,7 +906,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 			var filterKeyHandler = buildToggleOnKeyHandler(filterVisible, GridViewSkin.this.flow);
 			getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
-			getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // filter would ignore first key stroke when filter turns visible
+			getSkinnable().addEventHandler(KEY_PRESSED, filterKeyHandler); // filter would ignore first keystroke when filter turns visible
 		}
 	}
 

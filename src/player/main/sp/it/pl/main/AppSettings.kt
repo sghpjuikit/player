@@ -433,12 +433,12 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Maximal time delay between key strokes. Search text is reset after the delay runs out. */
+      /** Maximal time delay between keystrokes. Search text is reset after the delay runs out. */
       object `searchDelay`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Search delay"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Maximal time delay between key strokes. Search text is reset after the delay runs out."""
+         const val cinfo: String = """Maximal time delay between keystrokes. Search text is reset after the delay runs out."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Search"""
          /** Name of the config. */

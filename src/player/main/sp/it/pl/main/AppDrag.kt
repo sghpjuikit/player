@@ -109,7 +109,7 @@ fun Clipboard.getAny(): Any? = when {
    Df.SONGS in this -> this[Df.SONGS]
    Df.COMPONENT in this -> this[Df.COMPONENT]
    Df.METADATA_GROUP in this -> this[Df.METADATA_GROUP]
-   Df.FILES in this -> this[Df.FILES]
+   Df.FILES in this && this[Df.FILES].isNotEmpty() -> this[Df.FILES]
    Df.IMAGE in this -> this[Df.IMAGE]
    Df.URL in this -> this[Df.URL]
    Df.PLAIN_TEXT in this -> this[Df.PLAIN_TEXT]
@@ -120,7 +120,7 @@ fun Clipboard.getAnyFut(): Any? = when {
    Df.SONGS in this -> this[Df.SONGS]
    Df.COMPONENT in this -> this[Df.COMPONENT]
    Df.METADATA_GROUP in this -> this[Df.METADATA_GROUP]
-   Df.FILES in this -> this[Df.FILES]
+   Df.FILES in this && this[Df.FILES].isNotEmpty() -> this[Df.FILES]
    Df.IMAGE in this -> this[Df.IMAGE]
    Df.URL in this -> when {
       url.isImage() -> futUrl(url)

@@ -15,11 +15,12 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.VBox
 import kotlin.math.sign
 import sp.it.util.access.v
+import sp.it.util.access.writable
 import sp.it.util.collections.setTo
 import sp.it.util.collections.tabulate0
 import sp.it.util.math.max
 import sp.it.util.math.min
-import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.flowPane
@@ -35,14 +36,13 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
    val locale = locale
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
-   /** Date value */
+   /** Selected date */
    val value = v<LocalDate>(LocalDate.now())
-   private val yearMonth = v<YearMonth>(YearMonth.of(value.value.year, value.value.month)).apply {
-      this@DatePickerContent.value attach { value = YearMonth.of(it.year, it.month) }
-   }
+   /** Displayed year-month  */
+   private val yearMonth = value.map { YearMonth.of(it.year, it.month) }.writable()
 
    private val day1OfWeek = WeekFields.of(locale).firstDayOfWeek
-   private val daysOfWeek = DayOfWeek.values().associateWith { (it.value - day1OfWeek.value + 7) %7 + 1 }
+   private val daysOfWeek = DayOfWeek.values().associateWith { (it.value - day1OfWeek.value + 7) %7 }
    private val DayOfWeek.valueLocal: Int get() = daysOfWeek[this]!!
    private val DayOfWeek.shortNameLocal: String get() = getDisplayName(SHORT, locale).let { it.substring(0, (it.length-1) max 1) }
 
@@ -79,7 +79,8 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
             }
          }
 
-         val cells = mutableListOf<Label>()
+         var selected: Cell? = null
+         val cells = mutableListOf<Cell>()
          yearMonth sync { ym ->
             val headCount = ym.atDay(1).dayOfWeek.valueLocal
             val dayCount = ym.lengthOfMonth()
@@ -88,12 +89,13 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
             val ymPrev = ym.minusMonths(1)
             val ymPrevLength = ymPrev.lengthOfMonth()
             val ymNext = ym.plusMonths(1)
-            fun dayLabels(range: IntProgression, block: (Int) -> Label) = tabulate0(range.count()) { range.first + it }.map(block).toList().toTypedArray()
-            fun dayLabel(i: Int, ym: YearMonth, isCurrent: Boolean) = label {
+            fun dayLabels(range: IntProgression, block: (Int) -> Cell) = tabulate0(range.count()) { range.first + it }.map(block).toList().toTypedArray()
+            fun dayLabel(i: Int, ym: YearMonth, isCurrent: Boolean) = Cell().apply {
                text = "$i".padStart(2, ' ')
+               cellValue = ym.atDay(i)
                styleClass += "date-picker-content-cell"
                pseudoClassChanged("other", !isCurrent)
-               onEventDown(MOUSE_CLICKED, PRIMARY) { if (editable.value) value.value = ym.atDay(i) }
+               onEventDown(MOUSE_CLICKED, PRIMARY) { if (editable.value) value.value = cellValue!! }
             }
 
             lay -= cells
@@ -104,6 +106,17 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
             )
             lay += cells
          }
+
+         value sync {
+            selected?.select(false)
+            selected = cells.find { cell -> cell.cellValue == it }
+            selected?.select(true)
+         }
       }
+   }
+
+   private class Cell: Label() {
+      var cellValue: LocalDate? = null
+      fun select(selected: Boolean) = pseudoClassChanged("selected", selected)
    }
 }

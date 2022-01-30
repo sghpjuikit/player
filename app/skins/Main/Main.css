@@ -2667,6 +2667,7 @@ Shape, Text, SpitText, TextFlow > * {
 .date-picker-content-cell:other {
     -fx-opacity: 0.4;
 }
+.date-picker-content-cell:selected,
 .date-picker-content-cell:hover {
      -fx-background-color: -skin-focus-bgr-color;
     -fx-border-color: -fx-focus-color;

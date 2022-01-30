@@ -17,6 +17,7 @@ import kotlin.math.sign
 import sp.it.util.access.v
 import sp.it.util.collections.setTo
 import sp.it.util.collections.tabulate0
+import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
@@ -42,6 +43,7 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
    private val day1OfWeek = WeekFields.of(locale).firstDayOfWeek
    private val daysOfWeek = DayOfWeek.values().associateWith { (it.value - day1OfWeek.value + 7) %7 + 1 }
    private val DayOfWeek.valueLocal: Int get() = daysOfWeek[this]!!
+   private val DayOfWeek.shortNameLocal: String get() = getDisplayName(SHORT, locale).let { it.substring(0, (it.length-1) max 1) }
 
    init {
       styleClass += "date-picker-content"
@@ -69,7 +71,8 @@ class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
 
          val dof = DayOfWeek.values().sortedBy { it.valueLocal }
          lay += dof.map {
-            label(it.getDisplayName(SHORT, locale)) {
+
+            label(it.shortNameLocal) {
                styleClass += "date-picker-content-cell"
                pseudoClassChanged("weekday", true)
             }

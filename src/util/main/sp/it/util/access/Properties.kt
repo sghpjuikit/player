@@ -28,6 +28,7 @@ import sp.it.util.type.volatile
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
+import sp.it.util.reactive.attachTo
 import sp.it.util.type.enumValues
 
 val <T> KProperty0<T>.value: T
@@ -77,6 +78,13 @@ fun <T: Enum<T>> WritableValue<T>.togglePrevious() = transformValue { Values.pre
 
 /** Sets value to the enum value preceding the current value based on order by the specified comparator extractor. Loop back to last value. */
 fun <T: Enum<T>, R: Comparable<R>> WritableValue<T>.togglePrevious(by: (T) -> R?) = transformValue { Values.previous(it::class.enumValues.sortedBy(by),  it) }
+
+/** @return this property as a writable property */
+fun <T> ObservableValue<T>.writable(): V<T> {
+   val w = V<T>(value)
+   attachTo(w)
+   return w
+}
 
 /** @return this property as a read-only property */
 fun <T> ObservableValue<T>.readOnly(): ObservableValue<T> = this

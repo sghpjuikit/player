@@ -18,7 +18,6 @@ import sp.it.util.conf.def
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
-import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
@@ -27,8 +26,8 @@ import sp.it.util.units.year
 
 class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
-   private val wrapText by cv(false).def(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
    private val area = TextArea()
+   private val wrapText by cv(false, { area.wrapTextProperty().apply { value = it } }).def(name = "Wrap text", info = "Wrap text at the end of the text area to the next line.")
    private val stdoutReader = Subscribed {
       APP.systemout.addListener { area.appendText(it) }
    }
@@ -39,9 +38,6 @@ class Logger(widget: Widget): SimpleController(widget), TextDisplayFeature {
 
       root.lay += area.apply {
          isEditable = false
-         isWrapText = false
-         wrapTextProperty() syncFrom wrapText on onClose
-
          text = "# This is redirected output (System.out) stream of this application.\n"
       }
 

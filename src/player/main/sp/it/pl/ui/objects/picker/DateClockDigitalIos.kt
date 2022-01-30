@@ -34,7 +34,9 @@ import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 
 /** Editable digital clock for [LocalDate]. */
-class DateClockDigitalIos: HBox() {
+class DateClockDigitalIos(locale: Locale = Locale.getDefault()): HBox() {
+   /** Locale */
+   val locale = locale
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)
    /** Time value */
@@ -69,7 +71,7 @@ class DateClockDigitalIos: HBox() {
                styleClass += "date-clock-digital-ios-text"
                styleClass += "date-clock-digital-ios-text-month"
                pseudoClassChanged("secondary", by!=0)
-               update += { text = formatMonth.value.formatter(it.plusMonths(by.toLong()).monthValue) }
+               update += { text = formatMonth.value.formatter(it.plusMonths(by.toLong()).monthValue, locale) }
             }
          }
          onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusMonths(-e.deltaY.sign.toLong()) } }
@@ -102,11 +104,11 @@ class DateClockDigitalIos: HBox() {
 
    override fun getCssMetaData() = classCssMetaData
 
-   enum class MonthFormat(val formatter: (Int) -> String) {
-      NUMBER({ "%02d".format(it) }),
-      NAME_FULL({ Month.of(it).getDisplayName(FULL, Locale.getDefault()) }),
-      NAME_NARROW({ Month.of(it).getDisplayName(NARROW, Locale.getDefault()) }),
-      NAME_SHORT({ Month.of(it).getDisplayName(SHORT, Locale.getDefault()) })
+   enum class MonthFormat(val formatter: (Int, Locale) -> String) {
+      NUMBER({ it, _ -> "%02d".format(it) }),
+      NAME_FULL({ it, locale -> Month.of(it).getDisplayName(FULL, locale) }),
+      NAME_NARROW({ it, locale -> Month.of(it).getDisplayName(NARROW, locale) }),
+      NAME_SHORT({ it, locale -> Month.of(it).getDisplayName(SHORT, locale) })
    }
 
    companion object: StyleableCompanion() {

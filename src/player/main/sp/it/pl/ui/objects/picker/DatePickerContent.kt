@@ -31,6 +31,7 @@ import sp.it.util.ui.tilePane
 
 /** Content for picking [LocalDate] */
 class DatePickerContent(locale: Locale = Locale.getDefault()): VBox() {
+   /** Locale */
    val locale = locale
    /** Whether user can change [value] through ui. Only if true. Default true. */
    val editable = v(true)

@@ -2648,19 +2648,14 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-font-size: 2em;
 }
 /*
- * extends: FlowPane
+ * extends: TitlePane
  * pseudoclasses: weekday - day of the day header cell
  *                other - day cell for other month than the currently displayed
  */
 .date-picker-content-cells {
     -fx-padding: 1em;
-    -fx-hgap: 0.5em;
-    -fx-vgap: 0.5em;
-    -fx-alignment: top-left;
-    -fx-column-halignment: center;
-    -fx-row-valignment: center;
-    -fx-orientation: horizontal;
-    -fx-max-width: 20em; // should be around 7days*cell-width+6*cell-hgap
+    -fx-alignment: center;
+    -fx-max-width: 17em; // should be padding.left + 7days*cell.width + 6*cell-hgap + padding.right
 }
 .date-picker-content-cell {
     -fx-pref-width: 2em;

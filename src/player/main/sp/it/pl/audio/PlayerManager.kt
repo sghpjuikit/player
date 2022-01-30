@@ -2,9 +2,12 @@ package sp.it.pl.audio
 
 import java.io.File
 import java.net.URI
+import javafx.geometry.VPos
 import javafx.scene.media.MediaPlayer
 import javafx.scene.media.MediaPlayer.Status.PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING
+import javafx.scene.text.TextAlignment
+import javafx.scene.text.TextBoundsType
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KLogging
@@ -28,9 +31,15 @@ import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.appWide
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
+import sp.it.pl.main.AppTexts.textNoVal
+import sp.it.pl.main.emScaled
+import sp.it.pl.main.initApp
+import sp.it.pl.ui.pane.OverlayPane
 import sp.it.util.Sort.ASCENDING
+import sp.it.util.access.readOnly
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
+import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.EventReducer.toLast
@@ -64,13 +73,21 @@ import sp.it.util.functional.nullsLast
 import sp.it.util.inSort
 import sp.it.util.math.max
 import sp.it.util.math.min
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
+import sp.it.util.reactive.sync
 import sp.it.util.system.browse
 import sp.it.util.type.atomic
 import sp.it.util.type.type
+import sp.it.util.ui.Util.layScrollVTextCenter
+import sp.it.util.ui.lay
+import sp.it.util.ui.setMinPrefMaxSize
+import sp.it.util.ui.stackPane
+import sp.it.util.ui.text
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 import sp.it.util.units.uuid
@@ -132,7 +149,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    )
 
    var startTime: Duration? = null
-   var postActivating = false // this prevents onTime handlers to reset after playback activation the suspension-activation should undergo as if it never happen
+   var postActivating = false // this prevents onTime handlers to reset after playback activation the suspension-activation should undergo as if it never happened
    var postActivating1st = true // this negates the above when app starts and playback is activated 1st time
    var isSuspended = true
    var isDisposed by atomic(false)
@@ -142,7 +159,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
     * Set of actions that execute when song starts playing. Seeking to song start doesn't activate this event.
     *
     * It is not safe to assume that application's information on currently played
-    * song will be updated before this event. Therefore using cached information
+    * song will be updated before this event. Therefore, using cached information
     * can result in misbehavior due to outdated information.
     */
    val onPlaybackStart = Handler0()
@@ -261,6 +278,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       data class PlaybackStatusChanged(val status: MediaPlayer.Status)
    }
    inner class CurrentItem {
+
+      private val valueOImpl = v(Metadata.EMPTY)
+      val valueO = valueOImpl.readOnly()
+
       /**
        * Returns the playing song and all its information.
        *
@@ -269,7 +290,10 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
        * change events.
        */
       var value = Metadata.EMPTY
-         private set
+         private set(value) {
+            field = value
+            valueOImpl.value = value
+         }
       private var valNext = Metadata.EMPTY
       private val valNextLoader = fxTimer(400.millis, 1) { preloadNext() }
       private val changes = ArrayList<(Metadata, Metadata) -> Unit>()
@@ -398,7 +422,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       player.play(song)
    }
 
-   /** Resumes player, if file is being played. Otherwise does nothing.  */
+   /** Resumes player, if file is being played. Otherwise, does nothing.  */
    @IsAction(name = "Resume", info = "Resumes playback, if file is being played.", global = true)
    fun resume() {
       player.resume()
@@ -410,7 +434,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       player.pause()
    }
 
-   /** Pauses/resumes player, if file is being played. Otherwise does nothing.  */
+   /** Pauses/resumes player, if file is being played. Otherwise, does nothing.  */
    @IsAction(name = "Pause/resume", info = "Pauses/resumes playback, if file is being played.", keys = "ALT+S", global = true)
    fun pauseResume() {
       player.pauseResume()
@@ -551,6 +575,29 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          PlaylistManager.use({ it.playing }, null)?.uri?.browse()
    }
 
+   /** Opens lyrics for currently played song. */
+   @IsAction(name = "Show lyrics", info = "Show lyrics of currently playing song.", keys = "ALT+L", global = true)
+   fun openLyrics() {
+      object: OverlayPane<Unit>() {
+         init {
+            content = stackPane {
+               val t = text {
+                  textOrigin = VPos.CENTER
+                  textAlignment = TextAlignment.CENTER
+                  boundsType = TextBoundsType.VISUAL
+                  setMinPrefMaxSize(-1.0)
+                  playingSong.valueO.sync { text = it.getLyrics() ?: textNoVal } on Disposer().apply { onHiding += this }
+               }
+               lay += layScrollVTextCenter(t).apply {
+                  isFitToWidth = true
+                  minWidth = 400.emScaled
+               }
+            }
+         }
+         override fun show(data: Unit) = super.show()
+      }.initApp().show(Unit)
+   }
+
    enum class Seek {
       ABSOLUTE, RELATIVE
    }
@@ -625,7 +672,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /**
-    * Updates application (playlist, library, etc.) with latest metadata. Refreshes the given
+    * Updates application (playlist, library, etc.) with the latest metadata. Refreshes the given
     * data for the whole application.
     *
     * @param ms metadata to refresh

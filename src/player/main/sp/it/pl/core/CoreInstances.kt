@@ -1,6 +1,5 @@
 package sp.it.pl.core
 
-import com.sun.javafx.scene.control.DatePickerContent
 import javafx.scene.Node
 import javafx.scene.control.Skin
 import kotlin.reflect.KClass
@@ -8,6 +7,7 @@ import sp.it.pl.ui.objects.GpuNvidiaInfo
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.PcControls
 import sp.it.pl.ui.objects.picker.DateClockDigitalIos
+import sp.it.pl.ui.objects.picker.DatePickerContent
 import sp.it.pl.ui.objects.picker.DateTimeClockWin
 import sp.it.pl.ui.objects.picker.DateTimePickerContent
 import sp.it.pl.ui.objects.picker.FontPickerContent

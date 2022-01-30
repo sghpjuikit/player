@@ -11,6 +11,8 @@ import javafx.scene.input.MouseEvent
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.main.Key
 import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
+import sp.it.util.reactive.attach
 import sp.it.util.text.keys
 import sp.it.util.text.resolved
 import sp.it.util.type.estimateRuntimeType
@@ -30,8 +32,17 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
          item("Copy (${keys(SHORTCUT, Key.C)})") { tf.copySelectedOrAll() }
          item("Paste (${keys(SHORTCUT, Key.V)})") { tf.paste() }.disIf(!tf.isEditable || !Clipboard.getSystemClipboard().hasString())
          item("Delete (${keys(DELETE)})") { tf.deleteText(tf.selection) }.disIf(!tf.isEditable || tf.selectedText.isNullOrEmpty())
+
          separator()
+
          item("Select All (${keys("${SHORTCUT.resolved} + C")})") { tf.selectAll() }
+
+         if (tf is TextArea) {
+            separator()
+            item {
+               SelectionMenuItem("Wrap text", tf.isWrapText).apply { selected.attach { tf.isWrapText = it } }
+            }
+         }
 
          if (textGetter!=null || valueGetter!=null)
             separator()

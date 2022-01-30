@@ -10,7 +10,7 @@
 .breadcrumb-separator:hover {
     -fx-text-fill: -fx-focus-color;
     -fx-border-insets: -1;
-    -fx-background-color: ladder(hsb(180, 100%, 50%), transparent 0%, -fx-focus-color 100%);
+    -fx-background-color: -skin-focus-bgr-color;
     -fx-background-radius: 0.5em;
     -fx-border-color: -fx-focus-color;
     -fx-border-width: 0.5;

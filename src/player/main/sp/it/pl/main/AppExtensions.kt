@@ -3,6 +3,9 @@ package sp.it.pl.main
 import java.io.File
 import java.io.InputStream
 import java.lang.ProcessBuilder.Redirect.PIPE
+import javafx.scene.input.DragEvent
+import javafx.scene.input.KeyEvent
+import javafx.scene.input.TransferMode
 import javafx.scene.text.Font
 import kotlin.math.ceil
 import mu.KotlinLogging
@@ -13,6 +16,7 @@ import sp.it.pl.audio.tagging.read
 import sp.it.pl.core.CoreConverter
 import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.isExperimental
+import sp.it.pl.ui.pane.ActionPane
 import sp.it.util.async.FX
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
@@ -37,6 +41,15 @@ import sp.it.util.system.runAsProgram
 import sp.it.util.units.toEM
 
 private val logger = KotlinLogging.logger {}
+
+/** Show this pane with the specified content, optionally converted into more specific form using [detectContent] */
+fun ActionPane.showAndDetect(data: Any?, detectContent: Boolean) = show(if (detectContent) data.detectContent() else data)
+
+/** Show this pane with the specified content, on SHIFT not converted into more specific form using [detectContent] */
+fun ActionPane.showAndDetect(data: Any?, event: KeyEvent) = showAndDetect(data, !event.isShiftDown)
+
+/** Show this pane with the specified content, on [TransferMode.MOVE] not converted into more specific form using [detectContent] */
+fun ActionPane.showAndDetect(data: Any?, event: DragEvent) = showAndDetect(data, event.transferMode==TransferMode.MOVE)
 
 /** @return whether user can use this factory, exactly: APP.developerMode || ![ComponentFactory.isExperimental] */
 fun ComponentFactory<*>.isUsableByUser() = APP.developerMode.value || !isExperimental()

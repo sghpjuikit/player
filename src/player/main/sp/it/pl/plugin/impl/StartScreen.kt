@@ -16,6 +16,7 @@ import sp.it.pl.main.Key
 import sp.it.pl.main.LazyOverlayPane
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
+import sp.it.pl.main.showAndDetect
 import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.pl.ui.objects.window.Resize.NONE
@@ -87,20 +88,18 @@ class StartScreen: PluginBase() {
    private val overlay = LazyOverlayPane {
       object: OverlayPane<Unit>() {
 
-         fun Any?.showDataInfo() = APP.ui.actionPane.orBuild.show(this)
-
          fun StackPane.installClipboardSupport() {
             onEventDown(KEY_PRESSED) {
                if (it.code==Key.V && it.isShortcutDown) {
                   it.consume()
-                  Clipboard.getSystemClipboard().getAny().showDataInfo()
+                  APP.ui.actionPane.orBuild.showAndDetect(Clipboard.getSystemClipboard().getAny(), it)
                }
             }
             installDrag(
                IconUN(0xe295),
                "Drag & drop object",
                { true },
-               { it.dragboard.getAny().showDataInfo() }
+               { APP.ui.actionPane.orBuild.showAndDetect(it.dragboard.getAny(), it) }
             )
          }
 

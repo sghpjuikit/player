@@ -98,8 +98,9 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIcon;
 import static sp.it.pl.main.AppDragKt.contains;
-import static sp.it.pl.main.AppDragKt.getAnyFut;
+import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
+import static sp.it.pl.main.AppExtensionsKt.showAndDetect;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.Ui.ICON_CLOSE;
 import static sp.it.pl.ui.objects.window.Resize.ALL;
@@ -211,7 +212,7 @@ public class Window extends WindowBase {
 			content, GAVEL,
 			"Display possible actions\n\nMoving the drag elsewhere may offer other options",
 			e -> !contains(e.getDragboard(), Df.WIDGET_OUTPUT),
-			consumer(e -> APP.ui.getActionPane().getOrBuild().show(getAnyFut(e.getDragboard())))
+			consumer(e -> showAndDetect(APP.ui.getActionPane().getOrBuild(), getAny(e.getDragboard()), e))
 		);
 
 		// maintain custom pseudoclasses for .window styleclass

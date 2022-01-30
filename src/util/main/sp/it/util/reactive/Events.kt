@@ -177,7 +177,7 @@ fun <T: Event> Menu.onEventDown(eventType: EventType<T>, eventHandler: (T) -> Un
 }
 
 /** Consume [ScrollEvent.ANY] events, e.g. to prevent certain scrollable JavaFx controls (table, tree, list, ...) from consuming non-deterministically. */
-fun Node.consumeScrolling() = onEventDown(ScrollEvent.ANY) { it.consume() }
+fun Node.consumeScrolling() = onEventDown(ScrollEvent.ANY) { if (!it.isShortcutDown) it.consume() }
 
 /** Re-fire [KeyCode.ESCAPE] key events, e.g. to bypass consuming, which for example [TreeView] does by default. */
 fun ListView<*>.propagateESCAPE() = onEventDown(KeyEvent.ANY) {

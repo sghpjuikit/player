@@ -63,7 +63,7 @@ public class FontPickerContent extends GridPane {
 	private static final double VGAP = 5;
 
 	private static final Predicate<Object> MATCH_ALL = t -> true;
-	private static final Double[] fontSizes = new Double[]{8d, 9d, 11d, 12d, 14d, 16d, 18d, 20d, 22d, 24d, 26d, 28d, 36d, 48d, 72d};
+	public static final List<Double> fontSizes = List.of(8d, 9d, 11d, 12d, 14d, 16d, 18d, 20d, 22d, 24d, 26d, 28d, 36d, 48d, 72d);
 
 	private static List<FontStyle> getFontStyles(String fontFamily) {
 		Set<FontStyle> set = new HashSet<>();

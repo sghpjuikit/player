@@ -171,8 +171,13 @@ fun Parent.installWindowInteraction() = sceneProperty().syncNonNullWhile { it.in
 fun Scene.installWindowInteraction() = Subscription(
    // change volume on scroll
    onEventDown(SCROLL) {
-      if (it.deltaY>0) APP.audio.volumeInc()
-      else if (it.deltaY<0) APP.audio.volumeDec()
+      if (it.isShortcutDown) {
+         if (it.deltaY>0) APP.ui.incFontSize()
+         else if (it.deltaY<0) APP.ui.decFontSize()
+      } else {
+         if (it.deltaY>0) APP.audio.volumeInc()
+         else if (it.deltaY<0) APP.audio.volumeDec()
+      }
    },
    // show help hotkeys
    onEventDown(KEY_PRESSED) {

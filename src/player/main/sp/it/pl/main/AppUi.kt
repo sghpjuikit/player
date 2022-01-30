@@ -21,6 +21,7 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
+import kotlin.math.absoluteValue
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import mu.KLogging
@@ -33,6 +34,7 @@ import sp.it.pl.main.AppSettings.ui.view.overlayArea
 import sp.it.pl.main.AppSettings.ui.view.overlayBackground
 import sp.it.pl.main.AppSettings.ui.view.shortcutViewer.hideUnassignedShortcuts
 import sp.it.pl.ui.objects.grid.GridView.CellGap
+import sp.it.pl.ui.objects.picker.FontPickerContent
 import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.ui.objects.window.stage.asLayout
 import sp.it.pl.ui.pane.ActionPane
@@ -43,6 +45,7 @@ import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display
 import sp.it.pl.ui.pane.ScreenBgrGetter
 import sp.it.pl.ui.pane.ShortcutPane
+import sp.it.util.access.Values
 import sp.it.util.access.readOnly
 import sp.it.util.access.toggle
 import sp.it.util.access.v
@@ -85,6 +88,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.ui.asStyle
 import sp.it.util.ui.isAnyParentOf
+import sp.it.util.units.EM
 import sp.it.util.units.em
 import sp.it.util.units.millis
 
@@ -124,6 +128,20 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
          f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply font skin=$it" } }
          additionalStylesheets += f
       }
+   }
+
+   fun decFontSize() {
+      if (font.value==null) return
+      val sizeOld = FontPickerContent.fontSizes.minByOrNull { (it-(font.value?.size ?: EM.size())).absoluteValue }!!
+      val sizeNew = Values.previous(FontPickerContent.fontSizes, sizeOld)
+      if (sizeNew<sizeOld) font.setValueOf { Font(it!!.name, sizeNew) }
+   }
+
+   fun incFontSize() {
+      if (font.value==null) return
+      val sizeOld = FontPickerContent.fontSizes.minByOrNull { (it-(font.value?.size ?: EM.size())).absoluteValue }!!
+      val sizeNew = Values.next(FontPickerContent.fontSizes, sizeOld)
+      if (sizeNew>sizeOld) font.setValueOf { Font(it!!.name, sizeNew) }
    }
 
    init {

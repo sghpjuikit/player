@@ -12,7 +12,6 @@ import java.math.RoundingMode.FLOOR
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.Locale
 import javafx.beans.Observable
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
@@ -565,7 +564,7 @@ class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
 class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = DateTextField(Locale.getDefault(), APP.converter.dateFormatter)
+   override val editor = DateTextField(APP.locale.value, APP.converter.dateFormatter)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
@@ -588,7 +587,7 @@ class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
 class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = DateTimeTextField(Locale.getDefault(), APP.converter.dateTimeFormatter)
+   override val editor = DateTimeTextField(APP.locale.value, APP.converter.dateTimeFormatter)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR

@@ -2668,9 +2668,13 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-opacity: 0.4;
 }
 .date-picker-content-cell:hover {
-    -fx-background-color: -skin-focus-bgr-color;
-    -fx-background-insets: 0;
-    -fx-background-radius: 3em;
+     -fx-background-color: -skin-focus-bgr-color;
+    -fx-border-color: -fx-focus-color;
+    -fx-background-insets: -1;
+    -fx-border-insets: -1;
+    -fx-background-radius: 0.25em;
+    -fx-border-radius: 0.25em;
+    -fx-border-width: 0.5;
     -fx-text-fill: -fx-focus-color
 }
 

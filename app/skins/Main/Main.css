@@ -21,7 +21,7 @@
     /* Default bgr color for tooltips and popups. */
     -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
     -skin-value-font-color: rgb(75, 175, 105);
-    -skin-focus-bgr-color: rgba(22,22,255,0.2);
+    -skin-focus-bgr-color: ladder(hsb(180, 100%, 50%), transparent 0%, -fx-focus-color 100%);
     -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
     -fx-focused-mark-color: transparent;

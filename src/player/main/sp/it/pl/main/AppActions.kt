@@ -148,6 +148,8 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       fun Entry.ifInteractiveOn() = takeIf { APP.windowManager.windowInteractiveOnLeftAlt.value }
       val actionsStandard = ActionRegistrar.getActions().map { Entry(it) }
       val actionsHardcoded = listOfNotNull(
+         Entry("Playback", "Volume up", keys("Scroll Up")),
+         Entry("Playback", "Volume down", keys("Scroll Down")),
          Entry("Ui > Window", "Move window", keys("ALT+drag " + PRIMARY.nameUi)).ifInteractiveOn(),
          Entry("Ui > Window", "Move window -> toggle maximize", keys("ALT+drag ${PRIMARY.nameUi}+${SECONDARY.nameUi}")).ifInteractiveOn(),
          Entry("Ui > Window", "Resize window", keys("ALT+drag " + SECONDARY.nameUi)).ifInteractiveOn(),
@@ -173,6 +175,8 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui > Focus", "Traverse previous", keys("SHIFT+TAB")),
          Entry("Ui > Focus", "Traverse next widget", keys("CTRL+TAB")),
          Entry("Ui > Focus", "Traverse previous widget", keys("CTRL+SHIFT+TAB")),
+         Entry("Ui", "Increment font size (if overridden)", keys("SHIFT+Scroll up")),
+         Entry("Ui", "Decrement font size (if overridden)", keys("SHIFT+Scroll down")),
          Entry("Ui", "Show application help", F1.nameUi),
          Entry("Ui", "Show application help", ActionManager.keyShortcuts.nameUi),
          Entry("Ui", "Show focused widget help", F2.nameUi),

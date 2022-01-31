@@ -3,9 +3,15 @@ package sp.it.pl.layout
 import javafx.scene.Node
 import sp.it.util.collections.setToOne
 import sp.it.util.dev.failIf
+import sp.it.util.functional.asIf
+import sp.it.util.functional.toUnit
 import sp.it.util.ui.setAnchors
 
-/** [Container] containing one child spanning entire area. */
+/**
+ * [Container] containing one child spanning entire area.
+ *
+ * To be as light-weight as possible, this container's [ui] is simply the ui of the [child].
+ */
 open class ContainerUni: Container<ComponentUi> {
 
    /** Name of this container. */
@@ -52,6 +58,10 @@ open class ContainerUni: Container<ComponentUi> {
       setParentRec()
       if (root!=null) load()
    }
+
+   override fun show() = (child.asIf<Container<*>>() ?: ui)?.show().toUnit()
+
+   override fun hide() = (child.asIf<Container<*>>() ?: ui)?.hide().toUnit()
 
    override fun validChildIndexes() = sequenceOf(1)
 

@@ -401,6 +401,9 @@ class App: Application(), GlobalConfigDelegator {
       imageIo.dispose()
       env.dispose()
       logging.dispose()
+
+      // in case the JVM is stubborn due to lose non-daemon thread
+      exitProcess(0)
    }
 
    private fun store() {

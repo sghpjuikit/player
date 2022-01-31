@@ -18,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TextArea;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -158,10 +159,10 @@ public class ActionPane extends OverlayPane<Object> {
 
 		// content
 		var contentSpacing = 20.0;
-		var content = layHorizontally(0, CENTER, tablePane,iconPane);
+		var content = layHorizontally(0, CENTER, dataTablePane,iconPane);
 			content.setPadding(new Insets(0,50,0,50)); // top & bottom padding set differently, below
             content.setMinSize(300, infoPane.getMinHeight() + contentSpacing + iconBox.getMinHeight() + contentSpacing + descPane.getMinHeight());
-		tableContentGap = content.spacingProperty();
+		dataTableContentGap = content.spacingProperty();
 		// iconPane and table complement each other horizontally, though iconPane is more
 		// important and should be wider & closer to center
 		iconPane.minWidthProperty().bind(content.widthProperty().multiply(0.6));
@@ -239,7 +240,7 @@ public class ActionPane extends OverlayPane<Object> {
 		resizeContentToDefault();
 
 		dataInfo.setOpacity(0.0);
-		tablePane.setOpacity(0.0);
+		dataTablePane.setOpacity(0.0);
 		descFull.setOpacity(0.0);
 		descTitle.setOpacity(0.0);
 		iconPaneComplex.setOpacity(0.0);
@@ -304,13 +305,14 @@ public class ActionPane extends OverlayPane<Object> {
 	private final Label descTitle = new Label();
 	private final Text descFull = new Text();
 	private final ObservableList<Node> icons;
-	private final DoubleProperty tableContentGap;
-	private final StackPane tablePane = new StackPane();
-	private FilteredTable<?> table;
+	private FilteredTable<?> dataTable;
+	private TextArea dataTextArea;
+	private final DoubleProperty dataTableContentGap;
+	private final StackPane dataTablePane = new StackPane();
 	private final StackPane iconPaneComplex = new StackPane();
 	{
 		iconPaneComplex.setId("iconPaneComplex");
-		tablePane.setId("tablePane");
+		dataTablePane.setId("tablePane");
 	}
 
 /* ---------- HELPER ------------------------------------------------------------------------------------------------ */
@@ -327,8 +329,8 @@ public class ActionPane extends OverlayPane<Object> {
 
 		Object d = futureUnwrapOrThrow(data);
 		if (d instanceof Collection) {
-			if (table!=null) {
-				return table.getSelectedOrAllItemsCopy();
+			if (dataTable!=null) {
+				return dataTable.getSelectedOrAllItemsCopy();
 			} else {
 				return d;
 			}
@@ -368,9 +370,18 @@ public class ActionPane extends OverlayPane<Object> {
 	@SuppressWarnings("unchecked")
 	private void setDataInfo(Object data, boolean computed) {
 		dataInfo.setText(computeDataInfo(data, computed));
-		tablePane.getChildren().clear();
+		dataTablePane.getChildren().clear();
 		var gap = 0.0;
 		var priority = NEVER;
+
+		if (data instanceof String && ((String) data).length()>40) {
+			dataTextArea = new TextArea();
+			dataTextArea.setEditable(false);
+			dataTextArea.setText((String) data);
+			dataTablePane.getChildren().setAll(dataTextArea);
+			gap = 70.0;
+			priority = SOMETIMES;
+		}
 		if (data instanceof Collection && !((Collection<?>) data).isEmpty()) {
 			Collection<?> items = (Collection<?>) data;
 			Class<?> itemType = getElementClass(items);
@@ -385,10 +396,10 @@ public class ActionPane extends OverlayPane<Object> {
 					return (TableColumn<Object, ?>) c;
 				});
 				t.setColumnState(t.getDefaultColumnInfo());
-				tablePane.getChildren().setAll(t.getRoot());
+				dataTablePane.getChildren().setAll(t.getRoot());
+				dataTable = t;
 				gap = 70.0;
 				priority = SOMETIMES;
-				table = t;
 				t.setItemsRaw(items);
 				t.getSelectedItems().addListener((Change<?> c) -> {
 					if (insteadIcons==null) {
@@ -397,14 +408,15 @@ public class ActionPane extends OverlayPane<Object> {
 				});
 			}
 		}
-		HBox.setHgrow(tablePane, priority);
-		tableContentGap.set(gap);
+		HBox.setHgrow(dataTablePane, priority);
+		dataTableContentGap.set(gap);
 	}
 
 	private void setContentEmpty() {
 		dataInfo.setText("");
-		tablePane.getChildren().clear();
-		tableContentGap.setValue(0.0);
+		dataTablePane.getChildren().clear();
+		if (dataTextArea!=null) dataTextArea.setText(null);
+		dataTableContentGap.setValue(0.0);
 		descFull.setText("");
 		descTitle.setText("");
 		icons.clear();
@@ -433,7 +445,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 		if (!showIcons) {
 			dataInfo.setOpacity(1.0);
-			tablePane.setOpacity(1.0);
+			dataTablePane.setOpacity(1.0);
 			descFull.setOpacity(1.0);
 			descTitle.setOpacity(1.0);
 			iconPaneComplex.setOpacity(1.0);
@@ -478,7 +490,7 @@ public class ActionPane extends OverlayPane<Object> {
 		}).play();
 		anim(millis(200), consumer(it -> {
 				dataInfo.setOpacity(it);
-				tablePane.setOpacity(it);
+				dataTablePane.setOpacity(it);
 				descFull.setOpacity(it);
 				descTitle.setOpacity(it);
 				iconPaneComplex.setOpacity(it);

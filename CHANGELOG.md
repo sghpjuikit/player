@@ -26,10 +26,20 @@ All notable changes to this project will be documented in this file. Format base
 - Fix drag & drop when external application sets `FILES` to empty list
 - Fix **Logger** widget `area.wrapText` observability and default value not applied correctly
 
+This update brings lots of usability improvements.
+
+The main improvement is content inspection/processing using **ActionPane**.
+First, there is automatic content detection after **CTRL+V** or **drag & drop**.
+Second, just like `Collection`s are displayed in table, `String`s are now displayed in `TextArea`, which can now change its wrapText settings through context menu.
+This will be further improved to support images, or displaying text representation of objects that have no natural representation.
+Ideally, this functionality would be absorbed into **Object Info** widget.
+
 This update refactors the code to further unify actions for `ActionPane` and actions for `ContextMenu`.
 Introduced is `ActContext`- an invocation context carrying auxiliary data, such as source of the event.
 This enables using actions outside `ActionPane`, even if they use it. Now any action can be used in context menu.
 
+Regarding the application shutdown fix - the old solution was brought back to forcefully shut down JVM even if non-daemon threads are running.
+This is because proper cleanup is never guaranteed even if `App` is already stopped.
 
 ## [3.0.0] 2022 01 24
 

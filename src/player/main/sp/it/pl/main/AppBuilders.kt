@@ -67,6 +67,7 @@ import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.toURIOrNull
+import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
@@ -488,13 +489,15 @@ fun Any?.detectContent(): Any? = when (this) {
          ?: this.toDoubleOrNull()
          ?: this.takeIf { it.startsWith("U+") || it.startsWith("\\u") }?.let { it.substring(2).toIntOrNull(16)?.toChar32() }
          ?: APP.serializerJson.json.ast(this).orNull()
-         ?: runTry { uri(this) }.orNull()?.net { it.toFileOrNull() ?: it }
-         ?: runTry { uri(URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
-         ?: runTry { uri("file:///$this") }.orNull()?.net { it.toFileOrNull() ?: it }
-         ?: runTry { uri("file:///" + URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.net { it.toFileOrNull() ?: it }
+         ?: runTry { uri(this) }.orNull()?.net { it.toFileOrNull()?.takeIf { it.isAbsolute } ?: it }
+         ?: runTry { uri(URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }
+         ?: runTry { uri("file:///$this") }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }
+         ?: runTry { uri("file:///" + URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }
          ?: this
    }
    is Optional<*> -> this.orElse(null).detectContent()
+   is Option.None -> null.detectContent()
+   is Option.Some<*> -> this.value.detectContent()
    is Try.Error<*> -> this.value.detectContent()
    is Try.Ok<*> -> this.value.detectContent()
    is Collection<*> -> when (size) {

@@ -3,6 +3,36 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Implement **Save component** action to save component loaded from a previously exported file
+- Implement **Convert Image** action for images. Supports batch conversion and is very fast on SSD due to io parallelism
+- Implement **GitProjects** widget selection & context menu
+- Implement automatic drag & drop **Inspect data** action content detection (user can get use raw data using **CTRL** on **drag**, **SHIFT** on **CTRL+V**)
+- Implement `TextArea.wrapText` context menu item
+- Implement font change on **CTRL+SCROLL**
+- Implement **Show Lyrics** action (this is candidate for new widget)
+- Improve logging output [reduce logging for some libraries]
+- Improve `DatePicker` & `DatePickerContent`
+  - Implement selection
+  - Implement locale-specific day of the week order
+  - Improve styling
+  - Fix incorrect calendar day numbers sometimes
+  - Fix incorrect calendar layout sometimes
+  - Fix unable to instantiate inside **Custom** widget
+- Fix application not shutting down gracefully sometimes
+- Fix `Collection.size` & `Map.size` functor output type
+- Fix some configs and editors not using `UnsealedEnumerator` constraint in some cases resulting in no autocompletion
+- Fix `GridView`s `GridInfo` not taking active filter into account, resulting in incorrect selection statistics
+- Fix some actions/menu items are not available due to not registering 
+- Fix drag & drop when external application sets `FILES` to empty list
+- Fix **Logger** widget `area.wrapText` observability and default value not applied correctly
+
+This update refactors the code to further unify actions for `ActionPane` and actions for `ContextMenu`.
+Introduced is `ActContext`- an invocation context carrying auxiliary data, such as source of the event.
+This enables using actions outside `ActionPane`, even if they use it. Now any action can be used in context menu.
+
+
+## [3.0.0] 2022 01 24
+
 - **Kotlin** `1.6.10`
 - Implement application locale settings
 - Implement locale-specific formatting for data in various parts of the application
@@ -59,7 +89,7 @@ Tables are the heart of the library as well as pride of this player.
 This version finally fixes slow selecting, which could in large tables take up to several minutes!
 
 Table sorting has been identified to cause problems, such as taking up to several seconds in some scenarios!
-After some refactor, the speedup has turned out to be huge, for **Song Table (Big)**, which is the view-everything table, the reduction was 2.5s -> 50ms.
+After some refactor, the speedup has turned out to be huge, for **Song Table (Big)**, which is the view-everything table, the reduction for 50k songs was 2.5s -> 50ms.
 50ms still blocks ui for 3 frames (on 60Hz display), enough to cause ui loading problems, particularly during animations.
 UI loading in general is problematic, because the single-threaded nature of UI frameworks will not allow for optimization.
 But, I managed to make sorting for all tables asynchronous. This was tricky because in some scenarios the application must not expect the items in correct order.

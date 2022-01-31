@@ -7,9 +7,7 @@
   - Next configurable properties will be used to avoid reflection & manual registering per class holder (AppActions).
   - Next integrate with `Action`, define all configurable actions in the same manner, adding icon to Action & keys to ActionData 
 - Implement better application running detection: app running without exe and app running from different directory
-- Fix application not shutting sometimes down (non-daemon thread?)
 - `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
-- Layouts loaded from file should have a Save action
 - Implement `MdNode` monitor file & reload
 - Implement `SliderCE` logarithmic scale
 - Implement actions for widget management: delete widget, open with strategy
@@ -36,6 +34,8 @@
   - make writing to tag handle errors properly (& report read-only files)
 
 ## Potential future work
+- Optimize Json
+  Remove Klaxon, use Jackson and remove bug workarounds & custom escaping/replacing, try to optimize performance
 - Optimize markdown & support selection
   Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
 - Implement multi0valued **Song.Artist** support

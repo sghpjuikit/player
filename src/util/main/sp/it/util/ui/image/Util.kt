@@ -64,7 +64,7 @@ private fun ImageBf.toScaledDown(W: Int, H: Int, down: Boolean, up: Boolean): Im
       }
    }
    up || down -> {
-      val isNecessary = (up && width>=W && height>=H) || (down && width<=W && height<=H)
+      val isNecessary = (up && (width<W || height<H)) || (down && (width>W || height>H))
       if (isNecessary) {
          val iRatio = width.toDouble()/height
          val rRatio = W.toDouble()/H

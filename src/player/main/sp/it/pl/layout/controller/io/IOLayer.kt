@@ -480,7 +480,7 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
                   }
                }
                2 -> {
-                  output?.value?.let {
+                  output?.value.ifNotNull {
                      APP.ui.actionPane.orBuild.show(it)
                   }
                }
@@ -488,8 +488,10 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
             it.consume()
          }
 
-         val valuePut = if (xPut is Input<*>) input else output
-         valuePut!!.sync { label.text.text = valuePut.xPutToStr() } on disposer
+         val valuePut = (if (xPut is Input<*>) input else output)!!
+         val labelTextUpdate = { label.text.text = if (i.isHover) valuePut.xPutValueToUi() else valuePut.xPutToUi() }
+         i.hoverProperty() attach { labelTextUpdate() } on disposer
+         valuePut.sync { labelTextUpdate() } on disposer
          valuePut.attach { if (isDisplaying.value) dataArrived(x, y) } on disposer
       }
 
@@ -969,7 +971,8 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
          }
       }
 
-      private fun <T> Put<T>.xPutToStr(): String = "$name : ${type.toUi()}\n${APP.instanceName[value]}"
+      private fun <T> Put<T>.xPutToUi(): String = name
+      private fun <T> Put<T>.xPutValueToUi(): String = "$name: ${type.toUi()}\n${APP.instanceName[value]}"
 
       private fun Node.interact(doLayout: Boolean, noMouse: Boolean, noPick: Boolean) {
          isManaged = doLayout

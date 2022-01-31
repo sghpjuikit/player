@@ -20,7 +20,7 @@ fun activeThreads() = Thread.getAllStackTraces().keys.asSequence()
 fun <T> T.printIt() = also { println(it) }
 
 /** Prints names and status of all threads. */
-fun printThreads() = activeThreads().forEach { println("${it.name} ${it.state}") }
+fun printThreads() = activeThreads().forEach { println("${it.isDaemon} ${it.state} ${it.name}") }
 
 /** Prints the value to console immediately and then on every change. */
 fun <T> ObservableValue<T>.printOnChange(name: String = "") = attach { println("Value $name changed to=$it") }

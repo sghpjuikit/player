@@ -3,13 +3,16 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Implement widget I/O for any type of window (docks, overlays)
 - Implement **Save component** action to save component loaded from a previously exported file
 - Implement **Convert Image** action for images. Supports batch conversion and is very fast on SSD due to io parallelism
 - Implement **GitProjects** widget selection & context menu
-- Implement automatic drag & drop **Inspect data** action content detection (user can get use raw data using **CTRL** on **drag**, **SHIFT** on **CTRL+V**)
+- Implement **Inspect data** action content detection (user can get use raw data using **CTRL** on **drag**, **SHIFT** on **CTRL+V**)
+- Implement **Inspect data** action content preview for `String`
 - Implement `TextArea.wrapText` context menu item
-- Implement font change on **CTRL+SCROLL**
+- Implement **Change font size** on **CTRL+SCROLL**
 - Implement **Show Lyrics** action (this is candidate for new widget)
+- Improve entering/exiting layout mode performance
 - Improve logging output [reduce logging for some libraries]
 - Improve `DatePicker` & `DatePickerContent`
   - Implement selection
@@ -18,6 +21,8 @@ All notable changes to this project will be documented in this file. Format base
   - Fix incorrect calendar day numbers sometimes
   - Fix incorrect calendar layout sometimes
   - Fix unable to instantiate inside **Custom** widget
+- Fix content detection often detecting text as a relative file
+- Fix image loading some images at full resolution (improves performance)
 - Fix application not shutting down gracefully sometimes
 - Fix `Collection.size` & `Map.size` functor output type
 - Fix some configs and editors not using `UnsealedEnumerator` constraint in some cases resulting in no autocompletion
@@ -28,7 +33,14 @@ All notable changes to this project will be documented in this file. Format base
 
 This update brings lots of usability improvements.
 
-The main improvement is content inspection/processing using **ActionPane**.
+The main improvement is layout I/O UI.
+The I/O ui was originally tied to **Switch** container, which provides the ui move/zoom capability, which affects the **IO**.
+Because of this, layouts, which do not use **Switch** container (docks and overlays) did not support input/output editing.
+The I/O layer has been made to support both **Layout** and **Switch** (which effectively acts as top level).
+So there is no need to figure out which of the two needs to have it and no extra containers just for I/O.
+When **Layout** contains **Switch**, it lets **Switch** take care of I/O. Now every content supports I/O, including docs and overlays.
+
+Another improvement is content inspection/processing using **ActionPane**.
 First, there is automatic content detection after **CTRL+V** or **drag & drop**.
 Second, just like `Collection`s are displayed in table, `String`s are now displayed in `TextArea`, which can now change its wrapText settings through context menu.
 This will be further improved to support images, or displaying text representation of objects that have no natural representation.

@@ -6,7 +6,7 @@ import java.util.UUID
 import javafx.animation.Interpolator
 import javafx.animation.PathTransition
 import javafx.animation.Transition
-import javafx.beans.property.DoubleProperty
+import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableSet
 import javafx.css.StyleableObjectProperty
 import javafx.event.EventHandler
@@ -42,6 +42,8 @@ import kotlin.math.sqrt
 import kotlin.math.withSign
 import kotlin.properties.Delegates.observable
 import sp.it.pl.layout.Component
+import sp.it.pl.layout.ComponentUiBase
+import sp.it.pl.layout.Container
 import sp.it.pl.layout.ContainerSwitchUi
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource
@@ -69,6 +71,7 @@ import sp.it.util.access.enumConverter
 import sp.it.util.access.sv
 import sp.it.util.access.svMetaData
 import sp.it.util.access.v
+import sp.it.util.access.vAlways
 import sp.it.util.access.visible
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
@@ -100,6 +103,7 @@ import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncNonNullWhile
+import sp.it.util.reactive.zip
 import sp.it.util.type.type
 import sp.it.util.ui.pseudoClassChanged
 import sp.it.util.ui.setScaleXY
@@ -116,7 +120,8 @@ private typealias Compute<T> = java.util.function.Function<Key<Put<*>, Put<*>>, 
 /**
  * Display for [sp.it.pl.layout.controller.io.XPut] of components, displaying their relations as am editable graph.
  */
-class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
+class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
+   private val owner: ComponentUiBase<Container<*>> = owner
    private val inputNodes = HashMap<Input<*>, XNode>()
    private val outputNodes = HashMap<Output<*>, XNode>()
    private val inoutputNodes = HashMap<InOutput<*>, InOutputNode>()
@@ -161,8 +166,8 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    })
 
    private val padding = 20.0
-   private val tTranslate: DoubleProperty
-   private val tScaleX: DoubleProperty
+   private val tTranslate: ObservableValue<Number> = if (owner is ContainerSwitchUi) owner.translateProperty() else vAlways(0.0)
+   private val tScaleX: ObservableValue<Number> = if (owner is ContainerSwitchUi) owner.zoomProperty() else vAlways(1.0)
    private var animPos1 = 0.0
    private var animPos2 = 0.0
    private var animPos3 = 0.0
@@ -177,10 +182,8 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
 
    init {
       interact(doLayout = true, noMouse = false, noPick = false)
-      tTranslate = containerSwitchUi.translateProperty()
-      tScaleX = containerSwitchUi.zoomProperty()
       tScaleX attach { requestLayout() } on disposer
-      translateXProperty().bind(tTranslate.multiply(tScaleX))
+      tTranslate zip tScaleX attach { (t, s) -> translateX = t.toDouble()*s.toDouble() } on disposer
       parentProperty().syncNonNullWhile { it.onEventUp(MOUSE_CLICKED) { selectNode(null) } } on disposer
 
       paneLinks.interact(doLayout = false, noMouse = false, noPick = false)
@@ -360,12 +363,12 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
    private fun xNodes(): Sequence<XNode> = (inputNodes.asSequence() + outputNodes.asSequence() + inoutputNodes.asSequence()).map { it.value }
 
    override fun layoutChildren() {
-      val headerOffset = containerSwitchUi.root.localToScene(0.0, 0.0).y
-      val translationOffset = tTranslate.value
+      val headerOffset = owner.root.localToScene(0.0, 0.0).y
+      val translationOffset = tTranslate.value.toDouble()
 
       xNodes().forEach { it.graphics.isVisible = false }
 
-      containerSwitchUi.container.rootParent?.getAllWidgets().orEmpty().filter { it.controller!=null }.forEach { w ->
+      owner.component.getAllWidgets().filter { it.controller!=null }.forEach { w ->
          val c = w.controller!!
          val ins = c.io.i.getInputs().mapNotNull { inputNodes[it] }
          val ons = c.io.o.getOutputs().mapNotNull { outputNodes[it] }
@@ -423,8 +426,8 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
       val i = Icon()
       val graphics = HBox(0.0, i)
       val label = XLabel(iconStyleclass)
-      var x by observable(0.0) { _, _, nv -> label.y = nv + 15 }
-      var y by observable(0.0) { _, _, nv -> label.x = nv + 15 }
+      var x by observable(0.0) { _, _, nv -> label.x = if (this is OutputNode) nv - 15 else nv + 15 }
+      var y by observable(0.0) { _, _, nv -> label.y = nv + 15 }
       var selected = false
       val disposer = Disposer()
 
@@ -549,13 +552,18 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
             translateX = 20.0
             translateY = 20.0
          }
+         var shift = v(0.0)
+
+         init {
+            if (this@XNode is OutputNode) text.layoutBoundsProperty().attach { shift.value = it.width; updatePosition() }
+         }
 
          fun isVisible() = text.parent!=null
 
          fun updatePosition() {
-            x = this@XNode.x
+            x = this@XNode.x - shift.value
             y = this@XNode.y
-            text.layoutX = this@XNode.x - byX
+            text.layoutX = this@XNode.x - shift.value - byX
             text.layoutY = this@XNode.y - byY
          }
 
@@ -865,6 +873,14 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
       fun allInputRefs(): Sequence<InputRef> = (allInputs.asSequence() + allInputsApp.asSequence()).map { it.toRef() } + allInoutputs().map { it.toInputRef() }
       fun allOutputRefs(): Sequence<OutputRef> = (allOutputs.asSequence() + allOutputsApp.asSequence()).map { it.toRef() } + allInoutputs().map { it.toOutputRef() }
 
+      fun layerCreated(l: IOLayer) {
+         l.owner.component.rootParent!!.getAllWidgets().forEach { w ->
+            w.controller?.io?.i?.getInputs()?.forEach { l.addInput(it) }
+            w.controller?.io?.o?.getOutputs()?.forEach { l.addOutput(it) }
+            w.controller?.io?.io?.getInOutputs()?.forEach { l.addInOutput(it) }
+         }
+      }
+
       fun componentPutAdded(id: UUID, put: XPut<*>) {
          APP.widgetManager.widgets.findAll(WidgetSource.OPEN).find { it.id == id }.ifNotNull { w ->
             val s = w.window?.scene ?: return
@@ -898,8 +914,8 @@ class IOLayer(private val containerSwitchUi: ContainerSwitchUi): StackPane() {
          allOutputs -= c.controller?.io?.o?.getOutputs().orEmpty()
          allInoutputs -= c.controller?.io?.io?.getInOutputs().orEmpty()
 
-         val s = c.window?.scene ?: return
-         val l = allLayers.find { it.scene === s } ?: return
+         val s = c.rootParent ?: return
+         val l = allLayers.find { it.owner.component.rootParent === s } ?: return
 
          allInputs += c.controller?.io?.i?.getInputs().orEmpty()
                       c.controller?.io?.i?.getInputs().orEmpty().forEach { l.addInput(it) }

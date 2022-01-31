@@ -26,11 +26,15 @@ So, this needs to be carefully figured out.
 ###### I/O ui
 Another painful area is the widget input/output system.
 
-The I/O ui is currently tied to **Switch** container, which provides the ui move/zoom capability, which affects the **IO**.
-Because of this, layouts, which do not use **Switch** container (docks and overlays) do not support input/output editing.
-However, the obvious - separating the I/O ui from **Switch** to an actual top container, i.e. **Layout** - is problematic.
-And the change must enable another capability - cross-window I/O ui. The obvious idea - having single I/O layer as screen overlay - is not as simple as it sounds.  
-This is because, again, **Switch** container. In short, if there is screen I/O layer, it is no longer bound to the window content, which creates lots of serious issues:
+The I/O ui was originally tied to **Switch** container, which provides the ui move/zoom capability, which affects the **IO**.
+Because of this, layouts, which do not use **Switch** container (docks and overlays) did not support input/output editing.
+
+The I/O layer has been made to support both **Layout** and **Switch** (which also acts as top level).
+So there is no need to figure out which of the two needs to have it and no extra containers just for I/O.
+When **Layout** contains **Switch**, it lets **Switch** take care of I/O. Now every content supports I/O, including docs and overlays.
+
+What's missing is cross-window I/O ui. The obvious idea - having single I/O layer as screen overlay - is not as simple as it sounds.  
+If there is screen I/O layer, it is no longer bound to the window content, which creates lots of serious issues:
 - moving/zooming the content brings questions of how these should translate to I/O ui
 - suddenly, content hidden outside window becomes clunky - raising questions of how to link to invisible/clipped widgets.
 - screen overlay will also still require user to be able to interact with the underlying content, which will be technically difficult (replicating events)

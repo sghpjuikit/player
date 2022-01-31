@@ -33,7 +33,7 @@ interface ComponentUi: AltState {
 
 }
 
-abstract class ComponentUiBase<C: Component>(val component: C): ComponentUi {
+abstract class ComponentUiBase<out C: Component>(val component: C): ComponentUi {
 
    /** Detaches the widget into standalone content in new window. */
    fun detach() {

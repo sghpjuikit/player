@@ -540,7 +540,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          var typeTo by c(MimeType.`image∕png`).values(listOf(MimeType.`image∕png`, MimeType.`image∕jpeg`)).def(name = "Destination image type")
          var preserveTimeCreated by c(true).def(name = "Preserve '${FileField.TIME_CREATED}'")
          var preserveTimeModified by c(true).def(name = "Preserve '${FileField.TIME_MODIFIED}'")
-         var parallel by c(true).def(name = "Run in parallel", info = "Runs Recommended for SSD, but may slow down on HDD.")
+         var parallel by c(true).def(name = "Run in parallel", info = "Recommended for SSD, but may slow down HDD.")
       }.configure("Convert image") {
          val suffix = it.typeTo.extension!!
          runIoParallel(if (it.parallel) Runtime.getRuntime().availableProcessors() else 1, items = ii) { i ->

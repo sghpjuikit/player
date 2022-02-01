@@ -39,6 +39,8 @@ import sp.it.util.access.V;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.dev.DebugKt;
+import sp.it.util.file.json.JsValue;
+import sp.it.util.text.Jwt;
 import sp.it.util.type.ClassName;
 import sp.it.util.type.InstanceDescription;
 import sp.it.util.type.InstanceName;
@@ -367,17 +369,23 @@ public class ActionPane extends OverlayPane<Object> {
 		descFull.setText(a==null ? "" : a.description);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "AccessStaticViaInstance"})
 	private void setDataInfo(Object data, boolean computed) {
 		dataInfo.setText(computeDataInfo(data, computed));
 		dataTablePane.getChildren().clear();
 		var gap = 0.0;
 		var priority = NEVER;
 
-		if (data instanceof String && ((String) data).length()>40) {
+		var dataAsS = (String) null;
+		if (data instanceof String && ((String) data).length()>40)
+			dataAsS = (String) data;
+		if (data instanceof JsValue || data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
+			dataAsS = APP.getConverter().ui.toS(data);
+
+		if (dataAsS!=null) {
 			dataTextArea = new TextArea();
 			dataTextArea.setEditable(false);
-			dataTextArea.setText((String) data);
+			dataTextArea.setText(dataAsS);
 			dataTablePane.getChildren().setAll(dataTextArea);
 			gap = 70.0;
 			priority = SOMETIMES;

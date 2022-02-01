@@ -70,7 +70,6 @@ import sp.it.util.file.toURIOrNull
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
-import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Unsubscriber
@@ -87,6 +86,7 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.system.browse
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
+import sp.it.util.text.Jwt
 import sp.it.util.text.char32At
 import sp.it.util.text.graphemeAt
 import sp.it.util.text.lengthInChars
@@ -489,7 +489,8 @@ fun Any?.detectContent(): Any? = when (this) {
          ?: this.toDoubleOrNull()
          ?: this.takeIf { it.startsWith("U+") || it.startsWith("\\u") }?.let { it.substring(2).toIntOrNull(16)?.toChar32() }
          ?: APP.serializerJson.json.ast(this).orNull()
-         ?: runTry { uri(this) }.orNull()?.net { it.toFileOrNull()?.takeIf { it.isAbsolute } ?: it }
+         ?: Jwt.ofS(this).orNull()
+         ?: runTry { uri(this) }.orNull()?.let { it.toFileOrNull()?.takeIf { it.isAbsolute } ?: it.takeIf { it.scheme!=null } }
          ?: runTry { uri(URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }
          ?: runTry { uri("file:///$this") }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }
          ?: runTry { uri("file:///" + URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }

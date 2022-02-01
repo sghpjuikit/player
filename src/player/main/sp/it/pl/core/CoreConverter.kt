@@ -94,6 +94,7 @@ import sp.it.util.parsing.ConverterFromString
 import sp.it.util.parsing.ConverterString
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
+import sp.it.util.text.Jwt
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
@@ -190,6 +191,7 @@ object CoreConverter: Core {
          is URL -> URLDecoder.decode(o.toExternalForm(), UTF_8)
          is Feature -> o.name
          is JsValue -> o.toCompactS()
+         is Jwt -> Jwt.toUiS(o, APP.locale.value)
          is Throwable -> o.localizedMessage
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)

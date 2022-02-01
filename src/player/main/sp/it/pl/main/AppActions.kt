@@ -100,6 +100,8 @@ import sp.it.util.system.browse
 import sp.it.util.system.open
 import sp.it.util.system.runCommand
 import sp.it.util.system.saveFile
+import sp.it.util.text.decodeBase64
+import sp.it.util.text.isBase64
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.bgr
@@ -369,6 +371,10 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          }
       }
    }
+
+   val decodeBase64 = fastAction<String>("Decode base64", "Decode Base64", IconFA.EXCHANGE, { it.isBase64() }) {
+      apOrApp.showAndDetect(it.decodeBase64().orNull(), true)
+   }.preventClosing()
 
    @Blocks
    val printAllImageFileMetadata = slowAction<File>("Show image metadata", "Show image metadata", IconFA.INFO, { it.isImage() }) {

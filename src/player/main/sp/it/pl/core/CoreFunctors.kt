@@ -12,7 +12,6 @@ import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.time.Year
-import java.util.Base64
 import java.util.Objects
 import java.util.UUID
 import java.util.regex.Pattern
@@ -65,6 +64,8 @@ import sp.it.util.text.Char32
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.char32At
+import sp.it.util.text.decodeBase64
+import sp.it.util.text.encodeBase64
 import sp.it.util.text.escapeCsv
 import sp.it.util.text.escapeEcmaScript
 import sp.it.util.text.escapeHtml3
@@ -74,6 +75,7 @@ import sp.it.util.text.escapeJson
 import sp.it.util.text.escapeXSI
 import sp.it.util.text.escapeXml10
 import sp.it.util.text.escapeXml11
+import sp.it.util.text.isBase64
 import sp.it.util.text.isPalindrome
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.sentences
@@ -244,9 +246,9 @@ object CoreFunctors: Core {
          add("To file", S, type<File>()) { File(it) }
          add("Is URI", S, B) { runTry { uri(it) }.isOk }
          add("To URI", S, type<URI>()) { runTry { uri(it) }.orNull() }
-         add("Is base64", S, B) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.isOk }
-         add("Encode Base64", S, S) { Base64.getEncoder().encodeToString(it.toByteArray()) }
-         add("Decode Base64", S, S) { runTry { String(Base64.getDecoder().decode(it.toByteArray())) }.orNull() }
+         add("Is base64", S, B) { it.isBase64() }
+         add("Encode Base64", S, S) { it.encodeBase64() }
+         add("Decode Base64", S, S) { it.decodeBase64().orNull() }
          add("Encode URL (UTF-8)", S, S) { URLEncoder.encode(it, UTF_8) }
          add("Decode URL (UTF-8)", S, S) { URLDecoder.decode(it, UTF_8) }
          add("Escape Java", S, S) { it.escapeJava() }

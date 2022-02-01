@@ -102,7 +102,21 @@ interface JsConverter<T> {
    fun fromJson(value: JsValue): T?
 }
 
-class Json {
+open class JsonAst {
+   fun ast(json: String): Try<JsValue, Throwable> = ast(json.byteInputStream(UTF_8), UTF_8)
+
+   fun ast(json: InputStream, charset: Charset = UTF_8): Try<JsValue, Throwable> = runTry {
+      val i = SequenceInputStream(SequenceInputStream(
+         "{ \"value\": ".byteInputStream(UTF_8),
+         json),
+         " }".byteInputStream(UTF_8)
+      )
+      val klaxonAst = Klaxon().parser().parse(i, charset).asIs<JsonObject>()["value"]
+      fromKlaxonAST(klaxonAst)
+   }
+}
+
+class Json: JsonAst() {
 
    val converters = TypeConverters()
    val typeAliases = TypeAliases()
@@ -254,18 +268,6 @@ class Json {
             }
          }
       }
-   }
-
-   fun ast(json: String): Try<JsValue, Throwable> = ast(json.byteInputStream(UTF_8), UTF_8)
-
-   fun ast(json: InputStream, charset: Charset = UTF_8): Try<JsValue, Throwable> = runTry {
-      val i = SequenceInputStream(SequenceInputStream(
-         "{ \"value\": ".byteInputStream(UTF_8),
-         json),
-         " }".byteInputStream(UTF_8)
-      )
-      val klaxonAst = Klaxon().parser().parse(i, charset).asIs<JsonObject>()["value"]
-      fromKlaxonAST(klaxonAst)
    }
 
    fun <T> fromJson(type: VType<T>, json: String): Try<T, Throwable> = fromJson(type, json.byteInputStream(UTF_8), UTF_8)

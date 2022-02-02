@@ -31,9 +31,7 @@ import javafx.scene.Scene
 import javafx.scene.input.KeyCode.F1
 import javafx.scene.input.KeyCode.F2
 import javafx.scene.input.KeyCode.F3
-import javafx.scene.input.KeyEvent.ANY
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import javafx.scene.input.KeyEvent.KEY_RELEASED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
@@ -197,13 +195,10 @@ fun Scene.installWindowInteraction() = Subscription(
       }
    },
    // layout mode hotkeys
-   onEventUp(ANY) {
-      if (!it.isControlDown && !it.isShortcutDown && !it.isMetaDown) {
-         if (it.code==keyManageLayout) {
-            if (it.eventType==KEY_RELEASED) APP.ui.isLayoutMode = false
-            if (it.eventType==KEY_PRESSED) APP.ui.isLayoutMode = true
-            it.consume()
-         }
+   onEventUp(KEY_PRESSED) {
+      if (!it.isControlDown && !it.isShortcutDown && !it.isMetaDown && it.code==keyManageLayout) {
+         APP.ui.isLayoutMode = !APP.ui.isLayoutMode
+         it.consume()
       }
    }
 )

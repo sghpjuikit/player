@@ -184,7 +184,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          Entry("Ui", "Show focused widget help", F2.nameUi),
          Entry("Ui", "Show focused widget help", ActionManager.keyShortcutsComponent.nameUi),
          Entry("Ui", "Show focused widget actions", ActionManager.keyActionsComponent.nameUi),
-         Entry("Ui", "Layout mode", keys(ActionManager.keyManageLayout.nameUi) + " (hold)"),
+         Entry("Ui", "Layout mode", ActionManager.keyManageLayout.nameUi),
          Entry("Ui > Controls > Button/Icon", "Run action", PRIMARY.nameUi),
          Entry("Ui > Controls > Button/Icon", "Run action", ENTER.nameUi),
          Entry("Ui > Controls > Button/Icon", "Run action", SPACE.nameUi),

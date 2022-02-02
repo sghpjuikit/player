@@ -989,6 +989,7 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
          children += Circle(5.0).apply {
             styleClass += "iolink-effect-receive"
             isManaged = false
+            isMouseTransparent = true
             relocate(x - radius, y - radius)
 
             anim(250.millis) {

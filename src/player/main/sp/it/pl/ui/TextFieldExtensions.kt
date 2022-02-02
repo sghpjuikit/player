@@ -2,12 +2,15 @@ package sp.it.pl.ui
 
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
+import javafx.scene.control.TextArea
 import javafx.scene.control.TextInputControl
 import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode.DELETE
+import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.SHIFT
 import javafx.scene.input.KeyCode.SHORTCUT
 import javafx.scene.input.MouseEvent
+import javafx.scene.text.TextAlignment
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.main.Key
 import sp.it.pl.main.toUi
@@ -20,6 +23,7 @@ import sp.it.util.ui.copySelectedOrAll
 import sp.it.util.ui.cutSelectedOrAll
 import sp.it.util.ui.dsl
 import sp.it.util.ui.show
+import sp.it.util.ui.textAlignment
 
 fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> String?)?, valueGetter: (() -> Any?)?) {
    fun MenuItem.disIf(condition: Boolean) = apply { isDisable = condition }
@@ -31,6 +35,11 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
          item("Cut (${keys(SHORTCUT, Key.X)})") { tf.cutSelectedOrAll() }.disIf(!tf.isEditable)
          item("Copy (${keys(SHORTCUT, Key.C)})") { tf.copySelectedOrAll() }
          item("Paste (${keys(SHORTCUT, Key.V)})") { tf.paste() }.disIf(!tf.isEditable || !Clipboard.getSystemClipboard().hasString())
+         if (tf is TextArea) menu("Paste newline (${keys(ENTER)})") {
+            item("\\r (CR)") { tf.insertText(tf.caretPosition, "\r") }
+            item("\\n (LF)") { tf.insertText(tf.caretPosition, "\n") }
+            item("\\r\\n(CRLF/EOF)") { tf.insertText(tf.caretPosition, "\r\n") }
+         }
          item("Delete (${keys(DELETE)})") { tf.deleteText(tf.selection) }.disIf(!tf.isEditable || tf.selectedText.isNullOrEmpty())
 
          separator()
@@ -41,6 +50,11 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
             separator()
             item {
                SelectionMenuItem("Wrap text", tf.isWrapText).apply { selected.attach { tf.isWrapText = it } }
+            }
+            menu("Align text") {
+               items {
+                  SelectionMenuItem.buildSingleSelectionMenu(TextAlignment.values().toList(), tf.textAlignment, { it.toUi() }) { tf.textAlignment = it }.asSequence()
+               }
             }
          }
 

@@ -29,6 +29,7 @@ import sp.it.util.access.vn
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.parsing.ConverterFromString
+import sp.it.util.parsing.ConverterToString
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTrue
@@ -46,7 +47,11 @@ import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.textField
 
 /** [TextField], which can be decorated with nodes inside on the left and right. */
-open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() {
+open class TagTextField<T>(converter: ConverterFromString<T>, converterToUi: ConverterToString<T> = ConverterToString { it.toUi() }): FlowPane() {
+   /** Converter that creates item from the text */
+   val converterToUi: ConverterToString<T> = converterToUi
+   /** Converter that creates item from the text */
+   val converterFromString: ConverterFromString<T> = converter
    /** Displayed tag items. */
    val items: ObservableSet<T> = observableSet(LinkedHashSet())
    /** Whether user can add to or remove from [items]. */
@@ -63,13 +68,13 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
             textField {
                onEventDown(KEY_PRESSED, ENTER) {
                   if (this@TagTextField.isEditable.value)
-                     converterString.ofS(text ?: "").ifOk {
+                     converter.ofS(text ?: "").ifOk {
                         itemAdd(it)
                         popup.hide()
                      }
                }
                autocompleteSuggestionProvider.value.ifNotNull {
-                  autoComplete(this, it)
+                  autoComplete(this, it, { converterToUi.toS(it) })
                }
             }
          }
@@ -93,7 +98,7 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
       // ENTER commits tag, BACKSPACE removes last tag
       textField.onEventDown(KEY_PRESSED, ENTER, false) {
          if (isEditable.value) {
-            converterString.ofS(textField.text ?: "").ifOk { item ->
+            converter.ofS(textField.text ?: "").ifOk { item ->
                textField.text = ""
                itemAdd(item)
             }
@@ -111,7 +116,7 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
 
       // autocomplete
       autocompleteSuggestionProvider syncNonNullWhile  {
-         autoComplete(textField, it)
+         autoComplete(textField, it, { converterToUi.toS(it) })
       }
 
       // Read-only mode disables
@@ -127,7 +132,7 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
       }
 
       items.onItemSyncWhile {
-         val tagNode = TagNode(it).updateEditable()
+         val tagNode = TagNode(it, converterToUi.toS(it)).updateEditable()
          if (isEditable.value) lay -= textField
          if (isEditable.value) lay -= plusNode
          lay += tagNode
@@ -155,7 +160,7 @@ open class TagTextField<T>(converterString: ConverterFromString<T>): FlowPane() 
 
    enum class EditableBy { PLUS_NODE, TEXT_FIELD }
 
-   class TagNode<T>(val tagItem: T): Label(tagItem.toUi()) {
+   class TagNode<T>(val tagItem: T, text: String): Label(text) {
       init {
          styleClass += STYLECLASS
       }

@@ -179,10 +179,10 @@ import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.autocompleteSuggestionsFor
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
+import sp.it.pl.ui.objects.complexfield.StringTagTextField
 import sp.it.pl.ui.objects.complexfield.TagTextField
 import sp.it.util.access.focused
 import sp.it.util.dev.failCase
-import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
 import sp.it.util.math.clip
 import sp.it.util.math.max
@@ -1043,9 +1043,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
                   layTextField("playedLastF", 22)
                   layTextField("addedToLibraryF", 23)
                   lay += label()
-                  lay(row = 24, column = 1, colSpan = REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += TagTextField {
-                     s -> if (s.isBlank()) Try.error("Must not be blank") else Try.ok(s)
-                  }.apply {
+                  lay(row = 24, column = 1, colSpan = REMAINING, hAlignment = HPos.LEFT, vAlignment = VPos.CENTER) += StringTagTextField().apply {
                      id = "tagsF"
                      styleClass += "tag-field"
                      textField.descriptionNodeId = "tagsF"

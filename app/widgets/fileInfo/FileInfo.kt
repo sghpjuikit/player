@@ -88,11 +88,9 @@ import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.appHyperlinkFor
 import sp.it.pl.main.autocompleteSuggestionsFor
 import sp.it.pl.main.detectContent
-import sp.it.pl.ui.objects.complexfield.TagTextField
+import sp.it.pl.ui.objects.complexfield.StringTagTextField
 import sp.it.pl.ui.objects.complexfield.TagTextField.EditableBy.PLUS_NODE
-import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
-import sp.it.util.parsing.ConverterFromString
 import sp.it.util.reactive.attach
 import sp.it.util.ui.Util.computeTextWidth
 import sp.it.util.units.em
@@ -277,9 +275,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
    private inner class TagsField(semanticIndex: Int): LField(semanticIndex, TAGS) {
       private val originalItems = mutableSetOf<String>()
-      private val textTag = object: TagTextField<String>(
-         ConverterFromString { if (it.isBlank()) Try.error("Must not be blank") else Try.ok(it) }
-      ) {
+      private val textTag = object: StringTagTextField() {
          // the textTag need to shrink based on available space
          init { this@TagsField.widthProperty() attach { requestLayout() } }
          override fun computePrefWidth(height: Double) = this@TagsField.width - graphicTextGap - computeTextWidth(font, text.orEmpty()) - 5.emScaled

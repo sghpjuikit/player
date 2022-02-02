@@ -112,7 +112,7 @@ open class Placeholder(actionIcon: GlyphIcons, actionName: String, action: () ->
          p.lay += this
          s?.unsubscribe()
          s = n.layoutBoundsProperty().sync {
-            var b = p.sceneToLocal(n.localToScene(it))
+            val b = p.sceneToLocal(n.localToScene(it)) ?: p.layoutBounds
             minSize = 0.x2
             prefSize = b.size
             maxSize = b.size

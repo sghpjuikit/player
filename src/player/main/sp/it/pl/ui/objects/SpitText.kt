@@ -1,6 +1,7 @@
 package sp.it.pl.ui.objects
 
 import javafx.scene.text.Font
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.fontScaled
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.sync
@@ -21,6 +22,6 @@ class SpitText: javafx.scene.text.Text {
    }
 
    companion object {
-      fun computeNaturalWrappingWidth(text: String?, font: Font?) = (110 + text.orEmpty().length/4).fontScaled(font)
+      fun computeNaturalWrappingWidth(text: String?, font: Font?) = (120.emScaled + text.orEmpty().length/4).fontScaled(font)
    }
 }

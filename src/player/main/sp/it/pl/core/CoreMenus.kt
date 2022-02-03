@@ -123,7 +123,7 @@ object CoreMenus: Core {
          addCustom { kClass ->
             { value ->
                ActionsPaneGenericActions.actionsAll[kClass].orEmpty().asSequence().filter { it.invokeDoable(value) }.map { action ->
-                  menuItem(action.name, action.icon.toCmUi()) {
+                  menuItem(action.name, action.icon.toCmUi { tooltip(action.description) } ) {
                      if (action.isLong) runIO { action(ActContext(it), value) }
                      else action(ActContext(it), value)
                   }

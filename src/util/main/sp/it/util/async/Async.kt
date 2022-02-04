@@ -184,9 +184,9 @@ fun runIO(block: Runnable) = runIO(block.kt)
 /** Runs the specified block for each specified item using the max specified parallelism, blocks until finish and returns results.  */
 @Experimental("does not handle errors correctly")
 fun <T, R> runIoParallel(parallelism: Int = Runtime.getRuntime().availableProcessors(), items: Collection<T>, block: (T) -> R): Fut<List<Try<R,Throwable>>> = runIO {
-   val windowSize = items.size/parallelism
-   items.windowed(windowSize, windowSize, true).map { runOn(IO_LATER) { it.map { runTry { block(it) } } } }.materialize()
-      .flatMap { it.getDone().toTry().orThrow } // TODO: handle errors correctly
+  val windowSize = if (items.size<parallelism) parallelism else items.size/parallelism
+  items.windowed(windowSize, windowSize, true).map { runOn(IO_LATER) { it.map { runTry { block(it) } } } }.materialize()
+     .flatMap { it.getDone().toTry().orThrow } // TODO: handle errors correctly
 }
 
 /** Executes the specified block periodically with given time period (1st call is already delayed). */

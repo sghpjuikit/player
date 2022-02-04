@@ -63,10 +63,12 @@ import sp.it.util.action.IsAction
 import sp.it.util.async.FX
 import sp.it.util.async.launch
 import sp.it.util.async.runFX
+import sp.it.util.async.runIO
 import sp.it.util.async.runIoParallel
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
+import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.but
 import sp.it.util.conf.c
 import sp.it.util.conf.cn
@@ -104,6 +106,7 @@ import sp.it.util.text.decodeBase64
 import sp.it.util.text.isBase64
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
+import sp.it.util.type.type
 import sp.it.util.ui.bgr
 import sp.it.util.ui.getScreenForMouse
 import sp.it.util.ui.hyperlink
@@ -491,6 +494,33 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
+   val fileSyncFileTimes = fastAction<File>("Synchronize file times", "Sets creation & last modified time for destination files to those of source files.", IconFA.FILES_ALT) { file ->
+      ValueConfig(type(), "Destination file", File(""), "").configure("Synchronize file times") {
+         runIO {
+            val srcPath = file.absolutePath.trimEnd('\\')
+            val src = FileFlatter.ALL_WITH_DIR.flatten(listOf(file)).associateBy { it.absolutePath.substringAfter(srcPath) }
+            val dstPath = it.value.absolutePath.trimEnd('\\')
+            val dst = FileFlatter.ALL_WITH_DIR.flatten(listOf(it.value)).associateBy { it.absolutePath.substringAfter(dstPath) }
+            runIoParallel(items = dst.entries) { (path, df) ->
+               src[path].ifNotNull { sf ->
+                  df.setLastModified(sf.lastModified())
+                  df.setCreated(sf.creationTime().orNull()!!)
+               }
+            }.block()
+         }
+      }
+   }.preventClosing()
+
+   val fileFlatten = fastColAction<File>("Flatten tree", "Flattens file hierarchy", IconFA.FILES_ALT) { files ->
+      ValueConfig(type(), "Strategy", FileFlatter.ALL_WITH_DIR, "").configure("Flatten tree") {
+         runIO {
+            it.value.flatten(files).toList()
+         } ui {
+            apOrApp.show(it)
+         }
+      }
+   }.preventClosing()
+
    val componentClone = fastAction<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w ->
       w.openInConfigured()
    }
@@ -544,8 +574,8 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    val convertImage = fastColAction<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, { it.isImage12Monkey() }) { ii ->
       object: ConfigurableBase<Any?>() {
-         val fileFrom by cn(ii.firstOrNull()).def(editable = EditMode.NONE).but { if (ii.size!=1) noUi() }.def(name = "Source image file")
-         val typeFrom by cn(ii.firstOrNull()?.mimeType()).def(editable = EditMode.NONE).but { if (ii.size!=1) noUi() }.def(name = "Source image type")
+         val fileFrom by cn(ii.firstOrNull()).but { if (ii.size!=1) noUi() }.def(name = "Source image file", editable = EditMode.NONE)
+         val typeFrom by cn(ii.firstOrNull()?.mimeType()).but { if (ii.size!=1) noUi() }.def(name = "Source image type", editable = EditMode.NONE)
          var dirTo by c(ii.first().parentDirOrRoot).def(name = "Destination image folder")
          var typeTo by c(MimeType.`image∕png`).values(listOf(MimeType.`image∕png`, MimeType.`image∕jpeg`)).def(name = "Destination image type")
          var preserveTimeCreated by c(true).def(name = "Preserve '${FileField.TIME_CREATED}'")

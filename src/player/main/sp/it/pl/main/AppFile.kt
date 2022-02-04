@@ -255,6 +255,17 @@ enum class FileFlatter(val flatten: (Collection<File>) -> Sequence<File>) {
 
       it.asSequence().distinct().flatMap { it.walkDirsAndWithCover() }
    }),
+   ALL_WITH_DIR({
+      it.asSequence().distinct().flatMap {
+         if (it.isDirectory) {
+            val dirs = windowsCmdDir(it, DIRECTORY)
+            val files = windowsCmdDir(it, FILE)
+            (dirs + files).asSequence()
+         } else {
+            sequenceOf(it)
+         }
+      }
+   }),
    ALL({ it.asSequence().distinct().flatMap { it.asFileTree() } });
 }
 

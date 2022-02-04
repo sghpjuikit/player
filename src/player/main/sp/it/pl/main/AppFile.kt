@@ -282,8 +282,12 @@ private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
 
    return try {
       Runtime.getRuntime().exec(cmd)
-         .inputStream.bufferedReader(Charsets.UTF_8)
-         .useLines { it.map { FastFile(it, isDir, isFile) }.toList() }
+         .inputStream.bufferedReader(Charsets.UTF_8).readText().lineSequence()
+         .map { FastFile(it, isDir, isFile) }.toList()
+      // TODO: This is bugged! This version changes encoding after reading 1st line, so other lines do not read unicode properly and point to non-existent files
+      //      Runtime.getRuntime().exec(cmd)
+      //         .inputStream.bufferedReader(Charsets.UTF_8)
+      //         .useLines { it.map { FastFile(it.printIt(), isDir, isFile) }.toList() }
    } catch (e: Throwable) {
       logger.error(e) { "Failed to read ${type.name.plural()} in $dir using command $cmd" }
       listOf()

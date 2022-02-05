@@ -434,7 +434,7 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
          val result = action(it)
          if (result is Fut<*>) {
             val progressIndicator = appProgressIndicator({ headerIcons += it }, { headerIcons -= it })
-            result.withProgress(progressIndicator)
+            result.withProgress(progressIndicator).withAppProgress(titleText)
          }
          result
       }.apply {

@@ -11,6 +11,7 @@ import javafx.concurrent.Worker.State
 import javafx.geometry.Insets
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.scene.Cursor.HAND
 import javafx.scene.Node
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
@@ -36,10 +37,17 @@ import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
 import sp.it.util.async.invoke
 import sp.it.util.async.runFX
+import sp.it.util.async.runLater
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
+import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.supplyIf
+import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
 import sp.it.util.reactive.onItemSync
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1If
@@ -158,6 +166,7 @@ object AppProgress {
    }
 
    fun showTasks(target: Node): PopWindow {
+      val disposer = Disposer()
       val layout = anchorPane {
          lay(10) += scrollPane {
             hbarPolicy = NEVER
@@ -186,20 +195,25 @@ object AppProgress {
 
                            fun updateIcon() {
                               icon(when (state.value) {
-                                 SCHEDULED -> IconMD.ROTATE_RIGHT
-                                 ACTIVE -> IconFA.REPEAT
-                                 DONE_OK -> IconFA.CHECK
-                                 DONE_ERROR -> IconFA.CLOSE
-                                 DONE_CANCEL -> IconFA.BAN
+                                 is SCHEDULED -> IconMD.ROTATE_RIGHT
+                                 is ACTIVE -> IconFA.REPEAT
+                                 is DONE_OK -> IconFA.CHECK
+                                 is DONE_ERROR<*> -> IconFA.WARNING
+                                 is DONE_CANCEL -> IconFA.BAN
                               })
+                              state.value.asIf<DONE_ERROR<*>>()?.value.ifNotNull { error ->
+                                 cursor = HAND
+                                 isMouseTransparent = false
+                                 onClickDo { APP.ui.actionPane.orBuild.showAndDetect(error, true) }
+                              }
                            }
 
                            val ar = anim { rotate = 360*it }.dur(1000.millis).intpl(LINEAR).apply { cycleCount = INDEFINITE }
                            val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
                            updateIcon()
-                           state sync { if (it==ACTIVE) ar.play() }
-                           state attach { if (it==DONE_OK || it==DONE_ERROR || it==DONE_CANCEL) { ar.stop(); ar.applyAt(0.0) } }
-                           state attach { a.playCloseDoOpen(::updateIcon) }
+                           state sync { if (it is ACTIVE) ar.play() } on disposer
+                           state attach { if (it is DONE_OK || it is DONE_ERROR<*> || it is DONE_CANCEL) { ar.stop(); ar.applyAt(0.0) } } on disposer
+                           state attach { a.playCloseDoOpen(::updateIcon) } on disposer
                         }
                      }
                   }
@@ -208,11 +222,11 @@ object AppProgress {
                         right = hBox(10, CENTER_RIGHT) {
                            lay += label {
                               maxWidth = 500.0
-                              textProperty() syncFrom message!!
+                              textProperty() syncFrom message!! on disposer
                            }
                            lay += Icon(IconFA.BAN).apply {
                               isVisible = cancel!=null
-                              if (cancel!=null) state.sync1If({ it!=ACTIVE }) { isVisible = false }
+                              if (cancel!=null) state.sync1If({ it!=ACTIVE }) { isVisible = false } on disposer
                               onClickDo { cancel?.invoke() }
                            }
                         }
@@ -220,8 +234,9 @@ object AppProgress {
                   }
                }
                tasks.onItemSync {
-                  children.add(0, it.toInfo())
-               }
+                  children.add(it.toInfo())
+                  runLater { this@scrollPane.vvalue = height }
+               } on disposer
             }
          }
       }
@@ -230,6 +245,7 @@ object AppProgress {
          title.value = "Tasks"
          isEscapeHide.value = true
          isAutohide.value = false
+         onHidden += disposer
          show(RIGHT_UP(target))
       }
    }
@@ -244,7 +260,7 @@ interface ScheduleAppTaskHandle: StartAppTaskHandle {
 }
 
 private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, val cancel: (() -> Unit)?) {
-   val state = v(SCHEDULED)
+   val state = v<State>(SCHEDULED)
    val timeActive = v(0.millis)
    private var timeStart = 0L
 
@@ -262,13 +278,20 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
    fun finish(result: Result<*>) {
       updateTimeActive()
       state.value = when (result) {
-         is ResultOk<*> -> DONE_OK
+         is ResultOk<*> -> if (result.value is Try.Error<*>) DONE_ERROR(result.value.asIs<Try.Error<*>>().value) else DONE_OK
          is ResultInterrupted -> DONE_CANCEL
-         is ResultFail -> DONE_ERROR
+         is ResultFail -> DONE_ERROR(result.error)
       }
    }
 
-   enum class State { SCHEDULED, ACTIVE, DONE_OK, DONE_CANCEL, DONE_ERROR }
+   @Suppress("ClassName")
+   sealed interface State {
+      object SCHEDULED: State
+      object ACTIVE: State
+      object DONE_OK: State
+      object DONE_CANCEL: State
+      data class DONE_ERROR<T>(val value: T): State
+   }
 }
 
 /**

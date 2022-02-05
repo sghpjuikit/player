@@ -2,6 +2,7 @@ package tester
 
 import java.io.File
 import java.lang.Math.PI
+import java.lang.Math.random
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDate
@@ -15,8 +16,10 @@ import javafx.animation.Transition
 import javafx.geometry.Insets
 import javafx.geometry.Insets.EMPTY
 import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_CENTER
+import javafx.geometry.Side.RIGHT
 import javafx.scene.Group
 import javafx.scene.control.Separator
 import javafx.scene.control.Slider
@@ -54,6 +57,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.Key
 import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
@@ -73,6 +77,8 @@ import sp.it.util.animation.interpolator.QuadraticInterpolator
 import sp.it.util.animation.interpolator.QuarticInterpolator
 import sp.it.util.animation.interpolator.QuinticInterpolator
 import sp.it.util.animation.interpolator.SineInterpolator
+import sp.it.util.async.future.Fut.Companion.fut
+import sp.it.util.async.runIoParallel
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.CheckList
 import sp.it.util.conf.ConfigurableBase
@@ -92,7 +98,9 @@ import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
 import sp.it.util.conf.valuesUnsealed
+import sp.it.util.dev.fail
 import sp.it.util.file.div
+import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
@@ -146,6 +154,7 @@ class Tester(widget: Widget): SimpleController(widget) {
             lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Animation Interpolators")
             lay += Icon(IconOC.CODE).onClickDo { testPathShapeTransitions() }.withText("Path/Shape Animations")
             lay += Icon(IconOC.CODE).onClickDo { testCssGradients() }.withText("Test CSS Gradients")
+            lay += Icon(IconOC.CODE).onClickDo { testTasks() }.withText("Test Tasks")
          }
          lay += Separator()
          lay += stackPane {
@@ -440,6 +449,29 @@ class Tester(widget: Widget): SimpleController(widget) {
             lay += stackPane {
                styleClass += "test-gradient"
             }
+         }
+      }
+   }
+
+   fun testTasks() {
+      onContentChange()
+
+      fun task(name: String, block: () -> Any?) = fut().thenWait(5.seconds).then { block() }.withAppProgress(name)
+
+      content.children setToOne scrollPane {
+         content = vBox(0.0, CENTER_LEFT) {
+            lay += Icon(IconFA.PLAY)
+               .onClickDo { task("Test success") {} }
+               .withText(RIGHT, CENTER_LEFT, "Run long running task that succeeds")
+            lay += Icon(IconFA.PLAY)
+               .onClickDo { task("Test failure (exception)") { fail { "Test error message" } } }
+               .withText(RIGHT, CENTER_LEFT, "Run long running task that fails (exception)")
+            lay += Icon(IconFA.PLAY)
+               .onClickDo { task("Test failure (custom error)") { Try.error("Test error value") } }
+               .withText(RIGHT, CENTER_LEFT, "Run long running task that fails (custom error)")
+            lay += Icon(IconFA.PLAY)
+               .onClickDo { task("Test failure (custom list with errors)") { runIoParallel(2, (1..100).toList()) { if (random()>0.5) it else fail { "error" } } } }
+               .withText(RIGHT, CENTER_LEFT, "Run long running task that fails (custom error)")
          }
       }
    }

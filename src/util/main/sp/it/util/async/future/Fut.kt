@@ -17,6 +17,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.function.Consumer
+import sp.it.util.functional.getAny
+import sp.it.util.functional.runTry
 
 /**
  * Future monad implementation.
@@ -55,6 +57,8 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
    /** @return whether this future completed regardless of success */
    fun isDone(): Boolean = f.isDone
+   fun isCancelled(): Boolean = f.isCancelled
+   fun isFailed(): Boolean = f.isCompletedExceptionally
 
    /** Invokes the block if this future [isDone] and [getDone] is [ResultOk] */
    fun ifDoneOk(block: (T) -> Unit) {
@@ -85,6 +89,10 @@ class Fut<T>(private var f: CompletableFuture<T>) {
       @JvmStatic
       fun <T> fut(value: T) = Fut<T>(CompletableFuture.completedFuture(value))
 
+      fun <T> futFailed(value: Throwable) = Fut<T>(CompletableFuture.failedFuture(value))
+
+      fun <T> futOfBlock(block: () -> T): Fut<T> = runTry { fut(block()) }.mapError<Fut<T>> { futFailed(it) }.getAny()
+
       private val defaultExecutor = CompletableFuture<Any>().defaultExecutor()!!
 
       private fun <T, R> ((T) -> R).logging(): ((T) -> R) = {
@@ -98,6 +106,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
    }
 
+   /** Output result of [Fut]. */
    sealed interface Result<out T> {
 
       data class ResultOk<T>(val value: T): Result<T>
@@ -119,3 +128,12 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    }
 
 }
+
+/** [List] of [Fut]. It is its own type, to allow disambiguating coincidental list of futures from intentional one */
+class FutList<T>(list: List<Fut<T>>): List<Fut<T>> by list
+
+/** @return [FutList] from this list of futures */
+fun <T> List<Fut<T>>.asFutList(): FutList<T> = FutList(this)
+
+/** Future of list of futures */
+typealias Futs<T> = Fut<FutList<T>>

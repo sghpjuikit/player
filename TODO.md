@@ -17,7 +17,6 @@
 - Implement **Object Info** widget scale image use Object Info in form
 - Improve Json serialization to support graph cycles
 - `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
-- Improve **Tooltip** text layout
 - Improve **kotlinc**/**vlc**/**mpeg** setup should not be `Future`, but restartable `Task`
 - `ObsListConfig.setDefaultValue` not removing disabled items
 - Fix manual widget loading not rebinding widget inputs properly

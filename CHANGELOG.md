@@ -3,7 +3,9 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
-- Implement widget I/O for any type of window (docks, overlays)
+## [3.1.0] 2022 02 07
+
+- Implement **widget I/O** for any type of window (docks, overlays)
 - Implement **Save component** action to save component loaded from a previously exported file
 - Implement **Convert Image** action for images. Supports batch conversion and is very fast on SSD due to io parallelism
 - Implement **GitProjects** widget selection & context menu
@@ -12,8 +14,11 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `TextArea.wrapText` context menu item
 - Implement **Change font size** on **CTRL+SCROLL**
 - Implement **Show Lyrics** action (this is candidate for new widget)
+- Implement **Synchronize file times** action for restoring file creation/modification time after copy
+- Implement better tracking of background activities and their error results
 - Improve entering/exiting layout mode performance
 - Improve logging output [reduce logging for some libraries]
+- Improve context menus, context menu item icon tooltip, tooltip layout
 - Improve `DatePicker` & `DatePickerContent`
   - Implement selection
   - Implement locale-specific day of the week order
@@ -21,7 +26,7 @@ All notable changes to this project will be documented in this file. Format base
   - Fix incorrect calendar day numbers sometimes
   - Fix incorrect calendar layout sometimes
   - Fix unable to instantiate inside **Custom** widget
-- Fix content detection often detecting text as a relative file
+- Fix content detection often detecting text as a relative file or uri
 - Fix image loading some images at full resolution (improves performance)
 - Fix application not shutting down gracefully sometimes
 - Fix `Collection.size` & `Map.size` functor output type
@@ -30,6 +35,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix some actions/menu items are not available due to not registering 
 - Fix drag & drop when external application sets `FILES` to empty list
 - Fix **Logger** widget `area.wrapText` observability and default value not applied correctly
+- Fix **cmd** file lookup not finding certain files sometimes
 
 This update brings lots of usability improvements.
 
@@ -45,6 +51,14 @@ First, there is automatic content detection after **CTRL+V** or **drag & drop**.
 Second, just like `Collection`s are displayed in table, `String`s are now displayed in `TextArea`, which can now change its wrapText settings through context menu.
 This will be further improved to support images, or displaying text representation of objects that have no natural representation.
 Ideally, this functionality would be absorbed into **Object Info** widget.
+
+Another improvement is bgr task management.
+First, task invoked through forms/popups now also display in task list. This makes closing the window not a destructive operation (as progress could no longer be tracked).
+Second, if the task ends with error, this error can be displayed by clicking on the task result warn icon in the task list, which opens **ActionPane**. This makes it possible to track task errors.
+Third, tasks that do parallel processing or produce multiple outputs (potentially with errors) also return future, can be tracked and have their errors displayed.
+Actually acting on the errors is still not very easy.
+The table should get `Try.Ok/Error` filtering predicates, nested columns (for `Ok` and `Success` branch) and transformation capabilities (like **Converter** widget).
+These may come in future updates.
 
 This update refactors the code to further unify actions for `ActionPane` and actions for `ContextMenu`.
 Introduced is `ActContext`- an invocation context carrying auxiliary data, such as source of the event.

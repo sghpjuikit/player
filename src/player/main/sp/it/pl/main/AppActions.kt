@@ -494,7 +494,13 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   val fileSyncFileTimes = fastAction<File>("Synchronize file times", "Sets creation & last modified time for destination files to those of source files.", IconFA.FILES_ALT) { file ->
+   val fileSyncFileTimes = fastAction<File>(
+      "Restore file time",
+      "Restores creation/modification times. Useful after file or directory copy.\n" +
+         "Sets times for destination files to those of source files. Runs for each directory and file, recursively. " +
+         "Matches by path relative to source/destination directory.",
+      IconFA.FILES_ALT
+   ) { file ->
       ValueConfig(type(), "Destination file", File(""), "").configure("Synchronize file times") {
          runIO {
             val srcPath = file.absolutePath.trimEnd('\\')

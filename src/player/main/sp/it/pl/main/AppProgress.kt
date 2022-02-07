@@ -35,6 +35,7 @@ import sp.it.util.async.future.Fut.Result
 import sp.it.util.async.future.Fut.Result.ResultFail
 import sp.it.util.async.future.Fut.Result.ResultInterrupted
 import sp.it.util.async.future.Fut.Result.ResultOk
+import sp.it.util.async.future.FutList
 import sp.it.util.async.invoke
 import sp.it.util.async.runFX
 import sp.it.util.async.runLater
@@ -42,7 +43,6 @@ import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIf
-import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.supplyIf
 import sp.it.util.reactive.Disposer
@@ -276,12 +276,20 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
    }
 
    fun finish(result: Result<*>) {
-      updateTimeActive()
-      state.value = when (result) {
-         is ResultOk<*> -> if (result.value is Try.Error<*>) DONE_ERROR(result.value.asIs<Try.Error<*>>().value) else DONE_OK
+
+      fun computeState(result: Result<*>): State = when (result) {
+         is ResultOk<*> -> when (val resultValue = result.value) {
+            is Try.Error<*> -> DONE_ERROR(resultValue.value)
+            is FutList<*> -> if (resultValue.none { it.isFailed() }) DONE_OK else DONE_ERROR(resultValue.map { it.getDone().toTry() })
+            is Fut<*> -> computeState(resultValue.getDone())
+            else -> DONE_OK
+         }
          is ResultInterrupted -> DONE_CANCEL
          is ResultFail -> DONE_ERROR(result.error)
       }
+
+      updateTimeActive()
+      state.value = computeState(result)
    }
 
    @Suppress("ClassName")

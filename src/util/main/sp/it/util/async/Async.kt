@@ -28,11 +28,11 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.javafx.JavaFx
-import sp.it.util.async.future.Fut
+import sp.it.util.async.future.Fut.Companion.futOfBlock
+import sp.it.util.async.future.Futs
+import sp.it.util.async.future.asFutList
 import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
-import sp.it.util.functional.Try
-import sp.it.util.functional.runTry
 
 private val logger = KotlinLogging.logger { }
 
@@ -183,10 +183,12 @@ fun runIO(block: Runnable) = runIO(block.kt)
 
 /** Runs the specified block for each specified item using the max specified parallelism, blocks until finish and returns results.  */
 @Experimental("does not handle errors correctly")
-fun <T, R> runIoParallel(parallelism: Int = Runtime.getRuntime().availableProcessors(), items: Collection<T>, block: (T) -> R): Fut<List<Try<R,Throwable>>> = runIO {
+fun <T, R> runIoParallel(parallelism: Int = Runtime.getRuntime().availableProcessors(), items: Collection<T>, block: (T) -> R): Futs<R> = runIO {
   val windowSize = if (items.size<parallelism) parallelism else items.size/parallelism
-  items.windowed(windowSize, windowSize, true).map { runOn(IO_LATER) { it.map { runTry { block(it) } } } }.materialize()
-     .flatMap { it.getDone().toTry().orThrow } // TODO: handle errors correctly
+  items.windowed(windowSize, windowSize, true)
+     .map { runOn(IO_LATER) { it.map { futOfBlock { block(it) } } } }.materialize()
+     .flatMap { it.getDone().toTry().orThrow }
+     .asFutList()
 }
 
 /** Executes the specified block periodically with given time period (1st call is already delayed). */

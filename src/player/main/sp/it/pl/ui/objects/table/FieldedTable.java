@@ -23,6 +23,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
+import sp.it.pl.access.fieldvalue.AnyField.STRING_UI;
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.ui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.util.Sort;
@@ -94,7 +95,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
-		this.fieldsAll = stream(APP.getClassFields().get(getKotlinClass(type)))
+
+		var fieldsAllRaw = stream(APP.getClassFields().get(getKotlinClass(type)))
 			// TODO: support nested columns
 			//.flatMap(it -> stream(
 			//	it,
@@ -104,6 +106,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			//))
 			.sorted(by(ObjectField::name))
 			.collect(toList());
+		//noinspection unchecked,rawtypes
+		this.fieldsAll = fieldsAllRaw.stream().noneMatch(it -> it!=INDEX.INSTANCE) ? (List) List.of(INDEX.INSTANCE, STRING_UI.INSTANCE) : fieldsAllRaw;
 		this.fields = filter(fieldsAll, ObjectField::isTypeStringRepresentable);
 
 		setColumnFactory(f -> {
@@ -290,7 +294,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	public final ReadOnlyObjectProperty<Comparator<? super T>> itemsComparator = itemsComparatorWrapper.getReadOnlyProperty();
 
-	@SuppressWarnings({"unchecked", "unused"})
+	@SuppressWarnings("unused")
 	public final ObjectProperty<BiFunction<? super ObjectField<?, ?>, ? super Sort, ? extends Comparator<?>>> itemsComparatorFieldFactory = new SimpleObjectProperty<>((f, sort) ->
 		f.comparator(sort==Sort.DESCENDING ? Comparator::nullsFirst : Comparator::nullsLast)
 	);

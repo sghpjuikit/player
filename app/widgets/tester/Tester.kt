@@ -9,14 +9,15 @@ import java.math.BigInteger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import javafx.animation.Animation.INDEFINITE
 import javafx.animation.Interpolator
+import javafx.animation.Interpolator.LINEAR
 import javafx.animation.PathTransition
-import javafx.animation.PathTransition.OrientationType
-import javafx.animation.Transition
+import javafx.animation.PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT
+import javafx.animation.Transition.INDEFINITE
 import javafx.geometry.Insets
 import javafx.geometry.Insets.EMPTY
 import javafx.geometry.Pos
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_CENTER
@@ -24,18 +25,24 @@ import javafx.geometry.Side.RIGHT
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.Label
+import javafx.scene.control.ScrollPane
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.Separator
 import javafx.scene.control.Slider
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Effect
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
+import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import javafx.scene.paint.Color.AQUA
 import javafx.scene.paint.Color.BLACK
+import javafx.scene.paint.Color.DODGERBLUE
 import javafx.scene.paint.Color.GRAY
 import javafx.scene.paint.Color.ORANGE
 import javafx.scene.paint.Color.RED
+import javafx.scene.paint.Color.TRANSPARENT
 import javafx.scene.shape.Arc
 import javafx.scene.shape.ArcTo
 import javafx.scene.shape.ArcType
@@ -67,10 +74,9 @@ import sp.it.pl.main.Key
 import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.withAppProgress
+import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
-import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
-import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
 import sp.it.pl.ui.pane.ShortcutPane
@@ -125,13 +131,14 @@ import sp.it.util.reactive.syncWhile
 import sp.it.util.reactive.zip
 import sp.it.util.text.nameUi
 import sp.it.util.type.type
-import sp.it.util.ui.flowPane
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
+import sp.it.util.ui.maxSize
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.minSize
 import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
@@ -166,22 +173,28 @@ class Tester(widget: Widget): SimpleController(widget) {
    val groupSelected by cv("").noUi()
 
    init {
-      root.prefSize = 800.emScaled x 500.emScaled
+      root.prefSize = 500.emScaled x 700.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
       groupSelected.sync { s -> groups.forEach { it.select(it.name==s) } }
 
-      root.lay += vBox(0.0, TOP_CENTER) {
-         lay += flowPane(25.emScaled, 25.emScaled) {
-            alignment = Pos.CENTER
-            padding = Insets(10.emScaled, 10.emScaled, 20.emScaled, 10.emScaled)
-            lay += groups.map { it.pane }
-         }
-         lay += Separator()
+
+      root.prefSize = 400.emScaled x 400.emScaled
+      root.lay += hBox(10.emScaled, null) {
          lay += stackPane {
-            padding = Insets(20.emScaled, 10.emScaled, 0.0, 10.emScaled)
-            lay += content
+            padding = Insets(50.emScaled, 0.0, 50.emScaled, 0.0)
+            minWidth = 220.emScaled
+            lay += scrollPane {
+               isFitToHeight = true
+               isFitToWidth = true
+               vbarPolicy = AS_NEEDED
+               hbarPolicy = AS_NEEDED
+               content = vBox(0.0, CENTER_LEFT) {
+                  lay += groups.map { it.label }
+               }
+            }
          }
+         lay(Priority.ALWAYS) += content
       }
 
       // Create test inputs/outputs
@@ -216,7 +229,9 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `vxBoolean_null` = vx<Boolean?>(true)
       }
       onContentChange()
-      content.children setToOne form(c.toConfigurableFx())
+      content.children setToOne fittingScrollPane {
+         content = form(c.toConfigurableFx())
+      }
    }
 
    @Suppress("ObjectPropertyName", "NonAsciiCharacters", "DANGEROUS_CHARACTERS")
@@ -294,16 +309,16 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cCheckList(Boolean?)` by cCheckList(CheckList.nullable(type<Boolean?>(), listOf("a", "b", null), listOf(true, false, null)))
       }
       onContentChange()
-      content.children setToOne vBox {
-         spacing = 1.em.emScaled
-
+      content.children setToOne vBox(1.em.emScaled) {
          lay += form(r).apply {
+            editorUi.value = MINI
             minPrefMaxHeight = 6.em.emScaled
          }
          lay += Separator().apply {
             minPrefMaxWidth = 10.em.emScaled
          }
          lay += form(c).apply {
+            editorUi.value = MINI
             isEditable syncFrom r.editable
             editorOrder = compareByDeclaration
          }
@@ -313,7 +328,7 @@ class Tester(widget: Widget): SimpleController(widget) {
    fun testInterpolators() {
       fun Interpolator.toF(): (Double) -> Double = { this.interpolate(0.0, 1.0, it) }
       val interpolators = mapOf<String, (Double) -> Double>(
-         "javaFx: LINEAR" to Interpolator.LINEAR.toF(),
+         "javaFx: LINEAR" to LINEAR.toF(),
          "javaFx: EASE_BOTH" to Interpolator.EASE_BOTH.toF(),
          "javaFx: EASE_IN" to Interpolator.EASE_IN.toF(),
          "javaFx: EASE_OUT" to Interpolator.EASE_OUT.toF(),
@@ -343,7 +358,7 @@ class Tester(widget: Widget): SimpleController(widget) {
          "math: sin" to { it -> sin(PI/2*it) },
       )
       onContentChange()
-      content.children setToOne scrollPane {
+      content.children setToOne fittingScrollPane {
          content = vBox {
             lay += interpolators.map { (name, interpolator) ->
                vBox {
@@ -394,46 +409,51 @@ class Tester(widget: Widget): SimpleController(widget) {
             this.xAxisRotation = rotate
          }
          elements += ClosePath()
-         stroke = Color.DODGERBLUE
+         stroke = DODGERBLUE
          strokeDashArray.setAll(5.0, 5.0)
       }
 
       onContentChange()
-      content.children setToOne scrollPane {
-         content = vBox {
-            lay += Group().apply {
-               children += Rectangle(0.0, 0.0, 220.0, 220.0)
-               children += Rectangle(0.0, 0.0, 10.0, 10.0).apply {
-                  arcHeight = 0.0
-                  arcWidth = 0.0
-                  fill = Color.GREEN
-               }
-               children += createEllipsePath(210.0, 110.0, 100.0, 80.0, 0.0)
+      content.children setToOne fittingScrollPane {
+         content = vBox(0.0, CENTER) {
+            lay += stackPane {
+               lay += Group().apply {
+                  children += Rectangle(0.0, 0.0, 220.0, 220.0).apply {
+                     fill = TRANSPARENT
+                  }
+                  children += Rectangle(0.0, 0.0, 10.0, 10.0).apply {
+                     arcHeight = 0.0
+                     arcWidth = 0.0
+                     fill = AQUA
+                  }
+                  children += createEllipsePath(210.0, 110.0, 100.0, 80.0, 0.0)
 
-               PathTransition(8.seconds, children[2].asIs(), children[1].asIs()).apply {
-                  orientation = OrientationType.ORTHOGONAL_TO_TANGENT
-                  interpolator = Interpolator.LINEAR
-                  cycleCount = INDEFINITE
-                  isAutoReverse = false
-                  play()
-                  onClose += ::stop
+                  PathTransition(8.seconds, children[2].asIs(), children[1].asIs()).apply {
+                     orientation = ORTHOGONAL_TO_TANGENT
+                     interpolator = LINEAR
+                     cycleCount = INDEFINITE
+                     isAutoReverse = false
+                     play()
+                     onContentChange += ::stop
+                     onClose += ::stop
+                  }
                }
             }
             lay += stackPane {
                prefSize = 500.x2
                lay += Group().apply {
                   children += Rectangle().apply {
-                     fill = Color.TRANSPARENT
+                     fill = TRANSPARENT
                      width = 400.0
                      height = 400.0
                   }
-                  children += Circle(100.0, Color.AQUA).apply {
+                  children += Circle(100.0, AQUA).apply {
                      styleClass += "xxx"
                      centerX = 200.0
                      centerY = 200.0
                      clip = Group().apply {
                         children += Rectangle().apply {
-                           fill = Color.TRANSPARENT
+                           fill = TRANSPARENT
                            width = 400.0
                            height = 400.0
                         }
@@ -448,9 +468,10 @@ class Tester(widget: Widget): SimpleController(widget) {
 
                            val a = anim(3.seconds) { length = 360.0*it }
                            a.delay(0.millis)
-                           a.interpolator = Interpolator.LINEAR
-                           a.cycleCount = Transition.INDEFINITE
+                           a.interpolator = LINEAR
+                           a.cycleCount = INDEFINITE
                            a.playOpen()
+                           onContentChange += a::stop
                            onClose += a::stop
                         }
                      }
@@ -463,9 +484,12 @@ class Tester(widget: Widget): SimpleController(widget) {
 
    fun testCssGradients() {
       onContentChange()
-      content.children setToOne scrollPane {
-         content = vBox {
+      content.children setToOne fittingScrollPane {
+         content = vBox(0.0, CENTER) {
             lay += stackPane {
+               maxSize = 100.emScaled.x2
+               minSize = 100.emScaled.x2
+               prefSize = 100.emScaled.x2
                styleClass += "test-gradient"
             }
          }
@@ -477,7 +501,7 @@ class Tester(widget: Widget): SimpleController(widget) {
 
       fun task(name: String, block: () -> Any?) = fut().thenWait(5.seconds).then { block() }.withAppProgress(name)
 
-      content.children setToOne scrollPane {
+      content.children setToOne fittingScrollPane {
          content = vBox(0.0, CENTER_LEFT) {
             lay += Icon(IconFA.PLAY)
                .onClickDo { task("Test success") {} }
@@ -504,93 +528,98 @@ class Tester(widget: Widget): SimpleController(widget) {
       fun circleTop(): Circle = circle(40.emScaled, RED) { hoverProperty() sync { fill = if (it) ORANGE else RED } }
       fun labelTop(text: String): Label = label(text) { isWrapText = true; textAlignment = TextAlignment.CENTER; textFill = BLACK }.bold().mt()
       
-      content.children setToOne vBox(10.emScaled) {
-         lay += vBox {
-            lay += label("Test 1: Hover over black and red circle")
-            lay += label("Test 2: Start drag in red circle and move outside black circle")
-         }
-         lay += label("Implemented using onHoverOrDrag():")
-         lay += hBox {
-            lay += stackPane {
-               isPickOnBounds = false
-               val c = circle(50.emScaled, BLACK)
-               onHoverOrDrag { c.fill = if (it) GRAY else BLACK }
-               lay += c
-               lay += circleTop()
-               lay += labelTop("within")
+      content.children setToOne fittingScrollPane {
+         content = vBox(10.emScaled, CENTER_LEFT) {
+            lay += vBox {
+               lay += label("Test 1: Hover over black and red circle")
+               lay += label("Test 2: Start drag in red circle and move outside black circle")
             }
-            lay += stackPane {
-               isPickOnBounds = false
-               lay += circle(50.emScaled, BLACK) {
-                  onHoverOrDrag { fill = if (it) GRAY else BLACK }
+            lay += label("Implemented using onHoverOrDrag():")
+            lay += hBox(10.emScaled) {
+               padding = Insets(0.0, 0.0, 0.0, 25.emScaled)
+               lay += stackPane {
+                  isPickOnBounds = false
+                  val c = circle(50.emScaled, BLACK)
+                  onHoverOrDrag { c.fill = if (it) GRAY else BLACK }
+                  lay += c
+                  lay += circleTop()
+                  lay += labelTop("within")
                }
-               lay += circleTop()
-               lay += labelTop("above")
-            }
-            lay += stackPane {
-               isPickOnBounds = false
-               lay += circle(50.emScaled, BLACK) {
-                  onHoverOrDrag { fill = if (it) GRAY else BLACK }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     onHoverOrDrag { fill = if (it) GRAY else BLACK }
+                  }
+                  lay += circleTop()
+                  lay += labelTop("above")
                }
-               lay += circleTop().mt()
-               lay += labelTop("above\n(no mouse)")
-            }
-         }
-         lay += label("Implemented using MOUSE_ENTERED/MOUSE_EXITED events:")
-         lay += hBox {
-            lay += stackPane {
-               isPickOnBounds = false
-               lay += circle(50.emScaled, BLACK) {
-                  onEventDown(MOUSE_EXITED) { fill = BLACK }
-                  onEventDown(MOUSE_ENTERED) { fill = GRAY }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     onHoverOrDrag { fill = if (it) GRAY else BLACK }
+                  }
+                  lay += circleTop().mt()
+                  lay += labelTop("above\n(no mouse)")
                }
-               lay += circleTop()
-               lay += labelTop("above")
             }
-            lay += stackPane {
-               isPickOnBounds = false
-               val c = circle(50.emScaled, BLACK)
-               onEventDown(MOUSE_EXITED) { c.fill = BLACK }
-               onEventDown(MOUSE_ENTERED) { c.fill = GRAY }
-               lay += c
-               lay += circleTop()
-               lay += labelTop("within")
-            }
-            lay += stackPane {
-               isPickOnBounds = false
-               lay += circle(50.emScaled, BLACK) {
-                  onEventDown(MOUSE_EXITED) { fill = BLACK }
-                  onEventDown(MOUSE_ENTERED) { fill = GRAY }
+            lay += label("Implemented using MOUSE_ENTERED/MOUSE_EXITED events:")
+            lay += hBox(10.emScaled) {
+               padding = Insets(0.0, 0.0, 0.0, 25.emScaled)
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     onEventDown(MOUSE_EXITED) { fill = BLACK }
+                     onEventDown(MOUSE_ENTERED) { fill = GRAY }
+                  }
+                  lay += circleTop()
+                  lay += labelTop("above")
                }
-               lay += circleTop().mt()
-               lay += labelTop("above\n(no mouse)")
-            }
-         }
-         lay += label("Implemented using hoverProperty():")
-         lay += hBox {
-            lay += stackPane {
-               isPickOnBounds = false
-               val c = circle(50.emScaled, BLACK)
-               hoverProperty() sync { c.fill = if (it) GRAY else BLACK }
-               lay += c
-               lay += circleTop()
-               lay += labelTop("within")
-            }
-            lay += stackPane {
-               isPickOnBounds = false
-               lay += circle(50.emScaled, BLACK) {
-                  hoverProperty() sync { fill = if (it) GRAY else BLACK }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  val c = circle(50.emScaled, BLACK)
+                  onEventDown(MOUSE_EXITED) { c.fill = BLACK }
+                  onEventDown(MOUSE_ENTERED) { c.fill = GRAY }
+                  lay += c
+                  lay += circleTop()
+                  lay += labelTop("within")
                }
-               lay += circleTop()
-               lay += labelTop("above")
-            }
-            lay += stackPane {
-               isPickOnBounds = false
-               lay += circle(50.emScaled, BLACK) {
-                  hoverProperty() sync { fill = if (it) GRAY else BLACK }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     onEventDown(MOUSE_EXITED) { fill = BLACK }
+                     onEventDown(MOUSE_ENTERED) { fill = GRAY }
+                  }
+                  lay += circleTop().mt()
+                  lay += labelTop("above\n(no mouse)")
                }
-               lay += circleTop().mt()
-               lay += labelTop("above\n(no mouse)")
+            }
+            lay += label("Implemented using hoverProperty():")
+            lay += hBox(10.emScaled) {
+               padding = Insets(0.0, 0.0, 0.0, 25.emScaled)
+               lay += stackPane {
+                  isPickOnBounds = false
+                  val c = circle(50.emScaled, BLACK)
+                  hoverProperty() sync { c.fill = if (it) GRAY else BLACK }
+                  lay += c
+                  lay += circleTop()
+                  lay += labelTop("within")
+               }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     hoverProperty() sync { fill = if (it) GRAY else BLACK }
+                  }
+                  lay += circleTop()
+                  lay += labelTop("above")
+               }
+               lay += stackPane {
+                  isPickOnBounds = false
+                  lay += circle(50.emScaled, BLACK) {
+                     hoverProperty() sync { fill = if (it) GRAY else BLACK }
+                  }
+                  lay += circleTop().mt()
+                  lay += labelTop("above\n(no mouse)")
+               }
             }
          }
       }
@@ -622,30 +651,28 @@ class Tester(widget: Widget): SimpleController(widget) {
          }
       }
 
-      content.children setToOne vBox {
-         lay += label("Observable chains.")
-         lay += label("The below values `if (d) a else (b + c)` should be the same.")
-         lay += label()
-         lay += label("Map/flatMap based. Tests map(), flatMap(), zip().")
-         lay += label { textProperty() syncFrom c.consumer1.map { "    Value: $it" } }
-         lay += label()
-         lay += label("Subscription based. Tests subscription nesting.")
-         lay += label { textProperty() syncFrom c.consumer2.map { "    Value: $it" } }
-         lay += label()
-         lay += form(c).apply { editorUi.value = MINI }
+      content.children setToOne fittingScrollPane {
+         content = vBox(0.0, CENTER_LEFT) {
+            lay += label("Observable chains.")
+            lay += label("The below values `if (d) a else (b + c)` should be the same.")
+            lay += label()
+            lay += label("Map/flatMap based. Tests map(), flatMap(), zip().")
+            lay += label { textProperty() syncFrom c.consumer1.map { "    Value: $it" } }
+            lay += label()
+            lay += label("Subscription based. Tests subscription nesting.")
+            lay += label { textProperty() syncFrom c.consumer2.map { "    Value: $it" } }
+            lay += label()
+            lay += form(c).apply { editorUi.value = MINI }
+         }
       }
    }
 
    inner class Group(glyph: GlyphIcons, val name: String, val block: () -> Unit) {
-      val icon = Icon(glyph).apply { isFocusTraversable = false; isMouseTransparent = true }.onClickDo { groupSelected.value = name }
-      val pane = icon.withText(name).apply {
-         icon.focusOwner.value = this;
-         icon.onClickDelegateKeyTo(this)
-         icon.onClickDelegateMouseTo(this)
-         isFocusTraversable = true
+      val label = LabelWithIcon(glyph, name).apply {
+         icon.onClickDo { groupSelected.value = name }
       }
       fun select(s: Boolean) {
-         icon.selectHard(s)
+         label.select(s)
          if (s) block()
       }
    }
@@ -662,5 +689,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       override val contributor = ""
       override val tags = setOf(UTILITY, DEVELOPMENT)
       override val summaryActions = listOf<ShortcutPane.Entry>()
+
+      fun fittingScrollPane(block: ScrollPane.() -> Unit) = scrollPane { isFitToHeight = true; isFitToWidth = true; block() }
    }
 }

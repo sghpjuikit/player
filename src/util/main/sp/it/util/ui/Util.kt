@@ -41,6 +41,7 @@ import javafx.scene.image.WritableImage
 import javafx.scene.input.DragEvent
 import javafx.scene.input.GestureEvent
 import javafx.scene.input.MouseDragEvent.MOUSE_DRAG_EXITED
+import javafx.scene.input.MouseDragEvent.MOUSE_ENTERED_TARGET
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.DRAG_DETECTED
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
@@ -95,7 +96,7 @@ import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.FitFrom.INSIDE
@@ -792,32 +793,31 @@ fun Node.onHoverOrDrag(on: (Boolean) -> Unit): Subscription {
    }
 
    return Subscription(
-      onEventUp(MOUSE_ENTERED) {
+      onEventDown(MOUSE_ENTERED_TARGET) {
          if (key !in properties) {
             properties[key] = true
             on(true)
          }
       },
-      onEventUp(DRAG_DETECTED) {
+      onEventDown(DRAG_DETECTED) {
          if (key !in properties) {
             properties[key] = true
             on(true)
          }
       },
-      onEventUp(MOUSE_EXITED) {
-         if (key in properties) {
-//         if (key in properties && !contains(it.x, it.y)) { // TODO: causes event not to trigger sometimes, why was it necessary?
-            properties -= key
-            on(false)
-         }
-      },
-      onEventUp(MOUSE_DRAG_EXITED) {
+      onEventDown(MOUSE_EXITED) {
          if (key in properties) {
             properties -= key
             on(false)
          }
       },
-      onEventUp(MOUSE_RELEASED) {
+      onEventDown(MOUSE_DRAG_EXITED) {
+         if (key in properties) {
+            properties -= key
+            on(false)
+         }
+      },
+      onEventDown(MOUSE_RELEASED) {
          if (key in properties && !isHover) {
             properties -= key
             on(false)

@@ -175,87 +175,84 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                val valueSuppressor = Suppressor()
                bindTimeToSmooth(ps) { valueSuppressor.suppressing { value.value = it } } on onClose
                valueSoft attach { valueSuppressor.suppressed { if (!isValueChanging.value) APP.audio.seek(it) } } on onClose
-            }
-            lay += vBox {
-               alignment = Pos.CENTER
-               isPickOnBounds = false
-               isFillWidth = false
 
-               lay += label {
-                  isMouseTransparent = true
-                  styleClass += "seeker-label"
-               }
-               lay += hBox {
+               lay += vBox {
                   alignment = Pos.CENTER
                   isPickOnBounds = false
-                  isFillHeight = false
-                  lay += f2.size(36).scale(2.0)
-                  lay += f3.size(72).scale(2.0).apply {
-                     isFocusTraversable = false
-                     focusOwner.value = seeker
-                     onClickDelegateKeyTo(seeker)
-                  }
-                  lay += f4.size(36).scale(2.0)
-               }
-               lay += currTime.apply {
-                  isPickOnBounds = false
-                  styleClass += "seeker-label"
-                  onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
+                  isFillWidth = false
 
-                  seeker.isValueChanging flatMap {
-                     if (it) seeker.valueShown zip ps.duration map { (at, total) -> total*at }
-                     else ps.currentTime map { it.toSeconds().toLong() } map { ps.currentTime.value }
-                  } zip elapsedTime sync { (current, e) ->
-                     text = if (e) current.toHMSMs() else "- " + (ps.duration.value - current).toHMSMs()
-                  } on onClose
+                  lay += label {
+                     isMouseTransparent = true
+                     styleClass += "seeker-label"
+                  }
+                  lay += hBox {
+                     alignment = Pos.CENTER
+                     isPickOnBounds = false
+                     isFillHeight = false
+                     lay += f2.size(36).scale(2.0)
+                     lay += f3.size(72).scale(2.0).apply {
+                        isFocusTraversable = false
+                        focusOwner.value = seeker
+                        onClickDelegateKeyTo(seeker)
+                     }
+                     lay += f4.size(36).scale(2.0)
+                  }
+                  lay += currTime.apply {
+                     isPickOnBounds = false
+                     styleClass += "seeker-label"
+                     onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }
+
+                     seeker.isValueChanging flatMap {
+                        if (it) seeker.valueShown zip ps.duration map { (at, total) -> total*at }
+                        else ps.currentTime map { it.toSeconds().toLong() } map { ps.currentTime.value }
+                     } zip elapsedTime sync { (current, e) ->
+                        text = if (e) current.toHMSMs() else "- " + (ps.duration.value - current).toHMSMs()
+                     } on onClose
+                  }
                }
             }
          }
          lay += borderPane {
-            top = stackPane {
-               lay += stackPane(loopB) {
-                  isMouseTransparent = true
-               }
-               lay += SliderCircular(100.emScaled).apply {
-                  val valueCount = LoopMode.values().size.toDouble() - 1.0
-                  val mapping = LoopMode.values().associateWith {
-                     when (it) {
-                        OFF -> 0.0
-                        SONG -> 1/valueCount
-                        RANDOM -> 2/valueCount
-                        PLAYLIST -> 1.0
-                     }
+            top = SliderCircular(100.emScaled).apply {
+               val valueCount = LoopMode.values().size.toDouble() - 1.0
+               val mapping = LoopMode.values().associateWith {
+                  when (it) {
+                     OFF -> 0.0
+                     SONG -> 1/valueCount
+                     RANDOM -> 2/valueCount
+                     PLAYLIST -> 1.0
                   }
-                  val mappingInv = { it: Double -> mapping.entries.minByOrNull { (_, v) -> it distance v }!!.key }
-
-                  snaps setTo mapping.values
-                  blockIncrement.value = 1.0/valueCount
-                  value attach { ps.loopMode.value = mappingInv(it) }
-                  ps.loopMode sync { value.value = mapping[it]!! }
-
-                  // knob delegates focus & some events to icon
-                  loopB.isFocusTraversable = false
-                  loopB.focusOwner.value = this
-                  onEventUp(MouseEvent.ANY) { if (it.eventType in setOf(MOUSE_PRESSED, MOUSE_RELEASED, MOUSE_DRAGGED, MOUSE_CLICKED)) it.consume() }
-                  loopB.onClickDelegateKeyTo(this)
-                  loopB.onClickDelegateMouseTo(this)
                }
+               val mappingInv = { it: Double -> mapping.entries.minByOrNull { (_, v) -> it distance v }!!.key }
+
+               snaps setTo mapping.values
+               blockIncrement.value = 1.0/valueCount
+               value attach { ps.loopMode.value = mappingInv(it) }
+               ps.loopMode sync { value.value = mapping[it]!! }
+
+               lay += loopB
+
+               // knob delegates focus & some events to icon
+               loopB.isFocusTraversable = false
+               loopB.isMouseTransparent = true
+               loopB.focusOwner.value = this
+               onEventUp(MouseEvent.ANY) { if (it.eventType in setOf(MOUSE_PRESSED, MOUSE_RELEASED, MOUSE_DRAGGED, MOUSE_CLICKED)) it.consume() }
+               loopB.onClickDelegateKeyTo(this)
+               loopB.onClickDelegateMouseTo(this)
             }
-            bottom = stackPane {
-               lay += stackPane(muteB) {
-                  isMouseTransparent = true
-               }
-               lay += SliderCircular(100.emScaled).apply {
-                  blockIncrement.value = VolumeProperty.STEP
-                  value attachTo ps.volume
-                  ps.volume sync { value.value = it.toDouble() }
+            bottom =  SliderCircular(100.emScaled).apply {
+               blockIncrement.value = VolumeProperty.STEP
+               value attachTo ps.volume
+               ps.volume sync { value.value = it.toDouble() }
 
-                  // knob delegates focus & some events to icon
-                  muteB.isFocusTraversable = false
-                  muteB.focusOwner.value = this
-                  muteB.onClickDelegateKeyTo(this)
-                  onEventUp(KEY_RELEASED, muteB.onKeyReleased!!::handle)
-               }
+               // knob delegates focus & some events to icon
+               muteB.isFocusTraversable = false
+               muteB.isMouseTransparent = true
+               muteB.focusOwner.value = this
+               muteB.onClickDelegateKeyTo(this)
+               onEventUp(KEY_RELEASED, muteB.onKeyReleased!!::handle)
+
+               lay += muteB
                lay += Circle(20.0, TRANSPARENT).apply {
                   muteB.onClickDelegateMouseTo(this)
                }

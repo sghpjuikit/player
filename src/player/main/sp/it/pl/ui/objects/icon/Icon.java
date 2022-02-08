@@ -55,7 +55,7 @@ import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.SPACE;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
@@ -166,7 +166,7 @@ public class Icon extends StackPane {
 				// unfortunately, when effects such as drop shadow are enabled, we need to check bounds
 				s2 = Subscription.Companion.invoke(
 					onEventUp(fo, MOUSE_EXITED, consumer(e -> { if (!fo.isFocused()) select(false); })),
-					onEventUp(fo, MOUSE_ENTERED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); })),
+					onEventUp(fo, MOUSE_ENTERED_TARGET, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); })),
 					onEventUp(fo, MOUSE_MOVED, consumer(e -> { if (!fo.isFocused() && iconBounds().contains(e.getX(), e.getY())) select(true); }))
 				);
 			} else {
@@ -404,7 +404,7 @@ public class Icon extends StackPane {
 	 */
 	public final @NotNull Icon onClickDo(@Nullable MouseButton button, @Nullable Integer clickCount, @Nullable Function2<Icon, @Nullable MouseEvent, Unit> action) {
 		setOnMouseClicked(action==null ? null : e -> {
-			if (!isMouseTransparent() &&
+			if (!focusOwner.getValue().isMouseTransparent() &&
 				(button==null || e.getButton()==button) &&
 				(clickCount==null || e.getClickCount()==clickCount) &&
 				(e.getTarget()!=this || iconBounds().contains(e.getX(), e.getY()))
@@ -415,7 +415,7 @@ public class Icon extends StackPane {
 			}
 		});
 		setOnKeyReleased(action==null ? null : e -> {
-			if (!isMouseTransparent() && (e.getCode()==ENTER || e.getCode()==SPACE)) {
+			if (!focusOwner.getValue().isMouseTransparent() && (e.getCode()==ENTER || e.getCode()==SPACE)) {
 				if (focusOwner.getValue().isFocusTraversable() && !focusOwner.getValue().isFocused()) requestFocus();
 				action.invoke(this, null);
 				e.consume();

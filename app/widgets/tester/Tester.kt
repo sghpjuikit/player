@@ -22,12 +22,20 @@ import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Side.RIGHT
 import javafx.scene.Group
+import javafx.scene.Node
+import javafx.scene.control.Label
 import javafx.scene.control.Separator
 import javafx.scene.control.Slider
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Effect
+import javafx.scene.input.MouseEvent.MOUSE_ENTERED
+import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import javafx.scene.paint.Color.BLACK
+import javafx.scene.paint.Color.GRAY
+import javafx.scene.paint.Color.ORANGE
+import javafx.scene.paint.Color.RED
 import javafx.scene.shape.Arc
 import javafx.scene.shape.ArcTo
 import javafx.scene.shape.ArcType
@@ -110,6 +118,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
+import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncWhile
@@ -123,10 +132,12 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
+import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.styleclassAdd
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
@@ -149,7 +160,8 @@ class Tester(widget: Widget): SimpleController(widget) {
       Group(IconOC.CODE, "Animation Interpolators") { testInterpolators() },
       Group(IconOC.CODE, "Path/ShapeAnimations") { testPathShapeTransitions() },
       Group(IconOC.CODE, "Test CSS Gradients") { testCssGradients() },
-      Group(IconOC.CODE, "Test Tasks") { testTasks() }
+      Group(IconOC.CODE, "Test Tasks") { testTasks() },
+      Group(IconOC.CODE, "Test Mouse events") { testMouseEvents() }
    )
    val groupSelected by cv("").noUi()
 
@@ -254,9 +266,9 @@ class Tester(widget: Widget): SimpleController(widget) {
          val `cvn(Font)` by cvn<Font>(null)
          var `cn(Insets)` by cn<Insets>(EMPTY)
          val `cvn(Insets)` by cvn<Insets>(null)
-         var `c(Color)` by c<Color>(Color.BLACK)
+         var `c(Color)` by c<Color>(BLACK)
          var `cn(Color)` by cn<Color>(null)
-         val `cv(Color)` by cv<Color>(Color.BLACK)
+         val `cv(Color)` by cv<Color>(BLACK)
          val `cvn(Color)` by cvn<Color>(null)
          var `c(LocalTime)` by c<LocalTime>(LocalTime.now())
          var `cn(LocalTime)` by cn<LocalTime>(null)
@@ -479,6 +491,107 @@ class Tester(widget: Widget): SimpleController(widget) {
             lay += Icon(IconFA.PLAY)
                .onClickDo { task("Test failure (custom list with errors)") { runIoParallel(2, (1..100).toList()) { if (random()>0.5) it else fail { "error" } } } }
                .withText(RIGHT, CENTER_LEFT, "Run long running task that fails (custom error)")
+         }
+      }
+   }
+
+   fun testMouseEvents() {
+      onContentChange()
+
+      fun <T: Node> T.mt(): T = apply { isMouseTransparent = true }
+      fun Label.bold(): Label = apply { styleclassAdd("text-weight-bold") }
+      fun circle(radius: Double, fill: Color, block: Circle.() -> Unit = {}): Circle = Circle(radius, fill).apply(block)
+      fun circleTop(): Circle = circle(40.emScaled, RED) { hoverProperty() sync { fill = if (it) ORANGE else RED } }
+      fun labelTop(text: String): Label = label(text) { isWrapText = true; textAlignment = TextAlignment.CENTER; textFill = BLACK }.bold().mt()
+      
+      content.children setToOne vBox(10.emScaled) {
+         lay += vBox {
+            lay += label("Test 1: Hover over black and red circle")
+            lay += label("Test 2: Start drag in red circle and move outside black circle")
+         }
+         lay += label("Implemented using onHoverOrDrag():")
+         lay += hBox {
+            lay += stackPane {
+               isPickOnBounds = false
+               val c = circle(50.emScaled, BLACK)
+               onHoverOrDrag { c.fill = if (it) GRAY else BLACK }
+               lay += c
+               lay += circleTop()
+               lay += labelTop("within")
+            }
+            lay += stackPane {
+               isPickOnBounds = false
+               lay += circle(50.emScaled, BLACK) {
+                  onHoverOrDrag { fill = if (it) GRAY else BLACK }
+               }
+               lay += circleTop()
+               lay += labelTop("above")
+            }
+            lay += stackPane {
+               isPickOnBounds = false
+               lay += circle(50.emScaled, BLACK) {
+                  onHoverOrDrag { fill = if (it) GRAY else BLACK }
+               }
+               lay += circleTop().mt()
+               lay += labelTop("above\n(no mouse)")
+            }
+         }
+         lay += label("Implemented using MOUSE_ENTERED/MOUSE_EXITED events:")
+         lay += hBox {
+            lay += stackPane {
+               isPickOnBounds = false
+               lay += circle(50.emScaled, BLACK) {
+                  onEventDown(MOUSE_EXITED) { fill = BLACK }
+                  onEventDown(MOUSE_ENTERED) { fill = GRAY }
+               }
+               lay += circleTop()
+               lay += labelTop("above")
+            }
+            lay += stackPane {
+               isPickOnBounds = false
+               val c = circle(50.emScaled, BLACK)
+               onEventDown(MOUSE_EXITED) { c.fill = BLACK }
+               onEventDown(MOUSE_ENTERED) { c.fill = GRAY }
+               lay += c
+               lay += circleTop()
+               lay += labelTop("within")
+            }
+            lay += stackPane {
+               isPickOnBounds = false
+               lay += circle(50.emScaled, BLACK) {
+                  onEventDown(MOUSE_EXITED) { fill = BLACK }
+                  onEventDown(MOUSE_ENTERED) { fill = GRAY }
+               }
+               lay += circleTop().mt()
+               lay += labelTop("above\n(no mouse)")
+            }
+         }
+         lay += label("Implemented using hoverProperty():")
+         lay += hBox {
+            lay += stackPane {
+               isPickOnBounds = false
+               val c = circle(50.emScaled, BLACK)
+               hoverProperty() sync { c.fill = if (it) GRAY else BLACK }
+               lay += c
+               lay += circleTop()
+               lay += labelTop("within")
+            }
+            lay += stackPane {
+               isPickOnBounds = false
+               lay += circle(50.emScaled, BLACK) {
+                  hoverProperty() sync { fill = if (it) GRAY else BLACK }
+               }
+               lay += circleTop()
+               lay += labelTop("above")
+            }
+            lay += stackPane {
+               isPickOnBounds = false
+               lay += circle(50.emScaled, BLACK) {
+                  hoverProperty() sync { fill = if (it) GRAY else BLACK }
+               }
+               lay += circleTop().mt()
+               lay += labelTop("above\n(no mouse)")
+            }
          }
       }
    }

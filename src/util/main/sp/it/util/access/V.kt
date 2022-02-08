@@ -16,7 +16,7 @@ open class V<T>(value: T): SimpleObjectProperty<T>(value) {
    override fun getValue(): T = super.getValue()
 
    @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
-   override fun setValue(v: T) = super.setValue(v)
+   override fun setValue(v: T): Unit = super.setValue(v)
 
    /** Java convenience method. Invokes [setValue] on this with the transformed value using the specified mapper. */
    fun setValueOf(op: UnaryOperator<T>) = super.setValue(op(value))

@@ -1,5 +1,6 @@
 package tester
 
+import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.lang.Math.PI
 import java.lang.Math.random
@@ -60,7 +61,10 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
+import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.pl.ui.pane.ConfigPane.Companion.compareByDeclaration
+import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.v
 import sp.it.util.access.vn
@@ -93,7 +97,7 @@ import sp.it.util.conf.cList
 import sp.it.util.conf.cn
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
-import sp.it.util.conf.def
+import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.conf.uiOut
@@ -137,24 +141,29 @@ import sp.it.util.units.year
 class Tester(widget: Widget): SimpleController(widget) {
    val content = stackPane()
    val onContentChange = Disposer()
+   val groups = listOf(
+      Group(IconOC.CODE, "Test widget inputs") { testInputs() },
+      Group(IconOC.CODE, "Test Fx Configs") { testFxConfigs() },
+      Group(IconOC.CODE, "Test observing values") { testValueObserving() },
+      Group(IconOC.CODE, "Test Config Editors") { testEditors() },
+      Group(IconOC.CODE, "Animation Interpolators") { testInterpolators() },
+      Group(IconOC.CODE, "Path/ShapeAnimations") { testPathShapeTransitions() },
+      Group(IconOC.CODE, "Test CSS Gradients") { testCssGradients() },
+      Group(IconOC.CODE, "Test Tasks") { testTasks() }
+   )
+   val groupSelected by cv("").noUi()
 
    init {
       root.prefSize = 800.emScaled x 500.emScaled
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
+      groupSelected.sync { s -> groups.forEach { it.select(it.name==s) } }
 
       root.lay += vBox(0.0, TOP_CENTER) {
          lay += flowPane(25.emScaled, 25.emScaled) {
             alignment = Pos.CENTER
             padding = Insets(10.emScaled, 10.emScaled, 20.emScaled, 10.emScaled)
-            lay += Icon(IconOC.CODE).onClickDo { testInputs() }.withText("Test widget inputs")
-            lay += Icon(IconOC.CODE).onClickDo { testFxConfigs() }.withText("Test Fx Configs")
-            lay += Icon(IconOC.CODE).onClickDo { testValueObserving() }.withText("Test observing values")
-            lay += Icon(IconOC.CODE).onClickDo { testEditors() }.withText("Test Config Editors")
-            lay += Icon(IconOC.CODE).onClickDo { testInterpolators() }.withText("Animation Interpolators")
-            lay += Icon(IconOC.CODE).onClickDo { testPathShapeTransitions() }.withText("Path/Shape Animations")
-            lay += Icon(IconOC.CODE).onClickDo { testCssGradients() }.withText("Test CSS Gradients")
-            lay += Icon(IconOC.CODE).onClickDo { testTasks() }.withText("Test Tasks")
+            lay += groups.map { it.pane }
          }
          lay += Separator()
          lay += stackPane {
@@ -180,11 +189,9 @@ class Tester(widget: Widget): SimpleController(widget) {
    }
 
    fun testInputs() {
-      val c = label {
-         text = "Trigger widget layout mode (${ActionManager.keyManageLayout.nameUi}) to test this widget's inputs"
-         isWrapText = true
-         textAlignment = TextAlignment.CENTER
-      }
+      val c = Icon(IconFA.PLAY)
+         .onClickDo { APP.ui.toggleLayoutMode() }
+         .withText(RIGHT, CENTER_LEFT, "Trigger layout mode (${ActionManager.keyManageLayout.nameUi}) to test this widget's inputs")
       onContentChange()
       content.children setToOne c
    }
@@ -480,7 +487,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       onContentChange()
 
       val c = object: ConfigurableBase<Any?>() {
-         val aa by cv(true).def(name = "Select 'a' if true else 'b + c'")
+         val d by cv(true)
          val a by cv(1.0).between(1, 10)
          val b by cv(2.0).between(1, 10)
          val c by cv(3.0).between(1, 10)
@@ -488,14 +495,14 @@ class Tester(widget: Widget): SimpleController(widget) {
          val consumer2 = v(0.0)
       }
 
-      c.consumer1 syncFrom c.aa.flatMap {
+      c.consumer1 syncFrom c.d.flatMap {
          when (it) {
             true -> c.a
             false -> c.b zip c.c map { (td, sd) -> sd + td }
          }
       }
 
-      c.aa syncWhile { s ->
+      c.d syncWhile { s ->
          when (s) {
             true -> c.consumer2 syncFrom c.a
             false -> c.b syncWhile { td -> c.c sync { sd -> c.consumer2.value = sd + td } }
@@ -503,20 +510,30 @@ class Tester(widget: Widget): SimpleController(widget) {
       }
 
       content.children setToOne vBox {
-         lay += label("Complex value observation.\nThe below values should always be the same. ") {
-            isWrapText = true
-         }
+         lay += label("Observable chains.")
+         lay += label("The below values `if (d) a else (b + c)` should be the same.")
          lay += label()
-         lay += label {
-            isWrapText = true
-            textProperty() syncFrom c.consumer1.map { "  Map/flatMap based. Tests map(), flatMap(), zip()\n    Value: $it" }
-         }
+         lay += label("Map/flatMap based. Tests map(), flatMap(), zip().")
+         lay += label { textProperty() syncFrom c.consumer1.map { "    Value: $it" } }
          lay += label()
-         lay += label {
-            isWrapText = true
-            textProperty() syncFrom c.consumer2.map { "  Subscription based. Tests subscription nesting.\n    Value: $it" }
-         }
-         lay += form(c)
+         lay += label("Subscription based. Tests subscription nesting.")
+         lay += label { textProperty() syncFrom c.consumer2.map { "    Value: $it" } }
+         lay += label()
+         lay += form(c).apply { editorUi.value = MINI }
+      }
+   }
+
+   inner class Group(glyph: GlyphIcons, val name: String, val block: () -> Unit) {
+      val icon = Icon(glyph).apply { isFocusTraversable = false; isMouseTransparent = true }.onClickDo { groupSelected.value = name }
+      val pane = icon.withText(name).apply {
+         icon.focusOwner.value = this;
+         icon.onClickDelegateKeyTo(this)
+         icon.onClickDelegateMouseTo(this)
+         isFocusTraversable = true
+      }
+      fun select(s: Boolean) {
+         icon.select(s)
+         if (s) block()
       }
    }
 
@@ -525,7 +542,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       override val description = "Provides facilities & demos for testing and development"
       override val descriptionLong = "$description."
       override val icon = IconUN(0x2e2a)
-      override val version = version(1, 0, 0)
+      override val version = version(1, 1, 0)
       override val isSupported = true
       override val year = year(2020)
       override val author = "spit"

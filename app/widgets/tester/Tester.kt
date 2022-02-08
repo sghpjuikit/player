@@ -532,7 +532,7 @@ class Tester(widget: Widget): SimpleController(widget) {
          isFocusTraversable = true
       }
       fun select(s: Boolean) {
-         icon.select(s)
+         icon.selectHard(s)
          if (s) block()
       }
    }

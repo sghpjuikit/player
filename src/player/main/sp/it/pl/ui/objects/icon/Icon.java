@@ -223,6 +223,11 @@ public class Icon extends StackPane {
 		if (isAnimated.get()) ra.get(this, A_HOVER).playFromDir(value);
 	}
 
+	public void selectHard(boolean value) {
+		pseudoClassStateChanged(pseudoclass("selected"), value);
+		select(value);
+	}
+
 	public Icon icon(boolean test, GlyphIcons ifTrue, GlyphIcons ifFalse) {
 		return icon(test? ifTrue : ifFalse);
 	}

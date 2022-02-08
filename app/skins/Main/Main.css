@@ -1743,6 +1743,7 @@ Shape, Text, SpitText, TextFlow > * {
  * Text using glyph to make icon.
  * inherits: nothing
  * pseudoclasses: focused - when focusTraversable is true (default false) and if focused
+ *                selected - when selected is true
  * properties:
  *   -glyph-name: String = id of the glyph
  *   -glyph-size: Size
@@ -1754,8 +1755,9 @@ Shape, Text, SpitText, TextFlow > * {
     -glyph-gap: 12;
 }
 
+.icon:selected Text,
 .icon:focused Text,
-.icon:hover {
+.icon:hover Text {
     -fx-fill: -skin-def-font-color-hover;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }

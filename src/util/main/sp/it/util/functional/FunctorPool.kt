@@ -74,6 +74,8 @@ class FunctorPool {
    private fun <T> preProcessVirtual(c: VType<T>): PrefList<PF<*, *>> {
       val fs = PrefList<PF<*, *>>()
 
+      fs.add(PF1("is", c, type<Boolean>(), Parameter(c.nullable(), null)) { a, b -> a==b })
+
       // add enum is predicates
       val rawJ = c.rawJ
       if (rawJ.isEnumClass) {

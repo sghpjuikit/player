@@ -21,10 +21,10 @@
     /* Default bgr color for tooltips and popups. */
     -skin-popup-def-bgr-color: rgba(15,25,45,0.95);
     -skin-value-font-color: rgb(75, 175, 105);
-    -skin-focus-bgr-color: ladder(hsb(180, 100%, 50%), transparent 0%, -fx-focus-color 100%);
     -fx-focus-color: #ffcc66;
     -fx-faint-focus-color: #ffcc66;
     -fx-focused-mark-color: transparent;
+    -skin-focus-bgr-color: ladder(hsb(180, 100%, 50%), transparent 0%, -fx-focus-color 100%);
 }
 
 /******************************************************************************
@@ -574,6 +574,8 @@
     -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
     -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-highlight-fill: -skin-focus-bgr-color;
+    -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
     -fx-border-width: 0;
     -fx-border-insets: 0;
@@ -592,6 +594,8 @@
     -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
     -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-highlight-fill: -skin-focus-bgr-color;
+    -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
     -fx-border-width: 0;
     -fx-border-insets: 0;
@@ -609,6 +613,8 @@
     -fx-padding: 0.25em;
     -fx-text-fill: -skin-def-font-color;
     -fx-prompt-text-fill: -skin-def-font-color;
+    -fx-highlight-fill: -skin-focus-bgr-color;
+    -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
     -fx-border-width: 0;
     -fx-border-insets: 0;

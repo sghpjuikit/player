@@ -72,6 +72,7 @@ import sp.it.pl.core.UiStringHelper
 import sp.it.pl.layout.ComponentFactory
 import sp.it.pl.layout.DeserializingFactory
 import sp.it.pl.layout.NoFactoryFactory
+import sp.it.pl.layout.NodeFactory
 import sp.it.pl.layout.TemplateFactory
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetManager
@@ -1018,6 +1019,9 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      is DeserializingFactory -> {
                         lay += textColon("Type", "Exported layout")
                         lay += textColon("File", f.launcher)
+                     }
+                     is NodeFactory -> {
+                        lay += textColon("Type", "Ui component ${f.node.toUi()}")
                      }
                      is NoFactoryFactory -> {
                         lay += textColon("Type", "Substitute for 'missing component'")

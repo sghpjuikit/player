@@ -111,9 +111,11 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.toTry
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventUp
+import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
 import sp.it.util.system.browse
@@ -277,6 +279,13 @@ class WidgetManager {
                   .forEach { unregisterFactory(it) }
             }
          }
+      }
+
+      // node widget factories recommended classes
+      APP.instances.recommendedNodeClassesAsWidgets.onItemSyncWhile {
+         val f = NodeFactory(it)
+         registerFactory(f)
+         Subscription { unregisterFactory(f) }
       }
 
       initialized = true

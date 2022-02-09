@@ -12,6 +12,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.picker.ContainerPicker.CellData
 import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.ALL
 import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.LAYOUTS
+import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.NODE
 import sp.it.pl.ui.objects.picker.WidgetPicker.Mode.WIDGET
 import sp.it.util.ui.x
 
@@ -27,7 +28,8 @@ class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect:
             if (APP.widgetManager.widgets.separateWidgets.value) {
                sequenceOf(
                   CellData(choiceTemplate, IconUN(0x2ff4), "Choose previously exported part of a layout.") { onWidgetSelect(LAYOUTS) },
-                  CellData(choiceWidget, IconUN(0x2b1a), "Choose a widget using a widget chooser.") { onWidgetSelect(WIDGET) }
+                  CellData(choiceWidget, IconUN(0x2b1a), "Choose a widget using a widget chooser.") { onWidgetSelect(WIDGET) },
+                  CellData(choiceNode, IconUN(0x2b1c), "Choose simple ui element wrapped as a widget.") { onWidgetSelect(NODE) }
                )
             } else {
                sequenceOf(
@@ -46,7 +48,8 @@ class ContainerPicker(onContainerSelect: (Container<*>) -> Unit, onWidgetSelect:
 
    companion object {
       const val choiceWidget = "Widget"
-      const val choiceTemplate = "Template"
+      const val choiceTemplate = "Exported"
+      const val choiceNode = "Simple UI element"
       val choiceForTemplate: String
          get() = if (APP.widgetManager.widgets.separateWidgets.value) choiceTemplate else choiceWidget
    }

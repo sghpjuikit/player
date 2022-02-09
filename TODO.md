@@ -39,8 +39,6 @@
   Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
 - Implement multi0valued **Song.Artist** support
   Should work like tags
-- Named **Node** widgets
-  Basically preconfigured **Node** widgets for recommended `Node` classes.
 - Show progress for file downloads progress, [Inspiration](https://betterprogramming.pub/show-download-progress-in-kotlin-style-64d157995e27)  
   Must work for downloading up `kotlinc` and `Vlc`
 - Support table column hierarchy, i.e., nested columns, e.g., `Metadata.File.Size`  

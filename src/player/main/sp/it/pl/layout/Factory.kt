@@ -4,6 +4,7 @@ import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.time.Year
 import java.util.UUID
+import javafx.scene.Node
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.findAnnotation
@@ -16,6 +17,7 @@ import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.Locatable
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
+import sp.it.util.file.properties.PropVal
 import sp.it.util.functional.asIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
@@ -124,6 +126,13 @@ class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
 
    override suspend fun create() = APP.windowManager.instantiateComponent(launcher)!!.apply { factoryDeserializing = this@DeserializingFactory }
    override fun toString() = "${javaClass.simpleName} $name $launcher"
+}
+
+class NodeFactory(val node: KClass<out Node>): ComponentFactory<Component> {
+   override val name = node.simpleName ?: node.jvmName
+
+   override suspend fun create() = APP.widgetManager.factories.getFactory("Node").orNone().create().apply { fieldsRaw["node"] = PropVal.PropVal1(node.jvmName) }
+   override fun toString() = "${javaClass.simpleName} $name $node"
 }
 
 class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapital()) {

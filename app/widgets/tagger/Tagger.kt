@@ -92,7 +92,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
 import sp.it.pl.main.AppTexts
 import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_TAGGER_NAME
 import sp.it.pl.main.appProgressIndicator
 import sp.it.pl.main.emScaled
@@ -175,6 +174,7 @@ import javafx.scene.layout.GridPane.REMAINING
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import sp.it.pl.audio.tagging.Metadata.Companion.SEPARATOR_UNIT
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.autocompleteSuggestionsFor
 import sp.it.pl.ui.labelForWithClick
@@ -1133,7 +1133,7 @@ class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
       override val name = SONG_TAGGER_NAME
       override val description = "Song tag editor"
       override val descriptionLong = "Tag editor for audio files. Supports reading and writing. Taggable songs can be unselected in selective list mode."
-      override val icon = IconUN(0x2e2a)
+      override val icon = IconMD.BOOKMARK_MUSIC
       override val version = version(1, 0, 0)
       override val isSupported = true
       override val year = year(2015)

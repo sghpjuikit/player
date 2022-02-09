@@ -99,7 +99,7 @@ private typealias MField = Metadata.Field<*>
 
 @Widget.Info(
    author = "Martin Polakovic",
-   name = "File Info",
+   name = "Song Info",
    description = "Displays song information. Supports rating change.",
    howto = """    Displays metadata of a particular song. Song can be set manually, e.g., by drag & drop, or the widget can follow the playing or table selections (playlist, etc.).
 

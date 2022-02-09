@@ -94,7 +94,7 @@ import sp.it.util.units.minutes
 
 @Widget.Info(
    author = "Martin Polakovic",
-   name = "AlbumView",
+   name = "Song Album Grid",
    description = "Displays grid of albums and their covers.",
    version = "1.0.0",
    year = "2015",

@@ -221,7 +221,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       override val name = PLAYBACK_NAME
       override val description = "Controls audio playback"
       override val descriptionLong = "$description."
-      override val icon = IconUN(0x2e2a)
+      override val icon = IconMD.MUSIC_CIRCLE
       override val version = version(1, 0, 0)
       override val isSupported = true
       override val year = year(2014)

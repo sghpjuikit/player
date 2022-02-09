@@ -19,7 +19,6 @@ import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMD
-import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.PLAYLIST_NAME
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
@@ -60,6 +59,7 @@ import java.util.function.Consumer
 import sp.it.pl.audio.Song
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.HelpEntries
+import sp.it.pl.main.IconMA
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
@@ -221,7 +221,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       override val name = PLAYLIST_NAME
       override val description = "Playlist table controlling playback song order"
       override val descriptionLong = "$description. Highlights playing and unplayable songs"
-      override val icon = IconUN(0x2e2a)
+      override val icon = IconMA.QUEUE_MUSIC
       override val version = version(1, 0, 0)
       override val isSupported = true
       override val year = year(2015)

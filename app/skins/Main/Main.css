@@ -552,12 +552,17 @@
 /********************************** Separator *************************************
  */
 
-.separator:horizontal .line,
-.separator:vertical .line {
-    -fx-opacity: 0.4;
-    -fx-border-width: 1;
-    -fx-border-color: -skin-def-font-color;
+.separator:horizontal .line {
+    -fx-opacity: 1;
+    -fx-border-width: 0.5;
     -fx-border-insets: 0;
+    -fx-border-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+}
+.separator:vertical .line {
+    -fx-opacity: 1;
+    -fx-border-width: 0.5;
+    -fx-border-insets: 0;
+    -fx-border-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }
 
 /********************************* Text boxes *********************************/
@@ -1786,10 +1791,10 @@ Shape, Text, SpitText, TextFlow > * {
  * pseudoclasses: selected, readonly
  */
 .check-icon {
-   -glyph-name: "FontAwesomeIcon.TOGGLE_OFF";
+   -glyph-name: "MaterialDesignIcon.TOGGLE_SWITCH_OFF";
 }
 .check-icon:selected {
-   -glyph-name: "FontAwesomeIcon.TOGGLE_ON";
+   -glyph-name: "MaterialDesignIcon.TOGGLE_SWITCH";
 }
 .check-icon:readonly {
    -fx-opacity: 0.8;
@@ -1813,10 +1818,10 @@ Shape, Text, SpitText, TextFlow > * {
  * pseudoclasses: selected, null
  */
 .null-check-icon {
-   -glyph-name: "FontAwesomeIcon.TOGGLE_OFF";
+   -glyph-name: "MaterialDesignIcon.TOGGLE_SWITCH_OFF";
 }
 .null-check-icon:selected {
-   -glyph-name: "FontAwesomeIcon.TOGGLE_ON";
+   -glyph-name: "MaterialDesignIcon.TOGGLE_SWITCH";
 }
 .null-check-icon:null {
    -glyph-name: "MaterialIcon.DO_NOT_DISTURB";
@@ -3145,12 +3150,12 @@ Shape, Text, SpitText, TextFlow > * {
 }
 .slider-circular .slider-circular-frg {
     -fx-fill: transparent;
-    -fx-stroke: -fx-focus-color;
+    -fx-stroke: linear-gradient(from 100% 0% to 0% 0%, rgba(222, 22, 99, 0.5), rgba(222, 0.2, 99, 1)) red red red;
     -fx-stroke-type: outside;
     -fx-stroke-width: 11;
     -fx-stroke-line-cap: butt;
     -fx-stroke-line-join: miter;
-    -fx-effect: dropshadow(gaussian, -fx-focus-color, 10, 0.2 , 0,0);
+    //-fx-effect: dropshadow(gaussian, -fx-focus-color, 10, 0.2 , 0,0);
 }
 .slider-circular:focused .slider-circular-bgr {
     -fx-stroke-dash-array: 5 4;

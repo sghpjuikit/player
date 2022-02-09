@@ -1013,9 +1013,7 @@ sealed interface ComponentLoader: (Component) -> Any {
             onHiding += { l.close() }
          }
 
-         l.child = ContainerSwitch().apply {
-            addChild(0, c)
-         }
+         l.child = c
          c.focus()
 
          p.show(WINDOW_ACTIVE(Pos.CENTER))

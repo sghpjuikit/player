@@ -2,9 +2,11 @@ package gitProjects
 
 import java.io.File
 import javafx.geometry.Insets
+import javafx.geometry.Orientation.VERTICAL
+import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.ScrollPane
-import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.layout.Priority.ALWAYS
@@ -36,6 +38,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.lookupId
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.separator
 import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
@@ -52,7 +55,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 400.emScaled x 400.emScaled
-      root.lay += hBox(10.emScaled, null) {
+      root.lay += hBox(20.emScaled, CENTER) {
          lay += stackPane {
             padding = Insets(50.emScaled, 0.0, 50.emScaled, 0.0)
             minWidth = 220.emScaled
@@ -60,10 +63,11 @@ class GitProjects(widget: Widget): SimpleController(widget) {
                id = "projects"
                isFitToHeight = true
                isFitToWidth = true
-               vbarPolicy = AS_NEEDED
-               hbarPolicy = AS_NEEDED
+               vbarPolicy = NEVER
+               hbarPolicy = NEVER
             }
          }
+         lay += separator(VERTICAL) { maxHeight = 200.emScaled }
          lay(ALWAYS) += md
       }
 
@@ -104,7 +108,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       override val description = "Displays git projects and displays README.md"
       override val descriptionLong = "$description."
       override val icon = IconFA.GIT
-      override val version = version(1, 0, 0)
+      override val version = version(1, 1, 0)
       override val isSupported = true
       override val year = year(2021)
       override val author = "spit"

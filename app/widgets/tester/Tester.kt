@@ -16,6 +16,7 @@ import javafx.animation.PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT
 import javafx.animation.Transition.INDEFINITE
 import javafx.geometry.Insets
 import javafx.geometry.Insets.EMPTY
+import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
@@ -26,14 +27,14 @@ import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.ScrollPane
-import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.control.Separator
 import javafx.scene.control.Slider
 import javafx.scene.effect.Blend
 import javafx.scene.effect.Effect
 import javafx.scene.input.MouseEvent.MOUSE_ENTERED
 import javafx.scene.input.MouseEvent.MOUSE_EXITED
-import javafx.scene.layout.Priority
+import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.paint.Color.AQUA
@@ -142,6 +143,7 @@ import sp.it.util.ui.minSize
 import sp.it.util.ui.onHoverOrDrag
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
+import sp.it.util.ui.separator
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.styleclassAdd
@@ -180,21 +182,22 @@ class Tester(widget: Widget): SimpleController(widget) {
 
 
       root.prefSize = 400.emScaled x 400.emScaled
-      root.lay += hBox(10.emScaled, null) {
+      root.lay += hBox(20.emScaled, CENTER) {
          lay += stackPane {
             padding = Insets(50.emScaled, 0.0, 50.emScaled, 0.0)
             minWidth = 220.emScaled
             lay += scrollPane {
                isFitToHeight = true
                isFitToWidth = true
-               vbarPolicy = AS_NEEDED
-               hbarPolicy = AS_NEEDED
+               vbarPolicy = NEVER
+               hbarPolicy = NEVER
                content = vBox(0.0, CENTER_LEFT) {
                   lay += groups.map { it.label }
                }
             }
          }
-         lay(Priority.ALWAYS) += content
+         lay += separator(VERTICAL) { maxHeight = 200.emScaled }
+         lay(ALWAYS) += content
       }
 
       // Create test inputs/outputs

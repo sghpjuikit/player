@@ -10,6 +10,7 @@ class LabelWithIcon(glyph: GlyphIcons, text: String = ""): Hyperlink(text) {
    val icon = Icon(glyph).apply { isMouseTransparent = true; isFocusTraversable = false }
 
    init {
+      isUnderline = false
       graphic = icon
       icon.focusOwner.value = this
       icon.onClickDelegateKeyTo(this)

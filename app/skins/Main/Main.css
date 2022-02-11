@@ -2175,6 +2175,7 @@ Shape, Text, SpitText, TextFlow > * {
 .table-row-cell:played > .indexed-cell,
 .table-row-cell:played:selected > .indexed-cell {
     -fx-text-fill: -fx-focus-color;
+    -fx-font-weight: bold;
 }
 
 /* Denotes broken or inconsistent record, e.g. unplayable item on playlist. */

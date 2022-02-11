@@ -204,9 +204,7 @@ tasks {
    val linkJdk by creating(LinkJDK::class) {
       group = "build setup"
       description = "Links JDK to project relative directory"
-      jdkLocation = compiler.get().metadata.installationPath.asFile
       linkLocation = dirJdk
-      println(compiler.get().metadata.installationPath.asFile)
    }
 
    @Suppress("UNUSED_VARIABLE")
@@ -238,7 +236,6 @@ tasks {
    }
 
    "run"(JavaExec::class) {
-      dependsOn(linkJdk)
       dependsOn(jar)  // the widgets need the jar on the classpath
       workingDir = dirApp
       args = listOf("--dev")

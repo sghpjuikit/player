@@ -10,9 +10,15 @@ import java.io.File
 import java.io.IOException
 import java.io.Serializable
 import java.nio.file.Files
-import java.nio.file.NotLinkException
 import java.util.Stack
+import javax.inject.Inject
 import kotlin.text.Charsets.UTF_8
+import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Nested
+import org.gradle.jvm.toolchain.JavaLauncher
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.kotlin.dsl.getByType
 
 operator fun File.div(childName: String) = this.resolve(childName)
 
@@ -25,29 +31,34 @@ fun Boolean.orFailIO(message: () -> String) = also { if (!this) failIO(null, mes
 val String.sysProp: String?
    get() = System.getProperty(this)?.takeIf { it.isNotBlank() }
 
-open class LinkJDK: DefaultTask() {
+private fun String.capital() = capitalize()
+
+private fun String.decapital() = decapitalize()
+
+abstract class LinkJDK : DefaultTask {
    /** Location of the link to the JDK. */
    @Internal lateinit var linkLocation: File
-   /** Location of the JDK. */
-   @Internal lateinit var jdkLocation: File
+   /** Java toolchain.launcher. */
+   @get:Nested abstract val launcher: Property<JavaLauncher>
 
-   init {
-      this.onlyIf {
-         try {
-            Files.readSymbolicLink(linkLocation.toPath())!=jdkLocation
-         } catch (e: NotLinkException) {
-            true
-         } catch (e: java.nio.file.NoSuchFileException) {
-            true
-         } catch (e: Throwable) {
-            logger.error("Failed linkJdk task up to date check: $e")
-            throw e
-         }
+   @Inject
+   constructor() {
+       kotlin.run {
+         // Access the default toolchain
+         val toolchain = project.extensions.getByType<JavaPluginExtension>().toolchain
+         // acquire a provider that returns the launcher for the toolchain
+         val service = project.extensions.getByType<JavaToolchainService>()
+         val defaultLauncher = service.launcherFor(toolchain)
+         // use it as our default for the property
+         launcher.convention(defaultLauncher)
+
+         launcher.get().metadata.installationPath.asFile
       }
    }
 
    @TaskAction
    fun linkJdk() {
+      val jdkLocation: File = launcher.get().executablePath.asFile
       linkLocation.delete() // delete invalid symbolic link
       logger.info("Creating link at $linkLocation to $jdkLocation...")
       try {
@@ -66,6 +77,7 @@ open class LinkJDK: DefaultTask() {
          }
       }
    }
+
 }
 
 open class GenerateKtFileHierarchy: DefaultTask() {
@@ -136,12 +148,12 @@ open class GenerateKtFileHierarchy: DefaultTask() {
                val isFile = !l.endsWith('{')
                val descDoc = descriptionLines.joinToString("\n") { " * $it" }
                val descVal = descriptionLines.map { it.trim() }.filter { it.isNotBlank() }.joinToString(" ")
-               val defName = if (hierarchy.isEmpty()) """`${name.capitalize()}Location`""" else """`${name.capitalize().replace('.', '_')}`"""
+               val defName = if (hierarchy.isEmpty()) """`${name.capital()}Location`""" else """`${name.capital().replace('.', '_')}`"""
                val defType = if (isFile) "Fil" else "Dir"
                val defTypeName = if (isFile) "file" else "directory"
                val path = if (isRoot) paths.peek() else (paths + sequenceOf("\"$name\"")).joinToString(""" + separator + """)
                val def = """
-                  |/** ${defTypeName.capitalize()} child [$defName]. */
+                  |/** ${defTypeName.capital()} child [$defName]. */
                   |val ${defName.toLowerCase()} = $defName
                   |
                   |/**
@@ -217,8 +229,8 @@ open class GenerateKtSettings: DefaultTask() {
          appendLine(text)
       }
       fun defName(text: String) = text.split(" ")
-         .flatMap { it.split("-") }.joinToString("") { it.capitalize() }
-         .decapitalize()
+         .flatMap { it.split("-") }.joinToString("") { it.capital() }
+         .decapital()
          .let { "`${it.replace(".", "")}`" }
 
       when (this) {

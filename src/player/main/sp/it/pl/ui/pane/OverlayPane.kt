@@ -313,7 +313,9 @@ abstract class OverlayPane<in T>: StackPane() {
                fitHeight = screen.bounds.height
                applyViewPort(image, FitFrom.OUTSIDE)
             }
-            val root = stackPane(stackPane(bgr, contentImg))
+            val root = stackPane(stackPane(bgr, contentImg)) {
+               styleClass += "overlay-window"
+            }
 
             op.stage = createFMNTStage(screen, false).apply {
                scene = Scene(root)

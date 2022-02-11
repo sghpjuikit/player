@@ -3387,6 +3387,11 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-padding: 20;
 }
 
+/*
+ * Root of the window of an overlay pane, if it opens in a window
+ */
+.overlay-window {}
+
 /*************************** ACTION PANE *******************************
  * Action chooser, displays action icons (with description) to choose
  * from and action input data information

@@ -96,16 +96,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		super();
 		this.type = type;
 
-		var fieldsAllRaw = stream(APP.getClassFields().get(getKotlinClass(type)))
-			// TODO: support nested columns
-			//.flatMap(it -> stream(
-			//	it,
-			//	stream(APP.getClassFields().get(getRaw(it.getType().getType())))
-			//		.filter(itt -> itt != INDEX)
-			//		.map(itt -> it.flatMap((ObjectField) itt))
-			//))
-			.sorted(by(ObjectField::name))
-			.collect(toList());
+		//noinspection unchecked
+		var fieldsAllRaw = (List<ObjectField<T,?>>) (Object) computeFieldsAll();
 		//noinspection unchecked,rawtypes
 		this.fieldsAll = fieldsAllRaw.stream().noneMatch(it -> it!=INDEX.INSTANCE) ? (List) List.of(INDEX.INSTANCE, STRING_UI.INSTANCE) : fieldsAllRaw;
 		this.fields = filter(fieldsAll, ObjectField::isTypeStringRepresentable);
@@ -128,6 +120,19 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 		// column control menu button not needed now (but still optionally usable)
 		setTableMenuButtonVisible(false);
+	}
+
+	protected List<ObjectField<? super T,?>> computeFieldsAll() {
+		return stream(APP.getClassFields().get(getKotlinClass(type)))
+			// TODO: support nested columns
+			//.flatMap(it -> stream(
+			//	it,
+			//	stream(APP.getClassFields().get(getRaw(it.getType().getType())))
+			//		.filter(itt -> itt != INDEX)
+			//		.map(itt -> it.flatMap((ObjectField) itt))
+			//))
+			.sorted(by(ObjectField::name))
+			.collect(toList());
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})

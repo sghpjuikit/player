@@ -117,6 +117,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
+
 	/**
 	 * Returns index of the first same song in playlist.
 	 *
@@ -146,6 +147,10 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	/** @return song on this playlist that is being played. */
 	public @Nullable PlaylistSong getPlaying() {
 		return playingSongWrapper.get();
+	}
+
+	public boolean isPlaying() {
+		return getPlaying()!=null;
 	}
 
 	/**
@@ -258,13 +263,11 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 
 		try {
 			if (by>0) {
-				for (int i = blocks.size() - 1; i>=0; i--) {
+				for (int i = blocks.size() - 1; i>=0; i--)
 					newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
-				}
 			} else if (by<0) {
-				for (List<Integer> block : blocks) {
+				for (List<Integer> block : blocks)
 					newSelected.addAll(moveItemsByBlock(block, by));
-				}
 			}
 		} catch (IndexOutOfBoundsException e) {
 			return indexes;

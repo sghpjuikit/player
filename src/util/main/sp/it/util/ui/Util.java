@@ -356,7 +356,7 @@ public interface Util {
 	 */
 	static void selectRows(List<Integer> selectedIndexes, TableViewSelectionModel<?> selectionModel) {
 		selectionModel.clearSelection();
-		int[] newSelected = new int[selectedIndexes.size()];
+		var newSelected = new int[selectedIndexes.size()];
 		for (int i = 0; i<selectedIndexes.size(); i++) {
 			newSelected[i] = selectedIndexes.get(i);
 		}

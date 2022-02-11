@@ -2,22 +2,30 @@ package sp.it.pl.ui.objects.table
 
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.scene.Group
+import javafx.scene.Parent
+import javafx.scene.control.IndexedCell
 import javafx.scene.control.Label
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableColumnBase
+import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
 import javafx.scene.control.skin.TableColumnHeader
 import javafx.scene.control.skin.TableHeaderRow
+import javafx.scene.control.skin.VirtualFlow
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
 import sp.it.pl.ui.objects.table.PlaylistTable.CELL_PADDING
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.functional.asIs
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.Util.invokeMethodP1
 import sp.it.util.type.isSubclassOf
+import sp.it.util.ui.lookupChildAs
 
 /**
  * Use as cell factory for columns created in column factory.
@@ -54,3 +62,13 @@ val TableColumn<*, *>.fontOrNull: Font?
       val headerCellLabel = if (headerCell==null) null else getFieldValue<Label>(headerCell, "label")
       return headerCellLabel?.font
    }
+
+/** @return [TableRow]s of this table. If the table skin is not initialized, it may be empty */
+fun <T> TableView<T>.rows(): List<TableRow<T>> {
+   return runTry {
+      lookupChildAs<VirtualFlow<IndexedCell<T>>>()
+         .childrenUnmodifiable[0].asIs<Parent>()
+         .childrenUnmodifiable[0].asIs<Group>().children
+   }.orNull().orEmpty().asIs()
+}
+

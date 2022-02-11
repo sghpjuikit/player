@@ -12,8 +12,6 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -31,6 +29,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static sp.it.pl.ui.objects.table.TableUtilKt.getFontOrNull;
 import static sp.it.pl.ui.objects.table.TableUtilKt.getHeaderOrNull;
+import static sp.it.pl.ui.objects.table.TableUtilKt.rows;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.type.Util.getFieldValue;
@@ -97,26 +96,8 @@ public class ImprovedTable<T> extends TableView<T> {
 		return 0<=i && getItems().size()>i;
 	}
 
-	/** Returns all table rows using recursive lookup. Don't rely on this much ok. */
-	public List<TableRow<T>> getRows() {
-		return getRows(this, new ArrayList<>());
-	}
-
-	@SuppressWarnings("unchecked")
-	private List<TableRow<T>> getRows(Parent n, List<TableRow<T>> li) {
-		for (Node nn : n.getChildrenUnmodifiable())
-			if (nn instanceof TableRow)
-				li.add(((TableRow<T>) nn));
-
-		for (Node nn : n.getChildrenUnmodifiable())
-			if (nn instanceof Parent)
-				getRows(((Parent) nn), li);
-
-		return li;
-	}
-
 	public void updateStyleRules() {
-		for (TableRow<T> row : getRows()) {
+		for (TableRow<T> row : rows(this)) {
 			if (row instanceof SpitTableRow) {
 				((SpitTableRow<T>) row).updateStyleRules();
 			}

@@ -64,6 +64,7 @@ import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.TableUtilKt.rows;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.async.AsyncKt.runIO;
@@ -123,18 +124,26 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		var isInitialSort = new AtomicBoolean(true);
 		setSortPolicy(it -> {
 			if (!isInitialSort.getAndSet(false)) {
-				itemsSortingWrapper.setValue(true);
-				updateComparator();
-				var fi = new ArrayList<>(filteredItems);
-				var c = itemsComparator.get();
-				runIO(() -> {
-					fi.sort(c);
-					return null;
-				}).ui(i -> {
-					sortedItems.setAll(fi);
-					itemsSortingWrapper.setValue(false);
-					return null;
-				});
+				// TODO retain selection
+//				if (getSortOrder().isEmpty()) {
+//					itemsSortingWrapper.setValue(true);
+//					updateComparator();
+//					sortedItems.setAll(new ArrayList<>(filteredItems));
+//					itemsSortingWrapper.setValue(false);
+//				} else {
+					itemsSortingWrapper.setValue(true);
+					updateComparator();
+					var fi = new ArrayList<>(filteredItems);
+					var c = itemsComparator.get();
+					runIO(() -> {
+						fi.sort(c);
+						return null;
+					}).ui(i -> {
+						sortedItems.setAll(fi);
+						itemsSortingWrapper.setValue(false);
+						return null;
+					});
+//				}
 			}
 			return true;
 		});
@@ -497,7 +506,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 		private void updateSearchStyleRowsNoReset() {
 			boolean searchOn = isActive();
-			for (TableRow<T> row : getRows()) {
+			for (TableRow<T> row : rows(FilteredTable.this)) {
 				T item = row.getItem();
 				String itemS = item==null ? null : field.getOfS(item, "");
 				boolean isMatch = itemS!=null && isMatch(itemS, searchQuery.get());

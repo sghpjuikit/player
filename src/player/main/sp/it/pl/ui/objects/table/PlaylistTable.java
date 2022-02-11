@@ -16,7 +16,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -35,6 +34,7 @@ import sp.it.pl.ui.objects.tablerow.SpitTableRow;
 import sp.it.util.Sort;
 import sp.it.util.access.V;
 import sp.it.util.access.fieldvalue.ColumnField.INDEX;
+import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.reactive.Disposer;
 import sp.it.util.units.NofX;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
@@ -45,6 +45,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.TransferMode.ANY;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.isM3uPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.readM3uPlaylist;
@@ -56,6 +57,7 @@ import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.PlaylistTableUtilKt.buildPlayingFieldColumn;
 import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
 import static sp.it.pl.ui.objects.table.TableUtilKt.getFontOrNull;
 import static sp.it.util.async.AsyncKt.FX;
@@ -91,7 +93,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 	public final @NotNull V<@NotNull Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
-	private final Disposer disposer = new Disposer();
+	final Disposer disposer = new Disposer();
 
 	@SuppressWarnings("unchecked")
 	public PlaylistTable(Playlist playlist) {
@@ -120,7 +122,9 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 		// initialize column factories
 		setColumnFactory(f -> {
-			TableColumn<PlaylistSong,Object> c = new TableColumn<>(f.toString());
+			if (f==(Object) PLAYING.INSTANCE) return buildPlayingFieldColumn(this);
+
+			var c = new TableColumn<PlaylistSong,Object>(f.toString());
 
 			if (f==(Object) NAME.INSTANCE) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getNameP());
 			else if (f==(Object) LENGTH.INSTANCE) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getTimeP());
@@ -136,7 +140,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		setRowFactory(t -> {
 			var row = new SpitTableRow<PlaylistSong>();
 			// remember position for moving selected rows on mouse drag
-			row.setOnMousePressed(e -> selectionLastScreenY = e.getScreenY());
+			row.setOnMousePressed(e -> selectionLastScreenY = row.localToScreen(0.0, row.getLayoutBounds().getCenterY()).getY());
 			// clear table selection on mouse released if no item
 			row.setOnMouseReleased(e -> {
 				if (row.getItem()==null)
@@ -213,33 +217,33 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 		// move items on drag
 		addEventFilter(MOUSE_DRAGGED, e -> {
-			if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
-			// we can't move items when filter on & we can't cancel filter, user would freak out
-			//  if (itemsPredicate.get()!=null) return; // unreliable as non-null predicates may have no effect
-			if (getItems().size()!=getItemsRaw().size()) return;
+			if (e.getButton()!=PRIMARY || !e.isControlDown()) return;
+			if (getItems().size()!=getItemsRaw().size()) return; // no-op if filter is active
 
-			// transform any sort (if in effect) to actual table items, we can't change order on
-			// items out of natural order
-			// note this is only called the 1st time (or not at all), not repeatedly
-			if (itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
-				movingItems = true;
-				List<PlaylistSong> l = list(getItems());
-				List<Integer> sl = list(getSelectionModel().getSelectedIndices());
-				setItemsRaw(listRO());      // clear items
-				getSortOrder().clear();     // clear sort order
-				setItemsRaw(l);             // set items back, now any sort is part of their order
-				selectRows(sl, getSelectionModel()); // set selection back
-				movingItems = false;
-			}
-
-			double h = getFixedCellSize();
-			double dist = e.getScreenY() - selectionLastScreenY;
-
-			int by = (int) (dist/h);
+			var dist = e.getScreenY() - selectionLastScreenY;
+			int by = (int) (dist/getFixedCellSize());
 			if (by!=0) {
-				selectionLastScreenY = e.getScreenY();
+				// snapshot item state
+				movingAll = movingAll!=null ? movingAll : list(getItems());
+				movingSelected = movingSelected!=null ? movingSelected : list(getSelectionModel().getSelectedIndices());
+
+				// apply sorting order into items and clear sorting
+				if (itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
+					movingItems = true;
+					setItemsRaw(listRO());
+					getSortOrder().clear();
+					setItemsRaw(movingAll);
+					selectRows(movingSelected, getSelectionModel());
+					movingItems = false;
+				}
+
 				moveSelectedItems(by);
+				selectionLastScreenY = e.getScreenY();
 			}
+		});
+		addEventFilter(MOUSE_RELEASED, e -> {
+			movingAll = null;
+			movingSelected = null;
 		});
 
 		// set key-induced actions
@@ -325,6 +329,13 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		placeholderNode.setValue(new Label("Click or drag & drop audio"));
 	}
 
+	@Override
+	protected List<ObjectField<? super PlaylistSong,?>> computeFieldsAll() {
+		var s = new ArrayList<>(super.computeFieldsAll());
+		s.add(PLAYING.INSTANCE);
+		return s;
+	}
+
 	/** Clears resources. Do not use this table after calling this method. */
 	public void dispose() {
 		disposer.invoke();
@@ -338,6 +349,9 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 /* --------------------- SELECTION ---------------------------------------------------------------------------------- */
 
+
+	private List<PlaylistSong> movingAll = null;
+	private List<Integer> movingSelected = null;
 	public boolean movingItems = false;
 	ChangeListener<PlaylistSong> selItemListener = (o, ov, nv) -> {
 		if (movingItems) return;
@@ -359,15 +373,8 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	 */
 	public void moveSelectedItems(int by) {
 		movingItems = true;    // lock to avoid firing selectedChange event (important)
-
-		// get selected
-		// construct new list (oldS), must not be observable (like indices)
-		List<Integer> oldS = new ArrayList<>(getSelectionModel().getSelectedIndices());
-		// move in playlist
-		List<Integer> newS = getPlaylist().moveItemsBy(oldS, by);
-		// select back
+		var newS = getPlaylist().moveItemsBy(movingSelected, by);
 		selectRows(newS, getSelectionModel());
-
 		movingItems = false;    // release lock
 	}
 

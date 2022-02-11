@@ -8,7 +8,7 @@
 1. Set up Java
   JDK is downloaded and set up automatically during gradle build through java [toolchain](https://docs.gradle.org/current/userguide/toolchains.html)  
   For manual JDK setup or when automatic setup fails for some reason:
-    - Download & install/extract [64-bit OpenJDK12](https://adoptopenjdk.net/releases.html?variant=openjdk12&jvmVariant=openj9)  
+    - Download & install/extract [64-bit OpenJDK15](https://github.com/ibmruntimes/semeru17-binaries/releases)  
       To avoid problems, it is recommended to use project-local JDK:
       - Copy JDK contents to `<project-dir>/app/java`
       - Create a `gradle.properties` file at project directory

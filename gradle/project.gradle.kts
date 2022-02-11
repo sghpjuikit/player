@@ -10,7 +10,7 @@ import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTOPENJDK
 plugins {
    kotlin("jvm") version "1.6.10"
    application
-   id("com.github.ben-manes.versions") version "0.41.0"
+   id("com.github.ben-manes.versions") version "0.42.0"
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code
@@ -27,7 +27,7 @@ fun Project.tests(configuration: Test.() -> Unit) {
 /** Working directory of the application */
 val dirApp = file("app")
 val dirJdk = dirApp/"java"
-val javaVersionSupported = JavaVersion.VERSION_12
+val javaVersionSupported = JavaVersion.VERSION_17
 
 allprojects {
    apply(plugin = "kotlin")
@@ -35,7 +35,7 @@ allprojects {
    kotlin {
       jvmToolchain {
          (this as JavaToolchainSpec).apply {
-            languageVersion.set(JavaLanguageVersion.of(12))
+            languageVersion.set(JavaLanguageVersion.of(17))
             vendor.set(ADOPTOPENJDK)
             implementation.set(J9)
          }
@@ -53,7 +53,7 @@ allprojects {
          "-Xlint:unchecked"
       )
       sourceCompatibility = javaVersionSupported.majorVersion
-         targetCompatibility = javaVersionSupported.majorVersion
+      targetCompatibility = javaVersionSupported.majorVersion
    }
 
    tasks.withType<KotlinCompile> {
@@ -91,7 +91,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "18-ea+10"
+         val version = "19-ea+2"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -123,7 +123,7 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "4.3.1")
+         implementation("com.github.f4b6a3", "uuid-creator", "4.4.1")
          implementation("net.objecthunter", "exp4j", "0.4.8")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt", "clikt", "2.1.0")
@@ -187,7 +187,7 @@ dependencies {
    implementation(projects.util)
 }
 val compiler = javaToolchains.compilerFor {
-   languageVersion.set(JavaLanguageVersion.of(12))
+   languageVersion.set(JavaLanguageVersion.of(17))
    vendor.set(ADOPTOPENJDK)
    implementation.set(J9)
 }

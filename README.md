@@ -55,7 +55,7 @@ For build manually from the latest sources:
 1. [Download & prepare project](CONTRIBUTING.md#preparations)
 2. Build the application
     1. `./gradlew build` builds the application
-    1. `./gradlew jar` creates jar & copies dependencies to /lib
+    1. `./gradlew jar` creates jar & copies dependencies to `/lib`
     1. Standalone application is now build in [app](/app) directory
 3. Deploy application
     1. `./gradlew linkJdk`to link [app/java](/app/java) to JDK

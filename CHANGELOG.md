@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Implement recommended **Custom** widget classes as widgets
+- Implement pause/resume icon for playlist table rows
+- Improve icon hover/focus/select interaction (fixes subtle UX issues in some controls)
+- Improve names/icons for some widgets
+- Improve check menu check icons [use more compact icons]
+- Implement application process name argument [makes it easier to identify Java process from process command]
+- Improve styling
+  - Separator is more sleek and less distracting
+  - Check menu check icons use more compact icons
+  - Use bold font for some selections
+- Improve popup content complexity [use Layout instead of ContainerSwitch]
+- Improve **Icon browser** widget
+  - Improve layout & UX
+- Improve **Git projects** widget
+  - Improve layout & UX
+- Improve **Tester** widget
+  - Implement remembering selected content
+  - Implement **Mouse events** testing suite
+  - Improve layout & UX
+
+This update 
+
 ## [3.1.0] 2022 02 07
 
 - Implement **widget I/O** for any type of window (docks, overlays)

@@ -51,14 +51,12 @@ abstract class LinkJDK : DefaultTask {
          val defaultLauncher = service.launcherFor(toolchain)
          // use it as our default for the property
          launcher.convention(defaultLauncher)
-
-         launcher.get().metadata.installationPath.asFile
       }
    }
 
    @TaskAction
    fun linkJdk() {
-      val jdkLocation: File = launcher.get().executablePath.asFile
+      val jdkLocation: File = launcher.get().executablePath.asFile.parentFile.parentFile
       linkLocation.delete() // delete invalid symbolic link
       logger.info("Creating link at $linkLocation to $jdkLocation...")
       try {

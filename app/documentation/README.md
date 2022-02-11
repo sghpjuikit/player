@@ -74,9 +74,9 @@ No. Use your operating system to associate files with this application.
 ## Installation
 
 User installation steps necessary:
-- download an application release from [Github releases](https://github.com/sghpjuikit/player/releases)
+- download an application release from [GitHub releases](https://github.com/sghpjuikit/player/releases)
 - set up `JDK`  
-  Make `app/java` directory contain or link to `JDK` 11 or 12
+  Make `app/java` directory contain or link to `JDK` 15
   
 ## Uninstallation
 

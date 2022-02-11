@@ -264,6 +264,7 @@ application {
    applicationName = "Spit Player"
    mainClass.set("sp.it.pl.main.AppKt")
    applicationDefaultJvmArgs = listOf(
+      "-Dname=SpitPlayer",
       "-Dfile.encoding=UTF-8",
       "-Xms" + ("player.memoryMin".prjProp ?: "50m"),
       "-Xmx" + ("player.memoryMax".prjProp ?: "3g"),

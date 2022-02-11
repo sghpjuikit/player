@@ -4,6 +4,7 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.layout.Pane
 import javafx.stage.Stage
+import sp.it.pl.layout.ComponentLoaderProcess.NEW_PROCESS
 import sp.it.pl.layout.ComponentLoaderProcess.NORMAL
 import sp.it.pl.layout.ComponentLoaderStrategy.DOCK
 import sp.it.pl.layout.WidgetSource.OPEN
@@ -66,11 +67,11 @@ fun ComponentFactory<*>.loadIn(strategy: ComponentLoaderStrategy, process: Compo
             APP.widgetManager.widgets.componentLastOpenStrategiesMap(cId, strategy)
          }
       }
-      else -> {
+      NEW_PROCESS -> {
          val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayerc_exe else APP.location.spitplayer_sh
          f.runAsAppProgram(
             "Launching component ${c.name} in new process",
-            "--singleton=false", "--stateless=true", "open-component", c.name
+            "-Dname=\"${APP.name}\"", "--singleton=false", "--stateless=true", "open-component", c.name
          )
       }
    }
@@ -85,11 +86,11 @@ fun Component.openIn(strategy: ComponentLoaderStrategy, process: ComponentLoader
             if (c is Widget)  APP.widgetManager.widgets.componentLastOpenStrategiesMap(c.factory.id, strategy)
          }
       }
-      else -> {
+      NEW_PROCESS -> {
          val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayerc_exe else APP.location.spitplayer_sh
          f.runAsAppProgram(
             "Launching component ${c.name} in new process",
-            "--singleton=false", "--stateless=true", "open-component", c.name
+            "-Dname=\"${APP.name}\"","--singleton=false", "--stateless=true", "open-component", c.name
          )
       }
    }

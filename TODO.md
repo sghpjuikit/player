@@ -31,13 +31,14 @@
   - implement chapters tag
   - tag writing should fail when tag reading fails?
   - make writing to tag handle errors properly (& report read-only files)
+- Implement converting Layout into ContainerSwitch and back
 
 ## Potential future work
 - Optimize Json
   Remove Klaxon, use Jackson and remove bug workarounds & custom escaping/replacing, try to optimize performance
 - Optimize markdown & support selection
   Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
-- Implement multi0valued **Song.Artist** support
+- Implement multivalued **Song.Artist** support
   Should work like tags
 - Show progress for file downloads progress, [Inspiration](https://betterprogramming.pub/show-download-progress-in-kotlin-style-64d157995e27)  
   Must work for downloading up `kotlinc` and `Vlc`
@@ -129,9 +130,7 @@
 - [ ] [jaudiotagger-65](https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format) opus ogg support
   open
 - [x] [jfx-481](https://bugs.openjdk.java.net/browse/JDK-8197991) JavaFx: table `CTRL+A` performance  
-  open
-- [ ] [jfx-409](https://github.com/javafxports/openjdk-jfx/issues/409) JavaFx: table columns performance  
-  open
+  fixed
 - [x] [jfx-364](https://github.com/javafxports/openjdk-jfx/issues/364) `javafx.scene.control.TextField` focus styling changes on window focus in/out  
   open, but no longer occurs
 - [x] [JDK-8261077](https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8261077) JavaFx: `javafx.scene.control.skin.TextAreaSkin` dispose() throws `UnsupportedOperationException`  
@@ -145,9 +144,9 @@
 - [x] [KT-41310](https://youtrack.jetbrains.com/issue/KT-41310) ReflectionL Creating `KType` from `Java`  
   reported, not an issue
 - [x] [KT-41309](https://youtrack.jetbrains.com/issue/KT-41309) Kotlinc: `-cp`  requiring escape after Kotlin update
-  reported, documented, worked around
-- [ ] [KT-41300](https://youtrack.jetbrains.com/issue/KT-41300) Kotlinc: Incorrect warning on Windows "advanced option value is passed in an obsolete form" on unquoted argument with delimiter character  
-  requires project fix // TODO
+  reported, documented, fixed
+- [x] [KT-41300](https://youtrack.jetbrains.com/issue/KT-41300) Kotlinc: Incorrect warning on Windows "advanced option value is passed in an obsolete form" on unquoted argument with delimiter character  
+  fixed (by quoting), documented at https://kotlinlang.org/docs/compatibility-guide-14.html#compiler-arguments-with-delimiter-characters-must-be-passed-in-double-quotes-on-windows
 - [x] [KT-38817](https://youtrack.jetbrains.com/issue/KT-38817) Bad behavior:`String.capitalize()`  
   fixed. See `TextUtilTest`.
 - [ ] [KT-22792](https://youtrack.jetbrains.com/issue/KT-22792) Reflection:`objectInstance` throws IllegalAccessException  

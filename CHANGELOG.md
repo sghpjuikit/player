@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Update **JDK** to 17 [improves performance & security]
 - Implement recommended **Custom** widget classes as widgets
 - Implement pause/resume icon for playlist table rows
 - Improve icon hover/focus/select interaction (fixes subtle UX issues in some controls)
@@ -23,7 +24,29 @@ All notable changes to this project will be documented in this file. Format base
   - Implement **Mouse events** testing suite
   - Improve layout & UX
 
-This update 
+This update brings lots of pleasant improvements.
+
+Finally, **JDK** has been updated. It took 3 years to get over **JDK12**.
+The reason was that the way the build/deployment was set up would cause too much hassle.
+The build now uses ordinary **Java toolchain** that automatizes **JDK** setup.
+Finally, `linkJDK` Gradle task has been removed from build dependencies and requires manual run. It is more of a convenience anyway.
+Now, **JDK** updates are very comfortable. By the way, the project still uses **OpenJ9**.
+
+The widgets **Icon browser**, **Git projects** and **Tester** now use much improved and unified UI for selecting content.
+Focusing, hovering, selecting from the list of content choices using both mouse and keys is supported and works very nicely.
+
+The application process command has received a no-op argument to help distinguishing the process from other Java processes.
+This would not be such an issue if the **Launch4j** was set up to wrap the .jar into .exe, but it currently does not work well for 64-bit version.
+This requires more research and testing to implement right, so for now, at least the command was enhanced.
+
+New widget names/icons make the widgets easier to find and use.
+Even better, all the registered `Node` classes, viable to be used as widgets are now available as separate widgets.
+This was surprisingly trivial to implement and it truly improves the UX.
+In the future, there may be widget metadata support for these widgets, such as icons or descriptions. There is potential for a lots of improvements here.
+
+Another new feature is a graphical playlist table column for a pause/resume icon.
+The icon allows controlling the playback from the **Playlist** widget - definitely useful.
+In the future, there will probably be more such columns and with automatic width resizing and styling support. 
 
 ## [3.1.0] 2022 02 07
 
@@ -91,7 +114,7 @@ This is because proper cleanup is never guaranteed even if `App` is already stop
 
 ## [3.0.0] 2022 01 24
 
-- **Kotlin** `1.6.10`
+- Update **Kotlin** to `1.6.10`
 - Implement application locale settings
 - Implement locale-specific formatting for data in various parts of the application
 - Implement **Node** widget object instantiation error notification

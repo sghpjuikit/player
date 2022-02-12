@@ -13,7 +13,7 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.input.MouseEvent.MOUSE_RELEASED
-import javafx.scene.paint.Color
+import javafx.scene.shape.Rectangle
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -67,7 +67,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
    init {
       root.prefSize = 850.emScaled x 600.emScaled
-
+      root.lay += canvas.color
       canvas.heightProperty() syncFrom root.heightProperty() on onClose
       canvas.widthProperty() syncFrom root.widthProperty() on onClose
       root.lay += canvas
@@ -83,6 +83,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    private class RenderNode: Canvas() {
       val loop: Loop = Loop({ _ -> loop() })
       val gc = graphicsContext2D!!
+      val color = Rectangle().apply { isVisible = false }
       var cells: List<Cell> = listOf()
       var draggedCell: P? = null   // null if none
       var selectedCell: P? = null  // null if none
@@ -136,6 +137,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
 
       fun draw() {
          inputOutputMap.clear()
+         val c = color.fill
          val w = width
          val h = height
          val opacityMin = 0.1
@@ -167,8 +169,8 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          }
 
          gc.setEffect(null)
-         gc.fill = Color.AQUA
-         gc.stroke = Color.AQUA
+         gc.fill = c
+         gc.stroke = c
          gc.clearRect(0.0, 0.0, w, h)
          gc.globalAlpha = 0.5
 

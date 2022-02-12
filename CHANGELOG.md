@@ -37,13 +37,13 @@ Now, **JDK** updates are very comfortable. By the way, the project still uses **
 The widgets **Icon browser**, **Git projects** and **Tester** now use much improved and unified UI for selecting content.
 Focusing, hovering, selecting from the list of content choices using both mouse and keys is supported and works very nicely.
 
-The application process command has received a no-op argument to help distinguishing the process from other Java processes.
+The application process command has received a no-op argument to help to distinguish the process from other Java processes.
 This would not be such an issue if the **Launch4j** was set up to wrap the .jar into .exe, but it currently does not work well for 64-bit version.
 This requires more research and testing to implement right, so for now, at least the command was enhanced.
 
 New widget names/icons make the widgets easier to find and use.
 Even better, all the registered `Node` classes, viable to be used as widgets are now available as separate widgets.
-This was surprisingly trivial to implement and it truly improves the UX.
+This was surprisingly trivial to implement, and it truly improves the UX.
 In the future, there may be widget metadata support for these widgets, such as icons or descriptions. There is potential for a lots of improvements here.
 
 Another new feature is a graphical playlist table column for a pause/resume icon.

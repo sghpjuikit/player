@@ -81,7 +81,6 @@ import sp.it.util.animation.Anim;
 import sp.it.util.collections.map.KClassMap;
 import sp.it.util.collections.map.Map2D;
 import sp.it.util.collections.mapset.MapSet;
-import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F;
 import sp.it.util.functional.Functors.F0;
 import sp.it.util.functional.Functors.F1;
@@ -98,7 +97,6 @@ import static java.lang.Math.random;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Pos.CENTER;
@@ -587,13 +585,12 @@ interface Utils {
 		SHIELD;
 
 		Ship.Ability create(Ship s) {
-			switch(this) {
-				case NONE : return s.new Ability(true, Duration.ZERO, Duration.ZERO, 0, 0);
-				case DISRUPTOR : return s.new Disruptor();
-				case HYPERSPACE : return s.new Hyperspace();
-				case SHIELD : return s.new Shield();
-				default: throw new SwitchException(this);
-			}
+			return switch (this) {
+				case NONE -> s.new Ability(true, Duration.ZERO, Duration.ZERO, 0, 0);
+				case DISRUPTOR -> s.new Disruptor();
+				case HYPERSPACE -> s.new Hyperspace();
+				case SHIELD -> s.new Shield();
+			};
 		}
 
 	}
@@ -603,38 +600,34 @@ interface Utils {
 		RECTANGLE;
 
 		double computeStartingAngle(int ps, int p) {
-			switch(this) {
-				case CIRCLE : return ps==0 ? 0 : p*D360/ps;
-				case LINE :
-				case RECTANGLE : return -D90;
-			}
-			throw new SwitchException(this);
+			return switch (this) {
+				case CIRCLE -> ps==0 ? 0 : p*D360/ps;
+				case LINE, RECTANGLE -> -D90;
+			};
 		}
 
 		@SuppressWarnings("unused")
 		double computeStartingX(double w, double h, int ps, int p) {
-			switch(this) {
-				case CIRCLE : return w/2 + 50*cos(computeStartingAngle(ps, p));
-				case LINE : return w/(ps+1)*p;
-				case RECTANGLE : {
+			return switch(this) {
+				case CIRCLE -> w/2 + 50*cos(computeStartingAngle(ps, p));
+				case LINE -> w/(ps+1)*p;
+				case RECTANGLE -> {
 					var a = sqrt(ps);
-					return w/(a+1)*(1+(p-1)/a);
+					yield w/(a+1)*(1+(p-1)/a);
 				}
-			}
-			throw new SwitchException(this);
+			};
 		}
 
 		@SuppressWarnings("unused")
 		double computeStartingY(double w, double h, int ps, int p) {
-			switch(this) {
-				case CIRCLE : return h/2 + 50*sin(computeStartingAngle(ps, p));
-				case LINE : return h/2;
-				case RECTANGLE : {
+			return switch(this) {
+				case CIRCLE -> h/2 + 50*sin(computeStartingAngle(ps, p));
+				case LINE -> h/2;
+				case RECTANGLE -> {
 					int a = ((int)ceil(sqrt(ps)));
-					return h/(a+1)*(1+(p-1)%a);
+					yield h/(a+1)*(1+(p-1)%a);
 				}
-			}
-			throw new SwitchException(this);
+			};
 		}
 	}
 
@@ -2145,9 +2138,7 @@ interface Utils {
 				remainingTimeMs.run();
 			}
 
-			List<Player> victors = stream(game.players)
-				.sorted(by((Player p) -> p.stats.controlAreaSize.getAverage()).reversed())
-				.collect(toList());
+			var victors = stream(game.players).sorted(by((Player p) -> p.stats.controlAreaSize.getAverage()).reversed()).toList();
 
 			// Highlight player ranking
 			forEachWithI(victors, (i,p) -> {
@@ -2259,8 +2250,9 @@ interface Utils {
 								}
 							})
 							.map(c -> (Cell)c)
-							.collect(toList());
-				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/3).limit(3)
+							.toList();
+				cells.addAll(
+					DoubleStream.iterate(0, a-> a+2*PI/3).limit(3)
 								.mapToObj(a -> new Cell(0,0) {
 									 double angle = a;
 									 {
@@ -2274,8 +2266,10 @@ interface Utils {
 									 }
 								 })
 								.map(c -> (Cell)c)
-								.collect(toList()));
-				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								.toList()
+				);
+				cells.addAll(
+					DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
 								.mapToObj(a -> new Cell(0,0) {
 									 double angle = a;
 									 {
@@ -2289,8 +2283,10 @@ interface Utils {
 									 }
 								 })
 								.map(c -> (Cell)c)
-								.collect(toList()));
-				cells.addAll(DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
+								.toList()
+				);
+				cells.addAll(
+					DoubleStream.iterate(0, a-> a+2*PI/cellCount).limit(cellCount)
 								.mapToObj(a -> new Cell(0,0) {
 									 double angle = a;
 									 {
@@ -2304,7 +2300,8 @@ interface Utils {
 									 }
 								 })
 								.map(c -> (Cell)c)
-								.collect(toList()));
+								.toList()
+				);
 				// horizontal sequence
 //				cells = IntStream.range(0,cellCount)
 //								.mapToObj(a -> new Cell(W*0.1+W*0.8/cellCount*a, H/2))
@@ -2638,9 +2635,8 @@ interface Utils {
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) return true;
-			if (!(o instanceof Vec)) return false;
+			if (!(o instanceof Vec v)) return false;
 
-			Vec v = (Vec) o;
 			return Double.compare(v.x, x)==0 && Double.compare(v.y, y)==0;
 		}
 
@@ -2676,9 +2672,8 @@ interface Utils {
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) return true;
-			if (!(o instanceof Lin)) return false;
+			if (!(o instanceof Lin l)) return false;
 
-			Lin l = (Lin) o;
 			return (
 				(Double.compare(l.x1, x1)==0 && Double.compare(l.x2, x2)==0 && Double.compare(l.y1, y1)==0 && Double.compare(l.y2, y2)==0) ||
 				(Double.compare(l.x1, x2)==0 && Double.compare(l.x2, x1)==0 && Double.compare(l.y1, y2)==0 && Double.compare(l.y2, y1)==0)
@@ -2797,7 +2792,7 @@ interface Utils {
 						.peek(c -> inputOutputMap.put(c, new RocketB(rocket,false)))
 					);
 				})
-				.collect(toList());
+				.toList();
 
 			VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
 			voronoi.setClipEnvelope(new Envelope(0, W, 0, H));
@@ -2841,7 +2836,7 @@ interface Utils {
 											s.add(new Lin(x1,y1,x2,y2));
 									}
 									return s.build();
-								}).collect(toList());
+								}).toList();
 //						        .groupingBy(x -> x, counting())
 //						        .entrySet().stream()
 //						        .peek(e -> System.out.println(e.getValue()))

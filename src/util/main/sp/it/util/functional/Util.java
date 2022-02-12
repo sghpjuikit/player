@@ -619,17 +619,17 @@ public interface Util {
 
 	/** Filters array. Returns list. Source remains unchanged. */
 	static <T> List<T> filter(T[] a, Predicate<T> f) {
-		return Stream.of(a).filter(f).collect(toList());
+		return Stream.of(a).filter(f).toList();
 	}
 
 	/** Filters collection. Returns list. Source remains unchanged. */
 	static <T> List<T> filter(Collection<T> c, Predicate<T> f) {
-		return c.stream().filter(f).collect(toList());
+		return c.stream().filter(f).toList();
 	}
 
 	/** Maps array. Returns list. Source remains unchanged. */
 	static <T, R> List<R> map(T[] a, Function<T,R> m) {
-		return Stream.of(a).map(m).collect(toList());
+		return Stream.of(a).map(m).toList();
 	}
 
 	/** Maps collection. Returns list. Source remains unchanged. */
@@ -640,25 +640,25 @@ public interface Util {
 	@SuppressWarnings("unchecked")
 	static <T> List<T> split(String txt, String regex, int i, Function<String,T> m) {
 		if (txt.isEmpty()) return EMPTY_LIST;
-		return Stream.of(txt.split(regex, i)).map(m).collect(toList());
+		return Stream.of(txt.split(regex, i)).map(m).toList();
 	}
 
 	@SuppressWarnings("unchecked")
 	static <T> List<T> split(String txt, String regex, Function<String,T> m) {
 		if (txt.isEmpty()) return EMPTY_LIST;
-		return Stream.of(txt.split(regex, -1)).map(m).collect(toList());
+		return Stream.of(txt.split(regex, -1)).map(m).toList();
 	}
 
 	@SuppressWarnings("unchecked")
 	static List<String> split(String txt, String regex, int i) {
 		if (txt.isEmpty()) return EMPTY_LIST;
-		return Stream.of(txt.split(regex, i)).collect(toList());
+		return Stream.of(txt.split(regex, i)).toList();
 	}
 
 	@SuppressWarnings("unchecked")
 	static List<String> split(String txt, String regex) {
 		if (txt.isEmpty()) return EMPTY_LIST;
-		return Stream.of(txt.split(regex, -1)).collect(toList());
+		return Stream.of(txt.split(regex, -1)).toList();
 	}
 
 	/**

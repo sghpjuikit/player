@@ -255,18 +255,18 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
             ui.getChildren().add(t);
             return t;
         });
-        if (c instanceof Container) {
+        if (c instanceof Container<?> cc) {
             if (tab.ui!=null) tab.ui.dispose();
 
-            n = ((Container<?>) c).load(tab);
-            as = (Container<?>) c;
-            tab.ui = ((Container<?>) c).ui;
-        } else if (c instanceof Widget) {
+            n = cc.load(tab);
+            as = cc;
+            tab.ui = cc.ui;
+        } else if (c instanceof Widget cw) {
             tab.ui = firstNotNull(
-                () -> tab.ui instanceof WidgetUi && ((WidgetUi) tab.ui).getWidget()==c ? tab.ui : null,
+                () -> tab.ui instanceof WidgetUi cwUi && cwUi.getWidget()==c ? tab.ui : null,
                 () -> {
                     if (tab.ui!=null) tab.ui.dispose();
-                    return new WidgetUi(container, i, (Widget) c);
+                    return new WidgetUi(container, i, cw);
                 }
             );
             n = tab.ui.getRoot();
@@ -311,7 +311,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         toRem.filter(not(isClose)).forEach(it -> {
             var t = tabs.get(it);
             if (t.ui == null) removeTab(it);
-            if (t.ui instanceof Layouter) ((Layouter) t.ui).hideAnd(runnable(() -> {
+            if (t.ui instanceof Layouter lUi) lUi.hideAnd(runnable(() -> {
                 if (!isClose.test(it))
                     removeTab(it);
             }));
@@ -447,7 +447,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         int i = -1;
         for (Entry<Integer,Component> e : layouts.entrySet()) {
             Component cm = e.getValue();
-            boolean has = cm==c || (cm instanceof Container && any(((Container<?>)cm).getAllChildren(), ch -> ch==c));
+            boolean has = cm==c || (cm instanceof Container<?> cmc && any(cmc.getAllChildren(), ch -> ch==c));
             if (has) {
                 i = e.getKey();
                 alignTab(i);
@@ -617,14 +617,14 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
     @Override
     public void show() {
         super.show();
-        layouts.values().forEach(c -> { if (c instanceof Container) ((Container<?>) c).show(); });
+        layouts.values().forEach(c -> { if (c instanceof Container<?> cc) cc.show(); });
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.show(); });
     }
 
     @Override
     public void hide() {
         super.hide();
-        layouts.values().forEach(c -> { if (c instanceof Container) ((Container<?>) c).hide(); });
+        layouts.values().forEach(c -> { if (c instanceof Container<?> cc) cc.hide(); });
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.hide(); });
     }
 

@@ -20,13 +20,9 @@ import sp.it.pl.audio.playlist.isM3uPlaylist
 import sp.it.pl.audio.playlist.readM3uPlaylist
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.addToLibTask
-import sp.it.pl.layout.Component
-import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.WidgetUse.NO_LAYOUT
-import sp.it.pl.layout.exportFxwl
-import sp.it.pl.layout.exportFxwlDefault
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.ImagesDisplayFeature
 import sp.it.pl.layout.feature.Opener
@@ -86,7 +82,6 @@ import sp.it.util.system.chooseFiles
 import sp.it.util.system.edit
 import sp.it.util.system.open
 import sp.it.util.system.recycle
-import sp.it.util.system.saveFile
 import sp.it.util.type.argOf
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.raw

@@ -13,12 +13,9 @@ import kotlin.reflect.KClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sp.it.util.collections.map.KClassMap;
-import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Try;
 import sp.it.util.parsing.Parsers.Invokable;
 import sp.it.util.parsing.Parsers.ParseDir;
-import sp.it.util.parsing.StringParseStrategy.From;
-import sp.it.util.parsing.StringParseStrategy.To;
 import static java.util.Arrays.stream;
 import static kotlin.jvm.JvmClassMappingKt.getJavaObjectType;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
@@ -171,49 +168,48 @@ public class ConverterDefault extends Converter {
         StringParseStrategy a = type.getAnnotation(StringParseStrategy.class);
 
         if (ofS==null && a!=null) {
-            From strategy = a.from();
-            if (strategy==From.NONE) {
-                throw new IllegalArgumentException("Failed to create from string converter. Class '" + type + "'s parsing strategy forbids parsing from string.");
-            } else if (strategy==From.SINGLETON) {
-                String fieldName = "INSTANCE";
-                try {
-                    Field f = type.getDeclaredField(fieldName);
-                    Class<?> fType = f.getType();
-                    if (!Modifier.isStatic(f.getModifiers())) throw new NoSuchFieldException(fieldName + " field must be static=" + fType);
-                    if (fType!=type) throw new NoSuchFieldException(fieldName + " field has wrong type=" + fType);
+            ofS = switch(a.from()) {
+                case NONE -> throw new IllegalArgumentException("Failed to create from string converter. Class '" + type + "'s parsing strategy forbids parsing from string.");
+                case SINGLETON -> {
+                    String fieldName = "INSTANCE";
+                    try {
+                        Field f = type.getDeclaredField(fieldName);
+                        Class<?> fType = f.getType();
+                        if (!Modifier.isStatic(f.getModifiers())) throw new NoSuchFieldException(fieldName + " field must be static=" + fType);
+                        if (fType!=type) throw new NoSuchFieldException(fieldName + " field has wrong type=" + fType);
 
-                    ofS = text -> {
-                        try {
-                            return ok((T) f.get(null));
-                        } catch (IllegalAccessException e) {
-                            throw new IllegalStateException("Field " + f + " is not accessible");
-                        }
-                    };
+                        yield text -> {
+                            try {
+                                return ok((T) f.get(null));
+                            } catch (IllegalAccessException e) {
+                                throw new IllegalStateException("Field " + f + " is not accessible");
+                            }
+                        };
 
-                } catch(NoSuchFieldException e) {
-                    throw new IllegalArgumentException("Failed to create from string converter. Singleton class " + type + " has no public static " + fieldName + " field");
+                    } catch(NoSuchFieldException e) {
+                        throw new IllegalArgumentException("Failed to create from string converter. Singleton class " + type + " has no public static " + fieldName + " field");
+                    }
                 }
-            } else if (strategy==From.ANNOTATED_METHOD) {
-                Invokable<T> invokable = null;  // in class T returns ?
+                case ANNOTATED_METHOD -> {
+                    Invokable<T> invokable = null;  // in class T returns ?
 
-                if (invokable==null) {
-                    Constructor<T> c = getConstructorAnnotated(type, ParsesFromString.class);
-                    if (c!=null) invokable = Invokable.of(c);
+                    if (invokable==null) {
+                        Constructor<T> c = getConstructorAnnotated(type, ParsesFromString.class);
+                        if (c!=null) invokable = Invokable.of(c);
+                    }
+
+                    if (invokable==null) {
+                        Method m = getMethodAnnotated(type, ParsesFromString.class);
+                        if (m!=null && Modifier.isStatic(m.getModifiers()))
+                            invokable = Invokable.ofStaticMethod(m);
+                    }
+
+                    if (invokable==null)
+                        throw new IllegalArgumentException("Failed to create from string converter. Responsible method was not found");
+
+                    yield parserOfI(invokable, String.class, type, a, ParseDir.OFS);
                 }
-
-                if (invokable==null) {
-                    Method m = getMethodAnnotated(type, ParsesFromString.class);
-                    if (m!=null && Modifier.isStatic(m.getModifiers()))
-                        invokable = Invokable.ofStaticMethod(m);
-                }
-
-                if (invokable==null)
-                    throw new IllegalArgumentException("Failed to create from string converter. Responsible method was not found");
-
-                ofS = parserOfI(invokable, String.class, type, a, ParseDir.OFS);
-            } else {
-                throw new SwitchException(strategy);
-            }
+            };
         }
 
         // try to fall back to Enum.valueOf method (use case-insensitive search)
@@ -249,44 +245,41 @@ public class ConverterDefault extends Converter {
         return ofS;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "RedundantSuppression"})
     private <T> Function<T,Try<String,String>> buildToSParser(Class<T> c) {
         StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
         if (a!=null) {
-            To strategy = a.to();
-            if (strategy==To.CONSTANT) {
-                String constant = a.constant();
-                return in -> ok(constant);
-            } else if (strategy==To.NONE) {
-                throw new IllegalArgumentException("Failed to create to string converter. Class '" + c + "'s parsing strategy forbids parsing to string.");
-            } else if (strategy==To.SINGLETON) {
-                return in -> ok(in.getClass().getName());
-            } else if (strategy==To.ANNOTATED_METHOD) {
-                Method m = getMethodAnnotated(c, ParsesToString.class);
-                if (m==null || m.getReturnType()!=String.class || (!m.isVarArgs() && m.getParameterCount()>1) || (m.getParameterCount()==1 && !m.getParameterTypes()[0].isAssignableFrom(c)))
-                    throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because suitable method was not found: " + m);
-                boolean pass_params = m.getParameterCount()==1;
-                Function<T,String> f = pass_params
-                    ? in -> {
-                            try {
-                                return (String) m.invoke(in, in);
-                            } catch (IllegalAccessException|InvocationTargetException e) {
-                                throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
+            return switch(a.to()) {
+                case CONSTANT -> {
+                    String constant = a.constant();
+                    yield in -> ok(constant);
+                }
+                case NONE -> throw new IllegalArgumentException("Failed to create to string converter. Class '" + c + "'s parsing strategy forbids parsing to string.");
+                case SINGLETON -> in -> ok(in.getClass().getName());
+                case ANNOTATED_METHOD -> {
+                    Method m = getMethodAnnotated(c, ParsesToString.class);
+                    if (m==null || m.getReturnType()!=String.class || (!m.isVarArgs() && m.getParameterCount()>1) || (m.getParameterCount()==1 && !m.getParameterTypes()[0].isAssignableFrom(c)))
+                        throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because suitable method was not found: " + m);
+                    boolean pass_params = m.getParameterCount()==1;
+                    Function<T,String> f = pass_params
+                        ? in -> {
+                                try {
+                                    return (String) m.invoke(in, in);
+                                } catch (IllegalAccessException|InvocationTargetException e) {
+                                    throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
+                                }
                             }
-                        }
-                    : in -> {
-                            try {
-                                return (String) m.invoke(in);
-                            } catch (IllegalAccessException|InvocationTargetException e) {
-                                throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
-                            }
-                        };
-                return noExWrap(m, a, ParseDir.TOS, f);
-            } else if (strategy==To.TO_STRING_METHOD) {
-                return (Function) defaultTos.andThen(Try.Java::ok);
-            } else {
-                throw new SwitchException(strategy);
-            }
+                        : in -> {
+                                try {
+                                    return (String) m.invoke(in);
+                                } catch (IllegalAccessException|InvocationTargetException e) {
+                                    throw new RuntimeException("Converter cant invoke the method: " + m, e.getCause());
+                                }
+                            };
+                    yield noExWrap(m, a, ParseDir.TOS, f);
+                }
+                case TO_STRING_METHOD -> (Function) defaultTos.andThen(Try.Java::ok);
+            };
         }
         return null;
     }

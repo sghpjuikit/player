@@ -16,7 +16,6 @@ import kotlin.jvm.functions.Function4;
 import kotlin.jvm.functions.Function5;
 import kotlin.jvm.functions.Function6;
 import org.jetbrains.annotations.NotNull;
-import sp.it.util.dev.SwitchException;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.IS0;
@@ -318,23 +317,18 @@ public interface Functors {
 		}
 
 		default F1<I,O> onNullIn(OnNullIn ni) {
-			if (ni==OnNullIn.NULL)
-				return i -> i==null ? null : apply(i);
-			if (ni==OnNullIn.APPLY)
-				return this;
-			if (ni==OnNullIn.VALUE)
-				throw new IllegalArgumentException("No value provided");
-			throw new SwitchException(ni);
+			return switch (ni) {
+				case NULL -> i -> i==null ? null : apply(i);
+				case APPLY -> this;
+				case VALUE -> throw new IllegalArgumentException("No value provided");
+			};
 		}
 
 		default F1<I,O> onNullIn(OnNullIn ni, O or) {
-			if (ni==OnNullIn.NULL)
-				throw new SwitchException(ni);
-			if (ni==OnNullIn.APPLY)
-				throw new SwitchException(ni);
-			if (ni==OnNullIn.VALUE)
-				return i -> i==null ? or : apply(i);
-			throw new SwitchException(ni);
+			return switch (ni) {
+				case NULL, APPLY -> throw new RuntimeException("Illegal switch case on value " + ni);
+				case VALUE -> i -> i==null ? or : apply(i);
+			};
 		}
 	}
 

@@ -311,7 +311,7 @@ public interface Util {
 		return (ScrollBar) scrollPane.lookupAll("ScrollBar").stream()
 			.filter(it -> {
 				var isNotContent = scrollPane.getContent()==null || !isAnyParentOf(scrollPane.getContent(), it);
-				return it instanceof ScrollBar && isNotContent && ((ScrollBar) it).getOrientation()==orientation;
+				return it instanceof ScrollBar scr && isNotContent && scr.getOrientation()==orientation;
 			})
 			.findFirst().orElse(null);
 	}
@@ -385,9 +385,7 @@ public interface Util {
 				e.consume();
 				scrollFlag.set(false);
 				runLater(() -> {
-					if (e.getTarget() instanceof Node) {
-						((Node) e.getTarget()).fireEvent(ne);
-					}
+					if (e.getTarget() instanceof Node targetNode) targetNode.fireEvent(ne);
 					scrollFlag.set(true);
 				});
 			}

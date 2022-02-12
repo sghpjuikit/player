@@ -201,8 +201,7 @@ class MediaTypesDemo {
 					columnNames = new String[]{"Attribute", "Value"};
 					for (Line line : all) {
 						Control[] controls = line.getControls();
-						if (line instanceof DataLine) {
-							DataLine dataLine = (DataLine)line;
+						if (line instanceof DataLine dataLine) {
 							AudioFormat audioFormat = dataLine.getFormat();
 							data = new Object[7+controls.length][2];
 
@@ -227,9 +226,8 @@ class MediaTypesDemo {
 							data[6][0] = "Level";
 							data[6][1] = dataLine.getLevel();
 
-						} else if (line instanceof Port) {
-							Port port = (Port)line;
-							Port.Info portInfo = (Port.Info)port.getLineInfo();
+						} else if (line instanceof Port port) {
+							Port.Info portInfo = (Port.Info) port.getLineInfo();
 							data = new Object[2+controls.length][2];
 
 							data[0][0] = "Name";
@@ -332,8 +330,7 @@ class MediaTypesDemo {
 				if (node == null) return;
 
 				Object nodeInfo = node.getUserObject();
-				if (nodeInfo instanceof MediaData) {
-					MediaData mediaData = (MediaData)nodeInfo;
+				if (nodeInfo instanceof MediaData mediaData) {
 					table.setModel( new DefaultTableModel(
 						mediaData.getData(),
 						mediaData.getColumnNames()) );

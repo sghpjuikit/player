@@ -92,13 +92,12 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public final Menu columnVisibleMenu = new Menu("Columns");
 	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
 
+	@SuppressWarnings({"unchecked","rawtypes"})
 	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
 
-		//noinspection unchecked
 		var fieldsAllRaw = (List<ObjectField<T,?>>) (Object) computeFieldsAll();
-		//noinspection unchecked,rawtypes
 		this.fieldsAll = fieldsAllRaw.stream().noneMatch(it -> it!=INDEX.INSTANCE) ? (List) List.of(INDEX.INSTANCE, STRING_UI.INSTANCE) : fieldsAllRaw;
 		this.fields = filter(fieldsAll, ObjectField::isTypeStringRepresentable);
 
@@ -242,7 +241,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 							return m;
 						})
 						.sorted(by(MenuItem::getText))
-						.collect(toList())
+						.toList()
 				);
 				columnVisibleMenu.getItems().forEach(i -> ((SelectionMenuItem) i).getSelected().setValue(isColumnVisible(nameToCF(i.getText()))));
 			});

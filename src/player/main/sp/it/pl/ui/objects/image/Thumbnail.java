@@ -1,8 +1,7 @@
 package sp.it.pl.ui.objects.image;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -14,7 +13,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -32,7 +30,6 @@ import sp.it.util.math.P;
 import sp.it.util.ui.image.FitFrom;
 import sp.it.util.ui.image.ImageSize;
 import static java.lang.Double.min;
-import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -526,19 +523,14 @@ public class Thumbnail {
 	private EventHandler<MouseEvent> buildDH() {
 		return e -> {
 			if (e.getButton()==PRIMARY) {
-				Object representant = getRepresentant();
-				File file = getFile();
-				List<File> files = stream(representant instanceof File ? (File) representant : file)
-						.filter(ISNT0)
-						.collect(toList());
+				var representant = getRepresentant();
+				var file = getFile();
+				var files = stream(representant instanceof File f ? f : file).filter(ISNT0).toList();
 
 				if (!files.isEmpty()) {
 					Dragboard db = root.startDragAndDrop(ANY);
 					if (getImage()!=null) db.setDragView(getImage());
-
-					HashMap<DataFormat,Object> c = new HashMap<>();
-					c.put(FILES, files);
-					db.setContent(c);
+					db.setContent(Map.of(FILES, files));
 				}
 
 				e.consume();
@@ -627,7 +619,7 @@ public class Thumbnail {
 
 	public class ContextMenuData {
 		public final Object representant = getRepresentant();
-		public final File file = representant instanceof File ? (File) representant : null;
+		public final File file = representant instanceof File f ?f : null;
 		public final File iFile = getFile();
 		public final File fsImageFile = iFile!=null ? iFile : file;
 		public final Image image = getImage();

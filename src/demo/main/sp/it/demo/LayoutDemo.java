@@ -3,7 +3,6 @@ package sp.it.demo;
 import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -68,9 +67,8 @@ class LayoutDemo extends Application {
 
 		// monitor intersections of shapes in the scene.
 		for (Node node : group.getChildrenUnmodifiable()) {
-			if (node instanceof Shape) {
-				shapes.add((Shape) node);
-			}
+			if (node instanceof Shape s)
+				shapes.add(s);
 		}
 		testIntersections();
 
@@ -107,10 +105,10 @@ class LayoutDemo extends Application {
 	private void testIntersections() {
 		intersections.clear();
 
-		// for each shape test it's intersection with all other shapes.
+		// for each shape test its intersection with all other shapes.
 		for (Shape src : shapes) {
-			for (Shape dest : shapes) {
-				ShapePair pair = new ShapePair(src, dest);
+			for (Shape dst : shapes) {
+				ShapePair pair = new ShapePair(src, dst);
 				if ((!(pair.a instanceof Anchor) && !(pair.b instanceof Anchor))
 						&& !intersections.contains(pair)
 						&& pair.intersects(selectedBoundsType.get())) {
@@ -172,26 +170,22 @@ class LayoutDemo extends Application {
 		void monitorBounds(final BoundsType boundsType) {
 			// remove the shape's previous boundsType.
 			if (boundsChangeListener!=null) {
-				final ReadOnlyObjectProperty<Bounds> oldBounds;
-				switch (selectedBoundsType.get()) {
-					case LAYOUT_BOUNDS: oldBounds = monitoredShape.layoutBoundsProperty(); break;
-					case BOUNDS_IN_LOCAL: oldBounds = monitoredShape.boundsInLocalProperty(); break;
-					case BOUNDS_IN_PARENT: oldBounds = monitoredShape.boundsInParentProperty(); break;
-					default: oldBounds = null;
-				}
+				var oldBounds = switch (selectedBoundsType.get()) {
+					case LAYOUT_BOUNDS -> monitoredShape.layoutBoundsProperty();
+					case BOUNDS_IN_LOCAL -> monitoredShape.boundsInLocalProperty();
+					case BOUNDS_IN_PARENT -> monitoredShape.boundsInParentProperty();
+				};
 				if (oldBounds!=null) {
 					oldBounds.removeListener(boundsChangeListener);
 				}
 			}
 
 			// determine the shape's bounds for the given boundsType.
-			final ReadOnlyObjectProperty<Bounds> bounds;
-			switch (boundsType) {
-				case LAYOUT_BOUNDS: bounds = monitoredShape.layoutBoundsProperty(); break;
-				case BOUNDS_IN_LOCAL: bounds = monitoredShape.boundsInLocalProperty(); break;
-				case BOUNDS_IN_PARENT: bounds = monitoredShape.boundsInParentProperty(); break;
-				default: bounds = null;
-			}
+			var bounds = switch (boundsType) {
+				case LAYOUT_BOUNDS -> monitoredShape.layoutBoundsProperty();
+				case BOUNDS_IN_LOCAL -> monitoredShape.boundsInLocalProperty();
+				case BOUNDS_IN_PARENT -> monitoredShape.boundsInParentProperty();
+			};
 
 			// set the visual bounds display based upon the new bounds and keep it in sync.
 			updateBoundsDisplay(bounds.get());
@@ -211,7 +205,7 @@ class LayoutDemo extends Application {
 	}
 
 	/** An anchor displayed around a point. */
-	private class Anchor extends Circle {
+	private static class Anchor extends Circle {
 		Anchor(String id, DoubleProperty x, DoubleProperty y) {
 			super(x.get(), y.get(), 10);
 			setId(id);
@@ -226,28 +220,27 @@ class LayoutDemo extends Application {
 	}
 
 	/** Records relative x and y co-ordinates. */
-	private class Delta {
+	private static class Delta {
 		double x, y;
 	}
 
 	/** Records a pair of (possibly) intersecting shapes. */
-	private class ShapePair {
-		private Shape a, b;
+	private static class ShapePair {
+		private final Shape a, b;
 
-		ShapePair(Shape src, Shape dest) {
-			this.a = src; this.b = dest;
+		ShapePair(Shape src, Shape dst) {
+			this.a = src; this.b = dst;
 		}
 
 		boolean intersects(BoundsType boundsType) {
 			if (a==b) return false;
 
 			a.intersects(b.getBoundsInLocal());
-			switch (boundsType) {
-				case LAYOUT_BOUNDS: return a.getLayoutBounds().intersects(b.getLayoutBounds());
-				case BOUNDS_IN_LOCAL: return a.getBoundsInLocal().intersects(b.getBoundsInLocal());
-				case BOUNDS_IN_PARENT: return a.getBoundsInParent().intersects(b.getBoundsInParent());
-				default: return false;
-			}
+			return switch (boundsType) {
+				case LAYOUT_BOUNDS -> a.getLayoutBounds().intersects(b.getLayoutBounds());
+				case BOUNDS_IN_LOCAL -> a.getBoundsInLocal().intersects(b.getBoundsInLocal());
+				case BOUNDS_IN_PARENT -> a.getBoundsInParent().intersects(b.getBoundsInParent());
+			};
 		}
 
 		@Override
@@ -258,8 +251,7 @@ class LayoutDemo extends Application {
 		@Override
 		public boolean equals(Object other) {
 			if (this==other) return true;
-			if (!(other instanceof ShapePair)) return false;
-			ShapePair o = (ShapePair) other;
+			if (!(other instanceof ShapePair o)) return false;
 			return (a==o.a && b==o.b) || (a==o.b) && (b==o.a);
 		}
 
@@ -292,7 +284,7 @@ class LayoutDemo extends Application {
 		);
 		instructions.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
 
-		// add the ability to set a translate value for the circles.
+		// add the ability to set a translation value for the circles.
 		final CheckBox translateNodes = new CheckBox("Translate circles");
 		translateNodes.selectedProperty().addListener((o, ov, nv) -> {
 			if (nv) {
@@ -404,10 +396,12 @@ class LayoutDemo extends Application {
 
 		TextArea boundsExplanation = new TextArea();
 		boundsExplanation.setText(
-			"Layout Bounds: The boundary of the shape.\n" +
-			"Bounds in Local: The boundary of the shape and effect.zn" +
-			"Bounds in Parent: The boundary of the shape, effect and transforms.\n" +
-			"The co-ordinates of what you see."
+		    """
+			Layout Bounds: The boundary of the shape.
+			Bounds in Local: The boundary of the shape and effect.
+			Bounds in Parent: The boundary of the shape, effect and transforms.
+			The co-ordinates of what you see.
+			"""
 		);
 		boundsExplanation.setPrefWidth(100);
 		boundsExplanation.setMinHeight(130);

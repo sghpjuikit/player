@@ -25,7 +25,6 @@ import sp.it.util.reactive.Handler0;
 import sp.it.util.reactive.Handler1;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
-import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
@@ -188,7 +187,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 		if (n<chain.size()) {
 			inconsistentState = true;
-			chain.setAll(chain.stream().limit(n).collect(toList()));
+			chain.setAll(chain.stream().limit(n).toList());
 			chain.forEach(Link::updateIcons);
 			inconsistentState = false;
 			generateValue();
@@ -364,7 +363,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 
 		@Override
 		protected List<V> reduce(Stream<V> values) {
-			return values.collect(toList());
+			return values.toList();
 		}
 
 	}

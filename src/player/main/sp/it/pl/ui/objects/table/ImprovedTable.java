@@ -97,11 +97,9 @@ public class ImprovedTable<T> extends TableView<T> {
 	}
 
 	public void updateStyleRules() {
-		for (TableRow<T> row : rows(this)) {
-			if (row instanceof SpitTableRow) {
-				((SpitTableRow<T>) row).updateStyleRules();
-			}
-		}
+		for (TableRow<T> row : rows(this))
+			if (row instanceof SpitTableRow<T> sRow)
+				sRow.updateStyleRules();
 	}
 
 	/**

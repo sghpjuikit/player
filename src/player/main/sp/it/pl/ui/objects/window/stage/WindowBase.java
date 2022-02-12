@@ -188,8 +188,8 @@ public class WindowBase {
 	 * @return the value of the property minimized.
 	 */
 	public boolean isMinimized() {
-		return s.getOwner()!=null && s.getOwner() instanceof Stage
-			? ((Stage) s.getOwner()).isIconified()
+		return s.getOwner()!=null && s.getOwner() instanceof Stage ss
+			? ss.isIconified()
 			: s.isIconified();
 	}
 
@@ -200,8 +200,8 @@ public class WindowBase {
 
 	/** Sets the value of the property minimized. */
 	public void setMinimized(boolean val) {
-		if (s.getOwner()!=null && s.getOwner() instanceof Stage) {
-			((Stage) s.getOwner()).setIconified(val);
+		if (s.getOwner()!=null && s.getOwner() instanceof Stage ss) {
+			ss.setIconified(val);
 		} else {
 			s.setIconified(val);
 		}

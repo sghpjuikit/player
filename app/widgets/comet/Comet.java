@@ -623,7 +623,7 @@ public class Comet extends SimpleController {
 					}
 				};
 				Controllers.instance().addListener(listener);
-				gamepadIds.addAll(stream(gamepads).map(IController::getDeviceID).collect(toList()));
+				gamepadIds.addAll(stream(gamepads).map(IController::getDeviceID).toList());
 			}
 
 			@Override
@@ -1675,8 +1675,8 @@ public class Comet extends SimpleController {
 
 			void fire() {
 				if (!isHyperspace) {
-					if (Ship.this instanceof Rocket) {
-						((Rocket) Ship.this).player.stats.accFiredBullet(game.loop.id);
+					if (Ship.this instanceof Rocket r) {
+						r.player.stats.accFiredBullet(game.loop.id);
 						if (game.settings.playerGunDisabled) return;
 					}
 
@@ -1689,7 +1689,7 @@ public class Comet extends SimpleController {
 						} else {
 							for (Double fire_angle : turrets.value()) {
 								Bullet b = ammo_type.apply(aimer.apply()+fire_angle);
-									   b.isHighEnergy = Ship.this instanceof Rocket && ((Rocket)Ship.this).energyFire.is();
+									   b.isHighEnergy = Ship.this instanceof Rocket r && r.energyFire.is();
 							}
 						}
 					});
@@ -1742,9 +1742,8 @@ public class Comet extends SimpleController {
 					};
 				}
 
-				boolean isRocket = Ship.this instanceof Rocket;
-				boolean isLeft = isRocket && ((Rocket)Ship.this).player.wasInputLeft;
-				boolean isRight = isRocket && ((Rocket)Ship.this).player.wasInputRight;
+				boolean isLeft = Ship.this instanceof Rocket r && r.player.wasInputLeft;
+				boolean isRight = Ship.this instanceof Rocket r && r.player.wasInputRight;
 				if (!(isLeft && isRight) || isStage2) {
 					double acc = mobility.value() * thrust;
 					if (isStage2) acc *= stage2ThrustMultiplier;
@@ -1944,7 +1943,7 @@ public class Comet extends SimpleController {
 					boolean hasNoEffect = false;
 
 					// disrupt ufo bullets
-					if (o instanceof Bullet && ((Bullet)o).owner instanceof Ufo) {
+					if (o instanceof Bullet b && b.owner instanceof Ufo) {
 						double strength = dist>500 ? 0 : 1-dist/500;
 						double deceleration = (1-0.05*strength); // strength==1 ? 0.95 : 1
 						o.dx *= deceleration;
@@ -1959,7 +1958,7 @@ public class Comet extends SimpleController {
 					} else
 					// shield pulls disruptor
 					// Makes disruptor vs shield battles more interesting
-					if (o instanceof Rocket && ((Rocket)o).ability.isActiveOfType(Shield.class)) {
+					if (o instanceof Rocket r && r.ability.isActiveOfType(Shield.class)) {
 						f *= -3;
 					} else
 					if (o instanceof Satellite || o instanceof Shuttle || o instanceof SuperShield || o instanceof SuperDisruptor) {
@@ -2124,8 +2123,8 @@ public class Comet extends SimpleController {
 				children.add(this);
 				scheduleActivation();
 
-				double sync_reps = Ship.this instanceof Rocket ? ((Rocket)Ship.this).player.id.get() :
-								   Ship.this instanceof Shuttle ? ((Shuttle)Ship.this).owner.player.id.get() :
+				double sync_reps = Ship.this instanceof Rocket r ? r.player.id.get() :
+								   Ship.this instanceof Shuttle s ? s.owner.player.id.get() :
 								   1+randInt(5);
 				double syncs_range = sync_reps*D360;
 				double syncs_range_d = syncs_range/syncs_len;
@@ -3009,7 +3008,7 @@ public class Comet extends SimpleController {
 				game.settings.SATELLITE_RADIUS/2, null
 			);
 			e = s instanceof Shuttle
-				? randOf(stream(game.mode.enhancers()).filter(en -> !"Shuttle support".equals(en.name)).collect(toList()))
+				? randOf(stream(game.mode.enhancers()).filter(en -> !"Shuttle support".equals(en.name)).toList())
 				: ((Satellite)s).e;
 			children = new HashSet<>(2);
 			graphics = new Draw(graphics(game.humans.intelOn.is() ? e.icon : MaterialDesignIcon.SATELLITE_VARIANT, 40, game.colors.humansTech, null));
@@ -3126,7 +3125,7 @@ public class Comet extends SimpleController {
 		// cause == null => natural expiration, else hit object
 		void onExpire(PO cause) {
 			if (isBlackHole && !isHyperspace) {
-				Player own = owner instanceof Rocket ?((Rocket)owner).player : null;
+				Player own = owner instanceof Rocket r ? r.player : null;
 				game.entities.addForceField(new BlackHole(own, seconds(20),x,y));
 			}
 		}
@@ -3159,14 +3158,13 @@ public class Comet extends SimpleController {
 
 			if (e.isHitDistance(this)) {
 				dead = true; // bullet always dies
-				if (e instanceof Rocket) {
-					Rocket r = (Rocket)e;
+				if (e instanceof Rocket r) {
 					if (!game.settings.deadly_bullets && owner instanceof Rocket) {
 						r.kinetic_shield.new KineticShieldPiece(r.dir(this));
 						bounceOffShieldOf(r);
 
 						if (r.ability.isActiveOfType(Shield.class)) {
-							((Shield)r.ability).onHit(this);
+							((Shield) r.ability).onHit(this);
 						}
 					}
 					if (game.settings.deadly_bullets || !(owner instanceof Rocket)) {
@@ -3184,49 +3182,45 @@ public class Comet extends SimpleController {
 						}
 					}
 				} else
-				if (e instanceof Asteroid) {
-					if (owner instanceof Rocket)
-						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
+				if (e instanceof Asteroid<?> a) {
+					if (owner instanceof Rocket r)
+						r.player.stats.accHitEnemy(game.loop.id);
 
-					Asteroid<?> a = (Asteroid)e;
 					a.onHit(this);
 					a.explosion();
-					if (owner instanceof Rocket)
-						((Rocket)owner).player.score.setValueOf(s -> s + (int) game.settings.SCORE_ASTEROID(a));
+					if (owner instanceof Rocket r)
+						r.player.score.setValueOf(s -> s + (int) game.settings.SCORE_ASTEROID(a));
 				} else
-				if (e instanceof Ufo) {
-					if (owner instanceof Rocket) {
-						((Rocket) owner).player.score.setValueOf(s -> s + (int) game.settings.SCORE_UFO);
-						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
-						((Rocket) owner).player.stats.accKillUfo();
+				if (e instanceof Ufo u) {
+					if (owner instanceof Rocket r) {
+						r.player.score.setValueOf(s -> s + (int) game.settings.SCORE_UFO);
+						r.player.stats.accHitEnemy(game.loop.id);
+						r.player.stats.accKillUfo();
 					}
 
-					Ufo u = (Ufo)e;
 					if (!(owner instanceof Ufo)) {
 						u.die(this);
 					}
 				} else
-				if (e instanceof UfoSwarmer) {
-					if (owner instanceof Rocket)
-						((Rocket) owner).player.stats.accHitEnemy(game.loop.id);
+				if (e instanceof UfoSwarmer ud) {
+					if (owner instanceof Rocket r)
+						r.player.stats.accHitEnemy(game.loop.id);
 
-					UfoSwarmer ud = (UfoSwarmer)e;
-					if (owner instanceof Rocket) {
+					if (owner instanceof Rocket r) {
 						game.oss.get(UfoSwarmer.class).stream()
 								.filter(u -> ud.swarmId==u.swarmId && !u.isActive)
 								.forEach(u -> {
-									u.enemy = (Rocket)owner;
+									u.enemy = r;
 									u.isActive = true;
 								});
 						ud.explode();
-						((Rocket)owner).player.score.setValueOf(s -> s + (int) game.settings.SCORE_UFO_DISC);
+						r.player.score.setValueOf(s -> s + (int) game.settings.SCORE_UFO_DISC);
 					}
 				} else
 				if (e instanceof Shuttle) {
 					dead = false;   // shoot-through when allies
 				} else
-				if (e instanceof SuperShield) {
-					SuperShield ss = (SuperShield) e;
+				if (e instanceof SuperShield ss) {
 					// we are assuming its kinetic shield is always active (by game design)
 					// ignore bullets when allies | shooting from inside the shield
 					if (owner instanceof Rocket && owner.distance(ss)<ss.kinetic_shield.KSradius) {
@@ -3236,8 +3230,7 @@ public class Comet extends SimpleController {
 						bounceOffShieldOf(ss);
 					}
 				} else
-				if (e instanceof Satellite) {
-					Satellite s = (Satellite)e;
+				if (e instanceof Satellite s) {
 					if (s.isLarge) s.explode();
 					else dead = false; // small satellites are shoot-through
 				}
@@ -4642,8 +4635,7 @@ public class Comet extends SimpleController {
 			// Roche limit.
 			// Asteroids disintegrate due to BH tidal forces.
 			// It would be ugly for asteroids not do this...
-			if (o instanceof Asteroid) {
-				Asteroid<?> a = ((Asteroid)o);
+			if (o instanceof Asteroid a) {
 				if (dist/220<a.size) {
 					a.onHit(this);
 				}

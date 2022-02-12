@@ -38,7 +38,6 @@ import sp.it.util.reactive.Disposer;
 import sp.it.util.units.NofX;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
 import static java.util.Comparator.nullsLast;
-import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -380,7 +379,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 				files.stream()
 					.filter(it -> isM3uPlaylist(it))
 					.flatMap(it -> readM3uPlaylist(it).stream())
-					.collect(toList())
+					.toList()
 			).useBy(FX, items ->
 				getPlaylist().addItems(items, index)
 			);

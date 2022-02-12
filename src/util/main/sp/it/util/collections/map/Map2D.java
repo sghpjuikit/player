@@ -110,7 +110,7 @@ public class Map2D<K1, K2, E> extends HashMap<Key<K1,K2>,E> {
 		@Override
 		public boolean equals(Object obj) {
 			if (this==obj) return true;
-			return obj instanceof Key && key1.equals(((Key<?,?>) obj).key1) && key2.equals(((Key<?,?>) obj).key2);
+			return obj instanceof Key objKey && key1.equals(objKey.key1) && key2.equals(objKey.key2);
 		}
 
 		@Override

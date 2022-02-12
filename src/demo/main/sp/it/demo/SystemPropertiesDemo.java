@@ -59,8 +59,7 @@ class SystemPropertiesDemo {
 	}
 
 	private static String valueToString(String property, Object value) {
-		if (value instanceof Color) {
-			Color color = (Color) value;
+		if (value instanceof Color color) {
 			return "<div style='width: 100%; height: 100%; " +
 				"background-color: #" +
 				Integer.toHexString(color.getRed()) +

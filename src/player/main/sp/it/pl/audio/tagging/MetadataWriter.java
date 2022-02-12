@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.audio.Song;
 import sp.it.util.dev.Blocks;
-import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Try;
 import sp.it.util.units.NofX;
 import static java.lang.Math.max;
@@ -292,13 +291,11 @@ public class MetadataWriter extends Song {
 	private void setRating(double val) {
 		double v = val<0 ? -1 : clipRating(tag, val);
 		switch (getFormat()) {
-			case MP3: setRatingMP3((AbstractID3v2Tag) tag, v); break;
-			case WAV: setRatingMP3(wavToId3((WavTag) tag), v); break;
-			case FLAC:
-			case OGG: setRatingVorbisOgg(v); break;
-			case MP4:
-			case M4A: setRatingMP4(v); break;
-			default:    // rest not supported
+			case MP3 -> setRatingMP3((AbstractID3v2Tag) tag, v);
+			case WAV -> setRatingMP3(wavToId3((WavTag) tag), v);
+			case FLAC, OGG -> setRatingVorbisOgg(v);
+			case MP4, M4A -> setRatingMP4(v);
+			case SPX, SND, AIFC, AIF, AU, MP1, MP2, AAC, UNKNOWN -> { /* not supported */ }
 		}
 	}
 
@@ -381,8 +378,8 @@ public class MetadataWriter extends Song {
 		// set universally
 		setGeneralField(CUSTOM3, val<0 ? "" : String.valueOf(val));
 		// set to id3 tag if available
-		if (tag instanceof AbstractID3v2Tag) setPlaycountID3((AbstractID3v2Tag) tag, val);
-		else if (tag instanceof WavTag) setPlaycountID3(wavToId3((WavTag) tag), val);
+		if (tag instanceof AbstractID3v2Tag id3tag) setPlaycountID3(id3tag, val);
+		else if (tag instanceof WavTag wavtag) setPlaycountID3(wavToId3(wavtag), val);
 	}
 
 	/** Increments playcount by 1. */
@@ -426,13 +423,11 @@ public class MetadataWriter extends Song {
 	/** @param val the publisher to set */
 	public void setPublisher(String val) {
 		switch (getFormat()) {
-			case FLAC:
-			case OGG: setVorbisField("PUBLISHER", val); break;
-			case MP3: setPublisherID3((AbstractID3v2Tag) tag, val); break;
-			case WAV: setPublisherID3(wavToId3((WavTag) tag), val); break;
-			case MP4:
-			case M4A: setPublisherMP4(val); break;
-			default:    // rest not supported
+			case FLAC, OGG -> setVorbisField("PUBLISHER", val);
+			case MP3 -> setPublisherID3((AbstractID3v2Tag) tag, val);
+			case WAV -> setPublisherID3(wavToId3((WavTag) tag), val);
+			case MP4, M4A -> setPublisherMP4(val);
+			case SPX, SND, AIFC, AIF, AU, MP1, MP2, AAC, UNKNOWN -> { /* not supported */ }
 		}
 		// increment fields_changed in implementations
 	}
@@ -672,8 +667,8 @@ public class MetadataWriter extends Song {
 	private void setVorbisField(String field, String val) {
 		boolean empty = val==null || val.isEmpty();
 		// get tag
-		VorbisCommentTag t = tag instanceof FlacTag
-				? ((FlacTag) tag).getVorbisCommentTag()
+		VorbisCommentTag t = tag instanceof FlacTag flactag
+				? flactag.getVorbisCommentTag()
 				: (VorbisCommentTag) tag;
 		// set if possible
 		try {
@@ -753,7 +748,7 @@ public class MetadataWriter extends Song {
 		if (field==Metadata.Field.FIRST_PLAYED.INSTANCE) { setCustomField(TAG_ID_PLAYED_FIRST, data); return; }
 		if (field==Metadata.Field.LAST_PLAYED.INSTANCE) { setCustomField(TAG_ID_PLAYED_LAST, data); return; }
 		if (field==Metadata.Field.ADDED_TO_LIBRARY.INSTANCE) { setCustomField(TAG_ID_LIB_ADDED, data); return; }
-		throw new SwitchException(field);
+		throw new RuntimeException("Illegal switch case on value " + field);
 	}
 
 	/**

@@ -43,7 +43,6 @@ import sp.it.util.access.V;
 import sp.it.util.access.ref.LazyR;
 import sp.it.util.action.Action;
 import sp.it.util.animation.Anim;
-import sp.it.util.dev.SwitchException;
 import sp.it.util.functional.Functors.F1;
 import sp.it.util.functional.TryKt;
 import sp.it.util.reactive.Subscription;
@@ -209,7 +208,7 @@ public class Icon extends StackPane {
 	}
 
 	public Action getOnClickAction() {
-		return click_runnable instanceof Action ? (Action) click_runnable : Action.NONE;
+		return click_runnable instanceof Action a ? a : Action.NONE;
 	}
 
 	private final LazyR<Anim> ra = new LazyR<>(() -> A_HOVER.apply(this));
@@ -358,8 +357,7 @@ public class Icon extends StackPane {
 	public final @NotNull Icon action(@Nullable Runnable action) {
 		if (click_runnable!=null && getTooltip()!=null) Tooltip.uninstall(this, getTooltip());
 
-		if (action instanceof Action) {
-			Action a = (Action) action;
+		if (action instanceof Action a) {
 			String title = a.getName();
 			String body = a.getInfo();
 			String keysRaw = keysUi(a);
@@ -436,13 +434,12 @@ public class Icon extends StackPane {
 
 	@NotNull
 	public Pane withText(Side side, Pos alignment, String text) {
-		switch (side) {
-			case TOP: return layHeaderBottom(5, alignment, new Label(text), this);
-			case RIGHT: return layHeaderLeft(10, alignment, this, new Label(text));
-			case BOTTOM: return layHeaderTop(5, alignment, this, new Label(text));
-			case LEFT: return layHeaderRight(10, alignment, new Label(text), this);
-			default: throw new SwitchException(side);
-		}
+		return switch (side) {
+			case TOP -> layHeaderBottom(5, alignment, new Label(text), this);
+			case RIGHT -> layHeaderLeft(10, alignment, this, new Label(text));
+			case BOTTOM -> layHeaderTop(5, alignment, this, new Label(text));
+			case LEFT -> layHeaderRight(10, alignment, new Label(text), this);
+		};
 	}
 
 	private GlyphIcons glyph = null;    // cache

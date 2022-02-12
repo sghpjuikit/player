@@ -29,6 +29,7 @@ import kotlin.Unit;
 import kotlin.reflect.KClass;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.Song;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.SongReadingKt;
@@ -62,7 +63,6 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
@@ -199,8 +199,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             List<EditArea> l;
             List<EditArea> custom_tas = filter(tas,ta -> ta.name.get().contains("Custom"));
             if (!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
-                List<SplitData> s = ta_in.output.stream().filter(SplitData.class::isInstance).map(SplitData.class::cast).collect(toList());
-                List<String> names = s.get(0).stream().map(split -> split.parse_key).collect(toList());
+                List<SplitData> s = ta_in.output.stream().filter(SplitData.class::isInstance).map(SplitData.class::cast).toList();
+                List<String> names = s.get(0).stream().map(split -> split.parse_key).toList();
 
                 List<List<String>> outs = list(names.size(), ArrayList::new);
                 s.forEach(splits -> forEachWithI(map(splits,split -> split.split), (i,line) -> outs.get(i).add(line)));
@@ -238,7 +238,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         );
         acts.accumulate(
             new Act<>("Edit song tags", getKotlinClass(Song.class), 100, map(Metadata.Field.Companion.getAll(), f -> f.name()), data -> {
-                List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).collect(toList());
+                List<Song> songs = source.stream().filter(Song.class::isInstance).map(Song.class::cast).toList();
                 if (songs.isEmpty()) return;
                 failIf(data.values().stream().anyMatch(it -> it.size()!=songs.size()), () -> "Data size mismatch");
 
@@ -256,7 +256,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                             );
                         }
 
-                        APP.audio.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).collect(toList()));
+                        APP.audio.refreshSongsWith(stream(songs).map(SongReadingKt::read).filter(m -> !m.isEmpty()).toList());
                         return null;
                     }),
                     widget.getCustomName().getValue() + "Editing song tags"
@@ -278,6 +278,11 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     }
 
     @Override
+    public void read(@Nullable Song song) {
+        SongWriter.super.read(song);
+    }
+
+    @Override
     public void read(@NotNull List<? extends Song> songs) {
         inputValue.setValue(map(songs, Song::toMeta));
     }
@@ -288,10 +293,10 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     }
 
     private static List<?> unpackData(Object o) {
-        if (o instanceof String)
-            return split((String) o, "\n", x->x);
-        else if (o instanceof Collection)
-            return list((Collection<?>) o);
+        if (o instanceof String os)
+            return split(os, "\n", x->x);
+        else if (o instanceof Collection<?> oc)
+            return list(oc);
         else return listRO(o);
     }
 

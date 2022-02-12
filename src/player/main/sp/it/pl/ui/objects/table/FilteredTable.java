@@ -47,7 +47,6 @@ import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import sp.it.util.access.fieldvalue.ObjectField;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_MINUS;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAYLIST_PLUS;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -410,7 +409,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
 			.sorted(by(e -> e.name))
 			.map(f -> (PredicateData<ObjectField<T,Object>>) f)
-			.collect(toList());
+			.toList();
 	}
 
 /* --------------------- INDEX -------------------------------------------------------------------------------------- */

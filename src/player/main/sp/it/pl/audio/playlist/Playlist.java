@@ -26,7 +26,6 @@ import sp.it.util.collections.mapset.MapSet;
 import sp.it.util.units.NofX;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
@@ -527,7 +526,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	public void setAndPlay(Stream<? extends Song> songs) {
 		noNull(songs);
-		setAll(songs.map(Song::toPlaylist).collect(toList()));
+		setAll(songs.map(Song::toPlaylist).toList());
 		playTransformedFirst();
 	}
 
@@ -543,7 +542,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 	 */
 	public void setAndPlayFrom(Stream<? extends Song> songs, int from) {
 		noNull(songs);
-		setAll(songs.map(Song::toPlaylist).collect(toList()));
+		setAll(songs.map(Song::toPlaylist).toList());
 		playTransformedItem(get(from));
 	}
 

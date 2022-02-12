@@ -354,7 +354,7 @@ public class ActionPane extends OverlayPane<Object> {
 
 		// set content
 		data = collectionUnwrap(d);
-		boolean isDataReady = !(data instanceof Fut && !((Fut<?>)data).isDone());
+		boolean isDataReady = !(data instanceof Fut<?> dataFut && !dataFut.isDone());
 		if (isDataReady) {
 			data = collectionUnwrap(futureUnwrapOrThrow(data));
 			setDataInfo(data, true);

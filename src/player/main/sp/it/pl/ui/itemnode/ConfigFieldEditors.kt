@@ -140,7 +140,7 @@ import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.PropertyConfigRO
 import sp.it.util.conf.UnsealedEnumerator
-import sp.it.util.dev.SwitchException
+import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
 import sp.it.util.file.FilePickerType
 import sp.it.util.functional.Try
@@ -1303,7 +1303,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
             val dv = when (it) {
                is MouseEvent -> (if (it.source.asIs<Node>().net { it.layoutBounds.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1) * (if (it.isShortcutDown) 10 else 1)
                is ScrollEvent -> it.deltaY.sign.roundToInt() * (if (it.isShortcutDown) 10 else 1)
-               else -> throw SwitchException(it)
+               else -> fail { "Illegal switch case on value $it" }
             }
             val ov: T = config.value.asIs() ?: caster(0)
             val nv: T = when {

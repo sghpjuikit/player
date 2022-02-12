@@ -26,7 +26,6 @@ import sp.it.util.file.UtilKt;
 import sp.it.util.functional.Util;
 import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.ImageSize;
-import static java.util.stream.Collectors.toList;
 import static kotlin.io.FilesKt.getNameWithoutExtension;
 import static kotlin.sequences.SequencesKt.forEach;
 import static kotlin.sequences.SequencesKt.map;
@@ -244,7 +243,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 								.limit(4)
 								.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
 								.filter(it -> it!=null)
-								.collect(toList());
+								.toList();
 							var w = (int) size.width;
 							var h = (int) size.height;
 							var imgFin = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);

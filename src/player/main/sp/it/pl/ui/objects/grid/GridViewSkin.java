@@ -48,7 +48,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.rint;
 import static java.lang.Math.signum;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.rangeClosed;
 import static javafx.application.Platform.runLater;
@@ -308,7 +307,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			.map((Function<ObjectField<F,?>,PredicateData<? extends ObjectField<F,?>>>) PredicateData::ofField)
 			.map(f -> (PredicateData<ObjectField<F,Object>>) f)
 			.sorted(by(e -> e.name))
-			.collect(toList());
+			.toList();
 	}
 
 	public void selectIfNoneOr(Runnable ifEmpty, Runnable otherwise) {
@@ -600,7 +599,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 								return c;
 							}
 						)
-					).collect(toList());
+					).toList();
 					setTo(visibleCells, visibleCellsNew);
 					failIf(visibleCells.size()!=itemCount);
 

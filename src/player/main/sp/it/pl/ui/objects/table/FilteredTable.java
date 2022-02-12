@@ -201,6 +201,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}));
 
 		onChange(getItems(), runnable(() -> resizeIndexColumn()));
+		footerPane.getStyleClass().add("table-view-footer");
 		footerVisible.set(true);
 
 		initPlaceholder();

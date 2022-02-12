@@ -3685,11 +3685,12 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-padding: 0 0 0.5em 0;
 }
 
-
-
-
-
-
+/******************************** FOOTERS ********************************/
+.list-view-footer,
+.table-view-footer,
+.grid-view-footer,
+.tree-view-footer,
+.tree-table-view-footer {}
 
 /***************************** MARKDOWN NODE *****************************
  * Font picker dialog

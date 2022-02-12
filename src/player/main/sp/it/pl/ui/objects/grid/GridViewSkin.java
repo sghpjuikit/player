@@ -146,6 +146,9 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		root = layHeaderTop(0, Pos.TOP_RIGHT, filterPane, flow.root);
 
+		// header
+		filter = new Filter(grid.getType(), grid.getItemsFiltered());
+
 		// footer
 		sync(grid.getFooterVisible(), v -> {
 			if (v && !root.getChildren().contains(footerPane))
@@ -156,9 +159,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		on(onChange(grid.getItemsShown(), runnable(() -> flow.rebuildCellsNow())), onDispose);
 		searchQueryLabel.textProperty().bind(control.getSearch().searchQuery);
 		itemsInfo.bind(grid);
-
-		// filter
-		filter = new Filter(grid.getType(), grid.getItemsFiltered());
+		footerPane.getStyleClass().add("grid-view-footer");
 
 		// search
 		onDispose.plusAssign(runnable(() -> searchQueryLabel.textProperty().unbind()));

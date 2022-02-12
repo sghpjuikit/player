@@ -5,7 +5,7 @@
  */
 
 .window,
-.window .header,
+.window > #front > #frontContent,
 .pop-window,
 .pop-window-content,
 * {

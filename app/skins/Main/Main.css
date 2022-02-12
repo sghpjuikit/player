@@ -1911,7 +1911,6 @@ Shape, Text, SpitText, TextFlow > * {
 .window:moved {}
 .window:fullscreen {}
 
-
 /* Inherits .window */
 .window-slide {}
 
@@ -1959,10 +1958,14 @@ Shape, Text, SpitText, TextFlow > * {
 .window .bgr-image {}
 
 /*
- * Window foreground.
- * Empty layer right above all window content.
+ * Contains #headerContainer and #content.
+ * Clips the content to its view. So this is the place to set such thing background and background-radius.
  */
-.window .fgr-image {}
+.window > #front > #frontContent {}
+
+.window > #front > #frontContent > #headerContainer {}
+
+.window > #front > #frontContent > #content {}
 
 /*
  * Window header
@@ -1974,6 +1977,13 @@ Shape, Text, SpitText, TextFlow > * {
 .window:transparent .header {
     -fx-background-color: transparent;
 }
+
+/*
+ * Window foreground.
+ * Empty layer right above all window content.
+ */
+.window .fgr-image {}
+
 /*
  * Window header icon for always on top
  * Inherits: .icon

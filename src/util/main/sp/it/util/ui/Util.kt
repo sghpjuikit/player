@@ -472,6 +472,12 @@ fun Node.setScaleXYByTo(percent: Double, pxFrom: Double, pxTo: Double) {
 fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
    val clip = Rectangle()
 
+   asIf<Pane>()?.backgroundProperty()?.sync { b ->
+      val radii = b?.fills?.firstOrNull()?.radii ?: CornerRadii.EMPTY
+      clip.arcHeight = radii.topLeftHorizontalRadius*2
+      clip.arcWidth = radii.topLeftHorizontalRadius*2
+   }
+
    layoutBoundsProperty() sync {
       clip.x = padding.left
       clip.y = padding.top
@@ -486,6 +492,12 @@ fun Node.initClip(padding: Insets = Insets.EMPTY): Rectangle {
 /** Installs clip mask to prevent displaying content outside this node. Mask area is padded with pane's padding. */
 fun Pane.initClipToPadding() {
    val clip = Rectangle()
+
+   asIf<Pane>()?.backgroundProperty()?.sync { b ->
+      val radii = b?.fills?.firstOrNull()?.radii ?: CornerRadii.EMPTY
+      clip.arcHeight = radii.topLeftHorizontalRadius*2
+      clip.arcWidth = radii.topLeftHorizontalRadius*2
+   }
 
    fun update() {
       clip.x = padding.left

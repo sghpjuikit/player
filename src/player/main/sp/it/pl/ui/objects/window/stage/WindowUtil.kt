@@ -349,7 +349,7 @@ fun buildWindowLayout(onDragStart: (MouseEvent) -> Unit, onDragged: (MouseEvent)
 
       lay += stackPane {
          id = "backImage"
-            styleClass += "bgr-image"
+         styleClass += "bgr-image"
       }
    }
 

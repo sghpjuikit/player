@@ -73,6 +73,13 @@ public interface Util {
 		for (int x = 0; x<n; x++) action.accept(x);
 	}
 
+/* ---------- SCOPING ----------------------------------------------------------------------------------------------- */
+
+	static <T> T with(T t, Consumer<? super T> block) {
+		block.accept(t);
+		return t;
+	}
+
 /* ---------- COLLECTORS -------------------------------------------------------------------------------------------- */
 
 	/** Collector returning the minimum element. */

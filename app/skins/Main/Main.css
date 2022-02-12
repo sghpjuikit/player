@@ -3197,12 +3197,12 @@ Shape, Text, SpitText, TextFlow > * {
 }
 .slider-circular .slider-circular-frg {
     -fx-fill: transparent;
-    -fx-stroke: linear-gradient(from 100% 0% to 0% 0%, rgba(222, 22, 99, 0.5), rgba(222, 0.2, 99, 1)) red red red;
+    -fx-stroke: -fx-focus-color;
     -fx-stroke-type: outside;
     -fx-stroke-width: 11;
     -fx-stroke-line-cap: butt;
     -fx-stroke-line-join: miter;
-    //-fx-effect: dropshadow(gaussian, -fx-focus-color, 10, 0.2 , 0,0);
+    -fx-effect: dropshadow(gaussian, -fx-focus-color, 10, 0.2 , 0,0);
 }
 .slider-circular:focused .slider-circular-bgr {
     -fx-stroke-dash-array: 5 4;

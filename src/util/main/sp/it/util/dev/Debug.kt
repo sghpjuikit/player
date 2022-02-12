@@ -1,11 +1,11 @@
 package sp.it.util.dev
 
-import javafx.beans.value.ObservableValue
-import mu.KotlinLogging
-import sp.it.util.reactive.attach
 import java.io.PrintWriter
 import java.io.StringWriter
+import javafx.beans.value.ObservableValue
 import kotlin.reflect.KClass
+import mu.KotlinLogging
+import sp.it.util.reactive.attach
 
 /** @return [org.slf4j.Logger] for the class. */
 fun KClass<*>.logger() = java.logger()

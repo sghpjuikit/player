@@ -1,5 +1,8 @@
 package sp.it.util.conf
 
+import java.io.File
+import java.lang.invoke.MethodHandles
+import java.util.concurrent.ConcurrentHashMap
 import sp.it.util.access.toggle
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
@@ -12,9 +15,6 @@ import sp.it.util.functional.compose
 import sp.it.util.functional.orNull
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
-import java.io.File
-import java.lang.invoke.MethodHandles
-import java.util.concurrent.ConcurrentHashMap
 
 /** Persistable [Configurable]. */
 open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" }): Configurable<Any?> {

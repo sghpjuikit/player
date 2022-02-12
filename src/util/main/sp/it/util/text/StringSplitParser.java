@@ -146,17 +146,8 @@ public class StringSplitParser implements Function<String,List<String>> {
 		return ok(ssp);
 	}
 
-	public static class Split {
-		public final String parse_key;
-		public final String split;
-
-		public Split(String parse_key, String split) {
-			this.parse_key = parse_key;
-			this.split = split;
-		}
-
-		@Override
-		public String toString() {
+	public record Split(String parse_key, String split) {
+		@Override public String toString() {
 			return parse_key + ":" + split;
 		}
 	}

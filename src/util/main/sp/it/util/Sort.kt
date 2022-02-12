@@ -2,7 +2,6 @@ package sp.it.util
 
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TreeTableColumn
-import java.util.Comparator
 
 /** Sort type. */
 enum class Sort {

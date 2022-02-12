@@ -2,6 +2,10 @@
 
 package sp.it.util.animation
 
+import kotlin.jvm.JvmOverloads as O
+import kotlin.jvm.JvmStatic as S
+import java.util.function.DoubleConsumer
+import java.util.stream.Stream
 import javafx.animation.Interpolator
 import javafx.animation.ParallelTransition
 import javafx.animation.SequentialTransition
@@ -11,18 +15,14 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.util.Duration
+import kotlin.math.abs
+import kotlin.math.sqrt
 import sp.it.util.dev.Experimental
 import sp.it.util.functional.asArray
 import sp.it.util.functional.invoke
 import sp.it.util.units.divMillis
 import sp.it.util.units.minus
 import sp.it.util.units.times
-import java.util.function.DoubleConsumer
-import java.util.stream.Stream
-import kotlin.math.abs
-import kotlin.math.sqrt
-import kotlin.jvm.JvmOverloads as O
-import kotlin.jvm.JvmStatic as S
 
 private typealias IF = (Double) -> Double
 private typealias Block = () -> Unit

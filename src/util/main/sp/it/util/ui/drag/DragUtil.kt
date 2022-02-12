@@ -1,11 +1,11 @@
 package sp.it.util.ui.drag
 
+import javafx.scene.input.DataFormat as DataFormatFX
 import javafx.event.EventHandler
 import javafx.scene.input.Clipboard
 import javafx.scene.input.DragEvent
 import javafx.scene.input.TransferMode.ANY
 import sp.it.util.dev.failIf
-import javafx.scene.input.DataFormat as DataFormatFX
 import sp.it.util.functional.ifNotNull
 
 /** Equivalent to [Clipboard.hasContent]. */

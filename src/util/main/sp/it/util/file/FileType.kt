@@ -1,7 +1,7 @@
 package sp.it.util.file
 
-import sp.it.util.dev.Blocks
 import java.io.File
+import sp.it.util.dev.Blocks
 
 /** Denotes type of [java.io.File]: directory or file. */
 enum class FileType {

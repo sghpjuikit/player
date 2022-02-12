@@ -2,9 +2,9 @@
 
 package sp.it.util.functional
 
-import sp.it.util.dev.fail
-import java.util.function.Consumer
 import kotlin.UnsafeVariance as UV
+import java.util.function.Consumer
+import sp.it.util.dev.fail
 
 /**
  * Try monad for functional error handling.

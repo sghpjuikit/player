@@ -25,7 +25,7 @@ import sp.it.util.type.raw
  */
 abstract class StyleableCompanion {
 
-   /** @return all [CssMetaData], including those of the superclass. JavaFX's convention. */
+   /** @return all [CssMetaData], including those of the superclass. JavaFX' convention. */
    val classCssMetaData: List<CssMetaData<out Styleable, *>> by lazy {
       failIfNot(this::class.isCompanion) { "${StyleableCompanion::class} must be companion object of ${Styleable::class}" }
 

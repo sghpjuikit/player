@@ -1,5 +1,7 @@
 package sp.it.util.collections
 
+import java.util.Optional
+import java.util.Stack
 import javafx.beans.InvalidationListener
 import javafx.beans.Observable
 import javafx.collections.FXCollections
@@ -11,25 +13,23 @@ import javafx.collections.ObservableList
 import javafx.collections.ObservableMap
 import javafx.collections.ObservableSet
 import javafx.collections.SetChangeListener
-import sp.it.util.functional.Try
-import sp.it.util.functional.getOr
-import sp.it.util.functional.orNull
-import sp.it.util.functional.runTry
-import sp.it.util.reactive.onChange
-import sp.it.util.type.raw
-import sp.it.util.type.union
-import java.util.Optional
-import java.util.Stack
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.withNullability
 import sp.it.util.functional.Option
+import sp.it.util.functional.Try
+import sp.it.util.functional.getOr
 import sp.it.util.functional.map
+import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
+import sp.it.util.reactive.onChange
 import sp.it.util.text.ifNotEmpty
 import sp.it.util.type.kTypeNothingNonNull
 import sp.it.util.type.kTypeNothingNullable
+import sp.it.util.type.raw
+import sp.it.util.type.union
 
 /** @return new list containing elements of this sequence, e.g. for safe iteration */
 fun <T> Sequence<T>.materialize() = toList()

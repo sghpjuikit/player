@@ -1,7 +1,20 @@
 package sp.it.util.conf
 
+import java.lang.reflect.Modifier
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
+import kotlin.reflect.KType
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.withNullability
+import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.jvm.javaField
+import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.jvmName
+import kotlin.reflect.jvm.kotlinFunction
 import mu.KotlinLogging
 import sp.it.util.access.OrV
 import sp.it.util.action.IsAction
@@ -18,19 +31,6 @@ import sp.it.util.type.isPlatformType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.typeOrNothing
-import java.lang.reflect.Modifier
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KProperty
-import kotlin.reflect.KType
-import kotlin.reflect.full.companionObject
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.withNullability
-import kotlin.reflect.jvm.isAccessible
-import kotlin.reflect.jvm.javaField
-import kotlin.reflect.jvm.javaGetter
-import kotlin.reflect.jvm.jvmName
-import kotlin.reflect.jvm.kotlinFunction
 
 private val logger = KotlinLogging.logger { }
 

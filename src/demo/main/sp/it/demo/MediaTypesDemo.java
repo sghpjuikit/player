@@ -32,7 +32,7 @@ import javax.swing.tree.TreeSelectionModel;
 /**
  * @see <a href=https://stackoverflow.com/questions/7585699/list-of-useful-environment-settings-in-java/7616206#7616206>https://stackoverflow.com/questions/7585699/list-of-useful-environment-settings-in-java/7616206#7616206</a>
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings("removal")
 class MediaTypesDemo {
 
 	public static void main(String[] args) {
@@ -256,18 +256,12 @@ class MediaTypesDemo {
 			data = new Object[midiTypes.length][2];
 			for (int ii=0; ii<midiTypes.length; ii++) {
 				data[ii][0] = midiTypes[ii];
-				String description = "Unknown";
-				switch (midiTypes[ii]) {
-					case 0:
-						description = "Single Track";
-						break;
-					case 1:
-						description = "Multi Track";
-						break;
-					case 2:
-						description = "Multi Song";
-				}
-				data[ii][1] = description;
+				data[ii][1] = switch (midiTypes[ii]) {
+					case 0 -> "Single Track";
+					case 1 -> "Multi Track";
+					case 2 -> "Multi Song";
+					default -> "Unknown";
+				};
 			}
 			columnNames = new String[]{"Type", "Description"};
 			md = new MediaData("MIDI", columnNames, data);

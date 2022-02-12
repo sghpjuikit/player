@@ -1,5 +1,9 @@
 package sp.it.util.async.future
 
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
+import java.util.function.Consumer
 import javafx.util.Duration
 import mu.KLogging
 import sp.it.util.async.FX
@@ -10,14 +14,10 @@ import sp.it.util.async.future.Fut.Result.ResultOk
 import sp.it.util.async.sleep
 import sp.it.util.dev.Blocks
 import sp.it.util.functional.Try
+import sp.it.util.functional.getAny
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executor
-import java.util.function.Consumer
-import sp.it.util.functional.getAny
 import sp.it.util.functional.runTry
 
 /**

@@ -1,6 +1,7 @@
 package sp.it.util.ui
 
 import javafx.scene.control.MenuItem
+import kotlin.reflect.KClass
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
@@ -10,7 +11,6 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.net
 import sp.it.util.reactive.Subscription
 import sp.it.util.type.superKClassesInc
-import kotlin.reflect.KClass
 
 private typealias MenuOwner = Any
 private typealias ListMenuOwner<T> = MenuBuilder<List<MenuItem>, T>

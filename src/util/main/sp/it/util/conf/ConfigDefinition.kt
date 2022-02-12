@@ -1,7 +1,6 @@
 package sp.it.util.conf
 
 
-import sp.it.util.functional.toUnit
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.FIELD
 import kotlin.annotation.AnnotationTarget.LOCAL_VARIABLE
@@ -9,6 +8,7 @@ import kotlin.annotation.AnnotationTarget.PROPERTY
 import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 import kotlin.reflect.KProperty0
+import sp.it.util.functional.toUnit
 
 /**
  * [Config] metadata defining basic attributes.

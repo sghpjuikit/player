@@ -1,8 +1,8 @@
 package sp.it.util.dev
 
-import javafx.application.Platform
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import javafx.application.Platform
 
 /** Throw runtime exception with the specified message. */
 inline fun fail(message: () -> String = { "" }): Nothing = throw AssertionError(message())

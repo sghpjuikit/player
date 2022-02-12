@@ -1,17 +1,17 @@
 package sp.it.util.file.properties
 
-import mu.KotlinLogging
-import sp.it.util.dev.Blocks
-import sp.it.util.file.properties.PropVal.PropVal1
-import sp.it.util.file.properties.PropVal.PropValN
-import sp.it.util.functional.Try
-import sp.it.util.functional.runTry
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.time.LocalDateTime
 import kotlin.text.Charsets.UTF_8
+import mu.KotlinLogging
+import sp.it.util.dev.Blocks
+import sp.it.util.file.properties.PropVal.PropVal1
+import sp.it.util.file.properties.PropVal.PropValN
+import sp.it.util.functional.Try
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.runTry
 
 private val logger = KotlinLogging.logger { }
 

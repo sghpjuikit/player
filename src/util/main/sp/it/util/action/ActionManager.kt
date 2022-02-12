@@ -1,5 +1,6 @@
 package sp.it.util.action
 
+import java.util.concurrent.ConcurrentHashMap
 import javafx.application.Platform
 import javafx.scene.input.KeyCode.ALT_GRAPH
 import javafx.scene.input.KeyCode.COMMA
@@ -22,7 +23,6 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullWhile
-import java.util.concurrent.ConcurrentHashMap
 
 object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
 

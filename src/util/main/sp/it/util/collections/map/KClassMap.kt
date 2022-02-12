@@ -1,6 +1,5 @@
 package sp.it.util.collections.map
 
-import java.util.HashMap
 import kotlin.reflect.KClass
 
 /** Mutable [KClassMap]. */

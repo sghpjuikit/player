@@ -1,5 +1,6 @@
 package sp.it.util.async.future
 
+import java.util.concurrent.ExecutionException
 import javafx.concurrent.Task
 import mu.KotlinLogging
 import sp.it.util.async.future.Fut.Result
@@ -9,7 +10,6 @@ import sp.it.util.async.future.Fut.Result.ResultOk
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfFxThread
-import java.util.concurrent.ExecutionException
 
 private val logger = KotlinLogging.logger {}
 

@@ -1,9 +1,9 @@
 package sp.it.util.type
 
-import sp.it.util.collections.map.KClassMap
-import sp.it.util.functional.asIs
 import java.util.Objects
 import kotlin.reflect.KClass
+import sp.it.util.collections.map.KClassMap
+import sp.it.util.functional.asIs
 
 class InstanceName {
    private val names = KClassMap<(Any?) -> String>()

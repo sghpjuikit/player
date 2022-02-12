@@ -1,7 +1,7 @@
 package sp.it.util.type
 
-import sp.it.util.dev.failIf
 import kotlin.reflect.KClass
+import sp.it.util.dev.failIf
 
 class SealedEnum<T: Any>(type: KClass<T>) {
 

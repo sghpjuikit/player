@@ -1,7 +1,14 @@
 package sp.it.util.ui
 
+import java.awt.image.BufferedImage as ImageBf
+import javafx.scene.image.Image as ImageFx
+import javax.swing.Icon as ImageSw
 import com.sun.jna.platform.win32.Shell32
 import com.sun.jna.platform.win32.WinDef
+import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import javax.swing.filechooser.FileSystemView
 import sp.it.util.file.WindowsShortcut
 import sp.it.util.file.div
 import sp.it.util.file.type.MimeExt.Companion.exe
@@ -11,13 +18,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runIf
 import sp.it.util.system.Os
 import sp.it.util.ui.image.toFX
-import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import javax.swing.filechooser.FileSystemView
-import javafx.scene.image.Image as ImageFx
-import java.awt.image.BufferedImage as ImageBf
-import javax.swing.Icon as ImageSw
 
 /**
  * Extracts an icon for a file type of specific file.

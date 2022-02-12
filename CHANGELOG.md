@@ -48,7 +48,9 @@ In the future, there may be widget metadata support for these widgets, such as i
 
 Another new feature is a graphical playlist table column for a pause/resume icon.
 The icon allows controlling the playback from the **Playlist** widget - definitely useful.
-In the future, there will probably be more such columns and with automatic width resizing and styling support. 
+In the future, there will probably be more such columns and with automatic width resizing and styling support.
+
+Application's tables and other table-like components have also become more usable and elegant.
 
 ## [3.1.0] 2022 02 07
 

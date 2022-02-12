@@ -1,13 +1,13 @@
 package sp.it.util.access
 
+import java.util.function.BiConsumer
+import java.util.function.Consumer
+import java.util.function.UnaryOperator
 import javafx.beans.property.SimpleObjectProperty
 import sp.it.util.functional.invoke
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.sync
-import java.util.function.BiConsumer
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
 
 /** Var/variable. An object wrapper based on [javafx.beans.property.SimpleObjectProperty]. */
 open class V<T>(value: T): SimpleObjectProperty<T>(value) {

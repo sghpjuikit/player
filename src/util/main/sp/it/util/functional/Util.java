@@ -39,7 +39,6 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
 
@@ -478,15 +477,7 @@ public interface Util {
 		return b.build();
 	}
 
-	class Indexed<T> {
-		public final int i;
-		public final T value;
-
-		public Indexed(int i, T value) {
-			this.i = i;
-			this.value = value;
-		}
-	}
+	record Indexed<T>(int i, T value) {}
 
 	/** Creates an array filled with provided elements. The array's length will equal element count. */
 	@SafeVarargs
@@ -633,8 +624,8 @@ public interface Util {
 	}
 
 	/** Maps collection. Returns list. Source remains unchanged. */
-	static <T, R> List<R> map(Collection<? extends T> c, Function<? super T,? extends R> m) {
-		return c.stream().map(m).collect(toList());
+	static <T, R> List<R> map(Collection<T> c, Function<? super T, R> m) {
+		return c.stream().map(m).toList();
 	}
 
 	@SuppressWarnings("unchecked")

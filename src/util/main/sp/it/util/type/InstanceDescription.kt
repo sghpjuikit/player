@@ -1,11 +1,11 @@
 package sp.it.util.type
 
+import java.util.Objects
+import kotlin.reflect.KClass
 import sp.it.util.Named
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.dev.fail
 import sp.it.util.named
-import java.util.Objects
-import kotlin.reflect.KClass
 
 private typealias Description = Named
 private typealias Descriptions = ArrayList<Description>

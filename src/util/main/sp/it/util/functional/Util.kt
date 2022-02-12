@@ -1,9 +1,5 @@
 package sp.it.util.functional
 
-import javafx.util.Callback
-import sp.it.util.async.executor.EventReducer
-import sp.it.util.dev.Experimental
-import java.util.Comparator
 import java.util.LinkedList
 import java.util.Optional
 import java.util.concurrent.Executor
@@ -15,7 +11,9 @@ import java.util.function.LongConsumer
 import java.util.function.Predicate
 import java.util.function.Supplier
 import java.util.stream.Stream
-import kotlin.streams.toList
+import javafx.util.Callback
+import sp.it.util.async.executor.EventReducer
+import sp.it.util.dev.Experimental
 
 val Executor.kt: (Runnable) -> Unit get() = this::execute
 

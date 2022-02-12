@@ -3,18 +3,19 @@
 package sp.it.util.conf
 
 import de.jensd.fx.glyphs.GlyphIcons
+import java.io.File
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.singletonObservableList
 import javafx.util.Duration
 import sp.it.util.access.vAlways
+import sp.it.util.conf.ConfigurationContext.toUiConverter
+import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNot
 import sp.it.util.file.FileType
 import sp.it.util.functional.Try
-import java.io.File
-import sp.it.util.conf.ConfigurationContext.toUiConverter
 
 interface Constraint<in T> {
 

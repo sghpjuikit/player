@@ -1,15 +1,15 @@
 package sp.it.util.access.fieldvalue
 
+import kotlin.reflect.KClass
+import kotlin.reflect.full.createType
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Functors
-import sp.it.util.type.ObjectFieldMap
-import sp.it.util.type.VType
-import kotlin.reflect.KClass
-import kotlin.reflect.full.createType
 import sp.it.util.functional.Try
 import sp.it.util.functional.net
 import sp.it.util.parsing.ConverterString
+import sp.it.util.type.ObjectFieldMap
+import sp.it.util.type.VType
 
 /**
  * [ObjectField] per type manager.
@@ -18,7 +18,7 @@ import sp.it.util.parsing.ConverterString
  * enum-like (i.e., add management like values(), valueOf(text), etc.). A companion is a good target for this.
  *
  * So the structure ends up like this:
- *
+ *```
  *     MyType {
  *        MyTypeField: ObjectField<MyType, T> {
  *           companion object {
@@ -30,14 +30,14 @@ import sp.it.util.parsing.ConverterString
  *           }
  *        }
  *     }
- *
+ *```
  * Making the field companion inherit from this type will
  * * provide all management for free
  * * registers fields instances to [ObjectFieldMap.DEFAULT] using [ObjectFieldMap.add]
  * * registers fields instances to [Functors.pool] using [sp.it.util.functional.FunctorPool.add]
  *
  * Usage:
- *
+ *```
  *     MyType {
  *        MyTypeField: ObjectField<MyType, T> {
  *           companion object: ObjectFieldRegistry<MyType, MyTypeField>(MyType::class) {
@@ -47,6 +47,7 @@ import sp.it.util.parsing.ConverterString
  *           }
  *        }
  *     }
+ *```
  */
 abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val type: KClass<V>): ConverterString<F> {
 

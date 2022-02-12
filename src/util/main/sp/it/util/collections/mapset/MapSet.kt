@@ -1,6 +1,5 @@
 package sp.it.util.collections.mapset
 
-import java.util.HashMap
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.collections.MutableMap.MutableEntry

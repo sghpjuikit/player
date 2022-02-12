@@ -1,5 +1,6 @@
 package sp.it.util.functional
 
+import java.util.Comparator.nullsFirst
 import sp.it.util.collections.list.PrefList
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Functors.F1
@@ -8,6 +9,8 @@ import sp.it.util.functional.Functors.F3
 import sp.it.util.functional.Functors.F4
 import sp.it.util.functional.Util.IDENTITY
 import sp.it.util.type.VType
+import sp.it.util.type.enumValues
+import sp.it.util.type.isEnumClass
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.isSupertypeOf
 import sp.it.util.type.jvmErasure
@@ -16,9 +19,6 @@ import sp.it.util.type.raw
 import sp.it.util.type.rawJ
 import sp.it.util.type.traverseToSuper
 import sp.it.util.type.type
-import java.util.Comparator.nullsFirst
-import sp.it.util.type.enumValues
-import sp.it.util.type.isEnumClass
 
 @Suppress("RemoveExplicitTypeArguments")
 class FunctorPool {

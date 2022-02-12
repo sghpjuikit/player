@@ -1,8 +1,8 @@
 package sp.it.util.animation
 
+import java.util.function.LongConsumer
 import javafx.animation.AnimationTimer
 import sp.it.util.functional.invoke
-import java.util.function.LongConsumer
 
 /** Timer, that executes behavior in each frame while it is running. */
 open class Loop {

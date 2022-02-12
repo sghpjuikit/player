@@ -2,26 +2,13 @@
 
 package sp.it.util.conf
 
+import kotlin.properties.ReadOnlyProperty as RoProperty
+import kotlin.properties.ReadWriteProperty as RwProperty
+import javafx.beans.property.Property
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
-import sp.it.util.access.V
-import sp.it.util.access.v
-import sp.it.util.access.vn
-import sp.it.util.access.vx
-import sp.it.util.action.Action
-import sp.it.util.action.IsAction
-import sp.it.util.dev.failIf
-import sp.it.util.functional.asIf
-import sp.it.util.functional.asIs
-import sp.it.util.functional.toUnit
-import sp.it.util.reactive.attach
-import sp.it.util.reactive.sync
-import sp.it.util.type.VType
-import sp.it.util.type.argOf
-import sp.it.util.type.type
-import sp.it.util.type.typeOrNothing
 import kotlin.reflect.KCallable
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
@@ -31,16 +18,29 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaMethod
-import kotlin.properties.ReadOnlyProperty as RoProperty
-import kotlin.properties.ReadWriteProperty as RwProperty
-import javafx.beans.property.Property
 import sp.it.util.access.OrV
 import sp.it.util.access.OrV.OrValue
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
+import sp.it.util.access.V
+import sp.it.util.access.v
+import sp.it.util.access.vn
+import sp.it.util.access.vx
+import sp.it.util.action.Action
+import sp.it.util.action.IsAction
+import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Unsubscriber
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFromWithOverride
+import sp.it.util.type.VType
+import sp.it.util.type.argOf
+import sp.it.util.type.type
+import sp.it.util.type.typeOrNothing
 
 /** Non-observable non-null configurable value. Backed by [PropertyConfig]. */
 fun <T: Any> c(initialValue: T): ConfS<T> = ConfS(initialValue).nonNull()

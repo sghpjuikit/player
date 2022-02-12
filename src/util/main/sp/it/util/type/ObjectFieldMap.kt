@@ -1,10 +1,10 @@
 package sp.it.util.type
 
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSuperclassOf
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.collections.map.KClassMap
 import sp.it.util.functional.asIs
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSuperclassOf
 
 private typealias Field<T> = ObjectField<T, *>
 

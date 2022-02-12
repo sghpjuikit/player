@@ -1,10 +1,10 @@
 package sp.it.util.conf
 
+import kotlin.reflect.full.memberProperties
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
-import kotlin.reflect.full.memberProperties
 
 /**
  * Defines object that can be configured.

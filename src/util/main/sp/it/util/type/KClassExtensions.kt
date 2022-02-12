@@ -15,7 +15,7 @@ val KClass<*>.isEnum: Boolean
    get() = java.isEnumClass
 
 /**
- * Enum constants in declared order. [Class.enumConstants] does not work for enums with class method bodies. See [Class.isEnumClass].
+ * Enum constants in declared order. [Class.getEnumConstants] does not work for enums with class method bodies. See [Class.isEnumClass].
  * @throws java.lang.AssertionError if class not an enum
  */
 val <T> Class<T>.enumValues: Array<T>
@@ -27,7 +27,7 @@ val <T> Class<T>.enumValues: Array<T>
    }
 
 /**
- * Enum constants in declared order. [Class.enumConstants] does not work for enums with class method bodies. See [KClass.isEnum].
+ * Enum constants in declared order. [Class.getEnumConstants] does not work for enums with class method bodies. See [KClass.isEnum].
  * @throws java.lang.AssertionError if class not an enum
  */
 val <T: Any> KClass<T>.enumValues: Array<T>

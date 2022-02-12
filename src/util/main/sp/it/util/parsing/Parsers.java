@@ -25,7 +25,6 @@ public interface Parsers {
 
     ConverterDefault DEFAULT = new ConverterDefault();
 
-    @SuppressWarnings("deprecation")
     static Method getValueOfStatic(Class<?> type) {
         if (type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
             type = type.getEnclosingClass();

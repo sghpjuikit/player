@@ -1,7 +1,7 @@
 package sp.it.util
 
-import sp.it.util.file.div
 import java.io.File
+import sp.it.util.file.div
 
 interface Locatable {
 

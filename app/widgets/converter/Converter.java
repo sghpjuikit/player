@@ -200,10 +200,10 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             List<EditArea> custom_tas = filter(tas,ta -> ta.name.get().contains("Custom"));
             if (!ta_in.output.isEmpty() && ta_in.output.get(0) instanceof SplitData) {
                 List<SplitData> s = ta_in.output.stream().filter(SplitData.class::isInstance).map(SplitData.class::cast).toList();
-                List<String> names = s.get(0).stream().map(split -> split.parse_key).toList();
+                List<String> names = s.get(0).stream().map(split -> split.parse_key()).toList();
 
                 List<List<String>> outs = list(names.size(), ArrayList::new);
-                s.forEach(splits -> forEachWithI(map(splits,split -> split.split), (i,line) -> outs.get(i).add(line)));
+                s.forEach(splits -> forEachWithI(map(splits,split -> split.split()), (i,line) -> outs.get(i).add(line)));
 
                 List<EditArea> li = list(outs.size(), () -> new EditArea(""));
                 forEachWithI(outs, (i, ls) -> li.get(i).setData(names.get(i),  ls));

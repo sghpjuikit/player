@@ -1,7 +1,7 @@
 package sp.it.util.collections.map
 
-import sp.it.util.type.superKClassesInc
 import kotlin.reflect.KClass
+import sp.it.util.type.superKClassesInc
 
 interface MapByKClass<E> {
 

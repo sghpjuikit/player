@@ -1,5 +1,8 @@
 package sp.it.util.action
 
+import java.util.concurrent.AbstractExecutorService
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT
 import javafx.scene.input.KeyCode.ALT_GRAPH
@@ -25,9 +28,6 @@ import sp.it.util.dev.fail
 import sp.it.util.functional.Util.list
 import sp.it.util.functional.runTry
 import sp.it.util.type.atomic
-import java.util.concurrent.AbstractExecutorService
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 
 /** Global hotkey manager, implemented on top of JNativeHook library. */
 class Hotkeys(private val executor: (Runnable) -> Unit) {

@@ -1,14 +1,14 @@
 package sp.it.util.parsing
 
+import java.util.Base64
+import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
+import kotlin.text.Charsets.UTF_8
 import mu.KLogging
 import sp.it.util.conf.toConfigurableFx
 import sp.it.util.file.properties.PropVal.PropValN
 import sp.it.util.functional.Try
 import sp.it.util.type.isSuperclassOf
-import java.util.Base64
-import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
-import kotlin.text.Charsets.UTF_8
 
 /** Converter for javaFX bean convention.  */
 class ConverterFX: Converter() {

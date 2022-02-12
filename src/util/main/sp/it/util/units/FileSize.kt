@@ -1,10 +1,11 @@
 package sp.it.util.units
 
-import sp.it.util.functional.Try
 import java.io.File
 import java.util.Locale
+import sp.it.util.functional.Try
 import sp.it.util.parsing.ConverterString
 import sp.it.util.parsing.ConverterToUiString
+import sp.it.util.units.FileSize.Companion.UNKNOWN
 
 /** File size. Supports up to `2^63-1` bytes and unknown value [UNKNOWN]. */
 @Suppress("unused")

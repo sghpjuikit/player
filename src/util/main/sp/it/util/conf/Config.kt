@@ -13,7 +13,9 @@ import sp.it.util.conf.Constraint.NoPersist
 import sp.it.util.conf.Constraint.ReadOnlyIf
 import sp.it.util.conf.Constraint.ValueSealedSet
 import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn
-import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy.*
+import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy.USE
+import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy.USE_AND_ADD
+import sp.it.util.conf.Constraint.ValueSealedSetIfNotIn.Strategy.USE_DEFAULT
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal

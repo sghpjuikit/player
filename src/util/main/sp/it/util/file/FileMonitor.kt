@@ -1,16 +1,6 @@
 package sp.it.util.file
 
 import com.sun.nio.file.ExtendedWatchEventModifier.FILE_TREE
-import mu.KLogging
-import sp.it.util.async.executor.EventReducer
-import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.async.runFX
-import sp.it.util.async.runIO
-import sp.it.util.collections.materialize
-import sp.it.util.reactive.Subscribed
-import sp.it.util.reactive.Subscription
-import sp.it.util.system.Os
-import sp.it.util.units.millis
 import java.io.File
 import java.io.IOException
 import java.nio.file.ClosedWatchServiceException
@@ -27,6 +17,16 @@ import java.nio.file.WatchService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
 import kotlin.concurrent.thread
+import mu.KLogging
+import sp.it.util.async.executor.EventReducer
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.async.runFX
+import sp.it.util.async.runIO
+import sp.it.util.collections.materialize
+import sp.it.util.reactive.Subscribed
+import sp.it.util.reactive.Subscription
+import sp.it.util.system.Os
+import sp.it.util.units.millis
 
 /**
  *

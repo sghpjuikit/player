@@ -41,7 +41,9 @@ import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KTypeProjection.Companion.invariant
-import kotlin.reflect.KVariance.*
+import kotlin.reflect.KVariance.IN
+import kotlin.reflect.KVariance.INVARIANT
+import kotlin.reflect.KVariance.OUT
 import kotlin.reflect.KVisibility.PUBLIC
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.createType

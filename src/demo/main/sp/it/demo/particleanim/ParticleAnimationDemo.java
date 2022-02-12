@@ -17,13 +17,13 @@ import javafx.stage.Stage;
 /**
  * Demo showcasing simple particle system.
  *
- * @author Roland09 (github)
+ * @author Roland09 (GitHub)
  * @see <a href="http://gist.github.com/Roland09">gist.github.com/Roland09</a>
  * @see <a href="http://wecode4fun.blogspot.co.at">wecode4fun.blogspot.co.at</a>
  */
 class ParticleAnimationDemo extends Application {
 
-	private static Random random = new Random();
+	private static final Random random = new Random();
 
 	Canvas canvas;
 	GraphicsContext graphicsContext;
@@ -175,7 +175,7 @@ class ParticleAnimationDemo extends Application {
 	private void addParticle() {
 
 		// random location
-		double x = Settings.SCENE_WIDTH/2 + random.nextDouble()*Settings.EMITTER_WIDTH - Settings.EMITTER_WIDTH/2;
+		double x = Settings.SCENE_WIDTH/2 + random.nextDouble()*Settings.EMITTER_WIDTH - Settings.EMITTER_WIDTH/2d;
 		double y = Settings.EMITTER_LOCATION_Y;
 
 		// dimensions

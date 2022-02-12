@@ -4,18 +4,6 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.imaging.ImageProcessingException
 import com.drew.metadata.Schema
 import com.drew.metadata.xmp.XmpDirectory
-import mu.KotlinLogging
-import sp.it.util.dev.Blocks
-import sp.it.util.file.FileType
-import sp.it.util.file.nameOrRoot
-import sp.it.util.file.type.MimeType
-import sp.it.util.file.type.mimeType
-import sp.it.util.localDateTimeFromMillis
-import sp.it.util.parsing.ConverterToString
-import sp.it.util.parsing.Parsers
-import sp.it.util.type.VType
-import sp.it.util.type.type
-import sp.it.util.units.FileSize
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -32,7 +20,19 @@ import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 import java.util.zip.ZipFile
 import kotlin.text.Charsets.UTF_8
+import mu.KotlinLogging
+import sp.it.util.dev.Blocks
+import sp.it.util.file.FileType
+import sp.it.util.file.nameOrRoot
 import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.mimeType
+import sp.it.util.localDateTimeFromMillis
+import sp.it.util.parsing.ConverterToString
+import sp.it.util.parsing.Parsers
+import sp.it.util.type.VType
+import sp.it.util.type.type
+import sp.it.util.units.FileSize
 
 private val logger = KotlinLogging.logger { }
 

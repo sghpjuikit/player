@@ -1,8 +1,5 @@
 package sp.it.util.type
 
-import sp.it.util.dev.fail
-import sp.it.util.functional.asIf
-import sp.it.util.functional.asIs
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import kotlin.reflect.KClass
@@ -16,6 +13,9 @@ import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.typeOf
+import sp.it.util.dev.fail
+import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 
 private fun nothing(): Nothing = fail { "" }
 private fun nothingNullable(): Nothing? = null

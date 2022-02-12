@@ -381,8 +381,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	public boolean equals(Object o) {
 		if (this==o) return true;
 
-		if (!(o instanceof Action)) return false;
-		Action a = (Action) o;
+		if (!(o instanceof Action a)) return false;
 		// we will compare all fields that can change (global & keys)
 		// for all the rest only one (name) is necessary because they go
 		// with each other
@@ -404,14 +403,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 		return global + "," + getKeys();
 	}
 
-	public static class Data {
-		public final boolean isGlobal;
-		public final String keys;
-
-		public Data(boolean isGlobal, String keys) {
-			this.isGlobal = isGlobal;
-			this.keys = keys;
-		}
+	public record Data(boolean isGlobal, String keys) {
 
 		public KeyCombination getKeysAsKeyCombination() {
 			return keys.isEmpty() ? NO_MATCH : (KeyCombination) getOr(runTry(runnable(() -> KeyCodeCombination.valueOf(keys))), NO_MATCH);

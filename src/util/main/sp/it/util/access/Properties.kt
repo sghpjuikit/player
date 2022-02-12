@@ -18,18 +18,18 @@ import javafx.beans.value.ObservableLongValue
 import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty0
 import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.sync
-import sp.it.util.type.volatile
-import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KProperty
-import kotlin.reflect.KProperty0
-import sp.it.util.reactive.attachTo
 import sp.it.util.type.enumValues
+import sp.it.util.type.volatile
 
 val <T> KProperty0<T>.value: T
    get() = get()

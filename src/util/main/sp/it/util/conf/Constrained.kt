@@ -4,7 +4,25 @@ package sp.it.util.conf
 
 import java.io.File
 import javafx.beans.value.ObservableValue
-import sp.it.util.conf.Constraint.*
+import sp.it.util.conf.Constraint.FileActor
+import sp.it.util.conf.Constraint.FileOut
+import sp.it.util.conf.Constraint.FileRelative
+import sp.it.util.conf.Constraint.Multiline
+import sp.it.util.conf.Constraint.NoPersist
+import sp.it.util.conf.Constraint.NoUi
+import sp.it.util.conf.Constraint.NoUiDefaultButton
+import sp.it.util.conf.Constraint.NumberMinMax
+import sp.it.util.conf.Constraint.ObjectNonNull
+import sp.it.util.conf.Constraint.PreserveOrder
+import sp.it.util.conf.Constraint.ReadOnlyIf
+import sp.it.util.conf.Constraint.StringLength
+import sp.it.util.conf.Constraint.StringNonBlank
+import sp.it.util.conf.Constraint.StringNonEmpty
+import sp.it.util.conf.Constraint.UiConverter
+import sp.it.util.conf.Constraint.UiInfoConverter
+import sp.it.util.conf.Constraint.UiSingleton
+import sp.it.util.conf.Constraint.ValueSealedSet
+import sp.it.util.conf.Constraint.ValueUnsealedSet
 import sp.it.util.file.FileType
 import sp.it.util.functional.toUnit
 import sp.it.util.type.InstanceMap

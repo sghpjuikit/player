@@ -1,19 +1,5 @@
 package sp.it.util.async
 
-import javafx.animation.Animation
-import javafx.application.Platform
-import javafx.util.Duration
-import javafx.util.Duration.ZERO
-import mu.KotlinLogging
-import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.dev.fail
-import sp.it.util.functional.invoke
-import sp.it.util.functional.kt
-import sp.it.util.math.max
-import sp.it.util.reactive.Subscription
-import sp.it.util.units.millis
-import sp.it.util.units.minutes
 import java.awt.EventQueue
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
@@ -23,16 +9,30 @@ import java.util.concurrent.ThreadFactory
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
+import javafx.animation.Animation
+import javafx.application.Platform
+import javafx.util.Duration
+import javafx.util.Duration.ZERO
 import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.javafx.JavaFx
+import mu.KotlinLogging
+import sp.it.util.async.executor.FxTimer.Companion.fxTimer
+import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.Fut.Companion.futOfBlock
 import sp.it.util.async.future.Futs
 import sp.it.util.async.future.asFutList
 import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
+import sp.it.util.dev.fail
+import sp.it.util.functional.invoke
+import sp.it.util.functional.kt
+import sp.it.util.math.max
+import sp.it.util.reactive.Subscription
+import sp.it.util.units.millis
+import sp.it.util.units.minutes
 
 private val logger = KotlinLogging.logger { }
 

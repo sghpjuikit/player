@@ -1,6 +1,5 @@
 package sp.it.util.access.fieldvalue
 
-import java.util.Comparator
 import java.util.Comparator.comparing
 import java.util.Comparator.naturalOrder
 import sp.it.util.functional.asIs

@@ -213,7 +213,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 l.addAll(custom_tas);
                 tas.setAll(l);
             } else {
-                l = custom_tas;
+                l = new ArrayList<>(custom_tas);
                 l.add(0,ta_in);
                 tas.setAll(l);
             }

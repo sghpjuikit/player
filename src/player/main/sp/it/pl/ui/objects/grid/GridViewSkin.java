@@ -34,6 +34,8 @@ import sp.it.pl.ui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.ui.nodeinfo.GridInfo;
 import sp.it.pl.ui.nodeinfo.TableInfo;
+import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
+import sp.it.pl.ui.objects.grid.GridView.CellGap;
 import sp.it.pl.ui.objects.grid.GridView.Search;
 import sp.it.pl.ui.objects.grid.GridView.SelectionOn;
 import sp.it.pl.ui.objects.icon.Icon;
@@ -57,6 +59,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
+import static sp.it.pl.main.AppExtensionsKt.toUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.grid.GridView.CELL_SIZE_UNBOUND;
 import static sp.it.util.Util.clip;
@@ -66,6 +69,7 @@ import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.Util.with;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
@@ -243,7 +247,12 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 	public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
 		menuItem("Select none", null, consumer(e -> selectNone()))
 	);
-	public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
+	private final Menu menuOrderAlign = new Menu("Align");
+	public final Menu menuOrder = with(new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded(), menuOrderAlign), m -> {
+		m.addEventHandler(Menu.ON_SHOWING, e ->
+			menuOrderAlign.getItems().setAll(SelectionMenuItem.Companion.buildSingleSelectionMenu(CellGap.Companion.getValues(), grid.getCellAlign().getValue(), it -> toUi(it), it -> grid.getCellAlign().setValue(it)))
+		);
+	});
 	/** Table menu bar in the bottom with menus. Feel free to modify. */
 	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder);
 	/**

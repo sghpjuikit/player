@@ -26,6 +26,7 @@ import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.asIs
 import sp.it.util.math.P
 import sp.it.util.reactive.onChange
+import sp.it.util.type.SealedEnum
 
 /**
  * Two-dimensional virtualized control for displaying items in a two-dimensional grid.
@@ -97,7 +98,7 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    val cellWidthActual
       get() = cellWidth.value.takeIf { it!=CELL_SIZE_UNBOUND } ?: width
 
-   /** Cell gap layout strategy. Default [JUSTIFY]. */
+   /** Cell gap layout strategy. Default [CellGap.CENTER]. */
    val cellAlign = V<CellGap>(CellGap.CENTER)
    /** Maximum number of cells in a horizontal row. Null indicates no limit. Default null. */
    val cellMaxColumns = V<Int?>(null)
@@ -154,6 +155,7 @@ class GridView<T: Any, F: Any>(type: KClass<F>, filterMapper: F1<T, F>, backingL
    sealed interface CellGap {
       fun computeGap(grid: GridView<*, *>, width: Double, columns: Int): Double
       fun computeStartX(grid: GridView<*, *>, width: Double, columns: Int): Double
+      companion object: SealedEnum<CellGap>(CellGap::class)
 
       /**
        * Will position cells at exact positions from the left. The gap will be constant, but the cells will not be

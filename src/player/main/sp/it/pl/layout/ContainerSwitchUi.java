@@ -57,6 +57,7 @@ import static sp.it.util.reactive.UtilKt.sync1IfInScene;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.initClip;
+import static sp.it.util.ui.UtilKt.pseudoclass;
 import static sp.it.util.ui.UtilKt.removeFromParent;
 
 /**
@@ -636,6 +637,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
         TabPane(int index) {
             this.index = index;
             this.getStyleClass().add("switch-pane-tab");
+            this.pseudoClassStateChanged(pseudoclass(index<0 ? "left" : index==0 ? "center" : "right"), true);
 
             getChildren().add(bgr);
             bgr.getChildren().add(new StackPane());

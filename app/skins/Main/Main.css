@@ -2173,6 +2173,10 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: -skin-pane-color;
 }
 
+/*
+ * inherits: AnchorPane
+ * pseudoclasses: left, center, right: for index < 0, 0, > 0
+*/
 .switch-pane-tab {}
 .switch-pane-tab .switch-pane-tab-bgr {}
 

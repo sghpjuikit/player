@@ -17,8 +17,14 @@
 
 // top/bottom padding makes the content pop up more
 // left/right padding is half of that because it stacks
-.switch-pane-tab {
-    -fx-padding: 0em 0.5em 0em 0.5em;
+.switch-pane-tab:left {
+    -fx-padding: 0 1em 0 0;
+}
+.switch-pane-tab:center {
+    -fx-padding: 0 0 0 0;
+}
+.switch-pane-tab:right {
+    -fx-padding: 0 0 0 1em;
 }
 
 // tab gap simulates split-pane-divider

@@ -70,7 +70,7 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
          val cellIndexV = column.tableView.items?.indexOf(it)
          val cellRow = cellIndexV?.let { i -> column.tableView.rows().find { it.index==i } }
          val cellIndexH = column.tableView.columns.indexOf(column).takeIf { it>=0 }
-         val cell = if (cellIndexH==null || cellRow==null || cellRow.childrenUnmodifiable.size<cellIndexH) null else cellRow.childrenUnmodifiable[cellIndexH]?.asIs<TableCell<Any?,Any?>>()
+         val cell = if (cellIndexH==null || cellRow==null) null else cellRow.childrenUnmodifiable.find { it.asIf<TableCell<Any?,Any?>>()?.tableColumn==column }?.asIs<TableCell<Any?,Any?>>()
          cell?.graphic = if (it==cellRow!!.item) ic else null
       } on disposer
       ic

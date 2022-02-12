@@ -82,6 +82,7 @@ import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
+import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.show
 import sp.it.util.ui.tableColumn
 import sp.it.util.units.version
@@ -134,13 +135,14 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       }
 
       // set up table columns
-      table.setColumnFactory { field ->
-         tableColumn<Metadata, Any?>(field.name()) {
-            cellFactory = when (field) {
+      table.setColumnFactory { f ->
+         tableColumn<Metadata, Any?>(f.name()) {
+            styleClass += if (f.type.isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
+            cellFactory = when (f) {
                RATING -> RatingCellFactory.asIs()
-               else -> Callback { field.buildFieldedCell() }
+               else -> Callback { f.buildFieldedCell() }
             }
-            cellValueFactory = Callback { it.value?.net { PojoV(field.getOf(it)) } }
+            cellValueFactory = Callback { it.value?.net { PojoV(f.getOf(it)) } }
          }
       }
 

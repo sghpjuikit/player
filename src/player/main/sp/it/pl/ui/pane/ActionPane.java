@@ -87,6 +87,8 @@ import static sp.it.util.functional.Util.listRO;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
+import static sp.it.util.reactive.UtilKt.sync1IfInScene;
+import static sp.it.util.type.TypesKt.getRawJ;
 import static sp.it.util.ui.Util.layHeaderTopBottom;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layScrollVTextCenter;
@@ -380,8 +382,8 @@ public class ActionPane extends OverlayPane<Object> {
 		var priority = NEVER;
 
 		var dataAsS = (String) null;
-		if (data instanceof String && ((String) data).length()>40)
-			dataAsS = (String) data;
+		if (data instanceof String dataS && dataS.length()>40)
+			dataAsS = dataS;
 		if (data instanceof JsValue || data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
 			dataAsS = APP.getConverter().ui.toS(data);
 
@@ -393,14 +395,14 @@ public class ActionPane extends OverlayPane<Object> {
 			gap = 70.0;
 			priority = SOMETIMES;
 		}
-		if (data instanceof Collection && !((Collection<?>) data).isEmpty()) {
-			Collection<?> items = (Collection<?>) data;
+		if (data instanceof Collection<?> items && !items.isEmpty()) {
 			Class<?> itemType = getElementClass(items);
 			if (!APP.getClassFields().get(getKotlinClass(itemType)).isEmpty()) {
 				var t = new FilteredTable<>((Class<Object>) itemType, null);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
 					TableColumn<?,Object> c = new TableColumn<>(f.toString());
+					c.getStyleClass().add(String.class.isAssignableFrom(getRawJ(f.getType())) ? "column-header-align-left" : "column-header-align-right");
 					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
 					c.setCellFactory(col -> (TableCell) buildFieldedCell(f));
 					c.setResizable(true);
@@ -436,7 +438,7 @@ public class ActionPane extends OverlayPane<Object> {
 	}
 
 	private void resizeContentToDefault() {
-		sp.it.util.reactive.UtilKt.sync1IfInScene(getContent(), runnable(() -> {
+		sync1IfInScene(getContent(), runnable(() -> {
 			Bounds b = getLayoutBounds();
 			getContent().setPrefSize(b.getWidth() * CONTENT_SIZE_SCALE, b.getHeight() * CONTENT_SIZE_SCALE);
 		}));

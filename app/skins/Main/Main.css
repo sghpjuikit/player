@@ -1309,9 +1309,41 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-padding: 0.115em;
     -fx-background-radius: 0.115em;
 }
+
+/* Pad column header names */
+.table-view .column-header .label,
+.tree-table-view .column-header .label {
+    -fx-padding: 0 0.5em 0 0.5em;
+}
+
+/* Align column header names to center by default */
 .table-view .column-header .label,
 .tree-table-view .column-header .label {
     -fx-alignment: center;
+}
+
+/* Align column header names if user specifies aligning styleclass */
+.table-view .column-header-align-left .label,
+.tree-table-view .column-header-align-left .label {
+    -fx-alignment: CENTER_LEFT;
+}
+.table-view .column-header-align-right .label,
+.tree-table-view .column-header-align-right .label {
+    -fx-alignment: CENTER_RIGHT;
+}
+
+/* Show column header borders on hover */
+.table-view .column-header: hover,
+.tree-table-view .column-header: hover {
+    -fx-background-color: -skin-green, -skin-white;
+    -fx-background-insets: 0, 0 2 0 2;
+}
+
+/* Make header pop out */
+.table-view .column-header,
+.tree-table-view .column-header {
+    -fx-font-weight: bold;
+    -fx-size: 2em;
 }
 
 /* Plus Symbol - like table menu button for controlling columns visibility*/
@@ -3690,7 +3722,19 @@ Shape, Text, SpitText, TextFlow > * {
 .table-view-footer,
 .grid-view-footer,
 .tree-view-footer,
-.tree-table-view-footer {}
+.tree-table-view-footer {
+    -fx-padding: 0.2em 0 0 0;
+    -fx-pref-height: 4em;
+}
+
+.list-view-footer .icon,
+.table-view-footer .icon,
+.grid-view-footer .icon,
+.tree-view-footer .icon,
+.tree-table-view-footer .icon {
+    -fx-padding: 0.416667em;  /* 5 */
+    -glyph-size: 1.166667em; /* 14 */
+}
 
 /***************************** MARKDOWN NODE *****************************
  * Font picker dialog

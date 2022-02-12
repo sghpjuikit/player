@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file. Format base
 - Improve check menu check icons [use more compact icons]
 - Implement application process name argument [makes it easier to identify Java process from process command]
 - Improve styling
+  - Table/List/Grid/Tree/TreeTable view headers are bigger, bold, align based on content, have proper padding, show borders on hover
+  - Table/List/Grid/Tree/TreeTable view footers are bigger, better vertically aligned, align based on content, have proper padding, shw borders on hover
   - Separator is more sleek and less distracting
   - Check menu check icons use more compact icons
   - Use bold font for some selections

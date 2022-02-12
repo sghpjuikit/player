@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
@@ -57,8 +56,7 @@ import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.table.PlaylistTableUtilKt.buildPlayingFieldColumn;
-import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.PlaylistTableUtilKt.buildColumn;
 import static sp.it.pl.ui.objects.table.TableUtilKt.getFontOrNull;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
@@ -95,7 +93,6 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	private double selectionLastScreenY;
 	final Disposer disposer = new Disposer();
 
-	@SuppressWarnings("unchecked")
 	public PlaylistTable(Playlist playlist) {
 		super(PlaylistSong.class, NAME.INSTANCE, playlist);
 
@@ -121,19 +118,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 		getSelectionModel().setSelectionMode(MULTIPLE);
 
 		// initialize column factories
-		setColumnFactory(f -> {
-			if (f==(Object) PLAYING.INSTANCE) return buildPlayingFieldColumn(this);
-
-			var c = new TableColumn<PlaylistSong,Object>(f.toString());
-
-			if (f==(Object) NAME.INSTANCE) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getNameP());
-			else if (f==(Object) LENGTH.INSTANCE) c.setCellValueFactory(cf -> (ObservableValue<Object>) (Object) cf.getValue().getTimeP());
-			else c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV<>(f.getOf(cf.getValue())));
-
-			c.setCellFactory(column -> buildFieldedCell(f));
-			c.setResizable(true);
-			return c;
-		});
+		setColumnFactory(f -> buildColumn(this, f));
 		setColumnState(getDefaultColumnInfo());
 
 		// initialize row factories

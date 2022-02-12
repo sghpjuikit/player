@@ -23,23 +23,23 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
+import sp.it.util.type.isSubclassOf
 import sp.it.util.type.type
 import sp.it.util.ui.tableColumn
 
 object PLAYING: ObjectFieldBase<Song, String>(type(), { "" }, "Playing", "An UI column providing pause/resume icon for playing song row", { _, _ -> "" })
 
-fun PlaylistTable.buildColumnFactory(): (ObjectField<PlaylistSong, Any?>) -> TableColumn<PlaylistSong,Any> = { f ->
-   when (f) {
-      PLAYING -> buildPlayingFieldColumn()
-      else -> tableColumn(f.toString()) {
-         isResizable = true
-         cellValueFactory = when (f) {
-            NAME -> Callback { it.value!!.nameP.asIs() }
-            LENGTH -> Callback { it.value!!.timeP.asIs() }
-            else -> Callback { if (it.value==null) null else PojoV(f.getOf(it.value)) }
-         }
-         cellFactory = Callback { f.buildFieldedCell<PlaylistSong, Any?>() }
+fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<PlaylistSong,Any> = when (f) {
+   PLAYING -> buildPlayingFieldColumn()
+   else -> tableColumn(f.name()) {
+      isResizable = true
+      styleClass += if (f.type.isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
+      cellValueFactory = when (f) {
+         NAME -> Callback { it.value!!.nameP.asIs() }
+         LENGTH -> Callback { it.value!!.timeP.asIs() }
+         else -> Callback { if (it.value==null) null else PojoV(f.getOf(it.value)) }
       }
+      cellFactory = Callback { f.buildFieldedCell<PlaylistSong, Any?>() }
    }
 }
 

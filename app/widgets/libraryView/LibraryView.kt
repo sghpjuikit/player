@@ -169,6 +169,10 @@ class LibraryView(widget: Widget): SimpleController(widget) {
          if (f is MgField<*>) {
             val mf = fieldFilter.value
             tableColumn<MetadataGroup, Any?>(f.toString(mf)) {
+               styleClass += when (f) {
+                  AVG_RATING, W_RATING -> "column-header-align-right"
+                  else -> if (f.getMFType(mf).isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
+               }
                cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
                cellFactory = when (f) {
                   AVG_RATING -> RatingCellFactory.asIs()
@@ -194,6 +198,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             }
          } else {
             tableColumn<MetadataGroup, Any?>(f.name()) {
+               styleClass += if (f.type.isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
                cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
                cellFactory = Callback { f.buildFieldedCell() }
             }

@@ -19,6 +19,7 @@ import sp.it.util.identityHashCode
 import sp.it.util.reactive.attachNonNullWhile
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
+import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
@@ -64,8 +65,8 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
          children -= coverContainer
       }
 
-      // keep updated content)
-      sceneProperty().attachNonNullWhile { APP.audio.onSongRefresh(::song, ::read) }
+      // keep updated content
+      sceneProperty().attachNonNullWhile { APP.audio.onSongRefresh(::songImpl, ::read) } on onNodeDispose
    }
 
    override fun read(songs: List<Song>) = read(songs.firstOrNull())

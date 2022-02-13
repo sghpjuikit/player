@@ -10,12 +10,15 @@ All notable changes to this project will be documented in this file. Format base
 - Improve names/icons for some widgets
 - Improve check menu check icons [use more compact icons]
 - Implement application process name argument [makes it easier to identify Java process from process command]
+- Implement **SongInfo (Small)** widget [uses `SongInfo`]
 - Improve styling
   - Table/List/Grid/Tree/TreeTable view headers are bigger, bold, align based on content, have proper padding, show borders on hover
   - Table/List/Grid/Tree/TreeTable view footers are bigger, better vertically aligned, align based on content, have proper padding, shw borders on hover
   - Separator is more sleek and less distracting
+  - **ContainerSwitch** tab gap respects tab index [the center tab always covers entire window]
   - Check menu check icons use more compact icons
   - Use bold font for some selections
+  - Window content clipping respects radius
 - Improve popup content complexity [use Layout instead of ContainerSwitch]
 - Improve **Icon browser** widget
   - Improve layout & UX
@@ -25,6 +28,7 @@ All notable changes to this project will be documented in this file. Format base
   - Implement remembering selected content
   - Implement **Mouse events** testing suite
   - Improve layout & UX
+- Improve `GridView` context menus
 
 This update brings lots of pleasant improvements.
 

@@ -331,9 +331,8 @@ open class PopWindow {
                owner.asIs<Stage>().show()
                show()
                sizeToScene()
-               focus()
                xy = shower(stage)
-               onContentShown()
+               focus()
 
                onIsShowing1st { initAutohide() } on tillHidden
             }

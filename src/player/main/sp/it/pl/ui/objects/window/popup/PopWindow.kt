@@ -348,7 +348,6 @@ open class PopWindow {
                if (animated.value) fadeIn()
                show(windowOwner ?: UNFOCUSED_OWNER)
                sizeToScene()
-               focus()
                xy = shower(this)
                onContentShown()
             }

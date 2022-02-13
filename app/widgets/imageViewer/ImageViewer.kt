@@ -13,7 +13,6 @@ import javafx.scene.input.MouseEvent.MOUSE_EXITED
 import javafx.scene.input.MouseEvent.MOUSE_MOVED
 import javafx.util.Duration.ZERO
 import sp.it.pl.audio.Song
-import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
@@ -65,7 +64,6 @@ import sp.it.util.units.year
 import java.io.File
 import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
-import kotlin.streams.toList
 import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
 import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
@@ -214,9 +212,9 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
 
       folder.value = newLocation
       if (theaterMode.value) {
-         itemPane?.setValue(Metadata.EMPTY)
+         itemPane?.song?.value = null
          val s = inputLocationOf.value
-         s?.toMetadata { itemPane?.setValue(it) }
+         s?.toMetadata { itemPane?.song?.value = it }
       }
    }
 
@@ -284,16 +282,13 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       root.pseudoClassChanged("theater", v)
       if (v && itemPane==null) {
          itemPane = SongInfo(false).apply {
-            setValue(Metadata.EMPTY)
-            onEventDown(MOUSE_CLICKED, SECONDARY) {
-               styleclassToggle("block-alternative")
-            }
+            song.value = null
+            onEventDown(MOUSE_CLICKED, SECONDARY) { styleclassToggle("block-alternative") }
          }
-         val itemPaneRoot = layAnchor(itemPane, null, 20.0, 20.0, null).apply {
+         root.lay += layAnchor(itemPane, null, 20.0, 20.0, null).apply {
             isPickOnBounds = false
          }
-         root.lay += itemPaneRoot
-         inputLocationOf.value?.toMetadata { itemPane!!.setValue(it) }
+         inputLocationOf.value?.toMetadata { itemPane?.song?.value = it }
       }
       slideshowOn.value = if (v) false else slideshowOn.value
       mainImage.isBackgroundVisible = v

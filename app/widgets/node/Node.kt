@@ -17,7 +17,6 @@ import sp.it.pl.core.CoreMenus
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.WidgetTag
-import sp.it.pl.layout.WidgetUi
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
@@ -66,7 +65,7 @@ class Node(widget: Widget): SimpleController(widget) {
 
    /** The fully qualified name of the class of the node or null if none */
    private val node by cvn<String>(null)
-      .valuesUnsealed { APP.instances.recommendedNodeClassesAsWidgets.map { it.jvmName } }
+      .valuesUnsealed { APP.instances.recommendedNodeClassesAsWidgets.map { it.type.jvmName } }
       .def(name = "Component class", info = "Fully qualified name of the kotlin.reflect.KClass of the javafx.scene.Node component. Needs public no argument constructor.")
 
    /** The node instance or null if none */
@@ -74,7 +73,12 @@ class Node(widget: Widget): SimpleController(widget) {
       node sync { c ->
          val isDifferentClass = value?.net { it::class.java.name }!=c
          if (isDifferentClass)
-            value = runTry { Class.forName(c)?.kotlin?.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node? }
+            value = runTry {
+                  val type = Class.forName(c)?.kotlin
+                  val typeBuilder = type?.let { APP.instances.recommendedNodeClassesAsWidgets.find { b -> b.type == it } }
+                  val instance = typeBuilder?.constructor?.invoke() ?: type?.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node?
+                  instance
+               }
                .ifError {
                   if (it !is ClassNotFoundException && it !is ClassNotFoundException)
                      AppEventLog.push(AppError("Failed to instantiate $c", "Reason: ${it.stacktraceAsString}"))
@@ -88,6 +92,10 @@ class Node(widget: Widget): SimpleController(widget) {
       root.stylesheets += (location/"skin.css").toURI().toASCIIString()
       root.consumeScrolling()
 
+      root.onEventDown(MOUSE_CLICKED, PRIMARY) {
+         if (nodeInstance.value==null)
+            APP.windowManager.showSettings(widget, root)
+      }
       root.onEventDown(MOUSE_CLICKED, SECONDARY) {
          if (it.isStillSincePress)
             ContextMenu().dsl {

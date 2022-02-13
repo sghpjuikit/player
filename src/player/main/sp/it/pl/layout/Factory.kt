@@ -128,8 +128,8 @@ class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
    override fun toString() = "${javaClass.simpleName} $name $launcher"
 }
 
-class NodeFactory(val node: KClass<out Node>): ComponentFactory<Component> {
-   override val name = node.simpleName ?: node.jvmName
+class NodeFactory(override val name: String, val node: KClass<out Node>): ComponentFactory<Component> {
+   constructor(node: KClass<out Node>): this(node.simpleName ?: node.jvmName, node)
 
    override suspend fun create() = APP.widgetManager.factories.getFactory("Node").orNone().create().apply { fieldsRaw["node"] = PropVal.PropVal1(node.jvmName) }
    override fun toString() = "${javaClass.simpleName} $name $node"

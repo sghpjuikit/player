@@ -129,7 +129,7 @@ allprojects {
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
          implementation("com.github.oshi", "oshi-core", "6.1.0")
-         implementation("com.vladsch.flexmark", "flexmark-all", "0.62.2")
+         implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }
 
       "Image" group {

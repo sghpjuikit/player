@@ -30,22 +30,24 @@ All notable changes to this project will be documented in this file. Format base
   - Improve layout & UX
 - Improve `GridView` context menus
 
-This update brings lots of pleasant improvements.
+This update brings lots of pleasant improvements. Particularly styling.
 
-Finally, **JDK** has been updated. It took 3 years to get over **JDK12**.
-The reason was that the way the build/deployment was set up would cause too much hassle.
-The build now uses ordinary **Java toolchain** that automatizes **JDK** setup.
-Finally, `linkJDK` Gradle task has been removed from build dependencies and requires manual run. It is more of a convenience anyway.
+First, finally, **JDK** has been updated. It took 3 years to get over **JDK12**. Time flies.
+The `linkJDK` Gradle task has been removed from build dependencies and now requires manual run. It is more of a convenience anyway.
 Now, **JDK** updates are very comfortable. By the way, the project still uses **OpenJ9**.
-
-The widgets **Icon browser**, **Git projects** and **Tester** now use much improved and unified UI for selecting content.
-Focusing, hovering, selecting from the list of content choices using both mouse and keys is supported and works very nicely.
 
 The application process command has received a no-op argument to help to distinguish the process from other Java processes.
 This would not be such an issue if the **Launch4j** was set up to wrap the .jar into .exe, but it currently does not work well for 64-bit version.
 This requires more research and testing to implement right, so for now, at least the command was enhanced.
 
-New widget names/icons make the widgets easier to find and use.
+The widgets **Icon browser**, **Git projects** and **Tester** now use much improved and unified UI for selecting content.
+Focusing, hovering, selecting from the list of content choices using both mouse and keys is supported and works very nicely.
+
+There are two new widgets: **Song Info (small)** and **Album Info (small)**.
+These display basic song and song album information. The former has been used in the past as custom graphics for **Now Playing** notification.
+This change is following the trend of many small widgets instead of few complicated ones. This gives more power to the user.
+
+New names and icons for some widgets make them easier to find and use.
 Even better, all the registered `Node` classes, viable to be used as widgets are now available as separate widgets.
 This was surprisingly trivial to implement, and it truly improves the UX.
 In the future, there may be widget metadata support for these widgets, such as icons or descriptions. There is potential for a lots of improvements here.

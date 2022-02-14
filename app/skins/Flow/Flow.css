@@ -1,4 +1,4 @@
-/* 
+/*
  * Document : Spit Player skin
  * Author : spit
  * Year: 2017
@@ -64,4 +64,45 @@
 .accordion .titled-pane:expanded > .title,
 .accordion .titled-pane:expanded:focused > .title {
     -fx-effect: dropshadow(gaussian, -fx-focus-color, 12,0 , 0,0);
+}
+
+/** Cooler scroll-bar */
+.scroll-bar > .thumb,
+.scroll-bar:horizontal > .thumb,
+.virtual-flow > .scroll-bar > .thumb,
+.virtual-flow > .scroll-bar:horizontal > .thumb,
+.text-area > .scroll-pane > .scroll-bar > .thumb,
+.text-area > .scroll-pane > .scroll-bar:horizontal > .thumb,
+.list-view > .virtual-flow > .scroll-bar > .thumb,
+.list-view > .virtual-flow > .scroll-bar:horizontal > .thumb,
+.tree-view > .virtual-flow > .scroll-bar > .thumb,
+.tree-view > .virtual-flow > .scroll-bar:horizontal > .thumb,
+.table-view > .virtual-flow > .scroll-bar > .thumb,
+.table-view > .virtual-flow > .scroll-bar:horizontal > .thumb,
+.tree-table-view > .virtual-flow > .scroll-bar > .thumb,
+.tree-table-view > .virtual-flow > .scroll-bar:horizontal > .thumb {
+    -fx-padding: 0;
+    -fx-background-color: -skin-def-font-color;
+    -fx-background-insets: 0.825em;
+    -fx-background-radius: 1em; /* 3px */
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
+}
+.scroll-bar > .thumb,
+.scroll-bar:vertical > .thumb,
+.virtual-flow > .scroll-bar > .thumb,
+.virtual-flow > .scroll-bar:vertical > .thumb,
+.text-area > .scroll-pane > .scroll-bar > .thumb,
+.text-area > .scroll-pane > .scroll-bar:vertical > .thumb,
+.list-view > .virtual-flow > .scroll-bar > .thumb,
+.list-view > .virtual-flow > .scroll-bar:vertical > .thumb,
+.tree-view > .virtual-flow > .scroll-bar > .thumb,
+.table-view > .virtual-flow > .scroll-bar > .thumb,
+.table-view > .virtual-flow > .scroll-bar:vertical > .thumb,
+.tree-table-view > .virtual-flow > .scroll-bar > .thumb,
+.tree-table-view > .virtual-flow > .scroll-bar:vertical > .thumb {
+    -fx-padding: 0;
+    -fx-background-color: -skin-def-font-color;
+    -fx-background-insets: 0.825em;
+    -fx-background-radius: 0em;
+    -fx-background-color: linear-gradient(from 100% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
 }

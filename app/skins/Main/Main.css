@@ -3706,17 +3706,26 @@ Shape, Text, SpitText, TextFlow > * {
 .h1p-bottom {
     -fx-padding: 0 0 1.5em 0;
 }
+.h1p-up {
+    -fx-padding: 1.5em 0 0 0;
+}
 .h2p {
     -fx-padding: 1.25em 0 1.25em 0;
 }
 .h2p-bottom {
     -fx-padding: 0 0 1.25em 0;
 }
+.h2p-up {
+    -fx-padding: 1.25em 0 0 0;
+}
 .h3p {
     -fx-padding: 1em 0 1em 0;
 }
 .h3p-bottom {
-    -fx-padding: 0 1em 0;
+    -fx-padding: 0 0 1em 0;
+}
+.h3p-up {
+    -fx-padding: 1em 0 0 0;
 }
 .h4p {
     -fx-padding: 0.75em 0 0.75em 0;
@@ -3724,11 +3733,17 @@ Shape, Text, SpitText, TextFlow > * {
 .h4p-bottom {
     -fx-padding: 0 0 0.75em 0;
 }
+.h4p-up {
+    -fx-padding: 0.75em 0 0 0;
+}
 .h5p {
     -fx-padding: 0.5em 0 0.5em 0;
 }
 .h5p-bottom {
     -fx-padding: 0 0 0.5em 0;
+}
+.h5p-up {
+    -fx-padding: 0.5em 0 0 0;
 }
 
 /******************************** FOOTERS ********************************/

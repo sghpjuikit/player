@@ -418,7 +418,10 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
          }
          val message = label { textProperty() syncFrom task.messageProperty() }
          val state = label { task.stateProperty() sync { text = "State: ${enumToHuman(it)}" } }
-         val progress = appProgressIndicator().apply { task.progressProperty() sync { progress = computeProgress(it) } }
+         val progress = appProgressIndicator().apply {
+            task.progressProperty() sync { progress = computeProgress(it) }
+            task.stateProperty() sync { if (it==SCHEDULED || it==READY) progress = 1.0 }
+         }
       }
 
       hBox(50, CENTER) {

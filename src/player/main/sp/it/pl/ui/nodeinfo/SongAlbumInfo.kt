@@ -4,11 +4,8 @@ import java.util.concurrent.atomic.AtomicLong
 import javafx.beans.InvalidationListener
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
-import javafx.geometry.HPos
 import javafx.geometry.Insets
-import javafx.geometry.Pos.CENTER
-import javafx.geometry.Pos.CENTER_LEFT
-import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.geometry.VPos
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
 import sp.it.pl.audio.Song
@@ -37,13 +34,14 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.times
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 
 /** Basic display for song album information. */
-class AlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
+class SongAlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
 
    private val nameL = label { styleClass += listOf("h4", "h4p-up") }
    private val artistL = label { styleClass += listOf("h4p-bottom") }
@@ -94,19 +92,19 @@ class AlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
       padding = Insets(10.0)
       lay += coverContainer
       lay += vBox {
-         alignmentProperty() syncFrom this@AlbumInfo.alignmentProperty()
+         alignmentProperty() syncFrom this@SongAlbumInfo.alignmentProperty()
          prefSize = -1 x -1
          lay += nameL
          lay += artistL
          lay += hBox {
-            alignmentProperty() syncFrom this@AlbumInfo.alignmentProperty().map { when (it.hpos!!) { HPos.LEFT -> CENTER_LEFT; HPos.CENTER -> CENTER; HPos.RIGHT -> CENTER_RIGHT } }
+            alignmentProperty() syncFrom this@SongAlbumInfo.alignmentProperty().map { it.hpos * VPos.CENTER }
             lay += Icon(IconFA.CALENDAR).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += yearL
             lay += Icon(IconFA.CLOCK_ALT).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += lengthL
          }
          lay += hBox {
-            alignmentProperty() syncFrom this@AlbumInfo.alignmentProperty().map { when (it.hpos!!) { HPos.LEFT -> CENTER_LEFT; HPos.CENTER -> CENTER; HPos.RIGHT -> CENTER_RIGHT } }
+            alignmentProperty() syncFrom this@SongAlbumInfo.alignmentProperty().map { it.hpos * VPos.CENTER }
             lay += Icon(IconFA.MUSIC).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += tracksL
             lay += Icon(IconMA.ALBUM).apply { isMouseTransparent = true; isFocusTraversable = false }

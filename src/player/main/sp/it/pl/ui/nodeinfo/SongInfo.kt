@@ -4,11 +4,9 @@ import java.util.concurrent.atomic.AtomicLong
 import javafx.beans.InvalidationListener
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
-import javafx.geometry.HPos
 import javafx.geometry.Insets
-import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
-import javafx.geometry.Pos.CENTER_RIGHT
+import javafx.geometry.VPos
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
 import sp.it.pl.audio.Song
@@ -37,6 +35,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.times
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 
@@ -93,7 +92,7 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
             titleL,
             artistL,
             hBox {
-               alignmentProperty() syncFrom this@SongInfo.alignmentProperty().map { when (it.hpos!!) { HPos.LEFT -> CENTER_LEFT; HPos.CENTER -> CENTER; HPos.RIGHT -> CENTER_RIGHT } }
+               alignmentProperty() syncFrom this@SongInfo.alignmentProperty().map { it.hpos * VPos.CENTER }
                lay += ratingL.apply { padding = Insets(0.0, 12.emScaled, 0.0, 0.0) }
                lay += Icon(IconMD.PLAY).apply { isMouseTransparent = true; isFocusTraversable = false }
                lay += playcountL

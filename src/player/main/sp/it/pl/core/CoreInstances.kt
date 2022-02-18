@@ -4,7 +4,7 @@ import java.util.UUID
 import javafx.scene.Node
 import javafx.scene.control.Skin
 import kotlin.reflect.KClass
-import sp.it.pl.ui.nodeinfo.AlbumInfo
+import sp.it.pl.ui.nodeinfo.SongAlbumInfo
 import sp.it.pl.ui.nodeinfo.SongInfo
 import sp.it.pl.ui.objects.GpuNvidiaInfo
 import sp.it.pl.ui.objects.MdNode
@@ -56,7 +56,7 @@ object CoreInstances: InstanceMap(), Core {
          RecommendedWidgetClass(uuid("20a08e65-f3e8-4129-9c32-6d72cf07360a"), TimeClockDigitalIos::class, "TimeClockDigitalIos") { TimeClockDigitalIos() },
          RecommendedWidgetClass(uuid("6914b36e-b771-4e32-8339-07cbdb99c9f6"), TimePickerContent::class, "TimePickerContent") { TimePickerContent() },
          RecommendedWidgetClass(uuid("96c8ca9d-f959-4a48-ad20-b8938196fdc8"), SongInfo::class, "Song Info (small)") { SongInfo(false) },
-         RecommendedWidgetClass(uuid("96c8ca9d-f959-4a48-ad20-b8938196fdc8"), AlbumInfo::class, "Album Info (small)") { AlbumInfo(false) },
+         RecommendedWidgetClass(uuid("96c8ca9d-f959-4a48-ad20-b8938196fdc8"), SongAlbumInfo::class, "Album Info (small)") { SongAlbumInfo(false) },
       )
 
       addInstances<SearchUriBuilder>(

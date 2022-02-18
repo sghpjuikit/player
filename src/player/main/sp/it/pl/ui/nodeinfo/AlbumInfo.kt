@@ -16,6 +16,7 @@ import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMA
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.image.Cover.CoverSource.ANY
@@ -23,6 +24,7 @@ import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.util.access.toWritable
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attachNonNullWhile
 import sp.it.util.reactive.map
@@ -47,6 +49,7 @@ class AlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
    private val artistL = label { styleClass += listOf("h4p-bottom") }
    private val yearL = label()
    private val tracksL = label()
+   private val discsL = label()
    private val lengthL = label()
    private var coverContainer = AnchorPane()
    private val thumb = if (!showCover) null else Thumbnail().apply {
@@ -78,7 +81,8 @@ class AlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
             nameL.text = m.getAlbum() ?: "n/a"
             artistL.text = m.getAlbumArtist() ?: "n/a"
             yearL.text = m.getYear()?.toUi() ?: "n/a"
-            tracksL.text = "song".pluralUnit(albumSongs.size)
+            tracksL.text = "song".pluralUnit(m.getTracksTotal() ?: albumSongs.size)
+            discsL.text = m.getDiscsTotal()?.net("disc"::pluralUnit) ?: "n/a"
             lengthL.text = albumSongs.sumOf { it.getLengthInMs() }.millis.toHMSMs()
             songImplInvListeners.forEach { it.invalidated(o) }
             songImplChaListeners.forEach { it.changed(o, ov, m) }
@@ -89,7 +93,7 @@ class AlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
    init {
       padding = Insets(10.0)
       lay += coverContainer
-      lay += vBox(5.0) {
+      lay += vBox {
          alignmentProperty() syncFrom this@AlbumInfo.alignmentProperty()
          prefSize = -1 x -1
          lay += nameL
@@ -98,10 +102,15 @@ class AlbumInfo(showCover: Boolean = true): HBox(15.0), SongReader {
             alignmentProperty() syncFrom this@AlbumInfo.alignmentProperty().map { when (it.hpos!!) { HPos.LEFT -> CENTER_LEFT; HPos.CENTER -> CENTER; HPos.RIGHT -> CENTER_RIGHT } }
             lay += Icon(IconFA.CALENDAR).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += yearL
-            lay += Icon(IconFA.MUSIC).apply { isMouseTransparent = true; isFocusTraversable = false }
-            lay += tracksL
             lay += Icon(IconFA.CLOCK_ALT).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += lengthL
+         }
+         lay += hBox {
+            alignmentProperty() syncFrom this@AlbumInfo.alignmentProperty().map { when (it.hpos!!) { HPos.LEFT -> CENTER_LEFT; HPos.CENTER -> CENTER; HPos.RIGHT -> CENTER_RIGHT } }
+            lay += Icon(IconFA.MUSIC).apply { isMouseTransparent = true; isFocusTraversable = false }
+            lay += tracksL
+            lay += Icon(IconMA.ALBUM).apply { isMouseTransparent = true; isFocusTraversable = false }
+            lay += discsL
          }
       }
 

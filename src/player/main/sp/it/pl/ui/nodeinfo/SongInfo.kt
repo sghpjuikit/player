@@ -15,7 +15,7 @@ import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
-import sp.it.pl.main.IconFA
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Icon
@@ -25,6 +25,7 @@ import sp.it.pl.ui.objects.rating.Rating
 import sp.it.util.access.toWritable
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attachNonNullWhile
 import sp.it.util.reactive.map
@@ -43,8 +44,8 @@ import sp.it.util.ui.x
 class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
 
    private val rating = Rating().apply { alignment.value = CENTER_LEFT }
-   private val titleL = label { styleClass += listOf("h4", "h4p-up", "h4p-down") }
-   private val artistL = label()
+   private val titleL = label { styleClass += listOf("h4", "h4p-up") }
+   private val artistL = label { styleClass += "h4p-bottom" }
    private val playcountL = label()
    private val ratingL = label { graphic = rating }
    private val albumL = label()
@@ -73,7 +74,7 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
             thumb?.loadCoverOf(m)
             titleL.text = m.getTitle() ?: m.getFilename()
             artistL.text = m.getArtist() ?: "<none>"
-            playcountL.text = m.getPlaycount()?.toUi() ?: "n/a"
+            playcountL.text = m.getPlaycount()?.toUi()?.net { "$it x" } ?: "n/a"
             rating.rating.value = m.getRatingPercent()
             albumL.text = m.getAlbum() ?: "<none>"
             songImplInvListeners.forEach { it.invalidated(o) }
@@ -85,7 +86,7 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
    init {
       padding = Insets(10.0)
       lay += coverContainer
-      lay += vBox(5.0) {
+      lay += vBox {
          alignmentProperty() syncFrom this@SongInfo.alignmentProperty()
          prefSize = -1 x -1
          lay += listOf(
@@ -93,9 +94,9 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
             artistL,
             hBox {
                alignmentProperty() syncFrom this@SongInfo.alignmentProperty().map { when (it.hpos!!) { HPos.LEFT -> CENTER_LEFT; HPos.CENTER -> CENTER; HPos.RIGHT -> CENTER_RIGHT } }
-               lay += ratingL.apply { padding = Insets(0.0, 5.emScaled, 0.0, 0.0) }
+               lay += ratingL.apply { padding = Insets(0.0, 12.emScaled, 0.0, 0.0) }
+               lay += Icon(IconMD.PLAY).apply { isMouseTransparent = true; isFocusTraversable = false }
                lay += playcountL
-               lay += Icon(IconFA.REPEAT).apply { isMouseTransparent = true; isFocusTraversable = false }
             },
             albumL
          )

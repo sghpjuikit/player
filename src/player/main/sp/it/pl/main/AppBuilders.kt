@@ -289,7 +289,7 @@ fun appProgressIndicator(onStart: (ProgressIndicator) -> Unit = {}, onFinish: (P
          onStart(this)
          a.playOpenDo(null)
       }
-      if (nv.toDouble()==1.0) {
+      if (nv.toDouble()==1.0 || nv.toDouble().isNaN()) {
          a.playCloseDo { onFinish(this) }
       }
    }

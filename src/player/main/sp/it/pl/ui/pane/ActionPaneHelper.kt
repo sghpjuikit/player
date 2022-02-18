@@ -128,7 +128,6 @@ class ActionData<C, T> {
 
    @Suppress("UNCHECKED_CAST")
    operator fun invoke(context: ActContext, data: Any?) {
-      println(context)
       when (groupApply) {
          FOR_ALL -> context.action(collectionWrap(data) as T)
          FOR_EACH -> when (data) {
@@ -164,7 +163,7 @@ inline fun <reified T> fastAction(name: String, description: String, icon: Glyph
 inline fun <reified T> fastAction(icon: GlyphIcons, action: Action) = fastActionBase<T, T>(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, IS, { action.run() })
 
 /** [fastAction] that consumes collection input - its input type is collection of its type. */
-inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, ISNT, action)
+inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, IS, action)
 
 /** [fastAction] that consumes collection input - its input type is collection of its type. */
 inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.all(constriction) }, action)
@@ -182,7 +181,7 @@ inline fun <reified T> slowAction(name: String, description: String, icon: Glyph
 inline fun <reified T> slowAction(name: String, description: String, icon: GlyphIcons, noinline constriction: Test<T>, noinline action: Act<T>) = slowActionBase<T, T>(name, description, icon, NONE, constriction, action)
 
 /** [slowActionBase] that processes collection input - its input type is collection of its type. */
-inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, ISNT, action)
+inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, IS, action)
 
 /** [slowActionBase] that processes collection input - its input type is collection of its type. */
 inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.all(constriction) }, action)

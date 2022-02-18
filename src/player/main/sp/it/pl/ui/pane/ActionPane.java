@@ -421,7 +421,10 @@ public class ActionPane extends OverlayPane<Object> {
 					}
 				});
 			}
+		} else {
+			dataTable = null;
 		}
+
 		HBox.setHgrow(dataTablePane, priority);
 		dataTableContentGap.set(gap);
 	}

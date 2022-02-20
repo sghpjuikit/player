@@ -337,7 +337,7 @@ public class ActionPane extends OverlayPane<Object> {
 		Object d = futureUnwrapOrThrow(data);
 		if (d instanceof Collection) {
 			if (dataTable!=null) {
-				return dataTable.getSelectedOrAllItemsCopy();
+				return dataTable.getItems()==null || dataTable.getItems().isEmpty() ? d : dataTable.getSelectedOrAllItemsCopy();
 			} else {
 				return d;
 			}

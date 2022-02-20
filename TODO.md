@@ -1,4 +1,5 @@
 ## Currently considered
+- Cache DeserializationFactory ComponentDb to avoid IO if file was not modified in the meantime
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Document all used libraries, how they are used, why, where not to use them, etc.
@@ -60,10 +61,6 @@
   May be useful in some use cases
 - Reimplement [Tray] using [FXTrayIcon](https://github.com/dustinkredmond/FXTrayIcon)  
   Would add high-dpi support and more
-- Expose **fxwl** templates of **Custom** widgets for useful ui components  
-  May require rethinking widget identity and UX
-- Implement **IconViewer** widget as ordinary `Node` used in **CustomNode** widget  
-  Would reduce widget count, however this is low priority & is blocked by the above issue
 - Implement **FavLocations** widget selection persistence  
   Natural idea, low priority
 - Implement **playlists** table  

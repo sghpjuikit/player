@@ -1,4 +1,67 @@
 
+* {
+    t: transparent;
+    gre: rgb(100,170,100);
+    g: rgb(230, 230, 230);
+}
+
+.test-buttons {
+    -fx-background-color: white;
+}
+
+.test-button-1 {
+    -fx-min-width: 8em;
+    -fx-max-width: 8em;
+    -fx-pref-height: 2em;
+    -fx-border-color: green t green green, g g g t;
+    -fx-border-insets: 0 7500% 0 0, 0 0 0 7500%;
+    -fx-border-radius: 1em 0 0 1em, 0 1em 1em 0;
+    -fx-border-width: 0.125em, 0.125em;
+}
+.test-button-2 {
+    -fx-max-width: 8em;
+    -fx-pref-height: 2em;
+    -fx-background-color: green, g, green, g, white;
+    -fx-background-insets: 0 4.25em 0 0, 0 0 0 4.25em, 0 4.25em 0 2em, 0 2em 0 4.25em, 0.125em;
+    -fx-background-radius: 2em, 2em, 0, 0, 1.75em;
+}
+.test-button-3 {
+    -fx-max-width: 8em;
+    -fx-pref-height: 2em;
+    -fx-background-color: rgb(120,220,120);
+    -fx-background-radius: 2em;
+    -fx-border-color: rgb(100,170,100);
+    -fx-border-radius: 2em;
+    -fx-border-width: 0.1em;
+}
+.test-button-4 {
+    -fx-min-width: 8em;
+    -fx-max-width: 8em;
+    -fx-pref-height: 2em;
+    -fx-border-color: gre t gre gre, g g g t;
+    -fx-border-insets: 0 7500% 0 0, 0 0 0 2750%;
+    -fx-border-radius: 2em 0 0 2em, 0 2em 2em 0;
+    -fx-border-width: 0.125em, 0.125em;
+}
+.test-button-5 {
+    -fx-min-width: 2.2em;
+    -fx-max-width: 2.2em;
+    -fx-pref-height: 2em;
+    -fx-border-color: gre t gre gre, g g g t;
+    -fx-border-insets: 0 1em 0 0, 0 0 0 1em;
+    -fx-border-radius: 2em 0 0 2em, 0 2em 2em 0;
+    -fx-border-width: 0.125em, 0.125em;
+}
+.test-button-6 {
+    -fx-min-width: 2.2em;
+    -fx-max-width: 2.2em;
+    -fx-pref-height: 2em;
+    -fx-border-color: gre t gre gre, g g g t;
+    -fx-border-insets: 0 1.1em 0 0, 0 0 0 1.1em;
+    -fx-border-radius: 1em 0 0 1em, 0 1em 1em 0;
+    -fx-border-width: 0.125em, 0.125em;
+}
+
 .test-gradient {
     -fx-min-width: 400;
     -fx-min-height: 400;

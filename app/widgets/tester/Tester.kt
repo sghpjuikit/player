@@ -169,6 +169,7 @@ class Tester(widget: Widget): SimpleController(widget) {
       Group(IconOC.CODE, "Animation Interpolators") { testInterpolators() },
       Group(IconOC.CODE, "Path/ShapeAnimations") { testPathShapeTransitions() },
       Group(IconOC.CODE, "Test CSS Gradients") { testCssGradients() },
+      Group(IconOC.CODE, "Test CSS Borders") { testCssBorders() },
       Group(IconOC.CODE, "Test Tasks") { testTasks() },
       Group(IconOC.CODE, "Test Mouse events") { testMouseEvents() }
    )
@@ -495,6 +496,22 @@ class Tester(widget: Widget): SimpleController(widget) {
                prefSize = 100.emScaled.x2
                styleClass += "test-gradient"
             }
+         }
+      }
+   }
+
+   fun testCssBorders() {
+      onContentChange()
+      content.children setToOne fittingScrollPane {
+         content = vBox(5.emScaled, CENTER) {
+            styleClass += "test-buttons"
+
+            lay += stackPane { styleClass += "test-button-1" }
+            lay += stackPane { styleClass += "test-button-2" }
+            lay += stackPane { styleClass += "test-button-3" }
+            lay += stackPane { styleClass += "test-button-4" }
+            lay += stackPane { styleClass += "test-button-5" }
+            lay += stackPane { styleClass += "test-button-6" }
          }
       }
    }

@@ -67,7 +67,7 @@ class PlaylistSong: Song {
     * @return cached corrupted value
     */
    @Volatile var isCorruptCached = false
-      internal set
+      private set
 
    /** New not updated item */
    constructor(_uri: URI) {

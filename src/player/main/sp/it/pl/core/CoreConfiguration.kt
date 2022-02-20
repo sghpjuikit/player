@@ -13,7 +13,7 @@ object CoreConfiguration {
          ConfigurationContext.unsealedEnumeratorClasses = APP.location.resources.classes_yml.readTextTry().orNull().orEmpty().lineSequence()
             .filterNot { it.startsWith("#") || it.isBlank() }
             .sorted()
-            .toCollection(LinkedHashSet());
+            .toCollection(LinkedHashSet())
       }
    }
 }

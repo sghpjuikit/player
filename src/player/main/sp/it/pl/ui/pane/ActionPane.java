@@ -16,7 +16,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.ScrollEvent;
@@ -219,10 +218,7 @@ public class ActionPane extends OverlayPane<Object> {
 /* ---------- CONTROLS ---------------------------------------------------------------------------------------------- */
 
 	private final Icon helpI = infoIcon(
-		"Action chooser"
-	  + "\n"
-	  + "\nChoose an action. It may use some input data. Data not immediately ready will "
-	  + "display progress indicator."
+		"Action chooser\n\nChoose an action. It may use some input data. Data not immediately ready will display progress indicator."
 	);
 	private final Icon hideI = new CheckIcon(closeOnDone)
 									.icons(CLOSE_CIRCLE_OUTLINE, CHECKBOX_BLANK_CIRCLE_OUTLINE)
@@ -401,12 +397,12 @@ public class ActionPane extends OverlayPane<Object> {
 				var t = new FilteredTable<>((Class<Object>) itemType, null);
 				t.getSelectionModel().setSelectionMode(MULTIPLE);
 				t.setColumnFactory(f -> {
-					TableColumn<?,Object> c = new TableColumn<>(f.toString());
+					TableColumn<Object,Object> c = new TableColumn<>(f.toString());
 					c.getStyleClass().add(String.class.isAssignableFrom(getRawJ(f.getType())) ? "column-header-align-left" : "column-header-align-right");
 					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
-					c.setCellFactory(col -> (TableCell) buildFieldedCell(f));
+					c.setCellFactory(col -> buildFieldedCell(f));
 					c.setResizable(true);
-					return (TableColumn<Object, ?>) c;
+					return c;
 				});
 				t.setColumnState(t.getDefaultColumnInfo());
 				t.setColumnResizePolicy(t.fields.stream().filter(it -> it!=INDEX.INSTANCE).count()<=1 ? CONSTRAINED_RESIZE_POLICY : UNCONSTRAINED_RESIZE_POLICY);

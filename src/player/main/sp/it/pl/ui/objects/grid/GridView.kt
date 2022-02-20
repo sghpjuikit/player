@@ -14,7 +14,6 @@ import javafx.event.EventHandler
 import javafx.scene.control.Control
 import kotlin.reflect.KClass
 import kotlin.streams.asSequence
-import sp.it.pl.ui.objects.grid.GridView.CellGap.JUSTIFY
 import sp.it.pl.ui.objects.search.SearchAutoCancelable
 import sp.it.util.access.StyleableCompanion
 import sp.it.util.access.V

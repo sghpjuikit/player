@@ -324,29 +324,17 @@ public class ImprovedTable<T> extends TableView<T> {
 	}
 
 	/** Minimalistic value wrapper for POJO table view cell value factories. */
-	public static class PojoV<T> implements ObservableValue<T> {
-		private final T v;
+	public record PojoV<T>(T v) implements ObservableValue<T> {
 
-		public PojoV(T v) {
-			this.v = v;
-		}
+		@Override public void addListener(ChangeListener<? super T> listener) {}
 
-		@Override
-		public void addListener(ChangeListener<? super T> listener) {}
+		@Override public void removeListener(ChangeListener<? super T> listener) {}
 
-		@Override
-		public void removeListener(ChangeListener<? super T> listener) {}
+		@Override public T getValue() { return v; }
 
-		@Override
-		public T getValue() {
-			return v;
-		}
+		@Override public void addListener(InvalidationListener listener) {}
 
-		@Override
-		public void addListener(InvalidationListener listener) {}
-
-		@Override
-		public void removeListener(InvalidationListener listener) {}
+		@Override public void removeListener(InvalidationListener listener) {}
 
 	}
 

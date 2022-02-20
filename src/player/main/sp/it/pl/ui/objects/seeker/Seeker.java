@@ -454,7 +454,7 @@ public final class Seeker extends AnchorPane {
 		TextArea ta;                    // edit text area
 		PopWindow p;
 		Icon prevB, nextB, editB, commitB, delB, cancelB; // popup controls
-		Anim hover = new Anim(millis(150), this::setScaleX).intpl(x -> 1 + 7*x);
+		final Anim hover = new Anim(millis(150), this::setScaleX).intpl(x -> 1 + 7*x);
 
 		private boolean can_hide = true;
 		private final FxTimer delayerCloser = fxTimer(millis(200), 1, runnable(() -> {

@@ -167,8 +167,8 @@ class Notifier: PluginBase() {
          notificationScr(notificationPos).map {
             if (nss.isEmpty()) it
             else when(notificationPos.vpos!!) {
-               VPos.BOTTOM, VPos.CENTER -> it.x x ((nss.map { it.root.localToScreen(0.0, 0.0).y }.minOrNull() ?: 0.0) - n.root.height)
-               VPos.BASELINE, VPos.TOP -> it.x x (nss.map { it.root.localToScreen(0.0, it.root.height).y }.maxOrNull() ?: notificationScr.bounds().second.maxY)
+               VPos.BOTTOM, VPos.CENTER -> it.x x ((nss.minOfOrNull { it.root.localToScreen(0.0, 0.0).y } ?: 0.0) - n.root.height)
+               VPos.BASELINE, VPos.TOP -> it.x x (nss.maxOfOrNull { it.root.localToScreen(0.0, it.root.height).y } ?: notificationScr.bounds().second.maxY)
             }
          }
       )

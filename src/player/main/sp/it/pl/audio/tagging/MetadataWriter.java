@@ -111,7 +111,7 @@ public class MetadataWriter extends Song {
 	private final ReadOnlyBooleanWrapper isWriting = new ReadOnlyBooleanWrapper(false);
 	public final ReadOnlyBooleanProperty writing = isWriting.getReadOnlyProperty();
 
-	// dont provide access here
+	// Don't provide access here
 	public MetadataWriter() {}
 
 	private MetadataWriter(File file, AudioFile audioFile) {
@@ -524,7 +524,7 @@ public class MetadataWriter extends Song {
 	 * Adds the given chapter to the metadata or rewrites it if it already exists.
 	 * For chapter identity consult {@link Chapter#equals(java.lang.Object)}.
 	 * <p/>
-	 * Note: Dont abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
+	 * Note: Don't abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
 	 *
 	 * @param chapter chapter to ad
 	 * @param metadata Source metadata for chapter data. In order to retain rest of the chapters, the metadata for the
@@ -544,7 +544,7 @@ public class MetadataWriter extends Song {
 	 * nothing otherwise.
 	 * <p/>
 	 * For chapter identity consult {@link Chapter#equals(java.lang.Object)}.
-	 * Dont abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
+	 * Don't abuse this method in loops and use {@link #setChapters(java.util.Collection)}.
 	 *
 	 * @param chapter chapter to remove. Object equality will be used to remove the chapter.
 	 * @param metadata Source metadata for chapter data. In order to retain rest of the chapters, the metadata for the
@@ -563,45 +563,45 @@ public class MetadataWriter extends Song {
 	private static final ZoneId ZONE_ID = ZoneId.systemDefault();
 
 	public void setPlayedFirst(LocalDateTime at) {
-		long epochmillis = at.atZone(ZONE_ID).toInstant().toEpochMilli();
-		setCustomField(TAG_ID_PLAYED_FIRST, String.valueOf(epochmillis));
+		long epochMs = at.atZone(ZONE_ID).toInstant().toEpochMilli();
+		setCustomField(TAG_ID_PLAYED_FIRST, String.valueOf(epochMs));
 	}
 
 	public void setPlayedFirstNow() {
-		long epochmillis = System.currentTimeMillis(); // same as LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
-		setCustomField(TAG_ID_PLAYED_FIRST, String.valueOf(epochmillis));
+		long epochMs = System.currentTimeMillis(); // same as LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+		setCustomField(TAG_ID_PLAYED_FIRST, String.valueOf(epochMs));
 	}
 
 	public void setPlayedFirstNowIfEmpty() {
 		if (hasCustomField(TAG_ID_PLAYED_FIRST)) return;
-		long epochmillis = System.currentTimeMillis();
-		setCustomField(TAG_ID_PLAYED_FIRST, String.valueOf(epochmillis));
+		long epochMs = System.currentTimeMillis();
+		setCustomField(TAG_ID_PLAYED_FIRST, String.valueOf(epochMs));
 	}
 
 	public void setPlayedLast(LocalDateTime at) {
-		long epochmillis = at.atZone(ZONE_ID).toInstant().toEpochMilli();
-		setCustomField(TAG_ID_PLAYED_LAST, String.valueOf(epochmillis));
+		long epochMs = at.atZone(ZONE_ID).toInstant().toEpochMilli();
+		setCustomField(TAG_ID_PLAYED_LAST, String.valueOf(epochMs));
 	}
 
 	public void setPlayedLastNow() {
-		long epochmillis = System.currentTimeMillis();
-		setCustomField(TAG_ID_PLAYED_LAST, String.valueOf(epochmillis));
+		long epochMs = System.currentTimeMillis();
+		setCustomField(TAG_ID_PLAYED_LAST, String.valueOf(epochMs));
 	}
 
 	public void setLibraryAdded(LocalDateTime at) {
-		long epochmillis = at.atZone(ZONE_ID).toInstant().toEpochMilli();
-		setCustomField(TAG_ID_LIB_ADDED, String.valueOf(epochmillis));
+		long epochMs = at.atZone(ZONE_ID).toInstant().toEpochMilli();
+		setCustomField(TAG_ID_LIB_ADDED, String.valueOf(epochMs));
 	}
 
 	public void setLibraryAddedNow() {
-		long epochmillis = System.currentTimeMillis();
-		setCustomField(TAG_ID_LIB_ADDED, String.valueOf(epochmillis));
+		long epochMs = System.currentTimeMillis();
+		setCustomField(TAG_ID_LIB_ADDED, String.valueOf(epochMs));
 	}
 
 	public void setLibraryAddedNowIfEmpty() {
 		if (hasCustomField(TAG_ID_LIB_ADDED)) return;
-		long epochmillis = System.currentTimeMillis();
-		setCustomField(TAG_ID_LIB_ADDED, String.valueOf(epochmillis));
+		long epochMs = System.currentTimeMillis();
+		setCustomField(TAG_ID_LIB_ADDED, String.valueOf(epochMs));
 	}
 
 	public void setTags(Set<String> tags) {
@@ -821,7 +821,7 @@ public class MetadataWriter extends Song {
 	}
 
 	/**
-	 * Returns true if nonempty - if there are fields that need to be commited.
+	 * Returns true if there are fields that need to be committed.
 	 * More formally returns fields() != 0.
 	 */
 	public boolean hasFields() {

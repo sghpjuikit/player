@@ -248,11 +248,11 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		menuItem("Select none", null, consumer(e -> selectNone()))
 	);
 	private final Menu menuOrderAlign = new Menu("Align");
-	public final Menu menuOrder = with(new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded(), menuOrderAlign), m -> {
+	public final Menu menuOrder = with(new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded(), menuOrderAlign), m ->
 		m.addEventHandler(Menu.ON_SHOWING, e ->
 			menuOrderAlign.getItems().setAll(SelectionMenuItem.Companion.buildSingleSelectionMenu(CellGap.Companion.getValues(), grid.getCellAlign().getValue(), it -> toUi(it), it -> grid.getCellAlign().setValue(it)))
-		);
-	});
+		)
+	);
 	/** Table menu bar in the bottom with menus. Feel free to modify. */
 	public final MenuBar menus = new MenuBar(menuAdd, menuRemove, menuSelected, menuOrder);
 	/**

@@ -17,7 +17,6 @@ import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
-import sp.it.util.functional.Util.ISNT
 import sp.it.util.functional.asIf
 import sp.it.util.type.VType
 import sp.it.util.type.type

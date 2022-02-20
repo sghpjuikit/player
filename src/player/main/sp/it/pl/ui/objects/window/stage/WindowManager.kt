@@ -251,9 +251,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
       w.initialize()
 
-      if (style == TRANSPARENT) {
-         w.s.scene.fill = if (style == TRANSPARENT) Color.TRANSPARENT else Color.BLACK
-      }
+      if (style == TRANSPARENT) w.s.scene.fill = Color.TRANSPARENT
       windowOpacity sync { if (!w.opacityOverride) w.opacity.value = it } on w.onClose
       w.isHeaderVisible.value = windowHeaderless.value
       w.isInteractiveOnLeftAlt.value = windowInteractiveOnLeftAlt.value

@@ -21,7 +21,6 @@ import javafx.scene.input.TransferMode.ANY
 import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import javafx.stage.WindowEvent.WINDOW_SHOWING
 import javafx.util.Callback
-import kotlin.streams.toList
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager

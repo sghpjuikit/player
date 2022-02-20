@@ -77,16 +77,16 @@ public class DraggableTab extends Tab {
 			Point2D screenPoint = new Point2D(e.getScreenX(), e.getScreenY());
 			tabPanes.add(getTabPane());
 			InsertData data = getInsertData(screenPoint);
-			if (data==null || data.getInsertPane().getTabs().isEmpty()) {
+			if (data==null || data.insertPane.getTabs().isEmpty()) {
 				markerStage.hide();
 			} else {
-				int index = data.getIndex();
+				int index = data.index;
 				boolean end = false;
-				if (index==data.getInsertPane().getTabs().size()) {
+				if (index==data.insertPane.getTabs().size()) {
 					end = true;
 					index--;
 				}
-				Rectangle2D rect = getAbsoluteRect(data.getInsertPane().getTabs().get(index));
+				Rectangle2D rect = getAbsoluteRect(data.insertPane.getTabs().get(index));
 				markerStage.setX(end ? rect.getMaxX() : rect.getMinX());
 				markerStage.setY(rect.getMaxY() + 10);
 				markerStage.show();
@@ -238,23 +238,6 @@ public class DraggableTab extends Tab {
 		return xPoint>=lowerBound && xPoint<=upperBound;
 	}
 
-	private static class InsertData {
+	private record InsertData(int index, TabPane insertPane) {}
 
-		private final int index;
-		private final TabPane insertPane;
-
-		public InsertData(int index, TabPane insertPane) {
-			this.index = index;
-			this.insertPane = insertPane;
-		}
-
-		public int getIndex() {
-			return index;
-		}
-
-		public TabPane getInsertPane() {
-			return insertPane;
-		}
-
-	}
 }

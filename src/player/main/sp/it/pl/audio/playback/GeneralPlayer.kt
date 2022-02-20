@@ -57,7 +57,7 @@ class GeneralPlayer(state: PlayerState) {
       val onUnableToPlay = { _: PlaylistSong -> runFX { PlaylistManager.use { it.playNextItem() } } }
       val player = p
       if (player==null) {
-         logger.info { "Player=$player can not play song=$song{}" }
+         logger.info { "Player=null can not play song=$song{}" }
          onUnableToPlay(song)
       } else {
          runIO {

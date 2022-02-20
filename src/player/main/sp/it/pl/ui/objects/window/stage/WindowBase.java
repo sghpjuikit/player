@@ -40,7 +40,7 @@ import static sp.it.util.reactive.UtilKt.syncC;
  */
 public class WindowBase {
 
-	Stage s = new Stage();
+	final Stage s = new Stage();
 
 	final DoubleProperty W = new SimpleDoubleProperty(100);
 	final DoubleProperty H = new SimpleDoubleProperty(100);
@@ -243,14 +243,14 @@ public class WindowBase {
 
 	private void applyMaximized() {
 		switch (maximized.getValue()) {
-			case ALL: maximizeAll(); break;
-			case LEFT: maximizeLeft(); break;
-			case RIGHT: maximizeRight(); break;
-			case LEFT_TOP: maximizeLeftTop(); break;
-			case RIGHT_TOP: maximizeRightTop(); break;
-			case LEFT_BOTTOM: maximizeLeftBottom(); break;
-			case RIGHT_BOTTOM: maximizeRightBottom(); break;
-			case NONE: deMaximize(); break;
+			case ALL -> maximizeAll();
+			case LEFT -> maximizeLeft();
+			case RIGHT -> maximizeRight();
+			case LEFT_TOP -> maximizeLeftTop();
+			case RIGHT_TOP -> maximizeRightTop();
+			case LEFT_BOTTOM -> maximizeLeftBottom();
+			case RIGHT_BOTTOM -> maximizeRightBottom();
+			case NONE -> deMaximize();
 		}
 	}
 
@@ -328,8 +328,8 @@ public class WindowBase {
 		MaxProp.set(NONE);
 		// Normally we would use last position, but it is possible that de-maximization happens
 		// not to the same screen as it was maximized on (screen can manually be changed, which
-		// is valid behavior in multi-screen maximization cycling (on Windows WIN+LEFT/RIGHT)).
-		// Because stage coordinates are absolute to all screens (eg only leftmost screen contains
+		// is valid behavior in multiscreen maximization cycling (on Windows WIN+LEFT/RIGHT)).
+		// Because stage coordinates are absolute to all screens. E.g. only leftmost screen contains
 		// coordinate 0, de-maximized window could be on the wrong (original) screen. Hence we
 		// remember screen-relative position (offset) and relatively so (in 0-1 fraction of screen
 		// width (otherwise we again risk outside of screen position))
@@ -499,7 +499,6 @@ public class WindowBase {
 		if (r==Resize.S || r==Resize.SW || r==Resize.SE || r==Resize.ALL) {
 			if (abs(w.getMaxY() - SH)<S) {
 				setSize(w.getWidth(), w.getHeight() - (w.getMaxY() - SH), false);
-				w = sp.it.util.ui.UtilKt.getBounds(s);
 			}
 		}
 	}
@@ -546,10 +545,10 @@ public class WindowBase {
 	 * Sets size of the window.
 	 * Always use this over setWidth(), setHeight(). Not using this method will
 	 * result in improper behavior during isResizing - more specifically - the new
-	 * size will not be remembered and the window will revert back to previous
+	 * size will not be remembered and the window will revert to previous
 	 * size during certain graphical operations like reposition.
 	 * <p>
-	 * Its not recommended to use this method for maximizing. Use maximize(),
+	 * It is not recommended using this method for maximizing. Use maximize(),
 	 * maximizeLeft(), maximizeRight() instead.
 	 * <p>
 	 * This method is weak solution to inability to override setWidth(),

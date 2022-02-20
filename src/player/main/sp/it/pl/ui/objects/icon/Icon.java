@@ -102,7 +102,7 @@ public class Icon extends StackPane {
 	private static final String DEFAULT_FONT_SIZE = "1em";
 
 	private final Text node = new Text();
-	public ObjectProperty<Node> focusOwner = new SimpleObjectProperty<>(this);
+	public final ObjectProperty<Node> focusOwner = new SimpleObjectProperty<>(this);
 	private Subscription focusOwnerS = null;
 	public DoubleProperty glyphOffsetX = node.translateXProperty();
 	public DoubleProperty glyphOffsetY = node.translateYProperty();

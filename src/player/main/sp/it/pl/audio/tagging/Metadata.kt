@@ -35,7 +35,6 @@ import sp.it.pl.audio.tagging.Metadata.Companion.EMPTY
 import sp.it.pl.audio.tagging.Metadata.Field
 import sp.it.pl.main.APP
 import sp.it.pl.main.isImage
-import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.image.Cover
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.pl.ui.objects.image.EmptyCover

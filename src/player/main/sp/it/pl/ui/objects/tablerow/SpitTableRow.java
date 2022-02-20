@@ -108,13 +108,5 @@ public class SpitTableRow<T> extends TableRow<T> {
 		styleRules.forEach(rule -> pseudoClassStateChanged(rule.pseudoclass, rule.condition.test(i)));
 	}
 
-	private static class Rule<T> {
-		public final PseudoClass pseudoclass;
-		public final Predicate<T> condition;
-
-		private Rule(PseudoClass pseudoclass, Predicate<T> condition) {
-			this.pseudoclass = pseudoclass;
-			this.condition = condition;
-		}
-	}
+	private record Rule<T>(PseudoClass pseudoclass, Predicate<T> condition) {}
 }

@@ -344,8 +344,8 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    fun setZoomMode(v: Boolean) {
-      if (v) APP.windowManager.getActive()?.switchPane?.zoom(v)
-      else APP.widgetManager.layouts.findAll(OPEN).forEach { it.child.asIf<ContainerSwitch>()?.ui?.zoom(v) }
+      if (v) APP.windowManager.getActive()?.switchPane?.zoom(true)
+      else APP.widgetManager.layouts.findAll(OPEN).forEach { it.child.asIf<ContainerSwitch>()?.ui?.zoom(false) }
    }
 
    @IsAction(name = "Layout zoom overlay in/out", info = "Shows/hides layout overlay & zooms in/out.", keys = "ALT+DOWN")

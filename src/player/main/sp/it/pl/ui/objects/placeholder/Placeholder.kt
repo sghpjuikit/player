@@ -19,7 +19,6 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.sync
-import sp.it.util.ui.Util.layHeaderBottom
 import sp.it.util.ui.containsMouse
 import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize

@@ -2,7 +2,6 @@ package sp.it.pl.audio.playlist
 
 import java.io.File
 import java.util.UUID
-import kotlin.streams.toList
 import sp.it.pl.audio.playlist.sequence.PlayingSequence
 import sp.it.pl.main.APP
 import sp.it.pl.main.audioExtensionFilter

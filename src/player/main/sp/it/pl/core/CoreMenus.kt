@@ -433,7 +433,13 @@ object CoreMenus: Core {
          add<Input<*>> {
             menuFor("Value", value.value)
             menu("Link") {
-               item("From...") { input ->
+               item("From value...") { input ->
+                  Config.forProperty(input.type, "Value", vn(input.value).asIs()).configure("Set ${input.name} value") { c ->
+                     fun Input<Any?>.setValue() { this.value = c.value }
+                     input.asIs<Input<Any?>>().setValue()
+                  }
+               }
+               item("From output...") { input ->
                   Config.forProperty(type<OutputRef?>(), "Output", vn(null)).constrain {
                      nonNull()
                      uiConverter { it?.name ?: textNoVal }
@@ -442,7 +448,6 @@ object CoreMenus: Core {
                      c.value.ifNotNull { input.bindAny(it.output) }
                   }
                }
-               item("From all identical") { it.bindAllIdentical() }
                item("From generator...") { input ->
                   Config.forProperty(type<GeneratingOutputRef<*>?>(), "Generator", vn(null)).constrain {
                      nonNull()
@@ -452,12 +457,7 @@ object CoreMenus: Core {
                      c.value.ifNotNull(input::bind)
                   }
                }
-            }
-            item("Set to...") { input ->
-               Config.forProperty(input.type, "Value", vn(input.value).asIs()).configure("Set ${input.name} value") { c ->
-                  fun Input<Any?>.setValue() { this.value = c.value }
-                  input.asIs<Input<Any?>>().setValue()
-               }
+               item("From all identical") { it.bindAllIdentical() }
             }
             menu("Unlink") {
                menu("One") {

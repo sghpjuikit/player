@@ -10,7 +10,10 @@ All notable changes to this project will be documented in this file. Format base
 - Improve names/icons for some widgets
 - Improve check menu check icons [use more compact icons]
 - Implement application process name argument [makes it easier to identify Java process from process command]
-- Implement **SongInfo (Small)** widget [uses `SongInfo`]
+- Implement **Song Info (Small)** widget [uses `SongInfo`]
+- Implement **Album Info (Small)** widget [uses `SongAlbumInfo`]
+- Implement **White Leaf** skin
+- Implement **Dark Leaf** skin
 - Improve styling
   - Table/List/Grid/Tree/TreeTable view headers are bigger, bold, align based on content, have proper padding, show borders on hover
   - Table/List/Grid/Tree/TreeTable view footers are bigger, better vertically aligned, align based on content, have proper padding, shw borders on hover
@@ -27,8 +30,12 @@ All notable changes to this project will be documented in this file. Format base
 - Improve **Tester** widget
   - Implement remembering selected content
   - Implement **Mouse events** testing suite
+  - Implement **CssBorders** testing suite
   - Improve layout & UX
 - Improve `GridView` context menus
+- Fix `ProgressBar` not hiding after showing 0/0 progress
+- Fix importing songs to library not working properly
+- Fix `ActionPane` not returning data correctly sometimes 
 
 This update brings lots of pleasant improvements. Particularly styling.
 
@@ -42,6 +49,9 @@ This requires more research and testing to implement right, so for now, at least
 
 The widgets **Icon browser**, **Git projects** and **Tester** now use much improved and unified UI for selecting content.
 Focusing, hovering, selecting from the list of content choices using both mouse and keys is supported and works very nicely.
+
+There are two new skins: **White Leaf** and **Dark Leaf**.
+These are light and dark green themes easy on the eyes and with good contrast.
 
 There are two new widgets: **Song Info (small)** and **Album Info (small)**.
 These display basic song and song album information. The former has been used in the past as custom graphics for **Now Playing** notification.

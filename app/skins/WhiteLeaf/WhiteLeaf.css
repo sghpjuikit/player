@@ -1,0 +1,222 @@
+/*
+ * Document : Spit Player skin
+ * Author : spit
+ * Year: 2020
+ */
+
+@import url("../Main/Main.css");
+
+* {
+    -skin-white: rgb(255, 255, 255);
+    -skin-white-darker: rgb(244, 244, 244);
+    -skin-white-dark: rgb(235,235,235);
+    -skin-green: rgb(100, 200, 100);
+
+    /* overrides */
+    -skin-base-color: -skin-green;
+    -skin-pane-color: -skin-white;
+    -skin-def-font-color: rgb(90,90,90);
+    -skin-def-font-color-light: -skin-pane-color;
+    -skin-def-font-color-hover: rgb(255, 255, 255);
+    -skin-focus-bgr-color: rgba(255,22,22,0.2);
+    -skin-popup-def-bgr-color: rgb(255, 255, 255);
+    -fx-focus-color: -skin-base-color;
+}
+
+/** Change backgrounds */
+.window {
+    -fx-background-color: -skin-white-dark;
+}
+.overlay-pane {
+    -fx-background-color: -skin-popup-def-bgr-color;
+}
+.drag-pane {
+    -fx-background-color: transparent;
+}
+.color-palette {
+    -fx-background-color: radial-gradient(radius 200%, rgba(32,10,56,0.8) 0%, rgba(141,19,19,0.8) 100%, rgba(20,232,255,0.8) 100%);
+}
+.custom-color-dialog  {
+    -fx-background-color: radial-gradient(radius 200%, rgba(32,10,56,1) 0%, rgba(141,19,19,1) 100%, rgba(20,232,255,1) 100%);
+}
+
+/** Add icon shadow */
+.icon,
+.icon:hover,
+.icon Text,
+.icon:selected Text,
+.icon:focused Text,
+.icon:hover Text {
+    -fx-fill: -fx-focus-color;
+    -fx-effect: none;
+    -fx-effect: innershadow(three-pass-box, rgba(0,0,0,1) , 1, 0.0 , 0 , 0 );
+}
+
+/** Remove window focus effect */
+.window,
+.window:focused {
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+}
+
+/** Add context-menu shadow */
+.context-menu {
+    -fx-background-color: -skin-pane-color;
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4em,0.3 , 0,0);
+    -fx-padding: 0em;    // prevents visual cutoff of shadow effect
+    -fx-background-insets: 0em;  // prevents incorrect bgr area due to padding
+}
+
+/* Window bgr */
+.window > #front {
+    -fx-background-color: -skin-white-dark;
+    -fx-background-radius: 0.6em;
+}
+
+/* Window radius */
+.window, .popup, .pop-window, .context-menu {
+    -fx-background-color: -skin-pane-color;
+    -fx-background-radius: 0.6em;
+    -fx-border-radius: 0.6em;
+}
+.window > #front > #frontContent {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0.6em;
+}
+
+/* Context menu */
+.context-menu {
+    -fx-background-color: -skin-base-color;
+}
+.menu-item > .icon,
+.menu-item > .label {
+    -fx-text-fill: white;
+}
+.menu-item > * > .icon Text,
+.menu-item:focused > .label {
+    -fx-fill: white;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.menu > .right-container > .arrow,
+.menu:focused > .right-container > .arrow,
+.menu:hover > .right-container > .arrow,
+.context-menu > .scroll-arrow,
+.menu-up-arrow,
+.menu-down-arrow {
+    -fx-background-color: -skin-white;
+}
+
+
+/* Increase padding */
+.context-menu {
+    -fx-padding: 1em 2em 1em 2em;
+}
+.context-menu .separator:horizontal {
+    -fx-padding: 1em;
+}
+.menu, .menu-item {
+    -fx-padding: 0.3em 0.5em 0.3em 0.5em;
+}
+/* Hide separator */
+.context-menu .separator:horizontal .line {
+    -fx-border-color: transparent;
+}
+/* Context menu colors */
+.menu > .right-container > .arrow,
+.menu-up-arrow,
+.menu-down-arrow {
+    -fx-background-color: -skin-def-font-color-light;
+}
+
+/* Increase table row height  */
+.list-view,
+.table-view,
+.tree-view,
+.tree-table-view {
+    -fx-fixed-cell-size: 2.75em;
+}
+
+/* Selected rows focused control */
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+    -fx-background-color: -fx-focus-color, -skin-white;
+    -fx-background-insets: 0, 0 0 0 0.2em;
+    -fx-text-fill: -fx-focus-color;
+}
+.list-cell:filled:selected,
+.tree-cell:filled:selected,
+.table-row-cell:filled:selected,
+.tree-table-row-cell:filled:selected,
+.table-row-cell:filled > .table-cell:selected,
+.tree-table-row-cell:filled > .tree-table-cell:selected {
+    -fx-background-color: -fx-focus-color, -skin-white;
+    -fx-background-insets: 0, 0 0 0 0.2em;
+    -fx-text-fill: -fx-focus-color;
+}
+
+/* footers */
+.list-view-footer,
+.table-view-footer,
+.grid-view-footer,
+.tree-view-footer,
+.tree-table-view-footer {
+    -fx-background-color: -skin-white-darker;
+}
+
+/* Remove widget padding */
+.widget-ui-content {
+    -fx-padding: 0;
+}
+
+.widget-ui {
+    -fx-background-color: -skin-pane-color;
+}
+.widget-ui: active {
+    -fx-background-color: linear-gradient(to bottom, derive(-skin-pane-color, 10%), -skin-pane-color);
+}
+.widget-ui:active .widget-ui-content {
+    -fx-border-color: transparent;
+}
+
+.overlay-window {
+    -fx-background-color: transparent;
+}
+.overlay-window > * {
+    -fx-background-color: rgba(11,15,11,0.98);
+}
+.overlay-pane-bgr {
+    -fx-background-color: radial-gradient(radius 200%, rgba(2,0,36, 1) 0%, rgba(121,9,9,1) 100%, black 100%);
+     //-fx-background-color: -skin-color-darker;
+     -fx-border-color:
+       linear-gradient(to bottom, black, transparent),
+       linear-gradient(to left, black, transparent),
+       linear-gradient(to top, black, transparent),
+       linear-gradient(to right, black, transparent);
+     -fx-border-style: solid;
+     -fx-border-width:
+       1em 0 0 0,
+       0 1em 0 0,
+       0 0 1em 0,
+       0 0 0 1em;
+}
+.overlay-pane-content {
+    -fx-effect: none;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0;
+}
+
+.playlist-table-cell-playing-icon {
+    -glyph-size: 1.75em;
+}

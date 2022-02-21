@@ -1,0 +1,52 @@
+/*
+ * Document : Spit Player skin
+ * Author : spit
+ * Year: 2020
+ */
+
+@import url("../WhiteLeaf/WhiteLeaf.css");
+
+* {
+    -skin-white: rgb(50, 50, 50);
+    -skin-white-darker: rgb(70, 70, 70);
+    -skin-white-dark: rgb(30,30,30);
+    -skin-green: rgb(100, 200, 100);
+
+    /* overrides */
+    -skin-base-color: -skin-green;
+    -skin-pane-color: -skin-white;
+    -skin-def-font-color: rgb(190,190,190);
+    -skin-def-font-color-light: -skin-pane-color;
+    -skin-def-font-color-hover: -skin-green;
+    -skin-focus-bgr-color: rgba(255,22,22,0.2);
+    -skin-popup-def-bgr-color: -skin-white;
+    -fx-focus-color: -skin-base-color;
+}
+
+/* grid */
+.grid-cell {
+    -fx-background-color: -skin-white-darker;
+}
+.grid-cell .grid-cell-stroke {
+    -fx-stroke: -skin-white-dark;
+}
+.grid-cell:hover .grid-cell-stroke {
+    -fx-stroke: -skin-white-dark;
+}
+.grid-cell:selected {
+    -fx-background-color: -skin-white-dark;
+}
+.grid-cell:selected .label {
+    -fx-text-fill: -skin-green;
+}
+
+.menu-item > .icon,
+.menu-item > .label {
+    -fx-text-fill: -skin-white-dark;
+}
+.menu-item > * > .icon Text,
+.menu-item:focused > .label {
+    -fx-fill: -skin-white-dark;
+    -fx-text-fill: -skin-white-dark;
+    -fx-font-weight: bold;
+}

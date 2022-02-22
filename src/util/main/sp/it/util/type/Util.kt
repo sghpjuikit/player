@@ -231,9 +231,8 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
                         }
                      }
                      yield(InspectedFxProperty(observable, propertyName, observableRaw !is WritableValue<*>, declaringClass, propertyType))
-                  } else {
-                     logger.warn { "Is null declaringClass='$declaringClass' propertyName=$propertyName propertyType=$propertyType" }
                   }
+                  else logger.warn { "Is null declaringClass='$declaringClass' propertyName=$propertyName propertyType=$propertyType" }
                } catch (e: Throwable) {
                   logger.error(e) { "Could not obtain property '$propertyName' from class ${o::class} of object $o" }
                }
@@ -261,9 +260,8 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
                         }
                      }
                      yield(InspectedFxProperty(observable, fieldName, observableRaw !is WritableValue<*>, declaringClass, propertyType))
-                  } else {
-                     logger.warn { "Is null declaringClass='$declaringClass' propertyName=$fieldName propertyType=$propertyType" }
                   }
+                  else logger.warn { "Is null declaringClass='$declaringClass' propertyName=$fieldName propertyType=$propertyType" }
                } catch (e: IllegalAccessException) {
                   logger.error(e) { "Could not obtain property '$fieldName' from object" }
                }

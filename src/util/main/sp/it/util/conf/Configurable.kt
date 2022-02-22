@@ -1,10 +1,12 @@
 package sp.it.util.conf
 
+import javafx.event.EventHandler
 import kotlin.reflect.full.memberProperties
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
+import sp.it.util.type.isSubtypeOf
 
 /**
  * Defines object that can be configured.
@@ -78,7 +80,10 @@ fun Any.toConfigurableByReflect(): Configurable<*> = annotatedConfigs(this).toLi
 fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Configurable<*> = annotatedConfigs(fieldNamePrefix, category, this).toListConfigurable()
 
 /** @return configurable of configs representing all javafx properties of this object */
-fun Any.toConfigurableFx(): Configurable<*> = forEachJavaFXProperty(this).map { (p, name, _, _, type) -> Config.forValue<Any?>(VType(type), name, p()) }.toList().toListConfigurable()
+fun Any.toConfigurableFx(): Configurable<*> = forEachJavaFXProperty(this)
+   .filter { !it.type.isSubtypeOf<EventHandler<*>>() }
+   .map { (p, name, _, _, type) -> Config.forValue<Any?>(VType(type), name, p()) }
+   .toList().toListConfigurable()
 
 /** @return configurable wrapping this list */
 fun <T> Collection<Config<out T>>.toListConfigurable() = ListConfigurable.heterogeneous(this)

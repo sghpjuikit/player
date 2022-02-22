@@ -5,6 +5,7 @@ import javafx.css.StyleConverter.getSizeConverter
 import javafx.css.StyleableObjectProperty
 import javafx.geometry.Pos
 import javafx.scene.control.Control
+import sp.it.pl.main.Double01
 import sp.it.util.access.StyleableCompanion
 import sp.it.util.access.V
 import sp.it.util.access.sv
@@ -14,13 +15,13 @@ import sp.it.util.functional.asIs
 import sp.it.util.math.clip
 
 /** A control for allowing users to provide a rating as 0-1 double. */
-class Rating @JvmOverloads constructor(initialRating: Double? = null): Control() {
+class Rating(initialRating: Double? = null): Control() {
 
    /** Whether the value can be changed by user. */
    val editable = v(true)
    /** Rating value in 0-1. Value will be clipped to range. Default 0. */
-   val rating = object: V<Double?>(initialRating) {
-      override fun set(nv: Double?) {
+   val rating = object: V<Double01?>(initialRating) {
+      override fun set(nv: Double01?) {
          super.set(nv?.clip(0.0, 1.0))
       }
    }
@@ -31,7 +32,7 @@ class Rating @JvmOverloads constructor(initialRating: Double? = null): Control()
    /** If true this allows for users to set a rating as a floating point value in number of icons. */
    val partialRating: StyleableObjectProperty<Boolean> by sv(PARTIAL)
    /** Rating value handler called when user changes the value */
-   var onRatingEdited: (Double?) -> Unit = {}
+   var onRatingEdited: (Double01?) -> Unit = {}
 
    init {
       styleClass += "rating"

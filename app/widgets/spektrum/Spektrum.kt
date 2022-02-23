@@ -12,7 +12,6 @@ import java.util.Objects
 import java.util.Queue
 import java.util.TreeSet
 import java.util.concurrent.locks.ReentrantLock
-import java.util.stream.IntStream
 import javafx.scene.canvas.Canvas
 import javafx.scene.paint.Color
 import javax.sound.sampled.AudioFormat
@@ -31,11 +30,11 @@ import kotlin.math.sqrt
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.AUDIO
-import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconMD
+import sp.it.pl.main.WidgetTags.AUDIO
+import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.animation.Loop
 import sp.it.util.conf.EditMode.NONE
@@ -60,6 +59,12 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.lay
 import sp.it.util.units.version
 import sp.it.util.units.year
+import spektrum.OctaveGenerator.getHighLimit
+import spektrum.OctaveGenerator.getLowLimit
+import spektrum.SmoothnessType.EMA
+import spektrum.SmoothnessType.SMA
+import spektrum.SmoothnessType.WMA
+import spektrum.Spektrum.BarPos.CIRCLE_MIDDLE
 import spektrum.WeightWindow.dBZ
 
 class Spektrum(widget: Widget): SimpleController(widget) {
@@ -81,42 +86,42 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       .def(name = "Audio buffer size", info = "")
    val bufferOverlap by cv(4976).between(0, 23744).attach { audioEngine.restartOnNewThread() }
       .def(name = "Audio buffer overlap", info = "")
-   val zeroPadding by cv(0).between(0, 12256)
-      .def(name = "Audio fft zero padding", info = "")
    val maxLevel by cv("RMS").values(listOf("RMS", "Peak"))
       .def(name = "Signal max level", info = "")
    var weight by c(dBZ)
       .def(name = "Signal weighting", info = "")
-   val signalAmplification by cv(138).between(0, 250)
+   val signalAmplification by cv(100).between(0, 150)
       .def(name = "Signal amplification (factor)", info = "")
-   val signalThreshold by cv(-42).between(-90, 0)
+   val signalThreshold by cv(-28).between(-50, 0)
       .def(name = "Signal threshold (db)", info = "")
 
-   var frequencyStart by c(35).between(0, 24000)
+   var frequencyStart by c(39).between(0, 24000)
       .def(name = "Frequency start", info = "")
    var frequencyCenter by c(1000).between(0, 24000)
       .def(name = "Frequency center", info = "")
-   var frequencyEnd by c(17000).between(0, 24000)
+   var frequencyEnd by c(16001).between(0, 24000)
       .def(name = "Frequency end", info = "")
-   var octave by c(25).between(0, 48)
+   var octave by c(6).between(1, 24)
       .def(name = "Octave (1/n)", info = "")
    var resolutionHighQuality by c(false)
       .def(name = "Frequency precise resolution", info = "")
 
-   val pixelsPerSecondDecay by cv(250).between(0, 2000)
-      .def(name = "Animation decay (pixels/s)", info = "")
-   val accelerationFactor by cv(10).between(0, 50)
+   val millisToZero by cv(400).between(0, 1000)
+      .def(name = "Animation decay (ms to zero)", info = "")
+   val accelerationFactor by cv(5).between(0, 30)
       .def(name = "Animation decay acceleration (1/n)", info = "")
-   val timeFilterSize by cv(2).between(0, 100)
+   val timeFilterSize by cv(3).between(0, 10)
       .def(name = "Animation smoothness", info = "")
+   val smoothnessType by cv(WMA)
+      .def(name = "Animation smoothness type", info = "")
 
-   val barMinHeight by cv(3.0).min(0.0)
+   val barMinHeight by cv(2.0).min(0.0)
       .def(name = "Bar min height", info = "")
    val barMaxHeight by cv(750.0).min(0.0)
       .def(name = "Bar max height", info = "")
    val barGap       by cv(8).min(0)
       .def(name = "Bar gap", info = "")
-   val barAlignment by cv(BarPos.CIRCLE_MIDDLE)
+   val barAlignment by cv(CIRCLE_MIDDLE)
       .def(name = "Bar alignment", info = "")
 
    val spectralColorPosition by cv(180).between(0, 360)
@@ -195,7 +200,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          gc.save()
          frequencyBarList.forEachIndexed { i, bar ->
             val barH = when (settings.barAlignment.value) {
-               BarPos.CIRCLE_IN, BarPos.CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> bar.height*min(h, w)/2.0/settings.barMaxHeight.value
+               BarPos.CIRCLE_IN, CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> bar.height*min(h, w)/2.0/settings.barMaxHeight.value
                else -> bar.height
             }
             gc.fill = bar.color
@@ -204,7 +209,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                BarPos.CENTER -> gc.fillRect(i*barW, (h-barH)/2, (barW-settings.barGap.value) max 1.0, barH)
                BarPos.BOTTOM -> gc.fillRect(i*barW, h-barH, (barW-settings.barGap.value) max 1.0, barH)
                BarPos.TOP -> gc.fillRect(i*(barW+settings.barGap.value), 0.0, barW, barH)
-               BarPos.CIRCLE_IN, BarPos.CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> {
+               BarPos.CIRCLE_IN, CIRCLE_MIDDLE, BarPos.CIRCLE_OUT -> {
                   gc.lineWidth = (barW - settings.barGap.value) max 1.0
                   val max = min(h, w)/4.0*1.5 + (if (settings.barAlignment.value==BarPos.CIRCLE_IN) 0.0 else barH/4.0)
                   val min = min(h, w)/4.0*1.5 - (if (settings.barAlignment.value==BarPos.CIRCLE_OUT) 0.0 else barH/8.0)
@@ -273,8 +278,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    class FrequencyBar(var hz: Double, var height: Double, var color: Color)
 
    /**
-    * This class holds state information regarding to:
-    * - timeFiltering a.k.a smoothness
+    * This class holds state information regarding:
+    * - timeFiltering a.k.a. smoothness
     * - previous bar heights that are used in bad decay calculation
     */
    class FrequencyBarsFFTService(settings: Spektrum): FFTListener {
@@ -284,9 +289,13 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       // the hzBins and the amplitudes come in pairs and access to them needs to be synchronized
       private val lock = ReentrantLock(true)
 
-      // all of the instances have the same input from the audio dispatcher
+      // all the instances have the same input from the audio dispatcher
       private var hzBins: DoubleArray? = null
       private var amplitudes: DoubleArray? = null
+
+      private var hzBinsOld: DoubleArray? = null
+      private var amplitudesOld: DoubleArray? = null
+
       private val fftTimeFilter = FFTTimeFilter(settings)
       private val barsHeightCalculator = BarsHeightCalculator(settings)
 
@@ -294,7 +303,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          try {
             lock.lock()
             this.hzBins = hzBins
-            amplitudes = normalizedAmplitudes
+            this.amplitudes = normalizedAmplitudes
          } finally {
             lock.unlock()
          }
@@ -303,25 +312,33 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       // return empty array
       val frequencyBarList: List<FrequencyBar>
          get() {
-            val returnBinz: DoubleArray?
+            val returnBins: DoubleArray?
             var returnAmplitudes: DoubleArray?
+
             try {
                lock.lock()
-               returnBinz = hzBins
-               returnAmplitudes = amplitudes
+               if (hzBins==null) {
+                  returnBins = hzBinsOld
+                  returnAmplitudes = amplitudesOld
+               } else {
+                  returnBins = hzBins
+                  returnAmplitudes = amplitudes
+                  hzBinsOld = hzBins
+                  amplitudesOld = amplitudes
+                  hzBins = null
+                  amplitudes = null
+               }
             } finally {
                lock.unlock()
             }
-            val frequencyBars: List<FrequencyBar>
-            if (returnAmplitudes!=null) {
+
+            return if (returnAmplitudes!=null) {
                returnAmplitudes = fftTimeFilter.filter(returnAmplitudes)
                returnAmplitudes = barsHeightCalculator.processAmplitudes(returnAmplitudes)
-               frequencyBars = createFrequencyBars(returnBinz!!, returnAmplitudes!!)
+               createFrequencyBars(returnBins!!, returnAmplitudes!!)
             } else {
-               // return empty array
-               frequencyBars = ArrayList()
+               ArrayList()
             }
-            return frequencyBars
          }
 
       fun createFrequencyBars(binsHz: DoubleArray, amplitudes: DoubleArray): List<FrequencyBar> {
@@ -393,6 +410,7 @@ class TarsosAudioEngine(settings: Spektrum) {
          dispatcher?.stop()
          audioThread?.join((1*1000).toLong()) // wait for audio dispatcher to finish // TODO: remove?
       } catch (e: InterruptedException) {
+         // ignore
       }
 
       mixerRef.ifNotNull {
@@ -519,103 +537,66 @@ interface FFTListener {
    fun frame(hzBins: DoubleArray?, normalizedAmplitudes: DoubleArray?)
 }
 
+@Suppress("UseWithIndex")
 class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener>, settings: Spektrum): AudioProcessor {
    private val audioFormat = audioFormat
    private val listenerList = listenerList
    private val settings = settings
    private val interpolator: UnivariateInterpolator = SplineInterpolator()
    private val windowFunction: WindowFunction = HannWindow()
-   private val windowCorrectionFactor = 2.00
+   private val windowCorrectionFactor = 2.0
+
    override fun process(audioEvent: AudioEvent): Boolean {
-      val interpolation = settings.zeroPadding.value
       val audioFloatBuffer = audioEvent.floatBuffer
 
       // the buffer must be copied into another array for processing otherwise strange behaviour
       // the audioFloatBuffer buffer is reused because of the offset
       // modifying it will create strange issues
-      val transformBuffer = FloatArray(audioFloatBuffer.size + interpolation)
+      val transformBuffer = FloatArray(audioFloatBuffer.size)
       System.arraycopy(audioFloatBuffer, 0, transformBuffer, 0, audioFloatBuffer.size)
       val amplitudes = FloatArray(transformBuffer.size/2)
+
       val fft = FFT(transformBuffer.size, windowFunction)
       fft.forwardTransform(transformBuffer)
       fft.modulus(transformBuffer, amplitudes)
-      val bins = IntStream.range(0, transformBuffer.size/2).mapToDouble { i: Int -> fft.binToHz(i, audioFormat.sampleRate) }.toArray()
-      val doublesAmplitudes = IntStream.range(0, amplitudes.size).mapToDouble { value: Int -> amplitudes[value].toDouble() }.toArray()
-      val frequencyBins: DoubleArray
-      val frequencyAmplitudes: DoubleArray
 
-      if (settings.octave>0) {
-         val octaveFrequencies = OctaveGenerator.getOctaveFrequencies(settings.frequencyCenter.toDouble(), settings.octave.toDouble(), settings.frequencyStart.toDouble(), settings.frequencyEnd.toDouble())
-         frequencyBins = DoubleArray(octaveFrequencies.size)
-         frequencyAmplitudes = DoubleArray(octaveFrequencies.size)
+      val bins = DoubleArray(transformBuffer.size/2) { fft.binToHz(it, audioFormat.sampleRate) }
+      val doublesAmplitudesFactor = 1.0/amplitudes.size*windowCorrectionFactor   // /amplitudes.size normalizes (n/2), *windowCorrectionFactor applies window correction
+      val doublesAmplitudes = DoubleArray(amplitudes.size) { amplitudes[it].toDouble()*doublesAmplitudesFactor }
 
-         // calculate the frequency step
-         // lowLimit/highLimit this is the resolution for interpolating and summing bins
-         val lowLimit = OctaveGenerator.getLowLimit(octaveFrequencies[0], settings.octave.toDouble())
-         var step = 2.0.pow(1.0/settings.octave)
+      val octaveFrequencies = OctaveGenerator.getOctaveFrequencies(settings.frequencyCenter.toDouble(), settings.octave.toDouble(), settings.frequencyStart.toDouble(), settings.frequencyEnd.toDouble())
+      val frequencyBins = DoubleArray(octaveFrequencies.size)
+      val frequencyAmplitudes = DoubleArray(octaveFrequencies.size)
 
-         // improve resolution at the cost of performance
-         if (settings.resolutionHighQuality)
-            step /= (settings.octave/2.0)
+      val interpolateFunction = interpolator.interpolate(bins, doublesAmplitudes)
 
-         // k is the frequency index
+      var m = 0 // m is the position in the frequency vectors
+      for (i in octaveFrequencies.indices) {
+         // get frequency bin
+         frequencyBins[m] = octaveFrequencies[i]
+
+         val highLimit = getHighLimit(octaveFrequencies[i], settings.octave.toDouble())
+         val lowLimit = getLowLimit(octaveFrequencies[i], settings.octave.toDouble())
+         val step = 1.0
          var k = lowLimit
 
-         // m is the position in the frequency vectors
-
-         // set up the interpolator
-         val interpolateFunction = interpolator.interpolate(bins, doublesAmplitudes)
-         octaveFrequencies.indices.forEach { i ->
-            frequencyBins[i] = octaveFrequencies[i]
-            val highLimit = OctaveGenerator.getHighLimit(octaveFrequencies[i], settings.octave.toDouble())
-
-            // group bins together
-            while (k<highLimit) {
-               var amplitude = interpolateFunction.value(k)
-               amplitude /= doublesAmplitudes.size // normalize (n/2)
-               amplitude *= windowCorrectionFactor // apply window correction
-               frequencyAmplitudes[i] = frequencyAmplitudes[i] + amplitude.pow(2.0) // sum up the "normalized window corrected" energy
-               k += step
-
-               // reached upper limit
-               if (k>settings.frequencyEnd || k>bins[bins.size - 1]) {
-                  break
-               }
-            }
-            frequencyAmplitudes[i] = sqrt(frequencyAmplitudes[i]) // square root the energy
-            if (settings.maxLevel.value=="RMS") {
-               frequencyAmplitudes[i] = sqrt(frequencyAmplitudes[i].pow(2.0)/2) // calculate the RMS of the amplitude
-            }
-            frequencyAmplitudes[i] = 20*log10(frequencyAmplitudes[i]) // convert to logarithmic scale
-            frequencyAmplitudes[i] += settings.weight.calculateAmplitudeWight(frequencyBins[i]) // use weight to adjust the spectrum
+         // group amplitude together in frequency bin
+         while (k<highLimit) {
+            val amplitude = interpolateFunction.value(k)
+            frequencyAmplitudes[m] = frequencyAmplitudes[m] + amplitude.pow(2) // sum up the "normalized window corrected" energy
+            k += step
          }
-      } else {
-         var n = 0
-         for (i in bins.indices) {
-            val frequency = fft.binToHz(i, audioFormat.sampleRate)
-            if (settings.frequencyStart<=frequency && frequency<=settings.frequencyEnd) {
-               n++
-            } else if (frequency>settings.frequencyEnd) {
-               break
-            }
-         }
-         frequencyBins = DoubleArray(n)
-         frequencyAmplitudes = DoubleArray(n)
-         bins.indices.forEach { i ->
-            val frequency = fft.binToHz(i, audioFormat.sampleRate)
-            if (settings.frequencyStart<=frequency && frequency<=settings.frequencyEnd) {
-               frequencyBins[i] = frequency
-               frequencyAmplitudes[i] = doublesAmplitudes[i]
-               frequencyAmplitudes[i] = frequencyAmplitudes[i]/doublesAmplitudes.size // normalize (n/2)
-               frequencyAmplitudes[i] = frequencyAmplitudes[i]*windowCorrectionFactor // apply window correction
-               if (settings.maxLevel.value=="RMS") {
-                  frequencyAmplitudes[i] = sqrt(frequencyAmplitudes[i].pow(2.0)/2) // calculate the RMS of the amplitude
-               }
-               frequencyAmplitudes[i] = 20*log10(frequencyAmplitudes[i]) // convert to logarithmic scale
-               frequencyAmplitudes[i] += settings.weight.calculateAmplitudeWight(frequencyBins[i]) // use weight to adjust the spectrum
-            }
-         }
+
+         frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m]) // square root the energy
+         frequencyAmplitudes[m] = if (settings.maxLevel.equals("RMS")) sqrt(frequencyAmplitudes[m].pow(2)/2) else frequencyAmplitudes[m] // calculate the RMS of the amplitude
+         frequencyAmplitudes[m] = 20*log10(frequencyAmplitudes[m]) // convert to logarithmic scale
+
+         val weightWindow = settings.weight.calculateAmplitudeWight
+         frequencyAmplitudes[m] = frequencyAmplitudes[m] + weightWindow(frequencyBins[m]) // use weight to adjust the spectrum
+
+         m++
       }
+
       listenerList.forEach { listener: FFTListener -> listener.frame(frequencyBins, frequencyAmplitudes) }
       return true
    }
@@ -625,7 +606,7 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
 
 class FFTTimeFilter(settings: Spektrum) {
    private val settings = settings
-   private val historyAmps: Queue<DoubleArray?> = LinkedList()
+   private val historyAmps: Queue<DoubleArray> = LinkedList()
 
    fun filter(amps: DoubleArray): DoubleArray {
       val timeFilterSize = settings.timeFilterSize.value
@@ -644,13 +625,53 @@ class FFTTimeFilter(settings: Spektrum) {
       }
       historyAmps.poll()
       historyAmps.offer(amps)
+      return when (settings.smoothnessType.value) {
+         WMA -> filterWma(amps)
+         EMA -> filterEma(amps)
+         SMA -> filterSma(amps)
+      }
+   }
+
+   private fun filterSma(amps: DoubleArray): DoubleArray {
       val filtered = DoubleArray(amps.size)
       for (i in amps.indices) {
          var sumTimeFilteredAmp = 0.0
          for (currentHistoryAmps in historyAmps) {
-            sumTimeFilteredAmp += currentHistoryAmps!![i]
+            sumTimeFilteredAmp += currentHistoryAmps[i]
          }
          filtered[i] = sumTimeFilteredAmp/historyAmps.size
+      }
+      return filtered
+   }
+
+   private fun filterEma(amps: DoubleArray): DoubleArray {
+      val filtered = DoubleArray(amps.size)
+      for (i in amps.indices) {
+         var nominator = 0.0
+         var denominator = 0.0
+         var exp = 1
+         for (currentHistoryAmps in historyAmps) {
+            nominator += currentHistoryAmps[i]*exp.toDouble().pow(exp.toDouble())
+            denominator += exp.toDouble().pow(exp.toDouble())
+            exp++
+         }
+         filtered[i] = nominator/denominator
+      }
+      return filtered
+   }
+
+   private fun filterWma(amps: DoubleArray): DoubleArray {
+      val filtered = DoubleArray(amps.size)
+      for (i in amps.indices) {
+         var nominator = 0.0
+         var denominator = 0.0
+         var weight = 1
+         for (currentHistoryAmps in historyAmps) {
+            nominator += currentHistoryAmps[i]*weight
+            denominator += weight
+            weight++
+         }
+         filtered[i] = nominator/denominator
       }
       return filtered
    }
@@ -660,84 +681,84 @@ class BarsHeightCalculator(settings: Spektrum) {
    private val settings = settings
    private var oldTime = System.nanoTime()
    private var oldAmplitudes: DoubleArray? = null
-   private lateinit var oldDecayFactor: DoubleArray
+   private lateinit var oldDecayDecelerationSize: DoubleArray
 
    fun processAmplitudes(newAmplitudes: DoubleArray): DoubleArray? {
       // init on first run or if number of newAmplitudes has changed
       if (oldAmplitudes==null || oldAmplitudes!!.size!=newAmplitudes.size) {
          oldAmplitudes = newAmplitudes
-         oldDecayFactor = DoubleArray(newAmplitudes.size)
+         oldDecayDecelerationSize = DoubleArray(newAmplitudes.size)
          return convertDbToPixels(newAmplitudes)
       }
-      val pixelsPerSecondDecay = settings.pixelsPerSecondDecay.value
-      val secondsPassed = secondsPassed
+      val millisToZero = settings.millisToZero.value
+      val millisPassed = millisPassed
+
       val pixelAmplitudes = convertDbToPixels(newAmplitudes)
-      oldAmplitudes = decayPixelsAmplitudes(oldAmplitudes!!, pixelAmplitudes, pixelsPerSecondDecay.toDouble(), secondsPassed)
+      oldAmplitudes = decayPixelsAmplitudes(oldAmplitudes!!, pixelAmplitudes, millisToZero.toDouble(), millisPassed)
       return oldAmplitudes
    }
 
    private fun convertDbToPixels(dbAmplitude: DoubleArray): DoubleArray {
-      val signalThreshold = settings.signalThreshold.value
-      val maxBarHeight = settings.barMaxHeight.value
-      val signalAmplification = settings.signalAmplification.value
-      val minBarHeight = settings.barMinHeight.value
+      val signalThreshold: Int = settings.signalThreshold.value
+      val maxBarHeight: Double = settings.barMaxHeight.value
+      val signalAmplification: Int = settings.signalAmplification.value
+
       val pixelsAmplitude = DoubleArray(dbAmplitude.size)
+
       for (i in pixelsAmplitude.indices) {
          val maxHeight = abs(signalThreshold).toDouble()
          var newHeight = dbAmplitude[i]
          newHeight += abs(signalThreshold)
-         newHeight *= (signalAmplification/100.0)
+         // normalizing the bar to the height of the window
          newHeight = newHeight*maxBarHeight/maxHeight
-         //            newHeight = Math.round(newHeight);
-
-         // apply limits
-         if (newHeight>maxBarHeight) {
-            // ceiling hit
-            newHeight = maxBarHeight
-         } else if (newHeight<minBarHeight) {
-            // below floor
-            newHeight = minBarHeight
-         }
+         newHeight *= (signalAmplification/100.0)
          pixelsAmplitude[i] = newHeight
       }
+
       return pixelsAmplitude
    }
 
-   private fun decayPixelsAmplitudes(oldAmplitudes: DoubleArray, newAmplitudes: DoubleArray, pixelsPerSecond: Double, secondsPassed: Double): DoubleArray {
+   private fun decayPixelsAmplitudes(oldAmplitudes: DoubleArray, newAmplitudes: DoubleArray, millisToZero: Double, secondsPassed: Double): DoubleArray {
       val processedAmplitudes = DoubleArray(newAmplitudes.size)
+      val maxBarHeight: Double = settings.barMaxHeight.value
+      val minBarHeight: Double = settings.barMinHeight.value
+
       for (i in processedAmplitudes.indices) {
          val oldHeight = oldAmplitudes[i]
          val newHeight = newAmplitudes[i]
-         if (newHeight>=oldHeight) {
-            processedAmplitudes[i] = newHeight
-            oldDecayFactor[i] = 0.0
+         val decayRatePixelsPerMilli = maxBarHeight/millisToZero
+         val dbPerSecondDecay = decayRatePixelsPerMilli*secondsPassed
+         if (newHeight<oldHeight - dbPerSecondDecay) {
+            var decaySize = dbPerSecondDecay
+            val accelerationStep: Double = 1.0/settings.accelerationFactor.value*decaySize
+            if (oldDecayDecelerationSize[i] + accelerationStep<dbPerSecondDecay) {
+               oldDecayDecelerationSize[i] = oldDecayDecelerationSize[i] + accelerationStep
+               decaySize = oldDecayDecelerationSize[i]
+            }
+            processedAmplitudes[i] = oldHeight - decaySize
          } else {
-            //                double dbPerSecondDecay = (pixelsPerSecond + (0.01 * Math.pow(1.15, i) - 0.01)) * secondsPassed; // experiment with logarithmic function
-            var dbPerSecondDecay = pixelsPerSecond*secondsPassed
-            if (settings.accelerationFactor.value>0 && oldDecayFactor[i]<1) {
-               val accelerationStep = 1.0/settings.accelerationFactor.value
-               oldDecayFactor[i] = oldDecayFactor[i] + accelerationStep
-               dbPerSecondDecay *= oldDecayFactor[i]
-            }
-            if (newHeight>oldHeight - dbPerSecondDecay) {
-               processedAmplitudes[i] = newHeight
-               oldDecayFactor[i] = 0.0
-            } else {
-               processedAmplitudes[i] = oldHeight - dbPerSecondDecay
-            }
+            processedAmplitudes[i] = newHeight
+            oldDecayDecelerationSize[i] = 0.0
+         }
+
+         // apply limits
+         if (processedAmplitudes[i]<minBarHeight) {
+            // below floor
+            processedAmplitudes[i] = minBarHeight
          }
       }
+
       return processedAmplitudes
    }
 
    // convert nano to ms to seconds
-   private val secondsPassed: Double
+   private val millisPassed: Double
       get() {
          val newTime = System.nanoTime()
          val deltaTime = newTime - oldTime
          oldTime = newTime
-         // convert nano to ms to seconds
-         return deltaTime/1000000.0/1000.0
+         // convert nano to ms
+         return deltaTime/1000000.0
       }
 }
 
@@ -767,3 +788,5 @@ enum class WeightWindow(val calculateAmplitudeWight: (Double) -> Double) {
       0.0
    })
 }
+
+enum class SmoothnessType { SMA, WMA, EMA }

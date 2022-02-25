@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. Format base
   - Separator is more sleek and less distracting
   - **ContainerSwitch** tab gap respects tab index [the center tab always covers entire window]
   - Check menu check icons use more compact icons
+  - Check menu check icons use hover effect on item hover
   - Use bold font for some selections
   - Window content clipping respects radius
 - Improve popup content complexity [use Layout instead of ContainerSwitch]
@@ -32,6 +33,11 @@ All notable changes to this project will be documented in this file. Format base
   - Implement **Mouse events** testing suite
   - Implement **CssBorders** testing suite
   - Improve layout & UX
+- Improve widget **Spektrum**
+  - Implement better smoothing
+- Improve widget **Function Viewer**
+  - Handle very large numbers correctly [Use `BigDecimal` everywhere]
+  - Implement function area highlighting
 - Improve `GridView` context menus
 - Fix `ProgressBar` not hiding after showing 0/0 progress
 - Fix importing songs to library not working properly
@@ -52,7 +58,6 @@ Focusing, hovering, selecting from the list of content choices using both mouse 
 
 There are two new skins: **White Leaf** and **Dark Leaf**.
 These are light and dark green themes easy on the eyes and with good contrast.
-
 There are two new widgets: **Song Info (small)** and **Album Info (small)**.
 These display basic song and song album information. The former has been used in the past as custom graphics for **Now Playing** notification.
 This change is following the trend of many small widgets instead of few complicated ones. This gives more power to the user.
@@ -67,6 +72,15 @@ The icon allows controlling the playback from the **Playlist** widget - definite
 In the future, there will probably be more such columns and with automatic width resizing and styling support.
 
 Application's tables and other table-like components have also become more usable and elegant.
+
+The **Function Viewer** widget has full `BigDecimal` support now.
+This was not easy, different library for expression evaluation was necessary and using `BigDecimal`s properly is difficult.
+There were lots of arithmetic errors related to precision, resulting in incorrect values, bad performance, exceptions and even infinite loops.
+These are all solved and the plotter not supports unlimited zooming and precision.
+The graph also highlights area under the function, which is quite helpful.
+
+The **Spektrum** widget has also become prettier, as it uses more sophisticated smoothing, which is also configurable.
+These changes have been applied from the original project the widget is based on.
 
 ## [3.1.0] 2022 02 07
 

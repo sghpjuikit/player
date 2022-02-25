@@ -1,4 +1,5 @@
 ## Currently considered
+- Rating skin change !work
 - Cache DeserializationFactory ComponentDb to avoid IO if file was not modified in the meantime
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
@@ -76,8 +77,6 @@
 - Support task hierarchy, i.e., task tree  
   Challenging issue
 - Improve `GridView` to retain position on column change  
-- Implement **Song album detail** widget  
-  Needs well-formed album identity, but so far this application has no such concept
 - Remove `Metadata` comment reading workaround in `Metadata.loadComment`  
   Currently, due to a bug in **Jaudiotagger**, `CUSTOM` field is also considered
 - Improve **Converter** widget

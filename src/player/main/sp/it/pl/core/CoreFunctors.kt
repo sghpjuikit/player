@@ -196,7 +196,12 @@ object CoreFunctors: Core {
          add("To Bin", type<Int>(), S) { "0b" + Integer.toBinaryString(it) }
          add("To Oct", type<Int>(), S) { "0" + Integer.toOctalString(it) }
          add("To Hex", type<Int>(), S) { "0x" + Integer.toHexString(it) }
-         add("Function", type<Number>(), type<Double>(), p<StrExF>(StrExF("x"))) { it, f -> runTry { f(it.toDouble()) }.getOrSupply { Double.NaN } }
+         add("Function", type<Number>(), type<BigDecimal>(), p<StrExF>(StrExF("x"))) { it, f ->
+            runTry {
+               val x = when(it) { is BigDecimal -> it; is BigInteger -> BigDecimal(it); else -> it.toDouble().toBigDecimal() }
+               f(x)
+            }.getOrSupply { Double.NaN }
+         }
 
          add("To Char16", type<Int>(), type<Char16?>()) { runTry { Char(it)}.orNull() }
          add("To Char32", type<Int>(), type<Char32?>()) { Char32(it) }

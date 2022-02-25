@@ -5,6 +5,7 @@ import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.lang.reflect.Modifier
 import javafx.scene.Node
+import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Menu
 import javafx.scene.input.KeyCode.A
@@ -99,6 +100,8 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
+import sp.it.util.reactive.sync1IfNonNull
+import sp.it.util.reactive.syncNonNullIntoWhile
 import sp.it.util.system.browse
 import sp.it.util.system.edit
 import sp.it.util.system.open
@@ -517,6 +520,12 @@ object CoreMenus: Core {
       block()
    }
 
-   private inline fun GlyphIcons.toCmUi(block: (Icon).() -> Unit = {}) = Icon(this).apply(block)
+   private inline fun GlyphIcons.toCmUi(block: (Icon).() -> Unit = {}) = Icon(this).apply(block).apply {
+      parentProperty().syncNonNullIntoWhile(Parent::sceneProperty) {
+         it.windowProperty().sync1IfNonNull {
+            focusOwner.value = parent.parent
+         }
+      }
+   }
 
 }

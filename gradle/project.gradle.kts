@@ -91,7 +91,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "19-ea+2"
+         val version = "19-ea+3"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -125,6 +125,7 @@ allprojects {
       "Misc" group {
          implementation("com.github.f4b6a3", "uuid-creator", "4.4.1")
          implementation("net.objecthunter", "exp4j", "0.4.8")
+         implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt", "clikt", "2.1.0")
          implementation("org.apache.commons", "commons-text", "1.9")
@@ -135,7 +136,7 @@ allprojects {
       "Image" group {
          implementation("com.github.umjammer", "javavp8decoder", "d51fe8f")
          implementation("com.drewnoakes", "metadata-extractor", "2.16.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.8.1")
+         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.8.2")
          imageIO("bmp")
          imageIO("clippath")
          imageIO("hdr")

@@ -3,6 +3,7 @@ package node
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicInteger
 import javafx.beans.value.WritableValue
+import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
 import javafx.scene.input.MouseButton.PRIMARY
@@ -194,7 +195,7 @@ class Node(widget: Widget): SimpleController(widget) {
       fun Node?.javaFxProperties(): Sequence<NodeInput> = when(this) {
          null -> sequenceOf()
          else -> forEachJavaFXProperty(this)
-            .filter { !it.isReadOnly && !it.type.isSubtypeOf<javafx.event.EventHandler<*>>() }
+            .filter { !it.isReadOnly && !it.type.isSubtypeOf<EventHandler<*>>() }
             .map { NodeInput(it.name, it.declaringClass, { it.observable().asIs() }, VType<Any?>(it.type)) }
       }
 

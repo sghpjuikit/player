@@ -259,8 +259,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                         angle += 0.001
                         x = wh/2 + wh/20*cos(angle)
                         y = wh/2 + wh/20*sin(angle)
-                        x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                        y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                      }
                   }
                }
@@ -275,8 +273,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                         angle -= 0.002
                         x = wh/2 + wh/10*cos(angle)
                         y = wh/2 + wh/10*sin(angle)
-                        x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                        y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                      }
                   }
                }
@@ -292,8 +288,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                         angle -= 0.002
                         x = wh - wh/6 + wh/8*cos(angle)
                         y = wh/6 + wh/8*sin(angle)
-                        x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                        y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                      }
                   }
                }
@@ -304,8 +298,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                   moving = { _, _ ->
                      x = wh - wh/6
                      y = wh/6
-                     x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                     y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                   }
                }
          }
@@ -319,8 +311,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                         angle -= 0.002
                         x = wh/2 + wh/4*cos(angle)
                         y = wh/2 + wh/4*sin(angle)
-                        x += randOf(-1, 1)*randMN(0.0005, 0.00051)
-                        y += randOf(-1, 1)*randMN(0.0005, 0.00051)
                      }
                   }
                }
@@ -485,8 +475,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       fun randBoolean(): Boolean = rand.nextBoolean()
 
       fun rand0N(n: Double): Double = rand.nextDouble()*n
-
-      fun randMN(m: Double, n: Double): Double = m + rand0N(n - m)
 
       fun <T> randOf(a: T, b: T): T = if (randBoolean()) a else b
 

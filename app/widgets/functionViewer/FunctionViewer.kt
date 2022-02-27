@@ -22,6 +22,7 @@ import javafx.scene.paint.Color.AQUA
 import javafx.scene.paint.CycleMethod.NO_CYCLE
 import javafx.scene.paint.LinearGradient
 import javafx.scene.paint.Stop
+import javafx.scene.shape.Rectangle
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import mu.KLogging
@@ -146,6 +147,9 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
 
       root.setMinPrefMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE)
       root.lay += plot
+      root.lay += plot.color
+      root.lay += plot.colorF
+      root.lay += plot.colorFg
       root.lay += stackPane {
          isManaged = false
          root.widthProperty() attach { resizeRelocate(0.0, 0.0, root.width, root.height) }
@@ -206,6 +210,9 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
       var ignorePlotting = false
       val isInvalidRange get() = xMin.value>=xMax.value || yMin.value>=yMax.value
       val gradient = LinearGradient(0.0, 1.0, 0.0, 0.0, true, NO_CYCLE, Stop(1.0, AQUA.alpha(0.6)), Stop(0.0, AQUA.alpha(0.2)))
+      val color = Rectangle().apply { isVisible = false; style = "-fx-fill: -skin-def-font-color-hover;" }
+      val colorF = Rectangle().apply { isVisible = false; style = "-fx-fill: -fx-focus-color;" }
+      val colorFg = Rectangle().apply { isVisible = false; style = "-fx-fill: linear-gradient(from 0% 100% to 0% 0%, transparent 0%, -fx-focus-color 60%, -fx-focus-color 20%);" }
 
       init {
          setMinSize(0.0, 0.0)
@@ -304,7 +311,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
                   }
                   if (!wasOutside || !isOutside) {
                      pathGc.globalAlpha = 1.0
-                     pathGc.stroke = Color.ORANGE
+                     pathGc.stroke = colorF.fill
                      pathGc.lineWidth = 2.0
                      pathGc.fill = Color.TRANSPARENT
                      pathGc.setLineDashes()
@@ -313,7 +320,7 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
                } else {
                   if (!wasOutside || !isOutside) {
                      pathGc.globalAlpha = 1.0
-                     pathGc.stroke = Color.ORANGE
+                     pathGc.stroke = colorF.fill
                      pathGc.lineWidth = 2.0
                      pathGc.fill = Color.TRANSPARENT
                      pathGc.setLineDashes()
@@ -348,20 +355,20 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
             pathXs += moveTo.x; pathYs += pathRoot.height
 
             pathGc.globalAlpha = 0.1
-            pathGc.fill = gradient
+            pathGc.fill = colorFg.fill
             pathGc.fillPolygon(pathXs.toDoubleArray(), pathYs.toDoubleArray(), pathXs.size)
          }
 
          // draw axes
          if (0.0.big in xMin..xMax) {
-            coordGc.stroke = AQUA
+            coordGc.stroke = color.fill
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 2.0
             coordGc.setLineDashes(2.0)
             coordGc.strokeLine(mapX(0.0.big).precise, 0.0, mapX(0.0.big).precise, height.precise)
          }
          if (0.0.big in yMin..yMax) {
-            coordGc.stroke = AQUA
+            coordGc.stroke = color.fill
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 2.0
             coordGc.setLineDashes(2.0)
@@ -369,14 +376,14 @@ class FunctionViewer(widget: Widget): SimpleController(widget) {
          }
 
          (xMin..xMax).axes().forEach { axe ->
-            coordGc.stroke = AQUA
+            coordGc.stroke = color.fill
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 1.0
             coordGc.setLineDashes(4.0)
             coordGc.strokeLine(mapX(axe).precise, 0.0, mapX(axe).precise, height.precise)
          }
          (yMin..yMax).axes().forEach { axe ->
-            coordGc.stroke = AQUA
+            coordGc.stroke = color.fill
             coordGc.globalAlpha = 0.4
             coordGc.lineWidth = 1.0
             coordGc.setLineDashes(4.0)

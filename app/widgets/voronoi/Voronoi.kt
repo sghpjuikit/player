@@ -83,7 +83,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    private class RenderNode: Canvas() {
       val loop: Loop = Loop({ _ -> loop() })
       val gc = graphicsContext2D!!
-      val color = Rectangle().apply { isVisible = false }
+      val color = Rectangle().apply { isVisible = false; style = "-fx-fill: -skin-def-font-color-hover;" }
       var cells: List<Cell> = listOf()
       var draggedCell: P? = null   // null if none
       var selectedCell: P? = null  // null if none

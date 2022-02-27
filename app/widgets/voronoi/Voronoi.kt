@@ -298,6 +298,17 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                   }
                }
             }
+         cells += object: Cell(0.0, 0.0) {
+
+               init {
+                  moving = { _, _ ->
+                     x = wh - wh/6
+                     y = wh/6
+                     x += randOf(-1, 1)*randMN(0.0005, 0.00051)
+                     y += randOf(-1, 1)*randMN(0.0005, 0.00051)
+                  }
+               }
+         }
          cells += generateSequence(0.0) { a -> a + 2*PI/it.count }.take(it.count)
             .map { a ->
                object: Cell(0.0, 0.0) {

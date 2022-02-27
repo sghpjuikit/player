@@ -88,7 +88,6 @@ open class PopWindow {
    private val stage by lazy {
       stage(TRANSPARENT) {
          initOwner(APP.windowManager.createStageOwnerNoShow())
-         owner.initFixHide()
          initPopWindow(this@PopWindow)
          titleProperty() syncFrom this@PopWindow.title
          resizableProperty() syncFrom userResizable
@@ -295,14 +294,14 @@ open class PopWindow {
                window?.popWindowOwner = windowOwner
 
                fun initHideWithOwner() {
-                  if (windowOwner!=null) {
+                  if (windowOwner!=null && windowOwner!==UNFOCUSED_OWNER) {
                      windowOwner.onEventUp(WINDOW_HIDING) { if (isShowing) hideImmediately() } on tillHidden
                      windowOwner.onEventUp(WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on tillHidden
                   }
                }
 
                fun initZOrder() {
-                  if (windowOwner==null) {
+                  if (windowOwner==null || windowOwner===UNFOCUSED_OWNER) {
                      isAlwaysOnTop = true
                   } else {
                      windowOwner.focusedProperty() zip focusedProperty() attach { (a, b) -> stage.isAlwaysOnTop = a || b } on tillHiding
@@ -384,7 +383,6 @@ open class PopWindow {
    fun hideImmediately() {
       if (!isShowing) return
       tillHiding()
-      window.asIf<Stage>()?.owner?.hideFixed()
       window?.hide()
       window = null
       tillHidden()
@@ -408,10 +406,6 @@ open class PopWindow {
    }
 
    companion object {
-
-      fun WindowFx.initFixHide() = apply { onEventUp(WINDOW_SHOWING) { properties["wasShown"] = true } }
-
-      fun WindowFx.hideFixed() = apply { if (isShowing && properties["wasShown"]==true) hide() }
 
       fun WindowFx.initPopWindow(popup: PopWindow): Unit = properties.put("popWindow", popup).toUnit()
 

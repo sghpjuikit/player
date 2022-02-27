@@ -48,6 +48,7 @@ import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.deduplicateIds
 import sp.it.pl.layout.exportFxwl
 import sp.it.pl.main.APP
+import sp.it.pl.main.Actions
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
@@ -60,6 +61,7 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
 import sp.it.pl.ui.objects.window.dock.DockWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
 import sp.it.util.access.toggle
 import sp.it.util.access.v
@@ -186,9 +188,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** @return focused javafx window or window with focused popup or null if none focused */
    fun getFocusedFxWithChild(): WindowFx? = null
       ?: windows.find { it.focused.value }?.stage
-      ?: windowsFx.find { it.isFocused }?.let {
-         it.traverse { it.popWindowOwner ?: it.asIf<Stage>()?.owner }.firstOrNull()
+      ?: windowsFx.find { it.isFocused }?.takeIf { !it.isSearchWindow() }?.let {
+         it.traverse { it.popWindowOwner ?: it.asIf<Stage>()?.owner }.takeWhile { !it.isSearchWindow() }.firstOrNull()
       }
+
+   private fun WindowFx.isSearchWindow() = asPopWindow()?.properties?.get(Actions.APP_SEARCH) == Actions.APP_SEARCH
 
    /** @return focused window or [getMain] if none focused */
    fun getActive(): Window? = getFocused() ?: getMain()

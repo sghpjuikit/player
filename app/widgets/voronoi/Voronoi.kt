@@ -115,17 +115,18 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          if (w<=0 || h<=0) return
 
          loopId++
+         val seedMove = CellMoveSeed(w, h, w min h)
+         val seedGen = CellGeneratorSeed(w, h, pointCount)
 
          if (displayedCurrent!=displayedToBe || displayedPointCount!=pointCount) {
             displayedCurrent = displayedToBe
             displayedPointCount = pointCount
             displayedCurrent?.let {
-               cells = it.generator(CellGeneratorSeed(w, h, pointCount)).toList()
+               cells = it.generator(seedGen).toList()
             }
          }
-
          selectedCell = mousePos?.let { p -> cells.minByOrNull { it.distance(p) } }
-         cells.forEach { it.moving?.invoke(w, h) }
+         cells.forEach { it.moving?.invoke(seedMove) }
 
          draw()
       }
@@ -229,11 +230,8 @@ class Voronoi(widget: Widget): SimpleController(widget) {
       }
    }
 
-   data class CellGeneratorSeed(
-      val width: Double,
-      val height: Double,
-      val count: Int
-   )
+   data class CellGeneratorSeed(val width: Double, val height: Double, val count: Int)
+   data class CellMoveSeed(val w: Double, val h: Double, val wh: Double)
 
    enum class Highlighting {
       NONE,
@@ -246,7 +244,6 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          generateSequence { Cell.random(it.width, it.height, 0.5) }.take(it.count)
       }),
       CIRCLES({
-         val wh = it.width min it.height
          val cells = ArrayList<Cell>()
 
          cells += generateSequence(0.0) { it + 2*PI/11 }.take(11)
@@ -255,7 +252,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                   var angle = a
 
                   init {
-                     moving = { _, _ ->
+                     moving = {
                         angle += 0.001
                         x = wh/2 + wh/20*cos(angle)
                         y = wh/2 + wh/20*sin(angle)
@@ -269,7 +266,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                   var angle = a
 
                   init {
-                     moving = { _, _ ->
+                     moving = {
                         angle -= 0.002
                         x = wh/2 + wh/10*cos(angle)
                         y = wh/2 + wh/10*sin(angle)
@@ -284,7 +281,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                   var angle = a
 
                   init {
-                     moving = { _, _ ->
+                     moving = {
                         angle -= 0.002
                         x = wh - wh/6 + wh/8*cos(angle)
                         y = wh/6 + wh/8*sin(angle)
@@ -295,7 +292,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          cells += object: Cell(0.0, 0.0) {
 
                init {
-                  moving = { _, _ ->
+                  moving = {
                      x = wh - wh/6
                      y = wh/6
                   }
@@ -307,7 +304,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
                   var angle = a
 
                   init {
-                     moving = { _, _ ->
+                     moving = {
                         angle -= 0.002
                         x = wh/2 + wh/4*cos(angle)
                         y = wh/2 + wh/4*sin(angle)
@@ -317,7 +314,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
             }
 
          cells.forEach {
-            it.moving = it.moving ?: { w, h ->
+            it.moving = it.moving ?: {
                val x = it.x + it.dx
                val y = it.y + it.dy
                when {
@@ -431,12 +428,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
    open class Cell(x: Double, y: Double): P(x, y) {
       var dx = 0.0
       var dy = 0.0
-      var moving: ((Double, Double) -> Unit)? = null
-
-      fun moving(moving: (Double, Double) -> Unit): Cell {
-         this.moving = moving
-         return this
-      }
+      var moving: (CellMoveSeed.() -> Unit)? = null
 
       companion object {
          fun random(width: Double, height: Double, speed: Double): Cell {

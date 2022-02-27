@@ -36,7 +36,7 @@ allprojects {
       jvmToolchain {
          (this as JavaToolchainSpec).apply {
             languageVersion.set(JavaLanguageVersion.of(17))
-            vendor.set(ADOPTOPENJDK)
+            vendor.set(JvmVendorSpec.IBM_SEMERU)
             implementation.set(J9)
          }
       }

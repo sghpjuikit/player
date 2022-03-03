@@ -242,16 +242,12 @@ object CoreMenus: Core {
          }
          add<Node> {
             menu("Inspect ui properties in") {
-               widgetItems<ConfiguringFeature> { w ->
-                  runIO { value.toConfigurableFx() } ui { w.configure(it) }
-               }
+               widgetItems<ConfiguringFeature> { w -> w.configureAsync { value.toConfigurableFx() } }
             }
          }
          add<Scene> {
             menu("Inspect ui properties in") {
-               widgetItems<ConfiguringFeature> { w ->
-                  runIO { value.toConfigurableFx() } ui { w.configure(it) }
-               }
+               widgetItems<ConfiguringFeature> { w -> w.configureAsync { value.toConfigurableFx() } }
             }
          }
          add<Window> {
@@ -275,9 +271,7 @@ object CoreMenus: Core {
          add<WindowFX> {
             value.asAppWindow().ifNotNull { w -> item("Clone") { w.clone() } }
             menu("Inspect ui properties in") {
-               widgetItems<ConfiguringFeature> { w ->
-                  runIO { value.toConfigurableFx() } ui { w.configure(it) }
-               }
+               widgetItems<ConfiguringFeature> { w -> w.configureAsync { value.toConfigurableFx() } }
             }
          }
          add<Configurable<*>> {

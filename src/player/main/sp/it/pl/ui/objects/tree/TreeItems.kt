@@ -399,8 +399,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
 
 private fun doAction(o: Any?, otherwise: () -> Unit) {
    when (o) {
-      is Node -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o.toConfigurableFx()) }
-      is WindowFX -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o.toConfigurableFx()) }
+      is Node -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configureAsync { o.toConfigurableFx() } }
+      is WindowFX -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configureAsync { o.toConfigurableFx() } }
       is File -> o.open()
       is Configurable<*> -> APP.widgetManager.widgets.use<ConfiguringFeature>(ANY) { it.configure(o) }
       is TreeItem<*> -> doAction(o.value, otherwise)

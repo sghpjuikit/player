@@ -3,6 +3,7 @@ package sp.it.pl.layout.feature
 import java.io.File
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.Playlist
+import sp.it.util.async.runIO
 import sp.it.util.conf.Configurable
 import sp.it.util.file.Util
 import sp.it.util.functional.toUnit
@@ -12,6 +13,11 @@ interface ConfiguringFeature {
 
    /** Display configs of the specified configurable object for user to edit. */
    fun configure(configurable: Configurable<*>?, groupToSelect: String? = null)
+
+   fun configureAsync(groupToSelect: String? = null, configurable: () -> Configurable<*>?) {
+      configure(Configurable.EMPTY)
+      runIO { configurable() } ui { configure(it, groupToSelect) }
+   }
 
 }
 

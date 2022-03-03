@@ -6,6 +6,7 @@ import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Region
@@ -36,7 +37,6 @@ import sp.it.util.functional.net
 import sp.it.util.functional.nullsFirst
 import sp.it.util.math.clip
 import sp.it.util.math.max
-import sp.it.util.math.min
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
@@ -213,30 +213,23 @@ class ConfigPane<T: Any?>: VBox {
    override fun layoutChildren() {
          val contentLeft = padding.left
          val contentWidth = if (width>0) width - padding.width else 200.0
+         val space = snapSpaceY(spacing)
          val isSingleEditor = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
          val lastEditor = children.lastOrNull()
-         children.fold(0.0) { h, n ->
-            val p = n.asIf<Region>()?.padding ?: Insets.EMPTY
+         children.fold(padding.top) { h, n ->
+            val p = HBox.getMargin(n) ?: Insets.EMPTY
             val pH = n.prefHeight(contentWidth).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
-            if (isSingleEditor && n===lastEditor) n.resizeRelocate(contentLeft, h + p.top, contentWidth, height - h - p.top)
+            if (isSingleEditor && n===lastEditor) n.resizeRelocate(contentLeft, h + p.top, contentWidth, height - h - padding.bottom - p.top)
             else n.resizeRelocate(contentLeft, h + p.top, contentWidth, pH)
-            h + p.top + pH + p.bottom + spacing
+            h + p.top + pH + p.bottom + space
          }
    }
 
    // overridden because text nodes would interfere with in height calculation
    // ---
-   override fun computeMinHeight(width: Double) = insets.height + children.sumOf { it.minHeight(width) }
-   override fun computePrefHeight(width: Double): Double {
-      var minY = 0.0
-      var maxY = 0.0
-      children.forEach { n ->
-         val y = n.layoutBounds.minY + n.layoutY
-         minY = minY min y
-         maxY = maxY max (y + n.prefHeight(width).clip(n.minHeight(width), n.maxHeight(width)))
-      }
-      return maxY - minY
-   }
+   private fun spacingTotal() = (children.size-1).max(0) * snapSpaceY(spacing)
+   override fun computeMinHeight(width: Double) = insets.height + spacingTotal() + children.sumOf { it.minHeight(width) }
+   override fun computePrefHeight(width: Double) =  insets.height + spacingTotal() + children.sumOf { n -> (HBox.getMargin(n)?.height ?: 0.0) + n.prefHeight(width).clip(n.minHeight(width), n.maxHeight(width)) }
    override fun computeMaxHeight(width: Double) = Double.MAX_VALUE
    // ---
 

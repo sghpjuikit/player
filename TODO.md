@@ -118,7 +118,6 @@
   Challenging. See [issue](/TODO-ISSUES.md#searchable-combobox)
 - Use less/sass/kotlin dsl for css  
   Too much work. See [issue](/TODO-ISSUES.md#styling)
-  
 
 ## Bugs
 

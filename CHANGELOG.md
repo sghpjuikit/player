@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [4.0.0] 2022 03 03
+
 - Update **JDK** to 17 [improves performance & security]
 - Implement recommended **Custom** widget classes as widgets
 - Implement pause/resume icon for playlist table rows
@@ -34,20 +36,29 @@ All notable changes to this project will be documented in this file. Format base
   - Implement **CssBorders** testing suite
   - Improve layout & UX
 - Improve widget **Spektrum**
+- Improve widget **Voronoi**
+  - Update `JTS` dependency
+  - Fix moiré effect by improving cell position precision
   - Implement better smoothing
+  - Implement use skin colors 
 - Improve widget **Function Viewer**
   - Handle very large numbers correctly [Use `BigDecimal` everywhere]
   - Implement function area highlighting
+  - Implement use skin colors 
 - Improve `GridView` context menus
 - Fix `ProgressBar` not hiding after showing 0/0 progress
 - Fix importing songs to library not working properly
-- Fix `ActionPane` not returning data correctly sometimes 
+- Fix `ActionPane` not returning data correctly sometimes
+- Fix `ConfigPane` not respecting margins
+- Fix `Configurator` widget content scroll pane not respecting height
+- Fix windows opened through actions in **Search close** immediately close after showing
+- Fix showing object settings showing application settings temporarily and with bad UI performance
 
 This update brings lots of pleasant improvements. Particularly styling.
 
 First, finally, **JDK** has been updated. It took 3 years to get over **JDK12**. Time flies.
 The `linkJDK` Gradle task has been removed from build dependencies and now requires manual run. It is more of a convenience anyway.
-Now, **JDK** updates are very comfortable. By the way, the project still uses **OpenJ9**.
+Now, **JDK** updates are very comfortable. By the way, the project still uses **OpenJ9**, now called Semeru.
 
 The application process command has received a no-op argument to help to distinguish the process from other Java processes.
 This would not be such an issue if the **Launch4j** was set up to wrap the .jar into .exe, but it currently does not work well for 64-bit version.
@@ -58,8 +69,9 @@ Focusing, hovering, selecting from the list of content choices using both mouse 
 
 There are two new skins: **White Leaf** and **Dark Leaf**.
 These are light and dark green themes easy on the eyes and with good contrast.
+
 There are two new widgets: **Song Info (small)** and **Album Info (small)**.
-These display basic song and song album information. The former has been used in the past as custom graphics for **Now Playing** notification.
+These display basic song and song album information. The former is an improved version of the default **Now Playing** notification content.
 This change is following the trend of many small widgets instead of few complicated ones. This gives more power to the user.
 
 New names and icons for some widgets make them easier to find and use.
@@ -72,14 +84,15 @@ The icon allows controlling the playback from the **Playlist** widget - definite
 In the future, there will probably be more such columns and with automatic width resizing and styling support.
 
 Application's tables and other table-like components have also become more usable and elegant.
+The ui elements relying on `Canvas` now support skin colors.
 
 The **Function Viewer** widget has full `BigDecimal` support now.
 This was not easy, different library for expression evaluation was necessary and using `BigDecimal`s properly is difficult.
 There were lots of arithmetic errors related to precision, resulting in incorrect values, bad performance, exceptions and even infinite loops.
 These are all solved and the plotter not supports unlimited zooming and precision.
-The graph also highlights area under the function, which is quite helpful.
+The graph also highlights area under the function, which is elegant and quite helpful.
 
-The **Spektrum** widget has also become prettier, as it uses more sophisticated smoothing, which is also configurable.
+The **Spektrum** widget has also become prettier, as it uses more sophisticated and configurable smoothing.
 These changes have been applied from the original project the widget is based on.
 
 ## [3.1.0] 2022 02 07

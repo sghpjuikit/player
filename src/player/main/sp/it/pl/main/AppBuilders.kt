@@ -73,6 +73,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Unsubscriber
+import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.attachTrue
@@ -81,6 +82,7 @@ import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.browse
@@ -438,14 +440,14 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
          }
          result
       }.apply {
-         editorUi.value = APP.ui.formLayout.value
+         editorUi syncBiFrom APP.ui.formLayout on onHidden.asDisposer()
          onExecuteDone = { if (it.isOk && isShowing) hide() }
       }
 
       content.value = form
       title.value = titleText
       isAutohide.value = false
-      headerIcons += Icon(IconMD.WRAP).onClickDo { form.editorUi.toggleNext() }
+      headerIcons += formEditorsUiToggleIcon(form.editorUi)
       show(shower)
 
       form.focusFirstConfigEditor()

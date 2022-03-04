@@ -35,11 +35,13 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.toUnit
 import sp.it.util.math.P
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.on
+import sp.it.util.reactive.syncBiFrom
 import sp.it.util.system.Os
 
 /** Determines whether global window opacity setting is overridden for this window */
@@ -143,7 +145,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
 
       val form = form(c, null).apply {
          editorOrder = compareByDeclaration
-         editorUi.value = APP.ui.formLayout.value
+         editorUi syncBiFrom APP.ui.formLayout on onHidden.asDisposer()
          onExecuteDone = { if (it.isOk && isShowing) hide() }
       }
 

@@ -65,6 +65,7 @@ import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.formEditorsUiToggleIcon
 import sp.it.util.access.focused
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.zip
 import sp.it.util.units.millis
 
@@ -135,7 +136,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
                      isFocusTraversable = true
 
                      lay += editorsPane.apply {
-                        ui.value = APP.ui.formLayout.value
+                        ui syncBiFrom APP.ui.formLayout on onClose
                      }
                   }
                }

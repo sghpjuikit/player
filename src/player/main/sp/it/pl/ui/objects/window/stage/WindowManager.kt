@@ -97,6 +97,7 @@ import sp.it.util.math.P
 import sp.it.util.math.intersectsWith
 import sp.it.util.math.isBelow
 import sp.it.util.math.max
+import sp.it.util.reactive.asDisposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo
 import sp.it.util.reactive.map
@@ -108,6 +109,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemAdded
 import sp.it.util.reactive.onItemRemoved
 import sp.it.util.reactive.sync
+import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.Os
 import sp.it.util.text.keys
@@ -593,6 +595,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       content.value = form(c).apply {
          prefSize = 600.emScaled x 600.emScaled
          headerIcons += formEditorsUiToggleIcon(editorUi)
+         editorUi syncBiFrom APP.ui.formLayout on onHidden.asDisposer()
       }
       show(DOWN_CENTER(atNode))
    }

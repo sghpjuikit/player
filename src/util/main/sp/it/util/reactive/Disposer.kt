@@ -37,3 +37,5 @@ class Disposer: () -> Unit, Unsubscriber {
    }
 
 }
+
+fun Handler0.asDisposer(): Disposer = Disposer().apply { this@asDisposer += this }

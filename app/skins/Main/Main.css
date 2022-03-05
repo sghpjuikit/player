@@ -10,6 +10,7 @@
     -skin-def-font-color: rgb(160, 160, 180);
     -skin-def-font-color-hover: #ffcc66;
     -skin-sel-font-color: rgb(175, 175, 176);
+    -skin-almost-transparent: rgba(0,0,0,0.005);
     -fx-text-base-color: -skin-def-font-color;
     -skin-prompt-font-color: rgba(165, 165, 165, 0.4);
     -skin-color-darker: rgba(0,0,0,0.2);
@@ -1919,7 +1920,7 @@ Shape, Text, SpitText, TextFlow > * {
 
 /* window transparency */
 .window:transparent-allowed {
-    -fx-background-color: rgba(0,0,0,0.005);
+    -fx-background-color: -skin-almost-transparent;
 }
 .window:transparent-allowed .widget-ui,
 .window-slide:transparent-allowed,
@@ -1928,22 +1929,28 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 .window:transparent {
-    -fx-background-color: rgba(0,0,0,0.005);
+    -fx-background-color: -skin-almost-transparent;
     -fx-border-color: rgba(0,0,0,0.01);
     -fx-border-width: 1;
 }
 .window:focused:transparent {
-    -fx-background-color: rgba(0,0,0,0.005);
+    -fx-background-color: -skin-almost-transparent;
     -fx-border-width: 1;
 }
 .window:transparent .widget-ui {
-    -fx-background-color: rgba(0,0,0,0.005);
+    -fx-background-color: -skin-almost-transparent;
 }
 .window:transparent .widget-ui:active .widget-ui-content {
-    -fx-border-color: rgba(0,0,0,0.005);
+    -fx-border-color: -skin-almost-transparent;
 }
 .window:transparent .widget-ui-controls {
     -fx-background-color: -skin-pane-color;
+}
+.window:transparent .bgr-image {
+    -fx-background-image: null;
+}
+.window:transparent > #front {
+    -fx-background-color: -skin-almost-transparent;
 }
 
 /*

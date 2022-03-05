@@ -13,7 +13,7 @@
 }
 
 /* Add background. */
-.bgr-image {
+.window .bgr-image {
     -fx-opacity: 0.2;
     -fx-background-image: url("bgr.png");
     -fx-background-size: stretch;

@@ -62,7 +62,7 @@
 }
 
 /* disable bgr */
-.bgr-image {
+.window .bgr-image {
     -fx-background-color: null;
     -fx-opacity: 1;
 }

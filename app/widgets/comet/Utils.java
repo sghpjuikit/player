@@ -2236,7 +2236,9 @@ interface Utils {
 			if (cells == null) {
 				// circle
 				double wh = min(W,H);
-				cells = DoubleStream.iterate(0, a-> a+2*PI/11).limit(11)
+				cells = new ArrayList<>();
+				cells.addAll(
+					DoubleStream.iterate(0, a-> a+2*PI/11).limit(11)
 							.mapToObj(a -> new Cell(0,0) {
 								double angle = a;
 								{
@@ -2250,7 +2252,8 @@ interface Utils {
 								}
 							})
 							.map(c -> (Cell)c)
-							.toList();
+							.toList()
+				);
 				cells.addAll(
 					DoubleStream.iterate(0, a-> a+2*PI/3).limit(3)
 								.mapToObj(a -> new Cell(0,0) {

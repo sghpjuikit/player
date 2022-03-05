@@ -47,6 +47,7 @@ import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.functional.traverse
 import sp.it.util.math.P
@@ -294,14 +295,14 @@ open class PopWindow {
                window?.popWindowOwner = windowOwner
 
                fun initHideWithOwner() {
-                  if (windowOwner!=null && windowOwner!==UNFOCUSED_OWNER) {
+                  if (windowOwner!=null && windowOwner!==UNFOCUSED_OWNER.orNull()) {
                      windowOwner.onEventUp(WINDOW_HIDING) { if (isShowing) hideImmediately() } on tillHidden
                      windowOwner.onEventUp(WINDOW_CLOSE_REQUEST) { if (isShowing) hideImmediately() } on tillHidden
                   }
                }
 
                fun initZOrder() {
-                  if (windowOwner==null || windowOwner===UNFOCUSED_OWNER) {
+                  if (windowOwner==null || windowOwner===UNFOCUSED_OWNER.orNull()) {
                      isAlwaysOnTop = true
                   } else {
                      windowOwner.focusedProperty() zip focusedProperty() attach { (a, b) -> stage.isAlwaysOnTop = a || b } on tillHiding
@@ -344,7 +345,7 @@ open class PopWindow {
                content setToOne root
 
                if (animated.value) fadeIn()
-               show(windowOwner ?: UNFOCUSED_OWNER)
+               show(windowOwner ?: UNFOCUSED_OWNER.value)
                sizeToScene()
                xy = shower(this)
                onContentShown()
@@ -429,7 +430,7 @@ open class PopWindow {
 
       fun WindowFx.onIsShowing1st(block: () -> Unit): Subscription = if (isShowing) { block(); Subscription() } else onEventDown1(WINDOW_SHOWN) { block() }
 
-      private val UNFOCUSED_OWNER by lazy { APP.windowManager.createStageOwnerNoShow().apply { show() } }
+      private val UNFOCUSED_OWNER = lazy { APP.windowManager.createStageOwnerNoShow().apply { show() } }
 
    }
 

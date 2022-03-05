@@ -8,7 +8,6 @@ import be.tarsos.dsp.util.fft.FFT
 import be.tarsos.dsp.util.fft.HannWindow
 import be.tarsos.dsp.util.fft.WindowFunction
 import java.util.LinkedList
-import java.util.Objects
 import java.util.Queue
 import java.util.TreeSet
 import java.util.concurrent.ConcurrentHashMap
@@ -57,6 +56,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.math.P
+import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -67,9 +67,6 @@ import sp.it.util.units.version
 import sp.it.util.units.year
 import spektrum.OctaveGenerator.getHighLimit
 import spektrum.OctaveGenerator.getLowLimit
-import spektrum.SmoothnessType.EMA
-import spektrum.SmoothnessType.SMA
-import spektrum.SmoothnessType.WMA
 import spektrum.WeightWindow.dBZ
 
 class Spektrum(widget: Widget): SimpleController(widget) {
@@ -100,12 +97,12 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    val signalThreshold by cv(-28).between(-50, 0)
       .def(name = "Signal threshold (db)", info = "")
 
-   var frequencyStart by c(39).between(0, 24000)
-      .def(name = "Frequency start", info = "")
-   var frequencyCenter by c(1000).between(0, 24000)
-      .def(name = "Frequency center", info = "")
-   var frequencyEnd by c(16001).between(0, 24000)
-      .def(name = "Frequency end", info = "")
+   var frequencyStart by c(39).between(1, 24000)
+      .def(name = "Frequency range start", info = "")
+   var frequencyCenter by c(1000).between(1, 24000)
+      .def(name = "Frequency range center", info = "")
+   var frequencyEnd by c(16001).between(1, 24000)
+      .def(name = "Frequency range end", info = "")
    var octave by c(6).between(1, 24)
       .def(name = "Frequency octave (1/n)", info = "")
    var resolutionHighQuality by c(false)
@@ -117,7 +114,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       .def(name = "Animation decay acceleration (1/n)", info = "")
    val timeFilterSize by cv(3).between(0, 10)
       .def(name = "Animation smoothness (time)", info = "")
-   val smoothnessType by cv(WMA)
+   val smoothnessType by cv(FFTTimeFilter.Type.WMA)
       .def(name = "Animation smoothness (time) type", info = "")
    val smoothnessSpaceType by cv(FFTSpaceFilter.Type.GAUSS)
       .def(name = "Animation smoothness (position) type", info = "")
@@ -135,9 +132,9 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    val barStyle by cv(BarStyle.LINE)
       .def(name = "Bars shape", info = "")
    val effectPulse by cv(true)
-      .def(name = "Effect - pulse", info = "")
+      .def(name = "Bars effect - pulse", info = "")
    val effectMirror by cv(true)
-      .def(name = "Effect - mirror", info = "")
+      .def(name = "Bars effect - mirror", info = "")
 
    val spectralColorPosition by cv(180).between(0, 360)
       .def(name = "Color spectral position (degrees)", info = "")
@@ -542,37 +539,18 @@ class TarsosAudioEngine(settings: Spektrum) {
 }
 
 object OctaveGenerator {
-   private val cache = HashMap<OctaveSettings, List<Double>>()
+   private val cache = ConcurrentHashMap<OctaveSettings, List<Double>>()
 
-   fun getOctaveFrequencies(centerFrequency_: Double, band: Double, lowerLimit_: Double, upperLimit_: Double): List<Double> {
-      // set limits
-      var centerFrequency = centerFrequency_
-      var lowerLimit = lowerLimit_
-      var upperLimit = upperLimit_
-      if (lowerLimit<1) {
-         lowerLimit = 1.0
-      }
-      if (upperLimit<1) {
-         upperLimit = 1.0
-      }
-      if (centerFrequency<1) {
-         centerFrequency = 1.0
-      }
-      val octaveSettings = OctaveSettings(centerFrequency, band, lowerLimit, upperLimit)
-      val doubles = cache[octaveSettings]
-      return if (doubles==null) {
-         val octave: MutableSet<Double> = TreeSet()
-         addLow(octave, centerFrequency, band, lowerLimit)
-         addHigh(octave, centerFrequency, band, upperLimit)
-
-         // if center is 1000 but upper limit is 80 then we need to filter out 80 to 1000 frequencies
-         val finalLowerLimit = lowerLimit
-         val finalUpperLimit = upperLimit
-         val octaves = octave.filter { it in finalLowerLimit..finalUpperLimit }
-         cache[octaveSettings] = octaves
-         octaves
-      } else {
-         doubles
+   fun getOctaveFrequencies(centerFrequency_: Int, band: Double, lowerLimit_: Int, upperLimit_: Int): List<Double> {
+      val fStart = centerFrequency_.clip(1, 23998).toDouble()
+      val fEnd = upperLimit_.clip(centerFrequency_+2, 24000).toDouble()
+      val fCenter = lowerLimit_.toDouble().clip(fStart+1.0, fEnd-1.0)
+      val octaveSettings = OctaveSettings(fCenter, band, fStart, fEnd)
+      return cache.computeIfAbsent(octaveSettings) {
+         TreeSet<Double>().apply {
+            addLow(this, fCenter, band, fStart)
+            addHigh(this, fCenter, band, fEnd)
+         }.toList()
       }
    }
 
@@ -598,18 +576,7 @@ object OctaveGenerator {
       addHigh(octave, fh, band, upperLimit)
    }
 
-   private class OctaveSettings(private val centerFrequency: Double, private val band: Double, private val lowerLimit: Double, private val upperLimit: Double) {
-      override fun equals(other: Any?): Boolean {
-         if (this===other) return true
-         if (other==null || javaClass!=other.javaClass) return false
-         val that = other as OctaveSettings
-         return that.centerFrequency.compareTo(centerFrequency)==0 && that.band.compareTo(band)==0 && that.lowerLimit.compareTo(lowerLimit)==0 && that.upperLimit.compareTo(upperLimit)==0
-      }
-
-      override fun hashCode(): Int {
-         return Objects.hash(centerFrequency, band, lowerLimit, upperLimit)
-      }
-   }
+   private data class OctaveSettings(val centerFrequency: Double, val band: Double, val lowerLimit: Double, val upperLimit: Double)
 }
 
 interface FFTListener {
@@ -643,19 +610,22 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
       val doublesAmplitudesFactor = 1.0/amplitudes.size*windowCorrectionFactor   // /amplitudes.size normalizes (n/2), *windowCorrectionFactor applies window correction
       val doublesAmplitudes = DoubleArray(amplitudes.size) { amplitudes[it].toDouble()*doublesAmplitudesFactor }
 
-      val octaveFrequencies = OctaveGenerator.getOctaveFrequencies(settings.frequencyCenter.toDouble(), settings.octave.toDouble(), settings.frequencyStart.toDouble(), settings.frequencyEnd.toDouble())
+      val octaveFrequencies = OctaveGenerator.getOctaveFrequencies(settings.frequencyCenter, settings.octave.toDouble(), settings.frequencyStart, settings.frequencyEnd)
       val frequencyBins = DoubleArray(octaveFrequencies.size)
       val frequencyAmplitudes = DoubleArray(octaveFrequencies.size)
 
       val interpolateFunction = interpolator.interpolate(bins, doublesAmplitudes)
 
+      val octave = settings.octave.toDouble()
+      val maxLevel = settings.maxLevel
+      val weightWindow = settings.weight.calculateAmplitudeWight
       var m = 0 // m is the position in the frequency vectors
       for (i in octaveFrequencies.indices) {
          // get frequency bin
          frequencyBins[m] = octaveFrequencies[i]
 
-         val highLimit = getHighLimit(octaveFrequencies[i], settings.octave.toDouble())
-         val lowLimit = getLowLimit(octaveFrequencies[i], settings.octave.toDouble())
+         val highLimit = getHighLimit(octaveFrequencies[i], octave)
+         val lowLimit = getLowLimit(octaveFrequencies[i], octave)
          val step = 1.0
          var k = lowLimit
 
@@ -667,10 +637,9 @@ class FFTAudioProcessor(audioFormat: AudioFormat, listenerList: List<FFTListener
          }
 
          frequencyAmplitudes[m] = sqrt(frequencyAmplitudes[m]) // square root the energy
-         frequencyAmplitudes[m] = if (settings.maxLevel.equals("RMS")) sqrt(frequencyAmplitudes[m].pow(2)/2) else frequencyAmplitudes[m] // calculate the RMS of the amplitude
+         frequencyAmplitudes[m] = if (maxLevel.equals("RMS")) sqrt(frequencyAmplitudes[m].pow(2)/2) else frequencyAmplitudes[m] // calculate the RMS of the amplitude
          frequencyAmplitudes[m] = 20*log10(frequencyAmplitudes[m]) // convert to logarithmic scale
 
-         val weightWindow = settings.weight.calculateAmplitudeWight
          frequencyAmplitudes[m] = frequencyAmplitudes[m] + weightWindow(frequencyBins[m]) // use weight to adjust the spectrum
 
          m++
@@ -706,9 +675,9 @@ class FFTTimeFilter(settings: Spektrum) {
       historyAmps.poll()
       historyAmps.offer(amps)
       return when (settings.smoothnessType.value) {
-         WMA -> filterWma(amps)
-         EMA -> filterEma(amps)
-         SMA -> filterSma(amps)
+         Type.WMA -> filterWma(amps)
+         Type.EMA -> filterEma(amps)
+         Type.SMA -> filterSma(amps)
       }
    }
 
@@ -756,6 +725,8 @@ class FFTTimeFilter(settings: Spektrum) {
       }
       return filtered
    }
+
+   enum class Type { SMA, WMA, EMA }
 }
 
 class FFTSpaceFilter(val settings: Spektrum) {
@@ -876,12 +847,10 @@ enum class WeightWindow(val calculateAmplitudeWight: (Double) -> Double) {
    dBZ({
       0.0
    });
-   
+
    companion object {
       val Double.p2: Double get() = pow(2.0)
       val Double.p3: Double get() = pow(3.0)
       val Double.p4: Double get() = pow(4.0)
    }
 }
-
-enum class SmoothnessType { SMA, WMA, EMA }

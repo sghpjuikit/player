@@ -106,7 +106,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
          .def(name = "Show taskbar", info = "Whether window is displayed in OS taskbar.")
       val onTop by cv(w.alwaysOnTop)
          .def(name = "On top", info = "Window will stay in foreground when other window is being interacted with.")
-      val onBottom by cv(w.alwaysOnTop).readOnlyUnless(Os.WINDOWS.isCurrent)
+      val onBottom by cv(w.isNonInteractingOnBottom).readOnlyUnless(Os.WINDOWS.isCurrent)
          .def(name = "On bottom", info = "Window will stay in background and never receive focus.")
       val fullscreen by cv(w.fullscreen)
          .def(name = "Fullscreen", info = "Window will stay in foreground and span entire screen.")
@@ -132,7 +132,7 @@ fun openWindowSettings(w: Window, eventSource: Node?) {
          opacity.override attach { w.opacityOverride = it } on onClose
          opacity attachTo w.opacity on onClose
          transparency.override attach { w.stageStyleOverride = it } on onClose
-         onBottom attachTrue { w.stage.setNonInteractingOnBottom() } on onClose
+         onBottom attachTrue { w.setNonInteractingOnBottom() } on onClose
          onBottom attachFalse  { recreate() } on onClose
          taskbarVisible attach { recreate() } on onClose
          transparency attach { recreate() } on onClose

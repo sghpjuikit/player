@@ -235,6 +235,17 @@ fun Window.clone() {
    WidgetIoManager.requestWidgetIOUpdate()
 }
 
+/** @return iff [Window.setNonInteractingOnBottom] is in effect */
+val Window.isNonInteractingOnBottom: Boolean
+   get() = "interaction" in properties
+
+/** @return iff [Stage.setNonInteractingOnBottom] is in effect */
+val Stage.isNonInteractingOnBottom: Boolean
+   get() = "interaction" in properties
+
+/** See [Stage.setNonInteractingOnBottom] */
+fun Window.setNonInteractingOnBottom() = stage.setNonInteractingOnBottom()
+
 /**
  * Sets window to be non-interactive and always at bottom (opposite of always on top).
  * Windows only, no-op on other platforms.
@@ -245,6 +256,8 @@ fun Window.clone() {
 fun Stage.setNonInteractingOnBottom() {
    if (!Os.WINDOWS.isCurrent) return
 
+   properties["interaction"] = "none"
+   isAlwaysOnTop = false
    showing syncTrue {
       val user32 = User32.INSTANCE
 

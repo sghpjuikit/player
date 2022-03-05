@@ -86,6 +86,6 @@ fun Window.recreateWith(stageStyle: StageStyle, isTaskbarVisible: Boolean, onBot
       nw.transparentContent.value = ow.transparentContent.value
       nw.stageStyleOverride = ow.stageStyleOverride
       nw.isTaskbarVisible.value = isTaskbarVisible
-      if (onBottom) nw.stage.setNonInteractingOnBottom()
+      if (onBottom) nw.setNonInteractingOnBottom()
    }
 }

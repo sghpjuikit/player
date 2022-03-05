@@ -1929,28 +1929,34 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 .window:transparent {
-    -fx-background-color: -skin-almost-transparent;
-    -fx-border-color: rgba(0,0,0,0.01);
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
     -fx-border-width: 1;
 }
 .window:focused:transparent {
-    -fx-background-color: -skin-almost-transparent;
+    -fx-background-color: -skin-almost-transparent; // clickable when focused improves UX
+    -fx-border-color: -skin-almost-transparent; // clickable always
     -fx-border-width: 1;
 }
 .window:transparent .widget-ui {
-    -fx-background-color: -skin-almost-transparent;
+    -fx-background-color: transparent;
 }
 .window:transparent .widget-ui:active .widget-ui-content {
-    -fx-border-color: -skin-almost-transparent;
+    -fx-border-color: transparent;
 }
 .window:transparent .widget-ui-controls {
     -fx-background-color: -skin-pane-color;
 }
+.window:transparent > #header {
+    -fx-background-color: -skin-almost-transparent; // clickable always
+}
 .window:transparent .bgr-image {
+    // override in case sub-skin specifies this value
     -fx-background-image: null;
 }
 .window:transparent > #front {
-    -fx-background-color: -skin-almost-transparent;
+    // override in case sub-skin specifies this value
+    -fx-background-color: transparent;
 }
 
 /*

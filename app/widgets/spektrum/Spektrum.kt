@@ -245,8 +245,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   val min = base - (if (settings.barAlignment.value==BarShape.CIRCLE_OUT) 0.0 else barH/8.0)
                   val barCos = cos(2*PI*i/barCount - PI/2)
                   val barSin = sin(2*PI*i/barCount - PI/2)
-                  barPositionsLow += P(w/2 + max*barCos, h/2 + max*barSin)
-                  barPositionsHigh += P(w/2 + min*barCos, h/2 + min*barSin)
+                  barPositionsLow += P(w/2 + min*barCos, h/2 + min*barSin)
+                  barPositionsHigh += P(w/2 + max*barCos, h/2 + max*barSin)
                }
             }
          }
@@ -262,27 +262,33 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                gc.lineWidth = 0.0
             }
             BarStyle.NET -> {
-               gc.lineWidth = 1.0
+               gc.lineWidth = 2.0
                bars.forEachIndexed { i, bar ->
                   gc.fill = bar.color
                   gc.stroke = bar.color
                   gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
                   if (i>0)           gc.strokeLine(barPositionsLow[i-1].x, barPositionsLow[i-1].y, barPositionsLow[i].x, barPositionsLow[i].y)
                   if (i>0)           gc.strokeLine(barPositionsHigh[i-1].x, barPositionsHigh[i-1].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
-                  if (i>=barCount-1) gc.strokeLine(barPositionsLow[0].x, barPositionsLow[0].y, barPositionsLow[i].x, barPositionsLow[i].y)
-                  if (i>=barCount-1) gc.strokeLine(barPositionsHigh[0].x, barPositionsHigh[0].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
+               }
+               val connect = settings.barAlignment.value in setOf(BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT)
+               if (bars.size>1 && connect) {
+                  gc.strokeLine(barPositionsLow[0].x, barPositionsLow[0].y, barPositionsLow[bars.lastIndex].x, barPositionsLow[bars.lastIndex].y)
+                  gc.strokeLine(barPositionsHigh[0].x, barPositionsHigh[0].y, barPositionsHigh[bars.lastIndex].x, barPositionsHigh[bars.lastIndex].y)
                }
                gc.lineWidth = 0.0
             }
             BarStyle.NET_OUTLINE -> {
-               gc.lineWidth = 1.0
+               gc.lineWidth = 2.0
                bars.forEachIndexed { i, bar ->
                   gc.fill = bar.color
                   gc.stroke = bar.color
                   if (i>0)           gc.strokeLine(barPositionsLow[i-1].x, barPositionsLow[i-1].y, barPositionsLow[i].x, barPositionsLow[i].y)
                   if (i>0)           gc.strokeLine(barPositionsHigh[i-1].x, barPositionsHigh[i-1].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
-                  if (i>=barCount-1) gc.strokeLine(barPositionsLow[0].x, barPositionsLow[0].y, barPositionsLow[i].x, barPositionsLow[i].y)
-                  if (i>=barCount-1) gc.strokeLine(barPositionsHigh[0].x, barPositionsHigh[0].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
+               }
+               val connect = settings.barAlignment.value in setOf(BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT)
+               if (bars.size>1 && connect) {
+                  gc.strokeLine(barPositionsLow[0].x, barPositionsLow[0].y, barPositionsLow[bars.lastIndex].x, barPositionsLow[bars.lastIndex].y)
+                  gc.strokeLine(barPositionsHigh[0].x, barPositionsHigh[0].y, barPositionsHigh[bars.lastIndex].x, barPositionsHigh[bars.lastIndex].y)
                }
                gc.lineWidth = 0.0
             }

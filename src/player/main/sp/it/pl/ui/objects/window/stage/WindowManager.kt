@@ -594,8 +594,8 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       title.value = "${c.toUi()} Settings"
       content.value = form(c).apply {
          prefSize = 600.emScaled x 600.emScaled
-         headerIcons += formEditorsUiToggleIcon(editorUi)
          editorUi syncBiFrom APP.ui.formLayout on onHidden.asDisposer()
+         headerIcons += formEditorsUiToggleIcon(editorUi)
       }
       show(DOWN_CENTER(atNode))
    }

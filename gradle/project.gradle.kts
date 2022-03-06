@@ -1,9 +1,9 @@
 
-import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import kotlin.text.Charsets.UTF_8
+import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.jvm.toolchain.JvmImplementation.J9
 import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTOPENJDK
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
 
@@ -126,7 +126,7 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "4.4.1")
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
-         implementation("com.github.ajalt", "clikt", "2.1.0")
+         implementation("com.github.ajalt.clikt", "clikt", "3.4.0")
          implementation("org.apache.commons", "commons-text", "1.9")
          implementation("com.github.oshi", "oshi-core", "6.1.0")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")

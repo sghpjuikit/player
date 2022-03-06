@@ -18,6 +18,7 @@ import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.file.div
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
@@ -69,9 +70,10 @@ fun ComponentFactory<*>.loadIn(strategy: ComponentLoaderStrategy, process: Compo
       }
       NEW_PROCESS -> {
          val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayerc_exe else APP.location.spitplayer_sh
+         val fArgs = (APP.location/"SpitPlayer.l4j.ini").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.toTypedArray()
          f.runAsAppProgram(
             "Launching component ${c.name} in new process",
-            "-Dname=\"${APP.name}\"", "--singleton=false", "--stateless=true", "open-component", c.name
+            *fArgs, "--singleton=false", "--stateless=true", "open-component", c.name
          )
       }
    }
@@ -88,9 +90,10 @@ fun Component.openIn(strategy: ComponentLoaderStrategy, process: ComponentLoader
       }
       NEW_PROCESS -> {
          val f = if (Os.WINDOWS.isCurrent) APP.location.spitplayerc_exe else APP.location.spitplayer_sh
+         val fArgs = (APP.location/"SpitPlayer.l4j.ini").readLines().filter { it.isNotBlank() && !it.startsWith("#") }.toTypedArray()
          f.runAsAppProgram(
             "Launching component ${c.name} in new process",
-            "-Dname=\"${APP.name}\"","--singleton=false", "--stateless=true", "open-component", c.name
+            *fArgs, "--singleton=false", "--stateless=true", "open-component", c.name
          )
       }
    }

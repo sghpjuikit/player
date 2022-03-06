@@ -20,6 +20,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.file
 import java.io.File
+import java.lang.management.ManagementFactory
 import java.net.URI
 import java.net.URLEncoder
 import kotlin.system.exitProcess
@@ -42,8 +43,9 @@ class AppCli {
    val cli = Cli()
 
    fun process(args: List<String>) {
-      val allArgs = args.toMutableList()
-      val isAllFiles = args.isNotEmpty() && args.all { it.toURIFlexible()!=null }
+      val jvmArgs = ManagementFactory.getRuntimeMXBean().inputArguments.toSet()
+      val allArgs = args.filter { it !in jvmArgs }.toMutableList()
+      val isAllFiles = allArgs.isNotEmpty() && allArgs.all { it.toURIFlexible()!=null }
       if (isAllFiles) allArgs.addAll(0, listOf("--stateless=true", "open-files"))
 
       if (APP.isInitialized.isOk) {
@@ -178,7 +180,7 @@ class Cli: CliktCommand(
                             The file content is either serialized component or single line with the component's name
                             ```
                         """
-            ).file(folderOkay = false, readable = true).validate {
+            ).file(canBeDir = false, mustBeReadable = true).validate {
                it.requireAbsolute()
             }
 

@@ -72,18 +72,20 @@
 /* Window bgr */
 .window > #front {
     -fx-background-color: -skin-white-dark;
-    -fx-background-radius: 0.6em;
-}
-
-/* Window radius */
-.window, .popup, .pop-window, .context-menu {
-    -fx-background-color: -skin-pane-color;
-    -fx-background-radius: 0.6em;
-    -fx-border-radius: 0.6em;
 }
 .window > #front > #frontContent {
     -fx-background-color: transparent;
+}
+.window, .popup, .pop-window, .context-menu {
+    -fx-background-color: -skin-pane-color;
+}
+
+/* Window radius */
+.window:transparent-allowed, .popup, .pop-window, .context-menu,
+.window:transparent-allowed > #front > #frontContent,
+.window:transparent-allowed > #front {
     -fx-background-radius: 0.6em;
+    -fx-border-radius: 0.6em;
 }
 
 /* Context menu */

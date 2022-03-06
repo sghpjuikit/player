@@ -253,7 +253,7 @@ object CoreMenus: Core {
          add<Window> {
             item("Clone", IconFA.CLONE.toCmUi()) { it.clone() }
             item("Close (" + keys(WINDOWS, Q) +")", ICON_CLOSE.toCmUi()) { it.close() }
-            item("Fullscreen (" + keys(WINDOWS, F11) + "/" + keys(WINDOWS, F12) + ")", if (value.fullscreen.value) IconMD.FULLSCREEN_EXIT.toCmUi() else IconMD.FULLSCREEN.toCmUi()) { it.clone() }
+            item("Fullscreen (" + keys(WINDOWS, F11) + "/" + keys(WINDOWS, F12) + ")", if (value.fullscreen.value) IconMD.FULLSCREEN_EXIT.toCmUi() else IconMD.FULLSCREEN.toCmUi()) { it.fullscreen.toggle() }
             menu("Maximize (" + keys(WINDOWS, F) + ")", IconMD.WINDOW_MAXIMIZE.toCmUi()) {
                item(Maximized.ALL.toUi(), IconMA.BORDER_OUTER.toCmUi()) { it.maximized.value = Maximized.ALL }
                item(Maximized.LEFT.toUi(), IconMA.BORDER_LEFT.toCmUi()) { it.maximized.value = Maximized.LEFT }

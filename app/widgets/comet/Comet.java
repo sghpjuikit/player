@@ -85,6 +85,8 @@ import org.gamepad4j.IButton;
 import org.gamepad4j.IController;
 import org.gamepad4j.IControllerListener;
 import org.gamepad4j.StickID;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sp.it.pl.layout.Widget;
@@ -166,7 +168,6 @@ import static comet.Utils.strokeOval;
 import static comet.Utils.strokePolygon;
 import static comet.Utils.ttl;
 import static comet.Utils.ttlVal;
-import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.BOTTOM_LEFT;
 import static javafx.geometry.Pos.BOTTOM_RIGHT;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -192,8 +193,8 @@ import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.minutes;
 import static javafx.util.Duration.seconds;
-import static sp.it.pl.main.WidgetTags.GAME;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.main.WidgetTags.GAME;
 import static sp.it.util.Util.clip;
 import static sp.it.util.Util.pyth;
 import static sp.it.util.animation.Anim.map01To010;
@@ -231,7 +232,7 @@ import static sp.it.util.ui.Util.layStack;
 public class Comet extends SimpleController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 
-	final Pane playfield = new Pane();  // play field, contains scenegraph game graphics
+	final Pane playfield = new Pane();  // play field, contains scene-graph game graphics
 	final Canvas canvas = new Canvas();
 	final Canvas canvas_bgr = new Canvas();
 	final GraphicsContext gc = canvas.getGraphicsContext2D(); // draws canvas game graphics on canvas
@@ -848,6 +849,7 @@ public class Comet extends SimpleController {
 
 		@Override
 		public void doLoop() {
+
 			if (loop.isNth((long)FPS)) LOGGER.debug("particle.count= {}", oss.get(Particle.class).size());
 
 			gamepads.doLoop();
@@ -866,6 +868,7 @@ public class Comet extends SimpleController {
 
 			// reset gravity potentials
 			oss.forEach(o -> o.g_potential = 1);
+
 
 			// apply forces
 			// recalculate gravity potentials
@@ -887,9 +890,11 @@ public class Comet extends SimpleController {
 			os.forEach(PO::doLoop);
 			oss.get(Particle.class).forEach(Particle::doLoop);
 
+
 			// collisions
 			forEachPair(oss.get(Bullet.class),filter(os, e -> !(e instanceof Bullet)), Bullet::checkCollision);
 			collisionStrategies.forEach(oss::forEachTE);
+
 
 			entities.forceFields.forEach(ForceField::draw);
 			os.forEach(PO::draw);
@@ -1329,6 +1334,12 @@ public class Comet extends SimpleController {
 		public Rocket rocket;
 		public final StatsPlayer stats = new StatsPlayer();
 		private final long hudUpdateFrequency = (long) ttl(millis(200));
+
+		@Override @NotNull public Collection<Config<Object>> getConfigs() { return ConfigurableByReflect.super.getConfigs(); }
+
+		@Override @Nullable public Config<Object> getConfig(@NotNull String name) { return ConfigurableByReflect.super.getConfig(name); }
+
+		@Override @NotNull public Config<Object> getConfigOrThrow(@NotNull String name) { return ConfigurableByReflect.super.getConfigOrThrow(name); }
 
 		public Player(int ID, Color COLOR, KeyCode kFire, KeyCode kThrust, KeyCode kLeft, KeyCode kRight, KeyCode kAbility, AbilityKind ABILITY) {
 			id.set(ID);
@@ -2233,7 +2244,7 @@ public class Comet extends SimpleController {
 			private void postRadiusChange() {
 				pieces = ((int)(D360*KSradius))/11;
 				piece_angle = D360/pieces;
-				largeTTLd = 1/FPS/seconds(1/60/pieces).toSeconds();
+				largeTTLd = 1.0/FPS/seconds(1.0/60/pieces).toSeconds();
 			}
 
 			/** Not an ability, simply a graphics for an ability. Extends Ability to avoid code duplicity. */

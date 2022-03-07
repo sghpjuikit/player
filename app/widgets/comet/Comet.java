@@ -121,7 +121,6 @@ import static comet.Utils.D30;
 import static comet.Utils.D360;
 import static comet.Utils.D45;
 import static comet.Utils.D90;
-import static comet.Utils.FONT_PLACEHOLDER;
 import static comet.Utils.FONT_UI;
 import static comet.Utils.GunControl.AUTO;
 import static comet.Utils.GunControl.MANUAL;
@@ -145,6 +144,7 @@ import static comet.Utils.drawImageRotated;
 import static comet.Utils.drawImageRotatedScaled;
 import static comet.Utils.drawOval;
 import static comet.Utils.drawTriangle;
+import static comet.Utils.fillTriangle;
 import static comet.Utils.floorMod;
 import static comet.Utils.graphics;
 import static comet.Utils.max;
@@ -212,6 +212,7 @@ import static sp.it.util.functional.Util.minBy;
 import static sp.it.util.functional.Util.repeat;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.reactive.UtilKt.attachC;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.computeTextHeight;
 import static sp.it.util.ui.Util.computeTextWidth;
@@ -219,7 +220,7 @@ import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "SameParameterValue", "UnusedReturnValue", "unchecked"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "SameParameterValue", "UnusedReturnValue", "unchecked", "SpellCheckingInspection"})
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Comet",
@@ -232,7 +233,7 @@ import static sp.it.util.ui.Util.layStack;
 public class Comet extends SimpleController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Comet.class);
 
-	final Pane playfield = new Pane();  // play field, contains scene-graph game graphics
+	final Pane   sanvas = new Pane();  // contains scene-graph game graphics
 	final Canvas canvas = new Canvas();
 	final Canvas canvas_bgr = new Canvas();
 	final GraphicsContext gc = canvas.getGraphicsContext2D(); // draws canvas game graphics on canvas
@@ -247,27 +248,44 @@ public class Comet extends SimpleController {
 		message.setOpacity(0);
 		message.setFont(new Font(FONT_UI.getName(), 50));
 
-		// canvas
-		canvas.widthProperty().bind(playfield.widthProperty());
-		canvas.heightProperty().bind(playfield.heightProperty());
-		canvas.setManaged(false);
-		canvas_bgr.widthProperty().bind(playfield.widthProperty());
-		canvas_bgr.heightProperty().bind(playfield.heightProperty());
-		canvas_bgr.setManaged(false);
+		var rootContent = new StackPane();
+		root.setStyle("-fx-font-size: " + game.scaleUi + "em;");
+		attachC(root.widthProperty(), nv -> rootContent.setPrefWidth(nv.doubleValue()/2.0));
+		attachC(root.widthProperty(), nv -> rootContent.setMinWidth(nv.doubleValue()/2.0));
+		attachC(root.widthProperty(), nv -> rootContent.setMaxWidth(nv.doubleValue()/2.0));
+		attachC(root.heightProperty(), nv -> rootContent.setPrefHeight((nv.doubleValue()/2.0 - 20*game.scale)));
+		attachC(root.heightProperty(), nv -> rootContent.setMinHeight((nv.doubleValue()/2.0 - 20*game.scale)));
+		attachC(root.heightProperty(), nv -> rootContent.setMaxHeight((nv.doubleValue()/2.0 - 20*game.scale)));
+		rootContent.setScaleX(game.scale);
+		rootContent.setScaleY(game.scale);
 
-		syncC(playfield.widthProperty(), w -> game.field.resize(playfield.getWidth(), playfield.getHeight()));
-		syncC(playfield.heightProperty(), w -> game.field.resize(playfield.getWidth(), playfield.getHeight()));
+		// canvas
+		canvas.setManaged(false);
+		canvas_bgr.setManaged(false);
+		syncC(rootContent.widthProperty(),  w -> sanvas.setMinWidth(w.doubleValue()*game.scale));
+		syncC(rootContent.widthProperty(),  w -> sanvas.setPrefWidth(w.doubleValue()*game.scale));
+		syncC(rootContent.widthProperty(),  w -> sanvas.setMaxWidth(w.doubleValue()*game.scale));
+		syncC(rootContent.heightProperty(), w -> sanvas.setMinHeight(w.doubleValue()*game.scale));
+		syncC(rootContent.heightProperty(), w -> sanvas.setPrefHeight(w.doubleValue()*game.scale));
+		syncC(rootContent.heightProperty(), w -> sanvas.setMaxHeight(w.doubleValue()*game.scale));
+		syncC(rootContent.widthProperty(),  w -> canvas.setWidth(w.doubleValue()));
+		syncC(rootContent.heightProperty(), w -> canvas.setHeight(w.doubleValue()));
+		syncC(rootContent.widthProperty(),  w -> canvas_bgr.setWidth(w.doubleValue()));
+		syncC(rootContent.heightProperty(), w -> canvas_bgr.setHeight(w.doubleValue()));
+		syncC(rootContent.widthProperty(),  w -> game.field.resize(rootContent.getWidth(), rootContent.getHeight()));
+		syncC(rootContent.heightProperty(), w -> game.field.resize(rootContent.getWidth(), rootContent.getHeight()));
 
 		// player stats
 		double G = 10; // padding
 		StackPane playerStats = layStack(
-			layHorizontally(G,TOP_LEFT,     createPlayerStat(PLAYERS.getList().get(0)),createPlayerStat(PLAYERS.getList().get(4))),TOP_LEFT,
-			layHorizontally(G,TOP_RIGHT,    createPlayerStat(PLAYERS.getList().get(5)),createPlayerStat(PLAYERS.getList().get(1))),TOP_RIGHT,
-			layHorizontally(G,BOTTOM_LEFT,  createPlayerStat(PLAYERS.getList().get(2)),createPlayerStat(PLAYERS.getList().get(6))),BOTTOM_LEFT,
-			layHorizontally(G,BOTTOM_RIGHT, createPlayerStat(PLAYERS.getList().get(7)),createPlayerStat(PLAYERS.getList().get(3))),BOTTOM_RIGHT
+			layHorizontally(G,TOP_LEFT,     createPlayerStat(game, PLAYERS.getList().get(0)), createPlayerStat(game, PLAYERS.getList().get(4))),TOP_LEFT,
+			layHorizontally(G,TOP_RIGHT,    createPlayerStat(game, PLAYERS.getList().get(5)), createPlayerStat(game, PLAYERS.getList().get(1))),TOP_RIGHT,
+			layHorizontally(G,BOTTOM_LEFT,  createPlayerStat(game, PLAYERS.getList().get(2)), createPlayerStat(game, PLAYERS.getList().get(6))),BOTTOM_LEFT,
+			layHorizontally(G,BOTTOM_RIGHT, createPlayerStat(game, PLAYERS.getList().get(7)), createPlayerStat(game, PLAYERS.getList().get(3))),BOTTOM_RIGHT
 		);
 		playerStats.setPadding(new Insets(G,0,G,G));
 		playerStats.setMouseTransparent(true);
+		playerStats.setStyle("-fx-font-size: 1.5em;");
 		game.players.addListener((Change<? extends Player> change) ->
 			playerStats.getChildren().forEach(cc -> ((Pane)cc).getChildren().forEach(c ->
 				c.setVisible(game.players.stream().anyMatch(p -> p.id.get()==(int)c.getUserData()))
@@ -276,7 +294,7 @@ public class Comet extends SimpleController {
 
 		// layout
 		root.getChildren().add(
-			layHeaderTop(10,CENTER_LEFT,
+			layHeaderTop(0.0, CENTER_LEFT,
 				layHorizontally(20,CENTER_LEFT,
 					ConfigEditor.create(Config.forProperty(GameMode.class, "Mode", mode)).buildNode().getChildren().get(0),
 					new Icon(MaterialDesignIcon.NUMERIC_1_BOX_OUTLINE,15,"Start 1 player game",() -> game.start(1)),
@@ -291,12 +309,13 @@ public class Comet extends SimpleController {
 					new Icon(FontAwesomeIcon.GEARS,14,"Settings").action(e -> APP.windowManager.showSettings(toConfigurableByReflect(this),e)),
 					new Icon(FontAwesomeIcon.INFO,14,"How to play").action(() -> new HowToPane().show(game))
 				),
-				layStack(canvas_bgr, canvas, playfield, playerStats, message)
+				layStack(rootContent, sanvas, playerStats, message)
 			)
 		);
+		rootContent.getChildren().addAll(canvas_bgr, canvas);
 
 		// keys
-		playfield.addEventFilter(KEY_PRESSED, e -> {
+		sanvas.addEventFilter(KEY_PRESSED, e -> {
 			KeyCode cc = e.getCode();
 			boolean first_time = game.pressedKeys.add(cc);
 			if (first_time) {
@@ -322,17 +341,16 @@ public class Comet extends SimpleController {
 				}
 			}
 		});
-		playfield.addEventFilter(KEY_RELEASED, e -> {
+		sanvas.addEventFilter(KEY_RELEASED, e -> {
 			game.players.stream().filter(p -> p.alive).forEach(p -> {
 				if (e.getCode()==p.keyAbility.getValue()) p.rocket.ability.onKeyRelease();
 			});
 			game.pressedKeys.remove(e.getCode());
 		});
-		playfield.setOnMouseClicked(e -> playfield.requestFocus());
-		playfield.focusedProperty().addListener((o,ov,nv) -> game.pause(!nv));
+		sanvas.setOnMouseClicked(e -> sanvas.requestFocus());
+		sanvas.focusedProperty().addListener((o, ov, nv) -> game.pause(!nv));
 
 		root.addEventHandler(Event.ANY, Event::consume);
-
 		onClose.plusAssign(game::dispose);
 	}
 
@@ -556,6 +574,9 @@ public class Comet extends SimpleController {
 		final Comet owner = Comet.this;
 		final V<Boolean> paused = new V<>(false);
 		final V<Boolean> running = new V<>(false);
+		final Double scale = 2.0;
+		final Double scaleUi = 1.5;
+		final Font FONT_PLACEHOLDER = Font.font(FONT_UI.getName(), 14.0*scaleUi/scale);
 		private boolean isInitialized = false;
 
 		Settings settings = new Settings();
@@ -834,7 +855,7 @@ public class Comet extends SimpleController {
 			mode.start(player_count);
 			players.forEach(Player::spawn);
 			loop.start();
-			playfield.requestFocus();
+			sanvas.requestFocus();
 
 			grid.enabled = settings.useGrid;
 		}
@@ -876,7 +897,8 @@ public class Comet extends SimpleController {
 			forEachPair(filter(entities.forceFields, ff -> ff instanceof DisruptorField), oss.get(Particle.class), ForceField::apply);
 
 			// canvas clearing
-			gc_bgr.setFill(colors.canvasFade);
+			gc_bgr.setGlobalAlpha(1.0);
+			gc_bgr.setFill(color(colors.canvasFade, 1.0));
 //			gc_bgr.setFill(color(rgb(0,0,0), 0.1));
 			gc_bgr.fillRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
 			gc.clearRect(0,0, gc.getCanvas().getWidth(),gc.getCanvas().getHeight());
@@ -912,6 +934,9 @@ public class Comet extends SimpleController {
 
 				oss.get(Bullet.class).forEach(Bullet::draw);
 				os.forEach(PO::draw);
+
+				gc_bgr.applyEffect(null);
+				gc.applyEffect(null);
 			}
 
 			// non-interacting stuff last
@@ -932,7 +957,7 @@ public class Comet extends SimpleController {
 			oss.clear();
 			entities.clear();
 			runNext.clear();
-			playfield.getChildren().clear();
+			sanvas.getChildren().clear();
 			if (mode!=null) mode.stop();
 		}
 
@@ -1331,6 +1356,7 @@ public class Comet extends SimpleController {
 		public final V<Integer> lives = new V<>(game.settings.PLAYER_LIVES_INITIAL);
 		public final V<Integer> score = new V<>(0);
 		public final V<Double> energy = new V<>(0d);
+		public final V<Double> energyMax = new V<>(0d);
 		public Rocket rocket;
 		public final StatsPlayer stats = new StatsPlayer();
 		private final long hudUpdateFrequency = (long) ttl(millis(200));
@@ -1362,8 +1388,10 @@ public class Comet extends SimpleController {
 
 		@Override
 		public void doLoop() {
-			if (rocket!=null && game.loop.isNth(hudUpdateFrequency))
+			if (rocket!=null && game.loop.isNth(hudUpdateFrequency)) {
 				energy.set(rocket.energy);
+				energyMax.set(rocket.energy_max);
+			}
 
 			if (alive) {
 				isInputLeft |= game.pressedKeys.contains(keyLeft.get());
@@ -1595,7 +1623,7 @@ public class Comet extends SimpleController {
 		class Engine {
 			boolean enabled = false;
 			boolean forceOff = false;
-			final InEffectValue<Double> mobility = new InEffectValue<>(times -> pow(game.settings.BONUS_MOBILITY_MULTIPLIER,times));
+			final InEffectValue<Double> mobility = new InEffectValue<>(times -> times<0 ? 1.0/pow(game.settings.BONUS_MOBILITY_MULTIPLIER,-times) : pow(game.settings.BONUS_MOBILITY_MULTIPLIER,times));
 
 			final void on() {
 				if (!enabled && !forceOff) {
@@ -1666,8 +1694,7 @@ public class Comet extends SimpleController {
 			final GunControl control;
 			final F0<Double> aimer; // determines bullet direction
 			final F1<Double,Bullet> ammo_type; // bullet factory
-			final InEffectValue<Double[]> turrets = new InEffectValue<>(1,
-                       count -> calculateGunTurretAngles(count, game.settings.ROCKET_GUN_TURRET_ANGLE_GAP));
+			final InEffectValue<Double[]> turrets = new InEffectValue<>(1, count -> calculateGunTurretAngles(count, game.settings.ROCKET_GUN_TURRET_ANGLE_GAP));
 			final InEffect blackhole = new InEffect();
 			final TimeDouble reload;
 
@@ -2366,7 +2393,7 @@ public class Comet extends SimpleController {
 			gun = new Gun(
 				MANUAL,
 				game.settings.PLAYER_GUN_RELOAD_TIME,
-				() -> direction,
+				() -> direction + randMN(-0.08, 0.08),
 				dir -> splitFire.is()
 					? new SplitBullet(
 							this,
@@ -2403,7 +2430,7 @@ public class Comet extends SimpleController {
 			// super.draw();
 
 			Color c = player.color.get(); // game.humans.color
-			double scale = graphicsScale*(clip(0.7,20*g_potential,1));
+			double scale = graphicsScale*(clip(0.6,5*g_potential,1));
 			gc.setFill(c);
 			gc.setStroke(c);
 			gc.setGlobalAlpha(1);
@@ -2412,11 +2439,11 @@ public class Comet extends SimpleController {
 			// draw speed effect
 			if (!isHyperspace) {
 				double opacityMax = mapTo01(cache_speed, 1, 10);
-				double x = this.x, y = this.y;
+				double x = this.x-15*cos(direction), y = this.y-15*sin(direction);
 				drawFading(game, ttl -> {
 					gc.setFill(c);
 					gc.setGlobalAlpha(opacityMax*ttl*ttl);
-					drawOval(gc, x, y, graphicsScale*8);
+					fillTriangle(gc, x,y,scale*5, direction-PI, 3*PI/4);
 					gc.setGlobalAlpha(1);
 				});
 			}
@@ -2451,7 +2478,7 @@ public class Comet extends SimpleController {
 //                 dy += f*sd;
 //                 r.dx -= f*cd;
 //                 r.dy -= f*sd;
-//                 drawHudLine(x,y,20,dist-2*20,cd,sd,COLOR_DB);
+//                 drawHudLine(gc, game.field, x,y,20,dist-2*20,cd,sd,COLOR_DB);
 //             });
 
 			// todo: force from centre
@@ -2492,6 +2519,7 @@ public class Comet extends SimpleController {
 	/** Default enemy ship. */
 	class Ufo extends Ship {
 		boolean aggressive = false;
+		public final int rank = randOf(0, 0, 0, 1, 1, 1, 1, 2, 2, 3);
 		private final Runnable radio = () -> game.ufos.pulseCall(this);
 		private final Runnable tryDiscs = () -> {
 			if (game.settings.spawnSwarms && game.ufos.canSpawnDiscs) {
@@ -2589,6 +2617,8 @@ public class Comet extends SimpleController {
 					dy + sin(dir)*game.settings.UFO_BULLET_SPEED
 				)
 			);
+			gun.turrets.dec();
+			repeat(rank, i -> gun.turrets.inc());
 			game.runNext.addPeriodic(() -> ttl(seconds(5)), tryDiscs);
 			tryDiscs.run();
 		}
@@ -4005,7 +4035,7 @@ public class Comet extends SimpleController {
 			trailTtl--;
 			if (trailTtl<=0) {
 				trailTtl = ttl(seconds(0.5+rand0N(2)));
-				new InkoidDebris(x,y,0,0,5,seconds(2));
+				new InkoidDebris(this, x,y,0,0,5,seconds(2));
 			}
 		}
 
@@ -4018,13 +4048,14 @@ public class Comet extends SimpleController {
 			// Note: Graphics' ttl is function of trailTtl, meaning the trail length (which depends on ttl of the
 			// graphics) debris is variable and in a way that makes it spawn the trail debris when it is the longest.
 			// This creates an effect of spilling ink droplets on the way.
-			new InkoidGraphics(x,y,0,0,radius,seconds(0.35-trailTtl/FPS/10));
+			new InkoidGraphics(this, x,y,0,0,radius,seconds(0.35-trailTtl/FPS/10));
 		}
 		@Override void onHitParticles(SO o) {
 //            double hitdir = dir(o);
 			int particles = (int)randMN(1,3);
 			repeat(particles, i ->
 				new InkoidDebris(
+					this,
 					x,y,
 					randMN(-2,2),randMN(-2,2),
 					2 + rand01()*size_child*radius/4,
@@ -4037,11 +4068,13 @@ public class Comet extends SimpleController {
 		}
 
 		private class InkoidGraphics extends Particle implements Draw2 {
+			final PO owner;
 			private final Color COLOR = new Color(0,.1,.1, 1);
 			double r;
 
-			public InkoidGraphics(double x, double y, double dx, double dy, double RADIUS, Duration time) {
+			public InkoidGraphics(PO OWNER, double x, double y, double dx, double dy, double RADIUS, Duration time) {
 				super(x,y,dx,dy, ttl(time));
+				owner = OWNER;
 				radius = RADIUS;
 			}
 
@@ -4050,7 +4083,7 @@ public class Comet extends SimpleController {
 			}
 			@Override public void drawBack() {
 				double rr = 2+r;
-				double d = rr*2;
+				double d = rr*2*clip(0.3, 5*g_potential, 1.0);
 				gc_bgr.setFill(game.colors.main);
 				gc_bgr.fillOval(x-rr,y-rr,d,d);
 			}
@@ -4063,8 +4096,8 @@ public class Comet extends SimpleController {
 		}
 		private class InkoidDebris extends InkoidGraphics {
 			private final Color COLOR = new Color(0,.1,.1, 1);
-			public InkoidDebris(double x, double y, double dx, double dy, double RADIUS, Duration time) {
-				super(x,y,dx,dy,RADIUS,time);
+			public InkoidDebris(PO OWNER, double x, double y, double dx, double dy, double RADIUS, Duration time) {
+				super(OWNER, x,y,dx,dy,RADIUS,time);
 			}
 			@Override public void drawBack() {
 	//            double r = radius*(1-ttl)/3+7+(radius-5)*ttl;
@@ -4803,7 +4836,7 @@ public class Comet extends SimpleController {
 		double ttl;
 		final PO owner;
 		final int index;
-		final Draw graphics;
+		final Icon icon;
 
 		public EIndicator(PO OWNER, Enhancer enhancer) {
 			owner = OWNER;
@@ -4812,18 +4845,21 @@ public class Comet extends SimpleController {
 				.filter(EIndicator.class::isInstance).map(EIndicator.class::cast)
 				.noneMatch(o -> o.index==i));
 			owner.children.add(this);
-			graphics = new Draw(graphics(enhancer.icon, 5, game.colors.humansTech, null));
+			icon = new Icon(enhancer.icon, 15);
+			sanvas.getChildren().add(icon);
 		}
 
 		@Override
 		public void doLoop() {
 			ttl--;
 			if (ttl<0) game.runNext.add(this::dispose);
-			graphics.draw(gc, owner.x+30+20*index, owner.y-30);
+			icon.setLayoutX(game.scale * (owner.x+30+20*index) - icon.getLayoutBounds().getWidth());
+			icon.setLayoutY(game.scale * (owner.y-30) - icon.getLayoutBounds().getHeight());
 		}
 
 		@Override
 		public void dispose() {
+			sanvas.getChildren().remove(icon);
 			owner.children.remove(this);
 		}
 

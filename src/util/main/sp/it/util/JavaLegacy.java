@@ -1,7 +1,10 @@
 package sp.it.util;
 
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
+import com.sun.jna.win32.StdCallLibrary;
+import java.io.File;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -86,6 +89,19 @@ public class JavaLegacy {
 		}
 	}
 
+	public static void setWallpaperWindows(File file) {
+		int MY_SPI_WALLPAPER = 0x0014; //Change wallpaper flag.
+		int MY_SENDCHANGE = 1; // Send winini change
+		int MY_UNUSED = 0;  // unused parameter
+		try {
+			System.out.println("LOAD");
+			var x = JnaWallpaper.INSTANCE.SystemParametersInfoA(MY_SPI_WALLPAPER, MY_UNUSED, file.getAbsolutePath(), MY_SENDCHANGE);
+			System.out.println(x);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
 	private static class WindowsSuspend {
 		@SuppressWarnings("UnusedReturnValue")
 		public static native boolean SetSuspendState(boolean hibernate, boolean forceCritical, boolean disableWakeEvent);
@@ -94,6 +110,23 @@ public class JavaLegacy {
 			if (Platform.isWindows())
 				Native.register("powrprof");
 		}
+	}
+
+	public interface JnaWallpaper extends StdCallLibrary {
+
+		/** Field to load USER32 library. loadLibrary deprecated, use load instead */
+		JnaWallpaper INSTANCE = Native.load("user32", JnaWallpaper.class);
+
+		/**
+		 * Map function (Based on JNA/Microsoft document).
+		 * @param theUiAction Action to perform on UI
+		 * @param theUiParam Not used
+		 * @param thePath Path of a picture for desktop wallpaper
+		 * @param theFWinIni Not used
+		 * @return a boolean, not used
+		 */
+		@SuppressWarnings("UnusedReturnValue")
+		boolean SystemParametersInfoA(int theUiAction, int theUiParam, String thePath, int theFWinIni) throws LastErrorException;
 	}
 
 }

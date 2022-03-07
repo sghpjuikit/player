@@ -39,6 +39,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javafx.event.Event;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
@@ -53,7 +54,6 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -126,7 +126,6 @@ import static sp.it.util.functional.Util.range;
 import static sp.it.util.functional.Util.repeat;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.stream;
-import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.type.KClassExtensionsKt.getEnumValues;
 import static sp.it.util.ui.Util.layHeaderTop;
@@ -167,7 +166,6 @@ interface Utils {
 	double[] degCosMemo = IntStream.rangeClosed(-UNITS,UNITS).mapToDouble(i -> i/(double)precision).map(angle -> Math.cos(rad(angle))).toArray();
 	Random RAND = new Random();
 	Font FONT_UI = loadUiFont();
-	Font FONT_PLACEHOLDER = Font.font(FONT_UI.getName(), 14);
 	double HUD_DOT_GAP = 3;
 	double HUD_DOT_DIAMETER = 1;
 
@@ -255,36 +253,32 @@ interface Utils {
 		n.relocate(x-n.getLayoutBounds().getWidth()/2,y-n.getLayoutBounds().getHeight()/2);
 	}
 
-	static Node createPlayerStat(Player p) {
-		Label score = new Label();
-		installFont(score, FONT_UI);
-		p.score.syncC(s -> score.setText("Score: " + s));
-
+	static Node createPlayerStat(Game game, Player p) {
 		Label nameL = new Label();
-		installFont(nameL, FONT_UI);
+		nameL.setFont(font(FONT_UI.getFamily(), FONT_UI.getSize()*1.5));
 		syncC(p.name,nameL::setText);
 
-		HBox lives = layHorizontally(5, CENTER_LEFT);
-		repeat(p.lives.get(), () -> lives.getChildren().add(createPlayerLiveIcon()));
-		p.lives.attachChangesC((ol, nl) -> {
-			repeat(ol-nl, i -> {
-				Icon ic = (Icon)lives.getChildren().get(lives.getChildren().size()-1-i);
-				createHyperSpaceAnim(ic).playOpenDo(runnable(() -> lives.getChildren().remove(ic)));
-			});
-			repeat(nl-ol, () -> {
-				Icon ic = createPlayerLiveIcon();
-				lives.getChildren().add(ic);
-				createHyperSpaceAnim(ic).intpl(x -> 1-x).playOpen();
-			});
-		});
+		Label scoreLabel = new Label();
+		scoreLabel.setFont(FONT_UI);
+		p.score.syncC(s -> scoreLabel.setText("Score: " + s));
 
-		Label energy = new Label();
-		installFont(energy, FONT_UI);
-		p.energy.syncC(e -> energy.setText("Energy: " + e.intValue()));
+		var livesIcon = createPlayerLiveIcon();
+		var livesLabel = new Label(p.lives.get().toString() + "x");
+		livesLabel.setFont(FONT_UI);
+		livesLabel.setPadding(new Insets(0.0, 5.0, 0.0, -5.0));
+		p.lives.syncC(nl -> livesLabel.setText(nl + " x"));
 
-		VBox node = layVertically(5, CENTER_LEFT, nameL,score,lives,energy);
+		var energyIcon = createPlayerEnergyIcon();
+		Label energyLabel = new Label();
+		energyLabel.setFont(FONT_UI);
+		energyLabel.setPadding(new Insets(0.0, 0.0, 0.0, -5.0));
+		p.energy.syncC(e -> energyLabel.setText(p.energy.getValue().intValue() + ""));
+		p.energy.syncC(e -> updatePlayerLiveIcon(energyIcon, p.energy.getValue()/p.energyMax.getValue()));
+		p.energyMax.syncC(e -> updatePlayerLiveIcon(energyIcon, p.energy.getValue()/p.energyMax.getValue()));
+
+		VBox node = layVertically(5, CENTER_LEFT, nameL,scoreLabel,layHorizontally(0.0, CENTER_LEFT, livesIcon, livesLabel, energyIcon, energyLabel));
 		node.setMaxHeight(VBox.USE_PREF_SIZE); // fixes alignment in parent by not expanding this box
-		node.setPrefWidth(140); // fixes position changing on children resize
+		node.setPrefWidth(140*game.scaleUi); // fixes position changing on children resize
 		node.setUserData(p.id.get()); // to recognize which belongs to which
 		return node;
 	}
@@ -292,11 +286,22 @@ interface Utils {
 	static void installFont(Labeled l, Font f) {
 		Font ft = f==null ? Font.getDefault() : f;
 		l.setFont(ft);
-		l.setStyle("{ -fx-font: \"" + ft.getFamily() + "\"; }"); // bug fix, suddenly !work without this...
+		l.setStyle("{ -fx-font: \"" + ft.getFamily() + "\"; -fx-font-size }"); // bug fix, suddenly !work without this...
 	}
 
+	static void updatePlayerLiveIcon(Icon icon, double energy01) {
+		if (energy01>=1.0) icon.icon(MaterialDesignIcon.BATTERY_CHARGING_100);
+		else if (energy01>=0.8) icon.icon(MaterialDesignIcon.BATTERY_CHARGING_80);
+		else if (energy01>=0.6) icon.icon(MaterialDesignIcon.BATTERY_CHARGING_60);
+		else if (energy01>=0.4) icon.icon(MaterialDesignIcon.BATTERY_CHARGING_40);
+		else if (energy01>=0.2) icon.icon(MaterialDesignIcon.BATTERY_CHARGING_20);
+		else if (energy01>=0.0) icon.icon(MaterialDesignIcon.BATTERY_OUTLINE);
+	}
 	static Icon createPlayerLiveIcon() {
 		return new Icon(MaterialDesignIcon.ROCKET,15);
+	}
+	static Icon createPlayerEnergyIcon() {
+		return new Icon(MaterialDesignIcon.BATTERY,15);
 	}
 
 	static Anim createHyperSpaceAnim(Node n) {
@@ -690,7 +695,6 @@ interface Utils {
 	/** How to play help pane. */
 	class HowToPane extends OverlayPane<Game> {
 		private final GridPane g = new GridPane();
-		private final Icon helpI = infoIcon("How to play");
 
 		public HowToPane() {
 			getDisplay().set(Display.WINDOW);
@@ -702,12 +706,9 @@ interface Utils {
 					   sp.setFitToHeight(false);
 					   sp.setHbarPolicy(ScrollBarPolicy.NEVER);
 					   sp.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-			VBox l = layHeaderTop(5, CENTER,
-				layHorizontally(5,CENTER_RIGHT, helpI),
-				layStack(sp, CENTER)
-			);
-			l.setMaxWidth(800);
-			l.maxHeightProperty().bind(heightProperty().subtract(100));
+			var l = layStack(sp, CENTER);
+			    l.setMaxWidth(800);
+			    l.maxHeightProperty().bind(heightProperty().subtract(100));
 			setContent(l);
 		}
 
@@ -786,7 +787,6 @@ interface Utils {
 		private final Label gameModeName = new Label();
 		private final StackPane gameResultPane = new StackPane();
 		private final GridPane achievementPane = new GridPane();
-		private final Icon helpI = infoIcon("How to play");
 
 		public EndGamePane() {
 			getDisplay().set(Display.WINDOW);
@@ -805,12 +805,9 @@ interface Utils {
 			sp.setFitToHeight(false);
 			sp.setHbarPolicy(ScrollBarPolicy.NEVER);
 			sp.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-			VBox l = layHeaderTop(5, CENTER,
-				layHorizontally(5,CENTER_RIGHT, helpI),
-				layStack(sp, CENTER)
-			);
-			l.setMaxWidth(800);
-			l.maxHeightProperty().bind(heightProperty().subtract(100));
+			var l = layStack(sp, CENTER);
+			    l.setMaxWidth(800);
+			    l.maxHeightProperty().bind(heightProperty().subtract(100));
 			setContent(l);
 		}
 
@@ -917,7 +914,6 @@ interface Utils {
 		}
 
 		InEffectValue<T> dec() {
-			if (times<=0) return this;
 			times--;
 			value = valueCalc.apply(times);
 			if (changeApplier!=null) changeApplier.accept(times);
@@ -1760,10 +1756,11 @@ interface Utils {
 			);
 			enhancers = set(
 				game.new Enhancer("Gun", MaterialDesignIcon.KEY_PLUS, seconds(5),
-					r -> r.gun.turrets.inc(), (Rocket r) -> {/*r.gun.turrets.dec()*/},
+					r -> { r.gun.turrets.inc(); r.engine.mobility.dec(); }, (Rocket r) -> {},
 					"- Mounts additional gun turret",
 					"- Increases chance of hitting the target",
-					"- Increases maximum possible target damage by 100%"
+					"- Increases maximum possible target damage by 100%",
+					"- Decreases acceleration, speed, maneuverability"
 				),
 				game.new Enhancer("Rapid fire", MaterialDesignIcon.BLACKBERRY, seconds(12), r -> r.rapidFire.inc(), r -> r.rapidFire.dec(),
 					" - Largely increases rate of fire temporarily. Fires constant stream of bullets",
@@ -1805,10 +1802,14 @@ interface Utils {
 					"- Displays bullet path",
 					"- Displays bullet range"
 				),
-				game.new Enhancer("Mobility", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
+				game.new Enhancer("Engine thrust", MaterialDesignIcon.TRANSFER, seconds(25), r -> r.engine.mobility.inc(), r -> r.engine.mobility.dec(),
 					"- Increases propulsion efficiency, i.e., speed",
-					"- Increases maneuverability",
+					"- Increases acceleration, speed, maneuverability",
 					"Tip: If there is ever time to move, it is now. Don't idle around."
+				),
+				game.new Enhancer("Engine", MaterialDesignIcon.ENGINE, seconds(25), r -> r.engine.mobility.inc(), r -> {},
+					"- Adds permanent engine",
+					"- Increases acceleration, speed, maneuverability"
 				),
 				game.new Enhancer("Intel", MaterialDesignIcon.EYE, minutes(2), r ->  game.humans.intelOn.inc(), r -> game.humans.intelOn.dec(), false,
 					"- Reports incoming ufo time & location",
@@ -1858,7 +1859,7 @@ interface Utils {
 					"- Increases kinetic shield energy accumulation " + (game.settings.KINETIC_SHIELD_LARGE_E_RATE) +" times",
 					"Tip: You are not invincible, but anyone should think twice about hitting you. Go on the offensive. Move."
 				),
-				game.new Enhancer("Battery", MaterialDesignIcon.BATTERY_POSITIVE, seconds(5),
+				game.new Enhancer("Battery", MaterialDesignIcon.BATTERY_PLUS, seconds(5),
 					r -> {
 						r.energy_max *= 1.1;
 						r.energy_buildup_rate *= 1.1;
@@ -2227,7 +2228,7 @@ interface Utils {
 		@Override
 		public void init() {
 			// for development
-			game.owner.playfield.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> cells.add(new Cell(e.getX(), e.getY())));
+			game.owner.sanvas.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> cells.add(new Cell(e.getX(), e.getY())));
 
 			// generate cells
 			int W = (int) game.field.width;

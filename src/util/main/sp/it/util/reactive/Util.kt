@@ -180,6 +180,9 @@ infix fun <O> ObservableValue<O>.sync(block: (O) -> Unit): Subscription {
 /** Java convenience method equivalent to [sync]. */
 fun <O> ObservableValue<O>.syncC(block: Consumer<in O>) = sync(block.kt)
 
+/** Java convenience method equivalent to [sync]. */
+fun <O> ObservableValue<O>.attachC(block: Consumer<in O>) = attach(block.kt)
+
 /** Sets a disposable block to be fired on every value change. The block is disposed on the next change. */
 infix fun <O> ObservableValue<O>.attachWhile(block: (O) -> Subscription): Subscription {
    val inner = Disposer()

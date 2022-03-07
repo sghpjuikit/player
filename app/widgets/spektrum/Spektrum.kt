@@ -25,6 +25,7 @@ import javax.sound.sampled.TargetDataLine
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.exp
 import kotlin.math.log10
 import kotlin.math.min
 import kotlin.math.pow
@@ -112,13 +113,13 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       .def(name = "Animation decay (ms to zero)", info = "")
    val accelerationFactor by cv(5).between(0, 30)
       .def(name = "Animation decay acceleration (1/n)", info = "")
-   val timeFilterSize by cv(3).between(0, 10)
+   var timeFilterSize by c(3).between(0, 10)
       .def(name = "Animation smoothness (time)", info = "")
-   val smoothnessType by cv(FFTTimeFilter.Type.WMA)
+   var smoothnessType by c(FFTTimeFilter.Type.WMA)
       .def(name = "Animation smoothness (time) type", info = "")
-   val smoothnessSpaceType by cv(FFTSpaceFilter.Type.GAUSS)
+   var smoothnessSpaceType by c(FFTSpaceFilter.Type.GAUSS)
       .def(name = "Animation smoothness (position) type", info = "")
-   val smoothnessSpaceStrength by cv(0.5).between(0.0, 1.0)
+   var smoothnessSpaceStrength by c(0.5).between(0.0, 1.0)
       .def(name = "Animation smoothness (position) strength", info = "")
 
    val barMinHeight by cv(2.0).min(0.0)
@@ -131,10 +132,14 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       .def(name = "Bars shape", info = "")
    val barStyle by cv(BarStyle.LINE)
       .def(name = "Bars shape", info = "")
-   val effectPulse by cv(true)
+   var effectPulse by c(true)
       .def(name = "Bars effect - pulse", info = "")
-   val effectMirror by cv(true)
+   var effectMirror by c(BarMirror.POINT)
       .def(name = "Bars effect - mirror", info = "")
+   var barLineCap by c(StrokeLineCap.ROUND)
+      .def(name = "Bar line cap type", info = "")
+   var barLineJoin by c(StrokeLineJoin.ROUND)
+      .def(name = "Bar line join type", info = "")
 
    val spectralColorPosition by cv(180).between(0, 360)
       .def(name = "Color spectral position (degrees)", info = "")
@@ -197,7 +202,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
    class SpectralView(val spektrum: Spektrum, val spectralFFTService: FrequencyBarsFFTService): Canvas() {
       private val settings = spektrum
-      private val loop = Loop { _ -> DrawingData(settings.effectMirror.value, spectralFFTService.frequencyBarList).updateBars() }
+      private val loop = Loop { _ -> DrawingData(settings.effectMirror, spectralFFTService.frequencyBarList).updateBars() }
       private val gc = graphicsContext2D!!
 
       init {
@@ -209,32 +214,32 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          val h = spektrum.root.height
          val barWg = w/barCount.toDouble()
          val barW = barWg-settings.barGap.value.toDouble() max 1.0
-         val pulseEffect = if (settings.effectPulse.value) avg/15.0 else 0.0
+         val pulseEffect = if (settings.effectPulse) avg/15.0 else 0.0
 
          gc.clearRect(0.0, 0.0, w, h)
-         gc.lineCap = StrokeLineCap.ROUND
-         gc.lineJoin = StrokeLineJoin.ROUND
+         gc.lineCap = settings.barLineCap
+         gc.lineJoin = settings.barLineJoin
          gc.save()
 
          val barPositionsLow = ArrayList<P>(barCount)
-         val barPositionsHigh = ArrayList<P>(barCount)
+         val barPositionsHig = ArrayList<P>(barCount)
          when (settings.barAlignment.value) {
             BarShape.CENTER -> {
                bars.forEachIndexed { i, bar ->
                   barPositionsLow += P(i*barWg, (h - bar.height)/2)
-                  barPositionsHigh += P(i*barWg, (h - bar.height)/2 + bar.height)
+                  barPositionsHig += P(i*barWg, (h - bar.height)/2 + bar.height)
                }
             }
             BarShape.BOTTOM -> {
                bars.forEachIndexed { i, bar ->
                   barPositionsLow += P(i*barWg, h - bar.height)
-                  barPositionsHigh += P(i*barWg, h)
+                  barPositionsHig += P(i*barWg, h)
                }
             }
             BarShape.TOP -> {
                bars.forEachIndexed { i, bar ->
                   barPositionsLow += P(i*barWg, 0.0)
-                  barPositionsHigh += P(i*barWg, bar.height)
+                  barPositionsHig += P(i*barWg, bar.height)
                }
             }
             BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT -> {
@@ -246,7 +251,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   val barCos = cos(2*PI*i/barCount - PI/2)
                   val barSin = sin(2*PI*i/barCount - PI/2)
                   barPositionsLow += P(w/2 + min*barCos, h/2 + min*barSin)
-                  barPositionsHigh += P(w/2 + max*barCos, h/2 + max*barSin)
+                  barPositionsHig += P(w/2 + max*barCos, h/2 + max*barSin)
                }
             }
          }
@@ -255,41 +260,49 @@ class Spektrum(widget: Widget): SimpleController(widget) {
             BarStyle.LINE -> {
                gc.lineWidth = barW
                bars.forEachIndexed { i, bar ->
-                  gc.fill = bar.color
                   gc.stroke = bar.color
-                  gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
+                  gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, barPositionsHig[i].x, barPositionsHig[i].y)
                }
                gc.lineWidth = 0.0
             }
+
             BarStyle.NET -> {
                gc.lineWidth = 2.0
                bars.forEachIndexed { i, bar ->
-                  gc.fill = bar.color
                   gc.stroke = bar.color
-                  gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
-                  if (i>0)           gc.strokeLine(barPositionsLow[i-1].x, barPositionsLow[i-1].y, barPositionsLow[i].x, barPositionsLow[i].y)
-                  if (i>0)           gc.strokeLine(barPositionsHigh[i-1].x, barPositionsHigh[i-1].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
+                  gc.strokeLine(barPositionsLow[i].x, barPositionsLow[i].y, barPositionsHig[i].x, barPositionsHig[i].y)
                }
                val connect = settings.barAlignment.value in setOf(BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT)
-               if (bars.size>1 && connect) {
-                  gc.strokeLine(barPositionsLow[0].x, barPositionsLow[0].y, barPositionsLow[bars.lastIndex].x, barPositionsLow[bars.lastIndex].y)
-                  gc.strokeLine(barPositionsHigh[0].x, barPositionsHigh[0].y, barPositionsHigh[bars.lastIndex].x, barPositionsHigh[bars.lastIndex].y)
-               }
+               if (bars.size>1 &&  connect) gc.strokePolygon (barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 && !connect) gc.strokePolyline(barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 &&  connect) gc.strokePolygon (barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 && !connect) gc.strokePolyline(barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
                gc.lineWidth = 0.0
             }
             BarStyle.NET_OUTLINE -> {
                gc.lineWidth = 2.0
-               bars.forEachIndexed { i, bar ->
-                  gc.fill = bar.color
-                  gc.stroke = bar.color
-                  if (i>0)           gc.strokeLine(barPositionsLow[i-1].x, barPositionsLow[i-1].y, barPositionsLow[i].x, barPositionsLow[i].y)
-                  if (i>0)           gc.strokeLine(barPositionsHigh[i-1].x, barPositionsHigh[i-1].y, barPositionsHigh[i].x, barPositionsHigh[i].y)
-               }
                val connect = settings.barAlignment.value in setOf(BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT)
-               if (bars.size>1 && connect) {
-                  gc.strokeLine(barPositionsLow[0].x, barPositionsLow[0].y, barPositionsLow[bars.lastIndex].x, barPositionsLow[bars.lastIndex].y)
-                  gc.strokeLine(barPositionsHigh[0].x, barPositionsHigh[0].y, barPositionsHigh[bars.lastIndex].x, barPositionsHigh[bars.lastIndex].y)
-               }
+               if (bars.size>1 &&  connect) gc.strokePolygon (barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 && !connect) gc.strokePolyline(barPositionsLow.map { it.x }.toDoubleArray(), barPositionsLow.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 &&  connect) gc.strokePolygon (barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 && !connect) gc.strokePolyline(barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               gc.lineWidth = 0.0
+            }
+            BarStyle.OUTLINE -> {
+               gc.lineWidth = 2.0
+               gc.stroke = bars.firstOrNull()?.color ?: Color.BLACK
+               val connect = settings.barAlignment.value in setOf(BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT)
+               if (bars.size>1 &&  connect) gc.strokePolygon (barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               if (bars.size>1 && !connect) gc.strokePolyline(barPositionsHig.map { it.x }.toDoubleArray(), barPositionsHig.map { it.y }.toDoubleArray(), bars.size)
+               gc.lineWidth = 0.0
+            }
+            BarStyle.ZIGZAG -> {
+               gc.lineWidth = 2.0
+               gc.stroke = bars.firstOrNull()?.color ?: Color.BLACK
+               val connect = settings.barAlignment.value in setOf(BarShape.CIRCLE_IN, BarShape.CIRCLE_MIDDLE, BarShape.CIRCLE_OUT)
+               val pointSelector = { it: Int -> (if (it%2==0) barPositionsLow else barPositionsHig)[it] }
+               if (bars.size>1 &&  connect) gc.strokePolygon (DoubleArray(bars.size) { pointSelector(it).x }, DoubleArray(bars.size) { pointSelector(it).y }, bars.size)
+               if (bars.size>1 && !connect) gc.strokePolyline(DoubleArray(bars.size) { pointSelector(it).x }, DoubleArray(bars.size) { pointSelector(it).y }, bars.size)
                gc.lineWidth = 0.0
             }
          }
@@ -300,10 +313,20 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       fun stop() = loop.stop()
 
       data class DrawingData(val avg: Double, val barCount: Int, val bars: List<FrequencyBar>, val time: Long) {
-         constructor(mirror: Boolean, bars: List<FrequencyBar>): this(
+         constructor(mirror: BarMirror, bars: List<FrequencyBar>): this(
             bars.sumOf { it.height }/bars.size,
-            if (mirror) bars.size*2 else bars.size,
-            if (mirror) bars.reversed() + bars else bars,
+            when (mirror) {
+               BarMirror.NONE -> bars.size
+               BarMirror.AXIS, BarMirror.POINT -> bars.size*2
+               BarMirror.AXIS_TWICE, BarMirror.POINT_TWICE -> bars.size*4
+            },
+            when (mirror) {
+               BarMirror.NONE -> bars
+               BarMirror.AXIS -> bars.reversed() + bars
+               BarMirror.POINT -> bars + bars
+               BarMirror.AXIS_TWICE -> bars + bars + bars + bars
+               BarMirror.POINT_TWICE -> bars.reversed() + bars + bars.reversed() + bars
+            },
             System.currentTimeMillis()
          )
       }
@@ -311,7 +334,9 @@ class Spektrum(widget: Widget): SimpleController(widget) {
 
    enum class BarShape { BOTTOM, CENTER, TOP, CIRCLE_OUT, CIRCLE_MIDDLE, CIRCLE_IN }
 
-   enum class BarStyle { LINE, NET, NET_OUTLINE }
+   enum class BarStyle { LINE, NET, NET_OUTLINE, OUTLINE, ZIGZAG }
+
+   enum class BarMirror { NONE, AXIS, AXIS_TWICE, POINT, POINT_TWICE }
 
    object GlobalColorCalculator {
       fun getGlobalColor(settings: Spektrum, frequencyBars: List<FrequencyBar>, startHz: Int, endHz: Int, peak: GlobalColorCalculatorPeak): Color {
@@ -663,7 +688,7 @@ class FFTTimeFilter(settings: Spektrum) {
    private val historyAmps: Queue<DoubleArray> = LinkedList()
 
    fun filter(amps: DoubleArray): DoubleArray {
-      val timeFilterSize = settings.timeFilterSize.value
+      val timeFilterSize = settings.timeFilterSize
       if (timeFilterSize<2)
          return amps
 
@@ -680,7 +705,7 @@ class FFTTimeFilter(settings: Spektrum) {
       }
       historyAmps.poll()
       historyAmps.offer(amps)
-      return when (settings.smoothnessType.value) {
+      return when (settings.smoothnessType) {
          Type.WMA -> filterWma(amps)
          Type.EMA -> filterEma(amps)
          Type.SMA -> filterSma(amps)
@@ -736,16 +761,53 @@ class FFTTimeFilter(settings: Spektrum) {
 }
 
 class FFTSpaceFilter(val settings: Spektrum) {
+   private var lastKernel: DoubleArray? = null
+   private var lastAmpSize: Int? = null
+   private var lastStrength: Double01? = null
 
-   fun filter(amps: DoubleArray): DoubleArray = when (settings.smoothnessSpaceType.value) {
+   fun filter(amps: DoubleArray): DoubleArray = when (settings.smoothnessSpaceType) {
       Type.GAUSS -> {
-         val strength: Double01 = settings.smoothnessSpaceStrength.value
-         val kernelRaw = DoubleArray(amps.size) { strength.pow(abs(it-amps.size/2)) }
-         val kernelNormalization = kernelRaw.sum()
-         val kernel = DoubleArray(amps.size) { kernelRaw[it]/kernelNormalization }
-         DoubleArray(amps.size) { i -> kernel.foldIndexed(0.0) { ki, sum, k -> sum + k*amps[(amps.size+i+ki-kernel.size/2).mod(amps.size)] } }
+         val strength: Double01 = settings.smoothnessSpaceStrength
+         when (strength) {
+            0.0 -> amps
+            1.0 -> { val avg = amps.average(); DoubleArray(amps.size) { avg } }
+            else -> {
+               val kernel = if (lastKernel!=null && settings.smoothnessSpaceStrength==lastStrength && amps.size==lastAmpSize) {
+                  lastKernel!!
+               } else {
+                  lastAmpSize = amps.size
+                  lastStrength = settings.smoothnessSpaceStrength
+                  lastKernel = gaussianKernel1d(amps.size, settings.smoothnessSpaceStrength)
+                  lastKernel!!
+               }
+               DoubleArray(amps.size) { i -> kernel.foldIndexed(0.0) { ki, sum, k -> sum + k*amps[(amps.size+i+ki-kernel.size/2).mod(amps.size)] } }
+            }
+         }
       }
       Type.NONE -> amps
+   }
+
+   fun gaussianKernel1d(items: Int, strength: Double): DoubleArray {
+      val sqr2pi = sqrt(2 * Math.PI)
+      val sigma = 3.0
+      val width = (items*strength / 2).toInt()
+      val norm = 1.0 / (sqr2pi * sigma)
+      val coefficient = 2 * sigma * sigma
+      var total = 0.0
+      val kernel = DoubleArray(width * 2 + 1)
+
+      (-width..width).forEach {
+         val g = norm * exp(-it * it / coefficient)
+         val linearPortion = strength*1
+         val gaussPortion = (1-strength)*g
+         val v = linearPortion + gaussPortion
+         total += v
+         kernel[width + it] = v
+      }
+
+      kernel.indices.forEach { kernel[it] = kernel[it]/total }
+
+      return kernel
    }
 
    enum class Type { GAUSS, NONE }

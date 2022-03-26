@@ -17,6 +17,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.paint.Color.BLACK
 import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Screen
+import javafx.stage.Window
 import javax.imageio.ImageIO
 import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
@@ -527,9 +528,12 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }.preventClosing()
 
-   val componentClone = fastAction<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w ->
-      w.openInConfigured()
-   }
+
+   val windowFocus = fastAction<Window>("Focus", "Focus this window.", IconFA.EYE) { w -> w.requestFocus() }
+
+   val componentFocus = fastAction<Component>("Focus", "Focus this component.", IconFA.CLONE) { w -> w.focus() }
+
+   val componentClone = fastAction<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w -> w.openInConfigured() }
 
    val componentExport = fastAction<Component>(
       "Export",

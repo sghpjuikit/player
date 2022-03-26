@@ -4,6 +4,7 @@ import java.util.UUID
 import javafx.scene.Node
 import javafx.scene.control.Skin
 import kotlin.reflect.KClass
+import sp.it.pl.ui.nodeinfo.MouseInfo
 import sp.it.pl.ui.nodeinfo.SongAlbumInfo
 import sp.it.pl.ui.nodeinfo.SongInfo
 import sp.it.pl.ui.objects.GpuNvidiaInfo
@@ -55,7 +56,8 @@ object CoreInstances: InstanceMap(), Core {
          RecommendedWidgetClass(uuid("8bd6ca12-caa4-4f42-985a-6d4b9749cd32"), TimeClockDigital::class, "TimeClockDigital") { TimeClockDigital() },
          RecommendedWidgetClass(uuid("20a08e65-f3e8-4129-9c32-6d72cf07360a"), TimeClockDigitalIos::class, "TimeClockDigitalIos") { TimeClockDigitalIos() },
          RecommendedWidgetClass(uuid("6914b36e-b771-4e32-8339-07cbdb99c9f6"), TimePickerContent::class, "TimePickerContent") { TimePickerContent() },
-         RecommendedWidgetClass(uuid("96c8ca9d-f959-4a48-ad20-b8938196fdc8"), SongInfo::class, "Song Info (small)") { SongInfo(false) },
+         RecommendedWidgetClass(uuid("800c980b-c135-40e4-8026-1f0e68d3ca33"), MouseInfo::class, "Mouse Info") { MouseInfo() },
+         RecommendedWidgetClass(uuid("d603d122-4fe6-4e93-be72-cfe94c49b05b"), SongInfo::class, "Song Info (small)") { SongInfo(false) },
          RecommendedWidgetClass(uuid("96c8ca9d-f959-4a48-ad20-b8938196fdc8"), SongAlbumInfo::class, "Album Info (small)") { SongAlbumInfo(false) },
       )
 

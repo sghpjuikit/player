@@ -3,6 +3,8 @@ package sp.it.pl.core
 import javafx.geometry.Point2D
 import javafx.scene.robot.Robot
 import javafx.stage.Screen
+import kotlin.math.PI
+import kotlin.math.atan2
 import sp.it.util.async.executor.FxTimer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.collections.readOnly
@@ -17,7 +19,7 @@ object CoreMouse: Core {
    private var lastPos: Point2D? = null
    private var observeSpeed = false
    private val positionSubscribers = HashSet<(Point2D) -> Unit>()
-   private val velocitySubscribers = HashSet<(Double) -> Unit>()
+   private val velocitySubscribers = HashSet<(MouseData) -> Unit>()
    private val robot = Robot()
 
    /** @return mouse position in screen coordinates */
@@ -31,7 +33,7 @@ object CoreMouse: Core {
    }
 
    /** Observe mouse position speed in px/second. */
-   fun observeMouseVelocity(action: (Double) -> Unit): Subscription {
+   fun observeMouseVelocity(action: (MouseData) -> Unit): Subscription {
       velocitySubscribers += action
       pulseUpdate()
       return Subscription { unsubscribe(action) }
@@ -50,13 +52,15 @@ object CoreMouse: Core {
    private fun pulseStart() {
       if (pulse==null)
          pulse = fxTimer(1.seconds/pulseFrequency, -1) {
-            val p = mousePosition
-            positionSubscribers.forEach { it(p) }
-            if (observeSpeed && lastPos!=null) {
-               val speed = p.distance(lastPos!!)*pulseFrequency
-               velocitySubscribers.forEach { it(speed) }
+            val pn = mousePosition
+            val po = lastPos
+            positionSubscribers.forEach { it(pn) }
+            if (observeSpeed && po!=null) {
+               val speed = pn.distance(po)*pulseFrequency
+               val dir = if (speed==0.0) null else ((PI + atan2(pn.x-po.x, pn.y-po.y))*180/PI + 90.0).mod(360.0)
+               velocitySubscribers.forEach { it(MouseData(speed, dir)) }
             }
-            lastPos = p
+            lastPos = pn
          }.apply { start() }
    }
 
@@ -72,4 +76,5 @@ object CoreMouse: Core {
       if (shouldObservePosition) pulseStart() else pulseStop()
    }
 
+   data class MouseData(val speed: Double, val dir: Double?)
 }

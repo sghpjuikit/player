@@ -668,7 +668,7 @@ public class Window extends WindowBase {
 		// should be fixed
 		if (e.getButton()!=PRIMARY || resizing.get()!=NONE) return;
 
-		mouseMonitor = APP.getMouse().observeMouseVelocity(consumer(speed -> mouseSpeed = speed));
+		mouseMonitor = APP.getMouse().observeMouseVelocity(consumer(m -> mouseSpeed = m.getSpeed()));
 		isMoving.set(true);
 		appX = e.getSceneX();
 		appY = e.getSceneY();

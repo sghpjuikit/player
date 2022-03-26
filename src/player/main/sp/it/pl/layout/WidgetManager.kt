@@ -684,7 +684,7 @@ class WidgetManager {
       /** Select next widget or the first if none selected among the widgets in the specified window. */
       fun selectNextWidget(root: Container<*>) {
          val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
-         if (all.size<=1) return
+         if (all.isEmpty()) return
          val i = Values.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
          all.getOrNull(i)?.focusAndTraverse()
       }
@@ -692,7 +692,7 @@ class WidgetManager {
       /** Select previous widget or the first if none selected among the widgets in the specified window. */
       fun selectPreviousWidget(root: Container<*>) {
          val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
-         if (all.size<=1) return
+         if (all.isEmpty()) return
          val iNew = Values.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
          all.getOrNull(iNew)?.focusAndTraverse()
       }

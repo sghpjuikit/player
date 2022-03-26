@@ -323,7 +323,8 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
          if (w==null) {
             o.asIf<Stage>()?.title.nullIfBlank() ?: "Window (generic)"
          } else {
-            var n = "Window " + APP.windowManager.windows.indexOf(w)
+            val ws = w.layout.getAllWidgets().take(2).toList()
+            var n = if (ws.size==1) ws.first().name else "Window " + APP.windowManager.windows.indexOf(w)
             if (w.isMainWindow()) n += " (main)"
             if (w.isDockWindow()) n += " (dock)"
             n

@@ -120,6 +120,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
       .materialize()
       .forEach {
          val widgetOld = it
+         val widgetOldIsShowSettings = widgetOld.ui?.asIf<WidgetUi>()?.controls?.isShowSettings()==true
          val widgetNew = widgetFactory.createRecompiled(widgetOld.id).apply {
             setStateFrom(widgetOld)
             forceLoading = true
@@ -136,7 +137,6 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
          val p = widgetOld.parent
          if (p!=null) {
             val i = widgetOld.indexInParent()
-
             val loadNotification = "reloading=" + widgetNew.id
             p.properties[loadNotification] = loadNotification // in some situations, container needs to know that after remove, add will come
             p.removeChild(i)
@@ -150,5 +150,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
             parent.asIf<Pane?>()?.children?.add(i, widgetNew.load())
             widgetNew.restoreAuxiliaryState()
          }
+
+         if (widgetOldIsShowSettings) widgetNew.ui.asIf<WidgetUi>()?.controls?.showSettings()
       }
 }

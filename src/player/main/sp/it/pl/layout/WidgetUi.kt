@@ -153,6 +153,7 @@ class WidgetUi: ComponentUiBase<Widget> {
    override fun dispose() {
       disposer()
       controls.root.removeFromParent()
+      controls.showSettingsClose()
       nullify(::controls)
    }
 

@@ -74,7 +74,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
          menuB = headerIcon(IconFA.CARET_DOWN, "Widget menu") { i ->
             ContextMenu().dsl {
-               item("Open settings", Icon(IconFA.COGS)) { showSettings(i) }
+               item("Open settings", Icon(IconFA.COGS)) { showSettings() }
                items { CoreMenus.menuItemBuilders[area.widget] }
             }.apply {
                show(i, Side.BOTTOM, 0.0, 0.0)
@@ -131,15 +131,27 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
       root.onEventDown(DRAG_DETECTED) { onDragDetected(it, root) }
       root.onEventDown(DRAG_DONE) { root.pseudoClassStateChanged(PSEUDOCLASS_DRAGGED, false) }
+
    }
 
-   private fun showSettings(it: Icon) {
+   fun isShowSettings(): Boolean {
       val key = "settingsWindow"
-      it.properties[key]?.asIf<PopWindow>().ifNotNull { it.focus() }.ifNull {
+      val popup = menuB.properties[key].asIf<PopWindow>()
+      return popup!=null
+   }
+
+   fun showSettingsClose() {
+      val key = "settingsWindow"
+      menuB.properties[key]?.asIf<PopWindow>().ifNotNull { it.hide() }
+   }
+
+   fun showSettings() {
+      val key = "settingsWindow"
+      menuB.properties[key]?.asIf<PopWindow>().ifNotNull { it.focus() }.ifNull {
          tryHideAfterSettings()
-         APP.windowManager.showSettings(area.widget, it).apply {
-            it.properties[key] = this
-            onHiding += { it.properties[key] = null }
+         APP.windowManager.showSettings(area.widget, menuB).apply {
+            menuB.properties[key] = this
+            onHiding += { menuB.properties[key] = null }
          }
       }
    }

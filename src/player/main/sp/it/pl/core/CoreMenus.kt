@@ -269,7 +269,7 @@ object CoreMenus: Core {
             item("Settings", ICON_CONF.toCmUi()) { openWindowSettings(it, null) }
          }
          add<WindowFX> {
-            value.asAppWindow().ifNotNull { w -> item("Clone") { w.clone() } }
+            value.asAppWindow().ifNotNull { w -> itemsFor(w) }
             menu("Inspect ui properties in") {
                widgetItems<ConfiguringFeature> { w -> w.configureAsync { value.toConfigurableFx() } }
             }
@@ -513,6 +513,9 @@ object CoreMenus: Core {
       menuItemBuilders[value].forEach { this add it }
       block()
    }
+
+   @Dsl
+   private fun MenuBuilder<*, *>.itemsFor(value: Any?) = items { menuItemBuilders[value] }
 
    private inline fun GlyphIcons.toCmUi(block: (Icon).() -> Unit = {}) = Icon(this).apply(block).apply {
       parentProperty().syncNonNullIntoWhile(Parent::sceneProperty) {

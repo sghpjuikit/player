@@ -318,7 +318,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
    }
 
    @IsAction(name = "Layout align", info = "Aligns layout of the active window", keys = "ALT+UP")
-   fun tabAlign() = APP.windowManager.getActive()?.switchPane?.alignTabs()
+   fun tabAlign() = APP.windowManager.getActive()?.switchPane?.alignTabsToNearestChild()
 
    @IsAction(name = "Layout move left", info = "Moves layout of the active window to the left.", keys = "ALT+LEFT")
    fun tabPrevious() = APP.windowManager.getActive()?.switchPane?.alignLeftTab()
@@ -424,29 +424,26 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
          window.sceneProperty().syncNonNullWhile { scene ->
             var allowTraversal = false
             val s1 = scene.focusOwnerProperty() attach { Widget.focusChangedHandler(it, allowTraversal) }
-            val s2 = scene.rootProperty() syncNonNullWhile { root ->
-               val ss1 = root.onEventUp(MOUSE_PRESSED) { e ->
-                  allowTraversal = false
-                  if (e.button==MouseButton.PRIMARY)
-                     APP.ui.focusClickedWidget(e)
-               }
-               val ss2 = root.onEventUp(KEY_PRESSED) { e ->
-                  allowTraversal = true
-                  if (e.code==TAB && e.isShortcutDown) {
-                     e.consume()
+            val s2 = scene.onEventUp(MOUSE_PRESSED) { e ->
+               allowTraversal = false
+               if (e.button==MouseButton.PRIMARY)
+                  APP.ui.focusClickedWidget(e)
+            }
+            val s3 = scene.onEventUp(KEY_PRESSED) { e ->
+               allowTraversal = true
+               if (e.code==TAB && e.isShortcutDown) {
+                  e.consume()
 
-                     val layout = window.asLayout()
-                     if (layout!=null) {
-                        if (e.isShiftDown)
-                           APP.widgetManager.widgets.selectPreviousWidget(layout)
-                        else
-                           APP.widgetManager.widgets.selectNextWidget(layout)
-                     }
+                  val layout = window.asLayout()
+                  if (layout!=null) {
+                     if (e.isShiftDown)
+                        APP.widgetManager.widgets.selectPreviousWidget(layout)
+                     else
+                        APP.widgetManager.widgets.selectNextWidget(layout)
                   }
                }
-               ss1 + ss2
             }
-            s1 + s2
+            s1 + s2 + s3
          }
       }
       Tooltip.getWindows().onItemAdded { if (font.value != null) (it as? Tooltip)?.font = font.value }

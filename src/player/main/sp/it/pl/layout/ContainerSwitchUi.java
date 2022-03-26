@@ -49,6 +49,7 @@ import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.executor.FxTimer.fxTimer;
 import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
+import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.firstNotNull;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -386,6 +387,23 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
 
 
     /**
+     * Scrolls to the current tab if empty or to the nearest child.
+     * It is pointless to use this method when auto-align is enabled.
+     * <p/>
+     * Use to force-align tabs.
+     *
+     * @return index of current tab after aligning
+     */
+    public int alignTabsToNearestChild() {
+        var i = currTab();
+        return alignTab(
+            container.getChildren().entrySet().stream()
+                .filter(it -> it.getValue()!=null).map(it -> it.getKey())
+                .min(by(it -> abs(it-i))).orElse(i)
+        );
+    }
+
+    /**
      * Scrolls to the current tab.
      * It is pointless to use this method when auto-align is enabled.
      * <p/>
@@ -618,6 +636,7 @@ public class ContainerSwitchUi extends ContainerUi<ContainerSwitch> {
     @Override
     public void show() {
         super.show();
+        updateEmptyTabs();
         layouts.values().forEach(c -> { if (c instanceof Container<?> cc) cc.show(); });
         tabs.forEach((i,t) -> { if (t.ui!=null) t.ui.show(); });
     }

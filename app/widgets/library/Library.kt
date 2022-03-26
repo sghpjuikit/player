@@ -249,6 +249,8 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       }
    }
 
+   override fun focus() = table.requestFocus()
+
    companion object: WidgetCompanion, KLogging() {
       override val name = SONG_TABLE_NAME
       override val description = "Table of songs"

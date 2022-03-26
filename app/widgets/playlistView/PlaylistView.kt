@@ -192,6 +192,8 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
       return super.getConfigs()
    }
 
+   override fun focus() = table.requestFocus()
+
    private fun computeInitialPlaylist(id: UUID) = null
       ?: PlaylistManager.playlists[id]
       ?: findDanglingPlaylist()?.copyDangling()

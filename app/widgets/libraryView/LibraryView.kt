@@ -408,6 +408,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
    }
 
+   override fun focus() = table.requestFocus()
+
    companion object: WidgetCompanion, KLogging() {
       override val name = SONG_GROUP_TABLE_NAME
       override val description = "Table of songs"

@@ -944,8 +944,9 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      icon.icon(item.uiIcon)
                      label1.text = item?.name?.toS()
                      label2.text = when (item) {
-                        is WidgetFactory<*> -> item.version.toS() + "\t" + item.author.toS()
+                        is WidgetFactory<*> -> item.version.toS() + " | " + item.author.toS()
                         is DeserializingFactory -> FileField.TIME_MODIFIED.getOfS(item.launcher, "")
+                        is NodeFactory -> "bundled"
                         else -> null
                      }
                   }
@@ -1022,6 +1023,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      }
                      is NodeFactory -> {
                         lay += textColon("Type", "Ui component ${f.node.toUi()}")
+                        lay += textColon("Version", "bundled")
                      }
                      is NoFactoryFactory -> {
                         lay += textColon("Type", "Substitute for 'missing component'")

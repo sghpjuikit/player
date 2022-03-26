@@ -37,6 +37,7 @@ import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.objects.window.stage.popWindowOwner
 import sp.it.pl.ui.pane.OverlayPane.Companion.isOverlayWindow
 import sp.it.util.access.v
+import sp.it.util.access.vAlways
 import sp.it.util.access.vn
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
@@ -55,6 +56,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
@@ -64,7 +66,7 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onEventUp1
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.zip
+import sp.it.util.reactive.syncWhile
 import sp.it.util.system.hasFileChooserOpen
 import sp.it.util.ui.borderPane
 import sp.it.util.ui.hBox
@@ -305,7 +307,21 @@ open class PopWindow {
                   if (windowOwner==null || windowOwner===UNFOCUSED_OWNER.orNull()) {
                      isAlwaysOnTop = true
                   } else {
-                     windowOwner.focusedProperty() zip focusedProperty() attach { (a, b) -> stage.isAlwaysOnTop = a || b } on tillHiding
+                     val a1 = windowOwner.asIf<Stage>()?.alwaysOnTopProperty() ?: vAlways(false)
+                     val a2 = windowOwner.focusedProperty()
+                     val a3 = focusedProperty()
+                     a1.syncWhile { it ->
+                        if (it) {
+                           stage.isAlwaysOnTop = it
+                           Subscription()
+                        } else {
+                           stage.isAlwaysOnTop = false
+                           Subscription(
+                              a2 attachTrue { stage.isAlwaysOnTop = true; runFX(50.millis) { stage.isAlwaysOnTop = false } },
+                              a3 attachTrue { stage.isAlwaysOnTop = true; stage.isAlwaysOnTop = false },
+                           )
+                        }
+                     } on tillHidden
                   }
                }
 

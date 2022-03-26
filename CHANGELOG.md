@@ -3,6 +3,44 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Implement **Mouse Info** widget
+- Implement reopen widget settings after recompiling/reloading widget
+- Improve widget focus traversal to work when only one widget is open
+- Improve SwitchContainer tab aligning UX [smarter Alt+Up shortcut]
+- Improve **Spektrum** widget
+  - Implement effects (mirroring, pulsing, shifting)space smoothing, bar styles
+  - Implement spatial smoothing
+  - Implement multiple bar styles
+  - Implement multiple bar input data choices 
+- Improve transparent content styling and UX
+- Improve window radius styling and UX
+- Improve window & Component context menus
+- Improve **Settings** layout in some situations
+- Improve **Widget management** UI [add more information in some situations]
+- Fix **SongTable**, **SongGroupTable**, **Playlist** widgets not focusing properly
+- Fix form layout type settings not changed though form icon
+- Fix window menu fullscreen item not working
+- Fix launching widgets in new process failing due to jvm args considered app args
+
+This update continues improving UX by fixing issues and preventing user to get into unintuitive UI situations.
+
+Windows UX have been improved. Popups respect onTop and focus of their parents and gain/lose top z-order properly.
+Transparent windows now support click-through behavior and remain interactive. For better UX, click-through is off when window is focused.
+This allows using non-interactive always-on-top widgets for HUDs and overlays.
+There is still work to be done regarding cumbersome control of transparent windows with no content, window resizing and so on.
+
+The Spektrum widget has been massively improved.
+It now supports large number of separate settings that can be freely combined into unique effects.
+For instance, the widget allows specifying various data as input (FFT, volume, etc), various data transformations, drawing styles and
+multiple effects, such as pulsing, mirroring, shifting and more. These are all applied separately and more choices could easily be implemented.
+The widget could still do with some drawing optimizations and also suffers absolute vs relative coordinate/sizing issue that I am not sure how to tackle at the moment.
+
+The Comet widget has been brought up to date.
+Several issues have been fixed, mainly small game graphics, which is scaled up 2x.
+Performance has been improved to cause no issues even in 4k, by rendering the Canvas at smaller size. This does introduce slight blurring for Canvas elements.
+There are still number of issue, such as experimental features and performance issues regarding number of objects potentially crashing the game.
+The widget may become bundled with the application in the future.
+
 ## [4.0.0] 2022 03 03
 
 - Update **JDK** to 17 [improves performance & security]

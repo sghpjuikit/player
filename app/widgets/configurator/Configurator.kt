@@ -127,7 +127,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
 
                lay += scrollPane {
                   isFitToWidth = true
-                  isFitToHeight = false
+                  isFitToHeight = true
                   prefSize = -1 x -1
                   vbarPolicy = ScrollBarPolicy.AS_NEEDED
 

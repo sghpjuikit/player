@@ -44,6 +44,7 @@ import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.WidgetTags.VISUALISATION
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.animation.Loop
+import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.between
 import sp.it.util.conf.c
@@ -124,6 +125,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    var smoothnessSpaceStrength by c(0.5).between(0.0, 1.0)
       .def(name = "Animation smoothness (position) strength", info = "")
 
+   var barData by c(BarData.FREQUENCY_AMPLITUDES)
+      .def(name = "Bar data", info = "Data displayed by the bars")
    val barMinHeight by cv(2.0).min(0.0)
       .def(name = "Bar min height", info = "")
    val barMaxHeight by cv(750.0).min(0.0)
@@ -188,7 +191,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       override val description = "Spektrum"
       override val descriptionLong = "$description. Shows system audio spectrum"
       override val icon = IconMD.POLL
-      override val version = version(1, 2, 0)
+      override val version = version(1, 3, 0)
       override val isSupported = true
       override val year = year(2021)
       override val author = "spit"
@@ -208,10 +211,32 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       val count = AtomicInteger(count)
    }
 
-   class SpectralView(val spektrum: Spektrum, val spectralFFTService: FrequencyBarsFFTService): Canvas() {
+   class SpectralView(val spektrum: Spektrum, val fft: FrequencyBarsFFTService): Canvas() {
       private val settings = spektrum
       private val gc = graphicsContext2D!!
-      private val loop = Loop { _ -> DrawingData(settings, spectralFFTService.frequencyBarList).updateBars() }
+      private val volumeHistory = LinkedList<Double>()
+      private val loop = Loop { time ->
+         val barsRaw = fft.frequencyBars
+         val barsAvg = barsRaw.sumOf { it.height }/barsRaw.count()
+         val bars = when (spektrum.barData) {
+            BarData.CONSTANT -> barsRaw.map { it.copy(height = 50.0) }
+            BarData.CONSTANT_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = 25.0 * sin(2*PI*i.toDouble()/barsRaw.size).absoluteValue) }
+            BarData.VOLUME -> barsRaw.map { it.copy(height = barsAvg) }
+            BarData.VOLUME_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = barsAvg * sin(2*PI*i.toDouble()/barsRaw.size).absoluteValue) }
+            BarData.VOLUME_HISTORY -> {
+               if (barsRaw.isEmpty()) {
+                  barsRaw
+               } else {
+                  if (volumeHistory.size!=barsRaw.size) volumeHistory setTo barsRaw.map { 0.0 }
+                  volumeHistory.removeFirst()
+                  volumeHistory.addLast(barsAvg)
+                  volumeHistory.mapIndexed { i, v -> barsRaw[i].copy(height = v) }
+               }
+            }
+            BarData.FREQUENCY_AMPLITUDES -> barsRaw
+         }
+         DrawingData(settings, bars, time).updateBars()
+      }
 
       init {
          spektrum.root.heightProperty() attach { settings.barMaxHeight.value = it.toDouble() }
@@ -323,7 +348,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       fun stop() = loop.stop()
 
       data class DrawingData(val settings: Spektrum, val avg: Double, val barCount: Int, val bars: List<FrequencyBar>, val time: Long) {
-         constructor(settings: Spektrum, bars: List<FrequencyBar>): this(
+         constructor(settings: Spektrum, bars: List<FrequencyBar>, time: Long): this(
             settings,
             bars.sumOf { it.height }/bars.size,
             when (settings.effectMirror) {
@@ -344,7 +369,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   val sBy = if (settings.effectShift<0.0) it.size-sByRaw else sByRaw
                   val mBy = if (settings.effectMoving.toMillis()==0.0) 0 else {
                      val ms = settings.effectMoving.toMillis().absoluteValue.coerceAtLeast(1.0)
-                     val mByRaw = (System.currentTimeMillis()%ms/ms*it.size).toInt() % it.size
+                     val mByRaw = (time%ms/ms*it.size).toInt() % it.size
                      if (settings.effectMoving.toMillis()<0.0) it.size-mByRaw else mByRaw
                   }
                   val by = (sBy + mBy) % it.size
@@ -352,7 +377,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
                   else it.subList(by, it.size) + it.subList(0, by+1)
                }
             },
-            System.currentTimeMillis()
+            time
          )
 
          fun fade(i: Int): Double {
@@ -367,6 +392,8 @@ class Spektrum(widget: Widget): SimpleController(widget) {
    }
 
    enum class BarShape(val connect: Boolean) { BOTTOM(false), CENTER(false), TOP(false), CIRCLE_OUT(true), CIRCLE_MIDDLE(true), CIRCLE_IN(true) }
+
+   enum class BarData { CONSTANT, CONSTANT_SINE, FREQUENCY_AMPLITUDES, VOLUME, VOLUME_SINE, VOLUME_HISTORY }
 
    enum class BarStyle { LINE, NET, NET_OUTLINE, OUTLINE, ZIGZAG }
 
@@ -453,7 +480,7 @@ class Spektrum(widget: Widget): SimpleController(widget) {
       }
 
       // return empty array
-      val frequencyBarList: List<FrequencyBar>
+      val frequencyBars: List<FrequencyBar>
          get() {
             val returnBins: DoubleArray?
             var returnAmplitudes: DoubleArray?

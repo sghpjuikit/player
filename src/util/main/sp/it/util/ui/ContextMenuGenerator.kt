@@ -77,8 +77,8 @@ class ContextMenuGenerator {
             .orEmpty()
 
          (items1.keys + itemsN.keys).asSequence()
-            .map { items1[it].orEmpty() + itemsN[it].orEmpty() }.filter { it.isNotEmpty() }
-            .map { it.asSequence().flatMap { it(value) }.sortedBy { it.text }.toList() }.filter { it.isNotEmpty() }
+            .map { items1[it].orEmpty().flatMap { it(valueSingle) } + itemsN[it].orEmpty().flatMap { it(valueMulti) } }.filter { it.isNotEmpty() }
+            .map { it.sortedBy { it.text }.toList() }.filter { it.isNotEmpty() }
             .insertEvery(1) { listOf(menuSeparator()) }
             .flatten()
       }

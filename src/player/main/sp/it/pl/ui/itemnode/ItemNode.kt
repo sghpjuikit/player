@@ -26,9 +26,15 @@ abstract class ValueNode<T>(initialValue: T): ItemNode<T> {
 
    override fun getVal(): T = value
 
-   /** Sets value & fires itemChange if available. Internal use only. */
+   /** Sets value if not same as current & fires itemChange if available. Internal use only. */
    protected open fun changeValue(nv: T) {
       if (value===nv) return
+      value = nv
+      onItemChange(nv)
+   }
+
+   /** Sets value & fires itemChange if available. Internal use only. */
+   protected open fun changeValueAlways(nv: T) {
       value = nv
       onItemChange(nv)
    }

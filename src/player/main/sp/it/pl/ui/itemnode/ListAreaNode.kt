@@ -15,7 +15,6 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.util.Callback
-import kotlin.streams.toList
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.itemnode.ListAreaNode.Transformation
 import sp.it.pl.ui.itemnode.ListAreaNode.TransformationRaw
@@ -400,8 +399,10 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
             generateValue()
          } else {
             field = value
+            inconsistentState = true
             chain.clear()
-            addChained()
+            inconsistentState = false
+            changeValueAlways(listOf())
          }
       }
 

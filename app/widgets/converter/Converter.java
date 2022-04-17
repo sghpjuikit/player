@@ -415,7 +415,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                         if (!isSelectedAll && areaLines.length>1 && areaLines.length==pastedLines.length) {
                             textArea.setText(streamBi(areaLines, pastedLines, (a,p) -> a+p).collect(joining("\n")));
                             e.consume();
-                        } else if (textArea.getText().isEmpty() && transforms.length()<=1) {
+                        } else if (transforms.getTypeIn().equals(new VType<>(Unit.class, false)) && transforms.length()==0) {
                             setInput(unpackData(pasted_text));
                             e.consume();
                         } else {

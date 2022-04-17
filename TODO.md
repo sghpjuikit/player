@@ -17,7 +17,6 @@
 - Implement **Playback Knobs** widget writable chapters
 - song order in ui, editable
 - Implement **Object Info** widget scale image use Object Info in form
-- Improve Json serialization to support graph cycles
 - `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
 - Improve **kotlinc**/**vlc**/**mpeg** setup should not be `Future`, but restartable `Task`
 - `ObsListConfig.setDefaultValue` not removing disabled items
@@ -114,10 +113,10 @@
   Challenging. See [issue](/TODO-ISSUES.md#io-ui)
 - Write documentation
   See [issue](/TODO-ISSUES.md#documentation)
-- Support ComboBox search  
-  Challenging. See [issue](/TODO-ISSUES.md#searchable-combobox)
-- Use less/sass/kotlin dsl for css  
-  Too much work. See [issue](/TODO-ISSUES.md#styling)
+- ❌ Implement ComboBox search  
+  Challenging. Use autocomplete. See [issue](/TODO-ISSUES.md#searchable-combobox)
+- ❌ Use less/sass/kotlin dsl for css  
+  Not useful enough. See [issue](/TODO-ISSUES.md#styling)
 
 ## Bugs
 

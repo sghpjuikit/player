@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Update Kotlin to 0.6.20
 - Implement **Mouse Info** widget
 - Implement reopen widget settings after recompiling/reloading widget
 - Improve widget focus traversal to work when only one widget is open
@@ -15,8 +16,13 @@ All notable changes to this project will be documented in this file. Format base
 - Improve transparent content styling and UX
 - Improve window radius styling and UX
 - Improve window & Component context menus
-- Improve **Settings** layout in some situations
+- Improve **Settings** widget layout in some situations
+- Improve **Converter** widget:
+  - Improve `CTRL + V` handling
+  - Simplify initial UX state
+  - Improve functor picker to use text field with autocompletion search instead of combobox
 - Improve **Widget management** UI [add more information in some situations]
+- Fix widget compilation never finishing and not reporting errors sometimes 
 - Fix **SongTable**, **SongGroupTable**, **Playlist** widgets not focusing properly
 - Fix form layout type settings not changed though form icon
 - Fix window menu fullscreen item not working
@@ -29,17 +35,27 @@ Transparent windows now support click-through behavior and remain interactive. F
 This allows using non-interactive always-on-top widgets for HUDs and overlays.
 There is still work to be done regarding cumbersome control of transparent windows with no content, window resizing and so on.
 
-The Spektrum widget has been massively improved.
+The **Spektrum** widget has been massively improved.
 It now supports large number of separate settings that can be freely combined into unique effects.
 For instance, the widget allows specifying various data as input (FFT, volume, etc), various data transformations, drawing styles and
 multiple effects, such as pulsing, mirroring, shifting and more. These are all applied separately and more choices could easily be implemented.
 The widget could still do with some drawing optimizations and also suffers absolute vs relative coordinate/sizing issue that I am not sure how to tackle at the moment.
 
-The Comet widget has been brought up to date.
+The **Comet** widget has been brought up to date.
 Several issues have been fixed, mainly small game graphics, which is scaled up 2x.
 Performance has been improved to cause no issues even in 4k, by rendering the Canvas at smaller size. This does introduce slight blurring for Canvas elements.
 There are still number of issue, such as experimental features and performance issues regarding number of objects potentially crashing the game.
 The widget may become bundled with the application in the future.
+
+The **Converter** widget have long suffered from two issues.
+First, initial state was set to Unit with transformation chain of containing `As Is` function.
+The initial chain is now empty and pasting any content changes the input, rather than appends it to transformation chain.
+Second, the functor picker, using ComboBox, did not make it easy to find sought after functor.
+The selector is now a TextField with an autocomplete, which allows smartly to select the functor based on name and type.
+
+For this both the chain and autocompletion components needed some improvements.
+Particularly the autocomplete. It now handles events properly so to allow controlling the suggestions list and text field at once.
+This solution is a satisfactory replacement for the non-existent ComboBox with search, which proved too problematic to realize. 
 
 ## [4.0.0] 2022 03 03
 

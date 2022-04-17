@@ -50,7 +50,8 @@ And there are other issues with I/O, such as displaying value generators (curren
 This may sound trivial, but combobox with lots of items is very difficult to use.
 Yes, **JavaFX** combobox allows editing the value as in text field, but this has no effect on the choices.
 This functionality is useless, as it is provided better with custom text fields with custom autocomplete.
-However, that is only suitable for unsealed sets - when the autocompletion only provides suggestions. There is no reason to allow editing when the set is closed.
-This is elegantly handled in Intellij Idea, where combobox displays a filter if user types.
+However, autocomplete is more suitable for unsealed sets - when the autocompletion only provides suggestions. There is no reason to allow editing when the set is closed.
+This is elegantly handled in **Intellij Idea**, where combobox displays a filter if user types.
 Implementing this with **JavaFX** **ComboBox** class turns out to be truly impossible (I tried).
-Writing one's own **ComboBoxSkin** is non-trivial effort and even worse, ends up conflating styling with more redundant components.
+Writing specialized `ComboBoxSkin` is non-trivial and introduces redundant concepts, code and styling.
+It is recommended to use autocomplete in combination with `ItemNode` instead.

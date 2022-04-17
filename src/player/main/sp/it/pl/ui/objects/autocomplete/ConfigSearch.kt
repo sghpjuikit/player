@@ -17,6 +17,7 @@ import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.DOWN
 import javafx.scene.input.KeyCode.END
 import javafx.scene.input.KeyCode.ENTER
+import javafx.scene.input.KeyCode.ESCAPE
 import javafx.scene.input.KeyCode.HOME
 import javafx.scene.input.KeyCode.LEFT
 import javafx.scene.input.KeyCode.RIGHT
@@ -81,6 +82,7 @@ class ConfigSearch: AutoCompletion<Entry> {
 
             init {
                // set keys & allow typing
+               node.isFocusTraversable = true
                skinnable.onEventUp(KEY_PRESSED) { e ->
                   if (!ignoreEvent && (e.source==node || e.source==skinnable))
                      if (e.isShortcutDown && (e.code==UP || e.code==DOWN)) {
@@ -89,6 +91,12 @@ class ConfigSearch: AutoCompletion<Entry> {
                            DOWN -> history.down(this@ConfigSearch)
                            else -> Unit
                         }
+                        e.consume()
+                     } else if (e.code==ENTER) {
+                        chooseSuggestion()
+                        e.consume()
+                     } else if (e.code==ESCAPE) {
+                        if (skinnable.isHideOnEscape) skinnable.hide()
                         e.consume()
                      } else if (e.code==BACK_SPACE) {
                         textField.deletePreviousChar()

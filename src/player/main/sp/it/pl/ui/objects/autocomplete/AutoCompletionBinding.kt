@@ -105,7 +105,7 @@ abstract class AutoCompletionBinding<T> {
             ignoreInputChanges = true
             runLater { acceptSuggestion(it) }
             if (hideOnSuggestion.value) hideAutoCompletePopup()
-            fireAutoCompletion(it)
+            onAutoCompleted(it)
          } finally {
             ignoreInputChanges = false
          }
@@ -131,10 +131,6 @@ abstract class AutoCompletionBinding<T> {
 
    /** Hide the auto-completion targets */
    protected fun hideAutoCompletePopup(): Unit = popup.orNull()?.hide().toUnit()
-
-   protected fun fireAutoCompletion(completion: T?) {
-      if (completion!=null) onAutoCompleted(completion)
-   }
 
    private fun AutoCompletePopup<*>.selectFirstSuggestion() {
       skin.ifIs<AutoCompletePopupSkin<*>> {

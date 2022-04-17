@@ -33,8 +33,14 @@ import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.Skin
 import javafx.scene.control.cell.TextFieldListCell
+import javafx.scene.input.KeyCode.DOWN
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
+import javafx.scene.input.KeyCode.KP_DOWN
+import javafx.scene.input.KeyCode.KP_UP
+import javafx.scene.input.KeyCode.PAGE_DOWN
+import javafx.scene.input.KeyCode.PAGE_UP
+import javafx.scene.input.KeyCode.UP
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
@@ -65,20 +71,14 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
             prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
          } on onDispose
 
-         onEventDown(MOUSE_CLICKED, PRIMARY, false) {
-            if (it.clickCount==activationClickCount) {
-               chooseSuggestion()
-               it.consume()
-            }
-         }
-         onEventDown(KEY_PRESSED, ENTER) { chooseSuggestion() }
-         onEventDown(KEY_PRESSED, ESCAPE, false) {
-            if (control.isHideOnEscape) {
-               control.hide()
-               it.consume()
-            }
-         }
       }
+
+      val listEventKeys = setOf(UP, KP_UP, PAGE_UP, DOWN, KP_DOWN, PAGE_DOWN)
+      control.onEventDown(MOUSE_CLICKED) { if (it.button==PRIMARY && it.clickCount==activationClickCount) { chooseSuggestion(); it.consume() } }
+      control.onEventDown(KEY_PRESSED) { if (it.code==ENTER) { chooseSuggestion(); it.consume() } }
+      control.onEventDown(KEY_PRESSED) { if (it.code==ESCAPE && control.isHideOnEscape) { control.hide(); it.consume() } }
+      control.onEventDown(KEY_PRESSED) { if (it.code in listEventKeys) { list.fireEvent(it); it.consume() } }
+      list.isFocusTraversable = false
    }
 
    override fun getNode() = list
@@ -92,7 +92,7 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
       nullify(::control)
    }
 
-   private fun chooseSuggestion() {
+   protected fun chooseSuggestion() {
       if (!list.selectionModel.isEmpty)
          control.onSuggestion(list.selectionModel.selectedItem)
    }

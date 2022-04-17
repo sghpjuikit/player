@@ -5,7 +5,6 @@ import java.util.function.Consumer
 import java.util.stream.Stream
 import javafx.event.Event
 import javafx.geometry.Pos
-import javafx.scene.control.ComboBox
 import javafx.scene.control.TextArea
 import javafx.scene.input.KeyCode.CONTROL
 import javafx.scene.input.KeyCode.V
@@ -15,16 +14,20 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.util.Callback
+import sp.it.pl.main.APP
 import sp.it.pl.main.appTooltip
 import sp.it.pl.ui.itemnode.ListAreaNode.Transformation
 import sp.it.pl.ui.itemnode.ListAreaNode.TransformationRaw
-import sp.it.pl.ui.objects.SpitComboBox
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion
+import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
+import sp.it.pl.ui.objects.textfield.ValueTextField
 import sp.it.util.Sort
 import sp.it.util.Sort.ASCENDING
 import sp.it.util.Sort.DESCENDING
 import sp.it.util.Sort.NONE
 import sp.it.util.access.not
 import sp.it.util.access.v
+import sp.it.util.access.vAlways
 import sp.it.util.access.vx
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementType
@@ -54,6 +57,7 @@ import sp.it.util.functional.Util.IS0
 import sp.it.util.functional.Util.ISNT
 import sp.it.util.functional.Util.ISNT0
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.math.max
 import sp.it.util.reactive.Suppressor
@@ -61,7 +65,6 @@ import sp.it.util.reactive.attach
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
-import sp.it.util.reactive.sizes
 import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.suppressingAlways
@@ -424,27 +427,25 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
    private val root = hBox(5, Pos.CENTER_LEFT).apply { id = "fItemNodeRoot" }
    private val paramB = hBox(5, Pos.CENTER_LEFT).apply { id = "fItemNodeParamsRoot" }
    private val editors = ArrayList<ConfigEditor<*>>()
-   private val fCB: ComboBox<TransformationRaw>
+   private val fCB: ValueTextField<TransformationRaw>
    private var avoidGenerateValue = Suppressor(false)
    var isEditableRawFunction = v(true)
    var onRawFunctionChange = { _: TransformationRaw? -> }
 
    init {
       avoidGenerateValue.suppressingAlways {
-         fCB = SpitComboBox({ it.name })
-         fCB.items setTo transformations.sortedBy { it.name }
-         fCB.value = transformations.preferredOrFirst
+         fCB = ListAreaNodeTransformationItemNode(transformations)
          fCB.disableProperty() syncFrom isEditableRawFunction.not()
          // display non-editable as label
-         isEditableRawFunction zip fCB.items.sizes() sync { (editable, itemCount) ->
-            fCB.pseudoClassChanged("editable", editable && itemCount.toInt()>1)
+         isEditableRawFunction zip vAlways(fCB.items.size) sync { (editable, itemCount) ->
+            fCB.pseudoClassChanged("editable", editable && itemCount>1)
          }
          // display TransformationRaw.Manual as label
          fCB.onEventUp(Event.ANY) {
             if (transformations.size==1 && transformations.firstOrNull() is TransformationRaw.Manual && (it is KeyEvent || it is MouseEvent))
                it.consume()
          }
-         fCB.valueProperty() sync { transformationRaw ->
+         fCB.onValueChange += { transformationRaw ->
             editors.clear()
             paramB.children.clear()
             transformationRaw?.parameters.orEmpty().forEachIndexed { i, p ->
@@ -458,6 +459,7 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
             onRawFunctionChange(transformationRaw)
             generateValue()
          }
+         fCB.onValueChange(fCB.value)
       }
       generateValue()
 
@@ -471,8 +473,8 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
 
    private fun generateValue() {
       avoidGenerateValue.suppressed {
-         val transformationRaw = fCB.value ?: null
          val parameters = editors.map { it.config.value }
+         val transformationRaw = fCB.value
          val transformation = transformationRaw?.realize(parameters)
          if (transformation!=null) changeValue(transformation)
       }
@@ -495,4 +497,20 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
       }
 
    }
+}
+
+class ListAreaNodeTransformationItemNode(transformations: PrefList<TransformationRaw>): ValueTextField<TransformationRaw>({ it?.name ?: APP.converter.ui.toS(null) }) {
+   val items = transformations.sortedBy { it.name }
+
+   init {
+      isEditable = true
+      autoComplete(this, { text -> text.splitToSequence(" ").net { ss -> items.filter { ss.all { s -> it.name.contains(s, true) } } } }, { it.name })
+      AutoCompletion.of<TransformationRaw>(this)!!.onAutoCompleted += { value = it }
+      value = transformations.preferredOrFirst
+   }
+
+   override fun onDialogAction() {
+      AutoCompletion.of<TransformationRaw>(this)?.updateSuggestions("")
+   }
+
 }

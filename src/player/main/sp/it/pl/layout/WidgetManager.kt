@@ -119,6 +119,7 @@ import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os
 import sp.it.util.system.browse
+import sp.it.util.system.waitForResult
 import sp.it.util.text.capital
 import sp.it.util.text.decapital
 import sp.it.util.type.isSubclassOf
@@ -528,8 +529,8 @@ class WidgetManager {
                kotlincFile.relativeToApp(),
                "-d", compileDir.relativeToApp(),
                "-jdk-home", APP.location.child("java").relativeToApp(),
-               "-api-version", "1.6",
-               "-language-version", "1.6",
+               "-api-version", "1.7",
+               "-language-version", "1.7",
                "-jvm-target", Runtime.version().feature().toString(),
                "-progressive",
                "-Xno-call-assertions",
@@ -550,11 +551,8 @@ class WidgetManager {
                .redirectError(PIPE)
                .start()
 
-            process.waitFor(90, TimeUnit.SECONDS)
-
+            val (textStdout, textStdErr) = process.waitForResult(90, TimeUnit.SECONDS) { it.bufferedReader(UTF_8).readText().prettifyCompilerOutput() }
             val success = process.exitValue()
-            val textStdout = process.inputStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
-            val textStdErr = process.errorStream.bufferedReader(UTF_8).readText().prettifyCompilerOutput()
             val isSuccess = success==0
 
             if (isSuccess) {

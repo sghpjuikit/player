@@ -12,12 +12,13 @@ import hue.HueSceneType.GroupScene
 import hue.HueSceneType.LightScene
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.readText
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.SwitchingProtocols
 import java.awt.Color.HSBtoRGB
@@ -196,20 +197,20 @@ class Hue(widget: Widget): SimpleController(widget) {
 
       @Blocks
       private fun String.validIpOrNull() = runBlocking {
-         val isValid = runTry { client.get<HttpResponse>("http://${this@validIpOrNull}").status }.orNull()==OK
+         val isValid = runTry { client.get("http://${this@validIpOrNull}").status }.orNull()==OK
          this@validIpOrNull.takeIf { isValid }
       }
 
       @Blocks
       private fun ip() = runBlocking {
-         val response = client.get<String>("https://discovery.meethue.com/")
+         val response = client.get("https://discovery.meethue.com/").bodyAsText()
          (response.parseToJson().asJsArray()/0/"internalipaddress")?.asJsStringValue()
       }
 
       private suspend fun isAuthorizedApiKey(ip: String, apiKey: String): Boolean {
-         val response = client.get<HttpResponse>("http://$ip/api/$apiKey/lights")
+         val response = client.get("http://$ip/api/$apiKey/lights")
          failIf(response.status!=OK) { "Failed to check if hue bridge user $apiKey exists" }
-         return runTry { (response.readText().parseToJson()/0/"error") }.isError
+         return runTry { (response.bodyAsText().parseToJson()/0/"error") }.isError
       }
 
       private suspend fun createApiKey(ip: String): String {
@@ -235,105 +236,105 @@ class Hue(widget: Widget): SimpleController(widget) {
             if (!pressed) delay(1000)
          }
 
-         val userCreated = client.post<HttpResponse>("http://$ip/api") {
-            body = JsObject("devicetype" to JsString(hueBridgeUserDevice)).toPrettyS()
+         val userCreated = client.post("http://$ip/api") {
+            setBody(JsObject("devicetype" to JsString(hueBridgeUserDevice)).toPrettyS())
          }
          failIf(userCreated.status==SwitchingProtocols) { "Failed to create Phillips Hue bridge user: Link button not pressed" }
          failIf(userCreated.status!=OK) { "Failed to create Phillips Hue bridge user" }
-         val apiKey = runTry { (userCreated.readText().parseToJson()/0/"success"/"username")?.asJsStringValue() }.orThrow
+         val apiKey = runTry { (userCreated.bodyAsText().parseToJson()/0/"success"/"username")?.asJsStringValue() }.orThrow
          return apiKey ?: fail { "Failed to obtain user Phillips Hue bridge api key" }
       }
 
       suspend fun apiVersion(url: String): String {
-         val response = client.get<String>("$url/config")
+         val response = client.getText("$url/config")
          return response.parseToJson().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
       }
 
       fun bulbs() = runSuspending {
-         val response = client.get<String>("$url/lights")
+         val response = client.getText("$url/lights")
          response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
       }
 
       fun groups() = runSuspending {
-         val response = client.get<String>("$url/groups")
+         val response = client.getText("$url/groups")
          val groups = response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
          groups + HueGroup("0", "All", listOf(), HueGroupState(false, false))
       }
 
       fun scenes() = runSuspending {
-         val response = client.get<String>("$url/scenes")
+         val response = client.getText("$url/scenes")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
       }
 
       fun sensors() = runSuspending {
-         val response = client.get<String>("$url/sensors")
+         val response = client.getText("$url/sensors")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
       }
 
       fun renameBulb(bulb: HueBulbId, name: String) = runSuspending {
-         client.put<String>("$url/lights/$bulb") {
-            body = """{"name": "$name"}"""
+         client.put("$url/lights/$bulb") {
+            setBody("""{"name": "$name"}""")
          }
       }
 
       fun changePowerOn(bulb: HueBulbId, powerOn: HueBulbConfPowerOn) = runSuspending {
-         client.put<String>("$url/lights/$bulb/config") {
-            body = """{ "startup": {"mode": "$powerOn"} }"""
+         client.putText("$url/lights/$bulb/config") {
+            setBody("""{ "startup": {"mode": "$powerOn"} }""")
          }
       }
 
       fun toggleBulb(bulb: HueBulbId) = runSuspending {
-         val response = client.get<String>("$url/lights/$bulb")
+         val response = client.getText("$url/lights/$bulb")
          val on = response.parseToJson().to<HueBulb>().state.on
-         client.put<String>("$url/lights/$bulb/state") {
-            body = HueBulbStateEditOn(!on).toJson().toPrettyS()
+         client.putText("$url/lights/$bulb/state") {
+            setBody(HueBulbStateEditOn(!on).toJson().toPrettyS())
          }
       }
 
       fun toggleBulbGroup(group: HueGroupId) = runSuspending {
-         val response = client.get<String>("$url/groups/$group")
+         val response = client.getText("$url/groups/$group")
          val allOn = response.parseToJson().to<HueGroup>().copy(id = group).state.all_on
-         client.put<String>("$url/groups/$group/action") {
-            body = HueBulbStateEditOn(!allOn).toJson().toPrettyS()
+         client.putText("$url/groups/$group/action") {
+            setBody(HueBulbStateEditOn(!allOn).toJson().toPrettyS())
          }
       }
 
       fun applyBulbLight(bulb: HueBulbId, state: HueBulbStateEditLight) = runSuspending {
-         client.put<String>("$url/lights/$bulb/state") {
-            body = state.toJson().asJsObject().withoutNullValues().toPrettyS()
+         client.putText("$url/lights/$bulb/state") {
+            setBody(state.toJson().asJsObject().withoutNullValues().toPrettyS())
          }
       }
 
       fun applyBulbGroupLight(group: HueGroupId, state: HueBulbStateEditLight) = runSuspending {
-         client.put<String>("$url/groups/$group/action") {
-            body = state.toJson().asJsObject().withoutNullValues().toPrettyS()
+         client.putText("$url/groups/$group/action") {
+            setBody(state.toJson().asJsObject().withoutNullValues().toPrettyS())
          }
       }
 
       fun applyScene(scene: HueScene) = runSuspending {
-         client.put<String>("$url/groups/0/action") {
-            body = JsObject("scene" to JsString(scene.id)).toPrettyS()
+         client.putText("$url/groups/0/action") {
+            setBody(JsObject("scene" to JsString(scene.id)).toPrettyS())
          }
       }
 
       fun createGroup(group: HueGroupCreate) = runSuspending {
-         client.post<String>("$url/groups") {
-            body = group.toJson().toPrettyS()
+         client.postText("$url/groups") {
+            setBody(group.toJson().toPrettyS())
          }
       }
 
       fun createScene(scene: HueSceneCreate) = runSuspending {
-         client.post<String>("$url/scenes") {
-            body = scene.toJson().asJsObject().withoutNullValues().toPrettyS()
+         client.postText("$url/scenes") {
+            setBody(scene.toJson().asJsObject().withoutNullValues().toPrettyS())
          }
       }
 
       fun deleteGroup(group: HueGroupId) = runSuspending {
-         client.delete<String>("$url/groups/$group")
+         client.deleteText("$url/groups/$group")
       }
 
       fun deleteScene(group: HueSceneId) = runSuspending {
-         client.delete<String>("$url/scenes/$group")
+         client.deleteText("$url/scenes/$group")
       }
 
    }
@@ -678,6 +679,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   infoPane.lay += devicePane
 
                   devicePane.lay.clear()
+                  devicePane.lay += textColon("Type", sensor.type)
                   when (sensor.type) {
                      "ZLLTemperature" -> sensor.stateTemperature.ifNotNull { devicePane.lay += textColon("Temperature", "$it°C") }
                      "ZLLPresence" -> sensor.statePresence.ifNotNull { devicePane.lay += textColon("Presence", it) }
@@ -733,6 +735,10 @@ class Hue(widget: Widget): SimpleController(widget) {
       fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
       inline fun <reified T> JsValue.to() = APP.serializerJson.json.fromJsonValue<T>(this).orThrow
 
+      suspend fun HttpClient.getText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = get(url, block).bodyAsText()
+      suspend fun HttpClient.putText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = put(url, block).bodyAsText()
+      suspend fun HttpClient.postText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = post(url, block).bodyAsText()
+      suspend fun HttpClient.deleteText(url: String, block: HttpRequestBuilder.() -> Unit = {}) = delete(url, block).bodyAsText()
 
       fun drawGradientCir(radius: Int): Image {
          return WritableImage(2*radius, 2*radius).apply {

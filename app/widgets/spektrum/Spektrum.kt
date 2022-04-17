@@ -977,11 +977,9 @@ enum class WeightWindow(val calculateAmplitudeWight: (Double) -> Double) {
    }),
    dBZ({
       0.0
-   });
-
-   companion object {
-      val Double.p2: Double get() = pow(2.0)
-      val Double.p3: Double get() = pow(3.0)
-      val Double.p4: Double get() = pow(4.0)
-   }
+   })
 }
+
+val Double.p2: Double get() = pow(2.0)
+val Double.p3: Double get() = pow(3.0)
+val Double.p4: Double get() = pow(4.0)

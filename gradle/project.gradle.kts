@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.6.10"
+   kotlin("jvm") version "1.6.20"
    application
    id("com.github.ben-manes.versions") version "0.42.0"
 }
@@ -57,8 +57,8 @@ allprojects {
    }
 
    tasks.withType<KotlinCompile> {
-      kotlinOptions.apiVersion = "1.6"
-      kotlinOptions.languageVersion = "1.6"
+      kotlinOptions.apiVersion = "1.7"
+      kotlinOptions.languageVersion = "1.7"
       kotlinOptions.suppressWarnings = false
       kotlinOptions.verbose = true
       kotlinOptions.freeCompilerArgs += listOf(
@@ -84,14 +84,14 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.0")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.0")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.0")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.1")
          implementation("org.jetbrains", "annotations", "23.0.0")
       }
 
       "JavaFX" group {
-         val version = "19-ea+3"
+         val version = "19-ea+5"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -107,7 +107,7 @@ allprojects {
 
       "Logging" group {
          implementation("org.slf4j", "slf4j-api")
-         implementation("org.slf4j", "jul-to-slf4j", "1.7.25")
+         implementation("org.slf4j", "jul-to-slf4j", "1.7.36")
          implementation("ch.qos.logback", "logback-classic", "1.2.3")
          implementation("io.github.microutils", "kotlin-logging", "2.1.21")
       }
@@ -118,23 +118,23 @@ allprojects {
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.10.0")
+         implementation("net.java.dev.jna", "jna-platform", "5.11.0")
          implementation("com.1stleg", "jnativehook", "2.1.0")
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "4.4.1")
+         implementation("com.github.f4b6a3", "uuid-creator", "4.6.1")
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
-         implementation("com.github.ajalt.clikt", "clikt", "3.4.0")
+         implementation("com.github.ajalt.clikt", "clikt", "3.4.1")
          implementation("org.apache.commons", "commons-text", "1.9")
-         implementation("com.github.oshi", "oshi-core", "6.1.0")
+         implementation("com.github.oshi", "oshi-core", "6.1.6")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }
 
       "Image" group {
          implementation("com.github.umjammer", "javavp8decoder", "d51fe8f")
-         implementation("com.drewnoakes", "metadata-extractor", "2.16.0")
+         implementation("com.drewnoakes", "metadata-extractor", "2.17.0")
          fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.8.2")
          imageIO("bmp")
          imageIO("clippath")
@@ -154,13 +154,13 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "1.6.6")
-         implementation("io.ktor", "ktor-client-cio", "1.6.6")
+         implementation("io.ktor", "ktor-server-core", "2.0.0")
+         implementation("io.ktor", "ktor-client-cio", "2.0.0")
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.1.0")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.1.0")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.2.3")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.2.3")
       }
 
    }

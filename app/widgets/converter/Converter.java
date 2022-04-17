@@ -20,6 +20,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.IndexRange;
 import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
@@ -410,14 +411,16 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                     if (pasted_text!=null) {
                         var areaLines = textArea.getText().split("\\n");
                         var pastedLines = pasted_text.split("\\n");
-                        if (areaLines.length==pastedLines.length) {
-                            var text = streamBi(areaLines, pastedLines, (a,p) -> a+p).collect(joining("\n"));
-                            textArea.setText(text);
+                        var isSelectedAll = textArea.getSelection().equals(new IndexRange(0, textArea.getLength()));
+                        if (!isSelectedAll && areaLines.length>1 && areaLines.length==pastedLines.length) {
+                            textArea.setText(streamBi(areaLines, pastedLines, (a,p) -> a+p).collect(joining("\n")));
+                            e.consume();
+                        } else if (textArea.getText().isEmpty() && transforms.length()<=1) {
+                            setInput(unpackData(pasted_text));
                             e.consume();
                         } else {
-                            if (textArea.getText().isEmpty() && transforms.length()<=1) {
-                                setInput(unpackData(pasted_text));
-                            }
+                            textArea.paste();
+                            e.consume();
                         }
                     }
                 }

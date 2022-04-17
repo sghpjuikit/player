@@ -301,8 +301,6 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         else return listRO(o);
     }
 
-/******************************* helper classes *******************************/
-
     /* Generates unique name in format 'CustomN', where N is integer. */
     String taName() {
         return "Custom" + findFirstInt(1, i -> tas.stream().noneMatch(ta -> ta.name.get().equals("Custom"+i)));

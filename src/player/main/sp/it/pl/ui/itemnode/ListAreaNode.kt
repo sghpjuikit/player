@@ -415,7 +415,7 @@ class ListAreaNodeTransformations: ChainValueNode<Transformation, ListAreaNodeTr
    private fun linkTypeOutAt(at: Int) = chain.asSequence().take((at + 1) max 0).mapNotNull { it.chained.getVal().linkTypeOut }.lastOrNull()
       ?: typeIn
 
-   override fun reduce(values: Stream<Transformation>) = values.toList()
+   override fun reduce(values: Stream<Transformation>): List<Transformation> = values.toList()
 
 }
 

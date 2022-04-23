@@ -213,8 +213,12 @@ object CoreMenus: Core {
             if (value.isImage()) {
                item("Fullscreen") { APP.actions.openImageFullscreen(it) }
             }
-            item("Open (in associated program)") { it.open() }
-            item("Edit (in associated editor)") { it.edit() }
+            menu("Open in") {
+               item("associated program") { it.open() }
+            }
+            menu("Edit in") {
+               item("associated editor") { it.edit() }
+            }
             item("Delete from disc") { it.recycle() }
 
             menu("Copy") {
@@ -306,11 +310,11 @@ object CoreMenus: Core {
                item("Update songs from file") { APP.db.refreshSongsFromFile(it.grouped.toList()) }
                item("Remove songs from library") { APP.db.removeSongs(it.grouped) }
             }
-            menu("Show in") {
+            menu("Open in") {
                widgetItems<SongReader> {
                   it.read(value.grouped.toList()) }
             }
-            menu("Edit tags in") {
+            menu("Edit in") {
                widgetItems<SongWriter> { it.read(value.grouped.toList()) }
             }
             if (value.grouped.size==1) {
@@ -349,7 +353,7 @@ object CoreMenus: Core {
                   it.read(value.songs)
                }
             }
-            menu("Edit tags in") {
+            menu("Edit in") {
                widgetItems<SongWriter> {
                   it.read(value.songs)
                }

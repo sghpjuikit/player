@@ -296,7 +296,7 @@ class Notification: PopWindow() {
       headerIconsVisible.value = false
       focusOnShow.value = false
       styleClass += "notification"
-      onContentShown += { closer.start() }
+      onContentShown += { if (!root.isHover) closer.start() }
       root.apply {
          minSize = 150 x 70
          onEventDown(MOUSE_CLICKED, PRIMARY) { lClickAction() }

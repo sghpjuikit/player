@@ -517,7 +517,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 it.getStyleClass().add("form-config-pane-config-description");
                 it.getChildren().add(text("Map text areas to the action input.\nAction can have multiple inputs", consumer(itt -> {})));
             })),
-            runB.withText(Side.RIGHT, "Apply")
+            runB.withText(Side.RIGHT, "Run")
         );
 
         public Applier() {

@@ -640,6 +640,7 @@ class Metadata: Song, Serializable {
       failIfFxThread()
 
       return when (source) {
+         CoverSource.NONE -> EmptyCover
          CoverSource.TAG -> readCoverFromTag() ?: EmptyCover
          CoverSource.DIRECTORY -> readCoverFromDir() ?: EmptyCover
          CoverSource.ANY -> readCoverFromTag() ?: readCoverFromDir() ?: EmptyCover

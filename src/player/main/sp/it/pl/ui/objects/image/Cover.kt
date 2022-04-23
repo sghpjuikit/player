@@ -30,6 +30,8 @@ interface Cover {
    fun getFile(): File?
 
    enum class CoverSource {
+      /** Use no cover source */
+      NONE,
       /** Use tag as cover source */
       TAG,
       /** Use parent directory image as source */

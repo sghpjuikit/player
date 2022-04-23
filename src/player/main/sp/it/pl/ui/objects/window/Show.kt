@@ -31,7 +31,7 @@ import sp.it.util.ui.x
 /** Specifies how a window is to be shown, defining an owner and position. Allows unified API for showing windows. */
 data class Shower(val owner: Window?, val show: (Window) -> P) {
    /** @return shower with the same [Shower.owner], but [Shower.show] mapped with the specified [mapper] */
-   fun map(mapper: (P) -> P): Shower = Shower(owner) { show(it).net(mapper) }
+   fun map(mapper: Window.(P) -> P): Shower = Shower(owner) { it.mapper(show(it)) }
 }
 
 enum class ShowArea(override val nameUi: String): NameUi {

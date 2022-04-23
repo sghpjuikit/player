@@ -351,7 +351,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 caretL.setText("Pos: " + xy + ":" + x + ":" + y);
             }));
 
-            var applyI = new Icon(OctIcon.DATABASE)
+            var dataI = new Icon(OctIcon.DATABASE)
                     .tooltip(
                         "Set input\n\nSet input for this area. The actual input, its transformation and the output will be discarded."
                         + (isMain ? "\n\nThis edit area is main, so the new input data will update the available actions." : "")
@@ -382,7 +382,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
                 layVertically(5,Pos.CENTER,
                     layStack(
                         nameL,Pos.CENTER,
-                        layHorizontally(5,Pos.CENTER_RIGHT, applyI,new Label(),remI,addI),Pos.CENTER_RIGHT
+                        layHorizontally(5,Pos.CENTER_RIGHT, dataI,new Label(),remI,addI),Pos.CENTER_RIGHT
                     ),
                     layStack(
                         typeL, CENTER_LEFT,
@@ -479,7 +479,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
             f.renameTo(new File(rf, filenamizeString(s)+ext));
         };
         @SuppressWarnings("unchecked")
-        private final Icon runB = new Icon(PLAY_CIRCLE, 20, "Apply", () -> {
+        private final Icon runB = new Icon(PLAY_CIRCLE, 20, null, () -> {
             var action = (Act<Object>) actCB.getValue();
             if (action==null) return;
 

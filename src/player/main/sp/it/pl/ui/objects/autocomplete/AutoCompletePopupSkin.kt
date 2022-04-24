@@ -71,10 +71,10 @@ open class AutoCompletePopupSkin<T>: Skin<AutoCompletePopup<T>> {
             prefHeight = snappedTopInset() + snappedBottomInset() + cellSize.toDouble()*minOf(rowCount, itemCount.toInt())
          } on onDispose
 
+         onEventDown(MOUSE_CLICKED) { if (it.button==PRIMARY && it.clickCount==activationClickCount) { chooseSuggestion(); it.consume() } }
       }
 
       val listEventKeys = setOf(UP, KP_UP, PAGE_UP, DOWN, KP_DOWN, PAGE_DOWN)
-      control.onEventDown(MOUSE_CLICKED) { if (it.button==PRIMARY && it.clickCount==activationClickCount) { chooseSuggestion(); it.consume() } }
       control.onEventDown(KEY_PRESSED) { if (it.code==ENTER) { chooseSuggestion(); it.consume() } }
       control.onEventDown(KEY_PRESSED) { if (it.code==ESCAPE && control.isHideOnEscape) { control.hide(); it.consume() } }
       control.onEventDown(KEY_PRESSED) { if (it.code in listEventKeys) { list.fireEvent(it); it.consume() } }

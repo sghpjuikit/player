@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [5.0.0] 2022 04 24
+
 - Update Kotlin to 0.6.20
 - Implement **Mouse Info** widget
 - Implement reopen widget settings after recompiling/reloading widget
@@ -16,6 +18,7 @@ All notable changes to this project will be documented in this file. Format base
 - Improve transparent content styling and UX
 - Improve window radius styling and UX
 - Improve window & Component context menus
+- Improve Song/File context menus
 - Improve **Settings** widget layout in some situations
 - Improve **Converter** widget:
   - Improve `CTRL + V` handling
@@ -27,6 +30,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix form layout type settings not changed though form icon
 - Fix window menu fullscreen item not working
 - Fix launching widgets in new process failing due to jvm args considered app args
+- Fix notification hiding prematurely when reused and starts hovered
+- Fix notification changing position when reused when another n. is show
 
 This update continues improving UX by fixing issues and preventing user to get into unintuitive UI situations.
 

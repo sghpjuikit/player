@@ -67,7 +67,7 @@ allprojects {
          "-Xno-param-assertions",
          "-Xjvm-default=all",
          "-Xlambdas=indy",
-         "-Xopt-in=kotlin.RequiresOptIn",
+         "-opt-in=kotlin.RequiresOptIn",
          "-Xstring-concat=indy-with-constants"
       )
       kotlinOptions.javaParameters = true

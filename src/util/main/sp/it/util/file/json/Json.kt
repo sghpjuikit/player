@@ -436,6 +436,7 @@ class Json: JsonAst() {
                            val argJs = value.value[it.name]
                            if (argJs==null) {
                               if (it.isOptional) null
+                              else if (it.type.isMarkedNullable) it to null
                               else fail { "Type=$instanceType constructor parameter=${it.name} is missing" }
                            } else {
                               it to fromJsonValueImpl(it.type, argJs)

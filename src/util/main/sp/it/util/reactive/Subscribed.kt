@@ -76,4 +76,5 @@ class Subscribed: Unsubscribable {
          return Subscription { s1.subscribe(false); s2.unsubscribe() }
       }
    }
+
 }

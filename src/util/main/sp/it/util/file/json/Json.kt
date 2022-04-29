@@ -10,6 +10,8 @@ import java.io.SequenceInputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.Charset
+import java.time.Instant
+import java.time.ZoneId
 import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Collections
@@ -194,6 +196,19 @@ class Json: JsonAst() {
          UUID::class convert object: JsConverter<UUID> {
             override fun toJson(value: UUID) = JsString(value.toString())
             override fun fromJson(value: JsValue) = value.asJsStringValue()?.let { UUID.fromString(it) }
+         }
+         Instant::class convert object: JsConverter<Instant> {
+            override fun toJson(value: Instant) = JsString(value.toString())
+            override fun fromJson(value: JsValue) = when(value) {
+               is JsNull -> null
+               is JsNumber -> Instant.ofEpochMilli(value.value.toLong())
+               is JsString -> Instant.parse(value.value)
+               else -> fail { "Unsupported ${Instant::class} value=$value" }
+            }
+         }
+         ZoneId::class convert object: JsConverter<ZoneId> {
+            override fun toJson(value: ZoneId) = JsString(value.toString())
+            override fun fromJson(value: JsValue) = value.asJsStringValue()?.let { ZoneId.of(it) }
          }
       }
    }

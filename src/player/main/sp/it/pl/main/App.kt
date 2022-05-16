@@ -28,6 +28,7 @@ import sp.it.pl.core.CoreInstances
 import sp.it.pl.core.CoreLogging
 import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.CoreMouse
+import sp.it.pl.core.CoreOshi
 import sp.it.pl.core.CoreSerializer
 import sp.it.pl.core.CoreSerializerJson
 import sp.it.pl.layout.ComponentLoaderProcess
@@ -118,6 +119,8 @@ fun main(args: Array<String>) {
 
    // Disable url caching, which may cause jar files being held in memory
    URLConnection.setDefaultUseCaches("file", false)
+
+   CoreOshi().init()
 
    Application.launch(App::class.java, *args)
 }

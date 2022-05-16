@@ -4,6 +4,7 @@ package sp.it.pl.ui.objects
 
 import java.io.File
 import javafx.geometry.HPos.LEFT
+import javafx.geometry.HPos.RIGHT
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.control.Label
 import javafx.scene.layout.StackPane
@@ -19,13 +20,28 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import oshi.SystemInfo
 import oshi.hardware.CentralProcessor
+import sp.it.pl.main.APP
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.configure
 import sp.it.pl.main.runAsAppProgram
+import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
+import sp.it.pl.ui.objects.icon.Icon
+import sp.it.util.access.vn
 import sp.it.util.async.FX
 import sp.it.util.async.IO
 import sp.it.util.async.flowTimer
+import sp.it.util.async.future.Fut
+import sp.it.util.collections.tabulate0
+import sp.it.util.conf.ConfigurableBase
+import sp.it.util.conf.cvn
+import sp.it.util.conf.def
+import sp.it.util.conf.only
+import sp.it.util.file.FileType.FILE
+import sp.it.util.file.properties.PropVal
+import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.math.clip
-import sp.it.util.math.min
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
@@ -56,15 +72,17 @@ class GpuNvidiaInfo: StackPane() {
    private val procClock = Ran01Ui("Clock", "cpu-clock", " GHz")
    private val sysMem = Num01Ui("Memory", "mem", " GiB")
    private val infoInitial = Info("n/a", Num01(0, 1), Ran01(0, 0, 0, 1), Num01(0, 1))
+   private val dataKey = "widgets.gpu_nvidia_info.smi.path"
 
    private val gpuLabel = label("GPU")
-   val text = Text()
-   val progressClockMem = SliderCircular(150.0)
-   val progressClockSm = SliderCircular(205.0)
-   val progressClockGr = SliderCircular(260.0)
-   val labelClock = label()
-   val labelClockPer = label()
+   private val text = Text()
+   private val progressClockMem = SliderCircular(150.0)
+   private val progressClockSm = SliderCircular(205.0)
+   private val progressClockGr = SliderCircular(260.0)
+   private val labelClock = label()
+   private val labelClockPer = label()
 
+   private val nvidiaSmi = vn(APP.configuration.rawGet(dataKey)?.val1?.let { APP.converter.general.ofS<File?>(it).orNull() })
    private val gpuLoad = Num01Ui("Load", "gpu-load", "%")
    private val gpuPow = Num01Ui("Draw", "gpu-pow", " W")
    private val gpuMem = Num01Ui("Memory", "gpu-mem", " MiB")
@@ -104,8 +122,8 @@ class GpuNvidiaInfo: StackPane() {
             .toSubscription(),
          flowTimer(0, 5000)
             .onEach {
-               File("C:/Program Files/NVIDIA Corporation/NVSMI/nvidia-smi.exe")
-                  .runAsAppProgram(
+               nvidiaSmi.value
+                  ?.runAsAppProgram(
                      // `-q` print all
                      // `--help-query-gpu` help with --query-gpu
                      "-i 0",
@@ -113,11 +131,12 @@ class GpuNvidiaInfo: StackPane() {
                      "--format=csv,noheader",
                      then = {}
                   )
+                  .let { it ?: Fut.fut(null) }
                   .ui {
-                     val valuesRaw = it.trim().splitTrimmed(",")
-                     fun valueOnly(i: Int) = valuesRaw[i].trim().takeWhile { it.isDigit() }
-                     fun valueOutOf(i: Int) = valueOnly(i) + "/" + valuesRaw[i + 1].trim()
-                     fun value01(i: Int) = (valueOnly(i).toDouble()/valueOnly(i + 1).toDouble()) min 1.0
+                     val valuesRaw = it?.net { it.trim().splitTrimmed(",") } ?: tabulate0(12) { "n/a" }.toList()
+                     fun valueOnly(i: Int) = it?.net { valuesRaw[i].trim().takeWhile { it.isDigit() } } ?: "0"
+                     fun valueOutOf(i: Int) = it?.net { valueOnly(i) + "/" + valuesRaw[i + 1].trim() } ?: "0/0"
+                     fun value01(i: Int) = it?.net { (valueOnly(i).toDouble()/valueOnly(i + 1).toDouble()).clip(0.0, 1.0) } ?: 0.0
 
                      text.text = """
                         |Gpu: ${valuesRaw[9]}
@@ -170,6 +189,7 @@ class GpuNvidiaInfo: StackPane() {
          lay(row = baseRow + -3, column = 1, hAlignment = LEFT) += Sep(sysMem.labelInfo)
 
          lay(row = baseRow + -2, column = 1, hAlignment = LEFT) += gpuLabel
+         lay(row = baseRow + -2, column = 2, hAlignment = RIGHT) += Icon(IconFA.COG).onClickDo { configure() }
 
          lay(row = baseRow + -1, column = 0, hAlignment = LEFT) += gpuLoad
          lay(row = baseRow + -1, column = 1, hAlignment = LEFT) += Sep(gpuLoad.labelInfo)
@@ -199,6 +219,22 @@ class GpuNvidiaInfo: StackPane() {
       }
 
       sceneProperty().attach { monitor.subscribe(it!=null) }
+   }
+
+   private fun configure() {
+      object: ConfigurableBase<Any?>() {
+         val nvidiaSmi by cvn(this@GpuNvidiaInfo.nvidiaSmi).only(FILE)
+            .def(name = "nvidia-smi.exe", info = "Path to nvidia-smi.exe," +
+               " a monitoring tool that comes with Nvidia drivers." +
+               " The actual location may differ, but is likely 'C:/Program Files/NVIDIA Corporation/NVSMI/nvidia-smi.exe'" +
+               " or 'C:/Windows/System32/DriverStore/FileRepository/nv_dispi.inf_**/nvidia-smi.exe'"
+            )
+      }.configure("Set up nvidia-smi.exe") {
+         nvidiaSmi.value = it.nvidiaSmi.value
+         APP.configuration.rawAdd(dataKey, PropVal.PropVal1(it.nvidiaSmi.value.toS()))
+         // IO.launch { refresh() }
+         Unit
+      }
    }
 
    private class Info(val procName: String, val procLoad: Num01, val procClock: Ran01, val mem: Num01)

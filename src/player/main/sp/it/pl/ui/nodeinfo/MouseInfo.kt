@@ -45,7 +45,7 @@ class MouseInfo: VBox() {
       }
 
       sceneProperty().attachNonNullWhile { CoreMouse.observeMousePosition { coordL.text = "${it.x.toInt()} x ${it.y.toInt()}" } } on onNodeDispose
-      sceneProperty().attachNonNullWhile { CoreMouse.observeMouseVelocity { speedL.text = "${it.speed.toInt()}px" + it.dir?.toInt()?.net { "$it°" }.orEmpty() } } on onNodeDispose
+      sceneProperty().attachNonNullWhile { CoreMouse.observeMouseVelocity { speedL.text = "${it.speed.toInt()}px" + it.dir?.toInt()?.net { " $it°" }.orEmpty() } } on onNodeDispose
 
       coordL.text = "n/a"
       speedL.text = "n/a"

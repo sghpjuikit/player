@@ -5,7 +5,7 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.and
 import sp.it.util.functional.asIs
 import sp.it.util.type.VType
-import sp.it.util.type.jvmErasure
+import sp.it.util.type.raw
 import sp.it.util.type.type
 
 /** Multi-type bidirectional Object-String converter.  */
@@ -15,7 +15,7 @@ abstract class Converter {
    abstract fun <T: Any> ofS(type: KClass<T>, text: String): Try<T?, String>
 
    /** @return object converted from the text or error */
-   fun <T> ofS(type: VType<T>, text: String): Try<T, String> = ofS(type.jvmErasure, text).run {
+   fun <T> ofS(type: VType<T>, text: String): Try<T, String> = ofS(type.raw, text).run {
       and {
          if (it!=null || type.isNullable) Try.ok()
          else Try.error("Null is not $type")

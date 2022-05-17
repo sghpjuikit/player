@@ -179,7 +179,6 @@ import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
 import sp.it.util.text.nullIfBlank
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.jvmErasure
 import sp.it.util.type.raw
 import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
@@ -1122,7 +1121,7 @@ class PaginatedObservableListCE(private val c: ListConfig<Configurable<*>?>): Co
 }
 
 class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
-   val isCollection = c.type.jvmErasure.isSubclassOf<Collection<*>>() || c.type.jvmErasure.isSubclassOf<Map<*,*>>()
+   val isCollection = c.type.raw.isSubclassOf<Collection<*>>() || c.type.raw.isSubclassOf<Map<*,*>>()
    val isMultiline = c.hasConstraint<Constraint.Multiline>() || isCollection
    val obv = getObservableValue(c)
    override val editor = if (isMultiline) TextArea() else SpitTextField()
@@ -1280,7 +1279,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
       @Suppress("RemoveExplicitTypeArguments")
       fun onNumberScrolledHandler(editor: ConfigEditor<*>) = editor.run {
-         when (config.type.jvmErasure) {
+         when (config.type.raw) {
             Byte::class -> onNumberScrolled<Byte>(Byte.MIN_VALUE, Byte.MAX_VALUE, { a,b -> (a+b).toByte() }) { it.toByte() }
             UByte::class -> onNumberScrolled<UByte>(UByte.MIN_VALUE, UByte.MAX_VALUE, { a,b -> (a+b).toUByte() }) { it.toUByte() }
             Short::class -> onNumberScrolled<Short>(Short.MIN_VALUE, Short.MAX_VALUE, { a,b -> (a+b).toShort() }) { it.toShort() }

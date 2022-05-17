@@ -28,11 +28,10 @@ import sp.it.util.parsing.Parsers
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.enumValues
-import sp.it.util.type.isEnumClass
+import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.jvmErasure
-import sp.it.util.type.rawJ
+import sp.it.util.type.raw
 import sp.it.util.type.sealedSubObjects
 import sp.it.util.type.type
 import sp.it.util.type.typeOrNothing
@@ -138,17 +137,17 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
          ?: findConstraint<ValueSealedSet<T>>()?.let { values ->
             Enumerator { values.enumerateSealed() + valueEnumerator2nd.orEmpty() }
          }
-         ?: if (!type.rawJ.isEnumClass) null else {
-            val values = type.rawJ.enumValues.toList()
+         ?: if (!type.raw.isEnum) null else {
+            val values = type.raw.enumValues.toList()
             if (type.isNullable) Enumerator { values + valueEnumerator2nd.orEmpty() + (null as T) }
             else Enumerator { values + valueEnumerator2nd.orEmpty() }
          }
-         ?: if (!type.jvmErasure.isSealed || !type.jvmErasure.sealedSubclasses.all { it.isObject }) null else {
-            val values = type.jvmErasure.sealedSubObjects.asIs<List<T>>()
+         ?: if (!type.raw.isSealed || !type.raw.sealedSubclasses.all { it.isObject }) null else {
+            val values = type.raw.sealedSubObjects.asIs<List<T>>()
             if (type.isNullable) Enumerator { values + valueEnumerator2nd.orEmpty() + (null as T) }
             else Enumerator { values + valueEnumerator2nd.orEmpty() }
          }
-         ?: (type.jvmErasure.companionObjectInstance as? SealedEnumerator<T>)?.net { e ->
+         ?: (type.raw.companionObjectInstance as? SealedEnumerator<T>)?.net { e ->
             if (type.isNullable) Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() + (null as T) }
             else Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() }
          }
@@ -205,7 +204,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
                type.isSubclassOf<ObservableList<*>>() -> {
                   val valueTyped = value as ObservableList<*>
                   // TODO: use variance to get readOnly
-                  val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, valueTyped)) EditMode.NONE else EditMode.USER
+                  val isReadOnly = if (ListConfig.isReadOnly(type.raw, valueTyped)) EditMode.NONE else EditMode.USER
                   val def = ConfigDef(name, "", "", editable = isReadOnly)
                   val itemType: VType<*> = VType<Any?>(type.type.argOf(ObservableList::class, 0).typeOrNothing)
                   ListConfig(name, def, ConfList(itemType, valueTyped.asIs()), "", setOf(), setOf()).asIs()
@@ -239,14 +238,14 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
 
       @JvmStatic
       @JvmOverloads
-      fun <T> forProperty(type: Class<T>, name: String, property: Any?, isNullable: Boolean = false): Config<T> = forProperty(VType(type, isNullable), name, property)
+      fun <T> forProperty(type: Class<T & Any>, name: String, property: Any?, isNullable: Boolean = false): Config<T> = forProperty(VType(type, isNullable), name, property)
 
       private fun <T> forPropertyImpl(type: VType<T>, name: String, property: Any?): Config<T>? {
          val def = ConfigDef(name, "", group = "", editable = EditMode.USER)
          return when (property) {
             is Config<*> -> property.asIs()
             is ConfList<*> -> {
-               val isReadOnly = if (ListConfig.isReadOnly(type.jvmErasure, property.list)) EditMode.NONE else EditMode.USER
+               val isReadOnly = if (ListConfig.isReadOnly(type.raw, property.list)) EditMode.NONE else EditMode.USER
                ListConfig(name, def.copy(editable = isReadOnly), property, "", setOf(), setOf()).asIs()
             }
             is OrV<*> -> OrPropertyConfig(type, name, def, setOf(), setOf(), property.asIs(), group = "").asIs()

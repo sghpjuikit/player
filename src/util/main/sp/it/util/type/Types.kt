@@ -62,7 +62,6 @@ inline fun <reified T> jTypeToken() = object: TypeToken<T>() {}.type
  *
  * [typeOf] effectively renders this into a legacy code.
  * Use: `object: TypeToken<MyType<SupportsNesting>>() {}
- *
  */
 abstract class TypeToken<T> {
    val type: Type get() = this::class.java.genericSuperclass.asIf<ParameterizedType?>()!!.actualTypeArguments[0]!!
@@ -73,7 +72,7 @@ abstract class TypeToken<T> {
  * Useful as a type safe reified type carrier.
  */
 data class VType<out T>(/** Kotlin type representing this type */ val type: KType) {
-   constructor(c: Class<T>, isNullable: Boolean): this(c.asIs<Class<Any>>().kotlin.createType(nullable = isNullable))
+   constructor(c: Class<T & Any>, isNullable: Boolean): this(c.asIs<Class<Any>>().kotlin.createType(nullable = isNullable))
 
    val isNullable = type.isMarkedNullable
 
@@ -84,10 +83,7 @@ data class VType<out T>(/** Kotlin type representing this type */ val type: KTyp
 fun <T> VType<T>.nullable(): VType<T?> = if (isNullable) asIs() else VType(type.withNullability(true))
 
 /** @return notnull version of this type */
-fun <T: Any> VType<T?>.notnull(): VType<T> = if (!isNullable) asIs() else VType(type.withNullability(false))
-
-/** @return raw class representing this type also called erased type ([KType.jvmErasure]) */
-val <T> VType<T>.jvmErasure: KClass<*> get() = type.jvmErasure
+fun <T> VType<T>.notnull(): VType<T & Any> = if (!isNullable) asIs() else VType(type.withNullability(false))
 
 /** @return raw java class representing this type also called erased type ([KType.jvmErasure]) */
 val <T> VType<T>.rawJ: Class<T> get() = type.jvmErasure.javaObjectType.asIs()
@@ -96,7 +92,7 @@ val <T> VType<T>.rawJ: Class<T> get() = type.jvmErasure.javaObjectType.asIs()
 val <T> VType<T>.typeJ: Type get() = type.javaType
 
 /** @return raw class representing this type also called erased type ([KType.jvmErasure]) */
-val <T: Any> VType<T?>.raw: KClass<T> get() = type.jvmErasure.asIs()
+val <T> VType<T>.raw: KClass<T & Any> get() = type.jvmErasure.asIs()
 
 /** @return raw class representing this type also called erased type ([KType.jvmErasure]) */
 val KType.raw: KClass<*> get() = jvmErasure

@@ -64,7 +64,6 @@ import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
 import sp.it.util.type.VType
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.jvmErasure
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
 import sp.it.util.ui.onNodeDispose
@@ -330,14 +329,14 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          fun Config<*>.isComplex() = constraints.any { it is UiStringHelper<*> }
 
          return when {
-            config.isEnumerable -> when (config.type.jvmErasure) {
+            config.isEnumerable -> when (config.type.raw) {
                KeyCode::class -> KeyCodeCE(config.asIs())
                else -> EnumerableCE(config)
             }
             config.isComplex() -> ComplexCE(config.asIs())
             config.isMinMax() -> SliderCE(config.asIs())
             else -> null
-               ?: editorBuilders[config.type.jvmErasure]?.invoke(config)
+               ?: editorBuilders[config.type.raw]?.invoke(config)
                ?: GeneralCE(config).apply {
                   if (!config.hasConstraint<Constraint.ValueSealedSet<*>>() && !config.hasConstraint<Constraint.ValueUnsealedSet<*>>() && AutoCompletion.of<Any?>(editor)==null) {
                      when (config.type.rawJ) {

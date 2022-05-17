@@ -38,7 +38,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.parsing.Parsers
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.type.VType
-import sp.it.util.type.jvmErasure
+import sp.it.util.type.raw
 import sp.it.util.type.type
 
 interface ConfigImpl {
@@ -65,7 +65,7 @@ interface ConfigImpl {
          this.info = info
          this.isEditable = isEditable
 
-         type.jvmErasure.companionObjectInstance.asIf<UnsealedEnumerator<T>>()?.ifNotNull {
+         type.raw.companionObjectInstance.asIf<UnsealedEnumerator<T>>()?.ifNotNull {
             addConstraints(ValueUnsealedSet { it.enumerateUnsealed() })
          }
       }

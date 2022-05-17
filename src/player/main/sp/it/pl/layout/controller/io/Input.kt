@@ -16,7 +16,6 @@ import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.type.isSubtypeOf
-import sp.it.util.type.jvmErasure
 import sp.it.util.type.raw
 import sp.it.util.type.typeOrNothing
 
@@ -31,11 +30,11 @@ open class Input<T>: Put<T> {
    /** @return true if this input can receive values of the specified type */
    open fun isAssignable(oType: VType<*>): Boolean = when {
       oType isSubtypeOf type -> true
-      type.jvmErasure==List::class && oType.jvmErasure==List::class -> {
+      type.raw==List::class && oType.raw==List::class -> {
          oType.listType().isSubtypeOf(type.listType())
       }
-      type.jvmErasure==List::class -> {
-         isAssignable(oType.jvmErasure, type.listType().raw)
+      type.raw==List::class -> {
+         isAssignable(oType.raw, type.listType().raw)
       }
       else -> false
    }
@@ -51,8 +50,8 @@ open class Input<T>: Put<T> {
    /** @return true if this input can receive the specified value */
    fun isAssignable(value: Any?): Boolean = when {
       value==null -> type.isNullable
-      type.jvmErasure==List::class -> type.listType().isSubtypeOf(value.asIs<List<*>>().estimateRuntimeType().type)
-      else -> type.jvmErasure.isInstance(value)
+      type.raw==List::class -> type.listType().isSubtypeOf(value.asIs<List<*>>().estimateRuntimeType().type)
+      else -> type.raw.isInstance(value)
    }
 
    private fun monitor(output: Output<out T>): Subscription {
@@ -61,10 +60,10 @@ open class Input<T>: Put<T> {
       return output.sync { v ->
          when {
             output.type isSubtypeOf type -> value = v
-            type.jvmErasure==List::class && output.type.jvmErasure==List::class -> {
+            type.raw==List::class && output.type.raw==List::class -> {
                valueAny = v
             }
-            type.jvmErasure==List::class -> {
+            type.raw==List::class -> {
                if (type.listType().raw.isInstance(v))
                   valueAny = v
             }
@@ -79,7 +78,7 @@ open class Input<T>: Put<T> {
       set(it) {
          value = when {
             it==null -> null as T
-            type.jvmErasure==List::class -> when (it) {
+            type.raw==List::class -> when (it) {
                is List<*> -> it as T
                else -> listOf(it) as T
             }

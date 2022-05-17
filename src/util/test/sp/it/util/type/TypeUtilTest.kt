@@ -516,7 +516,7 @@ class TypeUtilTest: FreeSpec({
                else -> variance!!.name + " " + this.type
             }
 
-            val a1 = i.first.type.argOf(i.second.jvmErasure, i.third)
+            val a1 = i.first.type.argOf(i.second.raw, i.third)
             val a2 = if (o.second==null) STAR else KTypeProjection(o.second, o.first.type)
             a1.toSimpleString() shouldBe a2.toSimpleString()
          }

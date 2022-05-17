@@ -13,7 +13,6 @@ import sp.it.util.type.enumValues
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.isSupertypeOf
-import sp.it.util.type.jvmErasure
 import sp.it.util.type.nullable
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
@@ -115,7 +114,7 @@ class FunctorPool {
    fun <I, O> getIO(i: VType<I>, o: VType<O>): PrefList<PF<I, O>> {
       val selfF = if (i isSupertypeOf o) PF0<I, I>(asSelfName, i, i, IDENTITY.asIs()).asIs<PF<I, O>>() else null
       val sameFi = preProcessVirtual(i)
-      val sameFo = if (i.jvmErasure==o.jvmErasure) PrefList() else preProcessVirtual(o)
+      val sameFo = if (i.raw==o.raw) PrefList() else preProcessVirtual(o)
       val normF = fsAll.asSequence().filter { it.f.`in` isSupertypeOf i && it.f.out isSubtypeOf o }
          .sortedByDescending { it.f.`in`.type.raw.traverseToSuper(Any::class).size }.toList()
 

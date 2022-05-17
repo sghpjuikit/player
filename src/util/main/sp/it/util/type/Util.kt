@@ -526,7 +526,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
          b isSubtypeOf a -> a
          // handles cases like Option<A>, Option<B> -> Option<supertype of A and B>
          // TODO: change == to isSuperClassOf
-         b.jvmErasure == a.jvmErasure -> {
+         b.raw == a.raw -> {
             VType(
                b.type.raw.createType(
                   b.type.raw.asIs<KClass<*>>().typeParameters.mapIndexed { i, _ ->

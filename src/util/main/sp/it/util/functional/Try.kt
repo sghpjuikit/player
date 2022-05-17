@@ -24,13 +24,13 @@ sealed class Try<out R, out E> {
    val orThrow: R
       get() = when (this) {
          is Ok<R> -> value
-         is Error<E> -> fail { "Can not get result of an Error Try, has value=$value" }
+         is Error<E> -> fail(value?.asIf<Throwable>()) { "Can not get result of an Error Try, has value=$value" }
       }
 
    /** @return the error value if error or throw an exception if ok */
    val errorOrThrow: E
       get() = when (this) {
-         is Ok<R> -> fail { "Can not get result of an Ok Try, has value=$value" }
+         is Ok<R> -> fail(value?.asIf<Throwable>()) { "Can not get result of an Ok Try, has value=$value" }
          is Error<E> -> value
       }
 

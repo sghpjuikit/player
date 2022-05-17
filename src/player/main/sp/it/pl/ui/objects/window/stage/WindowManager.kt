@@ -455,15 +455,15 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    @ThreadSafe
    fun deserialize(): Fut<*> = runIO {
-      logger.info { "Deserializing windows." }
+      logger.info { "Deserializing windows..." }
       val dir = APP.location.user.layouts.current
       if (isValidatedDirectory(dir)) {
          val fs = dir.children().filter { it hasExtension "ws" }.toList()
          val ws = fs.mapNotNull { APP.serializerJson.fromJson<WindowDb>(it).orNull() }
-         logger.info { "Deserialized ${fs.size}/${ws.size} windows." }
+         logger.info { "Deserializing windows ok: ${fs.size}/${ws.size}" }
          ws
       } else {
-         logger.error { "Deserializing windows failed: $dir not accessible." }
+         logger.error { "Deserializing windows failed: $dir not accessible" }
          listOf()
       }
    } ui {

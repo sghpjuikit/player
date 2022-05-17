@@ -3,6 +3,29 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Implement **WeatherInfo** widget
+- Implement **GpuNvidiaInfo**.kt nvidia-smi.exe path settings
+- Improve json reading robustness & performance [use jackson instead of Klaxon]
+- Fix json deserialization failing for nullable properties sometimes
+- Fix oshi CPU usage crashes for Windows 10
+
+This update brings general improvements all around.
+
+Compatibility with Windows 10 has been improved. Various issues has been identified and fixed.
+
+On widget side, **GpuNvidiaInfo** has been made configurable. It may become more modular in the future. Will see.
+The weather widget is a great addition. It still lacks hourly and daily forecast. Once again for the lack of UX imagination. 
+
+The `Klaxon` library has been replaced with `Jackson`, which is more robust and performant.
+This simplifies SpitPlayer code as well.
+The plan for the future with Json is to separate it to own tiny module, expose more API, use coroutines and context
+receivers to get rid of the explicit `Json` object (analogue to Jackson's`ObjectMapper`). That would be killer json API.
+
+There are improvements prototyped to the **WallpaperChanger** plugin. These changes may or may not be realized.
+
+There are also improvements prototyped to allow windows to have acrylic blur background effect in **Windows 10** style.
+The functionality is there, but the interplay with skinning and transparent content windows must be figured out before roll out.
+
 ## [5.0.0] 2022 04 24
 
 - Update Kotlin to 0.6.20

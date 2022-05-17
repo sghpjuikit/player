@@ -47,6 +47,7 @@ import sp.it.pl.layout.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.ActionsPaneGenericActions
 import sp.it.pl.main.App
+import sp.it.pl.main.AppActions
 import sp.it.pl.main.AppHelp
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppOpen
@@ -141,13 +142,14 @@ object CoreMenus: Core {
             }
          }
          add<Any> {
-            menu("Inspect in") {
-               item("Object viewer") { APP.ui.actionPane.orBuild.show(it) }
-               separator()
-               widgetItems<Opener> { it.open(value) }
-            }
-            if (APP.developerMode.value)
-               menu("Public methods") {
+            if (value !is CoreMenuNoInspect)
+               menu("Inspect in") {
+                  item("Object viewer") { APP.ui.actionPane.orBuild.show(it) }
+                  separator()
+                  widgetItems<Opener> { it.open(value) }
+               }
+            if (value !is CoreMenuNoInspect && APP.developerMode.value)
+               menu("Invoke") {
                   val v = value
                   items(
                      v::class.java.methods.asSequence()
@@ -421,6 +423,7 @@ object CoreMenus: Core {
             item("Show info") { w -> showFloating(w.factory.name + " info") { WidgetInfoPane(w.factory) } }
             item("Show help (${F2.nameUi} | ${ActionManager.keyShortcutsComponent.nameUi})") { APP.actions.showShortcutsFor(it) }
             item("Show actions (${ActionManager.keyActionsComponent.nameUi})", IconFA.GAVEL.toCmUi()) { APP.actions.showShortcutsFor(it) }
+            menuFor("Settings defaults", AppActions.WidgetDefaultMenu(value))
          }
          add<PluginBox<*>> {
          }
@@ -530,3 +533,6 @@ object CoreMenus: Core {
    }
 
 }
+
+/** Extending this causes [CoreMenus] menu builder to not generate generic menu items */
+interface CoreMenuNoInspect

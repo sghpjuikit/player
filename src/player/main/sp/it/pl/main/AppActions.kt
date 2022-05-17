@@ -23,6 +23,7 @@ import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.readAudioFile
+import sp.it.pl.core.CoreMenuNoInspect
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.ComponentLoader
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
@@ -528,6 +529,19 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }.preventClosing()
 
+//   private var lastAddFilesLocation by cn<File>(APP.location.user).noUi()
+//      .def(name = "Last add songs browse location", editable = EditMode.APP)
+//   private var lastAddDirLocation by cn<File>(APP.location.user).only(FileType.DIRECTORY).noUi()
+//      .def(name = "Last add directory browse location", editable = EditMode.APP)
+//   fun addDirectory() = chooseFile("Add folder to library", FileType.DIRECTORY, lastAddDirLocation, root.scene.window).ifOk {
+//      APP.ui.actionPane.orBuild.show(it)
+//      lastAddDirLocation = it.parentFile
+//   }
+//
+//   fun addFiles() = chooseFiles("Add files to library", lastAddFilesLocation, root.scene.window, audioExtensionFilter()).ifOk {
+//      APP.ui.actionPane.orBuild.show(it)
+//      lastAddFilesLocation = Util.getCommonRoot(it)
+//   }
 
    val windowFocus = fastAction<Window>("Focus", "Focus this window.", IconFA.EYE) { w -> w.requestFocus() }
 
@@ -554,32 +568,35 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       { w -> w.exportFxwl(w.factoryDeserializing!!.launcher) }
    )
 
-   val widgetExportDefault = fastAction<Widget>(
+   val widgetExportDefault = fastAction<Component>(
       "Export default",
       "Creates a launcher for this component with no settings.\n" +
          "Opening the launcher with this application will open this component with no settings " +
          "as if it were a standalone application. ",
       IconMD.EXPORT,
-      { w ->
+      { it is Widget },
+      {w ->
          saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
-            .ifOk { w.exportFxwlDefault(it) }
+            .ifOk { w.asIs<Widget>().exportFxwlDefault(it) }
       }
    )
 
-   val widgetUseAsDefault = fastAction<Widget>(
+   data class WidgetDefaultMenu(val widget: Widget): CoreMenuNoInspect
+
+   val widgetUseAsDefault = fastAction<WidgetDefaultMenu>(
       "Use as default",
       "Uses settings of this widget as default settings when creating widgets of this type. This " +
          "overrides the default settings of the widget set by the developer. For using multiple widget " +
          "configurations at once, use 'Export' instead.",
       IconMD.SETTINGS_BOX,
-      { it.storeDefaultConfigs() }
+      { it.widget.storeDefaultConfigs() }
    )
 
-   val widgetClearDefault = fastAction<Widget>(
+   val widgetClearDefault = fastAction<WidgetDefaultMenu>(
       "Clear default",
       "Removes any overridden default settings for this widget type. New widgets will start with no settings.",
       IconMD.SETTINGS_BOX,
-      { it.clearDefaultConfigs() }
+      { it.widget.clearDefaultConfigs() }
    )
 
    val convertImage = fastColAction<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, { it.isImage12Monkey() }) { ii ->

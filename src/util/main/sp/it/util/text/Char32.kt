@@ -1,8 +1,16 @@
 package sp.it.util.text
 
+import sp.it.util.dev.failIf
+
 /** 32-bit Unicode character, [Int]. See [Character] and [Char16]. Has full Unicode code-unit range support. See e.g. [String.char32At]. */
 data class Char32(val value: Int) {
+
+   init {
+      failIf(value !in 0..0x10FFFF) { "Invalid Char32 value: $value" }
+   }
+
    fun toInt() = value
+
    override fun toString() = String(IntArray(1) { value }, 0, 1)
 
    companion object {

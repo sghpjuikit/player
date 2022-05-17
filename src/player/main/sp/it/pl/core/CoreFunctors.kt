@@ -208,7 +208,7 @@ object CoreFunctors: Core {
          }
 
          add("To Char (16)", type<Int>(), type<Char16?>()) { runTry { Char(it)}.orNull() }
-         add("To Char (32)", type<Int>(), type<Char32?>()) { Char32(it) }
+         add("To Char (32)", type<Int>(), type<Char32?>()) { runTry { Char32(it)}.orNull() }
          add("To Char (32)", type<Char16>(), type<Char32>()) { Char32(it.code) }
          add("To Int", type<Char16>(), type<Int>()) { it.code }
          add("To Int", type<Char32>(), type<Int>()) { it.value }

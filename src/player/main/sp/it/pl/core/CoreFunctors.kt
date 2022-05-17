@@ -60,9 +60,12 @@ import sp.it.util.functional.runTry
 import sp.it.util.math.StrExF
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
+import sp.it.util.text.Grapheme
 import sp.it.util.text.StringSplitParser
 import sp.it.util.text.Strings
 import sp.it.util.text.char32At
+import sp.it.util.text.chars16
+import sp.it.util.text.chars32
 import sp.it.util.text.decodeBase64
 import sp.it.util.text.encodeBase64
 import sp.it.util.text.escapeCsv
@@ -74,6 +77,7 @@ import sp.it.util.text.escapeJson
 import sp.it.util.text.escapeXSI
 import sp.it.util.text.escapeXml10
 import sp.it.util.text.escapeXml11
+import sp.it.util.text.graphemes
 import sp.it.util.text.isBase64
 import sp.it.util.text.isPalindrome
 import sp.it.util.text.lengthInCodePoints
@@ -203,9 +207,9 @@ object CoreFunctors: Core {
             }.getOrSupply { Double.NaN }
          }
 
-         add("To Char16", type<Int>(), type<Char16?>()) { runTry { Char(it)}.orNull() }
-         add("To Char32", type<Int>(), type<Char32?>()) { Char32(it) }
-         add("To Char32", type<Char16>(), type<Char32>()) { Char32(it.code) }
+         add("To Char (16)", type<Int>(), type<Char16?>()) { runTry { Char(it)}.orNull() }
+         add("To Char (32)", type<Int>(), type<Char32?>()) { Char32(it) }
+         add("To Char (32)", type<Char16>(), type<Char32>()) { Char32(it.code) }
          add("To Int", type<Char16>(), type<Int>()) { it.code }
          add("To Int", type<Char32>(), type<Int>()) { it.value }
          add("View non-printable", type<Char16>(), type<Char32>()) { it.toChar32().toPrintableNonWhitespace() }
@@ -228,10 +232,13 @@ object CoreFunctors: Core {
          add("Remove chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> removeChars(it, amount, from) }
          add("Retain chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> retainChars(it, amount, from) }
          add("Trim", S, S) { it.trim() }
-         add("Split", S, type<List<String>>(), p(" ")) { it, d -> it.split(d) }
-         add("Split to lines", S, type<List<String>>()) { it.lines() }
+         add("Split to chars (16)", S, type<List<Char16>>()) { it.chars16().toList() }
+         add("Split to chars (32)", S, type<List<Char32>>()) { it.chars32().toList() }
+         add("Split to graphemes", S, type<List<Grapheme>>()) { it.graphemes() }
          add("Split to words", S, type<List<String>>()) { it.words().map { it.trim() }.filter { it.isNotEmpty() }.toList() }
+         add("Split to lines", S, type<List<String>>()) { it.lines() }
          add("Split to sentences", S, type<List<String>>()) { it.sentences().map { it.trim() }.filter { it.isNotEmpty() }.toList() }
+         add("Split", S, type<List<String>>(), p(" ")) { it, d -> it.split(d) }
          add("Split*", S, type<StringSplitParser.SplitData>(), p(StringSplitParser.singular())) { it, splitter -> split(it, splitter) }
          add("Split*Join", S, S, p(StringSplitParser.singular()), p(StringSplitParser.singular())) { it, splitter, joiner -> splitJoin(it, splitter, joiner) }
          add("Is", S, B, p<String>(""), pNoCase) { it, phrase, noCase -> it.equals(phrase, noCase) }
@@ -242,8 +249,7 @@ object CoreFunctors: Core {
          add("After", S, B, p<String>("")) { it, y -> it>y }
          add("Before", S, B, p<String>("")) { it, y -> it<y }
          add("Char at", S, type<Char32>(), p(0), p<StringDirection>(FROM_START)) { it, i, dir -> runTry { it.char32At(i, dir) }.orNull() }
-         add("Chars", S, type<List<Char32>>()) { it.codePoints().mapToObj(::Char32).toList() }
-         add("View non-printable", S, S) { it.codePoints().asSequence().map { Char32(it).toPrintableNonWhitespace().toString() }.joinToString("") }
+         add("View non-printable", S, S) { it.chars32().map { it.toPrintableNonWhitespace().toString() }.joinToString("") }
          add("Length", S, type<Int>()) { it.lengthInCodePoints }
          add("Is empty", S, B) { it.isEmpty() }
          add("Is palindrome", S, B) { it.isPalindrome() }

@@ -97,10 +97,7 @@ class CoreSerializerJson: Core {
    @Blocks
    inline fun <reified T: Any> toJson(t: T, file: File): Try<Nothing?, Throwable> {
       return file.writeSafely {
-         it.writeTextTry(
-            json.toJsonValue(t).toPrettyS(),
-            encoding
-         )
+         it.writeTextTry(json.toJsonValue(t).toPrettyS())
       }.ifError {
          logger.error(it) { "Couldn't serialize " + t.javaClass + " to file=$file" }
       }
@@ -112,7 +109,7 @@ class CoreSerializerJson: Core {
       return if (!file.exists())
          error<T, Throwable>(Exception("Couldn't deserialize ${T::class} from file $file", FileNotFoundException(file.absolutePath)))
       else
-         json.fromJson<T>(file, encoding).ifError {
+         json.fromJson<T>(file).ifError {
             logger.error(it) { "Couldn't deserialize ${T::class} from file$file" }
          }
    }

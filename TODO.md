@@ -35,8 +35,6 @@
 - Implement converting Layout into ContainerSwitch and back
 
 ## Potential future work
-- Optimize Json
-  Remove Klaxon, use Jackson and remove bug workarounds & custom escaping/replacing, try to optimize performance
 - Optimize markdown & support selection
   Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
 - Implement multivalued **Song.Artist** support

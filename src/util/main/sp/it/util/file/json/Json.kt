@@ -1,15 +1,16 @@
 package sp.it.util.file.json
 
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.JsonValue
-import com.beust.klaxon.Klaxon
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.BooleanNode
+import com.fasterxml.jackson.databind.node.NullNode
+import com.fasterxml.jackson.databind.node.NumericNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TextNode
 import java.io.File
 import java.io.InputStream
-import java.io.SequenceInputStream
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.nio.charset.Charset
 import java.time.Instant
 import java.time.ZoneId
 import java.util.ArrayDeque
@@ -105,17 +106,9 @@ interface JsConverter<T> {
 }
 
 open class JsonAst {
-   fun ast(json: String): Try<JsValue, Throwable> = ast(json.byteInputStream(UTF_8), UTF_8)
+   fun ast(json: String): Try<JsValue, Throwable> = runTry { fromKlaxonAST(JsonMapper().readTree(json)) }
 
-   fun ast(json: InputStream, charset: Charset = UTF_8): Try<JsValue, Throwable> = runTry {
-      val i = SequenceInputStream(SequenceInputStream(
-         "{ \"value\": ".byteInputStream(UTF_8),
-         json),
-         " }".byteInputStream(UTF_8)
-      )
-      val klaxonAst = Klaxon().parser().parse(i, charset).asIs<JsonObject>()["value"]
-      fromKlaxonAST(klaxonAst)
-   }
+   fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { fromKlaxonAST(JsonMapper().readTree(json)) }
 }
 
 class Json: JsonAst() {
@@ -285,20 +278,20 @@ class Json: JsonAst() {
       }
    }
 
-   fun <T> fromJson(type: VType<T>, json: String): Try<T, Throwable> = fromJson(type, json.byteInputStream(UTF_8), UTF_8)
+   fun <T> fromJson(type: VType<T>, json: String): Try<T, Throwable> = fromJson(type, json.byteInputStream(UTF_8))
 
-   fun <T> fromJson(type: VType<T>, json: File, charset: Charset = UTF_8): Try<T, Throwable> = fromJson(type, json.inputStream(), charset)
+   fun <T> fromJson(type: VType<T>, json: File): Try<T, Throwable> = fromJson(type, json.inputStream())
 
    @Suppress("unchecked_cast")
-   fun <T> fromJson(type: VType<T>, json: InputStream, charset: Charset = UTF_8): Try<T, Throwable> = ast(json, charset).andAlso {
+   fun <T> fromJson(type: VType<T>, json: InputStream): Try<T, Throwable> = ast(json).andAlso {
       runTry { fromJsonValueImpl(type.type, it) as T }
    }
 
    inline fun <reified T> fromJson(json: String): Try<T, Throwable> = fromJson(type(), json)
 
-   inline fun <reified T> fromJson(json: File, charset: Charset = UTF_8): Try<T, Throwable> = fromJson(type(), json, charset)
+   inline fun <reified T> fromJson(json: File): Try<T, Throwable> = fromJson(type(), json)
 
-   inline fun <reified T> fromJson(json: InputStream, charset: Charset = UTF_8): Try<T, Throwable> = fromJson(type(), json, charset)
+   inline fun <reified T> fromJson(json: InputStream): Try<T, Throwable> = fromJson(type(), json)
 
    inline fun <reified T> fromJsonValue(value: JsValue): Try<T, Throwable> = runTry { fromJsonValueImpl(value) }
 
@@ -536,22 +529,13 @@ fun fromKlaxonAST(ast: Any?): JsValue {
       true -> JsTrue
       false -> JsFalse
       is String -> JsString(ast)
+      is NullNode -> JsNull
       is Number -> JsNumber(ast)
-      is JsonObject -> JsObject(ast.map.mapValues { fromKlaxonAST(it.value) })
-      is JsonArray<*> -> JsArray(ast.map { fromKlaxonAST(it) })
-      is JsonValue -> null
-         ?: ast.array?.let { fromKlaxonAST(it) }
-         ?: ast.obj?.let { fromKlaxonAST(it) }
-         ?: ast.boolean?.let { fromKlaxonAST(it) }
-         ?: ast.inside?.asIf<Char>()?.let { JsString(it.toString()) }
-         ?: ast.double?.let { JsNumber(it) }
-         ?: ast.float?.let { JsNumber(it) }
-         ?: ast.int?.let { JsNumber(it) }
-         ?: ast.longValue?.let { JsNumber(it) }
-         ?: ast.inside?.asIf<BigInteger>()?.let { JsNumber(it) }
-         ?: ast.inside?.asIf<BigDecimal>()?.let { JsNumber(it) }
-         ?: ast.string?.let { JsString(it) }
-         ?: JsNull
+      is BooleanNode -> fromKlaxonAST(ast.booleanValue())
+      is TextNode -> JsString(ast.textValue())
+      is NumericNode -> JsNumber(ast.numberValue())
+      is ArrayNode -> JsArray(ast.elements().asSequence().map { fromKlaxonAST(it) }.toList())
+      is ObjectNode -> JsObject(ast.fields().asSequence().associate { it.key to fromKlaxonAST(it.value) })
       else -> fail { "Unrecognized klaxon AST representation=$ast" }
    }
 }

@@ -120,17 +120,22 @@ class JsonTest: FreeSpec({
             j.fromJsonValue<DoubleArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Double"
             j.fromJsonValue<BooleanArray>(json).errorOrThrow.message shouldBe "null is not kotlin.Boolean"
          }
-         "to exact collection item number type" {
+         "to exact collection item type" {
             val json = JsArray(listOf(JsNumber(1), JsNumber(1)))
-
-//            j.fromJsonValue<Array<Byte>>(json).orThrow.first() shouldBe 1.toByte()
-//            j.fromJsonValue<Array<Short>>(json).orThrow.first() shouldBe 1.toShort()
-//            j.fromJsonValue<Array<Int>>(json).orThrow.first() shouldBe 1
-//            j.fromJsonValue<Array<Long>>(json).orThrow.first() shouldBe 1L
-//            j.fromJsonValue<Array<Float>>(json).orThrow.first() shouldBe 1f
-//            j.fromJsonValue<Array<Double>>(json).orThrow.first() shouldBe 1.0
-//            j.fromJsonValue<Array<BigInteger>>(json).orThrow.first() shouldBe BigDecimal("1")
-//            j.fromJsonValue<Array<BigDecimal>>(json).orThrow.first() shouldBe BigInteger("1")
+            j.fromJsonValue<Array<Byte>>(json).orThrow shouldBe Array(2) { 1.toByte() }
+            j.fromJsonValue<ByteArray>(json).orThrow shouldBe Array(2) { 1.toByte() }
+            j.fromJsonValue<Array<Short>>(json).orThrow shouldBe Array(2) { 1.toShort() }
+            j.fromJsonValue<ShortArray>(json).orThrow shouldBe ShortArray(2) { 1.toShort() }
+            j.fromJsonValue<Array<Int>>(json).orThrow shouldBe Array(2) { 1 }
+            j.fromJsonValue<IntArray>(json).orThrow shouldBe IntArray(2) { 1 }
+            j.fromJsonValue<Array<Long>>(json).orThrow shouldBe Array(2) { 1L }
+            j.fromJsonValue<LongArray>(json).orThrow shouldBe LongArray(2) { 1L }
+            j.fromJsonValue<Array<Float>>(json).orThrow shouldBe Array(2) { 1f }
+            j.fromJsonValue<FloatArray>(json).orThrow shouldBe FloatArray(2) { 1f }
+            j.fromJsonValue<Array<Double>>(json).orThrow shouldBe Array(2) { 1.0 }
+            j.fromJsonValue<DoubleArray>(json).orThrow shouldBe DoubleArray(2) { 1.0 }
+            j.fromJsonValue<Array<BigInteger>>(json).orThrow shouldBe Array(2) { BigInteger("1") }
+            j.fromJsonValue<Array<BigDecimal>>(json).orThrow shouldBe Array(2) { BigDecimal("1") }
             j.fromJsonValue<List<Byte>>(json).orThrow.first() shouldBe 1.toByte()
             j.fromJsonValue<List<Short>>(json).orThrow.first() shouldBe 1.toShort()
             j.fromJsonValue<List<Int>>(json).orThrow.first() shouldBe 1

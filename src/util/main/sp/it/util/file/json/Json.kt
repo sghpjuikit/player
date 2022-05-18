@@ -346,6 +346,7 @@ class Json: JsonAst() {
                   else value.value
                }
                is JsArray -> {
+                  val typeKS = typeTarget.toString()
                   when {
                      typeK==Any::class -> value.value.map { fromJsonValueImpl(kTypeAnyNullable(), it) }
                      Collection::class.isSuperclassOf(typeK) -> {
@@ -372,13 +373,21 @@ class Json: JsonAst() {
                            else -> fail { "Unsupported collection type=$typeK" }
                         }
                      }
+                     typeKS=="kotlin.Array<kotlin.Byte>" -> value.value.map { fromJsonValueImpl<Byte>(it) }.toByteArray().toTypedArray()
                      typeK==ByteArray::class -> value.value.map { fromJsonValueImpl<Byte>(it) }.toByteArray()
+                     typeKS=="kotlin.Array<kotlin.Char>" -> value.value.map { fromJsonValueImpl<Char>(it) }.toCharArray().toTypedArray()
                      typeK==CharArray::class -> value.value.map { fromJsonValueImpl<Char>(it) }.toCharArray()
+                     typeKS=="kotlin.Array<kotlin.Short>" -> value.value.map { fromJsonValueImpl<Short>(it) }.toShortArray().toTypedArray()
                      typeK==ShortArray::class -> value.value.map { fromJsonValueImpl<Short>(it) }.toShortArray()
+                     typeKS=="kotlin.Array<kotlin.Int>" -> value.value.map { fromJsonValueImpl<Int>(it) }.toIntArray().toTypedArray()
                      typeK==IntArray::class -> value.value.map { fromJsonValueImpl<Int>(it) }.toIntArray()
+                     typeKS=="kotlin.Array<kotlin.Long>" -> value.value.map { fromJsonValueImpl<Long>(it) }.toLongArray().toTypedArray()
                      typeK==LongArray::class -> value.value.map { fromJsonValueImpl<Long>(it) }.toLongArray()
+                     typeKS=="kotlin.Array<kotlin.Float>" -> value.value.map { fromJsonValueImpl<Float>(it) }.toFloatArray().toTypedArray()
                      typeK==FloatArray::class -> value.value.map { fromJsonValueImpl<Float>(it) }.toFloatArray()
+                     typeKS=="kotlin.Array<kotlin.Double>" -> value.value.map { fromJsonValueImpl<Double>(it) }.toDoubleArray().toTypedArray()
                      typeK==DoubleArray::class -> value.value.map { fromJsonValueImpl<Double>(it) }.toDoubleArray()
+                     typeKS=="kotlin.Array<kotlin.Boolean>" -> value.value.map { fromJsonValueImpl<Boolean>(it) }.toBooleanArray().toTypedArray()
                      typeK==BooleanArray::class -> value.value.map { fromJsonValueImpl<Boolean>(it) }.toBooleanArray()
                      typeJ.isArray -> {
                         val arrayType = typeTarget.argOf(Array::class, 0).typeOrAny

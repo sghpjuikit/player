@@ -6,7 +6,9 @@ import java.net.URI
 import java.util.zip.ZipFile
 import javafx.scene.image.Image
 import javafx.util.Duration
-import mu.KotlinLogging
+import mu.KLogging
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.rendering.PDFRenderer
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.image.ImageLoader.Params
@@ -31,9 +33,11 @@ import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeGroup.Companion.audio
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.MimeType.Companion.`image∕vnd·adobe·photoshop`
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.math.max
 import sp.it.util.math.min
@@ -42,10 +46,9 @@ import sp.it.util.ui.IconExtractor
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.image.loadImagePsd
+import sp.it.util.ui.image.toFX
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
-
-private val logger = KotlinLogging.logger {}
 
 interface ImageLoader {
 
@@ -70,7 +73,7 @@ interface ImageLoader {
 }
 
 /** Standard image loader attempting the best possible quality and broad file type support. */
-object ImageStandardLoader: ImageLoader {
+object ImageStandardLoader: KLogging(), ImageLoader {
 
    override fun invoke(p: Params): Image? {
       logger.debug { "Loading img $p" }
@@ -121,6 +124,13 @@ object ImageStandardLoader: ImageLoader {
                }
             }
             "image/jpeg", "image/png", "image/gif" -> imgImplLoadFX(p.file, p.size, p.scaleExact)
+            "application/pdf" -> {
+               runTry {
+                  PDFRenderer(PDDocument.load(p.file)).renderImageWithDPI(0, p.size.height.toFloat()/8.27f).toFX()
+               } orNull {
+                  logger.error(it) { "Unable to load pdf image preview for=${p.file}" }
+               }
+            }
             else -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact)
          }
       }
@@ -128,13 +138,13 @@ object ImageStandardLoader: ImageLoader {
 }
 
 /** Pair of low quality/high quality image loaders, e.g.: to speed up thumbnail loading. */
-object Image2PassLoader {
+object Image2PassLoader: KLogging() {
    val lq: ImageLoader = object: ImageLoader {
       override fun invoke(p: Params): Image? {
          logger.debug { "Loading LQ img $p" }
 
-         return when (p.mime.name) {
-            "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact)
+         return when (p.mime) {
+            `image∕vnd·adobe·photoshop` -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact)
             else -> ImageStandardLoader(p)
          }
       }

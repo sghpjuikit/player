@@ -100,8 +100,6 @@
   Right now multiple instances could get in the way of each other
 - Implement song fulltext search  
   **Lucene**?
-- Implement cover/preview support for `pdf`  
-  What library? Ideally integrated with `image-io`
 - Improve table column resizing
   - https://github.com/edvin/tornadofx/wiki/TableView-SmartResize
   - https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/

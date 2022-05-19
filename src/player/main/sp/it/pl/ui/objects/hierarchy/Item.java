@@ -264,6 +264,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						} else if (isAudio(value)) {
 							var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
 							cover = c.isEmpty() ? null : c.getImage(size);
+						} else if (value.getPath().endsWith(".pdf"))  {
+							cover = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
 						} else if (strategy.useNativeIconIfNone)  {
 							cover = IconExtractor.INSTANCE.getFileIcon(value);
 						}

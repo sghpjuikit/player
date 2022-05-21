@@ -73,12 +73,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
 
          val closeB = headerIcon(ICON_CLOSE, closeIconText) { close() }
          menuB = headerIcon(IconFA.CARET_DOWN, "Widget menu") { i ->
-            ContextMenu().dsl {
-               item("Open settings", Icon(IconFA.COGS)) { showSettings() }
-               items { CoreMenus.menuItemBuilders[area.widget] }
-            }.apply {
-               show(i, Side.BOTTOM, 0.0, 0.0)
-            }
+            ContextMenu().dsl { items { CoreMenus.menuItemBuilders[area.widget] } }.show(i, Side.BOTTOM, 0.0, 0.0)
          }
          lockB = headerIcon(null, lockIconText) { toggleLocked(); APP.actionStream("Widget layout lock") }
          absB = headerIcon(IconFA.LINK, absIconText) { toggleAbsSize(); updateAbsB() }

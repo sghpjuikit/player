@@ -26,6 +26,7 @@ import sp.it.pl.layout.ComponentUiBase
 import sp.it.pl.layout.Container
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetSource
+import sp.it.pl.layout.WidgetUi
 import sp.it.pl.layout.WidgetUse.ANY
 import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.WidgetUse.NO_LAYOUT
@@ -423,6 +424,7 @@ object CoreMenus: Core {
             item("Show info") { w -> showFloating(w.factory.name + " info") { WidgetInfoPane(w.factory) } }
             item("Show help (${F2.nameUi} | ${ActionManager.keyShortcutsComponent.nameUi})") { APP.actions.showShortcutsFor(it) }
             item("Show actions (${ActionManager.keyActionsComponent.nameUi})", IconFA.GAVEL.toCmUi()) { APP.actions.showShortcutsFor(it) }
+            value.ui.asIf<WidgetUi>().ifNotNull { w -> item("Settings", Icon(IconFA.COGS)) { w.controls.showSettings() } }
             menuFor("Settings defaults", AppActions.WidgetDefaultMenu(value))
          }
          add<PluginBox<*>> {

@@ -100,11 +100,6 @@ class Node(widget: Widget): SimpleController(widget) {
       root.onEventDown(MOUSE_CLICKED, SECONDARY) {
          if (it.isStillSincePress)
             ContextMenu().dsl {
-               menu("Widget") {
-                  items {
-                     CoreMenus.menuItemBuilders[this@Node.widget]
-                  }
-               }
                menu("Inputs") {
                   val node = nodeInstance.value
                   val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()
@@ -135,6 +130,9 @@ class Node(widget: Widget): SimpleController(widget) {
                         }
                      }
                   }
+               }
+               items {
+                  CoreMenus.menuItemBuilders[this@Node.widget]
                }
             }.show(root, it)
       }

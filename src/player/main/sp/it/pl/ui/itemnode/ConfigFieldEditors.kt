@@ -18,6 +18,8 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.collections.ObservableList
 import javafx.event.Event
 import javafx.geometry.Insets
+import javafx.geometry.NodeOrientation.LEFT_TO_RIGHT
+import javafx.geometry.NodeOrientation.RIGHT_TO_LEFT
 import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -157,6 +159,7 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toOption
+import sp.it.util.math.clip
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -177,6 +180,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.syncTo
 import sp.it.util.reactive.syncWhile
 import sp.it.util.system.Os
+import sp.it.util.text.lengthInLines
 import sp.it.util.text.nullIfBlank
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
@@ -804,6 +808,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
          isFillHeight = true
          lay += listView<PluginBox<*>> {
             pseudoClassChanged("no-fixed-cell-size", true)
+            nodeOrientation = RIGHT_TO_LEFT
             minPrefMaxWidth = 250.emScaled
             cellFactory = Callback {
                object: ListCell<PluginBox<*>>() {
@@ -815,7 +820,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                      styleClass += "text-weight-bold"
                   }
                   val label2 = label("")
-                  val root = hBox(alignment = CENTER_LEFT) {
+                  val root = hBox(alignment = CENTER_LEFT, spacing = 5.emScaled) {
                      icon.focusOwner.value = this
 
                      lay += icon
@@ -828,6 +833,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                   override fun updateItem(item: PluginBox<*>?, empty: Boolean) {
                      super.updateItem(item, empty)
                      graphic = item?.let { root }
+                     nodeOrientation = LEFT_TO_RIGHT
                      icon.icon(IconOC.PLUG)
                      label1.text = item?.info?.name?.toS()
                      label2.text = item?.let { if (it.isBundled) "bundled" else it.info.version.toS() + "\t" + it.info.author.toS() }
@@ -917,6 +923,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
          lay += listView<ComponentFactory<*>> {
             pseudoClassChanged("no-fixed-cell-size", true)
             minPrefMaxWidth = 250.emScaled
+            nodeOrientation = RIGHT_TO_LEFT
             cellFactory = Callback {
                object: ListCell<ComponentFactory<*>>() {
                   val icon = Icon(null, 48.0).apply {
@@ -927,7 +934,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                      styleClass += "text-weight-bold"
                   }
                   val label2 = label("")
-                  val root = hBox(alignment = CENTER_LEFT) {
+                  val root = hBox(alignment = CENTER_LEFT, spacing = 5.emScaled) {
                      icon.focusOwner.value = this
 
                      lay += icon
@@ -939,13 +946,14 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
 
                   override fun updateItem(item: ComponentFactory<*>?, empty: Boolean) {
                      super.updateItem(item, empty)
+                     nodeOrientation = LEFT_TO_RIGHT
                      graphic = item?.let { root }
                      icon.icon(item.uiIcon)
                      label1.text = item?.name?.toS()
                      label2.text = when (item) {
                         is WidgetFactory<*> -> item.version.toS() + " | " + item.author.toS()
                         is DeserializingFactory -> FileField.TIME_MODIFIED.getOfS(item.launcher, "")
-                        is NodeFactory -> "bundled"
+                        is NodeFactory<*> -> "bundled"
                         else -> null
                      }
                   }
@@ -1020,8 +1028,8 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         lay += textColon("Type", "Exported layout")
                         lay += textColon("File", f.launcher)
                      }
-                     is NodeFactory -> {
-                        lay += textColon("Type", "Ui component ${f.node.toUi()}")
+                     is NodeFactory<*> -> {
+                        lay += textColon("Type", "Ui component ${f.type.toUi()}")
                         lay += textColon("Version", "bundled")
                      }
                      is NoFactoryFactory -> {
@@ -1144,6 +1152,8 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 
       // value
       editor.text = converterRaw(config.value)
+      editor.asIf<TextArea>()?.isWrapText = true
+      editor.asIf<TextArea>()?.prefRowCount = editor.text.lengthInLines.clip(1, 10)
       obv?.attach { refreshValue() }.orEmpty() on disposer
       obv?.syncWhile { config.value?.asIf<Observable>()?.onChange { refreshValue() }.orEmpty() }.orEmpty() on disposer
       editor.focusedProperty() attachFalse  { refreshValue() } on disposer

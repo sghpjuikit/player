@@ -330,7 +330,11 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
                            observableRaw
                         }
                      }
-                     yield(InspectedFxProperty(observable, propertyName, observableRaw !is WritableValue<*>, declaringClass, propertyType))
+                     val isReadOnly = when {
+                        observableRaw is ObservableList<*> || observableRaw is ObservableSet<*> || observableRaw is ObservableMap<*,*> -> observableRaw::class.jvmName.contains("unmodifiable", true)
+                        else -> observableRaw !is WritableValue<*>
+                     }
+                     yield(InspectedFxProperty(observable, propertyName, isReadOnly, declaringClass, propertyType))
                   }
                   else logger.warn { "Is null declaringClass='$declaringClass' propertyName=$propertyName propertyType=$propertyType" }
                } catch (e: Throwable) {
@@ -359,7 +363,11 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
                            observableRaw
                         }
                      }
-                     yield(InspectedFxProperty(observable, fieldName, observableRaw !is WritableValue<*>, declaringClass, propertyType))
+                     val isReadOnly = when {
+                        observableRaw is ObservableList<*> || observableRaw is ObservableSet<*> || observableRaw is ObservableMap<*,*> -> observableRaw::class.jvmName.contains("unmodifiable", true)
+                        else -> observableRaw !is WritableValue<*>
+                     }
+                     yield(InspectedFxProperty(observable, fieldName, isReadOnly, declaringClass, propertyType))
                   }
                   else logger.warn { "Is null declaringClass='$declaringClass' propertyName=$fieldName propertyType=$propertyType" }
                } catch (e: IllegalAccessException) {

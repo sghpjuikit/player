@@ -14,18 +14,36 @@ import java.util.logging.Level
 import javafx.beans.Observable
 import javafx.beans.property.Property
 import javafx.beans.property.ReadOnlyObjectWrapper
+import javafx.beans.property.ReadOnlyProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WritableValue
 import javafx.collections.MapChangeListener
+import javafx.collections.ObservableList
+import javafx.collections.ObservableMap
+import javafx.collections.ObservableSet
+import javafx.css.PseudoClass
+import javafx.event.EventDispatcher
+import javafx.geometry.Bounds
 import javafx.geometry.HPos
 import javafx.geometry.Insets
+import javafx.geometry.NodeOrientation
+import javafx.geometry.Point3D
 import javafx.geometry.Pos
 import javafx.geometry.VPos
+import javafx.scene.AccessibleRole
+import javafx.scene.CacheHint
+import javafx.scene.Cursor
+import javafx.scene.DepthTest
 import javafx.scene.Node
+import javafx.scene.Scene
 import javafx.scene.effect.Blend
+import javafx.scene.effect.BlendMode
 import javafx.scene.effect.Effect
+import javafx.scene.input.InputMethodRequests
 import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.Background
+import javafx.scene.layout.Border
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.GridPane
@@ -33,8 +51,11 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
+import javafx.scene.shape.Shape
+import javafx.scene.transform.Transform
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
+import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
@@ -186,13 +207,92 @@ fun KClass<*>.superKClassesInc(): Sequence<KClass<*>> = when(this) {
    // recurse { it.superclasses }   // TODO: KClass.superclasses is bugged for anonymous Java classes
 }
 
+private data class Extractor<T>(val declaringClass: KClass<*>, val method: KFunction<T>, val type: VType<T>)
+private val extractors = setOf(
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::accessibleHelpProperty,            type<Property<String?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::accessibleRoleProperty,            type<Property<AccessibleRole>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::accessibleRoleDescriptionProperty, type<Property<String?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::accessibleTextProperty,            type<Property<String?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::boundsInLocalProperty,             type<ReadOnlyProperty<Bounds>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::boundsInParentProperty,            type<ReadOnlyProperty<Bounds>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::cacheProperty,                     type<Property<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::cacheHintProperty,                 type<Property<CacheHint>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::clipProperty,                      type<Property<Node?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::cursorProperty,                    type<Property<Cursor?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::depthTestProperty,                 type<Property<DepthTest>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::disableProperty,                   type<Property<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::disabledProperty,                  type<ReadOnlyProperty<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::effectProperty,                    type<Property<Effect?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::effectiveNodeOrientationProperty,  type<ReadOnlyProperty<NodeOrientation>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::eventDispatcherProperty,           type<Property<EventDispatcher>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::focusedProperty,                   type<ReadOnlyProperty<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::focusTraversableProperty,          type<Property<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::hoverProperty,                     type<ReadOnlyProperty<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::idProperty,                        type<Property<String?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::inputMethodRequestsProperty,       type<Property<InputMethodRequests?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::layoutBoundsProperty,              type<ReadOnlyProperty<Bounds>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::layoutXProperty,                   type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::layoutYProperty,                   type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::localToParentTransformProperty,    type<ReadOnlyProperty<Transform>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::localToSceneTransformProperty,     type<ReadOnlyProperty<Transform>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::managedProperty,                   type<Property<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::mouseTransparentProperty,          type<Property<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::nodeOrientationProperty,           type<Property<NodeOrientation>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::opacityProperty,                   type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::parentProperty,                    type<ReadOnlyProperty<Node?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::pickOnBoundsProperty,              type<Property<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::pressedProperty,                   type<ReadOnlyProperty<Boolean>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::getProperties,                     type<ObservableMap<Any?, Any?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::getPseudoClassStates,              type<ObservableSet<PseudoClass>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::rotateProperty,                    type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::rotationAxisProperty,              type<Property<Point3D>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::scaleXProperty,                    type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::scaleYProperty,                    type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::scaleZProperty,                    type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::sceneProperty,                     type<ReadOnlyProperty<Scene?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::styleProperty,                     type<Property<String>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::getStyleClass,                     type<ObservableList<String>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::getTransforms,                     type<ObservableList<Transform>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::translateXProperty,                type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::translateYProperty,                type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::translateZProperty,                type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::viewOrderProperty,                 type<Property<Double>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::visibleProperty,                   type<Property<Boolean>>()),
+      Extractor(javafx.scene.Parent::class,        javafx.scene.Parent::cacheHintProperty,               type<Property<CacheHint>>()),
+      Extractor(javafx.scene.Parent::class,        javafx.scene.Parent::needsLayoutProperty,             type<ReadOnlyProperty<Boolean>>()),
+      Extractor(javafx.scene.Parent::class,        javafx.scene.Parent::getStylesheets,                  type<ObservableList<String>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::backgroundProperty,       type<Property<Background?>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::borderProperty,           type<Property<Border?>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::blendModeProperty,        type<Property<BlendMode?>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::cacheShapeProperty,       type<Property<Boolean>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::centerShapeProperty,      type<Property<Boolean>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::getChildrenUnmodifiable,  type<ObservableList<Node>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::heightProperty,           type<ReadOnlyProperty<Double>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::insetsProperty,           type<ReadOnlyProperty<Insets?>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::maxHeightProperty,        type<Property<Double>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::maxWidthProperty,         type<Property<Double>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::minHeightProperty,        type<Property<Double>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::minWidthProperty,         type<Property<Double>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::prefHeightProperty,       type<Property<Double>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::prefWidthProperty,        type<Property<Double>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::opaqueInsetsProperty,     type<Property<Insets?>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::scaleShapeProperty,       type<Property<Boolean>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::shapeProperty,            type<Property<Shape?>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::snapToPixelProperty,      type<Property<Boolean>>()),
+      Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::widthProperty,            type<ReadOnlyProperty<Double>>()),
+      Extractor(javafx.scene.layout.Pane::class,   javafx.scene.layout.Pane::backgroundProperty,         type<Property<Background?>>()),
+      Extractor(javafx.scene.layout.Pane::class,   javafx.scene.layout.Pane::getChildren,                type<ObservableList<Node>>()),
+   )
+   .groupBy { it.declaringClass }
+   .mapValues { (_, v) -> v.associateBy { it.method.name } }
+
 /**
  * Execute action for each observable value representing a javafx property of an object o.
  * Additional provided arguments are name of the property and its non-erased generic type.
  * Javafx properties are obtained from public nameProperty() methods using reflection.
  */
 fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
-   // Best we can do to stop platform type from spreading around... This is better than nothing.
+
    fun KType.resolveNullability(name: String): KType = when {
       this.isPlatformType -> when {
          o is Effect && name == "input"-> this.withNullability(true)
@@ -218,7 +318,7 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
                   propertyName = propertyName.substringAfter("get", propertyName)
                   propertyName = propertyName.decapital()
                   method.isAccessible = true
-                  val propertyType = method.returnType.javaFxPropertyType.resolveNullability(propertyName)
+                  val propertyType = extractors[declaringClass].orEmpty()[methodName]?.type?.type?.javaFxPropertyType ?: method.returnType.javaFxPropertyType.resolveNullability(propertyName)
                   val observableRaw = method.call(o) as Observable?
                   if (observableRaw!=null) {
                      val observable = {

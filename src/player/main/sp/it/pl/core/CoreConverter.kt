@@ -28,7 +28,11 @@ import java.util.Locale
 import java.util.UUID
 import java.util.function.BiFunction
 import java.util.regex.Pattern
+import javafx.geometry.BoundingBox
+import javafx.geometry.Bounds
 import javafx.geometry.Insets
+import javafx.geometry.Point2D
+import javafx.geometry.Point3D
 import javafx.scene.Node
 import javafx.scene.effect.Effect
 import javafx.scene.input.MouseButton
@@ -99,6 +103,8 @@ import sp.it.util.text.StringSplitParser
 import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
+import sp.it.util.text.split2
+import sp.it.util.text.split3
 import sp.it.util.text.splitTrimmed
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.VType
@@ -370,13 +376,16 @@ object CoreConverter: Core {
             }
          }
       )
+      addT<BoundingBox>({ "[${it.minX}, ${it.minY}, ${it.minZ}, ${it.width}, ${it.height}, ${it.depth}, ${it.maxX}, ${it.maxY}, ${it.maxZ}]" },
+         { runTry { it.substringAfter("[").substringBefore("]").split(",").map { it.trim().toDouble() }.let { BoundingBox(it[0], it[1], it[2], it[3], it[4], it[5]) } }.orMessage() })
+      addT<Bounds>({ "[${it.minX}, ${it.minY}, ${it.minZ}, ${it.width}, ${it.height}, ${it.depth}, ${it.maxX}, ${it.maxY}, ${it.maxZ}]" },
+         { runTry { it.substringAfter("[").substringBefore("]").split(",").map { it.trim().toDouble() }.let { BoundingBox(it[0], it[1], it[2], it[3], it[4], it[5]) } }.orMessage() })
+      addT<Point2D>({ "[${it.x}, ${it.y}]" },
+         { runTry { it.substringAfter("[").substringBefore("]").split2(",").let { (x, y) -> Point2D(x.trim().toDouble(), y.trim().toDouble()) } }.orMessage() })
+      addT<Point3D>({ "[${it.x}, ${it.y}, ${it.z}]" },
+         { runTry { it.substringAfter("[").substringBefore("]").split3(",").let { (x, y, z) -> Point3D(x.trim().toDouble(), y.trim().toDouble(), z.trim().toDouble()) } }.orMessage() })
       addT<Insets>(
-         {
-            when {
-               it.top==it.right && it.top==it.bottom && it.top==it.left -> "${it.top}"
-               else -> "${it.top} ${it.right} ${it.bottom} ${it.left}"
-            }
-         },
+         { if (it.top==it.right && it.top==it.bottom && it.top==it.left) "${it.top}" else "${it.top} ${it.right} ${it.bottom} ${it.left}" },
          {
             null
                ?: it.toDoubleOrNull()?.net { Try.ok(Insets(it)) }

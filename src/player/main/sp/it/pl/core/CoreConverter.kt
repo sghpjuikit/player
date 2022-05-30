@@ -19,6 +19,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Year
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_DATE
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
@@ -306,6 +307,7 @@ object CoreConverter: Core {
       addT<Duration>(toS, ::durationOfHMSMs)
       addT<Locale>({ it.toLanguageTag() }, tryF(Throwable::class) { Locale.Builder().setLanguageTag(it).build() })
       addT<Charset>({ it.name() }, tryF(Throwable::class) { Charset.forName(it) })
+      addT<ZoneId>(toS, tryF { ZoneId.of(it) })
       addT<Instant>({ ISO_INSTANT.format(it) }, tryF(DTPE::class) { Instant.parse(it) })
       addT<LocalTime>({ ISO_TIME.format(it) }, tryF(DTPE::class) { LocalTime.parse(it, ISO_TIME) })
       addT<LocalDate>({ ISO_DATE.format(it) }, tryF(DTPE::class) { LocalDate.parse(it, ISO_DATE) })

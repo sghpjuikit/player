@@ -148,7 +148,7 @@ public class ConverterDefault extends Converter {
             () -> parsersFromS.getElementOfSuper(c),
             () -> buildOfSParser(getJavaObjectType(c)),
             () -> parserFallbackFromS==null ? null : s -> (Try<T,String>) ((BiFunction) parserFallbackFromS).apply(c, s),
-            () -> o -> error("Type " + c + " has no associated from-text converter")
+            () -> o -> error(c + " has no associated from-text converter")
         );
     }
 

@@ -327,6 +327,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
       fun <T> create(config: Config<T>): ConfigEditor<T> {
          fun Config<*>.isMinMax() = !type.isNullable && type.raw in listOf<KClass<*>>(Int::class, Double::class, Float::class, Long::class, Short::class) && constraints.any { it is NumberMinMax && it.isClosed() && it.min!=Double.MIN_VALUE && it.max!=Double.MAX_VALUE }
          fun Config<*>.isComplex() = constraints.any { it is UiStringHelper<*> }
+         fun Config<*>.isConfigurable() = type.raw.isSubclassOf<Configurable<*>>()
 
          return when {
             config.isEnumerable -> when (config.type.raw) {
@@ -337,6 +338,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             config.isMinMax() -> SliderCE(config.asIs())
             else -> null
                ?: editorBuilders[config.type.raw]?.invoke(config)
+               ?: if (config.isConfigurable()) ConfigurableCE(config.asIs()) else null
                ?: GeneralCE(config).apply {
                   if (!config.hasConstraint<Constraint.ValueSealedSet<*>>() && !config.hasConstraint<Constraint.ValueUnsealedSet<*>>() && AutoCompletion.of<Any?>(editor)==null) {
                      when (config.type.rawJ) {

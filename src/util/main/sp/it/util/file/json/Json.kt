@@ -507,11 +507,10 @@ fun JsValue.toCompactS(): String {
       is JsNumber -> value.toString()
       is JsArray ->
          if (value.isEmpty()) "[]"
-         else "[" + value.joinToString(",") { it.toPrettyS() } + "]"
+         else "[" + value.joinToString(",") { it.toCompactS() } + "]"
       is JsObject ->
          if (value.isEmpty()) "{}"
-         else "{" + value.entries.asSequence().sortedBy { it.key }
-            .joinToString(",") { it.key.toJsonString() + ":" + it.value.toCompactS() } + "}"
+         else "{" + value.entries.asSequence().sortedBy { it.key }.joinToString(",") { it.key.toJsonString() + ":" + it.value.toCompactS() } + "}"
    }
 }
 

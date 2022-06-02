@@ -213,6 +213,7 @@ private val extractors = setOf(
       Extractor(javafx.scene.Node::class,          javafx.scene.Node::accessibleRoleProperty,            type<Property<AccessibleRole>>()),
       Extractor(javafx.scene.Node::class,          javafx.scene.Node::accessibleRoleDescriptionProperty, type<Property<String?>>()),
       Extractor(javafx.scene.Node::class,          javafx.scene.Node::accessibleTextProperty,            type<Property<String?>>()),
+      Extractor(javafx.scene.Node::class,          javafx.scene.Node::blendModeProperty,                 type<Property<BlendMode?>>()),
       Extractor(javafx.scene.Node::class,          javafx.scene.Node::boundsInLocalProperty,             type<ReadOnlyProperty<Bounds>>()),
       Extractor(javafx.scene.Node::class,          javafx.scene.Node::boundsInParentProperty,            type<ReadOnlyProperty<Bounds>>()),
       Extractor(javafx.scene.Node::class,          javafx.scene.Node::cacheProperty,                     type<Property<Boolean>>()),
@@ -282,6 +283,12 @@ private val extractors = setOf(
       Extractor(javafx.scene.layout.Region::class, javafx.scene.layout.Region::widthProperty,            type<ReadOnlyProperty<Double>>()),
       Extractor(javafx.scene.layout.Pane::class,   javafx.scene.layout.Pane::backgroundProperty,         type<Property<Background?>>()),
       Extractor(javafx.scene.layout.Pane::class,   javafx.scene.layout.Pane::getChildren,                type<ObservableList<Node>>()),
+      Extractor(javafx.scene.layout.HBox::class,   javafx.scene.layout.HBox::alignmentProperty,          type<Property<Pos>>()),
+      Extractor(javafx.scene.layout.HBox::class,   javafx.scene.layout.HBox::fillHeightProperty,         type<Property<Boolean>>()),
+      Extractor(javafx.scene.layout.HBox::class,   javafx.scene.layout.HBox::spacingProperty,            type<Property<Double>>()),
+      Extractor(javafx.scene.layout.VBox::class,   javafx.scene.layout.VBox::alignmentProperty,          type<Property<Pos>>()),
+      Extractor(javafx.scene.layout.VBox::class,   javafx.scene.layout.VBox::fillWidthProperty,          type<Property<Boolean>>()),
+      Extractor(javafx.scene.layout.VBox::class,   javafx.scene.layout.VBox::spacingProperty,            type<Property<Double>>()),
    )
    .groupBy { it.declaringClass }
    .mapValues { (_, v) -> v.associateBy { it.method.name } }

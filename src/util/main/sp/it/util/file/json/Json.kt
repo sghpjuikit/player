@@ -53,6 +53,7 @@ import sp.it.util.type.VType
 import sp.it.util.type.argOf
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
+import sp.it.util.type.isPlatformType
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.kType
 import sp.it.util.type.kTypeAnyNullable
@@ -311,7 +312,7 @@ class Json: JsonAst() {
          value::class==typeK -> return value
          else -> {
             when (value) {
-               is JsNull -> if (typeTarget.isMarkedNullable) null else fail { "null is not $typeTarget" }
+               is JsNull -> if (typeTarget.isMarkedNullable || typeTarget.isPlatformType) null else fail { "null is not $typeTarget" }
                is JsTrue -> true
                is JsFalse -> false
                is JsNumber -> {
@@ -438,7 +439,7 @@ class Json: JsonAst() {
                            val argJs = value.value[it.name]
                            if (argJs==null) {
                               if (it.isOptional) null
-                              else if (it.type.isMarkedNullable) it to null
+                              else if (it.type.isMarkedNullable || it.type.isPlatformType) it to null
                               else fail { "Type=$instanceType constructor parameter=${it.name} is missing" }
                            } else {
                               it to fromJsonValueImpl(it.type, argJs)

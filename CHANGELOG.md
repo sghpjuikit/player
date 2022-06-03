@@ -6,7 +6,16 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **WeatherInfo** widget
 - Implement **GpuNvidiaInfo**.kt nvidia-smi.exe path settings
 - Implement `application/pdf` cover support
+- Improve Node widget
+  - provide node instance settings in widget settings, properly separated and configurable as JavaFX objects
+  - persist the node instance state as Configurable as widget settings [restores node state on reload/restart without using widget i/o]
+  - support userLocation specific to the node instance type instead of one for all Node widgets [supports custom default settings per instance type]
+- Improve context menus
 - Improve json reading robustness & performance [use jackson instead of Klaxon]
+- Improve json type conversion support
+- Improve string type conversion support
+- Improve nullability discovery for JavaFX properties
+- Improve read-only discovery for JavaFX properties
 - Fix json deserialization failing for nullable properties sometimes
 - Fix oshi CPU usage crashes for Windows 10
 
@@ -14,13 +23,31 @@ This update brings general improvements all around.
 
 Compatibility with Windows 10 has been improved. Various issues has been identified and fixed.
 
-On widget side, **GpuNvidiaInfo** **nvidia-smi.exe** path is now configurable. It may become modular in the future. Will see.
-The **WeatherInfo** is a great addition. For now, it still lacks hourly and daily forecast. Once again for the lack of UX imagination. 
-
-The `Klaxon` library has been replaced with `Jackson`, which is more robust and performant.
-This simplifies SpitPlayer code as well.
+Under hood, the `Klaxon` library has been replaced with `Jackson`, which is more robust and performant.
 The plan for the future with `Json` is to separate it to own tiny module, expose more API, use coroutines and context
 receivers to get rid of the explicit `Json` object (analogue to Jackson's`ObjectMapper`). That would be killer json API.
+
+The conversion capabilities required for settings and persisting application state have been enhanced.
+The JavaFX property discovery is now more typesafe, identifying correctly read-only & nullability characteristics (in common cases).
+Some JavaFX properties have been hidden from certain component settings. Overall, these reduce warnings and issues in forms and settings.
+Additionally, `String` converters for additional types have been implemented. All data classes are now supported automatically, producing json output.
+Json converters have been added for all types that already had `String` converter.
+With this, the application is more prepared to tackle additional widgets and features.
+
+The **Node** widget, being a launcher for custom user widgets that merely instantiate JavaFX-based UI components, is greatly improved.
+The various types of content used, defined by user as concrete subtype of `Node.class`, are now considered their own widget in all aspects.
+These widgets have their own user data folder, support their own user-defined default settings, cloning, reloading, etc.
+Also, node widget now allows configuring the `Node` instance in its settings, providing UX familiar from other widgets.
+Node widget now also completely stores its `Node`'s state and applies it on widget reload or application restart.
+It is still possible to use widget i/o to turn the various properties of the `Node` instance into Inputs, that can be fed values across time,
+but this is no longer required (to persist the state).
+With this, any Node subclass can be truly turned into a widget with full feature support that user would expect.
+
+On widget side, **GpuNvidiaInfo** **nvidia-smi.exe** path is now configurable.
+Its UI may become modular in the future.
+
+The new **WeatherInfo** widget displays local weather.
+For now, it still lacks hourly and daily forecast, which will be added in the future. 
 
 There are improvements prototyped to the **WallpaperChanger** plugin. These changes may or may not be realized.
 

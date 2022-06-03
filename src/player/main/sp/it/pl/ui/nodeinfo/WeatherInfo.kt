@@ -32,7 +32,6 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
-import sp.it.util.dev.printIt
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -142,7 +141,6 @@ class WeatherInfo: HBox(15.0) {
          else -> {
             val link = "https://api.openweathermap.org/data/2.5/onecall?lat=${latitude.value}&lon=${longitude.value}&units=${units.value.name.lowercase()}&exclude=minutely,alerts&appid=${apiKey.value}"
             val dataRaw = http.get(link).bodyAsText()
-            dataRaw.printIt()
             APP.configuration.rawAdd(dataKey, PropVal1(dataRaw))
             dataRaw.parseToJson<Data>()
          }
@@ -298,7 +296,7 @@ class WeatherInfo: HBox(15.0) {
    companion object {
       fun Long.toInstant(): Instant = Instant.ofEpochMilli(this*1000)
       fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
-      inline fun <reified T> String.parseToJson(): T? = APP.serializerJson.json.fromJson<T>(this).ifError { it.printStackTrace() }.orNull()
+      inline fun <reified T> String.parseToJson(): T? = APP.serializerJson.json.fromJson<T>(this).orNull()
       fun Instant.isOlderThan1Hour() = Instant.now().isBefore(plusSeconds(3500))
    }
 }

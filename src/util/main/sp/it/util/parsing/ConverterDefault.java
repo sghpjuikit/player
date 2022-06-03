@@ -35,7 +35,7 @@ import static sp.it.util.type.Util.getConstructorAnnotated;
 import static sp.it.util.type.Util.getMethodAnnotated;
 
 /**
- * Converter implementation storing individual type converters in a map. This means:
+ * Converter implementation storing individual type converters in a thread-safe map. This means:
  * <ul>
  * <li> O(1) converter lookup.
  * <li> Single initialization. No converter is ever initialized more than once.
@@ -92,8 +92,8 @@ public class ConverterDefault extends Converter {
 
     public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super Object, @NotNull Try<@NotNull String,@NotNull String>> parserFallbackToS = null;
     public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super @NotNull String, @NotNull Try<Object,@NotNull String>> parserFallbackFromS = null;
-    public final KClassMap<Function<? super Object, Try<String,String>>> parsersToS = new KClassMap<>();
-    public final KClassMap<Function<? super String, Try<Object,String>>> parsersFromS = new KClassMap<>();
+    public final KClassMap<Function<? super Object, Try<String,String>>> parsersToS = new KClassMap<>(new ConcurrentHashMap<>());
+    public final KClassMap<Function<? super String, Try<Object,String>>> parsersFromS = new KClassMap<>(new ConcurrentHashMap<>());
 
     public <T> void addParser(KClass<T> c, ConverterString<T> parser) {
         addParser(c, parser::toS, parser::ofS);

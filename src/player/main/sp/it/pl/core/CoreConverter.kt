@@ -49,6 +49,8 @@ import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
+import sp.it.pl.audio.SimpleSong
+import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.audio.tagging.MetadataGroup
@@ -96,6 +98,7 @@ import sp.it.util.math.StrExF
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.ConverterFX
 import sp.it.util.parsing.ConverterFromString
+import sp.it.util.parsing.ConverterSerializationBase64
 import sp.it.util.parsing.ConverterString
 import sp.it.util.parsing.ConverterToString
 import sp.it.util.parsing.Parsers
@@ -323,6 +326,8 @@ object CoreConverter: Core {
       addP<IconField<*>>(IconField)
       addP<FileFilter>(FileFilter)
       addP<FileField<*>>(FileField)
+      addT<Song>({ it.uri.toString() }, tryF(IAE::class) { SimpleSong(uri(it)) })
+      addT<Metadata>({ ConverterSerializationBase64.toS(it).getOr("") }, { ConverterSerializationBase64.ofS<Metadata>(it).orMessage() })
       addP<PlaylistSong.Field<*>>(PlaylistSong.Field)
       addP<Metadata.Field<*>>(Metadata.Field)
       addP<MetadataGroup.Field<*>>(MetadataGroup.Field)

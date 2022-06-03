@@ -3,6 +3,7 @@ package node
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicInteger
 import javafx.beans.value.WritableValue
+import javafx.event.EventDispatcher
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
@@ -28,26 +29,34 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.access.vn
 import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfigDef
+import sp.it.util.conf.Configurable
+import sp.it.util.conf.ListConfigurable
+import sp.it.util.conf.PropertyConfig
+import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.valuesUnsealed
 import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.div
+import sp.it.util.file.json.JsObject
+import sp.it.util.file.json.toCompactS
+import sp.it.util.file.properties.PropVal
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
-import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.parsing.ConverterString
 import sp.it.util.reactive.attachFalse
 import sp.it.util.reactive.attachTrue
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
+import sp.it.util.text.appendSent
 import sp.it.util.text.nameUi
 import sp.it.util.text.split2Partial
 import sp.it.util.text.splitNoEmpty
@@ -64,27 +73,49 @@ import sp.it.util.units.year
 
 class Node(widget: Widget): SimpleController(widget) {
 
-   /** The fully qualified name of the class of the node or null if none */
-   private val node by cvn<String>(null)
+   val node by cvn<String>(null)
       .valuesUnsealed { APP.instances.recommendedNodeClassesAsWidgets.map { it.type.jvmName } }
-      .def(name = "Component class", info = "Fully qualified name of the kotlin.reflect.KClass of the javafx.scene.Node component. Needs public no argument constructor.")
+      .def(name = "Component class", info = buildString {
+         appendSent("Fully qualified name of the kotlin.reflect.KClass of the javafx.scene.Node ui element or null if none")
+         appendSent("The class needs public no argument constructor unless appropriate NodeFactory has been provided to an application.")
+      })
 
-   /** The node instance or null if none */
-   private val nodeInstance = vn<Node>(null).apply {
+   val nodeInstance by cv(NodeInstance(null))
+      .def(name = "Node", info = "The javafx.scene.Node ui element or null if none")
+
+   init {
       node sync { c ->
-         val isDifferentClass = value?.net { it::class.java.name }!=c
+         val isDifferentClass = nodeInstance.value.node?.net { it::class.java.name }!=c
          if (isDifferentClass)
-            value = runTry {
-                  val type = Class.forName(c)?.kotlin
-                  val typeBuilder = type?.let { APP.instances.recommendedNodeClassesAsWidgets.find { b -> b.type == it } }
-                  val instance = typeBuilder?.constructor?.invoke() ?: type?.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node?
-                  instance
+            nodeInstance.value = runTry {
+               val type = Class.forName(c).kotlin
+               val typeBuilder = APP.instances.recommendedNodeClassesAsWidgets.find { b -> b.type == type }
+               val instance = typeBuilder?.constructor?.invoke() ?: type.takeIf(Node::class::isSuperclassOf)?.createInstance() as Node?
+               widget.fieldsRaw["node"] = PropVal.PropVal1(type.jvmName)
+
+               val nInstance = NodeInstance(instance)
+
+               nodeInstance.value.configurableJson?.value.ifNotNull { configs ->
+                  nInstance.getConfigs().forEach { config ->
+                     if (config.isPersistable()) {
+                        if (config.name in configs) {
+                           APP.serializerJson.json.fromJsonValue(config.type, configs[config.name]!!)
+                              .ifOk { config.value = it }
+                              .ifError { it.printStackTrace() }
+                        }
+                     }
+                  }
                }
-               .ifError {
-                  if (it !is ClassNotFoundException && it !is ClassNotFoundException)
-                     AppEventLog.push(AppError("Failed to instantiate $c", "Reason: ${it.stacktraceAsString}"))
-               }
-               .orNull()
+
+               nInstance
+            }
+            .ifError {
+               if (it !is ClassNotFoundException && it !is ClassNotFoundException)
+                  AppEventLog.push(AppError("Failed to instantiate $c", "Reason: ${it.stacktraceAsString}"))
+            }
+            .getOrSupply {
+               NodeInstance(null)
+            }
       }
    }
 
@@ -94,16 +125,16 @@ class Node(widget: Widget): SimpleController(widget) {
       root.consumeScrolling()
 
       root.onEventDown(MOUSE_CLICKED, PRIMARY) {
-         if (nodeInstance.value==null)
+         if (nodeInstance.value.node==null)
             APP.windowManager.showSettings(widget, root)
       }
       root.onEventDown(MOUSE_CLICKED, SECONDARY) {
          if (it.isStillSincePress)
             ContextMenu().dsl {
                menu("Inputs") {
-                  val node = nodeInstance.value
+                  val node = nodeInstance.value.node
                   val propertiesWithInputs = io.i.getInputs().asSequence().map { it.name }.toSet()
-                  val properties = node.javaFxProperties()
+                  val properties = nodeInstance.value.properties
                   val propertiesByClass =  node.javaFXSuperClasses().associateWith { listOf<NodeInput>() } + properties.groupBy { it.declaringClass }
                   val i = AtomicInteger(-1)
                   propertiesByClass.forEach { (declaringClass, properties) ->
@@ -142,7 +173,7 @@ class Node(widget: Widget): SimpleController(widget) {
          restoreInputs()
          storeInputs()
 
-         root.children setTo listOfNotNull(node)
+         root.children setTo listOfNotNull(node.node)
       }
    }
 
@@ -156,7 +187,7 @@ class Node(widget: Widget): SimpleController(widget) {
       widget.properties["node-widget-inputs"].asIf<String>().orEmpty().splitNoEmpty("-").forEach {
          val (propertyNameBase64, propertyValueBase64) = it.split2Partial("|")
          val (propertyName, propertyValueS) = propertyNameBase64.decodeBase64() to propertyValueBase64.ifNotEmpty { it.decodeBase64().unquote() }
-         val properties = nodeInstance.value.javaFxProperties()
+         val properties = nodeInstance.value.properties
          val property = properties.firstOrNull { p -> p.name==propertyName }
          if (property!=null && io.i.getInputs().none { it.name==property.name }) {
             val propertyValue = when (propertyValueS) {
@@ -185,16 +216,49 @@ class Node(widget: Widget): SimpleController(widget) {
          Entry("Node", "Edit component properties as widget inputs", SECONDARY.nameUi),
       )
 
+      override fun init() {
+         APP.converter.general.addParser(NodeInstance::class, NodeInstance)
+      }
+
+      override fun dispose() {
+         APP.converter.general.parsersFromS -= NodeInstance::class
+         APP.converter.general.parsersToS -= NodeInstance::class
+      }
+
       fun Node?.javaFXSuperClasses(): Sequence<KClass<*>> = when(this) {
          null -> sequenceOf()
          else -> this::class.superKClassesInc().filter { !it.java.isInterface }
       }
 
+      @Suppress("SimplifyBooleanWithConstants")
       fun Node?.javaFxProperties(): Sequence<NodeInput> = when(this) {
          null -> sequenceOf()
          else -> forEachJavaFXProperty(this)
-            .filter { !it.isReadOnly && !it.type.isSubtypeOf<EventHandler<*>>() }
+            .filter {
+               true
+                  && !it.isReadOnly
+                  && !it.type.isSubtypeOf<EventHandler<*>>()
+                  && !it.type.isSubtypeOf<EventDispatcher>()
+                  && !it.type.isSubtypeOf<Collection<*>>()
+                  && !it.type.isSubtypeOf<Map<*, *>>()
+                  && !(it.type.isSubtypeOf<Boolean>() && it.name=="needsLayout")
+                  && !(it.type.isSubtypeOf<Boolean>() && it.name=="managed")
+            }
             .map { NodeInput(it.name, it.declaringClass, { it.observable().asIs() }, VType<Any?>(it.type)) }
+      }
+
+      data class NodeInstance(val node: Node?, val properties: List<NodeInput>, val configurable: Configurable<Any?>, val configurableJson: JsObject?): Configurable<Any?> by configurable {
+         companion object: ConverterString<NodeInstance> {
+            operator fun invoke(node: Node?): NodeInstance {
+               val properties: List<NodeInput> = node.javaFxProperties().toList()
+               val configurable = ListConfigurable.homogeneous(
+                  properties.map { PropertyConfig(it.type, it.name, ConfigDef(it.name, "", "instance"), setOf(), it.value.asIs(), it.value.value, "instance") }
+               )
+               return NodeInstance(node, properties, configurable, null)
+            }
+            override fun ofS(s: String) = APP.serializerJson.json.fromJson<JsObject>(s).mapError { it.message ?: "" }.map { NodeInstance(null, listOf(), ListConfigurable.homogeneous(), it) }
+            override fun toS(o: NodeInstance) = JsObject(o.configurable.getConfigs().associate { it.name to APP.serializerJson.json.toJsonValue(it.type, it.value) }).toCompactS()
+         }
       }
 
       data class NodeInput(val name: String, val declaringClass: KClass<*>, val valueSupplier: () -> WritableValue<*>, val type: VType<*>) {

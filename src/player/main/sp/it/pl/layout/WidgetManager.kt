@@ -284,9 +284,8 @@ class WidgetManager {
 
       // node widget factories recommended classes
       APP.instances.recommendedNodeClassesAsWidgets.onItemSyncWhile {
-         val f = NodeFactory(it.nameUi, it.type)
-         registerFactory(f)
-         Subscription { unregisterFactory(f) }
+         registerFactory(it)
+         Subscription { unregisterFactory(it) }
       }
 
       initialized = true

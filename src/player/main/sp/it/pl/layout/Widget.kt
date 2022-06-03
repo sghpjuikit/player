@@ -159,6 +159,12 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    /** Name displayed in gui. Customizable. Default is component type name. */
    val customName by cv("").def(name = "Custom name", group = "widget", info = "Name displayed in gui. User can set his own. By default component type name.")
 
+   override val location: File
+      get() = factory.location
+
+   override val userLocation: File
+      get() = fieldsRaw["node"]?.val1?.let { APP.location.user.widgets/it } ?: factory.userLocation
+
    /** [location] as a [Config]. */
    private val locationConfig: File by c(location).def(
       name = "Directory",

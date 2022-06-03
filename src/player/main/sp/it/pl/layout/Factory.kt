@@ -130,11 +130,11 @@ class DeserializingFactory(val launcher: File): ComponentFactory<Component> {
    private fun Component.withFactory() = apply { factoryDeserializing = this@DeserializingFactory }
 }
 
-class NodeFactory(override val name: String, val node: KClass<out Node>): ComponentFactory<Component> {
-   constructor(node: KClass<out Node>): this(node.simpleName ?: node.jvmName, node)
-
-   override suspend fun create() = APP.widgetManager.factories.getFactory("Node").orNone().create().apply { fieldsRaw["node"] = PropVal.PropVal1(node.jvmName) }
-   override fun toString() = "${javaClass.simpleName} $name $node"
+class NodeFactory<T: Node>(val id: UUID, val type: KClass<out T>, override val name: String, val constructor: () -> T): ComponentFactory<Component>, Locatable {
+   override suspend fun create() = APP.widgetManager.factories.getFactory("Node").orNone().create().apply { fieldsRaw["node"] = PropVal.PropVal1(type.jvmName) }
+   override fun toString() = "${javaClass.simpleName} $name $type"
+   override val location = APP.widgetManager.factories.getFactory("Node").orNone().location
+   override val userLocation = APP.location.user.widgets/type.jvmName
 }
 
 class NoFactoryFactory(val factoryId: String): WidgetFactory<NoFactoryController>(NoFactoryController::class, APP.location.widgets/factoryId.decapital()) {

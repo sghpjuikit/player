@@ -18,8 +18,8 @@ class WidgetPicker(private val mode: Mode): Picker<ComponentFactory<*>>() {
       itemSupply = {
          val factories = when (mode) {
             Mode.WIDGET -> APP.widgetManager.factories.getFactories()
-            Mode.NODE -> APP.widgetManager.factories.getComponentFactories().filter { it is NodeFactory }
-            Mode.LAYOUTS -> APP.widgetManager.factories.getComponentFactories().filter { it !is WidgetFactory<*> && it !is NodeFactory }
+            Mode.NODE -> APP.widgetManager.factories.getComponentFactories().filter { it is NodeFactory<*> }
+            Mode.LAYOUTS -> APP.widgetManager.factories.getComponentFactories().filter { it !is WidgetFactory<*> && it !is NodeFactory<*> }
             Mode.ALL -> APP.widgetManager.factories.getComponentFactories()
          }
          factories.filter { it.isUsableByUser() }

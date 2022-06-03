@@ -10,4 +10,8 @@ fun String.isBase64(): Boolean = regexBase64.matches(this)
 
 fun String.encodeBase64(): String = Base64.getEncoder().encodeToString(toByteArray())
 
+fun ByteArray.encodeBase64(): String = Base64.getEncoder().encodeToString(this)
+
 fun String.decodeBase64(): Try<String, Throwable> = runTry { String(Base64.getDecoder().decode(toByteArray())) }
+
+fun String.decodeBase64ToBytes(): Try<ByteArray, Throwable> = runTry { Base64.getDecoder().decode(toByteArray()) }

@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import kotlin.reflect.KClass;
@@ -148,7 +149,7 @@ public class ConverterDefault extends Converter {
             () -> parsersFromS.getElementOfSuper(c),
             () -> buildOfSParser(getJavaObjectType(c)),
             () -> parserFallbackFromS==null ? null : s -> (Try<T,String>) ((BiFunction) parserFallbackFromS).apply(c, s),
-            () -> o -> error(c + " has no associated from-text converter")
+            () -> o -> error("Type " + c + " has no associated from-text converter")
         );
     }
 

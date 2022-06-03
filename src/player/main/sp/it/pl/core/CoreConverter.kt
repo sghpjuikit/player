@@ -226,6 +226,7 @@ object CoreConverter: Core {
       parserFallbackToS = BiFunction { type, o ->
          when {
             type.isObject -> Try.ok(o::class.simpleName!!)
+            type.isData -> runTry {  APP.serializerJson.json.toJsonValue(VType<Any?>(type.createType()), o).toCompactS() }.orMessage()
             else -> Try.ok(anyConverter.toS(o))
          }
       }
@@ -243,21 +244,25 @@ object CoreConverter: Core {
                .find { it::class.simpleName==s }
                ?.let { Try.ok(it) }
                ?: Try.error("Not a valid value: \"$s\"")
-            type.isData -> runTry {
-               type.primaryConstructor!!.call(
-                  *type.primaryConstructor!!.parameters
-                     .windowed(2, 1, true)
-                     .map { ps ->
-                        val argS = when (ps.size) {
-                           2 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.indexOf(", ${ps[1].name!!}="))
-                           1 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.length - 1)
-                           else -> fail()
+            type.isData -> {
+               val isJsonObject = s.startsWith("{") && s.endsWith("}")
+               if (isJsonObject) APP.serializerJson.json.fromJson(VType<Any?>(type.createType()), s).orMessage()
+               else runTry {
+                  type.primaryConstructor!!.call(
+                     *type.primaryConstructor!!.parameters
+                        .windowed(2, 1, true)
+                        .map { ps ->
+                           val argS = when (ps.size) {
+                              2 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.indexOf(", ${ps[1].name!!}="))
+                              1 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.length - 1)
+                              else -> fail()
+                           }
+                           general.ofS(ps[0].type.raw, argS).orThrow
                         }
-                        general.ofS(ps[0].type.raw, argS).orThrow
-                     }
-                     .toTypedArray()
-               )
-            }.orMessage()
+                        .toTypedArray()
+                  )
+               }.orMessage()
+            }
             else -> anyConverter.ofS(type, s)
          }
       }

@@ -1,11 +1,35 @@
 package sp.it.pl.core
 
+import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.io.FileNotFoundException
+import java.net.URI
+import java.nio.charset.Charset
+import java.nio.file.Path
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Year
+import java.time.ZoneId
+import java.util.Locale
+import java.util.UUID
+import java.util.regex.Pattern
+import javafx.geometry.BoundingBox
+import javafx.geometry.Bounds
 import javafx.geometry.Insets
+import javafx.geometry.Point2D
+import javafx.geometry.Point3D
+import javafx.scene.effect.Effect
+import javafx.scene.text.Font
+import javafx.util.Duration
 import kotlin.reflect.KClass
 import kotlin.text.Charsets.UTF_8
 import mu.KLogging
+import sp.it.pl.audio.playlist.PlaylistSong
+import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.MetadataGroup
+import sp.it.pl.conf.Command
 import sp.it.pl.layout.BiContainerDb
 import sp.it.pl.layout.ContainerFreeFormUi
 import sp.it.pl.layout.FreeFormContainerDb
@@ -16,7 +40,13 @@ import sp.it.pl.layout.UniContainerDb
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetDb
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppUi
+import sp.it.pl.main.FileFilter
+import sp.it.pl.ui.objects.table.TableColumnInfo
 import sp.it.pl.ui.objects.window.stage.WindowDb
+import sp.it.util.access.fieldvalue.ColumnField
+import sp.it.util.access.fieldvalue.FileField
+import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.file.json.JsArray
@@ -28,12 +58,21 @@ import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.file.properties.PropVal.PropValN
+import sp.it.util.file.type.MimeExt
+import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.MimeType
 import sp.it.util.file.writeSafely
 import sp.it.util.file.writeTextTry
+import sp.it.util.functional.PF
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Java.error
 import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
+import sp.it.util.math.StrExF
+import sp.it.util.text.StringSplitParser
+import sp.it.util.units.Bitrate
+import sp.it.util.units.FileSize
+import sp.it.util.units.NofX
 
 class CoreSerializerJson: Core {
 
@@ -65,7 +104,6 @@ class CoreSerializerJson: Core {
             override fun toJson(value: PropVal): JsValue = when (value) {
                is PropVal1 -> JsString(value.value)
                is PropValN -> JsArray(value.value.map { JsString(it) })
-               else -> fail { "Unexpected value=$value, which is not ${PropVal::class}" }
             }
 
             override fun fromJson(value: JsValue) = when (value) {
@@ -75,17 +113,63 @@ class CoreSerializerJson: Core {
             }
          }
 
-         val classes = setOf(Insets::class)
-         // TODO: add all converters (causes app ui deserialization issue
-         // val classes = setOf(Insets::class)
-         // APP.converter.general.parsersFromS.keys.toMutableSet().apply {
-         //    retainAll(APP.converter.general.parsersToS.keys)
-         // }
-         classes.forEach {
-            it.asIs<KClass<Any>>() convert object: JsConverter<Any> {
-               val toS = APP.converter.general.parsersToS[it]!!
-               val ofS = APP.converter.general.parsersFromS[it]!!
-               override fun canConvert(value: Any) = it.isInstance(value)
+         @Suppress("RemoveRedundantQualifierName")
+         val classes = setOf(
+            StringSplitParser::class,
+            Path::class,
+            File::class,
+            UUID::class,
+            URI::class,
+            Pattern::class,
+            Bitrate::class,
+            Duration::class,
+            Locale::class,
+            Charset::class,
+            ZoneId::class,
+            Instant::class,
+            LocalTime::class,
+            LocalDate::class,
+            LocalDateTime::class,
+            Year::class,
+            FileSize::class,
+            StrExF::class,
+            NofX::class,
+            MimeGroup::class,
+            MimeType::class,
+            MimeExt::class,
+            ColumnField::class,
+            IconField::class,
+            FileFilter::class,
+            FileField::class,
+            PlaylistSong.Field::class,
+            sp.it.pl.audio.Song::class,
+            sp.it.pl.audio.tagging.Metadata::class,
+            Metadata.Field::class,
+            MetadataGroup.Field::class,
+            TableColumnInfo::class,
+            TableColumnInfo.ColumnInfo::class,
+            TableColumnInfo.ColumnSortInfo::class,
+            Font::class,
+            GlyphIcons::class,
+            Effect::class,
+            Class::class,
+            KClass::class,
+            PF::class,
+            BoundingBox::class,
+            Bounds::class,
+            Point2D::class,
+            Point3D::class,
+            Insets::class,
+            Command::class,
+            Command.CommandActionId::class,
+            Command.CommandComponentId::class,
+            AppUi.SkinCss::class,
+         )
+         classes.forEach { c ->
+            c.asIs<KClass<Any>>() convert object: JsConverter<Any> {
+               val toS = APP.converter.general.parsersToS[c]!!
+               val ofS = APP.converter.general.parsersFromS[c]!!
+               override fun canConvert(value: Any) = c.isInstance(value)
                override fun toJson(value: Any): JsValue = JsString(toS(value).orThrow)
                override fun fromJson(value: JsValue): Any? = value.asJsStringValue()?.let { ofS(it).orThrow }
             }

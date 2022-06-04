@@ -37,9 +37,12 @@ import javafx.geometry.Point3D
 import javafx.scene.Node
 import javafx.scene.effect.Effect
 import javafx.scene.input.MouseButton
+import javafx.scene.paint.Color
+import javafx.scene.paint.ImagePattern
+import javafx.scene.paint.LinearGradient
+import javafx.scene.paint.Paint
+import javafx.scene.paint.RadialGradient
 import javafx.scene.text.Font
-import javafx.scene.text.FontPosture
-import javafx.scene.text.FontWeight
 import javafx.util.Duration
 import kotlin.io.path.relativeToOrSelf
 import kotlin.reflect.KClass
@@ -339,31 +342,23 @@ object CoreConverter: Core {
       addT<TableColumnInfo>(toS, { TableColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnInfo>(toS, { TableColumnInfo.ColumnInfo.fromString(it).orMessage() })
       addT<TableColumnInfo.ColumnSortInfo>(toS, { TableColumnInfo.ColumnSortInfo.fromString(it).orMessage() })
-      addT<Font>(
-         { "${it.family}, ${it.style}, ${it.size}" },
-         {
-            runTry {
-               val i = it.indexOf(',')
-               val name = it.substring(0, i)
-               val style = if (it.lowercase().contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
-               val weight = if (it.lowercase().contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
-               val size = it.substringAfterLast(",").trim().toDoubleOrNull() ?: Font.getDefault().size
-               val f = Font.font(name, weight, style, size)
-               if (f.family==name) f else fail { "Not recognized font" }
-            }.orMessage()
-         }
-      )
-      addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
+      addP<Color>(ConverterColor)
+      addP<RadialGradient>(ConverterRadialGradient)
+      addP<LinearGradient>(ConverterLinearGradient)
+      addP<ImagePattern>(ConverterImagePattern)
+      addP<Paint>(ConverterPaint)
       addP<Effect>(fx.toConverterOf<Effect?>().asIs())
+      addP<Font>(ConverterFont)
+      addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it, false, null) })
       addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) {
          val defaultKClassToStringPrefix = "class"
-         val sanitized = it.trim().removePrefix(defaultKClassToStringPrefix).trim()
-         when (sanitized) {
+         val nameSanitized = it.trim().removePrefix(defaultKClassToStringPrefix).trim()
+         when (nameSanitized) {
             "kotlin.Any" -> Any::class
             "kotlin.Unit" -> Unit::class
             "kotlin.Nothing" -> Nothing::class
-            else -> Class.forName(sanitized, false, null).kotlin
+            else -> Class.forName(nameSanitized, false, null).kotlin
          }
 
       })

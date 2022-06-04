@@ -7,9 +7,11 @@ import javafx.event.EventDispatcher
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Skin
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.stage.Window
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSuperclassOf
@@ -29,6 +31,7 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.pl.ui.pane.ShortcutPane.Entry
+import sp.it.util.collections.filterNotNullValues
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.Configurable
@@ -49,6 +52,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
+import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.parsing.ConverterString
 import sp.it.util.reactive.attachFalse
@@ -62,7 +66,9 @@ import sp.it.util.text.split2Partial
 import sp.it.util.text.splitNoEmpty
 import sp.it.util.type.VType
 import sp.it.util.type.forEachJavaFXProperty
+import sp.it.util.type.isSubclassOf
 import sp.it.util.type.isSubtypeOf
+import sp.it.util.type.raw
 import sp.it.util.type.superKClassesInc
 import sp.it.util.ui.dsl
 import sp.it.util.ui.prefSize
@@ -241,14 +247,18 @@ class Node(widget: Widget): SimpleController(widget) {
                   && !it.type.isSubtypeOf<EventDispatcher>()
                   && !it.type.isSubtypeOf<Collection<*>>()
                   && !it.type.isSubtypeOf<Map<*, *>>()
-                  && !(it.type.isSubtypeOf<Boolean>() && it.name=="needsLayout")
-                  && !(it.type.isSubtypeOf<Boolean>() && it.name=="managed")
+                  && !it.type.raw.isSubclassOf<Skin<*>>()                           // not json persistable
+                  && !it.type.isSubtypeOf<Node>()                                   // not json persistable
+                  && !it.type.isSubtypeOf<Window>()                                 // not json persistable
+                  && !it.type.isSubtypeOf<ContextMenu>()                            // not json persistable
+                  && !(it.type.isSubtypeOf<Boolean>() && it.name=="needsLayout")    // internals
+                  && !(it.type.isSubtypeOf<Boolean>() && it.name=="managed")        // internals
             }
             .map { NodeInput(it.name, it.declaringClass, { it.observable().asIs() }, VType<Any?>(it.type)) }
       }
 
       data class NodeInstance(val node: Node?, val properties: List<NodeInput>, val configurable: Configurable<Any?>, val configurableJson: JsObject?): Configurable<Any?> by configurable {
-         companion object: ConverterString<NodeInstance> {
+         companion object: KLogging(), ConverterString<NodeInstance> {
             operator fun invoke(node: Node?): NodeInstance {
                val properties: List<NodeInput> = node.javaFxProperties().toList()
                val configurable = ListConfigurable.homogeneous(
@@ -256,8 +266,18 @@ class Node(widget: Widget): SimpleController(widget) {
                )
                return NodeInstance(node, properties, configurable, null)
             }
-            override fun ofS(s: String) = APP.serializerJson.json.fromJson<JsObject>(s).mapError { it.message ?: "" }.map { NodeInstance(null, listOf(), ListConfigurable.homogeneous(), it) }
-            override fun toS(o: NodeInstance) = JsObject(o.configurable.getConfigs().associate { it.name to APP.serializerJson.json.toJsonValue(it.type, it.value) }).toCompactS()
+            override fun ofS(s: String) =
+               APP.serializerJson.json.fromJson<JsObject>(s).mapError { it.message ?: "" }.map {
+                  NodeInstance(null, listOf(), ListConfigurable.homogeneous(), it)
+               }
+            override fun toS(o: NodeInstance) =
+               JsObject(
+                  o.configurable.getConfigs().associate {
+                     it.name to runTry { APP.serializerJson.json.toJsonValue(it.type, it.value) }
+                        .ifError { e -> logger.warn(e) { "Failed to persist ${o.node?.javaClass}.${it.name}" } }
+                        .orNull()
+                  }.filterNotNullValues()
+               ).toCompactS()
          }
       }
 

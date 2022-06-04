@@ -84,9 +84,9 @@ allprojects {
       "Kotlin" group {
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.1")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.1")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.1")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.2")
          implementation("org.jetbrains", "annotations", "23.0.0")
       }
 
@@ -154,8 +154,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.0.1")
-         implementation("io.ktor", "ktor-client-cio", "2.0.1")
+         implementation("io.ktor", "ktor-server-core", "2.0.2")
+         implementation("io.ktor", "ktor-client-cio", "2.0.2")
       }
 
       "Test" group {

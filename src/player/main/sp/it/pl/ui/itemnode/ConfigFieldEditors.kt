@@ -1060,6 +1060,7 @@ class ConfigurableCE(c: Config<Configurable<*>?>): ConfigEditor<Configurable<*>?
    init {
       editor.onChange = onChange
       editor.onChangeOrConstraint = onChangeOrConstraint
+      editor.ui syncFrom APP.ui.formLayout on disposer
       editor.configure(c.value)
       v?.attach { editor.configure(it) }.orEmpty() on disposer
 

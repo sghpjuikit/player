@@ -7,13 +7,13 @@ All notable changes to this project will be documented in this file. Format base
 - Implement **GpuNvidiaInfo**.kt nvidia-smi.exe path settings
 - Implement `application/pdf` cover support
 - Improve Node widget
-  - provide node instance settings in widget settings, properly separated and configurable as JavaFX objects
-  - persist the node instance state as Configurable as widget settings [restores node state on reload/restart without using widget i/o]
+  - provide node instance settings in widget settings, properly separated and configurable as JavaFX object
+  - persist the node instance state with widget settings [restores node state on reload/restart without using widget i/o]
   - support userLocation specific to the node instance type instead of one for all Node widgets [supports custom default settings per instance type]
 - Improve context menus
 - Improve json reading robustness & performance [use jackson instead of Klaxon]
-- Improve json type conversion support
-- Improve string type conversion support
+- Improve json types conversion support
+- Improve string types conversion support
 - Improve nullability discovery for JavaFX properties
 - Improve read-only discovery for JavaFX properties
 - Fix json deserialization failing for nullable properties sometimes
@@ -37,11 +37,11 @@ With this, the application is more prepared to tackle additional widgets and fea
 The **Node** widget, being a launcher for custom user widgets that merely instantiate JavaFX-based UI components, is greatly improved.
 The various types of content used, defined by user as concrete subtype of `Node.class`, are now considered their own widget in all aspects.
 These widgets have their own user data folder, support their own user-defined default settings, cloning, reloading, etc.
-Also, node widget now allows configuring the `Node` instance in its settings, providing UX familiar from other widgets.
+Also, **Node** widget now allows configuring the `Node` instance in its settings, providing UX familiar from other widgets.
 Node widget now also completely stores its `Node`'s state and applies it on widget reload or application restart.
 It is still possible to use widget i/o to turn the various properties of the `Node` instance into Inputs, that can be fed values across time,
 but this is no longer required (to persist the state).
-With this, any Node subclass can be truly turned into a widget with full feature support that user would expect.
+With this, any `Node` subclass can be truly turned into a widget with full feature support that user would expect.
 
 On widget side, **GpuNvidiaInfo** **nvidia-smi.exe** path is now configurable.
 Its UI may become modular in the future.

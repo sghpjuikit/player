@@ -1235,7 +1235,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
          editor.editable.value = false
       } else {
          isEditable syncTo editor.editable on disposer
-         isEditable sync { showWarnButton(getValid()) } on disposer
+         isEditable sync { showWarnButton(validate(config.value)) } on disposer
       }
    }
 
@@ -1246,7 +1246,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       isValueRefreshing.suppressingAlways {
          isNull = config.value==null
          editor.text = if (isValueRefreshingRaw) converterRaw(config.value) else converter(config.value)
-         showWarnButton(getValid())
+         showWarnButton(validate(config.value))
       }
    }
 

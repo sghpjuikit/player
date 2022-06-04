@@ -57,9 +57,15 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Paint
+import javafx.scene.shape.PathElement
 import javafx.scene.shape.Shape
+import javafx.scene.shape.StrokeLineCap
+import javafx.scene.shape.StrokeLineJoin
+import javafx.scene.shape.StrokeType
 import javafx.scene.text.Font
+import javafx.scene.text.FontSmoothingType
 import javafx.scene.text.TextAlignment
+import javafx.scene.text.TextBoundsType
 import javafx.scene.transform.Transform
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -305,8 +311,8 @@ private val extractors = setOf(
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::ellipsisStringProperty,  type<Property<String>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::fontProperty,            type<Property<Font>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::graphicProperty,         type<Property<Node?>>()),
-      Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::labelPaddingProperty,    type<ReadOnlyProperty<Insets>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::graphicTextGapProperty,  type<Property<Double>>()),
+      Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::labelPaddingProperty,    type<ReadOnlyProperty<Insets>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::lineSpacingProperty,     type<Property<Double>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::mnemonicParsingProperty, type<Property<Boolean>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::textProperty,            type<Property<String>>()),
@@ -316,6 +322,35 @@ private val extractors = setOf(
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::underlineProperty,       type<Property<Boolean>>()),
       Extractor(javafx.scene.control.Labeled::class, javafx.scene.control.Labeled::wrapTextProperty,        type<Property<Boolean>>()),
       Extractor(javafx.scene.control.Label::class,   javafx.scene.control.Label::labelForProperty,          type<Property<Node?>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::fillProperty,                type<Property<Paint>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::smoothProperty,              type<Property<Boolean>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeProperty,              type<Property<Paint?>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeDashOffsetProperty,    type<Property<Double>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeLineCapProperty,       type<Property<StrokeLineCap>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeLineJoinProperty,      type<Property<StrokeLineJoin>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeMiterLimitProperty,    type<Property<Double>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeTypeProperty,          type<Property<StrokeType>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::strokeWidthProperty,         type<Property<Double>>()),
+      Extractor(javafx.scene.shape.Shape::class,     javafx.scene.shape.Shape::smoothProperty,              type<Property<Boolean>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::baselineOffsetProperty,        type<ReadOnlyProperty<Double>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::boundsTypeProperty,            type<Property<TextBoundsType>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::caretBiasProperty,             type<Property<Boolean>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::caretPositionProperty,         type<Property<Int>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::caretShapeProperty,            type<ReadOnlyProperty<kotlin.Array<PathElement>>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::fontProperty,                  type<Property<Font>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::fontSmoothingTypeProperty,     type<Property<FontSmoothingType>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::lineSpacingProperty,           type<Property<Double>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::selectionEndProperty,          type<Property<Int>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::selectionFillProperty,         type<Property<Paint>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::selectionShapeProperty,        type<ReadOnlyProperty<kotlin.Array<PathElement>>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::selectionStartProperty,        type<Property<Int>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::strikethroughProperty,         type<Property<Boolean>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::tabSizeProperty,               type<Property<Int>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textAlignmentProperty,         type<Property<TextAlignment>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textOriginProperty,            type<Property<VPos>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::textProperty,                  type<Property<String>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::underlineProperty,             type<Property<Boolean>>()),
+      Extractor(javafx.scene.text.Text::class,       javafx.scene.text.Text::wrappingWidthProperty,         type<Property<Double>>()),
    )
    .groupBy { it.declaringClass }
    .mapValues { (_, v) -> v.associateBy { it.method.name } }
@@ -345,14 +380,15 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
          val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
          if (isPublished) {
             var propertyName: String? = null
-            if (method.returnType.isSubtypeOf<Observable>()) {
+            val returnType = method.returnType
+            if (returnType.isSubtypeOf<Observable>()) {
                try {
                   propertyName = methodName
                   propertyName = propertyName.substringBeforeLast("Property", propertyName)
                   propertyName = propertyName.substringAfter("get", propertyName)
                   propertyName = propertyName.decapital()
                   method.isAccessible = true
-                  val propertyType = extractors[declaringClass].orEmpty()[methodName]?.type?.type?.javaFxPropertyType ?: method.returnType.javaFxPropertyType.resolveNullability(propertyName)
+                  val propertyType = extractors[declaringClass].orEmpty()[methodName]?.type?.type?.javaFxPropertyType ?: returnType.javaFxPropertyType.resolveNullability(propertyName)
                   val observableRaw = method.call(o) as Observable?
                   if (observableRaw!=null) {
                      val observable = {
@@ -366,7 +402,7 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
                      }
                      val isReadOnly = when {
                         observableRaw is ObservableList<*> || observableRaw is ObservableSet<*> || observableRaw is ObservableMap<*,*> -> observableRaw::class.jvmName.contains("unmodifiable", true)
-                        else -> observableRaw !is WritableValue<*>
+                        else -> !returnType.raw.isSubclassOf(WritableValue::class) || (observableRaw is Property<*> && observableRaw.isBound)
                      }
                      yield(InspectedFxProperty(observable, propertyName, isReadOnly, declaringClass, propertyType))
                   }
@@ -382,10 +418,11 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
          val fieldName = field.name
          val isPublished = field.visibility==PUBLIC && !fieldName.startsWith("impl")
          if (isPublished) {
-            if (field.returnType.isSubtypeOf<Observable>()) {
+            val returnType = field.returnType
+            if (returnType.isSubtypeOf<Observable>()) {
                try {
                   field.isAccessible = true
-                  val propertyType = field.returnType.javaFxPropertyType.resolveNullability(fieldName)
+                  val propertyType = returnType.javaFxPropertyType.resolveNullability(fieldName)
                   val observableRaw = field.getter.call(o) as Observable?
                   if (observableRaw!=null) {
                      val observable = {
@@ -399,7 +436,7 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
                      }
                      val isReadOnly = when {
                         observableRaw is ObservableList<*> || observableRaw is ObservableSet<*> || observableRaw is ObservableMap<*,*> -> observableRaw::class.jvmName.contains("unmodifiable", true)
-                        else -> observableRaw !is WritableValue<*>
+                        else -> !returnType.raw.isSubclassOf(WritableValue::class) || (observableRaw is Property<*> && observableRaw.isBound)
                      }
                      yield(InspectedFxProperty(observable, fieldName, isReadOnly, declaringClass, propertyType))
                   }

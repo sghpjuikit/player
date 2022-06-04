@@ -19,7 +19,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 
 /** [ValueTextField] for [LocalTime] using [TimePickerContent]. */
-class TimeTextField(formatter: Formatter): ValueTextField<LocalTime>({ it?.net(formatter::format) ?: textNoVal }) {
+class TimeTextField(initialValue: LocalTime? = null, formatter: Formatter): ValueTextField<LocalTime>(initialValue, { it?.net(formatter::format) ?: textNoVal }) {
    private var formatter = formatter
    private var popup: PopWindow? = null
    private var popupContent: TimePickerContent? = null

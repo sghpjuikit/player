@@ -25,7 +25,7 @@ import sp.it.util.system.saveFile
 import sp.it.util.ui.drag.handlerAccepting
 
 /** Text field for [File] with file/dir constraint, drag & drop and picker. Supports relative files. */
-class FileTextField(val constraint: FileActor, val relativeTo: File?, val pickerType: FilePickerType = FilePickerType.IN): ValueTextField<File>() {
+class FileTextField(initialValue: File? = null, val constraint: FileActor, val relativeTo: File?, val pickerType: FilePickerType = FilePickerType.IN): ValueTextField<File>(initialValue) {
    private val type = v(if (constraint==FileActor.FILE) FILE else DIRECTORY)
    private var valueChanging = Suppressor()
 

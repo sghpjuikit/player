@@ -499,14 +499,15 @@ class ListAreaNodeTransformationNode(transformations: PrefList<TransformationRaw
    }
 }
 
-class ListAreaNodeTransformationItemNode(transformations: PrefList<TransformationRaw>): ValueTextField<TransformationRaw>({ it?.name ?: APP.converter.ui.toS(null) }) {
+class ListAreaNodeTransformationItemNode(transformations: PrefList<TransformationRaw>): ValueTextField<TransformationRaw>(
+   transformations.preferredOrFirst, { it?.name ?: APP.converter.ui.toS(null) }
+) {
    val items = transformations.sortedBy { it.name }
 
    init {
       isEditable = true
       autoComplete(this, { text -> text.splitToSequence(" ").net { ss -> items.filter { ss.all { s -> it.name.contains(s, true) } } } }, { it.name })
       AutoCompletion.of<TransformationRaw>(this)!!.onAutoCompleted += { value = it }
-      value = transformations.preferredOrFirst
    }
 
    override fun onDialogAction() {

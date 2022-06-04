@@ -473,14 +473,13 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
    private val relativeTo = c.findConstraint<FileRelative>()?.to
    private val pickerType = if (c.hasConstraint<FileOut>()) FilePickerType.OUT else FilePickerType.IN
    private var isObservable = v!=null
-   override var editor = FileTextField(fileType, relativeTo, pickerType)
+   override var editor = FileTextField(config.value, fileType, relativeTo, pickerType)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.onEventDown(KEY_PRESSED, ENTER) { it.consume() }
 
       // value
-      editor.value = config.value
       editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
@@ -499,13 +498,17 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
 class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = FontTextField()
+   override val editor = FontTextField(config.value)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.value = config.value
-      editor.onValueChange attach { apply() } on disposer
-      v?.attach { editor.value = it }.orEmpty() on disposer
+      editor.onValueChange attach {
+         println("changing $it")
+         println("changing ${getValid()}")
+         apply() } on disposer
+      v?.attach {
+         println("v changing $it")
+         editor.value = it }.orEmpty() on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer
@@ -522,11 +525,10 @@ class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
 class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = ColorTextField()
+   override val editor = ColorTextField(config.value)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.value = config.value
       editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
@@ -545,11 +547,10 @@ class ColorCE(c: Config<Color?>): ConfigEditor<Color?>(c) {
 class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = TimeTextField(APP.converter.timeFormatter)
+   override val editor = TimeTextField(config.value, APP.converter.timeFormatter)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.value = config.value
       editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
@@ -568,11 +569,10 @@ class LocalTimeCE(c: Config<LocalTime?>): ConfigEditor<LocalTime?>(c) {
 class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = DateTextField(APP.locale.value, APP.converter.dateFormatter)
+   override val editor = DateTextField(config.value, APP.locale.value, APP.converter.dateFormatter)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.value = config.value
       editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 
@@ -591,11 +591,10 @@ class LocalDateCE(c: Config<LocalDate?>): ConfigEditor<LocalDate?>(c) {
 class LocalDateTimeCE(c: Config<LocalDateTime?>): ConfigEditor<LocalDateTime?>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
-   override val editor = DateTimeTextField(APP.locale.value, APP.converter.dateTimeFormatter)
+   override val editor = DateTimeTextField(config.value, APP.locale.value, APP.converter.dateTimeFormatter)
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.value = config.value
       editor.onValueChange attach { apply() } on disposer
       v?.attach { editor.value = it }.orEmpty() on disposer
 

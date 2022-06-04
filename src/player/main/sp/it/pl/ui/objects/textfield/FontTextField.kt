@@ -13,7 +13,7 @@ import sp.it.util.reactive.suppressing
 import sp.it.util.reactive.syncFrom
 
 /** [ValueTextField] for [Font]. */
-class FontTextField: ValueTextField<Font>() {
+class FontTextField(initialValue: Font? = null): ValueTextField<Font>(initialValue) {
    private var picker: FontPicker? = null
    private var valueChanging = Suppressor()
 
@@ -24,7 +24,7 @@ class FontTextField: ValueTextField<Font>() {
          if (!valueChanging.isSuppressed) {
             valueChanging.isSuppressed = true
             runLater {
-               APP.converter.general.ofS<Font>(it).ifOk {
+               APP.converter.general.ofS<Font?>(it).ifOk {
                   value = it
                   valueChanging.isSuppressed = false
                }

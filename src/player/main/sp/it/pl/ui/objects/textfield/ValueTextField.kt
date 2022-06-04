@@ -21,14 +21,14 @@ import sp.it.util.reactive.sync
  *
  * @param <T> type of the value
  */
-abstract class ValueTextField<T>(textValueConverter: (T?) -> String = APP.converter.ui::toS): SpitTextField() {
+abstract class ValueTextField<T>(initialValue: T? = null, textValueConverter: (T?) -> String = APP.converter.ui::toS): SpitTextField() {
 
    /** Behavior executing when value changes */
    val onValueChange = Handler1<T?>()
    /** Value to string converter */
    val textValueConverter = textValueConverter
    /** Value */
-   var value by observable<T?>(null) { _, ov, nv ->
+   var value by observable<T?>(initialValue) { _, ov, nv ->
       if (ov!=nv) {
          val c = caretPosition
          val t = textValueConverter(nv)
@@ -42,7 +42,7 @@ abstract class ValueTextField<T>(textValueConverter: (T?) -> String = APP.conver
    init {
       styleClass += STYLECLASS
       isEditable = false
-      text = textValueConverter(null)
+      text = textValueConverter(initialValue)
       promptText = text
 
       // custom context menu

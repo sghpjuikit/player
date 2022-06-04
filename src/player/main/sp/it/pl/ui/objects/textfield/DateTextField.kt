@@ -20,7 +20,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.stackPane
 
 /** [ValueTextField] for [LocalDate]. */
-class DateTextField(locale: Locale = Locale.getDefault(), formatter: Formatter): ValueTextField<LocalDate>({ it?.net(formatter::format) ?: textNoVal }) {
+class DateTextField(initialValue: LocalDate? = null, locale: Locale = Locale.getDefault(), formatter: Formatter): ValueTextField<LocalDate>(initialValue, { it?.net(formatter::format) ?: textNoVal }) {
    private var locale = locale
    private var formatter = formatter
    private var popup: PopWindow? = null

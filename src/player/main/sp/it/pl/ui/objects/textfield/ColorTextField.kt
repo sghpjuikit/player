@@ -16,7 +16,7 @@ import sp.it.util.reactive.syncTo
 import sp.it.util.ui.minPrefMaxWidth
 
 /** [ValueTextField] for [Color] using [ColorPicker]. */
-class ColorTextField: ValueTextField<Color>() {
+class ColorTextField(initialValue: Color? = null): ValueTextField<Color>(initialValue) {
    private var picker = ColorPicker().apply { minPrefMaxWidth = 40.emScaled }
    private var valueChanging = Suppressor()
 

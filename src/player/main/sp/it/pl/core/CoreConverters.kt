@@ -59,8 +59,8 @@ object ConverterFont: ConverterString<Font> {
       val name = s.substring(0, i)
       val style = if (s.lowercase().contains("italic")) FontPosture.ITALIC else FontPosture.REGULAR
       val weight = if (s.lowercase().contains("bold")) FontWeight.BOLD else FontWeight.NORMAL
-      val size = s.substringAfterLast(",").trim().toDoubleOrNull() ?: Font.getDefault().size
+      val size = s.substringAfterLast(",").trim().toDoubleOrNull() ?: fail { "Unrecognized font size" }
       val f = Font.font(name, weight, style, size)
-      if (f.family==name) f else fail { "Not recognized font" }
+      if (f.family==name) f else fail { "Unrecognized font family" }
    }.orMessage()
 }

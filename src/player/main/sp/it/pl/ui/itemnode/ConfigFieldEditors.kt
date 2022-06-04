@@ -502,13 +502,8 @@ class FontCE(c: Config<Font?>): ConfigEditor<Font?>(c) {
 
    init {
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
-      editor.onValueChange attach {
-         println("changing $it")
-         println("changing ${getValid()}")
-         apply() } on disposer
-      v?.attach {
-         println("v changing $it")
-         editor.value = it }.orEmpty() on disposer
+      editor.onValueChange attach { apply() } on disposer
+      v?.attach { editor.value = it }.orEmpty() on disposer
 
       // readonly
       isEditable syncTo editor.editable on disposer

@@ -110,9 +110,6 @@ import sp.it.util.text.StringSplitParser
 import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
-import sp.it.util.text.split2
-import sp.it.util.text.split3
-import sp.it.util.text.splitTrimmed
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.VType
 import sp.it.util.type.enumValues
@@ -383,23 +380,11 @@ object CoreConverter: Core {
             }
          }
       )
-      addT<BoundingBox>({ "[${it.minX}, ${it.minY}, ${it.minZ}, ${it.width}, ${it.height}, ${it.depth}, ${it.maxX}, ${it.maxY}, ${it.maxZ}]" },
-         { runTry { it.substringAfter("[").substringBefore("]").split(",").map { it.trim().toDouble() }.let { BoundingBox(it[0], it[1], it[2], it[3], it[4], it[5]) } }.orMessage() })
-      addT<Bounds>({ "[${it.minX}, ${it.minY}, ${it.minZ}, ${it.width}, ${it.height}, ${it.depth}, ${it.maxX}, ${it.maxY}, ${it.maxZ}]" },
-         { runTry { it.substringAfter("[").substringBefore("]").split(",").map { it.trim().toDouble() }.let { BoundingBox(it[0], it[1], it[2], it[3], it[4], it[5]) } }.orMessage() })
-      addT<Point2D>({ "[${it.x}, ${it.y}]" },
-         { runTry { it.substringAfter("[").substringBefore("]").split2(",").let { (x, y) -> Point2D(x.trim().toDouble(), y.trim().toDouble()) } }.orMessage() })
-      addT<Point3D>({ "[${it.x}, ${it.y}, ${it.z}]" },
-         { runTry { it.substringAfter("[").substringBefore("]").split3(",").let { (x, y, z) -> Point3D(x.trim().toDouble(), y.trim().toDouble(), z.trim().toDouble()) } }.orMessage() })
-      addT<Insets>(
-         { if (it.top==it.right && it.top==it.bottom && it.top==it.left) "${it.top}" else "${it.top} ${it.right} ${it.bottom} ${it.left}" },
-         {
-            null
-               ?: it.toDoubleOrNull()?.net { Try.ok(Insets(it)) }
-               ?: it.splitTrimmed(" ").mapNotNull { it.toDoubleOrNull() }.takeIf { it.size==4 }?.net { Try.ok(Insets(it[0], it[1], it[2], it[3])) }
-               ?: Try.error("'$it' is not a valid padding value")
-         }
-      )
+      addP<BoundingBox>(ConverterBoundingBox)
+      addP<Bounds>(ConverterBounds)
+      addP<Point2D>(ConverterPoint2D)
+      addP<Point3D>(ConverterPoint3D)
+      addP<Insets>(ConverterInsets)
       addP<Command>(Command)
       addP<Command.CommandActionId>(Command.CommandActionId)
       addP<Command.CommandComponentId>(Command.CommandComponentId)

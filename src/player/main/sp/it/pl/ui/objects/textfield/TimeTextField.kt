@@ -2,12 +2,12 @@ package sp.it.pl.ui.objects.textfield
 
 import java.time.format.DateTimeFormatter as Formatter
 import java.time.LocalTime
-import java.time.format.DateTimeParseException
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.ui.objects.picker.TimePickerContent
 import sp.it.pl.ui.objects.window.NodeShow
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -30,9 +30,8 @@ class TimeTextField(initialValue: LocalTime? = null, formatter: Formatter): Valu
       isEditable = true
       textProperty() attach {
          valueChanging.suppressed {
-            try {
+            runTry {
                value = LocalTime.parse(it, formatter)
-            } catch (e: DateTimeParseException) {
             }
          }
       }

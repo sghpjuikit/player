@@ -37,10 +37,8 @@ class FileTextField(initialValue: File? = null, val constraint: FileActor, val r
          if (!valueChanging.isSuppressed) {
             valueChanging.isSuppressed = true
             runLater {
-               APP.converter.general.ofS<File>(it).ifOk {
-                  value = it
-                  valueChanging.isSuppressed = false
-               }
+               APP.converter.general.ofS<File>(it).ifOk { value = it }
+               valueChanging.isSuppressed = false
             }
          }
       }

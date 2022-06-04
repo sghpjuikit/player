@@ -2,13 +2,13 @@ package sp.it.pl.ui.objects.textfield
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.util.Locale
 import sp.it.pl.main.AppTexts
 import sp.it.pl.ui.objects.picker.DateTimePickerContent
 import sp.it.pl.ui.objects.window.NodeShow
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -34,9 +34,8 @@ class DateTimeTextField(initialValue: LocalDateTime? = null, locale: Locale = Lo
       isEditable = true
       textProperty() attach {
          valueChanging.suppressed {
-            try {
+            runTry {
                value = LocalDateTime.parse(it, formatter)
-            } catch (e: DateTimeParseException) {
             }
          }
       }

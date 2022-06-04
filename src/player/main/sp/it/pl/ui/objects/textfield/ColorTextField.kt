@@ -29,10 +29,8 @@ class ColorTextField(initialValue: Color? = null): ValueTextField<Color>(initial
          if (!valueChanging.isSuppressed) {
             valueChanging.isSuppressed = true
             runLater {
-               APP.converter.general.ofS<Color>(it).ifOk {
-                  value = it
-                  valueChanging.isSuppressed = false
-               }
+               APP.converter.general.ofS<Color>(it).ifOk { value = it }
+               valueChanging.isSuppressed = false
             }
          }
       }

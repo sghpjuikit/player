@@ -126,3 +126,9 @@ infix fun VType<*>.isSubclassOf(subclass: KClass<*>) = raw.isSubclassOf(subclass
 
 /** @return reified version of [VType.isSubclassOf] */
 inline fun <reified SUBCLASS> VType<*>.isSubclassOf() = isSubclassOf(SUBCLASS::class)
+
+/** @return allowed enum values defined by [KClass.enumValues] of [raw] with null if this type os nullable */
+@Suppress("UNCHECKED_CAST")
+fun <T: Enum<T>, TN: T?> VType<TN>.enumValues(): List<TN> =
+   if (isNullable) (raw.asIs<KClass<T>>().enumValues.toList() as List<TN>) + (null as TN)
+   else raw.asIs<KClass<T>>().enumValues.toList().asIs()

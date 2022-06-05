@@ -20,6 +20,7 @@ import javafx.scene.control.Button
 import javafx.scene.control.Control
 import javafx.scene.control.Hyperlink
 import javafx.scene.control.Label
+import javafx.scene.control.Labeled
 import javafx.scene.control.ListCell
 import javafx.scene.control.ListView
 import javafx.scene.control.Menu
@@ -127,6 +128,14 @@ fun createIcon(icon: GlyphIcons, icons: Int, iconSize: Double? = null): Text {
       styleClass += "icon"
    }
 }
+
+fun Labeled.textIcon(icon: GlyphIcons, iconSize: Double? = null) = apply {
+   val fontSize = iconSize?.toEM()
+   val fontSizeCss = fontSize?.let { "-fx-font-size: ${fontSize}em;" }.orEmpty()
+   style = "-fx-font-family: ${icon.fontFamily};$fontSizeCss"
+   text = icon.characterToString()
+}
+
 
 /* ---------- NODE -------------------------------------------------------------------------------------------------- */
 

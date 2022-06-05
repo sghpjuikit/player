@@ -5,7 +5,6 @@ import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.picker.FontPicker
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
 import sp.it.util.async.runLater
-import sp.it.util.dev.printIt
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -25,7 +24,7 @@ class FontTextField(initialValue: Font? = null): ValueTextField<Font>(initialVal
          if (!valueChanging.isSuppressed) {
             valueChanging.isSuppressed = true
             runLater {
-               APP.converter.general.ofS<Font?>(it).printIt().ifOk { value = it }
+               APP.converter.general.ofS<Font?>(it).ifOk { value = it }
                valueChanging.isSuppressed = false
             }
          }

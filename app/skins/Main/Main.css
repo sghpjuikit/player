@@ -134,27 +134,95 @@
     -fx-border-radius: 0.2em;
     -fx-effect: null;
 }
+.button:hover {
+    -fx-background-color: -skin-focus-bgr-color;
+}
+.button:focused {
+    -fx-text-fill: -fx-focus-color;
+    -fx-border-color: -fx-focus-color;
+}
 
 .toggle-button,
 .toggle-button:hover,
 .toggle-button:focused {
-    -fx-label-padding: 0 0.5em 0 0.5em;;
-    -fx-background-color: null;
-    -fx-border-color: -skin-def-font-color;
-    -fx-border-width: 0.08em;
-    -fx-border-radius: 0.2em;
-    -fx-effect: null;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-background-color: transparent, transparent, transparent, transparent;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 3px, 3px, 2px, 1px;
+    -fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+    -fx-text-fill: -fx-text-base-color;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;
 }
-
-.button:hover,
-.toggle-button:hover {
-    -fx-background-color: -skin-focus-bgr-color;
-}
-
-.button:focused,
 .toggle-button:focused {
+    -fx-background-color: transparent, transparent, transparent, transparent;
+    -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
+    -fx-background-radius: 3, 2, 1, 4, 1;
+    -fx-text-fill: -fx-text-base-color;
+}
+.toggle-button:hover,
+.toggle-button:hover:selected,
+.toggle-button:hover:focused,
+.toggle-button:hover:focused:selected {
+    -fx-background-color: red, red, red;
+}
+.toggle-button:selected {
+    -fx-background-color: transparent, transparent, transparent;
+    -fx-background-insets: 0 0 -1 0, 0, 1;
     -fx-text-fill: -fx-focus-color;
-    -fx-border-color: -fx-focus-color;
+}
+.toggle-button:selected:focused {
+    -fx-background-color: transparent, transparent, transparent;
+    -fx-background-insets: -0.2, 1, -1.4, 2.6;
+    -fx-background-radius: 3, 2, 4, 0;
+}
+
+/* ====   PILL BUTTONS   ==================================================== */
+
+.button.left-pill,
+.toggle-button.left-pill {
+    -fx-background-radius: 3 0 0 3, 3 0 0 3, 2 0 0 2, 1 0 0 1;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-padding: 0.333333em 0.666667em 0.333333em 0.75em; /* 4 8 4 9 */
+}
+.button.center-pill,
+.toggle-button.center-pill {
+    -fx-background-radius: 0;
+    -fx-background-insets: 0 0 -1 0, 0 0 0 0, 1 1 1 0, 2 2 2 1 ;
+}
+.button.right-pill,
+.toggle-button.right-pill {
+    -fx-background-radius: 0 3 3 0, 0 3 3 0, 0 2 2 0, 0 1 1 0;
+    -fx-background-insets: 0 0 -1 0, 0, 1 1 1 0, 2 2 2 1 ;
+}
+.button.left-pill:focused,
+.toggle-button.left-pill:focused {
+    -fx-background-insets: -0.2 0 -0.2 -0.2, 1, 2, -1.4 0 -1.4 -1.4, 2.6;
+    -fx-background-radius: 3 0 0 3, 2 0 0 2, 1 0 0 1, 4 0 0 4, 1 0 0 1;
+}
+.button.center-pill:focused,
+.toggle-button.center-pill:focused {
+    -fx-background-insets: -0.2 0 -0.2 -1, 1 1 1 0, 2 2 2 1, -1.4 0 -1.4 -1, 2.6 2.6 2.6 1.6;
+    -fx-background-radius: 0, 0, 0, 0, 0;
+}
+.button.right-pill:focused,
+.toggle-button.right-pill:focused {
+    -fx-background-insets: -0.2 -0.2 -0.2 -1, 1 1 1 0, 2 2 2 1, -1.4 -1.4 -1.4 -1, 2.6 2.6 2.6 1.6;
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0, 0 4 4 0, 0 1 1 0;
+}
+.toggle-button:selected.left-pill:focused {
+    -fx-background-insets: -0.2 0 -0.2 -0.2, 1, -1.4 0 -1.4 -1.4, 2.6;
+    -fx-background-radius: 3 0 0 3, 2 0 0 2, 4 0 0 4, 0;
+}
+.toggle-button:selected.center-pill:focused {
+    -fx-background-insets: -0.2 0 -0.2 -1, 1 1 1 0, -1.4 0 -1.4 -1, 2.6 2.6 2.6 1.6;
+    -fx-background-radius: 0, 0, 0, 0;
+}
+.toggle-button:selected.right-pill:focused {
+    -fx-background-insets: -0.2 -0.2 -0.2 -1, 1 1 1 0, -1.4 -1.4 -1.4 -1, 2.6 2.6 2.6 1.6;
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 4 4 0, 0;
 }
 
 /* ====   DISABLED THINGS   ================================================= */

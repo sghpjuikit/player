@@ -35,6 +35,7 @@ import javafx.scene.control.SelectionMode.SINGLE
 import javafx.scene.control.Slider
 import javafx.scene.control.TextArea
 import javafx.scene.control.TextField
+import javafx.scene.control.ToggleButton
 import javafx.scene.effect.Effect
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCode.ALT
@@ -90,6 +91,7 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginBox
 import sp.it.pl.plugin.PluginManager
+import sp.it.pl.ui.ValueToggleButtonGroup
 import sp.it.pl.ui.itemnode.ChainValueNode.ListChainValueNode
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.objects.SpitComboBox
@@ -492,6 +494,28 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
    override fun refreshValue() {
       if (!isObservable)
          editor.value = config.value
+   }
+}
+
+class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, val customizer: ToggleButton.(T) -> Unit): ConfigEditor<T>(c) {
+   private val v = getObservableValue(c)
+   private var isObservable = v!=null
+   override val editor = ValueToggleButtonGroup(config.value, values, customizer)
+
+   init {
+      editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
+      editor.value attach { apply() } on disposer
+      v?.attach { editor.value.value = it }.orEmpty() on disposer
+
+      // readonly
+      isEditable syncTo editor.isEditable on disposer
+   }
+
+   override fun get() = Try.ok(editor.value.value)
+
+   override fun refreshValue() {
+      if (!isObservable)
+         editor.value.value = config.value
    }
 }
 

@@ -14,6 +14,7 @@ import java.time.LocalTime
 import javafx.beans.binding.BooleanBinding
 import javafx.collections.ObservableList
 import javafx.geometry.Insets
+import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Label
@@ -27,10 +28,13 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
+import javafx.scene.text.TextAlignment
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmErasure
 import sp.it.pl.core.UiStringHelper
 import sp.it.pl.layout.WidgetManager
+import sp.it.pl.main.IconMA
+import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltip
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion
@@ -63,10 +67,12 @@ import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
 import sp.it.util.type.VType
+import sp.it.util.type.enumValues
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
 import sp.it.util.ui.onNodeDispose
+import sp.it.util.ui.textIcon
 import sp.it.util.units.millis
 
 private val defTooltip = appTooltip("Default value")
@@ -282,6 +288,32 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          put<Color> { ColorCE(it.asIs()) }
          put<File> { FileCE(it.asIs()) }
          put<Font> { FontCE(it.asIs()) }
+         put<TextAlignment> {
+            ValueToggleButtonGroupCE(it.asIs(), it.asIs<Config<TextAlignment?>>().type.enumValues(), {
+                  textIcon(
+                     when (it) {
+                        null -> IconMA.DO_NOT_DISTURB
+                        TextAlignment.CENTER -> IconMD.FORMAT_ALIGN_CENTER
+                        TextAlignment.LEFT -> IconMD.FORMAT_ALIGN_LEFT
+                        TextAlignment.RIGHT -> IconMD.FORMAT_ALIGN_RIGHT
+                        TextAlignment.JUSTIFY -> IconMD.FORMAT_ALIGN_JUSTIFY
+                     }
+                  )
+               }
+            )
+         }
+         put<Orientation> {
+            ValueToggleButtonGroupCE(it.asIs(), it.asIs<Config<Orientation?>>().type.enumValues(), {
+                  textIcon(
+                     when (it) {
+                        null -> IconMA.DO_NOT_DISTURB
+                        Orientation.HORIZONTAL -> IconMD.DOTS_HORIZONTAL
+                        Orientation.VERTICAL -> IconMD.DOTS_HORIZONTAL
+                     }
+                  )
+               }
+            )
+         }
          put<LocalTime> { LocalTimeCE(it.asIs()) }
          put<LocalDate> { LocalDateCE(it.asIs()) }
          put<LocalDateTime> { LocalDateTimeCE(it.asIs()) }
@@ -330,14 +362,11 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          fun Config<*>.isConfigurable() = type.raw.isSubclassOf<Configurable<*>>()
 
          return when {
-            config.isEnumerable -> when (config.type.raw) {
-               KeyCode::class -> KeyCodeCE(config.asIs())
-               else -> EnumerableCE(config)
-            }
             config.isComplex() -> ComplexCE(config.asIs())
             config.isMinMax() -> SliderCE(config.asIs())
             else -> null
                ?: editorBuilders[config.type.raw]?.invoke(config)
+               ?: if (config.isEnumerable) EnumerableCE(config) else null
                ?: if (config.isConfigurable()) ConfigurableCE(config.asIs()) else null
                ?: GeneralCE(config).apply {
                   if (!config.hasConstraint<Constraint.ValueSealedSet<*>>() && !config.hasConstraint<Constraint.ValueUnsealedSet<*>>() && AutoCompletion.of<Any?>(editor)==null) {

@@ -16,6 +16,7 @@ import javafx.animation.PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT
 import javafx.animation.Transition.INDEFINITE
 import javafx.geometry.Insets
 import javafx.geometry.Insets.EMPTY
+import javafx.geometry.Orientation
 import javafx.geometry.Orientation.VERTICAL
 import javafx.geometry.Pos
 import javafx.geometry.Pos.CENTER
@@ -283,6 +284,8 @@ class Tester(widget: Widget): SimpleController(widget) {
          var `c(File)·only(ANY)` by c<File>(APP.location).only(ANY)
          var `cn(Font)` by cn<Font>(null)
          val `cvn(Font)` by cvn<Font>(null)
+         val `cvn(TextAlignment)` by cvn<TextAlignment>(null)
+         val `cvn(Orientation)` by cvn<Orientation>(null)
          var `cn(Insets)` by cn<Insets>(EMPTY)
          val `cvn(Insets)` by cvn<Insets>(null)
          var `c(Color)` by c<Color>(BLACK)

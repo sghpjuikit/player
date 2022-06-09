@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.6.20"
+   kotlin("jvm") version "1.7.0"
    application
    id("com.github.ben-manes.versions") version "0.42.0"
 }
@@ -82,6 +82,7 @@ allprojects {
    dependencies {
 
       "Kotlin" group {
+         // compatibility table https://kotlinlang.org/docs/releases.html#release-details
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
          implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.2")

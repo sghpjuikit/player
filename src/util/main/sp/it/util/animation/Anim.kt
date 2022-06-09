@@ -112,7 +112,7 @@ open class Anim: Transition {
    }
 
    /** @return true if not stopped or paused. */
-   fun isRunning(): Boolean = currentTime!=Duration.ZERO && currentTime.lessThan(totalDuration)
+   fun isRunning(): Boolean = status==Status.RUNNING
 
    /** Equivalent to if (forward) [playOpen] else [playClose] */
    fun playFromDir(forward: Boolean) = if (forward) playOpen() else playClose()

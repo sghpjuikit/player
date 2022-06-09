@@ -80,7 +80,7 @@ private typealias NumRange = ClosedRange<BigDecimal>
 
 class FunctionViewer(widget: Widget): SimpleController(widget) {
    private val function by cv(StrExF("x")) attach { plotAnimated(it) }
-   private var functionPlotted = function.value as Fun
+   private var functionPlotted: Fun = function.value
    private val functionEditor = ConfigEditor.create(Config.forProperty<StrExF>("Function", function))
    private val xMin by cv(Num("-1.0")) attach { plot() }
    private val xMax by cv(Num("+1.0")) attach { plot() }

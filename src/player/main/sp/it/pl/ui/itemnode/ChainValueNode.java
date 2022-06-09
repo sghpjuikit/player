@@ -18,6 +18,7 @@ import javafx.util.Callback;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.util.access.V;
@@ -238,7 +239,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	}
 
 	/** Adjusts remove button of the first element of the chain (which is disabled by default). */
-	public final ObjectProperty<Function1<Icon,Unit>> buttonAdjuster = new SimpleObjectProperty<>(null) {{
+	public final @NotNull ObjectProperty<@Nullable Function1<@NotNull Icon, @NotNull Unit>> buttonAdjuster = new SimpleObjectProperty<>(null) {{
 		addListener((o,ov,nv) -> {
 			var icon = chain.isEmpty() ? null : chain.get(0).rem;
 			if (nv!=null && icon!=null) nv.invoke(icon);

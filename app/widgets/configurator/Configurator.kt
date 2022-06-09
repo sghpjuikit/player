@@ -185,7 +185,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    override fun focus() = root.sync1IfInScene { groups.requestFocus() }.toUnit()
 
    /** Set all editors to default values. */
-   fun defaults() = configs.forEach { it.value = it.defaultValue }
+   fun defaults() = configs.forEach { it.setValueToDefault() }
 
    /** Set all editors to actual values. */
    fun refresh() {

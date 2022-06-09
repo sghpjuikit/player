@@ -176,7 +176,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                cellFactory = when (f) {
                   AVG_RATING -> RatingCellFactory.asIs()
                   W_RATING ->
-                     CellFactory<Double?> {
+                     CellFactory {
                         object: TableCell<MetadataGroup, Double?>() {
                            init {
                               alignment = CENTER_RIGHT
@@ -186,8 +186,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                               super.updateItem(item, empty)
                               text = if (empty) null else "%.2f".format(item)
                            }
-                        }
-                     }.asIs()
+                        }.asIs()
+                     }
                   else -> CellFactory {
                      f.buildFieldedCell().apply {
                         alignment = if (f.getMFType(mf).isSubclassOf<String>()) CENTER_LEFT else CENTER_RIGHT

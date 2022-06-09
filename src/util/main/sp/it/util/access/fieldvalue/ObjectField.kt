@@ -79,7 +79,7 @@ interface ObjectField<in V, out T>: StringGetter<V> {
 
    fun cOrder(): Int = if (this is Enum<*>) ordinal else 1
 
-   fun <R> flatMap(by: ObjectField<T, R>): ObjectField<V, R> = object: ObjectFieldBase<V, R>(
+   fun <R> flatMap(by: ObjectField<T, R>): ObjectField<V, R> = object: ObjectFieldBase<@UnsafeVariance V, R>(
       by.type, { by.getOf(getOf(it)) }, name() + "." + by.name(), "Combination of " + name() + " -> " + by.name(), { o, or -> by.toS(o, or) }
    ) {}
 

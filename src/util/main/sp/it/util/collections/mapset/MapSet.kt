@@ -20,7 +20,7 @@ import kotlin.collections.MutableMap.MutableEntry
  * collection, but leveraging arbitrary element identity.
  * Use like this: `new MapSet<KEY,ELEMENT>({ it.identity() }, elements)`
  */
-class MapSet<K: Any, E: Any>: MutableSet<E> {
+class MapSet<K: Any, E: Any>(backingMap: MutableMap<K, E>, keyMapper: (E) -> K): MutableSet<E> {
 
    /**
     * Function transforming element to its key. Used for all collection
@@ -30,8 +30,8 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
     * Note, that if the function returned a constant, this set would become singleton set. Using [Object.hashCode]
     * would result in same mapping strategy as that used in [HashSet] and [HashMap].
     */
-   @JvmField val keyMapper: (E) -> K
-   private val m: MutableMap<K, E>
+   val keyMapper: (E) -> K = keyMapper
+   private val m: MutableMap<K, E> = backingMap
 
    constructor(keyMapper: (E) -> K): this(HashMap<K, E>(), keyMapper)
 
@@ -40,23 +40,10 @@ class MapSet<K: Any, E: Any>: MutableSet<E> {
    @SafeVarargs
    constructor(keyMapper: (E) -> K, vararg c: E): this(HashMap<K, E>(), keyMapper, *c)
 
-   constructor(backingMap: MutableMap<K, E>, keyMapper: (E) -> K) {
-      this.m = backingMap
-      this.keyMapper = keyMapper
-   }
-
-   constructor(backingMap: MutableMap<K, E>, keyMapper: (E) -> K, c: Collection<E>) {
-      this.m = backingMap
-      this.keyMapper = keyMapper
-      addAll(c)
-   }
+   constructor(backingMap: MutableMap<K, E>, keyMapper: (E) -> K, c: Collection<E>): this(backingMap, keyMapper) { addAll(c) }
 
    @SafeVarargs
-   constructor(backing_map: MutableMap<K, E>, keyMapper: (E) -> K, vararg c: E) {
-      this.m = backing_map
-      this.keyMapper = keyMapper
-      addAll(*c)
-   }
+   constructor(backingMap: MutableMap<K, E>, keyMapper: (E) -> K, vararg c: E): this(backingMap, keyMapper) { addAll(*c) }
 
    fun backingMap(): Map<K, E> = m
 

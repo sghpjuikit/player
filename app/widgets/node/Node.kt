@@ -282,7 +282,7 @@ class Node(widget: Widget): SimpleController(widget) {
       }
 
       data class NodeInput(val name: String, val declaringClass: KClass<*>, val valueSupplier: () -> WritableValue<*>, val type: VType<*>) {
-         val value by lazy { valueSupplier() }
+         val value: WritableValue<Any?> by lazy { valueSupplier().asIs() }
       }
 
       fun String.ifNotEmpty(mapper: (String) -> String) = if (isEmpty()) "" else mapper(this)

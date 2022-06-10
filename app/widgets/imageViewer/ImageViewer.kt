@@ -43,7 +43,6 @@ import sp.it.util.conf.c
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.file.Util.getCommonRoot
-import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.div
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -68,6 +67,8 @@ import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
 import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.util.access.toggleNext
+import sp.it.util.file.FileType.FILE
+import sp.it.util.file.getFilesR
 import sp.it.util.text.keys
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.layFullArea
@@ -223,7 +224,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
       val source = folder.value
       runIO {
          if (source==null) listOf()
-         else getFilesR(source, folderTreeDepth) { it.isImage() }.limit(thumbsLimit.toLong()).toList()
+         else source.getFilesR(folderTreeDepth, FILE) { p, _ -> p.isImage() }.take(thumbsLimit)
       } ui { files ->
          val ai = activeImage
          if (files.isEmpty()) {

@@ -47,7 +47,7 @@ interface MapByKClass<E> {
     * or null if no such mapping exists.
     */
    fun getElementOfSuper(key: KClass<*>): E? = null
-      ?: key.superKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
+      ?: key.superKClassesInc().flatMap { getElementsOf(it) }.firstOrNull()
 
    /**
     * Returns first element mapped to one of (in that order):
@@ -58,7 +58,7 @@ interface MapByKClass<E> {
     * or null if no such mapping exists.
     */
    fun getElementOfSuperV(key: KClass<*>): E? = null
-      ?: key.superKClassesInc().flatMap { getElementsOf(it).asSequence() }.firstOrNull()
+      ?: key.superKClassesInc().flatMap { getElementsOf(it) }.firstOrNull()
       ?: getElementsOf(Nothing::class).firstOrNull()
 
 }

@@ -12,10 +12,10 @@ import sp.it.util.reactive.sync
 /** Var/variable. An object wrapper based on [javafx.beans.property.SimpleObjectProperty]. */
 open class V<T>(value: T): SimpleObjectProperty<T>(value) {
 
-   @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
+   @Suppress("RedundantOverride", "EmptyMethod")  // helps Kotlin with null-safety inference
    override fun getValue(): T = super.getValue()
 
-   @Suppress("RedundantOverride")  // helps Kotlin with null-safety inference
+   @Suppress("RedundantOverride", "EmptyMethod")  // helps Kotlin with null-safety inference
    override fun setValue(v: T): Unit = super.setValue(v)
 
    /** Java convenience method. Invokes [setValue] on this with the transformed value using the specified mapper. */

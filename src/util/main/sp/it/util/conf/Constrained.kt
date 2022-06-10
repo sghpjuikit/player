@@ -30,7 +30,7 @@ import sp.it.util.type.InstanceMap
 interface Constrained<T, THIS: Any> {
    fun addConstraint(constraint: Constraint<T>): THIS
    fun constrain(block: ConstrainedDsl<T>.() -> Unit): THIS {
-      ConstrainedDsl<T> { constraint -> addConstraint(constraint).toUnit() }.block()
+      ConstrainedDsl { constraint -> addConstraint(constraint).toUnit() }.block()
       @Suppress("UNCHECKED_CAST") return this as THIS
    }
 }

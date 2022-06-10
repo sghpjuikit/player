@@ -13,8 +13,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 import static java.util.Objects.requireNonNull;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.dev.DebugKt.logger;
@@ -67,30 +65,6 @@ public interface Util {
 	 */
 	static boolean isValidFile(File file) {
 		return file!=null && file.isFile() && file.exists() && file.canRead();
-	}
-
-	static Stream<File> getFilesR(File dir, int depth) {
-		return getFilesR(dir, depth, f -> true);
-	}
-
-	static Stream<File> getFilesR(Collection<File> files, int depth) {
-		return files.stream().flatMap(d -> getFilesR(d, depth, f -> true));
-	}
-
-	/**
-	 * @param depth the maximum number of levels of directories to visit. A value of 0 means that only the starting file
-	 * is visited. Integer.MAX_VALUE may be used to indicate that all levels should be visited.
-	 */
-	static Stream<File> getFilesR(File dir, int depth, Predicate<? super File> filter) {
-		if (dir.isDirectory()) {
-			try {
-				return Files.walk(dir.toPath(), depth).map(Path::toFile).filter(filter);
-			} catch (IOException ex) {
-				return Stream.empty();
-			}
-		}
-
-		return filter.test(dir) ? Stream.of(dir) : Stream.empty();
 	}
 
 	/** @return first common parent directory for specified files or the parent if list size is 1 or null if empty or no shared root */

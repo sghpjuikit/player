@@ -13,7 +13,8 @@ import sp.it.util.collections.mapset.MapSet
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.ValueConfig
 import sp.it.util.file.FileType.DIRECTORY
-import sp.it.util.file.Util.getFilesR
+import sp.it.util.file.FileType.FILE
+import sp.it.util.file.getFilesR
 import sp.it.util.functional.Util
 import sp.it.util.functional.ifNotNull
 import sp.it.util.system.chooseFile
@@ -125,7 +126,7 @@ fun Playlist.addOrEnqueueFolder(add: Boolean) {
       APP.windowManager.getFocused()?.stage
    ).ifOk { dir: File ->
       APP.audio.browse = dir
-      val files = getFilesR(dir, Int.MAX_VALUE) { it.isAudio() }.toList()
+      val files = dir.getFilesR(fileType = FILE) { p, _ -> p.isAudio() }
       if (add) {
          addFiles(files)
       } else {

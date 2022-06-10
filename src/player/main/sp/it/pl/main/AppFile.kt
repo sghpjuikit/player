@@ -1,10 +1,11 @@
 package sp.it.pl.main
 
 import java.io.File
+import java.nio.file.Path
 import javafx.scene.image.Image
 import javafx.stage.FileChooser
 import javax.imageio.ImageIO
-import kotlin.streams.asSequence
+import kotlin.io.path.extension
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.core.Parse
@@ -18,9 +19,9 @@ import sp.it.util.file.FastFile
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
-import sp.it.util.file.Util.getFilesR
 import sp.it.util.file.children
 import sp.it.util.file.div
+import sp.it.util.file.getFilesR
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeGroup
@@ -64,6 +65,9 @@ val audioExtensions = setOf(
 fun File.isAudio() = extension.lowercase() in audioExtensions
 
 /** See [audioExtensionsJaudiotagger]. */
+fun Path.isAudio() = extension.lowercase() in audioExtensions
+
+/** See [audioExtensionsJaudiotagger]. */
 fun String.isAudio() = substringAfterLast(".").lowercase() in audioExtensions
 
 /** [FileChooser.ExtensionFilter] for [audioExtensions]. */
@@ -85,7 +89,7 @@ fun File.isAudioEditable() = extension.lowercase() in audioExtensionsJaudiotagge
 /** See [audioExtensionsJaudiotagger]. */
 fun AudioFileFormat.isAudioEditable() = name.lowercase() in audioExtensionsJaudiotagger
 
-fun findAudio(files: Collection<File>, depth: Int = Int.MAX_VALUE) = files.asSequence().flatMap { f -> getFilesR(f, depth) { it.isAudio() }.asSequence() }
+fun findAudio(files: Collection<File>, depth: Int = Int.MAX_VALUE): List<File> = files.flatMap { it.getFilesR(depth, FILE) { p, _ -> p.isAudio()} }
 
 // Extracted from jaudiotagger org.jaudiotagger.tag.id3.valuepair.ImageFormats
 // image/jpeg
@@ -142,6 +146,9 @@ val imageExtensionsRead = imageExtensions12Monkey + setOf("kra")
 
 /** See [imageExtensionsRead]. */
 fun File.isImage() = extension.lowercase() in imageExtensionsRead
+
+/** See [imageExtensionsRead]. */
+fun Path.isImage() = extension.lowercase() in imageExtensionsRead
 
 /** See [imageExtensionsRead]. */
 fun String.isImage() = substringAfterLast(".").lowercase() in imageExtensionsRead

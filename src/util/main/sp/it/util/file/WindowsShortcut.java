@@ -11,22 +11,22 @@ import java.util.Optional;
 /**
  * Represents a Windows shortcut (typically visible to Java only as a '.lnk' file).
  * <p/>
- * Retrieved 2011-09-23 from http://stackoverflow.com/questions/309495/windows-shortcut-lnk-parser-in-java/672775#672775
+ * Retrieved 2011-09-23 from <a href="http://stackoverflow.com/questions/309495/windows-shortcut-lnk-parser-in-java/672775#672775">...</a>
  * Originally called LnkParser
  * <p/>
  * Written by: (the stack overflow users, obviously!)
  * <br/>
- * Apache Commons VFS dependency removed by crysxd (why were we using that!?) https://github.com/crysxd
+ * Apache Commons VFS dependency removed by crysxd (why were we using that!?) <a href="https://github.com/crysxd">...</a>
  * <br/>
- * Header added, refactored and commented by Code Bling http://stackoverflow.com/users/675721/code-bling
+ * Header added, refactored and commented by Code Bling <a href="http://stackoverflow.com/users/675721/code-bling">...</a>
  * <br/>
- * Network file support added by Stefan Cordes http://stackoverflow.com/users/81330/stefan-cordes
- * Adapted by Sam Brightman http://stackoverflow.com/users/2492/sam-brightman
+ * Network file support added by Stefan Cordes <a href="http://stackoverflow.com/users/81330/stefan-cordes">...</a>
+ * Adapted by Sam Brightman <a href="http://stackoverflow.com/users/2492/sam-brightman">...</a>
  * <br/>
  * Based on information in 'The Windows Shortcut File Format' by Jesse Hager &lt;jessehager@iname.com&gt;
  * <br/>
  * And somewhat based on code from the book 'Swing Hacks: Tips and Tools for Killer GUIs' by
- * Joshua Marinacci and Chris Adamson, SBN: 0-596-00907-0, http://www.oreilly.com/catalog/swinghks/
+ * Joshua Marinacci and Chris Adamson, SBN: 0-596-00907-0, <a href="http://www.oreilly.com/catalog/swinghks/">...</a>
  */
 public class WindowsShortcut {
 	private boolean isDirectory;

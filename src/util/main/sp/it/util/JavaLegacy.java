@@ -89,14 +89,13 @@ public class JavaLegacy {
 		}
 	}
 
+	@SuppressWarnings("SpellCheckingInspection")
 	public static void setWallpaperWindows(File file) {
-		int MY_SPI_WALLPAPER = 0x0014; //Change wallpaper flag.
+		int MY_SPI_WALLPAPER = 0x0014; // Change wallpaper flag.
 		int MY_SENDCHANGE = 1; // Send winini change
 		int MY_UNUSED = 0;  // unused parameter
 		try {
-			System.out.println("LOAD");
-			var x = JnaWallpaper.INSTANCE.SystemParametersInfoA(MY_SPI_WALLPAPER, MY_UNUSED, file.getAbsolutePath(), MY_SENDCHANGE);
-			System.out.println(x);
+			JnaWallpaper.INSTANCE.SystemParametersInfoA(MY_SPI_WALLPAPER, MY_UNUSED, file.getAbsolutePath(), MY_SENDCHANGE);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}

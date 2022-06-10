@@ -208,10 +208,10 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  * that in mapping chain ...map().map().map()... not all mappers may be called. Every time the mapper returns Maybe(R),
  * we lose the ability to reason about the meaning of null, but retain the awareness than no null will ever be mapped.
  * * With monadic approach all mappers in the mapping chain are always called and always with the result of previous
- * mapper. The Some(T) and None branch are completely separate branches and only intersect with explicit use of
+ * mapper. Some(T) and None branch are completely separate branches and only intersect with explicit use of
  * flatMap(). In the absence of null sink we retain the null semantics, but lose ability to distinguish non-null
  * and nullable inputs (without breaking through the monadic boundary using flatMap()).
- * * With .let {}, all mappers are invoked, but safely. But the Some(T) branch and None branch are one and the same -
+ * * With .let {}, all mappers are invoked, but safely. But Some(T) branch and None branch are one and the same -
  * there is only maybe(T) branch. This makes null just like any other value and resembles Some(null) in monadic model.
  * We still lose null semantics however if two subsequent mappers return null.
  * * With ?.let {}, the model introduces null sink (i.e. None branch) as the mapper only executes on Some(T) branch.
@@ -239,7 +239,7 @@ fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyI
  *
  * It retains the null sink, but unlike .let {} and ?.let {} never sinks into it by disallowing null mapping result. So
  * while let {} has semantics of a flatMap() in the monadic model, [net] has semantics of map() in monadic model, but
- * because now nullability and `emptiness` are one and the same, map(), which always stays on the Some(T) branch, can
+ * because now nullability and `emptiness` are one and the same, map(), which always stays on Some(T) branch, can
  * not return null.
  *
  * The model now becomes:

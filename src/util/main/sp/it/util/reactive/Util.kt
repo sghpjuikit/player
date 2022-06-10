@@ -225,7 +225,7 @@ fun <O> WritableValue<O>.syncFrom(o: ObservableValue<out O>, disposer: Disposer)
 
 /** Sets a block to be fired on every value change. */
 infix fun <O> ObservableValue<O>.attach(block: (O) -> Unit): Subscription {
-   val l = ChangeListener<O> { _, _, nv -> block(nv) }
+   val l = ChangeListener { _, _, nv -> block(nv) }
    addListener(l)
    return Subscription { removeListener(l) }
 }
@@ -236,7 +236,7 @@ fun <O> ObservableValue<O>.attach(disposer: Unsubscriber, block: (O) -> Unit) = 
 
 /** Sets a block to be fired on every value change. */
 infix fun <O> ObservableValue<O>.attachChanges(block: (O, O) -> Unit): Subscription {
-   val l = ChangeListener<O> { _, ov, nv -> block(ov, nv) }
+   val l = ChangeListener { _, ov, nv -> block(ov, nv) }
    addListener(l)
    return Subscription { removeListener(l) }
 }

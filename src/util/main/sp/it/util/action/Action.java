@@ -194,7 +194,6 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	@Override
 	public void run() {
 		runFX(() -> {
-			logger(Action.class).info("Executing action {}", name);
 			ActionManager.INSTANCE.getOnActionRunPre().invoke(this);
 			action.run();
 			ActionManager.INSTANCE.getOnActionRunPost().invoke(this);

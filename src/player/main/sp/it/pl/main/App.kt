@@ -41,6 +41,7 @@ import sp.it.pl.layout.loadIn
 import sp.it.pl.main.App.Rank.MASTER
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppSearch.Source
+import sp.it.pl.main.Events.ActionEvent
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.plugin.impl.AppSearchPlugin
 import sp.it.pl.plugin.impl.DirSearchPlugin
@@ -325,7 +326,7 @@ class App: Application(), GlobalConfigDelegator {
          appCommunicator.initApp()
 
          // start parts that can be started from non application fx thread
-         ActionManager.onActionRunPost += { APP.actionStream(it.name) }
+         ActionManager.onActionRunPre += { APP.actionStream(ActionEvent(it)) }
          ActionManager.startActionListening(rankAtStart==SLAVE)
          if (rankAtStart==MASTER) appCommunicator.start()
       }.ifError {

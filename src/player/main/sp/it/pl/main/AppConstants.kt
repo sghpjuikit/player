@@ -7,6 +7,7 @@ import javafx.scene.input.MouseButton.SECONDARY
 import sp.it.pl.layout.WidgetManager.FactoryRef
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
+import sp.it.util.action.Action
 import sp.it.util.dev.failIf
 import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.MimeTypes
@@ -91,6 +92,9 @@ object FileMimes {
 }
 
 object Events {
+   data class ActionEvent(val action: Action) {
+      override fun toString() = "ActionEvent(${action.name})"
+   }
    sealed interface FileEvent {
       data class Create(val file: File): FileEvent
       data class Delete(val file: File): FileEvent

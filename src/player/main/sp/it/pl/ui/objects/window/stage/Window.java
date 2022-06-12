@@ -361,7 +361,7 @@ public class Window extends WindowBase {
 
 		// window control
 		var maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
-		root.addEventFilter(KeyEvent.ANY, e -> {
+		s.getScene().addEventFilter(KeyEvent.ANY, e -> {
 			if (e.isMetaDown()) {
 				if (e.getCode()==A) {
 					if (e.getEventType()==KEY_RELEASED) {

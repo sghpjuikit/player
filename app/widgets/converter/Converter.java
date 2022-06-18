@@ -50,6 +50,7 @@ import sp.it.pl.ui.itemnode.ListAreaNode;
 import sp.it.pl.ui.itemnode.ValueNode;
 import sp.it.pl.ui.objects.SpitComboBox;
 import sp.it.pl.ui.objects.icon.Icon;
+import sp.it.pl.ui.objects.window.popup.PopWindow;
 import sp.it.pl.ui.pane.ConfigPane.Layout;
 import sp.it.util.access.V;
 import sp.it.util.collections.map.KClassListMap;
@@ -67,12 +68,14 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
+import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.audio.tagging.SongWritingKt.writeNoRefresh;
+import static sp.it.pl.main.AppBuildersKt.showFloating;
 import static sp.it.pl.main.AppDragKt.getAny;
 import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
@@ -80,6 +83,7 @@ import static sp.it.pl.main.AppExtensionsKt.toUi;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withAppProgress;
 import static sp.it.pl.main.WidgetTags.UTILITY;
+import static sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE;
 import static sp.it.util.JavaLegacyKt.typeListOfAny;
 import static sp.it.util.Util.filenamizeString;
 import static sp.it.util.async.AsyncKt.IO;
@@ -106,8 +110,8 @@ import static sp.it.util.reactive.UtilKt.attach;
 import static sp.it.util.reactive.UtilKt.onChangeAndNow;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.text.UtilKt.capitalLower;
-import static sp.it.util.type.TypesKt.typeNothingNonNull;
 import static sp.it.util.type.UtilKt.estimateRuntimeType;
+import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 import static sp.it.util.ui.Util.layVertically;
@@ -166,8 +170,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     private final ObservableList<EditArea> tas = observableArrayList(ta_in);
     private final KClassListMap<Act<?>> acts = new KClassListMap<>(act -> act.type);
     private final HBox outTFBox = new HBox(getEmScaled(10));
-    private final Applier applier = new Applier();
-    private final HBox layout = new HBox(getEmScaled(10), outTFBox, applier.root);
+    private @Nullable Applier applier = null;
+    private @Nullable PopWindow applierPopup = null;
 
     public Converter(Widget widget) {
 	    super(widget);
@@ -176,7 +180,14 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         inputValue = io.i.create("Value", new VType<>(Object.class, true), null, consumer(v -> source.setAll(unpackData(v))));
 
         // layout
-        HBox ll = new HBox(getEmScaled(10), ta_in.getNode(),layout);
+        var layout = new HBox(
+            outTFBox,
+            layHeaderTop(0.0, TOP_LEFT,
+                new Icon().blank(),
+                new Icon(PLAY_CIRCLE).onClickDo(consumer(icon -> applierShowPopup())).tooltip("Use data\n\nOpen dialog for using the current data")
+            )
+        );
+        HBox ll = new HBox(getEmScaled(10), ta_in.getNode(), layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
         root.getChildren().add(ll);
 
@@ -273,9 +284,6 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         Output<List<Object>> output = io.o.create("Output", typeListOfAny(), List.of());
         ta_in.outputText.addListener((o, ov, nv) -> outputAsText.setValue(nv));
         ta_in.output.addListener((Change<?> o) -> output.setValue(materialize(ta_in.output)));
-
-        // set empty content
-        applier.fillActs(typeNothingNonNull());
     }
 
     @Override
@@ -291,6 +299,30 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     @Override
     public void open(Object data) {
         inputValue.setValue(data);
+    }
+
+    @Override
+    public void close() {
+        applierHidePopup();
+        super.close();
+    }
+
+    private void applierShowPopup() {
+        if (applier==null) {
+            applier = new Applier();
+            applier.fillActs(ta_in.transforms.getTypeIn());
+        }
+
+        if (applierPopup==null) {
+            applierPopup = showFloating("Use data...", WINDOW_ACTIVE.invoke(CENTER), popWindow -> applier.root);
+            applierPopup.getOnHidden().add(runnable(() -> applierPopup = null));
+        }
+    }
+
+    private void applierHidePopup() {
+        applierPopup.hideImmediately();
+        applierPopup = null;
+        applier = null;
     }
 
     private static List<?> unpackData(Object o) {
@@ -379,9 +411,9 @@ public class Converter extends SimpleController implements Opener, SongWriter {
 
             // layout
             getNode().getChildren().add(0,
-                layVertically(5,Pos.CENTER,
+                layVertically(5, CENTER,
                     layStack(
-                        nameL,Pos.CENTER,
+                        nameL, CENTER,
                         layHorizontally(5,Pos.CENTER_RIGHT, dataI,new Label(),remI,addI),Pos.CENTER_RIGHT
                     ),
                     layStack(
@@ -440,9 +472,8 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
 
         public void fillActionData(){
-            if (isMain && applier!=null) {
+            if (isMain && applier!=null)
                 applier.fillActs(transforms.getTypeIn());
-            }
         }
 
         @Override
@@ -467,19 +498,12 @@ public class Converter extends SimpleController implements Opener, SongWriter {
         }
     }
 
-    @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
+    @SuppressWarnings("ConstantConditions")
     private class Applier {
         private final SpitComboBox<Act<?>> actCB = new SpitComboBox<>(act -> act.name, AppTexts.textNoVal);
         Ins ins;
-        BiConsumer<File,String> applier = (f, s) -> {
-            File rf = f.getParentFile().getAbsoluteFile();
-            int dot = f.getPath().lastIndexOf('.');
-            String p = f.getPath();
-            String ext = p.substring(dot);
-            f.renameTo(new File(rf, filenamizeString(s)+ext));
-        };
-        @SuppressWarnings("unchecked")
         private final Icon runB = new Icon(PLAY_CIRCLE, 20, null, () -> {
+            @SuppressWarnings("unchecked")
             var action = (Act<Object>) actCB.getValue();
             if (action==null) return;
 

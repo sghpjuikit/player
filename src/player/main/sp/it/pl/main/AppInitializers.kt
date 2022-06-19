@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Date
 import java.util.function.Consumer
+import javafx.scene.image.Image
 import javafx.util.Duration
 import kotlin.streams.asSequence
 import sp.it.pl.audio.Song
@@ -32,6 +33,7 @@ import sp.it.util.dev.fail
 import sp.it.util.file.FileType
 import sp.it.util.file.Util
 import sp.it.util.functional.getOr
+import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
@@ -96,6 +98,9 @@ fun ClassName.initApp() {
           "Output" alias Output::class
        "In-Output" alias InOutput::class
          "Feature" alias Feature::class
+         "Image" alias Image::class
+         "Image" alias java.awt.Image::class
+         "Image" alias java.awt.image.RenderedImage::class
       "Collection" alias Collection::class
             "List" alias List::class
              "Set" alias Set::class
@@ -129,6 +134,9 @@ fun InstanceName.initApp() {
    add(PluginBase::class) { it.name }
    add(Component::class) { it.name }
    add(Feature::class) { "Feature" }
+   add(Image::class) { "Image" }
+   add(java.awt.Image::class) { "Image" }
+   add(java.awt.image.RenderedImage::class) { "Image" }
    add(Input::class) { it.name }
    add(Output::class) { it.name }
    add(InOutput::class) { it.o.name }
@@ -207,6 +215,13 @@ fun InstanceDescription.initApp() {
    }
    Component::class describe {
       "Name" info it.name
+   }
+   Image::class describe {
+      "Resolution" info "${it.width.toInt()} x ${it.height.toInt()}"
+      it.url.ifNotNull { "Url" info it }
+   }
+   java.awt.image.RenderedImage::class describe {
+      "Resolution" info "${it.width} x ${it.height}"
    }
    Metadata::class describe { m ->
       Metadata.Field.all.asSequence()

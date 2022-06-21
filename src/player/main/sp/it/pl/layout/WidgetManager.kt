@@ -531,6 +531,7 @@ class WidgetManager {
                "-api-version", "1.7",
                "-language-version", "1.7",
                "-jvm-target", Runtime.version().feature().toString(),
+               "-Xuse-k2",
                "-progressive",
                "-Xno-call-assertions",
                "-Xno-param-assertions",

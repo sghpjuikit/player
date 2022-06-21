@@ -3,14 +3,25 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [6.0.0]  2022 06 21
+
 - Implement **WeatherInfo** widget
 - Implement **GpuNvidiaInfo**.kt nvidia-smi.exe path settings
 - Implement `application/pdf` cover support
-- Improve Node widget
+- Implement config editor for `TextAlignment` & `Orientation`
+- Improve **Converter** widget UX/performance [hide data action - show only in popup]
+- Improve **Node** widget
   - provide node instance settings in widget settings, properly separated and configurable as JavaFX object
   - persist the node instance state with widget settings [restores node state on reload/restart without using widget i/o]
   - support userLocation specific to the node instance type instead of one for all Node widgets [supports custom default settings per instance type]
+- Improve ObjectInfo.kt
+  - add CTRL+V support
+  - add content detection support
+  - add text preview support
+  - add song & image tag description support
 - Improve context menus
+- Improve data info output for images [ActionPane, ObjectInfo, Tooltip]
+- Improve logging output
 - Improve json reading robustness & performance [use jackson instead of Klaxon]
 - Improve json types conversion support
 - Improve string types conversion support
@@ -18,36 +29,38 @@ All notable changes to this project will be documented in this file. Format base
 - Improve read-only discovery for JavaFX properties
 - Fix json deserialization failing for nullable properties sometimes
 - Fix oshi CPU usage crashes for Windows 10
+- Fix window interaction !work when it has no focusable content
 
 This update brings general improvements all around.
 
 Compatibility with Windows 10 has been improved. Various issues has been identified and fixed.
 
-Under hood, the `Klaxon` library has been replaced with `Jackson`, which is more robust and performant.
+Under hood, Kotlin has been updated to 1.7 and widgets now compile with K2 compiler (2.5 times faster reload after change).
+The `Klaxon` library for json has been replaced with `Jackson`, which is more robust and performant.
 The plan for the future with `Json` is to separate it to own tiny module, expose more API, use coroutines and context
 receivers to get rid of the explicit `Json` object (analogue to Jackson's`ObjectMapper`). That would be killer json API.
 
 The conversion capabilities required for settings and persisting application state have been enhanced.
 The JavaFX property discovery is now more typesafe, identifying correctly read-only & nullability characteristics (in common cases).
-Some JavaFX properties have been hidden from certain component settings. Overall, these reduce warnings and issues in forms and settings.
+Some JavaFX properties have been hidden from certain component settings. These improve UI performance, reduce validation warnings and other issues in forms/settings.
 Additionally, `String` converters for additional types have been implemented. All data classes are now supported automatically, producing json output.
 Json converters have been added for all types that already had `String` converter.
 With this, the application is more prepared to tackle additional widgets and features.
 
 The **Node** widget, being a launcher for custom user widgets that merely instantiate JavaFX-based UI components, is greatly improved.
-The various types of content used, defined by user as concrete subtype of `Node.class`, are now considered their own widget in all aspects.
+The various types of Nodes recommended for instantiation are now considered their own widgets in all aspects.
 These widgets have their own user data folder, support their own user-defined default settings, cloning, reloading, etc.
 Also, **Node** widget now allows configuring the `Node` instance in its settings, providing UX familiar from other widgets.
-Node widget now also completely stores its `Node`'s state and applies it on widget reload or application restart.
+The widget stores its entire `Node`'s state and applies it on widget reload or application restart.
 It is still possible to use widget i/o to turn the various properties of the `Node` instance into Inputs, that can be fed values across time,
 but this is no longer required (to persist the state).
 With this, any `Node` subclass can be truly turned into a widget with full feature support that user would expect.
 
-On widget side, **GpuNvidiaInfo** **nvidia-smi.exe** path is now configurable.
-Its UI may become modular in the future.
-
-The new **WeatherInfo** widget displays local weather.
-For now, it still lacks hourly and daily forecast, which will be added in the future. 
+On widget side, **GpuNvidiaInfo**'s **nvidia-smi.exe** path is now configurable. Its UI may become modular in the future.
+The new **WeatherInfo** widget displays local weather. For now, it still lacks hourly and daily forecast, which will be added in the future. 
+The **Converter** widget no longer suffers broken layout when shrank to small size and the **Use Data** portion of Ui is hidden behind an icon.
+The **ObjectInfo** widget sports scrollable content and besides the image preview, there is also one for text. In the future,
+table support will be added with automatic data class decomposition to columns. 
 
 There are improvements prototyped to the **WallpaperChanger** plugin. These changes may or may not be realized.
 

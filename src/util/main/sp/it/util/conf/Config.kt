@@ -154,8 +154,13 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
    }
 
    /** True iff [enumerateValues] returns a value. */
+   @Suppress("UNCHECKED_CAST")
    val isEnumerable: Boolean
-      get() = valueEnumerator!=null
+      get() =
+         findConstraint<ValueSealedSet<T>>()!=null ||
+         type.raw.isEnum ||
+         (type.raw.isSealed && type.raw.sealedSubclasses.all { it.isObject }) ||
+         (type.raw.companionObjectInstance as? SealedEnumerator<T>)!=null
 
    /** @return collection of values this config's value is usually within, see [ValueSealedSetIfNotIn] for exceptions */
    fun enumerateValues(): Collection<T> = valueEnumerator?.net { it() } ?: fail {

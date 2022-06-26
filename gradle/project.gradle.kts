@@ -85,9 +85,9 @@ allprojects {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.2")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.2")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.2")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.3")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.3")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.3")
          implementation("org.jetbrains", "annotations", "23.0.0")
       }
 
@@ -119,7 +119,7 @@ allprojects {
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.11.0")
+         implementation("net.java.dev.jna", "jna-platform", "5.12.0")
          implementation("com.1stleg", "jnativehook", "2.1.0")
       }
 
@@ -160,8 +160,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.3.1")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.3.1")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.3.2")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.3.2")
       }
 
    }

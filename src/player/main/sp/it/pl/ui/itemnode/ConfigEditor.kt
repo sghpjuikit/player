@@ -283,7 +283,6 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
       private val editorBuilders = KClassMap<(Config<*>) -> ConfigEditor<*>?>().apply {
          put<Boolean> { BoolCE(it.asIs()) }
-         put<String> { GeneralCE(it) }
          put<Action> { ShortcutCE(it.asIs()) }
          put<Color> { ColorCE(it.asIs()) }
          put<File> { FileCE(it.asIs()) }

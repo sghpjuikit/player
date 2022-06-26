@@ -307,7 +307,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                      when (it) {
                         null -> IconMA.DO_NOT_DISTURB
                         Orientation.HORIZONTAL -> IconMD.DOTS_HORIZONTAL
-                        Orientation.VERTICAL -> IconMD.DOTS_HORIZONTAL
+                        Orientation.VERTICAL -> IconMD.DOTS_VERTICAL
                      }
                   )
                }

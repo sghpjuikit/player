@@ -143,6 +143,7 @@ import sp.it.util.conf.ListConfig
 import sp.it.util.conf.OrPropertyConfig
 import sp.it.util.conf.PropertyConfig
 import sp.it.util.conf.PropertyConfigRO
+import sp.it.util.conf.SealedEnumerator
 import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
@@ -1240,13 +1241,16 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       }
 
       // autocomplete
-      config.findConstraint<UnsealedEnumerator<T>>().ifNotNull { e ->
+      val enumerator = null
+         ?: config.findConstraint<UnsealedEnumerator<T>>()?.net { { it.enumerateUnsealed() } }
+         ?: config.findConstraint<SealedEnumerator<T>>()?.net { { it.enumerateSealed() } }
+      enumerator.ifNotNull { e ->
          val isSortable = config.constraints.none { it is PreserveOrder }
          autoComplete(
             editor,
             { t ->
                @Suppress("UNCHECKED_CAST")
-               val enumeration = if (isNullable) e.enumerateUnsealed() - (null as T) + (null as T) else e.enumerateUnsealed()
+               val enumeration = if (isNullable) e() - (null as T) + (null as T) else e()
                val enumerationSorted = if (isSortable) enumeration.sortedBy(converterRaw) else enumeration
                enumerationSorted.filter { it.toUi().contains(t, true) }
             },

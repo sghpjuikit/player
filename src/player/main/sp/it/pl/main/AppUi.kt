@@ -225,7 +225,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       if (ratingIconCount.value==null && ratingIsPartial.value==null && ratingSkin.value==null) {
          additionalStylesheets -= f
       } else {
-         val styleSkin = ratingSkin.value?.let { """-fx-skin: "${it.jvmName};""" } ?: ""
+         val styleSkin = ratingSkin.value?.let { """-fx-skin: "${it.jvmName}";""" } ?: ""
          val styleCount = ratingIconCount.value?.let { "-fx-icon-count: $it;" } ?: ""
          val stylePartial = ratingIsPartial.value?.let { "-fx-partial: $it;" } ?: ""
          val style = ".rating { $styleSkin $styleCount $stylePartial }".trimMargin()

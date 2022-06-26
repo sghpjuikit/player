@@ -123,10 +123,12 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       val f = APP.locationTmp/"user-font-skin.css"
       if (it==null) {
          additionalStylesheets -= f
+         skinExtensions -=f
       } else {
          val style = it.asStyle(1.em)
          f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply font skin=$it" } }
          additionalStylesheets += f
+         if (f !in skinExtensions) skinExtensions +=f
       }
    }
 
@@ -224,6 +226,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       val f = APP.locationTmp/"user-rating-skin.css"
       if (ratingIconCount.value==null && ratingIsPartial.value==null && ratingSkin.value==null) {
          additionalStylesheets -= f
+         skinExtensions -= f
       } else {
          val styleSkin = ratingSkin.value?.let { """-fx-skin: "${it.jvmName}";""" } ?: ""
          val styleCount = ratingIconCount.value?.let { "-fx-icon-count: $it;" } ?: ""
@@ -231,6 +234,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
          val style = ".rating { $styleSkin $styleCount $stylePartial }".trimMargin()
          f.writeTextTry(style).ifError { logger.error(it) { "Failed to apply rating skin=$it" } }
          additionalStylesheets += f
+         if (f !in skinExtensions) skinExtensions += f
       }
    }
    /**

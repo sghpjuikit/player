@@ -30,6 +30,7 @@ import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
+import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal.PropVal1
@@ -150,10 +151,10 @@ class WeatherInfo: HBox(15.0) {
 
    private fun configure() {
       object: ConfigurableBase<Any?>() {
-         val latitude by cvn(this@WeatherInfo.latitude)
-         val longitude by cvn(this@WeatherInfo.longitude)
-         val apiKey by cvn(this@WeatherInfo.apiKey)
-         val units by cv(this@WeatherInfo.units)
+         val latitude by cvn(this@WeatherInfo.latitude)   .def(name = "Latitude", info = "Latitude of the area for weather information")
+         val longitude by cvn(this@WeatherInfo.longitude).def(name = "Longitude", info = "Longitude of the area for weather information")
+         val apiKey by cvn(this@WeatherInfo.apiKey).def(name = "ApiKey", info = "API key generated for your account at https://openweathermap.org/")
+         val units by cv(this@WeatherInfo.units).def(name = "Units", info = "Unit system for ui")
          init {
             this::latitude.getDelegateConfig().addConstraints(ObjectNonNull)
             this::longitude.getDelegateConfig().addConstraints(ObjectNonNull)

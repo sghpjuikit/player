@@ -12,7 +12,6 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import kotlin.math.roundToInt
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -65,11 +64,11 @@ import sp.it.util.units.FileSize.Companion.Gi
  */
 class GpuNvidiaInfo: StackPane() {
    private val sysInfo = SystemInfo()
-   private val sysInfoProc = sysInfo.hardware.processor
+   private val sysInfoCpu = sysInfo.hardware.processor
 
-   private val procLabel = label("CPU")
-   private val procLoad = Num01Ui("Load", "cpu-load", "%")
-   private val procClock = Ran01Ui("Clock", "cpu-clock", " GHz")
+   private val cpuLabel = label("CPU")
+   private val cpuLoad = Num01Ui("Load", "cpu-load", "%")
+   private val cpuClock = Ran01Ui("Clock", "cpu-clock", " GHz")
    private val sysMem = Num01Ui("Memory", "mem", " GiB")
    private val infoInitial = Info("n/a", Num01(0, 1), Ran01(0, 0, 0, 1), Num01(0, 1))
    private val dataKey = "widgets.gpu_nvidia_info.smi.path"
@@ -87,34 +86,34 @@ class GpuNvidiaInfo: StackPane() {
    private val gpuPow = Num01Ui("Draw", "gpu-pow", " W")
    private val gpuMem = Num01Ui("Memory", "gpu-mem", " MiB")
 
-   @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+   @OptIn(DelicateCoroutinesApi::class)
    val monitor = Subscribed {
       var oldTicks by atomic(LongArray(CentralProcessor.TickType.values().size))
       Subscription(
          flowTimer(0, 5000)
             .map {
                val mem = sysInfo.hardware.memory
-               val proc = sysInfoProc
+               val cpu = sysInfoCpu
 
                Info(
-                  proc.processorIdentifier.name,
-                  Num01(proc.getSystemCpuLoadBetweenTicks(oldTicks).times(100.0), 100.0),
+                  cpu.processorIdentifier.name,
+                  Num01(cpu.getSystemCpuLoadBetweenTicks(oldTicks).times(100.0), 100.0),
                   Ran01(
-                     (proc.currentFreq.minOrNull() ?: 0)/1000000000.0,
-                     (proc.currentFreq.maxOrNull() ?: 0)/1000000000.0,
-                     if (proc.currentFreq.isEmpty()) 0 else proc.currentFreq.average()/1000000000.0,
-                     proc.maxFreq/1000000000.0
+                     (cpu.currentFreq.minOrNull() ?: 0)/1000000000.0,
+                     (cpu.currentFreq.maxOrNull() ?: 0)/1000000000.0,
+                     if (cpu.currentFreq.isEmpty()) 0 else cpu.currentFreq.average()/1000000000.0,
+                     cpu.maxFreq/1000000000.0
                   ),
                   Num01((mem.total - mem.available)/Gi.toDouble(), mem.total/Gi.toDouble())
                ).apply {
-                  oldTicks = sysInfoProc.systemCpuLoadTicks
+                  oldTicks = sysInfoCpu.systemCpuLoadTicks
                }
             }
             .flowOn(IO)
             .onEach {
-               procLabel.text = "CPU: ${it.procName.trim()}"
-               procLoad update it.procLoad
-               procClock update it.procClock
+               cpuLabel.text = "CPU: ${it.cpuName.trim()}"
+               cpuLoad update it.cpuLoad
+               cpuClock update it.cpuClock
                sysMem update it.mem
             }
             .flowOn(FX)
@@ -179,12 +178,12 @@ class GpuNvidiaInfo: StackPane() {
 
          val baseRow = 6
 
-         lay(row = baseRow + -6, column = 1, hAlignment = LEFT) += procLabel
+         lay(row = baseRow + -6, column = 1, hAlignment = LEFT) += cpuLabel
 
-         lay(row = baseRow + -5, column = 0, hAlignment = LEFT) += procLoad
-         lay(row = baseRow + -5, column = 1, hAlignment = LEFT) += Sep(procLoad.labelInfo)
-         lay(row = baseRow + -4, column = 0, hAlignment = LEFT) += procClock
-         lay(row = baseRow + -4, column = 1, hAlignment = LEFT) += Sep(procClock.labelInfo)
+         lay(row = baseRow + -5, column = 0, hAlignment = LEFT) += cpuLoad
+         lay(row = baseRow + -5, column = 1, hAlignment = LEFT) += Sep(cpuLoad.labelInfo)
+         lay(row = baseRow + -4, column = 0, hAlignment = LEFT) += cpuClock
+         lay(row = baseRow + -4, column = 1, hAlignment = LEFT) += Sep(cpuClock.labelInfo)
          lay(row = baseRow + -3, column = 0, hAlignment = LEFT) += sysMem
          lay(row = baseRow + -3, column = 1, hAlignment = LEFT) += Sep(sysMem.labelInfo)
 
@@ -237,7 +236,7 @@ class GpuNvidiaInfo: StackPane() {
       }
    }
 
-   private class Info(val procName: String, val procLoad: Num01, val procClock: Ran01, val mem: Num01)
+   private class Info(val cpuName: String, val cpuLoad: Num01, val cpuClock: Ran01, val mem: Num01)
 
    private class Num01(val cur: Number, val tot: Number)
 

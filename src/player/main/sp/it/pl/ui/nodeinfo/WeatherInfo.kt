@@ -118,20 +118,11 @@ class WeatherInfo: HBox(15.0) {
       // keep updated content
       sceneProperty().attach { monitor.subscribe(it!=null) } on onNodeDispose
 
-      data.sync {
-         mainIcon.icon(it?.current?.let { it.weather.firstOrNull()?.icon(it.isDay()) } ?: IconWH.NA)
-         val l = APP.locale.value
-         val d = units.value.d
-         val s = units.value.s
-         tempL.text = it?.current?.temp?.net { "%.1f%s".format(l, it, d) } ?: "n/a"
-         descL.text = it?.current?.net { "Feels like %.1f%s%s".format(l, it.feels_like, d, it.weather.joinToString { ". " + it.description.capital() }) } ?: "n/a"
-         windL.text = it?.current?.let { "%d%s %s°".format(l, it.wind_speed.toInt(), s, it.windDir()) } ?: "n/a"
-         humidityL.text = it?.current?.humidity?.toInt()?.net { "$it%" } ?: "n/a"
-         dewL.text = it?.current?.dew_point?.net { "%.1f%s".format(l, it, d) } ?: "n/a"
-         pressureL.text = it?.current?.pressure?.toInt()?.net { "${it}hPa" } ?: "n/a"
-         uvL.text = it?.current?.uvi?.toUi() ?: "n/a"
-         visL.text = it?.current?.visibility?.toInt()?.net { "%d%s".format(l, if (it>999) it/1000 else it, if (it>999) "km" else "m") } ?: "n/a"
-      }
+      latitude attach { updateUi() }
+      longitude attach { updateUi() }
+      apiKey attach { updateUi() }
+      units attach { updateUi() }
+      data sync { updateUi() }
    }
 
    private suspend fun refresh() {
@@ -149,12 +140,27 @@ class WeatherInfo: HBox(15.0) {
       runFX { data.value = dataNew }
    }
 
+   private fun updateUi(): Unit = data.value.net {
+      mainIcon.icon(it?.current?.let { it.weather.firstOrNull()?.icon(it.isDay()) } ?: IconWH.NA)
+      val l = APP.locale.value
+      val d = units.value.d
+      val s = units.value.s
+      tempL.text = it?.current?.temp?.net { "%.1f%s".format(l, it, d) } ?: "n/a"
+      descL.text = it?.current?.net { "Feels like %.1f%s%s".format(l, it.feels_like, d, it.weather.joinToString { ". " + it.description.capital() }) } ?: "n/a"
+      windL.text = it?.current?.let { "%d%s %s°".format(l, it.wind_speed.toInt(), s, it.windDir()) } ?: "n/a"
+      humidityL.text = it?.current?.humidity?.toInt()?.net { "$it%" } ?: "n/a"
+      dewL.text = it?.current?.dew_point?.net { "%.1f%s".format(l, it, d) } ?: "n/a"
+      pressureL.text = it?.current?.pressure?.toInt()?.net { "${it}hPa" } ?: "n/a"
+      uvL.text = it?.current?.uvi?.toUi() ?: "n/a"
+      visL.text = it?.current?.visibility?.toInt()?.net { "%d%s".format(l, if (it>999) it/1000 else it, if (it>999) "km" else "m") } ?: "n/a"
+   }
+
    private fun configure() {
       object: ConfigurableBase<Any?>() {
-         val latitude by cvn(this@WeatherInfo.latitude)   .def(name = "Latitude", info = "Latitude of the area for weather information")
-         val longitude by cvn(this@WeatherInfo.longitude).def(name = "Longitude", info = "Longitude of the area for weather information")
-         val apiKey by cvn(this@WeatherInfo.apiKey).def(name = "ApiKey", info = "API key generated for your account at https://openweathermap.org/")
-         val units by cv(this@WeatherInfo.units).def(name = "Units", info = "Unit system for ui")
+         val latitude by cvn(this@WeatherInfo.latitude.value).def(name = "Latitude", info = "Latitude of the area for weather information")
+         val longitude by cvn(this@WeatherInfo.longitude.value).def(name = "Longitude", info = "Longitude of the area for weather information")
+         val apiKey by cvn(this@WeatherInfo.apiKey.value).def(name = "ApiKey", info = "API key generated for your account at https://openweathermap.org/")
+         val units by cv(this@WeatherInfo.units.value).def(name = "Units", info = "Unit system for ui")
          init {
             this::latitude.getDelegateConfig().addConstraints(ObjectNonNull)
             this::longitude.getDelegateConfig().addConstraints(ObjectNonNull)

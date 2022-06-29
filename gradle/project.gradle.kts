@@ -129,7 +129,7 @@ allprojects {
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.4.1")
          implementation("org.apache.commons", "commons-text", "1.9")
-         implementation("com.github.oshi", "oshi-core", "6.1.6")
+         implementation("com.github.oshi", "oshi-core", "6.2.0")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }
 
@@ -155,8 +155,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.0.2")
-         implementation("io.ktor", "ktor-client-cio", "2.0.2")
+         implementation("io.ktor", "ktor-server-core", "2.0.3")
+         implementation("io.ktor", "ktor-client-cio", "2.0.3")
       }
 
       "Test" group {

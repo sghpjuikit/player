@@ -35,7 +35,7 @@ class TimeClockDigital: StackPane() {
          lay += text("") {
             styleClass += "time-clock-digital-text"
             styleClass += "time-clock-digital-text-hour"
-            update += { text = "%2d".format(it.hour%12).padStart(2, ' ') }
+            update += { text = "%2d".format(it.hour%12) }
             onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusHours(-e.deltaY.sign.toLong()) } }
          }
          lay += text(":") {

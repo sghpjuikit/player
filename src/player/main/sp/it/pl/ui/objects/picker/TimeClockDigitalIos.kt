@@ -49,7 +49,7 @@ class TimeClockDigitalIos: HBox() {
                styleClass += "time-clock-digital-ios-text"
                styleClass += "time-clock-digital-ios-text-hour"
                pseudoClassChanged("secondary", by!=0)
-               update += { text = "%2d".format((it.hour + by + 24)%24).padStart(2, ' ') }
+               update += { text = "%2d".format((it.hour + by + 24)%24) }
             }
          }
          onEventDown(SCROLL) { e -> if (editable.value) value.setValueOf { it.plusHours(-e.deltaY.sign.toLong()) } }

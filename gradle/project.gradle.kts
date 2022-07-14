@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.7.0"
+   kotlin("jvm") version "1.7.10"
    application
    id("com.github.ben-manes.versions") version "0.42.0"
 }
@@ -119,17 +119,17 @@ allprojects {
       }
 
       "Native" group {
-         implementation("net.java.dev.jna", "jna-platform", "5.12.0")
+         implementation("net.java.dev.jna", "jna-platform", "5.12.1")
          implementation("com.1stleg", "jnativehook", "2.1.0")
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "4.6.1")
+         implementation("com.github.f4b6a3", "uuid-creator", "5.1.0")
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.4.1")
          implementation("org.apache.commons", "commons-text", "1.9")
-         implementation("com.github.oshi", "oshi-core", "6.2.0")
+         implementation("com.github.oshi", "oshi-core", "6.2.1")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }
 

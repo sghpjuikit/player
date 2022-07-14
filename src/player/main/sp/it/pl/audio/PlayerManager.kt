@@ -273,8 +273,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
 
    object Events {
       interface PlaybackSongDiff { val song: Metadata }
-      data class PlaybackSongChanged(override val song: Metadata): PlaybackSongDiff
-      data class PlaybackSongUpdated(override val song: Metadata): PlaybackSongDiff
+      data class PlaybackSongChanged(override val song: Metadata): PlaybackSongDiff { override fun toString() = "PlaybackSongChanged(song=${song.uri})" }
+      data class PlaybackSongUpdated(override val song: Metadata): PlaybackSongDiff { override fun toString() = "PlaybackSongUpdated(song=${song.uri})" }
       data class PlaybackStatusChanged(val status: MediaPlayer.Status)
    }
    inner class CurrentItem {

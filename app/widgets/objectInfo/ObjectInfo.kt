@@ -45,6 +45,7 @@ import sp.it.util.collections.collectionUnwrap
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.printIt
 import sp.it.util.file.json.JsValue
+import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.mimeType
@@ -147,7 +148,8 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
 		val dataAsS: String? = when {
          d == null -> null
          d is String -> d
-         d is JsValue || d is Jwt || d::class.isData -> APP.converter.ui.toS(d)
+         d is JsValue -> d.toPrettyS()
+         d is Jwt || d::class.isData -> APP.converter.ui.toS(d)
          else -> null
       }
 

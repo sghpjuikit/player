@@ -79,6 +79,7 @@ import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.collections.UtilKt.collectionUnwrap;
 import static sp.it.util.collections.UtilKt.getElementClass;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
+import static sp.it.util.file.json.JsonKt.toPrettyS;
 import static sp.it.util.functional.TryKt.getOr;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.list;
@@ -380,7 +381,9 @@ public class ActionPane extends OverlayPane<Object> {
 		var dataAsS = (String) null;
 		if (data instanceof String dataS && dataS.length()>40)
 			dataAsS = dataS;
-		if (data instanceof JsValue || data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
+		if (data instanceof JsValue json)
+			dataAsS = toPrettyS(json, "  ", "\n");
+		if (data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
 			dataAsS = APP.getConverter().ui.toS(data);
 
 		if (dataAsS!=null) {

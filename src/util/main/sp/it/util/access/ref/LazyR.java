@@ -41,18 +41,19 @@ public class LazyR<V> {
 		return v;
 	}
 
+	/** @return the current value if set, otherwise the specified value */
 	public V getOr(V or) {
-		if (!isSet) set(or);
-		return v;
+		return isSet ? v : or;
 	}
 
+	/** @return the current value if set, otherwise null */
 	public @Nullable V getOrNull() {
 		return getOr((V) null);
 	}
 
+	/** @return the current value if set, otherwise the specified value */
 	public V getOr(Supplier<V> or) {
-		if (!isSet) set(or.get());
-		return v;
+		return isSet ? v : or.get();
 	}
 
 	public boolean isSet() {

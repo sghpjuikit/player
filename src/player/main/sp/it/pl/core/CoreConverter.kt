@@ -35,6 +35,8 @@ import javafx.geometry.Insets
 import javafx.geometry.Point2D
 import javafx.geometry.Point3D
 import javafx.scene.Node
+import javafx.scene.Scene
+import javafx.scene.control.Skin
 import javafx.scene.effect.Effect
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
@@ -52,6 +54,7 @@ import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.jvmName
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
@@ -346,6 +349,9 @@ object CoreConverter: Core {
       addP<Paint>(ConverterPaint)
       addP<Effect>(fx.toConverterOf<Effect?>().asIs())
       addP<Font>(ConverterFont)
+      addParserToS(Node::class) { it::class.jvmName }
+      addParserToS(Skin::class) { it::class.jvmName }
+      addParserToS(Scene::class) { it::class.jvmName }
       addT<GlyphIcons>({ it.id() }, { Glyphs[it].orMessage() })
       addT<Class<*>>({ it.name }, tryF(Throwable::class) { Class.forName(it, false, null) })
       addT<KClass<*>>({ it.javaObjectType.name }, tryF(Throwable::class) {

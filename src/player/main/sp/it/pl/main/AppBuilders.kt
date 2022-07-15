@@ -544,13 +544,13 @@ abstract class AnimationBuilder {
 
    open fun closeAndDo(n: Node, action: (() -> Unit)?) {
       val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
-      if (!a.isRunning()) a.applyAt(1.0)
+      if (!a.isPlaying()) a.applyAt(1.0)
       a.playCloseDo(action)
    }
 
    open fun openAndDo(n: Node, action: (() -> Unit)?) {
       val a = n.properties.getOrPut(key) { buildAnimation(n) } as Anim
-      if (!a.isRunning()) a.applyAt(0.0)
+      if (!a.isPlaying()) a.applyAt(0.0)
       a.playOpenDo(action)
    }
 

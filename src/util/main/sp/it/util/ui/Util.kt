@@ -374,8 +374,8 @@ inline fun flowPane(hgap: Double = 0.0, vgap: Double = 0.0, block: FlowPane.() -
 inline fun gridPane(block: (GridPane).() -> Unit = {}) = GridPane().apply(block)
 inline fun gridPaneRow(block: (RowConstraints).() -> Unit = {}) = RowConstraints().apply(block)
 inline fun gridPaneColumn(block: (ColumnConstraints).() -> Unit = {}) = ColumnConstraints().apply(block)
-inline fun hBox(spacing: Number = 0.0, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
-inline fun vBox(spacing: Number = 0.0, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox(spacing.toDouble()).apply { this.alignment = alignment; block() }
+inline fun hBox(spacing: Number? = null, alignment: Pos? = null, block: HBox.() -> Unit = {}) = HBox().apply { if (spacing!=null) this.spacing = spacing.toDouble(); if (alignment!=null) this.alignment = alignment; block() }
+inline fun vBox(spacing: Number? = null, alignment: Pos? = null, block: VBox.() -> Unit = {}) = VBox().apply { if (spacing!=null) this.spacing = spacing.toDouble(); if (alignment!=null) this.alignment = alignment; block() }
 inline fun splitPane(block: SplitPane.() -> Unit = {}) = SplitPane().apply(block)
 inline fun scrollPane(block: ScrollPane.() -> Unit = {}) = ScrollPane().apply(block)
 inline fun scrollText(block: () -> Text) = Util.layScrollVText(block())!!

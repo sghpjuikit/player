@@ -1,5 +1,6 @@
 package sp.it.pl.audio.playlist;
 
+import com.sun.javafx.collections.ObservableListWrapper;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -16,7 +17,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +38,7 @@ import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.units.FactoriesKt.uri;
 
-public class Playlist extends SimpleListProperty<PlaylistSong> {
+public class Playlist extends ObservableListWrapper<PlaylistSong> {
 
 	public final UUID id;
 	private final ReadOnlyObjectWrapper<PlaylistSong> playingSongWrapper = new ReadOnlyObjectWrapper<>(null);
@@ -60,7 +60,7 @@ public class Playlist extends SimpleListProperty<PlaylistSong> {
 		super(observableArrayList());
 		this.id = id;
 
-		onChange(getValue(), runnable(() -> durationUpdater.push(null)));
+		onChange(this, runnable(() -> durationUpdater.push(null)));
 	}
 
 	public void updatePlayingItem(int i) {

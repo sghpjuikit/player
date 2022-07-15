@@ -10,7 +10,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
    kotlin("jvm") version "1.7.10"
    application
-   id("com.github.ben-manes.versions") version "0.42.0"
+   id("com.github.ben-manes.versions") version "0.42.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
+   id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
 // ----- util block; defined first to help IDE with syntax checking for erroneous code
@@ -256,6 +257,13 @@ tasks {
       )
    }
 
+}
+
+licenseReport {
+   generateCsvReport = false
+   generateHtmlReport = false
+   generateJsonReport = true
+   generateTextReport = false
 }
 
 application {

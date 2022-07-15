@@ -35,11 +35,9 @@ allprojects {
 
    kotlin {
       jvmToolchain {
-         (this as JavaToolchainSpec).apply {
-            languageVersion.set(JavaLanguageVersion.of(17))
-            vendor.set(JvmVendorSpec.IBM_SEMERU)
-            implementation.set(J9)
-         }
+         languageVersion.set(JavaLanguageVersion.of(17))
+         vendor.set(JvmVendorSpec.IBM_SEMERU)
+         implementation.set(J9)
       }
    }
 

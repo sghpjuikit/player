@@ -18,6 +18,7 @@ import java.util.TreeSet
 import java.util.Vector
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import sp.it.util.dev.printIt
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.net
 import sp.it.util.type.kType
@@ -171,6 +172,13 @@ class JsonTest: FreeSpec({
             }
          }
       }
+      "inline" {
+         val json = JsNumber(1)
+         j.fromJsonValue<Int>(json).orThrow shouldBeInstance Int::class
+         j.fromJsonValue<Int>(json).orThrow shouldBe 1
+         j.fromJsonValue<InlineInt>(json).orThrow shouldBeInstance InlineInt::class
+         j.fromJsonValue<InlineInt>(json).orThrow shouldBe InlineInt(1)
+      }
    }
    "Write-read" - {
       "numbers" {
@@ -234,14 +242,40 @@ class JsonTest: FreeSpec({
             val valueOut8 = j.toJsonValue(type, valueIn).toCompactS().net { j.fromJson(type<Any>(), it) }.orThrow
             valueIn.toString().toDouble() shouldBe valueOut8.toString().toDouble()
             valueOut8 shouldBeInstance Number::class
-
          }
       }
    }
+   "inline" {
+      val simple = 1
+      val complex = Complex(1.0, 1.0)
+      val iSimple = InlineInt(simple)
+      val iComplex = InlineComplex(complex)
+
+      // format
+      j.toJsonValue(iSimple).toCompactS() shouldBe "1"
+      j.toJsonValue<Any>(iSimple).toCompactS() shouldBe """{"_type":"sp.it.util.file.json.InlineInt","value":1}"""
+      j.toJsonValue(iComplex).toCompactS() shouldBe """{"x":1.0,"y":1.0}"""
+      j.toJsonValue<Any>(iComplex).toCompactS() shouldBe """{"_type":"sp.it.util.file.json.InlineComplex","value":{"x":1.0,"y":1.0}}"""
+      // simple value class
+      j.toJsonValue<Any>(iSimple).net { j.fromJsonValue<InlineInt>(it) }.orThrow shouldBe iSimple
+      j.toJsonValue<Any>(iSimple).net { j.fromJsonValue<Any>(it) }.orThrow shouldBe iSimple
+      j.toJsonValue(iSimple).net { j.fromJsonValue<InlineInt>(it) }.orThrow shouldBe iSimple
+      j.toJsonValue(iSimple).net { j.fromJsonValue<Any>(it) }.orThrow shouldBe simple   // expected type loss to json representation
+      // complex value class
+      j.toJsonValue<Any>(iComplex).net { j.fromJsonValue<InlineComplex>(it) }.orThrow shouldBe iComplex
+      j.toJsonValue<Any>(iComplex).net { j.fromJsonValue<Any>(it) }.orThrow shouldBe iComplex
+      j.toJsonValue(iComplex).net { j.fromJsonValue<InlineComplex>(it) }.orThrow shouldBe iComplex
+      j.toJsonValue(iComplex).net { j.fromJsonValue<Any>(it) }.orThrow shouldBe mapOf("x" to 1.0, "y" to 1.0)   // expected type loss to json representation
+   }
 })
+
+data class Complex(val x: Double, val y: Double)
+@JvmInline value class InlineInt(val value: Int)
+@JvmInline value class InlineComplex(val value: Complex)
 
 private inline fun <reified T: Any> Any?.shouldBeInstance() = T::class.isInstance(this) shouldBe true
 private infix fun Any?.shouldBeInstance(type: KClass<*>) = type.isInstance(this) shouldBe true
 private infix fun Any?.shouldBeInstance(type: KType) = type.raw.isInstance(this) shouldBe true
+
 private inline fun <reified T: Any> arg() = row(kType<T>())
 private inline fun <reified T: Any> argIns(arg: T) = row(type<T>(), arg)

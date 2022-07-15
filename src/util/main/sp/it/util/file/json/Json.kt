@@ -31,8 +31,10 @@ import java.util.Vector
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.text.Charsets.UTF_8
@@ -119,6 +121,8 @@ class Json: JsonAst() {
    val keyMapConverter: ConverterDefault = Parsers.DEFAULT
 
    init {
+      keyMapConverter.addParserAsF(String::class, { it }, { it })
+
       @Suppress("SpellCheckingInspection")
       typeAliases {
          // @formatter:off
@@ -256,6 +260,11 @@ class Json: JsonAst() {
                         val isStillAmbiguous = typeAsRaw==Any::class
                         converter.toJson(value).withAmbiguity(isStillAmbiguous)
                      }
+                     type.isValue -> {
+                        val p = type.declaredMemberProperties.first()
+                        val v = p.getter.call(value)
+                        toJsonValue(p.returnType, v).withAmbiguity()
+                     }
                      else -> {
                         val values = type.memberProperties.asSequence()
                            .filter { it.javaField!=null }
@@ -309,7 +318,17 @@ class Json: JsonAst() {
       val converter = converters.byType.getElementOfSuper(typeK).asIf<JsConverter<Any?>>()
       return when {
          converter!=null -> converter.fromJson(value)
-         value::class==typeK -> return value
+         value::class==typeK -> value
+         typeK.isValue && value !is JsNull && value !is JsObject && typeK!=UByte::class && typeK!=UShort::class && typeK!=UInt::class && typeK!=ULong::class -> {
+            val c = typeK.primaryConstructor ?: fail { "Value type=$typeK has no constructor" }
+            val v = fromJsonValueImpl(c.parameters[0].type, value)
+            runTry {
+               c.isAccessible = true
+               c.call(v)
+            }.getOrSupply {
+               fail(it) { "Failed to instantiate $typeK\nwith args:$v\nfrom:$value" }
+            }
+         }
          else -> {
             when (value) {
                is JsNull -> if (typeTarget.isMarkedNullable || typeTarget.isPlatformType) null else fail { "null is not $typeTarget" }
@@ -364,7 +383,6 @@ class Json: JsonAst() {
                            MutableList::class -> ArrayList(values)
                            LinkedList::class -> LinkedList(values)
                            ArrayList::class -> ArrayList(values)
-                           Vector::class -> Vector(values)
                            Vector::class -> Vector(values)
                            Stack::class -> Stack<Any?>().apply { values.forEach { push(it) } }
                            Queue::class -> ArrayDeque(values)
@@ -432,9 +450,18 @@ class Json: JsonAst() {
                         val mapValueType = typeTarget.argOf(Map::class, 1).typeOrAny
                         value.value.mapKeys { keyMapConverter.ofS(mapKeyType, it.key).orThrow }.mapValues { fromJsonValueImpl(mapValueType, it.value) }
                      }
+                     instanceType.isValue -> {
+                        val c = instanceType.primaryConstructor ?: fail { "Value type=$instanceType has no constructor" }
+                        val v = fromJsonValueImpl(c.parameters[0].type, value.value["value"] ?: value)
+                        runTry {
+                           c.isAccessible = true
+                           c.call(v)
+                        }.getOrSupply {
+                           fail(it) { "Failed to instantiate $instanceType\nwith args:$v\nfrom:$value" }
+                        }
+                     }
                      else -> {
-                        val constructor = instanceType.constructors.firstOrNull()
-                           ?: fail { "Type=$instanceType has no constructor" }
+                        val constructor = instanceType.constructors.firstOrNull() ?: fail { "Type=$instanceType has no constructor" }
                         val arguments = constructor.parameters.mapNotNull {
                            val argJs = value.value[it.name]
                            if (argJs==null) {
@@ -450,7 +477,7 @@ class Json: JsonAst() {
                            constructor.isAccessible = true
                            constructor.callBy(arguments)
                         }.getOrSupply {
-                           fail(it) { "Failed to instantiate $instanceType\nwith args:${arguments.mapKeys { it.key.name }}\nfrom:$value\n" }
+                           fail(it) { "Failed to instantiate $instanceType\nwith args:${arguments.mapKeys { it.key.name }}\nfrom:$value" }
                         }
                      }
                   }

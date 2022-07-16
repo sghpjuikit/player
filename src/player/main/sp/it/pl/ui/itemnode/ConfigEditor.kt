@@ -16,7 +16,9 @@ import javafx.collections.ObservableList
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
+import javafx.geometry.Side
 import javafx.scene.Node
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.effect.Effect
@@ -36,6 +38,7 @@ import sp.it.pl.layout.WidgetManager
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltip
+import sp.it.pl.main.toUi
 import sp.it.pl.plugin.PluginManager
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
@@ -71,15 +74,15 @@ import sp.it.util.type.enumValues
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
+import sp.it.util.ui.dsl
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.textIcon
 import sp.it.util.units.millis
 
-private val defTooltip = appTooltip("Default value")
-private const val defBLayoutSize = 15.0
+private const val caretLayoutSize = 15.0
 private const val configRootSpacing = 5.0
-private val paddingNoDefB = Insets(0.0, defBLayoutSize + configRootSpacing, 0.0, 0.0)
-private val paddingWithDefB = Insets.EMPTY
+private val paddingNoCaret = Insets(0.0, caretLayoutSize + configRootSpacing, 0.0, 0.0)
+private val paddingWithCaret = Insets.EMPTY
 
 /**
  * Editable and settable graphic control for configuring [sp.it.util.conf.Config].
@@ -161,54 +164,61 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
       root.setMaxSize(-1.0, -1.0)  // support variable content height
       root.alignment = Pos.CENTER_LEFT
 
-      var defB: Icon? = null
-      var defBA: Anim? = null
+      var caretB: Icon? = null
+      var caretA: Anim? = null
       val isTypeSingleton = config.type.type.jvmErasure.objectInstance != null || config.hasConstraint<Constraint.NoUiDefaultButton>()
-      val isDefBSupported = config.isEditable.isByUser && !isTypeSingleton
-      if (isDefBSupported) {
+      val isCaretSupported = config.isEditable.isByUser && !isTypeSingleton
+      if (isCaretSupported) {
          root.addEventFilter(MOUSE_ENTERED) {
             if (isEditable.value) {
                runFX(270.millis) {
                   if (root.isHover) {
-                     val isDefBNeeded = defB==null && isEditable.value
-                     if (isDefBNeeded) {
-                        defB = Icon(null, -1.0, null, { this.refreshDefaultValue() })
-                        defB!!.tooltip(defTooltip)
-                        defB!!.styleclass("config-editor-default-button")
-                        defB!!.isManaged = false
-                        defB!!.opacity = 0.0
+                     val isCaretNeeded = caretB==null && isEditable.value
+                     if (isCaretNeeded) {
+                        caretB = Icon(null, -1.0).onClickDo { i ->
+                           ContextMenu().dsl {
+                              item("Set to default") { this@ConfigEditor.refreshDefaultValue() }
+                              if (config.type.isNullable) item("Set to ${null.toUi()}") {
+                                 @Suppress("UNCHECKED_CAST")
+                                 this@ConfigEditor.config.value = null as T
+                              }
+                           }.show(i, Side.BOTTOM, 0.0, 0.0)
+                        }
+                        caretB!!.styleclass("config-editor-caret")
+                        caretB!!.isManaged = false
+                        caretB!!.opacity = 0.0
 
-                        val defBRoot = object: StackPane(defB) {
+                        val caretRoot = object: StackPane(caretB) {
                            override fun layoutChildren() {
-                              defB!!.relocate(
-                                 width/2.0 - defB!!.layoutBounds.width/2,
-                                 height/2.0 - defB!!.layoutBounds.height/2
+                              caretB!!.relocate(
+                                 width/2.0 - caretB!!.layoutBounds.width/2,
+                                 height/2.0 - caretB!!.layoutBounds.height/2
                               )
                            }
                         }
-                        defBRoot.setPrefSize(defBLayoutSize, defBLayoutSize)
-                        root.children.add(defBRoot)
-                        root.padding = paddingWithDefB
+                        caretRoot.setPrefSize(caretLayoutSize, caretLayoutSize)
+                        root.children.add(caretRoot)
+                        root.padding = paddingWithCaret
 
-                        defBA = anim(450.millis) {
-                           if (defB!=null)
-                              defB!!.opacity = it*it
+                        caretA = anim(450.millis) {
+                           if (caretB!=null)
+                              caretB!!.opacity = it*it
                         }
                      }
-                     if (defBA!=null)
-                        defBA!!.playOpenDo(null)
+                     if (caretA!=null)
+                        caretA!!.playOpenDo(null)
                   }
                }
             }
          }
          root.addEventFilter(MOUSE_EXITED) {
-            if (defBA!=null)
-               defBA!!.playCloseDo {
-                  if (defB!!.isFocused) editor.requestFocus()
-                  root.children.remove(defB!!.parent)
-                  defB = null
-                  defBA = null
-                  root.padding = paddingNoDefB
+            if (caretA!=null)
+               caretA!!.playCloseDo {
+                  if (caretB!!.isFocused) editor.requestFocus()
+                  root.children.remove(caretB!!.parent)
+                  caretB = null
+                  caretA = null
+                  root.padding = paddingNoCaret
                }
          }
       }
@@ -227,7 +237,7 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
             }
          }
       root.children.add(0, config)
-      root.padding = paddingNoDefB
+      root.padding = paddingNoCaret
       HBox.setHgrow(config, Priority.ALWAYS)
       HBox.setHgrow(config.parent, Priority.ALWAYS)
 

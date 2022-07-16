@@ -9,12 +9,14 @@ import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
-import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.text.TextFlow
 import sp.it.pl.main.Css
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.ConfigEditor
+import sp.it.pl.ui.itemnode.ConfigurableCE
+import sp.it.pl.ui.itemnode.ObservableListCE
+import sp.it.pl.ui.itemnode.PaginatedObservableListCE
 import sp.it.pl.ui.labelForWithClick
 import sp.it.pl.ui.pane.ConfigPane.Layout.EXTENSIVE
 import sp.it.pl.ui.pane.ConfigPane.Layout.MINI
@@ -106,9 +108,25 @@ class ConfigPane<T: Any?>: VBox {
          }
          .associateBy { it.configEditor ?: it.parent?.configEditor!! }
 
+      fun ConfigEditor<*>.isNested() = this is ObservableListCE<*> || this is PaginatedObservableListCE || this is ConfigurableCE
+      fun ConfigEditor<*>.buildNameLabel() = label(config.nameUi) {
+         styleClass += "form-config-pane-config-name"
+         isPickOnBounds = false
+         alignment = CENTER_LEFT
+         minWidth = USE_PREF_SIZE
+         labelForWithClick setTo editor
+      }
       fun ConfigEditor<*>.buildNodeForThis() = editorNodesOld[this] ?: buildNode().apply {
          properties[buildUiKey] = buildUiKey
          isEditableAllowed syncFrom this@ConfigPane.editable
+      }
+      fun ConfigEditor<*>.buildDescriptionText() = when {
+         config.info.isEmpty() || config.nameUi==config.info -> null
+         else -> textFlow {
+            styleClass += Css.DESCRIPTION
+            styleClass += "form-config-pane-config-description"
+            lay += text(config.info)
+         }
       }
 
       if (!soft)
@@ -116,58 +134,50 @@ class ConfigPane<T: Any?>: VBox {
 
       editorNodes = editors.flatMap { e ->
          when (ui.value!!) {
-            MINI -> listOf(
-               hBox(20.emScaled, CENTER_LEFT) {
-                  if (needsLabel)
-                     lay(ALWAYS) += label(e.config.nameUi) {
-                        styleClass += "form-config-pane-config-name"
-                        isPickOnBounds = false
-                        alignment = CENTER_LEFT
-                        minWidth = Region.USE_PREF_SIZE
-                        labelForWithClick setTo e.editor
-                     }
-                  lay += e.buildNodeForThis()
-               }
-            )
-            NORMAL -> listOfNotNull(
-               when {
-                  e.config.info.isEmpty() || e.config.nameUi==e.config.info -> null
-                  else -> textFlow {
-                     styleClass += Css.DESCRIPTION
-                     styleClass += "form-config-pane-config-description"
-                     lay += text(e.config.info)
+            MINI -> when {
+               !needsLabel -> listOf(
+                  hBox(20.emScaled, CENTER_LEFT) {
+                     lay += e.buildNodeForThis()
                   }
-               },
-               hBox(20.emScaled, CENTER_LEFT) {
-                  if (needsLabel)
-                     lay(ALWAYS) += label(e.config.nameUi) {
-                        styleClass += "form-config-pane-config-name"
-                        isPickOnBounds = false
-                        alignment = CENTER_LEFT
-                        minWidth = Region.USE_PREF_SIZE
-                        labelForWithClick setTo e.editor
-                     }
-                  lay += e.buildNodeForThis()
-               }
-            )
+               )
+               e.isNested() -> listOf(
+                  e.buildNameLabel(),
+                  hBox(20.emScaled, CENTER_LEFT) {
+                     lay += e.buildNodeForThis()
+                  }
+               )
+               else -> listOf(
+                  hBox(20.emScaled, CENTER_LEFT) {
+                     lay(ALWAYS) += e.buildNameLabel()
+                     lay += e.buildNodeForThis()
+                  }
+               )
+            }
+            NORMAL -> when {
+               !needsLabel -> listOfNotNull(
+                  e.buildDescriptionText(),
+                  hBox(20.emScaled, CENTER_LEFT) {
+                     lay += e.buildNodeForThis()
+                  }
+               )
+               e.isNested() -> listOfNotNull(
+                  e.buildDescriptionText(),
+                  e.buildNameLabel(),
+                  hBox(20.emScaled, CENTER_LEFT) {
+                     lay += e.buildNodeForThis()
+                  }
+               )
+               else -> listOfNotNull(
+                  e.buildDescriptionText(),
+                  hBox(20.emScaled, CENTER_LEFT) {
+                     lay(ALWAYS) += e.buildNameLabel()
+                     lay += e.buildNodeForThis()
+                  }
+               )
+            }
             EXTENSIVE -> listOfNotNull(
-               when {
-                  needsLabel -> label(e.config.nameUi) {
-                     styleClass += "form-config-pane-config-name"
-                     isPickOnBounds = false
-                     prefWidth = Region.USE_PREF_SIZE
-                     labelForWithClick setTo e.editor
-                  }
-                  else -> null
-               },
-               when {
-                  e.config.info.isEmpty() || e.config.nameUi==e.config.info -> null
-                  else -> textFlow {
-                     styleClass += Css.DESCRIPTION
-                     styleClass += "form-config-pane-config-description"
-                     lay += text(e.config.info)
-                  }
-               },
+               if (needsLabel) e.buildNameLabel() else null,
+               e.buildDescriptionText(),
                e.buildNodeForThis()
             )
          }.onEach { n ->

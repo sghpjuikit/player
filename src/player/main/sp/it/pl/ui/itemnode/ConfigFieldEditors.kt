@@ -718,6 +718,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 
       init {
          pane.editable syncFrom isEditable on disposer
+         pane.ui syncFrom APP.ui.formLayout on disposer
          pane.onChange = Runnable {
             if (lc.a.isSimpleItemType && !isSyntheticListEvent && !isSyntheticLinkEvent) {
                isSyntheticSetEvent = true

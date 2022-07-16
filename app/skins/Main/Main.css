@@ -385,14 +385,12 @@
 .slider {
     -fx-skin: "sp.it.pl.ui.objects.SpitSliderSkin";
 }
-
 .slider .fill {
     -fx-background-color: -fx-focus-color;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-padding: 0;
 }
-
 .slider .thumb,
 .slider .thumb:hover,
 .slider .thumb:pressed,
@@ -417,6 +415,22 @@
     -fx-tick-label-fill: -skin-def-font-color;
     -fx-background-insets: -6,5,4,3;
     -fx-opacity: 0.9;
+}
+
+/** Slider track fade effect */
+.slider .fill {
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, -fx-focus-color 100%);
+}
+.slider .thumb,
+.slider .thumb:hover,
+.slider .thumb:pressed,
+.slider:focused .thumb,
+.slider:focused .thumb:hover,
+.slider:focused .thumb:pressed {
+    -fx-background-color: -skin-almost-transparent;
+}
+.slider .track {
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, transparent 0%, rgba(255,255,255,0.3) 100%);
 }
 
 /********************************** ScrollBar *************************************
@@ -1829,11 +1843,14 @@ Shape, Text, SpitText, TextFlow > * {
  * Value changing indicator popup
  */
 .slider-value-popup {
-    -fx-background-color: -skin-popup-def-bgr-color;
-    -fx-background-radius: 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-background-insets: 0.5em 0 0 0;
     -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, transparent 0%, -skin-def-font-color 50%, transparent 100%);
-    -fx-border-width: 1;
-    -fx-padding: 1em;
+    -fx-border-width: 0;
+    -fx-border-radius: 0em;
+    -fx-border-insets: 0.5em 0 0 0;
+    -fx-padding: 0em 1em 0em 1em;
 }
 
 /********************************* SPLIT PANE *********************************/
@@ -2967,9 +2984,6 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits .slider
  */
 .volume {}
-.volume .thumb {}
-.volume .thumb:hover {}
-.volume .track {}
 
 /******************************* VOLUME SLIDER *************************************************************************
  * Decoration trait for comment or information text.
@@ -3035,14 +3049,14 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .slider-config-editor .thumb,
 .slider-config-editor .thumb:hover,
-.slider-config-editor .thumb:armed,
+.slider-config-editor .thumb:pressed,
 .slider-config-editor:focused .thumb,
 .slider-config-editor:focused .thumb:hover,
-.slider-config-editor:focused .thumb:armed,
+.slider-config-editor:focused .thumb:pressed,
 .slider-config-editor:hover .thumb {
     -fx-fill: -skin-value-font-color;
     -fx-text-fill: -skin-value-font-color;
-    -fx-background-color: -skin-value-font-color;
+    -fx-background-color: transparent;
 }
 
 /*

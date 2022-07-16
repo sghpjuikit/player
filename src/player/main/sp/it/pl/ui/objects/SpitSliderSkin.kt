@@ -148,7 +148,7 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
 
             d += ::hide
             d += skinnable.valueProperty() sync {
-               xy = skinnable.localToScreen(skinnable.layoutBounds.width*skinnable.valueRel - width/2.0, 20.0).toP()
+               xy = skinnable.localToScreen(skinnable.layoutBounds.width*skinnable.valueRel - width/2.0, 0.0).toP()
             }
          }
 

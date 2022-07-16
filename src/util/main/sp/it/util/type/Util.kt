@@ -53,6 +53,7 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.FlowPane
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
@@ -242,6 +243,8 @@ private val extractors = setOf(
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::eventDispatcherProperty,            type<Property<EventDispatcher>>()),
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::focusedProperty,                    type<ReadOnlyProperty<Boolean>>()),
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::focusTraversableProperty,           type<Property<Boolean>>()),
+      Extractor(javafx.scene.Node::class,            javafx.scene.Node::focusVisibleProperty,               type<ReadOnlyProperty<Boolean>>()),
+      Extractor(javafx.scene.Node::class,            javafx.scene.Node::focusWithinProperty,                type<ReadOnlyProperty<Boolean>>()),
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::hoverProperty,                      type<ReadOnlyProperty<Boolean>>()),
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::idProperty,                         type<Property<String?>>()),
       Extractor(javafx.scene.Node::class,            javafx.scene.Node::inputMethodRequestsProperty,        type<Property<InputMethodRequests?>>()),
@@ -362,6 +365,8 @@ private val extractors = setOf(
  */
 fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
 
+   fun isBlacklisted(instanceClass: KClass<*>, methodName: String) = Pane::class.isSuperclassOf(instanceClass) && methodName=="getChildrenUnmodifiable"
+
    fun KType.resolveNullability(name: String): KType = when {
       this.isPlatformType -> when {
          o is Effect && name == "input"-> this.withNullability(true)
@@ -374,11 +379,12 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
       else -> this
    }
 
-   o::class.superKClassesInc().filter { !it.java.isInterface }.forEach { declaringClass ->
+   val instanceClass = o::class
+   instanceClass.superKClassesInc().filter { !it.java.isInterface }.forEach { declaringClass ->
       declaringClass.declaredMemberFunctions.forEach { method ->
          val methodName = method.name
          val isPublished = method.visibility==PUBLIC && !methodName.startsWith("impl")
-         if (isPublished) {
+         if (isPublished && !isBlacklisted(instanceClass, methodName)) {
             var propertyName: String? = null
             val returnType = method.returnType
             if (returnType.isSubtypeOf<Observable>()) {

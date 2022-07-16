@@ -84,9 +84,9 @@ allprojects {
          // compatibility table https://kotlinlang.org/docs/releases.html#release-details
          implementation(kotlin("stdlib-jdk8"))
          implementation(kotlin("reflect"))
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.3")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.3")
-         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.3")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.6.4")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-javafx", "1.6.4")
+         implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-jdk8", "1.6.4")
          implementation("org.jetbrains", "annotations", "23.0.0")
       }
 

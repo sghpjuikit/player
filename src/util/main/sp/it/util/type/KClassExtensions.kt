@@ -2,6 +2,7 @@ package sp.it.util.type
 
 import kotlin.reflect.KClass
 import sp.it.util.dev.fail
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 
@@ -40,3 +41,11 @@ val KClass<*>.isObject: Boolean
 /** Singletons (objects) subclassing the specified class as sealed class. */
 val <T: Any> KClass<T>.sealedSubObjects: List<T>
    get() = sealedSubclasses.mapNotNull { it.objectInstance }
+
+/** @return this class or if anonymous, the superclass or superinterface or [Any] */
+fun KClass<*>.resolveAnonymous(): KClass<*> {
+   val cj = java
+   return if (cj.isAnonymousClass) cj.superclass?.kotlin ?: cj.interfaces.firstOrNull()?.kotlin ?: Any::class
+   else this
+
+}

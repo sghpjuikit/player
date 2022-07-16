@@ -22,6 +22,7 @@ import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
 import sp.it.util.functional.map
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.onChange
@@ -29,6 +30,7 @@ import sp.it.util.text.ifNotEmpty
 import sp.it.util.type.kTypeNothingNonNull
 import sp.it.util.type.kTypeNothingNullable
 import sp.it.util.type.raw
+import sp.it.util.type.resolveAnonymous
 import sp.it.util.type.union
 
 /** @return new list containing elements of this sequence, e.g. for safe iteration */
@@ -68,7 +70,7 @@ fun <E: Any> Collection<E?>.getElementType(): KType = when {
          }
          ?: run {
             // Find the lowest common element type
-            fun KClass<*>.estimateType() = createType(typeParameters.map { STAR })
+            fun KClass<*>.estimateType(): KType = resolveAnonymous().net { it.createType(it.typeParameters.map { STAR }) }
             asSequence().filterNotNull()
                .map { it::class }.distinct()
                .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }!!

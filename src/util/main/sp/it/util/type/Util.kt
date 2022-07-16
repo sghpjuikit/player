@@ -379,7 +379,7 @@ fun forEachJavaFXProperty(o: Any): Sequence<InspectedFxProperty> = sequence {
       else -> this
    }
 
-   val instanceClass = o::class
+   val instanceClass = o::class.resolveAnonymous()
    instanceClass.superKClassesInc().filter { !it.java.isInterface }.forEach { declaringClass ->
       declaringClass.declaredMemberFunctions.forEach { method ->
          val methodName = method.name

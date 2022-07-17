@@ -20,7 +20,7 @@ class TableColumnInfo() {
    @JvmField var nameKeyMapper: (String) -> String = { it }
 
    init {
-      columns = MapSet { nameKeyMapper(it.name) }
+      columns = MapSet(LinkedHashMap()) { nameKeyMapper(it.name) }
       sortOrder = ColumnSortInfo()
    }
 

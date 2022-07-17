@@ -3858,6 +3858,84 @@ Shape, Text, SpitText, TextFlow > * {
     -glyph-size: 1.166667em; /* 14 */
 }
 
+/******************************** WEATHER ********************************/
+
+/* Inherits: VBox */
+.weather-info-forecast {}
+.weather-info-forecast > Label {
+    -fx-padding: 1em;
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Inherits: HBox */
+.weather-info-forecast-hourly,
+.weather-info-forecast-hourly HBox {
+    -fx-spacing: 1em;
+}
+
+/* Inherits: VBox */
+.weather-info-forecast-hourly .weather-info-forecast-hourly-names {
+    -fx-alignment: CENTER_RIGHT;
+}
+.weather-info-forecast-hourly .weather-info-forecast-hourly-names .label {
+    -fx-opacity: 0.4;
+}
+
+/* Inherits: VBox */
+.weather-info-forecast-hourly .weather-info-forecast-hourly-units {
+    -fx-alignment: CENTER;
+}
+
+/* Inherits: VBox
+ * pseudoclasses: first-hour-of-day, last-hour-of-day
+ */
+.weather-info-forecast-hourly .weather-info-forecast-hourly-cell {
+    -fx-alignment: CENTER;
+}
+.weather-info-forecast-hourly .weather-info-forecast-hourly-cell:first-hour-of-day {}
+.weather-info-forecast-hourly .weather-info-forecast-hourly-cell:last-hour-of-day {}
+
+.weather-info-forecast-hourly .weather-info-forecast-hourly-names .icon,
+.weather-info-forecast-hourly .weather-info-forecast-hourly-units .icon,
+.weather-info-forecast-hourly .weather-info-forecast-hourly-cell .icon {
+    -glyph-size: 1.5em;
+}
+
+/* Inherits: HBox */
+.weather-info-forecast-daily,
+.weather-info-forecast-daily HBox {
+    -fx-spacing: 1em;
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Inherits: VBox */
+.weather-info-forecast-daily .weather-info-forecast-daily-names {
+    -fx-alignment: CENTER_RIGHT;
+}
+.weather-info-forecast-daily .weather-info-forecast-daily-names .label {
+    -fx-opacity: 0.4;
+}
+
+/* Inherits: VBox */
+.weather-info-forecast-daily .weather-info-forecast-daily-units {
+    -fx-alignment: CENTER;
+}
+
+/* Inherits: VBox
+ * pseudoclasses: first-day-of-month, last-day-of-month
+ */
+.weather-info-forecast-daily .weather-info-forecast-daily-cell {
+    -fx-alignment: CENTER;
+}
+.weather-info-forecast-daily .weather-info-forecast-daily-cell:first-day-of-month {}
+.weather-info-forecast-daily .weather-info-forecast-daily-cell:last-day-of-month {}
+
+.weather-info-forecast-daily .weather-info-forecast-daily-names .icon,
+.weather-info-forecast-daily .weather-info-forecast-daily-units .icon,
+.weather-info-forecast-daily .weather-info-forecast-daily-cell .icon {
+    -glyph-size: 1.5em;
+}
+
 /***************************** MARKDOWN NODE *****************************
  * Font picker dialog
  * inherits: .dialog

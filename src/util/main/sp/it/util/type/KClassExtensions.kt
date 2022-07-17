@@ -1,8 +1,11 @@
 package sp.it.util.type
 
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.primaryConstructor
 import sp.it.util.dev.fail
-import sp.it.util.functional.net
+import sp.it.util.dev.failIf
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 
@@ -47,5 +50,11 @@ fun KClass<*>.resolveAnonymous(): KClass<*> {
    val cj = java
    return if (cj.isAnonymousClass) cj.superclass?.kotlin ?: cj.interfaces.firstOrNull()?.kotlin ?: Any::class
    else this
+}
 
+/** @return data class component properties in declaration order (unlike [KClass.declaredMemberProperties]). Fails for non data class. */
+fun <T: Any> KClass<T>.dataComponentProperties(): List<KProperty1<T, *>> {
+   failIf(!isData) { "Class $this must be data class to return its components" }
+   val ps = primaryConstructor!!.parameters.withIndex().associate { (i, p) -> p.name to i }
+   return declaredMemberProperties.filter { it.name in ps }.sortedBy { ps[it.name] }
 }

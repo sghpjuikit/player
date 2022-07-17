@@ -6,8 +6,11 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import java.time.Instant
+import java.time.ZoneId
 import javafx.geometry.Insets
-import javafx.geometry.VPos
+import javafx.geometry.Side.BOTTOM
+import javafx.geometry.VPos.CENTER
+import javafx.scene.control.ContextMenu
 import javafx.scene.layout.HBox
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -18,8 +21,14 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconWH
 import sp.it.pl.main.configure
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.toUi
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.Dt
+import sp.it.pl.ui.nodeinfo.WeatherInfo.Companion.Types.WindDir
 import sp.it.pl.ui.objects.icon.Icon
+import sp.it.pl.ui.objects.window.NodeShow.DOWN_CENTER
+import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.util.access.ref.LazyR
 import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.async.IO
@@ -38,12 +47,13 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.toSubscription
+import sp.it.util.system.browse
 import sp.it.util.text.capital
+import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -53,11 +63,12 @@ import sp.it.util.ui.times
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import sp.it.util.units.em
+import sp.it.util.units.uri
 
 /** Basic display for song album information. */
 class WeatherInfo: HBox(15.0) {
 
-   private val confIcon = Icon(IconFA.COG).onClickDo { configure() }
+   private val caretIcon = Icon(IconFA.CARET_DOWN).onClickDo { openCaret()  }
    private val mainIcon = Icon().apply { isMouseTransparent = true; isFocusTraversable = false }.size(3.em)
    private val tempL = label { styleClass += "h3" }
    private val descL = label { styleClass += "h3p-bottom" }
@@ -89,14 +100,16 @@ class WeatherInfo: HBox(15.0) {
          prefSize = -1 x -1
          lay += hBox {
             styleClass += "h3p-up"
-            alignmentProperty() syncFrom this@WeatherInfo.alignmentProperty().map { it.hpos * VPos.CENTER }
-            lay += confIcon
+            alignmentProperty() syncFrom this@WeatherInfo.alignmentProperty().map { it.hpos * CENTER }
+            lay += hBox {
+               lay += caretIcon
+            }
             lay += mainIcon
             lay += tempL
          }
          lay += descL
          lay += hBox {
-            alignmentProperty() syncFrom this@WeatherInfo.alignmentProperty().map { it.hpos * VPos.CENTER }
+            alignmentProperty() syncFrom this@WeatherInfo.alignmentProperty().map { it.hpos * CENTER }
             lay += Icon(IconWH.WINDY).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += windL
             lay += Icon(IconWH.HUMIDITY).apply { isMouseTransparent = true; isFocusTraversable = false }
@@ -105,7 +118,7 @@ class WeatherInfo: HBox(15.0) {
             lay += dewL
          }
          lay += hBox {
-            alignmentProperty() syncFrom this@WeatherInfo.alignmentProperty().map { it.hpos * VPos.CENTER }
+            alignmentProperty() syncFrom this@WeatherInfo.alignmentProperty().map { it.hpos * CENTER }
             lay += Icon(IconWH.BAROMETER).apply { isMouseTransparent = true; isFocusTraversable = false }
             lay += pressureL
             lay += Icon(IconWH.HOT).apply { isMouseTransparent = true; isFocusTraversable = false }
@@ -118,9 +131,9 @@ class WeatherInfo: HBox(15.0) {
       // keep updated content
       sceneProperty().attach { monitor.subscribe(it!=null) } on onNodeDispose
 
+      apiKey attach { IO.launch { refresh() } }
       latitude attach { updateUi() }
       longitude attach { updateUi() }
-      apiKey attach { updateUi() }
       units attach { updateUi() }
       data sync { updateUi() }
    }
@@ -147,15 +160,19 @@ class WeatherInfo: HBox(15.0) {
       val s = units.value.s
       tempL.text = it?.current?.temp?.net { "%.1f%s".format(l, it, d) } ?: "n/a"
       descL.text = it?.current?.net { "Feels like %.1f%s%s".format(l, it.feels_like, d, it.weather.joinToString { ". " + it.description.capital() }) } ?: "n/a"
-      windL.text = it?.current?.let { "%d%s %s°".format(l, it.wind_speed.toInt(), s, it.windDir()) } ?: "n/a"
+      windL.text = it?.current?.let { "%d%s %s°".format(l, it.wind_speed.toInt(), s, it.wind_deg.toCD()) } ?: "n/a"
       humidityL.text = it?.current?.humidity?.toInt()?.net { "$it%" } ?: "n/a"
       dewL.text = it?.current?.dew_point?.net { "%.1f%s".format(l, it, d) } ?: "n/a"
       pressureL.text = it?.current?.pressure?.toInt()?.net { "${it}hPa" } ?: "n/a"
       uvL.text = it?.current?.uvi?.toUi() ?: "n/a"
       visL.text = it?.current?.visibility?.toInt()?.net { "%d%s".format(l, if (it>999) it/1000 else it, if (it>999) "km" else "m") } ?: "n/a"
+      forecastHourlyPopupContent?.value?.value = computeForecastH()
+      forecastHourlyPopupContent?.units?.value = units.value
+      forecastDailyPopupContent?.value?.value = computeForecastD()
+      forecastDailyPopupContent?.units?.value = units.value
    }
 
-   private fun configure() {
+   private fun openSettings() {
       object: ConfigurableBase<Any?>() {
          val latitude by cvn(this@WeatherInfo.latitude.value).def(name = "Latitude", info = "Latitude of the area for weather information")
          val longitude by cvn(this@WeatherInfo.longitude.value).def(name = "Longitude", info = "Longitude of the area for weather information")
@@ -175,13 +192,75 @@ class WeatherInfo: HBox(15.0) {
       }
    }
 
+
+   private var forecastHourlyPopupContent: WeatherInfoForecastHourly? = null
+   private var forecastDailyPopupContent: WeatherInfoForecastDaily? = null
+   private val forecastHourlyPopup = LazyR {
+      forecastHourlyPopupContent = WeatherInfoForecastHourly(units.value, computeForecastH())
+      forecastDailyPopupContent = WeatherInfoForecastDaily(units.value, computeForecastD())
+      PopWindow().apply {
+         title.value = "Weather forecast"
+         content.value = vBox {
+            styleClass += "weather-info-forecast"
+            prefWidth = 800.emScaled
+
+            lay += label("Hourly forecast")
+            lay += forecastHourlyPopupContent!!
+            lay += label("Daily forecast")
+            lay += forecastDailyPopupContent!!
+         }
+      }
+   }
+
+   fun computeForecastH() =
+      data.value?.hourly.orEmpty().map {
+         WeatherInfoForecastHourly.Cell.Data(
+            it.dt.toInstant().atZone(data.value?.timezone),
+            it.temp,
+            it.feels_like,
+            it.clouds, it.rain, it.snow, it.wind_speed, it.wind_gust, it.wind_deg,
+            it.weather.firstOrNull()?.icon(it.dt.dt in data.value!!.current.sunrise..data.value!!.current.sunset),
+         )
+      }
+
+   fun computeForecastD() = data.value?.daily.orEmpty()
+
+   private fun openForecast() {
+      val wasShowing = forecastHourlyPopup.orNull?.isShowing==true
+      if (wasShowing) forecastHourlyPopup.orNull?.hide()
+      else forecastHourlyPopup.get().show(DOWN_CENTER(caretIcon))
+   }
+
+   private fun openWindy() {
+      val (lat,lon) = latitude.value to longitude.value
+      if (lat!=null && lon!=null) uri("https://www.windy.com/%.3f/%.3f".format(lat, lon)).browse()
+   }
+
+   private fun openForecastMeteor() {
+      PopWindow().apply {
+         title.value = "Meteor shower forecast"
+         content.value = WeatherInfoForecastMeteors()
+      }.show(DOWN_CENTER(caretIcon))
+   }
+
+   fun openCaret() {
+         ContextMenu().dsl {
+            item("Settings") { openSettings() }
+            item("Open hourly/daily forecast ()") { openForecast() }
+            item("Open meteor shower forecast") { openForecastMeteor() }
+            item("Open in windy.com") { openWindy() }
+         }.show(
+            caretIcon, BOTTOM, 0.0, 0.0
+         )
+   }
+
    enum class Units(val d: String, val s: String) { METRIC("°C", "m/s"), IMPERIAL("°F", "mph") }
 
    /** https://openweathermap.org/api/one-call-api */
    data class Data(
       val lat: Double,
       val lon: Double,
-      val timezone: java.time.ZoneId,
+      val timezone: ZoneId,
       val timezone_offset: Long,
       val current: Current,
       val hourly: List<Hourly>,
@@ -190,7 +269,7 @@ class WeatherInfo: HBox(15.0) {
       fun isActual(info: WeatherInfo) = current.dt.toInstant().isOlderThan1Hour() && lat!=info.latitude.value && lon!=info.longitude.value
 
       data class Current(
-         val dt: Long,
+         val dt: Dt,
          val sunrise: Long,
          val sunset: Long,
          val temp: Double,
@@ -203,36 +282,56 @@ class WeatherInfo: HBox(15.0) {
          val visibility: Double,
          val wind_speed: Double,
          val wind_gust: Double?,
-         val wind_deg: Double,
+         val wind_deg: WindDir,
          val weather: List<WeatherGroup>,
       ) {
-         fun isDay() = dt in sunrise..sunset
-
-         fun windDir(): String = when (wind_deg.toInt()) {
-            in  78..123 -> "N"
-            in  23.. 77 -> "NE"
-            in   0..22  -> "E"
-            in 338..360 -> "E"
-            in 294..337 -> "SE"
-            in 249..293 -> "S"
-            in 204..248 -> "SW"
-            in 169..203 -> "W"
-            in 124..168 -> "NW"
-            else -> fail { "invalid wind direction degree value=${wind_deg}" }
-         }
+         fun isDay() = dt.dt in sunrise..sunset
       }
       data class Hourly(
+         val dt: Dt,
          val temp: Double,
          val feels_like: Double,
+         val pressure: Double,
+         val humidity: Double,
+         val dew_point: Double,
+         val clouds: Double,
+         val visibility: Double,
+         val wind_speed: Double,
+         val wind_gust: Double?,
+         val wind_deg: WindDir,
+         val rain: Double?,
+         val snow: Double?,
          val weather: List<WeatherGroup>,
       )
       data class Daily(
+         val dt: Dt,
          val sunrise: Long,
          val sunset: Long,
          val moonrise: Long,
          val moonset: Long,
+         val moon_phase: Double,
+         val temp: Temp,
+         val pressure: Double,
+         val humidity: Double,
+         val dew_point: Double,
+         val wind_speed: Double,
+         val wind_gust: Double?,
+         val wind_deg: WindDir,
+         val clouds: Double,
+         val rain: Double?,
+         val snow: Double?,
          val weather: List<WeatherGroup>,
-      )
+
+      ) {
+         data class Temp(
+            val day: Double,
+            val min: Double,
+            val max: Double,
+            val night: Double,
+            val eve: Double,
+            val morn: Double
+         )
+      }
       data class WeatherGroup(
          val id: Long,
          val main: String,
@@ -301,9 +400,29 @@ class WeatherInfo: HBox(15.0) {
    }
 
    companion object {
-      fun Long.toInstant(): Instant = Instant.ofEpochMilli(this*1000)
       fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
       inline fun <reified T> String.parseToJson(): T? = APP.serializerJson.json.fromJson<T>(this).orNull()
       fun Instant.isOlderThan1Hour() = Instant.now().isBefore(plusSeconds(3500))
+
+      object Types {
+         @JvmInline value class Dt(val dt: Long) {
+            fun toInstant(): Instant = Instant.ofEpochMilli(dt*1000)
+         }
+         @JvmInline value class WindDir(val deg: Double) {
+            /** @return cardinal direction of the [deg] value, e.g.: SE */
+            fun toCD(): String = when (deg.toInt()) {
+               in  78..123 -> "N"
+               in  23..77  -> "NE"
+               in   0..22  ->  "E"
+               in 338..360 ->  "E"
+               in 294..337 -> "SE"
+               in 249..293 -> "S"
+               in 204..248 -> "SW"
+               in 169..203 ->  "W"
+               in 124..168 -> "NW"
+               else -> fail { "invalid wind direction degree value=${deg}" }
+            }
+         }
+      }
    }
 }

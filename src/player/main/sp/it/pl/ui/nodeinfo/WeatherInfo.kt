@@ -246,7 +246,7 @@ class WeatherInfo: HBox(15.0) {
    fun openCaret() {
          ContextMenu().dsl {
             item("Settings") { openSettings() }
-            item("Open hourly/daily forecast ()") { openForecast() }
+            item("Open hourly/daily forecast") { openForecast() }
             item("Open meteor shower forecast") { openForecastMeteor() }
             item("Open in windy.com") { openWindy() }
          }.show(

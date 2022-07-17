@@ -62,7 +62,6 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
-import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.table.TableUtilKt.rows;
 import static sp.it.util.Util.digits;
@@ -166,7 +165,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 		// filtering
 		primaryFilterField = mainField;
-		filterPane = new Filter(type, filteredItems);
+		filterPane = new Filter(filteredItems);
 		filterPane.getNode().setVisible(false);
 		var filterKeyHandler = filterPane.buildToggleOnKeyHandler(filterVisible, this);
 		filterPane.getNode().addEventFilter(KEY_PRESSED, filterKeyHandler);
@@ -387,11 +386,11 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	/** Table's filter node. */
 	public class Filter extends FieldedPredicateChainItemNode<T,ObjectField<T,Object>> {
 
-		public Filter(Class<T> filterType, FilteredList<T> filterList) {
+		public Filter(FilteredList<T> filterList) {
 			super();
 			setPrefTypeSupplier(FilteredTable.this::getPrimaryFilterPredicate);
 			onItemChange = predicate -> filterList.setPredicate(predicate==IS ? null : predicate);
-			setData(getFilterPredicates(filterType));
+			setData(getFilterPredicates());
 		}
 	}
 
@@ -404,12 +403,12 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates(Class<T> filterType) {
-		return APP.getClassFields().get(getKotlinClass(filterType)).stream()
+	private List<PredicateData<ObjectField<T,Object>>> getFilterPredicates() {
+		return computeFieldsAll().stream()
 			.filter(ObjectField::isTypeFilterable)
-			.map((Function<ObjectField<T,?>,PredicateData<? extends ObjectField<T,?>>>) PredicateData::ofField)
+			.map(PredicateData::ofField)
 			.sorted(by(e -> e.name))
-			.map(f -> (PredicateData<ObjectField<T,Object>>) f)
+			.map(f -> (PredicateData<ObjectField<T,Object>>) (Object) f)
 			.toList();
 	}
 

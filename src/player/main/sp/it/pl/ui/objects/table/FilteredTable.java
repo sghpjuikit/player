@@ -36,6 +36,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.Nullable;
 import sp.it.pl.ui.itemnode.FieldedPredicateChainItemNode;
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData;
 import sp.it.pl.ui.nodeinfo.TableInfo;
@@ -89,7 +90,7 @@ import static sp.it.util.ui.UtilKt.menuItem;
 public class FilteredTable<T> extends FieldedTable<T> {
 
 	/** Initial filter criteria for the filter, used when filter is opened or additional filter added */
-	public ObjectField<T,?> primaryFilterField;
+	public @Nullable ObjectField<T,?> primaryFilterField;
 	private final ObservableList<T> allItems;
 	private final FilteredList<T> filteredItems;
 	private final ObservableList<T> sortedItems;
@@ -101,7 +102,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * @param type exact type of the item displayed in the table
 	 * @param mainField to be chosen as main and default search field or null
 	 */
-	public FilteredTable(Class<T> type, ObjectField<T,?> mainField) {
+	public FilteredTable(Class<T> type, @Nullable ObjectField<T,?> mainField) {
 		this(type, mainField, observableArrayList());
 	}
 
@@ -111,7 +112,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	 * sp.it.pl.ui.objects.table.FilteredTable.Search#field} and {@link #primaryFilterField}.
 	 * @param backing_list non-null backing list of items to be displayed in the table
 	 */
-	public FilteredTable(Class<T> type, ObjectField<T,?> mainField, ObservableList<T> backing_list) {
+	public FilteredTable(Class<T> type, @Nullable ObjectField<T,?> mainField, ObservableList<T> backing_list) {
 		super(type);
 
 		allItems = noNull(backing_list);
@@ -452,7 +453,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		 * text matching will be done by this field. Its column cell data must be
 		 * String (or search will be ignored) and column should be visible.
 		 */
-		private ObjectField<T,?> field;
+		private @Nullable ObjectField<T,?> field;
 		/**
 		 * Menu item for displaying and selecting {link {@link #field}}.
 		 */
@@ -468,6 +469,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 		@Override
 		public void doSearch(String query) {
+			if (field==null) return;
 			APP.getActionStream().invoke("Table search");
 			Function1<? super T,Boolean> matcher = field.searchMatch(itemS -> isMatchNth(itemS, query));
 			for (int i = 0; i<getItems().size(); i++) {
@@ -483,7 +485,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		/** Sets fields to be used in search. Default is main field. */
-		public void setColumn(ObjectField<T,?> field) {
+		public void setColumn(@Nullable ObjectField<T,?> field) {
 			// TODO make sure this is always safe
 			// Can not enforce this, because some Fields do not exactly specify their type, e.g., return Object.class
 			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for
@@ -505,6 +507,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		}
 
 		private void updateSearchStyleRowsNoReset() {
+			if (field==null) return;
 			boolean searchOn = isActive();
 			for (TableRow<T> row : rows(FilteredTable.this)) {
 				T item = row.getItem();

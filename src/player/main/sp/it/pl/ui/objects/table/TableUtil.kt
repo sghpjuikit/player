@@ -19,13 +19,16 @@ import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
 import sp.it.pl.ui.objects.table.PlaylistTable.CELL_PADDING
 import sp.it.util.access.fieldvalue.ObjectField
+import sp.it.util.dev.Experimental
 import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.Util.invokeMethodP1
 import sp.it.util.type.isSubclassOf
+import sp.it.util.ui.Util
 import sp.it.util.ui.lookupChildAs
+import sp.it.util.ui.width
 
 /**
  * Use as cell factory for columns created in column factory.
@@ -63,6 +66,14 @@ val TableColumn<*, *>.fontOrNull: Font?
       return headerCellLabel?.font
    }
 
+/** Font of the given column header or null if not yet initialized */
+fun TableColumn<*, *>.insetsOrZero(): Double {
+   val headerRow = tableView?.headerOrNull
+   val headerCell = if (headerRow==null) null else invokeMethodP1(headerRow, "getColumnHeaderFor", TableColumnBase::class.java, this) as TableColumnHeader?
+   val headerCellLabel = if (headerCell==null) null else getFieldValue<Label>(headerCell, "label")
+   return (headerCellLabel?.insets?.width ?: 0.0)
+}
+
 /** @return [TableRow]s of this table. If the table skin is not initialized, it may be empty */
 fun <T> TableView<T>.rows(): List<TableRow<T>> {
    return runTry {
@@ -72,3 +83,18 @@ fun <T> TableView<T>.rows(): List<TableRow<T>> {
    }.orNull().orEmpty().asIs()
 }
 
+@Experimental("Unclear when to call - requires populated and showing table - should be TableResizePolicy")
+fun <T> TableView<T>.autoResizeColumns() {
+   val rows = rows().associate { it.index to it.childrenUnmodifiable.filterIsInstance<TableCell<Any?,Any?>>().associateBy { it.tableColumn } }
+   columns.forEach { column ->
+      column.fontOrNull
+      column.prefWidth = maxOf(
+         rows.keys.maxOfOrNull {
+            val c = rows[it]!![column.asIs()]!!
+            Util.computeTextWidth(c.font, c.text.orEmpty()) + (c.insets?.width ?: 0.0)
+         } ?: 0.0,
+         Util.computeTextWidth(column.fontOrNull, column.text.orEmpty()) + column.insetsOrZero(),
+         10.0
+      )
+   }
+}

@@ -47,8 +47,6 @@
   It is not clear where exactly this would make the most impact. Potentially, custom action to reorganize windows.
 - Use standalone `README.md` for widgets  
   Will require lots of work. Also needs markdown support for displaying widget info in `Settings` and `WidgetPicker`.
-- Implement `ComboBox` search box  
-  `ComboBoxSkin` is most probably not sufficiently extendable for this. 
 - Implement `OverlayPane` autohide/onTop icons  
   Dock windows already have this feature. Overlay already supports the shortcuts, so this is very low priority.
 - Implement multiple-screen support for `Dock`  
@@ -130,7 +128,7 @@
 - [x] [JDK-8195750](https://bugs.openjdk.java.net/browse/JDK-8195750) `sp.it.pl.ui.nodeinfo.TableInfo` change throws exception sometimes  
   open, but no longer occurs
 - [ ] [KT-41373](https://youtrack.jetbrains.com/issue/KT-41373) Reflection: Anonymous class inspection fails  
-  reported, open
+  reported, open, worked around by using anonymous class's superclass for reflection
 - [x] [KT-41310](https://youtrack.jetbrains.com/issue/KT-41310) ReflectionL Creating `KType` from `Java`  
   reported, not an issue
 - [x] [KT-41309](https://youtrack.jetbrains.com/issue/KT-41309) Kotlinc: `-cp`  requiring escape after Kotlin update

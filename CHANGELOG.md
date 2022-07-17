@@ -3,8 +3,49 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Update Kotlin to 1.7.10
+- Update dependencies
+- Implement json support for value classes
+- Implement `WeatherInfo` forecast
+- Implement way to obtain dependencies' licence report [gradle licenceReport gradle task]
+- Improve JavaFX property detection [avoid getChildren twice]
+- Improve nested config editor layout
+- Improve config editor default button [turn into caret with menu]
+- Improve slider styling [gradient effect]
+- Improve `SpitSliderSkin` value changing tooltip layout [less intrusive]
+- Improve `WeatherInfo` settings UX [add config descriptions]
+- Fix `WeatherInfo` not refreshing ui sometimes
+- Fix `String` property editor autocomplete in some scenarios
+- Fix tables not respecting column order
+- Fix table search fails if primary column null
+- Fix table filter empty if table computes its own columns
+- Fix volume inc/dec on mouse scroll when scrollable element is hovered
+- Fix rating skin settings not being applied
+- Fix skin extensions not being reactive
+- Fix `Orientation` config editor icon
+- Fix `ActionPane` displaying json in compact print
+- Fix `HBox`/`VBox` styling not taking effect
+- Fix `ObservableListCE` not using user set layout
+
+This update continues with UX improvements and fixing issues.
+
+The **Weather Info** widget is receiving hourly and daily forecast as well as meteor shower table.
+There is also a link to www.windy.com (for appropriate location) - a useful weather site with additional information.
+
+Settings and forms now handle nesting better and take less horizontal as well as vertical space.
+Panes also do not display children twice (`getChildren`, `getUnmodifiableChildren`).
+The editors now have caret with menu instead of simple default button. This adds additional functionalities to editors.
+Overall, the layout is more consistent and easier on the eyes. 
+
+The project can generate licence reports for dependencies.
+In the future, the report may be committed to the git repository.
+
+Json conversion boasts value class support.
+This is useful for validation (in value constructor) and type-safety.
+
 ## [6.0.0]  2022 06 21
 
+- Update Kotlin to 1.7.0
 - Implement **WeatherInfo** widget
 - Implement **GpuNvidiaInfo**.kt nvidia-smi.exe path settings
 - Implement `application/pdf` cover support
@@ -69,7 +110,7 @@ The functionality is there, but the interplay with skinning and transparent cont
 
 ## [5.0.0] 2022 04 24
 
-- Update Kotlin to 0.6.20
+- Update Kotlin to 1.6.20
 - Implement **Mouse Info** widget
 - Implement reopen widget settings after recompiling/reloading widget
 - Improve widget focus traversal to work when only one widget is open

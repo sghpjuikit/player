@@ -28,6 +28,11 @@ import javafx.scene.Cursor.W_RESIZE
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
+import javafx.scene.control.ListView
+import javafx.scene.control.ScrollPane
+import javafx.scene.control.TableView
+import javafx.scene.control.TreeTableView
+import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode.F1
 import javafx.scene.input.KeyCode.F2
 import javafx.scene.input.KeyCode.F3
@@ -86,6 +91,7 @@ import sp.it.util.action.ActionManager.keyShortcutsComponent
 import sp.it.util.async.flowTimer
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
+import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.math.P
@@ -100,6 +106,7 @@ import sp.it.util.reactive.syncTrue
 import sp.it.util.system.Os
 import sp.it.util.ui.anchorPane
 import sp.it.util.ui.centre
+import sp.it.util.ui.findParent
 import sp.it.util.ui.hBox
 import sp.it.util.ui.initClip
 import sp.it.util.ui.label
@@ -169,12 +176,16 @@ fun Parent.installWindowInteraction() = sceneProperty().syncNonNullWhile { it.in
 fun Scene.installWindowInteraction() = Subscription(
    // change volume on scroll
    onEventDown(SCROLL) {
-      if (it.isShortcutDown) {
-         if (it.deltaY>0) APP.ui.incFontSize()
-         else if (it.deltaY<0) APP.ui.decFontSize()
-      } else {
-         if (it.deltaY>0) APP.audio.volumeInc()
-         else if (it.deltaY<0) APP.audio.volumeDec()
+      fun isScrollableContent(it: Node) = it is ScrollPane || it is ListView<*> || it is TableView<*> || it is TreeView<*> || it is TreeTableView<*>
+      val isInScrollable = it.target.asIf<Node>()?.findParent(::isScrollableContent)!=null
+      if (!isInScrollable) {
+         if (it.isShortcutDown) {
+            if (it.deltaY>0) APP.ui.incFontSize()
+            else if (it.deltaY<0) APP.ui.decFontSize()
+         } else {
+            if (it.deltaY>0) APP.audio.volumeInc()
+            else if (it.deltaY<0) APP.audio.volumeDec()
+         }
       }
    },
    // show help hotkeys

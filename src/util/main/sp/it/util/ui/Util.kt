@@ -155,7 +155,7 @@ fun Node.isChildOf(parent: Node) = parent.isParentOf(this)
 fun Node.isAnyChildOf(parent: Node) = parent.isAnyParentOf(this)
 
 /** @return this or direct or indirect parent of this that passes specified filter or null if no element passes */
-fun Node.findParent(filter: (Node) -> Boolean) = generateSequence(this) { it.parent }.find(filter)
+fun Node.findParent(filter: (Node) -> Boolean) = traverse { it.parent }.find(filter)
 
 /** Removes this from its parent's children if possible (parent is [Pane] or [Group]). Any child's focus is moved to parent. */
 fun Node.removeFromParent() {

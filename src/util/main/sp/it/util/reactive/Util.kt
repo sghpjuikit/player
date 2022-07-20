@@ -26,6 +26,7 @@ import sp.it.util.async.runLater
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
+import sp.it.util.functional.asIs
 import sp.it.util.functional.kt
 import sp.it.util.functional.net
 import sp.it.util.identityHashCode
@@ -57,6 +58,8 @@ private abstract class MappedObservableValue<O>: ObservableValue<O> {
    protected abstract fun updateListening()
 
 }
+
+infix fun <T> ObservableValue<T?>.notNull(or: T): ObservableValue<T> = orElse(or).asIs()
 
 /**
  * Maps this [ObservableValue] into one that contains values mapped by [mapper].

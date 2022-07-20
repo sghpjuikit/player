@@ -1,5 +1,5 @@
 ## Currently considered
-- Rating skin change !work
+- popup focus (Win 10)
 - Cache DeserializationFactory ComponentDb to avoid IO if file was not modified in the meantime
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
@@ -11,7 +11,6 @@
 - Implement better application running detection: app running without exe and app running from different directory
 - `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
 - Implement `MdNode` monitor file & reload
-- Implement `SliderCE` logarithmic scale
 - Implement actions for widget management: delete widget, open with strategy
 - Implement **Playback Knobs** widget skinnable size
 - Implement **Playback Knobs** widget writable chapters
@@ -35,6 +34,20 @@
 - Implement converting Layout into ContainerSwitch and back
 
 ## Potential future work
+- Implement `SliderCE` logarithmic scale
+  Should support arbitrary N(0-1) -> N(0-1) function and config dsl
+- Action pane table data class support
+  Prototyped in WeatherInfoForecastMeteors. Needs unification of `ActionPane` and **ObjectInfo** widget 
+- Table column description page
+  Not sure how it should be activated (footer? column menu?) 
+- Table export to md, csv
+  Not sure how it should be activated (footer? column menu?) 
+- App onStart/End command user defined callbacks
+  Requires CommandRunnable of sort
+- MetadataGroup filter by Song predicate
+  Unclear how the predicate should be generalized (group.anyMatch(predicate)? group.allMatch(predicate)?), ui needs work
+- File rename event
+  Similar to file delete event, then support file renaming in file tables/grids 
 - Optimize markdown & support selection
   Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
 - Implement multivalued **Song.Artist** support

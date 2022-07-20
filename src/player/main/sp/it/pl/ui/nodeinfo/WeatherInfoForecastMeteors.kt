@@ -13,7 +13,7 @@ import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.collections.setTo
-import sp.it.util.reactive.sync1IfNonNull
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.text.capital
 import sp.it.util.type.VType
 import sp.it.util.type.dataComponentProperties
@@ -41,7 +41,7 @@ class WeatherInfoForecastMeteors: StackPane() {
          columnResizePolicy = UNCONSTRAINED_RESIZE_POLICY
       }
       lay += t.root
-      t.sceneProperty().flatMap { it.windowProperty() }.sync1IfNonNull { it.onIsShowing1st { t.autoResizeColumns() } }
+      t.sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { t.autoResizeColumns() } }
    }
 
    data class Shower(

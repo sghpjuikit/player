@@ -91,7 +91,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "19-ea+9"
+         val version = "20-ea+1"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -128,7 +128,7 @@ allprojects {
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.4.1")
          implementation("org.apache.commons", "commons-text", "1.9")
-         implementation("com.github.oshi", "oshi-core", "6.2.1")
+         implementation("com.github.oshi", "oshi-core", "6.2.2")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }
 
@@ -159,8 +159,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.3.2")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.3.2")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.4.1")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.4.1")
       }
 
    }

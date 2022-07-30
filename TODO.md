@@ -152,9 +152,9 @@
   fixed. See `TextUtilTest`.
 - [ ] [KT-22792](https://youtrack.jetbrains.com/issue/KT-22792) Reflection:`objectInstance` throws IllegalAccessException  
   reported, open
-- [x] [KT-14119](https://youtrack.jetbrains.com/issue/KT-14119) Bad API: `String?.toBoolean()`  
+- [-] [KT-14119](https://youtrack.jetbrains.com/issue/KT-14119) Bad API: `String?.toBoolean()`  
   reported, implemented wrongly
 - [ ] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing
   reported, worked around by enabling the counters on app startup using `OshiCore::class`
-- [ ] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation
-  reported demand for fast native excelsior compiler that has been discontinued
+- [-] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation
+  reported demand for fast native excelsior compiler that has been discontinued -> Excelsior native compiler can no longer be build (no more experimental kotlinc)

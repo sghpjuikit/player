@@ -365,7 +365,7 @@ class App: Application(), GlobalConfigDelegator {
          }
       }.ifOk {
          runLater {
-            if (isStateful) audio.loadLastState()
+            if (isStateful) audio.restore()
             onStarted()
          }
       }
@@ -377,7 +377,7 @@ class App: Application(), GlobalConfigDelegator {
       if (!isStateful) {
          isStateful = true
          windowManager.deserialize()
-         audio.loadLastState()
+         audio.restore()
       }
    }
 

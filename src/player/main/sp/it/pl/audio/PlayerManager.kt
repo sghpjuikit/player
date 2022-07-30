@@ -11,9 +11,12 @@ import javafx.scene.text.TextBoundsType
 import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import mu.KLogging
+import sp.it.pl.audio.PlayerManager.Events.PlaybackActivated
+import sp.it.pl.audio.PlayerManager.Events.PlaybackRestoreAborted
 import sp.it.pl.audio.PlayerManager.Events.PlaybackSongChanged
 import sp.it.pl.audio.PlayerManager.Events.PlaybackSongUpdated
 import sp.it.pl.audio.PlayerManager.Events.PlaybackStatusChanged
+import sp.it.pl.audio.PlayerManager.Events.PlaybackSuspended
 import sp.it.pl.audio.playback.GeneralPlayer
 import sp.it.pl.audio.playback.PlayTimeHandler
 import sp.it.pl.audio.playback.VlcPlayer
@@ -217,28 +220,22 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    }
 
    /** Initialize state from last session  */
-   fun loadLastState() {
-      logger.info { "Restoring last playback state..." }
-      if (!continuePlaybackOnStart) {
-         logger.info("    aborted: continuePlaybackOnStart==false")
-         return
+   fun restore() {
+      when {
+         !continuePlaybackOnStart -> APP.actionStream(PlaybackRestoreAborted("ContinuePlaybackOnStart is off"))
+         PlaylistManager.use({ it.playing }, null)==null -> APP.actionStream(PlaybackRestoreAborted("No playback was active"))
+         else -> {
+            if (continuePlaybackPaused) state.playback.status.value = PAUSED
+            activate()
+         }
       }
 
-      if (PlaylistManager.use({ it.playing }, null)==null) {
-         logger.info("    aborted: no playback was active")
-         return
-      }
-
-      if (continuePlaybackPaused)
-         state.playback.status.value = PAUSED
-
-      activate()
    }
 
    @Idempotent
    fun suspend() {
       if (isSuspended) return
-      logger.info("Suspending playback")
+      APP.actionStream(PlaybackSuspended)
 
       isSuspended = true
       player.disposePlayback()
@@ -247,35 +244,37 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    @Idempotent
    fun activate() {
       if (!isSuspended) return
-      logger.info("Activating playback")
+      APP.actionStream(PlaybackActivated)
 
       postActivating = true
-      val s = state.playback.status.value
-      if (s==PAUSED || s==PLAYING)
-         startTime = state.playback.currentTime.value
 
-      when (s) {
+      when (state.playback.status.value) {
          PAUSED -> {
-            logger.info("playback state is paused, so playback will initialize on resume()/seek()/play()")
+            // Playback will initialize on resume()/seek()/play()"
+            startTime = state.playback.currentTime.value
             isSuspendedBecauseStartedPaused = true
             playingSong.songChanged(PlaylistManager.use({ it.playing }, null))
          }
          PLAYING -> {
+            startTime = state.playback.currentTime.value
             PlaylistManager.use {
                it.playing.ifNotNull { player.play(it) }
             }
             // suspension_flag = false; // set inside player.play();
-            runFX(200.millis) { isSuspended = false } // just in case som condition prevents resetting flag
+            runFX(200.millis) { isSuspended = false } // just in case some condition prevents resetting flag
          }
          else -> isSuspended = false
       }
    }
 
    object Events {
-      interface PlaybackSongDiff { val song: Metadata }
+      sealed interface PlaybackSongDiff { val song: Metadata }
       data class PlaybackSongChanged(override val song: Metadata): PlaybackSongDiff { override fun toString() = "PlaybackSongChanged(song=${song.uri})" }
       data class PlaybackSongUpdated(override val song: Metadata): PlaybackSongDiff { override fun toString() = "PlaybackSongUpdated(song=${song.uri})" }
       data class PlaybackStatusChanged(val status: MediaPlayer.Status)
+      data class PlaybackRestoreAborted(val reason: String)
+      object PlaybackActivated { override fun toString() = "PlaybackActivated" }
+      object PlaybackSuspended { override fun toString() = "PlaybackSuspended" }
    }
    inner class CurrentItem {
 

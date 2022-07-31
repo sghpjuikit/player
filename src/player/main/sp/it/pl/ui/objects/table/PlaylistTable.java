@@ -185,7 +185,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			if (mc!=null) {
 				double sumW = resize.getTable().getColumns().stream()
 						.filter(c -> c!=mc)
-						.mapToDouble(c -> c.getWidth() + CELL_PADDING_WIDTH)
+						.mapToDouble(c -> c.getWidth())
 						.sum();
 				mc.setPrefWidth(tw - sumW - sw - gap);
 			}

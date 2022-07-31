@@ -1415,10 +1415,10 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 /* Show column header borders on hover */
-.table-view .column-header: hover,
-.tree-table-view .column-header: hover {
-    -fx-background-color: -skin-green, -skin-white;
-    -fx-background-insets: 0, 0 2 0 2;
+.table-view .column-header-background:hover .column-header,
+.tree-table-view .column-header-background:hover .column-header {
+    -fx-padding: 0 -1 0 -1;
+    -fx-border-color: transparent ladder(hsb(180, 100%, 50%), transparent 0%, -skin-def-font-color 100%);
 }
 
 /* Make header pop out */

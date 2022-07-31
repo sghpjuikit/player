@@ -505,11 +505,11 @@ What's next? Well, as is, the application is very polished and has a lot of powe
 1. Right now, I'd like to keep improving the window system to make it easier to set up desktop-level widgets.
    Improving the Node widget will be necessary as well as discovery of recommended ui components for Node widget.
    This also involves more FreeFormContainer features, such as absolute resizing, snapping and styling.
-1. I also want to integrate context menus and object actions (icons in `ActionPane` overlay) more closely, so that these are merely a different UX for the same thing.
+2. I also want to integrate context menus and object actions (icons in `ActionPane` overlay) more closely, so that these are merely a different UX for the same thing.
    This requires implicit action parameter handling in menu (probably by displaying a Form for each parameter) and more convenient navigation in `ActionPane` (back & forth, custom ui, etc.).
    This also several other technicalities, so it will be challenging to come up with pleasant solution.
    The actions will probably end up defined as custom objects (and registered in global pool) rather than ordinary functions, which is unfortunate, but maybe special delegated properties could help.
-1. Better initial experience & application documentation would also be nice, for example there is still no **About page**.
+3. Better initial experience & application documentation would also be nice, for example there is still no **About page**.
    Window headers are also too cluttered, maybe ordinary menu bar would be a better idea. Window headers could be their own components as well.
 
 ## [2021 08 21]
@@ -674,7 +674,7 @@ What's next? Well, as is, the application is very polished and has a lot of powe
 - Application rating skin not allowing null value sometimes
 - Plugins
   - Non-running plugins are instantiated
-  - `Waiffu2k` plugin waiffu2k binary config is not persisted
+  - `Waiffu2k` plugin `waiffu2k` binary config is not persisted
   - `Waiffu2k` plugin scaling coefficient not configurable
   - `Guide` is now a plugin and can be disabled completely
   - `Directory Search` does not find any results

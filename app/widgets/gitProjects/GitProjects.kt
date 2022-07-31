@@ -15,10 +15,10 @@ import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.WidgetTags.UTILITY
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.MdNode
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
@@ -89,7 +89,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
          icon.onClickDo(null, null) { _, e ->
             when (e?.button) {
                null, PRIMARY -> this@Project.select(true)
-               SECONDARY -> ValueContextMenu<Any?>().also { it.setItemsFor(dir); it.show(this, e) }
+               SECONDARY -> contextMenuFor(dir).show(this, e)
                else -> Unit
             }
          }

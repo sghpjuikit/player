@@ -28,7 +28,6 @@ import sp.it.pl.audio.playlist.PlaylistManagerKt;
 import sp.it.pl.audio.playlist.PlaylistSong;
 import sp.it.pl.audio.tagging.Metadata;
 import sp.it.pl.audio.tagging.PlaylistSongGroup;
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.pl.ui.objects.tablerow.SpitTableRow;
 import sp.it.util.Sort;
 import sp.it.util.access.V;
@@ -50,6 +49,7 @@ import static sp.it.pl.audio.playlist.PlaylistReaderKt.readM3uPlaylist;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.LENGTH;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.NAME;
 import static sp.it.pl.audio.playlist.PlaylistSong.Field.TITLE;
+import static sp.it.pl.main.AppBuildersKt.contextMenuFor;
 import static sp.it.pl.main.AppDragKt.getAudio;
 import static sp.it.pl.main.AppDragKt.hasAudio;
 import static sp.it.pl.main.AppDragKt.installDrag;
@@ -86,7 +86,6 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 	public static final double CELL_PADDING_WIDTH = CELL_PADDING.getLeft() + CELL_PADDING.getRight();
 	public static final PseudoClass STYLE_CORRUPT = pseudoclass("corrupt");
 	public static final PseudoClass STYLE_PLAYED = pseudoclass("played");
-	private static final ValueContextMenu<PlaylistSongGroup> contextMenu = new ValueContextMenu<>();
 
 	public final @NotNull V<@NotNull Boolean> scrollToPlaying = new V<>(true);
 	private double selectionLastScreenY;
@@ -134,13 +133,8 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			row.onLeftDoubleClick((r, e) -> getPlaylist().playTransformedItem(r.getItem()));
 			// right click -> show context menu
 			row.onRightSingleClick((r, e) -> {
-				// prep selection for context menu
-				if (!row.isSelected())
-					getSelectionModel().clearAndSelect(row.getIndex());
-
-				var table = PlaylistTable.this;
-				contextMenu.setItemsFor(new PlaylistSongGroup(playlist, table.getSelectedItemsCopy()));
-				show(contextMenu, table, e);
+				if (!row.isSelected()) getSelectionModel().clearAndSelect(row.getIndex());  // prep selection for context menu
+				show(contextMenuFor(new PlaylistSongGroup(playlist, PlaylistTable.this.getSelectedItemsCopy())), PlaylistTable.this, e);
 			});
 			// handle drag transfer
 			row.setOnDragDropped(e -> dropDrag(e, row.isEmpty() ? getItems().size() : row.getIndex()));

@@ -16,7 +16,6 @@ import sp.it.pl.audio.tagging.Metadata.Field.RATING
 import sp.it.pl.audio.tagging.Metadata.Field.TITLE
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
@@ -72,6 +71,7 @@ import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_TABLE_NAME
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.installDrag
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
@@ -159,10 +159,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
             onLeftDoubleClick { r, _ -> PlaylistManager.use { it.setAndPlayFrom(table.items, r.index) } }
             onRightSingleClick { r, e ->
                if (!r.isSelected) t.selectionModel.clearAndSelect(r.index)
-               ValueContextMenu<MetadataGroup>().apply {
-                  setItemsFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy))
-                  show(table, e)
-               }
+               contextMenuFor(MetadataGroup.groupOfUnrelated(table.selectedItemsCopy)).show(table, e)
             }
             styleRuleAdd(pseudoclass(played)) { APP.audio.playingSong.value.same(it) }
          }

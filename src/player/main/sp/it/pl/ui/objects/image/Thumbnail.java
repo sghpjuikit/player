@@ -22,7 +22,6 @@ import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sp.it.pl.image.ImageStandardLoader;
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
 import sp.it.util.dev.Dependency;
@@ -40,6 +39,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.TransferMode.ANY;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static sp.it.pl.audio.playlist.PlaylistReaderKt.toAbsoluteURIOrNull;
+import static sp.it.pl.main.AppBuildersKt.contextMenuFor;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
@@ -293,7 +293,7 @@ public class Thumbnail {
 	 * Calculates size of the image to load. Returns recommended size for the image.
 	 * <p/>
 	 * The image normally loads 1:1 with the resolution size of the file, but it
-	 * is often wasteful, particularly for big images and even more if the size
+	 * is often wasteful, particularly for big images and even more if the size of
 	 * the image will be used with is rather small.
 	 * <p/>
 	 * In order to limit memory consumption
@@ -607,12 +607,9 @@ public class Thumbnail {
 
 /* --------------------- CONTEXT MENU ------------------------------------------------------------------------------- */
 
-	private static final ValueContextMenu<ContextMenuData> contextMenu = new ValueContextMenu<>();
-
 	private final EventHandler<MouseEvent> contextMenuHandler = e -> {
 		if (e.getButton()==SECONDARY) {
-			contextMenu.setItemsFor(new ContextMenuData());
-			show(contextMenu, root, e);
+			show(contextMenuFor(new ContextMenuData()), root, e);
 			e.consume();
 		}
 	};

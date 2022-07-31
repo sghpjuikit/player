@@ -75,7 +75,6 @@ import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
-import sp.it.util.async.runLater
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.materialize

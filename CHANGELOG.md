@@ -12,6 +12,14 @@ All notable changes to this project will be documented in this file. Format base
 - Improve nested config editor layout
 - Improve config editor default button [turn into caret with menu]
 - Improve slider styling [gradient effect]
+- Improve logging output
+- Improve tables
+  - Implement auto-sizing to content & provide ui menu for user
+    - Use where appropriate
+  - Implement **ObjectInfo** table preview for collections
+  - Unify ObjectInfo table, `WeatherInfoForecastMeteors` table, `ActionPane` table into a generic table
+  - Fix inconsistent **ObjectInfo** and `ActionPane` data inspection in some cases
+  - Improve **ObjectInfo** and `ActionPane` data inspection output in some cases
 - Improve `SpitSliderSkin` value changing tooltip layout [less intrusive]
 - Improve `WeatherInfo` settings UX [add config descriptions]
 - Fix `WeatherInfo` not refreshing ui sometimes
@@ -23,17 +31,27 @@ All notable changes to this project will be documented in this file. Format base
 - Fix rating skin settings not being applied
 - Fix skin extensions not being reactive
 - Fix `Orientation` config editor icon
-- Fix `ActionPane` displaying json in compact print
+- Fix `ActionPane` displaying json & data class `TextArea` preview in compact print
+- Fix `ActionPane` displaying json & data class simple preview as multiline
 - Fix `HBox`/`VBox` styling not taking effect
 - Fix `ObservableListCE` not using user set layout
+- Fix table header hover effect styling
+- Fix playlist table resizing [fill entire width]
+- Fix libraryView song table resizing [do not show horizontal scrollbar]
 
 This update continues with UX improvements and fixing issues.
 
 The **Weather Info** widget is receiving hourly and daily forecast as well as meteor shower table.
 There is also a link to www.windy.com (for appropriate location) - a useful weather site with additional information.
 
-Settings and forms now handle nesting better and take less horizontal as well as vertical space.
-Panes also do not display children twice (`getChildren`, `getUnmodifiableChildren`).
+Data inspection capabilities - the overlay `ActionPane` and the widget **ObjectInfo** were mostly unified in functionality.
+The data information has been improved or fixed for several cases.
+Long texts or texts with multiple lines are previewed on single line. Data classes are previewed as compact json.
+The `TextArea` preview however displays pretty formatted json.
+The table used for `Collection` previews boats better capabilities, such as context menu or auto-sizing to content.
+
+**Settings** and forms now handle nesting better and take less horizontal as well as vertical space.
+Inspected `Pane`s also do not display children twice (`getChildren`, `getUnmodifiableChildren`).
 The editors now have caret with menu instead of simple default button. This adds additional functionalities to editors.
 Overall, the layout is more consistent and easier on the eyes. 
 

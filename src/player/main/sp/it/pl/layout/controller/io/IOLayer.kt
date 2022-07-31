@@ -57,13 +57,13 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.Df
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.contains
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.get
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.set
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.Util.pyth
 import sp.it.util.access.StyleableCompanion
@@ -472,10 +472,7 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
                1 -> {
                   when (it.button) {
                      PRIMARY -> selectNode(this)
-                     SECONDARY -> {
-                        contextMenuInstance.setItemsFor(xPut)
-                        contextMenuInstance.show(i, it)
-                     }
+                     SECONDARY -> contextMenuFor(xPut).show(i, it)
                      else -> Unit
                   }
                }
@@ -703,7 +700,7 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
          }
       }
 
-      @Suppress("LocalVariableName", "CanBeVal")
+      @Suppress("LocalVariableName")
       fun lay(inX: Double, inY: Double, outX: Double, outY: Double) {
          layInit(inX, inY, outX, outY)
          val dx = (outX - inX).sign
@@ -866,7 +863,6 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
       val allOutputsApp = observableSet<Output<*>>()!!
       val allInoutputsApp = observableSet<InOutput<*>>()!!
       val generatingOutputRefs = observableSet<GeneratingOutputRef<*>>()!!
-      private val contextMenuInstance by lazy { ValueContextMenu<XPut<*>>() }
       private val propagatedPseudoClasses = setOf("hover", "highlighted", "selected", "drag-over")
 
       fun allInputs(): Sequence<Input<*>> = allInputs.asSequence() + allInputsApp.asSequence() + allInoutputs().map { it.i }
@@ -962,7 +958,7 @@ class IOLayer(owner: ComponentUiBase<Container<*>>): StackPane() {
          allLinks.remove2D(i, o)
          allLayers.forEach { it.remConnection(i, o) }
 
-         allInoutputs().asSequence().filterIsInstance<GeneratingOutput<*>>().find { it.o === o }.ifNotNull {
+         allInoutputs().filterIsInstance<GeneratingOutput<*>>().find { it.o === o }.ifNotNull {
             if (!it.o.isBound()) {
                allInoutputs -= it
                allInoutputsApp -= it

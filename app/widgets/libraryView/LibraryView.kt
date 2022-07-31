@@ -45,6 +45,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.Widgets.SONG_GROUP_TABLE_NAME
 import sp.it.pl.main.contains
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.installDrag
 import sp.it.pl.main.isPlaying
@@ -53,7 +54,6 @@ import sp.it.pl.main.showConfirmation
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
@@ -210,10 +210,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             onRightSingleClick { row, e ->
                if (!row.isSelected) t.selectionModel.clearAndSelect(row.index)
                val data = t.selectionModel.selectedItems.takeIf { it.size==1 }?.first() ?: MetadataGroup.groupOfUnrelated(filerSortInputList())
-               ValueContextMenu<MetadataGroup>().apply {
-                  setItemsFor(data)
-                  show(table, e)
-               }
+               contextMenuFor(data).show(table, e)
             }
          }
       }

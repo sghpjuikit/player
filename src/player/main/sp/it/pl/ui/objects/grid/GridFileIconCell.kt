@@ -11,7 +11,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconUN
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.fieldvalue.FileField
@@ -126,8 +126,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
             }
          }
          onEventDown(MOUSE_CLICKED, SECONDARY) {
-            globalContextMenu.setItemsFor(item?.value)
-            globalContextMenu.show(root, it)
+            contextMenuFor(item?.value).show(root, it)
          }
       }
       imgLoadAnimation = anim(200.millis) {
@@ -155,7 +154,4 @@ open class GridFileIconCell: GridCell<Item, File>() {
       imgLoadAnimation?.playOpenFrom(loadProgress)
    }
 
-   companion object {
-      private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
-   }
 }

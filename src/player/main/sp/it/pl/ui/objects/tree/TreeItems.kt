@@ -51,11 +51,11 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.isSkinFile
 import sp.it.pl.main.isWidgetFile
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.window.dock.isDockWindow
 import sp.it.pl.ui.objects.window.stage.Window
@@ -102,7 +102,6 @@ import sp.it.util.ui.root
 import sp.it.util.ui.show
 
 private val logger = KotlinLogging.logger { }
-private val globalContextMenu by lazy { ValueContextMenu<Any?>() }
 
 private const val SELECTION_DISTURBED_KEY = "tree_selection_disturbed"
 private const val SELECTION_DISTURBED_STACK_KEY = "tree_selection_disturbed_child"
@@ -394,8 +393,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
    }
 
    fun <T> showMenu(o: T?, t: TreeView<T>, n: Node, e: MouseEvent) {
-      globalContextMenu.setItemsFor(t.selectionModel.selectedItems.map { it.value })
-      globalContextMenu.show(n, e)
+      contextMenuFor(t.selectionModel.selectedItems.map { it.value }).show(n, e)
    }
 
 }

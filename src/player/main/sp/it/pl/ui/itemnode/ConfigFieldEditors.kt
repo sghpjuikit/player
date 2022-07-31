@@ -85,6 +85,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.appTooltip
+import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.textColon
 import sp.it.pl.main.toS
@@ -99,7 +100,6 @@ import sp.it.pl.ui.objects.SpitComboBox.ImprovedComboBoxListCell
 import sp.it.pl.ui.objects.SpitSliderSkin
 import sp.it.pl.ui.objects.autocomplete.AutoCompletion.Companion.autoComplete
 import sp.it.pl.ui.objects.complexfield.ComplexTextField
-import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.icon.NullCheckIcon
@@ -167,7 +167,6 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachFalse
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown
@@ -894,10 +893,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
                         styleClass += listOf("h4", "h4p", "text-weight-bold")
                      }
                      lay += Icon(IconFA.CARET_DOWN, -1.0, "${p.info.name} Menu").styleclass("header-icon").onClickDo {
-                        ValueContextMenu<Any?>().apply {
-                           setItemsFor(p)
-                           show(it, Side.BOTTOM, 0.0, 0.0)
-                        }
+                        contextMenuFor(p).show(it, Side.BOTTOM, 0.0, 0.0)
                      }
                   }
                   lay += textColon("Name", p.info.name)
@@ -1014,10 +1010,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
                         styleClass += listOf("h4", "h4p", "text-weight-bold")
                      }
                      lay += Icon(IconFA.CARET_DOWN, -1.0, "${f.name} Menu").styleclass("header-icon").onClickDo {
-                        ValueContextMenu<Any?>().apply {
-                           setItemsFor(f)
-                           show(it, Side.BOTTOM, 0.0, 0.0)
-                        }
+                        contextMenuFor(f).show(it, Side.BOTTOM, 0.0, 0.0)
                      }
                   }
                   lay += textColon("Name", f.name)

@@ -287,7 +287,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             t.getColumn(VALUE).ifPresent { c ->
                val sumW = t.columns.asSequence().filter { it.isVisible }.sumOf { it.width }
                val sbW = t.vScrollbarWidth
-               c.setPrefWidth(t.width - (sbW + sumW - c.width))
+               c.setPrefWidth(t.width - sbW - (sumW - c.width) - 1.0)
             }
          }
       }

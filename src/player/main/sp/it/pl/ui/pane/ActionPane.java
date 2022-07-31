@@ -16,7 +16,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
@@ -33,9 +32,7 @@ import sp.it.pl.main.AppSettings.ui.view.actionViewer;
 import sp.it.pl.ui.objects.icon.CheckIcon;
 import sp.it.pl.ui.objects.icon.Icon;
 import sp.it.pl.ui.objects.table.FilteredTable;
-import sp.it.pl.ui.objects.table.ImprovedTable.PojoV;
 import sp.it.util.access.V;
-import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import sp.it.util.async.future.Fut;
 import sp.it.util.collections.map.KClassListMap;
 import sp.it.util.dev.DebugKt;
@@ -53,9 +50,6 @@ import static javafx.geometry.Pos.BOTTOM_CENTER;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Pos.TOP_LEFT;
-import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY;
-import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -66,9 +60,10 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.animShowNodes;
 import static sp.it.pl.main.AppBuildersKt.appProgressIndicator;
 import static sp.it.pl.main.AppBuildersKt.infoIcon;
+import static sp.it.pl.main.AppBuildersKt.tableViewForClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
-import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.TableUtilKt.autoResizeColumns;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.util.animation.Anim.anim;
@@ -88,7 +83,6 @@ import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UtilKt.sync1IfInScene;
-import static sp.it.util.type.TypesKt.getRawJ;
 import static sp.it.util.ui.Util.layHeaderTopBottom;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layScrollVTextCenter;
@@ -394,32 +388,23 @@ public class ActionPane extends OverlayPane<Object> {
 			gap = 70.0;
 			priority = SOMETIMES;
 		}
+
+		var dataAsC = (Collection<?>) null;
 		if (data instanceof Collection<?> items && !items.isEmpty()) {
-			Class<?> itemType = getElementClass(items);
-			if (!APP.getClassFields().get(getKotlinClass(itemType)).isEmpty()) {
-				var t = new FilteredTable<>((Class<Object>) itemType, null);
-				t.getSelectionModel().setSelectionMode(MULTIPLE);
-				t.setColumnFactory(f -> {
-					TableColumn<Object,Object> c = new TableColumn<>(f.toString());
-					c.getStyleClass().add(String.class.isAssignableFrom(getRawJ(f.getType())) ? "column-header-align-left" : "column-header-align-right");
-					c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
-					c.setCellFactory(col -> buildFieldedCell(f));
-					c.setResizable(true);
-					return c;
-				});
-				t.setColumnState(t.getDefaultColumnInfo());
-				t.setColumnResizePolicy(t.fields.stream().filter(it -> it!=INDEX.INSTANCE).count()<=1 ? CONSTRAINED_RESIZE_POLICY : UNCONSTRAINED_RESIZE_POLICY);
-				dataTablePane.getChildren().setAll(t.getRoot());
-				dataTable = t;
-				gap = 70.0;
-				priority = SOMETIMES;
-				t.setItemsRaw(items);
-				t.getSelectedItems().addListener((Change<?> c) -> {
+			var itemType = (KClass<Object>) getKotlinClass(getElementClass(items));
+			var t = tableViewForClass(itemType, consumer(it -> {
+				it.setItemsRaw(items);
+				it.getSelectedItems().addListener((Change<?> c) -> {
 					if (insteadIcons==null) {
-						dataInfo.setText(computeDataInfo(collectionUnwrap(t.getSelectedOrAllItemsCopy()), true));
+						dataInfo.setText(computeDataInfo(collectionUnwrap(it.getSelectedOrAllItemsCopy()), true));
 					}
 				});
-			}
+				runFX(millis(100), () -> autoResizeColumns(it)); // TODO: remove delay or invoke at required event
+			}));
+			dataTablePane.getChildren().setAll(t.getRoot());
+			dataTable = t;
+			gap = 70.0;
+			priority = SOMETIMES;
 		} else {
 			dataTable = null;
 		}

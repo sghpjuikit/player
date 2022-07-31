@@ -17,9 +17,14 @@ import javafx.geometry.Pos.TOP_LEFT
 import javafx.geometry.Side
 import javafx.scene.Cursor
 import javafx.scene.Node
+import javafx.scene.control.ContextMenu
 import javafx.scene.control.Label
 import javafx.scene.control.OverrunStyle.LEADING_ELLIPSIS
 import javafx.scene.control.ProgressIndicator
+import javafx.scene.control.SelectionMode
+import javafx.scene.control.TableColumn
+import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY
+import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.Tooltip
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyCode.ESCAPE
@@ -31,23 +36,35 @@ import javafx.scene.layout.Priority.NEVER
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
 import javafx.scene.text.TextBoundsType
+import javafx.util.Callback
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
+import kotlin.streams.asSequence
 import sp.it.pl.audio.tagging.Metadata
 import sp.it.pl.ui.objects.SpitText
+import sp.it.pl.ui.objects.contextmenu.ValueContextMenu
 import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.icon.CheckIcon
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
+import sp.it.pl.ui.objects.table.FilteredTable
+import sp.it.pl.ui.objects.table.ImprovedTable
+import sp.it.pl.ui.objects.table.autoResizeColumns
+import sp.it.pl.ui.objects.table.buildFieldedCell
+import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.ui.objects.textfield.SpitTextField
 import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.popup.PopWindow
+import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.pane.ConfigPane
+import sp.it.util.access.fieldvalue.ColumnField
+import sp.it.util.access.fieldvalue.ObjectField
+import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
 import sp.it.util.animation.Anim
@@ -58,8 +75,10 @@ import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
+import sp.it.util.async.runLater
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementType
+import sp.it.util.collections.materialize
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ValueConfig
@@ -70,6 +89,7 @@ import sp.it.util.file.toURIOrNull
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Unsubscriber
@@ -84,17 +104,22 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
+import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.browse
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.Jwt
+import sp.it.util.text.capital
 import sp.it.util.text.char32At
 import sp.it.util.text.graphemeAt
 import sp.it.util.text.lengthInChars
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.toChar32
+import sp.it.util.type.VType
+import sp.it.util.type.dataComponentProperties
+import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.kTypeNothingNonNull
 import sp.it.util.type.type
 import sp.it.util.ui.button
@@ -106,6 +131,7 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.lookupSiblingUp
 import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
+import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
@@ -325,7 +351,10 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
    fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeArg.STAR })
 
    val d = collectionUnwrap(it).stringUnwrap()
-   val dName = APP.instanceName[d]
+   val dName = APP.instanceName[d].net {
+      val first41 = it.lineSequence().flatMap { it.codePoints().asSequence().plus(' '.toChar32().value) }.take(41).toList()
+      if (first41.size<=40) it else first41.take(40).joinToString("") { it.toChar32().toString() } + " (first 40 characters)"
+   }
    val dClass = when (d) {
       null -> Nothing::class
       else -> d::class
@@ -347,6 +376,43 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
       ?.let { "\n$it" } ?: ""
 
    "Data: $dName$dKind$dKindDev$dInfo"
+}
+
+fun contextMenuFor(o: Any?): ContextMenu = ValueContextMenu<Any?>().apply { setItemsFor(o) }
+
+fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = object: FilteredTable<T>(type.java, null) {
+   override fun computeMainField(field: ObjectField<T, *>?) = field ?: fields.first { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
+   override fun computeFieldsAll() = null
+      ?: if (type.isData)
+         type.dataComponentProperties().map { p ->
+            object: ObjectFieldBase<T, Any?>(VType(p.returnType), { p.getter.call(it) }, p.name.capital(), "", { v, or -> v?.toUi() ?: or }) {}
+         }
+         else null
+      ?: APP.classFields[type].toList()
+}.apply {
+   selectionModel.selectionMode = SelectionMode.MULTIPLE
+   rowFactory = Callback {
+      SpitTableRow<T>().apply {
+         // right click -> show context menu
+         onRightSingleClick { r, e ->
+            if (!r.isSelected) selectionModel.clearAndSelect(r.index)   // prep selection for context menu
+            contextMenuFor(r.tableView.selectionModel.selectedItems.materialize()).show(r.tableView, e)
+         }
+      }
+   }
+   setColumnFactory { f ->
+      val c = TableColumn<T, Any?>(f.toString())
+      c.styleClass.add(if (f.type.isSubtypeOf<String>()) "column-header-align-left" else "column-header-align-right")
+      c.setCellValueFactory { cf -> if (cf.value==null) null else ImprovedTable.PojoV(f.getOf(cf.value)) }
+      c.setCellFactory { f.buildFieldedCell() }
+      c.userData = f
+      c.isResizable = true
+      c
+   }
+   columnResizePolicy = if (fields.any { it!==ColumnField.INDEX }) UNCONSTRAINED_RESIZE_POLICY else CONSTRAINED_RESIZE_POLICY
+   columnState = defaultColumnInfo
+   block()
+   sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { autoResizeColumns() } }
 }
 
 fun resizeIcon(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {

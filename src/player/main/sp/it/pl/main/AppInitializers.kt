@@ -9,7 +9,6 @@ import java.util.Date
 import java.util.function.Consumer
 import javafx.scene.image.Image
 import javafx.util.Duration
-import kotlin.streams.asSequence
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.Metadata
@@ -45,7 +44,6 @@ import sp.it.util.text.lengthInChars
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.pluralUnit
-import sp.it.util.text.toChar32
 import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
@@ -122,10 +120,7 @@ fun InstanceName.initApp() {
       if (it::class==Any::class) "object"
       else it.toUi()
    }
-   add(String::class) {
-      if (it.lengthInCodePoints>40) it.codePoints().asSequence().take(41).joinToString("") { it.toChar32().toString() } + " (first 40 characters)"
-      else it
-   }
+   add(String::class) { it }
    add(App::class) { "This application" }
    add(Song::class) { it.getPathAsString() }
    add(PlaylistSong::class) { it.getTitle() }

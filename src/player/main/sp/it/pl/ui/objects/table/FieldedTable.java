@@ -39,6 +39,7 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.TableUtilKt.autoResizeColumns;
 import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
 import static sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static sp.it.util.dev.FailKt.noNull;
@@ -47,8 +48,12 @@ import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.Util.with;
+import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.type.Util.invokeMethodP0;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
+import static sp.it.util.ui.UtilKt.menuItem;
 
 /**
  * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
@@ -90,7 +95,11 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	/** All fields for {@link sp.it.pl.ui.objects.table.FieldedTable#type} of this table. Not all may be viable to be used as columns. */
 	public final List<ObjectField<T,?>> fieldsAll;
 	public final Menu columnVisibleMenu = new Menu("Columns");
-	public final ContextMenu columnMenu = new ContextMenu(columnVisibleMenu);
+	public final MenuItem columnAutosizeItem = with(
+		menuItem("Autosize columns to content", null, consumer(it -> autoResizeColumns(this))),
+		THIS -> sync(columnResizePolicyProperty(), consumer(it -> THIS.setDisable(it!=UNCONSTRAINED_RESIZE_POLICY)))
+	);
+	public final ContextMenu columnMenu = new ContextMenu(columnAutosizeItem, columnVisibleMenu);
 
 	@SuppressWarnings({"unchecked","rawtypes"})
 	public FieldedTable(Class<T> type) {
@@ -138,7 +147,9 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,?>> columnFactory) {
 		colFact = f -> {
 			TableColumn<T,?> c = f==INDEX.INSTANCE ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
+			c.setPrefWidth(f.cWidth());
 			c.setUserData(f);
+			c.setVisible(f.cVisible());
 			return c;
 		};
 	}

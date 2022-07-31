@@ -87,6 +87,7 @@ import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOrSelfOf
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toCompactS
+import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.MimeType
@@ -96,6 +97,7 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.Util
 import sp.it.util.functional.asIs
 import sp.it.util.functional.compose
+import sp.it.util.functional.getAny
 import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
@@ -209,6 +211,7 @@ object CoreConverter: Core {
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)
             o::class.isObject -> enumToHuman(o::class.simpleName)
+            o::class.isData -> runTry {  APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createType()), o).toPrettyS() }.orMessage().getAny()
             // TODO: good idea but probably reduces performance, put the converters in MapByKClass first
             // o::class.companionObjectInstance is ConverterToUiString<*> -> o::class.companionObjectInstance.asIs<ConverterToUiString<Any>>().toUiS(o, APP.locale.value)
             else -> general.toS(o)

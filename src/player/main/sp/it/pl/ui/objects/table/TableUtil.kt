@@ -14,6 +14,7 @@ import javafx.scene.control.TableView
 import javafx.scene.control.skin.TableColumnHeader
 import javafx.scene.control.skin.TableHeaderRow
 import javafx.scene.control.skin.VirtualFlow
+import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
@@ -26,7 +27,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.Util.invokeMethodP1
 import sp.it.util.type.isSubclassOf
-import sp.it.util.ui.Util
+import sp.it.util.ui.Util.computeTextWidth
 import sp.it.util.ui.lookupChildAs
 import sp.it.util.ui.width
 
@@ -86,15 +87,14 @@ fun <T> TableView<T>.rows(): List<TableRow<T>> {
 @Experimental("Unclear when to call - requires populated and showing table - should be TableResizePolicy")
 fun <T> TableView<T>.autoResizeColumns() {
    val rows = rows().associate { it.index to it.childrenUnmodifiable.filterIsInstance<TableCell<Any?,Any?>>().associateBy { it.tableColumn } }
-   columns.forEach { column ->
-      column.fontOrNull
-      column.prefWidth = maxOf(
-         rows.keys.maxOfOrNull {
-            val c = rows[it]!![column.asIs()]!!
-            Util.computeTextWidth(c.font, c.text.orEmpty()) + (c.insets?.width ?: 0.0)
-         } ?: 0.0,
-         Util.computeTextWidth(column.fontOrNull, column.text.orEmpty()) + column.insetsOrZero(),
-         10.0
-      )
+   runTry {
+      columns.forEach { column ->
+         column.prefWidth = USE_COMPUTED_SIZE // having prefWidth set would interfere with width calculation, reset it
+         column.prefWidth = maxOf(
+            10.0,
+            computeTextWidth(column.fontOrNull, column.text.orEmpty()) + column.insetsOrZero(),
+            rows.keys.maxOfOrNull { rows[it]!![column.asIs()]!!.let { c -> computeTextWidth(c.font, c.text.orEmpty()) + (c.insets?.width ?: 0.0) } } ?: 0.0
+         )
+      }
    }
 }

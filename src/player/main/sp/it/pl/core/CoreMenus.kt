@@ -145,7 +145,15 @@ object CoreMenus: Core {
          add<Any> {
             if (value !is CoreMenuNoInspect)
                menu("Inspect in") {
-                  item("Object viewer") { APP.ui.actionPane.orBuild.show(it) }
+                  item("Object viewer") {
+                     APP.ui.actionPane.orBuild.show(
+                        when {
+                           it is MetadataGroup -> it.grouped
+                           it is PlaylistSongGroup -> it.songs
+                           else -> it
+                        }
+                     )
+                  }
                   separator()
                   widgetItems<Opener> { it.open(value) }
                }

@@ -16,6 +16,7 @@ import javafx.scene.input.TransferMode.MOVE
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.Priority.SOMETIMES
+import kotlin.reflect.KClass
 import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Song
@@ -26,7 +27,6 @@ import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.Opener
-import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.WidgetTags.DEVELOPMENT
@@ -36,12 +36,16 @@ import sp.it.pl.main.detectContent
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.getAny
 import sp.it.pl.main.installDrag
+import sp.it.pl.main.tableViewForClass
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.image.Thumbnail
+import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.pane.ImageFlowPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.async.FX
 import sp.it.util.collections.collectionUnwrap
+import sp.it.util.collections.getElementClass
+import sp.it.util.collections.toStringPretty
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.printIt
 import sp.it.util.file.json.JsValue
@@ -49,7 +53,9 @@ import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.mimeType
+import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventUp
@@ -69,6 +75,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    private val dataRepsPane = HBox(15.emScaled)
    private val dataRepThumb = Thumbnail()
    private val dataRepTextArea = TextArea()
+   private var dataRepTable: FilteredTable<Any>? = null
    private val openId = AtomicLong(1L)
 
    init {
@@ -149,16 +156,32 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
          d == null -> null
          d is String -> d
          d is JsValue -> d.toPrettyS()
-         d is Jwt || d::class.isData -> APP.converter.ui.toS(d)
+         d is Jwt || d::class.isData -> d.toUi()
+         else -> null
+      }
+      val dataAsC: Collection<Any?>? = when {
+         dataAsS!=null -> null
+         d is MetadataGroup && d.grouped.size>1 -> d.grouped
+         d is PlaylistSongGroup && d.songs.size>1 -> d.songs
+         d is Collection<*> -> d
          else -> null
       }
 
       dataRepsPane.lay -= dataRepTextArea
       dataRepsPane.lay -= info
+      dataRepTable.ifNotNull { dataRepsPane.lay -= it.root }
       if (dataAsS!=null) {
          dataRepTextArea.isEditable = false
          dataRepTextArea.text = dataAsS
          dataRepsPane.lay(SOMETIMES) += dataRepTextArea
+      }
+      if (dataAsC!=null) {
+         val type = dataAsC.getElementClass().kotlin.asIs<KClass<Any>>()
+         val t = tableViewForClass(type) {
+            setItemsRaw(dataAsC)
+         }
+         dataRepTable = t
+         dataRepsPane.lay(SOMETIMES) += t.root
       }
       dataRepsPane.lay(ALWAYS) += info
 
@@ -171,7 +194,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
                is URI -> d.toFileOrNull()
                is URL -> d.toFileOrNull()
                is Path -> d.toFile()
-               is Song -> d.getFile().printIt()
+               is Song -> d.getFile()
                is MetadataGroup -> d.grouped.takeIf { it.size==1 }?.firstOrNull()?.getFile()
                is PlaylistSongGroup -> d.playlist.takeIf { it.size==1 }?.firstOrNull()?.getFile()
                else -> null

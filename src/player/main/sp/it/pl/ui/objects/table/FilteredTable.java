@@ -114,6 +114,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	public FilteredTable(Class<T> type, @Nullable ObjectField<T,?> mainField, ObservableList<T> backing_list) {
 		super(type);
 
+		var mf = computeMainField(mainField);
 		allItems = noNull(backing_list);
 		filteredItems = allItems.filtered(null);
 		sortedItems = observableArrayList();
@@ -159,12 +160,12 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		syncSize(menuOrder.getItems(), consumer(size -> menuOrder.setDisable(size==0)));
 
 		// searching
-		search.setColumn(mainField);
+		search.setColumn(mf);
 		searchQueryLabel.textProperty().bind(search.searchQuery);
 		search.installOn(this);
 
 		// filtering
-		primaryFilterField = mainField;
+		primaryFilterField = mf;
 		filterPane = new Filter(filteredItems);
 		filterPane.getNode().setVisible(false);
 		var filterKeyHandler = filterPane.buildToggleOnKeyHandler(filterVisible, this);
@@ -204,6 +205,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 		footerVisible.set(true);
 
 		initPlaceholder();
+	}
+
+	protected @Nullable ObjectField<T,?> computeMainField(@Nullable ObjectField<T,?> field) {
+		return field;
 	}
 
 	/**

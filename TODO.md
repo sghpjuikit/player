@@ -1,8 +1,6 @@
 ## Currently considered
 - popup focus (Win 10)
 - Cache DeserializationFactory ComponentDb to avoid IO if file was not modified in the meantime
-- Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
-- Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Document all used libraries, how they are used, why, where not to use them, etc.
 - Action refactor
   - Next all `ActionPane` actions will be migrated to `AppActions.kt`, so they can be accessed type-safely.
@@ -34,10 +32,10 @@
 - Implement converting Layout into ContainerSwitch and back
 
 ## Potential future work
+- Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
+- Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Implement `SliderCE` logarithmic scale
   Should support arbitrary N(0-1) -> N(0-1) function and config dsl
-- Action pane table data class support
-  Prototyped in WeatherInfoForecastMeteors. Needs unification of `ActionPane` and **ObjectInfo** widget 
 - Table column description page
   Not sure how it should be activated (footer? column menu?) 
 - Table export to md, csv
@@ -111,9 +109,6 @@
   Right now multiple instances could get in the way of each other
 - Implement song fulltext search  
   **Lucene**?
-- Improve table column resizing
-  - https://github.com/edvin/tornadofx/wiki/TableView-SmartResize
-  - https://dlemmermann.wordpress.com/2015/12/10/javafx-tip-22-autosize-tree-table-columns/
 - improve process handling  
   Look into [NuProcess](https://github.com/brettwooldridge/NuProcess)
 - Improve I/O to support cross-window  

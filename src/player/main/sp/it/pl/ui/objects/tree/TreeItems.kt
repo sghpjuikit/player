@@ -36,6 +36,7 @@ import javafx.stage.Stage
 import javax.swing.filechooser.FileSystemView
 import mu.KotlinLogging
 import sp.it.pl.audio.Song
+import sp.it.pl.audio.playlist.Playlist
 import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.PlaylistSongGroup
 import sp.it.pl.layout.Component
@@ -131,8 +132,9 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Window -> tree(o.stage)
    is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
-   is MetadataGroup -> STreeItem<Any?>(o, { o.grouped.asSequence() }, { o.grouped.isEmpty() })
+   is Playlist -> PlaylistTreeItem(o)
    is PlaylistSongGroup -> STreeItem<Any?>(o, { o.songs.asSequence() }, { o.songs.isEmpty() })
+   is MetadataGroup -> STreeItem<Any?>(o, { o.grouped.asSequence() }, { o.grouped.isEmpty() })
    is BooleanArray -> STreeItem<Any>(type<Array<BooleanArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
    is ByteArray -> STreeItem<Any>(type<Array<ByteArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
    is UByteArray -> STreeItem<Any>(type<Array<UByteArray>>().toUi(), { o.asSequence() }, { o.isEmpty() })
@@ -466,6 +468,8 @@ open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequen
       }
    }
 }
+
+class PlaylistTreeItem(value: Playlist): OTreeItem<Any>(value, value)
 
 class NodeTreeItem(value: Node): OTreeItem<Node>(value, (value as? Parent)?.childrenUnmodifiable ?: emptyObservableList())
 

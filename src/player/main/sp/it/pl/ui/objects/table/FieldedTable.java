@@ -39,8 +39,10 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.table.TableUtilKt.autoResizeColumns;
-import static sp.it.pl.ui.objects.table.TableUtilKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.buildFieldedCell;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToCsv;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToMD;
 import static sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.SAME;
@@ -53,6 +55,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync;
 import static sp.it.util.type.Util.invokeMethodP0;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
+import static sp.it.util.ui.UtilKt.menu;
 import static sp.it.util.ui.UtilKt.menuItem;
 
 /**
@@ -99,7 +102,14 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		menuItem("Autosize columns to content", null, consumer(it -> autoResizeColumns(this))),
 		THIS -> sync(columnResizePolicyProperty(), consumer(it -> THIS.setDisable(it!=UNCONSTRAINED_RESIZE_POLICY)))
 	);
-	public final ContextMenu columnMenu = new ContextMenu(columnAutosizeItem, columnVisibleMenu);
+	public final ContextMenu columnMenu = new ContextMenu(
+		columnAutosizeItem,
+		columnVisibleMenu,
+		menu("Export...", null, consumer(THIS -> THIS.getItems().addAll(
+			menuItem("to csv", null, consumer(it -> exportToCsv(this))),
+			menuItem("to markdown", null, consumer(it -> exportToMD(this)))
+		)))
+	);
 
 	@SuppressWarnings({"unchecked","rawtypes"})
 	public FieldedTable(Class<T> type) {

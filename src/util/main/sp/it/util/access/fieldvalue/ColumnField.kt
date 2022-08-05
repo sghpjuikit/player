@@ -3,7 +3,7 @@ package sp.it.util.access.fieldvalue
 import sp.it.util.type.VType
 import sp.it.util.type.type
 
-sealed class ColumnField: ObjectFieldBase<Any, Int> {
+sealed class ColumnField: ObjectFieldBase<Any, Int>, MetaField {
 
    constructor(type: VType<Int>, extractor: (Any) -> Int, name: String, description: String, toUi: (Any?, String) -> String): super(type, extractor, name, description, toUi)
 

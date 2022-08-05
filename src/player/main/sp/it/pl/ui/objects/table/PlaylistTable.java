@@ -56,7 +56,7 @@ import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.table.PlaylistTableUtilKt.buildColumn;
-import static sp.it.pl.ui.objects.table.TableUtilKt.getFontOrNull;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.getFontOrNull;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
 import static sp.it.util.functional.Util.SAME;

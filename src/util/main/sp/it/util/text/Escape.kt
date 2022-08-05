@@ -63,6 +63,12 @@ fun String.escapeCsv(): String = escapeCsv(this)
 /** [org.apache.commons.text.StringEscapeUtils.unescapeCsv] */
 fun String.unescapeCsv(): String = unescapeCsv(this)
 
+/** [org.apache.commons.text.StringEscapeUtils.escapeCsv] */
+fun String.escapeMd(): String {
+   val mdChars = """*#()[]_-\+`<>&|""".chars32().toSet()
+   return chars32().map { if (it in mdChars) "\\" + it else "" + it }.joinToString("")
+}
+
 /** [org.apache.commons.text.StringEscapeUtils.escapeXSI] */
 fun String.escapeXSI(): String = escapeXSI(this)
 

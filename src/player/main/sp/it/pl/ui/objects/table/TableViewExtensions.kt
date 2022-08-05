@@ -18,12 +18,19 @@ import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
+import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.table.PlaylistTable.CELL_PADDING
+import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
+import sp.it.util.async.runIO
+import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
+import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.text.chars32
+import sp.it.util.text.escapeCsv
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.Util.invokeMethodP1
 import sp.it.util.type.isSubclassOf
@@ -98,3 +105,43 @@ fun <T> TableView<T>.autoResizeColumns() {
       }
    }
 }
+
+fun TableView<*>.exportToMD() {
+   val data = items.materialize()
+   val fields = columns.mapNotNull { it.userData?.asIf<ObjectField<Any?,*>>() }.filter { it !is MetaField }
+   val mdChars = """*#()[]_-\+`<>&|""".chars32().toSet()
+   fun String.escapeMd(): String = chars32().map { if (it in mdChars) "\\" + it else "" + it }.joinToString("")
+
+   runIO {
+      if (fields.isEmpty()) ""
+      else sequence {
+            yield(fields.joinToString(" | ", "| ", " |") { it.name().escapeMd() })
+            yield(fields.joinToString(" | ", "| ", " |") { if (it.type.isSubclassOf<String>()) ":---" else "---:" })
+         data.forEach { d ->
+            yield(fields.joinToString(" | ", "| ", " |") { it.getOfS(d, "").escapeMd() })
+         }
+      }.joinToString("\n")
+   }.ui {
+      APP.ui.actionPane.orBuild.show(it)
+   }
+}
+
+fun TableView<*>.exportToCsv() {
+   val data = items.materialize()
+   val fields = columns.mapNotNull { it.userData?.asIf<ObjectField<Any?,*>>() }.filter { it !is MetaField }
+
+   runIO {
+      if (fields.isEmpty()) ""
+      else sequence {
+            yield(fields.joinToString(",") { it.name().escapeCsv() })
+         data.forEach { d ->
+            yield(fields.joinToString(",") { it.getOfS(d, "").escapeCsv() })
+         }
+      }.joinToString("\n")
+   }.ui {
+      APP.ui.actionPane.orBuild.show(it)
+   }
+}
+
+
+

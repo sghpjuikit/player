@@ -63,7 +63,7 @@ import static sp.it.pl.main.AppBuildersKt.infoIcon;
 import static sp.it.pl.main.AppBuildersKt.tableViewForClass;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.main.AppProgressKt.withProgress;
-import static sp.it.pl.ui.objects.table.TableUtilKt.autoResizeColumns;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.util.animation.Anim.anim;

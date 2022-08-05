@@ -15,6 +15,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.IconMA
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
+import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.vAlways
@@ -27,7 +28,7 @@ import sp.it.util.type.isSubclassOf
 import sp.it.util.type.type
 import sp.it.util.ui.tableColumn
 
-object PLAYING: ObjectFieldBase<Song, String>(type(), { "" }, "Playing", "An UI column providing pause/resume icon for playing song row", { _, _ -> "" })
+object PLAYING: ObjectFieldBase<Song, String>(type(), { "" }, "Playing", "An UI column providing pause/resume icon for playing song row", { _, _ -> "" }), MetaField
 
 fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<PlaylistSong,Any> = when (f) {
    PLAYING -> buildPlayingFieldColumn()

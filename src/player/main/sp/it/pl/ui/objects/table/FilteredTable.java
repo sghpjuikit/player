@@ -63,7 +63,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static sp.it.pl.main.AppKt.APP;
-import static sp.it.pl.ui.objects.table.TableUtilKt.rows;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.rows;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
 import static sp.it.util.async.AsyncKt.runIO;

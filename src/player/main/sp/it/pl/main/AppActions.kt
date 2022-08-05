@@ -19,6 +19,10 @@ import javafx.stage.FileChooser.ExtensionFilter
 import javafx.stage.Screen
 import javafx.stage.Window
 import javax.imageio.ImageIO
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import org.jaudiotagger.tag.wav.WavTag
 import sp.it.pl.audio.Song
@@ -493,6 +497,19 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
             }
          )
          show()
+      }
+   }
+
+   val saveToFile = slowAction<String>("Save to file...", "Saves the text to a specified file.", IconFA.SAVE) { text ->
+      runBlocking {
+         val f = suspendCoroutine {
+            runFX {
+               saveFile("Save as...", null, "name", this@slowAction.window)
+                  .ifOk { f -> it.resume(f) }
+                  .ifError { _ -> it.resumeWithException(Exception("Canceled")) }
+            }
+         }
+         f.writeText(text)
       }
    }
 

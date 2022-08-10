@@ -109,9 +109,10 @@ interface JsConverter<T> {
 }
 
 open class JsonAst {
-   fun ast(json: String): Try<JsValue, Throwable> = runTry { fromKlaxonAST(JsonMapper().readTree(json)) }
+   protected val om = JsonMapper()
+   fun ast(json: String): Try<JsValue, Throwable> = runTry { fromKlaxonAST(om.readTree(json)) }
 
-   fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { fromKlaxonAST(JsonMapper().readTree(json)) }
+   fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { fromKlaxonAST(om.readTree(json)) }
 }
 
 class Json: JsonAst() {
@@ -123,7 +124,6 @@ class Json: JsonAst() {
    init {
       keyMapConverter.addParserAsF(String::class, { it }, { it })
 
-      @Suppress("SpellCheckingInspection")
       typeAliases {
          // @formatter:off
                  "char" alias Char::class
@@ -576,7 +576,7 @@ fun fromKlaxonAST(ast: Any?): JsValue {
    }
 }
 
-@Suppress("UNCHECKED_CAST", "DEPRECATION")
+@Suppress("UNCHECKED_CAST")
 fun getEnumValue(enumClass: Class<*>, value: String): Enum<*> {
    val enumConstants = enumClass.enumConstants as Array<out Enum<*>>
    return enumConstants.first { it.name==value }

@@ -26,6 +26,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
@@ -478,7 +479,7 @@ public class Window extends WindowBase {
 	private Layout layout;
 	private ContainerSwitch topContainer;
 
-	public Layout getLayout() {
+	public @Nullable Layout getLayout() {
 		return layout;
 	}
 

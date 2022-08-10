@@ -186,12 +186,11 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       get() = getAllWidgets().count()==0 && getAllContainers(true).none { it.properties.keys.stream().noneMatch { it.startsWith("reloading=") } }
 
    protected fun closeWindowIfEmpty() {
-      val rp = rootParent
-      val isEmpty = rp!=null && rp.isEmptyForCloseWindowIfEmpty
-      val w = rp?.window
-      val aw = w?.asAppWindow()
-      val awIsEmpty = aw!=null && aw.layout!=null && aw.layout.isEmptyForCloseWindowIfEmpty
-      if (APP.windowManager.windowDisallowEmpty.value && isEmpty && awIsEmpty) aw!!.hide()
+      val r = rootParent
+      val rIsEmpty = r?.isEmptyForCloseWindowIfEmpty==true
+      val w = r?.window?.asAppWindow()
+      val wIsEmpty = w?.layout?.isEmptyForCloseWindowIfEmpty==true
+      if (APP.windowManager.windowDisallowEmpty.value && rIsEmpty && wIsEmpty) w?.hide()
    }
 
    /**

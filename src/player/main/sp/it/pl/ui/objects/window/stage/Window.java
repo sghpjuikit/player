@@ -90,6 +90,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED_TARGET;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED_TARGET;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.paint.Color.rgb;
@@ -237,6 +238,9 @@ public class Window extends WindowBase {
 			if (e.getCode() == ALT)
 				root.setCursor(Cursor.DEFAULT);
 		});
+		root.addEventFilter(MOUSE_MOVED, e ->
+				root.setCursor(e.isAltDown() ? Cursor.MOVE : Cursor.DEFAULT)
+		);
 
 		// app dragging
 		header.addEventHandler(DRAG_DETECTED, this::moveStart);

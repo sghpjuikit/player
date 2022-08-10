@@ -320,7 +320,7 @@ public class Converter extends SimpleController implements Opener, SongWriter {
     }
 
     private void applierHidePopup() {
-        applierPopup.hideImmediately();
+        if (applierPopup!=null) applierPopup.hideImmediately();
         applierPopup = null;
         applier = null;
     }

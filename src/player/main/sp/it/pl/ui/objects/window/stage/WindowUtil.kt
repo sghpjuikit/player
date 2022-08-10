@@ -36,6 +36,7 @@ import javafx.scene.control.TreeView
 import javafx.scene.input.KeyCode.F1
 import javafx.scene.input.KeyCode.F2
 import javafx.scene.input.KeyCode.F3
+import javafx.scene.input.KeyCode.F4
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
@@ -183,6 +184,12 @@ fun Scene.installWindowInteraction() = Subscription(
    },
    // show help hotkeys
    onEventDown(KEY_PRESSED) {
+      if (it.isAltDown && it.code==F4) {
+         window.ifNotNull { w ->
+            w.hide()
+            it.consume()
+         }
+      }
       if (!it.isAltDown && !it.isControlDown && !it.isShortcutDown && !it.isMetaDown) {
          if (it.code==F1 || it.code==keyShortcuts) {
             APP.actions.showShortcuts()

@@ -11,6 +11,7 @@ import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.pl.audio.tagging.writeRating
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconMD
@@ -42,7 +43,7 @@ import sp.it.util.ui.x
 /** Basic display for song information. */
 class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
 
-   private val rating = Rating().apply { alignment.value = CENTER_LEFT }
+   private val rating = Rating().apply { alignment.value = CENTER_LEFT; onRatingEdited = { songImpl?.writeRating(it) } }
    private val titleL = label { styleClass += listOf("h4", "h4p-up") }
    private val artistL = label { styleClass += "h4p-bottom" }
    private val playcountL = label()

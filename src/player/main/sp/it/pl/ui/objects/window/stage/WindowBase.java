@@ -72,6 +72,7 @@ public class WindowBase {
 	/** Whether this window is resizable. Programmatically it is still possible to change the size of the Stage */
 	public final @NotNull BooleanProperty resizable = s.resizableProperty();
 	public final @NotNull DoubleProperty opacity = s.opacityProperty();
+	public final @NotNull ReadOnlyBooleanProperty showing = s.showingProperty();
 	public final @NotNull ObservableMap<@Nullable Object, @Nullable Object> properties = s.getProperties();
 
 

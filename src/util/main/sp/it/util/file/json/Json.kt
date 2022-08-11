@@ -1,5 +1,6 @@
 package sp.it.util.file.json
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.BooleanNode
@@ -101,7 +102,6 @@ class JsObject(val value: Map<String, JsValue>): JsValue(), JsRoot {
    constructor(entry: Pair<String, JsValue>): this(mapOf(entry))
 }
 
-
 interface JsConverter<T> {
    fun canConvert(value: T): Boolean = true
    fun toJson(value: T): JsValue
@@ -109,7 +109,11 @@ interface JsConverter<T> {
 }
 
 open class JsonAst {
-   protected val om = JsonMapper()
+   protected val om = JsonMapper().apply {
+      // less lenient parsing so "1 2" is invalid json, see https://github.com/FasterXML/jackson-core/issues/808
+      enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+   }
+
    fun ast(json: String): Try<JsValue, Throwable> = runTry { fromKlaxonAST(om.readTree(json)) }
 
    fun ast(json: InputStream): Try<JsValue, Throwable> = runTry { fromKlaxonAST(om.readTree(json)) }

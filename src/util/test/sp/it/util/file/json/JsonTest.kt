@@ -3,6 +3,7 @@ package sp.it.util.file.json
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -18,7 +19,6 @@ import java.util.TreeSet
 import java.util.Vector
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
-import sp.it.util.dev.printIt
 import sp.it.util.functional.Try.Ok
 import sp.it.util.functional.net
 import sp.it.util.type.kType
@@ -35,6 +35,8 @@ class JsonTest: FreeSpec({
          j.fromJson<Int>("55") shouldBe Ok(55)
          j.fromJson<Double>("55") shouldBe Ok(55.0)
          j.fromJson<Any?>("null") shouldBe Ok(null)
+         j.ast("1 2") should { it.isError  }
+         j.ast("1 2 3 4") should { it.isError  }
       }
    }
    "Read" - {

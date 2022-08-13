@@ -5,9 +5,12 @@ All notable changes to this project will be documented in this file. Format base
 
 - Update Kotlin to 1.7.10
 - Update dependencies
+- Implement table export (.md, .csv) functionality
 - Implement json support for value classes
 - Implement `WeatherInfo` forecast
 - Implement way to obtain dependencies' licence report [gradle licenceReport gradle task]
+- Implement `SongInfo` rating change using ui
+- Improve json serialization/deserialization performance [instantiate ObjectMapper only once]
 - Improve JavaFX property detection [avoid getChildren twice]
 - Improve nested config editor layout
 - Improve config editor default button [turn into caret with menu]
@@ -38,6 +41,9 @@ All notable changes to this project will be documented in this file. Format base
 - Fix table header hover effect styling
 - Fix playlist table resizing [fill entire width]
 - Fix libraryView song table resizing [do not show horizontal scrollbar]
+- Fix shortcut `ALT + F4` not closing window sometimes
+- Fix json parsing succeeding for invalid json input in some cases
+- Fix window MOVE cursor while moving not reverting to normal in rare situations
 
 This update continues with UX improvements and fixing issues.
 
@@ -49,14 +55,15 @@ The data information has been improved or fixed for several cases.
 Long texts or texts with multiple lines are previewed on single line. Data classes are previewed as compact json.
 The `TextArea` preview however displays pretty formatted json.
 The table used for `Collection` previews boats better capabilities, such as context menu or auto-sizing to content.
+The table is now more generic, supporting any data class.
 
 **Settings** and forms now handle nesting better and take less horizontal as well as vertical space.
 Inspected `Pane`s also do not display children twice (`getChildren`, `getUnmodifiableChildren`).
 The editors now have caret with menu instead of simple default button. This adds additional functionalities to editors.
 Overall, the layout is more consistent and easier on the eyes. 
 
-The project can generate licence reports for dependencies.
-In the future, the report may be committed to the git repository.
+The project can generate licence reports for dependencies with the gradle task `licenseReport`.
+In the future, the report may be committed to the git repository or even be available to user.
 
 Json conversion boasts value class support.
 This is useful for validation (in value constructor) and type-safety.

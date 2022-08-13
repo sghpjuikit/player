@@ -36,8 +36,6 @@
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Implement `SliderCE` logarithmic scale
   Should support arbitrary N(0-1) -> N(0-1) function and config dsl
-- Table column description page
-  Not sure how it should be activated (footer? column menu?) 
 - App onStart/End command user defined callbacks
   Requires CommandRunnable of sort
 - MetadataGroup filter by Song predicate

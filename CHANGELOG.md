@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file. Format base
 
 - Update Kotlin to 1.7.10
 - Update dependencies
+- Implement table column any/no name support
 - Implement table export (.md, .csv) functionality
+- Implement table column description & provide ui menu for user
+- Implement table auto-sizing to content & provide ui menu for user
+- Implement **ObjectInfo** table preview for collections
 - Implement json support for value classes
 - Implement `WeatherInfo` forecast
 - Implement way to obtain dependencies' licence report [gradle licenceReport gradle task]
@@ -16,20 +20,17 @@ All notable changes to this project will be documented in this file. Format base
 - Improve config editor default button [turn into caret with menu]
 - Improve slider styling [gradient effect]
 - Improve logging output
-- Improve tables
-  - Implement auto-sizing to content & provide ui menu for user
-    - Use where appropriate
-  - Implement **ObjectInfo** table preview for collections
-  - Unify ObjectInfo table, `WeatherInfoForecastMeteors` table, `ActionPane` table into a generic table
-  - Fix inconsistent **ObjectInfo** and `ActionPane` data inspection in some cases
-  - Improve **ObjectInfo** and `ActionPane` data inspection output in some cases
+- Unify ObjectInfo table, `WeatherInfoForecastMeteors` table, `ActionPane` table into a generic table
+- Improve **ObjectInfo** and `ActionPane` data inspection output in some cases
 - Improve `SpitSliderSkin` value changing tooltip layout [less intrusive]
 - Improve `WeatherInfo` settings UX [add config descriptions]
 - Fix `WeatherInfo` not refreshing ui sometimes
 - Fix `String` property editor autocomplete in some scenarios
+- Fix inconsistent **ObjectInfo** and `ActionPane` data inspection in some cases
 - Fix tables not respecting column order
 - Fix table search fails if primary column null
 - Fix table filter empty if table computes its own columns
+- Fix table header hover effect styling
 - Fix volume inc/dec on mouse scroll when scrollable element is hovered
 - Fix rating skin settings not being applied
 - Fix skin extensions not being reactive
@@ -38,7 +39,6 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `ActionPane` displaying json & data class simple preview as multiline
 - Fix `HBox`/`VBox` styling not taking effect
 - Fix `ObservableListCE` not using user set layout
-- Fix table header hover effect styling
 - Fix playlist table resizing [fill entire width]
 - Fix libraryView song table resizing [do not show horizontal scrollbar]
 - Fix shortcut `ALT + F4` not closing window sometimes
@@ -54,8 +54,16 @@ Data inspection capabilities - the overlay `ActionPane` and the widget **ObjectI
 The data information has been improved or fixed for several cases.
 Long texts or texts with multiple lines are previewed on single line. Data classes are previewed as compact json.
 The `TextArea` preview however displays pretty formatted json.
-The table used for `Collection` previews boats better capabilities, such as context menu or auto-sizing to content.
-The table is now more generic, supporting any data class.
+The table used for `Collection` previews is now more generic, supporting any data class.
+
+Tables in general were improved.
+The table columns can now have any text as name.
+Previously, certain characters would cause column serialization issues, but now serialization uses `column.id` instead of `column.text`.
+More importantly, columns that display graphics can specify their name to be empty, to improve UX.
+They provide csv/md export and column description features in menu.
+They can auto-size to content and this is done automatically where appropriate.
+Several minor issues with table search, filter and sort have been fixed.
+The table header ui effect has been improved/fixed for some skins.
 
 **Settings** and forms now handle nesting better and take less horizontal as well as vertical space.
 Inspected `Pane`s also do not display children twice (`getChildren`, `getUnmodifiableChildren`).

@@ -168,7 +168,9 @@ public class ImprovedTable<T> extends TableView<T> {
 
 	/** Builds index column. */
 	public TableColumn<T,Void> buildIndexColumn() {
-		TableColumn<T,Void> c = new TableColumn<>("#");
+		TableColumn<T,Void> c = new TableColumn<>();
+		c.setId(INDEX.INSTANCE.name());
+		c.setText(INDEX.INSTANCE.name());
 		c.getStyleClass().add("column-header-align-right");
 		c.setCellFactory(buildIndexColumnCellFactory());
 		c.setSortable(false);

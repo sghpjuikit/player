@@ -9,6 +9,7 @@ import javafx.scene.control.TableView
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.runTry
 
@@ -16,11 +17,11 @@ import sp.it.util.functional.runTry
 class TableColumnInfo() {
 
    @JvmField val columns: MapSet<String, ColumnInfo>
+   @JvmField var columnIdMapper: (String) -> String = { id -> id }
    @JvmField var sortOrder: ColumnSortInfo
-   @JvmField var nameKeyMapper: (String) -> String = { it }
 
    init {
-      columns = MapSet(LinkedHashMap()) { nameKeyMapper(it.name) }
+      columns = MapSet(LinkedHashMap()) { columnIdMapper(it.name) }
       sortOrder = ColumnSortInfo()
    }
 
@@ -29,12 +30,13 @@ class TableColumnInfo() {
    }
 
    constructor(table: TableView<*>): this() {
+      columnIdMapper = table.asIf<FieldedTable<*>>()?.columnIdMapper ?: columnIdMapper
       columns += table.columns.mapIndexed { i, c -> ColumnInfo.fromColumn(i, c) }
       sortOrder = ColumnSortInfo.fromTable(table)
    }
 
    fun update(table: TableView<*>) {
-      val old = MapSet(columns) { nameKeyMapper(it.name) }
+      val old = MapSet(columns) { columnIdMapper(it.name) }
       columns.clear()
 
       // add visible columns
@@ -75,7 +77,7 @@ class TableColumnInfo() {
 
       companion object {
 
-         fun fromColumn(position: Int, c: TableColumn<*, *>) = ColumnInfo(c.text, position, c.isVisible, c.width)
+         fun fromColumn(position: Int, c: TableColumn<*, *>) = ColumnInfo(c.id, position, c.isVisible, c.width)
 
          fun fromString(str: String): Try<ColumnInfo, Throwable> = runTry {
             val s = str.split(S3)
@@ -88,8 +90,8 @@ class TableColumnInfo() {
    class ColumnSortInfo(val sorts: List<Pair<String, SortType>> = listOf()) {
 
       fun <T> toTable(table: TableView<T>) {
-         table.sortOrder setTo sorts.mapNotNull { (text, sortType) ->
-            table.columns.find { text==it.text }.ifNotNull {
+         table.sortOrder setTo sorts.mapNotNull { (id, sortType) ->
+            table.columns.find { id==it.id }.ifNotNull {
                it.sortType = sortType
             }
          }
@@ -100,7 +102,7 @@ class TableColumnInfo() {
 
       companion object {
 
-         fun fromTable(table: TableView<*>) = ColumnSortInfo(table.sortOrder.map { Pair(it.text, it.sortType) })
+         fun fromTable(table: TableView<*>) = ColumnSortInfo(table.sortOrder.map { Pair(it.id, it.sortType) })
 
          fun fromString(s: String): Try<ColumnSortInfo, Throwable> = runTry {
             ColumnSortInfo(

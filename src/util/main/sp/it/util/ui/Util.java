@@ -9,8 +9,6 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
@@ -26,7 +24,6 @@ import sp.it.util.JavaLegacy;
 import sp.it.util.access.V;
 import sp.it.util.reactive.Subscription;
 import static javafx.geometry.Orientation.VERTICAL;
-import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static javafx.stage.StageStyle.UTILITY;
@@ -317,32 +314,6 @@ public interface Util {
 	}
 
 /* ---------- TABLE ------------------------------------------------------------------------------------------------- */
-
-	/**
-	 * Creates column that indexes rows from 1 and is right aligned. The column
-	 * is of type Void - table data type agnostic.
-	 *
-	 * @param name name of the column. For example "#"
-	 * @return the column
-	 */
-	static <T> TableColumn<T,Void> createIndexColumn(String name) {
-		TableColumn<T,Void> c = new TableColumn<>(name);
-		c.setSortable(false);
-		c.setCellFactory(column -> new TableCell<>() {
-			{
-				setAlignment(CENTER_RIGHT);
-			}
-
-			@Override
-			protected void updateItem(Void item, boolean empty) {
-				super.updateItem(item, empty);
-
-				if (empty) setText(null);
-				else setText(getIndex() + 1 + ".");
-			}
-		});
-		return c;
-	}
 
 	/**
 	 * Convenience method to make it easier to select given rows of the

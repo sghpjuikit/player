@@ -32,7 +32,8 @@ object PLAYING: ObjectFieldBase<Song, String>(type(), { "" }, "Playing", "An UI 
 
 fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<PlaylistSong,Any> = when (f) {
    PLAYING -> buildPlayingFieldColumn()
-   else -> tableColumn(f.name()) {
+   else -> tableColumn {
+      text = f.name()
       isResizable = true
       styleClass += if (f.type.isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
       cellValueFactory = when (f) {
@@ -44,7 +45,7 @@ fun PlaylistTable.buildColumn(f: ObjectField<PlaylistSong, Any?>): TableColumn<P
    }
 }
 
-fun PlaylistTable.buildPlayingFieldColumn(): TableColumn<PlaylistSong, Any> = tableColumn("Playing") {
+fun PlaylistTable.buildPlayingFieldColumn(): TableColumn<PlaylistSong, Any> = tableColumn {
    isSortable = false
    isResizable = true
    cellValueFactory = Callback { vAlways(Unit) }

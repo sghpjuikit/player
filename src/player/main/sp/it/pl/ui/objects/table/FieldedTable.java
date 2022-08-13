@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.table;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +26,7 @@ import sp.it.pl.access.fieldvalue.AnyField.STRING_UI;
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.ui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.util.Sort;
+import sp.it.util.access.fieldvalue.MetaField;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.functional.Functors.F1;
 import static java.util.stream.Collectors.toList;
@@ -87,7 +87,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	private F1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.cOrder(), f.cVisible(), getEmScaled(f.cWidth()));
 	private F1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
-	private F1<String,String> keyNameColMapper = name -> name;
+	public F1<String,String> columnIdMapper = id -> id;
 
 	private TableColumnInfo defColInfo;
 	private TableColumnInfo columnState;
@@ -122,6 +122,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 		setColumnFactory(f -> {
 			TableColumn<T,Object> c = new TableColumn<>(f.name());
+			c.setId(f.name());
+			c.setText(f instanceof MetaField ? "" : f.name());
 			c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
 			c.setCellFactory(col -> buildFieldedCell(f));
 			return c;
@@ -157,9 +159,10 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,?>> columnFactory) {
 		colFact = f -> {
 			TableColumn<T,?> c = f==INDEX.INSTANCE ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
-			c.setPrefWidth(f.cWidth());
+			c.setId(f.name());
 			c.setUserData(f);
 			c.setVisible(f.cVisible());
+			c.setPrefWidth(f.cWidth());
 			return c;
 		};
 	}
@@ -175,10 +178,6 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	public Function<ObjectField<T,?>,ColumnInfo> getColumnStateFactory() {
 		return colStateFact;
-	}
-
-	public void setKeyNameColMapper(F1<String,String> columnNameToKeyMapper) {
-		keyNameColMapper = columnNameToKeyMapper;
 	}
 
 	public boolean isColumnVisible(ObjectField<? super T,?> f) {
@@ -201,23 +200,18 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public void setColumnState(TableColumnInfo state) {
 		noNull(state);
 
-		List<TableColumn<T,?>> visibleColumns = new ArrayList<>();
-		state.columns.stream().filter(c -> c.visible).sorted().forEach(c -> {
-			// get or build column
-			TableColumn<T,?> tc = c.name.equals(INDEX.INSTANCE.name())
-				? columnIndex
-				: colFact.call(nameToF(c.name));
-			// set width
-			tc.setPrefWidth(c.width);
-			// set visibility
-			tc.setVisible(c.visible);
-			// set position (automatically, because we sorted the input)
-			visibleColumns.add(tc);
-		});
-		// restore all at once => 1 update
-		getColumns().setAll(visibleColumns);
-		// restore sort order
-		state.sortOrder.toTable(this);
+		var visibleColumns = state.columns.stream()
+			.filter(c -> c.visible)
+			.sorted()
+			.map(c -> {
+				var tc = colFact.call(nameToF(c.name));
+				tc.setPrefWidth(c.width);
+				tc.setVisible(c.visible);
+				return tc;
+			})
+			.toList();
+		getColumns().setAll(visibleColumns);    // restore all at once => 1 update
+		state.sortOrder.toTable(this);  // restore sort order
 	}
 
 	@Deprecated
@@ -235,7 +229,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		if (defColInfo==null) {
 			// generate column states
 			defColInfo = new TableColumnInfo();
-			defColInfo.nameKeyMapper = keyNameColMapper;
+			defColInfo.columnIdMapper = columnIdMapper;
 			defColInfo.columns.addAll(map(fields, colStateFact));
 			// insert index column state manually
 			defColInfo.columns.removeIf(f -> f.name.equals(INDEX.INSTANCE.name()));
@@ -251,7 +245,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 				columnVisibleMenu.getItems().addAll(
 					defColInfo.columns.streamV()
 						.map(c -> {
-							ObjectField<T,?> f = nameToCF(c.name);
+							ObjectField<T,?> f = nameToF(c.name);
 							String d = f.description();
 
 							SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible);
@@ -264,7 +258,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 						.sorted(by(MenuItem::getText))
 						.toList()
 				);
-				columnVisibleMenu.getItems().forEach(i -> ((SelectionMenuItem) i).getSelected().setValue(isColumnVisible(nameToCF(i.getText()))));
+				columnVisibleMenu.getItems().forEach(i -> ((SelectionMenuItem) i).getSelected().setValue(isColumnVisible(nameToF(i.getText()))));
 			});
 
 			// link table column button to our menu instead of an old one
@@ -369,16 +363,11 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		);
 	}
 
-	private ObjectField<T,?> nameToF(String name) {
-		String fieldName = keyNameColMapper.apply(name);
+	private ObjectField<T,?> nameToF(String id) {
+		String fieldName = columnIdMapper.apply(id);
 		return fields.stream()
 			.filter(f -> f.name().equals(fieldName)).findAny()
-			.orElseThrow(() -> new RuntimeException("Cant find '" + name + "' field"));
-	}
-
-	@SuppressWarnings({"unchecked"})
-	private ObjectField<T,?> nameToCF(String name) {
-		return INDEX.INSTANCE.name().equals(name) ? (ObjectField<T,?>) INDEX.INSTANCE : nameToF(name);
+			.orElseThrow(() -> new RuntimeException("Cant find field=" + fieldName + " by columnId=" + id));
 	}
 
 }

@@ -78,6 +78,7 @@ import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
 import sp.it.util.conf.noUi
 import sp.it.util.conf.values
+import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.Util.SAME
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -163,7 +164,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
 
       // set up table columns
-      table.setKeyNameColMapper { name -> if (ColumnField.INDEX.name()==name) name else MgField.valueOf(name).name() }
+      table.columnIdMapper = F1 { id -> if (ColumnField.INDEX.name()==id) id else MgField.valueOf(id).name() }
       table.setColumnFactory { f ->
          if (f is MgField<*>) {
             val mf = fieldFilter.value

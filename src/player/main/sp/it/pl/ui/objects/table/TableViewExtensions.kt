@@ -19,6 +19,8 @@ import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
 import sp.it.pl.main.APP
+import sp.it.pl.main.showFloating
+import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.table.PlaylistTable.CELL_PADDING
 import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
@@ -31,6 +33,7 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.text.chars32
 import sp.it.util.text.escapeCsv
+import sp.it.util.text.escapeMd
 import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.Util.invokeMethodP1
 import sp.it.util.type.isSubclassOf
@@ -143,5 +146,10 @@ fun TableView<*>.exportToCsv() {
    }
 }
 
-
+fun FieldedTable<*>.showColumnInfo() {
+   val mdText = fields.joinToString("\n\n") { "#### " + it.name() + " #\n" + it.description().escapeMd() }
+   showFloating("Column descriptions") {
+      MdNode().apply { readText(mdText) }
+   }
+}
 

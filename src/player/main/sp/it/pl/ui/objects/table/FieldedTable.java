@@ -43,6 +43,7 @@ import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.buildFieldedCell;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToCsv;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToMD;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.showColumnInfo;
 import static sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.SAME;
@@ -103,8 +104,9 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		THIS -> sync(columnResizePolicyProperty(), consumer(it -> THIS.setDisable(it!=UNCONSTRAINED_RESIZE_POLICY)))
 	);
 	public final ContextMenu columnMenu = new ContextMenu(
-		columnAutosizeItem,
+		menuItem("Show column descriptions", null, consumer(it -> showColumnInfo(this))),
 		columnVisibleMenu,
+		columnAutosizeItem,
 		menu("Export...", null, consumer(THIS -> THIS.getItems().addAll(
 			menuItem("to csv", null, consumer(it -> exportToCsv(this))),
 			menuItem("to markdown", null, consumer(it -> exportToMD(this)))

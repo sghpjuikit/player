@@ -9,7 +9,6 @@ import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.output.CliktHelpFormatter
-import com.github.ajalt.clikt.output.TermUi.echo
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.arguments.validate
@@ -52,15 +51,15 @@ class AppCli {
          try {
             cli.parse(allArgs)
          } catch (e: PrintHelpMessage) {
-            echo(e.command.getFormattedHelp())
+            cli.echoText(e.command.getFormattedHelp())
          } catch (e: PrintMessage) {
-            echo(e.message)
+            cli.echoText(e.message)
          } catch (e: UsageError) {
-            echo(e.helpMessage(), err = true)
+            cli.echoText(e.helpMessage(), err = true)
          } catch (e: CliktError) {
-            echo(e.message, err = true)
+            cli.echoText(e.message, err = true)
          } catch (e: Abort) {
-            echo("Aborted!", err = true)
+            cli.echoText("Aborted!", err = true)
          }
       } else {
          cli.main(allArgs)
@@ -73,7 +72,6 @@ class Cli: CliktCommand(
    name = APP.name,
    invokeWithoutSubcommand = true,
    help = "${APP.name} application command-line interface"
-
 ) {
    val version = versionOption("Application version=${APP.version}, JDK version=${Runtime.version()}, Kotlin version=${KotlinVersion.CURRENT}")
    val dev by option(help = "Forces development mode to 'true' regardless of the setting")
@@ -94,6 +92,9 @@ class Cli: CliktCommand(
          )
       }
    }
+
+   /** Print the [message] to the screen */
+   fun echoText(message: Any?, err: Boolean = false) = super.echo(message, true, err, currentContext.console.lineSeparator)
 
    override fun run() {
       if (!APP.isInitialized.isOk) {

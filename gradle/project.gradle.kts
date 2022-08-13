@@ -126,7 +126,7 @@ allprojects {
          implementation("com.github.f4b6a3", "uuid-creator", "5.1.0")
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
-         implementation("com.github.ajalt.clikt", "clikt", "3.4.1")
+         implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
          implementation("org.apache.commons", "commons-text", "1.9")
          implementation("com.github.oshi", "oshi-core", "6.2.2")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
@@ -154,13 +154,13 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.0.3")
-         implementation("io.ktor", "ktor-client-cio", "2.0.3")
+         implementation("io.ktor", "ktor-server-core", "2.1.0")
+         implementation("io.ktor", "ktor-client-cio", "2.1.0")
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.4.1")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.4.1")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.4.2")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.4.2")
       }
 
    }

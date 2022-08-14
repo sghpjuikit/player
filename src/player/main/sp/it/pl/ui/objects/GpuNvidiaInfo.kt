@@ -121,7 +121,7 @@ class GpuNvidiaInfo: StackPane() {
             .toSubscription(),
          flowTimer(0, 5000)
             .onEach {
-               nvidiaSmi.value
+               nvidiaSmi.value?.takeIf { it.exists() }
                   ?.runAsAppProgram(
                      // `-q` print all
                      // `--help-query-gpu` help with --query-gpu

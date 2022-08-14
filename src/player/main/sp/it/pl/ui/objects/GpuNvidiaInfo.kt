@@ -43,15 +43,18 @@ import sp.it.util.functional.orNull
 import sp.it.util.math.clip
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
-import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.reactive.sync
 import sp.it.util.reactive.toSubscription
 import sp.it.util.text.splitTrimmed
 import sp.it.util.type.atomic
+import sp.it.util.ui.displayed
 import sp.it.util.ui.gridPane
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
+import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.separator
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.x
@@ -217,7 +220,8 @@ class GpuNvidiaInfo: StackPane() {
          lay(row = baseRow + 2, column = 1, hAlignment = LEFT) += labelClock
       }
 
-      sceneProperty().attach { monitor.subscribe(it!=null) }
+      displayed sync { monitor.subscribe(it) } on onNodeDispose
+      onNodeDispose += { monitor.unsubscribe() }
    }
 
    private fun configure() {

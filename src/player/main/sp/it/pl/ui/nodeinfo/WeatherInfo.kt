@@ -53,6 +53,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.toSubscription
 import sp.it.util.system.browse
 import sp.it.util.text.capital
+import sp.it.util.ui.displayed
 import sp.it.util.ui.dsl
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
@@ -128,8 +129,8 @@ class WeatherInfo: HBox(15.0) {
          }
       }
 
-      // keep updated content
-      sceneProperty().attach { monitor.subscribe(it!=null) } on onNodeDispose
+      displayed sync { monitor.subscribe(it) } on onNodeDispose
+      onNodeDispose += { monitor.unsubscribe() }
 
       apiKey attach { IO.launch { refresh() } }
       latitude attach { updateUi() }

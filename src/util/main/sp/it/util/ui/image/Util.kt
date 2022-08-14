@@ -37,7 +37,7 @@ fun ImageBf.toFX(to: ImageWr? = null): ImageWr = SwingFXUtils.toFXImage(this, to
 
 // https://github.com/javafxports/openjdk-jfx/pull/472#issuecomment-500547180
 fun ImageBf.toFXCustom(): ImageWr {
-   val bb = IntBuffer.allocate(width*height*Integer.BYTES)
+   val bb = IntBuffer.allocate(width*height)
    val pb = PixelBuffer(width, height, bb, PixelFormat.getIntArgbPreInstance())
    getRGB(0, 0, width, height, bb.array(), 0, width)
    runFX {
@@ -143,15 +143,17 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
          val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
 
          val irp = reader.defaultReadParam.apply {
-            var px = 1
-            if (!highQuality && rW!=0 && rH!=0) {
-               val sw = reader.getWidth(ii)/rW
-               val sh = reader.getHeight(ii)/rH
-               px = maxOf(1, maxOf(sw, sh)/3) // quality == 2/3 == ok, great performance
+            val px = when {
+               !highQuality && rW!=0 && rH!=0 -> {
+                  val sw = iW/rW
+                  val sh = iH/rH
+                  maxOf(1, minOf(sw, sh)/2) // quality == 2/3 == ok, great performance
+               }
+               else -> 1 // 1 == max quality
             }
-            // max quality is px==1, but quality/performance ratio would suck
             setSourceSubsampling(px, px, 0, 0)
          }
+
 
          runTry {
             reader.read(ii, irp)

@@ -149,3 +149,5 @@
   reported, worked around by enabling the counters on app startup using `OshiCore::class`
 - [-] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation
   reported demand for fast native excelsior compiler that has been discontinued -> Excelsior native compiler can no longer be build (no more experimental kotlinc)
+- [ ] [694](https://github.com/haraldk/TwelveMonkeys/issues/694) Incorrect subSampling out put for bmp image  
+  reported, open

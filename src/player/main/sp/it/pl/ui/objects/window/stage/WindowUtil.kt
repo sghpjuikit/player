@@ -93,6 +93,7 @@ import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.ifNull
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.math.P
 import sp.it.util.reactive.Subscription
@@ -186,7 +187,7 @@ fun Scene.installWindowInteraction() = Subscription(
    onEventDown(KEY_PRESSED) {
       if (it.isAltDown && it.code==F4) {
          window.ifNotNull { w ->
-            w.hide()
+            w.asAppWindow().ifNotNull { it.close() }.ifNull { w.hide() }
             it.consume()
          }
       }

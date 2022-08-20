@@ -133,7 +133,6 @@ allprojects {
       }
 
       "Image" group {
-         implementation("com.github.umjammer", "javavp8decoder", "d51fe8f")
          implementation("com.drewnoakes", "metadata-extractor", "2.18.0")
          fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.8.3")
          imageIO("bmp")
@@ -151,6 +150,7 @@ allprojects {
          imageIO("sgi")
          imageIO("thumbsdb")
          imageIO("tiff")
+         imageIO("webp")
       }
 
       "Http" group {

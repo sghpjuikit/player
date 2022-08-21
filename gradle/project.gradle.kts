@@ -106,9 +106,9 @@ allprojects {
       }
 
       "Logging" group {
-         implementation("org.slf4j", "slf4j-api")
-         implementation("org.slf4j", "jul-to-slf4j", "1.7.36")
-         implementation("ch.qos.logback", "logback-classic", "1.2.3")
+         implementation("org.slf4j", "slf4j-api", "2.0.0")
+         implementation("org.slf4j", "jul-to-slf4j", "2.0.0")
+         implementation("ch.qos.logback", "logback-classic", "1.3.0-beta0")
          implementation("io.github.microutils", "kotlin-logging", "2.1.23")
       }
 
@@ -135,7 +135,6 @@ allprojects {
       "Image" group {
          implementation("com.drewnoakes", "metadata-extractor", "2.18.0")
          fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.8.3")
-         imageIO("batik")
          imageIO("bmp")
          imageIO("clippath")
          imageIO("core")

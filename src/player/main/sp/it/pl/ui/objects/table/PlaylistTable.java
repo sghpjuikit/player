@@ -11,7 +11,6 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -56,6 +55,7 @@ import static sp.it.pl.main.AppDragKt.installDrag;
 import static sp.it.pl.main.AppDragKt.setSongsAndFiles;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.table.PlaylistTableUtilKt.buildColumn;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.computeIndexColumnWidth;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.getFontOrNull;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runNew;
@@ -166,7 +166,7 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 			var sw = getVScrollbarWidth();
 			var gap = 3;               // prevents horizontal slider from appearing
 
-			getColumn(INDEX.INSTANCE).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth() + CELL_PADDING_WIDTH));
+			getColumn(INDEX.INSTANCE).ifPresent(c -> c.setPrefWidth(computeIndexColumnWidth(c)));
 			getColumn(LENGTH.INSTANCE).ifPresent(c -> {
 				var maxLength = getItems().stream().mapToDouble(PlaylistSong::getTimeMs).max().orElse(6000);
 				var maxLengthText = LENGTH.INSTANCE.toS(new Duration(maxLength), "");
@@ -175,9 +175,9 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 				c.setPrefWidth(width);
 			});
 
-			TableColumn<?,?> mc = isColumnVisible(NAME.INSTANCE) ? getColumn(NAME.INSTANCE).orElse(null) : getColumn(TITLE.INSTANCE).orElse(null);
+			var mc = isColumnVisible(NAME.INSTANCE) ? getColumn(NAME.INSTANCE).orElse(null) : getColumn(TITLE.INSTANCE).orElse(null);
 			if (mc!=null) {
-				double sumW = resize.getTable().getColumns().stream()
+				double sumW = getColumnLeafs().stream()
 						.filter(c -> c!=mc)
 						.mapToDouble(c -> c.getWidth())
 						.sum();

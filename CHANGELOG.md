@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. Format base
 - Update Kotlin to 1.7.10
 - Update dependencies
 - Implement table column any/no name support
+- Implement table sort memoization (considerably improves sort speed in some situations)
+- Implement table column nesting (arbitrary depth)
 - Implement table export (.md, .csv) functionality
 - Implement table column description & provide ui menu for user
 - Implement table auto-sizing to content & provide ui menu for user
@@ -27,10 +29,12 @@ All notable changes to this project will be documented in this file. Format base
 - Fix `WeatherInfo` not refreshing ui sometimes
 - Fix `String` property editor autocomplete in some scenarios
 - Fix inconsistent **ObjectInfo** and `ActionPane` data inspection in some cases
-- Fix tables not respecting column order
+- Fix table not respecting column order
 - Fix table search fails if primary column null
 - Fix table filter empty if table computes its own columns
 - Fix table header hover effect styling
+- Fix table column resizing not taking column/cell padding & column font into consideration properly
+- Fix table horizontal scrollbar visible sometimes when using `CONSTRAINED_TABLE_RESIZE_POLICY`
 - Fix volume inc/dec on mouse scroll when scrollable element is hovered
 - Fix rating skin settings not being applied
 - Fix skin extensions not being reactive
@@ -44,37 +48,107 @@ All notable changes to this project will be documented in this file. Format base
 - Fix shortcut `ALT + F4` not closing window sometimes
 - Fix json parsing succeeding for invalid json input in some cases
 - Fix window MOVE cursor while moving not reverting to normal in rare situations
+- Fix reading webp images
+- Fix reading bmp images when subSampling>1 (reading image smaller than 50% of original size)
 
-This update continues with UX improvements and fixing issues.
+This update continues with tons of UX improvements and fixes.
 
+#### Weather improvements
 The **Weather Info** widget is receiving hourly and daily forecast as well as meteor shower table.
 There is also a link to www.windy.com (for appropriate location) - a useful weather site with additional information.
 
+#### Data inspection improvements
 Data inspection capabilities - the overlay `ActionPane` and the widget **ObjectInfo** were mostly unified in functionality.
 The data information has been improved or fixed for several cases.
 Long texts or texts with multiple lines are previewed on single line. Data classes are previewed as compact json.
 The `TextArea` preview however displays pretty formatted json.
 The table used for `Collection` previews is now more generic, supporting any data class.
 
-Tables in general were improved.
-The table columns can now have any text as name.
+#### Table column nesting
+The tables now support nested columns.
+This has been put off for a long time, but it's finally been done.
+The feature is an eye candy, but is useful for nested data classes or visual column grouping.
+The leaf columns are data driven, while their parents are merely visual.
+
+The core of the tables is `ObjectField`, i.e. field, a definition of a getter/attribute of objects of certain type. Fields represent and generate columns.
+Thus, column nesting is an `ObjectField flatMap ObjectField operation.
+Table only requires to know the leaf fields.
+The parent columns can be computed at any time by traversing the visible leaf columns/fields by upwards the flatMap hierarchy.
+Now `table.columns` returns root columns and `table.fields` and `table.visibleColumnLeafs` return only leaf fields and visible leaf columns.
+During serialization only leaf columns are serialized. Upon column state change the column parents/groups are reconstructed.
+For clarity, `table.columnRoots` and `table.columnLeafs` haven been added to the API and delegate to `table.columns` and `table.visibleColumnLeafs`.
+
+Using flatMapped fields has consequences beyond just nested column:
+- Column root  
+  Single column that is parent of all other columns. Can be used as simple table header.
+- Column nesting lvl  
+  Hierarchy with unlimited depth  
+  For now there is few types of fields so this is still manageable problem, but in the future, could things will have to be improved:
+  - Computing all the possible leaf fields, lazily
+  - Detecting and possibly disallowing column nesting loops
+  - Large number of leaf fields as a result of combinatorial expansion  
+- Column visibility context menu  
+  So far, the menu is flat list of leaf fields (which was already unwieldy before due to number of song tags).  
+  The menu could use submenus for nested columns, however with lazy fields, it will be necessary to adjust the column visibility menu depending
+  on which column/group has been clicked on, and only providing the toggles within given nesting level.  
+  This will make it possible to build column complexity of any hierarchy, through UI. This will be considered in the future.
+- Column searching picker menu  
+  Similarly to column visibility menu, non menu component with search will have to be used to pick menu to search by. This will be considered in the future.
+- Column filtering combobox  
+  Filters already support arbitrary function chains, therefore intuitively, the filter should only provide top level columns.
+  However, provided flat-mapped leaf columns as set of initial filter builders is convenient.
+- Creating/deleting `ObjectField` definitions for common types to generate the most intuitive tables.  
+  For example, `Song` has a field `Filename`, but now the nested`File.Name` makes more sense.  
+  There are considerations to be made, including performance and backwards compatibility and sorting out field implementations will be done in the future.
+- Table sorting performance
+  - Nested columns cause degradation of sorting speed due to nesting field value extractors.  
+    Top level columns usually extract value directly from the object, but with nesting, the value computation quickly adds up.
+    This problem turns into a disaster (sorting 50k items taking potentially 10s)  
+    Sorting a collection requires N*logN operations, each calling field value extractor.
+    During comparisons, extractors are called for each value multiple (logN) times. Thus `list.sortBy { extractor(it) }` puts lots of pressure to how fast the extractor is.
+    To fix this, `ObjectField` can now be turned into `memoized` version of itself so that it uses `IdentityHashMap` to only extract value from each input at most once.
+    Memoized field produces memoized comparator, which compares only the extracted values.
+    The performance improvement is for 50k items 50-fold, which is satisfactory. Also, the sorting is now more deterministic and stable (important for io and non-deterministic extractors).
+    The downside is that memoized fields and memoized comparators are stateful and not only use potentially lots of memory but can be used only once.
+    This complicates things, as table comparator can be and is accessed and used outside table.
+    For now, the table exposes standard (and slow) comparator through its API and only uses the fast one internally.
+    Alternatively, table API may expose comparator builder instead, but that makes it more difficult to use. This will be considered in the future. 
+  - The comparators are already heavyweight, due to being build generically from table column sort order,
+    casting extracted value (to `Comparable`), always assuming nullable values, thus doing null checks and wrapping comparators with nullFirst/Last.
+    Hence, the actual comparator could actually be `chainComparators(list(reversed(nullsLast(naturalOrderBy(nullsLast(comparableCaster(nullCheck(fieldValueExtractor))))))))`
+    The comparator has been simplified. The table does not use nullable comparator anymore. Non-null comparators do not put null checks inside extractors.
+    Casting to Comparable inside extractor has been removed in favour of casting the entire field to `ObjectField<T,Comparable<*>>`.
+    If the extractor is not nullable, nullFirst/Last wrapping is not applied either, which means `naturalOrder()` can be avoided as well.
+    This does require switching over various cases and building appropriate comparators as well as separate methods for building nullable and non-null comparators.
+    But it is worth it.
+  - `Song.file` has been optimized to know to be a file, which avoids `isFile`/`isDirectory` IO calls in sorting by certain columns
+
+#### Other table improvements
+Table columns can now have any text as name.
 Previously, certain characters would cause column serialization issues, but now serialization uses `column.id` instead of `column.text`.
 More importantly, columns that display graphics can specify their name to be empty, to improve UX.
-They provide csv/md export and column description features in menu.
-They can auto-size to content and this is done automatically where appropriate.
-Several minor issues with table search, filter and sort have been fixed.
+Multiple columns can also contain the same text.
+
+The tables provide csv/md export and column description features in menu.
+The tables can auto-size to content and this is done automatically where appropriate.
+Several minor issues with table search, filter, resizing and sort have been fixed.
 The table header ui effect has been improved/fixed for some skins.
 
+#### Settings and Form IX
 **Settings** and forms now handle nesting better and take less horizontal as well as vertical space.
 Inspected `Pane`s also do not display children twice (`getChildren`, `getUnmodifiableChildren`).
 The editors now have caret with menu instead of simple default button. This adds additional functionalities to editors.
 Overall, the layout is more consistent and easier on the eyes. 
 
+#### Licence reports
 The project can generate licence reports for dependencies with the gradle task `licenseReport`.
 In the future, the report may be committed to the git repository or even be available to user.
 
+#### Settings and Form UX
 Json conversion boasts value class support.
 This is useful for validation (in value constructor) and type-safety.
+The application has been discovered to parse invalid json inputs like `1 2` as valid json.
+This caused issues during dynamic content detection. The issue has been fixed.
 
 ## [6.0.0]  2022 06 21
 

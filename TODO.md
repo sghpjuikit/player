@@ -32,6 +32,7 @@
 - Implement converting Layout into ContainerSwitch and back
 
 ## Potential future work
+- Implement OS context menu integration
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Implement `SliderCE` logarithmic scale
@@ -48,8 +49,6 @@
   Should work like tags
 - Show progress for file downloads progress, [Inspiration](https://betterprogramming.pub/show-download-progress-in-kotlin-style-64d157995e27)  
   Must work for downloading up `kotlinc` and `Vlc`
-- Support table column hierarchy, i.e., nested columns, e.g., `Metadata.File.Size`  
-  JavaFx supports this, however `ObjectField` and `FieldedTable` need some work
 - Implement `Window` & `Component` `Shower` using smart window resize algorithm expanding window to available screen area  
   It is not clear where exactly this would make the most impact. Potentially, custom action to reorganize windows.
 - Use standalone `README.md` for widgets  
@@ -149,5 +148,7 @@
   reported, worked around by enabling the counters on app startup using `OshiCore::class`
 - [-] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation
   reported demand for fast native excelsior compiler that has been discontinued -> Excelsior native compiler can no longer be build (no more experimental kotlinc)
-- [ ] [694](https://github.com/haraldk/TwelveMonkeys/issues/694) Incorrect subSampling out put for bmp image  
-  reported, open
+- [x] [694](https://github.com/haraldk/TwelveMonkeys/issues/694) Incorrect subSampling out put for bmp image  
+  fixed
+- [ ] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  
+  reported

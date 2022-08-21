@@ -61,6 +61,12 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
    /** Registers the specified fields. */
    fun <X: F> register(vararg field: X) = field.forEach { this + it }
 
+   /** Registers fields declared in this or enclosing class as Kotlin objects. */
+   @Suppress("UNCHECKED_CAST")
+   fun registerDeclared() = (this::class.nestedClasses + this::class.java.enclosingClass?.kotlin?.nestedClasses.orEmpty())
+      .mapNotNull { it.objectInstance }.filterIsInstance<ObjectField<V,*>>()
+      .forEach { register(it as F) }
+
    /** Registers the specified field and returns it. */
    infix operator fun <X: F> plus(field: X): X = field.also { f ->
       allImpl += f
@@ -71,7 +77,9 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
 
    /** @return field with the specified [ObjectField.name] or null if none */
    open fun valueOf(text: String): F? = allImpl[text]
+
    override fun toS(o: F) = o.name()
+
    override fun ofS(s: String) = valueOf(s)?.net { Try.ok(it) } ?: Try.error("Not a recognized field: '$s'")
 
 }

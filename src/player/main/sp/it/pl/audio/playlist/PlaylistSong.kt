@@ -203,7 +203,7 @@ class PlaylistSong: Song {
       object FORMAT: Field<AudioFileFormat>("Format", "Song file type", type(), { it.getFormat() }, { o, or -> o?.toUi() ?: or })
 
       companion object: ObjectFieldRegistry<PlaylistSong, Field<*>>(PlaylistSong::class) {
-         init { register(NAME, TITLE, ARTIST, LENGTH, PATH, FORMAT)}
+         init { registerDeclared() }
       }
 
    }

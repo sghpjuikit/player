@@ -59,9 +59,8 @@ sealed class FileField<T>: ObjectFieldBase<File, T> {
    companion object: ObjectFieldRegistry<File, FileField<*>>(File::class) {
       var toSConverter: ConverterToString<Any?> = ConverterToString<Any?> { o -> Parsers.DEFAULT.toS(o) }
 
-      init { register(PATH, NAME, NAME_FULL, EXTENSION, SIZE, TIME_ACCESSED, TIME_MODIFIED, TIME_CREATED, TYPE, MIME, MIME_GROUP, IS_HIDDEN) }
+      init { registerDeclared() }
    }
-
 }
 
 /** File implementation that provides additional lazy properties */

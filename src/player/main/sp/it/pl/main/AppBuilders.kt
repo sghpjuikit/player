@@ -22,7 +22,6 @@ import javafx.scene.control.Label
 import javafx.scene.control.OverrunStyle.LEADING_ELLIPSIS
 import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.SelectionMode
-import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.Tooltip
@@ -51,7 +50,6 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.objects.spinner.Spinner
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable
-import sp.it.pl.ui.objects.table.autoResizeColumns
 import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.ui.objects.textfield.SpitTextField
@@ -59,12 +57,11 @@ import sp.it.pl.ui.objects.window.NodeShow.RIGHT_CENTER
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.Shower
 import sp.it.pl.ui.objects.window.popup.PopWindow
-import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.onIsShowing1st
 import sp.it.pl.ui.objects.window.stage.Window
 import sp.it.pl.ui.pane.ConfigPane
-import sp.it.util.access.fieldvalue.ColumnField
+import sp.it.util.access.fieldvalue.ColumnField.INDEX
 import sp.it.util.access.fieldvalue.ObjectField
-import sp.it.util.access.fieldvalue.ObjectFieldBase
+import sp.it.util.access.fieldvalue.ObjectFieldOfDataClass
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
 import sp.it.util.animation.Anim
@@ -79,10 +76,12 @@ import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setToOne
+import sp.it.util.collections.toStringPretty
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
+import sp.it.util.dev.printIt
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.toURIOrNull
 import sp.it.util.functional.Option
@@ -103,23 +102,21 @@ import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.syncNonNullWhile
 import sp.it.util.reactive.syncTo
 import sp.it.util.system.browse
 import sp.it.util.text.Char16
 import sp.it.util.text.Char32
 import sp.it.util.text.Jwt
-import sp.it.util.text.capital
 import sp.it.util.text.char32At
 import sp.it.util.text.graphemeAt
 import sp.it.util.text.lengthInChars
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.toChar32
-import sp.it.util.type.VType
 import sp.it.util.type.dataComponentProperties
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.kTypeNothingNonNull
+import sp.it.util.type.raw
 import sp.it.util.type.type
 import sp.it.util.ui.button
 import sp.it.util.ui.hBox
@@ -132,6 +129,7 @@ import sp.it.util.ui.setScaleXY
 import sp.it.util.ui.setScaleXYByTo
 import sp.it.util.ui.show
 import sp.it.util.ui.stackPane
+import sp.it.util.ui.tableColumn
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
 import sp.it.util.units.div
@@ -381,13 +379,13 @@ fun contextMenuFor(o: Any?): ContextMenu = ValueContextMenu<Any?>().apply { setI
 
 fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = object: FilteredTable<T>(type.java, null) {
    override fun computeMainField(field: ObjectField<T, *>?) = field ?: fields.first { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
-   override fun computeFieldsAll() = null
-      ?: if (type.isData)
-         type.dataComponentProperties().map { p ->
-            object: ObjectFieldBase<T, Any?>(VType(p.returnType), { p.getter.call(it) }, p.name.capital(), "", { v, or -> v?.toUi() ?: or }) {}
-         }
-         else null
-      ?: APP.classFields[type].toList()
+   override fun computeFieldsAll() = computeFieldsAllRecursively(type)?.plus(INDEX)?.apply { toStringPretty().printIt() } ?: APP.classFields[type].toList().plus(INDEX)
+   private fun <T: Any> computeFieldsAllRecursively(type: KClass<T>): List<ObjectField<T, *>>? =
+      if (type.isData)
+         type.dataComponentProperties()
+            .map { ObjectFieldOfDataClass(it) { it.toUi() } }
+            .flatMap { f -> computeFieldsAllRecursively(f.type.raw)?.map { f.flatMap(it.asIs()) } ?: listOf(f) }
+      else null
 }.apply {
    selectionModel.selectionMode = SelectionMode.MULTIPLE
    rowFactory = Callback {
@@ -400,18 +398,19 @@ fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Un
       }
    }
    setColumnFactory { f ->
-      val c = TableColumn<T, Any?>(f.toString())
-      c.styleClass.add(if (f.type.isSubtypeOf<String>()) "column-header-align-left" else "column-header-align-right")
-      c.setCellValueFactory { cf -> if (cf.value==null) null else ImprovedTable.PojoV(f.getOf(cf.value)) }
-      c.setCellFactory { f.buildFieldedCell() }
-      c.userData = f
-      c.isResizable = true
-      c
+      tableColumn<T, Any?> {
+         text = f.cName()
+         styleClass.add(if (f.type.isSubtypeOf<String>()) "column-header-align-left" else "column-header-align-right")
+         setCellValueFactory { cf -> if (cf.value==null) null else ImprovedTable.PojoV(f.getOf(cf.value)) }
+         setCellFactory { f.buildFieldedCell() }
+         userData = f
+         isResizable = true
+      }
    }
-   columnResizePolicy = if (fields.any { it!==ColumnField.INDEX }) UNCONSTRAINED_RESIZE_POLICY else CONSTRAINED_RESIZE_POLICY
+   columnResizePolicy = if (fields.any { it!==INDEX }) UNCONSTRAINED_RESIZE_POLICY else CONSTRAINED_RESIZE_POLICY
    columnState = defaultColumnInfo
    block()
-   sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { autoResizeColumns() } }
+//   sceneProperty().flatMap { it.windowProperty() }.syncNonNullWhile { w -> w.onIsShowing1st { autoResizeColumns() } }
 }
 
 fun resizeIcon(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {

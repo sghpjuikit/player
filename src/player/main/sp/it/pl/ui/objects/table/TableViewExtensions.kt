@@ -11,6 +11,8 @@ import javafx.scene.control.TableColumn
 import javafx.scene.control.TableColumnBase
 import javafx.scene.control.TableRow
 import javafx.scene.control.TableView
+import javafx.scene.control.TableView.ResizeFeatures
+import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.control.skin.TableColumnHeader
 import javafx.scene.control.skin.TableHeaderRow
 import javafx.scene.control.skin.VirtualFlow
@@ -18,10 +20,13 @@ import javafx.scene.layout.Region.USE_COMPUTED_SIZE
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment.LEFT
 import javafx.scene.text.TextAlignment.RIGHT
+import javafx.util.Callback
 import sp.it.pl.main.APP
 import sp.it.pl.main.showFloating
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.objects.table.PlaylistTable.CELL_PADDING
+import sp.it.util.Util.decMin1
+import sp.it.util.access.fieldvalue.ColumnField.INDEX
 import sp.it.util.access.fieldvalue.MetaField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.runIO
@@ -29,6 +34,8 @@ import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.invoke
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.text.chars32
@@ -40,6 +47,14 @@ import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.Util.computeTextWidth
 import sp.it.util.ui.lookupChildAs
 import sp.it.util.ui.width
+
+object UnconstrainedResizePolicyFielded: Callback<ResizeFeatures<*>, Boolean> {
+   override fun call(param: ResizeFeatures<*>): Boolean {
+      val r = UNCONSTRAINED_RESIZE_POLICY(param)
+      param.table.visibleLeafColumns.find { it.userData==INDEX }.takeIf { param.column==null || param.column==it }.ifNotNull { it.prefWidth = it.computeIndexColumnWidth() }
+      return r
+   }
+}
 
 /**
  * Use as cell factory for columns created in column factory.
@@ -94,11 +109,22 @@ fun <T> TableView<T>.rows(): List<TableRow<T>> {
    }.orNull().orEmpty().asIs()
 }
 
+/** @return max possible row index. Equal to number of visible items. */
+fun TableView<*>.computeMaxIndex(): Int = items.size
+
+/** @return ideal width for index column (derived from [TableView.computeMaxIndex] and [TableColumn.fontOrNull]). */
+fun TableColumn<*,*>.computeIndexColumnWidth(): Double {
+   val s = tableView?.computeMaxIndex() ?: 100
+   val i = decMin1(s)   // 9 is a wide char (font is not always proportional)
+   val font = fontOrNull ?: Font.getDefault()
+   return computeTextWidth(font, "$i.") + insetsOrZero()
+}
+
 @Experimental("Unclear when to call - requires populated and showing table - should be TableResizePolicy")
 fun <T> TableView<T>.autoResizeColumns() {
    val rows = rows().associate { it.index to it.childrenUnmodifiable.filterIsInstance<TableCell<Any?,Any?>>().associateBy { it.tableColumn } }
    runTry {
-      columns.forEach { column ->
+      visibleLeafColumns.forEach { column ->
          column.prefWidth = USE_COMPUTED_SIZE // having prefWidth set would interfere with width calculation, reset it
          column.prefWidth = maxOf(
             10.0,
@@ -111,7 +137,7 @@ fun <T> TableView<T>.autoResizeColumns() {
 
 fun TableView<*>.exportToMD() {
    val data = items.materialize()
-   val fields = columns.mapNotNull { it.userData?.asIf<ObjectField<Any?,*>>() }.filter { it !is MetaField }
+   val fields = visibleLeafColumns.mapNotNull { it.userData?.asIf<ObjectField<Any?,*>>() }.filter { it !is MetaField }
    val mdChars = """*#()[]_-\+`<>&|""".chars32().toSet()
    fun String.escapeMd(): String = chars32().map { if (it in mdChars) "\\" + it else "" + it }.joinToString("")
 
@@ -124,14 +150,14 @@ fun TableView<*>.exportToMD() {
             yield(fields.joinToString(" | ", "| ", " |") { it.getOfS(d, "").escapeMd() })
          }
       }.joinToString("\n")
-   }.ui {
+   } ui {
       APP.ui.actionPane.orBuild.show(it)
    }
 }
 
 fun TableView<*>.exportToCsv() {
    val data = items.materialize()
-   val fields = columns.mapNotNull { it.userData?.asIf<ObjectField<Any?,*>>() }.filter { it !is MetaField }
+   val fields = visibleLeafColumns.mapNotNull { it.userData?.asIf<ObjectField<Any?,*>>() }.filter { it !is MetaField }
 
    runIO {
       if (fields.isEmpty()) ""
@@ -141,7 +167,7 @@ fun TableView<*>.exportToCsv() {
             yield(fields.joinToString(",") { it.getOfS(d, "").escapeCsv() })
          }
       }.joinToString("\n")
-   }.ui {
+   } ui {
       APP.ui.actionPane.orBuild.show(it)
    }
 }
@@ -152,4 +178,3 @@ fun FieldedTable<*>.showColumnInfo() {
       MdNode().apply { readText(mdText) }
    }
 }
-

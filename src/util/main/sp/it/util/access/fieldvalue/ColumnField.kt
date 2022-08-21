@@ -10,6 +10,6 @@ sealed class ColumnField: ObjectFieldBase<Any, Int>, MetaField {
    object INDEX: ColumnField(type(), { -1 }, "#", "Index of the item in the list", { o, or -> o?.let { "" } ?: or })
 
    companion object: ObjectFieldRegistry<Any, ColumnField>(Any::class) {
-      init { register(INDEX) }
+      init { registerDeclared() }
    }
 }

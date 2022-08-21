@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +12,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -22,14 +22,16 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.layout.Pane;
+import javafx.util.Callback;
 import sp.it.pl.access.fieldvalue.AnyField.STRING_UI;
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem;
 import sp.it.pl.ui.objects.table.TableColumnInfo.ColumnInfo;
 import sp.it.util.Sort;
 import sp.it.util.access.fieldvalue.MetaField;
 import sp.it.util.access.fieldvalue.ObjectField;
+import sp.it.util.access.fieldvalue.ObjectFieldBase;
 import sp.it.util.functional.Functors.F1;
-import static java.util.stream.Collectors.toList;
+import sp.it.util.type.VType;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -39,13 +41,14 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.FieldedTableExtensionsKt.setColumnStateImpl;
+import static sp.it.pl.ui.objects.table.FieldedTableExtensionsKt.setColumnVisible;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.buildFieldedCell;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToCsv;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.exportToMD;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.showColumnInfo;
 import static sp.it.util.access.fieldvalue.ColumnField.INDEX;
-import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
@@ -58,6 +61,7 @@ import static sp.it.util.type.Util.invokeMethodP0;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.UtilKt.menu;
 import static sp.it.util.ui.UtilKt.menuItem;
+import static sp.it.util.ui.UtilKt.tableColumn;
 
 /**
  * Table for objects using {@link ObjectField}. This facilitates column creation, sorting and
@@ -86,23 +90,48 @@ import static sp.it.util.ui.UtilKt.menuItem;
  */
 public class FieldedTable<T> extends ImprovedTable<T> {
 
-	private F1<ObjectField<T,?>,ColumnInfo> colStateFact = f -> new ColumnInfo(f.toString(), f.cOrder(), f.cVisible(), getEmScaled(f.cWidth()));
-	private F1<? super ObjectField<T,?>,? extends TableColumn<T,?>> colFact;
-	public F1<String,String> columnIdMapper = id -> id;
+	public static final Callback<ResizeFeatures<?>, Boolean> UNCONSTRAINED_RESIZE_POLICY_FIELDED = UnconstrainedResizePolicyFielded.INSTANCE;
 
-	private TableColumnInfo defColInfo;
+	/** Factory for building default column state from field */
+	public final F1<? super ObjectField<T,?>, ? extends ColumnInfo> columnStateFactory = f -> new ColumnInfo(f.name(), f.cOrder(), f.cVisible(), getEmScaled(f.cWidth()));
+	/** Factory for building nested column parent from field. */
+	public final F1<? super ObjectField<?, ?>, ? extends TableColumn<T, ?>> columnGroupFactory = f -> tableColumn("", consumer(it -> {
+		it.setText(f.cName());
+		it.setId(f.name());
+		it.setUserData(f);
+	}));
+	/** Default factory for building column from field. See {@link #setColumnFactory(sp.it.util.functional.Functors.F1)} */
+	public final F1<? super ObjectField<? super T, ?>, ? extends TableColumn<T, ?>> columnFactoryDefault = f -> tableColumn("", consumer(it -> {
+		it.setText(f instanceof MetaField ? "" : f.name());
+		it.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
+		it.setCellFactory(col -> buildFieldedCell(f));
+	}));
+	/** Factory for building column from field. See {@link #setColumnFactory(sp.it.util.functional.Functors.F1)} */
+	private F1<? super ObjectField<T,?>,? extends TableColumn<T,?>> columnFactory;
+	/** Mapper from columnId to custom columnId. Allows column to alias other columns, potentially dynamically by some logic.   */
+	public F1<String, String> columnIdMapper = id -> id;
+	/** Initial column state */
+	private TableColumnInfo columnStateDefault;
+	/** Current column state */
 	private TableColumnInfo columnState;
 	/** Type of element of this table */
 	protected final Class<T> type;
 	/** All fields of this table viable as columns. The fields are string representable. */
 	public final List<ObjectField<T,?>> fields;
+	/** Field for top lvl column encompassing all other columns. */
+	public final ObjectField<T,T> fieldsRoot;
+	/** Use {@link #fieldsRoot  to show single table-width column root. Default false. */
+	public boolean fieldsRootEnabled = false;
 	/** All fields for {@link sp.it.pl.ui.objects.table.FieldedTable#type} of this table. Not all may be viable to be used as columns. */
 	public final List<ObjectField<T,?>> fieldsAll;
+
 	public final Menu columnVisibleMenu = new Menu("Columns");
+
 	public final MenuItem columnAutosizeItem = with(
 		menuItem("Autosize columns to content", null, consumer(it -> autoResizeColumns(this))),
-		THIS -> sync(columnResizePolicyProperty(), consumer(it -> THIS.setDisable(it!=UNCONSTRAINED_RESIZE_POLICY)))
+		THIS -> sync(columnResizePolicyProperty(), consumer(it -> THIS.setDisable(it!=UNCONSTRAINED_RESIZE_POLICY && it!=(Object) UNCONSTRAINED_RESIZE_POLICY_FIELDED)))
 	);
+
 	public final ContextMenu columnMenu = new ContextMenu(
 		menuItem("Show column descriptions", null, consumer(it -> showColumnInfo(this))),
 		columnVisibleMenu,
@@ -117,19 +146,13 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public FieldedTable(Class<T> type) {
 		super();
 		this.type = type;
+		this.fieldsRoot = new ObjectFieldBase<>(new VType<>(type, false), x -> x, APP.getClassName().get(getKotlinClass(type)), "", (x, y) -> y) {};
 
-		var fieldsAllRaw = (List<ObjectField<T,?>>) (Object) computeFieldsAll();
+		var fieldsAllRaw = (List<ObjectField<T,?>>) (Object) computeFieldsAll().stream().sorted(by(it -> it.name())).toList();
 		this.fieldsAll = fieldsAllRaw.stream().noneMatch(it -> it!=INDEX.INSTANCE) ? (List) List.of(INDEX.INSTANCE, STRING_UI.INSTANCE) : fieldsAllRaw;
 		this.fields = filter(fieldsAll, ObjectField::isTypeStringRepresentable);
 
-		setColumnFactory(f -> {
-			TableColumn<T,Object> c = new TableColumn<>(f.name());
-			c.setId(f.name());
-			c.setText(f instanceof MetaField ? "" : f.name());
-			c.setCellValueFactory(cf -> cf.getValue()== null ? null : new PojoV<>(f.getOf(cf.getValue())));
-			c.setCellFactory(col -> buildFieldedCell(f));
-			return c;
-		});
+		setColumnFactory(columnFactoryDefault);
 
 		// show the column control menu on right click ( + hide if shown )
 		addEventHandler(MOUSE_CLICKED, e -> {
@@ -144,76 +167,51 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		setTableMenuButtonVisible(false);
 	}
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected List<ObjectField<? super T,?>> computeFieldsAll() {
-		return stream(APP.getClassFields().get(getKotlinClass(type)))
-			// TODO: support nested columns
-			//.flatMap(it -> stream(
-			//	it,
-			//	stream(APP.getClassFields().get(getRaw(it.getType().getType())))
-			//		.filter(itt -> itt != INDEX)
-			//		.map(itt -> it.flatMap((ObjectField) itt))
-			//))
-			.sorted(by(ObjectField::name))
-			.collect(toList());
+		return (List) stream(APP.getClassFields().get(getKotlinClass(type)))
+			.flatMap(it -> {
+				var children = APP.getClassFields().get(it.getType()).stream()
+					.filter(itt -> itt!=INDEX.INSTANCE)
+					.map(itt -> (ObjectField) it.flatMap((ObjectField) itt))
+					.toList();
+				return children.isEmpty() ? stream((ObjectField) it) : children.stream();
+			})
+			.toList();
+	}
+
+	public void setColumnFactory(F1<? super ObjectField<? super T, ?>, ? extends TableColumn<T, ?>> columnFactory) {
+		this.columnFactory = f -> with(f==INDEX.INSTANCE ? columnIndex : columnFactory.call(f), it -> {
+		    it.setId(f.name());
+		    it.setUserData(f);
+		    it.setVisible(f.cVisible());
+		    it.setPrefWidth(f.cWidth());
+		});
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public void setColumnFactory(F1<? super ObjectField<? super T,Object>,TableColumn<T,?>> columnFactory) {
-		colFact = f -> {
-			TableColumn<T,?> c = f==INDEX.INSTANCE ? columnIndex : (TableColumn) ((F1) columnFactory).call(f);
-			c.setId(f.name());
-			c.setUserData(f);
-			c.setVisible(f.cVisible());
-			c.setPrefWidth(f.cWidth());
-			return c;
-		};
+	public <X> F1<? super ObjectField<? super T,X>, TableColumn<T,X>> getColumnFactory() {
+		return (F1) columnFactory;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	public <X> F1<? super ObjectField<? super T,X>,TableColumn<T,X>> getColumnFactory() {
-		return (F1) colFact;
+
+	/** @return visible root columns, identical to {@link #getColumns()}  */
+	public ObservableList<TableColumn<T,?>> getColumnRoots() {
+		return super.getColumns();
 	}
 
-	public void setColumnStateFactory(F1<ObjectField<T,?>,ColumnInfo> columnStateFactory) {
-		colStateFact = columnStateFactory;
-	}
-
-	public Function<ObjectField<T,?>,ColumnInfo> getColumnStateFactory() {
-		return colStateFact;
+	/** @return visible leaf columns, identical to {@link #getVisibleLeafColumns()}  */
+	public ObservableList<TableColumn<T,?>> getColumnLeafs() {
+		return super.getVisibleLeafColumns();
 	}
 
 	public boolean isColumnVisible(ObjectField<? super T,?> f) {
 		return getColumn(f).isPresent();
 	}
 
-	public void setColumnVisible(ObjectField<T,?> f, boolean v) {
-		TableColumn<T,?> c = getColumn(f).orElse(null);
-		if (v && c==null) {
-			c = f==INDEX.INSTANCE ? columnIndex : colFact.call(f);
-			c.setPrefWidth(f==INDEX.INSTANCE ? computeIndexColumnWidth() : columnState.columns.get(f.name()).width);
-			c.setVisible(v);
-			getColumns().add(c);
-		} else if (!v && c!=null) {
-			getColumns().remove(c);
-			c.setVisible(false);
-		}
-	}
 
 	public void setColumnState(TableColumnInfo state) {
-		noNull(state);
-
-		var visibleColumns = state.columns.stream()
-			.filter(c -> c.visible)
-			.sorted()
-			.map(c -> {
-				var tc = colFact.call(nameToF(c.name));
-				tc.setPrefWidth(c.width);
-				tc.setVisible(c.visible);
-				return tc;
-			})
-			.toList();
-		getColumns().setAll(visibleColumns);    // restore all at once => 1 update
-		state.sortOrder.toTable(this);  // restore sort order
+		setColumnStateImpl(this, state);
 	}
 
 	@Deprecated
@@ -228,40 +226,34 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	// TODO: move initialization logic out of here
 	public TableColumnInfo getDefaultColumnInfo() {
-		if (defColInfo==null) {
+		if (columnStateDefault==null) {
 			// generate column states
-			defColInfo = new TableColumnInfo();
-			defColInfo.columnIdMapper = columnIdMapper;
-			defColInfo.columns.addAll(map(fields, colStateFact));
+			columnStateDefault = new TableColumnInfo();
+			columnStateDefault.columnIdMapper = columnIdMapper;
+			columnStateDefault.columns.addAll(map(fields, columnStateFactory));
 			// insert index column state manually
-			defColInfo.columns.removeIf(f -> f.name.equals(INDEX.INSTANCE.name()));
-			defColInfo.columns.forEach(t -> t.position++);  //TODO: position should be immutable
-			defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
+			columnStateDefault.columns.removeIf(f -> f.id.equals(INDEX.INSTANCE.name()));
+			columnStateDefault.columns.forEach(t -> t.position++);  //TODO: position should be immutable
+			columnStateDefault.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
 
-			columnState = defColInfo;
+			columnState = columnStateDefault;
+
 			// build new table column menu
-			// update columnVisibleMenu check icons every time we show it
-			// the menu is rarely shown + this way we do not need to update it any other time
 			columnMenu.addEventHandler(WINDOW_HIDDEN, e -> columnVisibleMenu.getItems().clear());
-			columnMenu.addEventHandler(WINDOW_SHOWING, e -> {
-				columnVisibleMenu.getItems().addAll(
-					defColInfo.columns.streamV()
-						.map(c -> {
-							ObjectField<T,?> f = nameToF(c.name);
-							String d = f.description();
-
-							SelectionMenuItem m = new SelectionMenuItem(c.name, c.visible);
-							m.setUserData(f);
-							m.getSelected().addListener((o,ov,nv) -> setColumnVisible(f, nv));
-							if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
-
-							return m;
-						})
-						.sorted(by(MenuItem::getText))
-						.toList()
-				);
-				columnVisibleMenu.getItems().forEach(i -> ((SelectionMenuItem) i).getSelected().setValue(isColumnVisible(nameToF(i.getText()))));
-			});
+			columnMenu.addEventHandler(WINDOW_SHOWING, e -> columnVisibleMenu.getItems().addAll(
+				columnStateDefault.columns.streamV()
+					.map(c -> {
+						var f = columnIdToF(c.id);
+						var d = f.description();
+						var m = new SelectionMenuItem(f.name(), isColumnVisible(f));
+						m.setUserData(f);
+						m.getSelected().addListener((o,ov,nv) -> setColumnVisible(this, f, nv));
+						if (!d.isEmpty()) Tooltip.install(m.getGraphic(), appTooltip(d));
+						return m;
+					})
+					.sorted(by(MenuItem::getText))
+					.toList()
+			));
 
 			// link table column button to our menu instead of an old one
 			if (getSkin()==null) setSkin(new TableViewSkin<>(this));    // make sure skin exists
@@ -282,11 +274,11 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			}
 
 		}
-		return defColInfo;
+		return columnStateDefault;
 	}
 
 	public Optional<TableColumn<T,?>> getColumn(Predicate<TableColumn<T,?>> filter) {
-		return getColumns().stream().filter(filter).findFirst();
+		return getColumnLeafs().stream().filter(filter).findFirst();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -317,7 +309,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 
 	@SuppressWarnings("unused")
 	public final ObjectProperty<BiFunction<? super ObjectField<?, ?>, ? super Sort, ? extends Comparator<?>>> itemsComparatorFieldFactory = new SimpleObjectProperty<>((f, sort) ->
-		f.comparator(sort==Sort.DESCENDING ? Comparator::nullsFirst : Comparator::nullsLast)
+		f.comparatorNonNull(sort==Sort.DESCENDING ? Comparator::nullsFirst : Comparator::nullsLast)
 	);
 
 	/**
@@ -334,7 +326,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	 */
 	public void sortBy(ObjectField<T,?> field) {
 		getSortOrder().clear();
-		getItems().sort(field.comparator());
+		getItems().sort(field.comparatorNNL());
 	}
 
 	/**
@@ -350,22 +342,32 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 /* --------------------- UTIL --------------------------------------------------------------------------------------- */
 
 	/** Sets {@link #itemsComparator} to comparator build from {@link #getSortOrder()}} */
-	@SuppressWarnings({"unchecked", "unused"})
 	protected void updateComparator() {
-		itemsComparatorWrapper.setValue(
-			getSortOrder().stream()
-				.map(column -> {
-					var field = (ObjectField<T,?>) column.getUserData();
-					var sort = Sort.of(column.getSortType());
-					var comparator = (Comparator<T>) itemsComparatorFieldFactory.get().apply(field, sort);
-					return sort.of(comparator);
-				})
-				.reduce(Comparator::thenComparing)
-				.orElse((Comparator<T>) SAME)
-		);
+		itemsComparatorWrapper.setValue(computeComparator());
 	}
 
-	private ObjectField<T,?> nameToF(String id) {
+	protected Comparator<T> computeComparator() {
+		return computeComparatorEnhanced(it -> it);
+	}
+
+	protected Comparator<T> computeComparatorMemoized() {
+		return computeComparatorEnhanced(it -> it.memoized());
+	}
+
+	@SuppressWarnings({"unchecked", "unused"})
+	protected Comparator<T> computeComparatorEnhanced(F1<ObjectField<T,?>, ObjectField<T,?>> enhancer) {
+		return getSortOrder().stream()
+			.map(column -> {
+				var field = (ObjectField<T,?>) column.getUserData();
+				var sort = Sort.of(column.getSortType());
+				var comparator = (Comparator<T>) itemsComparatorFieldFactory.get().apply(enhancer.apply(field), sort);
+				return sort.of(comparator);
+			})
+			.reduce(Comparator::thenComparing)
+			.orElse((Comparator<T>) SAME);
+	}
+
+	public ObjectField<T,?> columnIdToF(String id) {
 		String fieldName = columnIdMapper.apply(id);
 		return fields.stream()
 			.filter(f -> f.name().equals(fieldName)).findAny()

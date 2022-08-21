@@ -11,7 +11,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -22,18 +21,17 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
 import sp.it.pl.ui.objects.tablerow.SpitTableRow;
-import sp.it.util.Util;
 import sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.getFontOrNull;
+import static javafx.geometry.Pos.CENTER_RIGHT;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.getHeaderOrNull;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.rows;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
+import static sp.it.util.access.PropertiesConstantKt.vAlways;
 import static sp.it.util.type.Util.getFieldValue;
-import static sp.it.util.ui.Util.computeTextWidth;
 import static sp.it.util.ui.Util.selectRows;
 
 public class ImprovedTable<T> extends TableView<T> {
@@ -60,12 +58,7 @@ public class ImprovedTable<T> extends TableView<T> {
 		}
 	};
 
-	protected final TableColumn<T,Void> columnIndex;
-
-	public ImprovedTable() {
-		columnIndex = buildIndexColumn();
-	}
-
+	protected final TableColumn<T,Void> columnIndex = buildIndexColumn();
 
 	/** @return height of columns header or 0 if invisible. */
 	public double getVisibleHeaderHeight() {
@@ -157,7 +150,7 @@ public class ImprovedTable<T> extends TableView<T> {
 		if (!getColumns().contains(c)) return;
 
 		// c.setCellFactory(null);                      // this no longer works (since 8u40 ?)
-		Callback<TableColumn<T,V>,TableCell<T,V>> cf = c.getCellFactory();
+		var cf = c.getCellFactory();
 		c.setCellFactory(column -> new TableCell<>());
 		c.setCellFactory(cf);
 	}
@@ -170,9 +163,10 @@ public class ImprovedTable<T> extends TableView<T> {
 	public TableColumn<T,Void> buildIndexColumn() {
 		TableColumn<T,Void> c = new TableColumn<>();
 		c.setId(INDEX.INSTANCE.name());
-		c.setText(INDEX.INSTANCE.name());
+		c.setText(INDEX.INSTANCE.cName());
 		c.getStyleClass().add("column-header-align-right");
 		c.setCellFactory(buildIndexColumnCellFactory());
+		c.setCellValueFactory(it -> vAlways(null));
 		c.setSortable(false);
 		c.setResizable(false);
 		c.setUserData(INDEX.INSTANCE);
@@ -182,12 +176,10 @@ public class ImprovedTable<T> extends TableView<T> {
 	/** Builds index column cell factory. Called only once. */
 	protected Callback<TableColumn<T,Void>,TableCell<T,Void>> buildIndexColumnCellFactory() {
 		return (column -> new TableCell<>() {
-			{
-				setAlignment(Pos.CENTER_RIGHT);
-			}
 
-			@Override
-			protected void updateItem(Void item, boolean empty) {
+			{ setAlignment(CENTER_RIGHT); }
+
+			@Override protected void updateItem(Void item, boolean empty) {
 				super.updateItem(item, empty);
 				if (empty) {
 					setText(null);
@@ -197,18 +189,6 @@ public class ImprovedTable<T> extends TableView<T> {
 				}
 			}
 		});
-	}
-
-	/**
-	 * Returns ideal width for index column derived from current max index.
-	 * Mostly used during table/column resizing.
-	 */
-	public double computeIndexColumnWidth() {
-		// need this weird method to get 9s as 9 is a wide char (font is not always proportional)
-		var s = getMaxIndex();
-		var i = Util.decMin1(s);
-		var font = getFontOrNull(columnIndex);
-		return font == null ? 50 : computeTextWidth(font, i + ".") + 5;
 	}
 
 	/** Returns vertical scrollbar width or 0 if not visible. */

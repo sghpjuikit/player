@@ -5,6 +5,7 @@ import java.net.URI
 import sp.it.pl.audio.playlist.PlaylistSong
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.audio.tagging.Metadata
+import sp.it.util.file.FastFile
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.toFileOrNull
 import sp.it.util.functional.net
@@ -25,7 +26,7 @@ abstract class Song {
    /**
     * @return absolute file this song represents or null if it is not based on file
     */
-   open fun getFile(): File? = if (isFileBased()) uri.toFileOrNull()!!.absoluteFile else null
+   open fun getFile(): File? = if (isFileBased()) FastFile(uri.toFileOrNull()!!.absoluteFile.path, false, true)  else null
 
    /** @return human-readable path of the resource this song represents */
    open fun getPathAsString(): String {

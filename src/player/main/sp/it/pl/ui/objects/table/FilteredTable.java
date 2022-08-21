@@ -63,6 +63,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.computeMaxIndex;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.rows;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
@@ -134,7 +135,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					itemsSortingWrapper.setValue(true);
 					updateComparator();
 					var fi = new ArrayList<>(filteredItems);
-					var c = itemsComparator.get();
+					var c = computeComparatorMemoized();
 					runIO(() -> {
 						fi.sort(c);
 						return null;
@@ -529,10 +530,10 @@ public class FilteredTable<T> extends FieldedTable<T> {
 	@Override
 	public void sortBy(ObjectField<T,?> field) {
 		getSortOrder().clear();
-		allItems.sort(field.comparator());
+		allItems.sort(field.comparatorNNL());
 	}
 
-	/***
+	/**
 	 * Sorts items using provided comparator. Any sort order is cleared.
 	 * @param comparator - the Comparator used to compare list elements. A null value indicates that the
 	 *                   elements' natural ordering should be used
@@ -597,9 +598,9 @@ public class FilteredTable<T> extends FieldedTable<T> {
 			if (empty) {
 				setText(null);
 			} else {
-				int j = getIndex();
-				int i = showOriginalIndex.getValue() ? filteredItems.getSourceIndex(j) : j;
-				String txt = zeropadIndex.getValue() ? zeroPad(i + 1, digits(getMaxIndex()), '0') : String.valueOf(i + 1);
+				var j = getIndex();
+				var i = showOriginalIndex.getValue() ? filteredItems.getSourceIndex(j) : j;
+				var txt = zeropadIndex.getValue() ? zeroPad(i + 1, digits(computeMaxIndex(getTableView())), '0') : String.valueOf(i + 1);
 				setText(txt + ".");
 			}
 		}

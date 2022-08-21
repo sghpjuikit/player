@@ -72,7 +72,6 @@ class MetadataGroup {
 
       fun toString(field: Metadata.Field<*>): String = if (this===VALUE) field.toString() else toString()
 
-      @Suppress("UNCHECKED_CAST")
       fun getMFType(field: Metadata.Field<*>): VType<*> = if (this===VALUE) field.typeGrouped else type
 
       override fun cVisible(): Boolean = this!==AVG_RATING && this!==YEAR && this!==W_RATING
@@ -90,7 +89,7 @@ class MetadataGroup {
 
       companion object: ObjectFieldRegistry<MetadataGroup, Field<*>>(MetadataGroup::class) {
 
-         init { register(VALUE, ITEMS, ALBUMS, LENGTH, SIZE, AVG_RATING, W_RATING, YEAR) }
+         init { registerDeclared() }
 
          @JvmStatic override fun valueOf(text: String) = super.valueOf(text) ?: VALUE
       }

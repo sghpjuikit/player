@@ -25,6 +25,8 @@ class ObjectFieldMap {
       cache2.keys.removeIf { c.isSuperclassOf(it) }
    }
 
+   operator fun <T: Any> get(c: VType<T>): Set<Field<T>> = get(c.raw)
+
    operator fun <T: Any> get(c: KClass<T>): Set<Field<T>> = cache.computeIfAbsent(c) { fields.getElementsOfSuperV(c).flatten().toCollection(LinkedHashSet()) }.asIs()
 
    fun <T: Any> getExact(c: KClass<T>): Set<Field<T>> = cache2.computeIfAbsent(c) { fields.getElementsOf(c).flatten().toCollection(LinkedHashSet()) }.asIs()

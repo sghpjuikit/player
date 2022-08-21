@@ -879,7 +879,7 @@ class Metadata: Song, Serializable {
       override fun cVisible(): Boolean = FIELDS_VISIBLE.contains(this)
 
       override fun cWidth(): Double = when(this) {
-         PATH, TITLE, COMMENT -> 300.0
+         PATH, TITLE, COMMENT, ALBUM -> 300.0
          ARTIST, ALBUM_ARTIST, COMPOSER, PUBLISHER, CATEGORY, FILENAME -> 150.0
          else -> 60.0
       }
@@ -887,6 +887,7 @@ class Metadata: Song, Serializable {
       object PATH: Field<String>(type(), { it.getPathAsString() }, { o, or -> o ?: or }, "Path", "Song location")
       object FILENAME: Field<String>(type(), { it.getFilename() }, { o, or -> o ?: or }, "Filename", "Song file name without suffix")
       object FORMAT: Field<AudioFileFormat>(type(), { it.getFormat() }, { o, or -> o?.toString() ?: or }, "Format", "Song file type ")
+      object FILE: Field<File?>(type(), { it.getFile() }, { o, or -> o?.toString() ?: or }, "File", "Song file")
       object FILESIZE: Field<FileSize>(type(), { it.getFileSize() }, { o, or -> o?.toString() ?: or }, "Filesize", "Song file size")
       object ENCODING: Field<String?>(type(), { it.encodingType }, { o, or -> o ?: or }, "Encoding", "Song encoding")
       object BITRATE: Field<Bitrate>(type(), { it.getBitrate() }, { o, or -> o?.toString() ?: or }, "Bitrate", "Number of kb per second of the song - quality aspect.")
@@ -937,11 +938,8 @@ class Metadata: Song, Serializable {
 
       companion object: ObjectFieldRegistry<Metadata, Field<*>>(Metadata::class) {
 
-         init {
-            register(
-               PATH, FILENAME, FORMAT, FILESIZE, ENCODING, BITRATE, ENCODER, CHANNELS, SAMPLE_RATE, LENGTH, TITLE, ALBUM, ARTIST, ALBUM_ARTIST, COMPOSER, PUBLISHER, TRACK, TRACKS_TOTAL, TRACK_INFO, DISC, DISCS_TOTAL, DISCS_INFO, GENRE, YEAR, COVER, RATING, RATING_RAW, RATING_RAW_MAX, PLAYCOUNT, CATEGORY, COMMENT, LYRICS, MOOD, COLOR, TAGS, CHAPTERS, FULLTEXT, CUSTOM1, CUSTOM2, CUSTOM3, CUSTOM4, CUSTOM5, MUSICBRAINZ_ARTIST_ID, MUSICBRAINZ_DISC_ID, MUSICBRAINZ_TRACK_ID, MUSICBRAINZ_RELEASE_ID, MUSICBRAINZ_RELEASE_ARTIST_ID, FIRST_PLAYED, LAST_PLAYED, ADDED_TO_LIBRARY
-            )
-         }
+         init { registerDeclared() }
+
          private val FIELDS_AUTO_COMPLETABLE = setOf<Field<*>>(
             ENCODER, ALBUM, ALBUM_ARTIST, COMPOSER, PUBLISHER, GENRE, CATEGORY, MOOD, TAGS
          )

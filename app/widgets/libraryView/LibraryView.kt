@@ -12,7 +12,6 @@ import javafx.scene.control.Menu
 import javafx.scene.control.SelectionMode.MULTIPLE
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
-import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -55,6 +54,7 @@ import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem.Companion.buildSingleSelectionMenu
 import sp.it.pl.ui.objects.rating.RatingCellFactory
+import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.objects.table.FilteredTable
 import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
 import sp.it.pl.ui.objects.table.buildFieldedCell
@@ -168,7 +168,8 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       table.setColumnFactory { f ->
          if (f is MgField<*>) {
             val mf = fieldFilter.value
-            tableColumn<MetadataGroup, Any?>(f.toString(mf)) {
+            tableColumn<MetadataGroup, Any?> {
+               text = f.toString(mf)
                styleClass += when (f) {
                   AVG_RATING, W_RATING -> "column-header-align-right"
                   else -> if (f.getMFType(mf).isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
@@ -197,11 +198,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
                }
             }
          } else {
-            tableColumn<MetadataGroup, Any?>(f.name()) {
-               styleClass += if (f.type.isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
-               cellValueFactory = Callback { it.value?.let { PojoV(f.getOf(it)) } }
-               cellFactory = Callback { f.buildFieldedCell() }
-            }
+            table.columnFactoryDefault.apply(f)
          }
       }
       table.rowFactory = Callback { t ->
@@ -277,15 +274,12 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
       // resizing
       table.columnResizePolicy = Callback { resize ->
-         UNCONSTRAINED_RESIZE_POLICY(resize).apply {
-            val t = table
-            // resize index column
-            t.getColumn(ColumnField.INDEX).ifPresent { it.setPrefWidth(t.computeIndexColumnWidth()) }
+         UNCONSTRAINED_RESIZE_POLICY_FIELDED(resize).apply {
             // resize main column to span remaining space
-            t.getColumn(VALUE).ifPresent { c ->
-               val sumW = t.columns.asSequence().filter { it.isVisible }.sumOf { it.width }
-               val sbW = t.vScrollbarWidth
-               c.setPrefWidth(t.width - sbW - (sumW - c.width) - 1.0)
+            table.getColumn(VALUE).ifPresent { c ->
+               val sumW = table.columnLeafs.asSequence().filter { it.isVisible }.sumOf { it.width }
+               val sbW = table.vScrollbarWidth
+               c.setPrefWidth(table.width - sbW - (sumW - c.width) - 1.0)
             }
          }
       }

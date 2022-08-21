@@ -1,7 +1,6 @@
 package library
 
 import javafx.scene.control.SelectionMode.MULTIPLE
-import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.input.KeyCode.DELETE
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
@@ -18,8 +17,6 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.audio.tagging.removeMissingFromLibTask
 import sp.it.pl.ui.objects.rating.RatingCellFactory
 import sp.it.pl.ui.objects.table.FilteredTable
-import sp.it.pl.ui.objects.table.ImprovedTable.PojoV
-import sp.it.pl.ui.objects.table.buildFieldedCell
 import sp.it.pl.ui.objects.tablerow.SpitTableRow
 import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.LIBRARY
@@ -32,7 +29,6 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.main.setSongsAndFiles
 import sp.it.pl.main.showConfirmation
 import sp.it.pl.ui.nodeinfo.ListLikeViewInfo.Companion.DEFAULT_TEXT_FACTORY
-import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.async.runNew
 import sp.it.util.collections.materialize
 import sp.it.util.conf.Config
@@ -43,8 +39,6 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
-import sp.it.util.functional.asIs
-import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.consumeScrolling
@@ -64,6 +58,7 @@ import sp.it.util.units.millis
 import sp.it.util.units.toHMSMs
 import java.io.File
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
+import javafx.scene.control.TableColumn
 import mu.KLogging
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.main.Css.Pseudoclasses.played
@@ -73,6 +68,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.Widgets.SONG_TABLE_NAME
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.installDrag
+import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Sort
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
@@ -80,11 +76,10 @@ import sp.it.util.collections.setTo
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
-import sp.it.util.type.isSubclassOf
 import sp.it.util.ui.show
-import sp.it.util.ui.tableColumn
 import sp.it.util.units.version
 import sp.it.util.units.year
 
@@ -136,22 +131,14 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
       // set up table columns
       table.setColumnFactory { f ->
-         tableColumn<Metadata, Any?>(f.name()) {
-            styleClass += if (f.type.isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"
-            cellFactory = when (f) {
-               RATING -> RatingCellFactory.asIs()
-               else -> Callback { f.buildFieldedCell() }
-            }
-            cellValueFactory = Callback { it.value?.net { PojoV(f.getOf(it)) } }
+         when (f) {
+            RATING -> table.columnFactoryDefault(RATING).apply { asIs<TableColumn<Metadata,Double?>>().cellFactory = RatingCellFactory }
+            else -> table.columnFactoryDefault(f)
          }
       }
 
       // column resizing
-      table.columnResizePolicy = Callback {
-         UNCONSTRAINED_RESIZE_POLICY(it).apply {
-            table.getColumn(ColumnField.INDEX).orNull()?.prefWidth = table.computeIndexColumnWidth()
-         }
-      }
+      table.columnResizePolicy = UNCONSTRAINED_RESIZE_POLICY_FIELDED
 
       // row behavior
       table.rowFactory = Callback { t ->
@@ -204,7 +191,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
 
       // sync library comparator
       table.itemsComparator sync {
-         val sorts = table.sortOrder.mapNotNull { c -> c.userData?.asIs<Metadata.Field<*>>()?.net { Sort.of(c) to it } }
+         val sorts = table.sortOrder.mapNotNull { c -> c.userData?.asIf<Metadata.Field<*>>()?.net { Sort.of(c) to it } }
          APP.audio.songOrderBys setTo sorts.map { it.second }
          APP.audio.songOrderSorts setTo sorts.map { it.first }
       } on onClose

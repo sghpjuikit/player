@@ -108,7 +108,6 @@ infix fun File.hasExtension(suffix: String) = path.endsWith(".$suffix", true)
 fun File.hasExtension(vararg suffixes: String) = suffixes.any { this hasExtension it }
 
 /** @return ([Path.toFile]) file denoting the resource of this URI or null if [UnsupportedOperationException] is thrown */
-@Suppress("DEPRECATION")
 fun Path.toFileOrNull() =
    try {
       toFile()
@@ -117,7 +116,6 @@ fun Path.toFileOrNull() =
    }
 
 /** @return (File(uri)) file denoting the resource of this URI or null if [IllegalArgumentException] is thrown */
-@Suppress("DEPRECATION")
 fun URI.toFileOrNull() =
    try {
       File(this)

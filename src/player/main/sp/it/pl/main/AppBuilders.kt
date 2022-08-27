@@ -132,7 +132,9 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.tableColumn
 import sp.it.util.ui.text
 import sp.it.util.ui.vBox
+import sp.it.util.units.FileSize
 import sp.it.util.units.div
+import sp.it.util.units.durationOfHMSMs
 import sp.it.util.units.em
 import sp.it.util.units.millis
 import sp.it.util.units.plus
@@ -519,7 +521,7 @@ fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_
 }
 
 fun configureString(title: String, inputName: String, action: (String) -> Any?) {
-   ValueConfig(type(), inputName, "", "").constrain { nonEmpty() } .configure(title) {
+   ValueConfig(type(), inputName, "", "").constrain { nonEmpty() }.configure(title) {
       action(it.value)
    }
 }
@@ -554,6 +556,8 @@ fun Any?.detectContent(): Any? = when (this) {
          }
          ?: this.toDoubleOrNull()
          ?: this.takeIf { it.startsWith("U+") || it.startsWith("\\u") }?.let { it.substring(2).toIntOrNull(16)?.toChar32() }
+         ?: FileSize.ofS(this).orNull()
+         ?: durationOfHMSMs(this).orNull()
          ?: APP.serializerJson.json.ast(this).orNull()
          ?: Jwt.ofS(this).orNull()
          ?: runTry { uri(this) }.orNull()?.let { it.toFileOrNull()?.takeIf { it.isAbsolute } ?: it.takeIf { it.scheme!=null } }

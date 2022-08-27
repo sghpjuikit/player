@@ -91,7 +91,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "20-ea+1"
+         val version = "20-ea+2"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -123,7 +123,7 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "5.1.0")
+         implementation("com.github.f4b6a3", "uuid-creator", "5.1.1")
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")

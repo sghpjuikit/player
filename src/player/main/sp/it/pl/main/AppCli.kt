@@ -107,6 +107,13 @@ class Cli: CliktCommand(
    init {
       subcommands(
          object: CliktCommand(
+            name = "inspect",
+            help = "Inspect the object represented by the text"
+         ) {
+            val value by argument(help = "The text representing an object to inspect. The object can be anything, e.g., text, file (path), json, binary etc.")
+            override fun run() = APP.run1AppReady { APP.ui.actionPane.orBuild.show(value) }
+         },
+         object: CliktCommand(
             name = "open-files",
             help = """
                             ```

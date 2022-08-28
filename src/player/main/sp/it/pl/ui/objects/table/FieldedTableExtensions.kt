@@ -2,6 +2,9 @@ package sp.it.pl.ui.objects.table
 
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableColumnBase
+import javafx.scene.layout.Region
+import sp.it.pl.ui.objects.table.TableColumnInfo.ColumnInfo
+import sp.it.util.access.fieldvalue.ColumnField.INDEX
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.fieldvalue.ObjectFieldFlatMapped
 import sp.it.util.collections.setTo
@@ -10,6 +13,17 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.orNull
 import sp.it.util.functional.recurse
 import sp.it.util.functional.traverse
+
+fun <T> FieldedTable<T>.computeColumnStateDefault(): TableColumnInfo {
+   return TableColumnInfo().apply {
+      columnIdMapper = this@computeColumnStateDefault.columnIdMapper
+      columns += ColumnInfo("#", 0, true, Region.USE_COMPUTED_SIZE)
+      columns += fields.asSequence()
+         .filter { it!=INDEX }
+         .map(columnStateFactory)
+         .map { it.copy(position = it.position+1) }
+   }
+}
 
 fun <T> FieldedTable<T>.getColumnsAll(): List<TableColumn<T,*>> = columnRoots.flatMap { it.recurse { it.columns } }
 

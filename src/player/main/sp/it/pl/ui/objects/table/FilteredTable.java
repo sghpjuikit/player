@@ -491,11 +491,6 @@ public class FilteredTable<T> extends FieldedTable<T> {
 
 		/** Sets fields to be used in search. Default is main field. */
 		public void setColumn(@Nullable ObjectField<T,?> field) {
-			// TODO make sure this is always safe
-			// Can not enforce this, because some Fields do not exactly specify their type, e.g., return Object.class
-			// because they are dynamic, this would all be easy if Fields were not implemented as Enum (for
-			// convenience), this time it plays against us.
-			// yes(field.getType()==String.class);
 			this.field = field;
 		}
 

@@ -252,7 +252,7 @@ public class ImprovedTable<T> extends TableView<T> {
 		int items = getItems().size();
 		if (i<0 || i>=items) return;
 
-		boolean fixedCellHeightNotSet = getFixedCellSize()==Region.USE_COMPUTED_SIZE;   // TODO: remove
+		boolean fixedCellHeightNotSet = getFixedCellSize()==Region.USE_COMPUTED_SIZE;
 		if (fixedCellHeightNotSet) {
 			scrollTo(i);
 		} else {

@@ -70,7 +70,7 @@ class TableColumnInfo() {
    }
 
    /** Data structure for single table column information, mostly for serializing and deserializing. */
-   class ColumnInfo(@JvmField val id: String, @JvmField var position: Int, @JvmField val visible: Boolean, @JvmField val width: Double): Comparable<ColumnInfo> {
+   data class ColumnInfo(@JvmField val id: String, @JvmField val position: Int, @JvmField val visible: Boolean, @JvmField val width: Double): Comparable<ColumnInfo> {
 
       override fun compareTo(other: ColumnInfo): Int = position.compareTo(other.position)
 
@@ -88,7 +88,7 @@ class TableColumnInfo() {
       }
    }
 
-   class ColumnSortInfo(val sorts: List<Pair<String, SortType>> = listOf()) {
+   data class ColumnSortInfo(val sorts: List<Pair<String, SortType>> = listOf()) {
 
       fun <T> toTable(table: FieldedTable<T>) {
          table.sortOrder setTo sorts.mapNotNull { (id, sortType) ->

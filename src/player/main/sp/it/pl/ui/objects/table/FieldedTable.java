@@ -41,6 +41,7 @@ import static kotlin.jvm.JvmClassMappingKt.getKotlinClass;
 import static sp.it.pl.main.AppBuildersKt.appTooltip;
 import static sp.it.pl.main.AppExtensionsKt.getEmScaled;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.table.FieldedTableExtensionsKt.computeColumnStateDefault;
 import static sp.it.pl.ui.objects.table.FieldedTableExtensionsKt.setColumnStateImpl;
 import static sp.it.pl.ui.objects.table.FieldedTableExtensionsKt.setColumnVisible;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
@@ -224,18 +225,11 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		return columnState;
 	}
 
-	// TODO: move initialization logic out of here
 	public TableColumnInfo getDefaultColumnInfo() {
+		// TODO: move initialization logic out of here
 		if (columnStateDefault==null) {
 			// generate column states
-			columnStateDefault = new TableColumnInfo();
-			columnStateDefault.columnIdMapper = columnIdMapper;
-			columnStateDefault.columns.addAll(map(fields, columnStateFactory));
-			// insert index column state manually
-			columnStateDefault.columns.removeIf(f -> f.id.equals(INDEX.INSTANCE.name()));
-			columnStateDefault.columns.forEach(t -> t.position++);  //TODO: position should be immutable
-			columnStateDefault.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
-
+			columnStateDefault = computeColumnStateDefault();
 			columnState = columnStateDefault;
 
 			// build new table column menu

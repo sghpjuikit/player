@@ -117,7 +117,6 @@ public class PlaylistTable extends FilteredTable<PlaylistSong> {
 
 		// initialize column factories
 		setColumnFactory(f -> buildColumn(this, f));
-		setColumnState(getDefaultColumnInfo());
 
 		// initialize row factories
 		setRowFactory(t -> {

@@ -18,8 +18,8 @@ fun <T> FieldedTable<T>.setColumnStateImpl(state: TableColumnInfo) {
    val csVisible = state.columns.asSequence()
       .filter { it.visible }
       .sorted()
-      .map { columnIdToF(it.id) }
-      .map { f ->
+      .map { it to columnIdToF(it.id) }
+      .map { (state, f) ->
          // traverse upwards flatMap hierarchy bottom -> top & compute object fields for each level (avoid recomputing f, which is last)
          val fHierarchy = f
             .traverse { it.asIf<ObjectFieldFlatMapped<T, *, *>>()?.by?.asIf<ObjectField<T,*>>() }.map { it.asIf<ObjectFieldFlatMapped<T,*,*>>()?.from ?: it }
@@ -29,7 +29,7 @@ fun <T> FieldedTable<T>.setColumnStateImpl(state: TableColumnInfo) {
             csByField.computeIfAbsent(it) {
                if (it===f) {
                   getColumnFactory<Any?>().call(it).apply {
-                     prefWidth = columnState.columns[it.name()]!!.width
+                     prefWidth = state.width
                      isVisible = true
                   }
                } else {

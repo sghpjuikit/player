@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Latest]
+## [7.0.0] 2022 08 28
 
 - Update Kotlin to 1.7.10
 - Update dependencies
@@ -16,15 +16,18 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `WeatherInfo` forecast
 - Implement way to obtain dependencies' licence report [gradle licenceReport gradle task]
 - Implement `SongInfo` rating change using ui
+- Implement `inspect` CLI command
+- Improve Authorization Bearer content detection
 - Improve json serialization/deserialization performance [instantiate ObjectMapper only once]
 - Improve JavaFX property detection [avoid getChildren twice]
 - Improve nested config editor layout
 - Improve config editor default button [turn into caret with menu]
 - Improve slider styling [gradient effect]
 - Improve logging output
-- Unify ObjectInfo table, `WeatherInfoForecastMeteors` table, `ActionPane` table into a generic table
+- Improve tables [unify ObjectInfo table, `WeatherInfoForecastMeteors` table, `ActionPane` table into a generic table]
 - Improve **ObjectInfo** and `ActionPane` data inspection output in some cases
 - Improve `SpitSliderSkin` value changing tooltip layout [less intrusive]
+- Improve content detection [support FileSize and Duration]
 - Improve `WeatherInfo` settings UX [add config descriptions]
 - Fix `WeatherInfo` not refreshing ui sometimes
 - Fix `String` property editor autocomplete in some scenarios
@@ -140,17 +143,17 @@ Inspected `Pane`s also do not display children twice (`getChildren`, `getUnmodif
 The editors now have caret with menu instead of simple default button. This adds additional functionalities to editors.
 Overall, the layout is more consistent and easier on the eyes. 
 
-#### Licence reports
-The project can generate licence reports for dependencies with the gradle task `licenseReport`.
-In the future, the report may be committed to the git repository or even be available to user.
-
-#### Settings and Form UX
+#### Json
 Json conversion boasts value class support.
 This is useful for validation (in value constructor) and type-safety.
 The application has been discovered to parse invalid json inputs like `1 2` as valid json.
 This caused issues during dynamic content detection. The issue has been fixed.
 
-## [6.0.0]  2022 06 21
+#### Licence reports
+The project can generate licence reports for dependencies with the gradle task `licenseReport`.
+In the future, the report may be committed to the git repository or even be available to user.
+
+## [6.0.0] 2022 06 21
 
 - Update Kotlin to 1.7.0
 - Implement **WeatherInfo** widget

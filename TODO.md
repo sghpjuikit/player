@@ -85,7 +85,6 @@
   - transformation chain projection slider: cut off transformation tail
   - column: line numbers
   - column: item numbers
-  - column: item types
 - Improve **Image** widget: add image controls (+,  -, ...)  
   Low priority and technically difficult
 - Improve **search** by allowing user to switch sources  
@@ -150,5 +149,5 @@
   reported demand for fast native excelsior compiler that has been discontinued -> Excelsior native compiler can no longer be build (no more experimental kotlinc)
 - [x] [694](https://github.com/haraldk/TwelveMonkeys/issues/694) Incorrect subSampling out put for bmp image  
   fixed
-- [ ] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  
-  reported
+- [-] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  
+  reported, lossless webp not supported for now

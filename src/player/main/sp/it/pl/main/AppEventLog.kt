@@ -80,6 +80,9 @@ object AppEventLog {
 private val logger = KotlinLogging.logger { }
 
 @ThreadSafe
+fun <R> Try<R, Throwable>.ifErrorDefault() = ifError { APP.logging.uncaughtExceptionHandler.uncaughtException(Thread.currentThread(), it) }
+
+@ThreadSafe
 fun <R, E> Try<R, E>.ifErrorNotify(errorSupplier: (E) -> AppError) = ifError { AppEventLog.push(errorSupplier(it)) }
 
 @ThreadSafe

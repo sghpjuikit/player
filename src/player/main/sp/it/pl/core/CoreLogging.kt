@@ -6,6 +6,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator
 import ch.qos.logback.core.joran.spi.JoranException
 import ch.qos.logback.core.util.StatusPrinter
 import java.io.File
+import java.lang.Thread.UncaughtExceptionHandler
 import java.util.logging.LogManager
 import mu.KLogging
 import org.slf4j.Logger
@@ -15,6 +16,7 @@ import sp.it.util.async.runFX
 import sp.it.util.reactive.Handler1
 
 class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File, val events: Handler1<Any>): Core {
+   val uncaughtExceptionHandler = UncaughtExceptionHandler { _, e -> runFX { events(e) } }
 
    override fun init() {
       // redirect java util logging to sl4j
@@ -37,7 +39,7 @@ class CoreLogging(val loggingConfigurationFile: File, val loggingOutputDir: File
       StatusPrinter.printInCaseOfErrorsOrWarnings(lc)
 
       // log uncaught thread termination exceptions
-      Thread.setDefaultUncaughtExceptionHandler { _, e -> runFX { events(e) } }
+      Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler)
    }
 
    fun changeLogBackLoggerAppenderLevel(appenderName: String, level: Level) {

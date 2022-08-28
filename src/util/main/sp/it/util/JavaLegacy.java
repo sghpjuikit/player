@@ -4,7 +4,6 @@ import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.win32.StdCallLibrary;
-import java.io.File;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -53,55 +52,7 @@ public class JavaLegacy {
 		if (i!=null) Util.setField(i, "pixelaccessor", null);
 	}
 
-	public static void suspendWindows(boolean hibernate, boolean forceCritical, boolean disableWakeEvent) {
-		WindowsSuspend.SetSuspendState(hibernate, forceCritical, disableWakeEvent);
-	}
-
-	public static void shutdownWindows() {
-		try {
-			Runtime.getRuntime().exec("shutdown -s -t 0");
-		} catch(Throwable e) {
-			// TODO: use EnvironmentKt.runCommand() and handle errors
-		}
-	}
-
-	public static void restartWindows() {
-		try {
-			Runtime.getRuntime().exec("shutdown -r -t 0");
-		} catch(Throwable e) {
-			// TODO: use EnvironmentKt.runCommand() and handle errors
-		}
-	}
-
-	public static void logOffWindows() {
-		try {
-			Runtime.getRuntime().exec("shutdown -l -t 0");
-		} catch(Throwable e) {
-			// TODO: use EnvironmentKt.runCommand() and handle errors
-		}
-	}
-
-	public static void lockWindows() {
-		try {
-			Runtime.getRuntime().exec("Rundll32.exe user32.dll,LockWorkStation");
-		} catch(Throwable e) {
-			// TODO: use EnvironmentKt.runCommand() and handle errors
-		}
-	}
-
-	@SuppressWarnings("SpellCheckingInspection")
-	public static void setWallpaperWindows(File file) {
-		int MY_SPI_WALLPAPER = 0x0014; // Change wallpaper flag.
-		int MY_SENDCHANGE = 1; // Send winini change
-		int MY_UNUSED = 0;  // unused parameter
-		try {
-			JnaWallpaper.INSTANCE.SystemParametersInfoA(MY_SPI_WALLPAPER, MY_UNUSED, file.getAbsolutePath(), MY_SENDCHANGE);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
-
-	private static class WindowsSuspend {
+	public static class WindowsSuspend {
 		@SuppressWarnings("UnusedReturnValue")
 		public static native boolean SetSuspendState(boolean hibernate, boolean forceCritical, boolean disableWakeEvent);
 

@@ -559,7 +559,7 @@ fun Any?.detectContent(): Any? = when (this) {
          ?: FileSize.ofS(this).orNull()
          ?: durationOfHMSMs(this).orNull()
          ?: APP.serializerJson.json.ast(this).orNull()
-         ?: Jwt.ofS(this).orNull()
+         ?: Jwt.ofS(substringAfter("Bearer ")).orNull()
          ?: runTry { uri(this) }.orNull()?.let { it.toFileOrNull()?.takeIf { it.isAbsolute } ?: it.takeIf { it.scheme!=null } }
          ?: runTry { uri(URLEncoder.encode(this, Charsets.UTF_8).replace("+", "%20")) }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }
          ?: runTry { uri("file:///$this") }.orNull()?.toFileOrNull()?.takeIf { it.isAbsolute }

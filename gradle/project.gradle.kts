@@ -119,7 +119,7 @@ allprojects {
 
       "Native" group {
          implementation("net.java.dev.jna", "jna-platform", "5.12.1")
-         implementation("com.1stleg", "jnativehook", "2.1.0")
+         implementation("com.github.kwhat", "jnativehook", "2.2.2")
       }
 
       "Misc" group {

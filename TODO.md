@@ -6,9 +6,7 @@
   - Next all `ActionPane` actions will be migrated to `AppActions.kt`, so they can be accessed type-safely.
   - Next configurable properties will be used to avoid reflection & manual registering per class holder (AppActions).
   - Next integrate with `Action`, define all configurable actions in the same manner, adding icon to Action & keys to ActionData 
-- Implement better application running detection: app running without exe and app running from different directory
 - `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
-- Implement `MdNode` monitor file & reload
 - Implement actions for widget management: delete widget, open with strategy
 - Implement **Playback Knobs** widget skinnable size
 - Implement **Playback Knobs** widget writable chapters
@@ -29,10 +27,11 @@
   - implement chapters tag
   - tag writing should fail when tag reading fails?
   - make writing to tag handle errors properly (& report read-only files)
-- Implement converting Layout into ContainerSwitch and back
 
 ## Potential future work
-- Implement OS context menu integration
+- Implement better application running detection: app running without exe and app running from different directory
+- Implement converting Layout into ContainerSwitch and back
+- Implement `MdNode` monitor file & reload
 - Fix **Function Viewer** plotting steep functions clipped too soon (requires plotted point look-ahead)
 - Implement **Function Viewer** derivation, see [kotlingrad](https://github.com/breandan/kotlingrad)
 - Implement `SliderCE` logarithmic scale
@@ -152,4 +151,4 @@
 - [-] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  
   reported, lossless webp not supported for now
 - [x] [695](https://github.com/kwhat/jnativehook/issues/420) Consuming global hotkey modifier key release
-  asked, figured out (not an issue, modifiers should not be ocnsumed)
+  asked, figured out (not an issue, modifiers should not be consumed)

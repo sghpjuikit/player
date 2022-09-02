@@ -8,6 +8,7 @@ import java.io.IOException
 import java.net.URISyntaxException
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
+import javafx.scene.input.Clipboard
 import javafx.scene.input.KeyCode.*
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -381,6 +382,14 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
+   val detectContent = fastAction<Any?>("Detect content", "Identifies the type of the specified content and shows appropriate ui for it", IconMD.MAGNIFY) {
+      APP.ui.actionPane.orBuild.showAndDetect(it, true)
+   }.preventClosing()
+
+   val detectContentFromClipBoard = fastAction<Unit>("Detect clipboard content", "Identifies the type of the clipboard content and shows appropriate ui for it", IconMD.MAGNIFY) {
+      APP.ui.actionPane.orBuild.showAndDetect(Clipboard.getSystemClipboard().getAny(), true)
+   }.preventClosing()
+
    val decodeBase64 = fastAction<String>("Decode base64", "Decode Base64", IconFA.EXCHANGE, { it.isBase64() }) {
       apOrApp.showAndDetect(it.decodeBase64().orNull(), true)
    }.preventClosing()
@@ -598,8 +607,6 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    )
 
-   data class WidgetDefaultMenu(val widget: Widget): CoreMenuNoInspect
-
    val widgetUseAsDefault = fastAction<WidgetDefaultMenu>(
       "Use as default",
       "Uses settings of this widget as default settings when creating widgets of this type. This " +
@@ -644,6 +651,8 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          else -> APP.ui.actionPane.orBuild.show(MultipleFiles(fs))
       }
    }
+
+   data class WidgetDefaultMenu(val widget: Widget): CoreMenuNoInspect
 
    companion object: KLogging()
 }

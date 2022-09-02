@@ -502,6 +502,41 @@ class App: Application(), GlobalConfigDelegator {
       } by { it.name + it.keys } toSource {
          Entry.of(it)
       }
+      sources += Source("Actions (parametric)") {
+         ActionsPaneGenericActions.actionsAll.values.asSequence().flatten()
+      } by { it.name } toSource {
+         Entry.of(
+            name = it.nameWithDots,
+            icon = it.icon,
+            graphics = null
+         ) {
+
+            @Suppress("UNCHECKED_CAST")
+            fun <C, T> ActionData<C,T>.invokeWithForm() {
+               val context = ActContext(null, null, null, null)
+               when {
+                  type.raw.isObject -> invokeFut(context, type.raw.objectInstance as T)
+                  type.raw == Unit::class -> invokeFut(context, Unit as T)
+                  type == typeNothingNullable() -> invokeFut(context, null as T)
+                  else -> {
+                     val t: VType<T> = if (type.raw==Any::class) VType(String::class.java, type.isNullable).asIs() else type
+                     ValueConfig(t, "Input", "Input", null, "", description, EditMode.USER)
+                        .constrain {
+                           if (!type.isNullable) nonNull()
+                           but(
+                              object: Constraint<T?> {
+                                 override fun isValid(value: T?) = value==null || condition(value)
+                                 override fun message() = "Not a valid input"
+                              }
+                           )
+                        }
+                        .configure(it.nameWithDots) { invokeFut(context, it.value as T) }
+                  }
+               }
+            }
+            it.invokeWithForm()
+         }
+      }
       sources += Source("Commands") {
          configuration.getConfigs().asSequence().filter { it.type.type.raw==Command::class }
             .mapNotNull { c -> c.value?.asIs<Command>()?.net { c to it } }

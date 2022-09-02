@@ -3,12 +3,13 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
-- Implement windows file menu integration
+- Implement Windows file menu integration
 - Implement `Inspect in SpitPlayer` Microsoft Windows file menu item
 - Implement better global hotkey key detection [use `Map(native key -> javafx)`]
 - Implement faster global hotkey key processing
 - Implement global hotkey symmetric event consuming
 - Implement `MetadataGroup.Field.VALUE` column to not be resizable [improves UX]
+- Implement `ActionData` to be invokable through search (`CTRL+SHIFT+I`)
 
 ### Windows menu integration
 There is a setting to add an `Inspect in SpitPlayer` menu item into the Microsoft Windows file menu.
@@ -22,7 +23,7 @@ First change is symmetric event consuming.
 For a shortcut, e.g., `ALT+S`, comprised of events press(Alt) + press(S) + release(S) + release(Alt), only press(S) has been consumed before.
 Now, release(S) will be consumed as well. This prevents interference between multiple applications/hotkeys.
 As for press(Alt) and release(Alt), consuming is impossible. The former because the application does not know if this is going to be a hotkey.
-The later, because consuming release(Alt) would make consuming asymmetric - and that opens a can of worms, particularly for modifier keys.
+The latter, because consuming release(Alt) would make consuming asymmetric - and that opens a can of worms, particularly for modifier keys.
 
 This is of interest due to an interfering Windows feature - release(Alt) displays and focuses application menu.
 User does not want this to happen if the release (Alt) is part of a hotkey (if a key is pressed while Alt has been pressed), but Windows does not care.
@@ -36,6 +37,66 @@ The library has been updated from `2.1.0` to `2.2.2`, which fixes multiple poten
 see [changelog](https://github.com/kwhat/jnativehook/releases/tag/2.2.2) for details.
 
 The hotkey handling code has been optimized to do less work, which is important, since the code executes for any keystroke in the OS.
+
+### Actions
+Action data are now invokable through search, even if the action is parametric.
+Besides `Action`, which represents a parameterless invocable command with optional (configurable) hotkey, there is a more generic `ActionData`.
+In the future `Action` and `ActionData` will be unified into one, but for now they remain separate.
+
+This update brings that closer to reality, as `ActionData` can too now be invoked from application search.
+This makes lots of inaccessible actions accessible to user through ui.
+The interesting part is that some `ActionData` are invoked on an object (receiver) - they are basically extension methods.
+In such case, the action shows up in search prefixed by its receiver type (e.g, `Text.Export to file...`) and invoking it
+brings up a form to provide the receiver object. There are two UX issues with this:
+
+1 Some actions may ask for additional parameters.
+In such case, showing the appropriate form is the responsibility of the respective action, which means that user will be given
+two forms, in a succession. This is obviously bad UX, but merging the two forms requires the action to declare its parameters
+at compile time. Besides creating the mechanism for this and the follow-up refactoring, moving the declaration of parameters
+from runtime to compile-time does reduce flexibility and may require more complicated mechanism, such as rebuilding part of a form
+from its preceding part. This will be explored in the future.
+
+2 Some actions take receiver, for which there is no appropriate config editor available.
+This can make the action worthless (from the context of the application search) as well as confusing.
+There is no way to decide which type of receiver can be provided by the user through config editors.
+Rather than hiding some actions, it becomes important to provide more and better config editors for various types.
+A good example would be action taking a `Widget` as a receiver. This action requires widget autocomplete, maybe
+coupled with widget picker (from UI) or even widget creator (using available widget factories).
+Many config editors will have to be considered and implemented. This will be longer process taking time.
+Therefore, the actions with receiver will stay enabled, so the useful use cases will be discovered and implemented faster.
+
+3 Some actions take `Any` as receiver. Asking user to provide the receiver would involve first asking him what type of receiver
+he wants to provide and then provide appropriate config editor for it. The first part is already complicated as it requires
+application to know all types of objects that can be created through config editors. For now this problem has been simplified
+to providing a String config editor. It would be interesting to apply the application's `detectContent()` on the user provided text.
+That would go a long way to be able to provide all kinds of inputs very easily, but this will probably end up being just part of the solution.
+
+In the past, the generic action `ActionData` and context menu generators `CoreMenu` have been unified.
+Now this is unified with application search. This means that available actions user sees in `ActionPane`, menu items in various context menus,
+and search results in search, are all the same.
+What remains is to bring hotkey capability to `ActionData` and use it instead of the legacy `Action` class.
+
+The ultimate idea of an ActionData is a generic action invoked upon (optional) receiver and (optional) parameters within a given context.
+The context can be either:
+- provided programmatically if action is invoked from code
+- context menu (built around a value that becomes the `ActionData` receiver)
+- `ActionPane`overlay displaying actions for an object, that is the receiver
+- invocable search result, asking user to provide the receiver object by himself
+
+The context of the action is a powerful unification mechanism which can optionally provide access important elements to the action,
+such as active overlay, focused window, `Node` source ui element and so on. The context can provide predefined fallback mechanism for any of these
+elements, if the context does not provide them.
+
+ActionData is therefore, in Kotlin literally, defined as `Context.(Receiver) -> Unit`
+
+The difference between the context and parameters is that context is implicit.
+With the introduction of parameters, action could look like: `Context.(Receiver, Parameters) -> Unit`.
+Ideally, to disambiguate these properly, multiple receiver feature would be used for context (which is truly an implicit).
+The final form would become: `using Context: Receiver.(Parameters) -> Unit`
+
+In the future, actions providing result may be supported as well.
+Synchronous and asynchronous ActionData will differ merely by the presence of `Fut<Result>` return type (now they require separate constructor).
+Ultimately, the action lambda could be suspending to completely unify the method of execution, but that will be considered afterwards.
 
 ## [7.0.0] 2022 08 28
 
@@ -117,7 +178,7 @@ Now `table.columns` returns root columns and `table.fields` and `table.visibleCo
 During serialization only leaf columns are serialized. Upon column state change the column parents/groups are reconstructed.
 For clarity, `table.columnRoots` and `table.columnLeafs` haven been added to the API and delegate to `table.columns` and `table.visibleColumnLeafs`.
 
-Using flatMapped fields has consequences beyond just nested column:
+Using flatMapped fields has consequences that are beyond just nested column:
 - Column root  
   Single column that is parent of all other columns. Can be used as simple table header.
 - Column nesting lvl  

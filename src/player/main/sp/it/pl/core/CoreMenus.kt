@@ -87,7 +87,6 @@ import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.access.toggle
 import sp.it.util.access.vn
 import sp.it.util.action.ActionManager
-import sp.it.util.async.runIO
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.nonNull
@@ -129,8 +128,7 @@ object CoreMenus: Core {
             { value ->
                ActionsPaneGenericActions.actionsAll[kClass].orEmpty().asSequence().filter { it.invokeDoable(value) }.map { action ->
                   menuItem(action.name, action.icon.toCmUi { tooltip(action.description) } ) {
-                     if (action.isLong) runIO { action(ActContext(it), value) }
-                     else action(ActContext(it), value)
+                     action.invokeFut(ActContext(it), value)
                   }
                }
             }

@@ -397,7 +397,6 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
    )
 }
 
-@Suppress("UNCHECKED_CAST")
 private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, Collection<File>> = ComplexActionData(
    { files -> runIO { findAudio(files).map { CachingFile(it) }.toList() } },
    { audioFiles ->

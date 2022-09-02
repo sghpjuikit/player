@@ -8,17 +8,22 @@ import javafx.scene.control.MenuItem
 import javafx.stage.Window
 import kotlin.reflect.KClass
 import sp.it.pl.main.APP
+import sp.it.pl.main.toUi
 import sp.it.pl.ui.pane.GroupApply.FOR_ALL
 import sp.it.pl.ui.pane.GroupApply.FOR_EACH
 import sp.it.pl.ui.pane.GroupApply.NONE
 import sp.it.util.action.Action
 import sp.it.util.async.future.Fut
+import sp.it.util.async.runIO
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
+import sp.it.util.dev.Blocks
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.fail
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.asIf
 import sp.it.util.type.VType
+import sp.it.util.type.raw
 import sp.it.util.type.type
 
 inline fun <reified T> ActionPane.register(vararg actions: ActionData<T, *>) = register(T::class, *actions)
@@ -77,31 +82,22 @@ class ComplexActionData<R, T> {
 }
 
 /** Action. */
-class ActionData<C, T> {
+class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: GlyphIcons, groupApply: GroupApply, condition: Test<T>, isLong: Boolean, action: Act<T>) {
 
-   @JvmField val name: String
-   @JvmField val type: VType<T>
-   @JvmField val description: String
-   @JvmField val icon: GlyphIcons
-   @JvmField val groupApply: GroupApply
-   @JvmField val condition: Test<T>
-   @JvmField val isLong: Boolean
-   @JvmField val action: Act<T>
+   @JvmField val type: VType<T> = type
+             val hasInput: Boolean get() = type.raw!=Unit::class
+   @JvmField val name: String = name
+             val nameWithDots get() = if (hasInput) "${type.toUi()}.${name.dropLastWhile { it=='.' }}..." else name
+   @JvmField val description: String = description
+   @JvmField val icon: GlyphIcons = icon
+   @JvmField val groupApply: GroupApply = groupApply
+   @JvmField val condition: Test<T> = condition
+   @JvmField val isLong: Boolean = isLong
+   @JvmField val action: Act<T> = action
 
    @JvmField var isComplex = false
    @JvmField var preventClosing = false
    @JvmField var complexData: ((ActionPane) -> ComplexActionData<T, *>)? = null
-
-   constructor(name: String, type: VType<T>, description: String, icon: GlyphIcons, groupApply: GroupApply, condition: Test<T>, isLong: Boolean, action: Act<T>) {
-      this.name = name
-      this.type = type
-      this.description = description
-      this.icon = icon
-      this.groupApply = groupApply
-      this.condition = condition
-      this.isLong = isLong
-      this.action = action
-   }
 
    fun preventClosing() = apply {
       preventClosing = true
@@ -126,6 +122,7 @@ class ActionData<C, T> {
    }
 
    @Suppress("UNCHECKED_CAST")
+   @Blocks
    operator fun invoke(context: ActContext, data: Any?) {
       when (groupApply) {
          FOR_ALL -> context.action(collectionWrap(data) as T)
@@ -135,6 +132,12 @@ class ActionData<C, T> {
          }
          NONE -> context.action(data as T)
       }
+   }
+
+   @ThreadSafe
+   fun invokeFut(context: ActContext, data: Any?): Fut<*> {
+      return if (isLong) runIO { invoke(context, data) }
+      else Fut.fut(invoke(context, data))
    }
 
    @Suppress("UNCHECKED_CAST")

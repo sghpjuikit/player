@@ -53,8 +53,8 @@ interface Constraint<in T> {
       init {
          failIf(min==null && max==null) { "Min and max can not both be null" }
          failIf(min!=null && max!=null && max<min) { "Max value must be greater than or equal to min value" }
-         failIf(min!=null && min.isNaN()) { "Min can not both be NaN" }
-         failIf(max!=null && max.isNaN()) { "Max can not both be NaN" }
+         failIf(min!=null && min.isNaN()) { "Min can not be NaN" }
+         failIf(max!=null && max.isNaN()) { "Max can not be NaN" }
       }
 
       fun isClosed() = min!=null && max!=null

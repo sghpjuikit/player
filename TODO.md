@@ -151,3 +151,5 @@
   fixed
 - [-] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  
   reported, lossless webp not supported for now
+- [x] [695](https://github.com/kwhat/jnativehook/issues/420) Consuming global hotkey modifier key release
+  asked, figured out (not an issue, modifiers should not be ocnsumed)

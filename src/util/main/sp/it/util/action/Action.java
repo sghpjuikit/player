@@ -280,7 +280,8 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 
 	private void registerGlobal() {
 		if (!ActionManager.INSTANCE.isActionListening()) return;
-		ActionRegistrar.INSTANCE.getHotkeys().getValue().register(this, getKeys());
+		var ar = orNull(ActionRegistrar.INSTANCE.getHotkeys());
+		if (ar!=null) ar.register(this, getKeys());
 	}
 
 	private void unregisterGlobal() {

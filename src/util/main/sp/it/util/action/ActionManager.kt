@@ -55,24 +55,24 @@ object ActionManager: GlobalSubConfigDelegator(Action.CONFIG_GROUP) {
          name = "Global shortcuts enabled",
          info = "Allows using the shortcuts even if application is not focused."
       ) sync {
-      if (isGlobalShortcutsSupported) {
-         if (it) {
-            startGlobalListening()
-            // re-register shortcuts to switch from local
-            ActionRegistrar.getActions().forEach { a ->
-               a.unregister()
-               a.register()
-            }
-         } else {
-            stopGlobalListening()
-            // re-register shortcuts to switch to local
-            ActionRegistrar.getActions().forEach { a ->
-               a.unregister()
-               a.register()
+         if (isGlobalShortcutsSupported) {
+            if (it) {
+               startGlobalListening()
+               // re-register shortcuts to switch from local
+               ActionRegistrar.getActions().forEach { a ->
+                  a.unregister()
+                  a.register()
+               }
+            } else {
+               stopGlobalListening()
+               // re-register shortcuts to switch to local
+               ActionRegistrar.getActions().forEach { a ->
+                  a.unregister()
+                  a.register()
+               }
             }
          }
       }
-   }
 
    /** @return whether the action listening is running */
    var isActionListening = false

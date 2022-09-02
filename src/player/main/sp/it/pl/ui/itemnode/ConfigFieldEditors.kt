@@ -80,6 +80,7 @@ import sp.it.pl.layout.TemplateFactory
 import sp.it.pl.layout.WidgetFactory
 import sp.it.pl.layout.WidgetManager
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppOsMenuIntegrator
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
@@ -87,6 +88,7 @@ import sp.it.pl.main.IconOC
 import sp.it.pl.main.appTooltip
 import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.ifErrorDefault
 import sp.it.pl.main.textColon
 import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
@@ -497,7 +499,7 @@ class FileCE(c: Config<File?>): ConfigEditor<File?>(c) {
    }
 }
 
-class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, val customizer: ToggleButton.(T) -> Unit): ConfigEditor<T>(c) {
+class ValueToggleButtonGroupCE<T>(c: Config<T>, val values: List<T>, customizer: ToggleButton.(T) -> Unit): ConfigEditor<T>(c) {
    private val v = getObservableValue(c)
    private var isObservable = v!=null
    override val editor = ValueToggleButtonGroup(config.value, values, customizer)
@@ -1069,6 +1071,22 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
             else -> IconOC.PACKAGE
          }
    }
+}
+
+class AppOsMenuIntegratorCE(c: Config<AppOsMenuIntegrator>): ConfigEditor<AppOsMenuIntegrator>(c) {
+   override val editor = vBox(0.0, CENTER_LEFT) {
+      lay += Icon(IconFA.PLAY).onClickDo { config.value.integrate().ifErrorDefault() }.withText(Side.RIGHT, CENTER_LEFT, "Integrate to OS menu")
+      lay += Icon(IconFA.PLAY).onClickDo { config.value.disintegrate().ifErrorDefault() }.withText(Side.RIGHT, CENTER_LEFT, "Remove integration to OS menu")
+   }
+
+   init {
+      // readonly
+      isEditable sync { editor.isDisable = !it } on disposer
+   }
+
+   override fun get() = Try.ok(AppOsMenuIntegrator)
+
+   override fun refreshValue() = Unit
 }
 
 class ConfigurableCE(c: Config<Configurable<*>?>): ConfigEditor<Configurable<*>?>(c) {

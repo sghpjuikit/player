@@ -1,6 +1,42 @@
 # Changelog
 All notable changes to this project will be documented in this file. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Latest]
+
+- Implement windows file menu integration
+- Implement `Inspect in SpitPlayer` Microsoft Windows file menu item
+- Implement better global hotkey key detection [use `Map(native key -> javafx)`]
+- Implement faster global hotkey key processing
+- Implement global hotkey symmetric event consuming
+- Implement `MetadataGroup.Field.VALUE` column to not be resizable [improves UX]
+
+### Windows menu integration
+There is a setting to add an `Inspect in SpitPlayer` menu item into the Microsoft Windows file menu.
+Ideally, there would be setting for file associations, however doing that programmatically is a mess - it may be implemented in the future.
+
+### Global Hotkeys
+Global hotkeys are a difficult thing in Java. SpitPlayer uses `jnativehook` library, which is awesome, but
+there are still couple surprises.
+
+First change is symmetric event consuming.
+For a shortcut, e.g., `ALT+S`, comprised of events press(Alt) + press(S) + release(S) + release(Alt), only press(S) has been consumed before.
+Now, release(S) will be consumed as well. This prevents interference between multiple applications/hotkeys.
+As for press(Alt) and release(Alt), consuming is impossible. The former because the application does not know if this is going to be a hotkey.
+The later, because consuming release(Alt) would make consuming asymmetric - and that opens a can of worms, particularly for modifier keys.
+
+This is of interest due to an interfering Windows feature - release(Alt) displays and focuses application menu.
+User does not want this to happen if the release (Alt) is part of a hotkey (if a key is pressed while Alt has been pressed), but Windows does not care.
+The only workaround is to suppress the event somehow, for example using the **Autohotkey** program.
+This issue is here to stay. I'm experimenting with **AH** scripts for this with various level of success.
+
+Another change is that all `jnativehook` keys are now mapped to JavaFX keys correctly.
+This probably fixes number of potential hotkey issues.
+
+The library has been updated from `2.1.0` to `2.2.2`, which fixes multiple potential issues,
+see [changelog](https://github.com/kwhat/jnativehook/releases/tag/2.2.2) for details.
+
+The hotkey handling code has been optimized to do less work, which is important, since the code executes for any keystroke in the OS.
+
 ## [7.0.0] 2022 08 28
 
 - Update Kotlin to 1.7.10

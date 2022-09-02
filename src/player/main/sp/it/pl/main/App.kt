@@ -58,19 +58,27 @@ import sp.it.pl.ui.objects.SpitComboBox
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
 import sp.it.pl.ui.objects.window.stage.WindowManager
+import sp.it.pl.ui.pane.ActContext
+import sp.it.pl.ui.pane.ActionData
 import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
+import sp.it.util.conf.Constraint
+import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalConfigDelegator
 import sp.it.util.conf.MainConfiguration
+import sp.it.util.conf.ValueConfig
+import sp.it.util.conf.but
 import sp.it.util.conf.c
 import sp.it.util.conf.collectActionsOf
 import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
+import sp.it.util.conf.noPersist
+import sp.it.util.conf.nonNull
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
@@ -89,7 +97,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
-import sp.it.util.system.Os
+import sp.it.util.system.Os.WINDOWS
 import sp.it.util.system.SystemOutListener
 import sp.it.util.system.chooseFile
 import sp.it.util.system.saveFile
@@ -97,7 +105,10 @@ import sp.it.util.type.ClassName
 import sp.it.util.type.InstanceDescription
 import sp.it.util.type.InstanceName
 import sp.it.util.type.ObjectFieldMap
+import sp.it.util.type.VType
+import sp.it.util.type.isObject
 import sp.it.util.type.raw
+import sp.it.util.type.typeNothingNullable
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -170,6 +181,7 @@ class App: Application(), GlobalConfigDelegator {
    /** Whether application is initialized. Starts as error and transitions to ok in [App.start] if no error occurs. */
    var isInitialized: Try<Unit, Throwable> = Try.error(Exception("Initialization has not run yet"))
       private set
+
    /** Global event bus. Usage: simply push an event or observe. Use of event constants/objects is advised. */
    val actionStream = Handler1<Any>().apply {
       onEvent<Any> {
@@ -181,14 +193,14 @@ class App: Application(), GlobalConfigDelegator {
    val actionsLog = AppEventLog
    /** Various actions for the application */
    val actions = AppActions()
-   /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
-   val appCommunicator = AppInstanceComm()
    /** Observable [System.out]. */
    val systemout = SystemOutListener()
    /** Called just after this application is started (successfully) and fully initialized. Runs at most once, on fx thread. */
    val onStarted = Disposer()
    /** Called just before this application is stopped when it is fully still running. Runs at most once, on fx thread. */
    val onStopping = Disposer()
+   /** Allows sending and receiving [java.lang.String] messages to and from other instances of this application. */
+   val appCommunicator = AppInstanceComm()
    /** Application argument handler. */
    val parameterProcessor = AppCli()
 
@@ -262,6 +274,8 @@ class App: Application(), GlobalConfigDelegator {
    val locale by cv(Locale.ENGLISH).valuesUnsealed { Locale.getAvailableLocales().toList() } def conf.locale attach { actions.showSuggestRestartNotification() }
    /** Developer mode. Enables certain features useful for developers or power users. */
    val developerMode by cv(false) { v(it || parameterProcessor.cli.dev) } def conf.developerMode
+   /** Os menu integrator. */
+   val menuIntegration by cv(AppOsMenuIntegrator).noPersist().readOnlyUnless(WINDOWS.isCurrent) def conf.osMenuIntegration
    /** Action that calls [System.gc]. */
    val actionCallGc by cr(conf.runGarbageCollector) { System.gc() }.readOnlyUnless(developerMode)
    /** Action that persists [configuration] to default application properties file. */
@@ -434,7 +448,7 @@ class App: Application(), GlobalConfigDelegator {
       Runtime.getRuntime().addShutdownHook(object: Thread() {
          override fun run() {
             val args = fetchArguments().toTypedArray()
-            val f = if (Os.WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
+            val f = if (WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
             Runtime.getRuntime().exec(f.absolutePath, args)
          }
       })

@@ -64,6 +64,13 @@ val appSetting = Setting.root {
       config("Run garbage collector") {
          info = "Run JVM garbage collector using 'System.gc()'. Requires developer mode enabled."
       }
+      config("Os menu integration") {
+         info = "Adds menu item to OS file menu to inspect the file with this application." +
+            "\nInspection is different from opening or editing the file, it displays various information about the object " +
+            "and provides possible actions that can be done with it. Inspection is often convenient way to start workflow. " +
+            "Open and edit menus can be set using associated program OS settings." +
+            "\nThis adds/removes registry key HKEY_CLASSES_ROOT\\*\\shell\\SpitPlayer. This may require special privileges."
+      }
    }
    "Plugins" {
       "Screen Dock" {

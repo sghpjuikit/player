@@ -35,6 +35,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmErasure
 import sp.it.pl.core.UiStringHelper
 import sp.it.pl.layout.WidgetManager
+import sp.it.pl.main.AppOsMenuIntegrator
 import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.appTooltip
@@ -357,6 +358,10 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
          put<WidgetManager.Widgets> {
             if (it.type.isNullable) GeneralCE(it)
             else WidgetsCE(it.asIs())
+         }
+         put<AppOsMenuIntegrator> {
+            if (it.type.isNullable) GeneralCE(it)
+            else AppOsMenuIntegratorCE(it.asIs())
          }
 
          EFFECT_TYPES.map { it.type ?: Effect::class }.forEach {

@@ -282,6 +282,25 @@ Features:
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
+      /** Adds menu item to OS file menu to inspect the file with this application.
+Inspection is different from opening or editing the file, it displays various information about the object and provides possible actions that can be done with it. Inspection is often convenient way to start workflow. Open and edit menus can be set using associated program OS settings. */
+      object `osMenuIntegration`: ConfigDefinition {
+         /** Compile-time constant equivalent to [name]. */
+         const val cname: String = """Os menu integration"""
+         /** Compile-time constant equivalent to [info]. */
+         const val cinfo: String = """Adds menu item to OS file menu to inspect the file with this application.
+Inspection is different from opening or editing the file, it displays various information about the object and provides possible actions that can be done with it. Inspection is often convenient way to start workflow. Open and edit menus can be set using associated program OS settings."""
+         /** Compile-time constant equivalent to [group]. */
+         const val cgroup: String = """App"""
+         /** Name of the config. */
+         override val name = cname
+         /** Group of the config. */
+         override val group = cgroup
+         /** Description of the config. */
+         override val info = cinfo
+         /** Editability of the config. */
+         override val editable = EditMode.USER
+      }
    }
    object `plugins` {
       /** Name of the group. */

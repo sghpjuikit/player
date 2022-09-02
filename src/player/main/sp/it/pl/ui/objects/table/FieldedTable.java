@@ -53,7 +53,6 @@ import static sp.it.util.access.fieldvalue.ColumnField.INDEX;
 import static sp.it.util.functional.Util.SAME;
 import static sp.it.util.functional.Util.by;
 import static sp.it.util.functional.Util.filter;
-import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.with;
 import static sp.it.util.functional.UtilKt.consumer;
@@ -229,7 +228,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 		// TODO: move initialization logic out of here
 		if (columnStateDefault==null) {
 			// generate column states
-			columnStateDefault = computeColumnStateDefault();
+			columnStateDefault = computeColumnStateDefault(this);
 			columnState = columnStateDefault;
 
 			// build new table column menu

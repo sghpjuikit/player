@@ -170,6 +170,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             val mf = fieldFilter.value
             tableColumn<MetadataGroup, Any?> {
                text = f.toString(mf)
+               isResizable = f!=VALUE
                styleClass += when (f) {
                   AVG_RATING, W_RATING -> "column-header-align-right"
                   else -> if (f.getMFType(mf).isSubclassOf<String>()) "column-header-align-left" else "column-header-align-right"

@@ -511,26 +511,27 @@ class App: Application(), GlobalConfigDelegator {
             graphics = null
          ) {
 
-            @Suppress("UNCHECKED_CAST")
             fun <C, T> ActionData<C,T>.invokeWithForm() {
                val context = ActContext(null, null, null, null)
                when {
-                  type.raw.isObject -> invokeFut(context, type.raw.objectInstance as T)
-                  type.raw == Unit::class -> invokeFut(context, Unit as T)
-                  type == typeNothingNullable() -> invokeFut(context, null as T)
+                  type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
+                  type.raw == Unit::class -> invokeFutAndProcess(context, Unit.asIs())
+                  type == typeNothingNullable() -> invokeFutAndProcess(context, null.asIs())
                   else -> {
-                     val t: VType<T> = if (type.raw==Any::class) VType(String::class.java, type.isNullable).asIs() else type
-                     ValueConfig(t, "Input", "Input", null, "", description, EditMode.USER)
-                        .constrain {
-                           if (!type.isNullable) nonNull()
-                           but(
-                              object: Constraint<T?> {
-                                 override fun isValid(value: T?) = value==null || condition(value)
-                                 override fun message() = "Not a valid input"
-                              }
-                           )
-                        }
-                        .configure(it.nameWithDots) { invokeFut(context, it.value as T) }
+                     val t: VType<T> = when (type.raw) {
+                        Any::class -> VType(String::class.java, type.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
+                        else -> type
+                     }
+                     val receiver = ValueConfig(t, "Input", "Input", null, "", description, EditMode.USER).constrain {
+                        if (!type.isNullable) nonNull()
+                        but(
+                           object: Constraint<T?> {
+                              override fun isValid(value: T?) = value==null || condition(value)
+                              override fun message() = "Not a valid input"
+                           }
+                        )
+                     }
+                     receiver.configure(it.nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
                   }
                }
             }

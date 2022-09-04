@@ -9,19 +9,28 @@ import javafx.stage.Window
 import kotlin.reflect.KClass
 import sp.it.pl.main.APP
 import sp.it.pl.main.toUi
-import sp.it.pl.ui.pane.GroupApply.FOR_ALL
-import sp.it.pl.ui.pane.GroupApply.FOR_EACH
-import sp.it.pl.ui.pane.GroupApply.NONE
+import sp.it.pl.ui.pane.ActionData.GroupApply
+import sp.it.pl.ui.pane.ActionData.GroupApply.FOR_ALL
+import sp.it.pl.ui.pane.ActionData.GroupApply.FOR_EACH
+import sp.it.pl.ui.pane.ActionData.GroupApply.NONE
+import sp.it.pl.ui.pane.ActionData.Threading
+import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
+import sp.it.pl.ui.pane.ActionData.Threading.UI
 import sp.it.util.action.Action
+import sp.it.util.async.FX
 import sp.it.util.async.future.Fut
+import sp.it.util.async.future.Fut.Companion.futOfBlock
 import sp.it.util.async.runIO
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
 import sp.it.util.dev.Blocks
-import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.fail
+import sp.it.util.dev.failIfFxThread
+import sp.it.util.dev.failIfNotFxThread
+import sp.it.util.functional.Try
 import sp.it.util.functional.Util.IS
 import sp.it.util.functional.asIf
+import sp.it.util.functional.runTry
 import sp.it.util.type.VType
 import sp.it.util.type.raw
 import sp.it.util.type.type
@@ -61,7 +70,7 @@ fun futureUnwrapOrThrow(o: Any?): Any? = when (o) {
 }
 
 private typealias Test<T> = (T) -> Boolean
-private typealias Act<T> = ActContext.(T) -> Unit
+private typealias Act<T> = ActContext.(T) -> Any?
 
 data class ActContext(val window: Window?, val a: ActionPane?,  val node: Node?, val event: Event?) {
    constructor(window: Window): this(window, null, null, null)
@@ -110,7 +119,7 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
    }
 
    @Suppress("UNCHECKED_CAST")
-   fun invokeDoable(data: Any?): Boolean {
+   fun invokeIsDoable(data: Any?): Boolean {
       return when (groupApply) {
          FOR_ALL -> condition(collectionWrap(data) as T)
          FOR_EACH -> when (data) {
@@ -123,21 +132,54 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
 
    @Suppress("UNCHECKED_CAST")
    @Blocks
-   operator fun invoke(context: ActContext, data: Any?) {
-      when (groupApply) {
+   @Throws(Throwable::class)
+   operator fun invoke(context: ActContext, data: Any?): Any? {
+      if (isLong) failIfFxThread()
+
+      return when (groupApply) {
          FOR_ALL -> context.action(collectionWrap(data) as T)
          FOR_EACH -> when (data) {
-               is Collection<*> -> (data as Collection<T>).forEach { context.action(it) }
-               else -> context.action(data as T)
+            is Collection<*> -> (data as Collection<T>).map { context.action(it) }
+            else -> context.action(data as T)
          }
          NONE -> context.action(data as T)
       }
    }
 
-   @ThreadSafe
+   @Blocks
+   fun invokeTry(context: ActContext, data: Any?): Try<Any?, Throwable> {
+      return runTry { invoke(context, data) }.mapError { RuntimeException("Running action=$name failed", it) }
+   }
+
    fun invokeFut(context: ActContext, data: Any?): Fut<*> {
-      return if (isLong) runIO { invoke(context, data) }
-      else Fut.fut(invoke(context, data))
+      failIfNotFxThread()
+
+      return if (isLong) runIO { invokeTry(context, data).orThrow }
+      else futOfBlock { invokeTry(context, data).orThrow }
+   }
+
+   fun invokeFutAndProcess(context: ActContext, data: Any?) {
+      failIfNotFxThread()
+
+      invokeFut(context, data).onDone(FX) {
+         it.toTryRaw()
+            .ifError { context.apOrApp.show(it) }
+            .ifOk { if (!isResultUnit(it)) context.apOrApp.show(it) }
+      }
+   }
+
+   fun isResultUnit(result: Any?): Boolean {
+      return when (groupApply) {
+         FOR_ALL, NONE -> when {
+            result is Unit -> true
+            else -> false
+         }
+         FOR_EACH -> when {
+            result is Unit -> true
+            result is Collection<*> && result.all { it==Unit } -> true
+            else -> false
+         }
+      }
    }
 
    @Suppress("UNCHECKED_CAST")
@@ -150,44 +192,30 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
    }
 
    override fun toString() = "ActionData(\"$name\")"
+
+   enum class GroupApply {
+      FOR_EACH, FOR_ALL, NONE
+   }
+   
+   enum class Threading {
+      UI, BLOCK
+   }
 }
 
 /** [ActionData] that executes synchronously - simply consumes the input. */
-inline fun <C, reified T> fastActionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, noinline constriction: Test<T>, noinline action: Act<T>) = ActionData<C, T>(name, type(), description, icon, groupApply, constriction, false, action)
+inline fun <C, reified T> actionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, threading: Threading = UI, noinline constriction: Test<T>, noinline action: Act<T>) = ActionData<C, T>(name, type(), description, icon, groupApply, constriction, threading==BLOCK, action)
 
-/** [fastAction] that consumes simple input - its type is the same as type of the action. */
-inline fun <reified T> fastAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<T>) = fastActionBase<T, T>(name, description, icon, NONE, IS, action)
+/** [action] that consumes simple input - its type is the same as type of the action. */
+inline fun <reified T> action(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline action: Act<T>) = actionBase<T, T>(name, description, icon, NONE, threading, IS, action)
 
-/** [fastAction] that consumes simple input - its type is the same as type of the action. */
-inline fun <reified T> fastAction(name: String, description: String, icon: GlyphIcons, noinline constriction: Test<T>, noinline action: Act<T>) = fastActionBase<T, T>(name, description, icon, NONE, constriction, action)
+/** [action] that consumes simple input - its type is the same as type of the action. */
+inline fun <reified T> action(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline constriction: Test<T>, noinline action: Act<T>) = actionBase<T, T>(name, description, icon, NONE, threading, constriction, action)
 
-/** [fastAction] that consumes simple input - its type is the same as type of the action. */
-inline fun <reified T> fastAction(icon: GlyphIcons, action: Action) = fastActionBase<T, T>(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, IS, { action.run() })
+/** [action] that consumes simple input - its type is the same as type of the action. */
+inline fun <reified T> action(icon: GlyphIcons, action: Action) = actionBase<T, T>(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, UI, IS, { action.run() })
 
-/** [fastAction] that consumes collection input - its input type is collection of its type. */
-inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, IS, action)
+/** [action] that consumes collection input - its input type is collection of its type. */
+inline fun <reified T> actionAll(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline action: Act<Collection<T>>) = actionBase<T, Collection<T>>(name, description, icon, FOR_ALL, threading, IS, action)
 
-/** [fastAction] that consumes collection input - its input type is collection of its type. */
-inline fun <reified T> fastColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = fastActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.all(constriction) }, action)
-
-/** [ActionData] that executes asynchronously - receives a future, processes the data and returns it. */
-inline fun <C, reified T> slowActionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, noinline constriction: Test<T>, noinline action: Act<T>) = ActionData<C, T>(name, type(), description, icon, groupApply, constriction, true, action)
-
-/** [slowActionBase] that processes simple input - its type is the same as type of the action. */
-inline fun <reified T> slowAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<T>) = slowActionBase<T, T>(name, description, icon, NONE, IS, action)
-
-/** [slowActionBase] that processes simple input - its type is the same as type of the action. */
-inline fun <reified T> slowAction(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, noinline action: Act<T>) = slowActionBase<T, T>(name, description, icon, groupApply, IS, action)
-
-/** [slowActionBase] that processes simple input - its type is the same as type of the action. */
-inline fun <reified T> slowAction(name: String, description: String, icon: GlyphIcons, noinline constriction: Test<T>, noinline action: Act<T>) = slowActionBase<T, T>(name, description, icon, NONE, constriction, action)
-
-/** [slowActionBase] that processes collection input - its input type is collection of its type. */
-inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, IS, action)
-
-/** [slowActionBase] that processes collection input - its input type is collection of its type. */
-inline fun <reified T> slowColAction(name: String, description: String, icon: GlyphIcons, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = slowActionBase<T, Collection<T>>(name, description, icon, FOR_ALL, { it.all(constriction) }, action)
-
-enum class GroupApply {
-   FOR_EACH, FOR_ALL, NONE
-}
+/** [action] that consumes collection input - its input type is collection of its type. */
+inline fun <reified T> actionAll(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = actionBase<T, Collection<T>>(name, description, icon, FOR_ALL, threading, { it.all(constriction) }, action)

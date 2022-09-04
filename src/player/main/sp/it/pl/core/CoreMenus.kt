@@ -49,9 +49,7 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.ActionsPaneGenericActions
 import sp.it.pl.main.App
 import sp.it.pl.main.AppActions
-import sp.it.pl.main.AppHelp
 import sp.it.pl.main.AppError
-import sp.it.pl.main.AppOpen
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.Df.IMAGE
@@ -126,9 +124,9 @@ object CoreMenus: Core {
       menuItemBuilders {
          addCustom { kClass ->
             { value ->
-               ActionsPaneGenericActions.actionsAll[kClass].orEmpty().asSequence().filter { it.invokeDoable(value) }.map { action ->
+               ActionsPaneGenericActions.actionsAll[kClass].orEmpty().asSequence().filter { it.invokeIsDoable(value) }.map { action ->
                   menuItem(action.name, action.icon.toCmUi { tooltip(action.description) } ) {
-                     action.invokeFut(ActContext(it), value)
+                     action.invokeFutAndProcess(ActContext(it), value)
                   }
                }
             }
@@ -177,9 +175,6 @@ object CoreMenus: Core {
                }
          }
          add<App> {
-            menuFor("Help", AppHelp)
-            menuFor("Directory", value.location)
-            item("Open...") { APP.ui.actionPane.orBuild.show(AppOpen) }
             menu("Windows") {
                item("New window") { APP.windowManager.createWindow() }
                menu("All") {

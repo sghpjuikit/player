@@ -45,9 +45,8 @@ import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.async.FX
 import sp.it.util.collections.collectionUnwrap
 import sp.it.util.collections.getElementClass
-import sp.it.util.collections.toStringPretty
 import sp.it.util.dev.Blocks
-import sp.it.util.dev.printIt
+import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.json.JsValue
 import sp.it.util.file.json.toPrettyS
 import sp.it.util.file.toFileOrNull
@@ -155,6 +154,7 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
 		val dataAsS: String? = when {
          d == null -> null
          d is String -> d
+         d is Throwable -> d.stacktraceAsString
          d is JsValue -> d.toPrettyS()
          d is Jwt || d::class.isData -> d.toUi()
          else -> null

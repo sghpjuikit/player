@@ -21,14 +21,14 @@ import kotlinx.coroutines.javafx.JavaFx
 import mu.KotlinLogging
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.async.future.Fut.Companion.futOfBlock
 import sp.it.util.async.future.Futs
-import sp.it.util.async.future.asFutList
 import sp.it.util.collections.materialize
 import sp.it.util.dev.Experimental
 import sp.it.util.dev.fail
+import sp.it.util.functional.asTryList
 import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
+import sp.it.util.functional.runTry
 import sp.it.util.math.max
 import sp.it.util.reactive.Subscription
 import sp.it.util.units.millis
@@ -183,12 +183,12 @@ fun runIO(block: Runnable) = runIO(block.kt)
 
 /** Runs the specified block for each specified item using the max specified parallelism, blocks until finish and returns results.  */
 @Experimental("does not handle errors correctly")
-fun <T, R> runIoParallel(parallelism: Int = Runtime.getRuntime().availableProcessors(), items: Collection<T>, block: (T) -> R): Futs<R> = runIO {
+fun <T, R> runIoParallel(parallelism: Int = Runtime.getRuntime().availableProcessors(), items: Collection<T>, block: (T) -> R): Futs<R, Throwable> = runIO {
   val windowSize = if (items.size<parallelism) parallelism else items.size/parallelism
-  items.windowed(windowSize, windowSize, true)
-     .map { runOn(IO_LATER) { it.map { futOfBlock { block(it) } } } }.materialize()
-     .flatMap { it.getDone().toTry().orThrow }
-     .asFutList()
+  val windows = items.windowed(windowSize, windowSize, true)
+  val windowedTries = windows.map { runOn(IO_LATER) { it.map { runTry { block(it) } } } }.materialize()
+  val tries = windowedTries.flatMap { it.getDone().toTry().orThrow }
+  tries.asTryList()
 }
 
 /** Executes the specified block periodically with given time period (1st call is already delayed). */

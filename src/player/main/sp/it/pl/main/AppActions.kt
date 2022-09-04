@@ -53,12 +53,12 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.popup.PopWindow.Companion.asPopWindow
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.ALL
 import sp.it.pl.ui.objects.window.stage.WindowBase.Maximized.NONE
-import sp.it.pl.ui.pane.fastAction
+import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
+import sp.it.pl.ui.pane.action
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.pl.ui.pane.fastColAction
-import sp.it.pl.ui.pane.slowAction
+import sp.it.pl.ui.pane.actionAll
 import sp.it.pl.web.DuckDuckGoQBuilder
 import sp.it.pl.web.WebBarInterpreter
 import sp.it.util.Sort
@@ -113,6 +113,7 @@ import sp.it.util.text.decodeBase64
 import sp.it.util.text.isBase64
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
+import sp.it.util.type.isObject
 import sp.it.util.type.type
 import sp.it.util.ui.bgr
 import sp.it.util.ui.getScreenForMouse
@@ -124,6 +125,7 @@ import sp.it.util.units.millis
 import sp.it.util.units.times
 import sp.it.util.units.uri
 
+@Suppress("RemoveExplicitTypeArguments")
 class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    @IsAction(name = "Open app directory", info = "Opens directory from which this application is running from.")
@@ -382,22 +384,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   val detectContent = fastAction<Any?>("Detect content", "Identifies the type of the specified content and shows appropriate ui for it", IconMD.MAGNIFY) {
-      APP.ui.actionPane.orBuild.showAndDetect(it, true)
-   }.preventClosing()
-
-   val detectContentFromClipBoard = fastAction<Unit>("Detect clipboard content", "Identifies the type of the clipboard content and shows appropriate ui for it", IconMD.MAGNIFY) {
-      APP.ui.actionPane.orBuild.showAndDetect(Clipboard.getSystemClipboard().getAny(), true)
-   }.preventClosing()
-
-   val decodeBase64 = fastAction<String>("Decode base64", "Decode Base64", IconFA.EXCHANGE, { it.isBase64() }) {
-      apOrApp.showAndDetect(it.decodeBase64().orNull(), true)
-   }.preventClosing()
-
-   @Blocks
-   val printAllImageFileMetadata = slowAction<File>("Show image metadata", "Show image metadata", IconFA.INFO, { it.isImage() }) {
-      failIfFxThread()
-
+   val printAllImageFileMetadata = action<File>("Show image metadata", "Show image metadata", IconFA.INFO, BLOCK, { it.isImage() }) {
       val title = "File:" + it.path
       val text = try {
          val sb = StringBuilder()
@@ -417,10 +404,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
 
-   @Blocks
-   val printAllAudioMetadata = slowAction<Song>("Show metadata", "Show metadata", IconFA.INFO) {
-      failIfFxThread()
-
+   val printAllAudioMetadata = action<Song>("Show metadata", "Show metadata", IconFA.INFO, BLOCK) {
       if (it.isFileBased()) {
          printAllAudioFileMetadata(this, it.getFile()!!)
       } else {
@@ -429,10 +413,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   @Blocks
-   val printAllAudioFileMetadata = slowAction<File>("Show audio metadata", "Show audio metadata", IconFA.INFO, { it.isAudio() }) {
-      failIfFxThread()
-
+   val printAllAudioFileMetadata = action<File>("Show audio metadata", "Show audio metadata", IconFA.INFO, BLOCK, { it.isAudio() }) {
       val title = "File:${it.path}"
       val content = it.readAudioFile().map { it.audioHeader to it.tag }
          .map { (header, tag) ->
@@ -452,40 +433,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }
 
-   val openGithubPage = fastAction<AppHelp>("Open Github page", "Opens Github page for this application.", IconFA.GITHUB) {
-      APP.projectGithubUri.browse()
-   }
-
-   val openCssReferenceGuide = fastAction<AppHelp>("Open css guide", "Opens skin css reference guide.", IconFA.CSS3) {
-      uri("https://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html").browse()
-   }
-
-   val openIconBrowser = fastAction<AppHelp>("Open ${ICON_BROWSER.name}", "Browse available icons", IconFA.FONTICONS) {
-      FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(ICON_BROWSER.id).orNone().create()) }
-   }
-
-   val openUiInspector = fastAction<AppHelp>("Open UI inspector", "Open widget for inspecting UI elements.", IconFA.EYEDROPPER) {
-      FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(Widgets.INSPECTOR.id).orNone().create()) }
-   }
-
-   val openUiTester = fastAction<AppHelp>("Open UI Tester", "Browse widget for testing UI functionality", IconFA.EYEDROPPER) {
-      FX.launch { ComponentLoader.WINDOW(APP.widgetManager.factories.getFactory(Widgets.TESTER.id).orNone().create()) }
-   }
-
-   val openSystemProperties = fastAction<AppHelp>("Show system properties", "Display system properties.", IconMD.INFORMATION_OUTLINE) {
-      APP.ui.infoPane.orBuild.show(Unit)
-   }
-
-   val printJavaProcesses = fastAction<AppHelp>("Print running java processes", "Print running java processes", IconMD.RESPONSIVE) {
-      val text = VirtualMachine.list().joinToString("") {
-         "\nVM:\n\tid: ${it.id()}\n\tdisplayName: ${it.displayName()}\n\tprovider: ${it.provider()}"
-      }
-      runFX {
-         APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) }
-      }
-   }
-
-   val openMarkdownFile = fastAction<File>("Open markdown", "Opens markdown file.", IconOC.MARKDOWN, { it hasExtension MimeExt.md }) { mdFile ->
+   val openMarkdownFile = action<File>("Open markdown", "Opens markdown file.", IconOC.MARKDOWN, constriction = { it hasExtension MimeExt.md }) { mdFile ->
       APP.windowManager.createWindow().apply {
          detachLayout()
          setContent(
@@ -497,32 +445,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }
 
-   val openMarkdownText = fastAction<String>("Open markdown", "Opens markdown text.", IconOC.MARKDOWN) { mdText ->
-      APP.windowManager.createWindow().apply {
-         detachLayout()
-         setContent(
-            MdNode().apply {
-               readText(mdText)
-            }
-         )
-         show()
-      }
-   }
-
-   val saveToFile = slowAction<String>("Save to file...", "Saves the text to a specified file.", IconFA.SAVE) { text ->
-      runBlocking {
-         val f = suspendCoroutine {
-            runFX {
-               saveFile("Save as...", null, "name", this@slowAction.window)
-                  .ifOk { f -> it.resume(f) }
-                  .ifError { _ -> it.resumeWithException(Exception("Canceled")) }
-            }
-         }
-         f.writeText(text)
-      }
-   }
-
-   val fileSyncFileTimes = fastAction<File>(
+   val fileSyncFileTimes = action<File>(
       "Restore file time",
       "Restores creation/modification times. Useful after file or directory copy.\n" +
          "Sets times for destination files to those of source files. Runs for each directory and file, recursively. " +
@@ -545,7 +468,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
       }
    }.preventClosing()
 
-   val fileFlatten = fastColAction<File>("Flatten tree", "Flattens file hierarchy", IconFA.FILES_ALT) { files ->
+   val fileFlatten = actionAll<File>("Flatten tree", "Flattens file hierarchy", IconFA.FILES_ALT, BLOCK) { files ->
       ValueConfig(type(), "Strategy", FileFlatter.ALL_WITH_DIR, "").configure("Flatten tree") {
          runIO {
             it.value.flatten(files).toList()
@@ -569,61 +492,63 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 //      lastAddFilesLocation = Util.getCommonRoot(it)
 //   }
 
-   val windowFocus = fastAction<Window>("Focus", "Focus this window.", IconFA.EYE) { w -> w.requestFocus() }
 
-   val componentFocus = fastAction<Component>("Focus", "Focus this component.", IconFA.CLONE) { w -> w.focus() }
+   val componentFocus = action<Component>("Focus", "Focus this component.", IconFA.CLONE) { w -> w.focus() }
 
-   val componentClone = fastAction<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w -> w.openInConfigured() }
+   val componentClone = action<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w -> w.openInConfigured() }
 
-   val componentExport = fastAction<Component>(
+   val componentExport = action<Component>(
       "Export",
-      "Creates a launcher for this component with its current settings.\n" +
-         "Opening the launcher with this application will open this component with current settings",
-      IconMD.EXPORT,
-      { w ->
-         saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
-            .ifOk { w.exportFxwl(it) }
-      }
-   )
+      "Creates a launcher for this component with its current settings.\nOpening the launcher with this application will open this component with current settings",
+      IconMD.EXPORT
+   ) { w ->
+      saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
+         .ifOk { w.exportFxwl(it) }
+   }
 
-   val componentExportedSave = fastAction<Component>(
+   val componentExportedSave = action<Component>(
       "Save",
       "Exports this component with its current settings to the launcher file it was loaded from.",
       IconMD.EXPORT,
-      { w -> w.factoryDeserializing!=null },
-      { w -> w.exportFxwl(w.factoryDeserializing!!.launcher) }
-   )
+      constriction = { w -> w.factoryDeserializing!=null }
+   ) { w ->
+      w.exportFxwl(w.factoryDeserializing!!.launcher)
+   }
 
-   val widgetExportDefault = fastAction<Component>(
+   val widgetExportDefault = action<Component>(
       "Export default",
-      "Creates a launcher for this component with no settings.\n" +
-         "Opening the launcher with this application will open this component with no settings " +
-         "as if it were a standalone application. ",
+      buildString {
+         append("Creates a launcher for this component with no settings.\n")
+         append("Opening the launcher with this application will open this component with no settings as if it were a standalone application.")
+      },
       IconMD.EXPORT,
-      { it is Widget },
-      {w ->
-         saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
-            .ifOk { w.asIs<Widget>().exportFxwlDefault(it) }
-      }
-   )
+      constriction = { it is Widget },
+   ) {w ->
+      saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
+         .ifOk { w.asIs<Widget>().exportFxwlDefault(it) }
+   }
 
-   val widgetUseAsDefault = fastAction<WidgetDefaultMenu>(
+   val widgetUseAsDefault = action<WidgetDefaultMenu>(
       "Use as default",
-      "Uses settings of this widget as default settings when creating widgets of this type. This " +
-         "overrides the default settings of the widget set by the developer. For using multiple widget " +
-         "configurations at once, use 'Export' instead.",
-      IconMD.SETTINGS_BOX,
-      { it.widget.storeDefaultConfigs() }
-   )
+      buildString {
+         append("Uses settings of this widget as default settings when creating widgets of this type. This ")
+         append("overrides the default settings of the widget set by the developer. For using multiple widget ")
+         append("configurations at once, use 'Export' instead.")
+      },
+      IconMD.SETTINGS_BOX
+   ) {
+      it.widget.storeDefaultConfigs()
+   }
 
-   val widgetClearDefault = fastAction<WidgetDefaultMenu>(
+   val widgetClearDefault = action<WidgetDefaultMenu>(
       "Clear default",
       "Removes any overridden default settings for this widget type. New widgets will start with no settings.",
       IconMD.SETTINGS_BOX,
-      { it.widget.clearDefaultConfigs() }
-   )
+   ) {
+      it.widget.clearDefaultConfigs()
+   }
 
-   val convertImage = fastColAction<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, { it.isImage12Monkey() }) { ii ->
+   val convertImage = actionAll<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, constriction = { it.isImage12Monkey() }) { ii ->
       object: ConfigurableBase<Any?>() {
          val fileFrom by cn(ii.firstOrNull()).but { if (ii.size!=1) noUi() }.def(name = "Source image file", editable = EditMode.NONE)
          val typeFrom by cn(ii.firstOrNull()?.mimeType()).but { if (ii.size!=1) noUi() }.def(name = "Source image type", editable = EditMode.NONE)
@@ -644,7 +569,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
    fun browseMultipleFiles(files: Sequence<File>) {
-      val fs = files.asSequence().toSet()
+      val fs = files.toSet()
       when {
          fs.isEmpty() -> Unit
          fs.size==1 -> fs.firstOrNull()?.browse()

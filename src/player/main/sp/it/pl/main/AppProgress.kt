@@ -42,6 +42,7 @@ import sp.it.util.async.runLater
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
+import sp.it.util.functional.TryList
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.supplyIf
@@ -280,7 +281,8 @@ private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, 
       fun computeState(result: Result<*>): State = when (result) {
          is ResultOk<*> -> when (val resultValue = result.value) {
             is Try.Error<*> -> DONE_ERROR(resultValue.value)
-            is FutList<*> -> if (resultValue.none { it.isFailed() }) DONE_OK else DONE_ERROR(resultValue.map { it.getDone().toTry() })
+            is FutList<*> -> if (resultValue.all { it.isOk() }) DONE_OK else DONE_ERROR(resultValue.map { it.getDone().toTry() })
+            is TryList<*,*> -> if (resultValue.all { it.isOk }) DONE_OK else DONE_ERROR(resultValue)
             is Fut<*> -> computeState(resultValue.getDone())
             else -> DONE_OK
          }

@@ -39,7 +39,6 @@ import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.pl.ui.objects.image.ThumbnailWithAdd
 import sp.it.pl.ui.objects.rating.Rating
 import sp.it.pl.ui.pane.ImageFlowPane
-import sp.it.pl.ui.pane.slowAction
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.SongReader
@@ -90,6 +89,8 @@ import sp.it.pl.main.autocompleteSuggestionsFor
 import sp.it.pl.main.detectContent
 import sp.it.pl.ui.objects.complexfield.StringTagTextField
 import sp.it.pl.ui.objects.complexfield.TagTextField.EditableBy.PLUS_NODE
+import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
+import sp.it.pl.ui.pane.action
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
 import sp.it.util.ui.Util.computeTextWidth
@@ -449,30 +450,38 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
       cover.onFileDropped = { file ->
          if (data.isFileBased())
             APP.ui.actionPane.orBuild.show(File::class.java, file, true,
-               slowAction<File>(
+               action<File>(
                   "Copy and set as album cover",
-                  "Sets image as cover. Copies file to destination and renames it to 'cover' so it is recognized as album" +
-                     " cover. Any previous cover file will be preserved by renaming.\n\nDestination: ${data.getLocation()!!.path}",
+                  buildString {
+                     append("Sets image as cover. Copies file to destination and renames it to 'cover' so it is recognized as album cover. ")
+                     append("Any previous cover file will be preserved by renaming.\n\nDestination: ${data.getLocation()!!.path}")
+                  },
                   IconFA.PASTE,
+                  BLOCK,
                   { setAsCover(it, true) }
                ),
-               slowAction<File>(
+               action<File>(
                   "Copy to location",
                   "Copies image to destination. Any such existing file is overwritten.\n\nDestination: ${data.getLocation()!!.path}",
                   IconFA.COPY,
+                  BLOCK,
                   { setAsCover(it, false) }
                ),
-               slowAction<File>(
+               action<File>(
                   "Write to tag (single)", "Writes image as cover to song tag. Other songs of the song's album remain untouched.",
                   IconFA.TAG,
+                  BLOCK,
                   { tagAsCover(it, false) }
                ),
-               slowAction<File>(
+               action<File>(
                   "Write to tag (album)",
-                  "Writes image as cover to all songs in this song's album. Only songs in the library are considered." +
-                     " Songs with no album are ignored. At minimum the displayed song will be updated (even if not in" +
-                     " library or has no album).",
+                  buildString {
+                     append("Writes image as cover to all songs in this song's album. Only songs in the library are considered.")
+                     append(" Songs with no album are ignored. At minimum the displayed song will be updated (even if not in")
+                     append(" library or has no album).")
+                  },
                   IconFA.TAGS,
+                  BLOCK,
                   { tagAsCover(it, true) }
                )
             )

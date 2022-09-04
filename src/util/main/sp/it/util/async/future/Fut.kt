@@ -58,6 +58,7 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    /** @return whether this future completed regardless of success */
    fun isDone(): Boolean = f.isDone
    fun isCancelled(): Boolean = f.isCancelled
+   fun isOk(): Boolean = f.isDone && !f.isCompletedExceptionally
    fun isFailed(): Boolean = f.isCompletedExceptionally
 
    /** Invokes the block if this future [isDone] and [getDone] is [ResultOk] */
@@ -85,17 +86,28 @@ class Fut<T>(private var f: CompletableFuture<T>) {
       @JvmStatic
       fun fut() = fut(Unit)
 
-      /** @return future completed with the specified value */
+      /** @return future completed successfully with the specified value */
       @JvmStatic
       fun <T> fut(value: T) = Fut<T>(CompletableFuture.completedFuture(value))
 
+      /** @return future completed failed with the specified value */
       fun <T> futFailed(value: Throwable) = Fut<T>(CompletableFuture.failedFuture(value))
 
-      fun <T> futOfBlock(block: () -> T): Fut<T> = runTry { fut(block()) }.mapError<Fut<T>> { futFailed(it) }.getAny()
+      /** @return future completed successfully or failed with the value supplied by the specified block */
+      fun <T> futOfBlock(block: () -> T): Fut<T> = runTry { fut(block.logging()()) }.mapError<Fut<T>> { futFailed(it) }.getAny()
 
       private val defaultExecutor = CompletableFuture<Any>().defaultExecutor()!!
 
-      private fun <T, R> ((T) -> R).logging(): ((T) -> R) = {
+      private fun <R> (() -> R).logging(): () -> R = {
+         try {
+            this()
+         } catch (t: Throwable) {
+            logger.error(t) { "Unhandled exception" }
+            throw t
+         }
+      }
+
+      private fun <T, R> ((T) -> R).logging(): (T) -> R = {
          try {
             this(it)
          } catch (t: Throwable) {
@@ -123,17 +135,14 @@ class Fut<T>(private var f: CompletableFuture<T>) {
          is ResultFail -> Try.error(error)
       }
 
+      fun toTryRaw(): Try<T, Throwable> = when (this) {
+         is ResultOk<T> -> Try.ok(value)
+         is ResultInterrupted -> Try.error(error)
+         is ResultFail -> Try.error(error.cause ?: error)
+      }
+
       fun or(block: (Exception) -> @UnsafeVariance T) = toTry().getOrSupply(block)
 
    }
 
 }
-
-/** [List] of [Fut]. It is its own type, to allow disambiguating coincidental list of futures from intentional one */
-class FutList<T>(list: List<Fut<T>>): List<Fut<T>> by list
-
-/** @return [FutList] from this list of futures */
-fun <T> List<Fut<T>>.asFutList(): FutList<T> = FutList(this)
-
-/** Future of list of futures */
-typealias Futs<T> = Fut<FutList<T>>

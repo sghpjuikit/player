@@ -68,9 +68,8 @@ import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.util.animation.Anim.anim;
 import static sp.it.util.async.AsyncKt.FX;
-import static sp.it.util.async.AsyncKt.NEW;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.future.Fut.fut;
+import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.collections.UtilKt.collectionUnwrap;
 import static sp.it.util.collections.UtilKt.getElementClass;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
@@ -284,17 +283,18 @@ public class ActionPane extends OverlayPane<Object> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <DATA, NEW_DATA> void doneHide(ActionData<?, DATA> action) {
+	private <DATA, NEW_DATA> void doneHide(ActionData<?, DATA> action, Object result) {
 		if (action.isComplex) {
 			var complexAction = (ComplexActionData<DATA, NEW_DATA>) action.complexData.invoke(this);
 			showIcons = false;
 			insteadIcons = () -> (Node) complexAction.gui.invoke((NEW_DATA) action.prepInput(getData()));
 			var newData = complexAction.input.invoke(action.prepInputExact(getData()));
 			show(newData);
-		}
-
-		if (!action.preventClosing)
+		} else if (!action.isResultUnit(result)) {
+			show(result);
+		} else if (!action.preventClosing) {
 			doneHide();
+		}
 	}
 
 /* ---------- GRAPHICS ---------------------------------------------------------------------------------------------- */
@@ -375,6 +375,8 @@ public class ActionPane extends OverlayPane<Object> {
 		var dataAsS = (String) null;
 		if (data instanceof String dataS && dataS.length()>40)
 			dataAsS = dataS;
+		if (data instanceof Throwable t)
+			dataAsS = DebugKt.getStacktraceAsString(t);
 		if (data instanceof JsValue json)
 			dataAsS = toPrettyS(json, "  ", "\n");
 		if (data instanceof Jwt || (data!=null && getKotlinClass(data.getClass()).isData()))
@@ -442,7 +444,7 @@ public class ActionPane extends OverlayPane<Object> {
 		actionsData.clear();
 		actionsData.addAll(actionsIcons);
 		if (use_registered_actions) actions.getElementsOfSuper(dataType).iterator().forEachRemaining(actionsData::add);
-		actionsData.removeIf(a -> !a.invokeDoable(d));
+		actionsData.removeIf(a -> !a.invokeIsDoable(d));
 
 		if (!showIcons) {
 			dataInfo.setOpacity(1.0);
@@ -502,23 +504,23 @@ public class ActionPane extends OverlayPane<Object> {
 	}
 
 	private void runAction(ActionData<?,?> action, Object data) {
+		var context = new ActContext(this);
 		if (!action.isLong) {
-			try {
-				action.invoke(new ActContext(this), data);
-				doneHide(action);
-			} catch (Throwable e) {
-				DebugKt.logger(ActionPane.class).error("Running action={} failed", action.name, e);
-			}
+			action.invokeTry(context, data)
+				.ifOk(consumer(r -> doneHide(action, r)))
+				.ifError(consumer(e -> show(e)));
 		} else {
-			fut(data)
-				.useBy(FX, it -> actionProgress.setProgress(-1))
-				// run action and obtain output
-				.useBy(NEW, it -> action.invoke(new ActContext(this), it))
+			actionProgress.setProgress(-1);
+			runIO(() -> action.invokeTry(context, data).getOrThrow())
 				// 1) the actions may invoke some action on FX thread, so we give it some time by waiting a bit
 				// 2) very short actions 'pretend' to be busy for a while
 				.thenWait(millis(150))
-				.useBy(FX, it -> actionProgress.setProgress(1))
-				.useBy(FX, it -> doneHide(action));
+				.onDone(FX, consumer(rt -> {
+					actionProgress.setProgress(1);
+					rt.toTryRaw()
+						.ifOk(consumer(r -> doneHide(action, r)))
+						.ifError(consumer(e -> show(e)));
+				}));
 		}
 	}
 

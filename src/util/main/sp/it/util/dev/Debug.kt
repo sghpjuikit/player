@@ -1,7 +1,5 @@
 package sp.it.util.dev
 
-import java.io.PrintWriter
-import java.io.StringWriter
 import javafx.beans.value.ObservableValue
 import kotlin.reflect.KClass
 import mu.KotlinLogging
@@ -36,6 +34,6 @@ fun <T> printExecutionTime(block: () -> T): T {
 /** Prints the current thread's stacktrace. */
 fun printStacktrace() = println(Exception().stacktraceAsString)
 
-/** @return string of printed stacktrace of this throwable */
+/** @return string of printed stacktrace of this throwable. See [Throwable.stackTraceToString] */
 val Throwable.stacktraceAsString: String
-   get() = StringWriter().also { printStackTrace(PrintWriter(it)) }.toString()
+   get() = stackTraceToString()

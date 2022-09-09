@@ -74,7 +74,6 @@ import sp.it.util.inSort
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attach1IfNonNull
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown

@@ -67,9 +67,9 @@ import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.autoResizeColumns;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.futureUnwrapOrThrow;
 import static sp.it.pl.ui.pane.ActionPaneHelperKt.getUnwrappedType;
 import static sp.it.util.animation.Anim.anim;
+import static sp.it.util.async.AsyncKt.CURR;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.collections.UtilKt.collectionUnwrap;
 import static sp.it.util.collections.UtilKt.getElementClass;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
@@ -505,23 +505,16 @@ public class ActionPane extends OverlayPane<Object> {
 
 	private void runAction(ActionData<?,?> action, Object data) {
 		var context = new ActContext(this);
-		if (!action.isLong) {
-			action.invokeTry(context, data)
-				.ifOk(consumer(r -> doneHide(action, r)))
-				.ifError(consumer(e -> show(e)));
-		} else {
-			actionProgress.setProgress(-1);
-			runIO(() -> action.invokeTry(context, data).getOrThrow())
-				// 1) the actions may invoke some action on FX thread, so we give it some time by waiting a bit
-				// 2) very short actions 'pretend' to be busy for a while
-				.thenWait(millis(150))
-				.onDone(FX, consumer(rt -> {
-					actionProgress.setProgress(1);
-					rt.toTryRaw()
-						.ifOk(consumer(r -> doneHide(action, r)))
-						.ifError(consumer(e -> show(e)));
-				}));
-		}
+		if (action.isLong) actionProgress.setProgress(-1);
+		action.invokeFut(context, data)
+			.thenFlatten(CURR)
+			.thenWait(millis(action.isLong ? 0 : 150))  // very short actions 'pretend' to be busy for a while
+			.onDone(FX, consumer(rt -> {
+				if (action.isLong) actionProgress.setProgress(1);
+				rt.toTryRaw()
+					.ifOk(consumer(r -> doneHide(action, r)))
+					.ifError(consumer(e -> show(e)));
+			}));
 	}
 
 	private void hideCustomActionUi() {

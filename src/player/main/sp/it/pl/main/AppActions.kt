@@ -492,62 +492,6 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 //      lastAddFilesLocation = Util.getCommonRoot(it)
 //   }
 
-
-   val componentFocus = action<Component>("Focus", "Focus this component.", IconFA.CLONE) { w -> w.focus() }
-
-   val componentClone = action<Component>("Clone", "Creates new component with the same content and state as this one.", IconFA.CLONE) { w -> w.openInConfigured() }
-
-   val componentExport = action<Component>(
-      "Export",
-      "Creates a launcher for this component with its current settings.\nOpening the launcher with this application will open this component with current settings",
-      IconMD.EXPORT
-   ) { w ->
-      saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
-         .ifOk { w.exportFxwl(it) }
-   }
-
-   val componentExportedSave = action<Component>(
-      "Save",
-      "Exports this component with its current settings to the launcher file it was loaded from.",
-      IconMD.EXPORT,
-      constriction = { w -> w.factoryDeserializing!=null }
-   ) { w ->
-      w.exportFxwl(w.factoryDeserializing!!.launcher)
-   }
-
-   val widgetExportDefault = action<Component>(
-      "Export default",
-      buildString {
-         append("Creates a launcher for this component with no settings.\n")
-         append("Opening the launcher with this application will open this component with no settings as if it were a standalone application.")
-      },
-      IconMD.EXPORT,
-      constriction = { it is Widget },
-   ) {w ->
-      saveFile("Export to...", APP.location.user.layouts, w.name, window, ExtensionFilter("Component", "*.fxwl"))
-         .ifOk { w.asIs<Widget>().exportFxwlDefault(it) }
-   }
-
-   val widgetUseAsDefault = action<WidgetDefaultMenu>(
-      "Use as default",
-      buildString {
-         append("Uses settings of this widget as default settings when creating widgets of this type. This ")
-         append("overrides the default settings of the widget set by the developer. For using multiple widget ")
-         append("configurations at once, use 'Export' instead.")
-      },
-      IconMD.SETTINGS_BOX
-   ) {
-      it.widget.storeDefaultConfigs()
-   }
-
-   val widgetClearDefault = action<WidgetDefaultMenu>(
-      "Clear default",
-      "Removes any overridden default settings for this widget type. New widgets will start with no settings.",
-      IconMD.SETTINGS_BOX,
-   ) {
-      it.widget.clearDefaultConfigs()
-   }
-
    val convertImage = actionAll<File>("Convert image", "Converts the image into a different type.", IconFA.EXCHANGE, constriction = { it.isImage12Monkey() }) { ii ->
       object: ConfigurableBase<Any?>() {
          val fileFrom by cn(ii.firstOrNull()).but { if (ii.size!=1) noUi() }.def(name = "Source image file", editable = EditMode.NONE)
@@ -576,8 +520,6 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
          else -> APP.ui.actionPane.orBuild.show(MultipleFiles(fs))
       }
    }
-
-   data class WidgetDefaultMenu(val widget: Widget): CoreMenuNoInspect
 
    companion object: KLogging()
 }

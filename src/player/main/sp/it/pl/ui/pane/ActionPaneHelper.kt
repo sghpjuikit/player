@@ -161,7 +161,7 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
    fun invokeFutAndProcess(context: ActContext, data: Any?) {
       failIfNotFxThread()
 
-      invokeFut(context, data).onDone(FX) {
+      invokeFut(context, data).thenFlatten().onDone(FX) {
          it.toTryRaw()
             .ifError { context.apOrApp.show(it) }
             .ifOk { if (!isResultUnit(it)) context.apOrApp.show(it) }

@@ -1,11 +1,15 @@
 package sp.it.util.async.future
 
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 import javafx.util.Duration
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.future.asDeferred
 import mu.KLogging
+import sp.it.util.async.CURR
 import sp.it.util.async.FX
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut.Result.ResultFail
@@ -14,10 +18,12 @@ import sp.it.util.async.future.Fut.Result.ResultOk
 import sp.it.util.async.sleep
 import sp.it.util.dev.Blocks
 import sp.it.util.functional.Try
+import sp.it.util.functional.asIf
 import sp.it.util.functional.getAny
 import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
+import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 
 /**
@@ -32,8 +38,12 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    /** @return future that waits for this to complete normally, invokes the specified block and returns its result */
    fun <R> then(executor: Executor = defaultExecutor, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
 
+   fun <R> thenFlat(executor: Executor = defaultExecutor, block: (T) -> Fut<R>) = Fut<R>(f.thenComposeAsync(block.logging().net { b -> { b(it).f } }, executor.kt))
+
+   fun thenFlatten(executor: Executor = CURR): Fut<Any?> = thenFlat(executor) { it.asIf<Fut<Any?>>()?.thenFlatten(executor) ?: fut(it) }
+
    /** [use] which sleeps the specified duration on [IO]. */
-   fun thenWait(time: Duration) = use(IO) { sleep(time) }
+   fun thenWait(time: Duration): Fut<T> = if (time.toMillis()==0.0) this else use(IO) { sleep(time) }
 
    /** [then] with [FX] executor. Intended for simple and declarative use of asynchronous computation from ui. */
    infix fun <R> ui(block: (T) -> R) = then(FX, block)
@@ -76,9 +86,16 @@ class Fut<T>(private var f: CompletableFuture<T>) {
       ResultFail(e)
    }
 
+   /** See [CompletionStage.asDeferred] */
+   @Suppress("DeferredIsResult")
+   fun asDeferred(): Deferred<T> = f.asDeferred()
+
    /** Blocks current thread until [isDone]. Returns this. */
    @Blocks
    fun block() = apply { getDone() }
+
+   @Blocks
+   fun blockAndGetOrThrow(): T = block().getDone().toTryRaw().orThrow
 
    companion object: KLogging() {
 

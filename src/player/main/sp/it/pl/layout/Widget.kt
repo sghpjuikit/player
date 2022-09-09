@@ -34,6 +34,7 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
+import sp.it.util.dev.Blocks
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
@@ -398,6 +399,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       }
    }
 
+   @Blocks
    fun storeDefaultConfigs() {
       failIf(!isLoaded) { "Must be loaded to export default configs" }
 
@@ -407,6 +409,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       configuration.save("Custom default widget settings", configFile)
    }
 
+   @Blocks
    private fun restoreDefaultConfigs() {
       val configFile = userLocation / "default.properties"
       if (configFile.exists()) {
@@ -417,6 +420,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       }
    }
 
+   @Blocks
    fun clearDefaultConfigs() {
       val configFile = userLocation / "default.properties"
       configFile.deleteRecursively()

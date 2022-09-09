@@ -265,7 +265,7 @@ fun File.recycle(): Try<Nothing?, Nothing?> {
    }
 }
 
-fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void?> {
+fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Nothing?> {
    when (type) {
       FileType.DIRECTORY -> {
          val c = DirectoryChooser().apply {
@@ -292,7 +292,7 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
    }
 }
 
-fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Void?> {
+fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Nothing?> {
    val c = FileChooser().apply {
       this.title = title
       this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir
@@ -304,7 +304,7 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
    return if (fs!=null && fs.isNotEmpty()) Try.ok(fs) else Try.error()
 }
 
-fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Void?> {
+fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Nothing?> {
    val c = FileChooser().apply {
       this.title = title
       this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir

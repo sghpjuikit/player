@@ -31,7 +31,7 @@ fun Component?.exportFxwl(f: File) = runIO {
          "Unable to export component launcher for ${this?.name} into ${f}.",
          "Reason:\n${it.stacktraceAsString}"
       )
-   }
+   }.orThrow
 }
 
 /** Creates a launcher for this widget with default (none predefined) settings.  */
@@ -41,7 +41,7 @@ fun Widget.exportFxwlDefault(f: File) = runIO {
          "Unable to export default widget launcher for $name into $f.",
          "Reason:\n${it.stacktraceAsString}"
       )
-   }
+   }.orThrow
 }
 
 /**

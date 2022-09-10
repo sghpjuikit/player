@@ -31,6 +31,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
    private val keyCombos = ConcurrentHashMap<String, KeyCombo>()
    private var keyListener: NativeKeyListener? = null
    private var isRunning = false
+   private val keyCombosPressed = HashSet<KeyCombo>()
 
    init {
       // Only log warnings from JNativeHook
@@ -49,13 +50,14 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
 
          val eventDispatcher = VoidDispatchService()
          val keyListener = object: NativeKeyListener {
-            var modifiers = 0
             override fun nativeKeyPressed(e: NativeKeyEvent) {
+
                // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
                if (e.rawCode==226) {
                   e.keyCode = NativeKeyEvent.VC_BACK_SLASH
                   e.keyChar = '\\'
                }
+
                val key = nativeToFx[e.keyCode]
                val modifiers = e.modifiers.withoutIgnoredModifiers()
 
@@ -67,7 +69,7 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
             }
 
             override fun nativeKeyReleased(e: NativeKeyEvent) {
-               keyCombos.values.forEach { if (it.isPressed) it.release(e) }
+               keyCombosPressed.forEach { it.release(e) }
             }
 
             override fun nativeKeyTyped(e: NativeKeyEvent) {}
@@ -147,14 +149,18 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
 
       fun press(a: Action, e: NativeKeyEvent) {
          val isPressedFirst = !isPressed
+         if (isPressedFirst) keyCombosPressed += this
          isPressed = true
          e.consume()
          if (a.isContinuous || isPressedFirst) executor(a)
       }
 
       fun release(e: NativeKeyEvent) {
-         isPressed = false
-         e.consume()
+         if (key == nativeToFx[e.keyCode]) {
+            keyCombosPressed -= this
+            isPressed = false
+            e.consume()
+         }
       }
    }
 

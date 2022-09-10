@@ -47,6 +47,8 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.on
+import sp.it.util.type.raw
 import sp.it.util.ui.findParent
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.onNodeDispose
@@ -240,7 +242,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
                graphics = controller!!.uiRoot()
                val isLegacy = controller!!.javaClass.isAnnotationPresent(LegacyController::class.java)
                if (isLegacy) restoreConfigs()
-               graphics!!.sceneProperty() attach { IOLayer.componentSceneChanged(this) }
+               graphics!!.sceneProperty() attach { IOLayer.componentSceneChanged(this) } on onClose
                updateIO()
             } catch (e: Throwable) {
                val c = LoadErrorController(this)

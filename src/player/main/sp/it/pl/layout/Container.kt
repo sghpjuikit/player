@@ -1,5 +1,7 @@
 package sp.it.pl.layout
 
+import java.util.SortedMap
+import java.util.TreeMap
 import java.util.function.Consumer
 import javafx.geometry.Insets
 import javafx.scene.Node
@@ -75,8 +77,8 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
    @JvmField
    var ui: G? = null
 
-   /** The children mapped by unique index. */
-   val children = HashMap<Int, Component?>()
+   /** The children mapped by unique index. The map is sorted by index, ASC. */
+   val children = TreeMap<Int, Component?>()
 
    private val configs = HashMap<String, Config<Any?>>()
 

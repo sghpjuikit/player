@@ -76,6 +76,8 @@ data class VType<out T>(/** Kotlin type representing this type */ val type: KTyp
 
    val isNullable = type.isMarkedNullable
 
+   val isNotNull get() = !isNullable
+
    override fun toString() = type.toString()
 }
 

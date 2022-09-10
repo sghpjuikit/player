@@ -14,7 +14,6 @@ import sp.it.util.file.properties.writeProperties
 import sp.it.util.functional.compose
 import sp.it.util.functional.orNull
 import sp.it.util.type.isSubclassOf
-import sp.it.util.type.raw
 
 /** Persistable [Configurable]. */
 open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${it.name}" }): Configurable<Any?> {
@@ -117,14 +116,15 @@ open class Configuration(nameMapper: ((Config<*>) -> String) = { "${it.group}.${
     * otherwise it is completely overwritten.
     * Loops through configs and stores them all into file.
     */
-   fun save(title: String, file: File) {
+   fun save(title: String, file: File): Map<String, PropVal> {
+      val cfg = configs.filter { it.isPersistable() }
       val propsRaw = properties.mapValues { Property(it.key, it.value, "") }
-      val propsCfg = configs.asSequence()
-         .filter { it.type.raw !in setOf(Void::class, Unit::class, Nothing::class) }
-         .filter { it.isPersistable() }
-         .associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueAsProperty, c.info.ifBlank { c.nameUi }) } }
+      val propsCfg = cfg.associate { c -> configToRawKeyMapper(c).let { it to Property(it, c.valueAsProperty, c.info.ifBlank { c.nameUi }) } }
+      val props = propsCfg.mapValues { it.value.value }
 
       file.writeProperties(title, (propsRaw + propsCfg).values)
+
+      return props
    }
 
    /**

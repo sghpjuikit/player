@@ -90,7 +90,9 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
       }
    }
 
-   fun isPersistable() = isEditable.isByApp && !isNotEditableRightNow() && !hasConstraint<NoPersist>()
+   fun isPersistable() = isEditable.isByApp &&
+      !hasConstraint<NoPersist>() &&
+      type.raw.net { it==Void::class || it==Nothing::class || (type.isNotNull && (it==Unit::class || it==Nothing::class || it.isObject)) }
 
    /** Limits put on this value or markers that signify certain treatment of it. */
    abstract val constraints: Set<Constraint<T>>

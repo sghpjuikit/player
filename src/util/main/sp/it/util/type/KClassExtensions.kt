@@ -39,7 +39,7 @@ val <T: Any> KClass<T>.enumValues: Array<T>
 
 /** True iff this class is a singleton, i.e., [KClass.objectInstance] is not null. */
 val KClass<*>.isObject: Boolean
-   get() = runTry { objectInstance!=null }.orNull() == true // TODO: runTry is workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = !java.isAnonymousClass && runTry { objectInstance!=null }.orNull() == true // TODO: runTry is workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 
 /** Singletons (objects) subclassing the specified class as sealed class. */
 val <T: Any> KClass<T>.sealedSubObjects: List<T>

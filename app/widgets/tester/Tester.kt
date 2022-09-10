@@ -124,7 +124,6 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.flatMap
 import sp.it.util.reactive.map
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync

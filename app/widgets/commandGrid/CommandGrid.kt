@@ -128,6 +128,8 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       }
    }
 
+   override fun focus() = grid.requestFocus()
+
    private fun applyCellSize(width: Double = cellSize.value.width, height: Double = cellSize.value.width/cellSizeRatio.value.ratio) {
       grid.itemsRaw.forEach { it.disposeCover() }
       grid.cellWidth.value = width.emScaled

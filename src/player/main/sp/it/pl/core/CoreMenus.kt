@@ -48,7 +48,6 @@ import sp.it.pl.layout.feature.SongWriter
 import sp.it.pl.main.APP
 import sp.it.pl.main.ActionsPaneGenericActions
 import sp.it.pl.main.App
-import sp.it.pl.main.AppActions
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.Df.FILES
@@ -59,6 +58,7 @@ import sp.it.pl.main.IconMA
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.Ui.ICON_CLOSE
 import sp.it.pl.main.Ui.ICON_CONF
+import sp.it.pl.main.WidgetDefaultMenu
 import sp.it.pl.main.configure
 import sp.it.pl.main.copyAs
 import sp.it.pl.main.ifErrorNotify
@@ -120,6 +120,7 @@ object CoreMenus: Core {
    /** Menu item builders registered per class. */
    val menuItemBuilders = ContextMenuGenerator()
 
+   @Suppress("RemoveExplicitTypeArguments")
    override fun init() {
       menuItemBuilders {
          addCustom { kClass ->
@@ -426,7 +427,7 @@ object CoreMenus: Core {
             item("Show help (${F2.nameUi} | ${ActionManager.keyShortcutsComponent.nameUi})") { APP.actions.showShortcutsFor(it) }
             item("Show actions (${ActionManager.keyActionsComponent.nameUi})", IconFA.GAVEL.toCmUi()) { APP.actions.showShortcutsFor(it) }
             value.ui.asIf<WidgetUi>().ifNotNull { w -> item("Settings", Icon(IconFA.COGS)) { w.controls.showSettings() } }
-            menuFor("Settings defaults", AppActions.WidgetDefaultMenu(value))
+            menuFor("Settings defaults", WidgetDefaultMenu(value))
          }
          add<PluginBox<*>> {
          }

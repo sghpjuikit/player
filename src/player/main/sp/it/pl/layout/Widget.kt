@@ -423,7 +423,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    @Blocks
    fun clearDefaultConfigs() {
       val configFile = userLocation / "default.properties"
-      configFile.deleteRecursively()
+      configFile.delete()
    }
 
    // called when widget is loaded/closed (or rather, when inputs or outputs are created/removed)

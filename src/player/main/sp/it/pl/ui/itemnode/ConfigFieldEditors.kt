@@ -1347,7 +1347,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
          val isScrollEdit = it is ScrollEvent && editor.hasFocus()
          if (isEditable && (isMouseEdit || isScrollEdit)) {
             val dv = when (it) {
-               is MouseEvent -> (if (it.source.asIs<Node>().net { it.layoutBounds.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1) * (if (it.isShortcutDown) 10 else 1)
+               is MouseEvent -> (if (it.source.asIs<Node>().net { it.boundsInParent.centerY <= editor.asIs<Control>().height/2.0 }) +1 else -1) * (if (it.isShortcutDown) 10 else 1)
                is ScrollEvent -> it.deltaY.sign.roundToInt() * (if (it.isShortcutDown) 10 else 1)
                else -> fail { "Illegal switch case on value $it" }
             }

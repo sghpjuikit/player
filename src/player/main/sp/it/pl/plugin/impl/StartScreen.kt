@@ -123,6 +123,7 @@ class StartScreen: PluginBase() {
                            widgetLayout = this
                            widgetArea.scene.root.properties[Window.keyWindowLayout] = this
                            child = ssComponent
+                           child?.focus()
                         }
                      }
 

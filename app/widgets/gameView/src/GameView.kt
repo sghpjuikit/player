@@ -1,5 +1,3 @@
-@file:Suppress("ConstantConditionIf")
-
 package gameView
 
 import de.jensd.fx.glyphs.GlyphIcons
@@ -112,7 +110,6 @@ import sp.it.util.math.max
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onEventDown

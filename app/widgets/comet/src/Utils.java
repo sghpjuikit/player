@@ -140,7 +140,7 @@ interface Utils {
 
 	private static Font loadUiFont() {
 		try {
-			return Font.loadFont(new FileInputStream(new File(APP.getLocation().getWidgets(), "Comet/Tele-Marines.TTF")), 14.0);
+			return Font.loadFont(new FileInputStream(new File(APP.getLocation().getWidgets(), "Comet/rsc/Tele-Marines.TTF")), 14.0);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		}

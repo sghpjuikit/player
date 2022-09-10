@@ -20,14 +20,14 @@
 
 #### IDE: Intellij IDEA
 
-1) Import Project -> Select project folder  
-1) Import from external model -> Gradle 
-1) Check "Use auto-import"  
+1. Import Project -> Select project folder  
+2. Import from external model -> Gradle 
+3. Check "Use auto-import"  
    Disable "Create separate module per source set"
-1) Set `Project > Open Module Settings > Project > Project SDK` to the same JDK as set in gradle properties
-1) `File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JVM` set to `Use Project JVM`
-1) Optionally run `git checkout .idea` in the Terminal to regain the codeStyles
-1) Optionally enable external annotations and use those provided in [idea/annotations](.idea/annotations)   
+4. Set `Project > Open Module Settings > Project > Project SDK` to the same JDK as set in gradle properties
+5. `File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JVM` set to `Use Project JVM`
+6. Optionally run `git checkout .idea` in the Terminal to regain the codeStyles
+7. Optionally enable external annotations and use those provided in [idea/annotations](.idea/annotations)   
    This will provide project specific deprecations and null type-safety for numerous JDK APIs   
    For more information about this see [official documentation](https://www.jetbrains.com/help/idea/external-annotations.html)
 
@@ -91,11 +91,17 @@ This allows auto-completion, syntax highlighting as well as build failure when a
 
 Create widget `MyWidget`:
   - create `app/widgets/myWidget` widget directory (use `camelCase` naming, no whitespace)
-  - `app/widgets/mywidget/MyWidget.kt` kotlin (.kt) or java (.java) source file
-  - declare package `package myWidget` which is the name of the directory
-  - there, declare a top level class `MyWidget` (must be the same as the name of the directory, capitalized [camel case](https://en.wikipedia.org/wiki/Camel_case))
-  - have the class extend `sp.it.pl.layout.controller.SimpleController`
-  - annotate your class with `sp.it.pl.layout.Widget.Info`
+  - create `app/widgets/mywidget/src` directory for source code
+  - create `app/widgets/mywidget/src/MyWidget.kt` main widget class (kotlin (`.kt`) or java (`.java`))
+    - declare package `package myWidget` (the name of the widget directory)
+    - declare a top level class `MyWidget` (the name of the widget directory, capitalized)
+    - have the class extend `sp.it.pl.layout.controller.SimpleController` and implement abstract members
+    - declare widget metadata:
+      - Java: annotate your class with `sp.it.pl.layout.Widget.Info` and specify members
+      - Kotlin: declare companion object `companion object: sp.it.pl.layout.WidgetCompanion {}` and implement abstract members
+  - for resources create `app/widgets/mywidget/rsc` directory
+  - for tests create `app/widgets/mywidget/tst` directory
+  - for jar dependencies create `app/widgets/mywidget/lib` directory
 
 Delete widget:
 - delete the widget directory

@@ -6,20 +6,23 @@ plugins {
 idea {
    module {
       contentRoot = null
-      sourceDirs.add(projectDir)
+      sourceDirs.add(projectDir / "src")
+      testSourceDirs.add(projectDir / "tsc")
+      resourceDirs.add(projectDir / "rsc")
+      excludeDirs.add(projectDir / "out")
       inheritOutputDirs = false
-      outputDir = file("out")
+      outputDir = projectDir / "out"
    }
 }
 
 sourceSets {
    main {
-      java.srcDir(".")
+      java.srcDir("src")
       java.exclude("out")
-      resources.setSrcDirs(listOf<Any>())
+      resources.setSrcDirs(listOf("rsc"))
    }
    test {
-      java.setSrcDirs(listOf<Any>())
+      java.setSrcDirs(listOf("tst"))
       resources.setSrcDirs(listOf<Any>())
    }
 }

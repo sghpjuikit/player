@@ -332,10 +332,10 @@ class WidgetManager {
 
       /** @return primary source file (either Kotlin or Java) or null if none exists */
       fun findSrcFile() = null
-         ?: widgetDir.child("$widgetName.kt").takeIf { it.exists() }
-         ?: widgetDir.child("$widgetName.java").takeIf { it.exists() }
+         ?: (widgetDir / "src" / "$widgetName.kt").takeIf { it.exists() }
+         ?: (widgetDir / "src" / "$widgetName.java").takeIf { it.exists() }
 
-      fun findSrcFiles() = widgetDir.children().filter { it.hasExtension("java", "kt") }
+      fun findSrcFiles() = (widgetDir / "src").children().filter { it.hasExtension("java", "kt") }
 
       fun findClassFile() = (compileDir/widgetName.decapital()/"$widgetName.class").takeIf { it.exists() }
 
@@ -345,7 +345,7 @@ class WidgetManager {
 
       private fun computeClassPathElements() = getAppJarFile() + (findAppLibFiles() + compileDir + findLibFiles()).map { it.relativeToApp() }
 
-      private fun findLibFiles() = widgetDir.children().filterSourceJars()
+      private fun findLibFiles() = (widgetDir / "lib").children().filterSourceJars()
 
       private fun findAppLibFiles() = APP.location.lib.children().filterSourceJars()
 

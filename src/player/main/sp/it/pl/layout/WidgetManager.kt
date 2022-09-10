@@ -3,6 +3,7 @@ package sp.it.pl.layout
 import javafx.stage.Window as WindowFX
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileFilter
 import java.io.IOException
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.net.URI
@@ -12,6 +13,7 @@ import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
 import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
 import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.WatchEvent.Kind
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections.observableArrayList
@@ -44,6 +46,7 @@ import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrorAction
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.ifErrorDefault
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
@@ -94,6 +97,8 @@ import sp.it.util.file.hasExtension
 import sp.it.util.file.isAnyChildOf
 import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
+import sp.it.util.file.properties.PropVal
+import sp.it.util.file.properties.readProperties
 import sp.it.util.file.toURLOrNull
 import sp.it.util.file.unzip
 import sp.it.util.functional.Option
@@ -107,6 +112,7 @@ import sp.it.util.functional.ifFalse
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.invoke
 import sp.it.util.functional.let_
+import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.toTry
 import sp.it.util.functional.toUnit
@@ -394,7 +400,6 @@ class WidgetManager {
          monitors.removeKey(widgetDir)
       }
 
-      @Suppress("ConstantConditionIf")
       fun updateFactory() {
          val srcFile = findSrcFile()
          val srcFiles = findSrcFiles().toList()
@@ -597,7 +602,6 @@ class WidgetManager {
       val separateWidgets by cv(true)
          .def(name = "Separate widgets & templates in UI", info = "Show widgets and templates (exported layouts) as separate categories in UI picker")
 
-      // TODO: use MapLike object with get/set operators
       private val componentLastOpenStrategies by cList<String>().butElement { uiConverter { it.replace("|", " -> ") } }
          .def(
             name = "Last used 'Open component' load strategy",
@@ -681,7 +685,7 @@ class WidgetManager {
 
       /** Select next widget or the first if none selected among the widgets in the specified window. */
       fun selectNextWidget(root: Container<*>) {
-         val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
+         val all = findAll(OPEN).filter { it.rootParent===root }.toList()
          if (all.isEmpty()) return
          val i = Values.incrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
          all.getOrNull(i)?.focusAndTraverse()
@@ -689,7 +693,7 @@ class WidgetManager {
 
       /** Select previous widget or the first if none selected among the widgets in the specified window. */
       fun selectPreviousWidget(root: Container<*>) {
-         val all = findAll(OPEN).asSequence().filter { it.rootParent===root }.toList()
+         val all = findAll(OPEN).filter { it.rootParent===root }.toList()
          if (all.isEmpty()) return
          val iNew = Values.decrIndex(all, all.indexOfFirst { it.focused.value }.let { if (it==-1) 0 else it })
          all.getOrNull(iNew)?.focusAndTraverse()
@@ -698,6 +702,15 @@ class WidgetManager {
    }
 
    inner class Factories {
+
+      /** Default configs for [Widget.storeDefaultConfigs]. */
+      val defaultConfigs = ConcurrentHashMap<File, Map<String, PropVal>>().apply {
+         APP.location.user.widgets.children(FileFilter { it.isDirectory }).forEach { userLocation ->
+            val configFile = userLocation / "default.properties"
+            if (configFile.exists())
+               this[userLocation] = configFile.readProperties().ifErrorDefault().orNull().orEmpty()
+         }
+      }
 
       /** Factories that are waiting to be compiled or are being compiled. */
       val factoriesInCompilation = observableArrayList<File>()!!

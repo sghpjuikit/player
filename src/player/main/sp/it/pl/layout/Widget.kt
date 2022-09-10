@@ -39,7 +39,6 @@ import sp.it.util.dev.Idempotent
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
 import sp.it.util.file.properties.PropVal
-import sp.it.util.file.properties.readProperties
 import sp.it.util.functional.Functors.F1
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
@@ -48,7 +47,6 @@ import sp.it.util.functional.runTry
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
-import sp.it.util.type.raw
 import sp.it.util.ui.findParent
 import sp.it.util.ui.isAnyParentOf
 import sp.it.util.ui.onNodeDispose
@@ -220,9 +218,9 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       customName.value = state.nameUi
       focused.addListener(computeFocusChangeHandler())
       properties.entries.stream()
-         .filter { e: Map.Entry<String, Any?> -> e.key.startsWith("io") }
-         .map { e: Map.Entry<String, Any?> -> WidgetIo(this, e.key.substring(2), (e.value as String?)!!) }
-         .forEach { e: WidgetIo? -> WidgetIoManager.ios.add(e!!) }
+         .filter { e -> e.key.startsWith("io") }
+         .map { e -> WidgetIo(this, e.key.substring(2), (e.value as String?)!!) }
+         .forEach { e -> WidgetIoManager.ios.add(e!!) }
    }
 
    override val name: String
@@ -268,6 +266,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
          .orNull()
    }
 
+   @Idempotent
    override fun close() {
       if (isClosed) return
       isClosed = true
@@ -330,7 +329,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       }
    }
 
-   private fun computeFocusChangeHandler() = ChangeListener<Boolean> { _, _, nv ->
+   private fun computeFocusChangeHandler(): ChangeListener<Boolean> = ChangeListener { _, _, nv ->
          if (isLoaded) {
             graphics?.findParent { WidgetUi.STYLECLASS in it.styleClass }
                ?.asIs<Pane?>()
@@ -383,7 +382,10 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       // 3) easy optimization
       if (controller==null) return
       val configsRaw = fieldsRaw
-      getConfigs().forEach { c -> configsRaw[configToRawKeyMapper.apply(c)] = c.valueAsProperty }
+      getConfigs().forEach { c ->
+         if (c.isPersistable())
+            configsRaw[configToRawKeyMapper(c)] = c.valueAsProperty
+      }
    }
 
    private fun restoreConfigs() {
@@ -391,10 +393,9 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       if (configsRaw.isNotEmpty()) {
          getConfigs().forEach { c ->
             if (c.isPersistable()) {
-               val key = configToRawKeyMapper.apply(c)
-               if (configsRaw.containsKey(key)) {
+               val key = configToRawKeyMapper(c)
+               if (key in configsRaw)
                   c.valueAsProperty = configsRaw[key]!!
-               }
             }
          }
          configsRaw.clear() // restoration can only ever happen once
@@ -406,20 +407,15 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
       failIf(!isLoaded) { "Must be loaded to export default configs" }
 
       val configFile = userLocation / "default.properties"
-      val configuration = Configuration(configToRawKeyMapper)
-      configuration.collect(getConfigs().filter { f -> !Objects.deepEquals(f.value, f.defaultValue) })
-      configuration.save("Custom default widget settings", configFile)
+      val configs = getConfigs().filter { it.isPersistable() && !Objects.deepEquals(it.value, it.defaultValue) }
+      val configuration = Configuration(configToRawKeyMapper).apply { collect(configs) }
+      val props = configuration.save("Custom default widget settings", configFile)
+      APP.widgetManager.factories.defaultConfigs[userLocation] = props
    }
 
-   @Blocks
    private fun restoreDefaultConfigs() {
-      val configFile = userLocation / "default.properties"
-      if (configFile.exists()) {
-         val configsRaw = fieldsRaw
-         configFile.readProperties().ifOkUse {
-            it.forEach(configsRaw::putIfAbsent)
-         }
-      }
+      APP.widgetManager.factories.defaultConfigs[userLocation].orEmpty()
+         .forEach(fieldsRaw::putIfAbsent)
    }
 
    @Blocks

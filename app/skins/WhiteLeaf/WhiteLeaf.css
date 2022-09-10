@@ -141,6 +141,13 @@
 .tree-table-view {
     -fx-fixed-cell-size: 2.75em;
 }
+.tree-cell {
+    -fx-padding: 0em 0em 0em 1em; // fixes misalignment
+}
+.tree-cell > .tree-disclosure-node,
+.tree-table-row-cell > .tree-disclosure-node {
+    -fx-padding: 1em 0.5em 0em 0em; // fixes misalignment
+}
 
 /* Selected rows focused control */
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,

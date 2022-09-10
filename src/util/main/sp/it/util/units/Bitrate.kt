@@ -18,7 +18,7 @@ data class Bitrate(
    /** @return true iff this represents constant bitrate */
    fun isConstant() = !isVariable()
 
-   override fun compareTo(other: Bitrate) = value.compareTo(other.value)
+   override fun compareTo(other: Bitrate) = value compareTo other.value
 
    override fun toString() = toS(this)
 

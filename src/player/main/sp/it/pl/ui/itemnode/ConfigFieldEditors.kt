@@ -864,7 +864,7 @@ class PluginsCE(c: Config<PluginManager>): ConfigEditor<PluginManager>(c) {
             selectionModel.selectionMode = SINGLE
             selectionModel.selectedItemProperty() sync { pluginInfo.plugin = it }
             d += { selectionModel.clearSelection() }
-            items = APP.plugins.pluginsObservable.toJavaFx().sorted { a, b -> a.info.name.compareTo(b.info.name) }
+            items = APP.plugins.pluginsObservable.toJavaFx().sorted { a, b -> a.info.name compareTo b.info.name }
             d += { items = null }
             d += { pluginInfo.plugin = null }
          }
@@ -980,7 +980,7 @@ class WidgetsCE(c: Config<WidgetManager.Widgets>): ConfigEditor<WidgetManager.Wi
             selectionModel.selectionMode = SINGLE
             selectionModel.selectedItemProperty() sync { widgetInfo.widget = it }
             d += { selectionModel.clearSelection() }
-            items = APP.widgetManager.factories.getComponentFactoriesObservable().toJavaFx().sorted { a, b -> a.name.compareTo(b.name) }.asIs()
+            items = APP.widgetManager.factories.getComponentFactoriesObservable().toJavaFx().sorted { a, b -> a.name compareTo b.name }.asIs()
             d += { items = null }
             d += { widgetInfo.widget = null }
          }

@@ -743,15 +743,15 @@ class Metadata: Song, Serializable {
     *  * title
     */
    operator fun compareTo(m: Metadata): Int {
-      var r = (artist ?: "").compareTo(m.artist ?: "")
+      var r = (artist ?: "") compareTo (m.artist ?: "")
       if (r!=0) return r
-      r = (album ?: "").compareTo(m.album ?: "")
+      r = (album ?: "") compareTo (m.album ?: "")
       if (r!=0) return r
-      r = (disc ?: -1).compareTo(m.disc ?: -1)
+      r = (disc ?: -1) compareTo (m.disc ?: -1)
       if (r!=0) return r
-      r = (track ?: -1).compareTo(m.track ?: -1)
+      r = (track ?: -1) compareTo (m.track ?: -1)
       if (r!=0) return r
-      r = (title ?: "").compareTo(m.title ?: "")
+      r = (title ?: "") compareTo (m.title ?: "")
       return r
    }
 

@@ -72,7 +72,7 @@ class TableColumnInfo() {
    /** Data structure for single table column information, mostly for serializing and deserializing. */
    data class ColumnInfo(@JvmField val id: String, @JvmField val position: Int, @JvmField val visible: Boolean, @JvmField val width: Double): Comparable<ColumnInfo> {
 
-      override fun compareTo(other: ColumnInfo): Int = position.compareTo(other.position)
+      override fun compareTo(other: ColumnInfo): Int = position compareTo other.position
 
       override fun toString() = sequenceOf(id, position, visible, width).joinToString(S3)
 

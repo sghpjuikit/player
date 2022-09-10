@@ -46,7 +46,7 @@ data class FileSize(private val v: Long): Comparable<FileSize> {
 
    override fun toString() = toS(this)
 
-   override fun compareTo(other: FileSize) = v.compareTo(other.v)
+   override fun compareTo(other: FileSize) = v compareTo other.v
 
    companion object: ConverterString<FileSize>, ConverterToUiString<FileSize> {
 

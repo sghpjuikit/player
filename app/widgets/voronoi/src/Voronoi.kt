@@ -462,7 +462,7 @@ class Voronoi(widget: Widget): SimpleController(widget) {
          this += elements
       }
 
-      fun dc(x: Double, y: Double) = x.compareTo(y)
+      fun dc(x: Double, y: Double) = x compareTo y
 
       fun randBoolean(): Boolean = rand.nextBoolean()
 

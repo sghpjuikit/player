@@ -8,8 +8,8 @@ import sp.it.util.parsing.ConverterString
 data class NofX(val n: Int, val of: Int): Comparable<NofX> {
 
    override fun compareTo(other: NofX): Int {
-      val i = of.compareTo(other.of)
-      return if (i!=0) i else n.compareTo(other.n)
+      val i = of compareTo other.of
+      return if (i!=0) i else n compareTo other.n
    }
 
    fun toString(separator: String) = (if (n==-1) "?" else "$n") + separator + (if (of==-1) "?" else "$of")

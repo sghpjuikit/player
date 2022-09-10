@@ -51,7 +51,7 @@ class FunctorPool {
    // TODO: add automatically in getters, this causes duplication because Long is Number
    fun <C: Comparable<C>> addComparisons(c: VType<C>, defaultValue: C?) {
       val cn = c.nullable()
-      val comparator = nullsFirst { a: C, b: C -> a.compareTo(b) }
+      val comparator = nullsFirst { a: C, b: C -> a compareTo b }
       add("< Less", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)<0 }
       add("≤ Less or same", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)<=0 }
       add("= Same", cn, type<Boolean>(), Parameter(cn, defaultValue)) { x, y -> comparator.compare(x, y)==0 }

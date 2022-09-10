@@ -25,7 +25,7 @@ class Chapter: Comparable<Chapter> {
    override fun hashCode() = 19*3 + Objects.hashCode(time)
 
    /** @return result of comparison by time */
-   override fun compareTo(other: Chapter) = time.compareTo(other.time)
+   override fun compareTo(other: Chapter) = time compareTo other.time
 
    /** @return text, which can be reconstructed back to Chapter with [Chapter], e.g.: "9800-New Chapter" */
    override fun toString() = "${time.toMillis()}$separator$text"

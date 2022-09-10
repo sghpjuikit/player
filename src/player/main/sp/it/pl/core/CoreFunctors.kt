@@ -316,13 +316,13 @@ object CoreFunctors: Core {
          add("> More", type<Duration>(), B, p(Duration(0.0)), false, false, true) { it, y -> it>y }
 
          add("< Less", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it<y }
-         add("= Is", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it.compareTo(y)==0 }
+         add("= Is", type<NofX>(), B, p(NofX(1, 1))) { it, y -> (it compareTo y)==0 }
          add("> More", type<NofX>(), B, p(NofX(1, 1)), false, false, true) { it, y -> it>y }
          add("≥ Not less", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it>=y }
          add("≤ Not more", type<NofX>(), B, p(NofX(1, 1))) { it, y -> it<=y }
 
          add("< Less", type<FileSize>(), B, p(FileSize(0)), false, false, true) { it, y -> it<y }
-         add("= Is", type<FileSize>(), B, p(FileSize(0))) { it, y -> it.compareTo(y)==0 }
+         add("= Is", type<FileSize>(), B, p(FileSize(0))) { it, y -> (it compareTo y)==0 }
          add("≅ Is approximately", type<FileSize>(), B, p(FileSize(FileSize.Mi))) { it, y -> it.inBytes().let { y.inBytes()/16<=it && it<=y.inBytes()*16 } }
          add("> More", type<FileSize>(), B, p(FileSize(0))) { it, y -> it>y }
          add("Is unknown", type<FileSize>(), B) { it.isUnknown() }
@@ -330,10 +330,10 @@ object CoreFunctors: Core {
          add("In bytes", type<FileSize>(), type<Long>()) { it.inBytes() }
 
          add("Is after", type<Year>(), B, p(Year.now())) { it, y -> it>y }
-         add("Is", type<Year>(), B, p(Year.now())) { it, y -> it.compareTo(y)==0 }
+         add("Is", type<Year>(), B, p(Year.now())) { it, y -> (it compareTo y)==0 }
          add("Is before", type<Year>(), B, p(Year.now())) { it, y -> it<y }
          add("Is in the future", type<Year>(), B) { it>Year.now() }
-         add("Is now", type<Year>(), B) { it.compareTo(Year.now())==0 }
+         add("Is now", type<Year>(), B) { (it compareTo Year.now())==0 }
          add("Is in the past", type<Year>(), B) { it<Year.now() }
          add("Is leap", type<Year>(), B) { it.isLeap }
 

@@ -163,11 +163,11 @@ fun treeApp(): TreeItem<Any> {
    return tree("App",
       tree("Behavior",
          tree("Widgets",
-            tree("Types", APP.widgetManager.factories.getFactoriesObservable().toJavaFx().sorted { a,b -> a.name.compareTo(b.name) }),
+            tree("Types", APP.widgetManager.factories.getFactoriesObservable().toJavaFx().sorted { a,b -> a.name compareTo b.name }),
             tree("Open", { APP.widgetManager.widgets.findAll(OPEN).sortedBy { it.name } }),
             tree("Features", { APP.widgetManager.factories.getFeatures().sortedBy { it.name } })
          ),
-         tree("Plugins", APP.plugins.pluginsObservable.toJavaFx().sorted { a,b -> a.info.name.compareTo(b.info.name) })
+         tree("Plugins", APP.plugins.pluginsObservable.toJavaFx().sorted { a,b -> a.info.name compareTo b.info.name })
       ),
       tree("UI",
          tree("Windows", FilteredList(Stage.getWindows()) { it !is Tooltip && it !is ContextMenu }),

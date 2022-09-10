@@ -14,9 +14,41 @@ All notable changes to this project will be documented in this file. Format base
 - Implement global hotkey symmetric event consuming
 - Implement `MetadataGroup.Field.VALUE` column to not be resizable [improves UX]
 - Implement `ActionData` to be invokable through search (`CTRL+SHIFT+I`)
+- Implement better widget loading [no longer blocks UI]
+- Implement proper widget directory structure (`src` for sources, `lib` for libraries, `rsc` for resources, `tst` for tests)
+- Fix **CommandGrid** widget focus not working properly
+- Fix **StartScreen** plugin's overlay focus not working properly
+- Fix some settings saved/not saved [caused by Config.isPersistable]
+
+### Container children order
+Containers now have well-defined order of children.
+Containers can define order irrelevant from index of the children.
+For example the `ContainerSwitch`, which has potentially infinite children scrollable horizontally, defines order as `0, -1, +1, -2, +2, ...`.
+
+### Widget loading
+Until now, when widget was loading it always involved I/O operation on UI thread, leading to potential stutters.
+Now the default widget settings load on widget start and during widget loading they are read from memory.
+Improving widget loading experience is always welcome - at this moment the UI thread often has enough to do even without random I/O blocking it. 
+
+### Widget directory structure
+Finally, widget subprojects have a directory structure.
+This fixes some issues with IDE and project setup.
+This opens up the possibility for 2 improvements:
+1. proper package structure  
+   Java widgets still cause IDE warnings, because the directory path does not match the widget class package declaration, which is necessary for
+   URLClassLoader to load the class (classes with no package can not be loaded).
+   I don't like creating useless directories, but this has 2 advantages for widget developers
+   1. The widget source code would be consistent with ordinary projects
+   2. The widget could have arbitrary package, relaxing arbitrary restrictions
+2. **Gradle** integration  
+   The widgets could have their gradle definitions their directory instead of sharing common template. This has 3 advantages:
+   1. widgets become ordinary projects, which is easier to understand
+   2. widgets may be compiled with a gradle daemon, which would lead to large compilation speed improvements
+   3. widgets could declare dependencies using gradle, instead of providing the jars. This would automate processes and avoid binaries in git repository.
+These improvements will be considered in the future.
 
 ### Windows menu integration
-There is a setting to add an `Inspect in SpitPlayer` menu item into the Microsoft Windows file menu.
+There is a setting to add an `Inspect in SpitPlayer` menu item into the **Microsoft Windows** file menu.
 Ideally, there would be setting for file associations, however doing that programmatically is a mess - it may be implemented in the future.
 
 ### Global Hotkeys
@@ -31,8 +63,8 @@ The latter, because consuming release(Alt) would make consuming asymmetric - and
 
 This is of interest due to an interfering Windows feature - release(Alt) displays and focuses application menu.
 User does not want this to happen if the release (Alt) is part of a hotkey (if a key is pressed while Alt has been pressed), but Windows does not care.
-The only workaround is to suppress the event somehow, for example using the **Autohotkey** program.
-This issue is here to stay. I'm experimenting with **AH** scripts for this with various level of success.
+The only workaround is to suppress the event somehow, for example using the **Autohotkey** program, but even that is proving troublesome.
+This issue is here to stay.
 
 Another change is that all `jnativehook` keys are now mapped to JavaFX keys correctly.
 This probably fixes number of potential hotkey issues.

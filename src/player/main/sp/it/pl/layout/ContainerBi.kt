@@ -85,6 +85,8 @@ class ContainerBi: Container<ContainerBiUi> {
 
    override fun validChildIndexes() = sequenceOf(1, 2)
 
+   override fun validChildIndexOrder(index: Int) = index
+
    override fun show() = ui?.show() ?: Unit
 
    override fun hide() = ui?.hide() ?: Unit

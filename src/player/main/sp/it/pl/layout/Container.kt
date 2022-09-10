@@ -1,6 +1,5 @@
 package sp.it.pl.layout
 
-import java.util.SortedMap
 import java.util.TreeMap
 import java.util.function.Consumer
 import javafx.geometry.Insets
@@ -77,8 +76,11 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
    @JvmField
    var ui: G? = null
 
-   /** The children mapped by unique index. The map is sorted by index, ASC. */
-   val children = TreeMap<Int, Component?>()
+   /**
+    * The children mapped by unique index.
+    * The index can be any number. The natural order of the component is computed from its index using [validChildIndexOrder].
+    * The map is sorted by [validChildIndexOrder] ASC, thus its iteration order respects natural component order. */
+   val children = TreeMap<Int, Component?> { a, b -> validChildIndexOrder(a) compareTo validChildIndexOrder(b) }
 
    private val configs = HashMap<String, Config<Any?>>()
 
@@ -207,8 +209,11 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       return null
    }
 
-   /** @return potentially infinite sequence of potential child positions in descending order by ui priority */
+   /** @return potentially infinite sequence of all possible child indexes in descending order by ui priority */
    abstract fun validChildIndexes(): Sequence<Int>
+
+   /** @return natural order of the child component index in [validChildIndexes] */
+   abstract fun validChildIndexOrder(index: Int): Int
 
    /** @return available index for child or null if none available. */
    open fun getEmptySpot(): Int? = validChildIndexes().firstOrNull { it !in children }
@@ -252,7 +257,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
    abstract override fun load(): Node
 
    override fun focus() {
-      getAllWidgets().firstOrNull()?.focus()
+      children.entries.asSequence().mapNotNull { it.value }.firstOrNull()?.focus()
    }
 
    // TODO: make sure widgets never close twice

@@ -40,6 +40,8 @@ class ContainerFreeForm: Container<ContainerFreeFormUi> {
 
    override fun validChildIndexes() = generateSequence(1) { it + 1 }
 
+   override fun validChildIndexOrder(index: Int) = index
+
    override fun getEmptySpot() = null
 
    override fun load(): Node {

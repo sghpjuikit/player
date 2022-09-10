@@ -65,6 +65,8 @@ open class ContainerUni: Container<ComponentUi> {
 
    override fun validChildIndexes() = sequenceOf(1)
 
+   override fun validChildIndexOrder(index: Int) = index
+
    override fun getEmptySpot(): Int? = if (child===null) 1 else null
 
    override fun toDb(): ComponentDb = UniContainerDb(id, loadType.value, locked.value, child?.toDb(), properties)

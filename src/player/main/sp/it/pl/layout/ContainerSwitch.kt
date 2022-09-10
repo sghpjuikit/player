@@ -58,6 +58,8 @@ class ContainerSwitch: Container<ContainerSwitchUi> {
 
    override fun validChildIndexes() = generateSequence(0) { if (it>0) -it else -it + 1 } // 0,+1,-1,+2,-2,+3,-3, ...
 
+   override fun validChildIndexOrder(index: Int) = if (index>=0) index*2 else -index*2 - 1
+
    override fun load(): Node {
       val u = ui ?: ContainerSwitchUi(this).also {
          it.align syncFrom align on onClose

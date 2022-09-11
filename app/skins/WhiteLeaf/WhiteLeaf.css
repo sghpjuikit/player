@@ -142,7 +142,7 @@
     -fx-fixed-cell-size: 2.75em;
 }
 .tree-cell {
-    -fx-padding: 0em 0em 0em 1em; // fixes misalignment
+    -fx-padding: 0em 0em 0em 0.75em; // fixes misalignment
 }
 .tree-cell > .tree-disclosure-node,
 .tree-table-row-cell > .tree-disclosure-node {
@@ -228,4 +228,20 @@
 
 .playlist-table-cell-playing-icon {
     -glyph-size: 1.75em;
+}
+
+/* Slider better colors */
+.slider .track {
+    -fx-background-color: -skin-white-dark;
+}
+.slider .fill {
+    -fx-background-color: linear-gradient(from 0% 100% to 100% 100%, -skin-white 0%, -fx-focus-color 100%);
+}
+
+/* Text field left/right pane */
+.shortcut-config-editor .left-pane,
+.shortcut-config-editor .right-pane,
+.value-text-field:editable .left-pane,
+.value-text-field:editable .right-pane {
+    -fx-background-color: -skin-white-darker;
 }

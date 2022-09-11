@@ -544,12 +544,12 @@ This adds/removes registry key HKEY_CLASSES_ROOT\*\shell\SpitPlayer. This may re
          /** Editability of the config. */
          override val editable = EditMode.USER
       }
-      /** Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null lets skin decide. */
+      /** Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. For best experience, uniwidth font should be used. Null lets skin decide. */
       object `font`: ConfigDefinition {
          /** Compile-time constant equivalent to [name]. */
          const val cname: String = """Font"""
          /** Compile-time constant equivalent to [info]. */
-         const val cinfo: String = """Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. Null lets skin decide."""
+         const val cinfo: String = """Font of the application. Overrides font set by the skin, using `-fx-font-family` and `-fx-font-size` applied `.root` of all windows. For best experience, uniwidth font should be used. Null lets skin decide."""
          /** Compile-time constant equivalent to [group]. */
          const val cgroup: String = """Ui"""
          /** Name of the config. */

@@ -86,8 +86,6 @@
   - column: item numbers
 - Improve **Image** widget: add image controls (+,  -, ...)  
   Low priority and technically difficult
-- Improve **search** by allowing user to switch sources  
-  Challenging UX
 - Fix the bug where playlist song moving (CTRL+drag) changes order of unrelated songs when moving too fast  
   Low priority
 - Implement **Settings** sort option DEFAULT/BY_NAME  

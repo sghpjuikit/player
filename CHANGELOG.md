@@ -16,6 +16,9 @@ All notable changes to this project will be documented in this file. Format base
 - Implement `ActionData` to be invokable through search (`CTRL+SHIFT+I`)
 - Implement better widget loading [no longer blocks UI]
 - Implement proper widget directory structure (`src` for sources, `lib` for libraries, `rsc` for resources, `tst` for tests)
+- Improve styling, layout & consistency for some config editors, picker icons, combo boxes and so on
+- Improve `ObservableListCE` item editors if item uses single editor [inline the editor into the editor chain]
+- Improve **WhiteLeaf**/**DarkLeaf** skin `TreeView` arrow layout
 - Fix **CommandGrid** widget focus not working properly
 - Fix **StartScreen** plugin's overlay focus not working properly
 - Fix some settings saved/not saved [caused by Config.isPersistable]
@@ -63,13 +66,25 @@ The latter, because consuming release(Alt) would make consuming asymmetric - and
 
 This is of interest due to an interfering Windows feature - release(Alt) displays and focuses application menu.
 User does not want this to happen if the release (Alt) is part of a hotkey (if a key is pressed while Alt has been pressed), but Windows does not care.
-The only workaround is to suppress the event somehow, for example using the **Autohotkey** program, but even that is proving troublesome.
-This issue is here to stay.
+The only workaround is to suppress the event completely, which can be done using the **Autohotkey** program:
+```
+~LAlt::
+Sendinput {Blind}{sc0E9}
+KeyWait, LAlt ; this wasit for the key to be RELEASED. So that it doesn't keep spamming SC0E9 (as seen from an AHK window Key history and script info... window.)
+Sendinput {Blind}{sc0EA}
+return
+;
+~RAlt::
+Sendinput {Blind}{sc0E9}
+KeyWait, RAlt ; so that it doesn't keep spamming SC0E9
+Sendinput {Blind}{sc0EA}
+return
+```
 
 Another change is that all `jnativehook` keys are now mapped to JavaFX keys correctly.
-This probably fixes number of potential hotkey issues.
+This probably fixes number of potential/hidden hotkey issues.
 
-The library has been updated from `2.1.0` to `2.2.2`, which fixes multiple potential issues,
+The library has been updated from `2.1.0` to `2.2.2`, which fixes multiple potential/hidden issues,
 see [changelog](https://github.com/kwhat/jnativehook/releases/tag/2.2.2) for details.
 
 The hotkey handling code has been optimized to do less work, which is important, since the code executes for any keystroke in the OS.

@@ -657,7 +657,8 @@ class EffectCE(c: Config<Effect?>, effectType: KClass<out Effect>): ConfigEditor
 class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) {
    private val lc = c
    private val list = lc.a.list
-   private val chain = ListChainValueNode<T?, ConfigurableEditor>(0) { ConfigurableEditor(lc.a.itemFactory?.invoke()) }
+   private val editorBuilder: (T?) -> ValueNode<T?> = if (lc.a.isSimpleItemType) { it -> ItemSimpleCE(it) } else { it -> ItemComplexCE(it) }
+   private val chain = ListChainValueNode<T?, ValueNode<T?>>(0) { editorBuilder(lc.a.itemFactory?.invoke()) }
    private var isSyntheticLinkEvent = false
    private var isSyntheticListEvent = false
    private var isSyntheticSetEvent = false
@@ -699,7 +700,7 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
       // bind chain to list
       disposer += list.onItemSync { item ->
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
-            chain.addChained(ConfigurableEditor(item))
+            chain.addChained(editorBuilder(item))
       }
       disposer += list.onItemRemoved { item ->
          if (!isSyntheticLinkEvent && !isSyntheticSetEvent)
@@ -714,29 +715,37 @@ class ObservableListCE<T>(c: ListConfig<T>): ConfigEditor<ObservableList<T>>(c) 
 
    override fun refreshValue() {}
 
-   private inner class ConfigurableEditor(initialValue: T?): ValueNode<T?>(initialValue) {
-      private val pane = ConfigPane<T?>()
+   private inner class ItemSimpleCE(initialValue: T?): ValueNode<T?>(initialValue) {
+      private val pane = create(lc.a.itemToConfigurable(initialValue).asIs<Config<T?>>())
+      private val node = pane.buildNode(true)
 
       init {
-         pane.editable syncFrom isEditable on disposer
-         pane.ui syncFrom APP.ui.formLayout on disposer
+         pane.isEditableAllowed syncFrom isEditable on disposer
          pane.onChange = Runnable {
-            if (lc.a.isSimpleItemType && !isSyntheticListEvent && !isSyntheticLinkEvent) {
+            if (!isSyntheticListEvent && !isSyntheticLinkEvent) {
                isSyntheticSetEvent = true
                list setTo chain.chain.map { it.chained.getVal() }.filter { isNullableOk(it) }
                isSyntheticSetEvent = false
                this@ObservableListCE.onChange?.invoke()
                this@ObservableListCE.onChangeOrConstraint?.invoke()
             }
-
          }
+      }
+      override fun getNode() = node
+      override fun getVal(): T? = pane.config.value
+   }
+
+   private inner class ItemComplexCE(initialValue: T?): ValueNode<T?>(initialValue) {
+      private val pane = ConfigPane<T?>()
+
+      init {
+         pane.editable syncFrom isEditable on disposer
+         pane.ui syncFrom APP.ui.formLayout on disposer
+         pane.onChange = Runnable {}
          pane.configure(lc.toConfigurable(value))
       }
-
       override fun getNode() = pane
-
-      override fun getVal(): T? = if (lc.a.isSimpleItemType) pane.getConfigEditors()[0].config.value else value
-
+      override fun getVal(): T? = value
    }
 }
 
@@ -1239,6 +1248,7 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
       // numbers
       val scrollHandler = onNumberScrolledHandler(this)
       if (scrollHandler!=null) {
+         editor.styleClass += "value-text-field"
          editor.styleClass += "number-text-field"
          editor.onEventDown(SCROLL, scrollHandler)
          if (editor is SpitTextField) {
@@ -1246,8 +1256,8 @@ class GeneralCE<T>(c: Config<T>): ConfigEditor<T>(c) {
                styleClass += "number-text-field-buttons"
                onEventDown(MOUSE_CLICKED, scrollHandler)
                onEventDown(SCROLL, scrollHandler)
-               lay += Icon(IconFA.ANGLE_UP, 3.emScaled).apply { gap.value = 0.0; scale(1.7) }
-               lay += Icon(IconFA.ANGLE_DOWN, 3.emScaled).apply { gap.value = 0.0; scale(1.7) }
+               lay += Icon(IconFA.CARET_UP, 3.emScaled).apply { gap.value = 0.0; scale(1.5) }
+               lay += Icon(IconFA.CARET_DOWN, 3.emScaled).apply { gap.value = 0.0; scale(1.5) }
             }
          }
       }
@@ -1388,6 +1398,7 @@ class ShortcutCE(c: Config<Action>): ConfigEditor<Action>(c) {
    }
 
    init {
+      editor.styleClass += "value-text-field"
       editor.styleClass += STYLECLASS_TEXT_CONFIG_EDITOR
       editor.styleClass += "shortcut-config-editor"
       editor.isEditable = false

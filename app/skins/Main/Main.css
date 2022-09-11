@@ -310,7 +310,7 @@
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button > .arrow  {
     -fx-background-color: -skin-def-font-color;
     -fx-background-insets: 0;
-    -fx-padding: 0.2em 0.3125em 0.2em 0.3125em;
+    -fx-padding: 0.1em 0.3125em 0.2em 0.3125em;
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
 
@@ -685,7 +685,9 @@
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
     -fx-border-width: 0;
-    -fx-border-insets: 0;
+    -fx-border-insets: -1;
+    -fx-border-width: 1;
+    -fx-border-color: rgba(0,0,0,0.3);
 }
 
 .combo-box-base:focused,
@@ -722,17 +724,16 @@
 .combo-box-base:showing:focused,
 .choice-box:focused,
 .choice-box:showing:focused {
-    -fx-padding: 0;
+    -fx-padding: -0.4em 0 -0.4em 0;
 }
 
 .combo-box > .list-cell,
 .combo-box:editable > .list-cell,
 .combo-box:hover > .list-cell {
-    -fx-background-color: null;
+    -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-text-fill: -skin-def-font-color;
-    -fx-effect: null;
     -fx-padding: 0 0 0 0.5em;
     -fx-effect: null;
 }
@@ -2353,47 +2354,48 @@ Shape, Text, SpitText, TextFlow > * {
 .decorated-text-field {}
 /* inherits: HBox */
 .decorated-text-field .left-pane {
-    -fx-translate-x: -0.25em;
+    -fx-translate-x: 0em;
     -fx-alignment: center-left;
-    -fx-spacing: 0.5em;
+    -fx-spacing: 0em;
 }
 /* inherits: HBox */
 .decorated-text-field .right-pane {
     -fx-translate-x: 0.25em;
     -fx-alignment: center-right;
-    -fx-spacing: 0.5em;
+    -fx-spacing: 0;
 }
 
 /* inherits: .decorated-text-field */
 .value-text-field {}
-.value-text-field .left-pane {
-    -fx-background-color: transparent;
-}
-.value-text-field:editable .left-pane {
-    -fx-background-color: rgba(255,255,255,0.025);
-}
+.value-text-field .left-pane,
 .value-text-field .right-pane {
     -fx-background-color: transparent;
 }
+.value-text-field:editable .left-pane,
 .value-text-field:editable .right-pane {
     -fx-background-color: rgba(255,255,255,0.025);
 }
+
 
 /*
  * Default icon style in
  * inherits: .icon
  */
-.value-text-field .icon {
-    -glyph-name: "FontAwesomeIcon.CARET_DOWN";
+.value-text-field .left-pane .icon,
+.value-text-field .right-pane .icon {
     -glyph-size: 1em;
+    -glyph-gap: 1em;
 }
 
 /*
  * Button that opens value picker for .value-text-field
  * inherits: .icon
  */
-.value-text-field .value-text-field-arrow {
+.value-text-field .left-pane .value-text-field-arrow,
+.value-text-field .right-pane .value-text-field-arrow {
     -fx-fill: -skin-def-font-color;
+    -glyph-name: "FontAwesomeIcon.CARET_DOWN";
+    -glyph-size: 1em;
 }
 
 /*
@@ -2407,8 +2409,7 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: VBox with two .icon
  */
 .number-text-field .number-text-field-buttons {
-    -fx-background-color: rgba(255,255,255,0.025);
-    -fx-padding: 0 0.5em 0 0.5em;
+    -fx-padding: 0 0.6em 0 0.6em;
 }
 
 /*
@@ -3067,7 +3068,7 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 .config-shortcut-run-icon {
-    -glyph-size: 0.66667em; /* 8 */
+    -glyph-size: 1em; /* 8 */
     -glyph-name: "FontAwesomeIcon.PLAY";
 }
 .config-shortcut-global-icon {
@@ -3084,7 +3085,9 @@ Shape, Text, SpitText, TextFlow > * {
 .config-editor-warn-button,
 .config-editor-warn-button Text,
 .config-editor-warn-button:hover,
-.config-editor-warn-button:hover Text {
+.config-editor-warn-button:hover Text,
+.value-text-field .right-pane .config-editor-warn-button,
+.value-text-field .right-pane .config-editor-warn-button:hover {
     -glyph-name: "FontAwesomeIcon.EXCLAMATION_TRIANGLE";
     -glyph-size: 0.66667em; /* 8 */
     -fx-fill: -fx-focus-color;
@@ -3106,7 +3109,7 @@ Shape, Text, SpitText, TextFlow > * {
 }
 
 /*
- * Default b utton with an icon for accepting things.
+ * Default button with an icon for accepting things.
  * inherits: .button
  */
 .ok-button,

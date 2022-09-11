@@ -69,6 +69,12 @@ class Hotkeys(private val executor: (Runnable) -> Unit) {
             }
 
             override fun nativeKeyReleased(e: NativeKeyEvent) {
+               // For some reason left BACK_SLASH key (left of the Z key) is not recognized, recognize manually
+               if (e.rawCode==226) {
+                  e.keyCode = NativeKeyEvent.VC_BACK_SLASH
+                  e.keyChar = '\\'
+               }
+
                keyCombosPressed.forEach { it.release(e) }
             }
 

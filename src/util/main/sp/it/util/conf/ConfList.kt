@@ -23,7 +23,7 @@ open class ConfList<T> private constructor(
 
    @Suppress("UNCHECKED_CAST")
    constructor(itemType: VType<T>, itemFactory: ItemFac<T>?, itemToConfigurable: ItemToConf<T>, vararg items: T):
-      this(itemType, itemFactory, { if (!itemType.isNullable && it==null) fail { "Must not be null" }; itemToConfigurable(it as T) }, observableArrayList<T>(*items))
+      this(itemType, itemFactory, {  itemToConfigurable(it as T) }, observableArrayList<T>(*items))
 
    companion object {
 

@@ -66,9 +66,14 @@ import sp.it.util.action.ActionManager
 import sp.it.util.action.IsAction
 import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
+import sp.it.util.conf.ConfList
+import sp.it.util.conf.Config
+import sp.it.util.conf.ConfigDef
 import sp.it.util.conf.Constraint
+import sp.it.util.conf.Constraint.CollectionSize
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalConfigDelegator
+import sp.it.util.conf.ListConfig
 import sp.it.util.conf.MainConfiguration
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.but
@@ -78,7 +83,6 @@ import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
-import sp.it.util.conf.nonNull
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.conf.values
@@ -511,26 +515,35 @@ class App: Application(), GlobalConfigDelegator {
             graphics = null
          ) {
 
-            fun <C, T> ActionData<C,T>.invokeWithForm() {
+            fun <T1, TN> ActionData<T1,TN>.invokeWithForm() {
                val context = ActContext(null, null, null, null)
                when {
                   type.raw.isObject && !type.isNullable -> invokeFutAndProcess(context, type.raw.objectInstance.asIs())
                   type.raw == Unit::class -> invokeFutAndProcess(context, Unit.asIs())
                   type == typeNothingNullable() -> invokeFutAndProcess(context, null.asIs())
                   else -> {
-                     val t: VType<T> = when (type.raw) {
-                        Any::class -> VType(String::class.java, type.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
-                        else -> type
-                     }
-                     val receiver = ValueConfig(t, "Input", "Input", null, "", description, EditMode.USER).constrain {
-                        if (!type.isNullable) nonNull()
-                        but(
-                           object: Constraint<T?> {
-                              override fun isValid(value: T?) = value==null || condition(value)
-                              override fun message() = "Not a valid input"
+                     val receiver = when {
+                        type1!=typeN -> {
+                           val t1: VType<T1> = when (type1.raw) {
+                              Any::class -> VType(String::class.java, type1.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
+                              else -> type1
                            }
-                        )
+                           val confList = ConfList(t1, null, { Config.forValue(t1, "Item", it).constrain { but(buildConstraint1()); but(Constraint.ObjectNonNull) } })
+                           ListConfig("Input", ConfigDef("Input", "Input", "", EditMode.USER), confList, "", setOf(), setOf()).constrain {
+                              addConstraint(buildConstraintN().asIs())
+                              addConstraint(CollectionSize(1, null))
+                              but()
+                           }
+                        }
+                        else -> {
+                           val tn: VType<TN> = when (type.raw) {
+                              Any::class -> VType(String::class.java, type.isNullable).asIs()  // Any::class does not have an editor, but String editor is still plenty useful
+                              else -> type
+                           }
+                           ValueConfig(tn, "Input", "Input", null, "", description, EditMode.USER).constrain { but(buildConstraintN()) }
+                        }
                      }
+
                      receiver.configure(it.nameWithDots) { invokeFutAndProcess(context, it.value.asIs()) }
                   }
                }

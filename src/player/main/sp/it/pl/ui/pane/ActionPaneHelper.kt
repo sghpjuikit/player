@@ -23,6 +23,7 @@ import sp.it.util.async.future.Fut.Companion.futOfBlock
 import sp.it.util.async.runIO
 import sp.it.util.collections.collectionWrap
 import sp.it.util.collections.getElementClass
+import sp.it.util.conf.Constraint
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIfFxThread
@@ -91,28 +92,32 @@ class ComplexActionData<R, T> {
 }
 
 /** Action. */
-class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: GlyphIcons, groupApply: GroupApply, condition: Test<T>, isLong: Boolean, action: Act<T>) {
+class ActionData<T1, TN>(name: String, type: VType<TN>, type1: VType<T1>, description: String, icon: GlyphIcons, groupApply: GroupApply, condition: Test<TN>, condition1: Test<T1>, isLong: Boolean, action: Act<TN>) {
 
-   @JvmField val type: VType<T> = type
+   @JvmField val type: VType<TN> = type
+   @JvmField val typeN: VType<TN> = type
+   @JvmField val type1: VType<T1> = type1
              val hasInput: Boolean get() = type.raw!=Unit::class
    @JvmField val name: String = name
              val nameWithDots get() = if (hasInput) "${type.toUi()}.${name.dropLastWhile { it=='.' }}..." else name
    @JvmField val description: String = description
    @JvmField val icon: GlyphIcons = icon
    @JvmField val groupApply: GroupApply = groupApply
-   @JvmField val condition: Test<T> = condition
+   @JvmField val condition: Test<TN> = condition
+   @JvmField val conditionN: Test<TN> = condition
+   @JvmField val condition1: Test<T1> = condition1
    @JvmField val isLong: Boolean = isLong
-   @JvmField val action: Act<T> = action
+   @JvmField val action: Act<TN> = action
 
    @JvmField var isComplex = false
    @JvmField var preventClosing = false
-   @JvmField var complexData: ((ActionPane) -> ComplexActionData<T, *>)? = null
+   @JvmField var complexData: ((ActionPane) -> ComplexActionData<TN, *>)? = null
 
    fun preventClosing() = apply {
       preventClosing = true
    }
 
-   fun preventClosing(action: (ActionPane) -> ComplexActionData<T, *>) = apply {
+   fun preventClosing(action: (ActionPane) -> ComplexActionData<TN, *>) = apply {
       isComplex = true
       complexData = action
       preventClosing = true
@@ -121,12 +126,12 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
    @Suppress("UNCHECKED_CAST")
    fun invokeIsDoable(data: Any?): Boolean {
       return when (groupApply) {
-         FOR_ALL -> condition(collectionWrap(data) as T)
+         FOR_ALL -> condition(collectionWrap(data) as TN)
          FOR_EACH -> when (data) {
-            is Collection<*> -> (data as Collection<T>).all(condition)
-            else -> condition(data as T)
+            is Collection<*> -> (data as Collection<TN>).all(condition)
+            else -> condition(data as TN)
          }
-         NONE -> data !is Collection<*> && condition(data as T)
+         NONE -> data !is Collection<*> && condition(data as TN)
       }
    }
 
@@ -137,12 +142,12 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
       if (isLong) failIfFxThread()
 
       return when (groupApply) {
-         FOR_ALL -> context.action(collectionWrap(data) as T)
+         FOR_ALL -> context.action(collectionWrap(data) as TN)
          FOR_EACH -> when (data) {
-            is Collection<*> -> (data as Collection<T>).map { context.action(it) }
-            else -> context.action(data as T)
+            is Collection<*> -> (data as Collection<TN>).map { context.action(it) }
+            else -> context.action(data as TN)
          }
-         NONE -> context.action(data as T)
+         NONE -> context.action(data as TN)
       }
    }
 
@@ -183,12 +188,22 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
    }
 
    @Suppress("UNCHECKED_CAST")
-   fun prepInputExact(data: Any?): T = prepInput(data) as T
+   fun prepInputExact(data: Any?): TN = prepInput(data) as TN
 
    fun prepInput(data: Any?): Any? = when (groupApply) {
       FOR_ALL -> collectionWrap(data)
       FOR_EACH -> fail { "Action with $groupApply should never get here" }
       NONE -> data
+   }
+
+   fun buildConstraint1(): Constraint<T1?> = object: Constraint<T1?> {
+      override fun isValid(value: T1?) = value==null || condition1(value)
+      override fun message() = "Not a valid input"
+   }
+
+   fun buildConstraintN(): Constraint<TN?> = object: Constraint<TN?> {
+      override fun isValid(value: TN?) = value==null || conditionN(value)
+      override fun message() = "Not a valid input"
    }
 
    override fun toString() = "ActionData(\"$name\")"
@@ -203,19 +218,19 @@ class ActionData<C, T>(name: String, type: VType<T>, description: String, icon: 
 }
 
 /** [ActionData] that executes synchronously - simply consumes the input. */
-inline fun <C, reified T> actionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, threading: Threading = UI, noinline constriction: Test<T>, noinline action: Act<T>) = ActionData<C, T>(name, type(), description, icon, groupApply, constriction, threading==BLOCK, action)
+inline fun <reified T1, reified TN> actionBase(name: String, description: String, icon: GlyphIcons, groupApply: GroupApply, threading: Threading = UI, noinline constriction: Test<TN>, noinline constriction1: Test<T1>, noinline action: Act<TN>) = ActionData<T1, TN>(name, type(), type(), description, icon, groupApply, constriction, constriction1, threading==BLOCK, action)
 
 /** [action] that consumes simple input - its type is the same as type of the action. */
-inline fun <reified T> action(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline action: Act<T>) = actionBase<T, T>(name, description, icon, NONE, threading, IS, action)
+inline fun <reified T> action(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline action: Act<T>) = actionBase<T, T>(name, description, icon, NONE, threading, IS, IS, action)
 
 /** [action] that consumes simple input - its type is the same as type of the action. */
-inline fun <reified T> action(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline constriction: Test<T>, noinline action: Act<T>) = actionBase<T, T>(name, description, icon, NONE, threading, constriction, action)
+inline fun <reified T> action(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline constriction: Test<T>, noinline action: Act<T>) = actionBase<T, T>(name, description, icon, NONE, threading, constriction, constriction, action)
 
 /** [action] that consumes simple input - its type is the same as type of the action. */
-inline fun <reified T> action(icon: GlyphIcons, action: Action) = actionBase<T, T>(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, UI, IS, { action.run() })
+inline fun <reified T> action(icon: GlyphIcons, action: Action) = actionBase<T, T>(action.name, action.info + if (action.hasKeysAssigned()) "\n\nShortcut keys: ${action.keys}" else "", icon, NONE, UI, IS, IS, { action.run() })
 
 /** [action] that consumes collection input - its input type is collection of its type. */
-inline fun <reified T> actionAll(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline action: Act<Collection<T>>) = actionBase<T, Collection<T>>(name, description, icon, FOR_ALL, threading, IS, action)
+inline fun <reified T> actionAll(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline action: Act<Collection<T>>) = actionBase<T, Collection<T>>(name, description, icon, FOR_ALL, threading, IS, IS, action)
 
 /** [action] that consumes collection input - its input type is collection of its type. */
-inline fun <reified T> actionAll(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, crossinline constriction: Test<T>, noinline action: Act<Collection<T>>) = actionBase<T, Collection<T>>(name, description, icon, FOR_ALL, threading, { it.all(constriction) }, action)
+inline fun <reified T> actionAll(name: String, description: String, icon: GlyphIcons, threading: Threading = UI, noinline constriction: Test<T>, noinline action: Act<Collection<T>>) = actionBase<T, Collection<T>>(name, description, icon, FOR_ALL, threading, { it.all(constriction) }, constriction, action)

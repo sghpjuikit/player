@@ -187,6 +187,8 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")
    val coverUseParentCoverIfNone by cv(CoverStrategy.DEFAULT.useParentCoverIfNone).readOnlyUnless(coverOn)
       .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
+   val coverCache by cv(false).readOnlyUnless(coverOn)
+      .def(name = "Use thumbnail cache", info = "Cache thumbnails on disk for faster loading. Useful when items form mostly finite set. Cache is an internal directory split by thumbnail size.")
    val cellTextHeight = APP.ui.font.map { 43.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    private val itemVisitId = AtomicLong(0)
@@ -585,7 +587,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    private inner class TopItem: FItem(null, null, DIRECTORY) {
 
       init {
-         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true)
+         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true, widget.id.takeIf { coverCache.value })
       }
 
       override fun childrenFiles() = filesMaterialized.filter { it.isDirectory && it.exists() }.let(filesJoiner.value.flatten).map { CachingFile(it) }

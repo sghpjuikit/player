@@ -355,7 +355,7 @@ class AppSearchPlugin: PluginBase() {
       private inner class TopItem: FItem(null, null, DIRECTORY) {
 
          init {
-            coverStrategy = CoverStrategy(false, false, true, true)
+            coverStrategy = CoverStrategy(false, false, true, true, null)
          }
 
          override fun childrenFiles() = owner.searchSourceApps/*.filter { !it.name.contains("unins", true) }*/.asSequence()

@@ -3,9 +3,11 @@ package sp.it.pl.image
 import java.io.File
 import java.io.IOException
 import java.net.URI
+import java.util.UUID
 import java.util.zip.ZipFile
 import javafx.scene.image.Image
 import javafx.util.Duration
+import javax.imageio.ImageIO
 import mu.KLogging
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -36,6 +38,7 @@ import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.MimeType.Companion.`image∕vnd·adobe·photoshop`
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
+import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
@@ -46,6 +49,7 @@ import sp.it.util.ui.IconExtractor
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.image.loadImagePsd
+import sp.it.util.ui.image.toBuffered
 import sp.it.util.ui.image.toFX
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
@@ -70,6 +74,37 @@ interface ImageLoader {
 
    data class Params(val file: File, val size: ImageSize, val mime: MimeType, val scaleExact: Boolean = false)
 
+   /** @return loader that uses disk cache to improve performance */
+   fun memoized(cacheKey: UUID): ImageLoader = memoize(this, cacheKey)
+
+   companion object {
+
+      private fun memoize(loader: ImageLoader, cacheKey: UUID): ImageLoader = object: ImageLoader {
+         override fun invoke(p: Params): Image? {
+            val sizeKey = "${p.size.width.toInt() max 0}x${p.size.height.toInt() max 0}"
+            val imgDir: File = File(System.getProperty("user.home")).absoluteFile / cacheKey.toString() / sizeKey
+            val imgFile = imgDir / buildString {
+               // To enable multiple size versions, we requested image size
+               // To prevent invalid data, we embed file size
+               // To prevent conflict we embed file name, file path length and file path fragments
+               // There is a risk to run into file path limit on some platforms, so we shorten path fragments
+               append(p.file.length()).append("-")
+               append(p.file.path.length).append("-")
+               append(p.file.traverse { it.parentFile }.drop(1).toList().reversed().asSequence().map { it.nameOrRoot.dropLastWhile { it=='\\' || it==':' } }.joinToString("-") { "${it.firstOrNull()?.toString()}${it.lastOrNull()}" }).append("-")
+               append(p.file.name)
+            }
+
+            return if (imgFile.exists()) {
+               loader(p.copy(file = imgFile, mime = imgFile.mimeType()))
+            } else {
+               loader(p)?.apply {
+                  imgDir.mkdirs()
+                  toBuffered().ifNotNull { ImageIO.write(it, imgFile.extension, imgFile) }
+               }
+            }
+         }
+      }
+   }
 }
 
 /** Standard image loader attempting the best possible quality and broad file type support. */
@@ -85,7 +120,7 @@ object ImageStandardLoader: KLogging(), ImageLoader {
             else null
          }
          video -> {
-            val imgDir: File = File(System.getProperty("user.home")).absoluteFile/"video-covers"
+            val imgDir: File = File(System.getProperty("user.home")).absoluteFile / "video-covers"
             val imgName = buildString {
                // To enable multiple size versions, we requested image size
                // To prevent invalid data, we embed file size
@@ -224,6 +259,7 @@ private val ffmpeg by lazy {
       }
    }
 }
+
 private val ffprobe by lazy {
    ffmpeg.then { it.parentDirOrRoot/"ffprobe" }
 }

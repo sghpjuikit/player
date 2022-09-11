@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import javafx.scene.image.Image;
 import kotlin.Unit;
 import kotlin.sequences.Sequence;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.SimpleSong;
 import sp.it.pl.image.Image2PassLoader;
+import sp.it.pl.image.ImageLoader;
 import sp.it.pl.ui.objects.grid.GridViewSkin;
 import sp.it.pl.ui.objects.image.Cover.CoverSource;
 import sp.it.util.HierarchicalBase;
@@ -231,9 +233,9 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			return cl;
 		} else {
 			var f = runIO(runnable(() -> {
-				File file = getCoverFile();
+				var file = getCoverFile();
+				var strategy = getCoverStrategy();
 				if (file==null) {
-					var strategy = getCoverStrategy();
 					if (valType==DIRECTORY) {
 						if (strategy.useComposedDirCover) {
 							var subCovers = (children==null ? Util.<Item>list() : list(children)).stream()
@@ -241,7 +243,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 								.map(it -> it.getCoverFile())
 								.filter(it -> it!=null)
 								.limit(4)
-								.map(it -> Image2PassLoader.INSTANCE.getLq().invoke(it, size.div(2)))
+								.map(it -> strategy.loader.invoke(it, size.div(2)))
 								.filter(it -> it!=null)
 								.toList();
 							var w = (int) size.width;
@@ -260,18 +262,18 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						}
 					} else if (valType==FILE) {
 						if (isVideo(value) && getCoverStrategy().useVideoFrameCover) {
-							cover = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
+							cover = strategy.loader.invoke(value, size);
 						} else if (isAudio(value)) {
 							var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
 							cover = c.isEmpty() ? null : c.getImage(size);
 						} else if (value.getPath().endsWith(".pdf"))  {
-							cover = Image2PassLoader.INSTANCE.getLq().invoke(value, size);
+							cover = strategy.loader.invoke(value, size);
 						} else if (strategy.useNativeIconIfNone)  {
 							cover = IconExtractor.INSTANCE.getFileIcon(value);
 						}
 					}
 				} else {
-					cover = Image2PassLoader.INSTANCE.getLq().invoke(file, size);
+					cover = strategy.loader.invoke(file, size);
 				}
 			}));
 
@@ -349,20 +351,31 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return c!=null && f!=null && !c.disposed && c.all_children.contains(f.getPath().toLowerCase());
 	}
 
-	public static class CoverStrategy {
-		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true, false, true);
+	public static final class CoverStrategy {
+		/** Enable using parent directory cover if file has no cover */
+		public final boolean useParentCoverIfNone;
+		/** Enable using directory covers composed of child file covers */
+		public final boolean useComposedDirCover;
+		/** Enables using small native OS icon for the file cover. Has no effect if {@link #useParentCoverIfNone} is true. */
+		public final boolean useNativeIconIfNone;
+		/** Enables video frame extraction to display cover for video files */
+		public final boolean useVideoFrameCover;
+		/** Enables {@link ImageLoader#memoized(java.util.UUID)} */
+		public final @Nullable UUID diskCache;
+		/** The actual cover image loader */
+		private final ImageLoader loader;
 
-		public boolean useParentCoverIfNone;
-		public boolean useComposedDirCover;
-		/** Has no effect if {@link #useParentCoverIfNone} is true. */
-		public boolean useNativeIconIfNone;
-		public boolean useVideoFrameCover;
-
-		public CoverStrategy(boolean useComposedDirCover, boolean useParentCoverIfNone, boolean useNativeIconIfNone, boolean useVideoFrameCover) {
+		public CoverStrategy(boolean useParentCoverIfNone, boolean useComposedDirCover, boolean useNativeIconIfNone, boolean useVideoFrameCover, @Nullable UUID diskCache) {
 			this.useParentCoverIfNone = useParentCoverIfNone;
 			this.useComposedDirCover = useComposedDirCover;
 			this.useNativeIconIfNone = useNativeIconIfNone;
 			this.useVideoFrameCover = useVideoFrameCover;
+			this.diskCache = diskCache;
+			var loaderRaw = Image2PassLoader.INSTANCE.getLq();
+			loader = diskCache!=null ? loaderRaw.memoized(diskCache) : loaderRaw;
 		}
+
+		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true, false, true, null);
+
 	}
 }

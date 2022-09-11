@@ -4,12 +4,11 @@ import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
-import javafx.scene.layout.BorderPane
-import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
-import javafx.scene.text.TextAlignment
+import sp.it.pl.main.IconFA
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.okIcon
-import sp.it.pl.ui.objects.TextFlowWithNoWidth
+import sp.it.pl.ui.objects.icon.Icon
 import sp.it.pl.ui.pane.ConfigPane
 import sp.it.util.access.readOnly
 import sp.it.util.access.transformValue
@@ -26,24 +25,19 @@ import sp.it.util.functional.getOr
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.map
 import sp.it.util.reactive.syncFrom
+import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
-import sp.it.util.ui.prefSize
 import sp.it.util.ui.scrollPane
-import sp.it.util.ui.text
-import sp.it.util.ui.x
+import sp.it.util.ui.stackPane
 
 /** Editor for [sp.it.util.conf.Configurable] - form. Has optional submit button. */
 class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?): VBox(5.0) {
 
-   private val okPane = StackPane()
-   private val warnText = text()
-   private val warnFlow = TextFlowWithNoWidth()
+   private val okPane = hBox(0.0, CENTER)
+   private val warnB = Icon(IconFA.WARNING)
    private val okB = okIcon { ok() }.apply { styleClass += "form-ok-button" }
    private var editorsPane = ConfigPane<Any?>()
-   private val anchorOk = 90.0
-   private val anchorWarn = 20.0
    private val isExecutingCount = v(0)
 
    /** Configurable object. */
@@ -74,15 +68,8 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
          hbarPolicy = AS_NEEDED
          consumeScrolling()
       }
-      lay += okPane.apply {
-         prefSize = 30 x 30
-      }
-
-      warnFlow.apply {
-         lay += warnText.apply {
-            textAlignment = TextAlignment.CENTER
-            BorderPane.setAlignment(this, CENTER)
-         }
+      lay += stackPane(okPane) {
+         prefHeight = 24.emScaled
       }
 
       updateOkButtonVisible()
@@ -159,9 +146,9 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
 
    private fun showWarnButton(validation: Try<*, String>) {
       updateOkButtonUsable(validation.isOk)
-      warnText.text = validation.switch().map { "Form contains wrong data: $it" }.getOr("")
-      if (validation.isError) { if (warnFlow !in children) children += warnFlow }
-      else children -= warnFlow
+      warnB.tooltip(validation.switch().map { "Validation\n\n$it" }.getOr(""))
+      if (validation.isError) { if (warnB !in okPane.lay.children) okPane.lay += warnB }
+      else okPane.lay -= warnB
    }
 
    private fun updateOkButtonUsable(isUsable: Boolean) {
@@ -170,7 +157,7 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
    }
 
    private fun updateOkButtonVisible() {
-      if (okPermitted()) { if (okB !in okPane.children) okPane.lay(CENTER) += okB }
+      if (okPermitted()) { if (okB !in okPane.children) okPane.lay += okB }
       else okPane.lay -= okB
    }
 

@@ -283,16 +283,14 @@ open class GridFileThumbCell: GridCell<Item, File>() {
 //         failIf(size.width<=0 || size.height<=0)
 
          loader.execute {
-            if (!isInvalid(item, i)) {
                // Determines minimum loading time/max loading throughput
                // Has a positive effect when hundreds of covers load at once
-               sleep(5)
+               sleep(1)
 
                // Executing this on FX thread would allow us to avoid volatiles for invalid checks and futures
                // I do not know which is better. Out of fear we will need thread-safety in the future, I'm using this approach
                if (!isInvalid(item, i))
                   item.loadCover(size).onOk(FX) { setCoverPost(item, i, item.coverFile, item.cover) }
-            }
          }
       }
    }

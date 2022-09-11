@@ -7,6 +7,7 @@ import sp.it.util.parsing.ConverterString
 data class MimeGroup(val name: String) {
 
    companion object: ConverterString<MimeGroup>, UnsealedEnumerator<MimeGroup> {
+      const val text = "text"
       const val audio = "audio"
       const val image = "image"
       const val video = "video"

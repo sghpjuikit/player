@@ -1,5 +1,7 @@
 package sp.it.pl.main
 
+typealias Bool = Boolean
+
 typealias Double01 = Double
 
 typealias IconTx = sp.it.pl.ui.objects.icon.TextIcon

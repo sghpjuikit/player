@@ -82,8 +82,13 @@ import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
 import sp.it.util.dev.printIt
+import sp.it.util.file.FileType
+import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
 import sp.it.util.file.toURIOrNull
+import sp.it.util.file.type.MimeGroup
+import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
@@ -420,6 +425,31 @@ fun resizeIcon(): Icon = Icon(IconMD.RESIZE_BOTTOM_RIGHT).apply {
    isAnimated.value = false
    isFocusTraversable = false
    styleclass("resize-content-icon")
+}
+
+fun fileIcon(file: File, type: FileType): GlyphIcons = when (type) {
+   FileType.DIRECTORY -> when {
+      APP.location.skins==file.parentFile -> IconFA.PAINT_BRUSH
+      APP.location.widgets==file.parentFile -> IconFA.GE
+      file.isAbsolute && file.name.isEmpty() -> IconMD.HARDDISK
+      else -> IconUN(0x1f4c1)
+   }
+   FileType.FILE -> when {
+      file hasExtension "css" -> IconFA.CSS3
+      file.isWidgetFile() -> IconFA.GE
+      else -> when (val mime = file.mimeType()) {
+         MimeType.`application∕zip`, MimeType.`application∕x-bzip`, MimeType.`application∕x-bzip2`, MimeType.`application∕x-gtar` -> IconFA.FILE_ARCHIVE_ALT
+         MimeType.`text∕css` -> if (file.isSkinFile()) IconFA.PAINT_BRUSH else IconFA.CSS3
+         MimeType.`application∕pdf` -> IconFA.FILE_PDF_ALT
+         else -> when (mime.group) {
+            MimeGroup.text -> IconFA.FILE_TEXT_ALT
+            MimeGroup.audio -> IconFA.FILE_AUDIO_ALT
+            MimeGroup.image -> IconFA.FILE_IMAGE_ALT
+            MimeGroup.video -> IconFA.FILE_VIDEO_ALT
+            else -> IconUN(0x1f4c4)
+         }
+      }
+   }
 }
 
 fun Font.rowHeight(): Double {

@@ -79,11 +79,9 @@ interface Constraint<in T> {
    }
 
    class StringLength(val min: Int, val max: Int): Constraint<String?> {
-
       init {
          failIfNot(max>min) { "Max value must be greater than min value" }
       }
-
       override fun isValid(value: String?) = value==null || value.length in min..max
       override fun message() = "Text must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)} characters long"
    }
@@ -112,6 +110,15 @@ interface Constraint<in T> {
    object ObjectNonNull: Constraint<Any?> {
       override fun isValid(value: Any?) = value!=null
       override fun message() = "Value must not be ${toUiConverter.toS(null)}"
+   }
+
+   class CollectionSize(val min: Int?, val max: Int?): Constraint<Collection<Any?>?> {
+      init {
+         failIf(min==null && max==null) { "Min and max can not both be null" }
+         failIf(min!=null && max!=null && max<min) { "Max value must be greater than or equal to min value" }
+      }
+      override fun isValid(value: Collection<Any?>?) = value==null || ((min==null || min<value.size) && (max==null || max>value.size))
+      override fun message() = "Collection size must be must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)}"
    }
 
    /** Hints ui editor for [Config.isEnumerable] to use original order of the enumeration, i.e. no sort will be applied. */

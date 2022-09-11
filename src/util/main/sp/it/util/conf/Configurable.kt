@@ -82,7 +82,11 @@ fun Any.toConfigurableByReflect(fieldNamePrefix: String, category: String): Conf
 /** @return configurable of configs representing all javafx properties of this object */
 fun Any.toConfigurableFx(): Configurable<*> = forEachJavaFXProperty(this)
    .filter { !it.type.isSubtypeOf<EventHandler<*>>() }
-   .map { (p, name, _, _, type) -> Config.forValue<Any?>(VType(type), name, p()) }
+   .map { (p, name, readOnly, _, type) ->
+      Config.forValue<Any?>(VType(type), name, p()).apply {
+         if (readOnly) addConstraints(Constraint.ReadOnlyIf(true))
+      }
+   }
    .toList().toListConfigurable()
 
 /** @return configurable wrapping this list */

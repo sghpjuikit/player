@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [7.1.0] 2022 09 11
+
 - Implement improved action (`ActionData`) workflow
   - Implement support actions in app search 
   - Implement support actions with results

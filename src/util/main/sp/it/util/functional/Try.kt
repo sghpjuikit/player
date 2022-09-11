@@ -1,5 +1,3 @@
-@file:Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-
 package sp.it.util.functional
 
 import kotlin.UnsafeVariance as UV

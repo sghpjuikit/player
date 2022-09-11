@@ -96,7 +96,6 @@ class ValueConfig<V>: ConfigBase<V> {
       this.value = value
    }
 
-   @Suppress("UNCHECKED_CAST")
    override fun getValue(): V {
       return value
    }
@@ -174,26 +173,20 @@ open class FieldConfig<T>(
 
 }
 
-@Suppress("UNCHECKED_CAST")
 open class PropertyConfig<T>(
    valueType: VType<T>, name: String, def: ConfigDefinition, constraints: Set<Constraint<T>>, val property: WritableValue<T>, defaultValue: T = property.value, group: String
 ): ConfigBase<T>(valueType, name, def, constraints, defaultValue, group) {
 
    override fun getValue(): T = property.value
-
-   override fun setValue(value: T) {
-      property.value = value
-   }
+   override fun setValue(value: T) { property.value = value }
 
 }
 
-@Suppress("UNCHECKED_CAST")
 open class PropertyConfigRO<T>(
    valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<T>>, val property: ObservableValue<T>, group: String
 ): ConfigBase<T>(valueType, name, c, constraints, property.value, group) {
 
    override fun getValue(): T = property.value
-
    override fun setValue(value: T) {}
 
 }
@@ -340,8 +333,6 @@ class CheckListConfig<T, S: Boolean?>(
    override fun getValue(): CheckList<T, S> = defaultValue
    override fun setValue(value: CheckList<T, S>) {}
    override fun setValueToDefault() = value.selections setTo value.selectionsInitial
-
-   @Suppress("UNCHECKED_CAST")
    override var valueAsProperty: PropVal
       get() = PropValN(
          value.selections.map { Parsers.DEFAULT.toS(it) }

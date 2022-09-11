@@ -98,6 +98,7 @@ object ActionsPaneGenericActions {
          AppActionsAppHelp,
          AppActionsAppOpen,
          AppActionsAppTest,
+         AppActionsComponent,
          AppActionsString,
          AppActionsUnit,
          AppActionsWindow,

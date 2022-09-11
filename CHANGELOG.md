@@ -39,15 +39,15 @@ This fixes some issues with IDE and project setup.
 This opens up the possibility for 2 improvements:
 1. proper package structure  
    Java widgets still cause IDE warnings, because the directory path does not match the widget class package declaration, which is necessary for
-   URLClassLoader to load the class (classes with no package can not be loaded).
+   `URLClassLoader` to load the class (classes with no package can not be loaded).
    I don't like creating useless directories, but this has 2 advantages for widget developers
    1. The widget source code would be consistent with ordinary projects
    2. The widget could have arbitrary package, relaxing arbitrary restrictions
 2. **Gradle** integration  
-   The widgets could have their gradle definitions their directory instead of sharing common template. This has 3 advantages:
+   The widgets could have their gradle definitions in their directory instead of sharing common template. This has 3 advantages:
    1. widgets become ordinary projects, which is easier to understand
    2. widgets may be compiled with a gradle daemon, which would lead to large compilation speed improvements
-   3. widgets could declare dependencies using gradle, instead of providing the jars. This would automate processes and avoid binaries in git repository.
+   3. widgets could declare dependencies using **Gradle**, instead of providing the jars. This would automate processes and avoid binaries in git repository.
 These improvements will be considered in the future.
 
 ### Windows menu integration
@@ -58,7 +58,7 @@ Ideally, there would be setting for file associations, however doing that progra
 Global hotkeys are a difficult thing in Java. SpitPlayer uses `jnativehook` library, which is awesome, but
 there are still couple surprises.
 
-First change is symmetric event consuming.
+First change is symmetric event consuming.  
 For a shortcut, e.g., `ALT+S`, comprised of events press(Alt) + press(S) + release(S) + release(Alt), only press(S) has been consumed before.
 Now, release(S) will be consumed as well. This prevents interference between multiple applications/hotkeys.
 As for press(Alt) and release(Alt), consuming is impossible. The former because the application does not know if this is going to be a hotkey.

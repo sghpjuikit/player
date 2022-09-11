@@ -126,7 +126,9 @@ object ImageStandardLoader: KLogging(), ImageLoader {
             "image/jpeg", "image/png", "image/gif" -> imgImplLoadFX(p.file, p.size, p.scaleExact)
             "application/pdf" -> {
                runTry {
-                  PDFRenderer(PDDocument.load(p.file)).renderImageWithDPI(0, p.size.height.toFloat()/8.27f).toFX()
+                  PDDocument.load(p.file).use {
+                     PDFRenderer(it).renderImageWithDPI(0, p.size.height.toFloat()/8.27f).toFX()
+                  }
                } orNull {
                   logger.error(it) { "Unable to load pdf image preview for=${p.file}" }
                }

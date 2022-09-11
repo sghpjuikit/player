@@ -117,7 +117,7 @@ interface Constraint<in T> {
          failIf(min==null && max==null) { "Min and max can not both be null" }
          failIf(min!=null && max!=null && max<min) { "Max value must be greater than or equal to min value" }
       }
-      override fun isValid(value: Collection<Any?>?) = value==null || ((min==null || min<value.size) && (max==null || max>value.size))
+      override fun isValid(value: Collection<Any?>?) = value==null || ((min==null || min<=value.size) && (max==null || max>=value.size))
       override fun message() = "Collection size must be must be at least ${toUiConverter.toS(min)} and at most ${toUiConverter.toS(max)}"
    }
 

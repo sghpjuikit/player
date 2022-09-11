@@ -1,17 +1,18 @@
 package sp.it.pl.ui.objects.grid
 
-import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent.MOUSE_CLICKED
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
-import sp.it.pl.main.IconMD
-import sp.it.pl.main.IconUN
+import sp.it.pl.main.Double01
 import sp.it.pl.main.contextMenuFor
+import sp.it.pl.main.emScaled
+import sp.it.pl.main.fileIcon
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.fieldvalue.FileField
@@ -21,6 +22,8 @@ import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.nameOrRoot
+import sp.it.util.functional.net
+import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.onEventDown
 import sp.it.util.ui.label
@@ -42,7 +45,7 @@ open class GridFileIconCell: GridCell<Item, File>() {
    protected lateinit var name: Label
    protected lateinit var icon: Icon
    protected var imgLoadAnimation: Anim? = null
-   private var loadProgress = 0.0 // 0-1
+   private var loadProgress: Double01 = 0.0
 
    init {
       styleClass += "icon-file-grid-cell"
@@ -102,17 +105,31 @@ open class GridFileIconCell: GridCell<Item, File>() {
       }
 
       icon = Icon().apply {
+         isManaged = false
          isAnimated.value = false
          isFocusTraversable = false
          iconAnimationParent.lay += this
       }
       root = object: Pane(iconAnimationParent, name) {
          override fun layoutChildren() {
+            val x = 0.0
+            val y = 0.0
             val w = layoutBounds.width
             val h = layoutBounds.height
+            val nameGap = 5.emScaled
             val th = computeCellTextHeight()
-            iconAnimationParent.resizeRelocate(0.0, 0.0, w, h - th)
-            name.resizeRelocate(0.0, h - th, w, th)
+
+            if (gridView.value?.cellWidth?.value == GridView.CELL_SIZE_UNBOUND) {
+               name.alignment = Pos.CENTER_LEFT
+               name.resizeRelocate(h + nameGap, y, (w-h-2*nameGap) max 0.0, h)
+               icon.relocateCenter(h/2, h/2)
+            } else {
+               name.alignment = Pos.CENTER
+               iconAnimationParent.resizeRelocate(0.0, 0.0, w, h - th)
+               name.resizeRelocate(0.0, h - th, w, th)
+               name.resizeRelocate(x + nameGap, h - th + nameGap, (w-2*nameGap) max 0.0, (th-2*nameGap) max 0.0)
+               icon.relocate(x, y)
+            }
          }
       }.apply {
          isSnapToPixel = true
@@ -136,22 +153,18 @@ open class GridFileIconCell: GridCell<Item, File>() {
    }
 
    fun updateIcon(i: Item) {
+      val iconSize = when (gridView.value?.cellWidth?.value) {
+         GridView.CELL_SIZE_UNBOUND -> gridView.value?.cellHeight?.value?.net { it*0.5 } ?: 50.0
+         else -> gridView.value?.let { it.cellHeight.value min (it.cellHeight.value - computeCellTextHeight()) } ?: 50.0
+      }
       icon.scale(1.125)
       icon.isFocusTraversable = false
-      icon.size(gridView.value?.let { it.cellHeight.value min (it.cellHeight.value - computeCellTextHeight()) } ?: 50.0)
-
-      val glyph: GlyphIcons = when (i.valType) {
-         FILE -> when {
-            i.value.path.endsWith("css") -> IconMD.LANGUAGE_CSS3
-            else -> IconUN(0x1f4c4)
-         }
-         DIRECTORY -> when {
-            i.value.isAbsolute && i.value.name.isEmpty() -> IconMD.HARDDISK
-            else -> IconUN(0x1f4c1)
-         }
-      }
-      icon.icon(glyph)
+      icon.size(iconSize)
+      icon.icon(fileIcon(i.value, i.valType))
       imgLoadAnimation?.playOpenFrom(loadProgress)
    }
 
+}
+fun Node.relocateCenter(x: Double, y: Double) {
+   relocate(x + layoutBounds.width/2, y + layoutBounds.width/2)
 }

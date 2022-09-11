@@ -1,7 +1,6 @@
 package sp.it.pl.ui.objects.tree
 
 import javafx.stage.Window as WindowFX
-import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.nio.file.Path
 import java.util.Stack
@@ -49,11 +48,8 @@ import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df.FILES
-import sp.it.pl.main.IconFA
-import sp.it.pl.main.IconUN
 import sp.it.pl.main.contextMenuFor
-import sp.it.pl.main.isSkinFile
-import sp.it.pl.main.isWidgetFile
+import sp.it.pl.main.fileIcon
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.image.Thumbnail
@@ -76,7 +72,6 @@ import sp.it.util.file.FileType
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.children
-import sp.it.util.file.hasExtension
 import sp.it.util.file.isParentOf
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.toFast
@@ -335,25 +330,13 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       else -> o.toUi()
    }
 
+
    private fun computeGraphics(p: Any): Node? = when (p) {
       is Path -> computeGraphics(p.toFile())
       is File -> {
          val type = if (treeItem.isLeaf) FILE else FileType(p)
-         fun GlyphIcons.icon() = createIcon(this, 10.0).apply { boundsType = VISUAL }
-
-         when (type) {
-            DIRECTORY -> when {
-               APP.location.skins==p.parentFile -> IconFA.PAINT_BRUSH.icon()
-               APP.location.widgets==p.parentFile -> IconFA.GE.icon()
-               else -> IconUN(0x1f4c1).icon()
-            }
-            FILE -> when {
-               p hasExtension "css" -> IconFA.CSS3.icon()
-               p.isSkinFile() -> IconFA.PAINT_BRUSH.icon()
-               p.isWidgetFile() -> IconFA.GE.icon()
-               else -> IconUN(0x1f4c4).icon()
-            }
-         }
+         val glyph = fileIcon(p, type)
+         createIcon(glyph, 10.0).apply { boundsType = VISUAL }
       }
       else -> null
    }

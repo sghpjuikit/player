@@ -190,17 +190,16 @@ open class GridFileThumbCell: GridCell<Item, File>() {
 
             if (gridView.value?.cellWidth?.value == CELL_SIZE_UNBOUND) {
                name.alignment = Pos.CENTER_LEFT
-               text
-               thumb!!.pane.resizeRelocate(x, y, h, h)
                name.resizeRelocate(h + nameGap, y, (w-h-2*nameGap) max 0.0, h)
+               thumb!!.pane.resizeRelocate(x, y, h, h)
                r.x = x
                r.y = y
                r.width = h
                r.height = h
             } else {
                name.alignment = Pos.CENTER
-               thumb!!.pane.resizeRelocate(x, y, w, h - th)
                name.resizeRelocate(x + nameGap, h - th + nameGap, (w-2*nameGap) max 0.0, (th-2*nameGap) max 0.0)
+               thumb!!.pane.resizeRelocate(x, y, w, h - th)
                r.x = x
                r.y = y
                r.width = w
@@ -289,7 +288,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
                // Has a positive effect when hundreds of covers load at once
                sleep(5)
 
-               // Executing this on FX thread would allow us avoid volatiles for invalid checks and futures
+               // Executing this on FX thread would allow us to avoid volatiles for invalid checks and futures
                // I do not know which is better. Out of fear we will need thread-safety in the future, I'm using this approach
                if (!isInvalid(item, i))
                   item.loadCover(size).onOk(FX) { setCoverPost(item, i, item.coverFile, item.cover) }

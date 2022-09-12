@@ -190,11 +190,11 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    /** @return focused javafx window or window with focused popup or null if none focused */
    fun getFocusedFxWithChild(): WindowFx? = null
       ?: windows.find { it.focused.value }?.stage
-      ?: windowsFx.find { it.isFocused }?.takeIf { !it.isSearchWindow() }?.let {
-         it.traverse { it.popWindowOwner ?: it.asIf<Stage>()?.owner }.takeWhile { !it.isSearchWindow() }.firstOrNull()
+      ?: windowsFx.find { it.isFocused }?.takeIf { !it.isIgnoredAsOwner() }?.let {
+         it.traverse { it.popWindowOwner ?: it.asIf<Stage>()?.owner }.takeWhile { !it.isIgnoredAsOwner() }.firstOrNull()
       }
 
-   private fun WindowFx.isSearchWindow() = asPopWindow()?.properties?.get(Actions.APP_SEARCH) == Actions.APP_SEARCH
+   private fun WindowFx.isIgnoredAsOwner() = asPopWindow()?.ignoreAsOwner==true
 
    /** @return focused window or [getMain] if none focused */
    fun getActive(): Window? = getFocused() ?: getMain()

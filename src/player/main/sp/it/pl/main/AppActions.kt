@@ -278,6 +278,7 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
             content.value = APP.search.buildUi { hide() }
             title.value = "Search for an action or option"
             isAutohide.value = true
+            ignoreAsOwner = true
             properties[APP_SEARCH] = APP_SEARCH
             show(SCREEN_ACTIVE(CENTER))
          }

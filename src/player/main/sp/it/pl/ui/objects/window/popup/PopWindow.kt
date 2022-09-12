@@ -174,6 +174,9 @@ open class PopWindow {
    /** Whether this popup is currently showing. */
    val isShowing get() = window?.isShowing ?: false
 
+   /** Determines whether global window stage style setting is overridden for this window */
+   var ignoreAsOwner: Boolean = false
+
    private val animation = lazy {
       anim {
          root.opacity = it*it

@@ -529,6 +529,7 @@ fun showConfirmation(text: String, shower: Shower = WINDOW_ACTIVE(CENTER), actio
 fun <C: Configurable<*>> C.configure(titleText: String, shower: Shower = WINDOW_ACTIVE(CENTER), action: (C) -> Any?) {
    PopWindow().apply {
       val form = form(this@configure) {
+         ignoreAsOwner = true
          val result = action(it)
          if (result is Fut<*>) {
             val progressIndicator = appProgressIndicator({ headerIcons += it }, { headerIcons -= it })

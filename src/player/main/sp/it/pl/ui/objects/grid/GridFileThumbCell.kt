@@ -113,16 +113,16 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       }
 
       if (empty) {
-         graphic = null   // do not discard contents of the graphics
+         // do not discard contents of the graphics
       } else {
          if (!::root.isInitialized) computeGraphics()  // create graphics lazily and only once
          if (graphic!==root) graphic = root           // set graphics only when necessary
-      }
 
-      if (graphic!=null) {
          name.text = if (item==null) null else computeName(item)
-         setCoverNow(item!!)
-         pseudoClassChanged("file-hidden", FileField.IS_HIDDEN.getOf(item.value))
+         if (item!=null) {
+            setCoverNow(item)
+            pseudoClassChanged("file-hidden", FileField.IS_HIDDEN.getOf(item.value))
+         }
       }
    }
 

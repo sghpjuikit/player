@@ -102,10 +102,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
 
    override fun updateItem(item: Item?, empty: Boolean) {
       if (disposed) return
-      if (item===getItem()) {
-         if (!empty) setCoverNow(item!!)
-         return
-      }
+      if (item===getItem()) return
       super.updateItem(item, empty)
       itemVolatile = item
 

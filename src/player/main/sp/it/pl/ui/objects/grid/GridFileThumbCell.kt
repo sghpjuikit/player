@@ -153,7 +153,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          borderVisible = false
          pane.isManaged = false
          pane.isSnapToPixel = true
-         view.isSmooth = true
+         view.isSmooth = false
          view.doIfImageLoaded { img ->
             imgLoadAnim?.stop()
             imgLoadAnimItem = item

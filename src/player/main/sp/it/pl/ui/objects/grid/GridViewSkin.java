@@ -23,6 +23,7 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Skin;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -74,6 +75,7 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.onChange;
+import static sp.it.util.ui.Util.layAnchor;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.UtilKt.hasFocus;
@@ -135,8 +137,8 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		this.flow = new Flow<>(this);
 
 		attach(grid.getCellFactory(), e -> flow.disposeAndRebuildCells());
-		attach(grid.getCellHeight(), e -> flow.rebuildCells());
-		attach(grid.getCellWidth(), e -> flow.rebuildCells());
+		attach(grid.getCellHeight(), e -> flow.disposeAndRebuildCells());
+		attach(grid.getCellWidth(), e -> flow.disposeAndRebuildCells());
 		attach(grid.getCellAlign(), e -> flow.rebuildCells());
 		attach(grid.getCellMaxColumns(), e -> flow.rebuildCells());
 		attach(grid.getHorizontalCellSpacing(), e -> flow.rebuildCells());
@@ -440,6 +442,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		private final FlowScrollBar scrollbar;
 		private final Scrolled root;
 		private double viewStart = 0;
+		private boolean needsAdjustSize = false;
 		private boolean needsRemoveCachedCells = false;
 		private boolean needsRebuildCells = true;
 		private final double scrollSpeedMultiplier = 3;
@@ -519,6 +522,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		void disposeAndRebuildCells() {
 			needsRemoveCachedCells = true;
+			needsAdjustSize = true;
 			rebuildCells();
 		}
 
@@ -562,6 +566,13 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 			scrollbar.setValue(viewStart);
 			scrollbar.updating = false;
 
+			var grid = getSkinnable();
+			var cellWidthRaw = grid.getCellWidth().getValue();
+			var cellWidth = cellWidthRaw == CELL_SIZE_UNBOUND ? w : cellWidthRaw;
+			var cellHeight = grid.getCellHeight().getValue();
+			var cellWidthSnapped = snapSizeX(max(cellWidth, 10));
+			var cellHeightSnapped = snapSizeY(max(cellHeight, 10));
+
 			// update cells
 			if (needsRebuildCells) {
 				needsRebuildCells = false;
@@ -601,10 +612,11 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 								if (c!=null) c.updateIndex(i);
 								return c;
 							},
-							// reuse cached cells to prevent needlessly creating cells
+							// or create cell
 							() -> {
 								var c = createCell();
 								c.updateIndex(i);
+								c.resize(cellWidthSnapped, cellHeightSnapped);
 								return c;
 							}
 						)
@@ -619,28 +631,24 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 				}
 			}
 
+			// update cells
 			int itemCount = visibleCells.size();
 			if (itemCount>0) {
-				// update cells
-				var grid = getSkinnable();
-				double cellWidthRaw = grid.getCellWidth().getValue();
-				double cellWidth = cellWidthRaw == CELL_SIZE_UNBOUND ? w : cellWidthRaw;
-				double cellHeight = grid.getCellHeight().getValue();
-				int columns = computeMaxCellsInRow();
-				double vGap = grid.getVerticalCellSpacing().getValue();
-				double hGap = grid.getCellAlign().getValue().computeGap(grid, w, columns);
-				double cellGapHeight = cellHeight + vGap;
-				double cellGapWidth = cellWidth + hGap;
-				double viewStartY = viewStart;
-				int viewStartRI = computeMinVisibleRowIndex();
-				int rowCount = computeVisibleRowCount();
-				int i = 0;
-				double xPosInitial = cellWidthRaw == CELL_SIZE_UNBOUND ? 0.0 : grid.getCellAlign().getValue().computeStartX(grid, w, columns);
-				for (int rowI = viewStartRI; rowI<viewStartRI + rowCount; rowI++) {
+				var columns = computeMaxCellsInRow();
+				var vGap = grid.getVerticalCellSpacing().getValue();
+				var hGap = grid.getCellAlign().getValue().computeGap(grid, w, columns);
+				var cellGapHeight = cellHeight + vGap;
+				var cellGapWidth = cellWidth + hGap;
+				var viewStartY = viewStart;
+				var cellXsInitial = cellWidthRaw == CELL_SIZE_UNBOUND ? 0.0 : grid.getCellAlign().getValue().computeStartX(grid, w, columns);
+				var cellXs = Stream.iterate(cellXsInitial, it -> it + cellGapWidth).limit(columns).map(it -> snapPositionX(it)).toArray(Double[]::new);
+				var viewStartRI = computeMinVisibleRowIndex();
+				var rowCount = computeVisibleRowCount();
+				for (int rowI = viewStartRI, yi = 0, i = 0; rowI<viewStartRI + rowCount; rowI++, yi++) {
 					double rowStartY = rowI*cellGapHeight;
-					double xPos = xPosInitial;
 					double yPos = rowStartY - viewStartY;
-					for (int cellI = rowI*columns; cellI<(rowI + 1)*columns; cellI++, i++) {
+					double yPosSnapped = snapPositionY(yPos);
+					for (int cellI = rowI*columns, xi = 0; cellI<(rowI + 1)*columns; cellI++, i++, xi++) {
 						if (i>=itemCount) break;	// last row may not be full
 
 						var cell = getAt(i, visibleCells);
@@ -649,10 +657,9 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 						failIf(cell.getIndex()!=cellI);
 						failIf(item==null);
 
-						cell.resizeRelocate(snapPositionX(xPos), snapPositionY(yPos), snapSizeX(max(cellWidth, 10)), snapSizeY(max(cellHeight, 10)));
+						if (needsAdjustSize) cell.resizeRelocate(cellXs[xi], yPosSnapped, cellWidthSnapped, cellHeightSnapped);
+						else cell.relocate(cellXs[xi], yPosSnapped);
 						cell.update(cellI, item, cellI==skin.selectedCI);
-
-						xPos += cellGapWidth;
 					}
 				}
 			}
@@ -662,9 +669,10 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 //			skin.selectedCI = skin.selectedC==null ? NO_SELECT : skin.selectedC.getIndex();
 //			skin.grid.getSelectedItem().set(skin.selectedC==null ? null : skin.selectedC.getItem());
 
-			// retain focus (should not be necessary as cells should not be focus-traversable, but it's hard to tell
-			if (wasFocused)
-				skin.grid.requestFocus();
+			needsAdjustSize = false;
+
+			// retain focus (cells should not be focus-traversable, but just in case)
+			if (wasFocused) skin.grid.requestFocus();
 		}
 
 		void dispose() {

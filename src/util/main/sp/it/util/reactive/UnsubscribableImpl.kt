@@ -13,19 +13,19 @@ interface Subscription: Unsubscribable {
 
    companion object {
 
-      operator fun invoke() = Empty as Subscription
+      operator fun invoke(): Subscription = Empty
 
-      operator fun invoke(s1: Subscription) = s1
+      operator fun invoke(s1: Subscription): Subscription = s1
 
-      operator fun invoke(block: () -> Unit) = Uni(block) as Subscription
+      operator fun invoke(block: () -> Unit): Subscription = Uni(block)
 
-      operator fun invoke(s1: Subscription, s2: Subscription) = Bi(s1, s2) as Subscription
+      operator fun invoke(s1: Subscription, s2: Subscription): Subscription = Bi(s1, s2)
 
-      operator fun invoke(s1: () -> Unit, s2: () -> Unit) = Bi(Subscription(s1), Subscription(s2)) as Subscription
+      operator fun invoke(s1: () -> Unit, s2: () -> Unit): Subscription = Bi(Subscription(s1), Subscription(s2))
 
-      operator fun invoke(vararg subs: Subscription) = Multi(subs) as Subscription
+      operator fun invoke(vararg subs: Subscription): Subscription = Multi(subs)
 
-      operator fun invoke(vararg subs: () -> Unit) = Multi(subs.map { Subscription(it) }.toTypedArray()) as Subscription
+      operator fun invoke(vararg subs: () -> Unit): Subscription = Multi(subs.map { Subscription(it) }.toTypedArray())
 
    }
 

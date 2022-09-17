@@ -174,7 +174,6 @@ fun Node.removeFromParent() {
          .ifError { logger.error(it) { "Failed to refocus content after removal from scene graph" } }
 }
 
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T: Node> Node.lookupId(id: String): T = lookup("#$id").let {
    when (it) {
       null -> fail { "No match for id=$id" }

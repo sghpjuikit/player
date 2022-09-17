@@ -218,17 +218,17 @@ public class Thumbnail {
 	}
 
 	/** Loads image and sets it to show, null sets no image. */
-	public void loadImage(Image img) {
+	public void loadImage(@Nullable Image img) {
 		imageFile = null;
 		setImgA(img);
 	}
 
-	public void loadImage(Image img, File file) {
+	public void loadImage(@Nullable Image img, @Nullable File file) {
 		imageFile = file;
 		setImgA(img);
 	}
 
-	public void loadFile(File img) {
+	public void loadFile(@Nullable File img) {
 		if (img==null) {
 			loadImage(null, null);
 		} else if (image.getValue()==null || image.getValue().getUrl()==null || !img.getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl()))) {
@@ -240,7 +240,7 @@ public class Thumbnail {
 		}
 	}
 
-	public void loadCover(Cover img) {
+	public void loadCover(@Nullable Cover img) {
 		if (img==null) {
 			loadImage(null, null);
 		} else {

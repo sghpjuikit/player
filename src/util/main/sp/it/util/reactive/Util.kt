@@ -452,12 +452,17 @@ fun Node.sync1IfInScene(block: () -> Unit): Subscription {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun Image.sync1IfImageLoaded(crossinline block: () -> Unit): Subscription {
+inline fun Image?.sync1IfImageLoaded(crossinline block: () -> Unit): Subscription {
    contract {
       callsInPlace(block, AT_MOST_ONCE)
    }
 
-   return progressProperty().sync1If({ it.toDouble()==1.0 }) { block() }
+   return if (this==null) {
+      block()
+      Subscription()
+   } else {
+      return progressProperty().sync1If({ it.toDouble()==1.0 }) { block() }
+   }
 }
 
 @OptIn(ExperimentalContracts::class)

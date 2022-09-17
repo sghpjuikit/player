@@ -65,10 +65,15 @@ class Fut<T>(private var f: CompletableFuture<T>) {
       f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt)
    }
 
+   fun <R> thenRecover(executor: Executor = defaultExecutor, block: (Result<T>) -> R) = Fut<R>(f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt))
+
    /** @return whether this future completed regardless of success */
    fun isDone(): Boolean = f.isDone
+
    fun isCancelled(): Boolean = f.isCancelled
+
    fun isOk(): Boolean = f.isDone && !f.isCompletedExceptionally
+
    fun isFailed(): Boolean = f.isCompletedExceptionally
 
    /** Invokes the block if this future [isDone] and [getDone] is [ResultOk] */
@@ -92,7 +97,10 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
    /** Blocks current thread until [isDone]. Returns this. */
    @Blocks
-   fun block() = apply { getDone() }
+   fun block(): Fut<T> = apply { getDone() }
+
+   @Blocks
+   fun blockAndGet(): Result<T> = getDone()
 
    @Blocks
    fun blockAndGetOrThrow(): T = block().getDone().toTryRaw().orThrow
@@ -108,9 +116,11 @@ class Fut<T>(private var f: CompletableFuture<T>) {
       fun <T> fut(value: T) = Fut<T>(CompletableFuture.completedFuture(value))
 
       /** @return future completed failed with the specified value */
+      @JvmStatic
       fun <T> futFailed(value: Throwable) = Fut<T>(CompletableFuture.failedFuture(value))
 
       /** @return future completed successfully or failed with the value supplied by the specified block */
+      @JvmStatic
       fun <T> futOfBlock(block: () -> T): Fut<T> = runTry { fut(block.logging()()) }.mapError<Fut<T>> { futFailed(it) }.getAny()
 
       private val defaultExecutor = CompletableFuture<Any>().defaultExecutor()!!

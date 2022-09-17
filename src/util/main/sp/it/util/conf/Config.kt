@@ -153,9 +153,8 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
             if (type.isNullable) Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() + (null as T) }
             else Enumerator { e.enumerateSealed() + valueEnumerator2nd.orEmpty() }
          }
-         ?: if (!type.raw.isObject) null else {
-            val instance = type.raw.objectInstance
-            val values = if (type.isNullable) listOf(instance, null) else listOf(instance)
+         ?: type.raw.objectInstance?.net { instance ->
+            val values = if (type.isNullable) listOf(instance, null as T) else listOf(instance)
             Enumerator { values }.asIs()
          }
    }

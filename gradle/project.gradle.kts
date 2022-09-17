@@ -111,9 +111,9 @@ allprojects {
       }
 
       "Logging" group {
-         implementation("org.slf4j", "slf4j-api", "2.0.0")
-         implementation("org.slf4j", "jul-to-slf4j", "2.0.0")
-         implementation("ch.qos.logback", "logback-classic", "1.4.0")
+         implementation("org.slf4j", "slf4j-api", "2.0.1")
+         implementation("org.slf4j", "jul-to-slf4j", "2.0.1")
+         implementation("ch.qos.logback", "logback-classic", "1.4.1")
          implementation("io.github.microutils", "kotlin-logging", "2.1.23")
       }
 
@@ -128,7 +128,7 @@ allprojects {
       }
 
       "Misc" group {
-         implementation("com.github.f4b6a3", "uuid-creator", "5.1.1")
+         implementation("com.github.f4b6a3", "uuid-creator", "5.1.2")
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")

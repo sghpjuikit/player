@@ -316,14 +316,14 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	@NotNull
 	@Override
 	public PropVal getValueAsProperty() {
-		return new PropVal1(new Action.Data(global, getKeys()).toString());
+		return new PropVal1(new ActionDb(global, getKeys()).toString());
 	}
 
 	@Override
 	public void setValueAsProperty(@NotNull PropVal property) {
 		var s = property.getVal1();
-		var a = s==null ? null : Action.Data.fromString(s);
-		if (a!=null) set(a.isGlobal, a.keys);
+		var a = s==null ? null : ActionDb.Companion.fromString(s);
+		if (a!=null) set(a.isGlobal(), a.getKeys());
 	}
 
 	@Override

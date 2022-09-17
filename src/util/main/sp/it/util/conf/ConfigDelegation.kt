@@ -1,5 +1,3 @@
-@file:Suppress("FINAL_UPPER_BOUND")
-
 package sp.it.util.conf
 
 import kotlin.properties.ReadOnlyProperty as RoProperty
@@ -26,6 +24,7 @@ import sp.it.util.access.v
 import sp.it.util.access.vn
 import sp.it.util.access.vx
 import sp.it.util.action.Action
+import sp.it.util.action.ActionDb
 import sp.it.util.action.IsAction
 import sp.it.util.dev.failIf
 import sp.it.util.functional.Try
@@ -225,7 +224,7 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
       val isGlobal = infoExt?.global ?: false
       val isContinuous = infoExt?.repeat ?: false
 
-      val c = ValueConfig(type(), name, name, Action.Data(isGlobal, keys), group, desc, EditMode.USER)
+      val c = ValueConfig(type(), name, name, ActionDb(isGlobal, keys), group, desc, EditMode.USER)
       ref.configurableValueSource.initialize(c)
       val cv = c.value
 

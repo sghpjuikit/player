@@ -58,11 +58,11 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    private val hoverAnim = lazy {
       anim(150.millis) { root.lookupId<Rectangle>("grid-cell-stroke").strokeWidth = 1+it*2.emScaled }
    }
-   @Volatile protected var disposed = false
+   protected var disposed = false
    private val onDispose = Disposer()
-   @Volatile private var itemVolatile: Item? = null
-   @Volatile private var parentVolatile: Parent? = null
-   @Volatile private var indexVolatile: Int = -1
+   private var itemVolatile: Item? = null
+   private var parentVolatile: Parent? = null
+   private var indexVolatile: Int = -1
 
    init {
       styleClass += "thumb-file-grid-cell"
@@ -277,18 +277,15 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       } else {
          thumb!!.loadFile(null)
 
-         val size = computeThumbSize()
-//         failIf(size.width<=0 || size.height<=0)
-
-         loader.execute {
-               // Determines minimum loading time/max loading throughput
-               // Has a positive effect when hundreds of covers load at once
-               sleep(1)
-
-               // Executing this on FX thread would allow us to avoid volatiles for invalid checks and futures
-               // I do not know which is better. Out of fear we will need thread-safety in the future, I'm using this approach
-               if (!isInvalid(item, i))
-                  item.loadCover(size).onOk(FX) { setCoverPost(item, i, item.coverFile, item.cover) }
+         loader {
+            sleep(1) // UI breathing time between image loadings
+            runFX {
+               if (!isInvalid(item, i)) {
+                  item.loadCover(computeThumbSize()).onOk(FX) {
+                     setCoverPost(item, i, item.coverFile, item.cover)
+                  }
+               }
+            }
          }
       }
    }

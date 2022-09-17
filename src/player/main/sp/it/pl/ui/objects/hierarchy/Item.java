@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 import javafx.scene.image.Image;
 import kotlin.Unit;
 import kotlin.sequences.Sequence;
@@ -22,7 +23,6 @@ import sp.it.util.HierarchicalBase;
 import sp.it.util.JavaLegacy;
 import sp.it.util.access.fieldvalue.CachingFile;
 import sp.it.util.async.future.Fut;
-import sp.it.util.dev.ThreadSafe;
 import sp.it.util.file.FileType;
 import sp.it.util.file.UtilKt;
 import sp.it.util.functional.Util;
@@ -37,6 +37,7 @@ import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppFileKt.isVideo;
 import static sp.it.util.async.AsyncKt.runIO;
+import static sp.it.util.dev.FailKt.fail;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.FileType.DIRECTORY;
@@ -60,7 +61,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	protected volatile List<Item> children = null;
 	/** All file children. Super set of {@link #children}. Must not be accessed outside fx application thread. */
 	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
-	public volatile Fut<Unit> coverLoading = null;
+	public Fut<Unit> coverLoading = null;
 	public volatile Image cover = null;           // cover cache
 	public volatile File coverFile = null;        // cover file cache
 	private volatile boolean coverFileLoaded = false;
@@ -88,6 +89,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	public void removeChild(@NotNull Item item) {
 		failIfNotFxThread();
+
 		if (disposed) return;
 		if (children == null) return;
 		children.remove(item);
@@ -113,6 +115,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	/** Dispose of the cover as to be able to load it again. */
 	public void disposeCover() {
 		failIfNotFxThread();
+
 		cover = null;
 		coverLoading = null;
 	}
@@ -214,27 +217,24 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	@ThreadSafe
 	public boolean isLoadedCover() {
 		failIfNotFxThread();
-		var cl = coverLoading;
-		return cl!=null && cl.isDone();
+
+		return coverLoading!=null && coverLoading.isDone();
 	}
 
 	public Fut<Unit> loadCover(ImageSize size) {
-		if (disposed) {
-			var f = Fut.fut();
-			coverLoading = Fut.fut();
-			return f;
-		}
+		failIfNotFxThread();
 
-		var cl = coverLoading;
-		if (cl!=null) {
-			return cl;
-		} else {
-			var f = runIO(runnable(() -> {
+		if (disposed)
+			coverLoading = Fut.fut();
+
+		if (coverLoading==null) {
+			var strategy = getCoverStrategy();
+			coverLoading = runIO(runnable(() -> {
+				try { strategy.semaphore.acquire(); } catch (InterruptedException t) { fail(t, () -> "Interrupted"); }
+
 				var file = getCoverFile();
-				var strategy = getCoverStrategy();
 				if (file==null) {
 					if (valType==DIRECTORY) {
 						if (strategy.useComposedDirCover) {
@@ -275,18 +275,17 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 				} else {
 					cover = strategy.loader.invoke(file, size);
 				}
+
+				strategy.semaphore.release();
 			}));
-
-			coverLoading = f;
-			return f;
 		}
-
+		return coverLoading;
 	}
 
 	protected File getCoverFile() {
 		failIfFxThread();
-		if (disposed) return null;
 
+		if (disposed) return null;
 		if (coverFileLoaded) return coverFile;
 		coverFileLoaded = true;
 
@@ -364,6 +363,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		public final @Nullable UUID diskCache;
 		/** The actual cover image loader */
 		private final ImageLoader loader;
+		public final Semaphore semaphore = new Semaphore(1111);
 
 		public CoverStrategy(boolean useParentCoverIfNone, boolean useComposedDirCover, boolean useNativeIconIfNone, boolean useVideoFrameCover, @Nullable UUID diskCache) {
 			this.useParentCoverIfNone = useParentCoverIfNone;

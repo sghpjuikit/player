@@ -2,7 +2,7 @@ package sp.it.pl.layout
 
 import de.jensd.fx.glyphs.GlyphIcons
 import javafx.scene.Node
-import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.TransferMode.ANY
 import javafx.scene.layout.AnchorPane
@@ -33,17 +33,15 @@ abstract class ComponentUiControlsBase: ComponentUiControls {
    }
 
    protected fun onDragDetected(e: MouseEvent, root: Node) {
-      if (e.button==MouseButton.PRIMARY) {
+      if (e.button==PRIMARY && !e.isAltDown && !e.isShiftDown) {
          if (e.isShortcutDown) {
             area.detach()
             e.consume()
-         } else {
-            if (area.component.parent !is ContainerFreeForm || e.y<=20.emScaled) {
-               val db = root.startDragAndDrop(*ANY)
-               db[Df.COMPONENT] = area.component
-               root.pseudoClassStateChanged(WidgetUi.PSEUDOCLASS_DRAGGED, true)
-               e.consume()
-            }
+         } else if (area.component.parent !is ContainerFreeForm || e.y<=20.emScaled) {
+            val db = root.startDragAndDrop(*ANY)
+            db[Df.COMPONENT] = area.component
+            root.pseudoClassStateChanged(WidgetUi.PSEUDOCLASS_DRAGGED, true)
+            e.consume()
          }
       }
    }

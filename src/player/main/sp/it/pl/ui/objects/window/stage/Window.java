@@ -293,7 +293,7 @@ public class Window extends WindowBase {
 
 				e.consume();
 			}
-			if (isInteractiveOnLeftAlt.getValue() && e.isAltDown() && !APP.ui.isLayoutMode()) {
+			if (isInteractiveOnLeftAlt.getValue() && e.isAltDown()) {
 				if (e.getButton()==PRIMARY) {
 					isMovingAlt = true;
 					root.setMouseTransparent(true);

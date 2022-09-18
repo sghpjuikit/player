@@ -1,8 +1,14 @@
 
 /** Inherits: StackPane */
 .game-cell-play-placeholder {
-    -fx-background-color: rgba(0, 0, 0, 0.8);
+    -fx-padding: 3;
+    -fx-background-color: -skin-bgr-color;
+    -fx-background-color: linear-gradient(to right, -skin-bgr-color 0%, ladder(rgba(0,55,255), -skin-bgr-color, transparent), -skin-bgr-color 100%);
     -fx-max-height: 4em;
+}
+.game-cell-play-placeholder > VBox {
+    -fx-translate-y: -0.5em;
+    -fx-spacing: -10;
 }
 
 /** Inherits: .icon */

@@ -100,7 +100,6 @@
 .menu-item:focused > .label {
     -fx-fill: white;
     -fx-text-fill: white;
-    -fx-font-weight: bold;
 }
 
 .menu > .right-container > .arrow,
@@ -111,7 +110,6 @@
 .menu-down-arrow {
     -fx-background-color: -skin-white;
 }
-
 
 /* Increase padding */
 .context-menu {
@@ -244,4 +242,12 @@
 .value-text-field:editable .left-pane,
 .value-text-field:editable .right-pane {
     -fx-background-color: -skin-white-darker;
+}
+
+/* Bold hover/focus effects */
+.menu-item > * > .icon Text,
+.menu-item:focused > .label,
+.grid-cell:selected .label,
+.grid-cell:hover .label {
+    -fx-font-weight: bold;
 }

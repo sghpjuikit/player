@@ -15,6 +15,7 @@
     /* overrides */
     -skin-base-color: -skin-green;
     -skin-pane-color: -skin-white;
+    -skin-bgr-color: -skin-white-dark;
     -skin-def-font-color: rgb(190,190,190);
     -skin-def-font-color-light: -skin-pane-color;
     -skin-def-font-color-hover: -skin-green;
@@ -25,7 +26,7 @@
 
 /* grid */
 .grid-cell {
-    -fx-background-color: -skin-white-darker;
+    -fx-background-color: transparent;
 }
 .grid-cell .grid-cell-stroke {
     -fx-stroke: -skin-white-dark;
@@ -34,7 +35,7 @@
     -fx-stroke: -skin-white-dark;
 }
 .grid-cell:selected {
-    -fx-background-color: -skin-white-dark;
+    -fx-background-color: transparent;
 }
 .grid-cell:selected .label {
     -fx-text-fill: -skin-green;
@@ -48,5 +49,4 @@
 .menu-item:focused > .label {
     -fx-fill: -skin-white-dark;
     -fx-text-fill: -skin-white-dark;
-    -fx-font-weight: bold;
 }

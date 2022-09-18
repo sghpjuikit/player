@@ -104,9 +104,9 @@ import sp.it.util.file.toFast
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
-import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
+import sp.it.util.math.min
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
@@ -275,7 +275,7 @@ class GameView(widget: Widget): SimpleController(widget) {
    }
 
    private inner class Cell: GridFileThumbCell() {
-      val playPlaceholderPane = lazy {
+      val playPlaceholderPane by lazy {
          stackPane {
             styleClass += "game-cell-play-placeholder"
 
@@ -288,9 +288,17 @@ class GameView(widget: Widget): SimpleController(widget) {
             }
          }
       }
+
       val playPlaceholder = Subscribed.delayedFx(350.millis) {
-         if (it) root.lay += playPlaceholderPane.value
-         else playPlaceholderPane.orNull().ifNotNull { root.lay -= it }
+         val p = playPlaceholderPane
+         onLayoutChildren = { x, y, w, h ->
+            if (it) {
+               val mh = h min p.maxHeight
+               p.resizeRelocate(x + p.snappedLeftInset(), y + (h-mh-computeCellTextHeight()/2)/2, w-p.snappedLeftInset()-p.snappedRightInset(), mh)
+            }
+         }
+         if (it) root.lay += p
+         else root.lay -= p
       }
 
       override fun computeCellTextHeight() = cellTextHeight.value!!

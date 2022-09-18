@@ -358,9 +358,9 @@ class AppSearchPlugin: PluginBase() {
             coverStrategy = CoverStrategy(false, false, true, true, null)
          }
 
-         override fun childrenFiles() = owner.searchSourceApps/*.filter { !it.name.contains("unins", true) }*/.asSequence()
+         override fun childrenFiles() = owner.searchSourceApps.asSequence()
 
-         override fun getCoverFile() = null
+         override fun getCoverFile(strategy: CoverStrategy) = null
 
       }
 

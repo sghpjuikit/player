@@ -23,7 +23,6 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Skin;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -68,14 +67,13 @@ import static sp.it.util.collections.UtilKt.setTo;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.functional.Util.IS;
 import static sp.it.util.functional.Util.by;
-import static sp.it.util.functional.Util.firstNotNull;
+import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.stream;
 import static sp.it.util.functional.Util.with;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.onChange;
-import static sp.it.util.ui.Util.layAnchor;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.UtilKt.hasFocus;
@@ -537,7 +535,13 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		}
 
 		@Override
+		protected <E extends Node> List<E> getManagedChildren() {
+			return list();
+		}
+
+		@Override
 		protected void layoutChildren() {
+
 			boolean wasFocused = hasFocus(skin.flow);
 			double w = getWidth();
 			double h = getHeight();
@@ -578,17 +582,19 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 				needsRebuildCells = false;
 				if (needsRemoveCachedCells) {
 					needsRemoveCachedCells = false;
-					visibleCells.forEach(cell -> cell.update(-1, null, false));
+					var cells = List.copyOf(visibleCells);
 					visibleCells.clear();
 					cachedCells.clear();
+					cells.forEach(cell -> cell.update(-1, null, false));
 				}
 				int indexStart = computeMinVisibleCellIndex();
 				int indexEnd = min(itemsAllCount - 1, computeMaxVisibleCellIndex());
 				int itemCount = indexEnd - indexStart + 1;
 
 				if (itemsAllCount==0) {
-					visibleCells.forEach(cachedCells::addLast);
+					var cells = List.copyOf(visibleCells);
 					visibleCells.clear();
+					cells.forEach(cachedCells::addLast);
 					cachedCells.forEach(cell -> cell.update(-1, null, false));
 				} else {
 					failIf(indexStart>indexEnd);
@@ -598,29 +604,25 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 					failIf(itemsAllCount<=indexEnd);
 
 					var visibleCellOld = visibleCells.stream().collect(toMap(c -> c.getIndex(), c -> c));
-					var visibleCellsNew = rangeClosed(indexStart, indexEnd).mapToObj(i ->
-						firstNotNull(
-							// reuse visible cells to prevent needlessly update their content
-							() -> {
+					var visibleCellsNew = rangeClosed(indexStart, indexEnd).mapToObj(i -> {
+							{   // reuse visible cells to prevent needlessly update their content
 								var c = visibleCellOld.remove(i);
 								if (c!=null) failIf(c.getIndex()!=i);
-								return c;
-							},
-							// reuse cached cells to prevent needlessly creating cells
-							() -> {
+								if (c!=null) return c;
+							}
+							{   // reuse cached cells to prevent needlessly creating cells
 								var c = cachedCells.isEmpty() ? null : cachedCells.removeLast();
 								if (c!=null) c.updateIndex(i);
-								return c;
-							},
-							// or create cell
-							() -> {
+								if (c!=null) return c;
+							}
+							{   // or create cell
 								var c = createCell();
 								c.updateIndex(i);
-								c.resize(cellWidthSnapped, cellHeightSnapped);
+								c.getProperties().put("xxx", "xxx");
+//							c.resize(cellWidthSnapped, cellHeightSnapped);
 								return c;
 							}
-						)
-					).toList();
+						}).toList();
 					setTo(visibleCells, visibleCellsNew);
 					failIf(visibleCells.size()!=itemCount);
 
@@ -629,6 +631,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 						cachedCells.addLast(cell);
 					});
 				}
+
 			}
 
 			// update cells
@@ -657,7 +660,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 						failIf(cell.getIndex()!=cellI);
 						failIf(item==null);
 
-						if (needsAdjustSize) cell.resizeRelocate(cellXs[xi], yPosSnapped, cellWidthSnapped, cellHeightSnapped);
+						if (needsAdjustSize || cell.getProperties().containsKey("xxx")) cell.resizeRelocate(cellXs[xi], yPosSnapped, cellWidthSnapped, cellHeightSnapped);
 						else cell.relocate(cellXs[xi], yPosSnapped);
 						cell.update(cellI, item, cellI==skin.selectedCI);
 					}
@@ -677,9 +680,10 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 
 		void dispose() {
 			needsRebuildCells = false;
-			visibleCells.forEach(c -> c.dispose());
-			cachedCells.forEach(c -> c.dispose());
+			var cells = List.copyOf(visibleCells);
 			visibleCells.clear();
+			cells.forEach(c -> c.dispose());
+			cachedCells.forEach(c -> c.dispose());
 			cachedCells.clear();
 		}
 

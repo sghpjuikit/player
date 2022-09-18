@@ -3,7 +3,6 @@ package albumView
 import java.io.File
 import java.util.function.Supplier
 import javafx.geometry.Pos
-import javafx.scene.Parent
 import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.scene.input.KeyCode.ENTER
@@ -14,6 +13,7 @@ import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.Pane
 import javafx.scene.shape.Rectangle
 import kotlin.math.round
+import kotlin.math.sqrt
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
 import sp.it.pl.audio.tagging.Metadata
@@ -23,16 +23,18 @@ import sp.it.pl.audio.tagging.MetadataGroup.Companion.groupsOf
 import sp.it.pl.audio.tagging.MetadataGroup.Field.VALUE
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.pl.layout.Widget
-import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
+import sp.it.pl.main.Double01
+import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.FieldedPredicateItemNode.PredicateData
 import sp.it.pl.ui.objects.grid.GridCell
 import sp.it.pl.ui.objects.grid.GridView
 import sp.it.pl.ui.objects.grid.GridView.CellGap
 import sp.it.pl.ui.objects.grid.GridView.CellSize
+import sp.it.pl.ui.objects.grid.ImageLoad
 import sp.it.pl.ui.objects.image.Cover.CoverSource.DIRECTORY
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.util.JavaLegacy
@@ -41,15 +43,12 @@ import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.async.burstTPExecutor
+import sp.it.util.async.FX
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
-import sp.it.util.async.sleep
-import sp.it.util.async.threadFactory
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
@@ -60,11 +59,10 @@ import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
 import sp.it.util.conf.noUi
 import sp.it.util.conf.uiNoOrder
-import sp.it.util.dev.ThreadSafe
-import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.div
 import sp.it.util.functional.asIs
+import sp.it.util.functional.getAny
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
@@ -79,17 +77,17 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfImageLoaded
 import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.sync1IfNonNull
+import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.Resolution
+import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.lay
-import sp.it.util.ui.lookupId
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 import sp.it.util.units.millis
-import sp.it.util.units.minutes
 
 @Widget.Info(
    author = "Martin Polakovic",
@@ -115,6 +113,8 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
+   val coverFitFrom by cv(FitFrom.OUTSIDE)
+      .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
    private val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    init {
@@ -184,30 +184,29 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       lastScrollPosition = grid.skinImpl?.position ?: 0.0
 
       runIO {
-         val mgs = groupsOf(ALBUM, list)
-         runFX {
-            if (mgs.isNotEmpty()) {
-               selectionStore()
-               val albumsOld = grid.itemsRaw.materialize()
-               val albumsByName = albumsOld.associateBy { it.name }
-               val albums = mgs
-                  .map {
-                     Album(it).apply {
-                        albumsByName[name].ifNotNull {
-                           coverLoading = it.coverLoading
-                           loadProgress = it.loadProgress
-                        }
+         groupsOf(ALBUM, list)
+      } ui { mgs ->
+         if (mgs.isNotEmpty()) {
+            selectionStore()
+            val albumsOld = grid.itemsRaw.materialize()
+            val albumsByName = albumsOld.associateBy { it.name }
+            val albums = mgs
+               .map {
+                  Album(it).apply {
+                     albumsByName[name].ifNotNull {
+                        cover = it.cover
+                        loadProgress = it.loadProgress
                      }
                   }
-                  .sortedBy { it.name }
-                  .toList()
+               }
+               .sortedBy { it.name }
+               .toList()
 
-               grid.itemsRaw setTo albums
-               grid.skinImpl?.position = lastScrollPosition max 0.0
-               albumsOld.forEach { it.dispose() }
-               selectionReStore()
-               outputSelectedM.value = filterList(true)
-            }
+            grid.itemsRaw setTo albums
+            grid.skinImpl?.position = lastScrollPosition max 0.0
+            albumsOld.forEach { it.dispose() }
+            selectionReStore()
+            outputSelectedM.value = filterList(true)
          }
       }
    }
@@ -276,69 +275,66 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       outputSelected.value = grid.selectedItem.value?.items
    }
 
-   class FileImage(val file: File?, val image: Image?)
-
    class Album(val items: MetadataGroup) {
       val name = items.getValueS("")
-      var loadProgress = 0.0 // 0-1
-      @Volatile var coverLoading: Fut<FileImage>? = null
-      @Volatile var disposed = false
+      var loadProgress: Double01 = 0.0
+      var cover: ImageLoad = ImageLoad.NotStarted
 
       /** Dispose of this as to never be used again. */
       fun dispose() {
          failIfNotFxThread()
-         coverLoading = null
-         disposed = true
+         cover =  ImageLoad.DoneErr
       }
 
       /** Dispose of the cover as to be able to load it again. */
       fun disposeCover() {
          failIfNotFxThread()
-         coverLoading = null
+         cover = ImageLoad.NotStarted
       }
 
-      fun computeCover(size: ImageSize): Fut<FileImage> {
-         return if (disposed) {
-            fut(FileImage(null, null)).apply { coverLoading = this }
-         } else {
-            if (coverLoading==null) {
+      fun computeCover(size: ImageSize): Fut<*> {
+         failIfNotFxThread()
+
+         return when (val c = cover) {
+            is ImageLoad.DoneErr, is ImageLoad.DoneOk -> fut(ImageLoad.DoneErr)
+            is ImageLoad.Loading -> c.loading
+            is ImageLoad.NotStarted ->
                runIO {
                   val f = computeCoverFile()
                   val i = if (f==null) null else ImageStandardLoader(f, size)
-                  FileImage(f, i)
-               }.apply {
-                  coverLoading = this
+                  ImageLoad.DoneOk(i, f)
+               }.thenRecover(FX) {
+                  if (cover !is ImageLoad.DoneErr)
+                     cover = it.toTryRaw().mapError { ImageLoad.DoneErr }.getAny()
                }
-            } else
-               coverLoading!!
          }
       }
 
-      private fun computeCoverFile(): File? {
-         if (disposed) return null
-         return items.grouped.firstOrNull()?.getCover(DIRECTORY)?.getFile()
-      }
+      private fun computeCoverFile(): File? = items.grouped.firstOrNull()?.getCover(DIRECTORY)?.getFile()
    }
 
    inner class AlbumCell: GridCell<Album, MetadataGroup>() {
       private lateinit var root: Pane
       private lateinit var name: Label
+      private lateinit var stroke: Rectangle
       private var thumb: Thumbnail? = null
       private var imgLoadAnim: Anim? = null
       private var imgLoadAnimItem: Album? = null
 
       private val hoverAnim = lazy {
-         anim(150.millis) { root.lookupId<Rectangle>("grid-cell-stroke").strokeWidth = 1 + it*2.emScaled }
+         anim(150.millis) {
+            val p = sqrt(it)
+            val s = 2.emScaled
+            val x = -s+(1-p)*(s + computeCellTextHeight())
+            stroke.strokeWidth = (p*s) max 1.0
+            name.style = "-fx-background-insets: $x 0 0 0;"
+         }
       }
-      @Volatile private var disposed = false
-      private val onDispose = Disposer()
-      @Volatile private var itemVolatile: Album? = null
-      @Volatile private var parentVolatile: Parent? = null
-      @Volatile private var indexVolatile: Int = -1
+      private var disposed = false
+      private val disposer = Disposer()
 
       init {
          styleClass += "album-grid-cell"
-         parentProperty() sync { parentVolatile = it?.parent } on onDispose
       }
 
       private fun computeName(item: Album): String = item.name
@@ -356,26 +352,19 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          imgLoadAnim = null
          imgLoadAnimItem = null
          hoverAnim.orNull()?.stop()
-         onDispose()
+         disposer()
          if (thumb!=null) {
             val img = thumb?.view?.image
             thumb?.view?.image = null
             if (img!=null) JavaLegacy.destroyImage(img)
          }
          thumb = null
-         itemVolatile = null
-         parentVolatile = null
-         indexVolatile = -1
       }
 
       override fun updateItem(item: Album?, empty: Boolean) {
          if (disposed) return
-         if (item===getItem()) {
-            if (!empty) setCoverNow(item!!)
-            return
-         }
+         if (item===getItem()) return
          super.updateItem(item, empty)
-         itemVolatile = item
 
          if (imgLoadAnim!=null) {
             imgLoadAnim?.stop()
@@ -384,15 +373,15 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          }
 
          if (empty) {
-            graphic = null   // do not discard contents of the graphics
+            // do not discard contents of the graphics
          } else {
             if (!::root.isInitialized) computeGraphics()  // create graphics lazily and only once
-            if (graphic!==root) graphic = root            // set graphics only when necessary
-         }
+            if (graphic!==root) graphic = root           // set graphics only when necessary
 
-         if (graphic!=null) {
-            name.text = if (item==null) null else computeName(item)
-            setCoverNow(item!!)
+            if (item!=null) {
+               name.text = computeName(item)
+               setCoverNow(item)
+            }
          }
       }
 
@@ -400,11 +389,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          super.updateSelected(selected)
          hoverAnim.value.playFromDir(selected || root.isHover)
          if (thumb!=null && thumb!!.image.value!=null) thumb!!.animationPlayPause(selected)
-      }
-
-      override fun updateIndex(i: Int) {
-         indexVolatile = i
-         super.updateIndex(i)
       }
 
       private fun computeGraphics() {
@@ -417,6 +401,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
             borderVisible = false
             pane.isSnapToPixel = true
             view.isSmooth = true
+            fitFrom syncFrom coverFitFrom on disposer
             view.doIfImageLoaded { img ->
                imgLoadAnim?.stop()
                imgLoadAnimItem = item
@@ -424,7 +409,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
                   imgLoadAnim?.applyAt(0.0)
                else
                   imgLoadAnim?.playOpenFrom(imgLoadAnimItem!!.loadProgress)
-            } on onDispose
+            } on disposer
          }
 
          imgLoadAnim = anim(200.millis) {
@@ -434,25 +419,18 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
             }
          }
 
-         val r = Rectangle(1.0, 1.0).apply {
+         stroke = Rectangle(1.0, 1.0).apply {
             id = "grid-cell-stroke"
             styleClass += "grid-cell-stroke"
             isMouseTransparent = true
          }
 
-         root = object: Pane(thumb!!.pane, name, r) {
+         root = object: Pane(thumb!!.pane, name, stroke) {
             override fun layoutChildren() {
-               val x = 0.0
-               val y = 0.0
-               val w = width
-               val h = height
-               val th = computeCellTextHeight()
+               val x = 0.0 ; val y = 0.0 ; val w = width ; val h = height ; val th = computeCellTextHeight()
                thumb!!.pane.resizeRelocate(x, y, w, h - th)
                name.resizeRelocate(x, h - th, w, th)
-               r.x = x
-               r.y = y
-               r.width = w
-               r.height = h
+               stroke.x = x; stroke.y = y; stroke.width = w; stroke.height = h
             }
          }.apply {
             isSnapToPixel = true
@@ -471,36 +449,20 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          }
       }
 
-      /**
-       * @implSpec called on fx application thread, must return positive width and height
-       * @return size of an image to be loaded for the thumbnail
-       */
+      /** @return size of an image to be loaded for the thumbnail */
       private fun computeThumbSize(): ImageSize = gridView.value
          ?.let { ImageSize(it.cellWidth.value, it.cellHeight.value - computeCellTextHeight()) }
          ?: ImageSize(100.0, 100.0)
 
-      /**
-       * @implSpec must be thread safe
-       * @return true if the item of this cell is not the same object as the item specified
-       */
-      @ThreadSafe
-      private fun isInvalidItem(item: Album): Boolean = itemVolatile!==item
+      /** @return true if the item of this cell is not the same object as the item specified */
+      private fun isInvalidItem(item: Album): Boolean = item!==this.item
 
-      /**
-       * @implSpec must be thread safe
-       * @return true if the index of this cell is not the same as the index specified
-       */
-      @ThreadSafe
-      private fun isInvalidIndex(i: Int): Boolean = indexVolatile!=i
+      /** @return true if the index of this cell is not the same as the index specified */
+      private fun isInvalidIndex(index: Int): Boolean = index!=this.index
 
-      /**
-       * @implSpec must be thread safe
-       * @return true if this cell is detached from the grid (i.e. not its child)
-       */
-      @ThreadSafe
-      private fun isInvalidVisibility(): Boolean = parentVolatile==null
+      /** @return true if this cell is detached from the grid (i.e. not its child) */
+      private fun isInvalidVisibility(): Boolean = parent==null
 
-      @ThreadSafe
       private fun isInvalid(item: Album, i: Int): Boolean = isInvalidItem(item) || isInvalidIndex(i) || isInvalidVisibility()
 
       /**
@@ -514,28 +476,16 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
        */
       private fun setCoverNow(item: Album) {
          failIfNotFxThread()
-         val i = indexVolatile
 
-         if (item.coverLoading?.isDone()==true) {
-            item.coverLoading?.ifDoneOk {
-               setCoverPost(item, i, it.file, it.image)
-            }
-         } else {
-            val size = computeThumbSize().apply {
-               failIf(width<=0 || height<=0)
-            }
-
-            thumb!!.loadFile(null)
-            loader.execute {
-               if (!isInvalid(item, i)) {
-                  // Determines minimum loading time/max loading throughput
-                  // Has a positive effect when hundreds of covers load at once
-                  sleep(5)
-
-                  // Executing this on FX thread would allow us to avoid volatiles for invalid checks and futures
-                  // I do not know which is better. Out of fear we will need thread-safety in the future, I'm using this approach
-                  if (!isInvalid(item, i))
-                     item.computeCover(size) ui { setCoverPost(item, i, it.file, it.image) }
+         when (val cover = item.cover) {
+            is ImageLoad.DoneErr,
+            is ImageLoad.DoneOk -> setCoverPost(item, index, cover.file, cover.image)
+            is ImageLoad.Loading -> {}
+            is ImageLoad.NotStarted -> {
+               thumb!!.loadFile(null)
+               val i = index
+               item.computeCover(computeThumbSize()) ui {
+                  setCoverPost(item, i, item.cover.file, item.cover.image)
                }
             }
          }
@@ -543,12 +493,11 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
 
       private fun setCoverPost(item: Album, i: Int, imgFile: File?, img: Image?) {
          if (!disposed && !isInvalid(item, i) && thumb!!.getImage()!==img)
-            img?.sync1IfImageLoaded { thumb!!.loadImage(img, imgFile) }
+            img.sync1IfImageLoaded {
+               thumb!!.loadImage(img, imgFile)
+            }
       }
 
    }
 
-   companion object {
-      private val loader = burstTPExecutor(1, 1.minutes, threadFactory("album-cover-img-loader", true))
-   }
 }

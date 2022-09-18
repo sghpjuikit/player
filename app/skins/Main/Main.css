@@ -3721,6 +3721,11 @@ Shape, Text, SpitText, TextFlow > * {
     // -fx-stroke-width: 2;
 }
 
+.grid-cell > * > .label {
+    -fx-padding: 0 0.5em 0 0.5em;
+    -fx-background-color: -skin-bgr-color;
+}
+
 /*
  * Quick search which scrolls to the item in the table can also highlight any
  * while search is active all items have one of the following pseudoclasses

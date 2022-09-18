@@ -69,6 +69,8 @@ import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggle
 import sp.it.util.access.v
+import sp.it.util.async.IO
+import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runIO
 import sp.it.util.collections.insertEvery
@@ -109,7 +111,6 @@ import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.onChangeAndNow
@@ -380,34 +381,33 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       if (lastVisited==null) {
          visit(topItem)
       } else {
+         fut(lastVisited).then(IO) { lastVisited ->
 
-         // Build stack of files representing the visited branch
-         val path = Stack<File>() // nested items we need to rebuild to get to last visited
-         var f = lastVisited
-         while (f!=null && topItem.children().none { it.value==f }) {
-            path.push(f)
-            f = f.parentFile
-         }
-         val tmpF = f
-         val success = topItem.children().any { it.value!=null && it.value==tmpF }
-         if (success) {
-            path.push(f)
-         }
+            // Build stack of files representing the visited branch
+            val path = Stack<File>() // nested items we need to rebuild to get to last visited
+            var f = lastVisited
+            while (f!=null && topItem.children().none { it.value==f }) {
+               path.push(f)
+               f = f.parentFile
+            }
+            val tmpF = f
+            val success = topItem.children().any { it.value!=null && it.value==tmpF }
+            if (success) path.push(f)
 
-         // Visit the branch
-         if (success) {
-            runIO {
+            // Compute item to visit
+            if (success) {
                var item: Item? = topItem
                while (!path.isEmpty()) {
                   val tmp = path.pop()
                   item = item?.children()?.find { tmp==it.value }
                }
                item ?: topItem
-            } ui {
-               visit(it)
+            } else {
+               topItem
             }
-         } else {
-            visit(topItem)
+
+         } ui {
+            visit(it)
          }
       }
    }
@@ -484,7 +484,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
             val sortByValue = FileField.valueOf(sortBy.value)!!
             compareBy<Item> { 0 }
                .thenBy { it.valType }.inSort(sortFile.value.sort)
-               .thenBy(sortByValue.comparator { it.inSort(sort.value).nullsLast() }) { it.value }
+               .thenBy(sortByValue.memoized().comparator { it.inSort(sort.value).nullsLast() }) { it.value }
                .thenBy { it.value.path }
          }
       }
@@ -592,7 +592,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
       override fun childrenFiles() = filesMaterialized.filter { it.isDirectory && it.exists() }.let(filesJoiner.value.flatten).map { CachingFile(it) }
 
-      override fun getCoverFile() = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
+      override fun getCoverFile(strategy: CoverStrategy) = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
 
    }
 

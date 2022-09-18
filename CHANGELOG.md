@@ -3,6 +3,112 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Implement user configurable cover disk cache for grid file covers
+- Implement `ActionData` receiver editor support for collections
+- Implement & apply better algorithm computing icons for files
+- Implement better `Form` layout & warning UX [use warn icon instead of text]
+- Implement faster **AlbumView**, **DirView**, **GameView**, **AppLauncher** cover loading
+- Implement smoother **AlbumView**, **DirView**, **GameView**, **AppLauncher** scrolling [no UI stutter] 
+- Implement better **AlbumView**, **DirView**, **GameView**, **AppLauncher** grid cell style [animations, hover bold text, text padding]
+- Implement **AlbumView** grid cell thumbnail inside/outside fit settings
+- Fix `Component` actions not registered
+- Fix pdf cover not releasing resources
+- Fix hotkey consuming for `BACKSPACE`
+- Fix `toConfigurableFX` not producing proper readOnly state
+- Fix `GridFileIconCell` layout in certain cases
+- Fix `Config.configure` popup closing immediately if it opens from another `Config.configure` popup
+
+This update continues UX improvements from previous updates.
+
+### Actions
+Action execution from application search now correctly handles actions that can consume multiple inputs.
+Actions consuming collections provide list editor, allowing user to provide arbitrary number of inputs.
+These actions require at least one input.
+The form correctly applies constraints on the elements of the list as well as the list itself.
+
+### Form
+One problematic aspect of `Form`s was the validation output.
+Until now it was displayed as text below the **OK** button.
+This caused problems with layout due to window not resizing to accommodate the warning text.
+This was reworked to use a warning icon with a tooltip.
+
+### DirView
+**DirView** widget, intended for building libraries, can also be used as impromptu file explorer.
+This update fixes various issues with the `LIST` layout mode when thumbnails are not enabled.
+There is also massive improvement in performance and UI smoothness. See below.
+
+### Grid image loading
+There are two aspects of image loading, both very important and with various contributing factors:
+- Total speed
+  - using parallel image loading
+  - improving image loading speed
+    - using cache
+    - faster algorithms
+      - loading only necessary size using subsampling (this may however require scaling to get good result)
+      - adjusting the need for image scaling and reduce post-pressing
+- UI stutter
+  - CPU overload
+  - UI blocking
+  - UI overload
+    - improving grid layout
+    - improving grid cell updating
+    - using grid cell ui caching
+    - using canvas
+
+#### DirView - grid optimization - parallelism
+The grid already uses parallel image loading.
+
+#### DirView - grid optimization - algorithm
+Faster algorithm is generally not possible - there are couple possible routes here, but for now, this is considered out of scope.
+
+#### DirView - grid optimization - algorithm subsampling
+Images are already loaded using subsampling, which helps a lot. Scaling is performed and may be adjusted for performance in the future.
+
+#### DirView - grid optimization - image cache
+When the widget is used as a library, it tends to display more or less finite set of items.
+Loading of item thumbnails can be improved in this case by caching the images (of thumbnail size).
+From now on, user can enable disk cache. This noticeably improves image loading speed.
+
+#### DirView - grid optimization - CPU overload
+So far, CPU overload was not identified as a cause for concern when loading lots of images.
+
+#### DirView - grid optimization - UI blocking - volatile
+The way to prevent stutter normally is to never call blocking operation on UI thread.
+**DirView** did accidentally call expensive disk operation on UI thread.
+This has been fixed and it got rid of stutter that would appear shortly after opening the widget.
+
+#### DirView - grid optimization - UI blocking - volatile
+Volatile field in Java has a memory fence to avoid caching the value in CPU registers and to flush it to RAM instead (for all threads to see).
+This can create contention and block thread, in this case UI thread.
+The algorithm now avoids volatiles as much as possible as well optimizes how it uses them.
+
+#### DirView - grid optimization - UI overload - per-image delay
+To improve loading experience, `Thread.sleep/delay()` has been used in the past to give UI thread breathing space between loading each image.
+The delay has been reduced from 5ms to 1ms. For 1000 thumbnails, this alone decreases total load time by 5s.
+Ideally, it would be removed to 0, but this also serves as avoidance mechanism for only loading whats immediately on screen.
+In the future, this will be improved
+
+#### DirView - grid optimization - UI overload - image parallelism throttling
+This was prototypes using `Semaphore`, limiting the number of concurrent images being loaded.
+For now this feature is still disabled, but may be used to fix the above issue.
+
+#### DirView - grid optimization - layout
+Cells in the grid now only call `relocate()` instead of `resizeRelocate()` if resizing is not necessary.
+The calculation of cell positions now also avoids duplicated computations and only happens once for each unique value.
+Reused cells now also reduce amount of state changing when they are being removed/re-added to the grid. 
+Cells now do not call `super.requestLayout()` unnecessarily.
+
+#### DirView - grid optimization - cell updating
+Cells in the grid now do not internally update unless the item has actually changed.
+This was impossible until now, due to internal implementation.
+
+#### DirView - grid optimization - cell ui caching
+Cells in the grid now employ **JavaFX** caching, which caches the `Node` to a texture to avoid expensive redraws.
+
+#### DirView - grid canvas
+To reduce layout operations, cell thumbnails can be drawn on single shared `Canvas`.
+This was prototyped, however for now remains disabled, because it requires more work to support fade animations and animated images.
+
 ## [7.1.0] 2022 09 11
 
 - Implement improved action (`ActionData`) workflow
@@ -24,6 +130,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **CommandGrid** widget focus not working properly
 - Fix **StartScreen** plugin's overlay focus not working properly
 - Fix some settings saved/not saved [caused by Config.isPersistable]
+
+This update brings improvements in several parts of the application, notably reworked `ActionData`.
 
 ### Container children order
 Containers now have well-defined order of children.

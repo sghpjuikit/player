@@ -11,12 +11,14 @@ All notable changes to this project will be documented in this file. Format base
 - Implement smoother **AlbumView**, **DirView**, **GameView**, **AppLauncher** scrolling [no UI stutter] 
 - Implement better **AlbumView**, **DirView**, **GameView**, **AppLauncher** grid cell style [animations, hover bold text, text padding]
 - Implement **AlbumView** grid cell thumbnail inside/outside fit settings
+- Implement faster **DirView** sorting [use memoized comparator]
 - Fix `Component` actions not registered
 - Fix pdf cover not releasing resources
 - Fix hotkey consuming for `BACKSPACE`
 - Fix `toConfigurableFX` not producing proper readOnly state
 - Fix `GridFileIconCell` layout in certain cases
 - Fix `Config.configure` popup closing immediately if it opens from another `Config.configure` popup
+- Fix sliding window focus not working properly
 
 This update continues UX improvements from previous updates.
 
@@ -28,7 +30,7 @@ The form correctly applies constraints on the elements of the list as well as th
 
 ### Form
 One problematic aspect of `Form`s was the validation output.
-Until now it was displayed as text below the **OK** button.
+Until now, it was displayed as text below the **OK** button.
 This caused problems with layout due to window not resizing to accommodate the warning text.
 This was reworked to use a warning icon with a tooltip.
 
@@ -75,7 +77,7 @@ So far, CPU overload was not identified as a cause for concern when loading lots
 #### DirView - grid optimization - UI blocking - volatile
 The way to prevent stutter normally is to never call blocking operation on UI thread.
 **DirView** did accidentally call expensive disk operation on UI thread.
-This has been fixed and it got rid of stutter that would appear shortly after opening the widget.
+This has been fixed, and it got rid of stutter that would appear shortly after opening the widget.
 
 #### DirView - grid optimization - UI blocking - volatile
 Volatile field in Java has a memory fence to avoid caching the value in CPU registers and to flush it to RAM instead (for all threads to see).
@@ -85,7 +87,7 @@ The algorithm now avoids volatiles as much as possible as well optimizes how it 
 #### DirView - grid optimization - UI overload - per-image delay
 To improve loading experience, `Thread.sleep/delay()` has been used in the past to give UI thread breathing space between loading each image.
 The delay has been reduced from 5ms to 1ms. For 1000 thumbnails, this alone decreases total load time by 5s.
-Ideally, it would be removed to 0, but this also serves as avoidance mechanism for only loading whats immediately on screen.
+Ideally, it would be removed to 0, but this also serves as avoidance mechanism for only loading what's immediately on screen.
 In the future, this will be improved
 
 #### DirView - grid optimization - UI overload - image parallelism throttling

@@ -48,7 +48,6 @@ import sp.it.pl.layout.WidgetUse.NEW
 import sp.it.pl.layout.deduplicateIds
 import sp.it.pl.layout.exportFxwl
 import sp.it.pl.main.APP
-import sp.it.pl.main.Actions
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.Widgets.PLAYBACK
 import sp.it.pl.main.emScaled
@@ -530,6 +529,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
          showAnim.intpl { sqrt(sqrt(it)) }
          showAnim.playOpenDo {
             mw.s.asLayout()?.child = c
+            mw.focus()
             c.focus()
          }
       }

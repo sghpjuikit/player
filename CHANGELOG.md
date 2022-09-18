@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+
+## [7.2.0] 2022 09 18
+
 - Implement user configurable cover disk cache for grid file covers
 - Implement `ActionData` receiver editor support for collections
 - Implement & apply better algorithm computing icons for files

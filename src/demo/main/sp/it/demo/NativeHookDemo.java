@@ -29,27 +29,27 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.text.BadLocationException;
-import org.jnativehook.GlobalScreen;
-import org.jnativehook.NativeHookException;
-import org.jnativehook.NativeInputEvent;
-import org.jnativehook.dispatcher.SwingDispatchService;
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.keyboard.NativeKeyListener;
-import org.jnativehook.mouse.NativeMouseEvent;
-import org.jnativehook.mouse.NativeMouseInputListener;
-import org.jnativehook.mouse.NativeMouseWheelEvent;
-import org.jnativehook.mouse.NativeMouseWheelListener;
+import com.github.kwhat.jnativehook.GlobalScreen;
+import com.github.kwhat.jnativehook.NativeHookException;
+import com.github.kwhat.jnativehook.NativeInputEvent;
+import com.github.kwhat.jnativehook.dispatcher.SwingDispatchService;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseInputListener;
+import com.github.kwhat.jnativehook.mouse.NativeMouseWheelEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseWheelListener;
 import static java.awt.event.ActionEvent.*;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 /**
- * A demonstration of how to use the JNativeHook library (https://github.com/kwhat/jnativehook).
+ * A demonstration of how to use the JNativeHook library (<a href="https://github.com/kwhat/jnativehook">...</a>).
  *
  * @author Alexander Barker (<a href="mailto:alex@1stleg.com">alex@1stleg.com</a>)
  * @version 2.0
  * @since 1.0
- * @see GlobalScreen
- * @see NativeKeyListener
+ * @see com.github.kwhat.jnativehook.GlobalScreen
+ * @see com.github.kwhat.jnativehook.keyboard.NativeKeyListener
  */
 class NativeHookDemo extends JFrame implements ActionListener, ItemListener, NativeKeyListener, NativeMouseInputListener, NativeMouseWheelListener, WindowListener {
 
@@ -231,63 +231,63 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 	}
 
 	/**
-	 * @see org.jnativehook.keyboard.NativeKeyListener#nativeKeyPressed(org.jnativehook.keyboard.NativeKeyEvent)
+	 * @see com.github.kwhat.jnativehook.keyboard.NativeKeyListener#nativeKeyPressed(com.github.kwhat.jnativehook.keyboard.NativeKeyEvent)
 	 */
 	public void nativeKeyPressed(NativeKeyEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.keyboard.NativeKeyListener#nativeKeyReleased(org.jnativehook.keyboard.NativeKeyEvent)
+	 * @see com.github.kwhat.jnativehook.keyboard.NativeKeyListener#nativeKeyReleased(com.github.kwhat.jnativehook.keyboard.NativeKeyEvent)
 	 */
 	public void nativeKeyReleased(NativeKeyEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.keyboard.NativeKeyListener#nativeKeyTyped(org.jnativehook.keyboard.NativeKeyEvent)
+	 * @see com.github.kwhat.jnativehook.keyboard.NativeKeyListener#nativeKeyTyped(com.github.kwhat.jnativehook.keyboard.NativeKeyEvent)
 	 */
 	public void nativeKeyTyped(NativeKeyEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.mouse.NativeMouseListener#nativeMouseClicked(org.jnativehook.mouse.NativeMouseEvent)
+	 * @see com.github.kwhat.jnativehook.mouse.NativeMouseListener#nativeMouseClicked(com.github.kwhat.jnativehook.mouse.NativeMouseEvent)
 	 */
 	public void nativeMouseClicked(NativeMouseEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.mouse.NativeMouseListener#nativeMousePressed(org.jnativehook.mouse.NativeMouseEvent)
+	 * @see com.github.kwhat.jnativehook.mouse.NativeMouseListener#nativeMousePressed(com.github.kwhat.jnativehook.mouse.NativeMouseEvent)
 	 */
 	public void nativeMousePressed(NativeMouseEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.mouse.NativeMouseListener#nativeMouseReleased(org.jnativehook.mouse.NativeMouseEvent)
+	 * @see com.github.kwhat.jnativehook.mouse.NativeMouseListener#nativeMouseReleased(com.github.kwhat.jnativehook.mouse.NativeMouseEvent)
 	 */
 	public void nativeMouseReleased(NativeMouseEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.mouse.NativeMouseMotionListener#nativeMouseMoved(org.jnativehook.mouse.NativeMouseEvent)
+	 * @see com.github.kwhat.jnativehook.mouse.NativeMouseMotionListener#nativeMouseMoved(com.github.kwhat.jnativehook.mouse.NativeMouseEvent)
 	 */
 	public void nativeMouseMoved(NativeMouseEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.mouse.NativeMouseMotionListener#nativeMouseDragged(org.jnativehook.mouse.NativeMouseEvent)
+	 * @see com.github.kwhat.jnativehook.mouse.NativeMouseMotionListener#nativeMouseDragged(com.github.kwhat.jnativehook.mouse.NativeMouseEvent)
 	 */
 	public void nativeMouseDragged(NativeMouseEvent e) {
 		displayEventInfo(e);
 	}
 
 	/**
-	 * @see org.jnativehook.mouse.NativeMouseWheelListener#nativeMouseWheelMoved(org.jnativehook.mouse.NativeMouseWheelEvent)
+	 * @see com.github.kwhat.jnativehook.mouse.NativeMouseWheelListener#nativeMouseWheelMoved(com.github.kwhat.jnativehook.mouse.NativeMouseWheelEvent)
 	 */
 	public void nativeMouseWheelMoved(NativeMouseWheelEvent e) {
 		displayEventInfo(e);
@@ -406,8 +406,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 	 * @param args unused.
 	 */
 	public static void main(String[] args) {
-		System.out.println(
-            """
+		System.out.println("""
 			JNativeHook: Global keyboard and mouse hooking for Java.
 			Copyright (C) 2006-2016 Alexander Barker.  All Rights Received.
 			https://github.com/kwhat/jnativehook/
@@ -423,7 +422,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 			GNU General Public License for more details.
 
 			You should have received a copy of the GNU Lesser General Public License
-			along with this program.  If not, see <http://www.gnu.org/licenses/>.
+			along with this program.  If not, see <https://www.gnu.org/licenses/>.
 			"""
 		);
 

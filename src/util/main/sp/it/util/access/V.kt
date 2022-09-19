@@ -23,10 +23,10 @@ open class V<T>(value: T): SimpleObjectProperty<T>(value) {
    override fun setValue(v: T): Unit = super.setValue(v)
 
    // helps Kotlin with null-safety inference
-   override fun <U: Any?> map(mapper: Function<in T, out U>?): ObservableValue<U> = super.map(mapper)
+   override fun <U: Any?> map(mapper: Function<in T, out U>): ObservableValue<U> = super.map(mapper)
 
    // helps Kotlin with null-safety inference
-   override fun <U: Any?> flatMap(mapper: Function<in T, out ObservableValue<out U>>?): ObservableValue<U> = super.flatMap(mapper)
+   override fun <U: Any?> flatMap(mapper: Function<in T, out ObservableValue<out U>>): ObservableValue<U> = super.flatMap(mapper)
 
    /** Java convenience method. Invokes [setValue] on this with the transformed value using the specified mapper. */
    fun setValueOf(op: UnaryOperator<T>) = super.setValue(op(value))

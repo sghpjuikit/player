@@ -17,7 +17,6 @@ import java.util.UUID
 import java.util.regex.Pattern
 import javafx.util.Duration
 import kotlin.reflect.KClass
-import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
 import org.atteo.evo.inflector.English
 import sp.it.pl.audio.Song
@@ -286,7 +285,7 @@ object CoreFunctors: Core {
          add("Split to bytes", S, type<List<UByte>>(), p<Charset>(UTF_8)) { it, c -> it.toByteArray(c).toList().map { it.toUByte() } }
          add("Split to chars (16)", S, type<List<Char16>>()) { it.chars16().toList() }
          add("Split to chars (32)", S, type<List<Char32>>()) { it.chars32().toList() }
-         add("Split to graphemes", S, type<List<Grapheme>>()) { it.graphemes() }
+         add("Split to graphemes", S, type<List<Grapheme>>()) { it.graphemes().toList() }
          add("Split to words", S, type<List<String>>()) { it.words().map { it.trim() }.filter { it.isNotEmpty() }.toList() }
          add("Split to lines", S, type<List<String>>()) { it.lines() }
          add("Split to sentences", S, type<List<String>>()) { it.sentences().map { it.trim() }.filter { it.isNotEmpty() }.toList() }

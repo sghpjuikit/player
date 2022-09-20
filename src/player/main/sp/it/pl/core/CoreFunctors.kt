@@ -197,9 +197,61 @@ object CoreFunctors: Core {
          add("Xor", B, B, p(true)) { it, b -> java.lang.Boolean.logicalXor(it, b) }
          add("To Byte", B, type<Byte>()) { if (it) 1.toByte() else 0.toByte() }
 
-         add("To Bin", type<Int>(), S) { "0b" + Integer.toBinaryString(it) }
-         add("To Oct", type<Int>(), S) { "0" + Integer.toOctalString(it) }
-         add("To Hex", type<Int>(), S) { "0x" + Integer.toHexString(it) }
+         add("To Bin", type<Byte>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<Byte>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<Byte>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<UByte>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<UByte>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<UByte>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<Short>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<Short>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<Short>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<UShort>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<UShort>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<UShort>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<Int>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<Int>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<Int>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<UInt>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<UInt>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<UInt>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<Long>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<Long>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<Long>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<ULong>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<ULong>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<ULong>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<BigInteger>(), S) { "0b" + it.toString(2) }
+         add("To Oct", type<BigInteger>(), S) { "0" + it.toString(8) }
+         add("To Hex", type<BigInteger>(), S) { "0x" + it.toString(16) }
+         add("To Bin", type<List<Byte>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<Byte>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<Byte>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<UByte>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<UByte>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<UByte>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<Short>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<Short>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<Short>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<UShort>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<UShort>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<UShort>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<Int>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<Int>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<Int>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<UInt>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<UInt>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<UInt>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<Long>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<Long>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<Long>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<ULong>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<ULong>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<ULong>>(), S) { it.map { "0x" + it.toString(16) } }
+         add("To Bin", type<List<BigInteger>>(), S) { it.map { "0b" + it.toString(2) } }
+         add("To Oct", type<List<BigInteger>>(), S) { it.map { "0" + it.toString(8) } }
+         add("To Hex", type<List<BigInteger>>(), S) { it.map { "0x" + it.toString(16) } }
+
          add("Function", type<Number>(), type<BigDecimal>(), p<StrExF>(StrExF("x"))) { it, f ->
             runTry {
                val x = when(it) { is BigDecimal -> it; is BigInteger -> BigDecimal(it); else -> it.toDouble().toBigDecimal() }
@@ -227,11 +279,11 @@ object CoreFunctors: Core {
          add("Remove all", S, S, p<String>("")) { it, phrase -> removeAll(it, phrase) }
          add("Remove all (regex)", S, S, pRegex) { it, regex -> removeAllRegex(it, regex) }
          add("Text", S, S, p<String>("text")) { it, text -> text }
-         add("Re-encode", S, S, p<Charset>(UTF_8), p<Charset>(UTF_8)) { it, c1, c2 -> String(it.toByteArray(c1), c2) }
          add("Add text", S, S, p<String>(""), p<StringDirection>(FROM_START)) { it, added, from -> addText(it, added, from) }
          add("Remove chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> removeChars(it, amount, from) }
          add("Retain chars", S, S, p(0), p<StringDirection>(FROM_START)) { it, amount, from -> retainChars(it, amount, from) }
          add("Trim", S, S) { it.trim() }
+         add("Split to bytes", S, type<List<UByte>>(), p<Charset>(UTF_8)) { it, c -> it.toByteArray(c).toList().map { it.toUByte() } }
          add("Split to chars (16)", S, type<List<Char16>>()) { it.chars16().toList() }
          add("Split to chars (32)", S, type<List<Char32>>()) { it.chars32().toList() }
          add("Split to graphemes", S, type<List<Grapheme>>()) { it.graphemes() }
@@ -257,6 +309,7 @@ object CoreFunctors: Core {
          add("Is URI", S, B) { runTry { uri(it) }.isOk }
          add("To URI", S, type<URI>()) { runTry { uri(it) }.orNull() }
          add("Is base64", S, B) { it.isBase64() }
+         add("Encode in", S, S, p<Charset>(UTF_8), p<Charset>(UTF_8)) { it, c1, c2 -> String(it.toByteArray(c1), c2) }
          add("Encode Base64", S, S) { it.encodeBase64() }
          add("Decode Base64", S, S) { it.decodeBase64().orNull() }
          add("Encode URL (UTF-8)", S, S) { URLEncoder.encode(it, UTF_8) }

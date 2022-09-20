@@ -333,7 +333,10 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                else -> null
             }
          }
-         put<Charset> { EnumerableCE(it.asIs(), listOf(ISO_8859_1, US_ASCII, UTF_8, UTF_16, UTF_16BE, UTF_16LE)) }
+         put<Charset> {
+            val cs = Charset.availableCharsets().values.toList().run { if (it.type.isNullable) this+null else this }
+            EnumerableCE(it.asIs(), cs)
+         }
          put<KeyCode> { KeyCodeCE(it.asIs()) }
          put<Configurable<*>> { ConfigurableCE(it.asIs()) }
          put<ObservableList<*>> {

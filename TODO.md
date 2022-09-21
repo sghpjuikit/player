@@ -18,7 +18,6 @@
 - Implement `app.stateful` on/off config
 - Implement data info tooltip progress
 - Drag & drop playlist file support in audio
-- `image.toFX(null)` creates null `Image.url`, which disables some image menu behavior
 - `Configuration.propertiesRaw` are not synced with configs, should be?
 - Improve **Tagger** widget
   - tagging non audio file with audio extension causes exception and corrupted application state

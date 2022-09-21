@@ -22,28 +22,33 @@ import sp.it.util.async.runFX
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
+import sp.it.util.file.toURLOrNull
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.max
+import sp.it.util.type.Util.setField
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 
 private val logger = KotlinLogging.logger {}
 
+fun ImageWr.withUrl(file: File?): ImageWr = apply { setField(this, "url", file?.toURLOrNull()?.toString()) }
+
 @JvmOverloads
-fun ImageBf.toFX(to: ImageWr? = null): ImageWr = SwingFXUtils.toFXImage(this, to)
+fun ImageBf.toFX(file: File? = null): ImageWr = SwingFXUtils.toFXImage(this, null).withUrl(file)
 
 // https://github.com/javafxports/openjdk-jfx/pull/472#issuecomment-500547180
-fun ImageBf.toFXCustom(): ImageWr {
+@JvmOverloads
+fun ImageBf.toFXCustom(file: File? = null): ImageWr {
    val bb = IntBuffer.allocate(width*height)
    val pb = PixelBuffer(width, height, bb, PixelFormat.getIntArgbPreInstance())
    getRGB(0, 0, width, height, bb.array(), 0, width)
    runFX {
       pb.updateBuffer { Rectangle2D(0.0, 0.0, width.toDouble(), height.toDouble()) }
    }
-   return ImageWr(pb)
+   return ImageWr(pb).withUrl(file)
 }
 
 @JvmOverloads
@@ -166,7 +171,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
    if (!loadFullSize)
       i = i?.toScaledDown(w, h, down = true, up = scaleExact)
 
-   return i?.toFX()
+   return i?.toFX(file)
 }
 
 /**

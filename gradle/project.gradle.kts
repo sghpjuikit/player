@@ -96,7 +96,7 @@ allprojects {
       }
 
       "JavaFX" group {
-         val version = "20-ea+2"
+         val version = "20-ea+3"
          val os = org.gradle.internal.os.OperatingSystem.current()
          val classifier = when {
             os.isLinux -> "linux"
@@ -111,8 +111,8 @@ allprojects {
       }
 
       "Logging" group {
-         implementation("org.slf4j", "slf4j-api", "2.0.1")
-         implementation("org.slf4j", "jul-to-slf4j", "2.0.1")
+         implementation("org.slf4j", "slf4j-api", "2.0.2")
+         implementation("org.slf4j", "jul-to-slf4j", "2.0.2")
          implementation("ch.qos.logback", "logback-classic", "1.4.1")
          implementation("io.github.microutils", "kotlin-logging", "3.0.0")
       }

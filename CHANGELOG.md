@@ -3,9 +3,71 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [7.3.0] 2022 09 25
+
+- Update dependencies
+- Implement context menu accelerators properly
+- Implement `F11/F12` for window fullscreen toggle
+- Implement `Number` functors toBin, toOct, toHex
+- Implement `Charset` editor to list all available charsets and to support null
+- Fix widget launching from overlay closing immediately
+- Fix widget creation does not respect user's preferred widget loading strategy
+- Fix demo compilation [project build now works properly]
+- Fix functor splitting to graphemes returning sequence
+- Fix Image.url is `null` in some cases [affected contents of thumbnail context menu]
+- Fix null handling and group apply for actions with receiver of `Any?`
+- Fix introspection failing for anonymous classes
+
+### Accelerators
+Context menu items with shortcuts display the key combination in the menu.
+Now the text is correctly displayed on the right side instead of being part of the text.
+Mnemonics continue being disabled.
+
+### Widget launching
+In some cases creating widgets used hardcoded POPUP strategy for opening widgets.
+Now user's preferred loading strategy (defined per widget) will be used instead.
+
+### Window owner handling
+Window owner feature allows creating window hierarchies.
+Closing window closes all its children. Children windows are always on top of their parents.
+
+This caused problem with overlay. If an action created new widget in a popup while overlay was active, it was set as an owner.
+Closing the overlay (automatically) when the action finished therefore also closed the widget itself.
+It is difficult to determine when this behavior is desired and when it is not, hence from now on, widget popup will not have owners set.
+
+### Coroutines & Loom (Java virtual threads)
+For now, for async code, the `Future`-based `Fut` API has been used thorough application.
+It runs on `Executor`s and requires using fluent API style to switch between threads.
+
+Kotlin provides coroutines feature, which allows writing imperative non-blocking style.
+This is an analogue to the `Fut` API, employed thorough the application.
+
+This update starts coroutine adoption by the project.
+There are some new convenience methods for `Flow` or brides from `Fut` or `Subscription`.
+From now on, coroutines will be used where appropriate.
+
+Recently Java released virtual threads (preview).
+This project usually runs on **IBM**'s **OpenJ9** instead of **Oracle**'s **Hotspot** JDK, so the feature will take longer to test.
+
+Virtual threads could be used for coroutine dispatchers to
+- avoid the need for `Dispatchers.IO` that contains blocked threads, thus reducing threads and resources
+- manual thread switching to avoid blocking inside coroutine - on virtual thread, coroutine will never block - thus reducing code complexity
+
+In practice though, both coroutine dispatchers and fut executors have been misused in this project.
+The workload on main FX thread is properly switched to non-ui threads, but switching to IO thread during blocking has not been employed at all.
+For desktop application, this is really a problem at all, however during certain workloads this can be important, for example image loading.
+
+### Coroutines & Loom - loading images
+When loading an image, there is mixed CPU and IO workload being interspersed. Switching between CPU and IO thread involves a lot of head-scratching. 
+Instead, images are loaded on practically unbounded pool, hoping not to overload CPU.
+With virtual threads, the workload will automatically release threads when blocking, allowing us to use small-sized CPU pool that will be able to
+properly saturate CPU without overloading it at any point.
+This will finally remove the Thread.sleep() used for giving UI breathing space and simplify grid image loading code.
+The loading will maintain maximum possible performance with 0 stutter and no management at all.
 
 ## [7.2.0] 2022 09 18
 
+- Update dependencies
 - Implement user configurable cover disk cache for grid file covers
 - Implement `ActionData` receiver editor support for collections
 - Implement & apply better algorithm computing icons for files
@@ -116,6 +178,7 @@ This was prototyped, however for now remains disabled, because it requires more 
 
 ## [7.1.0] 2022 09 11
 
+- Update dependencies
 - Implement improved action (`ActionData`) workflow
   - Implement support actions in app search 
   - Implement support actions with results

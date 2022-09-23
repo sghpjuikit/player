@@ -134,13 +134,13 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
    ap.initGenericActions()
 
    ap.register<Any?>(
-      actionAll<Any?>(
+      action<Any?>(
          "Set as data",
          "Sets the selected data as input.",
          IconMD.DATABASE,
          constriction = { it!=null && it !is App && !it::class.isObject }
       ) { apOrApp.show(it) }.preventClosing(),
-      actionAll(
+      action(
          "Open in Converter",
          "Open data in Converter.",
          IconMD.SWAP_HORIZONTAL,

@@ -1027,7 +1027,7 @@ sealed interface ComponentLoader: (Component) -> Any {
          l.child = c
          c.focus()
 
-         p.show(WINDOW_ACTIVE(Pos.CENTER))
+         p.show(WINDOW_ACTIVE(Pos.CENTER).copy(owner = null))
 
          // This helps certain cases, when pref size basically becomes min size
          p.onShown += {

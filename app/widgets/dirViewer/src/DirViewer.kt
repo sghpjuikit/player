@@ -223,17 +223,17 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       grid.cellFactory syncFrom coverOn.map { { _ -> if (it) Cell() else IconCell() } } on onClose
       grid.skinProperty() attach {
          it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
-            item("Refresh (${keys(F5)})") {
+            item("Refresh", keys = keys(F5)) {
                revisitCurrent()
             }
          }
          it?.asIs<GridViewSkin<*,*>>()?.menuOrder?.dsl {
-            item("Copy selected (${keys("${SHORTCUT.resolved} + C")})") {
+            item("Copy selected", keys = keys("${SHORTCUT.resolved} + C")) {
                copySelectedToClipboard()
             }
          }
          it?.asIs<GridViewSkin<*,*>>()?.menuRemove?.dsl {
-            item("Delete selected (${keys(DELETE)})") {
+            item("Delete selected", keys = keys(DELETE)) {
                grid.selectedItem.value?.value?.recycle()
             }
          }

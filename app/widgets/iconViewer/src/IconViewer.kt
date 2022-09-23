@@ -103,7 +103,7 @@ class IconViewer(widget: Widget): SimpleController(widget) {
       }
       skinProperty() attach {
          it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {
-            item("Copy selected (${PRIMARY.nameUi}") {
+            item("Copy selected", keys = PRIMARY.nameUi) {
                sysClipboard[PLAIN_TEXT] = selectedItem.value?.id()
             }
          }

@@ -17,7 +17,6 @@ import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.contextmenu.SelectionMenuItem
 import sp.it.util.reactive.attach
 import sp.it.util.text.keys
-import sp.it.util.text.resolved
 import sp.it.util.type.estimateRuntimeType
 import sp.it.util.ui.copySelectedOrAll
 import sp.it.util.ui.cutSelectedOrAll
@@ -30,21 +29,21 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
 
    ContextMenu().apply {
       dsl {
-         item("Undo (${keys(SHORTCUT, Key.Z)})") { tf.undo() }.disIf(!tf.isUndoable || !tf.isEditable)
-         item("Redo (${keys(SHORTCUT, SHIFT, Key.Z)})") { tf.redo() }.disIf(!tf.isRedoable || !tf.isEditable)
-         item("Cut (${keys(SHORTCUT, Key.X)})") { tf.cutSelectedOrAll() }.disIf(!tf.isEditable)
-         item("Copy (${keys(SHORTCUT, Key.C)})") { tf.copySelectedOrAll() }
-         item("Paste (${keys(SHORTCUT, Key.V)})") { tf.paste() }.disIf(!tf.isEditable || !Clipboard.getSystemClipboard().hasString())
-         if (tf is TextArea) menu("Paste newline (${keys(ENTER)})") {
+         item("Undo", keys = keys(SHORTCUT, Key.Z)) { tf.undo() }.disIf(!tf.isUndoable || !tf.isEditable)
+         item("Redo", keys = keys(SHORTCUT, SHIFT, Key.Z)) { tf.redo() }.disIf(!tf.isRedoable || !tf.isEditable)
+         item("Cut", keys = keys(SHORTCUT, Key.X)) { tf.cutSelectedOrAll() }.disIf(!tf.isEditable)
+         item("Copy", keys = keys(SHORTCUT, Key.C)) { tf.copySelectedOrAll() }
+         item("Paste", keys = keys(SHORTCUT, Key.V)) { tf.paste() }.disIf(!tf.isEditable || !Clipboard.getSystemClipboard().hasString())
+         if (tf is TextArea) menu("Paste newline") {
             item("\\r (CR)") { tf.insertText(tf.caretPosition, "\r") }
             item("\\n (LF)") { tf.insertText(tf.caretPosition, "\n") }
-            item("\\r\\n(CRLF/EOF)") { tf.insertText(tf.caretPosition, "\r\n") }
+            item("\\r\\n(CRLF/EOF)", keys = keys(ENTER)) { tf.insertText(tf.caretPosition, "\r\n") }
          }
-         item("Delete (${keys(DELETE)})") { tf.deleteText(tf.selection) }.disIf(!tf.isEditable || tf.selectedText.isNullOrEmpty())
+         item("Delete", keys = keys(DELETE)) { tf.deleteText(tf.selection) }.disIf(!tf.isEditable || tf.selectedText.isNullOrEmpty())
 
          separator()
 
-         item("Select All (${keys("${SHORTCUT.resolved} + C")})") { tf.selectAll() }
+         item("Select All", keys = keys(SHORTCUT, Key.C)) { tf.selectAll() }
 
          if (tf is TextArea) {
             separator()

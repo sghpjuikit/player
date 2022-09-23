@@ -119,7 +119,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
          item("Add directory") { addDirectory() }
       }
       table.menuRemove.dsl {
-         item("Remove selected songs from library (${keys(DELETE)})") { removeSongs(table.selectedItems) }
+         item("Remove selected songs from library", keys = keys(DELETE)) { removeSongs(table.selectedItems) }
          item("Remove all shown songs from library") { removeSongs(table.items) }
          item("Remove all songs from library") { APP.db.removeAllSongs() }
          item("Remove missing songs from library") {

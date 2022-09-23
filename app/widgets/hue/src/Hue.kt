@@ -125,6 +125,7 @@ import sp.it.pl.main.WidgetTags.IOT
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.IconWH
+import sp.it.pl.main.Key
 import sp.it.pl.main.textColon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
@@ -522,8 +523,8 @@ class Hue(widget: Widget): SimpleController(widget) {
                   onContextMenuRequested = EventHandler {
                      if (hue.id!="0")
                         ContextMenu().dsl {
-                           item("Toggle bulbs on/off    (${keys("SPACE")})") { toggleBulbGrouo() }
-                           item("Delete (${keys("DELETE")})") { deleteBulbGrouo() }
+                           item("Toggle bulbs on/off", keys = keys(Key.SPACE)) { toggleBulbGrouo() }
+                           item("Delete", keys = keys(Key.DELETE)) { deleteBulbGrouo() }
                         }.show(this, RIGHT, 0.0, 0.0)
                   }
 
@@ -603,7 +604,7 @@ class Hue(widget: Widget): SimpleController(widget) {
                   onContextMenuRequested = EventHandler {
                      ContextMenu().dsl {
                         item("Rename") { rename() }
-                        item("Toggle on/off (${keys("SPACE")})") { toggleBulb() }
+                        item("Toggle on/off", keys = keys(Key.SPACE)) { toggleBulb() }
                         if (hue.confPowerOn!=null) item("Power on behavior") { changePowerOn() }
                      }.show(this, RIGHT, 0.0, 0.0)
                   }

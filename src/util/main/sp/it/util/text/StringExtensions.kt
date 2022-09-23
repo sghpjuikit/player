@@ -163,7 +163,6 @@ fun String.isPalindromeOrEmpty(): Boolean {
 }
 
 /** @return camel case string converted to lower dash case */
-@Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
 fun String.camelToDashCase() = codePoints().asSequence()
    .fold(ArrayList<Int>(length)) { str, char ->
       if (str.isEmpty()) {
@@ -181,7 +180,6 @@ fun String.camelToDashCase() = codePoints().asSequence()
    .joinToString("", "", "") { Character.toString(it) }
 
 /** @return camel case string converted to lower dot case */
-@Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
 fun String.camelToDotCase() = codePoints().asSequence()
    .fold(ArrayList<Int>(length)) { str, char ->
       if (str.isEmpty()) {

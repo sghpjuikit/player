@@ -186,7 +186,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          selectOn setTo GridView.SelectionOn.values()
          grid.skinProperty() attach {
             it?.asIs<GridViewSkin<*, *>>()?.menuOrder?.dsl {
-               item("Refresh (${keys("F5")})") {
+               item("Refresh", keys = keys("F5")) {
                   viewGames()
                }
             }

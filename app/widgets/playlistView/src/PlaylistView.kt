@@ -60,6 +60,7 @@ import sp.it.pl.audio.Song
 import sp.it.pl.main.WidgetTags.AUDIO
 import sp.it.pl.main.HelpEntries
 import sp.it.pl.main.IconMA
+import sp.it.pl.main.Key
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
@@ -157,7 +158,7 @@ class PlaylistView(widget: Widget): SimpleController(widget), PlaylistFeature {
          item("Duplicate selected (*)") { playlist.duplicateItemsAsGroup(table.selectedItems) }
       }
       table.menuRemove.dsl {
-         item("Remove selected (${keys("DELETE")})") { playlist -= table.selectedItems }
+         item("Remove selected", keys = keys(Key.DELETE)) { playlist -= table.selectedItems }
          item("Retain selected") { playlist.retainAll(table.selectedItems) }
          item("Retain filtered & cancel filter") {
             playlist.retainAll(table.items.materialize())

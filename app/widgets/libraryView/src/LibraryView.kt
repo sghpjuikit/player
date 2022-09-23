@@ -240,7 +240,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
 
       // add menu items
       table.menuRemove.dsl {
-         item("Remove songs in selected groups from library (${keys(DELETE)})") { removeSongs(ungroup(table.selectedItems)) }
+         item("Remove songs in selected groups from library", keys = keys(DELETE)) { removeSongs(ungroup(table.selectedItems)) }
          item("Remove songs in all shown groups from library") { removeSongs(ungroup(table.items)) }
          item("Remove all songs from library") { APP.db.removeAllSongs() }
          item("Remove missing songs from library") {

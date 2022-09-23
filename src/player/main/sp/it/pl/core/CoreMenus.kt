@@ -85,6 +85,7 @@ import sp.it.pl.web.SearchUriBuilder
 import sp.it.util.access.toggle
 import sp.it.util.access.vn
 import sp.it.util.action.ActionManager
+import sp.it.util.action.ActionRegistrar
 import sp.it.util.conf.Config
 import sp.it.util.conf.Configurable
 import sp.it.util.conf.nonNull
@@ -107,6 +108,7 @@ import sp.it.util.system.open
 import sp.it.util.system.recycle
 import sp.it.util.system.saveFile
 import sp.it.util.text.keys
+import sp.it.util.text.keysUi
 import sp.it.util.text.nameUi
 import sp.it.util.text.resolved
 import sp.it.util.type.type
@@ -185,7 +187,7 @@ object CoreMenus: Core {
                }
             }
             menu("Audio") {
-               item("Play/pause") { APP.audio.pauseResume() }
+               item("Play/pause", keys = ActionRegistrar["Pause/resume"].keysUi()) { APP.audio.pauseResume() }
             }
             item("Restart") { APP.restart() }
             item("Exit") { APP.close() }
@@ -236,14 +238,14 @@ object CoreMenus: Core {
                }
 
                item("Filename") { sysClipboard[PLAIN_TEXT] = it.nameOrRoot }
-               item("File (${keys("${SHORTCUT.resolved} + C")})") { sysClipboard[FILES] = listOf(it) }
+               item("File", keys = keys("${SHORTCUT.resolved} + C")) { sysClipboard[FILES] = listOf(it) }
                item("File To ...") { it.copyAs() }
             }
          }
          addMany<File> {
             if (value.size>1) {
-               menu("Copy (${keys("${SHORTCUT.resolved} + C")})") {
-                  item("Files") { sysClipboard[FILES] = it.toList() }
+               menu("Copy") {
+                  item("Files", keys = keys("${SHORTCUT.resolved} + C")) { sysClipboard[FILES] = it.toList() }
                   item("Files To ...") { it.copyAs() }
                }
             }
@@ -261,20 +263,20 @@ object CoreMenus: Core {
          }
          add<Window> {
             item("Clone", IconFA.CLONE.toCmUi()) { it.clone() }
-            item("Close (" + keys(WINDOWS, Q) +")", ICON_CLOSE.toCmUi()) { it.close() }
-            item("Fullscreen ((" + keys(WINDOWS) + " + )" + keys(F11) + "/" + keys(F12) + ")", if (value.fullscreen.value) IconMD.FULLSCREEN_EXIT.toCmUi() else IconMD.FULLSCREEN.toCmUi()) { it.fullscreen.toggle() }
-            menu("Maximize (" + keys(WINDOWS, F) + ")", IconMD.WINDOW_MAXIMIZE.toCmUi()) {
-               item(Maximized.ALL.toUi(), IconMA.BORDER_OUTER.toCmUi()) { it.maximized.value = Maximized.ALL }
-               item(Maximized.LEFT.toUi(), IconMA.BORDER_LEFT.toCmUi()) { it.maximized.value = Maximized.LEFT }
-               item(Maximized.RIGHT.toUi(), IconMA.BORDER_RIGHT.toCmUi()) { it.maximized.value = Maximized.RIGHT }
-               item(Maximized.LEFT_TOP.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 0.0 }) { it.maximized.value = Maximized.LEFT_TOP }
-               item(Maximized.RIGHT_TOP.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 90.0 }) { it.maximized.value = Maximized.RIGHT_TOP }
-               item(Maximized.RIGHT_BOTTOM.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 180.0 }) { it.maximized.value = Maximized.RIGHT_BOTTOM }
-               item(Maximized.LEFT_BOTTOM.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 270.0 }) { it.maximized.value = Maximized.LEFT_BOTTOM }
-               item(Maximized.NONE.toUi(), IconMA.BORDER_CLEAR.toCmUi()) { it.maximized.value = Maximized.NONE }
+            item("Close", ICON_CLOSE.toCmUi(), keys(WINDOWS, Q)) { it.close() }
+            item("Fullscreen", if (value.fullscreen.value) IconMD.FULLSCREEN_EXIT.toCmUi() else IconMD.FULLSCREEN.toCmUi(), "${keys(WINDOWS)}? + ${keys(F11)}|${keys(F12)}") { it.fullscreen.toggle() }
+            menu("Maximize", IconMD.WINDOW_MAXIMIZE.toCmUi()) {
+               item(Maximized.ALL.toUi(), IconMA.BORDER_OUTER.toCmUi(), keys(WINDOWS, F)) { it.maximized.value = Maximized.ALL }
+               item(Maximized.LEFT.toUi(), IconMA.BORDER_LEFT.toCmUi(), keys(WINDOWS, F)) { it.maximized.value = Maximized.LEFT }
+               item(Maximized.RIGHT.toUi(), IconMA.BORDER_RIGHT.toCmUi(), keys(WINDOWS, F)) { it.maximized.value = Maximized.RIGHT }
+               item(Maximized.LEFT_TOP.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 0.0 }, keys(WINDOWS, F)) { it.maximized.value = Maximized.LEFT_TOP }
+               item(Maximized.RIGHT_TOP.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 90.0 }, keys(WINDOWS, F)) { it.maximized.value = Maximized.RIGHT_TOP }
+               item(Maximized.RIGHT_BOTTOM.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 180.0 }, keys(WINDOWS, F)) { it.maximized.value = Maximized.RIGHT_BOTTOM }
+               item(Maximized.LEFT_BOTTOM.toUi(), IconMA.BORDER_STYLE.toCmUi { rotate = 270.0 }, keys(WINDOWS, F)) { it.maximized.value = Maximized.LEFT_BOTTOM }
+               item(Maximized.NONE.toUi(), IconMA.BORDER_CLEAR.toCmUi(), keys(WINDOWS, F)) { it.maximized.value = Maximized.NONE }
             }
-            item("Minimize (" + keys(WINDOWS, G) + ")", IconMD.WINDOW_MINIMIZE.toCmUi()) { it.minimize() }
-            item("On top (" + keys(WINDOWS, A) + ")", if (value.alwaysOnTop.value) IconFA.SQUARE.toCmUi() else IconFA.SQUARE_ALT.toCmUi()) { it.alwaysOnTop.toggle() }
+            item("Minimize", IconMD.WINDOW_MINIMIZE.toCmUi(), keys(WINDOWS, G)) { it.minimize() }
+            item("On top", if (value.alwaysOnTop.value) IconFA.SQUARE.toCmUi() else IconFA.SQUARE_ALT.toCmUi(), keys(WINDOWS, A)) { it.alwaysOnTop.toggle() }
             item("Settings", ICON_CONF.toCmUi()) { openWindowSettings(it, null) }
          }
          add<WindowFX> {
@@ -352,7 +354,7 @@ object CoreMenus: Core {
                   menuFor("File", it)
                }
             }
-            item("Play songs (${keys("ENTER")})") { it.playlist.playTransformedItem(it.songs.firstOrNull()) }
+            item("Play songs", keys = keys("ENTER")) { it.playlist.playTransformedItem(it.songs.firstOrNull()) }
             menu("Show in") {
                widgetItems<SongReader> {
                   it.read(value.songs)
@@ -364,7 +366,7 @@ object CoreMenus: Core {
                }
             }
             menu("Remove") {
-               item("Remove selected (${keys("DELETE")})") { it.playlist.removeAll(it.songs) }
+               item("Remove selected", keys = keys("DELETE")) { it.playlist.removeAll(it.songs) }
                item("Retain selected") { it.playlist.retainAll(it.songs) }
                item("Remove all") { it.playlist.clear() }
             }
@@ -424,8 +426,8 @@ object CoreMenus: Core {
          }
          add<Widget> {
             item("Show info") { w -> showFloating(w.factory.name + " info") { WidgetInfoPane(w.factory) } }
-            item("Show help (${F2.nameUi} | ${ActionManager.keyShortcutsComponent.nameUi})") { APP.actions.showShortcutsFor(it) }
-            item("Show actions (${ActionManager.keyActionsComponent.nameUi})", IconFA.GAVEL.toCmUi()) { APP.actions.showShortcutsFor(it) }
+            item("Show help", keys = "${F2.nameUi}|${ActionManager.keyShortcutsComponent.nameUi}") { APP.actions.showShortcutsFor(it) }
+            item("Show actions", IconFA.GAVEL.toCmUi(), ActionManager.keyActionsComponent.nameUi) { APP.actions.showShortcutsFor(it) }
             value.ui.asIf<WidgetUi>().ifNotNull { w -> item("Settings", Icon(IconFA.COGS)) { w.controls.showSettings() } }
             menuFor("Settings defaults", WidgetDefaultMenu(value))
          }

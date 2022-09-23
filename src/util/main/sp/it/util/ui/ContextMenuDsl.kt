@@ -3,12 +3,17 @@ package sp.it.util.ui
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.control.ContextMenu
+import javafx.scene.control.Label
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SeparatorMenuItem
+import javafx.scene.input.KeyCombination.NO_MATCH
 import sp.it.util.dev.Dsl
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIs
+import sp.it.util.functional.ifNotNull
+import sp.it.util.reactive.sync1IfNonNull
+import sp.it.util.text.nullIfBlank
 
 @Dsl
 open class MenuBuilder<M, V>(val owner: M, val value: V) {
@@ -34,7 +39,14 @@ open class MenuBuilder<M, V>(val owner: M, val value: V) {
 
    /** Create and [add] to items new menu item with specified text and action. */
    @Dsl
-   inline fun item(text: String, graphics: Node? = null, crossinline action: @Dsl MenuItem.(V) -> Unit): MenuItem = item { MenuItem(text, graphics).apply { onAction = EventHandler { action(value) } } }
+   inline fun item(text: String, graphics: Node? = null, keys: String? = null, crossinline action: @Dsl MenuItem.(V) -> Unit): MenuItem = item { MenuItem(text, graphics).apply {
+      keys.nullIfBlank().ifNotNull { k ->
+         accelerator = NO_MATCH // required so accelerator-text is visible
+         parentPopupProperty().flatMap { it.skinProperty() }.sync1IfNonNull {
+            it.node.lookupAll(".accelerator-text").forEach { if (it.parent?.lookupChildAs<Label>()?.text==text) it.asIs<Label>().text = k }
+         }
+      }
+      onAction = EventHandler { action(value) } } }
 
    /** [add] to items the specified item. */
    @Dsl
@@ -42,7 +54,6 @@ open class MenuBuilder<M, V>(val owner: M, val value: V) {
 
    /** Create and [add] to items new menu items with text and action derived from specified source. */
    @Dsl
-   @Suppress("RedundantLambdaArrow")
    inline fun <A> items(source: Sequence<A>, crossinline text: (A) -> String, crossinline graphics: (A) -> Node? = { null }, crossinline action: (A) -> Unit) = items { source.map { menuItem(text(it), graphics(it)) { _ -> action(it) } }.sortedBy { it.text } }
 
    /** Create and [add] to items the specified items. */

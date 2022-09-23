@@ -367,6 +367,14 @@ public class Window extends WindowBase {
 		// window control
 		var maximizedValues = list(Maximized.LEFT, Maximized.NONE, Maximized.RIGHT);
 		s.getScene().addEventFilter(KeyEvent.ANY, e -> {
+			if (!e.isAltDown() && !e.isControlDown() && !e.isShortcutDown() && !e.isMetaDown()) {
+				if (e.getCode()==F11 || e.getCode()==F12) {
+					if (e.getEventType()==KEY_RELEASED) {
+						toggle(fullscreen);
+					}
+					e.consume();
+				}
+			}
 			if (e.isMetaDown()) {
 				if (e.getCode()==A) {
 					if (e.getEventType()==KEY_RELEASED) {

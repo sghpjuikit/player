@@ -6,7 +6,7 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
-import sp.it.util.functional.orNull
+import sp.it.util.functional.getOr
 import sp.it.util.functional.runTry
 
 /** True iff this class is an enum. [Class.isEnum] does not work for enums with class method bodies. See [Class.enumValues]. */
@@ -37,9 +37,13 @@ val <T> Class<T>.enumValues: Array<T>
 val <T: Any> KClass<T>.enumValues: Array<T>
    get() = java.enumValues
 
-/** True iff this class is a singleton, i.e., [KClass.objectInstance] is not null. */
+/** True iff this class is a singleton, i.e., [KClass.objectInstance] is not null. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
 val KClass<*>.isObject: Boolean
-   get() = !java.isAnonymousClass && runTry { objectInstance!=null }.orNull() == true // TODO: runTry is workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+   get() = !java.isAnonymousClass && runTry { objectInstance!=null }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
+
+/** True iff this class [KClass.isData]. Is not affected by bugs https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792 */
+val KClass<*>.isDataClass: Boolean
+   get() = !java.isAnonymousClass && runTry { isData }.getOr(false) // TODO: workaround for https://youtrack.jetbrains.com/issue/KT-41373 && https://youtrack.jetbrains.com/issue/KT-22792
 
 /** Singletons (objects) subclassing the specified class as sealed class. */
 val <T: Any> KClass<T>.sealedSubObjects: List<T>

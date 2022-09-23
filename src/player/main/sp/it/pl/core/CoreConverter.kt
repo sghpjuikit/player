@@ -118,6 +118,7 @@ import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.VType
 import sp.it.util.type.enumValues
+import sp.it.util.type.isDataClass
 import sp.it.util.type.isEnum
 import sp.it.util.type.isObject
 import sp.it.util.type.isPlatformType
@@ -232,7 +233,7 @@ object CoreConverter: Core {
       parserFallbackToS = BiFunction { type, o ->
          when {
             type.isObject -> Try.ok(o::class.simpleName!!)
-            type.isData -> runTry {  APP.serializerJson.json.toJsonValue(VType<Any?>(type.createType()), o).toCompactS() }.orMessage()
+            type.isDataClass -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(type.createType()), o).toCompactS() }.orMessage()
             else -> Try.ok(anyConverter.toS(o))
          }
       }
@@ -250,7 +251,7 @@ object CoreConverter: Core {
                .find { it::class.simpleName==s }
                ?.let { Try.ok(it) }
                ?: Try.error("Not a valid value: \"$s\"")
-            type.isData -> {
+            type.isDataClass -> {
                val isJsonObject = s.startsWith("{") && s.endsWith("}")
                if (isJsonObject) APP.serializerJson.json.fromJson(VType<Any?>(type.createType()), s).orMessage()
                else runTry {

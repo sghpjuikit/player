@@ -25,9 +25,9 @@ import sp.it.pl.ui.objects.window.stage.installWindowInteraction
 import sp.it.pl.ui.pane.OverlayPane
 import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.action.IsAction
-import sp.it.util.async.FX
+import sp.it.util.async.coroutine.FX
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.async.launch
+import sp.it.util.async.coroutine.launch
 import sp.it.util.file.div
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
@@ -116,7 +116,7 @@ class StartScreen: PluginBase() {
 
                      val ssComponentFile = APP.location.user.tmp/"StartScreen.fxwl"
 
-                     FX.launch {
+                     launch(FX) {
                         val ssComponent = APP.windowManager.instantiateComponent(ssComponentFile) ?: introWidgetFactory.create()
 
                         Layout.openStandalone(this@apply).apply {

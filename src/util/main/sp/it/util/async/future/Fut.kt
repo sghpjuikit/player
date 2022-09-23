@@ -25,6 +25,7 @@ import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toTry
 
 /**
  * Future monad implementation.
@@ -34,6 +35,8 @@ import sp.it.util.functional.runTry
  * Oriented for practicality and ease of use, not specification (monadic laws) or robustness (API completeness).
  */
 class Fut<T>(private var f: CompletableFuture<T>) {
+
+   fun asCompletableFuture(): CompletableFuture<T> = f
 
    /** @return future that waits for this to complete normally, invokes the specified block and returns its result */
    fun <R> then(executor: Executor = defaultExecutor, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
@@ -67,6 +70,10 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
    fun <R> thenRecover(executor: Executor = defaultExecutor, block: (Result<T>) -> R) = Fut<R>(f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt))
 
+   fun thenRecover(): Fut<Try<T, Throwable>> = thenRecover(CURR) { it.toTryRaw() }
+
+   fun thenRecoverNull(): Fut<T?> = thenRecover(CURR) { it.orGet { null } }
+
    /** @return whether this future completed regardless of success */
    fun isDone(): Boolean = f.isDone
 
@@ -90,10 +97,6 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    } catch (e: ExecutionException) {
       ResultFail(e)
    }
-
-   /** See [CompletionStage.asDeferred] */
-   @Suppress("DeferredIsResult")
-   fun asDeferred(): Deferred<T> = f.asDeferred()
 
    /** Blocks current thread until [isDone]. Returns this. */
    @Blocks
@@ -173,3 +176,5 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    }
 
 }
+
+fun <R, T1: R, T2: R> Fut.Result<T1>.orGet(block: (Exception) -> @UnsafeVariance T2) = toTry().getOrSupply(block)

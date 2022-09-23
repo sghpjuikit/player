@@ -11,12 +11,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.Text
 import kotlin.math.roundToInt
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import oshi.SystemInfo
 import oshi.hardware.CentralProcessor
 import sp.it.pl.main.APP
@@ -27,10 +22,13 @@ import sp.it.pl.main.toS
 import sp.it.pl.main.toUi
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.vn
-import sp.it.util.async.FX
-import sp.it.util.async.IO
-import sp.it.util.async.flowTimer
-import sp.it.util.async.future.Fut
+import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.await
+import sp.it.util.async.coroutine.collectOn
+import sp.it.util.async.coroutine.flowTimer
+import sp.it.util.async.coroutine.toSubscription
+import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.tabulate0
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cvn
@@ -45,7 +43,6 @@ import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
-import sp.it.util.reactive.toSubscription
 import sp.it.util.text.splitTrimmed
 import sp.it.util.type.atomic
 import sp.it.util.ui.displayed
@@ -89,86 +86,75 @@ class GpuNvidiaInfo: StackPane() {
    private val gpuPow = Num01Ui("Draw", "gpu-pow", " W")
    private val gpuMem = Num01Ui("Memory", "gpu-mem", " MiB")
 
-   @OptIn(DelicateCoroutinesApi::class)
    val monitor = Subscribed {
       var oldTicks by atomic(LongArray(CentralProcessor.TickType.values().size))
-      Subscription(
-         flowTimer(0, 5000)
-            .map {
-               val mem = sysInfo.hardware.memory
-               val cpu = sysInfoCpu
+      val s1 = launch(CPU) {
+         flowTimer(0, 5000).map {
+            val mem = sysInfo.hardware.memory
+            val cpu = sysInfoCpu
+            Info(
+               cpu.processorIdentifier.name,
+               Num01(cpu.getSystemCpuLoadBetweenTicks(oldTicks).times(100.0), 100.0),
+               Ran01(
+                  (cpu.currentFreq.minOrNull() ?: 0)/1000000000.0,
+                  (cpu.currentFreq.maxOrNull() ?: 0)/1000000000.0,
+                  if (cpu.currentFreq.isEmpty()) 0 else cpu.currentFreq.average()/1000000000.0,
+                  cpu.maxFreq/1000000000.0
+               ),
+               Num01((mem.total - mem.available)/Gi.toDouble(), mem.total/Gi.toDouble())
+            ).apply {
+               oldTicks = sysInfoCpu.systemCpuLoadTicks
+            }
+         }
+         .collectOn(FX) {
+            cpuLabel.text = "CPU: ${it.cpuName.trim()}"
+            cpuLoad update it.cpuLoad
+            cpuClock update it.cpuClock
+            sysMem update it.mem
+         }
+      }
+      val s2 = launch(CPU) {
+         flowTimer(0, 5000).map {
+            val f = nvidiaSmi.value?.takeIf { it.exists() }
+            if (f==null) null
+            else f.runAsAppProgram(
+               "-i 0", // `-q` print all, `--help-query-gpu` help with --query-gpu
+               "--query-gpu=clocks.mem,clocks.max.mem,clocks.sm,clocks.max.sm,clocks.gr,clocks.max.gr,memory.used,memory.total,driver_version,gpu_name,power.draw,power.limit,utilization.gpu",
+               "--format=csv,noheader"
+            ).thenRecoverNull().await()
+         }.collectOn(FX) {
+            val valuesRaw = it?.net { it.trim().splitTrimmed(",") } ?: tabulate0(12) { "n/a" }.toList()
+            fun valueOnly(i: Int) = it?.net { valuesRaw[i].trim().takeWhile { it.isDigit() } } ?: "0"
+            fun valueOutOf(i: Int) = it?.net { valueOnly(i) + "/" + valuesRaw[i + 1].trim() } ?: "0/0"
+            fun value01(i: Int) = it?.net { (valueOnly(i).toDouble()/valueOnly(i + 1).toDouble()).clip(0.0, 1.0) } ?: 0.0
 
-               Info(
-                  cpu.processorIdentifier.name,
-                  Num01(cpu.getSystemCpuLoadBetweenTicks(oldTicks).times(100.0), 100.0),
-                  Ran01(
-                     (cpu.currentFreq.minOrNull() ?: 0)/1000000000.0,
-                     (cpu.currentFreq.maxOrNull() ?: 0)/1000000000.0,
-                     if (cpu.currentFreq.isEmpty()) 0 else cpu.currentFreq.average()/1000000000.0,
-                     cpu.maxFreq/1000000000.0
-                  ),
-                  Num01((mem.total - mem.available)/Gi.toDouble(), mem.total/Gi.toDouble())
-               ).apply {
-                  oldTicks = sysInfoCpu.systemCpuLoadTicks
-               }
+            text.text = buildString {
+               appendLine("Gpu: ${valuesRaw[9]}")
+               appendLine("Driver: ${valuesRaw[8]}")
+               appendLine("Load: ${valuesRaw[11]}")
+               appendLine("Memory: ${valueOutOf(6)}")
+               appendLine("Clock:")
+               appendLine(" Memory: ${valueOutOf(0)}")
+               appendLine(" Sm: ${valueOutOf(2)}")
+               appendLine(" Graphics: ${valueOutOf(4)}")
+               appendLine("Draw: ${valueOutOf(10)}")
             }
-            .flowOn(IO)
-            .onEach {
-               cpuLabel.text = "CPU: ${it.cpuName.trim()}"
-               cpuLoad update it.cpuLoad
-               cpuClock update it.cpuClock
-               sysMem update it.mem
+            gpuLabel.text = "GPU: ${valuesRaw[9].trim()} (${valuesRaw[8].trim()})"
+            gpuLoad update Num01(valueOnly(12).toDouble(), 100)
+            gpuMem update Num01(valueOnly(6).toDouble(), valueOnly(7).toDouble())
+            gpuPow update Num01(valueOnly(10).toDouble(), valueOnly(11).toDouble())
+            progressClockMem.value.value = value01(0)
+            progressClockSm.value.value = value01(2)
+            progressClockGr.value.value = value01(4)
+            labelClock.text = buildString {
+               appendLine("Memory clock: ${valueOutOf(0)}")
+               appendLine("Sm clock: ${valueOutOf(2)}")
+               appendLine("Graphics clock: ${valueOutOf(4)}")
             }
-            .flowOn(FX)
-            .launchIn(GlobalScope)
-            .toSubscription(),
-         flowTimer(0, 5000)
-            .onEach {
-               nvidiaSmi.value?.takeIf { it.exists() }
-                  ?.runAsAppProgram(
-                     // `-q` print all
-                     // `--help-query-gpu` help with --query-gpu
-                     "-i 0",
-                     "--query-gpu=clocks.mem,clocks.max.mem,clocks.sm,clocks.max.sm,clocks.gr,clocks.max.gr,memory.used,memory.total,driver_version,gpu_name,power.draw,power.limit,utilization.gpu",
-                     "--format=csv,noheader",
-                     then = {}
-                  )
-                  .let { it ?: Fut.fut(null) }
-                  .ui {
-                     val valuesRaw = it?.net { it.trim().splitTrimmed(",") } ?: tabulate0(12) { "n/a" }.toList()
-                     fun valueOnly(i: Int) = it?.net { valuesRaw[i].trim().takeWhile { it.isDigit() } } ?: "0"
-                     fun valueOutOf(i: Int) = it?.net { valueOnly(i) + "/" + valuesRaw[i + 1].trim() } ?: "0/0"
-                     fun value01(i: Int) = it?.net { (valueOnly(i).toDouble()/valueOnly(i + 1).toDouble()).clip(0.0, 1.0) } ?: 0.0
-
-                     text.text = """
-                        |Gpu: ${valuesRaw[9]}
-                        |Driver: ${valuesRaw[8]}
-                        |Load: ${valuesRaw[11]}
-                        |Memory: ${valueOutOf(6)}
-                        |Clock:
-                        | Memory: ${valueOutOf(0)}
-                        | Sm: ${valueOutOf(2)}
-                        | Graphics: ${valueOutOf(4)}
-                        |Draw: ${valueOutOf(10)}
-                        """.trimMargin()
-                     gpuLabel.text = "GPU: ${valuesRaw[9].trim()} (${valuesRaw[8].trim()})"
-                     gpuLoad update Num01(valueOnly(12).toDouble(), 100)
-                     gpuMem update Num01(valueOnly(6).toDouble(), valueOnly(7).toDouble())
-                     gpuPow update Num01(valueOnly(10).toDouble(), valueOnly(11).toDouble())
-                     progressClockMem.value.value = value01(0)
-                     progressClockSm.value.value = value01(2)
-                     progressClockGr.value.value = value01(4)
-                     labelClock.text = """
-                        |Memory clock: ${valueOutOf(0)}
-                        |Sm clock: ${valueOutOf(2)}
-                        |Graphics clock: ${valueOutOf(4)}
-                        """.trimMargin()
-                     labelClockPer.text = "" + (progressClockGr.value.value + progressClockSm.value.value + progressClockMem.value.value).times(100).div(3.0).roundToInt() + "%"
-                  }
-            }
-            .launchIn(GlobalScope)
-            .toSubscription()
-      )
+            labelClockPer.text = "" + ((progressClockGr.value.value + progressClockSm.value.value + progressClockMem.value.value) * 100 / 3.0).roundToInt() + "%"
+         }
+      }
+      Subscription(s1.toSubscription(), s2.toSubscription())
    }
 
    init {

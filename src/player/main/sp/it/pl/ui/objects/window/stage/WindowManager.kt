@@ -66,9 +66,9 @@ import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.action.IsAction
 import sp.it.util.animation.Anim.Companion.anim
-import sp.it.util.async.FX
+import sp.it.util.async.coroutine.FX
 import sp.it.util.async.future.Fut
-import sp.it.util.async.launch
+import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.observableList
@@ -348,7 +348,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
          // content
          val dockComponentFile = APP.location.user.tmp / "DockComponent.fxwl"
-         FX.launch {
+         launch(FX) {
             val dockComponent = APP.windowManager.instantiateComponent(dockComponentFile) ?: APP.widgetManager.widgets.find(PLAYBACK.id, NEW(CUSTOM))
             mw.window.stage.asLayout()?.child = dockComponent ?: NoFactoryFactory(PLAYBACK.id).create()
             mw.window.onClose += {
@@ -558,7 +558,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
       return mw
    }
 
-   fun showWindow(c: ComponentFactory<*>): Unit = FX.launch { showWindow(c.create()) }.toUnit()
+   fun showWindow(c: ComponentFactory<*>): Unit = launch(FX) { showWindow(c.create()) }.toUnit()
 
    fun showWindow(c: Component): Window {
       return create().apply {

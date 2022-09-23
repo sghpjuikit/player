@@ -11,8 +11,8 @@ import sp.it.pl.layout.WidgetSource.OPEN
 import sp.it.pl.main.APP
 import sp.it.pl.main.configure
 import sp.it.pl.main.runAsAppProgram
-import sp.it.util.async.FX
-import sp.it.util.async.launch
+import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.launch
 import sp.it.util.collections.materialize
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
@@ -63,7 +63,7 @@ fun ComponentFactory<*>.loadIn(strategy: ComponentLoaderStrategy, process: Compo
    val cId = if (c is WidgetFactory<*>) c.id else c.name
    when (process) {
       NORMAL -> {
-         FX.launch {
+         launch(FX) {
             strategy.loader(c.create())
             APP.widgetManager.widgets.componentLastOpenStrategiesMap(cId, strategy)
          }
@@ -83,7 +83,7 @@ fun Component.openIn(strategy: ComponentLoaderStrategy, process: ComponentLoader
    val c = this
    when (process) {
       NORMAL -> {
-         FX.launch {
+         launch(FX) {
             strategy.loader(c)
             if (c is Widget)  APP.widgetManager.widgets.componentLastOpenStrategiesMap(c.factory.id, strategy)
          }
@@ -114,7 +114,7 @@ fun WidgetFactory<*>.reloadAllOpen() = also { widgetFactory ->
    failIfNotFxThread()
    WidgetManager.logger.info("Reloading all open widgets of {}", widgetFactory)
 
-   APP.widgetManager.widgets.findAll(OPEN).asSequence()
+   APP.widgetManager.widgets.findAll(OPEN)
       .filter { it.factory.id==widgetFactory.id }
       .filter { it.isLoaded }
       .materialize()

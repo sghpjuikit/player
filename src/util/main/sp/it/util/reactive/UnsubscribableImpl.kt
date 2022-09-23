@@ -4,7 +4,6 @@ import javafx.beans.value.ObservableValue
 import javafx.event.EventType
 import javafx.stage.Window
 import javafx.stage.WindowEvent
-import kotlinx.coroutines.Job
 import sp.it.util.type.nullify
 
 interface Subscription: Unsubscribable {
@@ -75,9 +74,6 @@ infix operator fun Subscription.plus(subscription: () -> Unit) = Subscription(th
 
 /** @return this or empty subscription if null */
 fun Subscription?.orEmpty() = this ?: Subscription()
-
-/** @return subscription that [Job.cancel] this job */
-fun Job.toSubscription() = Subscription { cancel() }
 
 /** @return [Unsubscribable] that unsubscribes subscription on [onEventDown1] using the specified event type */
 infix fun Window.fires(eventType: EventType<WindowEvent>): Unsubscriber = { s -> onEventDown1(eventType) { s.unsubscribe() } }

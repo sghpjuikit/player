@@ -88,7 +88,7 @@ import sp.it.util.action.ActionManager.keyActionsComponent
 import sp.it.util.action.ActionManager.keyManageLayout
 import sp.it.util.action.ActionManager.keyShortcuts
 import sp.it.util.action.ActionManager.keyShortcutsComponent
-import sp.it.util.async.flowTimer
+import sp.it.util.async.coroutine.flowTimer
 import sp.it.util.async.runFX
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf

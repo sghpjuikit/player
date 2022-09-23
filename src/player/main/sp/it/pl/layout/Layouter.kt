@@ -16,8 +16,8 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.picker.ContainerPicker
 import sp.it.pl.ui.objects.picker.Picker
 import sp.it.pl.ui.objects.picker.WidgetPicker
-import sp.it.util.async.FX
-import sp.it.util.async.launch
+import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.launch
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -133,7 +133,7 @@ class Layouter: ComponentUi {
          wasSelected = false
          AppAnimator.closeAndDo(wp.root) {
             root.children -= wp.root
-            FX.launch {
+            launch(FX) {
                container.addChild(index, factory.create())
                if (APP.ui.isLayoutMode) container.show()
                APP.actionStream("New widget")

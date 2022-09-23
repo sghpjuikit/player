@@ -43,10 +43,10 @@ import sp.it.util.Sort.ASCENDING
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.IsAction
-import sp.it.util.async.FX
+import sp.it.util.async.coroutine.FX
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
-import sp.it.util.async.launch
+import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.materialize
@@ -200,7 +200,7 @@ class AppSearchPlugin: PluginBase() {
                lay += widgetArea
             }
 
-            FX.launch {
+            launch(FX) {
                val c = APP.windowManager.instantiateComponent(f) ?: widgetFactory.create()
 
                Layout.openStandalone(widgetArea).apply {

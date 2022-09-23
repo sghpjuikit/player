@@ -16,12 +16,9 @@ import javafx.util.Duration.ZERO
 import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.javafx.JavaFx
-import kotlinx.coroutines.javafx.JavaFxDispatcher
 import mu.KotlinLogging
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.future.Fut.Companion.fut
@@ -89,7 +86,6 @@ object AwtExecutor: Executor {
 
 /** Executes the specified block on fx thread, immediately if called on fx thread, or using [Platform.runLater] otherwise. */
 object FxExecutor: Executor, CoroutineContext by Dispatchers.JavaFx  {
-   val s: JavaFxDispatcher = Dispatchers.JavaFx
    override fun execute(command: Runnable) = if (Platform.isFxApplicationThread()) command() else Platform.runLater(command)
 
    /**
@@ -121,8 +117,6 @@ object FxLaterExecutor: Executor {
 
 /** Executes the specified block on thread in an IO thread pool or immediately if called on such thread. */
 class IOExecutor(private val e: IOLaterExecutor, val s: CoroutineDispatcher = e.asCoroutineDispatcher()): Executor, CoroutineContext by s {
-   fun launch(start: CoroutineStart = CoroutineStart.DEFAULT, block: suspend (CoroutineScope) -> Unit) = s.launch(start = start, block = { block(this) })
-
    override fun execute(it: Runnable) = if (Thread.currentThread().name.startsWith("io-")) it() else e(it)
 }
 

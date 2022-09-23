@@ -12,8 +12,8 @@ import sp.it.pl.layout.Widget
 import sp.it.pl.main.APP
 import sp.it.util.action.Action
 import sp.it.util.action.ActionRegistrar
-import sp.it.util.async.FX
-import sp.it.util.async.launch
+import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.launch
 import sp.it.util.conf.UnsealedEnumerator
 import sp.it.util.functional.Try
 import sp.it.util.functional.Try.Java.ok
@@ -70,7 +70,7 @@ sealed class Command: () -> Unit {
 
       /** [sp.it.pl.ui.objects.window.stage.WindowManager.instantiateComponent] the component with the specified id */
       override operator fun invoke() {
-         FX.launch { APP.windowManager.instantiateComponent(id.id)?.net(loader.loader) }
+         launch(FX) { APP.windowManager.instantiateComponent(id.id)?.net(loader.loader) }
       }
    }
 

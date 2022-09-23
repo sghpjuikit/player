@@ -12,11 +12,6 @@ import javafx.geometry.Side.BOTTOM
 import javafx.geometry.VPos.CENTER
 import javafx.scene.control.ContextMenu
 import javafx.scene.layout.HBox
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconWH
@@ -31,10 +26,11 @@ import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.util.access.ref.LazyR
 import sp.it.util.access.v
 import sp.it.util.access.vn
-import sp.it.util.async.IO
-import sp.it.util.async.flowTimer
-import sp.it.util.async.launch
-import sp.it.util.async.runFX
+import sp.it.util.async.*
+import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.flowTimer
+import sp.it.util.async.coroutine.launch
+import sp.it.util.async.coroutine.toSubscription
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.Constraint.ObjectNonNull
 import sp.it.util.conf.cv
@@ -45,12 +41,12 @@ import sp.it.util.dev.fail
 import sp.it.util.file.properties.PropVal.PropVal1
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.Subscribed
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
-import sp.it.util.reactive.toSubscription
 import sp.it.util.system.browse
 import sp.it.util.text.capital
 import sp.it.util.ui.displayed
@@ -80,8 +76,11 @@ class WeatherInfo: HBox(15.0) {
    private val pressureL = label()
    private val uvL = label()
    private val visL = label()
-   private val http by lazy { HttpClient(CIO) }
+   private val http by lazy { HttpClient(CIO).config { expectSuccess = true } }
    private val dataKey = "widgets.weather.data.last"
+   private var dataPersistable: String?
+      get() = APP.configuration.rawGet(dataKey)?.val1
+      set(value) = APP.configuration.rawAdd(dataKey, PropVal1(value!!)).toUnit()
 
    val latitude = vn<Double>(null)
    val longitude = vn<Double>(null)
@@ -89,9 +88,8 @@ class WeatherInfo: HBox(15.0) {
    val units = v(Units.METRIC)
    val data = vn<Data>(null)
 
-   @OptIn(DelicateCoroutinesApi::class)
    private val monitor = Subscribed {
-      flowTimer(0, 600*1000).map { refresh() }.flowOn(IO).launchIn(GlobalScope).toSubscription()
+      launch(CPU) { flowTimer(0, 600*1000).collect { refresh() } }.toSubscription()
    }
 
    init {
@@ -132,26 +130,29 @@ class WeatherInfo: HBox(15.0) {
       displayed sync { monitor.subscribe(it) } on onNodeDispose
       onNodeDispose += { monitor.unsubscribe() }
 
-      apiKey attach { IO.launch { refresh() } }
+      apiKey attach {  refresh() }
       latitude attach { updateUi() }
       longitude attach { updateUi() }
       units attach { updateUi() }
       data sync { updateUi() }
    }
 
-   private suspend fun refresh() {
-      val dataOld = APP.configuration.rawGet(dataKey)?.val1?.parseToJson<Data?>()?.takeIf { it.isActual(this) }
-      val dataNew = when {
-         latitude.value==null || latitude.value==null || latitude.value==null -> null
-         dataOld!=null -> dataOld
-         else -> {
-            val link = "https://api.openweathermap.org/data/2.5/onecall?lat=${latitude.value}&lon=${longitude.value}&units=${units.value.name.lowercase()}&exclude=minutely,alerts&appid=${apiKey.value}"
-            val dataRaw = http.get(link).bodyAsText()
-            APP.configuration.rawAdd(dataKey, PropVal1(dataRaw))
-            dataRaw.parseToJson<Data>()
+   private fun refresh() {
+      launch(CPU) {
+         val dataOld = dataPersistable?.asJson<Data?>()?.takeIf { it.isActual(this) }
+         val dataNew = when {
+            latitude.value==null || latitude.value==null || latitude.value==null -> null
+            dataOld!=null -> dataOld
+            else -> {
+               val link = "https://api.openweathermap.org/data/2.5/onecall?lat=${latitude.value}&lon=${longitude.value}&units=${units.value.name.lowercase()}&exclude=minutely,alerts&appid=${apiKey.value}"
+               val dataRaw = http.get(link).bodyAsText()
+                   dataRaw.asJson<Data>()?.also { dataPersistable = dataRaw }
+            }
+         }
+         FX {
+            data.value = dataNew
          }
       }
-      runFX { data.value = dataNew }
    }
 
    private fun updateUi(): Unit = data.value.net {
@@ -189,7 +190,7 @@ class WeatherInfo: HBox(15.0) {
          longitude.value = it.longitude.value
          apiKey.value = it.apiKey.value
          units.value = it.units.value
-         IO.launch { refresh() }
+         refresh()
       }
    }
 
@@ -401,8 +402,7 @@ class WeatherInfo: HBox(15.0) {
    }
 
    companion object {
-      fun String.parseToJson() = APP.serializerJson.json.ast(this).orThrow
-      inline fun <reified T> String.parseToJson(): T? = APP.serializerJson.json.fromJson<T>(this).orNull()
+      inline fun <reified T> String.asJson(): T? = APP.serializerJson.json.fromJson<T>(this).orNull()
       fun Instant.isOlderThan1Hour() = Instant.now().isBefore(plusSeconds(3500))
 
       object Types {

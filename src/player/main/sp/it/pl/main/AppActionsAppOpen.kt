@@ -2,8 +2,8 @@ package sp.it.pl.main
 
 import javafx.stage.FileChooser.ExtensionFilter
 import sp.it.pl.ui.pane.action
-import sp.it.util.async.FX
-import sp.it.util.async.launch
+import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.launch
 import sp.it.util.file.FileType
 import sp.it.util.functional.orNull
 import sp.it.util.system.chooseFile
@@ -26,8 +26,8 @@ object AppActionsAppOpen {
    }
 
    val widget = action<AppOpen>("Open widget", "Open file chooser to open an exported widget", IconMA.WIDGETS) {
-      chooseFile("Open widget...", FileType.FILE, APP.location.user.layouts, window, ExtensionFilter("Component", "*.fxwl")).ifOk {
-         FX.launch { APP.windowManager.launchComponent(it) }
+      chooseFile("Open widget...", FileType.FILE, APP.location.user.layouts, window, ExtensionFilter("Component", "*.fxwl")).ifOk { f ->
+         launch(FX) { APP.windowManager.launchComponent(f) }
       }
       Unit
    }

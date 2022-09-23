@@ -1055,10 +1055,18 @@ sealed class WidgetUse(val widgetFinder: WidgetSource) {
    object OPEN: WidgetUse(WidgetSource.OPEN)
 
    /** Use newly created widget. */
-   object NEW: NewAnd(NONE, ComponentLoader.POPUP)
+   object NEW: NewAnd(NONE, {
+      val id = if (it is Widget) it.factory.id else it.factoryDeserializing?.name
+      val s = id?.let { APP.widgetManager.widgets.componentLastOpenStrategiesMap[id] } ?: ComponentLoaderStrategy.POPUP
+      s.loader(it)
+   })
 
    /** Use open widget as per [WidgetSource.OPEN] or use newly created widget. */
-   object ANY: NewAnd(WidgetSource.OPEN, ComponentLoader.POPUP)
+   object ANY: NewAnd(WidgetSource.OPEN, {
+      val id = if (it is Widget) it.factory.id else it.factoryDeserializing?.name
+      val s = id?.let { APP.widgetManager.widgets.componentLastOpenStrategiesMap[id] } ?: ComponentLoaderStrategy.POPUP
+      s.loader(it)
+   })
 
    /** Use open widget as per [WidgetSource.OPEN_STANDALONE] or use newly created widget. */
    object NO_LAYOUT: NewAnd(WidgetSource.OPEN_STANDALONE, ComponentLoader.POPUP)

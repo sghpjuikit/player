@@ -258,6 +258,16 @@ val Stage.isNonInteractingOnBottom: Boolean
 /** See [Stage.setNonInteractingOnBottom] */
 fun Window.setNonInteractingOnBottom() = stage.setNonInteractingOnBottom()
 
+private fun Stage.lookupHwnd(): WinDef.HWND? {
+   val user32 = User32.INSTANCE
+   val titleOriginal = title
+   val titleUnique = UUID.randomUUID().toString()
+   title = titleUnique
+   val hwnd = user32.FindWindow(null, titleUnique)   // find native window by title
+   title = titleOriginal
+   return hwnd
+}
+
 /**
  * Sets window to be non-interactive and always at bottom (opposite of always on top).
  * Windows only, no-op on other platforms.
@@ -272,12 +282,7 @@ fun Stage.setNonInteractingOnBottom() {
    isAlwaysOnTop = false
    showing syncTrue {
       val user32 = User32.INSTANCE
-
-      val titleOriginal = title
-      val titleUnique = UUID.randomUUID().toString()
-      title = titleUnique
-      val hwnd = user32.FindWindow(null, titleUnique)   // find native window by title
-      title = titleOriginal
+      val hwnd = lookupHwnd()
 
       // Prevent window from popping up
       val WS_EX_NOACTIVATE = 0x08000000  // https://msdn.microsoft.com/en-us/library/ff700543(v=vs.85).aspx
@@ -310,12 +315,8 @@ fun Stage.setNonInteractingProgmanOnBottom() {
    showing.sync1If({ it }) {
       val logName = "Window $this"
       val user32 = User32.INSTANCE
+      val hwnd = lookupHwnd()
 
-      val titleOriginal = title
-      val titleUnique = UUID.randomUUID().toString()
-      title = titleUnique
-      val hwnd = user32.FindWindow(null, titleUnique)   // find native window by title
-      title = titleOriginal
       if (hwnd==null) logger.warn { "$logName getting hwnd failed with code=${Kernel32.INSTANCE.GetLastError()}" }
       if (hwnd==null) return@sync1If
 

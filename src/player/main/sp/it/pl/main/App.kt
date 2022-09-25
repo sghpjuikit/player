@@ -498,7 +498,7 @@ class App: Application(), GlobalConfigDelegator {
                textAlignment = RIGHT
             }
          ) {
-            actions.openSettings(it)
+            actions.app.openSettings(it)
          }
       }
       sources += Source("Actions") {

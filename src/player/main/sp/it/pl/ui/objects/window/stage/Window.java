@@ -445,7 +445,7 @@ public class Window extends WindowBase {
 		Icon ltB = new Icon(CARET_LEFT, -1, ActionRegistrar.get("Layout move left")).styleclass("header-icon");
 		Icon rtB = new Icon(CARET_RIGHT, -1, ActionRegistrar.get("Layout move right")).styleclass("header-icon");
 			on(syncC(APP.ui.getLayoutMode(), it -> lmB.icon(it, TH, TH_LARGE)), onClose);
-		Icon errorB = new Icon(WARNING, -1).styleclass("header-icon").action(() -> APP.getActions().openAppEventLog()).tooltip("Event Log");
+		Icon errorB = new Icon(WARNING, -1).styleclass("header-icon").action(() -> APP.getActionsLog().showDetailForLastError() ).tooltip("Event Log");
 			syncC(AppEventLog.INSTANCE.getHasErrors(), it -> errorB.icon(it, WARNING, SEND));
 
 		leftHeaderBox.getChildren().addAll(leftMenuB, new Label(" "), ltB, lockB, lmB, rtB, new Label(" "), errorB);

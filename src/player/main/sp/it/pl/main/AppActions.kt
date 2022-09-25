@@ -23,9 +23,7 @@ import sp.it.pl.audio.tagging.readAudioFile
 import sp.it.pl.layout.ComponentLoader.WINDOW_FULLSCREEN
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.WidgetUse.NEW
-import sp.it.pl.layout.WidgetUse.NO_LAYOUT
 import sp.it.pl.layout.controller.Controller
-import sp.it.pl.layout.feature.ConfiguringFeature
 import sp.it.pl.layout.feature.ImageDisplayFeature
 import sp.it.pl.layout.feature.TextDisplayFeature
 import sp.it.pl.main.Actions.APP_SEARCH
@@ -86,7 +84,6 @@ import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync1If
 import sp.it.util.system.browse
-import sp.it.util.system.open
 import sp.it.util.system.runCommand
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
@@ -104,27 +101,24 @@ import sp.it.util.units.uri
 @Suppress("RemoveExplicitTypeArguments")
 class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
-   @IsAction(name = "Open app directory", info = "Opens directory from which this application is running from.")
-   fun openAppLocation() {
-      APP.location.open()
-   }
-
-   @IsAction(name = "Open app event log", info = "Opens application event log.")
-   fun openAppEventLog() {
-      AppEventLog.showDetailForLast()
-   }
-
-   @IsAction(name = "Open settings", info = "Opens application settings.")
-   fun openSettings() {
-      openSettings(null)
-   }
-
-   fun openSettings(groupToSelect: String?) {
-      APP.widgetManager.widgets.use<ConfiguringFeature>(NEW) {
-         it.asIf<Controller>()?.widget?.forbidUse?.value = true
-         it.configure(APP.configuration, groupToSelect)
-      }
-   }
+   /** [AppActionsAny] */
+   val any = AppActionsAny
+   /** [AppActionsApp] */
+   val app = AppActionsApp
+   /** [AppActionsAppHelp] */
+   val appHelp = AppActionsAppHelp
+   /** [AppActionsAppOpen] */
+   val appOpen = AppActionsAppOpen
+   /** [AppActionsAppTest] */
+   val appTest = AppActionsAppTest
+   /** [AppActionsComponent] */
+   val component = AppActionsComponent
+   /** [AppActionsString] */
+   val string = AppActionsString
+   /** [AppActionsUnit] */
+   val unit = AppActionsUnit
+   /** [AppActionsWindow] */
+   val window = AppActionsWindow
 
    @IsAction(name = "Open app actions", info = "Actions specific to whole application.")
    fun openActions() {

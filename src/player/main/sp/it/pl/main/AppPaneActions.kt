@@ -116,11 +116,6 @@ object ActionsPaneGenericActions {
                }
          }
       }
-
-      register<App>(
-         action(IconFA.GEARS, ActionRegistrar["Open settings"]),
-         action(IconUN(0x1f4c1), ActionRegistrar["Open app event log"]),
-      )
    }
 }
 

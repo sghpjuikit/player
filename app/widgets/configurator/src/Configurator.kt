@@ -110,8 +110,6 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
             lay += Icon(IconMA.CANCEL, 13.0).onClickDo { refresh() }.tooltip("Refresh\n\nSet all editors to actual values")
             lay += Icon(IconFA.RECYCLE, 13.0).onClickDo { defaults() }.tooltip("Default\n\nSet all editors to default values")
             lay += Icon().blank()
-            lay += Icon(IconFA.HOME, 13.0).onClickDo { configure(appConfigurable) }.tooltip("App settings\n\nHide current settings and Visit application settings")
-            lay += Icon().blank()
          }
          lay(ALWAYS) += splitPane {
             setDividerPositions(0.2)

@@ -10,4 +10,8 @@ object AppActionsApp {
 
    val openHotkeysInfo = action<App>("Open hotkeys", "Display all available shortcuts", IconMD.KEYBOARD_VARIANT) { it.actions.showShortcuts() }
 
+   val openSettings = action<App>(IconFA.GEARS, ActionRegistrar["Open settings"])
+
+   val openEventLog = action<App>(IconUN(0x1f4c1), ActionRegistrar["Open app event log"])
+
 }

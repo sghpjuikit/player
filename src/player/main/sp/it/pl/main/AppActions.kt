@@ -120,7 +120,10 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
    }
 
    fun openSettings(groupToSelect: String?) {
-      APP.widgetManager.widgets.use<ConfiguringFeature>(NO_LAYOUT) { it.configure(APP.configuration, groupToSelect) }
+      APP.widgetManager.widgets.use<ConfiguringFeature>(NEW) {
+         it.asIf<Controller>()?.widget?.forbidUse?.value = true
+         it.configure(APP.configuration, groupToSelect)
+      }
    }
 
    @IsAction(name = "Open app actions", info = "Actions specific to whole application.")

@@ -3,6 +3,19 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Fix popup showing without focus even if focused
+- Improve **Settings** widget's use of application settings [remove HOME icon & set to not reusable]
+
+### Application Settings reuse
+The **Settings** widget used for application settings can be used for any kind of `Configurable` object.
+This creates confusion when such object requires a **Settings** widget, because widgets are by default reused and thus the contents change unexpectedly.
+This updates changes the behavior of `Show Settings` action to always create new widget and set its re-usability to false.
+Configuring other objects will therefore not use the widget, if it shows application settings.
+
+This allows removing the widget's `Home` icon, which served to show application settings.
+This was confusing at best.
+Now using the **Settings** widget is simpler and more intuitive.
+
 ## [7.3.0] 2022 09 25
 
 - Update dependencies

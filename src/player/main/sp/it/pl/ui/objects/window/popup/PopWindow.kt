@@ -45,7 +45,6 @@ import sp.it.util.async.runLater
 import sp.it.util.collections.setTo
 import sp.it.util.collections.setToOne
 import sp.it.util.functional.asIf
-import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
@@ -57,7 +56,6 @@ import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTrue
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChangeAndNow
 import sp.it.util.reactive.onEventDown
@@ -90,7 +88,7 @@ open class PopWindow {
    private var window: WindowFx? = null
    private val stage by lazy {
       stage(TRANSPARENT) {
-         initOwner(APP.windowManager.createStageOwnerNoShow())
+         initOwner(APP.windowManager.createStageOwnerNoShow().apply { properties["throwaway"] = true })
          initPopWindow(this@PopWindow)
          titleProperty() syncFrom this@PopWindow.title
          resizableProperty() syncFrom userResizable
@@ -339,7 +337,6 @@ open class PopWindow {
                   } on tillHidden
                }
 
-               scene.root = root
                focusedProperty() sync { root.pseudoClassChanged("window-focused", it) } on tillHidden
                initHideWithOwner()
                initZOrder()
@@ -347,11 +344,11 @@ open class PopWindow {
                onEventUp1(WINDOW_SHOWN) { onContentShown() }
 
                if (animated.value) fadeIn()
-               owner.asIs<Stage>().show()
                show()
+               focus()
+               scene.root = root
                sizeToScene()
                xy = shower(stage)
-               focus()
 
                onIsShowing1st { initAutohide() } on tillHidden
             }
@@ -386,7 +383,7 @@ open class PopWindow {
    fun focus() {
       window?.ifNotNull {
          if (!it.isFocused) {
-            it.asIf<Stage>()?.owner?.requestFocus()
+            it.asIf<Stage>()?.toFront()
             it.requestFocus()
          }
       }
@@ -404,6 +401,7 @@ open class PopWindow {
       if (!isShowing) return
       tillHiding()
       window?.hide()
+      window?.asIf<Stage>()?.owner?.takeIf { it.properties["throwaway"] == true }?.hide()
       window = null
       tillHidden()
    }

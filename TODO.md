@@ -1,5 +1,4 @@
 ## Currently considered
-- popup focus (Win 10)
 - Cache DeserializationFactory ComponentDb to avoid IO if file was not modified in the meantime
 - Document all used libraries, how they are used, why, where not to use them, etc.
 - Action refactor

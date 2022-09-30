@@ -327,15 +327,16 @@ class WidgetManager {
       val packageName  = widgetName.decapital()
       val classFqName  = "$packageName.$widgetName"
       val skinFile = widgetDir/"skin.css"
+      val srcDir = widgetDir/"src"
       val compileDir = widgetDir/"out"
       val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
 
       /** @return primary source file (either Kotlin or Java) or null if none exists */
       fun findSrcFile() = null
-         ?: (widgetDir / "src" / "$widgetName.kt").takeIf { it.exists() }
-         ?: (widgetDir / "src" / "$widgetName.java").takeIf { it.exists() }
+         ?: (srcDir / "$widgetName.kt").takeIf { it.exists() }
+         ?: (srcDir / "$widgetName.java").takeIf { it.exists() }
 
-      fun findSrcFiles() = (widgetDir / "src").children().filter { it.hasExtension("java", "kt") }
+      fun findSrcFiles() = srcDir.children().filter { it.hasExtension("java", "kt") }
 
       fun findClassFile() = (compileDir/widgetName.decapital()/"$widgetName.class").takeIf { it.exists() }
 
@@ -382,8 +383,10 @@ class WidgetManager {
                         }
                      }
                }
-               file==compileDir || file.isAnyChildOf(compileDir) -> Unit
                file hasExtension "class" -> Unit
+               file hasExtension "class~" -> Unit
+               file hasExtension "kt~" -> Unit
+               file==compileDir || file==srcDir || file.isAnyChildOf(compileDir) -> Unit
                else -> {
                   logger.info { "Widget=$widgetName source file=${file.name} changed $type" }
                   if (widgets.autoRecompile.value)

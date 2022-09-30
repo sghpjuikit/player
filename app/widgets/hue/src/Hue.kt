@@ -49,9 +49,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.text.TextAlignment
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import sp.it.pl.layout.Widget
 import sp.it.pl.main.WidgetTags.VISUALISATION
@@ -69,10 +67,8 @@ import sp.it.pl.ui.objects.form.Form.Companion.form
 import sp.it.pl.ui.objects.form.Validated
 import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.v
-import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.between
@@ -82,7 +78,6 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.uiConverterElement
 import sp.it.util.conf.uiInfoConverter
-import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.file.div
@@ -116,7 +111,6 @@ import sp.it.util.ui.x
 import sp.it.util.units.seconds
 import sp.it.util.units.version
 import sp.it.util.units.year
-import kotlin.coroutines.CoroutineContext
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -130,6 +124,10 @@ import sp.it.pl.main.textColon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
+import sp.it.util.async.coroutine.FX
+import sp.it.util.async.coroutine.asFut
+import sp.it.util.async.coroutine.launch
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.cvn
 import sp.it.util.conf.lengthMax
@@ -169,43 +167,23 @@ class Hue(widget: Widget): SimpleController(widget) {
       lateinit var apiVersion: KotlinVersion
       lateinit var url: String
 
-      fun init() =
-         runFX { hueBridgeIp }
-            .then(IO) { ip ->
-               ip.validIpOrNull() ?: ip()
-               ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
-            }
-            .ui { ip ->
-               hueBridgeIp = ip
-               ip to hueBridgeApiKey
-            }
-            .then(IO) { (ip, apiKey) ->
-               runBlocking {
-                  if (isAuthorizedApiKey(ip, apiKey))
-                     arrayOf(ip, apiKey, apiVersion("http://$ip/api/$apiKey"))
-                  else {
-                     val apiKeyAuthorized = createApiKey(ip)
-                     arrayOf(ip, apiKeyAuthorized, apiVersion("http://$ip/api/$apiKeyAuthorized"))
-                  }
-               }
-            }.ui { data ->
-               ip = data[0]
-               apiKey = data[1]
-               apiVersion = KotlinVersion(data[2].substringBefore(".").toInt(), data[2].substringAfter(".").substringBefore(".").toInt(), data[2].substringAfter(".").substringAfter(".", "").toIntOrNull() ?: 0)
-               hueBridgeApiKey = apiKey
-               url = "http://$ip/api/$apiKey"
-            }
+      fun init() = launch(FX) {
+         ip = hueBridgeIp.validIpOrNull() ?: ip() ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
+         hueBridgeIp = ip
+         apiKey = if (isAuthorizedApiKey(ip, hueBridgeApiKey)) hueBridgeApiKey else createApiKey(ip)
+         hueBridgeApiKey = apiKey
+         apiVersion = apiVersion("http://$ip/api/$apiKey").net { KotlinVersion(it.substringBefore(".").toInt(), it.substringAfter(".").substringBefore(".").toInt(), it.substringAfter(".").substringAfter(".", "").toIntOrNull() ?: 0) }
+         url = "http://$ip/api/$apiKey"
+      }.asFut()
 
-      @Blocks
-      private fun String.validIpOrNull() = runBlocking {
+      private suspend fun String.validIpOrNull(): String? {
          val isValid = runTry { client.get("http://${this@validIpOrNull}").status }.orNull()==OK
-         this@validIpOrNull.takeIf { isValid }
+         return this@validIpOrNull.takeIf { isValid }
       }
 
-      @Blocks
-      private fun ip() = runBlocking {
+      private suspend fun ip(): String? {
          val response = client.get("https://discovery.meethue.com/").bodyAsText()
-         (response.parseToJson().asJsArray()/0/"internalipaddress")?.asJsStringValue()
+         return (response.parseToJson().asJsArray()/0/"internalipaddress")?.asJsStringValue()
       }
 
       private suspend fun isAuthorizedApiKey(ip: String, apiKey: String): Boolean {
@@ -251,40 +229,40 @@ class Hue(widget: Widget): SimpleController(widget) {
          return response.parseToJson().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
       }
 
-      fun bulbs() = runSuspending {
+      fun bulbs() = runSuspendingFx {
          val response = client.getText("$url/lights")
          response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueBulb>().copy(id = id) }
       }
 
-      fun groups() = runSuspending {
+      fun groups() = runSuspendingFx {
          val response = client.getText("$url/groups")
          val groups = response.parseToJson().asJsObject().value.map { (id, bulbJs) -> bulbJs.to<HueGroup>().copy(id = id) }
          groups + HueGroup("0", "All", listOf(), HueGroupState(false, false))
       }
 
-      fun scenes() = runSuspending {
+      fun scenes() = runSuspendingFx {
          val response = client.getText("$url/scenes")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueScene>().copy(id = id) }
       }
 
-      fun sensors() = runSuspending {
+      fun sensors() = runSuspendingFx {
          val response = client.getText("$url/sensors")
          response.parseToJson().asJsObject().value.map { (id, sceneJs) -> sceneJs.to<HueSensor>().copy(id = id) }
       }
 
-      fun renameBulb(bulb: HueBulbId, name: String) = runSuspending {
+      fun renameBulb(bulb: HueBulbId, name: String) = runSuspendingFx {
          client.put("$url/lights/$bulb") {
             setBody("""{"name": "$name"}""")
          }
       }
 
-      fun changePowerOn(bulb: HueBulbId, powerOn: HueBulbConfPowerOn) = runSuspending {
+      fun changePowerOn(bulb: HueBulbId, powerOn: HueBulbConfPowerOn) = runSuspendingFx {
          client.putText("$url/lights/$bulb/config") {
             setBody("""{ "startup": {"mode": "$powerOn"} }""")
          }
       }
 
-      fun toggleBulb(bulb: HueBulbId) = runSuspending {
+      fun toggleBulb(bulb: HueBulbId) = runSuspendingFx {
          val response = client.getText("$url/lights/$bulb")
          val on = response.parseToJson().to<HueBulb>().state.on
          client.putText("$url/lights/$bulb/state") {
@@ -292,7 +270,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          }
       }
 
-      fun toggleBulbGroup(group: HueGroupId) = runSuspending {
+      fun toggleBulbGroup(group: HueGroupId) = runSuspendingFx {
          val response = client.getText("$url/groups/$group")
          val allOn = response.parseToJson().to<HueGroup>().copy(id = group).state.all_on
          client.putText("$url/groups/$group/action") {
@@ -300,41 +278,41 @@ class Hue(widget: Widget): SimpleController(widget) {
          }
       }
 
-      fun applyBulbLight(bulb: HueBulbId, state: HueBulbStateEditLight) = runSuspending {
+      fun applyBulbLight(bulb: HueBulbId, state: HueBulbStateEditLight) = runSuspendingFx {
          client.putText("$url/lights/$bulb/state") {
             setBody(state.toJson().asJsObject().withoutNullValues().toPrettyS())
          }
       }
 
-      fun applyBulbGroupLight(group: HueGroupId, state: HueBulbStateEditLight) = runSuspending {
+      fun applyBulbGroupLight(group: HueGroupId, state: HueBulbStateEditLight) = runSuspendingFx {
          client.putText("$url/groups/$group/action") {
             setBody(state.toJson().asJsObject().withoutNullValues().toPrettyS())
          }
       }
 
-      fun applyScene(scene: HueScene) = runSuspending {
+      fun applyScene(scene: HueScene) = runSuspendingFx {
          client.putText("$url/groups/0/action") {
             setBody(JsObject("scene" to JsString(scene.id)).toPrettyS())
          }
       }
 
-      fun createGroup(group: HueGroupCreate) = runSuspending {
+      fun createGroup(group: HueGroupCreate) = runSuspendingFx {
          client.postText("$url/groups") {
             setBody(group.toJson().toPrettyS())
          }
       }
 
-      fun createScene(scene: HueSceneCreate) = runSuspending {
+      fun createScene(scene: HueSceneCreate) = runSuspendingFx {
          client.postText("$url/scenes") {
             setBody(scene.toJson().asJsObject().withoutNullValues().toPrettyS())
          }
       }
 
-      fun deleteGroup(group: HueGroupId) = runSuspending {
+      fun deleteGroup(group: HueGroupId) = runSuspendingFx {
          client.deleteText("$url/groups/$group")
       }
 
-      fun deleteScene(group: HueSceneId) = runSuspending {
+      fun deleteScene(group: HueSceneId) = runSuspendingFx {
          client.deleteText("$url/scenes/$group")
       }
 
@@ -467,9 +445,7 @@ class Hue(widget: Widget): SimpleController(widget) {
 
    fun Fut<*>.thenRefresh() = ui { refresh() }
 
-   fun linkBridge() {
-
-   }
+   fun linkBridge() = hueBridge.init() ui { }
 
    fun refresh(): Fut<Any> = hueBridge.init() ui {
       fun unfocusBulb() {
@@ -722,8 +698,6 @@ class Hue(widget: Widget): SimpleController(widget) {
       private var hueBridgeApiKey by appProperty("")
       private var hueBridgeIp by appProperty("")
 
-      fun <T> runSuspending(block: suspend CoroutineScope.() -> T) = runIO { runBlocking(block = block) }
-      fun <T> runSuspending(context: CoroutineContext, block: suspend CoroutineScope.() -> T) = runIO { runBlocking(context, block) }
       fun JsObject.withoutNullValues() = JsObject(value.filter { it.value !is JsNull })
       fun JsObject.withoutType() = JsObject(value.filter { it.key!="_type" })
       fun Any?.toJson() = APP.serializerJson.json.toJsonValue(this).let {

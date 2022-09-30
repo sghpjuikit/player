@@ -1,9 +1,13 @@
 package sp.it.util.async.coroutine
 
 import java.util.concurrent.CompletionStage
+import javafx.application.Platform
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CoroutineStart.DEFAULT
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,6 +18,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.asDeferred
+import kotlinx.coroutines.future.future
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.javafx.JavaFxDispatcher
@@ -34,7 +39,7 @@ val Dispatchers.CPU: CoroutineDispatcher get() = sp.it.util.async.coroutine.CPU
 
 val Dispatchers.NEW: CoroutineDispatcher get() = sp.it.util.async.coroutine.NEW
 
-fun launch(dispatcher: CoroutineDispatcher, start: CoroutineStart = CoroutineStart.DEFAULT, block: suspend (CoroutineScope) -> Unit) = CoroutineScope(dispatcher).launch(start = start, block = { block(this) })
+fun launch(dispatcher: CoroutineDispatcher, start: CoroutineStart = DEFAULT, block: suspend (CoroutineScope) -> Unit) = CoroutineScope(dispatcher).launch(start = start, block = { block(this) })
 
 /**
  * @return flow that produces the first item after the given initial delay and subsequent items with the given delay between them;
@@ -66,3 +71,9 @@ fun Job.asFut(): Fut<Unit> = Fut(asCompletableFuture())
 
 /** @return this job as [Subscription] that [Job.cancel] this job */
 fun Job.toSubscription() = Subscription { cancel() }
+
+fun <T> runSuspending(dispatcher: CoroutineDispatcher, start: CoroutineStart = DEFAULT, block: suspend CoroutineScope.() -> T) : Fut<T> = Fut(CoroutineScope(dispatcher).future(EmptyCoroutineContext, start, block))
+
+fun <T> runSuspendingFx(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(FX, if (Platform.isFxApplicationThread()) UNDISPATCHED else DEFAULT, block)
+
+fun <T> runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(FX, DEFAULT, block)

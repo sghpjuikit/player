@@ -542,7 +542,6 @@ class WidgetManager {
                "-Xno-param-assertions",
                "\"-Xjvm-default=all\"",
                "\"-Xlambdas=indy\"",
-               "\"-opt-in=kotlin.RequiresOptIn\"",
                "\"-Xstring-concat=indy-with-constants\"",
                "-cp", '"' + computeClassPath() + '"',
                kotlinSrcFiles.joinToString(" ") { it.relativeToApp() }

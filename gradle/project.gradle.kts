@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // ----- plugin block; evaluated before the script itself
 
 plugins {
-   kotlin("jvm") version "1.7.10"
+   kotlin("jvm") version "1.7.20"
    application
    id("com.github.ben-manes.versions") version "0.42.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
@@ -66,7 +66,6 @@ allprojects {
          "-Xno-param-assertions",
          "-Xjvm-default=all",
          "-Xlambdas=indy",
-         "-opt-in=kotlin.RequiresOptIn",
          "-Xstring-concat=indy-with-constants"
       )
       kotlinOptions.javaParameters = true
@@ -111,14 +110,14 @@ allprojects {
       }
 
       "Logging" group {
-         implementation("org.slf4j", "slf4j-api", "2.0.2")
-         implementation("org.slf4j", "jul-to-slf4j", "2.0.2")
+         implementation("org.slf4j", "slf4j-api", "2.0.3")
+         implementation("org.slf4j", "jul-to-slf4j", "2.0.3")
          implementation("ch.qos.logback", "logback-classic", "1.4.1")
          implementation("io.github.microutils", "kotlin-logging", "3.0.0")
       }
 
       "Audio" group {
-         implementation("uk.co.caprica", "vlcj", "4.7.1")
+         implementation("uk.co.caprica", "vlcj", "4.8.1")
          implementation("net.jthink", "jaudiotagger", "3.0.1")
       }
 
@@ -132,7 +131,6 @@ allprojects {
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
-         implementation("org.apache.commons", "commons-text", "1.9")
          implementation("com.github.oshi", "oshi-core", "6.2.2")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }

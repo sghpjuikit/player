@@ -168,7 +168,7 @@ class WidgetManager {
    private var initialized = false
    private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
    private val kotlinc by lazy {
-      val kotlinVersion = KotlinVersion.CURRENT.toString()
+      val kotlinVersion = APP.location.lib.children().map { it.path }.find { "kotlin-stdlib-" in it }?.substringAfter("kotlin-stdlib-")?.substringBefore(".jar") ?: fail { "No lib/kotlin-stdlib found" }
       val kotlincDir = APP.location.kotlinc
       val kotlincVersionFile = kotlincDir/"version"
       val kotlincZipName = "kotlin-compiler-$kotlinVersion.zip"

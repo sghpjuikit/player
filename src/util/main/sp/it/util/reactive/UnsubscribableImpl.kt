@@ -6,7 +6,7 @@ import javafx.stage.Window
 import javafx.stage.WindowEvent
 import sp.it.util.type.nullify
 
-interface Subscription: Unsubscribable {
+fun interface Subscription: Unsubscribable {
 
    override fun unsubscribe()
 

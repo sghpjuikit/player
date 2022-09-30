@@ -54,6 +54,7 @@ import sp.it.util.parsing.Parsers
 import sp.it.util.text.escapeJson
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
+import sp.it.util.type.isEnum
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
 import sp.it.util.type.isPlatformType
@@ -443,7 +444,7 @@ class Json: JsonAst() {
                      instanceType==BigDecimal::class -> value.value["value"]?.asJsNumberValue()?.toDouble()?.toBigDecimal()
                      instanceType==Number::class -> value.value["value"]?.asJsNumberValue()
                      instanceType.isObject -> instanceType.objectInstance
-                     instanceType.isSubclassOf<Enum<*>>() -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
+                     instanceType.isEnum -> value.value["value"]?.asJsStringValue()?.let { getEnumValue(instanceType.javaObjectType, it) }
                      instanceType==Any::class -> {
                         val mapKeyType = type<String>()
                         val mapValueType = kType<Any?>()

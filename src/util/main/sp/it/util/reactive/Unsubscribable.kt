@@ -1,7 +1,7 @@
 package sp.it.util.reactive
 
 /** Object that requires any kind of disposal. Disposable. */
-interface Unsubscribable {
+fun interface Unsubscribable {
    /** Disposes pf this unsubscribable. One-time and irreversible. */
    fun unsubscribe()
 }

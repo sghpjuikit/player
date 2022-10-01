@@ -23,6 +23,8 @@ gradle.properties
 out/
 .idea/*
 !.idea/codeStyles/
+!.idea/dictionaries/
+!.idea/inspectionProfiles/
 !.idea/annotations
 *.iml
 *.ipr

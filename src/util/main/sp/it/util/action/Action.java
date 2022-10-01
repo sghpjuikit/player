@@ -18,6 +18,7 @@ import sp.it.util.conf.Constraint;
 import sp.it.util.conf.EditMode;
 import sp.it.util.file.properties.PropVal;
 import sp.it.util.file.properties.PropVal.PropVal1;
+import sp.it.util.functional.TryKt;
 import sp.it.util.type.VType;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static javafx.scene.input.KeyCombination.keyCombination;
@@ -322,7 +323,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	@Override
 	public void setValueAsProperty(@NotNull PropVal property) {
 		var s = property.getVal1();
-		var a = s==null ? null : ActionDb.Companion.fromString(s);
+		var a = s==null ? null : getOr(ActionDb.Companion.ofS(s).ifErrorUse(it -> Config.Companion.getLogger().warn("Unable to set config=" + name + " value from text='" + s + "' because: " + it)), null);
 		if (a!=null) set(a.isGlobal(), a.getKeys());
 	}
 
@@ -406,7 +407,7 @@ public class Action extends Config<Action> implements Runnable, Function0<Unit> 
 	public record Data(boolean isGlobal, String keys) {
 
 		public KeyCombination getKeysAsKeyCombination() {
-			return keys.isEmpty() ? NO_MATCH : (KeyCombination) getOr(runTry(runnable(() -> KeyCodeCombination.valueOf(keys))), NO_MATCH);
+			return keys.isEmpty() ? NO_MATCH : (KeyCombination) TryKt.getOr(runTry(runnable(() -> KeyCodeCombination.valueOf(keys))), NO_MATCH);
 		}
 
 		@Override

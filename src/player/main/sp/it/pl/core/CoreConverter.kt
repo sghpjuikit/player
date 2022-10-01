@@ -81,6 +81,7 @@ import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.fieldvalue.IconField
 import sp.it.util.action.Action
+import sp.it.util.action.ActionDb
 import sp.it.util.conf.Constraint
 import sp.it.util.dev.fail
 import sp.it.util.file.div
@@ -328,6 +329,7 @@ object CoreConverter: Core {
       addT<LocalDate>({ ISO_DATE.format(it) }, tryF(DTPE::class) { LocalDate.parse(it, ISO_DATE) })
       addT<LocalDateTime>({ ISO_DATE_TIME.format(it) }, tryF(DTPE::class) { LocalDateTime.parse(it, ISO_DATE_TIME) })
       addT<Year>(toS, tryF(DTPE::class) { Year.parse(it) })
+      addP<ActionDb>(ActionDb)
       addP<FileSize>(FileSize)
       addP<StrExF>(StrExF)
       addP<NofX>(NofX)

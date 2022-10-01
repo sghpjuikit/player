@@ -226,6 +226,7 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
 
       val c = ValueConfig(type(), name, name, ActionDb(isGlobal, keys), group, desc, EditMode.USER)
       ref.configurableValueSource.initialize(c)
+
       val cv = c.value
 
       return object: Action(name, Runnable { action() }, desc, group, cv.keys, cv.isGlobal, isContinuous, *constraints.toTypedArray()), RoProperty<ConfigDelegator, Action> {

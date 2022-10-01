@@ -15,6 +15,7 @@ import kotlin.reflect.KTypeProjection.Companion.invariant
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.isAccessible
+import mu.KLogging
 import sp.it.util.access.OrV
 import sp.it.util.access.OrV.OrValue
 import sp.it.util.collections.materialize
@@ -196,6 +197,7 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
    val property: OrV<T>
    val valueType: VType<T>
    val elementConstraints: MutableSet<Constraint<T>>
+   companion object: KLogging()
 
    constructor(
       valueType: VType<T>, name: String, c: ConfigDefinition, constraints: Set<Constraint<OrValue<T>>>, elementConstraints: Set<Constraint<T>>, property: OrV<T>, group: String
@@ -232,14 +234,15 @@ open class OrPropertyConfig<T>: ConfigBase<OrValue<T>> {
          if (s.size==2) {
             Parsers.DEFAULT.ofS<Boolean>(s[0])
                .ifOk { property.override.value = it }
-               .ifError { logger.warn(it) { "Unable to set config=$name override value (Boolean.class) from text='${s[0]}'" } }
+               .ifError { logger.warn { "Unable to set config=$name override value (Boolean.class) from text='${s[0]}' because: $it" } }
             Parsers.DEFAULT.ofS(valueType, s[1])
                .ifOk { property.real.value = it }
-               .ifError { logger.warn(it) { "Unable to set config=$name real value ($valueType) from text='${s[0]}'" } }
+               .ifError { logger.warn { "Unable to set config=$name real value ($valueType) from text='${s[0]}' because: $it" } }
          } else {
             logger.warn { "Unable to set config=$name value from property='$s', must have 2 values" }
          }
       }
+
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -333,6 +336,8 @@ class CheckListConfig<T, S: Boolean?>(
    override fun getValue(): CheckList<T, S> = defaultValue
    override fun setValue(value: CheckList<T, S>) {}
    override fun setValueToDefault() = value.selections setTo value.selectionsInitial
+   companion object: KLogging()
+
    override var valueAsProperty: PropVal
       get() = PropValN(
          value.selections.map { Parsers.DEFAULT.toS(it) }
@@ -341,7 +346,7 @@ class CheckListConfig<T, S: Boolean?>(
          if (value.all.size==v.size()) {
             value.selections setTo v.valN.mapIndexed { i, text ->
                Parsers.DEFAULT.ofS(value.checkType, text)
-                  .ifError { logger.warn(it) { "Unable to set config=$name element=$i from=$text" } }
+                  .ifError { logger.warn { "Unable to set config=$name element=$i from=$text because=$it" } }
                   .orNull() ?: value.selections[i]
             }
          } else {

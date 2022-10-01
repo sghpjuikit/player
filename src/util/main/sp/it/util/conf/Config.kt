@@ -128,7 +128,7 @@ abstract class Config<T>: WritableValue<T>, Configurable<T>, Constrained<T, Conf
          if (s!=null)
             convertValueFromString(this, s)
                .ifOk { value = it }
-               .ifError { logger.warn { "Unable to set config=${this::class}:$name value from text=$s because=$it" } }
+               .ifError { logger.warn { "Unable to set config=$name value from text=$s because=$it" } }
       }
 
    protected var valueEnumerator2nd: MutableList<T>? = null

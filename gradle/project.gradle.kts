@@ -117,7 +117,7 @@ allprojects {
       }
 
       "Audio" group {
-         implementation("uk.co.caprica", "vlcj", "4.8.1")
+         implementation("uk.co.caprica", "vlcj", "4.8.2")
          implementation("net.jthink", "jaudiotagger", "3.0.1")
       }
 
@@ -160,8 +160,8 @@ allprojects {
       }
 
       "Http" group {
-         implementation("io.ktor", "ktor-server-core", "2.1.1")
-         implementation("io.ktor", "ktor-client-cio", "2.1.1")
+         implementation("io.ktor", "ktor-server-core", "2.1.2")
+         implementation("io.ktor", "ktor-client-cio", "2.1.2")
       }
 
       "Test" group {

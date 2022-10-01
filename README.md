@@ -11,9 +11,11 @@
 
 ## What is this?
 
-**Spit Player** is a desktop audio player and management application, with a modular ui/functionality capable of compiling and reloading its own parts. Uses VLC under hood.
+**Spit Player** is a desktop audio player and audio management meta-application, with a modular ui capable of reloading its own parts in runtime.
+Uses VLC under hood & css for looks. Built around plugins and widgets.
 
-**Is this ready?** Yes. I do not provide downloads, but you can easily build the application. See [how](#use). Well tested on Windows. Linux/OSX supported.
+**Is this ready?** Yes. Executable downloads are not provided, but can be easily [built](#use).
+Well tested on Windows 8.1 and 10. Linux and OSX compatible, but largely untested.
 
 **Can look like this:**
 
@@ -39,27 +41,28 @@ However, it may lack features you may be used from other media players, so it ma
 ##### Multi-application
 Ever wanted to do things your way?
 
-Parts of the applications are called widgets and may run as standalone applications and be developed or changed while the application runs.
-This application provides several useful widgets, but most importantly the necessary tools for you to create your own.
+Pluggable parts of the applications are called widgets and can be developed or changed while the application runs.
+This application provides several useful widgets, but most importantly the necessary infrastructure to manage and use them conveniently,
+such as modular layout, different widget launch strategies, be it different types of windows or even separate process.
 
 If you know Java/Kotlin, you can make your own app with a simple text editor and literally few lines of code.
-Just write your code, hit save and watch as it auto-compiles and runs as widget, which you can run as a standalone application with just an application run argument! 
-All that with included support for configurations, skins and full access to the internals.
+Just write your code, hit save and watch as it auto-compiles and reloads in UI.
+All that with included support for powerful type-safe configuration, skins and access to the internals.
 See [how](CONTRIBUTING.md#widgets).
 
 ## Use
 
 Download link coming in the future.
-For build manually from the latest sources:
+Building from the latest sources:
 
 1. [Download & prepare project](CONTRIBUTING.md#preparations)
 2. Build the application
     1. `./gradlew build` builds the application
-    1. `./gradlew jar` creates jar & copies dependencies to `/lib`
-    1. Standalone application is now build in [app](/app) directory
+    2. `./gradlew jar` creates jar & copies dependencies to `/lib`
+    3. Application is now build in [app](/app) directory
 3. Deploy application
     1. `./gradlew linkJdk`to link [app/java](/app/java) to JDK
-    1. copy [app](/app) directory to whenever you want
+    2. copy [app](/app) directory to whenever you want
         - to be fully portable, turn the link [app/java](/app/java) into a directory (remove link, copy target directory with same name) 
 4. [Run application](CONTRIBUTING.md#running-application)
 

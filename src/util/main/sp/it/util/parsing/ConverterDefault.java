@@ -90,7 +90,7 @@ public class ConverterDefault extends Converter {
 	/** Default to string parser, which calls objects toString() or returns null constant. */
 	public final Function<Object,String> defaultTos = o -> o==null ? stringNull : o.toString();
 
-    public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super Object, @NotNull Try<@NotNull String,@NotNull String>> parserFallbackToS = null;
+    public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super @NotNull Object, @NotNull Try<@NotNull String,@NotNull String>> parserFallbackToS = null;
     public @Nullable BiFunction<? super @NotNull KClass<@NotNull Object>, ? super @NotNull String, @NotNull Try<Object,@NotNull String>> parserFallbackFromS = null;
     public final KClassMap<Function<? super Object, Try<String,String>>> parsersToS = new KClassMap<>(new ConcurrentHashMap<>());
     public final KClassMap<Function<? super String, Try<Object,String>>> parsersFromS = new KClassMap<>(new ConcurrentHashMap<>());

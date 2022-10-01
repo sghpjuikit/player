@@ -27,6 +27,7 @@ import java.time.format.DateTimeFormatter.ISO_INSTANT
 import java.time.format.DateTimeFormatter.ISO_TIME
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiFunction
 import java.util.regex.Pattern
 import javafx.geometry.BoundingBox
@@ -52,6 +53,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.KVariance
+import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmName
@@ -230,50 +232,69 @@ object CoreConverter: Core {
    @Suppress("RemoveExplicitTypeArguments")
    private fun ConverterDefault.init() = apply {
 
+      fun <A, B, R> memoized(f: ((B) -> (A) -> R)): BiFunction<B, A, R> {
+         val cache = ConcurrentHashMap<B, (A) -> R>()
+         return BiFunction { b, a -> cache.getOrPut(b) { f(b) }(a) }
+      }
+
       val anyConverter = ConverterDefault()
-      parserFallbackToS = BiFunction { type, o ->
-         when {
-            type.isObject -> Try.ok(o::class.simpleName!!)
-            type.isDataClass -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(type.createType()), o).toCompactS() }.orMessage()
-            else -> Try.ok(anyConverter.toS(o))
-         }
-      }
-      parserFallbackFromS = BiFunction { type, s ->
-         when {
-            type.isEnum -> {
-               val values = type.enumValues
-               val value = null
-                  ?: values.find { it.asIs<Enum<*>>().name==s }
-                  ?: values.find { it.asIs<Enum<*>>().name.equals(s, ignoreCase = true) }
-               value?.net { Try.ok(it) } ?: Try.error("Not a valid value: \"$s\"")
+      parserFallbackToS = memoized { type ->
+            when {
+               type.companionObject?.takeIf { it is ConverterToString<*> }!=null ->
+                  { o -> Try.ok(type.companionObject.asIs<ConverterToString<Any?>>().toS(o)) }
+               type.isObject ->
+                  { o -> Try.ok(o::class.simpleName!!) }
+               type.isDataClass ->
+                  { o -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(type.createType()), o).toCompactS() }.orMessage() }
+               else ->
+                  { o -> Try.ok(anyConverter.toS(o)) }
             }
-            type.isObject -> Try.ok(type.objectInstance)
-            type.isSealed -> type.sealedSubObjects
-               .find { it::class.simpleName==s }
-               ?.let { Try.ok(it) }
-               ?: Try.error("Not a valid value: \"$s\"")
-            type.isDataClass -> {
-               val isJsonObject = s.startsWith("{") && s.endsWith("}")
-               if (isJsonObject) APP.serializerJson.json.fromJson(VType<Any?>(type.createType()), s).orMessage()
-               else runTry {
-                  type.primaryConstructor!!.call(
-                     *type.primaryConstructor!!.parameters
-                        .windowed(2, 1, true)
-                        .map { ps ->
-                           val argS = when (ps.size) {
-                              2 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.indexOf(", ${ps[1].name!!}="))
-                              1 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.length - 1)
-                              else -> fail()
-                           }
-                           general.ofS(ps[0].type.raw, argS).orThrow
-                        }
-                        .toTypedArray()
-                  )
-               }.orMessage()
-            }
-            else -> anyConverter.ofS(type, s)
          }
-      }
+      parserFallbackFromS = memoized { type ->
+            when {
+               type.companionObject?.takeIf { it is ConverterFromString<*> }!=null ->
+                  { s -> type.companionObject.asIs<ConverterFromString<*>>().ofS(s) }
+               type.isEnum ->
+                  { s ->
+                     val values = type.enumValues
+                     val value = null
+                        ?: values.find { it.asIs<Enum<*>>().name==s }
+                        ?: values.find { it.asIs<Enum<*>>().name.equals(s, ignoreCase = true) }
+                     value?.net { Try.ok(it) } ?: Try.error("Not a valid value: \"$s\"")
+                  }
+               type.isObject ->
+                  { _ -> Try.ok(type.objectInstance) }
+               type.isSealed ->
+                  { s ->
+                     type.sealedSubObjects
+                        .find { it::class.simpleName==s }
+                        ?.let { Try.ok(it) }
+                        ?: Try.error("Not a valid value: \"$s\"")
+                  }
+               type.isDataClass ->
+                  { s ->
+                     val isJsonObject = s.startsWith("{") && s.endsWith("}")
+                     if (isJsonObject) APP.serializerJson.json.fromJson(VType<Any?>(type.createType()), s).orMessage()
+                     else runTry {
+                        type.primaryConstructor!!.call(
+                           *type.primaryConstructor!!.parameters
+                              .windowed(2, 1, true)
+                              .map { ps ->
+                                 val argS = when (ps.size) {
+                                    2 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.indexOf(", ${ps[1].name!!}="))
+                                    1 -> s.substring(s.indexOf("${ps[0].name!!}=") + ps[0].name!!.length + 1, s.length - 1)
+                                    else -> fail()
+                                 }
+                                 general.ofS(ps[0].type.raw, argS).orThrow
+                              }
+                              .toTypedArray()
+                        )
+                     }.orMessage()
+                  }
+               else ->
+                  { s -> anyConverter.ofS(type, s) }
+            }
+         }
 
       val toS: (Any) -> String = defaultTos::invoke
       fun <T> FromS<T>.numberMessage(): FromS<T> = this compose { it.mapError { "Not a number" + it.nullIfBlank()?.let { ": $it" } } }

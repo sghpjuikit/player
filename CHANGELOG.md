@@ -3,8 +3,17 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Update Kotlin to 1.7.20
+- Update dependencies
+- Implement faster config de/serialization [memoize fallback converters by type]
+- Improve **Hue Scenes** widget [use coroutines]
+- Improve **Settings** widget's UX [remove HOME icon & set to not reusable]
+- Fix config deserialization for `Action`s
+- Fix config deserialization error message
+- Fix Kotlin version detection not detecting RC versions
 - Fix popup showing without focus even if focused
-- Improve **Settings** widget's use of application settings [remove HOME icon & set to not reusable]
+- Fix widget compilation issues [avoid using K2 compiler due to not being production ready]
+- Fix widgets compiling multiple times due to temporary file change events
 
 ### Application Settings reuse
 The **Settings** widget used for application settings can be used for any kind of `Configurable` object.
@@ -15,6 +24,20 @@ Configuring other objects will therefore not use the widget, if it shows applica
 This allows removing the widget's `Home` icon, which served to show application settings.
 This was confusing at best.
 Now using the **Settings** widget is simpler and more intuitive.
+
+### Coroutines in Hue Scenes widget
+**Hue Scenes** widget does a lot of thread switching when dealing with hue bridge configuration.
+This is because it needs to update ui state on ui thread in every step of the hue bridge communication process.
+The widget has been improved to use coroutines effectively. There is new API `runSuspendingFx`for easily launching coroutines from UI.
+
+Kotlin coroutines really shine here. None of the blocking code is due to heavy computations.
+As such, CPU dispatcher is not needed. The blocking due to IO (http) is taken care of by **Ktor**'s suspending methods.
+As such, no explicit thread switching is necessary, we simply use suspending methods where ui would be blocked before and rewrite the code from Future API to imperative style inside a coroutine on FX dispatcher.
+Writing asynchronous UI code with coroutines is a simple matter - put away blocking behind suspending functions and forget about threads forever.
+In code, it looks like we simply call blocking functions right from UI. The coroutine transparently dispatches off of UI thread where necessary.
+
+### Project IDE Intellij Idea Settings
+The intentions and dictionary are now added to git repository so developers leverage from the intended settings.
 
 ## [7.3.0] 2022 09 25
 
@@ -68,7 +91,7 @@ Virtual threads could be used for coroutine dispatchers to
 
 In practice though, both coroutine dispatchers and fut executors have been misused in this project.
 The workload on main FX thread is properly switched to non-ui threads, but switching to IO thread during blocking has not been employed at all.
-For desktop application, this is really a problem at all, however during certain workloads this can be important, for example image loading.
+For desktop application, this is really not a problem at all, however during certain workloads this can be important, for example image loading.
 
 ### Coroutines & Loom - loading images
 When loading an image, there is mixed CPU and IO workload being interspersed. Switching between CPU and IO thread involves a lot of head-scratching. 

@@ -27,6 +27,7 @@ import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.reactive.onChange
 import sp.it.util.text.ifNotEmpty
+import sp.it.util.type.createTypeStar
 import sp.it.util.type.kTypeNothingNonNull
 import sp.it.util.type.kTypeNothingNullable
 import sp.it.util.type.raw
@@ -70,7 +71,7 @@ fun <E: Any> Collection<E?>.getElementType(): KType = when {
          }
          ?: run {
             // Find the lowest common element type
-            fun KClass<*>.estimateType(): KType = resolveAnonymous().net { it.createType(it.typeParameters.map { STAR }) }
+            fun KClass<*>.estimateType(): KType = resolveAnonymous().net { it.createTypeStar() }
             asSequence().filterNotNull()
                .map { it::class }.distinct()
                .fold(null as KClass<*>?) { commonType, type -> commonType?.union(type) ?: type }!!

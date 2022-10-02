@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import java.time.format.DateTimeFormatter.ISO_INSTANT
 import java.time.format.DateTimeFormatter.ISO_TIME
 import java.util.Locale
+import java.util.Optional
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiFunction
@@ -95,6 +96,7 @@ import sp.it.util.file.type.MimeExt
 import sp.it.util.file.type.MimeGroup
 import sp.it.util.file.type.MimeType
 import sp.it.util.functional.Functors
+import sp.it.util.functional.Option
 import sp.it.util.functional.PF
 import sp.it.util.functional.Try
 import sp.it.util.functional.Util
@@ -105,6 +107,7 @@ import sp.it.util.functional.getOr
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
+import sp.it.util.functional.toOption
 import sp.it.util.math.StrExF
 import sp.it.util.parsing.ConverterDefault
 import sp.it.util.parsing.ConverterFX
@@ -120,6 +123,7 @@ import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.VType
+import sp.it.util.type.createTypeStar
 import sp.it.util.type.enumValues
 import sp.it.util.type.isDataClass
 import sp.it.util.type.isEnum
@@ -212,10 +216,15 @@ object CoreConverter: Core {
          is JsValue -> o.toCompactS()
          is Jwt -> Jwt.toUiS(o, APP.locale.value)
          is Throwable -> o.localizedMessage
+         is Optional<*> -> o.toOption().toUi()
+         is Option.Some<*> -> "Some(${o.value.toUi()})"
+         is Option.None -> "None"
+         is Try.Ok<*> -> "Ok(${o.value.toUi()})"
+         is Try.Error<*> -> "Error(${o.value.toUi()})"
          else -> when {
             o::class.isEnum -> enumToHuman(o as Enum<*>)
             o::class.isObject -> enumToHuman(o::class.simpleName)
-            o::class.isData -> runTry {  APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createType()), o).toPrettyS() }.orMessage().getAny()
+            o::class.isData -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(o::class.createTypeStar()), o).toPrettyS() }.orMessage().getAny()
             // TODO: good idea but probably reduces performance, put the converters in MapByKClass first
             // o::class.companionObjectInstance is ConverterToUiString<*> -> o::class.companionObjectInstance.asIs<ConverterToUiString<Any>>().toUiS(o, APP.locale.value)
             else -> general.toS(o)
@@ -245,7 +254,7 @@ object CoreConverter: Core {
                type.isObject ->
                   { o -> Try.ok(o::class.simpleName!!) }
                type.isDataClass ->
-                  { o -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(type.createType()), o).toCompactS() }.orMessage() }
+                  { o -> runTry { APP.serializerJson.json.toJsonValue(VType<Any?>(type.createTypeStar()), o).toCompactS() }.orMessage() }
                else ->
                   { o -> Try.ok(anyConverter.toS(o)) }
             }
@@ -274,7 +283,7 @@ object CoreConverter: Core {
                type.isDataClass ->
                   { s ->
                      val isJsonObject = s.startsWith("{") && s.endsWith("}")
-                     if (isJsonObject) APP.serializerJson.json.fromJson(VType<Any?>(type.createType()), s).orMessage()
+                     if (isJsonObject) APP.serializerJson.json.fromJson(VType<Any?>(type.createTypeStar()), s).orMessage()
                      else runTry {
                         type.primaryConstructor!!.call(
                            *type.primaryConstructor!!.parameters

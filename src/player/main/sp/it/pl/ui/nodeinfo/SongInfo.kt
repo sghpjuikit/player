@@ -27,7 +27,6 @@ import sp.it.util.async.runIO
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attachNonNullWhile
-import sp.it.util.reactive.map
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.hBox

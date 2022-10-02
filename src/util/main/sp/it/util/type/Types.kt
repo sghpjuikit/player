@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection.Companion.STAR
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
@@ -72,7 +73,7 @@ abstract class TypeToken<T> {
  * Useful as a type safe reified type carrier.
  */
 data class VType<out T>(/** Kotlin type representing this type */ val type: KType) {
-   constructor(c: Class<T & Any>, isNullable: Boolean): this(c.asIs<Class<Any>>().kotlin.createType(nullable = isNullable))
+   constructor(c: Class<T & Any>, isNullable: Boolean): this(c.asIs<Class<Any>>().kotlin.createType(nullable = isNullable, arguments = c.kotlin.typeParameters.map { STAR }))
 
    val isNullable = type.isMarkedNullable
 

@@ -14,7 +14,6 @@ import javafx.scene.paint.RadialGradient
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
 import javafx.scene.text.FontWeight
-import javafx.scene.transform.Transform
 import sp.it.util.dev.fail
 import sp.it.util.functional.Try
 import sp.it.util.functional.net

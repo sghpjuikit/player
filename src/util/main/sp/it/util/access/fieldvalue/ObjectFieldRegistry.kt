@@ -10,6 +10,7 @@ import sp.it.util.functional.net
 import sp.it.util.parsing.ConverterString
 import sp.it.util.type.ObjectFieldMap
 import sp.it.util.type.VType
+import sp.it.util.type.createTypeStar
 
 /**
  * [ObjectField] per type manager.
@@ -53,7 +54,7 @@ abstract class ObjectFieldRegistry<V: Any, F: ObjectField<V, *>>(private val typ
 
    private val typeFull = type.let {
       failIf(it.typeParameters.isNotEmpty()) { "Classes with type parameters not yet supported: $it" }
-      VType<V>(it.createType(listOf(), false))
+      VType<V>(it.createTypeStar(false))
    }
    private val allImpl = MapSet<String, F> { it.name() }
    val all: Set<F> = allImpl

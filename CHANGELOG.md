@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file. Format base
 - Implement faster config de/serialization [memoize fallback converters by type]
 - Improve **Hue Scenes** widget [use coroutines]
 - Improve **Settings** widget's UX [remove HOME icon & set to not reusable]
+- Fix object to ui string algorithm for strings of medium length
+- Fix json serializing non-component properties for data classes
+- Fix estimating object type for ui failing for classes with generic type parameters  
+- Fix `Optional` and `Option` and `Try` ui string representation to be more readable
+- Fix `Option.toString` to be consistent with `Try.toString`
 - Fix config deserialization for `Action`s
 - Fix config deserialization error message
 - Fix Kotlin version detection not detecting RC versions

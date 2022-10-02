@@ -96,6 +96,7 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmName
 import mu.KotlinLogging
 import sp.it.util.dev.fail
+import sp.it.util.functional.Option
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.net
@@ -718,7 +719,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
                      val ac = a.type.arguments[i].type?.raw ?: Any::class
                      val bc = b.type.arguments[i].type?.raw ?: Any::class
                      val uc = ac union bc
-                     invariant(uc.createType(uc.typeParameters.map { STAR }))
+                     invariant(uc.createTypeStar())
                   },
                   b.isNullable || a.isNullable
                )
@@ -733,7 +734,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
                      if (c != Any::class) {
                         yield(it)
                      // TODO: yield all parameter combinations by iterating each through subtypes
-                        yield(c.createType(it.arguments.map { STAR }, it.isMarkedNullable, it.annotations))
+                        yield(c.createTypeStar(it.isMarkedNullable, it.annotations))
                      }
                   }
                }
@@ -760,6 +761,7 @@ fun <T> Collection<T>.estimateRuntimeType(): VType<T> =
 fun <T> T.estimateRuntimeType(): VType<T> = when (this) {
    null -> typeNothingNullable().asIs()
    is Optional<*> -> VType(Optional::class.createType(listOf(invariant(map { it.estimateRuntimeType().type }.orElse(kTypeNothingNonNull())))))
+   is Option.Some<*> -> VType(Option.Some::class.createType(listOf(invariant(value.estimateRuntimeType().type))))
    is Try.Ok<*> -> VType(Try.Ok::class.createType(listOf(invariant(value.estimateRuntimeType().type))))
    is Try.Error<*> -> VType(Try.Error::class.createType(listOf(invariant(value.estimateRuntimeType().type))))
    is Collection<*> -> {
@@ -768,11 +770,13 @@ fun <T> T.estimateRuntimeType(): VType<T> = when (this) {
       when (cp.size) {
          0 -> VType(c.createType(listOf()))
          1 -> VType(c.createType(c.typeParameters.map { KTypeProjection(it.variance, this.asIs<Collection<*>>().estimateRuntimeType().type) }))
-         else -> VType(c.createType(c.typeParameters.map { STAR }))
+         else -> VType(c.createTypeStar())
       }
    }
    else -> {
       val c = this!!::class
-      VType(c.createType(c.typeParameters.map { STAR }))
+      VType(c.createTypeStar())
    }
 }
+
+fun KClass<*>.createTypeStar(nullable: Boolean = false, annotations: List<Annotation> = emptyList()): KType = createType(typeParameters.map { STAR }, nullable, annotations)

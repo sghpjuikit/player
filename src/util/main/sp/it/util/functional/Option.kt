@@ -19,11 +19,13 @@ sealed interface Option<out R> {
    object None: Option<Nothing> {
       override val isNone get() = true
       override val isSome get() = false
+      override fun toString() = "None"
    }
 
    data class Some<E>(val value: E): Option<E> {
       override val isNone get() = false
       override val isSome get() = true
+      override fun toString() = "Some($value)"
    }
 
    companion object {

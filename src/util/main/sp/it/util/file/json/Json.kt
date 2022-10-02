@@ -54,6 +54,7 @@ import sp.it.util.parsing.Parsers
 import sp.it.util.text.escapeJson
 import sp.it.util.type.VType
 import sp.it.util.type.argOf
+import sp.it.util.type.dataComponentProperties
 import sp.it.util.type.isEnum
 import sp.it.util.type.isEnumClass
 import sp.it.util.type.isObject
@@ -269,6 +270,21 @@ class Json: JsonAst() {
                         val p = type.declaredMemberProperties.first()
                         val v = p.getter.call(value)
                         toJsonValue(p.returnType, v).withAmbiguity()
+                     }
+                     type.isData -> {
+                        val values = type.dataComponentProperties()
+                           .associate {
+                              it.isAccessible = true
+                              it.name to toJsonValue(it.returnType, it.getter.call(value))
+                           }
+                           .let {
+                              when {
+                                 isObject -> mapOf(typeWitness())
+                                 isAmbiguous -> (it + typeWitness())
+                                 else -> it
+                              }
+                           }
+                        JsObject(values)
                      }
                      else -> {
                         val values = type.memberProperties.asSequence()

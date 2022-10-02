@@ -38,6 +38,7 @@ import javafx.scene.text.TextBoundsType
 import javafx.util.Callback
 import kotlin.math.sqrt
 import kotlin.reflect.KClass
+import kotlin.reflect.KTypeProjection.Companion.invariant
 import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmName
 import kotlin.streams.asSequence
@@ -81,7 +82,6 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.ValueConfig
 import sp.it.util.conf.nonEmpty
 import sp.it.util.dev.Dsl
-import sp.it.util.dev.printIt
 import sp.it.util.file.FileType
 import sp.it.util.file.hasExtension
 import sp.it.util.file.toFileOrNull
@@ -118,6 +118,7 @@ import sp.it.util.text.lengthInChars
 import sp.it.util.text.lengthInCodePoints
 import sp.it.util.text.lengthInGraphemes
 import sp.it.util.text.toChar32
+import sp.it.util.type.createTypeStar
 import sp.it.util.type.dataComponentProperties
 import sp.it.util.type.isSubtypeOf
 import sp.it.util.type.kTypeNothingNonNull
@@ -352,12 +353,13 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
 
 fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
    fun Any?.stringUnwrap(): Any? = if (this is String && lengthInGraphemes==1) graphemeAt(0) else this
-   fun KClass<*>.estimateType() = createType(typeParameters.map { KTypeArg.STAR })
 
    val d = collectionUnwrap(it).stringUnwrap()
    val dName = APP.instanceName[d].net {
-      val first41 = it.lineSequence().flatMap { it.codePoints().asSequence().plus(' '.toChar32().value) }.take(41).toList()
-      if (first41.size<=40) it else first41.take(40).joinToString("") { it.toChar32().toString() } + " (first 40 characters)"
+      val n = 40
+      val suffix = " (first $n characters)"
+      val firstN = it.lineSequence().flatMap { it.codePoints().asSequence().plus(' '.toChar32().value) }.take(n + 1 + suffix.length).toList()
+      if (firstN.size <= n+suffix.length) it else firstN.take(n).joinToString("") { it.toChar32().toString() } + suffix
    }
    val dClass = when (d) {
       null -> Nothing::class
@@ -365,10 +367,10 @@ fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)
    }
    val dType = when (d) {
       null -> kTypeNothingNonNull()
-      is List<*> -> List::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
-      is Set<*> -> Set::class.createType(arguments = listOf(KTypeArg.invariant(d.getElementType())))
-      is Map<*, *> -> Map::class.createType(arguments = listOf(KTypeArg.invariant(d.keys.getElementType()), KTypeArg.invariant(d.values.getElementType())))
-      else -> d::class.estimateType()
+      is List<*> -> List::class.createType(arguments = listOf(invariant(d.getElementType())))
+      is Set<*> -> Set::class.createType(arguments = listOf(invariant(d.getElementType())))
+      is Map<*, *> -> Map::class.createType(arguments = listOf(invariant(d.keys.getElementType()), invariant(d.values.getElementType())))
+      else -> d::class.createTypeStar()
    }
    val dKind = "\nType: ${dType.toUi()}"
    val dKindDev = "\nType (exact): ${dClass.qualifiedName ?: dClass.jvmName}".takeIf { APP.developerMode.value }.orEmpty()
@@ -386,7 +388,7 @@ fun contextMenuFor(o: Any?): ContextMenu = ValueContextMenu<Any?>().apply { setI
 
 fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Unit = {}): FilteredTable<T> = object: FilteredTable<T>(type.java, null) {
    override fun computeMainField(field: ObjectField<T, *>?) = field ?: fields.first { it.type.isSubtypeOf<String>() } ?: fields.firstOrNull()
-   override fun computeFieldsAll() = computeFieldsAllRecursively(type)?.plus(INDEX)?.apply { toStringPretty().printIt() } ?: APP.classFields[type].toList().plus(INDEX)
+   override fun computeFieldsAll() = computeFieldsAllRecursively(type)?.plus(INDEX)?.apply { toStringPretty() } ?: APP.classFields[type].toList().plus(INDEX)
    private fun <T: Any> computeFieldsAllRecursively(type: KClass<T>): List<ObjectField<T, *>>? =
       if (type.isData)
          type.dataComponentProperties()
@@ -407,7 +409,7 @@ fun <T: Any> tableViewForClass(type: KClass<T>, block: FilteredTable<T>.() -> Un
    setColumnFactory { f ->
       tableColumn<T, Any?> {
          text = f.cName()
-         styleClass.add(if (f.type.isSubtypeOf<String>()) "column-header-align-left" else "column-header-align-right")
+         styleClass += if (f.type.isSubtypeOf<String>()) "column-header-align-left" else "column-header-align-right"
          setCellValueFactory { cf -> if (cf.value==null) null else ImprovedTable.PojoV(f.getOf(cf.value)) }
          setCellFactory { f.buildFieldedCell() }
          userData = f

@@ -19,6 +19,7 @@ import sp.it.util.dev.Blocks
 import sp.it.util.dev.fail
 import sp.it.util.functional.Try
 import sp.it.util.functional.and
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifFalse
 import sp.it.util.functional.runTry
 
@@ -228,22 +229,13 @@ fun File.readTextTry(charset: Charset = Charsets.UTF_8) = runTry { readText(char
  */
 @Blocks
 fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwable> {
-
-   fun File.tryRenameIfExists(to: File, message: () -> String) = if (!exists() || renameTo(to)) Try.ok() else Try.error(Exception(message()))
-
-   fun File.tryDeleteIfExists(message: (Throwable) -> String) = runTry {
-      Files.deleteIfExists(toPath())
-   }.mapError {
-      Exception(message(it), it)
-   }
-
    val f = absoluteFile
    val fW = f.resolveSibling("$name.w.tmp")
    val fR = f.resolveSibling("$name.tmp")
 
    return run {
       run {
-         block(fW)
+         runTry { block(fW) }.getOrSupply { Try.error(it) }
       }.mapError {
          Exception("Safe writing of `$f` failed. Data was not saved to temporary file=`$fW` as ${it.message}", it)
       }.ifError {
@@ -271,6 +263,10 @@ fun File.writeSafely(block: (File) -> Try<*, Throwable>): Try<Nothing?, Throwabl
       null
    }
 }
+
+fun File.tryRenameIfExists(to: File, message: () -> String) = if (!exists() || renameTo(to)) Try.ok() else Try.error(Exception(message()))
+
+fun File.tryDeleteIfExists(message: (Throwable) -> String) = runTry { Files.deleteIfExists(toPath()) }.mapError { Exception(message(it), it) }
 
 /**
  * Unzips a zip file using [ZipFile] into the specified target directory, retaining the zip structure.

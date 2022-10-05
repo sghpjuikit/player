@@ -69,6 +69,8 @@ import javafx.scene.layout.TilePane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.robot.Robot
+import javafx.scene.shape.Arc
+import javafx.scene.shape.Circle
 import javafx.scene.shape.Rectangle
 import javafx.scene.text.Font
 import javafx.scene.text.FontPosture
@@ -404,6 +406,9 @@ fun <T> listViewCellFactory(cellFactory: ListCell<T>.(T?, Boolean) -> Unit) = Ca
       }
    }
 }
+inline fun rectangle(block: Rectangle.() -> Unit = {}) = Rectangle().apply(block)
+inline fun circle(block: Circle.() -> Unit = {}) = Circle().apply(block)
+inline fun arc(block: Arc.() -> Unit = {}) = Arc().apply(block)
 
 /* ---------- SIZE -------------------------------------------------------------------------------------------------- */
 

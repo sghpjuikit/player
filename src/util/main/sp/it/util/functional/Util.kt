@@ -119,6 +119,9 @@ fun <R> runUnless(condition: Boolean, block: () -> R): R? = if (condition) block
 /** @return specified supplier if test is true or null otherwise */
 fun <T> supplyIf(test: Boolean, block: () -> T): (() -> T)? = if (test) block else null
 
+/** @return specified supplier if the specified object is not null */
+fun <T, O> supplyIfNotNull(o: O, block: (O & Any) -> T): (() -> T)? = if (o!=null) { { block(o) } } else null
+
 /** @return specified supplier if test is false or null otherwise */
 fun <T> supplyUnless(testNegated: Boolean, block: () -> T): (() -> T)? = supplyIf(!testNegated, block)
 

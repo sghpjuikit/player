@@ -119,6 +119,8 @@ open class TagTextField<T>(converter: ConverterFromString<T>, converterToUi: Con
          autoComplete(textField, it, { converterToUi.toS(it) })
       }
 
+      editableBy sync { pseudoClassChanged("plus-mode", it==PLUS_NODE) }
+
       // Read-only mode disables
       isEditable zip editableBy sync { (editable, mode) ->
          pseudoClassToggle("readonly", !editable)

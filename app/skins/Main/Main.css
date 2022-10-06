@@ -2476,6 +2476,10 @@ Shape, Text, SpitText, TextFlow > * {
 .tag-text-field:has-focus {
     -fx-background-color: -skin-color-darker;
 }
+.tag-text-field:plus-mode:hover,
+.tag-text-field:plus-mode:has-focus {
+    -fx-background-color: transparent;
+}
 .tag-text-field .text-input:readonly:focused,
 .tag-text-field .text-input:hover,
 .tag-text-field .text-field,

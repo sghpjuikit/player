@@ -30,6 +30,7 @@ import sp.it.util.reactive.attachNonNullWhile
 import sp.it.util.reactive.on
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.hBox
+import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.layFullArea
@@ -50,6 +51,7 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
    private val albumL = label()
    private var coverContainer = AnchorPane()
    private val thumb = if (!showCover) null else Thumbnail().apply {
+      fitFrom.value = OUTSIDE
       borderVisible = true
       pane.prefSize = 200 x 200
    }

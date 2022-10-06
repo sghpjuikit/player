@@ -123,6 +123,7 @@ import sp.it.util.text.nameUi
 import sp.it.util.text.nullIfBlank
 import sp.it.util.toLocalDateTime
 import sp.it.util.type.VType
+import sp.it.util.type.companionObj
 import sp.it.util.type.createTypeStar
 import sp.it.util.type.enumValues
 import sp.it.util.type.isDataClass
@@ -249,7 +250,7 @@ object CoreConverter: Core {
       val anyConverter = ConverterDefault()
       parserFallbackToS = memoized { type ->
             when {
-               type.companionObject?.takeIf { it is ConverterToString<*> }!=null ->
+               type.companionObj?.takeIf { it is ConverterToString<*> }!=null ->
                   { o -> Try.ok(type.companionObject.asIs<ConverterToString<Any?>>().toS(o)) }
                type.isObject ->
                   { o -> Try.ok(o::class.simpleName!!) }
@@ -261,7 +262,7 @@ object CoreConverter: Core {
          }
       parserFallbackFromS = memoized { type ->
             when {
-               type.companionObject?.takeIf { it is ConverterFromString<*> }!=null ->
+               type.companionObj?.takeIf { it is ConverterFromString<*> }!=null ->
                   { s -> type.companionObject.asIs<ConverterFromString<*>>().ofS(s) }
                type.isEnum ->
                   { s ->

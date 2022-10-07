@@ -86,7 +86,6 @@ class MdNode: StackPane() {
             }
 
             override fun scrollToAnchor(anchor: String) {
-               println(anchor)
                val content = children[0].asIs<MdNodeHelper>()
                val anchorText = anchor.trim().removePrefix("#")
                val anchorNode = content.lookupAll(".markdown-heading").find { it.lookupChildAsOrNull<Text>()?.text?.replace(' ', '-').equals(anchorText, true) }

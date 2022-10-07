@@ -71,6 +71,7 @@ import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.animation.interpolator.CircularInterpolator
 import sp.it.util.animation.interpolator.EasingMode
 import sp.it.util.animation.interpolator.ElasticInterpolator
+import sp.it.util.async.IO
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.collections.collectionUnwrap
@@ -351,7 +352,8 @@ fun appTooltipForData(data: () -> Any?) = appTooltip().apply {
    }
 }
 
-fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then {
+/** @return future with information inspected by [App.instanceInfo] about the specified data on [IO] executor */
+fun computeDataInfo(data: Any?): Fut<String> = (data as? Fut<*> ?: Fut.fut(data)).then(IO) {
    fun Any?.stringUnwrap(): Any? = if (this is String && lengthInGraphemes==1) graphemeAt(0) else this
 
    val d = collectionUnwrap(it).stringUnwrap()

@@ -4,7 +4,6 @@ import javafx.stage.Window as WindowFX
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileFilter
-import java.io.IOException
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.net.URI
 import java.net.URLClassLoader
@@ -32,7 +31,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.streams.asSequence
 import kotlin.text.Charsets.UTF_8
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import mu.KLogging
 import sp.it.pl.core.NameUi
 import sp.it.pl.layout.WidgetSource.NONE
@@ -45,12 +46,14 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.App.Rank.SLAVE
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppErrorAction
+import sp.it.pl.main.AppProgress
+import sp.it.pl.main.downloadFile
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.ifErrorDefault
 import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.reportFor
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.thenWithAppProgress
-import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.window.ShowArea.WINDOW_ACTIVE
 import sp.it.pl.ui.objects.window.popup.PopWindow
 import sp.it.pl.ui.objects.window.stage.Window
@@ -62,9 +65,10 @@ import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
 import sp.it.util.async.burstTPExecutor
+import sp.it.util.async.coroutine.await
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.async.runIO
 import sp.it.util.async.runLater
 import sp.it.util.async.threadFactory
 import sp.it.util.collections.ObservableListRO
@@ -89,9 +93,10 @@ import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.FileMonitor
 import sp.it.util.file.Util.isValidatedDirectory
-import sp.it.util.file.Util.saveFileAs
 import sp.it.util.file.child
 import sp.it.util.file.children
+import sp.it.util.file.deleteOrThrow
+import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.hasExtension
 import sp.it.util.file.isAnyChildOf
@@ -99,6 +104,7 @@ import sp.it.util.file.isAnyParentOf
 import sp.it.util.file.isParentOf
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.properties.readProperties
+import sp.it.util.file.setExecutableOrThrow
 import sp.it.util.file.toURLOrNull
 import sp.it.util.file.unzip
 import sp.it.util.functional.Option
@@ -178,24 +184,27 @@ class WidgetManager {
       }
       val kotlincZip = kotlincDir/kotlincZipName
       val kotlincLink = URI("https://github.com/JetBrains/kotlin/releases/download/v$kotlinVersion/$kotlincZipName")
-      runIO {
-         fun isCorrectVersion() = kotlincVersionFile.exists() && kotlincVersionFile.readText()==kotlincLink.toString()
-         infix fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
+      runSuspendingFx {
+         AppProgress.start("Obtaining Kotlin compiler").reportFor { task ->
+            withContext(IO) {
+               fun isCorrectVersion() = kotlincVersionFile.exists() && kotlincVersionFile.readText()==kotlincLink.toString()
 
-         if (!isCorrectVersion() || !kotlincBinary.exists()) {
-            if (kotlincDir.exists()) kotlincDir.deleteRecursively() orFailIO { "Failed to remove Kotlin compiler in=$kotlincDir" }
-            saveFileAs(kotlincLink.toString(), kotlincZip)
-            kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/");  }
-            kotlincBinary.setExecutable(true) orFailIO { "Failed to make file=$kotlincBinary executable" }
-            kotlincZip.delete() orFailIO { "Failed to clean up downloaded file=$kotlincZip" }
-            kotlincVersionFile.writeText(kotlincLink.toString())
+               if (!isCorrectVersion() || !kotlincBinary.exists()) {
+                  if (kotlincDir.exists()) kotlincDir.deleteRecursivelyOrThrow()
+                  downloadFile(kotlincLink.toString(), kotlincZip, task)
+                  kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/") }
+                  kotlincBinary.setExecutableOrThrow(true)
+                  kotlincZip.deleteOrThrow()
+                  kotlincVersionFile.writeText(kotlincLink.toString())
+               }
+
+               failIf(!isCorrectVersion()) { "Kotlinc has wrong version" }
+               failIf(!kotlincBinary.exists()) { "Kotlinc executable=$kotlincBinary does not exist" }
+               failIf(!kotlincBinary.canExecute()) { "Kotlinc executable=$kotlincBinary must be executable" }
+               kotlincBinary
+            }
          }
-
-         failIf(!isCorrectVersion()) { "Kotlinc has wrong version" }
-         failIf(!kotlincBinary.exists()) { "Kotlinc executable=$kotlincBinary does not exist" }
-         failIf(!kotlincBinary.canExecute()) { "Kotlinc executable=$kotlincBinary must be executable" }
-         kotlincBinary
-      }.withAppProgress("Obtaining Kotlin compiler").onDone(FX) {
+      }.onDone {
          it.toTry().ifErrorNotify {
             AppError(
                "Failed to obtain Kotlin compiler",

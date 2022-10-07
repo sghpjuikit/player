@@ -1,17 +1,25 @@
 package sp.it.pl.main
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import java.io.File
 import java.nio.file.Path
 import javafx.scene.image.Image
 import javafx.stage.FileChooser
 import javax.imageio.ImageIO
 import kotlin.io.path.extension
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.invoke
+import kotlinx.coroutines.javafx.awaitPulse
 import mu.KotlinLogging
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.core.Parse
 import sp.it.pl.core.Parser
 import sp.it.pl.core.ParserOr
 import sp.it.util.access.v
+import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.FX
 import sp.it.util.conf.but
 import sp.it.util.conf.cv
 import sp.it.util.dev.failIf
@@ -32,6 +40,7 @@ import sp.it.util.functional.PF0
 import sp.it.util.functional.Try
 import sp.it.util.functional.asIs
 import sp.it.util.functional.runTry
+import sp.it.util.http.downloadFile
 import sp.it.util.parsing.ConverterString
 import sp.it.util.system.Os
 import sp.it.util.text.capital
@@ -178,6 +187,13 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
    failIf(noWriter) { "No image writer for format: $format" }
 }.ifError {
    logger.error(it) { "Could not save image to file=$file" }
+}
+
+/** Downloads file to the specified file with [HttpClient.downloadFile] reporting the progress into the specified task. [StartAppTaskHandle.reportDone] must be called by the caller. */
+suspend fun downloadFile(url: String, file: File, task: StartAppTaskHandle): Unit = FX {
+   HttpClient(CIO).use { http ->
+      http.downloadFile(url, file).flowOn(CPU).conflate().collect { awaitPulse(); task.reportProgress(it) }
+   }
 }
 
 data class FileFilter(val value: PF0<File, Boolean>) {

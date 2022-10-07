@@ -1,13 +1,10 @@
 package sp.it.util.async.future
 
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 import javafx.util.Duration
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.future.asDeferred
 import mu.KLogging
 import sp.it.util.async.CURR
 import sp.it.util.async.FX
@@ -25,7 +22,6 @@ import sp.it.util.functional.invoke
 import sp.it.util.functional.kt
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
-import sp.it.util.functional.toTry
 
 /**
  * Future monad implementation.
@@ -34,14 +30,14 @@ import sp.it.util.functional.toTry
  *
  * Oriented for practicality and ease of use, not specification (monadic laws) or robustness (API completeness).
  */
-class Fut<T>(private var f: CompletableFuture<T>) {
+class Fut<out T>(private val f: CompletableFuture<T>) {
 
-   fun asCompletableFuture(): CompletableFuture<T> = f
+   fun asCompletableFuture(): CompletableFuture<@UnsafeVariance T> = f
 
    /** @return future that waits for this to complete normally, invokes the specified block and returns its result */
-   fun <R> then(executor: Executor = defaultExecutor, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
+   fun <R> then(executor: Executor = CURR, block: (T) -> R) = Fut<R>(f.thenApplyAsync(block.logging(), executor.kt))
 
-   fun <R> thenFlat(executor: Executor = defaultExecutor, block: (T) -> Fut<R>) = Fut<R>(f.thenComposeAsync(block.logging().net { b -> { b(it).f } }, executor.kt))
+   fun <R> thenFlat(executor: Executor = CURR, block: (T) -> Fut<R>) = Fut<R>(f.thenComposeAsync(block.logging().net { b -> { b(it).asCompletableFuture() } }, executor.kt))
 
    fun thenFlatten(executor: Executor = CURR): Fut<Any?> = thenFlat(executor) { it.asIf<Fut<Any?>>()?.thenFlatten(executor) ?: fut(it) }
 
@@ -52,23 +48,23 @@ class Fut<T>(private var f: CompletableFuture<T>) {
    infix fun <R> ui(block: (T) -> R) = then(FX, block)
 
    /** [then] which returns the original value. Intended for (blocking) side effects. */
-   fun use(executor: Executor = defaultExecutor, block: (T) -> Unit) = then(executor) { block(it); it }
+   fun use(executor: Executor = CURR, block: (T) -> Unit) = then(executor) { block(it); it }
 
    /** Legacy version of [use] for Java taking a [Consumer]. */
-   fun useBy(executor: Executor = defaultExecutor, block: Consumer<in T>) = then(executor) { block.invoke(it); it }
+   fun useBy(executor: Executor = CURR, block: Consumer<in T>) = then(executor) { block.invoke(it); it }
 
    /** Sets [block] to be invoked when this future finishes with success. Returns this. */
-   fun onOk(executor: Executor = defaultExecutor, block: (T) -> Unit) = onDone(executor) { it.toTry().ifOk(block) }
+   fun onOk(executor: Executor = CURR, block: (T) -> Unit) = onDone(executor) { it.toTry().ifOk(block) }
 
    /** Sets [block] to be invoked when this future finishes with error. Returns this. */
-   fun onError(executor: Executor = defaultExecutor, block: (Throwable) -> Unit) = onDone(executor) { it.toTry().ifError(block) }
+   fun onError(executor: Executor = CURR, block: (Throwable) -> Unit) = onDone(executor) { it.toTry().ifError(block) }
 
    /** Sets [block] to be invoked when this future finishes regardless of success. Returns this. */
-   fun onDone(executor: Executor = defaultExecutor, block: (Result<T>) -> Unit) = apply {
+   fun onDone(executor: Executor = CURR, block: (Result<T>) -> Unit) = apply {
       f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt)
    }
 
-   fun <R> thenRecover(executor: Executor = defaultExecutor, block: (Result<T>) -> R) = Fut<R>(f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt))
+   fun <R> thenRecover(executor: Executor = CURR, block: (Result<T>) -> R) = Fut<R>(f.handleAsync({ _, _ -> block.logging()(getDone()) }, executor.kt))
 
    fun thenRecover(): Fut<Try<T, Throwable>> = thenRecover(CURR) { it.toTryRaw() }
 
@@ -126,8 +122,6 @@ class Fut<T>(private var f: CompletableFuture<T>) {
       @JvmStatic
       fun <T> futOfBlock(block: () -> T): Fut<T> = runTry { fut(block.logging()()) }.mapError<Fut<T>> { futFailed(it) }.getAny()
 
-      private val defaultExecutor = CompletableFuture<Any>().defaultExecutor()!!
-
       private fun <R> (() -> R).logging(): () -> R = {
          try {
             this()
@@ -177,4 +171,6 @@ class Fut<T>(private var f: CompletableFuture<T>) {
 
 }
 
-fun <R, T1: R, T2: R> Fut.Result<T1>.orGet(block: (Exception) -> @UnsafeVariance T2) = toTry().getOrSupply(block)
+fun <R, T1: R, T2: R> Fut.Result<T1>.orGet(block: (Exception) -> @UnsafeVariance T2): R = toTry().getOrSupply(block)
+
+fun <T> Fut.Result<T>.orNull(): T? = orGet { null }

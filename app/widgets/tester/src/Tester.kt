@@ -59,6 +59,13 @@ import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.javafx.awaitPulse
 import sp.it.pl.conf.Command
 import sp.it.pl.conf.Command.DoNothing
 import sp.it.pl.layout.ExperimentalController
@@ -68,6 +75,8 @@ import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.layout.WidgetCompanion
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppProgress
+import sp.it.pl.main.Double01
 import sp.it.pl.main.FileFilters
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.IconOC
@@ -75,6 +84,7 @@ import sp.it.pl.main.IconUN
 import sp.it.pl.main.Key
 import sp.it.pl.main.Widgets.TESTER_NAME
 import sp.it.pl.main.emScaled
+import sp.it.pl.main.reportFor
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.form.Form.Companion.form
@@ -97,7 +107,8 @@ import sp.it.util.animation.interpolator.QuadraticInterpolator
 import sp.it.util.animation.interpolator.QuarticInterpolator
 import sp.it.util.animation.interpolator.QuinticInterpolator
 import sp.it.util.animation.interpolator.SineInterpolator
-import sp.it.util.async.future.Fut.Companion.fut
+import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.runIoParallel
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.CheckList
@@ -521,7 +532,9 @@ class Tester(widget: Widget): SimpleController(widget) {
    fun testTasks() {
       onContentChange()
 
-      fun task(name: String, block: () -> Any?) = fut().thenWait(5.seconds).then { block() }.withAppProgress(name)
+      fun task(name: String, block: () -> Any?) = runSuspendingFx { delay(5000); block() }.withAppProgress(name)
+      fun taskUiP(name: String, block: () -> Any?) = runSuspendingFx { AppProgress.start(name).reportFor { t -> repeat(60*5) { t.reportProgress(it/299.0); awaitPulse() }; block() } }
+      fun taskIoP(name: String, block: () -> Flow<Double01>) = runSuspendingFx { AppProgress.start(name).reportFor { t -> block().conflate().collect { t.reportProgress(it); awaitPulse() } } }
 
       content.children setToOne fittingScrollPane {
          content = vBox(0.0, CENTER_LEFT) {
@@ -530,13 +543,19 @@ class Tester(widget: Widget): SimpleController(widget) {
                .withText(RIGHT, CENTER_LEFT, "Run long running task that succeeds")
             lay += Icon(IconFA.PLAY)
                .onClickDo { task("Test failure (exception)") { fail { "Test error message" } } }
-               .withText(RIGHT, CENTER_LEFT, "Run long running task that fails (exception)")
+               .withText(RIGHT, CENTER_LEFT, "Run task that fails with exception")
             lay += Icon(IconFA.PLAY)
                .onClickDo { task("Test failure (custom error)") { Try.error("Test error value") } }
-               .withText(RIGHT, CENTER_LEFT, "Run long running task that fails (custom error)")
+               .withText(RIGHT, CENTER_LEFT, "Run task that fails with custom error")
             lay += Icon(IconFA.PLAY)
                .onClickDo { task("Test failure (custom list with errors)") { runIoParallel(2, (1..100).toList()) { if (random()>0.5) it else fail { "error" } } } }
-               .withText(RIGHT, CENTER_LEFT, "Run long running task that fails (custom error)")
+               .withText(RIGHT, CENTER_LEFT, "Run task with parallel subtasks that fail randomly with custom error")
+            lay += Icon(IconFA.PLAY)
+               .onClickDo { taskUiP("Test progress (on UI thread)") { } }
+               .withText(RIGHT, CENTER_LEFT, "Run task with progress")
+            lay += Icon(IconFA.PLAY)
+               .onClickDo { taskIoP("Test progress (on BGR thread)") { (1..10000000).asFlow().map { it/10000000.0 }.flowOn(CPU) } }
+               .withText(RIGHT, CENTER_LEFT, "Run task with progress")
          }
       }
    }

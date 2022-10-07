@@ -2,8 +2,9 @@ package sp.it.pl.main
 
 import javafx.scene.input.DataFormat as DataFormatFX
 import de.jensd.fx.glyphs.GlyphIcons
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import java.io.File
-import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Supplier
 import javafx.geometry.Bounds
@@ -16,6 +17,9 @@ import javafx.scene.input.DragEvent.DRAG_DROPPED
 import javafx.scene.input.DragEvent.DRAG_OVER
 import javafx.scene.input.Dragboard
 import javafx.stage.Window
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.javafx.awaitPulse
 import mu.KotlinLogging
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.Song
@@ -23,15 +27,16 @@ import sp.it.pl.audio.tagging.MetadataGroup
 import sp.it.pl.layout.Component
 import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.ui.objects.placeholder.DragPane
+import sp.it.util.async.coroutine.CPU
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runLater
-import sp.it.util.async.runNew
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
-import sp.it.util.file.Util
-import sp.it.util.functional.Util.listRO
+import sp.it.util.file.div
+import sp.it.util.http.downloadFile
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.onItemSyncWhile
 import sp.it.util.reactive.syncNonNullIntoWhile
@@ -40,6 +45,7 @@ import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.handlerAccepting
 import sp.it.util.units.uri
+import sp.it.util.units.uuid
 
 private val logger = KotlinLogging.logger {}
 private val dirTmp = File(System.getProperty("java.io.tmpdir"))
@@ -208,38 +214,26 @@ fun Dragboard.getImageFileOrUrl(): Fut<File?> = when {
  *
  * @return supplier, never null
  */
-fun Dragboard.hasImageFilesOrUrl(): Fut<List<File>> {
+fun Dragboard.getImageFilesOrUrl(): Fut<List<File>> {
    if (hasFiles()) {
       val images = files.filter { it.isImage() }
       if (images.isNotEmpty())
          return fut(images)
    }
    if (hasUrl() && url.isImage()) {
-      val url = url
-      return runNew {
-         try {
-            val f = Util.saveFileTo(url, dirTmp)
-            f.deleteOnExit()
-            return@runNew listOf(f)
-         } catch (ex: IOException) {
-            return@runNew listRO<File>()
-         }
-      }
+      return futUrl(url).then { listOfNotNull(it) }
    }
    return fut(listOf())
 }
 
-private fun futUrl(url: String): Fut<File?> = runNew {
-   try {
-      // TODO: this can all fail when the certificate is not trusted. Security is fine, but user does not care
-      // if a site he uses wont work due to this... E.g. anime-pictures.net
-      // https://code.google.com/p/jsslutils/wiki/SSLContextFactory
-      val f = Util.saveFileTo(url, dirTmp)
+private fun futUrl(url: String): Fut<File> = runSuspendingFx {
+   AppProgress.start("Downloading $url").reportFor { task ->
+      val f = dirTmp/url.substringAfterLast("/", "" + uuid())
+      HttpClient(CIO).use { http ->
+         http.downloadFile(url, f).flowOn(CPU).conflate().collect { awaitPulse(); task.reportProgress(it) }
+      }
       f.deleteOnExit()
       f
-   } catch (e: IOException) {
-      logger.error(e) { "Could not download file from url=$url" }
-      null
    }
 }
 

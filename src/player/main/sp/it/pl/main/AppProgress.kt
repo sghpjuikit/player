@@ -9,6 +9,7 @@ import javafx.collections.FXCollections.observableArrayList
 import javafx.concurrent.Task
 import javafx.concurrent.Worker.State
 import javafx.geometry.Insets
+import javafx.geometry.Pos.BOTTOM_LEFT
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
 import javafx.scene.Cursor.HAND
@@ -17,6 +18,7 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.Region.USE_COMPUTED_SIZE
+import javafx.scene.shape.Rectangle
 import sp.it.pl.main.AppTask.State.ACTIVE
 import sp.it.pl.main.AppTask.State.DONE_CANCEL
 import sp.it.pl.main.AppTask.State.DONE_ERROR
@@ -45,7 +47,9 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.TryList
 import sp.it.util.functional.asIf
 import sp.it.util.functional.ifNotNull
-import sp.it.util.functional.supplyIf
+import sp.it.util.functional.runTry
+import sp.it.util.functional.supplyIfNotNull
+import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.on
@@ -63,6 +67,7 @@ import sp.it.util.ui.minPrefMaxHeight
 import sp.it.util.ui.minPrefMaxWidth
 import sp.it.util.ui.scrollPane
 import sp.it.util.ui.setScaleXY
+import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.units.formatToSmallestUnit
 import sp.it.util.units.millis
@@ -102,9 +107,9 @@ object AppProgress {
     * If specified task is already completed, this method is a noop.
     */
    fun start(task: Task<*>) {
-
+      val disposer = Disposer()
       fun Task<*>.toApp() = AppTask(title, messageProperty(), { cancel() })
-      fun Task<*>.doOn(vararg state: State, block: (State) -> Unit) = stateProperty().sync1If({ it in state }, block)
+      fun Task<*>.doOn(vararg state: State, block: (State) -> Unit) = stateProperty().sync1If({ it in state }, block) on disposer
 
       when (task.state!!) {
          State.READY -> {
@@ -114,10 +119,13 @@ object AppProgress {
          }
          State.SCHEDULED, State.RUNNING -> {
             val t = start(task.toApp())
+            task.progressProperty() sync { t.reportProgress(it.toDouble()) } on disposer
             task.doOn(State.RUNNING) {
                t.reportActive()
             }
             task.doOn(State.SUCCEEDED, State.CANCELLED, State.FAILED) {
+               disposer()
+               t.reportProgress(1.0)
                t.reportDone(
                   when (it) {
                      State.SUCCEEDED -> ResultOk(null)
@@ -152,6 +160,10 @@ object AppProgress {
             }
          }
 
+         override fun reportProgress(progress: Double01?) {
+            task.progress.value = progress ?: -1.0
+         }
+
          override fun reportDone(result: Result<*>) {
             failIf(!runInvoked) { "Task can only be finished if it was activated" }
             failIf(doneInvoked) { "Task can only be finished once" }
@@ -174,56 +186,65 @@ object AppProgress {
             vbarPolicy = AS_NEEDED
             isFitToWidth = true
             content = vBox(5.0) {
+
                fun AppTask.toInfo() = vBox {
                   minPrefMaxWidth = USE_COMPUTED_SIZE
                   minPrefMaxHeight = USE_COMPUTED_SIZE
                   prefWidth = 450.0
 
-                  lay += borderPane {
-                     left = hBox(10, CENTER_LEFT) {
-                        lay += label(name).apply {
-                           padding = Insets(0.0, 50.0, 0.0, 0.0)
+                  lay += stackPane {
+                     lay += borderPane {
+                        left = hBox(10, CENTER_LEFT) {
+                           lay += label(name) {
+                              padding = Insets(0.0, 50.0, 0.0, 0.0)
+                           }
+                        }
+                        right = hBox(10, CENTER_RIGHT) {
+                           lay += label {
+                              state sync { isVisible = it!=SCHEDULED }
+                              timeActive sync { text = it.formatToSmallestUnit() }
+                           }
+                           lay += Icon().apply {
+                              isMouseTransparent = true
+                              isFocusTraversable = false
+
+                              fun updateIcon() {
+                                 icon(when (state.value) {
+                                    is SCHEDULED -> IconMD.ROTATE_RIGHT
+                                    is ACTIVE -> IconFA.REPEAT
+                                    is DONE_OK -> IconFA.CHECK
+                                    is DONE_ERROR<*> -> IconFA.WARNING
+                                    is DONE_CANCEL -> IconFA.BAN
+                                 })
+                                 state.value.asIf<DONE_ERROR<*>>()?.value.ifNotNull { error ->
+                                    cursor = HAND
+                                    isMouseTransparent = false
+                                    onClickDo { APP.ui.actionPane.orBuild.showAndDetect(error, true) }
+                                 }
+                              }
+
+                              val ar = anim { rotate = 360*it }.dur(1000.millis).intpl(LINEAR).apply { cycleCount = INDEFINITE }
+                              val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
+                              updateIcon()
+                              state sync { if (it is ACTIVE) ar.play() } on disposer
+                              state attach { if (it is DONE_OK || it is DONE_ERROR<*> || it is DONE_CANCEL) { ar.stop(); ar.applyAt(0.0) } } on disposer
+                              state attach { a.playCloseDoOpen(::updateIcon) } on disposer
+                           }
                         }
                      }
-                     right = hBox(10, CENTER_RIGHT) {
-                        lay += label {
-                           state sync { isVisible = it!=SCHEDULED }
-                           timeActive sync { text = it.formatToSmallestUnit() }
-                        }
-                        lay += Icon().apply {
-                           isMouseTransparent = true
-                           isFocusTraversable = false
-
-                           fun updateIcon() {
-                              icon(when (state.value) {
-                                 is SCHEDULED -> IconMD.ROTATE_RIGHT
-                                 is ACTIVE -> IconFA.REPEAT
-                                 is DONE_OK -> IconFA.CHECK
-                                 is DONE_ERROR<*> -> IconFA.WARNING
-                                 is DONE_CANCEL -> IconFA.BAN
-                              })
-                              state.value.asIf<DONE_ERROR<*>>()?.value.ifNotNull { error ->
-                                 cursor = HAND
-                                 isMouseTransparent = false
-                                 onClickDo { APP.ui.actionPane.orBuild.showAndDetect(error, true) }
-                              }
-                           }
-
-                           val ar = anim { rotate = 360*it }.dur(1000.millis).intpl(LINEAR).apply { cycleCount = INDEFINITE }
-                           val a = anim { setScaleXY(it*it) }.dur(500.millis).intpl(ElasticInterpolator())
-                           updateIcon()
-                           state sync { if (it is ACTIVE) ar.play() } on disposer
-                           state attach { if (it is DONE_OK || it is DONE_ERROR<*> || it is DONE_CANCEL) { ar.stop(); ar.applyAt(0.0) } } on disposer
-                           state attach { a.playCloseDoOpen(::updateIcon) } on disposer
-                        }
+                     lay(BOTTOM_LEFT) += Rectangle().apply {
+                        height = 2.emScaled
+                        progress attach { width = this@stackPane.width*(it.toDouble() max 0.0) } on disposer
+                        progress attach { isVisible = 0<=it && it<1.0 } on disposer
                      }
                   }
-                  lay += supplyIf(message!=null) {
+
+                  lay += supplyIfNotNull(message) { m ->
                      borderPane {
                         right = hBox(10, CENTER_RIGHT) {
                            lay += label {
                               maxWidth = 500.0
-                              textProperty() syncFrom message!! on disposer
+                              textProperty() syncFrom m on disposer
                            }
                            lay += Icon(IconFA.BAN).apply {
                               isVisible = cancel!=null
@@ -252,16 +273,33 @@ object AppProgress {
    }
 }
 
+/** Task handle to update the state of the [AppTask]. */
 interface StartAppTaskHandle {
+   /** Update progress of the task before calling [reportDone]. The last progress value must be either `1.0` or `null`. */
+   fun reportProgress(progress: Double01?)
+   /** Update task to be finished with the specified success or error result. */
    fun reportDone(result: Result<*>)
+   /** Update task to be finished with the specified success result. */
+   fun reportDone(result: Any? = Unit) = reportDone(ResultOk(result))
+   /** Update task to be finished with the specified success or error result. */
+   fun reportDone(result: Try<*,Throwable>) = result.ifOk { reportDone(ResultOk(it)) }.ifError { reportDone(ResultFail(it)) }
 }
 
+/** Task handle to update the state of the [AppTask]. */
 interface ScheduleAppTaskHandle: StartAppTaskHandle {
    fun reportActive()
 }
 
+/** Task handle to update the state of the [AppTask]. */
+inline fun <TASK: StartAppTaskHandle, T> TASK.reportFor(block: (TASK) -> T): T {
+   val result = runTry { block(this) }
+   reportDone(result)
+   return result.orThrow
+}
+
 private class AppTask(val name: String, val message: ReadOnlyProperty<String>?, val cancel: (() -> Unit)?) {
    val state = v<State>(SCHEDULED)
+   val progress = v<Double01>(-1.0)
    val timeActive = v(0.millis)
    private var timeStart = 0L
 
@@ -351,12 +389,9 @@ fun <T, R> Fut<T>.thenWithAppProgress(executor: Executor, name: String, block: (
  */
 fun <T> Fut<T>.withProgress(progressIndicator: ProgressIndicator) = apply {
    runFX {
-      if (!isDone())
-         progressIndicator.progress = if (isDone()) 1.0 else -1.0
+      progressIndicator.progress = if (isDone()) 1.0 else -1.0
    }
-   onDone {
-      runFX {
-         progressIndicator.progress = 1.0
-      }
+   onDone(FX) {
+      progressIndicator.progress = 1.0
    }
 }

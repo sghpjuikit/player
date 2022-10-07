@@ -5,9 +5,12 @@ All notable changes to this project will be documented in this file. Format base
 
 - Update Kotlin to 1.7.20
 - Update dependencies
+- Implement file download task progress
 - Implement faster config de/serialization [memoize fallback converters by type]
+- Implement SongInfo cover fit from OUTSIDE by default
 - Improve **Hue Scenes** widget [use coroutines]
 - Improve **Settings** widget's UX [remove HOME icon & set to not reusable]
+- Improve styling [TagTextField with plus does not emulate TextField]
 - Fix object to ui string algorithm for strings of medium length
 - Fix json serializing non-component properties for data classes
 - Fix estimating object type for ui failing for classes with generic type parameters  
@@ -33,16 +36,29 @@ Now using the **Settings** widget is simpler and more intuitive.
 ### Coroutines in Hue Scenes widget
 **Hue Scenes** widget does a lot of thread switching when dealing with hue bridge configuration.
 This is because it needs to update ui state on ui thread in every step of the hue bridge communication process.
-The widget has been improved to use coroutines effectively. There is new API `runSuspendingFx`for easily launching coroutines from UI.
+The widget has been improved to use coroutines effectively.
+For this, there is new API `runSuspendingFx`for easily launching coroutines from UI.
 
-Kotlin coroutines really shine here. None of the blocking code is due to heavy computations.
+Kotlin's coroutines really shine here. None of the blocking code is due to heavy computations.
 As such, CPU dispatcher is not needed. The blocking due to IO (http) is taken care of by **Ktor**'s suspending methods.
 As such, no explicit thread switching is necessary, we simply use suspending methods where ui would be blocked before and rewrite the code from Future API to imperative style inside a coroutine on FX dispatcher.
 Writing asynchronous UI code with coroutines is a simple matter - put away blocking behind suspending functions and forget about threads forever.
 In code, it looks like we simply call blocking functions right from UI. The coroutine transparently dispatches off of UI thread where necessary.
 
+### Tasks
+The task list accessible from window header has been improved to show progress bar when task reports progress.
+All file downloading in the application has been reimplemented to use coroutines and report progress.
+This includes drag & drop for url with image, setting up kotlin compiler, ffmpeg and vlc player.
+
+This lead to improvements in some areas.
+- the `Fut<T>` is now covariant - `Fut<Int>` is subtype of `Fut<Number>`.
+- the `Fut` API taking executor parameter defaults to `CURR` (current thread executor) and does so consistently, removing the previously used `CompletableFuture<Any>().defaultExecutor()` completely.
+- file downloading is reimplemented using non-blocking coroutines
+- the progress reporting uses Kotlin's `Flow` and uses `Flow.conflate` and `awaitPulse()` to report actual progress on each ui pulse, not overloading the ui.
+
 ### Project IDE Intellij Idea Settings
 The intentions and dictionary are now added to git repository so developers leverage from the intended settings.
+
 
 ## [7.3.0] 2022 09 25
 

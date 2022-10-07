@@ -43,8 +43,6 @@
   Will probably require [RichTextFX](https://github.com/FXMisc/RichTextFX)
 - Implement multivalued **Song.Artist** support
   Should work like tags
-- Show progress for file downloads progress, [Inspiration](https://betterprogramming.pub/show-download-progress-in-kotlin-style-64d157995e27)  
-  Must work for downloading up `kotlinc` and `Vlc`
 - Implement `Window` & `Component` `Shower` using smart window resize algorithm expanding window to available screen area  
   It is not clear where exactly this would make the most impact. Potentially, custom action to reorganize windows.
 - Use standalone `README.md` for widgets  
@@ -69,8 +67,6 @@
      APP.widgetManager.factories.getFactoriesWith()
   }
   ```
-- Adopt proper code style using [ktlint](https://ktlint.github.io/)  
-  Or at least add .idea code style files to git
 - Support task hierarchy, i.e., task tree  
   Challenging issue
 - Improve `GridView` to retain position on column change  
@@ -137,10 +133,12 @@
   reported, open
 - [-] [KT-14119](https://youtrack.jetbrains.com/issue/KT-14119) Bad API: `String?.toBoolean()`  
   reported, implemented wrongly
-- [ ] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing
-  reported, worked around by enabling the counters on app startup using `OshiCore::class`
 - [-] [KT-52460](https://youtrack.jetbrains.com/issue/KT-52460) Slow Kotlin compilation
   reported demand for fast native excelsior compiler that has been discontinued -> Excelsior native compiler can no longer be build (no more experimental kotlinc)
+- [ ] [KT-54348](https://youtrack.jetbrains.com/issue/KT-54348) False positive: "Inappropriate blocking method call" with coroutines and Dispatchers.IO.invoke
+  reported, open
+- [ ] [OSHII-2016](https://github.com/oshi/oshi/pull/2016/files) Disabled performance counters check failing
+  reported, worked around by enabling the counters on app startup using `OshiCore::class`
 - [x] [694](https://github.com/haraldk/TwelveMonkeys/issues/694) Incorrect subSampling out put for bmp image  
   fixed
 - [-] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  

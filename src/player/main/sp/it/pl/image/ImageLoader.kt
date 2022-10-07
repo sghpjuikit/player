@@ -8,6 +8,7 @@ import java.util.zip.ZipFile
 import javafx.scene.image.Image
 import javafx.util.Duration
 import javax.imageio.ImageIO
+import kotlinx.coroutines.withContext
 import mu.KLogging
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -16,22 +17,27 @@ import sp.it.pl.audio.tagging.read
 import sp.it.pl.image.ImageLoader.Params
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
+import sp.it.pl.main.AppProgress
+import sp.it.pl.main.downloadFile
 import sp.it.pl.main.ifErrorNotify
 import sp.it.pl.main.isAudio
+import sp.it.pl.main.reportFor
 import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
-import sp.it.util.async.FX
-import sp.it.util.async.runIO
+import sp.it.util.async.coroutine.IO
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.dev.stacktraceAsString
-import sp.it.util.file.Util.saveFileAs
+import sp.it.util.file.deleteOrThrow
+import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.file.setExecutableOrThrow
 import sp.it.util.file.type.MimeGroup.Companion.audio
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
@@ -224,28 +230,28 @@ private val ffmpeg by lazy {
       else -> fail { "Video cover extraction using ffmpeg is not supported on $os" }
    }
    val ffmpegVersion = "ffmpeg-20190826-0821bc4-win64-static"
-   val ffmpegLink = URI(
-      when (os) {
-         Os.WINDOWS -> "https://ffmpeg.zeranoe.com/builds/win64/static/$ffmpegVersion.zip"
-         Os.OSX -> "https://ffmpeg.zeranoe.com/builds/macos64/static/$ffmpegVersion.zip"
-         else -> fail { "Video cover extraction using ffmpeg is not supported on $os" }
-      }
-   )
-   runIO {
-      fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
+   val ffmpegLink = when (os) {
+      Os.WINDOWS -> URI("https://ffmpeg.zeranoe.com/builds/win64/static/$ffmpegVersion.zip")
+      Os.OSX -> URI("https://ffmpeg.zeranoe.com/builds/macos64/static/$ffmpegVersion.zip")
+      else -> fail { "Video cover extraction using ffmpeg is not supported on $os" }
+   }
+   runSuspendingFx {
+      AppProgress.start("Obtaining ffmpeg").reportFor { task ->
+         withContext(IO) {
+            if (!ffmpegBinary.exists()) {
+               if (ffmpegDir.exists()) ffmpegDir.deleteRecursivelyOrThrow()
+               downloadFile(ffmpegLink.toString(), ffmpegZip, task)
+               ffmpegZip.unzip(ffmpegDir) { it.substringAfter("$ffmpegVersion/") }
+               ffmpegBinary.setExecutableOrThrow(true)
+               ffmpegZip.deleteOrThrow()
+            }
 
-      if (!ffmpegBinary.exists()) {
-         if (ffmpegDir.exists()) ffmpegDir.deleteRecursively().orFailIO { "Failed to remove ffmpeg in=$ffmpegDir" }
-         saveFileAs(ffmpegLink.toString(), ffmpegZip)
-         ffmpegZip.unzip(ffmpegDir) { it.substringAfter("$ffmpegVersion/") }
-         ffmpegBinary.setExecutable(true).orFailIO { "Failed to make file=$ffmpegBinary executable" }
-         ffmpegZip.delete().orFailIO { "Failed to clean up downloaded file=$ffmpegZip" }
+            failIf(!ffmpegBinary.exists()) { "Ffmpeg executable=$ffmpegBinary does not exist" }
+            failIf(!ffmpegBinary.canExecute()) { "Ffmpeg executable=$ffmpegBinary must be executable" }
+            ffmpegBinary
+         }
       }
-
-      failIf(!ffmpegBinary.exists()) { "Ffmpeg executable=$ffmpegBinary does not exist" }
-      failIf(!ffmpegBinary.canExecute()) { "Ffmpeg executable=$ffmpegBinary must be executable" }
-      ffmpegBinary
-   }.withAppProgress("Obtaining ffmpeg").onDone(FX) {
+   }.withAppProgress("Obtaining ffmpeg").onDone {
       it.toTry().ifErrorNotify {
          AppError(
             "Failed to obtain ffmpeg",

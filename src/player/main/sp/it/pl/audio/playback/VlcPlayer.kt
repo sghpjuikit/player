@@ -1,7 +1,6 @@
 package sp.it.pl.audio.playback
 
 import java.io.File
-import java.io.IOException
 import java.net.URI
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.scene.media.MediaPlayer.Status.PAUSED
@@ -9,6 +8,8 @@ import javafx.scene.media.MediaPlayer.Status.PLAYING
 import javafx.scene.media.MediaPlayer.Status.STOPPED
 import javafx.util.Duration
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
 import mu.KLogging
 import sp.it.pl.audio.Song
 import sp.it.pl.audio.playlist.PlaylistManager
@@ -18,20 +19,22 @@ import sp.it.pl.audio.playlist.sequence.PlayingSequence.LoopMode.SONG
 import sp.it.pl.main.APP
 import sp.it.pl.main.Actions.APP_SEARCH
 import sp.it.pl.main.AppError
+import sp.it.pl.main.AppProgress
 import sp.it.pl.main.bullet
 import sp.it.pl.main.configure
+import sp.it.pl.main.downloadFile
 import sp.it.pl.main.ifErrorNotify
+import sp.it.pl.main.reportFor
 import sp.it.pl.main.showFloating
 import sp.it.pl.main.toUi
-import sp.it.pl.main.withAppProgress
 import sp.it.util.action.ActionRegistrar
-import sp.it.util.async.FX
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
 import sp.it.util.conf.getDelegateConfig
 import sp.it.util.dev.fail
 import sp.it.util.dev.stacktraceAsString
-import sp.it.util.file.Util.saveFileAs
+import sp.it.util.file.deleteOrThrow
+import sp.it.util.file.deleteRecursivelyOrThrow
 import sp.it.util.file.div
 import sp.it.util.file.unzip
 import sp.it.util.reactive.Disposer
@@ -299,25 +302,25 @@ class VlcPlayer: GeneralPlayer.Play {
       }
 
       private val setup by lazy {
-         runIO {
-            val os = Os.current
-            val vlcDir = APP.location/"vlc"
-            val vlcZip = vlcDir/"vlc.zip"
-            val vlcVersion = "3.0.8"
-            val vlcLink = URI(
-               when (os) {
-                  Os.WINDOWS -> "http://download.videolan.org/pub/videolan/vlc/3.0.8/win64/vlc-$vlcVersion-win64.zip"
-                  else -> fail { "Vlc auto-setup is not supported on $os" }
+         runSuspendingFx {
+            AppProgress.start("Obtaining Vlc").reportFor { task ->
+               withContext(IO) {
+                  val os = Os.current
+                  val vlcDir = APP.location/"vlc"
+                  val vlcZip = vlcDir/"vlc.zip"
+                  val vlcVersion = "3.0.8"
+                  val vlcLink = when (os) {
+                     Os.WINDOWS -> URI("http://download.videolan.org/pub/videolan/vlc/3.0.8/win64/vlc-$vlcVersion-win64.zip")
+                     else -> fail { "Vlc auto-setup is not supported on $os" }
+                  }
+
+                  if (vlcDir.exists()) vlcDir.deleteRecursivelyOrThrow()
+                  downloadFile(vlcLink.toString(), vlcZip, task)
+                  vlcZip.unzip(vlcDir) { it.substringAfter("vlc-$vlcVersion/") }
+                  vlcZip.deleteOrThrow()
                }
-            )
-
-            fun Boolean.orFailIO(message: () -> String) = also { if (!this) throw IOException(message()) }
-
-            if (vlcDir.exists()) vlcDir.deleteRecursively().orFailIO { "Failed to remove Vlc in=$vlcDir" }
-            saveFileAs(vlcLink.toString(), vlcZip)
-            vlcZip.unzip(vlcDir) { it.substringAfter("vlc-$vlcVersion/") }
-            vlcZip.delete().orFailIO { "Failed to clean up downloaded file=$vlcZip" }
-         }.withAppProgress("Obtaining Vlc").onDone(FX) {
+            }
+         }.onDone {
             it.toTry().ifErrorNotify {
                AppError("Failed to obtain Vlc", "Reason: ${it.stacktraceAsString}")
             }

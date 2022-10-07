@@ -23,6 +23,7 @@ import kotlinx.coroutines.invoke
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.javafx.JavaFxDispatcher
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.BlockingExecutor
 import sp.it.util.async.NewThreadExecutor
 import sp.it.util.async.future.Fut
 import sp.it.util.reactive.Subscription
@@ -30,6 +31,8 @@ import sp.it.util.reactive.Subscription
 val FX = Dispatchers.JavaFx
 
 val CPU = Dispatchers.Default
+
+val IO: @BlockingExecutor CoroutineDispatcher = Dispatchers.IO
 
 val NEW = NewThreadExecutor().asCoroutineDispatcher()
 

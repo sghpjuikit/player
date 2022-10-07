@@ -19,6 +19,8 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.access.toggleNext
+import sp.it.util.async.FX
+import sp.it.util.async.future.orNull
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
@@ -65,7 +67,7 @@ class Image(widget: Widget): SimpleController(widget), ImageDisplayFeature {
          { e -> file.value!=null && file.value==e.dragboard.files.firstOrNull() },
          { e ->
             if (e.dragboard.hasFiles()) inputFile.value = e.dragboard.files.firstOrNull()
-            else e.dragboard.getImageFileOrUrl() ui { inputFile.value = it }
+            else e.dragboard.getImageFileOrUrl().onDone(FX) { inputFile.value = it.orNull() }
          }
       )
 

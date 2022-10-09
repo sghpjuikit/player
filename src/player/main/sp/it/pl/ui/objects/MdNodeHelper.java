@@ -20,6 +20,7 @@
 
 package sp.it.pl.ui.objects;
 
+import com.vladsch.flexmark.ast.AutoLink;
 import com.vladsch.flexmark.ast.BlockQuote;
 import com.vladsch.flexmark.ast.BulletList;
 import com.vladsch.flexmark.ast.BulletListItem;
@@ -29,15 +30,18 @@ import com.vladsch.flexmark.ast.FencedCodeBlock;
 import com.vladsch.flexmark.ast.HardLineBreak;
 import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.ast.Link;
+import com.vladsch.flexmark.ast.LinkNodeBase;
 import com.vladsch.flexmark.ast.ListItem;
 import com.vladsch.flexmark.ast.OrderedList;
 import com.vladsch.flexmark.ast.OrderedListItem;
 import com.vladsch.flexmark.ast.Paragraph;
 import com.vladsch.flexmark.ast.SoftLineBreak;
 import com.vladsch.flexmark.ast.StrongEmphasis;
+import com.vladsch.flexmark.ast.TextBase;
 import com.vladsch.flexmark.ext.attributes.AttributeNode;
 import com.vladsch.flexmark.ext.attributes.AttributesExtension;
 import com.vladsch.flexmark.ext.attributes.AttributesNode;
+import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension;
@@ -128,6 +132,7 @@ public class MdNodeHelper extends VBox {
 		root.setFillWidth(true);
 
 		LinkedList<Extension> extensions = new LinkedList<>();
+		extensions.add(AutolinkExtension.create());
 		extensions.add(TablesExtension.create());
 		extensions.add(AttributesExtension.create());
 		extensions.add(StrikethroughExtension.create());
@@ -172,7 +177,9 @@ public class MdNodeHelper extends VBox {
 			new VisitHandler<>(Paragraph.class, this::visit),
 			new VisitHandler<>(com.vladsch.flexmark.ast.Image.class, this::visit),
 			new VisitHandler<>(Link.class, this::visit),
-			new VisitHandler<>(com.vladsch.flexmark.ast.TextBase.class, this::visit),
+			new VisitHandler<>(AutoLink.class, this::visit),
+			new VisitHandler<>(LinkNodeBase.class, this::visit),
+			new VisitHandler<>(TextBase.class, this::visit),
 			new VisitHandler<>(com.vladsch.flexmark.ast.Text.class, this::visit),
 			new VisitHandler<>(com.vladsch.flexmark.ext.gfm.strikethrough.Strikethrough.class, this::visit),
 			new VisitHandler<>(TableHead.class, this::visit),
@@ -379,8 +386,7 @@ public class MdNodeHelper extends VBox {
 			//visitor.visitChildren(image);
 		}
 
-		public void visit(Link link) {
-
+		public void visit(LinkNodeBase link) {
 			LinkedList<Node> nodes = new LinkedList<>();
 
 			Consumer<Pair<Node, String>> addProp = (pair) -> {
@@ -428,7 +434,7 @@ public class MdNodeHelper extends VBox {
 			elemFunctions.remove(addProp);
 		}
 
-		public void visit(com.vladsch.flexmark.ast.TextBase text) {
+		public void visit(TextBase text) {
 			List<AttributesNode> attrs = AttributesExtension.NODE_ATTRIBUTES.get(document).get(text);
 			setAttrs(attrs,true);
 			visitor.visitChildren(text);

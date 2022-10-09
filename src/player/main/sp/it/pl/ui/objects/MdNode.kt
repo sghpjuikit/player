@@ -15,7 +15,6 @@ import javafx.scene.layout.StackPane
 import javafx.scene.text.Text
 import kotlin.math.sin
 import kotlin.math.sqrt
-import oshi.annotation.concurrent.ThreadSafe
 import sp.it.pl.main.IconOC
 import sp.it.pl.main.getText
 import sp.it.pl.main.hasText
@@ -24,6 +23,7 @@ import sp.it.util.access.v
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.dev.ThreadSafe
 import sp.it.util.file.readTextTry
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull

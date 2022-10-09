@@ -3,11 +3,12 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
-- Update Kotlin to 1.7.20
+- Update **Kotlin** to 1.7.20
 - Update dependencies
 - Implement file download task progress
 - Implement faster config de/serialization [memoize fallback converters by type]
-- Implement SongInfo cover fit from OUTSIDE by default
+- Implement `SongInfo` cover fit from OUTSIDE by default
+- Implement `Markdown` link auto-detection
 - Improve **Hue Scenes** widget [use coroutines]
 - Improve **Settings** widget's UX [remove HOME icon & set to not reusable]
 - Improve styling [TagTextField with plus does not emulate TextField]

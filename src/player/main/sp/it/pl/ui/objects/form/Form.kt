@@ -3,7 +3,9 @@ package sp.it.pl.ui.objects.form
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER
+import javafx.scene.control.ScrollPane
 import javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED
+import javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER
 import javafx.scene.layout.VBox
 import sp.it.pl.main.IconFA
 import sp.it.pl.main.emScaled
@@ -64,8 +66,9 @@ class Form(configurable: Configurable<*>, action: ((Configurable<*>) -> Any?)?):
       lay += scrollPane {
          content = editorsPane
          isFitToWidth = true
+         isFitToHeight = false
          vbarPolicy = AS_NEEDED
-         hbarPolicy = AS_NEEDED
+         hbarPolicy = NEVER
          consumeScrolling()
       }
       lay += stackPane(okPane) {

@@ -6,11 +6,11 @@ import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Node
+import javafx.scene.control.Label
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority.ALWAYS
 import javafx.scene.layout.VBox
-import javafx.scene.text.TextFlow
 import sp.it.pl.main.Css
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.itemnode.ConfigEditor
@@ -34,6 +34,7 @@ import sp.it.util.conf.Configurable
 import sp.it.util.conf.Constraint
 import sp.it.util.conf.Constraint.UiSingleton
 import sp.it.util.functional.asIf
+import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.functional.nullsFirst
@@ -45,13 +46,10 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.type.propertyNullable
 import sp.it.util.type.raw
 import sp.it.util.ui.hBox
-import sp.it.util.ui.height
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.onNodeDispose
 import sp.it.util.ui.pseudoClassChanged
-import sp.it.util.ui.text
-import sp.it.util.ui.textFlow
 import sp.it.util.ui.width
 
 class ConfigPane<T: Any?>: VBox {
@@ -72,8 +70,12 @@ class ConfigPane<T: Any?>: VBox {
 
    constructor(): super(5.0) {
       styleClass += "form-config-pane"
+      // maintain css
       ui sync { Layout.values().forEach { l -> pseudoClassChanged(l.name.lowercase(), l == it) } }
+      // maintain layout
       ui attach { buildUi(true) }
+      // maintain label wrapping widths
+      widthProperty() attach { children.forEach { if (it is Label) it.prefWidth = computeContentWidth() } }
    }
 
    constructor(configs: Configurable<T>): this() {
@@ -122,10 +124,11 @@ class ConfigPane<T: Any?>: VBox {
       }
       fun ConfigEditor<*>.buildDescriptionText() = when {
          config.info.isEmpty() || config.nameUi==config.info -> null
-         else -> textFlow {
+         else -> label(config.info) {
             styleClass += Css.DESCRIPTION
             styleClass += "form-config-pane-config-description"
-            lay += text(config.info)
+            isWrapText = true
+            prefWidth = computeContentWidth()
          }
       }
 
@@ -188,46 +191,51 @@ class ConfigPane<T: Any?>: VBox {
 
    }
 
-   override fun getContentBias() = Orientation.HORIZONTAL
+   fun isSingleEditor(): Boolean = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
 
-   // overridden because text nodes should not partake in width calculations
-   // using TextFlowWithNoWidth would avoid this, but may cause other issues
-   // ---
+   private fun computeContentWidth(): Double = (width - padding.width) max 200.0
+
    private var isComputingWidth = false
+
    override fun computeMinWidth(height: Double): Double {
       isComputingWidth = true
       val x = super.computeMinWidth(height)
       isComputingWidth = false
       return x
    }
+
    override fun computePrefWidth(height: Double): Double {
       isComputingWidth = true
       val x = super.computePrefWidth(height)
       isComputingWidth = false
       return x
    }
+
    override fun computeMaxWidth(height: Double): Double {
       isComputingWidth = true
       val x = super.computeMaxWidth(height)
       isComputingWidth = false
       return x
    }
+
+   // overridden because text nodes should not partake in width calculations
    override fun <E: Node> getManagedChildren(): MutableList<E> {
       val mc = super.getManagedChildren<E>()
-      return if (isComputingWidth) return mc.filter { it !is TextFlow }.toMutableList()
-      else mc
+      return if (isComputingWidth) mc.filter { it !is Label }.toMutableList() else mc
    }
-   // ---
+
+   override fun getContentBias() = Orientation.HORIZONTAL
 
    // overridden because text nodes would not wrap
    override fun layoutChildren() {
          val contentLeft = padding.left
-         val contentWidth = if (width>0) width - padding.width else 200.0
+         val contentWidth = computeContentWidth()
          val space = snapSpaceY(spacing)
-         val isSingleEditor = editors.size==1 && editors.first().config.hasConstraint<UiSingleton>()
+         val isSingleEditor = isSingleEditor()
          val lastEditor = children.lastOrNull()
          children.fold(padding.top) { h, n ->
             val p = HBox.getMargin(n) ?: Insets.EMPTY
+            if (n is Label) n.prefWidth = contentWidth
             val pH = n.prefHeight(contentWidth).clip(n.minHeight(contentWidth), n.maxHeight(contentWidth))
             if (isSingleEditor && n===lastEditor) n.resizeRelocate(contentLeft, h + p.top, contentWidth, height - h - padding.bottom - p.top)
             else n.resizeRelocate(contentLeft, h + p.top, contentWidth, pH)
@@ -235,16 +243,7 @@ class ConfigPane<T: Any?>: VBox {
          }
    }
 
-   // overridden because text nodes would interfere with in height calculation
-   // ---
-   private fun spacingTotal() = (children.size-1).max(0) * snapSpaceY(spacing)
-   override fun computeMinHeight(width: Double) = insets.height + spacingTotal() + children.sumOf { it.minHeight(width) }
-   override fun computePrefHeight(width: Double) =  insets.height + spacingTotal() + children.sumOf { n -> (HBox.getMargin(n)?.height ?: 0.0) + n.prefHeight(width).clip(n.minHeight(width), n.maxHeight(width)) }
-   override fun computeMaxHeight(width: Double) = Double.MAX_VALUE
-   // ---
-
-   @Suppress("UNCHECKED_CAST")
-   fun getConfigEditors(): List<ConfigEditor<T>> = editors as List<ConfigEditor<T>>
+   fun getConfigEditors(): List<ConfigEditor<T>> = editors.asIs()
 
    fun getConfigValues(): List<T> = getConfigEditors().map { it.config.value }
 

@@ -58,6 +58,7 @@ import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import java.util.ArrayList
+import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode.ESCAPE
 import kotlin.math.PI
 import kotlin.math.sin
@@ -65,6 +66,7 @@ import sp.it.pl.main.WidgetTags
 import sp.it.pl.main.formEditorsUiToggleIcon
 import sp.it.util.access.focused
 import sp.it.util.animation.Anim.Companion.anim
+import sp.it.util.conf.Constraint
 import sp.it.util.reactive.syncBiFrom
 import sp.it.util.reactive.zip
 import sp.it.util.units.millis
@@ -87,6 +89,7 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
    private val inputValue = io.i.create<Configurable<Any?>?>("To configure", null) { configure(it) }
 
    private val groups = TreeView<Name>()
+   private val editorsScroll = ScrollPane()
    private val editorsRoot = StackPane()
    private val editorsPane = ConfigPane<Any>()
    private val filterTextField = searchTextField()
@@ -123,11 +126,12 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
                id = "editors"
                padding = Insets(10.0)
 
-               lay += scrollPane {
+               lay += editorsScroll.apply {
                   isFitToWidth = true
-                  isFitToHeight = true
+                  isFitToHeight = false
                   prefSize = -1 x -1
                   vbarPolicy = ScrollBarPolicy.AS_NEEDED
+                  hbarPolicy = ScrollBarPolicy.NEVER
 
                   content = editorsRoot.apply {
                      prefSize = -1 x -1
@@ -208,9 +212,11 @@ class Configurator(widget: Widget): SimpleController(widget), ConfiguringFeature
       groups.expandToRootAndSelect(restoreAppSettingsSelection() ?: groups.root)
    }
 
-   private fun showConfigs(group: Name?) = editorsPane.configure(
-      configsFiltered.filter { it.group==group?.pathUp }.toListConfigurable()
-   )
+   private fun showConfigs(group: Name?) {
+      val c = configsFiltered.filter { it.group==group?.pathUp }.toListConfigurable()
+      editorsScroll.isFitToHeight = c.getConfigs().size==1 && c.getConfigs()[0].hasConstraint<Constraint.UiSingleton>()
+      editorsPane.configure(c)
+   }
 
    private fun refreshConfigs() = editorsPane.getConfigEditors().forEach { it.refreshValue() }
 

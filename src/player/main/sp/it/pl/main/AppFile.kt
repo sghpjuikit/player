@@ -3,6 +3,7 @@ package sp.it.pl.main
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import java.io.File
+import java.net.URI
 import java.nio.file.Path
 import javafx.scene.image.Image
 import javafx.stage.FileChooser
@@ -188,6 +189,9 @@ fun writeImage(img: Image, file: File): Try<Unit, Throwable> = runTry {
 }.ifError {
    logger.error(it) { "Could not save image to file=$file" }
 }
+
+/** Downloads file to the specified file with [HttpClient.downloadFile] reporting the progress into the specified task. [StartAppTaskHandle.reportDone] must be called by the caller. */
+suspend fun downloadFile(url: URI, file: File, task: StartAppTaskHandle): Unit = downloadFile(url.toString(), file, task)
 
 /** Downloads file to the specified file with [HttpClient.downloadFile] reporting the progress into the specified task. [StartAppTaskHandle.reportDone] must be called by the caller. */
 suspend fun downloadFile(url: String, file: File, task: StartAppTaskHandle): Unit = FX {

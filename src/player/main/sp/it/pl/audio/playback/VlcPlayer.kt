@@ -315,7 +315,7 @@ class VlcPlayer: GeneralPlayer.Play {
                   }
 
                   if (vlcDir.exists()) vlcDir.deleteRecursivelyOrThrow()
-                  downloadFile(vlcLink.toString(), vlcZip, task)
+                  downloadFile(vlcLink, vlcZip, task)
                   vlcZip.unzip(vlcDir) { it.substringAfter("vlc-$vlcVersion/") }
                   vlcZip.deleteOrThrow()
                }

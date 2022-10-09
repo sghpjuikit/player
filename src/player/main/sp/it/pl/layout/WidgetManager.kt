@@ -65,7 +65,6 @@ import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
 import sp.it.util.async.burstTPExecutor
-import sp.it.util.async.coroutine.await
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
@@ -191,7 +190,7 @@ class WidgetManager {
 
                if (!isCorrectVersion() || !kotlincBinary.exists()) {
                   if (kotlincDir.exists()) kotlincDir.deleteRecursivelyOrThrow()
-                  downloadFile(kotlincLink.toString(), kotlincZip, task)
+                  downloadFile(kotlincLink, kotlincZip, task)
                   kotlincZip.unzip(kotlincDir) { it.substringAfter("kotlinc/") }
                   kotlincBinary.setExecutableOrThrow(true)
                   kotlincZip.deleteOrThrow()

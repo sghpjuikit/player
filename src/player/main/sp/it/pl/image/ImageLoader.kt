@@ -240,7 +240,7 @@ private val ffmpeg by lazy {
          withContext(IO) {
             if (!ffmpegBinary.exists()) {
                if (ffmpegDir.exists()) ffmpegDir.deleteRecursivelyOrThrow()
-               downloadFile(ffmpegLink.toString(), ffmpegZip, task)
+               downloadFile(ffmpegLink, ffmpegZip, task)
                ffmpegZip.unzip(ffmpegDir) { it.substringAfter("$ffmpegVersion/") }
                ffmpegBinary.setExecutableOrThrow(true)
                ffmpegZip.deleteOrThrow()

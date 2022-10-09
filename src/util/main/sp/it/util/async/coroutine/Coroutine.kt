@@ -23,6 +23,7 @@ import kotlinx.coroutines.invoke
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.javafx.JavaFxDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.jetbrains.annotations.BlockingExecutor
 import sp.it.util.async.NewThreadExecutor
 import sp.it.util.async.future.Fut
@@ -80,3 +81,9 @@ fun <T> runSuspending(dispatcher: CoroutineDispatcher, start: CoroutineStart = D
 fun <T> runSuspendingFx(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(FX, if (Platform.isFxApplicationThread()) UNDISPATCHED else DEFAULT, block)
 
 fun <T> runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(FX, DEFAULT, block)
+
+fun <T> CoroutineScope.runSuspending(start: CoroutineStart = DEFAULT, block: suspend CoroutineScope.() -> T) : Fut<T> = Fut((this + FX).future(EmptyCoroutineContext, start, block))
+
+fun <T> CoroutineScope.runSuspendingFx(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(if (Platform.isFxApplicationThread()) UNDISPATCHED else DEFAULT, block)
+
+fun <T> CoroutineScope.runSuspendingFxLater(block: suspend CoroutineScope.() -> T) : Fut<T> = runSuspending(DEFAULT, block)

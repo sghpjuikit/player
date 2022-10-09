@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix popup showing without focus even if focused
 - Fix widget compilation issues [avoid using K2 compiler due to not being production ready]
 - Fix widgets compiling multiple times due to temporary file change events
+- Fix config editors entire height not scrollable
+- Fix coroutines launched from widgets not cancelling on `Widget.close`
 
 ### Application Settings reuse
 The **Settings** widget used for application settings can be used for any kind of `Configurable` object.

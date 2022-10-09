@@ -115,6 +115,7 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.coroutines.CoroutineScope
 import sp.it.pl.main.WidgetTags.IOT
 import sp.it.pl.main.IconMD
 import sp.it.pl.main.IconOC
@@ -124,9 +125,7 @@ import sp.it.pl.main.textColon
 import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.pane.ShortcutPane.Entry
 import sp.it.util.Util.pyth
-import sp.it.util.async.coroutine.FX
-import sp.it.util.async.coroutine.asFut
-import sp.it.util.async.coroutine.launch
+import sp.it.util.async.coroutine.runSuspending
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.conf.EditMode.NONE
 import sp.it.util.conf.cvn
@@ -141,6 +140,7 @@ import sp.it.util.reactive.suppressed
 import sp.it.util.reactive.suppressing
 import sp.it.util.text.capitalLower
 import sp.it.util.text.nameUi
+import sp.it.util.text.split3
 import sp.it.util.ui.centre
 import sp.it.util.ui.label
 import sp.it.util.ui.lookupId
@@ -148,7 +148,7 @@ import sp.it.util.ui.stackPane
 
 class Hue(widget: Widget): SimpleController(widget) {
 
-   val client = HttpClient(CIO)
+   val client = HttpClient(CIO).apply { onClose += ::close }
    val hueBulbCells = HashMap<HueBulbId, HueCell<HueBulb>>()
    val hueBulbGroupCells = HashMap<HueGroupId, HueCell<HueGroup>>()
    var selectedGroupId: HueGroupId? = null
@@ -160,21 +160,21 @@ class Hue(widget: Widget): SimpleController(widget) {
    val scenesPane = flowPane(10.emScaled, 10.emScaled)
    val sensorsPane = flowPane(10.emScaled, 10.emScaled)
 
-   private val hueBridge = object {
+   private val hueBridge = object: CoroutineScope by scope {
       val hueBridgeUserDevice = "spit-player"
       lateinit var ip: String
       lateinit var apiKey: String
       lateinit var apiVersion: KotlinVersion
       lateinit var url: String
 
-      fun init() = launch(FX) {
+      fun init() = runSuspendingFx {
          ip = hueBridgeIp.validIpOrNull() ?: ip() ?: fail { "Unable to obtain Phillips Hue bridge ip. Make sure it is turned on and connected to the network." }
          hueBridgeIp = ip
          apiKey = if (isAuthorizedApiKey(ip, hueBridgeApiKey)) hueBridgeApiKey else createApiKey(ip)
          hueBridgeApiKey = apiKey
-         apiVersion = apiVersion("http://$ip/api/$apiKey").net { KotlinVersion(it.substringBefore(".").toInt(), it.substringAfter(".").substringBefore(".").toInt(), it.substringAfter(".").substringAfter(".", "").toIntOrNull() ?: 0) }
+         apiVersion = apiVersion("http://$ip/api/$apiKey").split3(".").net { (major, minor, patch) -> KotlinVersion(major.toInt(), minor.toInt(), patch.toIntOrNull() ?: 0) }
          url = "http://$ip/api/$apiKey"
-      }.asFut()
+      }
 
       private suspend fun String.validIpOrNull(): String? {
          val isValid = runTry { client.get("http://${this@validIpOrNull}").status }.orNull()==OK
@@ -224,7 +224,7 @@ class Hue(widget: Widget): SimpleController(widget) {
          return apiKey ?: fail { "Failed to obtain user Phillips Hue bridge api key" }
       }
 
-      suspend fun apiVersion(url: String): String {
+      private suspend fun apiVersion(url: String): String {
          val response = client.getText("$url/config")
          return response.parseToJson().asJsObject().value["apiversion"]?.asJsString()?.value ?: fail { "Could not obtain api version" }
       }

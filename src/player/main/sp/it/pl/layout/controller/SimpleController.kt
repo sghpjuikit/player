@@ -2,6 +2,9 @@ package sp.it.pl.layout.controller
 
 import javafx.scene.layout.StackPane
 import kotlin.reflect.full.findAnnotation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import sp.it.pl.layout.Widget
 import sp.it.pl.layout.controller.io.Input
 import sp.it.pl.layout.controller.io.Output
@@ -22,7 +25,11 @@ import sp.it.util.reactive.Subscription
  */
 open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator {
 
+   /** The ui root that attaches this widget to the scene graph */
    @JvmField val root = StackPane()
+   /** The coroutine scope partaking in the life-cycle of this widget. Cancelled on [close]. [MainScope]. Use to launch coroutines. */
+   @JvmField val scope: CoroutineScope = MainScope()
+   /** The disposer partaking in the life-cycle of this widget. Called on [close]. Use to dispose resources. */
    @JvmField val onClose = Disposer()
    private var isLegacyConfigsInitialized = false
    private val hasLegacyConfigs = this::class.findAnnotation<LegacyController>()!=null
@@ -53,6 +60,7 @@ open class SimpleController(widget: Widget): Controller(widget), ConfigDelegator
    override fun focus() = root.requestFocus()
 
    override fun close() {
+      scope.cancel()
       onClose()
       io.dispose()
    }

@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [7.4.0] 2022 10 09
+
 - Update **Kotlin** to 1.7.20
 - Update dependencies
 - Implement file download task progress
@@ -26,6 +28,8 @@ All notable changes to this project will be documented in this file. Format base
 - Fix config editors entire height not scrollable
 - Fix coroutines launched from widgets not cancelling on `Widget.close`
 
+This update continues UX improvements from previous updates.
+
 ### Application Settings reuse
 The **Settings** widget used for application settings can be used for any kind of `Configurable` object.
 This creates confusion when such object requires a **Settings** widget, because widgets are by default reused and thus the contents change unexpectedly.
@@ -48,6 +52,8 @@ As such, no explicit thread switching is necessary, we simply use suspending met
 Writing asynchronous UI code with coroutines is a simple matter - put away blocking behind suspending functions and forget about threads forever.
 In code, it looks like we simply call blocking functions right from UI. The coroutine transparently dispatches off of UI thread where necessary.
 
+`SimpleController` now provides coroutine scope that is cancelled on close.
+
 ### Tasks
 The task list accessible from window header has been improved to show progress bar when task reports progress.
 All file downloading in the application has been reimplemented to use coroutines and report progress.
@@ -61,7 +67,6 @@ This lead to improvements in some areas.
 
 ### Project IDE Intellij Idea Settings
 The intentions and dictionary are now added to git repository so developers leverage from the intended settings.
-
 
 ## [7.3.0] 2022 09 25
 

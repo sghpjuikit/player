@@ -62,6 +62,7 @@ import sp.it.pl.main.WidgetTags.UTILITY
 import sp.it.pl.main.IconMD
 import sp.it.util.ui.flowPane
 import sp.it.util.ui.label
+import sp.it.util.ui.traverseParents
 
 class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, Opener {
    private val outputSelected = io.o.create<Any?>("Selected", null)
@@ -195,8 +196,6 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
          ShortcutPane.Entry("Data", "Inspect object", "Drag & drop object"),
       )
 
-      private fun Node.traverseToFirst(test: (Node) -> Boolean) = traverse { it.parent }.find(test)
-
       private fun <T: Any> T.traverseChildrenToLast(next: (T) -> T?) = traverse(next).drop(1).lastOrNull()
 
       private inline fun <reified R> TreeItem<Any>.findChild(r: R, isAnyChildOf: R.(R) -> Boolean) = children.find { it.value?.let { it is R && (r==it || r.isAnyChildOf(it)) }==true }
@@ -210,7 +209,7 @@ class Inspector(widget: Widget): SimpleController(widget), FileExplorerFeature, 
          fun Node.styleHighlighted(value: Boolean) = styleclassToggle("inspector-highlighted", value)
 
          return if (value) {
-            this?.traverseToFirst { it.isHighlightable() }?.also { it.styleHighlighted(value) }
+            this?.traverseParents()?.find { it.isHighlightable() }?.also { it.styleHighlighted(value) }
          } else {
             this?.styleHighlighted(value)
             null

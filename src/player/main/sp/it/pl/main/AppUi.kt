@@ -73,10 +73,10 @@ import sp.it.util.file.Util
 import sp.it.util.file.children
 import sp.it.util.file.div
 import sp.it.util.file.isAnyParentOf
+import sp.it.util.file.traverseParents
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.asIf
-import sp.it.util.functional.traverse
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
@@ -408,7 +408,7 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
       FileMonitor.monitorDirectory(skinDir, true) { type, file ->
          logger.info { "Change=$type detected in skin directory for $file" }
 
-         val skinFile = file.traverse { it.parentFile }.find { it.parentFile==skinDir }?.name?.let { name -> skinsImpl.find { it.name==name} }?.file
+         val skinFile = file.traverseParents().find { it.parentFile==skinDir }?.name?.let { name -> skinsImpl.find { it.name==name} }?.file
          if (file!=skinFile) {
             skinFile?.setLastModified(System.currentTimeMillis())
             return@monitorDirectory

@@ -2,7 +2,6 @@ package sp.it.pl.ui.objects.table
 
 import javafx.scene.media.MediaPlayer.Status.PAUSED as STATE_PAUSED
 import javafx.scene.media.MediaPlayer.Status.PLAYING as STATE_PLAYING
-import javafx.scene.Node
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableRow
@@ -21,12 +20,12 @@ import sp.it.util.access.fieldvalue.ObjectFieldBase
 import sp.it.util.access.vAlways
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
-import sp.it.util.functional.traverse
 import sp.it.util.reactive.on
 import sp.it.util.reactive.sync
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.type
 import sp.it.util.ui.tableColumn
+import sp.it.util.ui.traverseParents
 
 object PLAYING: ObjectFieldBase<Song, String>(type(), { "" }, "Playing", "An UI column providing pause/resume icon for playing song row", { _, _ -> "" }), MetaField
 
@@ -60,7 +59,7 @@ fun PlaylistTable.buildPlayingFieldCell(column: TableColumn<PlaylistSong, Any>):
          isFocusTraversable = false
          styleclass("playlist-table-cell-playing-icon")
          onClickDo {
-            val song = this.traverse<Node> { it.parent }.find { it is TableRow<*> }?.asIf<TableRow<*>>()?.item?.asIf<PlaylistSong>()
+            val song = traverseParents().filterIsInstance<TableRow<*>>().firstOrNull()?.item?.asIf<PlaylistSong>()
             if (APP.audio.state.playback.status.value==STATE_PLAYING && playlist.isPlaying) APP.audio.pause()
             else if (APP.audio.state.playback.status.value==STATE_PAUSED && playlist.isPlaying) APP.audio.resume()
             else playlist.playTransformedItem(song)

@@ -11,6 +11,10 @@ import sp.it.util.dev.Blocks
 import sp.it.util.file.FileType.*
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
+import sp.it.util.functional.traverse
+
+/** @return sequence of this and all parents in bottom to top order */
+fun File.traverseParents(): Sequence<File> = traverse { it.parentFile }
 
 /**
  * @return materialized list of files visited by [java.nio.file.Files.find] or empty stream if error. This method

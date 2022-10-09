@@ -26,8 +26,8 @@ import sp.it.pl.main.showFloating
 import sp.it.pl.main.textColon
 import sp.it.pl.main.toUi
 import sp.it.util.async.runFX
+import sp.it.util.file.traverseParents
 import sp.it.util.functional.toUnit
-import sp.it.util.functional.traverse
 import sp.it.util.system.EnvironmentContext
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
@@ -39,7 +39,7 @@ object CoreEnv: Core {
       EnvironmentContext.defaultChooseFileDir = APP.location
       EnvironmentContext.onFileRecycled = { APP.actionStream(Events.FileEvent.Delete(it)) }
       EnvironmentContext.onNonExistentFileBrowse = { f ->
-         val existingParent = f.traverse { it.parentFile }.filter { it.exists() }.firstOrNull()
+         val existingParent = f.traverseParents().filter { it.exists() }.firstOrNull()
          runFX {
             showFloating("Browsing not possible") {
                vBox {

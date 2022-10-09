@@ -38,6 +38,7 @@ import sp.it.util.file.div
 import sp.it.util.file.nameOrRoot
 import sp.it.util.file.parentDirOrRoot
 import sp.it.util.file.setExecutableOrThrow
+import sp.it.util.file.traverseParents
 import sp.it.util.file.type.MimeGroup.Companion.audio
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
@@ -47,7 +48,6 @@ import sp.it.util.file.unzip
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
-import sp.it.util.functional.traverse
 import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.system.Os
@@ -96,7 +96,7 @@ interface ImageLoader {
                // There is a risk to run into file path limit on some platforms, so we shorten path fragments
                append(p.file.length()).append("-")
                append(p.file.path.length).append("-")
-               append(p.file.traverse { it.parentFile }.drop(1).toList().reversed().asSequence().map { it.nameOrRoot.dropLastWhile { it=='\\' || it==':' } }.joinToString("-") { "${it.firstOrNull()?.toString()}${it.lastOrNull()}" }).append("-")
+               append(p.file.traverseParents().drop(1).toList().reversed().asSequence().map { it.nameOrRoot.dropLastWhile { it=='\\' || it==':' } }.joinToString("-") { "${it.firstOrNull()?.toString()}${it.lastOrNull()}" }).append("-")
                append(p.file.name)
             }
 
@@ -135,7 +135,7 @@ object ImageStandardLoader: KLogging(), ImageLoader {
                append(p.file.length()).append("-")
                append(p.size.width.toInt() max 0).append("x").append(p.size.height.toInt() max 0).append("-")
                append(p.file.path.length).append("-")
-               append(p.file.traverse { it.parentFile }.drop(1).toList().reversed().joinToString("") {
+               append(p.file.traverseParents().drop(1).toList().reversed().joinToString("") {
                   "${it.nameOrRoot.firstOrNull()?.toString()}${it.nameOrRoot.lastOrNull()}-" }
                )
                append(p.file.name)

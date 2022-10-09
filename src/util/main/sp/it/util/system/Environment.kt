@@ -301,7 +301,7 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
    w?.hasFileChooserOpen = true
    val fs = c.showOpenMultipleDialog(w)?.map { it.toFast(FILE) }
    w?.hasFileChooserOpen = false
-   return if (fs!=null && fs.isNotEmpty()) Try.ok(fs) else Try.error()
+   return if (!fs.isNullOrEmpty()) Try.ok(fs) else Try.error()
 }
 
 fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Nothing?> {

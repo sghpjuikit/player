@@ -76,7 +76,7 @@ import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.onChange;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
-import static sp.it.util.ui.UtilKt.hasFocus;
+import static sp.it.util.ui.NodeExtensionsKt.hasFocus;
 import static sp.it.util.ui.UtilKt.menuItem;
 
 public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {

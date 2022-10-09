@@ -59,7 +59,7 @@ import static sp.it.util.reactive.UtilKt.syncC;
 import static sp.it.util.ui.Util.setAnchors;
 import static sp.it.util.ui.UtilKt.initClip;
 import static sp.it.util.ui.UtilKt.pseudoclass;
-import static sp.it.util.ui.UtilKt.removeFromParent;
+import static sp.it.util.ui.NodeExtensionsKt.removeFromParent;
 
 /**
  * Pane with switchable content.

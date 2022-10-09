@@ -31,7 +31,7 @@ import static sp.it.util.async.AsyncKt.runLater;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync1IfNonNull;
 import static sp.it.util.reactive.UtilKt.syncC;
-import static sp.it.util.ui.UtilKt.isAnyParentOf;
+import static sp.it.util.ui.NodeExtensionsKt.isAnyParentOf;
 
 @SuppressWarnings("unused")
 public interface Util {

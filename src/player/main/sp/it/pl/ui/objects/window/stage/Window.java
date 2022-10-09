@@ -142,7 +142,7 @@ import static sp.it.util.ui.UtilKt.getScreen;
 import static sp.it.util.ui.UtilKt.getScreenXy;
 import static sp.it.util.ui.UtilKt.getXy;
 import static sp.it.util.ui.UtilKt.initClip;
-import static sp.it.util.ui.UtilKt.pseudoClassToggle;
+import static sp.it.util.ui.NodeExtensionsKt.pseudoClassToggle;
 import static sp.it.util.ui.UtilKt.pseudoclass;
 
 /** Window for application. */

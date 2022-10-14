@@ -2,12 +2,6 @@ package sp.it.pl.ui.itemnode
 
 import java.io.File
 import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets.ISO_8859_1
-import java.nio.charset.StandardCharsets.US_ASCII
-import java.nio.charset.StandardCharsets.UTF_16
-import java.nio.charset.StandardCharsets.UTF_16BE
-import java.nio.charset.StandardCharsets.UTF_16LE
-import java.nio.charset.StandardCharsets.UTF_8
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -31,8 +25,9 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
+import javafx.stage.WindowEvent.WINDOW_HIDDEN
 import kotlin.reflect.KClass
-import kotlin.reflect.jvm.jvmErasure
+import sp.it.pl.core.CoreMenus
 import sp.it.pl.core.UiStringHelper
 import sp.it.pl.layout.WidgetManager
 import sp.it.pl.main.AppOsMenuIntegrator
@@ -70,8 +65,13 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.invoke
 import sp.it.util.functional.net
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
+import sp.it.util.reactive.map
+import sp.it.util.reactive.onEventDown
+import sp.it.util.reactive.zip
 import sp.it.util.type.VType
 import sp.it.util.type.enumValues
+import sp.it.util.type.isObject
 import sp.it.util.type.isSubclassOf
 import sp.it.util.type.raw
 import sp.it.util.type.rawJ
@@ -167,23 +167,50 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
 
       var caretB: Icon? = null
       var caretA: Anim? = null
-      val isTypeSingleton = config.type.type.jvmErasure.objectInstance != null || config.hasConstraint<Constraint.NoUiDefaultButton>()
-      val isCaretSupported = config.isEditable.isByUser && !isTypeSingleton
+      val isCaretSupported = !config.type.type.raw.isObject && !config.hasConstraint<Constraint.NoUiDefaultButton>()
       if (isCaretSupported) {
+         val configHover = v(false)
+         val configMenuVisible = v(false)
+         val caretVisible = configHover zip configMenuVisible map { (a,b) -> a || b }
+         caretVisible attach {
+            if (caretA!=null) {
+               caretA!!.playCloseDo {
+                  if (caretB!!.isFocused) editor.requestFocus()
+                  root.children.remove(caretB!!.parent)
+                  caretB = null
+                  caretA = null
+                  root.padding = paddingNoCaret
+               }
+            }
+         }
+
          root.addEventFilter(MOUSE_ENTERED) {
-            if (isEditable.value) {
                runFX(270.millis) {
                   if (root.isHover) {
-                     val isCaretNeeded = caretB==null && isEditable.value
-                     if (isCaretNeeded) {
+                     configHover.value = true
+                     if (caretB==null) {
                         caretB = Icon(null, -1.0).onClickDo { i ->
                            ContextMenu().dsl {
-                              item("Set to default") { this@ConfigEditor.refreshDefaultValue() }
-                              if (config.type.isNullable) item("Set to ${null.toUi()}") {
-                                 @Suppress("UNCHECKED_CAST")
-                                 this@ConfigEditor.config.value = null as T
+                              if (isEditable.value) {
+                                 item("Set to default") {
+                                    if (isEditable.value)
+                                       this@ConfigEditor.refreshDefaultValue()
+                                 }
+                                 if (config.type.isNullable) item("Set to ${null.toUi()}") {
+                                    if (isEditable.value)
+                                       this@ConfigEditor.config.asIs<Config<Nothing?>>().value = null
+                                 }
                               }
-                           }.show(i, Side.BOTTOM, 0.0, 0.0)
+                              menu("Value") {
+                                 items {
+                                    CoreMenus.menuItemBuilders[value]
+                                 }
+                              }
+                           }.apply {
+                              configMenuVisible.value = true
+                              onEventDown(WINDOW_HIDDEN) { configMenuVisible.value = false }
+                              show(i, Side.BOTTOM, 0.0, 0.0)
+                           }
                         }
                         caretB!!.styleclass("config-editor-caret")
                         caretB!!.isManaged = false
@@ -206,21 +233,12 @@ abstract class ConfigEditor<T>(val config: Config<T>) {
                               caretB!!.opacity = it*it
                         }
                      }
-                     if (caretA!=null)
-                        caretA!!.playOpenDo(null)
+                     caretA?.playOpenDo(null)
                   }
                }
-            }
          }
          root.addEventFilter(MOUSE_EXITED) {
-            if (caretA!=null)
-               caretA!!.playCloseDo {
-                  if (caretB!!.isFocused) editor.requestFocus()
-                  root.children.remove(caretB!!.parent)
-                  caretB = null
-                  caretA = null
-                  root.padding = paddingNoCaret
-               }
+            configHover.value = false
          }
       }
 

@@ -112,8 +112,8 @@ allprojects {
       "Logging" group {
          implementation("org.slf4j", "slf4j-api", "2.0.3")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.3")
-         implementation("ch.qos.logback", "logback-classic", "1.4.3")
-         implementation("io.github.microutils", "kotlin-logging", "3.0.0")
+         implementation("ch.qos.logback", "logback-classic", "1.4.4")
+         implementation("io.github.microutils", "kotlin-logging", "3.0.2")
       }
 
       "Audio" group {
@@ -165,8 +165,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.5.0")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.5.0")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.5.1")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.5.1")
       }
 
    }

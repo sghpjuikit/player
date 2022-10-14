@@ -43,7 +43,7 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
 
          separator()
 
-         item("Select All", keys = keys(SHORTCUT, Key.C)) { tf.selectAll() }
+         item("Select All", keys = keys(SHORTCUT, Key.A)) { tf.selectAll() }
 
          if (tf is TextArea) {
             separator()

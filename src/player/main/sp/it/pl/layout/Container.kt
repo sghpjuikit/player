@@ -1,11 +1,10 @@
 package sp.it.pl.layout
 
 import java.util.TreeMap
-import java.util.function.Consumer
 import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.layout.AnchorPane
-import org.slf4j.LoggerFactory
+import mu.KLogging
 import sp.it.pl.main.APP
 import sp.it.pl.ui.objects.window.stage.asAppWindow
 import sp.it.util.collections.materialize
@@ -19,7 +18,6 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
-import sp.it.util.functional.Util
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
@@ -82,6 +80,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
     * The map is sorted by [validChildIndexOrder] ASC, thus its iteration order respects natural component order. */
    val children = TreeMap<Int, Component?> { a, b -> validChildIndexOrder(a) compareTo validChildIndexOrder(b) }
 
+   private var isClosed = false
    private val configs = HashMap<String, Config<Any?>>()
 
    override val configurableGroupPrefix = null
@@ -179,7 +178,7 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       val i2 = toParent.indexOf(w2)
       val w1n = w1?.name ?: "null"
       val w2n = w2?.name ?: "null"
-      LoggerFactory.getLogger(Container::class.java).info("Swapping components {} and {}", w1n, w2n)
+      logger.info("Swapping components {} and {}", w1n, w2n)
       c1.addChild(i1, w2)
       toParent.addChild(i2, w1)
       c1.closeWindowIfEmpty()
@@ -260,16 +259,17 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
       children.entries.asSequence().mapNotNull { it.value }.firstOrNull()?.focus()
    }
 
-   // TODO: make sure widgets never close twice
    override fun close() {
+      if (isClosed) return
+      isClosed = true
       super.close()
+
       getAllWidgets().materialize().forEach { it.close() }
       if (parent!=null) {
-         parent!!.removeChild(this) // remove from layout graph
-         removeGraphicsFromSceneGraph() // remove from scene graph if attached to it
+         parent!!.removeChild(this)
+         removeGraphicsFromSceneGraph()
       } else {
-         // remove all children
-         Util.list(children.keys).forEach(Consumer { index: Int? -> this.removeChild(index) })
+         children.keys.materialize().forEach { removeChild(it) }
       }
       // free resources of all guis, we need to do this because we do not
       // close the sub containers, they can not even override this method to
@@ -300,4 +300,6 @@ sealed class Container<G: ComponentUi?>(state: ComponentDb): Component(state), C
    protected fun setChildrenParents() {
       children.values.forEach { if (it is Container<*>) it.parent = this }
    }
+
+   companion object: KLogging()
 }

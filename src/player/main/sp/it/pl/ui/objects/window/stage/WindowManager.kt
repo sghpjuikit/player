@@ -71,6 +71,7 @@ import sp.it.util.async.future.Fut
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
+import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.observableList
 import sp.it.util.collections.readOnly
 import sp.it.util.collections.setToOne
@@ -129,7 +130,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
 
    @JvmField var screenMaxScaling = 1.0
    /** Observable list of all JavaFX application windows, i.e., [javafx.stage.Stage.getWindows]. */
-   @JvmField val windowsFx = WindowFx.getWindows().readOnly()
+   @JvmField val windowsFx: ObservableListRO<WindowFx> = WindowFx.getWindows().readOnly()
    /** Observable list of all application windows. For list of all windows use [javafx.stage.Stage.getWindows]. */
    @JvmField val windows = observableList<Window>()
    /** Dock window or null if none. */

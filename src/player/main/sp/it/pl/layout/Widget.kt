@@ -270,9 +270,7 @@ class Widget private constructor(factory: WidgetFactory<*>, isDeserialized: Bool
    override fun close() {
       if (isClosed) return
       isClosed = true
-
       logger.info { "$logName closing" }
-
       super.close()
 
       controller?.let { c ->

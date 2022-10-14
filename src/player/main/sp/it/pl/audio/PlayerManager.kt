@@ -585,7 +585,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
                   textAlignment = TextAlignment.CENTER
                   boundsType = TextBoundsType.VISUAL
                   setMinPrefMaxSize(-1.0)
-                  playingSong.valueO.sync { text = it.getLyrics() ?: textNoVal } on Disposer().apply { onHiding += this }
+                  playingSong.valueO.sync { text = it.getLyrics() ?: "${it.getTitle() ?: it.getFilename()} has no lyrics" } on Disposer().apply { onHiding += this }
                }
                lay += layScrollVTextCenter(t).apply {
                   isFitToWidth = true

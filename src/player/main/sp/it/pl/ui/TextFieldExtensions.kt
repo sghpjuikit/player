@@ -34,11 +34,14 @@ fun showContextMenu(tf: TextInputControl, event: MouseEvent, textGetter: (() -> 
          item("Cut", keys = keys(SHORTCUT, Key.X)) { tf.cutSelectedOrAll() }.disIf(!tf.isEditable)
          item("Copy", keys = keys(SHORTCUT, Key.C)) { tf.copySelectedOrAll() }
          item("Paste", keys = keys(SHORTCUT, Key.V)) { tf.paste() }.disIf(!tf.isEditable || !Clipboard.getSystemClipboard().hasString())
-         if (tf is TextArea) menu("Paste newline") {
-            item("\\r (CR)") { tf.insertText(tf.caretPosition, "\r") }
-            item("\\n (LF)") { tf.insertText(tf.caretPosition, "\n") }
-            item("\\r\\n(CRLF/EOF)", keys = keys(ENTER)) { tf.insertText(tf.caretPosition, "\r\n") }
-         }
+
+         if (tf is TextArea && tf.isEditable)
+            menu("Paste newline") {
+               item("\\r (CR)") { tf.insertText(tf.caretPosition, "\r") }
+               item("\\n (LF)") { tf.insertText(tf.caretPosition, "\n") }
+               item("\\r\\n(CRLF/EOF)", keys = keys(ENTER)) { tf.insertText(tf.caretPosition, "\r\n") }
+            }
+
          item("Delete", keys = keys(DELETE)) { tf.deleteText(tf.selection) }.disIf(!tf.isEditable || tf.selectedText.isNullOrEmpty())
 
          separator()

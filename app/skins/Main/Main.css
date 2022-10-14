@@ -690,23 +690,11 @@
     -fx-border-color: rgba(0,0,0,0.3);
 }
 
-.combo-box-base:focused,
-.combo-box-base:editable:focused,
-.combo-box-base:showing:focused,
-.choice-box:focused,
-.choice-box:showing:focused,
-.text-input:focused {
-    -fx-background-color: -skin-color-darker;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-padding: 0.25em;
-    -fx-text-fill: -skin-def-font-color;
-    -fx-prompt-text-fill: -skin-def-font-color;
-    -fx-highlight-fill: -skin-focus-bgr-color;
-    -fx-highlight-text-fill: -fx-focus-color;
-    -fx-effect: null;
-    -fx-border-width: 0;
-    -fx-border-insets: 0;
+.text-input:readonly,
+.text-input:readonly:hover,
+.text-input:readonly:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .combo-box-base,

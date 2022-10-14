@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Implement bette empty lyrics text
+- Implement better styling for some readonly elements
+- Fix text area menu select all shortcut
+- Fix text area menu allowing some edits when text area is not editable
+- Fix config editor caret button hiding when menu is open
+- Fix config editor caret button menu not showing for read-only editors
+- Fix config editor caret button menu not showing submenu menu for editor value
+
 ## [7.4.0] 2022 10 09
 
 - Update **Kotlin** to 1.7.20

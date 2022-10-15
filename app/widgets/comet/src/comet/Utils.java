@@ -135,7 +135,7 @@ import static sp.it.util.ui.Util.layVertically;
 import static sp.it.util.ui.UtilKt.setScaleXY;
 import static sp.it.util.units.DurationKt.toHMSMs;
 
-@SuppressWarnings({"FieldCanBeLocal","unused","UnnecessaryLocalVariable","SameParameterValue","UnusedReturnValue"})
+@SuppressWarnings({"FieldCanBeLocal", "unused", "UnnecessaryLocalVariable", "SameParameterValue", "UnusedReturnValue", "UnaryPlus"})
 interface Utils {
 
 	private static Font loadUiFont() {
@@ -572,6 +572,11 @@ interface Utils {
 		failIf(c.isEmpty());
 		int size = c.size();
 		return c.stream().skip((long)(random()*(max(0,size)))).findAny().orElse(null);
+	}
+
+	static <V, C extends Comparable<? super C>> Stream<V> maxBy(Set<V> vs, F1<? super V,C> by) {
+		var max = vs.stream().max(by(by)).orElseThrow();
+		return vs.stream().filter(it -> by.apply(it).equals(max));
 	}
 
 	enum Side {
@@ -1732,14 +1737,14 @@ interface Utils {
 					g -> stream(g.players).min(by(p -> p.stats.hitEnemy1stTime, Comparator::nullsLast)),
 					"Be the first to deal damage"
 				).onlyIf(g -> g.players.size()>1),
-				achievement01(
+				achievement0N(
 					"Mobile", MaterialDesignIcon.RUN,
-					g -> g.players.stream().collect(Util.<Player,Double>maxBy(p -> p.stats.distanceTravelled)),
+					g -> Utils.<Player, Double>maxBy(g.players, p -> p.stats.distanceTravelled),
 					"Travel the greatest distance"
 				).onlyIf(g -> g.players.size()>1),
-				achievement01(
+				achievement0N(
 					"Crusher", FontAwesomeIcon.TRUCK,
-					g -> g.players.stream().collect(Util.<Player,Long>maxBy(p -> p.stats.asteroidRamCount)),
+					g -> Utils.<Player, Long>maxBy(g.players, p -> p.stats.asteroidRamCount),
 					"Destroy the most asteroids with your kinetic shield"
 				).onlyIf(g -> g.players.size()>1),
 				achievement0N(
@@ -1748,9 +1753,9 @@ interface Utils {
 					"Never shoot"
 				),
 				// TODO: fix this for situations where killCount is the same for multiple players
-				achievement01(
+				achievement0N(
 					"Hunter", MaterialDesignIcon.BIOHAZARD,
-					g -> g.players.stream().collect(Util.<Player,Long>maxBy(p -> p.stats.killUfoCount)),
+					g -> Utils.<Player, Long>maxBy(g.players, p -> p.stats.killUfoCount),
 					"Kill most UFOs"
 				).onlyIf(g -> g.players.size()>1)
 			);
@@ -2147,10 +2152,10 @@ interface Utils {
 					game.fillText("" + (i+1), p.rocket.x, p.rocket.y);
 			});
 
-			// Highlight player with biggest area
+			// Highlight player with the biggest area
 			game.players.stream()
 				.filter(p -> p.alive && p.rocket.voronoiArea!=null)
-				.collect(Util.maxBy(p -> p.rocket.voronoiArea))
+				.max(by(p -> p.rocket.voronoiArea))
 				.ifPresent(p -> drawHudCircle(game.owner.gc, game.field, p.rocket.x, p.rocket.y, 50, game.colors.hud));
 
 			timeDisplay.doLoop();
@@ -2197,15 +2202,15 @@ interface Utils {
 			var text = "Average\n\n%s\n\nMax\n\n%s\n\nMin\n\n%s".formatted(
 				stream(game.players)
 					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getAverage()).reversed())
-					  .map(p -> p.name.get() + ": %.2d".formatted(p.stats.controlAreaSize.getAverage()))
+					  .map(p -> p.name.get() + ": %.2f".formatted(p.stats.controlAreaSize.getAverage()))
 					  .collect(joining("\n")),
 				stream(game.players)
 					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getMax()).reversed())
-					  .map(p -> p.name.get() + ": %.2d".formatted(p.stats.controlAreaSize.getMax()))
+					  .map(p -> p.name.get() + ": %.2f".formatted(p.stats.controlAreaSize.getMax()))
 					  .collect(joining("\n")),
 				stream(game.players)
 					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getMin()).reversed())
-					  .map(p -> p.name.get() + ": %.2d".formatted(p.stats.controlAreaSize.getMin()))
+					  .map(p -> p.name.get() + ": %.2f".formatted(p.stats.controlAreaSize.getMin()))
 					  .collect(joining("\n"))
 			);
 
@@ -2363,7 +2368,7 @@ interface Utils {
 			gc.save();
 			Set<Cell> selectedCells = stream(game.players)
 				.filter(p -> p.alive)
-				.map(p -> cells.stream().collect(Util.minBy(c -> c.distance(p.rocket.x, p.rocket.y))).orElse(null))
+				.map(p -> cells.stream().max(by(c -> c.distance(p.rocket.x, p.rocket.y))).orElse(null))
 				.filter(ISNT0)
 				.collect(toSet());
 			Map<Coordinate,Cell> inputOutputMap = cells.stream().collect(toMap(o -> new Coordinate(o.x, o.y), o -> o));
@@ -2376,7 +2381,7 @@ interface Utils {
 				.ifOkUse(g ->
 						IntStream.range(0, g.getNumGeometries())
 							.mapToObj(g::getGeometryN)
-							.peek(polygon -> polygon.setUserData(inputOutputMap.get(polygon.getUserData())))
+							.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate) polygon.getUserData())))
 							.forEach(polygon -> {
 								var cell = (Cell) polygon.getUserData();
 								var player = (Player) cell.userData;
@@ -2803,7 +2808,7 @@ interface Utils {
 				.ifOkUse(g ->
 					edgesAction.accept(IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
-						.peek(polygon -> polygon.setUserData(inputOutputMap.get(polygon.getUserData())))
+						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate) polygon.getUserData())))
 						.collect(groupingBy(polygon -> ((RocketB) polygon.getUserData()).rocket))
 						.values().stream()
 						.flatMap(ss -> {
@@ -2867,7 +2872,7 @@ interface Utils {
 			.ifOkUse(g ->
 					IntStream.range(0, g.getNumGeometries())
 						.mapToObj(g::getGeometryN)
-						.peek(polygon -> polygon.setUserData(inputOutputMap.get(polygon.getUserData())))
+						.peek(polygon -> polygon.setUserData(inputOutputMap.get((Coordinate) polygon.getUserData())))
 						.forEach(polygon -> {
 //						.groupingBy(polygon -> ((PO) polygon.getUserData()).type)
 //						.entrySet()

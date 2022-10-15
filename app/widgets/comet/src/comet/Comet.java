@@ -212,7 +212,6 @@ import static sp.it.util.functional.Util.forEachOnCircleBy;
 import static sp.it.util.functional.Util.forEachPair;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.Util.listF;
-import static sp.it.util.functional.Util.minBy;
 import static sp.it.util.functional.Util.repeat;
 import static sp.it.util.functional.Util.set;
 import static sp.it.util.functional.Util.stream;
@@ -224,7 +223,7 @@ import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
 import static sp.it.util.ui.Util.layStack;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "SameParameterValue", "UnusedReturnValue", "unchecked", "SpellCheckingInspection"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "SameParameterValue", "UnusedReturnValue", "unchecked", "SpellCheckingInspection", "UnaryPlus", "IfStatementWithIdenticalBranches"})
 @Widget.Info(
 	author = "Martin Polakovic",
 	name = "Comet",
@@ -552,7 +551,7 @@ public class Comet extends SimpleController {
 	Rocket findClosestRocketTo(SO to) {
 		return game.oss.get(Rocket.class).stream()
 			.filter(r -> !r.isHyperspace)
-			.collect(minBy(to::distance))
+			.min(by(to::distance))
 			.orElse(null);
 	}
 	/** Applies repulsive force from every player. */
@@ -1176,7 +1175,7 @@ public class Comet extends SimpleController {
 			void sendUfoSwarm() {
 				ufo_enemy = players.isEmpty() ? null : randOf(players).rocket;
 				Side side = randEnum(Side.class);
-				int count = (int)(2+rand01()*8);
+				long count = (int)(2+rand01()*8);
 				double w = side==Side.LEFT ? spawnEdgeOffsetX : game.field.width-spawnEdgeOffsetX;
 				double h = rand0N(game.field.height);
 				double d = side==Side.LEFT ? D0 : D180;
@@ -1492,7 +1491,7 @@ public class Comet extends SimpleController {
 			// we slow down rotation within the first ROT_LIMIT ms after key press and reduce rotation
 			// limit temporarily without decreasing maneuverability.
 			double r = pressedMsAgo<game.settings.ROT_LIMIT
-				? game.settings.ROTATION_SPEED*clip(0.1,sqr(pressedMsAgo/game.settings.ROT_LIMIT),1)
+				? game.settings.ROTATION_SPEED*clip(0.1, sqr(((Long) pressedMsAgo).doubleValue()/game.settings.ROT_LIMIT), 1.0)
 				: game.settings.ROTATION_SPEED;
 			return rocket.engine.mobility.value()*r;
 		}
@@ -1561,7 +1560,7 @@ public class Comet extends SimpleController {
 	}
 	/** Object with physical properties. */
 	abstract class PO extends SO {
-		double mass = 0;
+		double mass;
 		Engine engine = null;
 		Class<?> type;
 		Draw graphics;
@@ -1659,7 +1658,7 @@ public class Comet extends SimpleController {
 	}
 	/** Object with engine, gun and other spaceship characteristics. */
 	abstract class Ship extends PO {
-		double energy = 0;
+		double energy;
 		double energy_buildup_rate;
 		double energy_max = 10000;
 		Gun gun = null;
@@ -2524,7 +2523,7 @@ public class Comet extends SimpleController {
 	}
 	/** Default enemy ship. */
 	class Ufo extends Ship {
-		boolean aggressive = false;
+		boolean aggressive;
 		public final int rank = randOf(0, 0, 0, 1, 1, 1, 1, 2, 2, 3);
 		private final Runnable radio = () -> game.ufos.pulseCall(this);
 		private final Runnable tryDiscs = () -> {
@@ -2546,7 +2545,7 @@ public class Comet extends SimpleController {
 
 		double discpos = 0; // 0-1, 0=close, 1=far
 		double discdspeed = 0;
-		double disc_forceJump(double pos) { return pos>=1 ? -2*discdspeed : 0.01; } // jump effect force
+		double disc_forceJump(double pos) { return pos>=1 ? -2*discdspeed : 0.01; } // 'jump' effect force
 		double disc_forceBio(double pos) { return pos<0.5 ? 0.01 : -0.01; } // standard force
 		double interUfoForce(Ufo u){
 			double d = distance(u);
@@ -2565,8 +2564,8 @@ public class Comet extends SimpleController {
 			direction = x<game.field.width/2 ? 0 : PI; // left->right || left<-right
 			aggressive = AGGRESSIVE;
 			engine = new Engine() {
-				double engineDirChangeTTL = 1;
-				double engineDirChangeTTLd = 1/((2+rand01()*2)*FPS);
+				final double engineDirChangeTTLd = 1/((2+rand01()*2)*FPS);
+				      double engineDirChangeTTL = 1;
 
 				@Override void onDoLoop() {
 					engineDirChangeTTL -= engineDirChangeTTLd;
@@ -2575,10 +2574,10 @@ public class Comet extends SimpleController {
 						// generate new direction
 						double r = rand01();
 						if (direction==0)            direction = r<0.5 ? D45 : -D45;
-						else if (direction==D45)     direction = r<0.5 ? 0 : -D45;
+						else if (direction==+D45)    direction = r<0.5 ? 0 : -D45;
 						else if (direction==-D45)    direction = r<0.5 ? 0 : D45;
-						else if (direction== PI)     direction = r<0.5 ? 3*D45 : 3*D45;
-						else if (direction== 3*D45)  direction = r<0.5 ? PI : -3*D45;
+						else if (direction==PI)      direction = r<0.5 ? 3*D45 : -3*D45;
+						else if (direction==+3*D45)  direction = r<0.5 ? PI : -3*D45;
 						else if (direction==-3*D45)  direction = r<0.5 ? PI : 3*D45;
 						// preserve speed
 						// this causes movements changes to be abrupt (game is more dificult)
@@ -2731,9 +2730,9 @@ public class Comet extends SimpleController {
 		boolean isActive = true;
 		/** True if actively looks for target to pursuit if not in pursuit already. */
 		boolean isAggressive = true;
-		/** Set to true if spawns outside of the field to prevent instant death. */
+		/** Set to true if spawns outside the field to prevent instant death. */
 		boolean isInitialOutOfField = false;
-		/** Id of the formation swarm or -1 if standalone. */
+		/** Formation swarm id or -1 if standalone. */
 		int swarmId = -1;
 		double ddirectionMax = ttlVal(D360,seconds(3));
 
@@ -2743,12 +2742,9 @@ public class Comet extends SimpleController {
 			mass = 4;
 			direction = DIR;
 			engine = new Engine() {
-				double acceleration = 0.13;
-				{
-					enabled = true;
-				}
-				@Override
-				void onDoLoop() {
+				final double acceleration = 0.13;
+				{ enabled = true; }
+				@Override void onDoLoop() {
 					dx += acceleration*cos(direction);
 					dy += acceleration*sin(direction);
 				}
@@ -3117,7 +3113,7 @@ public class Comet extends SimpleController {
 		boolean isHighEnergy = false;
 		private double tempX, tempY;    // cache for collision checking
 		private short bounced = 0;    // prevents multiple bouncing off shield per loop
-		private final TtlDrawer<BulletDraw> drawer = new TtlDrawer<BulletDraw>((int) FPS, () -> new BulletDraw(x, y, 0.5, isHighEnergy ?  5 : 2));
+		private final TtlDrawer<BulletDraw> drawer = new TtlDrawer<>((int) FPS, () -> new BulletDraw(x, y, 0.5, isHighEnergy ?  5 : 2));
 
 		Bullet(Ship ship, double x, double y, double dx, double dy, double hit_radius, double TTL) {
 			super(Bullet.class,x,y,dx,dy,hit_radius,null);
@@ -3171,7 +3167,7 @@ public class Comet extends SimpleController {
 				g.setGlobalAlpha(1);
 			});
 		}
-		static record BulletDraw(double x, double y, double opacity, double w) {}
+		record BulletDraw(double x, double y, double opacity, double w) {}
 		static class TtlDrawer<T> {
 			final ArrayDeque<T> draws = new ArrayDeque<>();
 			final Supplier<T> builder;
@@ -3210,7 +3206,7 @@ public class Comet extends SimpleController {
 			if (isHyperspace !=e.isHyperspace) return;   // forbid space-hyperspace interaction
 
 			// Fast bullets need interpolating (we check inter-frame collisions)
-			// Im still not sure this is the best implementation as far as performance goes and
+			// I'm still not sure if this is the best implementation as far as performance goes
 			// it may require some tuning, but otherwise helps a lot.
 			double speedSqr = dx*dx+dy*dy;
 			if (speedSqr>25) {// if speed > 5px/frame
@@ -3311,7 +3307,7 @@ public class Comet extends SimpleController {
 				}
 
 				boolean wasHit = dead;
-				if (isHighEnergy) dead &= false; // bullet lives on
+				if (isHighEnergy) dead = false; // bullet lives on
 				if (dead) onExpire(e);
 
 				x = tempX; y = tempY;
@@ -3463,7 +3459,7 @@ public class Comet extends SimpleController {
 		}
 
 		@Override void checkCollision(PO e) {
-			// We want the bullet to only hit once so we perform the check only once - when
+			// We want the bullet to only hit once, so we perform the check only once - when
 			// bullet expires
 			if (dead && ttl<=0)  {
 				dead = false; // needs to be set first
@@ -3554,7 +3550,7 @@ public class Comet extends SimpleController {
 	class RadioWavePulse extends Particle {
 		double dxy;
 		boolean rect;
-		double radius = 0;
+		double radius;
 		final Color color;
 		final boolean inverse;
 		SO owner = null;
@@ -3641,7 +3637,7 @@ public class Comet extends SimpleController {
 		double size_hitdecr; // radius decrease coeficient when hit
 		double size_child = 0.5;    // child.size = size_child*size
 		double size_min = 0.3; // if smaller -> split !occur
-		int splits = 2; // number of children when split occurs
+		int splits; // number of children when split occurs
 		M propulsion = null;
 		int hits = 0;
 		int hits_max = 0;
@@ -4216,7 +4212,7 @@ public class Comet extends SimpleController {
 	class PGon extends Asteroid<OrganelleMover> {
 		private final TimeDouble graphicsAngle = new TimeDouble(0, 0.01).setTo(randAngleRad());
 		private final TimeDouble radiusPulse = new TimeDouble(0, 1, seconds(1/6d)).oscillating();
-		private double radiusMax;
+		private final double radiusMax;
 
 		public PGon(double X, double Y, double SPEED, double DIR, double LIFE) {
 			super(X, Y, SPEED, DIR, LIFE);
@@ -4644,8 +4640,7 @@ public class Comet extends SimpleController {
 	class BlackHole extends ForceField {
 		final Player owner;
 		double life;
-		double ttl = 1;
-		double ttld = 0;
+		double ttl, ttld;
 		double radius_even_horizon_max = 20;
 		double radius_even_horizon;
 		double radius_ergosphere = 512;
@@ -4689,7 +4684,7 @@ public class Comet extends SimpleController {
 
 			// Ergosphere. Rockets rotate towards force origin - black hole.
 			// This actually simplifies near-BH control (it allows orbiting BH using just 1 key)
-			// and its a nice effect.
+			// and it's a nice effect.
 			if (isShip && dist<radius_ergosphere) {
 				double ergo_potential_inv = computeForceInversePotential(dist,radius_ergosphere);
 				double ergo_potential = 1-ergo_potential_inv;
@@ -4712,7 +4707,7 @@ public class Comet extends SimpleController {
 			// Roche limit.
 			// Asteroids disintegrate due to BH tidal forces.
 			// It would be ugly for asteroids not do this...
-			if (o instanceof Asteroid a) {
+			if (o instanceof Asteroid<?> a) {
 				if (dist/220<a.size) {
 					a.onHit(this);
 				}

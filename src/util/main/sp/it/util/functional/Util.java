@@ -14,19 +14,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -78,28 +74,6 @@ public interface Util {
 	static <T> T with(T t, Consumer<? super T> block) {
 		block.accept(t);
 		return t;
-	}
-
-/* ---------- COLLECTORS -------------------------------------------------------------------------------------------- */
-
-	/** Collector returning the minimum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,Optional<V>> minBy(F1<? super V,C> by) {
-		return Collectors.reducing(BinaryOperator.minBy(by(by)));
-	}
-
-	/** Collector returning the maximum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,Optional<V>> maxBy(F1<? super V,C> by) {
-		return Collectors.reducing(BinaryOperator.maxBy(by(by)));
-	}
-
-	/** Collector returning the minimum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,V> minByIdentity(V identity, F1<? super V,C> by) {
-		return Collectors.reducing(identity, BinaryOperator.minBy(by(by)));
-	}
-
-	/** Collector returning the maximum element. */
-	static <V, C extends Comparable<? super C>> Collector<V,?,V> maxByIdentity(V identity, F1<? super V,C> by) {
-		return Collectors.reducing(identity, BinaryOperator.maxBy(by(by)));
 	}
 
 /* ---------- COMPARATORS ------------------------------------------------------------------------------------------- */

@@ -1759,7 +1759,7 @@ public class Comet extends SimpleController {
 				if (wasStage2Activated) {
 					dx += 200/FPS*cos(direction);
 					dy += 200/FPS*sin(direction);
-					ddirection /= 2;    // TODO: decrease max rotation speed instead
+					ddirection /= 2;
 					repeat(20, () -> new Particle(x,y,cos(randAngleRad()),sin(randAngleRad()),ttl(millis(400))));
 
 					double d = direction+PI;
@@ -3498,8 +3498,7 @@ public class Comet extends SimpleController {
 
 		@Override void draw() {
 			gc_bgr.setGlobalAlpha(ttl);
-//			gc_bgr.setFill(ttl<0.5 ? game.color : game.humans.color);
-			gc_bgr.setFill(game.colors.humans.interpolate(game.colors.humans,ttl)); // TODO: possible performance killer
+			gc_bgr.setFill(game.colors.humans);
 			gc_bgr.fillOval(x-1,y-1,1,1);
 			gc_bgr.setGlobalAlpha(1);
 		}

@@ -335,7 +335,7 @@ interface Utils {
 	static Image graphics(GlyphIcons icon, double radius, Color c, Effect effect) {
 		Icon i = new Icon(icon,radius);
 		i.setFill(c);
-		i.scale(2);  // TODO: should be handled better
+		i.scale(2);
 		i.setEffect(effect);
 		return createImage(i, radius);
 	}
@@ -359,7 +359,7 @@ interface Utils {
 	}
 	/**
 	 * Draws an image on a graphics context.
-	 *
+	 * </br>
 	 * The image is drawn at (tlpx, tlpy) rotated by angle pivoted around the point:
 	 *   (tlpx + image.getWidth() / 2, tlpy + image.getHeight() / 2)
 	 *
@@ -1594,7 +1594,7 @@ interface Utils {
 	}
 	abstract class GameMode implements Play {
 		protected Game game;
-		public final String name; // TODO: make final
+		public final String name;
 
 		public GameMode(Game game, String name) {
 			this.game = game;
@@ -2194,23 +2194,20 @@ interface Utils {
 
 		@Override
 		public Node buildResultGraphics() {
-			// TODO: make numbers more readable
-			String text = ""
-				+ "Average\n\n"
-				+ stream(game.players)
+			var text = "Average\n\n%s\n\nMax\n\n%s\n\nMin\n\n%s".formatted(
+				stream(game.players)
 					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getAverage()).reversed())
-					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getAverage())
-					  .collect(joining("\n"))
-				+ "\n\nMax\n\n"
-				+ stream(game.players)
+					  .map(p -> p.name.get() + ": %.2d".formatted(p.stats.controlAreaSize.getAverage()))
+					  .collect(joining("\n")),
+				stream(game.players)
 					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getMax()).reversed())
-					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getMax())
-					  .collect(joining("\n"))
-				+ "\n\nMin\n\n"
-				+ stream(game.players)
+					  .map(p -> p.name.get() + ": %.2d".formatted(p.stats.controlAreaSize.getMax()))
+					  .collect(joining("\n")),
+				stream(game.players)
 					  .sorted(Util.<Player,Double>by(p -> p.stats.controlAreaSize.getMin()).reversed())
-					  .map(p -> p.name.get() + ": " + p.stats.controlAreaSize.getMin())
-					  .collect(joining("\n"));
+					  .map(p -> p.name.get() + ": %.2d".formatted(p.stats.controlAreaSize.getMin()))
+					  .collect(joining("\n"))
+			);
 
 			Label l = new Label(text);
 			l.setFont(font(FONT_UI.getFamily(), 15));

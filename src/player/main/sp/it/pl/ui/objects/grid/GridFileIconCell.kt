@@ -125,10 +125,9 @@ open class GridFileIconCell: GridCell<Item, File>() {
                icon.relocateCenter(h/2, h/2)
             } else {
                name.alignment = Pos.CENTER
-               iconAnimationParent.resizeRelocate(0.0, 0.0, w, h - th)
-               name.resizeRelocate(0.0, h - th, w, th)
+               iconAnimationParent.resizeRelocate(x, y, w, h - th)
                name.resizeRelocate(x + nameGap, h - th + nameGap, (w-2*nameGap) max 0.0, (th-2*nameGap) max 0.0)
-               icon.relocate(x, y)
+               icon.relocate((iconAnimationParent.width-icon.width)/2, (iconAnimationParent.height-icon.height)/2)
             }
          }
       }.apply {

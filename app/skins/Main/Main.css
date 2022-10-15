@@ -3691,6 +3691,10 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-font-size: 0.9em;   /* improves readability */
 }
 
+.grid-cell:full-width {
+    -fx-font-size: 1em;
+}
+
 .grid-cell:hover {
     // if we were not using programmatic hover/select animation:
     //-fx-background-color: rgba(0,0,0,0.3);

@@ -339,9 +339,9 @@ class ComplexCE<T>(c: Config<T>): ConfigEditor<T>(c) {
 class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
    private val v = getObservableValue(c)
    private val isObservable = v!=null
-   private val isDecimal = config.type.raw in setOf<Any>(Int::class, Short::class, Long::class)
+   private val isInteger = config.type.raw in setOf<Any>(Byte::class, Short::class, Int::class, Long::class)
    private val range = c.findConstraint<NumberMinMax>()!!
-   private val labelFormatter = SpitSliderSkin.labelFormatter(isDecimal, range.min!!, range.max!!)
+   private val labelFormatter = SpitSliderSkin.labelFormatter(isInteger, range.min!!, range.max!!)
    private val min = Label(labelFormatter.toString(range.min!!))
    private val max = Label(labelFormatter.toString(range.max!!))
    private val slider = Slider(range.min!!, range.max!!, config.value.toDouble())
@@ -350,13 +350,16 @@ class SliderCE(c: Config<Number>): ConfigEditor<Number>(c) {
    init {
       slider.styleClass += "slider-config-editor"
       slider.setOnMouseReleased { apply() }
+      slider.min = range.min!!
+      slider.max = range.max!!
       slider.blockIncrement = (range.max!! - range.min!!)/20
       slider.minPrefMaxWidth = -1.0
 
       editor.alignment = CENTER_LEFT
       editor.spacing = 5.0
-      if (isDecimal) {
+      if (isInteger) {
          slider.majorTickUnit = 1.0
+         slider.minorTickCount = 0
          slider.isSnapToTicks = true
          slider.labelFormatter = labelFormatter
       }

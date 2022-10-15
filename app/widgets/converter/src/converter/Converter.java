@@ -120,42 +120,28 @@ import static sp.it.util.ui.UtilKt.menuItem;
 import static sp.it.util.ui.UtilKt.text;
 import static sp.it.util.ui.UtilKt.textFlow;
 
-@SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal", "unused"})
+@SuppressWarnings({"WeakerAccess", "MismatchedQueryAndUpdateOfCollection", "FieldCanBeLocal"})
 @Widget.Info(
     author = "Martin Polakovic",
     name = Widgets.CONVERTER_NAME,
-    description = "Transformation utility. Capable of transforming objects "
-        + "and chaining the transforming functions. Capable of text manipulation, file renaming and "
-        + "audio tagging.",
-    howto = ""
-        + "\tUser can put text in an edit area and apply transformations on it "
-        + "using available functions. The transformations are applied on each "
-        + "line separately. It is possible to manually edit the text to fine-tune "
-        + "the result.\n"
-        + "\tThis is useful to edit multiple texts in the same way, e.g., to "
-        + "edit filenames or song names. This is done using an 'applier' that "
-        + "uses the 'output' and applies it no an input.\n"
-        + "\tInput is a list of objects and can be set by drag&drop. It can "
-        + "then be transformed to text (object per line) or other objects "
-        + "using available functions, e.g., song to artist or file to filename.\n"
-        + "\tOutput is the final contents of the text area exactly as "
-        + "visible. Some transformations can produce multiple outputs "
-        + "(again, per line), which produces separate text area for each output. "
-        + "To discern different outputs, text areas have a name in their header.\n"
-        + "\tAction is determined by the type of input. User can select which "
-        + "output he wants to use. The action then applies the text to the "
-        + "input, each line to its respective object (determined by order). "
-        + "Number of objects and lines must match.\n"
-        + "\n"
-        + "Available appliers:\n"
-        + "\tSave text to file - produce a text file with specified content\n"
-        + "\tRename files - renames input files\n"
-        + "\tTag songs - edits tag of song individually\n"
-        + "\n"
-        + "Available actions:\n"
-        + "\tDrag&drop files : Sets files as input\n"
-        + "\tDrag&drop songs : Sets songs as input\n"
-        + "\tDrag&drop text : Sets text as input\n",
+    description = "Transformation utility. Capable of transforming objects and chaining the transforming functions. Capable of text manipulation, file renaming and audio tagging.",
+    howto = """
+        \tUser can put text in an edit area and apply transformations on it using available functions. The transformations are applied on each line separately. It is possible to manually edit the text to fine-tune the result.
+        \tThis is useful to edit multiple texts in the same way, e.g., to edit filenames or song names. This is done using an 'applier' that uses the 'output' and applies it no an input.
+        \tInput is a list of objects and can be set by drag&drop. It can then be transformed to text (object per line) or other objects using available functions, e.g., song to artist or file to filename.
+        \tOutput is the final contents of the text area exactly as visible. Some transformations can produce multiple outputs (again, per line), which produces separate text area for each output. To discern different outputs, text areas have a name in their header.
+        \tAction is determined by the type of input. User can select which output he wants to use. The action then applies the text to the input, each line to its respective object (determined by order). Number of objects and lines must match.
+    
+        Available appliers:
+        \tSave text to file - produce a text file with specified content
+        \tRename files - renames input files
+        \tTag songs - edits tag of song individually
+    
+        Available actions:
+        \tDrag&drop files : Sets files as input
+        \tDrag&drop songs : Sets songs as input
+        \tDrag&drop text : Sets text as input
+        """,
     version = "0.8.0",
     year = "2015",
     tags = UTILITY

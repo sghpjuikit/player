@@ -92,10 +92,10 @@ This allows auto-completion, syntax highlighting as well as build failure when a
 Create widget `MyWidget`:
   - create `app/widgets/myWidget` widget directory (use `camelCase` naming, no whitespace)
   - create `app/widgets/mywidget/src` directory for source code
-  - create `app/widgets/mywidget/src/MyWidget.kt` main widget class (kotlin (`.kt`) or java (`.java`))
-    - declare package `package myWidget` (the name of the widget directory)
+  - create `app/widgets/mywidget/src/MyWidget.kt` main widget class (.kt` fo Kotlin or `.java` Java)
+    - declare package of your choice, e.g. `package myWidget`
     - declare a top level class `MyWidget` (the name of the widget directory, capitalized)
-    - have the class extend `sp.it.pl.layout.controller.SimpleController` and implement abstract members
+    - extend `sp.it.pl.layout.controller.SimpleController`
     - declare widget metadata:
       - Java: annotate your class with `sp.it.pl.layout.Widget.Info` and specify members
       - Kotlin: declare companion object `companion object: sp.it.pl.layout.WidgetCompanion {}` and implement abstract members
@@ -114,8 +114,8 @@ Developing a widget carries several conveniences:
   For IDE to detect these and get auto-completion, simply `Refresh all Gradle projects`. This is done by customized build, which scans the widget directories for dependencies.
 
 Restrictions:
-- Widget directory name, widget package, main widget class must share the same name, which must be unique
-- Widget can have multiple source files, but mixing Kotlin and Java for same widget is unsupported
+- Widget directory name and main widget class must share the same name
+- Widget can have multiple source files, but mixing Kotlin and Java for same widget is not allowed
 
 ## Code style
 

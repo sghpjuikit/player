@@ -333,24 +333,32 @@ class WidgetManager {
    private inner class WidgetMonitor constructor(val widgetDir: File) {
       val widgetName = widgetDir.name.capital()
       val packageName  = widgetName.decapital()
-      val classFqName  = "$packageName.$widgetName"
       val skinFile = widgetDir/"skin.css"
       val srcDir = widgetDir/"src"
       val compileDir = widgetDir/"out"
       val scheduleCompilation = EventReducer.toLast<Void>(500.0) { compileFx() }
 
       /** @return primary source file (either Kotlin or Java) or null if none exists */
-      fun findSrcFile() = null
-         ?: (srcDir / "$widgetName.kt").takeIf { it.exists() }
-         ?: (srcDir / "$widgetName.java").takeIf { it.exists() }
+      fun findSrcFile() = findSrcFiles().find { it.nameWithoutExtension == widgetName }?.takeIf { it.exists() }
 
-      fun findSrcFiles() = srcDir.children().filter { it.hasExtension("java", "kt") }
+      fun findSrcFiles() = srcDir.walk().filter { it.hasExtension("java", "kt") }
 
-      fun findClassFile() = (compileDir/widgetName.decapital()/"$widgetName.class").takeIf { it.exists() }
+      fun findClassFile() = findClassFiles().find { it.nameWithoutExtension == widgetName }?.takeIf { it.exists() }
 
       fun findClassFiles() = compileDir.walk().filter { it hasExtension "class" }
 
-      fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
+      private fun computeClassPackage(srcFile: File) =
+         runTry {
+            srcFile.useLines {
+               it.takeWhile { !it.startsWith("import") }.first { it.startsWith("package ") }.substringAfter("package ").substringBefore(";")
+            }
+         }.mapError {
+            RuntimeException("Package definition not found", it)
+         }
+
+      private fun computeClassFqName(srcFile: File) = computeClassPackage(srcFile).map { "$it.$widgetName" }
+
+      private fun computeClassPath(): String = computeClassPathElements().joinToString(classpathSeparator)
 
       private fun computeClassPathElements() = getAppJarFile() + (findAppLibFiles() + compileDir + findLibFiles()).map { it.relativeToApp() }
 
@@ -425,11 +433,14 @@ class WidgetManager {
 
          logger.info { "Widget=$widgetName factory update, source files available=$srcFilesAvailable class files available=$classFilesAvailable" }
 
-         if (classFilesAvailable) {
-            val controllerType = loadClass(classFqName, compileDir, findLibFiles())
-            registerFactory(controllerType)
-         } else if (srcFilesAvailable) {
-            compileFx()
+         if (srcFilesAvailable) {
+            if (classFilesAvailable) {
+               createControllerClassLoader(compileDir, findLibFiles())
+               val controllerType = computeClassFqName(srcFile!!).andAlso { loadClass(it, compileDir, findLibFiles()) }
+               registerFactory(controllerType)
+            } else {
+               compileFx()
+            }
          }
       }
 

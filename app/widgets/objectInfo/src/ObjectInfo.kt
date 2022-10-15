@@ -56,6 +56,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.getOr
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.onEventUp
 import sp.it.util.reactive.sync
@@ -108,8 +109,8 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
    }
 
    @Blocks
-   fun audioMetadata(d: File): String {
-      return d.readAudioFile().map { it.audioHeader to it.tag }.map { (header, tag) ->
+   fun audioMetadata(d: File): String =
+      d.readAudioFile().map { it.audioHeader to it.tag }.map { (header, tag) ->
          "\nHeader %s:\n%s\nTag%s:%s".format(
             "(" + header::class.toUi() + ")",
             header.toString().lineSequence().map { it.trimStart() }.joinToString("\n\t"),
@@ -121,15 +122,17 @@ class ObjectInfo(widget: Widget): SimpleController(widget), Opener {
             tag?.net { it.fields.asSequence().joinToString("") { "\n\t${it.id}:$it" } } ?: " <none>"
          )
       }.getOr("")
-   }
+
 
    @Blocks
    fun imageMetadata(f: File): String =
-      ImageMetadataReader.readMetadata(f)
-         .directories.asSequence()
-         .filter { it.name!="File" }
-         .flatMap { it.tags }
-         .joinToString("\n") { "${it.directoryName} > ${it.tagName}: ${it.description.toUi()}" }
+      runTry {
+         ImageMetadataReader.readMetadata(f)
+            .directories.asSequence()
+            .filter { it.name!="File" }
+            .flatMap { it.tags }
+            .joinToString("\n") { "${it.directoryName} > ${it.tagName}: ${it.description.toUi()}" }
+      }.getOr("")
 
    fun openAndDetect(data: Any?, detectContent: Boolean) =
       open(if (detectContent) data.detectContent() else data)

@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.grid
 
 import javafx.scene.control.IndexedCell
 import sp.it.util.access.V
+import sp.it.util.ui.pseudoclass
 
 /** A cell of [GridView], contains single item in the [sp.it.pl.ui.objects.grid.GridView.itemsShown] list. */
 open class GridCell<T: Any, F: Any>: IndexedCell<T>() {
@@ -29,4 +30,7 @@ open class GridCell<T: Any, F: Any>: IndexedCell<T>() {
    /** Dispose of this cell with the intention of never being used again. Called automatically in when grid skin disposes. */
    open fun dispose() {}
 
+   companion object {
+      @JvmField var pseudoclassFullWidth = pseudoclass("full-width")
+   }
 }

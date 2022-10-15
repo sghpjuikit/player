@@ -74,9 +74,9 @@ import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.functional.UtilKt.runnable;
 import static sp.it.util.reactive.UnsubscribableKt.on;
 import static sp.it.util.reactive.UtilKt.onChange;
+import static sp.it.util.ui.NodeExtensionsKt.hasFocus;
 import static sp.it.util.ui.Util.layHeaderTop;
 import static sp.it.util.ui.Util.layHorizontally;
-import static sp.it.util.ui.NodeExtensionsKt.hasFocus;
 import static sp.it.util.ui.UtilKt.menuItem;
 
 public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
@@ -643,7 +643,8 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 				var cellGapHeight = cellHeight + vGap;
 				var cellGapWidth = cellWidth + hGap;
 				var viewStartY = viewStart;
-				var cellXsInitial = cellWidthRaw == CELL_SIZE_UNBOUND ? 0.0 : grid.getCellAlign().getValue().computeStartX(grid, w, columns);
+				var cellWidthIsUnbound = cellWidthRaw == CELL_SIZE_UNBOUND;
+				var cellXsInitial = cellWidthIsUnbound ? 0.0 : grid.getCellAlign().getValue().computeStartX(grid, w, columns);
 				var cellXs = Stream.iterate(cellXsInitial, it -> it + cellGapWidth).limit(columns).map(it -> snapPositionX(it)).toArray(Double[]::new);
 				var viewStartRI = computeMinVisibleRowIndex();
 				var rowCount = computeVisibleRowCount();
@@ -663,6 +664,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 						if (needsAdjustSize || cell.getProperties().containsKey("xxx")) cell.resizeRelocate(cellXs[xi], yPosSnapped, cellWidthSnapped, cellHeightSnapped);
 						else cell.relocate(cellXs[xi], yPosSnapped);
 						cell.update(cellI, item, cellI==skin.selectedCI);
+						cell.pseudoClassStateChanged(GridCell.pseudoclassFullWidth, cellWidthIsUnbound);
 					}
 				}
 			}
@@ -820,7 +822,7 @@ public class GridViewSkin<T, F> implements Skin<GridView<T,F>> {
 		/** @return the max number of cell per row */
 		public int computeMaxCellsInRow() {
 			var cw = getSkinnable().getCellWidth().getValue();
-			if (cw ==GridView.CELL_SIZE_UNBOUND) {
+			if (cw == GridView.CELL_SIZE_UNBOUND) {
 				return 1;
 			} else {
 				var gap = getSkinnable().getHorizontalCellSpacing().getValue();

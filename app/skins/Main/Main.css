@@ -3677,7 +3677,11 @@ Shape, Text, SpitText, TextFlow > * {
 /**
  * Cell in a grid view row.
  * inherits: .indexed-cell
- * pseudoclasses: selected, searchmatch, searchmatchnot
+ * pseudoclasses:
+ *  full-width: when cell spans entire row and grid effectively becomes a list
+ *  selected: when cell is selected
+ *  searchmatch: when search is active and cell matches search term
+ *  searchmatchnot: when search is active and cell does not match search term
  */
 .grid-cell {
     -fx-border-width: 0;
@@ -3716,6 +3720,9 @@ Shape, Text, SpitText, TextFlow > * {
 .grid-cell > * > .label {
     -fx-padding: 0 0.5em 0 0.5em;
     -fx-background-color: -skin-bgr-color;
+}
+.grid-cell:full-width > * > .label {
+    -fx-background-color: transparent;
 }
 
 /*

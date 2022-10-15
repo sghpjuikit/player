@@ -456,8 +456,14 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          CellType.NORMAL -> height.emScaled + cellTextHeight.value
          CellType.LIST -> height.emScaled
       }
-      grid.horizontalCellSpacing.value = 10.emScaled
-      grid.verticalCellSpacing.value = 10.emScaled
+      grid.horizontalCellSpacing.value = when (type) {
+         CellType.NORMAL -> 10.emScaled
+         CellType.LIST -> 0.0
+      }
+      grid.verticalCellSpacing.value = when (type) {
+         CellType.NORMAL -> 10.emScaled
+         CellType.LIST -> 0.0
+      }
    }
 
    private fun applySort() {

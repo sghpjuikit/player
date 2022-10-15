@@ -166,15 +166,15 @@
 .toggle-button:hover:selected,
 .toggle-button:hover:focused,
 .toggle-button:hover:focused:selected {
-    -fx-background-color: red, red, red;
+    -fx-background-color: transparent, transparent, transparent, transparent;
 }
 .toggle-button:selected {
-    -fx-background-color: transparent, transparent, transparent;
+    -fx-background-color: transparent, transparent, transparent, transparent;
     -fx-background-insets: 0 0 -1 0, 0, 1;
     -fx-text-fill: -fx-focus-color;
 }
 .toggle-button:selected:focused {
-    -fx-background-color: transparent, transparent, transparent;
+    -fx-background-color: transparent, transparent, transparent, transparent;
     -fx-background-insets: -0.2, 1, -1.4, 2.6;
     -fx-background-radius: 3, 2, 4, 0;
 }

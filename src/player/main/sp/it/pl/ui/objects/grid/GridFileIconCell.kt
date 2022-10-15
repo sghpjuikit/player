@@ -165,5 +165,5 @@ open class GridFileIconCell: GridCell<Item, File>() {
 
 }
 fun Node.relocateCenter(x: Double, y: Double) {
-   relocate(x + layoutBounds.width/2, y + layoutBounds.width/2)
+   relocate(x - layoutBounds.width/2, y - layoutBounds.height/2)
 }

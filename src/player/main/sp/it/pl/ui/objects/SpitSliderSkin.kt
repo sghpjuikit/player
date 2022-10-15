@@ -159,7 +159,7 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
    companion object {
 
       /** Converter for [Slider.labelFormatter] that takes into account min and max values and type of value to display the ideal precision */
-      fun labelFormatter(isDecimal: Boolean, min: Double, max: Double) = object: StringConverter<Double>() {
+      fun labelFormatter(isInteger: Boolean, min: Double, max: Double) = object: StringConverter<Double>() {
          val precisionMax = 15
          val precisionBy = 2
          val precision: Int = (max - min).net {
@@ -171,7 +171,9 @@ open class SpitSliderSkin(slider: Slider): SliderSkin(slider) {
          }
          override fun fromString(string: String) = fail()
          override fun toString(`object`: Double): String = when {
-            isDecimal -> `object`.toLong().toString()
+            `object`==Double.MIN_VALUE -> "-∞"
+            `object`==Double.MAX_VALUE -> "+∞"
+            isInteger -> `object`.toLong().toString()
             else -> "%.${precision}f".format(`object`)
          }
       }

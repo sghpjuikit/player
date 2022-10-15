@@ -1197,6 +1197,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-border-color: null;
     -fx-padding: 0 2 0 2;
     -fx-text-fill: -skin-def-font-color;
+    -fx-graphic-text-gap: 0.5em;
 }
 
 /* remove double borders from scrollbars */

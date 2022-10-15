@@ -49,6 +49,7 @@ import sp.it.pl.layout.feature.Feature
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.main.contextMenuFor
+import sp.it.pl.main.emScaled
 import sp.it.pl.main.fileIcon
 import sp.it.pl.main.sysClipboard
 import sp.it.pl.main.toUi
@@ -336,7 +337,7 @@ fun <T> buildTreeCell(t: TreeView<T>) = object: TreeCell<T>() {
       is File -> {
          val type = if (treeItem.isLeaf) FILE else FileType(p)
          val glyph = fileIcon(p, type)
-         createIcon(glyph, 10.0).apply { boundsType = VISUAL }
+         createIcon(glyph, 12.0.emScaled).apply { boundsType = VISUAL }
       }
       else -> null
    }

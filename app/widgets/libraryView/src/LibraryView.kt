@@ -4,7 +4,6 @@ import sp.it.pl.audio.tagging.Metadata.Field as MField
 import sp.it.pl.audio.tagging.MetadataGroup.Field as MgField
 import sp.it.pl.ui.objects.table.TableColumnInfo as ColumnState
 import java.util.Comparator.comparing
-import java.util.function.BiFunction
 import java.util.function.Supplier
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.geometry.Pos.CENTER_RIGHT
@@ -79,6 +78,7 @@ import sp.it.util.conf.defInherit
 import sp.it.util.conf.noUi
 import sp.it.util.conf.values
 import sp.it.util.functional.Functors.F1
+import sp.it.util.functional.Functors.F3
 import sp.it.util.functional.Util.SAME
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
@@ -147,13 +147,13 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       // table properties
       table.selectionModel.selectionMode = MULTIPLE
       table.search.setColumn(VALUE)
-      table.itemsComparatorFieldFactory.value = BiFunction { field, sort ->
-         when(field) {
+      table.itemsComparatorFieldFactory.value = F3 { fieldOriginal, fieldMemoized, sort ->
+         when(fieldOriginal) {
             VALUE -> when {
                fieldFilter.value.typeGrouped.isSubclassOf<Comparable<*>>() -> comparing<MetadataGroup, Comparable<Any?>?> { if (it==null) null.asIs() else VALUE.getOfS(it, "").asIs() }.let { if (sort===DESCENDING) it.nullsFirst() else it.nullsLast() }
                else -> SAME
             }
-            else -> field.comparator { c -> if (sort===DESCENDING) c.nullsFirst() else c.nullsLast() }
+            else -> fieldMemoized.comparator { c -> if (sort===DESCENDING) c.nullsFirst() else c.nullsLast() }
          }
       }
       table.items_info.textFactory = { all, list ->

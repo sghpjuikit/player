@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +30,7 @@ import sp.it.util.access.fieldvalue.MetaField;
 import sp.it.util.access.fieldvalue.ObjectField;
 import sp.it.util.access.fieldvalue.ObjectFieldBase;
 import sp.it.util.functional.Functors.F1;
+import sp.it.util.functional.Functors.F3;
 import sp.it.util.type.VType;
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -301,8 +301,8 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 	public final ReadOnlyObjectProperty<Comparator<? super T>> itemsComparator = itemsComparatorWrapper.getReadOnlyProperty();
 
 	@SuppressWarnings("unused")
-	public final ObjectProperty<BiFunction<? super ObjectField<?, ?>, ? super Sort, ? extends Comparator<?>>> itemsComparatorFieldFactory = new SimpleObjectProperty<>((f, sort) ->
-		f.comparatorNonNull(sort==Sort.DESCENDING ? Comparator::nullsFirst : Comparator::nullsLast)
+	public final ObjectProperty<F3<? super ObjectField<?, ?>, ? super ObjectField<?, ?>, ? super Sort, ? extends Comparator<?>>> itemsComparatorFieldFactory = new SimpleObjectProperty<>((fOriginal, fMemoized, sort) ->
+		fMemoized.comparatorNonNull(sort==Sort.DESCENDING ? Comparator::nullsFirst : Comparator::nullsLast)
 	);
 
 	/**
@@ -353,7 +353,7 @@ public class FieldedTable<T> extends ImprovedTable<T> {
 			.map(column -> {
 				var field = (ObjectField<T,?>) column.getUserData();
 				var sort = Sort.of(column.getSortType());
-				var comparator = (Comparator<T>) itemsComparatorFieldFactory.get().apply(enhancer.apply(field), sort);
+				var comparator = (Comparator<T>) itemsComparatorFieldFactory.get().apply(field, enhancer.apply(field), sort);
 				return sort.of(comparator);
 			})
 			.reduce(Comparator::thenComparing)

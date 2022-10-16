@@ -1752,7 +1752,6 @@ interface Utils {
 					g -> stream(g.players).filter(p -> p.stats.fired1stTime==null),
 					"Never shoot"
 				),
-				// TODO: fix this for situations where killCount is the same for multiple players
 				achievement0N(
 					"Hunter", MaterialDesignIcon.BIOHAZARD,
 					g -> Utils.<Player, Long>maxBy(g.players, p -> p.stats.killUfoCount),

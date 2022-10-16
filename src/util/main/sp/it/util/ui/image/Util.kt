@@ -135,7 +135,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
          } else
             null
       }
-      ?: run {
+      ?: runTry {
          val iW = reader.getWidth(ii)
          val iH = reader.getHeight(ii)
          if (w>iW || h>iH) {
@@ -159,14 +159,13 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
             setSourceSubsampling(px, px, 0, 0)
          }
 
-
-         runTry {
-            reader.read(ii, irp)
-         } orNull {
-            logger.warn(it) { "Failed to load image=$file" }
-         }
+         reader.read(ii, irp)
+      } orNull {
+         logger.warn(it) { "Failed to load image=$file" }
       }
-   reader.dispose()
+
+   runTry { reader.dispose() }.ifError { logger.warn(it) { "Failed to dispose image reader image=$file" } }
+   runTry { stream.close() }.ifError { logger.warn(it) { "Failed to close image stream image=$file" } }
 
    if (!loadFullSize)
       i = i?.toScaledDown(w, h, down = true, up = scaleExact)

@@ -3726,6 +3726,10 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-padding: 0 0.5em 0 0.5em;
     -fx-background-color: -skin-bgr-color;
 }
+
+.grid-cell:full-width {
+    -fx-background-color: transparent;
+}
 .grid-cell:full-width > * > .label {
     -fx-background-color: transparent;
 }

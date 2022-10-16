@@ -1,5 +1,6 @@
 package sp.it.util.system
 
+import com.sun.jna.platform.FileUtils
 import com.sun.jna.platform.win32.Advapi32Util
 import com.sun.jna.platform.win32.User32
 import com.sun.jna.platform.win32.WinDef
@@ -33,6 +34,7 @@ import sp.it.util.functional.Try
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.system.EnvironmentContext.defaultChooseFileDir
 import sp.it.util.system.EnvironmentContext.onFileRecycled
 import sp.it.util.system.EnvironmentContext.onNonExistentFileBrowse
@@ -247,21 +249,34 @@ fun File.open() {
  *
  * @return success if file was deleted or did not exist or error if error occurs during deletion
  */
-fun File.recycle(): Try<Nothing?, Nothing?> {
+fun File.recycle(): Try<Nothing?, String> {
    logger.info { "Recycling file=$this" }
-   return if (Desktop.Action.MOVE_TO_TRASH.isSupportedOrWarn()) {
-      try {
-         if (Desktop.getDesktop().moveToTrash(this)) {
+
+   return when (Os.current) {
+      Os.WINDOWS, Os.OSX ->
+         runTry {
+            FileUtils.getInstance().moveToTrash(this)
             onFileRecycled(this)
-            Try.ok()
-         } else {
-            Try.error()
+         }.map { null }.mapError {
+            it.message ?: "Unknown reason"
          }
-      } catch (e: IllegalArgumentException) {
-         Try.ok()
-      }
-   } else {
-      Try.error()
+      else ->
+         try {
+            val r = Desktop.getDesktop().moveToTrash(this)
+            if (r) {
+               onFileRecycled(this)
+               Try.ok()
+            } else {
+               Try.error("Failed")
+            }
+         } catch (e: SecurityException) {
+            Try.error("Access denied")
+         } catch (e: UnsupportedOperationException) {
+            Try.error("Unsupported")
+         } catch (e: IllegalArgumentException) {
+            // file does not exist, nothing to do
+            Try.ok()
+         }
    }
 }
 

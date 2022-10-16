@@ -6,6 +6,7 @@ import javafx.scene.image.WritableImage as ImageWr
 import com.twelvemonkeys.image.ResampleOp
 import java.awt.Dimension
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.IntBuffer
@@ -105,9 +106,9 @@ fun loadBufferedImage(file: File): Try<ImageBf, IOException> {
    }
 }
 
-fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(inS), width, height, highQuality, scaleExact)
+fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, runTry { ImageIO.createImageInputStream(inS.buffered()) }.orNull(), width, height, highQuality, scaleExact)
 
-fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, ImageIO.createImageInputStream(file), width, height, highQuality, scaleExact)
+fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, runTry { ImageIO.createImageInputStream(FileInputStream(file).buffered()) }.orNull(), width, height, highQuality, scaleExact)
 
 private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean): ImageFx? {
    failIfFxThread()
@@ -159,7 +160,7 @@ private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width:
             setSourceSubsampling(px, px, 0, 0)
          }
 
-         reader.read(ii, irp)
+            reader.read(ii, irp)
       } orNull {
          logger.warn(it) { "Failed to load image=$file" }
       }

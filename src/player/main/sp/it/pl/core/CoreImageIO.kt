@@ -11,7 +11,7 @@ class CoreImageIO(private val imageIoDir: File): Core {
    override fun init() {
       isValidatedDirectory(imageIoDir)
       ImageIO.setCacheDirectory(imageIoDir)
-      ImageIO.setUseCache(true)
+      ImageIO.setUseCache(false)
 
       // Load deferred color space profiles to avoid ConcurrentModificationException due to JDK bug
       // https://github.com/haraldk/TwelveMonkeys/issues/402

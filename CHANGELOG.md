@@ -3,13 +3,49 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
-- Implement bette empty lyrics text
+- Implement support for arbitrary widget package
+- Implement volume drive add/remove detection
+- Implement better empty lyrics text
 - Implement better styling for some readonly elements
+- Implement better grid-cell styling when cells occupy full width
 - Fix text area menu select all shortcut
 - Fix text area menu allowing some edits when text area is not editable
 - Fix config editor caret button hiding when menu is open
 - Fix config editor caret button menu not showing for read-only editors
 - Fix config editor caret button menu not showing submenu menu for editor value
+- Fix `File.recycle()` not providing error
+- Fix **ObjectInfo** image metadata parsing causing no output
+- Fix **LibraryView** sorting by VALUE not working
+- Fix `GridFileIconCell` icon layout in some cases
+- Fix grid file deletion not restoring selection properly
+- Fix grid cell styling when cell spans entire width
+- Fix grid cell font size when cell spans entire width
+- Fix tree cell icon too small
+- Fix cell graphics gap too narrow
+- Fix slider editor ticks & snapping
+- Fix slider editor value formatting for Double.MIN/MAX
+- Fix toggle-button hover styling
+- Fix image loading not closing stream sometimes
+
+### Widget package restrictions
+The widgets can now declare arbitrary package.
+For Java widgets it is recommended to mirror package declarations in directory structure.
+
+### Loading images
+[ImageIo](https://github.com/haraldk/TwelveMonkeys) was updated to 3.9.0.
+
+This brings in support for lossless WebP images.
+
+Loading images using this library has become much faster due to disabling disk caching `ImageIO.setCaches(false)` and
+the library implementing new buffered image streams to optimize performance. For details see
+* https://github.com/haraldk/TwelveMonkeys/issues/687
+* https://github.com/haraldk/TwelveMonkeys/issues/691
+* https://github.com/haraldk/TwelveMonkeys/issues/704
+
+Image loading performance continues to be sensitive topic for SpitPlayer due to difficulty of adjusting CPU and IO workload during image loading.
+The solutions are being explored.
+One solution will be to avoid the use of image rescaling, which is very CPU intensive.
+
 
 ## [7.4.0] 2022 10 09
 

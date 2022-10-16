@@ -45,9 +45,19 @@ import sp.it.util.ui.treeView
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
 import java.io.File
+import javafx.scene.input.KeyCode.F5
+import javafx.scene.input.KeyEvent.KEY_RELEASED
+import sp.it.pl.main.APP
 import sp.it.pl.main.Df.FILES
+import sp.it.pl.ui.objects.tree.FileTreeItem
+import sp.it.util.collections.materialize
+import sp.it.util.collections.setTo
 import sp.it.util.conf.butElement
+import sp.it.util.dev.printIt
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.reactive.on
+import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.ui.drag.set
 
 @Widget.Info(
@@ -72,12 +82,13 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
    init {
       root.prefSize = 200.emScaled x 500.emScaled
       root.consumeScrolling()
+      root.onEventDown(KEY_RELEASED, F5) { refresh() }
 
       root.lay += vBox {
          lay(NEVER) += hBox(0, Pos.CENTER_RIGHT) {
             id = "header"
 
-            lay += Icon(IconFA.RECYCLE, 13.0).action(::readFromDisc.getDelegateAction(this@FavLocations))
+            lay += Icon(IconFA.RECYCLE, 13.0).action(::refresh.getDelegateAction(this@FavLocations))
             lay += Icon().blank()
          }
          lay(ALWAYS) += scrollPane {
@@ -103,18 +114,30 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
          { fut(it.dragboard.files).then(IO) { it.filter { it.isDirectory } } ui { locations += it } }
       )
 
-      readFromDisc()
+      root.sync1IfInScene {
+         runIO {
+            File.listRoots().map { it.toFast(DIRECTORY) }
+         } ui { roots ->
+            tree.root = tree("Root",
+               tree("Favourites", locations).apply { isExpanded = true },
+               tree("This PC", roots).apply { isExpanded = true }
+            )
+         }
+         APP.sysEvents.subscribe { refresh() } on onClose
+         APP.sysEvents.subscribe { it.printIt() } on onClose
+      }
    }
 
    @IsAction(name = "Refresh", info = "Refresh file structure from disc")
-   fun readFromDisc() {
+   fun refresh() {
       runIO {
          File.listRoots().map { it.toFast(DIRECTORY) }
       } ui { roots ->
-         tree.root = tree("Root",
-            tree("Favourites", locations).apply { isExpanded = true },
-            tree("This PC", roots).apply { isExpanded = true }
-         )
+         tree.root?.children?.find { it.value=="This PC" }?.children.ifNotNull { rootItems ->
+            val add = roots.filter { r -> rootItems.none { it.value==r } }
+            val rem = rootItems.filter { r -> roots.none { it==r.value } }
+            rootItems setTo ((rootItems.materialize() - rem )+ add.map { FileTreeItem(it, false) }).asIs<List<TreeItem<Any>>>().sortedBy { it.value.asIf<File>() }
+         }
       }
    }
 

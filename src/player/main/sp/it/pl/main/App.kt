@@ -195,6 +195,7 @@ class App: Application(), GlobalConfigDelegator {
    }
    /** History for [actionStream]. */
    val actionsLog = AppEventLog
+
    /** Various actions for the application */
    val actions = AppActions()
    /** Observable [System.out]. */
@@ -273,6 +274,9 @@ class App: Application(), GlobalConfigDelegator {
    val mouse = CoreMouse
    /** Object functions core. */
    val functors = CoreFunctors
+
+   /** Listener for system events, such as USB add/remove. */
+   val sysEvents = AppSystemEvents()
 
    /** Application locale. */
    val locale by cv(Locale.ENGLISH).valuesUnsealed { Locale.getAvailableLocales().toList() } def conf.locale attach { actions.showSuggestRestartNotification() }

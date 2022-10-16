@@ -53,7 +53,6 @@ import sp.it.pl.ui.objects.tree.FileTreeItem
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.butElement
-import sp.it.util.dev.printIt
 import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.reactive.on
@@ -63,7 +62,7 @@ import sp.it.util.ui.drag.set
 @Widget.Info(
    author = "Martin Polakovic",
    name = "Favourite Locations",
-   description = "Displays favourite or convenient file locations. Useful after redirecting selected location to another widget",
+   description = "Displays favourite or convenient file locations. Useful for redirecting selected location to another widget",
    version = "1.0.1",
    year = "2020",
    tags = []
@@ -124,7 +123,6 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
             )
          }
          APP.sysEvents.subscribe { refresh() } on onClose
-         APP.sysEvents.subscribe { it.printIt() } on onClose
       }
    }
 

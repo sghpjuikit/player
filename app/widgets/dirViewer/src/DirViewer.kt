@@ -56,6 +56,7 @@ import sp.it.pl.ui.objects.grid.GridView.CellSize
 import sp.it.pl.ui.objects.grid.GridView.CellSize.NORMAL
 import sp.it.pl.ui.objects.grid.GridView.CellSize.SMALL_24
 import sp.it.pl.ui.objects.grid.GridViewSkin
+import sp.it.pl.ui.objects.grid.GridViewSkin.NO_SELECT
 import sp.it.pl.ui.objects.hierarchy.Item
 import sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy
 import sp.it.pl.ui.objects.icon.Icon
@@ -107,6 +108,7 @@ import sp.it.util.functional.nullsLast
 import sp.it.util.functional.recurseBF
 import sp.it.util.functional.traverse
 import sp.it.util.inSort
+import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Suppressor
@@ -234,7 +236,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          }
          it?.asIs<GridViewSkin<*,*>>()?.menuRemove?.dsl {
             item("Delete selected", keys = keys(DELETE)) {
-               grid.selectedItem.value?.value?.recycle()
+               deleteSelected()
             }
          }
       }
@@ -242,7 +244,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
          outputSelectedSuppressor.suppressed {
             failIf(it!=null && it.parent!=item) { "item-parent mismatch" }
             outputSelected.value = it?.value
-            item?.lastSelectedChild = grid.skinImpl?.selectedCI ?: GridViewSkin.NO_SELECT
+            item?.lastSelectedChild = grid.skinImpl?.selectedCI ?: NO_SELECT
          }
       }
       root.lay += layHeaderTop(0.0, CENTER_LEFT, navigation, grid)
@@ -310,12 +312,14 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
                outputSelectedSuppressor.suppressing {
                   // delete the item visually (without triggering rebuilding children, filter, order)
                   grid.itemsRaw setTo (grid.itemsRaw - toDelete)
-                  grid.skinImpl!!.position = dir.lastScrollPosition max 0.0
-                  grid.skinImpl!!.select(dir.lastSelectedChild)
                   // delete the item
                   dir.removeChild(toDelete)
                   toDelete.dispose()
+                  // retain position & selection
+                  grid.skinImpl!!.position = dir.lastScrollPosition max 0.0
+                  grid.skinImpl!!.select(NO_SELECT)
                }
+               grid.skinImpl!!.select(dir.lastSelectedChild.clip(0, dir.childrenRO().orEmpty().lastIndex))
             }
          }
       } on onClose

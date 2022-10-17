@@ -116,12 +116,12 @@ object FxLaterExecutor: Executor {
 }
 
 /** Executes the specified block on thread in an IO thread pool or immediately if called on such thread. */
-class IOExecutor(private val e: IOLaterExecutor, val s: CoroutineDispatcher = e.asCoroutineDispatcher()): Executor, CoroutineContext by s {
+class IOExecutor(private val e: IOLaterExecutor): Executor {
    override fun execute(it: Runnable) = if (Thread.currentThread().name.startsWith("io-")) it() else e(it)
 }
 
 /** Executes the specified block on thread in an IO thread pool. */
-class IOLaterExecutor(private val e: Executor = burstTPExecutor(64, 1.minutes, threadFactory("io", true))): Executor, CoroutineContext by e.asCoroutineDispatcher() {
+class IOLaterExecutor(private val e: Executor = burstTPExecutor(32, 1.minutes, threadFactory("io", true))): Executor {
    override fun execute(it: Runnable) = e(it)
 }
 

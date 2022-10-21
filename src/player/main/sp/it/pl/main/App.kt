@@ -459,9 +459,10 @@ class App: Application(), GlobalConfigDelegator {
       // TODO: close SLAVE instances
       Runtime.getRuntime().addShutdownHook(object: Thread() {
          override fun run() {
-            val args = fetchArguments().toTypedArray()
             val f = if (WINDOWS.isCurrent) location.spitplayerc_exe else location.spitplayer_sh
-            Runtime.getRuntime().exec(f.absolutePath, args)
+            val command = arrayOf(f.absolutePath)
+            val args = fetchArguments().toTypedArray()
+            Runtime.getRuntime().exec(command, args)
          }
       })
       close()

@@ -407,26 +407,30 @@ class App: Application(), GlobalConfigDelegator {
    override fun stop() {
       logger.info { "Stopping..." }
 
-      store()
-      onStopping()
+      runTry {
+         store()
+         onStopping()
 
-      // app
-      plugins.plugins.forEach { it.stop() }
-      audio.dispose()
-      db.stop()
-      ActionManager.stopActionListening()
-      appCommunicator.stop()
+         // app
+         plugins.plugins.forEach { it.stop() }
+         audio.dispose()
+         db.stop()
+         ActionManager.stopActionListening()
+         appCommunicator.stop()
 
-      // cores
-      mouse.dispose()
-      contextMenus.dispose()
-      instances.dispose()
-      serializer.dispose()
-      serializerJson.dispose()
-      converter.dispose()
-      imageIo.dispose()
-      env.dispose()
-      logging.dispose()
+         // cores
+         mouse.dispose()
+         contextMenus.dispose()
+         instances.dispose()
+         serializer.dispose()
+         serializerJson.dispose()
+         converter.dispose()
+         imageIo.dispose()
+         env.dispose()
+         logging.dispose()
+      }.ifError {
+         logger.error(it) { "Failed to properly stop application" }
+      }
 
       // in case the JVM is stubborn due to lose non-daemon thread
       exitProcess(0)

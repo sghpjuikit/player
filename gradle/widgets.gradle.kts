@@ -7,7 +7,7 @@ idea {
    module {
       contentRoot = null
       sourceDirs.add(projectDir / "src")
-      testSourceDirs.add(projectDir / "tsc")
+      testSources.setFrom(projectDir / "tsc")
       resourceDirs.add(projectDir / "rsc")
       excludeDirs.add(projectDir / "out")
       inheritOutputDirs = false

@@ -143,7 +143,9 @@
   fixed
 - [x] [695](https://github.com/haraldk/TwelveMonkeys/issues/695) No image reader for some webp images  
   reported, implemented
-- [ ] [704](https://github.com/haraldk/TwelveMonkeys/issues/704) Performance of WebP Reader  
-  reported, open
+- [x] [704](https://github.com/haraldk/TwelveMonkeys/issues/704) Performance of WebP Reader  
+  reported, fixed
+- [x] [706](https://github.com/haraldk/TwelveMonkeys/issues/706) JDK19 & Loom compatibility  
+  reported, fixed
 - [x] [695](https://github.com/kwhat/jnativehook/issues/420) Consuming global hotkey modifier key release
   asked, figured out (not an issue, modifiers should not be consumed)

@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
    kotlin("jvm") version "1.7.20"
    application
-   id("com.github.ben-manes.versions") version "0.42.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
+   id("com.github.ben-manes.versions") version "0.43.0"   // adds task `dependencyUpdates, see https://github.com/ben-manes/gradle-versions-plugin
    id("com.jaredsburrows.license") version "0.9.0"   // adds task `licenseReport`, see https://github.com/jaredsburrows/gradle-license-plugin
 }
 
@@ -131,13 +131,13 @@ allprojects {
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
-         implementation("com.github.oshi", "oshi-core", "6.2.2")
+         implementation("com.github.oshi", "oshi-core", "6.3.0")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }
 
       "Image" group {
          implementation("com.drewnoakes", "metadata-extractor", "2.18.0")
-         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.9.0")
+         fun imageIO(name: String) = implementation("com.twelvemonkeys.imageio", "imageio-$name", "3.9.3")
          imageIO("bmp")
          imageIO("clippath")
          imageIO("core")

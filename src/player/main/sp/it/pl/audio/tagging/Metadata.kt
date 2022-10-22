@@ -1,7 +1,6 @@
 package sp.it.pl.audio.tagging
 
 import java.io.File
-import java.io.IOException
 import java.io.Serializable
 import java.net.URI
 import java.time.DateTimeException
@@ -47,7 +46,11 @@ import sp.it.util.dev.failCase
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.children
 import sp.it.util.file.parentDirOrRoot
+import sp.it.util.functional.Try
+import sp.it.util.functional.Try.Companion.ok
+import sp.it.util.functional.andAlso
 import sp.it.util.functional.asIs
+import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.localDateTimeFromMillis
 import sp.it.util.text.Strings
@@ -641,19 +644,19 @@ class Metadata: Song, Serializable {
 
       return when (source) {
          CoverSource.NONE -> EmptyCover
-         CoverSource.TAG -> readCoverFromTag() ?: EmptyCover
+         CoverSource.TAG -> readCoverFromTag().orNull() ?: EmptyCover
          CoverSource.DIRECTORY -> readCoverFromDir() ?: EmptyCover
-         CoverSource.ANY -> readCoverFromTag() ?: readCoverFromDir() ?: EmptyCover
+         CoverSource.ANY -> readCoverFromTag().orNull() ?: readCoverFromDir() ?: EmptyCover
       }
    }
 
-   private fun readCoverFromTag(): ImageCover? = try {
-      readArtworkFromTag()?.let { ImageCover(it.imageOrNull, it.info) }
-   } catch (e: IOException) {
-      null
-   }
+   private fun readCoverFromTag(): Try<ImageCover?, Throwable> = readArtworkFromTag()
+      .map { it?.let { ImageCover(it.imageOrNull, it.info) } }
 
-   private fun readArtworkFromTag(): Artwork? = getFile()?.readAudioFile()?.orNull()?.tag?.firstArtwork
+   private fun readArtworkFromTag(): Try<Artwork?, Throwable> = ok(getFile())
+      .andAlso { it?.readAudioFile() ?: ok() }
+      .map { it?.tag?.firstArtwork }
+      .ifError { logger.warn("Failed to read cover from tag of song=$uri", it) }
 
    /** @return the cover image file on a file system or null if this song is not file based */
    private fun readCoverFromDir(): Cover? {
@@ -844,7 +847,7 @@ class Metadata: Song, Serializable {
       }
 
       fun isFieldEmpty(m: Metadata): Boolean = when(this) {
-         COVER -> m.readArtworkFromTag()==null
+         COVER -> m.readArtworkFromTag().map { it==null }.getOr(true)
          else -> getOf(m)==getOf(EMPTY)
       }
 
@@ -909,7 +912,7 @@ class Metadata: Song, Serializable {
       object DISCS_INFO: Field<NofX>(type(), { it.getDiscInfo() }, { o, or -> o?.toString() ?: or }, "Discs info", "Complete disc number in format: disc/disc total")
       object GENRE: Field<String?>(type(), { it.genre }, { o, or -> o ?: or }, "Genre", "Genre of the song")
       object YEAR: Field<Year?>(type(), { it.getYear() }, { o, or -> o?.toString() ?: or }, "Year", "Year the album was published")
-      object COVER: Field<ImageCover?>(type(), { it.readCoverFromTag() }, { o, or -> o?.toString() ?: or }, "Cover", "Cover of the song")
+      object COVER: Field<ImageCover?>(type(), { it.readCoverFromTag().orNull() }, { o, or -> o?.toString() ?: or }, "Cover", "Cover of the song")
       object RATING: Field<Double?>(type(), { it.getRatingPercent() }, { o, or -> o?.let { "%.2f".format(APP.locale.value, it) } ?: or }, "Rating", "Song rating in 0-1 range")
       object RATING_RAW: Field<Int?>(type(), { it.getRating() }, { o, or -> o?.toString() ?: or }, "Rating (raw)", "Actual song rating value in tag. Maximal value depends on tag type")
       object RATING_RAW_MAX: Field<Int>(type(), { it.getRatingMax() }, { o, or -> o?.toString() ?: or }, "Rating max (raw)", "Maximal song rating value supported by current tag type")

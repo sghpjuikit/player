@@ -184,7 +184,7 @@ class Notifier: PluginBase() {
          lay += SpitText(error.textShort).apply {
             wrappingWithNatural.subscribe()
          }
-         lay += hyperlink("Click to show full details") {
+         lay += hyperlink("Show full details") {
             onEventDown(MOUSE_CLICKED, PRIMARY) { AppEventLog.showDetailForLastError() }
          }
          lay += supplyIf(error.action!=null) {

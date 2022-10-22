@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. Format base
 - Implement better empty lyrics text
 - Implement better styling for some readonly elements
 - Implement better grid-cell styling when cells occupy full width
+- Implement lossless WebP image format support
+- Implement faster image loading
+- Implement faster image cache
+- Fix image cache not being used after widget is loaded again
 - Fix text area menu select all shortcut
 - Fix text area menu allowing some edits when text area is not editable
 - Fix config editor caret button hiding when menu is open
@@ -26,26 +30,47 @@ All notable changes to this project will be documented in this file. Format base
 - Fix slider editor value formatting for Double.MIN/MAX
 - Fix toggle-button hover styling
 - Fix image loading not closing stream sometimes
+- Fix widget controls sometimes showing up when drag is active
 
-### Widget package restrictions
-The widgets can now declare arbitrary package.
-For Java widgets it is recommended to mirror package declarations in directory structure.
+### JDK19
+The project now uses and requires **JDK 19**.
+This is to enable virtual threads, now used during image loading
 
 ### Loading images
+Image loading performance is sensitive to adjusting CPU and IO workload during image loading.
+This was explored in previous updates and also written
+
+### Loading images - virtual threads
+This update brings virtual threads for loading images. Full details [here](https://github.com/haraldk/TwelveMonkeys/issues/706).
+This achieves optimal CPU utilization, improving parallel image loading speed and removing UI stutter in all but most demanding situations.
+
+### Loading images - imageIO
 [ImageIo](https://github.com/haraldk/TwelveMonkeys) was updated to 3.9.0.
-
-This brings in support for lossless WebP images.
-
+This brings in support for lossless WebP images, some fixes and optimizations.
 Loading images using this library has become much faster due to disabling disk caching `ImageIO.setCaches(false)` and
 the library implementing new buffered image streams to optimize performance. For details see
 * https://github.com/haraldk/TwelveMonkeys/issues/687
 * https://github.com/haraldk/TwelveMonkeys/issues/691
 * https://github.com/haraldk/TwelveMonkeys/issues/704
 
-Image loading performance continues to be sensitive topic for SpitPlayer due to difficulty of adjusting CPU and IO workload during image loading.
-The solutions are being explored.
-One solution will be to avoid the use of image rescaling, which is very CPU intensive.
+### Loading images - cache
+Image cache is partitioned by a key. For **DirView** widget, this is the widget's `UUID`.
+However, during widget loading, the id may change and the widget generates new cache.
+This is now fixed by the widget instance generating its own cache id, which never changes.
+In the future, the id may be exposed to the user in widget settings.
 
+Image cache now caches images in efficient binary format, which means no encoding/decoding cost during serializing/deserializing.
+This makes the image cache blazing fast (loads images instantly on SSD).
+
+Image cache now caches images in the exactly requested size.
+This means the least CPU work and memory is used when loading the cached image.
+
+### Widget compilation
+The widgets can now declare arbitrary package.
+For Java widgets it is recommended to mirror package declarations by directory structure.
+
+An optimization was attempted to compile widgets with **Gradle** daemon.
+This did not result in faster widget compilation, so this change was reverted.
 
 ## [7.4.0] 2022 10 09
 

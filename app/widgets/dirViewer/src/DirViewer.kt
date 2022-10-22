@@ -3,6 +3,7 @@ package dirViewer
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FOLDER_PLUS
 import java.io.File
 import java.util.Stack
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 import javafx.collections.FXCollections.observableArrayList
 import javafx.geometry.Insets
@@ -87,6 +88,7 @@ import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
+import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.conf.readOnlyUnless
 import sp.it.util.conf.uiConverter
@@ -192,6 +194,8 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .def(name = "Use parent cover", info = "Display simple parent directory cover if file has none.")
    val coverCache by cv(false).readOnlyUnless(coverOn)
       .def(name = "Use thumbnail cache", info = "Cache thumbnails on disk for faster loading. Useful when items form mostly finite set. Cache is an internal directory split by thumbnail size.")
+   val coverCacheId by cv(UUID.randomUUID()).noUi()
+      .def(name = "Thumbnail cache id", info = "Isolates image cache of this widget instance by the id. Unique per widget instance.")
    val cellTextHeight = APP.ui.font.map { 43.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    private val itemVisitId = AtomicLong(0)
@@ -597,7 +601,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    private inner class TopItem: FItem(null, null, DIRECTORY) {
 
       init {
-         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true, widget.id.takeIf { coverCache.value })
+         coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true, coverCacheId.value.takeIf { coverCache.value })
       }
 
       override fun childrenFiles() = filesMaterialized.filter { it.isDirectory && it.exists() }.let(filesJoiner.value.flatten).map { CachingFile(it) }

@@ -33,6 +33,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
+import mu.KLogging
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator
 import sp.it.pl.layout.Widget
@@ -581,7 +582,7 @@ class TarsosAudioEngine(settings: Spektrum) {
          dispatcher?.stop()
          audioThread?.join((1*1000).toLong()) // wait for audio dispatcher to finish // TODO: remove?
       } catch (e: InterruptedException) {
-         // ignore
+         logger.trace { "Thread=${Thread.currentThread().name} interrupted" }
       }
 
       mixerRef.ifNotNull {
@@ -630,6 +631,9 @@ class TarsosAudioEngine(settings: Spektrum) {
          lineUses.line
       }
    }
+
+   companion object: KLogging()
+
 }
 
 object OctaveGenerator {

@@ -2,6 +2,7 @@ package sp.it.pl.ui.objects.hierarchy;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.channels.ClosedByInterruptException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +18,11 @@ import sp.it.pl.image.Image2PassLoader;
 import sp.it.pl.image.ImageLoader;
 import sp.it.pl.ui.objects.grid.GridViewSkin;
 import sp.it.pl.ui.objects.grid.ImageLoad;
+import sp.it.pl.ui.objects.grid.ImageLoad.DoneErr;
+import sp.it.pl.ui.objects.grid.ImageLoad.DoneInterrupted;
 import sp.it.pl.ui.objects.grid.ImageLoad.DoneOk;
+import sp.it.pl.ui.objects.grid.ImageLoad.Loading;
+import sp.it.pl.ui.objects.grid.ImageLoad.NotStarted;
 import sp.it.pl.ui.objects.image.Cover.CoverSource;
 import sp.it.util.HierarchicalBase;
 import sp.it.util.JavaLegacy;
@@ -26,9 +31,11 @@ import sp.it.util.async.future.Fut;
 import sp.it.util.file.FileType;
 import sp.it.util.file.UtilKt;
 import sp.it.util.functional.Option;
+import sp.it.util.functional.Option.None;
 import sp.it.util.functional.Option.Some;
 import sp.it.util.ui.IconExtractor;
 import sp.it.util.ui.image.ImageSize;
+import sp.it.util.ui.image.Interrupts;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static kotlin.io.FilesKt.getNameWithoutExtension;
 import static kotlin.sequences.SequencesKt.forEach;
@@ -40,14 +47,15 @@ import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppFileKt.isVideo;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.IO;
+import static sp.it.util.async.AsyncKt.VT;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runIO;
+import static sp.it.util.async.AsyncKt.runOn;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.FileType.DIRECTORY;
 import static sp.it.util.file.FileType.FILE;
-import static sp.it.util.functional.TryKt.getAny;
+import static sp.it.util.functional.OptionKt.getOrSupply;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.ui.image.UtilKt.toBuffered;
@@ -64,8 +72,9 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	protected volatile List<Item> children = null;
 	/** All file children. Super set of {@link #children}. Must not be accessed outside fx application thread. */
 	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
-	public @NotNull ImageLoad cover = ImageLoad.NotStarted.INSTANCE;
+	public @NotNull volatile ImageLoad cover = NotStarted.INSTANCE;
 	protected volatile Option<@Nullable File> coverFile = Option.Companion.invoke(null);
+	public volatile @Nullable Thread loadingThread = null;
 	protected boolean disposed = false;
 	protected final HashMap<String, Object> properties = new HashMap<>();
 	public double loadProgress = 0;         // 0-1
@@ -110,8 +119,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		if (children!=null) children.forEach(Item::dispose);
 		children = null;
 		all_children = null;
-		cover = ImageLoad.DoneErr.INSTANCE;
+		cover = DoneErr.INSTANCE;
 		coverFile = Option.Companion.invoke(null);
+		if (loadingThread!=null) loadingThread.interrupt();
+		loadingThread = null;
 		disposed = true;
 	}
 
@@ -119,7 +130,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	public void disposeCover() {
 		failIfNotFxThread();
 
-		cover = ImageLoad.NotStarted.INSTANCE;
+		cover = NotStarted.INSTANCE;
 	}
 
 	/** Dispose of this as to be fully usable, but children will be {@link #disposeContent()}. */
@@ -136,7 +147,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		if (children!=null) children.forEach(Item::dispose);
 		children = null;
 		all_children = null;
-		cover = ImageLoad.NotStarted.INSTANCE;
+		cover = NotStarted.INSTANCE;
 		coverFile = Option.Companion.invoke(null);
 		loadProgress = 0;
 		lastScrollPosition = -1;
@@ -220,22 +231,36 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
-	public Fut<?> loadCover(ImageSize size) {
+	@SuppressWarnings("unchecked")
+	public Fut<ImageLoad> computeCover(ImageSize size) {
 		failIfNotFxThread();
 
-		if (cover instanceof ImageLoad.DoneOk) return fut(null);
-		if (cover instanceof ImageLoad.DoneErr) return fut(null);
-		if (cover instanceof ImageLoad.Loading loading) return loading.getLoading();
-		if (cover instanceof ImageLoad.NotStarted) {
-			if (disposed) {
-				cover = ImageLoad.DoneErr.INSTANCE;
-				return fut();
-			}
+		return switch (cover) {
+			case DoneOk l -> fut(l);
+			case DoneErr l -> fut(l);
+			case Loading l -> l.getLoading();
+			case NotStarted l -> computeCoverAsync(None.INSTANCE, size);
+			case DoneInterrupted l -> computeCoverAsync(new Some<>(l.getFile()), size);
+			default -> throw new AssertionError("Illegal cover type " + cover.getClass());
+		};
+	}
 
-			var strategy = getCoverStrategy();
-			var cl = runIO(() -> {
-				var ci = (Image) null;
-				var cf = getCoverFile(strategy);
+	private Fut<ImageLoad> computeCoverAsync(Option<@Nullable File> imgFile, ImageSize size) {
+		if (disposed) {
+			cover = DoneErr.INSTANCE;
+			return fut(DoneErr.INSTANCE);
+		}
+
+		var strategy = getCoverStrategy();
+		var cl = runOn(VT, () -> {
+			loadingThread = Thread.currentThread();
+			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(null);
+
+			var ci = (Image) null;
+			var cf = getOrSupply(imgFile, () -> getCoverFile(strategy));
+			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(cf);
+
+			try {
 				var ch = children;
 				if (cf!=null) {
 					ci = strategy.loader.invoke(cf, size);
@@ -247,7 +272,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 								.map(it -> it.getCoverFile(strategy))
 								.filter(it -> it!=null)
 								.limit(4)
-								.map(it -> strategy.loader.invoke(it, size.div(2)))
+								.map(it -> strategy.loader.invoke(it, size.div(2), true))
 								.filter(it -> it!=null)
 								.toList();
 							var w = (int) size.width;
@@ -255,7 +280,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 							var imgFin = new BufferedImage(w, h, TYPE_INT_ARGB);
 							var imgFinGraphics = imgFin.getGraphics();
 							var i = 0;
-							for (var img: subCovers) {
+							for (var img : subCovers) {
 								var bi = img==null ? null : toBuffered(img);
 								imgFinGraphics.drawImage(bi, w/2*(i%2), h/2*(i/2), null);
 								if (bi!=null) bi.flush();
@@ -270,23 +295,29 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						} else if (isAudio(value)) {
 							var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
 							ci = c.isEmpty() ? null : c.getImage(size);
-						} else if (value.getPath().endsWith(".pdf"))  {
+						} else if (value.getPath().endsWith(".pdf")) {
 							ci = strategy.loader.invoke(value, size);
-						} else if (strategy.useNativeIconIfNone)  {
+						} else if (strategy.useNativeIconIfNone) {
 							ci = IconExtractor.INSTANCE.getFileIcon(value);
 						}
 					}
 				}
+
+				if (ci==null && Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(cf);
 				return new DoneOk(ci, cf);
-			}).thenRecover(FX, consumer(it ->
-				cover = disposed
-					? ImageLoad.DoneErr.INSTANCE
-					: getAny(it.toTryRaw().mapError(e -> ImageLoad.DoneErr.INSTANCE))
-			));
-			cover = new ImageLoad.Loading(cl);
-			return cl;
-		}
-		throw new AssertionError("Illegal type " + cover);
+			} catch (Throwable e) {
+				if (e instanceof InterruptedException) return new DoneInterrupted(cf);
+				if (e instanceof ClosedByInterruptException) return new DoneInterrupted(cf);
+				if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(cf);
+				else return ImageLoad.DoneErr.INSTANCE;
+			}
+		}).then(FX, it -> {
+			var c = disposed ? DoneErr.INSTANCE : it;
+			cover = c;
+			return c;
+		});
+		cover = new Loading(cl);
+		return cl;
 	}
 
 	protected File getCoverFile(CoverStrategy strategy) {
@@ -388,6 +419,5 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		}
 
 		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true, false, true, null);
-
 	}
 }

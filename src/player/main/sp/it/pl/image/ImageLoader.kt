@@ -2,10 +2,17 @@ package sp.it.pl.image
 
 import java.io.File
 import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.net.URI
+import java.nio.ByteBuffer
 import java.util.UUID
 import java.util.zip.ZipFile
 import javafx.scene.image.Image
+import javafx.scene.image.PixelBuffer
+import javafx.scene.image.PixelFormat
+import javafx.scene.image.PixelFormat.Type.BYTE_BGRA_PRE
+import javafx.scene.image.WritableImage
 import javafx.util.Duration
 import javax.imageio.ImageIO
 import kotlinx.coroutines.withContext
@@ -14,6 +21,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.tagging.read
+import sp.it.pl.core.logger
 import sp.it.pl.image.ImageLoader.Params
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
@@ -26,8 +34,10 @@ import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
+import sp.it.util.async.VT
 import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.runSuspendingFx
+import sp.it.util.async.runOn
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfFxThread
@@ -45,7 +55,9 @@ import sp.it.util.file.type.MimeType
 import sp.it.util.file.type.MimeType.Companion.`image∕vnd·adobe·photoshop`
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
+import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.max
@@ -53,10 +65,12 @@ import sp.it.util.math.min
 import sp.it.util.system.Os
 import sp.it.util.ui.IconExtractor
 import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.image.Interrupts
 import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.image.loadImagePsd
 import sp.it.util.ui.image.toBuffered
 import sp.it.util.ui.image.toFX
+import sp.it.util.ui.image.withUrl
 import sp.it.util.units.millis
 import sp.it.util.units.seconds
 
@@ -85,11 +99,14 @@ interface ImageLoader {
 
    companion object {
 
+      /** @return memoized image loader that caches */
       private fun memoize(loader: ImageLoader, cacheKey: UUID): ImageLoader = object: ImageLoader {
+         private val imgCacheDir: File = File(System.getProperty("user.home")).absoluteFile / cacheKey.toString()
+
          override fun invoke(p: Params): Image? {
             val sizeKey = "${p.size.width.toInt() max 0}x${p.size.height.toInt() max 0}"
-            val imgDir: File = File(System.getProperty("user.home")).absoluteFile / cacheKey.toString() / sizeKey
-            val imgFile = imgDir / buildString {
+            val imgCachedDir: File = imgCacheDir / sizeKey
+            val imgCachedFile = imgCachedDir / buildString {
                // To enable multiple size versions, we requested image size
                // To prevent invalid data, we embed file size
                // To prevent conflict we embed file name, file path length and file path fragments
@@ -97,21 +114,75 @@ interface ImageLoader {
                append(p.file.length()).append("-")
                append(p.file.path.length).append("-")
                append(p.file.traverseParents().drop(1).toList().reversed().asSequence().map { it.nameOrRoot.dropLastWhile { it=='\\' || it==':' } }.joinToString("-") { "${it.firstOrNull()?.toString()}${it.lastOrNull()}" }).append("-")
-               append(p.file.name)
+               append(p.file.nameWithoutExtension).append(".png")
             }
 
-            return if (imgFile.exists()) {
-               loader(p.copy(file = imgFile, mime = imgFile.mimeType()))
-            } else {
-               loader(p)?.apply {
-                  imgDir.mkdirs()
-                  toBuffered().ifNotNull { ImageIO.write(it, imgFile.extension, imgFile) }
+            return null
+               // load from cache
+               ?: when {
+                  Interrupts.isInterrupted -> null
+                  !imgCachedFile.exists() -> null
+                  else -> runTry { ImageFxObjectStreamSerializer.deserialize(imgCachedFile) }
+                     .ifError { logger.warn(it) { "Failed to deserialize cache file=${p.file} from $imgCachedFile" } }
+                     .orNull()
                }
+               // load normally
+               ?: loader(p.copy(scaleExact = true))?.apply {
+                  // and cache (on separate thread to avoid touching interrupt flag)
+                  runOn(VT) {
+                     runTry { ImageFxObjectStreamSerializer.serialize(this, imgCachedDir, imgCachedFile) }
+                        .ifError { logger.warn(it) { "Failed to serialize cache file=${p.file} to $imgCachedFile" } }
+                  }
+               }
+         }
+      }
+
+   }
+
+   /** Stateless image cache [Image] serializer that uses .png image file as cache format */
+   object ImageFxImageFileSerializer {
+      fun serialize(img: Image, dir: File, file: File) {
+         dir.mkdirs()
+         img.toBuffered().ifNotNull { ImageIO.write(it, "png", file) }
+      }
+      fun deserialize(loader: ImageLoader, file: File): Image? {
+          return loader(Params(file, ImageSize(0, 0), MimeType.`image∕png`, false))
+      }
+   }
+
+   /** Stateless image cache [Image] serializer that uses img binary data as cache format. Incurs no image processing cost. */
+   object ImageFxObjectStreamSerializer {
+      fun serialize(img: Image, dir: File, file: File) {
+         if (img.progress != 1.0 || img.isError) return
+         dir.mkdirs()
+         ObjectOutputStream(file.outputStream().buffered()).use { s ->
+            s.writeDouble(img.width)
+            s.writeDouble(img.height)
+            s.writeUTF(img.url)
+            s.writeObject(BYTE_BGRA_PRE)
+            ByteBuffer.allocate(img.width.toInt()*img.height.toInt()*4).apply {
+               img.pixelReader.getPixels(0, 0, img.width.toInt(), img.height.toInt(), img.pixelReader.pixelFormat.asIs(), this, img.width.toInt()*4)
+               s.writeInt(capacity())
+               s.write(array())
             }
+         }
+      }
+      fun deserialize(file: File): Image {
+         ObjectInputStream(file.inputStream().buffered()).use { s ->
+            val w = s.readDouble()
+            val h = s.readDouble()
+            val url = s.readUTF()
+            val pixelFormatType = s.readObject().asIs<PixelFormat.Type>()
+            val pixelFormat = pixelFormatType.net { failIf(it!=BYTE_BGRA_PRE) { "Unsupported format=$it" }; PixelFormat.getByteBgraPreInstance() }
+            val bufferCapacity = s.readInt()
+            val buffer = ByteBuffer.wrap(s.readNBytes(bufferCapacity))
+            return WritableImage(PixelBuffer(w.toInt(), h.toInt(), buffer, pixelFormat.asIs())).withUrl(url)
          }
       }
    }
 }
+
+
 
 /** Standard image loader attempting the best possible quality and broad file type support. */
 object ImageStandardLoader: KLogging(), ImageLoader {
@@ -164,7 +235,7 @@ object ImageStandardLoader: KLogging(), ImageLoader {
                   null
                }
             }
-            "image/jpeg", "image/png", "image/gif" -> imgImplLoadFX(p.file, p.size, p.scaleExact)
+            "image/gif" -> imgImplLoadFX(p.file, p.size, p.scaleExact)
             "application/pdf" -> {
                runTry {
                   PDDocument.load(p.file).use {

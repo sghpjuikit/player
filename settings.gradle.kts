@@ -1,12 +1,10 @@
 // Gradle settings file for multi-project build. Executed during the initialization phase.
 // Defines all projects and build script classpath.
 
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-
 rootProject.apply {
+   name = "player"
    projectDir = file(".")
    buildFileName = "gradle/project.gradle.kts"
-
 
    // Project containing Java/Kotlin utility classes not directly related to the player
    include(":util")

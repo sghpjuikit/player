@@ -557,7 +557,7 @@ class WidgetManager {
                "-jdk-home", APP.location.child("java").relativeToApp(),
                "-api-version", "1.7",
                "-language-version", "1.7",
-               "-jvm-target", Runtime.version().feature().toString(),
+               "-jvm-target", "18",
                "-progressive",
                "-Xno-call-assertions",
                "-Xno-param-assertions",

@@ -200,7 +200,6 @@ typealias Predicate = (String) -> Boolean
 typealias Converter = (String) -> String
 
 class Tagger(widget: Widget): SimpleController(widget), SongWriter, SongReader {
-
    val inputValue = io.i.create<List<Song>>("Edit", listOf()) { read(it) }
 
    val coverV = ThumbnailWithAdd(IconFA.PLUS, "Change cover")

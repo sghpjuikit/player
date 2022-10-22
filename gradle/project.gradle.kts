@@ -1,8 +1,7 @@
 
 import kotlin.text.Charsets.UTF_8
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
-import org.gradle.jvm.toolchain.JvmImplementation.J9
-import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTOPENJDK
+import org.gradle.jvm.toolchain.JvmVendorSpec.ADOPTIUM
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // ----- plugin block; evaluated before the script itself
@@ -28,16 +27,15 @@ fun Project.tests(configuration: Test.() -> Unit) {
 /** Working directory of the application */
 val dirApp = file("app")
 val dirJdk = dirApp/"java"
-val javaVersionSupported = JavaVersion.VERSION_17
+val javaVersionSupported = JavaVersion.VERSION_19
 
 allprojects {
    apply(plugin = "kotlin")
 
    kotlin {
       jvmToolchain {
-         languageVersion.set(JavaLanguageVersion.of(17))
-         vendor.set(JvmVendorSpec.IBM_SEMERU)
-         implementation.set(J9)
+         languageVersion.set(JavaLanguageVersion.of(19))
+         vendor.set(ADOPTIUM)
       }
    }
 
@@ -49,7 +47,9 @@ allprojects {
       options.isWarnings = true
       options.isDeprecation = true
       options.compilerArgs = listOf(
-         "-Xlint:unchecked"
+         "-Xlint:unchecked",
+         "-Xlint:preview",
+         "--enable-preview",
       )
       sourceCompatibility = javaVersionSupported.majorVersion
       targetCompatibility = javaVersionSupported.majorVersion
@@ -69,7 +69,7 @@ allprojects {
          "-Xstring-concat=indy-with-constants"
       )
       kotlinOptions.javaParameters = true
-      kotlinOptions.jvmTarget = javaVersionSupported.majorVersion
+      kotlinOptions.jvmTarget = "18"
    }
 
    repositories {
@@ -190,13 +190,14 @@ sourceSets {
 }
 
 dependencies {
-   implementation(projects.util)
+   implementation(project(":util"))
 }
-val compiler = javaToolchains.compilerFor {
-   languageVersion.set(JavaLanguageVersion.of(17))
-   vendor.set(ADOPTOPENJDK)
-   implementation.set(J9)
+
+javaToolchains.compilerFor {
+   languageVersion.set(JavaLanguageVersion.of(19))
+   vendor.set(ADOPTIUM)
 }
+
 tasks {
 
    val copyLibs by creating(Sync::class) {
@@ -284,6 +285,6 @@ application {
       "-XX:+UseCompressedOops",
       "-XX:+CompactStrings",  // OpenJ9 only
       *"player.jvmArgs".prjProp?.split(' ')?.toTypedArray().orEmpty(),
-      "--illegal-access=permit"
+      "--enable-preview"
    )
 }

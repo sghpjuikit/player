@@ -1,10 +1,10 @@
 package albumView
 
 import java.io.File
+import java.nio.channels.ClosedByInterruptException
 import java.util.function.Supplier
 import javafx.geometry.Pos
 import javafx.scene.control.Label
-import javafx.scene.image.Image
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.MouseButton.PRIMARY
@@ -44,11 +44,13 @@ import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.FX
+import sp.it.util.async.VT
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
+import sp.it.util.async.runOn
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
@@ -61,8 +63,11 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.div
+import sp.it.util.functional.Option
+import sp.it.util.functional.Option.None
+import sp.it.util.functional.Option.Some
 import sp.it.util.functional.asIs
-import sp.it.util.functional.getAny
+import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
@@ -81,6 +86,7 @@ import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.image.Interrupts
 import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
@@ -279,11 +285,13 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       val name = items.getValueS("")
       var loadProgress: Double01 = 0.0
       var cover: ImageLoad = ImageLoad.NotStarted
+      @Volatile var loadingThread: Thread? = null
 
       /** Dispose of this as to never be used again. */
       fun dispose() {
          failIfNotFxThread()
-         cover =  ImageLoad.DoneErr
+         cover = ImageLoad.DoneErr
+         loadingThread = null
       }
 
       /** Dispose of the cover as to be able to load it again. */
@@ -292,25 +300,41 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          cover = ImageLoad.NotStarted
       }
 
-      fun computeCover(size: ImageSize): Fut<*> {
+      fun computeCover(size: ImageSize): Fut<ImageLoad> {
          failIfNotFxThread()
 
          return when (val c = cover) {
-            is ImageLoad.DoneErr, is ImageLoad.DoneOk -> fut(ImageLoad.DoneErr)
+            is ImageLoad.DoneErr -> fut(ImageLoad.DoneErr)
+            is ImageLoad.DoneOk -> fut(ImageLoad.DoneErr)
             is ImageLoad.Loading -> c.loading
-            is ImageLoad.NotStarted ->
-               runIO {
-                  val f = computeCoverFile()
-                  val i = if (f==null) null else ImageStandardLoader(f, size)
-                  ImageLoad.DoneOk(i, f)
-               }.thenRecover(FX) {
-                  if (cover !is ImageLoad.DoneErr)
-                     cover = it.toTryRaw().mapError { ImageLoad.DoneErr }.getAny()
-               }
+            is ImageLoad.DoneInterrupted -> computeCoverAsync(Some(c.file), size)
+            is ImageLoad.NotStarted -> computeCoverAsync(None, size)
          }
       }
 
-      private fun computeCoverFile(): File? = items.grouped.firstOrNull()?.getCover(DIRECTORY)?.getFile()
+      private fun computeCoverAsync(coverFile: Option<File?>, size: ImageSize): Fut<ImageLoad> =
+         runOn(VT) {
+            loadingThread = Thread.currentThread()
+            val f = coverFile.getOrSupply { computeCoverFile() }
+            try {
+               val i = f?.let { ImageStandardLoader(it, size) }
+               if (i==null && Interrupts.isInterrupted) ImageLoad.DoneInterrupted(f)
+               else ImageLoad.DoneOk(i, f)
+            } catch (e: Throwable) {
+               if (e is InterruptedException) ImageLoad.DoneInterrupted(f)
+               else if (e is ClosedByInterruptException) ImageLoad.DoneInterrupted(f)
+               else if (Interrupts.isInterrupted) ImageLoad.DoneInterrupted(f)
+               else ImageLoad.DoneErr
+            }
+         }.then(FX) {
+            cover = it
+            it
+         }.apply {
+            cover = ImageLoad.Loading(this)
+         }
+
+      private fun computeCoverFile(): File? =
+         items.grouped.firstOrNull()?.getCover(DIRECTORY)?.getFile()
    }
 
    inner class AlbumCell: GridCell<Album, MetadataGroup>() {
@@ -320,6 +344,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       private var thumb: Thumbnail? = null
       private var imgLoadAnim: Anim? = null
       private var imgLoadAnimItem: Album? = null
+      private var isJustVisible = false
 
       private val hoverAnim = lazy {
          anim(150.millis) {
@@ -353,12 +378,19 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          imgLoadAnimItem = null
          hoverAnim.orNull()?.stop()
          disposer()
+         item?.loadingThread.ifNotNull { it.interrupt() }
          if (thumb!=null) {
             val img = thumb?.view?.image
             thumb?.view?.image = null
             if (img!=null) JavaLegacy.destroyImage(img)
          }
          thumb = null
+      }
+
+      override fun updateIndex(i: Int) {
+         isJustVisible = index==-1 && i!=-1
+         if (i==-1) item?.loadingThread.ifNotNull { it.interrupt() }
+         super.updateIndex(i)
       }
 
       override fun updateItem(item: Album?, empty: Boolean) {
@@ -474,29 +506,33 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
        *
        * Must be called on FX thread.
        */
-      private fun setCoverNow(item: Album) {
-         failIfNotFxThread()
+   private fun setCoverNow(item: Album) {
+      when (val cover = item.cover) {
+         is ImageLoad.NotStarted, is ImageLoad.DoneInterrupted -> {
+            thumb!!.loadImage(null)
+            val i = index
+            item.computeCover(computeThumbSize()) ui { setCoverPost(item, i, it) }
+         }
+         is ImageLoad.Loading -> {
+            thumb!!.loadImage(null)
+            val i = index
+            cover.loading ui { setCoverPost(item, i, it) }
+         }
+         is ImageLoad.DoneErr -> {}
+         is ImageLoad.DoneOk -> setCoverPost(item, index, cover)
+      }
+   }
 
-         when (val cover = item.cover) {
-            is ImageLoad.DoneErr,
-            is ImageLoad.DoneOk -> setCoverPost(item, index, cover.file, cover.image)
-            is ImageLoad.Loading -> {}
-            is ImageLoad.NotStarted -> {
-               thumb!!.loadFile(null)
-               val i = index
-               item.computeCover(computeThumbSize()) ui {
-                  setCoverPost(item, i, item.cover.file, item.cover.image)
-               }
-            }
+   private fun setCoverPost(item: Album, index: Int, img: ImageLoad) {
+      if (!disposed && !isInvalid(item, index) && thumb!!.getImage()!==img.image) {
+         imgLoadAnim?.stop()
+         imgLoadAnimItem = item
+         imgLoadAnim?.playOpenFrom(item.loadProgress)
+         img.image.sync1IfImageLoaded {
+            thumb!!.loadImage(img.image, img.file)
          }
       }
-
-      private fun setCoverPost(item: Album, i: Int, imgFile: File?, img: Image?) {
-         if (!disposed && !isInvalid(item, i) && thumb!!.getImage()!==img)
-            img.sync1IfImageLoaded {
-               thumb!!.loadImage(img, imgFile)
-            }
-      }
+   }
 
    }
 

@@ -29,7 +29,7 @@ fun <T> Task<T>.runGet(): Result<T> {
    return try {
       ResultOk<T>(get())
    } catch (e: InterruptedException) {
-      logger.warn(e) { "Task execution failed" }
+      logger.trace(e) { "Task execution interrupted" }
       ResultInterrupted(e)
    } catch (e: ExecutionException) {
       logger.warn(e) { "Task execution failed" }

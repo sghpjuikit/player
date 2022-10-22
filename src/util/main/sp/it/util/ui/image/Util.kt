@@ -22,6 +22,7 @@ import mu.KotlinLogging
 import sp.it.util.async.runFX
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failCase
+import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.toURLOrNull
 import sp.it.util.functional.Try
@@ -34,6 +35,8 @@ import sp.it.util.ui.x
 import sp.it.util.ui.x2
 
 private val logger = KotlinLogging.logger {}
+
+fun ImageWr.withUrl(url: String?): ImageWr = apply { setField(this, "url", url) }
 
 fun ImageWr.withUrl(file: File?): ImageWr = apply { setField(this, "url", file?.toURLOrNull()?.toString()) }
 
@@ -106,72 +109,91 @@ fun loadBufferedImage(file: File): Try<ImageBf, IOException> {
    }
 }
 
+object Interrupts {
+
+   val isInterrupted: Boolean
+      get() = Thread.currentThread().isInterrupted
+
+   fun interrupt(t: Thread) {
+      failIf(!t.isVirtual) { "Can not interrupt non-virtual thread" }
+      t.interrupt()
+   }
+
+}
+
 fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, runTry { ImageIO.createImageInputStream(inS.buffered()) }.orNull(), width, height, highQuality, scaleExact)
 
 fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, runTry { ImageIO.createImageInputStream(FileInputStream(file).buffered()) }.orNull(), width, height, highQuality, scaleExact)
 
-private fun loadImagePsd(file: File, imageInputStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean): ImageFx? {
+private fun loadImagePsd(file: File, imgStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean): ImageFx? {
    failIfFxThread()
 
-   val stream = imageInputStream ?: return null
-   val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return null
-   reader.input = stream
+   return imgStream?.use { stream ->
 
-   var w = 0 max width.toInt()
-   var h = 0 max height.toInt()
-   val loadFullSize = w==0 && h==0
-   val ii = reader.minIndex
-   var i: ImageBf? = null
-      ?: run {
-         if (!loadFullSize) {
-            runTry {
-               val thumbHas = imgImplHasThumbnail(reader, ii, file)
-               val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
-               val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
-               val thumbUse = thumbHas && w<=thumbW && h<=thumbH
-               if (thumbUse) reader.readThumbnail(ii, 0) else null
-            } orNull {
-               logger.warn(it) { "Failed to read thumbnail for image=$file" }
+      if (Interrupts.isInterrupted) return@use null
+      val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return null
+      reader.input = stream
+      AutoCloseable { reader.dispose() }.use { _ ->
+         var w = 0 max width.toInt()
+         var h = 0 max height.toInt()
+         val loadFullSize = w==0 && h==0
+         val ii = reader.minIndex
+         var i: ImageBf? = null
+            ?: run {
+               if (Interrupts.isInterrupted) null
+               else if (!loadFullSize) {
+                  runTry {
+                     val thumbHas = imgImplHasThumbnail(reader, ii, file)
+                     val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
+                     val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
+                     val thumbUse = thumbHas && w<=thumbW && h<=thumbH
+                     if (thumbUse) reader.readThumbnail(ii, 0) else null
+                  } orNull {
+                     if (!Interrupts.isInterrupted) logger.warn(it) { "Failed to read thumbnail for image=$file" }
+                  }
+               } else null
             }
-         } else
-            null
-      }
-      ?: runTry {
-         val iW = reader.getWidth(ii)
-         val iH = reader.getHeight(ii)
-         if (w>iW || h>iH) {
-            w = iW
-            h = iH
-         }
-         val iRatio = iW.toDouble()/iH.toDouble()
-         val rRatio = w.toDouble()/h.toDouble()
-         val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
-         val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
+            ?: runTry {
+               if (Interrupts.isInterrupted)
+                  return@runTry null
 
-         val irp = reader.defaultReadParam.apply {
-            val px = when {
-               !highQuality && rW!=0 && rH!=0 -> {
-                  val sw = iW/rW
-                  val sh = iH/rH
-                  maxOf(1, minOf(sw, sh)/2) // quality == 2/3 == ok, great performance
+               val iW = reader.getWidth(ii)
+               val iH = reader.getHeight(ii)
+               if (w>iW || h>iH) {
+                  w = iW
+                  h = iH
                }
-               else -> 1 // 1 == max quality
+               val iRatio = iW.toDouble()/iH.toDouble()
+               val rRatio = w.toDouble()/h.toDouble()
+               val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
+               val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
+
+               val irp = reader.defaultReadParam.apply {
+                  val px = when {
+                     !highQuality && rW!=0 && rH!=0 -> {
+                        val sw = iW/rW
+                        val sh = iH/rH
+                        maxOf(1, minOf(sw, sh)/2) // quality == 2/3 == ok, great performance
+                     }
+                     else -> 1 // 1 == max quality
+                  }
+
+                  setSourceSubsampling(px, px, 0, 0)
+               }
+
+               if (Interrupts.isInterrupted) null
+               else reader.read(ii, irp)
+            } orNull {
+               if (!Interrupts.isInterrupted) logger.warn(it) { "Failed to load image=$file" }
             }
-            setSourceSubsampling(px, px, 0, 0)
-         }
 
-            reader.read(ii, irp)
-      } orNull {
-         logger.warn(it) { "Failed to load image=$file" }
+         if (!loadFullSize)
+            i = i?.toScaledDown(w, h, down = scaleExact, up = scaleExact)
+
+         i?.toFX(file)
       }
+   }
 
-   runTry { reader.dispose() }.ifError { logger.warn(it) { "Failed to dispose image reader image=$file" } }
-   runTry { stream.close() }.ifError { logger.warn(it) { "Failed to close image stream image=$file" } }
-
-   if (!loadFullSize)
-      i = i?.toScaledDown(w, h, down = true, up = scaleExact)
-
-   return i?.toFX(file)
 }
 
 /**

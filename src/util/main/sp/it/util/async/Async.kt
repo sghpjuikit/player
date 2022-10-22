@@ -15,9 +15,7 @@ import javafx.util.Duration
 import javafx.util.Duration.ZERO
 import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.javafx.JavaFx
 import mu.KotlinLogging
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
@@ -47,6 +45,7 @@ operator fun Executor.invoke(block: () -> Unit) = execute(block)
 @JvmField val IO_LATER = IOLaterExecutor()
 @JvmField val IO = IOExecutor(IO_LATER)
 @JvmField val CURR = Executor { it() }
+@JvmField val VT = Executors.newVirtualThreadPerTaskExecutor()!!
 
 /**
  * Executes the specified block immediately on a new daemon thread.
@@ -133,7 +132,7 @@ fun sleep(durationMillis: Long) {
    try {
       Thread.sleep(durationMillis)
    } catch (e: InterruptedException) {
-      logger.error { "Thread interrupted while sleeping" }
+      logger.trace { "Thread=${Thread.currentThread().name} interrupted while sleeping" }
    }
 }
 

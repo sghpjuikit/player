@@ -66,7 +66,7 @@ abstract class LinkJDK : DefaultTask {
          val isWindows = "os.name".sysProp?.startsWith("Windows")==true
          if (isWindows) {
             logger.info("Trying to create a Windows junction instead...")
-            val process = Runtime.getRuntime().exec("""cmd.exe /c mklink /j "$linkLocation" "$jdkLocation"""")
+            val process = Runtime.getRuntime().exec(arrayOf("cmd.exe", "/c", "mklink", "/j", linkLocation.path, jdkLocation.path))
             val exitValue = process.waitFor()
             if (exitValue==0 && linkLocation.exists()) logger.info("Successfully created junction!")
             else failIO(e) { "Unable to make JDK locally accessible!\nmklink exit code: $exitValue" }

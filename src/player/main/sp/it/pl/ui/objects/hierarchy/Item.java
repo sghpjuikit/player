@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 import javafx.scene.image.Image;
 import kotlin.sequences.Sequence;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,8 @@ import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.VT;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runOn;
+import static sp.it.util.async.AsyncKt.runVT;
+import static sp.it.util.async.ExecutorExtensionsKt.limitParallelism;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.FailKt.failIfFxThread;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
@@ -252,7 +254,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		}
 
 		var strategy = getCoverStrategy();
-		var cl = runOn(VT, () -> {
+		var cl = runVT(() -> {
 			loadingThread = Thread.currentThread();
 			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(null);
 
@@ -419,5 +421,6 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		}
 
 		public static final CoverStrategy DEFAULT = new CoverStrategy(true, true, false, true, null);
+		public static final Executor VT_IMAGE = limitParallelism(VT, 6);
 	}
 }

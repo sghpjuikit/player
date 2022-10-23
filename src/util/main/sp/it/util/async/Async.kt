@@ -45,7 +45,7 @@ operator fun Executor.invoke(block: () -> Unit) = execute(block)
 @JvmField val IO_LATER = IOLaterExecutor()
 @JvmField val IO = IOExecutor(IO_LATER)
 @JvmField val CURR = Executor { it() }
-@JvmField val VT = Executors.newVirtualThreadPerTaskExecutor()!!
+@JvmField val VT = VTExecutor()
 
 /**
  * Executes the specified block immediately on a new daemon thread.
@@ -124,6 +124,11 @@ class IOLaterExecutor(private val e: Executor = burstTPExecutor(32, 1.minutes, t
    override fun execute(it: Runnable) = e(it)
 }
 
+/** Executes the specified block on thread in an IO thread pool. */
+class VTExecutor: Executor by Executors.newVirtualThreadPerTaskExecutor()!! {
+   fun named(name: String): Executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(name).factory())
+}
+
 /** Sleeps currently executing thread for specified duration. When interrupted, returns.  */
 fun sleep(duration: Duration) = sleep(duration.toMillis().toLong())
 
@@ -181,6 +186,12 @@ fun <T> runIO(block: () -> T) = runOn(IO, block)
 /** Legacy version of [runIO] for Java taking a [Runnable]. */
 fun runIO(block: Runnable) = runIO(block.kt)
 
+/** Calls [runOn] using [VT] and the specified block. */
+fun <T> runVT(block: () -> T) = runOn(VT, block)
+
+/** Legacy version of [runVT] for Java taking a [Runnable]. */
+fun runVT(block: Runnable) = runVT(block.kt)
+
 /** Runs the specified block for each specified item using the max specified parallelism, blocks until finish and returns results.  */
 @Experimental("does not handle errors correctly")
 fun <T, R> runIoParallel(parallelism: Int = Runtime.getRuntime().availableProcessors(), items: Collection<T>, block: (T) -> R): Futs<R, Throwable> = runIO {
@@ -214,9 +225,6 @@ fun onlyIfMatches(counter: AtomicLong, r: Runnable): Runnable {
    }
 }
 
-/** @return single thread executor using specified thread factory */
-fun oneTPExecutor(): ExecutorService = Executors.newSingleThreadExecutor(threadFactory(true))
-
 /** @return single thread executor keeping the thread alive for specified time and using specified thread factory */
 fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
    ThreadPoolExecutor(0, 1, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue(), threadFactory)
@@ -230,15 +238,6 @@ fun oneCachedTPExecutor(keepAliveTime: Duration, threadFactory: ThreadFactory) =
 fun burstTPExecutor(maxPoolSize: Int, keepAliveTime: Duration, threadFactory: ThreadFactory): ExecutorService {
    return ThreadPoolExecutor(maxPoolSize, maxPoolSize, keepAliveTime.toMillis().toLong(), TimeUnit.MILLISECONDS, LinkedBlockingQueue(), threadFactory).apply {
       allowCoreThreadTimeOut(true)
-   }
-}
-
-fun threadFactory(daemon: Boolean): ThreadFactory {
-   return ThreadFactory { r ->
-      Thread(r).apply {
-         isDaemon = daemon
-         setUncaughtExceptionHandler { _, e -> logger.error(e) { "Uncaught exception" } }
-      }
    }
 }
 

@@ -16,12 +16,11 @@ import javafx.stage.FileChooser
 import javafx.stage.Screen
 import javafx.stage.Window
 import mu.KotlinLogging
-import sp.it.util.async.IO
 import sp.it.util.async.future.Fut
-import sp.it.util.async.runIO
-import sp.it.util.async.runNew
+import sp.it.util.async.runVT
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.ThreadSafe
+import sp.it.util.dev.failIfNotFxThread
 import sp.it.util.file.FileType
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.WindowsShortcut
@@ -65,7 +64,7 @@ object EnvironmentContext {
 }
 
 /**
- * Launches this file as an executable program as a separate process on an [IO].
+ * Launches this file as an executable program as a separate process on [runVT].
  * Executes an initializer block on the process right before [ProcessBuilder.start].
  * - working directory of the program will be set to the parent directory of its file
  * - [ProcessBuilder.redirectOutput] and [ProcessBuilder.redirectError] is set to [DISCARD] unless overridden
@@ -75,10 +74,9 @@ object EnvironmentContext {
  * @param then block taking the program's process as parameter executing if the program executes
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
-@ThreadSafe
-@JvmOverloads
+@ThreadSafe @JvmOverloads
 fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit = {}): Fut<Process> {
-   return runIO {
+   return runVT {
       val f = if (Os.WINDOWS.isCurrent && hasExtension("lnk")) WindowsShortcut.targetedFile(this).orNull() ?: this
               else this
       val commandRaw = listOf(f.absolutePath, *arguments)
@@ -89,24 +87,24 @@ fun File.runAsProgram(vararg arguments: String, then: (ProcessBuilder) -> Unit =
          .apply(then)
          .start()
       process
-   }.onError(IO) {
+   }.onError {
       logger.error(it) { "Failed to launch program $absolutePath" }
    }
 }
 
 /**
- * Runs a command in new background thread as a separate process on a new thread and executes an action (on it) right
+ * Runs a command as a separate process on [runVT] and executes an action (on it) right
  * after it launches.
  *
  * @param command see [Runtime.exec]
  * @param then block taking the program's process as parameter executing if the program executes
  * @return success if the program is executed or error if it is not, irrespective of if and how the program finishes
  */
-@JvmOverloads
+@ThreadSafe @JvmOverloads
 fun runCommand(command: String, then: (Process) -> Unit = {}): Fut<Try<Process, Exception>> {
-   return runIO {
+   return runVT {
       try {
-         val process = Runtime.getRuntime().exec(command).apply(then)
+         val process = Runtime.getRuntime().execRaw(command).apply(then)
          Try.ok(process)
       } catch (e: IOException) {
          logger.error(e) { "Error running command '$command'" }
@@ -116,19 +114,22 @@ fun runCommand(command: String, then: (Process) -> Unit = {}): Fut<Try<Process, 
 }
 
 /** Equivalent to [URI.browse] for the URI denoting this file. */
+@ThreadSafe
 fun File.browse() = toURI().browse()
 
 /**
- * Browse this uri, in order:
+ * Browse this uri on [runVT].
+ * Does in order:
  * - if it is directory/file -> browse the file in the system file browser by opening the parent directory and selecting the file.
  * If this is unsupported, [open] is called on the parent directory.
  * - if it is url -> open the url in system browser
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
+@ThreadSafe
 fun URI.browse() {
    logger.info { "Browsing uri=$this" }
-   runIO {
+   runVT {
       toFileOrNull()
          .ifNotNull {
             if (it.exists()) {
@@ -158,13 +159,15 @@ fun URI.browse() {
 }
 
 /**
- * Open this URI, in order:
+ * Open this URI on [runVT].
+ * Does in order:
  * - if it is a file -> [File.open]
  * - else -> [URI.browse]
  */
+@ThreadSafe
 fun URI.open() {
    logger.info { "Browsing uri=$this" }
-   runIO {
+   runVT {
       toFileOrNull()
          .ifNotNull {
             if (it.exists()) it.open()
@@ -175,16 +178,18 @@ fun URI.open() {
 }
 
 /**
- * Edit this file, in order:
+ * Edit this file on [runVT].
+ * Does in order:
  * - if it is directory -> [open] is called
  * - if it is file -> open in system associated editor if any is available or [open] is called instead
  * - if it does not exist -> no-op
  *
  * On some platforms the operation may be unsupported. In that case this [open] is called.
  */
+@ThreadSafe
 fun File.edit() {
    logger.info { "Editing file=$this" }
-   runIO {
+   runVT {
       if (isDirectory) {
          open()
       } else {
@@ -209,7 +214,8 @@ fun File.edit() {
 }
 
 /**
- * Open this file, in order:
+ * Open this file on [runVT].
+ * Does in order:
  * - if it is executable, it will be executed using [runAsProgram]
  * - if it is application skin, it will be applied
  * - if it is application component, it will be opened
@@ -218,14 +224,15 @@ fun File.edit() {
  *
  * On some platforms the operation may be unsupported. In that case this method is a no-op.
  */
+@ThreadSafe
 fun File.open() {
    logger.info { "Opening file=$this" }
-   runNew<Unit> {
+   runVT<Unit> {
       when {
          // If the file is executable, Desktop#open() will execute it, however the spawned process' working directory
          // will be set to the working directory of this application, which is not illegal, but definitely dangerous
          // Hence, we execute files on our own
-         isExecutable() -> runAsProgram()
+         isExecutable() -> runAsProgram().block()
          else -> {
             if (Desktop.Action.OPEN.isSupportedOrWarn()) {
                try {
@@ -249,6 +256,7 @@ fun File.open() {
  *
  * @return success if file was deleted or did not exist or error if error occurs during deletion
  */
+@ThreadSafe
 fun File.recycle(): Try<Nothing?, String> {
    logger.info { "Recycling file=$this" }
 
@@ -281,6 +289,8 @@ fun File.recycle(): Try<Nothing?, String> {
 }
 
 fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Nothing?> {
+   failIfNotFxThread()
+
    when (type) {
       FileType.DIRECTORY -> {
          val c = DirectoryChooser().apply {
@@ -308,6 +318,8 @@ fun chooseFile(title: String, type: FileType, initial: File? = null, w: Window? 
 }
 
 fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<List<File>, Nothing?> {
+   failIfNotFxThread()
+
    val c = FileChooser().apply {
       this.title = title
       this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir
@@ -320,6 +332,8 @@ fun chooseFiles(title: String, initial: File? = null, w: Window? = null, vararg 
 }
 
 fun saveFile(title: String, initial: File? = null, initialName: String, w: Window? = null, vararg extensions: FileChooser.ExtensionFilter): Try<File, Nothing?> {
+   failIfNotFxThread()
+
    val c = FileChooser().apply {
       this.title = title
       this.initialDirectory = initial?.find1stExistingParentDir()?.orNull() ?: defaultChooseFileDir

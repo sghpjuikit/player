@@ -85,16 +85,12 @@
   `CheckIcon(sortAlphabetically).icons(IconFA.SORT_ALPHA_ASC, IconFA.SORT_AMOUNT_ASC)`
 - Implement application **ui-less** mode properly (no window needs to be open)  
   Requires rethinking how application would be closed
-- Improve image loading performance using [PixelBuffer](https://github.com/jgneff/pixel-buffer)  
-  Can provide lots of speedup
 - Implement **TabContainer** and **StackContainer**  
   The challenge is the layout mode UI
 - Implement isolating song playback and song db to `MASTER`application  
   Right now multiple instances could get in the way of each other
 - Implement song fulltext search  
   **Lucene**?
-- improve process handling  
-  Look into [NuProcess](https://github.com/brettwooldridge/NuProcess)
 - Improve I/O to support cross-window  
   Challenging. See [issue](/TODO-ISSUES.md#io-ui)
 - Write documentation

@@ -44,6 +44,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.http.downloadFile
 import sp.it.util.parsing.ConverterString
 import sp.it.util.system.Os
+import sp.it.util.system.execRaw
 import sp.it.util.text.capital
 import sp.it.util.text.equalsNc
 import sp.it.util.text.plural
@@ -319,7 +320,7 @@ private fun windowsCmdDir(dir: File, type: FileType): List<FastFile> {
    }
 
    return try {
-      Runtime.getRuntime().exec(cmd)
+      Runtime.getRuntime().execRaw(cmd)
          .inputStream.bufferedReader(Charsets.UTF_8)
          .useLines { it.map { FastFile(it, isDir, isFile) }.toList() }
    } catch (e: Throwable) {

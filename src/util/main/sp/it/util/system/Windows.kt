@@ -12,19 +12,19 @@ object Windows {
    }
 
    fun shutdown(): Try<Unit, Throwable> = runTry {
-      Runtime.getRuntime().exec("shutdown -s -t 0")
+      Runtime.getRuntime().execRaw("shutdown -s -t 0")
    }
 
    fun restart(): Try<Unit, Throwable> = runTry {
-      Runtime.getRuntime().exec("shutdown -r -t 0")
+      Runtime.getRuntime().execRaw("shutdown -r -t 0")
    }
 
    fun logOff(): Try<Unit, Throwable> = runTry {
-      Runtime.getRuntime().exec("shutdown -l -t 0")
+      Runtime.getRuntime().execRaw("shutdown -l -t 0")
    }
 
    fun lock(): Try<Unit, Throwable> = runTry {
-      Runtime.getRuntime().exec("Rundll32.exe user32.dll,LockWorkStation")
+      Runtime.getRuntime().execRaw("Rundll32.exe user32.dll,LockWorkStation")
    }
 
    @Suppress("LocalVariableName", "SpellCheckingInspection")

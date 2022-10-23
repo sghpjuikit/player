@@ -44,13 +44,12 @@ import sp.it.util.access.toggle
 import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.FX
-import sp.it.util.async.VT
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.runIO
 import sp.it.util.async.runLater
-import sp.it.util.async.runOn
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.EditMode
@@ -313,7 +312,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       }
 
       private fun computeCoverAsync(coverFile: Option<File?>, size: ImageSize): Fut<ImageLoad> =
-         runOn(VT) {
+         runVT {
             loadingThread = Thread.currentThread()
             val f = coverFile.getOrSupply { computeCoverFile() }
             try {

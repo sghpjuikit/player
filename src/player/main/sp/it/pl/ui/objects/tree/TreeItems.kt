@@ -62,7 +62,7 @@ import sp.it.pl.ui.objects.window.stage.isMainWindow
 import sp.it.util.HierarchicalBase
 import sp.it.util.access.expanded
 import sp.it.util.access.toggle
-import sp.it.util.async.executor.ExecuteN
+import sp.it.util.async.CURR
 import sp.it.util.async.invoke
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.setTo
@@ -395,7 +395,7 @@ private fun doAction(o: Any?, otherwise: () -> Unit) {
 }
 
 open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<out T>): TreeItem<T>(v), DisposableTreeItem {
-   private val once = ExecuteN(1)
+   private val once = CURR.limitExecCount(1)
    private val childrenDisposer = Disposer()
    private var isDisposed = false
 
@@ -426,7 +426,7 @@ open class OTreeItem<T> constructor(v: T, private val childrenO: ObservableList<
 
 open class SimpleTreeItem<T> constructor(value: T, childrenSeq: Sequence<T> = seqOf()): TreeItem<T>(value) {
    private val childrenAll = childrenSeq.toList()
-   private val once = ExecuteN(1)
+   private val once = CURR.limitExecCount(1)
 
    override fun isLeaf() = childrenAll.isEmpty()
    override fun getChildren(): ObservableList<TreeItem<T>> {
@@ -439,7 +439,7 @@ open class SimpleTreeItem<T> constructor(value: T, childrenSeq: Sequence<T> = se
 }
 
 open class STreeItem<T> constructor(v: T, private val childrenLazy: () -> Sequence<T>, private val isLeafLazy: () -> Boolean = { false }): TreeItem<T>(v) {
-   private val once = ExecuteN(1)
+   private val once = CURR.limitExecCount(1)
 
    override fun isLeaf() = isLeafLazy()
    override fun getChildren(): ObservableList<TreeItem<T>> {

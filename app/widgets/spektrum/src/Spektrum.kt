@@ -560,27 +560,21 @@ class TarsosAudioEngine(settings: Spektrum) {
             mixerRef = mixer
             val audioFormat = AudioFormat(settings.sampleRate.value.toFloat(), settings.sampleSizeInBits.value, settings.audioFormatChannels, settings.audioFormatSigned, settings.audioFormatBigEndian)
             val line = obtainLine(mixer, audioFormat, settings.bufferSize.value)
-            val stream = AudioInputStream(line)
-            val audioStream = JVMAudioInputStream(stream)
+            val audioStream = JVMAudioInputStream(AudioInputStream(line))
             dispatcher = AudioDispatcher(audioStream, settings.bufferSize.value, settings.bufferOverlap.value).apply {
                addAudioProcessor(FFTAudioProcessor(audioFormat, fttListenerList, settings))
             }
-            audioThread = Thread(dispatcher, "Spektrum widget audio-fft").apply {
-               isDaemon = true
-               start()
-            }
+            audioThread = audioThreadFactory.start(dispatcher)
          }
       }.ifError {
-         // TODO: use logger
-         println("Using audio device '${settings.inputDevice.value}' failed")
-         it.printStackTrace()
+         logger.warn(it) { "Using audio device '${settings.inputDevice.value}' failed" }
       }
    }
 
    fun stop() {
       try {
          dispatcher?.stop()
-         audioThread?.join((1*1000).toLong()) // wait for audio dispatcher to finish // TODO: remove?
+         audioThread?.join((1*1000).toLong()) // wait for audio dispatcher to finish
       } catch (e: InterruptedException) {
          logger.trace { "Thread=${Thread.currentThread().name} interrupted" }
       }
@@ -604,9 +598,9 @@ class TarsosAudioEngine(settings: Spektrum) {
 
    @ThreadSafe
    fun restartOnNewThread() {
-      val thread = Thread { restart() }
-      thread.isDaemon = true
-      thread.start()
+      Thread.startVirtualThread {
+         restart()
+      }
    }
 
    fun dispose() {
@@ -632,7 +626,9 @@ class TarsosAudioEngine(settings: Spektrum) {
       }
    }
 
-   companion object: KLogging()
+   companion object: KLogging() {
+      val audioThreadFactory = Thread.ofVirtual().name("spektrum-widget-audio-fft", 0)!!
+   }
 
 }
 

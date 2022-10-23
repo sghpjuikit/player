@@ -192,7 +192,6 @@ class Tester(widget: Widget): SimpleController(widget) {
       root.consumeScrolling()
       groupSelected.sync { s -> groups.forEach { it.select(it.name==s) } }
 
-
       root.prefSize = 400.emScaled x 400.emScaled
       root.lay += hBox(20.emScaled, CENTER) {
          lay += stackPane {

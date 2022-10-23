@@ -132,7 +132,6 @@ fun main(args: Array<String>) {
    if (!isValidatedDirectory(tmp)) fail { "Invalid tmp directory" }
    System.setProperty("java.io.tmpdir", tmp.absolutePath)
    System.setProperty("user.home", tmp.absolutePath)
-   System.setProperty("jdk.virtualThreadScheduler.maxPoolSize", "6")
 
    // Disable url caching, which may cause jar files being held in memory
    URLConnection.setDefaultUseCaches("file", false)

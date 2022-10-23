@@ -34,10 +34,9 @@ import sp.it.pl.main.runAsAppProgram
 import sp.it.pl.main.withAppProgress
 import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
-import sp.it.util.async.VT
 import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.runSuspendingFx
-import sp.it.util.async.runOn
+import sp.it.util.async.runVT
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfFxThread
@@ -129,7 +128,7 @@ interface ImageLoader {
                // load normally
                ?: loader(p.copy(scaleExact = true))?.apply {
                   // and cache (on separate thread to avoid touching interrupt flag)
-                  runOn(VT) {
+                  runVT {
                      runTry { ImageFxObjectStreamSerializer.serialize(this, imgCachedDir, imgCachedFile) }
                         .ifError { logger.warn(it) { "Failed to serialize cache file=${p.file} to $imgCachedFile" } }
                   }

@@ -64,12 +64,12 @@ import sp.it.pl.ui.pane.OverlayPane.Display.SCREEN_OF_MOUSE
 import sp.it.util.access.Values
 import sp.it.util.access.v
 import sp.it.util.async.FX
-import sp.it.util.async.burstTPExecutor
+import sp.it.util.async.VT
 import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut.Companion.fut
+import sp.it.util.async.limitParallelism
 import sp.it.util.async.runLater
-import sp.it.util.async.threadFactory
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.materialize
@@ -143,7 +143,6 @@ import sp.it.util.ui.scrollText
 import sp.it.util.ui.setMinPrefMaxSize
 import sp.it.util.ui.stylesheetToggle
 import sp.it.util.ui.text
-import sp.it.util.units.seconds
 
 /** Handles operations with Widgets. */
 class WidgetManager {
@@ -171,7 +170,7 @@ class WidgetManager {
    /** Separates entries of a java classpath argument, passed to JVM. */
    private var classpathSeparator = Os.current.classpathSeparator
    private var initialized = false
-   private val compilerThread by lazy { burstTPExecutor(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt(), 30.seconds, threadFactory("widgetCompiler", true)) }
+   private val compilerThread = VT.named("widget-compile").limitParallelism(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt())
    private val kotlinc by lazy {
       val kotlinVersion = APP.location.lib.children().map { it.path }.find { "kotlin-stdlib-" in it }?.substringAfter("kotlin-stdlib-")?.substringBefore(".jar") ?: fail { "No lib/kotlin-stdlib found" }
       val kotlincDir = APP.location.kotlinc
@@ -581,10 +580,10 @@ class WidgetManager {
             val isSuccess = success==0
 
             if (isSuccess) {
-               logger.info { "Compilation succeeded$textStdout" }
+               logger.info { "Compilation succeeded\n$textStdout" }
                Try.ok()
             } else {
-               logger.error { "Compilation failed$textStdout$textStdErr" }
+               logger.error { "Compilation failed\n$textStdout\n$textStdErr" }
                Try.error(textStdErr)
             }
          } catch (e: Exception) {

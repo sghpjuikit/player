@@ -365,7 +365,7 @@ abstract class OverlayPane<in T>: StackPane() {
       }
       op.opacityNode?.opacity = 1 - x*0.5
       op.content?.opacity = y*y
-      val b = 15.0*x*x
+      val b = 15.0*it*it
       if (b==0.0 || b==15.0 || abs(op.blur.height - b) > 3.0) {
          op.blur.height = b
          op.blur.width = b

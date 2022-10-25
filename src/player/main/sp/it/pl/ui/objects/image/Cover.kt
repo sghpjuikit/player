@@ -3,11 +3,12 @@ package sp.it.pl.ui.objects.image
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.Objects
-import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
 import sp.it.pl.image.ImageStandardLoader
 import sp.it.util.dev.Blocks
+import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.ImageSize
+import sp.it.util.ui.image.toFX
 
 interface Cover {
 
@@ -16,11 +17,11 @@ interface Cover {
 
    /** @return the cover image in the request size (not guaranteed) or null if none */
    @Blocks
-   fun getImage(width: Double, height: Double): Image?
+   fun getImage(width: Double, height: Double, fit: FitFrom): Image?
 
    /** @return the cover image in the request size (not guaranteed) or null if none */
    @Blocks
-   fun getImage(size: ImageSize): Image? = getImage(size.width, size.height)
+   fun getImage(size: ImageSize, fit: FitFrom): Image? = getImage(size.width, size.height, fit)
 
    /** @return the cover image or null if none */
    @Blocks
@@ -47,14 +48,14 @@ object EmptyCover: Cover {
    override fun getImage() = null
    override fun getFile() = null
    override fun isEmpty(): Boolean = true
-   override fun getImage(width: Double, height: Double) = null
-   override fun getImage(size: ImageSize) = null
+   override fun getImage(width: Double, height: Double, fit: FitFrom) = null
+   override fun getImage(size: ImageSize, fit: FitFrom) = null
 }
 
 /** Cover represented by a [java.io.File]. */
 data class FileCover(private val file: File?, private val description: String? = null): Cover {
    override fun getImage() = ImageStandardLoader(file)
-   override fun getImage(width: Double, height: Double) = if (file==null) null else ImageStandardLoader(file, ImageSize(width, height))
+   override fun getImage(width: Double, height: Double, fit: FitFrom) = ImageStandardLoader(file, ImageSize(width, height), fit)
    override fun getFile() = file
    override fun isEmpty() = file==null
 }
@@ -79,9 +80,9 @@ class ImageCover: Cover {
       this.description = description
    }
 
-   override fun getImage(): Image? = if (imageB==null) imageI else SwingFXUtils.toFXImage(imageB, null)
+   override fun getImage(): Image? = if (imageB==null) imageI else imageB.toFX(null)
 
-   override fun getImage(width: Double, height: Double): Image? = getImage()
+   override fun getImage(width: Double, height: Double, fit: FitFrom): Image? = getImage()
 
    override fun getFile(): Nothing? = null
 

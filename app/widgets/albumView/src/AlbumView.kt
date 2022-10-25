@@ -1,7 +1,6 @@
 package albumView
 
 import java.io.File
-import java.nio.channels.ClosedByInterruptException
 import java.util.function.Supplier
 import javafx.geometry.Pos
 import javafx.scene.control.Label
@@ -70,10 +69,8 @@ import sp.it.util.functional.getOrSupply
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
-import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
-import sp.it.util.reactive.doIfImageLoaded
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -84,8 +81,10 @@ import sp.it.util.reactive.sync1IfNonNull
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.Interrupts
+import sp.it.util.ui.image.Interrupts.interrupt
 import sp.it.util.ui.lay
 import sp.it.util.ui.maxSize
 import sp.it.util.ui.minSize
@@ -118,7 +117,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       .def(name = "Thumbnail size", info = "Size of the thumbnail.")
    val cellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
-   val coverFitFrom by cv(FitFrom.OUTSIDE)
+   val coverFitFrom by cv(OUTSIDE).attach { applyCellSize() }
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
    private val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
@@ -284,7 +283,8 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       val name = items.getValueS("")
       var loadProgress: Double01 = 0.0
       var cover: ImageLoad = ImageLoad.NotStarted
-      @Volatile var loadingThread: Thread? = null
+      @Volatile private var loadingThread: Thread? = null
+      @Volatile private var loadingPreInterrupted: Boolean = false
 
       /** Dispose of this as to never be used again. */
       fun dispose() {
@@ -299,38 +299,46 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          cover = ImageLoad.NotStarted
       }
 
-      fun computeCover(size: ImageSize): Fut<ImageLoad> {
+      fun computeCoverInterrupt() {
+         loadingPreInterrupted = true
+         interrupt(loadingThread)
+      }
+
+      fun computeCover(size: ImageSize, fit: FitFrom): Fut<ImageLoad> {
          failIfNotFxThread()
 
          return when (val c = cover) {
             is ImageLoad.DoneErr -> fut(ImageLoad.DoneErr)
             is ImageLoad.DoneOk -> fut(ImageLoad.DoneErr)
             is ImageLoad.Loading -> c.loading
-            is ImageLoad.DoneInterrupted -> computeCoverAsync(Some(c.file), size)
-            is ImageLoad.NotStarted -> computeCoverAsync(None, size)
+            is ImageLoad.DoneInterrupted -> computeCoverAsync(c.fileOpt, size, fit)
+            is ImageLoad.NotStarted -> computeCoverAsync(None, size, fit)
          }
       }
 
-      private fun computeCoverAsync(coverFile: Option<File?>, size: ImageSize): Fut<ImageLoad> =
-         runVT {
+      private fun computeCoverAsync(coverFile: Option<File?>, size: ImageSize, fit: FitFrom): Fut<ImageLoad> {
+         loadingPreInterrupted = false
+         return runVT {
             loadingThread = Thread.currentThread()
+            if (loadingPreInterrupted) return@runVT ImageLoad.DoneInterrupted(coverFile)
             val f = coverFile.getOrSupply { computeCoverFile() }
             try {
-               val i = f?.let { ImageStandardLoader(it, size) }
-               if (i==null && Interrupts.isInterrupted) ImageLoad.DoneInterrupted(f)
+               val i = f?.let { ImageStandardLoader(it, size, fit) }
+               if (i==null && Interrupts.isInterrupted) ImageLoad.DoneInterrupted(Some(f))
                else ImageLoad.DoneOk(i, f)
             } catch (e: Throwable) {
-               if (e is InterruptedException) ImageLoad.DoneInterrupted(f)
-               else if (e is ClosedByInterruptException) ImageLoad.DoneInterrupted(f)
-               else if (Interrupts.isInterrupted) ImageLoad.DoneInterrupted(f)
+               if (Interrupts.isInterrupted) ImageLoad.DoneInterrupted(Some(f))
                else ImageLoad.DoneErr
             }
          }.then(FX) {
+            Interrupts.dispose(loadingThread)
+            loadingThread = null
             cover = it
             it
          }.apply {
             cover = ImageLoad.Loading(this)
          }
+      }
 
       private fun computeCoverFile(): File? =
          items.grouped.firstOrNull()?.getCover(DIRECTORY)?.getFile()
@@ -343,7 +351,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       private var thumb: Thumbnail? = null
       private var imgLoadAnim: Anim? = null
       private var imgLoadAnimItem: Album? = null
-      private var isJustVisible = false
 
       private val hoverAnim = lazy {
          anim(150.millis) {
@@ -355,7 +362,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          }
       }
       private var disposed = false
-      private val disposer = Disposer()
 
       init {
          styleClass += "album-grid-cell"
@@ -376,8 +382,6 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          imgLoadAnim = null
          imgLoadAnimItem = null
          hoverAnim.orNull()?.stop()
-         disposer()
-         item?.loadingThread.ifNotNull { it.interrupt() }
          if (thumb!=null) {
             val img = thumb?.view?.image
             thumb?.view?.image = null
@@ -387,21 +391,13 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       }
 
       override fun updateIndex(i: Int) {
-         isJustVisible = index==-1 && i!=-1
-         if (i==-1) item?.loadingThread.ifNotNull { it.interrupt() }
+         if (i==-1) item?.computeCoverInterrupt()
          super.updateIndex(i)
       }
 
       override fun updateItem(item: Album?, empty: Boolean) {
          if (disposed) return
-         if (item===getItem()) return
          super.updateItem(item, empty)
-
-         if (imgLoadAnim!=null) {
-            imgLoadAnim?.stop()
-            imgLoadAnimItem = item
-            imgLoadAnim?.applyAt(item?.loadProgress ?: 0.0)
-         }
 
          if (empty) {
             // do not discard contents of the graphics
@@ -432,15 +428,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
             borderVisible = false
             pane.isSnapToPixel = true
             view.isSmooth = true
-            fitFrom syncFrom coverFitFrom on disposer
-            view.doIfImageLoaded { img ->
-               imgLoadAnim?.stop()
-               imgLoadAnimItem = item
-               if (img==null)
-                  imgLoadAnim?.applyAt(0.0)
-               else
-                  imgLoadAnim?.playOpenFrom(imgLoadAnimItem!!.loadProgress)
-            } on disposer
+            fitFrom syncFrom coverFitFrom
          }
 
          imgLoadAnim = anim(200.millis) {
@@ -510,7 +498,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          is ImageLoad.NotStarted, is ImageLoad.DoneInterrupted -> {
             thumb!!.loadImage(null)
             val i = index
-            item.computeCover(computeThumbSize()) ui { setCoverPost(item, i, it) }
+            item.computeCover(computeThumbSize(), thumb!!.fitFrom.value) ui { setCoverPost(item, i, it) }
          }
          is ImageLoad.Loading -> {
             thumb!!.loadImage(null)

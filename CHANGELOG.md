@@ -22,23 +22,26 @@ All notable changes to this project will be documented in this file. Format base
 - Fix **LibraryView** sorting by VALUE not working
 - Fix `GridFileIconCell` icon layout in some cases
 - Fix grid file deletion not restoring selection properly
+- Fix grid cell not showing image in rare cases
 - Fix grid cell styling when cell spans entire width
 - Fix grid cell font size when cell spans entire width
+- Fix grid cell graphics gap too narrow
 - Fix tree cell icon too small
-- Fix cell graphics gap too narrow
+- Fix tree cell graphics gap too narrow
 - Fix slider editor ticks & snapping
 - Fix slider editor value formatting for Double.MIN/MAX
 - Fix toggle-button hover styling
 - Fix image loading not closing stream sometimes
 - Fix widget controls sometimes showing up when drag is active
+- Fix wallpaper plugin requiring application to be running to show the wallpaper
+- Fix wallpaper plugin not rendering wallpaper properly in rare cases (e.g. switching screen resolution)
 
 ### JDK19
 The project now uses and requires **JDK 19**.
-This is to enable virtual threads, now used during image loading
+This is to enable virtual threads, now used during image loading, widget compiling and process handling.
 
 ### Loading images
-Image loading performance is sensitive to adjusting CPU and IO workload during image loading.
-This was explored in previous updates and also written
+Loading images has been drastically improved.
 
 ### Loading images - virtual threads
 This update brings virtual threads for loading images. Full details [here](https://github.com/haraldk/TwelveMonkeys/issues/706).
@@ -64,6 +67,20 @@ This makes the image cache blazing fast (loads images instantly on SSD).
 
 Image cache now caches images in the exactly requested size.
 This means the least CPU work and memory is used when loading the cached image.
+
+### Loading images - clipping
+Images now avoid loading parts that will not be displayed (when aspect ratio of the thumbnail is different).
+Image loading also takes into effect if the image is going to touch thumbnail from INSIDE or OUTSIDE.
+This optimizes loading speed for images that have eccentric sizes.
+
+### Loading images - interruption
+Image loading now employs much better image loading interruption - the interruption is now predictable and very quick  
+Loading no longer necessary images now does not delay loading speed of images.
+
+### Wallpaper plugin
+The plugin now sets wallpaper using Windows API instead of creating a special wallpaper windows.
+This fixes several issues with the functionality
+The wallpaper image is now cached with the new cache - this improves performance of the overlay window.
 
 ### Widget compilation
 The widgets can now declare arbitrary package.

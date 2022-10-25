@@ -3,6 +3,8 @@ package sp.it.pl.ui.objects.grid
 import java.io.File
 import javafx.scene.image.Image
 import sp.it.util.async.future.Fut
+import sp.it.util.functional.Option
+import sp.it.util.functional.orNull
 
 /** Image loading state */
 sealed interface ImageLoad {
@@ -20,5 +22,7 @@ sealed interface ImageLoad {
    /** Image loading state - loading finished with result */
    data class DoneOk(override val image: Image?, override val file: File?): ImageLoad
    /** Image loading state - loading interrupted as no longer necessary */
-   data class DoneInterrupted(override val file: File?): ImageLoad
+   data class DoneInterrupted(val fileOpt: Option<File?>): ImageLoad {
+      override val file = fileOpt.orNull()
+   }
 }

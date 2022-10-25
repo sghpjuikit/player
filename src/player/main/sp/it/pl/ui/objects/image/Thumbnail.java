@@ -42,8 +42,9 @@ import static sp.it.pl.audio.playlist.PlaylistReaderKt.toAbsoluteURIOrNull;
 import static sp.it.pl.main.AppBuildersKt.contextMenuFor;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
+import static sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.VT_IMAGE;
 import static sp.it.util.async.AsyncKt.FX;
-import static sp.it.util.async.AsyncKt.runVT;
+import static sp.it.util.async.AsyncKt.runOn;
 import static sp.it.util.dev.DebugKt.logger;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.UtilKt.toFileOrNull;
@@ -235,7 +236,7 @@ public class Thumbnail {
 			imageFile = img;
 			ImageSize size = calculateImageLoadSize();
 			if (image.getValue()==null || image.getValue().getUrl()==null || !img.getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
-				runVT(() -> ImageStandardLoader.INSTANCE.invoke(img, size)).useBy(FX, this::setImgA);
+				runOn(VT_IMAGE, () -> ImageStandardLoader.INSTANCE.invoke(img, size, fitFrom.getValue())).useBy(FX, this::setImgA);
 			}
 		}
 	}
@@ -246,7 +247,7 @@ public class Thumbnail {
 		} else {
 			var size = calculateImageLoadSize();
 			if (img.getFile()==null || image.getValue()==null || image.getValue().getUrl()==null || !img.getFile().getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
-				runVT(() -> img.getImage(size)).useBy(FX, i -> loadImage(i, img.getFile()));
+				runOn(VT_IMAGE, () -> img.getImage(size, fitFrom.getValue())).useBy(FX, i -> loadImage(i, img.getFile()));
 			}
 		}
 	}

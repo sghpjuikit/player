@@ -5,11 +5,13 @@ import javafx.scene.image.Image as ImageFx
 import javafx.scene.image.WritableImage as ImageWr
 import com.twelvemonkeys.image.ResampleOp
 import java.awt.Dimension
+import java.awt.Rectangle
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.IntBuffer
+import java.util.concurrent.locks.ReentrantLock
 import javafx.application.Platform
 import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.Rectangle2D
@@ -17,20 +19,24 @@ import javafx.scene.image.PixelBuffer
 import javafx.scene.image.PixelFormat
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
+import javax.imageio.event.IIOReadProgressListener
 import javax.imageio.stream.ImageInputStream
+import kotlin.concurrent.withLock
 import mu.KotlinLogging
 import sp.it.util.async.runFX
 import sp.it.util.dev.Blocks
 import sp.it.util.dev.failCase
-import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.toURLOrNull
+import sp.it.util.file.type.MimeType
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.max
 import sp.it.util.type.Util.setField
+import sp.it.util.ui.image.FitFrom.INSIDE
+import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.x
 import sp.it.util.ui.x2
 
@@ -104,38 +110,69 @@ fun loadBufferedImage(file: File): Try<ImageBf, IOException> {
    return try {
       Try.ok(ImageIO.read(file))
    } catch (e: IOException) {
-      logger.error(e) { "Can't read image $file for tray icon" }
+       logger.error(e) { "Can't read image $file for tray icon" }
       Try.error(e)
    }
 }
 
+/** Thread interruption without [Thread.interrupt]. Avoids unpredictable exceptions and allows exception-free interrupting. */
 object Interrupts {
+   private val lock = ReentrantLock();
+   @Volatile private var interrupts = arrayOf<Thread>()
 
-   val isInterrupted: Boolean
-      get() = Thread.currentThread().isInterrupted
+   /** Whether current thread is interrupted */
+   val isInterrupted: Boolean get() = Thread.currentThread() in interrupts
 
-   fun interrupt(t: Thread) {
-      failIf(!t.isVirtual) { "Can not interrupt non-virtual thread" }
-      t.interrupt()
+   fun dispose(t: Thread? = Thread.currentThread()) {
+      if (t==null) return
+      lock.withLock {
+         if (t in interrupts) interrupts = interrupts.filter { it!==it }.toTypedArray()
+      }
    }
 
+   /** Interrupts the specified thread, by default current. */
+   fun interrupt(t: Thread? = Thread.currentThread()) {
+      if (t==null) return
+      lock.withLock {
+         if (t !in interrupts) interrupts += Thread.currentThread()
+      }
+   }
 }
 
-fun loadImagePsd(file: File, inS: InputStream, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, runTry { ImageIO.createImageInputStream(inS.buffered()) }.orNull(), width, height, highQuality, scaleExact)
+data class Params(val file: File, val size: ImageSize, val fit: FitFrom, val mime: MimeType, val scaleExact: Boolean = false)
 
-fun loadImagePsd(file: File, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean) = loadImagePsd(file, runTry { ImageIO.createImageInputStream(FileInputStream(file).buffered()) }.orNull(), width, height, highQuality, scaleExact)
+private fun ImageInputStream.reader(): ImageReader? = ImageIO.getImageReaders(this).asSequence().firstOrNull()?.apply { input = this@reader; abortOnInterrupt() }
 
-private fun loadImagePsd(file: File, imgStream: ImageInputStream?, width: Double, height: Double, highQuality: Boolean, scaleExact: Boolean): ImageFx? {
+private fun <R> ImageReader.use(block: (ImageReader) -> R): R = AutoCloseable { dispose() }.use { block(this) }
+
+private fun ImageReader.abortOnInterrupt() {
+   addIIOReadProgressListener(
+      object: IIOReadProgressListener {
+         override fun sequenceStarted(r: ImageReader?, minIndex: Int) = if (Interrupts.isInterrupted) abort() else Unit
+         override fun sequenceComplete(r: ImageReader?) = Unit
+         override fun imageStarted(r: ImageReader?, imageIndex: Int) = if (Interrupts.isInterrupted) abort() else Unit
+         override fun imageProgress(r: ImageReader?, percentageDone: Float) = if (Interrupts.isInterrupted) abort() else Unit
+         override fun imageComplete(r: ImageReader?) = Unit
+         override fun thumbnailStarted(r: ImageReader?, imageIndex: Int, thumbnailIndex: Int) = if (Interrupts.isInterrupted) abort() else Unit
+         override fun thumbnailProgress(r: ImageReader?, percentageDone: Float) = if (Interrupts.isInterrupted) abort() else Unit
+         override fun thumbnailComplete(r: ImageReader?) = Unit
+         override fun readAborted(r: ImageReader?) = Unit
+      }
+   )
+}
+
+fun loadImagePsd(inS: InputStream, p: Params, highQuality: Boolean) = loadImagePsd(runTry { ImageIO.createImageInputStream(inS.buffered()) }.orNull(), p, highQuality)
+
+fun loadImagePsd(p: Params, highQuality: Boolean) = loadImagePsd(runTry { ImageIO.createImageInputStream(FileInputStream(p.file).buffered()) }.orNull(), p, highQuality)
+
+private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: Boolean): ImageFx? {
    failIfFxThread()
 
    return imgStream?.use { stream ->
-
-      if (Interrupts.isInterrupted) return@use null
-      val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return null
-      reader.input = stream
-      AutoCloseable { reader.dispose() }.use { _ ->
-         var w = 0 max width.toInt()
-         var h = 0 max height.toInt()
+      stream.reader()?.use { reader ->
+         p.size
+         var w = 0 max p.size.width.toInt()
+         var h = 0 max p.size.height.toInt()
          val loadFullSize = w==0 && h==0
          val ii = reader.minIndex
          var i: ImageBf? = null
@@ -143,57 +180,57 @@ private fun loadImagePsd(file: File, imgStream: ImageInputStream?, width: Double
                if (Interrupts.isInterrupted) null
                else if (!loadFullSize) {
                   runTry {
-                     val thumbHas = imgImplHasThumbnail(reader, ii, file)
-                     val thumbW = if (!thumbHas) 0 else reader.getThumbnailWidth(ii, 0)
-                     val thumbH = if (!thumbHas) 0 else reader.getThumbnailHeight(ii, 0)
-                     val thumbUse = thumbHas && w<=thumbW && h<=thumbH
-                     if (thumbUse) reader.readThumbnail(ii, 0) else null
+                     val tExists = imgImplHasThumbnail(reader, ii, p.file)
+                     val tW = if (!tExists) 1 else reader.getThumbnailWidth(ii, 0)
+                     val tH = if (!tExists) 1 else reader.getThumbnailHeight(ii, 0)
+                     val tUse = tExists && w<=tW && h<=tH
+                     val tRatio = tW.toDouble()/tH.toDouble()
+                     val rRatio = w.toDouble()/h.toDouble()
+                     val (sW, sH) = when {
+                        p.fit==OUTSIDE && tRatio<rRatio -> tW to (tW/rRatio).toInt()
+                        p.fit==OUTSIDE && tRatio>rRatio -> (tH*rRatio).toInt() to tH
+                        else -> tW to tH
+                     }
+                     if (tUse) reader.readThumbnail(ii, 0).getSubimage((tW - sW)/2, (tH - sH)/2, sW, sH)
+                     else null
                   } orNull {
-                     if (!Interrupts.isInterrupted) logger.warn(it) { "Failed to read thumbnail for image=$file" }
+                     logger.warn(it) { "Failed to read thumbnail for image=${p.file}" }
                   }
                } else null
             }
             ?: runTry {
-               if (Interrupts.isInterrupted)
-                  return@runTry null
-
-               val iW = reader.getWidth(ii)
-               val iH = reader.getHeight(ii)
-               if (w>iW || h>iH) {
-                  w = iW
-                  h = iH
-               }
+               val (iW, iH) = reader.getWidth(ii) to reader.getHeight(ii)
+               if (w>iW || h>iH) { w = iW; h = iH }
                val iRatio = iW.toDouble()/iH.toDouble()
                val rRatio = w.toDouble()/h.toDouble()
                val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
                val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
-
                val irp = reader.defaultReadParam.apply {
-                  val px = when {
-                     !highQuality && rW!=0 && rH!=0 -> {
-                        val sw = iW/rW
-                        val sh = iH/rH
-                        maxOf(1, minOf(sw, sh)/2) // quality == 2/3 == ok, great performance
-                     }
-                     else -> 1 // 1 == max quality
+                  val (sW, sH) = when {
+                     p.fit==OUTSIDE && iRatio<rRatio -> iW to (iW/rRatio).toInt()
+                     p.fit==OUTSIDE && iRatio>rRatio -> (iH*rRatio).toInt() to iH
+                     else -> iW to iH
                   }
-
-                  setSourceSubsampling(px, px, 0, 0)
+                  val ss = if (rW==0 || rH==0) 1 else when (p.fit) {
+                     OUTSIDE -> maxOf(1, minOf(iW/rW, iH/rH)/2)
+                     INSIDE -> maxOf(1, maxOf(iW/w, iH/h)/2)
+                  }
+                  setSourceSubsampling(ss, ss, 0, 0)
+                  sourceRegion = Rectangle((iW - sW)/2, (iH - sH)/2, sW, sH)
                }
 
                if (Interrupts.isInterrupted) null
                else reader.read(ii, irp)
             } orNull {
-               if (!Interrupts.isInterrupted) logger.warn(it) { "Failed to load image=$file" }
+               logger.warn(it) { "Failed to load image=${p.file}" }
             }
 
-         if (!loadFullSize)
-            i = i?.toScaledDown(w, h, down = scaleExact, up = scaleExact)
+         if (!loadFullSize && p.scaleExact)
+            i = i?.toScaledDown(w, h, down = p.scaleExact, up = p.scaleExact)
 
-         i?.toFX(file)
+         i?.toFX(p.file)
       }
    }
-
 }
 
 /**

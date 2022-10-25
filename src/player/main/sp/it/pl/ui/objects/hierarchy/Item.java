@@ -2,7 +2,6 @@ package sp.it.pl.ui.objects.hierarchy;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.channels.ClosedByInterruptException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,8 +14,8 @@ import kotlin.sequences.Sequence;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sp.it.pl.audio.SimpleSong;
-import sp.it.pl.image.Image2PassLoader;
 import sp.it.pl.image.ImageLoader;
+import sp.it.pl.image.ImageStandardLoader;
 import sp.it.pl.ui.objects.grid.GridViewSkin;
 import sp.it.pl.ui.objects.grid.ImageLoad;
 import sp.it.pl.ui.objects.grid.ImageLoad.DoneErr;
@@ -35,6 +34,7 @@ import sp.it.util.functional.Option;
 import sp.it.util.functional.Option.None;
 import sp.it.util.functional.Option.Some;
 import sp.it.util.ui.IconExtractor;
+import sp.it.util.ui.image.FitFrom;
 import sp.it.util.ui.image.ImageSize;
 import sp.it.util.ui.image.Interrupts;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
@@ -46,11 +46,12 @@ import static sp.it.pl.main.AppFileKt.getImageExtensionsRead;
 import static sp.it.pl.main.AppFileKt.isAudio;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppFileKt.isVideo;
+import static sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.VT_IMAGE;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.VT;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runVT;
+import static sp.it.util.async.AsyncKt.runOn;
 import static sp.it.util.async.ExecutorExtensionsKt.limitParallelism;
 import static sp.it.util.async.future.Fut.fut;
 import static sp.it.util.dev.FailKt.failIfFxThread;
@@ -60,6 +61,7 @@ import static sp.it.util.file.FileType.FILE;
 import static sp.it.util.functional.OptionKt.getOrSupply;
 import static sp.it.util.functional.Util.list;
 import static sp.it.util.functional.UtilKt.consumer;
+import static sp.it.util.ui.image.FitFrom.OUTSIDE;
 import static sp.it.util.ui.image.UtilKt.toBuffered;
 import static sp.it.util.ui.image.UtilKt.toFX;
 
@@ -76,7 +78,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
 	public @NotNull volatile ImageLoad cover = NotStarted.INSTANCE;
 	protected volatile Option<@Nullable File> coverFile = Option.Companion.invoke(null);
-	public volatile @Nullable Thread loadingThread = null;
+	protected volatile @Nullable Thread loadingThread = null;
+	protected volatile boolean loadingPreInterrupted = false;
 	protected boolean disposed = false;
 	protected final HashMap<String, Object> properties = new HashMap<>();
 	public double loadProgress = 0;         // 0-1
@@ -123,7 +126,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		all_children = null;
 		cover = DoneErr.INSTANCE;
 		coverFile = Option.Companion.invoke(null);
-		if (loadingThread!=null) loadingThread.interrupt();
+		computeCoverInterrupt();
 		loadingThread = null;
 		disposed = true;
 	}
@@ -133,6 +136,10 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		failIfNotFxThread();
 
 		cover = NotStarted.INSTANCE;
+		coverFile = Option.Companion.invoke(null);
+		computeCoverInterrupt();
+		loadingThread = null;
+		loadProgress = 0;
 	}
 
 	/** Dispose of this as to be fully usable, but children will be {@link #disposeContent()}. */
@@ -233,39 +240,46 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return null;
 	}
 
+	public void computeCoverInterrupt() {
+		loadingPreInterrupted = true;
+		Interrupts.INSTANCE.interrupt(loadingThread);
+	}
+
 	@SuppressWarnings("unchecked")
-	public Fut<ImageLoad> computeCover(ImageSize size) {
+	public Fut<ImageLoad> computeCover(ImageSize size, FitFrom fit) {
 		failIfNotFxThread();
 
 		return switch (cover) {
 			case DoneOk l -> fut(l);
 			case DoneErr l -> fut(l);
 			case Loading l -> l.getLoading();
-			case NotStarted l -> computeCoverAsync(None.INSTANCE, size);
-			case DoneInterrupted l -> computeCoverAsync(new Some<>(l.getFile()), size);
+			case NotStarted l -> computeCoverAsync(None.INSTANCE, size, fit);
+			case DoneInterrupted l -> computeCoverAsync(l.getFileOpt(), size, fit);
 			default -> throw new AssertionError("Illegal cover type " + cover.getClass());
 		};
 	}
 
-	private Fut<ImageLoad> computeCoverAsync(Option<@Nullable File> imgFile, ImageSize size) {
+	private Fut<ImageLoad> computeCoverAsync(Option<@Nullable File> imgFile, ImageSize size, FitFrom fit) {
 		if (disposed) {
 			cover = DoneErr.INSTANCE;
 			return fut(DoneErr.INSTANCE);
 		}
+		loadingPreInterrupted = false;
 
 		var strategy = getCoverStrategy();
-		var cl = runVT(() -> {
+		var cl = runOn(VT_IMAGE, () -> {
 			loadingThread = Thread.currentThread();
-			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(null);
+			if (loadingPreInterrupted) return new DoneInterrupted(imgFile);
+			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(imgFile);
 
 			var ci = (Image) null;
 			var cf = getOrSupply(imgFile, () -> getCoverFile(strategy));
-			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(cf);
+			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(new Some<>(cf));
 
 			try {
 				var ch = children;
 				if (cf!=null) {
-					ci = strategy.loader.invoke(cf, size);
+					ci = strategy.loader.invoke(cf, size, fit);
 				} else {
 					if (valType==DIRECTORY) {
 						if (strategy.useComposedDirCover) {
@@ -274,7 +288,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 								.map(it -> it.getCoverFile(strategy))
 								.filter(it -> it!=null)
 								.limit(4)
-								.map(it -> strategy.loader.invoke(it, size.div(2), true))
+								.map(it -> strategy.loader.invoke(it, size.div(2), OUTSIDE, true))
 								.filter(it -> it!=null)
 								.toList();
 							var w = (int) size.width;
@@ -293,39 +307,38 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						}
 					} else if (valType==FILE) {
 						if (isVideo(value) && strategy.useVideoFrameCover) {
-							ci = strategy.loader.invoke(value, size);
+							ci = strategy.loader.invoke(value, size, fit);
 						} else if (isAudio(value)) {
 							var c = read(new SimpleSong(value)).getCover(CoverSource.ANY);
-							ci = c.isEmpty() ? null : c.getImage(size);
+							ci = c.isEmpty() ? null : c.getImage(size, fit);
 						} else if (value.getPath().endsWith(".pdf")) {
-							ci = strategy.loader.invoke(value, size);
+							ci = strategy.loader.invoke(value, size, fit);
 						} else if (strategy.useNativeIconIfNone) {
 							ci = IconExtractor.INSTANCE.getFileIcon(value);
 						}
 					}
 				}
 
-				if (ci==null && Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(cf);
+				if (ci==null && Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(new Some<>(cf));
 				return new DoneOk(ci, cf);
 			} catch (Throwable e) {
-				if (e instanceof InterruptedException) return new DoneInterrupted(cf);
-				if (e instanceof ClosedByInterruptException) return new DoneInterrupted(cf);
-				if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(cf);
-				else return ImageLoad.DoneErr.INSTANCE;
+				if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(new Some<>(cf));
+				else return DoneErr.INSTANCE;
 			}
 		}).then(FX, it -> {
-			var c = disposed ? DoneErr.INSTANCE : it;
-			cover = c;
-			return c;
+			Interrupts.INSTANCE.dispose(loadingThread);
+			loadingThread = null;
+			cover = it;
+			return it;
 		});
 		cover = new Loading(cl);
 		return cl;
 	}
 
-	protected File getCoverFile(CoverStrategy strategy) {
+	protected @Nullable File getCoverFile(CoverStrategy strategy) {
 		failIfFxThread();
 
-		if (coverFile instanceof Some<File> f) {
+		if (coverFile instanceof Some<@Nullable File> f) {
 			return f.getValue();
 		} else {
 			var cf = (File) null;
@@ -416,7 +429,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			this.useNativeIconIfNone = useNativeIconIfNone;
 			this.useVideoFrameCover = useVideoFrameCover;
 			this.diskCache = diskCache;
-			var loaderRaw = Image2PassLoader.INSTANCE.getLq();
+			var loaderRaw = ImageStandardLoader.INSTANCE;
 			loader = diskCache!=null ? loaderRaw.memoized(diskCache) : loaderRaw;
 		}
 

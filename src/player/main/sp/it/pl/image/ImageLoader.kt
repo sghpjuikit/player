@@ -22,7 +22,6 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import sp.it.pl.audio.SimpleSong
 import sp.it.pl.audio.tagging.read
 import sp.it.pl.core.logger
-import sp.it.pl.image.ImageLoader.Params
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.AppProgress
@@ -36,7 +35,6 @@ import sp.it.pl.ui.objects.image.Cover.CoverSource
 import sp.it.util.Util.filenamizeString
 import sp.it.util.async.coroutine.IO
 import sp.it.util.async.coroutine.runSuspendingFx
-import sp.it.util.async.runVT
 import sp.it.util.dev.fail
 import sp.it.util.dev.failIf
 import sp.it.util.dev.failIfFxThread
@@ -51,7 +49,6 @@ import sp.it.util.file.traverseParents
 import sp.it.util.file.type.MimeGroup.Companion.audio
 import sp.it.util.file.type.MimeGroup.Companion.video
 import sp.it.util.file.type.MimeType
-import sp.it.util.file.type.MimeType.Companion.`image∕vnd·adobe·photoshop`
 import sp.it.util.file.type.mimeType
 import sp.it.util.file.unzip
 import sp.it.util.functional.asIs
@@ -63,8 +60,10 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.system.Os
 import sp.it.util.ui.IconExtractor
+import sp.it.util.ui.image.FitFrom
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.Interrupts
+import sp.it.util.ui.image.Params
 import sp.it.util.ui.image.imgImplLoadFX
 import sp.it.util.ui.image.loadImagePsd
 import sp.it.util.ui.image.toBuffered
@@ -75,7 +74,7 @@ import sp.it.util.units.seconds
 
 interface ImageLoader {
 
-   operator fun invoke(file: File?, size: ImageSize) = invoke(file, size, false)
+   operator fun invoke(file: File?, size: ImageSize, fit: FitFrom) = invoke(file, size, fit, false)
 
    /**
     * Loads image file with requested size (aspect ratio remains unaffected).
@@ -85,13 +84,11 @@ interface ImageLoader {
     * @param scaleExact if true, size < original will be scaled up
     * @throws IllegalArgumentException when on fx thread
     */
-   operator fun invoke(file: File?, size: ImageSize, scaleExact: Boolean) = if (file==null) null else invoke(Params(file, size, file.mimeType(), scaleExact))
+   operator fun invoke(file: File?, size: ImageSize, fit: FitFrom, scaleExact: Boolean) = if (file==null) null else invoke(Params(file, size, fit, file.mimeType(), scaleExact))
 
-   operator fun invoke(file: File?) = invoke(file, ImageSize(0.0, 0.0))
+   operator fun invoke(file: File?) = invoke(file, ImageSize(0.0, 0.0), FitFrom.OUTSIDE)
 
    operator fun invoke(p: Params): Image?
-
-   data class Params(val file: File, val size: ImageSize, val mime: MimeType, val scaleExact: Boolean = false)
 
    /** @return loader that uses disk cache to improve performance */
    fun memoized(cacheKey: UUID): ImageLoader = memoize(this, cacheKey)
@@ -103,7 +100,7 @@ interface ImageLoader {
          private val imgCacheDir: File = File(System.getProperty("user.home")).absoluteFile / cacheKey.toString()
 
          override fun invoke(p: Params): Image? {
-            val sizeKey = "${p.size.width.toInt() max 0}x${p.size.height.toInt() max 0}"
+            val sizeKey = "${p.size.width.toInt() max 0}x${p.size.height.toInt() max 0}x${p.fit}"
             val imgCachedDir: File = imgCacheDir / sizeKey
             val imgCachedFile = imgCachedDir / buildString {
                // To enable multiple size versions, we requested image size
@@ -115,7 +112,6 @@ interface ImageLoader {
                append(p.file.traverseParents().drop(1).toList().reversed().asSequence().map { it.nameOrRoot.dropLastWhile { it=='\\' || it==':' } }.joinToString("-") { "${it.firstOrNull()?.toString()}${it.lastOrNull()}" }).append("-")
                append(p.file.nameWithoutExtension).append(".png")
             }
-
             return null
                // load from cache
                ?: when {
@@ -126,9 +122,9 @@ interface ImageLoader {
                      .orNull()
                }
                // load normally
-               ?: loader(p.copy(scaleExact = true))?.apply {
-                  // and cache (on separate thread to avoid touching interrupt flag)
-                  runVT {
+               ?: when {
+                  Interrupts.isInterrupted -> null
+                  else -> loader(p.copy(scaleExact = true))?.apply {
                      runTry { ImageFxObjectStreamSerializer.serialize(this, imgCachedDir, imgCachedFile) }
                         .ifError { logger.warn(it) { "Failed to serialize cache file=${p.file} to $imgCachedFile" } }
                   }
@@ -145,14 +141,14 @@ interface ImageLoader {
          img.toBuffered().ifNotNull { ImageIO.write(it, "png", file) }
       }
       fun deserialize(loader: ImageLoader, file: File): Image? {
-          return loader(Params(file, ImageSize(0, 0), MimeType.`image∕png`, false))
+          return loader(Params(file, ImageSize(0, 0), FitFrom.OUTSIDE, MimeType.`image∕png`, false))
       }
    }
 
    /** Stateless image cache [Image] serializer that uses img binary data as cache format. Incurs no image processing cost. */
    object ImageFxObjectStreamSerializer {
       fun serialize(img: Image, dir: File, file: File) {
-         if (img.progress != 1.0 || img.isError) return
+         if (img.pixelReader==null) return
          dir.mkdirs()
          ObjectOutputStream(file.outputStream().buffered()).use { s ->
             s.writeDouble(img.width)
@@ -221,16 +217,16 @@ object ImageStandardLoader: KLogging(), ImageLoader {
             }
          }
          else -> when (p.mime.name) {
-            "image/vnd.adobe.photoshop" -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = true, scaleExact = p.scaleExact)
+            "image/vnd.adobe.photoshop" -> loadImagePsd(p, highQuality = true)
             "application/x-msdownload",
             "application/x-ms-shortcut" -> IconExtractor.getFileIcon(p.file)
             "application/x-kra" -> {
                try {
                   ZipFile(p.file)
                      .let { it.getInputStream(it.getEntry("mergedimage.png")) }
-                     ?.let { loadImagePsd(p.file, it, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact) }
+                     ?.let { loadImagePsd(it, p, highQuality = false) }
                } catch (e: IOException) {
-                  logger.error(e) { "Unable to load image from ${p.file}" }
+                  if (!Interrupts.isInterrupted)  logger.error(e) { "Unable to load image from ${p.file}" }
                   null
                }
             }
@@ -241,34 +237,10 @@ object ImageStandardLoader: KLogging(), ImageLoader {
                      PDFRenderer(it).renderImageWithDPI(0, p.size.height.toFloat()/8.27f).toFX()
                   }
                } orNull {
-                  logger.error(it) { "Unable to load pdf image preview for=${p.file}" }
+                  if (!Interrupts.isInterrupted) logger.error(it) { "Unable to load pdf image preview for=${p.file}" }
                }
             }
-            else -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact)
-         }
-      }
-   }
-}
-
-/** Pair of low quality/high quality image loaders, e.g.: to speed up thumbnail loading. */
-object Image2PassLoader: KLogging() {
-   val lq: ImageLoader = object: ImageLoader {
-      override fun invoke(p: Params): Image? {
-         logger.debug { "Loading LQ img $p" }
-
-         return when (p.mime) {
-            `image∕vnd·adobe·photoshop` -> loadImagePsd(p.file, p.size.width, p.size.height, highQuality = false, scaleExact = p.scaleExact)
-            else -> ImageStandardLoader(p)
-         }
-      }
-   }
-   val hq: ImageLoader = object: ImageLoader {
-      override fun invoke(p: Params): Image? {
-         logger.debug { "Loading HQ img $p" }
-
-         return when (p.mime.name) {
-            "image/vnd.adobe.photoshop" -> ImageStandardLoader(p)
-            else -> null
+            else -> loadImagePsd(p, highQuality = false)
          }
       }
    }

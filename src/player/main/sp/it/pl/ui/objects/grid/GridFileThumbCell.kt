@@ -18,10 +18,10 @@ import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.file.FileType
 import sp.it.util.file.nameOrRoot
-import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.orNull
 import sp.it.util.math.max
 import sp.it.util.reactive.Disposer
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.sync1IfImageLoaded
@@ -45,7 +45,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    protected lateinit var stroke: Rectangle
    protected var thumb: Thumbnail? = null
    protected var imgLoadAnim: Anim? = null
-   protected var isJustVisible = false
    private var imgLoadAnimItem: Item? = null
    private val hoverAnim = lazy {
       anim(150.millis) {
@@ -82,7 +81,6 @@ open class GridFileThumbCell: GridCell<Item, File>() {
       imgLoadAnimItem = null
       hoverAnim.orNull()?.stop()
       onDispose()
-      item?.loadingThread.ifNotNull { it.interrupt() }
       if (thumb!=null) {
          val img = thumb?.view?.image
          thumb?.view?.image = null
@@ -92,21 +90,12 @@ open class GridFileThumbCell: GridCell<Item, File>() {
    }
 
    override fun updateIndex(i: Int) {
-      isJustVisible = index==-1 && i!=-1
-      if (i==-1) item?.loadingThread.ifNotNull { it.interrupt() }
+      if (i==-1) item?.computeCoverInterrupt()
       super.updateIndex(i)
    }
 
    override fun updateItem(item: Item?, empty: Boolean) {
       if (disposed) return
-      if (item===getItem()) {
-         super.updateItem(item, empty)
-         if (isJustVisible) {
-            if (item!=null) setCoverNow(item)
-         }
-         return
-      }
-
       super.updateItem(item, empty)
 
       if (empty) {
@@ -144,6 +133,10 @@ open class GridFileThumbCell: GridCell<Item, File>() {
             pane.isManaged = false
             pane.isSnapToPixel = true
             view.isSmooth = false
+            fitFrom attach {
+               item?.disposeCover()
+               if (index>=0) setCoverNow(item)
+            }
          }
          override fun getRepresentant() = item?.value
       }
@@ -229,7 +222,7 @@ open class GridFileThumbCell: GridCell<Item, File>() {
          is ImageLoad.NotStarted, is ImageLoad.DoneInterrupted -> {
             thumb!!.loadImage(null)
             val i = index
-            item.computeCover(computeThumbSize()) ui { setCoverPost(item, i, it) }
+            item.computeCover(computeThumbSize(), thumb!!.fitFrom.value) ui { setCoverPost(item, i, it) }
          }
          is ImageLoad.Loading -> {
             thumb!!.loadImage(null)

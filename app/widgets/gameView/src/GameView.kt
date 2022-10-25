@@ -156,10 +156,10 @@ class GameView(widget: Widget): SimpleController(widget) {
       .defInherit(APP.ui::gridShowFooter)
    val gridCellAlignment by cOr<CellGap>(APP.ui::gridCellAlignment, grid.cellAlign, Inherit(), onClose)
       .defInherit(APP.ui::gridCellAlignment)
-   val gridCellSize by cv(CellSize.NORMAL)
-      .def(name = "Thumbnail size", info = "Size of the thumbnail.").uiNoOrder() attach { applyCellSize() }
-   val gridCellSizeRatio by cv(Resolution.R_1x1)
-      .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.") attach { applyCellSize() }
+   val gridCellSize by cv(CellSize.NORMAL).uiNoOrder().attach { applyCellSize() }
+      .def(name = "Thumbnail size", info = "Size of the thumbnail.")
+   val gridCellSizeRatio by cv(Resolution.R_1x1).attach { applyCellSize() }
+      .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    val gridCellCoverFitFrom by cv(OUTSIDE)
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
    val files by cList<File>()
@@ -494,7 +494,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                val location = g.location.toFast(DIRECTORY)
                val infoFile = g.readmeFile
                val info = g.readmeFile.readTextTry().getOr("")
-               val coverImage = g.cover.getImage(cover.calculateImageLoadSize())
+               val coverImage = g.cover.getImage(cover.calculateImageLoadSize(), OUTSIDE)
                val triggerLoading = g.settings
             }
          } ui {

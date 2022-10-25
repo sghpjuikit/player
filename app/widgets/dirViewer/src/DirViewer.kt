@@ -140,7 +140,7 @@ import sp.it.util.ui.drag.contains
 import sp.it.util.ui.drag.get
 import sp.it.util.ui.drag.set
 import sp.it.util.ui.dsl
-import sp.it.util.ui.image.FitFrom
+import sp.it.util.ui.image.FitFrom.OUTSIDE
 import sp.it.util.ui.install
 import sp.it.util.ui.isAnyChildOf
 import sp.it.util.ui.label
@@ -186,7 +186,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    val coverOn by cv(true)
       .def(name = "Thumbnail", info = "Display thumbnail instead of simple icon.")
-   val coverFitFrom by cv(FitFrom.OUTSIDE).readOnlyUnless(coverOn)
+   val coverFitFrom by cv(OUTSIDE).readOnlyUnless(coverOn)
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
    val coverLoadingUseComposedDirCover by cv(CoverStrategy.DEFAULT.useComposedDirCover).readOnlyUnless(coverOn)
       .def(name = "Use composed cover for dir", info = "Display directory cover that shows its content.")

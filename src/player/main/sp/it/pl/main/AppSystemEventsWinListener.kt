@@ -20,13 +20,13 @@ import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.platform.win32.WinUser
 import com.sun.jna.platform.win32.WinUser.WindowProc
 import com.sun.jna.platform.win32.Wtsapi32
-import java.util.UUID
 import mu.KLogging
 import sp.it.pl.main.AppSystemEvents.Event.FileVolumeAdded
 import sp.it.pl.main.AppSystemEvents.Event.FileVolumeRemoved
 import sp.it.pl.main.AppSystemEvents.SysListener
 import sp.it.util.async.runNew
 import sp.it.util.type.volatile
+import sp.it.util.units.uuid
 
 @Suppress("SpellCheckingInspection", "UNUSED_VARIABLE", "UNUSED_PARAMETER")
 class AppSystemEventsWinListener(emitter: (AppSystemEvents.Event) -> Unit): SysListener {
@@ -46,11 +46,11 @@ class AppSystemEventsWinListener(emitter: (AppSystemEvents.Event) -> Unit): SysL
          val wClass = WinUser.WNDCLASSEX()
          wClass.hInstance = hInst
          wClass.lpfnWndProc = WindowProc { hwnd, uMsg, wParam, lParam -> callback(hwnd, uMsg, wParam, lParam) }
-         wClass.lpszClassName = UUID.randomUUID().toString()
+         wClass.lpszClassName = "SpitPlayer-device-listener-${uuid()}"
 
          // register window class
-         user32.RegisterClassEx(wClass)
-         getLastError("RegisterClassEx $wClass")
+         val rc = user32.RegisterClassEx(wClass)
+         if (rc.toInt()==0) getLastError("RegisterClassEx ${wClass.lpszClassName}")
 
          // create new window
          hWnd = user32.CreateWindowEx(

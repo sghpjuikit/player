@@ -102,7 +102,7 @@ class WidgetUiControls(override val area: WidgetUi): ComponentUiControlsBase() {
       var inside = false
       val p = area.contentRoot
       val showS = { e: MouseEvent ->
-         if (!e.isDragDetect)
+         if (!e.isPrimaryButtonDown && !e.isSecondaryButtonDown && !e.isMiddleButtonDown)
             if (!isShowingWeak && !area.widget.lockedUnder.value && !isShowing) {
                val isIn = p.width - activatorW.emScaled<e.x && activatorH.emScaled>e.y
                if (inside!=isIn) {

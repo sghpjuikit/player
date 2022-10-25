@@ -170,7 +170,7 @@ class WidgetManager {
    /** Separates entries of a java classpath argument, passed to JVM. */
    private var classpathSeparator = Os.current.classpathSeparator
    private var initialized = false
-   private val compilerThread = VT.named("widget-compile").limitParallelism(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt())
+   private val compilerThread = VT.named("widget-compiler").limitParallelism(ceil(Runtime.getRuntime().availableProcessors()/4.0).toInt())
    private val kotlinc by lazy {
       val kotlinVersion = APP.location.lib.children().map { it.path }.find { "kotlin-stdlib-" in it }?.substringAfter("kotlin-stdlib-")?.substringBefore(".jar") ?: fail { "No lib/kotlin-stdlib found" }
       val kotlincDir = APP.location.kotlinc

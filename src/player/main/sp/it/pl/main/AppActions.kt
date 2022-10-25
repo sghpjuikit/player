@@ -79,6 +79,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.ifNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.runTry
 import sp.it.util.reactive.SHORTCUT
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -360,19 +361,10 @@ class AppActions: GlobalSubConfigDelegator("Shortcuts") {
 
    val printAllImageFileMetadata = action<File>("Show image metadata", "Show image metadata", IconFA.INFO, BLOCK, { it.isImage() }) {
       val title = "File:" + it.path
-      val text = try {
-         val sb = StringBuilder()
-         ImageMetadataReader.readMetadata(it)
-            .directories
-            .forEach {
-               sb.append("\nName: ").append(it.name)
-               it.tags.forEach { tag -> sb.append("\n\t").append(tag.toString()) }
-            }
-         title + sb.toString()
-      } catch (e: IOException) {
-         "$title\n${e.stacktraceAsString}"
-      } catch (e: ImageProcessingException) {
-         "$title\n${e.stacktraceAsString}"
+      val text = runTry {
+         title + ImageMetadataReader.readMetadata(it).directories.joinToString { "\nName: ${it.name}" + it.tags.joinToString { "\n\t$it" } }
+      }.getOrSupply {
+         "$title\n${it.stacktraceAsString}"
       }
       runFX { APP.widgetManager.widgets.use<TextDisplayFeature>(NEW) { it.showText(text) } }
    }

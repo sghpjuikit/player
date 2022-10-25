@@ -9,7 +9,6 @@ import sp.it.pl.ui.objects.icon.Icon
 import sp.it.util.access.editable
 import sp.it.util.access.toggleNext
 import sp.it.util.access.v
-import sp.it.util.async.runLater
 import sp.it.util.conf.Constraint.FileActor
 import sp.it.util.file.FilePickerType
 import sp.it.util.file.FileType.DIRECTORY
@@ -36,10 +35,8 @@ class FileTextField(initialValue: File? = null, val constraint: FileActor, val r
       textProperty() attach {
          if (!valueChanging.isSuppressed) {
             valueChanging.isSuppressed = true
-            runLater {
-               APP.converter.general.ofS<File>(it).ifOk { value = it }
-               valueChanging.isSuppressed = false
-            }
+            APP.converter.general.ofS<File>(it).ifOk { value = it }
+            valueChanging.isSuppressed = false
          }
       }
 

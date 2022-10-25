@@ -6,7 +6,6 @@ import javafx.scene.paint.Color
 import sp.it.pl.main.APP
 import sp.it.pl.main.emScaled
 import sp.it.util.access.editable
-import sp.it.util.async.runLater
 import sp.it.util.collections.setToOne
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -28,10 +27,8 @@ class ColorTextField(initialValue: Color? = null): ValueTextField<Color>(initial
       textProperty() attach {
          if (!valueChanging.isSuppressed) {
             valueChanging.isSuppressed = true
-            runLater {
-               APP.converter.general.ofS<Color>(it).ifOk { value = it }
-               valueChanging.isSuppressed = false
-            }
+            APP.converter.general.ofS<Color>(it).ifOk { value = it }
+            valueChanging.isSuppressed = false
          }
       }
 

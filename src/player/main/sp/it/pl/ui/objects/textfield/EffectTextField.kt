@@ -102,7 +102,7 @@ class EffectTextField(isNullable: Boolean, effectType: KClass<out Effect>? = nul
       /** Effect type. Null represents no effect. */
       val type = type
 
-      /** human readable effect name. */
+      /** Human-readable effect name. */
       val name = type?.toUi() ?: textNoVal
 
       fun instantiate(): Effect? = runTry { type?.java?.getConstructor()?.newInstance() }

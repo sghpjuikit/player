@@ -117,7 +117,7 @@ fun loadBufferedImage(file: File): Try<ImageBf, IOException> {
 
 /** Thread interruption without [Thread.interrupt]. Avoids unpredictable exceptions and allows exception-free interrupting. */
 object Interrupts {
-   private val lock = ReentrantLock();
+   private val lock = ReentrantLock()
    @Volatile private var interrupts = arrayOf<Thread>()
 
    /** Whether current thread is interrupted */

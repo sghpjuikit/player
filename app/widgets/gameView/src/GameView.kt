@@ -3,6 +3,7 @@ package gameView
 import de.jensd.fx.glyphs.GlyphIcons
 import java.io.File
 import java.net.URI
+import java.util.UUID
 import javafx.geometry.Insets
 import javafx.geometry.Pos.TOP_CENTER
 import javafx.geometry.Pos.CENTER
@@ -76,6 +77,7 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.FX
 import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.ConfigurableBase
@@ -87,6 +89,7 @@ import sp.it.util.conf.cr
 import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
+import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.failIf
@@ -162,6 +165,10 @@ class GameView(widget: Widget): SimpleController(widget) {
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    val gridCellCoverFitFrom by cv(OUTSIDE)
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   val coverCache by cv(false)
+      .def(name = "Use thumbnail cache", info = "Cache thumbnails on disk for faster loading. Useful when items form mostly finite set. Cache is an internal directory split by thumbnail size.")
+   val coverCacheId by cv(UUID.randomUUID()).noUi()
+      .def(name = "Thumbnail cache id", info = "Isolates image cache of this widget instance by the id. Unique per widget instance.")
    val files by cList<File>()
       .def(name = "Location", info = "Location of the library.").butElement { only(DIRECTORY) }
    val filesRefresh by cr { viewGames() }
@@ -228,6 +235,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
 
       root.onEventDown(KEY_RELEASED, F5) { viewGames() }
+
       files.onChange { viewGames() } on onClose
       files.onChange { grid.isVisible = !files.isEmpty() } on onClose
       files.onChange { placeholder.show(root, files.isEmpty()) } on onClose
@@ -242,18 +250,12 @@ class GameView(widget: Widget): SimpleController(widget) {
    override fun focus() = grid.requestFocus()
 
    private fun viewGames() {
-      runIO {
-         files.asSequence()
-            .distinct()
-            .flatMap { it.children() }
-            .map { CachingFile(it) }
-            .filter { it.isDirectory && !it.isHidden }
-            .sortedBy { it.name }
-            .map { FItem(null, it, DIRECTORY) }
-            .materialize()
-      }.ui {
+      val itemRoot = GItemRoot(files.materialize())
+      runVT {
+         itemRoot.children()
+      }.withAppProgress("Loading game list").ui {
          grid.itemsRaw setTo it
-      }.withAppProgress("Loading game list")
+      }
    }
 
    fun viewGame(game: File) {
@@ -271,7 +273,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       grid.cellHeight.value = height.emScaled + cellTextHeight.value
       grid.horizontalCellSpacing.value = 15.emScaled
       grid.verticalCellSpacing.value = 15.emScaled
-      grid.itemsRaw setTo grid.itemsRaw.map { FItem(null, it.value, it.valType) }
+      grid.itemsRaw setTo grid.itemsRaw.map { GItem(null, it.value, it.valType) }
    }
 
    private inner class Cell: GridFileThumbCell() {
@@ -319,8 +321,21 @@ class GameView(widget: Widget): SimpleController(widget) {
 
    }
 
-   private class FItem(parent: Item?, value: File, type: FileType): Item(parent, value, type) {
-      override fun createItem(parent: Item, value: File, type: FileType) = FItem(parent, value, type)
+
+   private inner class GItemRoot(val locations: List<File>): Item(null, File(""), DIRECTORY) {
+      init {
+         coverStrategy = CoverStrategy(true, true, false, true, coverCacheId.value.takeIf { coverCache.value })
+      }
+      override fun createItem(parent: Item, value: File, type: FileType) = GItem(parent, value, type)
+      override fun childrenFiles(): Sequence<File> = locations.asSequence()
+         .distinct().flatMap { it.children() }
+         .map { CachingFile(it) }
+         .filter { it.isDirectory && !it.isHidden }
+         .sortedBy { it.name }
+   }
+
+   private inner class GItem(parent: Item?, value: File, type: FileType): Item(parent, value, type) {
+      override fun createItem(parent: Item, value: File, type: FileType) = GItem(parent, value, type)
    }
 
    private class Game(dir: File) {

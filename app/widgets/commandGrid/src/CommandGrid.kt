@@ -1,6 +1,7 @@
 package commandGrid
 
 import java.io.File
+import java.util.UUID
 import javafx.scene.input.KeyCode.ENTER
 import javafx.scene.input.KeyEvent.KEY_PRESSED
 import javafx.scene.input.ScrollEvent.SCROLL
@@ -23,12 +24,13 @@ import sp.it.pl.ui.pane.ShortcutPane
 import sp.it.util.access.OrV.OrValue.Initial.Override
 import sp.it.util.access.toggle
 import sp.it.util.async.future.Fut
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.conf.cOr
 import sp.it.util.conf.cv
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.defInherit
+import sp.it.util.conf.noUi
 import sp.it.util.conf.uiNoOrder
 import sp.it.util.dev.fail
 import sp.it.util.file.FileType
@@ -76,6 +78,10 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       .def(name = "Thumbnail size ratio", info = "Size ratio of the thumbnail.")
    val coverFitFrom by cv(FitFrom.OUTSIDE)
       .def(name = "Thumbnail fit image from", info = "Determines whether image will be fit from inside or outside.")
+   val coverCache by cv(false)
+      .def(name = "Use thumbnail cache", info = "Cache thumbnails on disk for faster loading. Useful when items form mostly finite set. Cache is an internal directory split by thumbnail size.")
+   val coverCacheId by cv(UUID.randomUUID()).noUi()
+      .def(name = "Thumbnail cache id", info = "Isolates image cache of this widget instance by the id. Unique per widget instance.")
    val cellTextHeight = APP.ui.font.map { 30.0.emScaled }.apply { attach { applyCellSize() } on onClose }
 
    init {
@@ -115,11 +121,12 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
       root.sync1IfInScene {
          applyCellSize()
-         runIO {
+         runVT {
             userLocation.children().filter { it hasExtension command }.toList()
          } ui {
             grid.itemsRaw += it.map {
                object: Item(null, userLocation/it.name, FILE) {
+                  init { coverStrategy = CoverStrategy(true, true, false, true, coverCacheId.value.takeIf { coverCache.value }) }
                   override fun createItem(parent: Item?, value: File?, type: FileType?) = fail { "" }
                }
             }
@@ -135,7 +142,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
       grid.cellHeight.value = height.emScaled + cellTextHeight.value
    }
 
-   private fun Item.cellAction(): Fut<Command> =  value.net { runIO { it.readTextTry().andAlso(Command::ofS).orNull() ?: Command.DoNothing } }
+   private fun Item.cellAction(): Fut<Command> =  value.net { runVT { it.readTextTry().andAlso(Command::ofS).orNull() ?: Command.DoNothing } }
 
    private fun Item.doubleClickItem() = cellAction().ui { it() }.toUnit()
 

@@ -93,12 +93,6 @@
   **Lucene**?
 - Improve I/O to support cross-window  
   Challenging. See [issue](/TODO-ISSUES.md#io-ui)
-- Write documentation
-  See [issue](/TODO-ISSUES.md#documentation)
-- ❌ Implement ComboBox search  
-  Challenging. Use autocomplete. See [issue](/TODO-ISSUES.md#searchable-combobox)
-- ❌ Use less/sass/kotlin dsl for css  
-  Not useful enough. See [issue](/TODO-ISSUES.md#styling)
 
 ## Bugs
 

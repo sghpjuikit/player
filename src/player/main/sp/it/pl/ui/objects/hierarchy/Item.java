@@ -48,9 +48,7 @@ import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppFileKt.isVideo;
 import static sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.VT_IMAGE;
 import static sp.it.util.async.AsyncKt.FX;
-import static sp.it.util.async.AsyncKt.IO;
 import static sp.it.util.async.AsyncKt.VT;
-import static sp.it.util.async.AsyncKt.runFX;
 import static sp.it.util.async.AsyncKt.runOn;
 import static sp.it.util.async.ExecutorExtensionsKt.limitParallelism;
 import static sp.it.util.async.future.Fut.fut;
@@ -73,15 +71,15 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	public final @NotNull FileType valType;
 	/** Children representing filtered files. Must not be accessed outside fx application thread. */
-	protected volatile List<Item> children = null;
+	protected volatile @Nullable List<Item> children = null;
 	/** All file children. Super set of {@link #children}. Must not be accessed outside fx application thread. */
-	protected volatile Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
-	public @NotNull volatile ImageLoad cover = NotStarted.INSTANCE;
-	protected volatile Option<@Nullable File> coverFile = Option.Companion.invoke(null);
+	protected volatile @Nullable Set<String> all_children = null;        // all files, cache, use instead File.exists to reduce I/O
+	public volatile @NotNull ImageLoad cover = NotStarted.INSTANCE;
+	protected volatile @NotNull Option<@Nullable File> coverFile = Option.Companion.invoke(null);
 	protected volatile @Nullable Thread loadingThread = null;
 	protected volatile boolean loadingPreInterrupted = false;
-	protected boolean disposed = false;
-	protected final HashMap<String, Object> properties = new HashMap<>();
+	protected volatile boolean disposed = false;
+	protected final @NotNull HashMap<String, Object> properties = new HashMap<>();
 	public double loadProgress = 0;         // 0-1
 	public double lastScrollPosition = -1;  // -1 || 0-1
 	public int lastSelectedChild = GridViewSkin.NO_SELECT;   // GridViewSkin.NO_SELECT || 0-N
@@ -93,12 +91,8 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 
 	/** Returns children items. Evaluates children lazily at first invocation at most once */
 	public @NotNull List<@NotNull Item> children() {
-		failIfFxThread();
-
-		return runFX(() -> children)
-			.then(IO, it -> it!=null ? it : buildChildren())
-			.blockAndGet()
-			.or(it -> list());
+		if (children==null) children = computeChildren();
+		return children;
 	}
 
 	/** Returns children items as are - null if not yet evaluated. See {@link #children()}. */
@@ -163,7 +157,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		lastSelectedChild = GridViewSkin.NO_SELECT;
 	}
 
-	private List<Item> buildChildren() {
+	protected List<Item> computeChildren() {
 		failIfFxThread();
 
 		var all = new HashSet<String>();
@@ -184,16 +178,13 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		css.addAll(dirs);
 		css.addAll(files);
 
-		return runFX(() -> {
-			if (!disposed) {
-				children = css;
-				all_children = all;
-				return children;
-			} else {
-				return List.<Item>of();
-			}
-		}).blockAndGet().or(it -> List.of());
-
+		if (!disposed) {
+			children = css;
+			all_children = all;
+			return children;
+		} else {
+			return List.of();
+		}
 	}
 
 	protected Sequence<File> childrenFiles() {
@@ -273,7 +264,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(imgFile);
 
 			var ci = (Image) null;
-			var cf = getOrSupply(imgFile, () -> getCoverFile(strategy));
+			var cf = getOrSupply(imgFile, () -> computeCoverFile(strategy));
 			if (Interrupts.INSTANCE.isInterrupted()) return new DoneInterrupted(new Some<>(cf));
 
 			try {
@@ -285,7 +276,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 						if (strategy.useComposedDirCover) {
 							List<Image> subCovers = ch==null ? list() : ch.stream()
 								.filter(it -> it.valType==FILE)
-								.map(it -> it.getCoverFile(strategy))
+								.map(it -> it.computeCoverFile(strategy))
 								.filter(it -> it!=null)
 								.limit(4)
 								.map(it -> strategy.loader.invoke(it, size.div(2), OUTSIDE, true))
@@ -335,7 +326,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 		return cl;
 	}
 
-	protected @Nullable File getCoverFile(CoverStrategy strategy) {
+	protected @Nullable File computeCoverFile(CoverStrategy strategy) {
 		failIfFxThread();
 
 		if (coverFile instanceof Some<@Nullable File> f) {
@@ -344,7 +335,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 			var cf = (File) null;
 
 			if (valType==DIRECTORY) {
-				if (children==null) buildChildren();
+				if (children==null) computeChildren();
 				cf = getImageT(value, "cover");
 			} else {
 				if (cf==null && isImage(value)) {
@@ -354,7 +345,7 @@ public abstract class Item extends HierarchicalBase<File,Item> {
 					File i;
 						i = getImage(value.getParentFile(), getNameWithoutExtension(value));
 					if (i==null && parent!=null && strategy.useParentCoverIfNone)
-						i = parent.getCoverFile(strategy);
+						i = parent.computeCoverFile(strategy);
 					if (i!=null)
 						cf = i;
 				}

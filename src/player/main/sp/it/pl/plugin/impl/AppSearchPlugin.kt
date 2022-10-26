@@ -44,11 +44,9 @@ import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.action.IsAction
 import sp.it.util.async.coroutine.FX
-import sp.it.util.async.IO
-import sp.it.util.async.future.Fut
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.butElement
@@ -122,9 +120,10 @@ class AppSearchPlugin: PluginBase() {
    }
 
    private fun computeFiles() {
-      runIO {
+      val dirs = searchDirs.materialize()
+      runVT {
          val isCacheInvalid = !cacheFile.exists()
-         if (isCacheInvalid) updateCache() else readCache()
+         if (isCacheInvalid) updateCache(dirs) else readCache()
       }
    }
 
@@ -148,19 +147,18 @@ class AppSearchPlugin: PluginBase() {
       name = "Re-index",
       info = "Updates locations' cache. The cache avoids searching applications repeatedly, but is not updated automatically."
    )
-   private fun updateCache() {
-      runFX { searchDirs.materialize() }
-         .then(IO) { dirs ->
-            val id = cacheUpdate.incrementAndGet()
-            (dirs.asSequence().distinct().flatMap { findApps(it, id) } + startMenuPrograms(id))
-               .filter { !it.name.equals("Desktop.ini", true) }
-               .distinct()
-               .toList()
-               .also { writeCache(it) }
-         }.ui {
-            searchSourceApps setTo it
-         }
-         .withAppProgress("$name: Searching for applications")
+   private fun updateCache(dirs: List<File> = searchDirs.materialize()) {
+      runVT {
+         val id = cacheUpdate.incrementAndGet()
+         (dirs.asSequence().distinct().flatMap { findApps(it, id) } + startMenuPrograms(id))
+            .filter { !it.name.equals("Desktop.ini", true) }
+            .distinct()
+            .toList()
+            .also { writeCache(it) }
+      }.withAppProgress("$name: Searching for applications").ui {
+         searchSourceApps setTo it
+      }
+
    }
 
    private fun startMenuPrograms(id: Long): Sequence<File> = when (Os.current) {
@@ -278,10 +276,11 @@ class AppSearchPlugin: PluginBase() {
       private fun visit() {
          disposeItem()
          val i = TopItem()
+         val searchSourceApps = owner.searchSourceApps.materialize()
          item = i
          visitId.incrementAndGet()
-         runIO {
-            i.children().sortedWith(buildSortComparator())
+         runVT {
+            i.children().sortedWith(buildSortComparator(searchSourceApps))
          }.withAppProgress(
             widget.customName.value + ": Fetching view"
          ) ui {
@@ -309,15 +308,17 @@ class AppSearchPlugin: PluginBase() {
       }
 
       private fun applySort() {
-         Fut.fut(grid.itemsRaw.materialize()).then(IO) {
-            it.sortedWith(buildSortComparator())
+         val items = grid.itemsRaw.materialize()
+         val searchSourceApps = owner.searchSourceApps.materialize()
+         runVT {
+            items.sortedWith(buildSortComparator(searchSourceApps))
          } ui {
             grid.itemsRaw setTo it
          }
       }
 
-      private fun buildSortComparator(): Comparator<Item> {
-         val byParent = owner.searchSourceApps.groupBy {
+      private fun buildSortComparator(searchSourceApps: List<File>): Comparator<Item> {
+         val byParent = searchSourceApps.groupBy {
             if (windowsAppDataDirectory.isParentOrSelfOf(it)) null
             else it.parent
          }.mapValues {
@@ -360,7 +361,7 @@ class AppSearchPlugin: PluginBase() {
 
          override fun childrenFiles() = owner.searchSourceApps.asSequence()
 
-         override fun getCoverFile(strategy: CoverStrategy) = null
+         override fun computeCoverFile(strategy: CoverStrategy) = null
 
       }
 

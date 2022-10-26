@@ -71,10 +71,9 @@ import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggle
 import sp.it.util.access.v
-import sp.it.util.async.IO
-import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.onlyIfMatches
 import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.collections.insertEvery
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -171,7 +170,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       .def(name = "Location (refresh)", info = "Reloads location files and reloads the view.")
    private val filesJoiner by cv(FileFlatter.TOP_LVL)
       .def(name = "Location joiner", info = "Merges location files into a virtual view.")
-   private var filesMaterialized = files.materialize()
+   @Volatile private var filesMaterialized = files.materialize()
    private val filesEmpty = v(true).apply { files.onChangeAndNow { value = files.isEmpty() } }
 
    val gridShowFooter by cOr(APP.ui::gridShowFooter, grid.footerVisible, Inherit(), onClose)
@@ -350,15 +349,14 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       item = dir
       navigation.breadcrumbs.values setTo dir.traverse { it.parent }.toList().asReversed()
       lastVisited = dir.value
-      val locationsMaterialized = filesMaterialized
 
       outputSelectedSuppressor.suppressing {
          grid.itemsRaw setTo listOf()
          grid.skinImpl!!.position = dir.lastScrollPosition max 0.0
       }
 
-      runIO {
-         dir.children() let_ { it.sortedWith(buildSortComparator(locationsMaterialized, it)) }
+      runVT {
+         dir.children() let_ { it.sortedWith(buildSortComparator(it)) }
       }.withAppProgress(
          widget.customName.value + ": Fetching view"
       ).ui {
@@ -389,11 +387,11 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       if (lastVisited==null) {
          visit(topItem)
       } else {
-         fut(lastVisited).then(IO) { lastVisited ->
-
+         val fLv = lastVisited
+         runVT {
             // Build stack of files representing the visited branch
             val path = Stack<File>() // nested items we need to rebuild to get to last visited
-            var f = lastVisited
+            var f = fLv
             while (f!=null && topItem.children().none { it.value==f }) {
                path.push(f)
                f = f.parentFile
@@ -476,19 +474,18 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
    private fun applySort() {
       val itemsMaterialized = grid.itemsRaw.materialize()
-      val locationsMaterialized = filesMaterialized
-      runIO {
-         itemsMaterialized.sortedWith(buildSortComparator(locationsMaterialized, itemsMaterialized))
+      runVT {
+         itemsMaterialized.sortedWith(buildSortComparator(itemsMaterialized))
       } ui {
          grid.itemsRaw setTo it
       }
    }
 
    @Suppress("MapGetWithNotNullAssertionOperator")
-   private fun buildSortComparator(locationsMaterialized: List<File>, items: List<Item>): Comparator<Item> {
+   private fun buildSortComparator(items: List<Item>): Comparator<Item> {
       return when (sortBy.value) {
          "PATH_LIBRARY" -> {
-            val childByParent = items.associateWith { c -> locationsMaterialized.find { p -> p.isAnyParentOrSelfOf(c.value) }!! }
+            val childByParent = items.associateWith { c -> filesMaterialized.find { p -> p.isAnyParentOrSelfOf(c.value) }!! }
             val pathByChild = items.associateWith { c -> c.value.path.substringAfter(childByParent[c]!!.path) }
             compareBy<Item> { 0 }
                .thenBy { it.valType }.inSort(sortFile.value.sort)
@@ -606,7 +603,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
       override fun childrenFiles() = filesMaterialized.filter { it.isDirectory && it.exists() }.let(filesJoiner.value.flatten).map { CachingFile(it) }
 
-      override fun getCoverFile(strategy: CoverStrategy) = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
+      override fun computeCoverFile(strategy: CoverStrategy) = children().firstOrNull()?.value?.parentFile?.let { getImageT(it, "cover") }
 
    }
 

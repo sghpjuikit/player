@@ -9,6 +9,7 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.valueParameters
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
@@ -73,7 +74,8 @@ fun <T: Any> ConfigDelegator.collectActionsOf(type: KClass<T>, instance: T?) {
    type.java.declaredMethods.asSequence()
       .filter { Modifier.isStatic(it.modifiers) xor useStatic && it.isAnnotationPresent(IsAction::class.java) }
       .forEach { m ->
-         failIf(m.parameters.isNotEmpty()) { "Action method=$m must have 0 parameters" }
+         val f = m.kotlinFunction ?: fail { "Action method=$m can not be reflected by Kotlin" }
+         failIf(f.valueParameters.any { !it.isOptional }) { "Action method=$m must have 0 parameters" }
 
          cr {
             runTry {
@@ -85,7 +87,7 @@ fun <T: Any> ConfigDelegator.collectActionsOf(type: KClass<T>, instance: T?) {
             Unit
          }.provideDelegate(
             if (instance is ConfigDelegator) instance else this,
-            m.kotlinFunction!!
+            f
          )
       }
 }

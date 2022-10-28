@@ -20,7 +20,7 @@ import sp.it.pl.main.emScaled
 import sp.it.pl.ui.LabelWithIcon
 import sp.it.pl.ui.objects.MdNode
 import sp.it.pl.ui.pane.ShortcutPane
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Constraint.FileActor.DIRECTORY
 import sp.it.util.conf.c
@@ -72,7 +72,7 @@ class GitProjects(widget: Widget): SimpleController(widget) {
       }
 
       inputFile.sync {
-         runIO {
+         runVT {
             it?.children().orEmpty().filter { it.isDirectory }.toList()
          } ui {
             projects setTo it.map { Project(it) }

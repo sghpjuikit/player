@@ -72,7 +72,6 @@ import sp.it.util.access.fieldvalue.FileField
 import sp.it.util.access.toggle
 import sp.it.util.access.v
 import sp.it.util.async.onlyIfMatches
-import sp.it.util.async.runIO
 import sp.it.util.async.runVT
 import sp.it.util.collections.insertEvery
 import sp.it.util.collections.materialize
@@ -155,7 +154,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
    private val outputSelectedSuppressor = Suppressor(false)
    private val outputSelected = io.o.create<File?>("Selected", null)
    private val inputFile = io.i.create<List<File>>("Root directory", listOf()) {
-      runIO {
+      runVT {
          it.mapNotNull { if (it.isDirectory) it else it.parentFile }.toSet().toList()
       } ui {
          files setTo it
@@ -397,7 +396,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
                f = f.parentFile
             }
             val tmpF = f
-            val success = topItem.children().any { it.value!=null && it.value==tmpF }
+            val success = topItem.children().any { it.value==tmpF }
             if (success) path.push(f)
 
             // Compute item to visit
@@ -587,7 +586,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
       }
    }
 
-   private open inner class FItem(parent: Item?, value: File?, type: FileType): Item(parent, value, type) {
+   private open inner class FItem(parent: Item?, value: File, type: FileType): Item(parent, value, type) {
 
       override fun createItem(parent: Item, value: File, type: FileType) = FItem(parent, value, type)
 
@@ -595,7 +594,7 @@ class DirViewer(widget: Widget): SimpleController(widget), ImagesDisplayFeature 
 
    }
 
-   private inner class TopItem: FItem(null, null, DIRECTORY) {
+   private inner class TopItem: FItem(null, File(""), DIRECTORY) {
 
       init {
          coverStrategy = CoverStrategy(coverLoadingUseComposedDirCover.value, coverUseParentCoverIfNone.value, false, true, coverCacheId.value.takeIf { coverCache.value })

@@ -23,7 +23,7 @@ import sp.it.pl.ui.objects.image.Thumbnail
 import sp.it.pl.ui.objects.rating.Rating
 import sp.it.util.access.toWritable
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.functional.net
 import sp.it.util.functional.toUnit
 import sp.it.util.reactive.attachNonNullWhile
@@ -119,7 +119,7 @@ class SongInfo(showCover: Boolean = true): HBox(15.0), SongReader {
 
    private fun Thumbnail.loadCoverOf(data: Metadata) {
       val id = dataId.incrementAndGet()
-      runIO {
+      runVT {
          if (dataId.get()==id) {
             val cover = data.getCover(ANY)
             runFX {

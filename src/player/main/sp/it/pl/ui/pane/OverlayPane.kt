@@ -38,8 +38,9 @@ import sp.it.util.access.v
 import sp.it.util.access.visible
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.mapTo01
+import sp.it.util.async.coroutine.IO
+import sp.it.util.async.coroutine.runSuspendingFx
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
 import sp.it.util.functional.asIf
@@ -403,18 +404,16 @@ abstract class OverlayPane<in T>: StackPane() {
 enum class ScreenBgrGetter {
    NONE, SCREEN_SHOT, SCREEN_BGR;
 
-   fun getImgAndDo(screen: Screen, action: (Image?) -> Unit) {
+   fun getImgAndDo(screen: Screen, block: (Image?) -> Unit) {
       when (this) {
-         NONE -> action(null)
-         SCREEN_SHOT -> action(screen.makeScreenShot())
-         SCREEN_BGR -> {
-            runIO {
+         NONE -> block(null)
+         SCREEN_SHOT -> block(screen.makeScreenShot())
+         SCREEN_BGR -> runSuspendingFx {
+            block(
                null
-                  ?: APP.plugins.get<WallpaperChanger>()?.wallpaperImage?.value
-                  ?: screen.getWallpaperFile()?.let { imgImplLoadFX(it, ImageSize(-1.0, -1.0), true) }
-            } ui {
-               action(it)
-            }
+               ?: APP.plugins.get<WallpaperChanger>()?.wallpaperImage?.value
+               ?: IO { screen.getWallpaperFile()?.let { imgImplLoadFX(it, ImageSize(-1.0, -1.0), true) } }
+            )
          }
       }
    }

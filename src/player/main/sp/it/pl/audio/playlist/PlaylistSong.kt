@@ -22,6 +22,7 @@ import sp.it.util.units.toHMSMs
 import java.net.URI
 import sp.it.pl.audio.tagging.AudioFileFormat
 import sp.it.pl.main.toUi
+import sp.it.util.dev.failIf
 
 /**
  * Song in playlist.
@@ -36,8 +37,8 @@ import sp.it.pl.main.toUi
  */
 class PlaylistSong: Song {
 
-   val uriP: SimpleObjectProperty<URI>
-   override val uri: URI get() = uriP.get()
+   private var uriP: URI? = null
+   override val uri: URI get() = uriP!!
 
    private var artist: String? = null
    private var title: String? = null
@@ -71,7 +72,7 @@ class PlaylistSong: Song {
 
    /** New not updated item */
    constructor(_uri: URI) {
-      uriP = SimpleObjectProperty(_uri)
+      uriP = _uri
       nameP = SimpleStringProperty(getInitialName())
       timeP = SimpleObjectProperty(Duration(0.0))
       isUpdated = false
@@ -79,7 +80,7 @@ class PlaylistSong: Song {
 
    /** New updated item. */
    constructor(new_uri: URI, _artist: String?, _title: String?, _length: Double) {
-      uriP = SimpleObjectProperty(new_uri)
+      uriP = new_uri
       nameP = SimpleStringProperty()
       timeP = SimpleObjectProperty(Duration(_length))
       setATN(_artist, _title)
@@ -151,9 +152,9 @@ class PlaylistSong: Song {
       }
    }
 
-   /** Updates this playlist item to data from specified metadata (involves no i/o). */
+   /** Updates this playlist item to data from specified metadata */
    fun update(m: Metadata) {
-      uriP.set(m.uri)
+      failIf(uriP!=m.uri) { "Update of $uriP failed, because Metadata uri is ${m.uri}" }
       setATN(m.getArtist(), m.getTitle())
       timeP.set(m.getLength())
       isUpdated = true

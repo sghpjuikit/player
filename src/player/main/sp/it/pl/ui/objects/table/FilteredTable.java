@@ -67,8 +67,8 @@ import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.computeMaxIndex;
 import static sp.it.pl.ui.objects.table.TableViewExtensionsKt.rows;
 import static sp.it.util.Util.digits;
 import static sp.it.util.Util.zeroPad;
-import static sp.it.util.async.AsyncKt.runIO;
 import static sp.it.util.async.AsyncKt.runLater;
+import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.failIf;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.IS;
@@ -136,7 +136,7 @@ public class FilteredTable<T> extends FieldedTable<T> {
 					updateComparator();
 					var fi = new ArrayList<>(filteredItems);
 					var c = computeComparatorMemoized();
-					runIO(() -> {
+					runVT(() -> {
 						fi.sort(c);
 						return null;
 					}).ui(i -> {

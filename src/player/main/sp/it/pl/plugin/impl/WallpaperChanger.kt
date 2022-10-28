@@ -10,7 +10,7 @@ import sp.it.pl.plugin.PluginBase
 import sp.it.pl.plugin.PluginInfo
 import sp.it.util.access.readOnly
 import sp.it.util.access.vn
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.conf.cvn
 import sp.it.util.conf.def
 import sp.it.util.conf.only
@@ -40,7 +40,7 @@ class WallpaperChanger: PluginBase() {
 
    private fun load(f: File?) {
       val size = largestScreenSize()
-      runIO {
+      runVT {
          if (f!=null) Windows.changeWallpaper(f)
          ImageStandardLoader.memoized(cacheId)(f, size, OUTSIDE, true)
       } ui {

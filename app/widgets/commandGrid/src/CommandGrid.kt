@@ -127,7 +127,7 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
             grid.itemsRaw += it.map {
                object: Item(null, userLocation/it.name, FILE) {
                   init { coverStrategy = CoverStrategy(true, true, false, true, coverCacheId.value.takeIf { coverCache.value }) }
-                  override fun createItem(parent: Item?, value: File?, type: FileType?) = fail { "" }
+                  override fun createItem(parent: Item, value: File, type: FileType) = fail { "" }
                }
             }
          }

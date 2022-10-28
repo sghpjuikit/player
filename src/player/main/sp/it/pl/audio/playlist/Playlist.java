@@ -31,7 +31,7 @@ import static javafx.util.Duration.millis;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runFX;
-import static sp.it.util.async.AsyncKt.runIO;
+import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.noNull;
 import static sp.it.util.functional.Util.map;
 import static sp.it.util.functional.UtilKt.runnable;
@@ -352,7 +352,7 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 	public void updateItems(Collection<PlaylistSong> songs) {
 		if (songs.isEmpty()) return;
 		List<PlaylistSong> l = new ArrayList<>(songs);
-		runIO(() -> {
+		runVT(() -> {
 			for (PlaylistSong i : l) {
 				if (Thread.interrupted()) return;
 				if (!i.isUpdated()) i.update();
@@ -444,7 +444,7 @@ public class Playlist extends ObservableListWrapper<PlaylistSong> {
 		if (song!=null) {
 			transform(items -> {
 				if (items.contains(song)) {
-					runIO(() -> {
+					runVT(() -> {
 						// we can't play song -> we try to play next one and eventually get here again => need defend against case where no song is playable
 						boolean unplayable = song.isCorrupt();  // blocking
 						if (unplayable) {

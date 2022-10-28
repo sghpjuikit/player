@@ -65,6 +65,7 @@ import sp.it.util.access.toggle
 import sp.it.util.async.CURR
 import sp.it.util.async.invoke
 import sp.it.util.async.limitExecCount
+import sp.it.util.async.runVT
 import sp.it.util.collections.getElementType
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Configurable
@@ -126,7 +127,7 @@ fun <T> tree(o: T): TreeItem<T> = when (o) {
    is Scene -> tree(o, o.root)
    is WindowFX -> STreeItem(o, { seqOf(o.scene) + seqOf(o.asLayout()).filterNotNull() })
    is Window -> tree(o.stage)
-   is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.hChildren.isEmpty() })
+   is Name -> STreeItem(o, { o.hChildren.asSequence() }, { o.isHLeaf })
    is Song -> STreeItem(o.uri, { seqOf() }, { true })
    is Playlist -> PlaylistTreeItem(o)
    is PlaylistSongGroup -> STreeItem<Any?>(o, { o.songs.asSequence() }, { o.songs.isEmpty() })

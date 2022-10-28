@@ -52,7 +52,6 @@ import sp.it.pl.main.installDrag
 import sp.it.pl.main.toMetadata
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
 import sp.it.util.collections.setTo
 import sp.it.util.conf.cCheckList
 import sp.it.util.conf.cv
@@ -91,6 +90,7 @@ import sp.it.pl.ui.objects.complexfield.StringTagTextField
 import sp.it.pl.ui.objects.complexfield.TagTextField.EditableBy.PLUS_NODE
 import sp.it.pl.ui.pane.ActionData.Threading.BLOCK
 import sp.it.pl.ui.pane.action
+import sp.it.util.async.runVT
 import sp.it.util.functional.asIf
 import sp.it.util.reactive.attach
 import sp.it.util.ui.Util.computeTextWidth
@@ -204,7 +204,7 @@ class FileInfo(widget: Widget): SimpleController(widget), SongReader {
 
    private fun setCover(source: CoverSource) {
       val id = data
-      runIO {
+      runVT {
          id.getCover(source).getImage()
       } ui {
          if (id===data) cover.loadImage(it)

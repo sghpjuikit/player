@@ -45,12 +45,11 @@ import sp.it.pl.ui.pane.register
 import sp.it.util.Util.enumToHuman
 import sp.it.util.access.fieldvalue.CachingFile
 import sp.it.util.access.v
-import sp.it.util.action.ActionRegistrar
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.future.Fut.Companion.fut
 import sp.it.util.async.future.runGet
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.collections.map.KClassListMap
 import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.cv
@@ -316,7 +315,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
 }
 
 private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Collection<File>, Collection<File>> = ComplexActionData(
-   { files -> runIO { findAudio(files).map { CachingFile(it) }.toList() } },
+   { files -> runVT { findAudio(files).map { CachingFile(it) }.toList() } },
    { audioFiles ->
       val executed = v(false)
       val conf = object: ConfigurableBase<Boolean>() {
@@ -364,7 +363,7 @@ private fun addToLibraryConsumer(actionPane: ActionPane): ComplexActionData<Coll
                }.play()
 
 
-               runIO {
+               runVT {
                   if (conf.makeWritable.value) audioFiles.forEach { it.setWritable(true) }
                   task.runGet().toTry().orNull()
                }.ui { result ->

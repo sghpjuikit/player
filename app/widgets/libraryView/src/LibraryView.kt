@@ -64,8 +64,8 @@ import sp.it.util.access.OrV.OrValue.Initial.Inherit
 import sp.it.util.access.fieldvalue.ColumnField
 import sp.it.util.access.fieldvalue.ObjectField
 import sp.it.util.async.executor.EventReducer
-import sp.it.util.async.runIO
 import sp.it.util.async.runNew
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.Config
@@ -326,7 +326,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       if (list==null) return
 
       val f = fieldFilter.value
-      runIO {
+      runVT {
          listOf(MetadataGroup.groupOf(f, list)) + MetadataGroup.groupsOf(f, list)
       } ui {
          if (it.isNotEmpty()) {

@@ -52,7 +52,6 @@ import sp.it.util.ui.hBox
 import sp.it.util.ui.lay
 import sp.it.util.ui.leftAnchor
 import sp.it.util.ui.prefSize
-import sp.it.util.ui.scrollPane
 import sp.it.util.ui.splitPane
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox

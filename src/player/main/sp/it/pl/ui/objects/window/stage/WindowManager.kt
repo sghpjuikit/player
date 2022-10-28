@@ -70,7 +70,7 @@ import sp.it.util.async.coroutine.FX
 import sp.it.util.async.future.Fut
 import sp.it.util.async.coroutine.launch
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.collections.ObservableListRO
 import sp.it.util.collections.observableList
 import sp.it.util.collections.readOnly
@@ -454,7 +454,7 @@ class WindowManager: GlobalSubConfigDelegator(confWindow.name) {
    }
 
    @ThreadSafe
-   fun deserialize(): Fut<*> = runIO {
+   fun deserialize(): Fut<*> = runVT {
       logger.info { "Deserializing windows..." }
       val dir = APP.location.user.layouts.current
       if (isValidatedDirectory(dir)) {

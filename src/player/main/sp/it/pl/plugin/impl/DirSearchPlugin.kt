@@ -14,7 +14,7 @@ import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.butElement
@@ -56,7 +56,7 @@ class DirSearchPlugin: PluginBase() {
    }
 
    private fun computeFiles() {
-      runIO {
+      runVT {
          val isCacheInvalid = !cacheFile.exists()
          if (isCacheInvalid) updateCache() else readCache()
       }

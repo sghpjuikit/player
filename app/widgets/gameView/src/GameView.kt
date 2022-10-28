@@ -76,7 +76,6 @@ import sp.it.util.access.toggle
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Anim.Companion.animPar
 import sp.it.util.async.FX
-import sp.it.util.async.runIO
 import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
@@ -362,7 +361,7 @@ class GameView(widget: Widget): SimpleController(widget) {
       /** Properties. */
       val settings: Map<String, PropVal> by lazy { (location/"game.properties").readProperties().orNull().orEmpty() }
 
-      fun exeFile(block: (File?) -> Unit) = runIO {
+      fun exeFile(block: (File?) -> Unit) = runVT {
          null
             ?: (location/"play.lnk").takeIf { it.exists() }
             ?: (location/"play.bat").takeIf { it.exists() }
@@ -394,7 +393,7 @@ class GameView(widget: Widget): SimpleController(widget) {
                   val targetDir = it.file.parentDirOrRoot.absolutePath.substringAfter(location.absolutePath + File.separator)
                   val targetName = it.file.name
                   val link = location/"play.bat"
-                  runIO {
+                  runVT {
                      failIf(!it.file.exists()) { "Target file does not exist." }
                      link.writeText("""@echo off${'\n'}start "" /d "$targetDir" "$targetName"""")
                   }.onErrorNotify {
@@ -460,7 +459,7 @@ class GameView(widget: Widget): SimpleController(widget) {
 
                   lay += IconFA.EDIT icon {
                      val file = game.readmeFile
-                     runIO {
+                     runVT {
                         file.createNewFile()
                         file.edit()
                      }
@@ -503,7 +502,7 @@ class GameView(widget: Widget): SimpleController(widget) {
          fileTree.root = null
          fileTree.requestFocus()
 
-         runIO {
+         runVT {
             object {
                val title = g.name
                val location = g.location.toFast(DIRECTORY)

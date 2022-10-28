@@ -6,7 +6,7 @@ import javafx.geometry.Orientation
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppError
 import sp.it.pl.main.ifErrorNotify
-import sp.it.util.async.runIO
+import sp.it.util.async.runVT
 import sp.it.util.dev.stacktraceAsString
 import sp.it.util.file.properties.PropVal
 import sp.it.util.file.writeTextTry
@@ -25,7 +25,7 @@ fun Component?.toDb(): ComponentDb = this?.toDb() ?: NoComponentDb
  *
  * See [File.loadComponentFxwlJson]
  */
-fun Component?.exportFxwl(f: File) = runIO {
+fun Component?.exportFxwl(f: File) = runVT {
    APP.serializerJson.toJson(toDb(), f).ifErrorNotify {
       AppError(
          "Unable to export component launcher for ${this?.name} into ${f}.",
@@ -35,7 +35,7 @@ fun Component?.exportFxwl(f: File) = runIO {
 }
 
 /** Creates a launcher for this widget with default (none predefined) settings.  */
-fun Widget.exportFxwlDefault(f: File) = runIO {
+fun Widget.exportFxwlDefault(f: File) = runVT {
    f.writeTextTry(factory.id).ifErrorNotify {
       AppError(
          "Unable to export default widget launcher for $name into $f.",
@@ -48,7 +48,7 @@ fun Widget.exportFxwlDefault(f: File) = runIO {
  * Loads component launcher.
  * See [Component.exportFxwl]
  */
-fun File.loadComponentFxwlJson() = runIO {
+fun File.loadComponentFxwlJson() = runVT {
    json.fromJson<ComponentDb>(this).ifErrorNotify {
       AppError(
          "Unable to load component launcher from $this.",

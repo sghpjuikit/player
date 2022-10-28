@@ -23,7 +23,6 @@ import sp.it.pl.ui.objects.tree.buildTreeCell
 import sp.it.util.action.IsAction
 import sp.it.util.async.IO
 import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.async.runIO
 import sp.it.util.conf.cList
 import sp.it.util.conf.def
 import sp.it.util.conf.getDelegateAction
@@ -50,6 +49,7 @@ import javafx.scene.input.KeyEvent.KEY_RELEASED
 import sp.it.pl.main.APP
 import sp.it.pl.main.Df.FILES
 import sp.it.pl.ui.objects.tree.FileTreeItem
+import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
 import sp.it.util.collections.setTo
 import sp.it.util.conf.butElement
@@ -114,7 +114,7 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
       )
 
       root.sync1IfInScene {
-         runIO {
+         runVT {
             File.listRoots().map { it.toFast(DIRECTORY) }
          } ui { roots ->
             tree.root = tree("Root",
@@ -128,7 +128,7 @@ class FavLocations(widget: Widget): SimpleController(widget), FileExplorerFeatur
 
    @IsAction(name = "Refresh", info = "Refresh file structure from disc")
    fun refresh() {
-      runIO {
+      runVT {
          File.listRoots().map { it.toFast(DIRECTORY) }
       } ui { roots ->
          tree.root?.children?.find { it.value=="This PC" }?.children.ifNotNull { rootItems ->

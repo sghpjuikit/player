@@ -36,7 +36,6 @@ import sp.it.util.animation.Anim
 import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.FxTimer.Companion.fxTimer
-import sp.it.util.async.runIO
 import sp.it.util.collections.setToOne
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.c
@@ -67,6 +66,7 @@ import sp.it.pl.main.WidgetTags.IMAGE
 import sp.it.pl.ui.objects.icon.onClickDelegateKeyTo
 import sp.it.pl.ui.objects.icon.onClickDelegateMouseTo
 import sp.it.util.access.toggleNext
+import sp.it.util.async.runVT
 import sp.it.util.file.FileType.FILE
 import sp.it.util.file.getFilesR
 import sp.it.util.text.keys
@@ -222,7 +222,7 @@ class ImageViewer(widget: Widget): SimpleController(widget) {
    private fun readThumbnails() {
       images.clear()
       val source = folder.value
-      runIO {
+      runVT {
          if (source==null) listOf()
          else source.getFilesR(folderTreeDepth, FILE) { p, _ -> p.isImage() }.take(thumbsLimit)
       } ui { files ->

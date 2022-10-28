@@ -34,8 +34,8 @@ import javafx.util.StringConverter
 import sp.it.util.access.v
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.executor.EventReducer.toLast
-import sp.it.util.async.runIO
 import sp.it.util.async.runLater
+import sp.it.util.async.runVT
 import sp.it.util.collections.setTo
 import sp.it.util.dev.fail
 import sp.it.util.functional.ifIs
@@ -80,7 +80,7 @@ abstract class AutoCompletionBinding<T> {
       this.converter = converter
       this.completionTarget = completionTarget
       this.suggestionProviderEventReducer = toLast(250.0) { text ->
-         runIO {
+         runVT {
             suggestionProvider(text)
          } ui { suggestions ->
             if (!suggestions.isEmpty()) {

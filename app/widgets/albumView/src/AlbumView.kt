@@ -25,6 +25,7 @@ import sp.it.pl.layout.Widget
 import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.layout.feature.SongReader
 import sp.it.pl.main.APP
+import sp.it.pl.main.AppTexts
 import sp.it.pl.main.Double01
 import sp.it.pl.main.WidgetTags.LIBRARY
 import sp.it.pl.main.emScaled
@@ -46,7 +47,6 @@ import sp.it.util.async.FX
 import sp.it.util.async.executor.EventReducer
 import sp.it.util.async.future.Fut
 import sp.it.util.async.future.Fut.Companion.fut
-import sp.it.util.async.runIO
 import sp.it.util.async.runLater
 import sp.it.util.async.runVT
 import sp.it.util.collections.materialize
@@ -187,7 +187,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
       if (list==null) return
       lastScrollPosition = grid.skinImpl?.position ?: 0.0
 
-      runIO {
+      runVT {
          groupsOf(ALBUM, list)
       } ui { mgs ->
          if (mgs.isNotEmpty()) {
@@ -367,7 +367,7 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
          styleClass += "album-grid-cell"
       }
 
-      private fun computeName(item: Album): String = item.name
+      private fun computeName(item: Album): String = item.name.ifEmpty { AppTexts.textNoVal }
 
       private fun computeCellTextHeight() = cellTextHeight.value!!
 
@@ -493,33 +493,33 @@ class AlbumView(widget: Widget): SimpleController(widget), SongReader {
        *
        * Must be called on FX thread.
        */
-   private fun setCoverNow(item: Album) {
-      when (val cover = item.cover) {
-         is ImageLoad.NotStarted, is ImageLoad.DoneInterrupted -> {
-            thumb!!.loadImage(null)
-            val i = index
-            item.computeCover(computeThumbSize(), thumb!!.fitFrom.value) ui { setCoverPost(item, i, it) }
+      private fun setCoverNow(item: Album) {
+         when (val cover = item.cover) {
+            is ImageLoad.NotStarted, is ImageLoad.DoneInterrupted -> {
+               thumb!!.loadImage(null)
+               val i = index
+               item.computeCover(computeThumbSize(), thumb!!.fitFrom.value) ui { setCoverPost(item, i, it) }
+            }
+            is ImageLoad.Loading -> {
+               thumb!!.loadImage(null)
+               val i = index
+               cover.loading ui { setCoverPost(item, i, it) }
+            }
+            is ImageLoad.DoneErr -> {}
+            is ImageLoad.DoneOk -> setCoverPost(item, index, cover)
          }
-         is ImageLoad.Loading -> {
-            thumb!!.loadImage(null)
-            val i = index
-            cover.loading ui { setCoverPost(item, i, it) }
-         }
-         is ImageLoad.DoneErr -> {}
-         is ImageLoad.DoneOk -> setCoverPost(item, index, cover)
       }
-   }
 
-   private fun setCoverPost(item: Album, index: Int, img: ImageLoad) {
-      if (!disposed && !isInvalid(item, index) && thumb!!.getImage()!==img.image) {
-         imgLoadAnim?.stop()
-         imgLoadAnimItem = item
-         imgLoadAnim?.playOpenFrom(item.loadProgress)
-         img.image.sync1IfImageLoaded {
-            thumb!!.loadImage(img.image, img.file)
+      private fun setCoverPost(item: Album, index: Int, img: ImageLoad) {
+         if (!disposed && !isInvalid(item, index) && thumb!!.getImage()!==img.image) {
+            imgLoadAnim?.stop()
+            imgLoadAnimItem = item
+            imgLoadAnim?.playOpenFrom(item.loadProgress)
+            img.image.sync1IfImageLoaded {
+               thumb!!.loadImage(img.image, img.file)
+            }
          }
       }
-   }
 
    }
 

@@ -345,7 +345,7 @@ class AppSearchPlugin: PluginBase() {
 
       }
 
-      private open class FItem(parent: Item?, value: File?, type: FileType): Item(parent, value, type) {
+      private open class FItem(parent: Item?, value: File, type: FileType): Item(parent, value, type) {
 
          override fun createItem(parent: Item, value: File, type: FileType) = null
             ?: value.getPortableAppExe(type)?.net { FItem(parent, it, FILE) }
@@ -353,11 +353,9 @@ class AppSearchPlugin: PluginBase() {
 
       }
 
-      private inner class TopItem: FItem(null, null, DIRECTORY) {
+      private inner class TopItem: FItem(null, File(""), DIRECTORY) {
 
-         init {
-            coverStrategy = CoverStrategy(false, false, true, true, null)
-         }
+         init { coverStrategy = CoverStrategy(false, false, true, true, null) }
 
          override fun childrenFiles() = owner.searchSourceApps.asSequence()
 

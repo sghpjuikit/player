@@ -19,8 +19,8 @@ import sp.it.pl.main.APP
 import sp.it.pl.main.withAppProgress
 import sp.it.util.async.future.Fut
 import sp.it.util.async.runFX
-import sp.it.util.async.runIO
 import sp.it.util.async.runNew
+import sp.it.util.async.runVT
 import sp.it.util.collections.mapset.MapSet
 import sp.it.util.collections.setTo
 import sp.it.util.dev.Blocks
@@ -56,7 +56,7 @@ class SongDb {
       running = true
 
       moods = APP.location.resources.moods_yml.readTextTry().orNull().orEmpty().lineSequence().filterNot { it.startsWith("#") || it.isBlank() }.sorted().toCollection(LinkedHashSet())
-      runIO { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
+      runVT { updateInMemoryDbFromPersisted() }.withAppProgress("Loading song database")
    }
 
    fun stop() {

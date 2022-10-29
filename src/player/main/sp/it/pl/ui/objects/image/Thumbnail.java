@@ -1,7 +1,10 @@
 package sp.it.pl.ui.objects.image;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -21,14 +24,21 @@ import javafx.util.Duration;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sp.it.pl.image.ImageStandardLoader;
 import sp.it.util.access.V;
 import sp.it.util.animation.Anim;
+import sp.it.util.async.future.Fut;
 import sp.it.util.dev.Dependency;
+import sp.it.util.file.type.MimeTypesKt;
 import sp.it.util.math.P;
 import sp.it.util.ui.image.FitFrom;
+import sp.it.util.ui.image.ImageFrame;
 import sp.it.util.ui.image.ImageSize;
+import sp.it.util.ui.image.Params;
 import static java.lang.Double.min;
+import static javafx.animation.Animation.INDEFINITE;
 import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -43,18 +53,24 @@ import static sp.it.pl.main.AppBuildersKt.contextMenuFor;
 import static sp.it.pl.main.AppFileKt.isImage;
 import static sp.it.pl.main.AppKt.APP;
 import static sp.it.pl.ui.objects.hierarchy.Item.CoverStrategy.VT_IMAGE;
+import static sp.it.util.JavaLegacy.destroyImage;
+import static sp.it.util.async.AsyncKt.CURR;
 import static sp.it.util.async.AsyncKt.FX;
 import static sp.it.util.async.AsyncKt.runOn;
-import static sp.it.util.dev.DebugKt.logger;
+import static sp.it.util.async.AsyncKt.runVT;
 import static sp.it.util.dev.FailKt.failIfNotFxThread;
 import static sp.it.util.file.UtilKt.toFileOrNull;
 import static sp.it.util.functional.Util.ISNT0;
 import static sp.it.util.functional.Util.stream;
+import static sp.it.util.functional.UtilKt.consumer;
 import static sp.it.util.reactive.UtilKt.sync1If;
 import static sp.it.util.type.Util.getFieldValue;
 import static sp.it.util.ui.ContextMenuExtensionsKt.show;
 import static sp.it.util.ui.UtilKt.setScaleXYByTo;
 import static sp.it.util.ui.image.FitFrom.INSIDE;
+import static sp.it.util.ui.image.UtilKt.imgImplLoadFX;
+import static sp.it.util.ui.image.UtilKt.isImageAnimated;
+import static sp.it.util.ui.image.UtilKt.loadImageFrames;
 import static sp.it.util.units.FactoriesKt.uri;
 
 /**
@@ -102,6 +118,7 @@ import static sp.it.util.units.FactoriesKt.uri;
  */
 public class Thumbnail {
 
+	private static final Logger logger = LoggerFactory.getLogger(Thumbnail.class);
 	private static final String styleclassBgr = "thumbnail";
 	private static final String styleclassBorder = "thumbnail-border";
 	private static final String styleclassImage = "thumbnail-image";
@@ -172,7 +189,7 @@ public class Thumbnail {
 	 * reflect that. Thus calling getM() on this property may not provide the
 	 * expected result.
 	 */
-	public final @NotNull ObjectProperty<@Nullable Image> image = imageView.imageProperty();
+	public final @NotNull ObjectProperty<@Nullable Image> image = new V<>(null);
 	private File imageFile = null;
 	public final @NotNull V<@NotNull FitFrom> fitFrom = new V<>(INSIDE);
 	private boolean isImgSmallerW = false;
@@ -221,30 +238,37 @@ public class Thumbnail {
 	/** Loads image and sets it to show, null sets no image. */
 	public void loadImage(@Nullable Image img) {
 		imageFile = null;
-		setImgA(img);
+		if (Objects.equals(image.getValue(), img)) return;
+		animDispose();
+		setImgAsync(img);
 	}
 
 	public void loadImage(@Nullable Image img, @Nullable File file) {
 		imageFile = file;
-		setImgA(img);
+		if (Objects.equals(image.getValue(), img)) return;
+		animDispose();
+		setImgAsync(img);
 	}
 
 	public void loadFile(@Nullable File img) {
+		animDispose();
+		imageFile = null;
 		if (img==null) {
 			loadImage(null, null);
 		} else if (image.getValue()==null || image.getValue().getUrl()==null || !img.getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl()))) {
-			imageFile = img;
 			ImageSize size = calculateImageLoadSize();
 			if (image.getValue()==null || image.getValue().getUrl()==null || !img.getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
-				runOn(VT_IMAGE, () -> ImageStandardLoader.INSTANCE.invoke(img, size, fitFrom.getValue())).useBy(FX, this::setImgA);
+				runOn(VT_IMAGE, () -> ImageStandardLoader.INSTANCE.invoke(img, size, fitFrom.getValue())).useBy(FX, this::setImgAsync);
 			}
 		}
 	}
 
 	public void loadCover(@Nullable Cover img) {
+		animDispose();
 		if (img==null) {
 			loadImage(null, null);
 		} else {
+			imageFile = null;
 			var size = calculateImageLoadSize();
 			if (img.getFile()==null || image.getValue()==null || image.getValue().getUrl()==null || !img.getFile().getAbsoluteFile().toURI().equals(toAbsoluteURIOrNull(image.getValue().getUrl())) || size.width-5.0>image.getValue().getWidth() || size.height-5.0>image.getValue().getHeight()) {
 				runOn(VT_IMAGE, () -> img.getImage(size, fitFrom.getValue())).useBy(FX, i -> loadImage(i, img.getFile()));
@@ -254,8 +278,7 @@ public class Thumbnail {
 
 	private long loadId = 0;    // prevents wasteful set image operations
 
-	// set asynchronously
-	private void setImgA(@Nullable Image i) {
+	private void setImgAsync(@Nullable Image i) {
 		failIfNotFxThread();
 		loadId++;   // load next image
 		final long id = loadId; // expected id (must match when load finishes)
@@ -266,13 +289,13 @@ public class Thumbnail {
 		}
 	}
 
-	// set synchronously
 	private void setImg(@Nullable Image i, long id) {
 		// ignore outdated loadings
 		if (id!=loadId) return;
 		ratioIMG.setValue(i==null || i.getHeight()==0 ? 1.0 : i.getWidth()/i.getHeight());
 		applyViewPort(i);
 		imageView.setImage(i);
+		image.setValue(i);
 
 		if (i!=null) {
 			maxImgW.set(i.getWidth());
@@ -280,13 +303,12 @@ public class Thumbnail {
 		}
 
 		root.requestLayout();
+	}
 
-		// animation
-		if (i!=null) {
-			Object animWrapper = getFieldValue(i, "animation");
-			animation = animWrapper==null ? null : getFieldValue(animWrapper, "timeline");
-			animationPause();
-		}
+	private void setImgFrame(Image i) {
+		applyViewPort(i);
+		imageView.setImage(i);
+		root.requestLayout();
 	}
 
 	/**
@@ -313,6 +335,8 @@ public class Thumbnail {
 
 	private void applyViewPort(Image i) {
 		if (i!=null) {
+			var ratioI = i.getHeight()==0 ? 1.0 : i.getWidth()/i.getHeight();
+
 			if (fitFrom.get()==INSIDE) {
 				imageView.setViewport(null);
 			} else {
@@ -321,17 +345,17 @@ public class Thumbnail {
 				if (isImgSmallerW && isImgSmallerH) {
 					imageView.setViewport(null);
 				} else
-				if (ratioTHUMB.get()<ratioIMG.get()) {
-					double uiImgWidth = i.getHeight()*ratioTHUMB.get();
+				if (ratioTHUMB.getValue()<ratioI) {
+					double uiImgWidth = i.getHeight()*ratioTHUMB.getValue();
 					double x = (i.getWidth() - uiImgWidth)/2;
 					imageView.setViewport(new Rectangle2D(x, 0, uiImgWidth, i.getHeight()));
 				} else
-				if (ratioTHUMB.get()>ratioIMG.get()) {
-					double uiImgHeight = i.getWidth()/ratioTHUMB.get();
+				if (ratioTHUMB.getValue()>ratioI) {
+					double uiImgHeight = i.getWidth()/ratioTHUMB.getValue();
 					double y = (i.getHeight() - uiImgHeight)/2;
 					imageView.setViewport(new Rectangle2D(0, y, i.getWidth(), uiImgHeight));
 				} else
-				if (ratioTHUMB.get()==ratioIMG.get()) {
+				if (ratioTHUMB.getValue()==ratioI) {
 					imageView.setViewport(null);
 				}
 			}
@@ -340,7 +364,71 @@ public class Thumbnail {
 
 /* ---------- ANIMATION --------------------------------------------------------------------------------------------- */
 
-	Timeline animation = null;
+	private @Nullable Boolean animInitialized = null;
+	private @Nullable Timeline animation = null;
+	private Fut<List<ImageFrame>> animImages = Fut.fut(null);
+	private Runnable animCommand = () -> {};
+
+	private void animDispose() {
+		animInitialized = null;
+		animCommand = () -> {};
+		if (animation != null) animation.stop();
+		animation = null;
+		animImages.ui(consumer(images -> { if (images!=null) images.forEach(img -> destroyImage(img.getImg())); }));
+		animImages = Fut.fut(null);
+		if (imageView.getImage() != image.getValue()) setImgFrame(image.getValue());
+	}
+
+	private void animInitialize(boolean lazy) {
+		if (!lazy) animInitializeImpl();
+		if (animImages.isDone()) animCommand.run();
+		else animImages.ui(consumer(it -> animCommand.run()));
+	}
+
+	private void animInitializeImpl() {
+		if (animInitialized!=null && animInitialized) return;
+		animInitialized = true;
+
+		if (image.getValue()==null) return;
+		var f = getFile();
+		if (f==null) return;
+		var fMime = MimeTypesKt.mimeType(f);
+		if (fMime.getName().equals("image/gif")) {
+			try {
+				var isAnim = isImageAnimated(f, fMime);
+				if (isAnim) {
+					var p = new Params(f, new ImageSize(image.getValue().getWidth(), image.getValue().getHeight()), fitFrom.getValue(), fMime, false);
+					animImages = runVT(() -> imgImplLoadFX(p.getFile(), p.getSize(), p.getScaleExact())).then(CURR, it -> it==null ? null : List.of(new ImageFrame(0, 0, it)));
+					animImages.ui(consumer(it -> {
+						if (it!=null) {
+							var img = it.stream().findFirst().orElseThrow().getImg();
+							setImgFrame(img);
+							animation = img==null ? null : getFieldValue(getFieldValue(img, "animation"), "timeline");
+						}
+					}));
+				}
+			} catch (Throwable t) {
+				logger.error("Failed to load image={} animation", f, t);
+			}
+		}
+		if (fMime.getName().equals("image/webp")) {
+			try {
+				var isAnim = isImageAnimated(f, fMime);
+				if (isAnim) {
+					var p = new Params(f, new ImageSize(image.getValue().getWidth(), image.getValue().getHeight()), fitFrom.getValue(), fMime, false);
+					animImages = runVT(() -> loadImageFrames(p));
+					animImages.ui(consumer(images -> {
+						animation = new Timeline(
+							images.stream().map(it -> new KeyFrame(new Duration(it.getDelayMs()), e -> setImgFrame(it.getImg()))).toArray(KeyFrame[]::new)
+						);
+						animation.setCycleCount(INDEFINITE);
+					}));
+				}
+			} catch (Throwable t) {
+				logger.error("Failed to load image={} animation", f, t);
+			}
+		}
+	}
 
 	public boolean isAnimated() {
 		return animation!=null; // same impl as Image.isAnimation(), which is not public
@@ -356,11 +444,13 @@ public class Thumbnail {
 	}
 
 	public void animationPlay() {
-		if (animation!=null) animation.play();
+		animCommand = () -> { if (animation!=null) animation.play(); };
+		animInitialize(false);
 	}
 
 	public void animationPause() {
-		if (animation!=null) animation.pause();
+		animCommand = () -> { if (animation!=null) animation.pause(); };
+		animInitialize(true);
 	}
 
 /* ---------- DATA -------------------------------------------------------------------------------------------------- */
@@ -373,7 +463,7 @@ public class Thumbnail {
 		try {
 			return url==null ? imageFile : toFileOrNull(uri(url));
 		} catch (IllegalArgumentException e) {
-			logger(Thumbnail.class).warn("Uri={} is not valid file", url, e);
+			logger.warn("Uri={} is not valid file", url, e);
 			return null;
 		}
 	}
@@ -384,8 +474,8 @@ public class Thumbnail {
 	}
 
 	/** @return image. Null if no image. */
-	public Image getImage() {
-		return imageView.getImage();
+	public @Nullable Image getImage() {
+		return image.getValue();
 	}
 
 	/**

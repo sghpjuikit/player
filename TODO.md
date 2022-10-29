@@ -137,5 +137,7 @@
   reported, fixed
 - [x] [706](https://github.com/haraldk/TwelveMonkeys/issues/706) JDK19 & Loom compatibility  
   reported, fixed
+- [ ] [711](https://github.com/haraldk/TwelveMonkeys/issues/711) Expose WEbP image animation data  
+  reported, open
 - [x] [695](https://github.com/kwhat/jnativehook/issues/420) Consuming global hotkey modifier key release
   asked, figured out (not an issue, modifiers should not be consumed)

@@ -29,7 +29,7 @@ public interface Util {
 		Class<?> superClazz = clazz.getSuperclass();
 		if (superClazz!=null) fields.addAll(getAllFields(superClazz));
 
-		// get interface' fields recursively
+		// get interface fields recursively
 		for (Class<?> i: clazz.getInterfaces())
 			fields.addAll(getAllFields(i));
 

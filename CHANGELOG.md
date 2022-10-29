@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file. Format base
 ## [Latest]
 
 - Implement support for arbitrary widget package
+- Implement JDK19 virtual thread leveraging asynchronous operations across application
 - Implement volume drive add/remove detection
 - Implement better empty lyrics text
 - Implement better styling for some readonly elements
 - Implement better grid-cell styling when cells occupy full width
-- Implement lossless WebP image format support
+- Implement lossless WebP image support
+- Implement animated WebP image support
 - Implement faster image loading
 - Implement faster image cache
 - Fix image cache not being used after widget is loaded again
@@ -32,13 +34,15 @@ All notable changes to this project will be documented in this file. Format base
 - Fix slider editor value formatting for Double.MIN/MAX
 - Fix toggle-button hover styling
 - Fix image loading not closing stream sometimes
+- Fix image thumbnail not setting correct source file sometimes
 - Fix widget controls sometimes showing up when drag is active
 - Fix wallpaper plugin requiring application to be running to show the wallpaper
 - Fix wallpaper plugin not rendering wallpaper properly in rare cases (e.g. switching screen resolution)
 
 ### JDK19
 The project now uses and requires **JDK 19**.
-This is to enable virtual threads, now used during image loading, widget compiling and process handling.
+This is to enable virtual threads, now used throughout the application.
+This achieves optimal CPU utilization, removing UI stutter during CPU overload (where used).
 
 ### Loading images
 Loading images has been drastically improved.
@@ -76,6 +80,11 @@ This optimizes loading speed for images that have eccentric sizes.
 ### Loading images - interruption
 Image loading now employs much better image loading interruption - the interruption is now predictable and very quick  
 Loading no longer necessary images now does not delay loading speed of images.
+
+### Loading images - animation
+Animated images now load animation frames only when animation is requested.
+This makes loading animated images much faster as well as compatible with image caching.
+Animation now supports webp images.
 
 ### Wallpaper plugin
 The plugin now sets wallpaper using Windows API instead of creating a special wallpaper windows.

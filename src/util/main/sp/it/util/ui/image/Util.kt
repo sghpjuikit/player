@@ -3,6 +3,8 @@ package sp.it.util.ui.image
 import java.awt.image.BufferedImage as ImageBf
 import javafx.scene.image.Image as ImageFx
 import javafx.scene.image.WritableImage as ImageWr
+import com.drew.imaging.gif.GifMetadataReader
+import com.drew.metadata.gif.GifControlDirectory
 import com.twelvemonkeys.image.ResampleOp
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -25,15 +27,21 @@ import kotlin.concurrent.withLock
 import mu.KotlinLogging
 import sp.it.util.async.runFX
 import sp.it.util.dev.Blocks
+import sp.it.util.dev.fail
 import sp.it.util.dev.failCase
-import sp.it.util.dev.failIfFxThread
 import sp.it.util.file.toURLOrNull
 import sp.it.util.file.type.MimeType
+import sp.it.util.file.type.MimeType.Companion.`image∕gif`
+import sp.it.util.file.type.MimeType.Companion.`image∕webp`
+import sp.it.util.file.type.mimeType
 import sp.it.util.functional.Try
 import sp.it.util.functional.getOr
+import sp.it.util.functional.ifNull
+import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.runTry
 import sp.it.util.math.max
+import sp.it.util.type.Util.getFieldValue
 import sp.it.util.type.Util.setField
 import sp.it.util.ui.image.FitFrom.INSIDE
 import sp.it.util.ui.image.FitFrom.OUTSIDE
@@ -165,12 +173,9 @@ fun loadImagePsd(inS: InputStream, p: Params, highQuality: Boolean) = loadImageP
 
 fun loadImagePsd(p: Params, highQuality: Boolean) = loadImagePsd(runTry { ImageIO.createImageInputStream(FileInputStream(p.file).buffered()) }.orNull(), p, highQuality)
 
-private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: Boolean): ImageFx? {
-   failIfFxThread()
-
-   return imgStream?.use { stream ->
+private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: Boolean): ImageFx? =
+   imgStream?.use { stream ->
       stream.reader()?.use { reader ->
-         p.size
          var w = 0 max p.size.width.toInt()
          var h = 0 max p.size.height.toInt()
          val loadFullSize = w==0 && h==0
@@ -196,7 +201,8 @@ private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: B
                   } orNull {
                      logger.warn(it) { "Failed to read thumbnail for image=${p.file}" }
                   }
-               } else null
+               } else
+                  null
             }
             ?: runTry {
                val (iW, iH) = reader.getWidth(ii) to reader.getHeight(ii)
@@ -231,6 +237,77 @@ private fun loadImagePsd(imgStream: ImageInputStream?, p: Params, highQuality: B
          i?.toFX(p.file)
       }
    }
+
+data class ImageFrame(val delayMs: Int, val durationMs: Int, val img: ImageFx)
+
+fun loadImageFrames(inS: InputStream, p: Params): List<ImageFrame>? = loadImageFrames(runTry { ImageIO.createImageInputStream(inS.buffered()) }.orNull(), p)
+
+fun loadImageFrames(p: Params): List<ImageFrame>? = loadImageFrames(runTry { ImageIO.createImageInputStream(FileInputStream(p.file).buffered()) }.orNull(), p)
+
+fun loadImageFrames(imgStream: ImageInputStream?, p: Params): List<ImageFrame>? = when (p.mime) {
+   `image∕gif`, `image∕webp` ->
+      imgStream?.use { stream ->
+         stream.reader()?.use { reader ->
+            runTry {
+               var w = 0 max p.size.width.toInt()
+               var h = 0 max p.size.height.toInt()
+               var delay = 0
+               (reader.minIndex..Int.MAX_VALUE).asSequence()
+                  .map {
+                     runTry {
+                        val (iW, iH) = reader.getWidth(it) to reader.getHeight(it)
+                        val duration = reader.getDuration(it, p.mime)
+                        delay += duration
+                        if (w>iW || h>iH) { w = iW; h = iH }
+                        val iRatio = iW.toDouble()/iH.toDouble()
+                        val rRatio = w.toDouble()/h.toDouble()
+                        val rW = if (iRatio<rRatio) w else (h*iRatio).toInt()
+                        val rH = if (iRatio<rRatio) (w/iRatio).toInt() else h
+                        val irp = reader.defaultReadParam.apply {
+                           val (sW, sH) = when {
+                              p.fit==OUTSIDE && iRatio<rRatio -> iW to (iW/rRatio).toInt()
+                              p.fit==OUTSIDE && iRatio>rRatio -> (iH*rRatio).toInt() to iH
+                              else -> iW to iH
+                           }
+                           val ss = if (rW==0 || rH==0) 1 else when (p.fit) {
+                              OUTSIDE -> maxOf(1, minOf(iW/rW, iH/rH)/2)
+                              INSIDE -> maxOf(1, maxOf(iW/w, iH/h)/2)
+                           }
+                           setSourceSubsampling(ss, ss, 0, 0)
+                           sourceRegion = Rectangle((iW - sW)/2, (iH - sH)/2, sW, sH)
+                        }
+
+                        if (Interrupts.isInterrupted) null
+                        else reader.read(it, irp)?.toFX(p.file)?.net { ImageFrame(delay, duration, it) }
+                     }
+                  }
+                  .takeWhile { !Interrupts.isInterrupted }
+                  .takeWhile { it is Try.Ok && it.value!=null }
+                  .takeWhile { !(it is Try.Error<*> && it.value is IndexOutOfBoundsException) }
+                  .map { it.orThrow!! }
+                  .toList()
+            } orNull {
+               logger.warn(it) { "Failed to load image=${p.file}" }
+            }
+         }
+      }
+   else -> null
+}
+
+/** @return true iff the image file is animated */
+@Throws
+private fun ImageReader.getDuration(ii: Int, fMime: MimeType): Int = when (fMime) {
+   `image∕gif` -> getFieldValue(getFieldValue(this, "imageMetadata"), "delayTime")
+   `image∕webp` -> getFieldValue(getFieldValue<List<Any>>(this, "frames")[ii], "duration")
+   else -> 0
+}
+
+/** @return true iff the image file is animated */
+@Throws
+fun isImageAnimated(f: File, fMime: MimeType = f.mimeType()): Boolean = when (fMime) {
+   `image∕gif`  -> GifMetadataReader.readMetadata(f).getDirectoriesOfType(GifControlDirectory::class.java).size>1
+   `image∕webp` -> WebpUtils.isAnimated(f)
+   else -> false
 }
 
 /**
@@ -272,28 +349,19 @@ fun imgImplLoadFX(file: File, size: ImageSize, scaleExact: Boolean = false): Ima
  * Involves an i/o operation, but does not read whole image into memory.
  */
 @Blocks
-fun getImageDim(f: File): Try<Dimension, Throwable> {
-   val stream = ImageIO.createImageInputStream(f) ?: return run {
-      logger.warn { "Problem finding out image size for $f, could not create image input stream" }
-      Try.error(RuntimeException("No reader found for $f"))
-   }
-   val reader = ImageIO.getImageReaders(stream).asSequence().firstOrNull() ?: return run {
-      logger.warn { "Problem finding out image size for $f, no image reader found" }
-      runTry { stream.close() }
-      Try.error(RuntimeException("No image reader found for $f"))
-   }
-   return runTry {
-      reader.input = stream
-      val ii = reader.minIndex // 1st image index
-      val width = reader.getWidth(ii)
-      val height = reader.getHeight(ii)
-      Dimension(width, height)
-   }.ifAny {
-      reader.dispose()
+fun getImageDim(f: File): Try<Dimension, Throwable> =
+   runTry {
+      ImageIO.createImageInputStream(FileInputStream(f).buffered()).ifNull { fail { "No stream" } }!!.use { stream ->
+         stream.reader().ifNull { fail { "No reader" } }!!.use { reader ->
+            val ii = reader.minIndex
+            val width = reader.getWidth(ii)
+            val height = reader.getHeight(ii)
+            Dimension(width, height)
+         }
+      }
    }.ifError {
-      logger.warn(it) { "Problem finding out image size for $f" }
+      logger.warn(it) { "Problem finding out image size" }
    }
-}
 
 /** @return new black image of specified size */
 fun createImageBlack(size: ImageSize) = ImageBf(size.width.toInt(), size.height.toInt(), ImageBf.TYPE_INT_RGB)

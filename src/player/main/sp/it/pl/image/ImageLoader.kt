@@ -230,7 +230,6 @@ object ImageStandardLoader: KLogging(), ImageLoader {
                   null
                }
             }
-            "image/gif" -> imgImplLoadFX(p.file, p.size, p.scaleExact)
             "application/pdf" -> {
                runTry {
                   PDDocument.load(p.file).use {

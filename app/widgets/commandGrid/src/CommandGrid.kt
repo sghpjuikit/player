@@ -14,7 +14,6 @@ import sp.it.pl.layout.controller.SimpleController
 import sp.it.pl.main.APP
 import sp.it.pl.main.IconUN
 import sp.it.pl.main.FileExtensions.command
-import sp.it.pl.main.appTooltipForData
 import sp.it.pl.main.emScaled
 import sp.it.pl.ui.objects.grid.GridFileThumbCell
 import sp.it.pl.ui.objects.grid.GridView
@@ -44,7 +43,6 @@ import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.functional.toUnit
 import sp.it.util.math.max
-import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -54,7 +52,6 @@ import sp.it.util.reactive.sync1IfInScene
 import sp.it.util.reactive.syncFrom
 import sp.it.util.ui.Resolution
 import sp.it.util.ui.image.FitFrom
-import sp.it.util.ui.install
 import sp.it.util.ui.lay
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.x
@@ -148,24 +145,18 @@ class CommandGrid(widget: Widget): SimpleController(widget) {
 
    private inner class Cell: GridFileThumbCell() {
 
-      private val disposer = Disposer()
-
       override fun computeCellTextHeight(): Double = cellTextHeight.value
 
       override fun computeGraphics() {
          super.computeGraphics()
-         thumb!!.fitFrom syncFrom coverFitFrom on disposer
-         root install appTooltipForData { thumb!!.representant }
+         thumb!!.fitFrom syncFrom coverFitFrom on onDispose
+         thumb!!.isDragEnabled = false
       }
 
       override fun computeTask(r: () -> Unit) = r
 
       override fun onAction(i: Item, edit: Boolean) = i.doubleClickItem()
 
-      override fun dispose() {
-         disposer()
-         super.dispose()
-      }
    }
 
    companion object: WidgetCompanion, KLogging() {

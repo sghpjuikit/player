@@ -25,6 +25,7 @@ import javafx.stage.Window
 import javafx.stage.WindowEvent.WINDOW_SHOWN
 import kotlin.math.abs
 import kotlin.math.sign
+import kotlinx.coroutines.invoke
 import sp.it.pl.core.NameUi
 import sp.it.pl.main.APP
 import sp.it.pl.main.resizeIcon

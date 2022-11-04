@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+## [7.5.0] 2022 11 04
+
 - Implement support for arbitrary widget package
 - Implement JDK19 virtual thread leveraging asynchronous operations across application
 - Implement volume drive add/remove detection

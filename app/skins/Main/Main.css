@@ -2965,12 +2965,10 @@ Shape, Text, SpitText, TextFlow > * {
 .seeker-marker {
     -fx-background-color: -fx-focus-color;
     -fx-opacity: 1;
-    -fx-padding: 0.5em 0.08333em 0.5em 0.08333em; /* 4 1 4 1, height=4, width=2 */
+    -fx-pref-width: 0.1em;
+    -fx-pref-height: 0.8em;
 }
-.seeker-marker:newly-created {
-    -fx-opacity: 1;
-    -fx-padding: 0.6em 0.08333em 0.6em 0.08333em; /* 4 1 4 1, height=4, width=2 */
-}
+.seeker-marker:newly-created {}
 
 /******************************* VOLUME SLIDER *************************************************************************
  *

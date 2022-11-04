@@ -39,6 +39,7 @@ import sp.it.util.animation.Anim.Companion.anim
 import sp.it.util.animation.Loop
 import sp.it.util.collections.setTo
 import sp.it.util.functional.getAny
+import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.onEventDown
 import sp.it.util.reactive.onEventUp
@@ -46,6 +47,7 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.Util.layHeaderRight
 import sp.it.util.ui.lay
+import sp.it.util.ui.minSize
 import sp.it.util.ui.prefSize
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.textArea
@@ -119,21 +121,23 @@ fun bindTimeToSmooth(playback: PlaybackState, block: (Double) -> Unit): Subscrip
 }
 
 class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: Int, isNew: Boolean) {
-   val position01 = pos01
-   val song = song
-   val chapter = chapter
-   val i = i
+   @JvmField val position01 = pos01
+   @JvmField val song = song
+   @JvmField val chapter = chapter
+   @JvmField val i = i
 
    /** Whether this chapter is being created */
-   val isNew = isNew
+   @JvmField val isNew = isNew
 
    /** Whether editing is currently active */
-   val isEdited = v(false)
+   @JvmField val isEdited = v(false)
 
+   @JvmField val onHidden = Handler0()
+
+   private var messageAnimation: Anim? = null
    private val message = textArea()
    private val content = stackPane(message)
-   private var messageAnimation: Anim? = null
-   private var p = PopWindow()
+   private lateinit var p: PopWindow
    private lateinit var ta: TextArea
    private lateinit var prevB: Icon
    private lateinit var nextB: Icon
@@ -141,16 +145,16 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
    private lateinit var commitB: Icon
    private lateinit var delB: Icon
    private lateinit var cancelB: Icon
-   private var initialized = false
 
    constructor(song: SongMetadata, posDuration: Duration, pos01: Double): this(song, Chapter(posDuration, ""), pos01, -1, true)
    constructor(song: SongMetadata, i: Int): this(song, song.getChapters().chapters[i], song.getChapters().chapters[i].time divMillis song.getLength(), i, false)
 
-   fun hidePopup() = p.hide()
+   fun hidePopup(): Unit =
+      if (this::p.isInitialized)
+         p.hide() else Unit
 
    fun showPopup(shower: Shower) {
-      if (!initialized) {
-         initialized = true
+      if (!this::p.isInitialized) {
 
          // text content
          message.isWrapText = true
@@ -158,15 +162,16 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
          message.prefSize = USE_COMPUTED_SIZE.x2
          val messageInterpolator: Function1<Double, String> = typeText(chapter.text, '\u2007')
          messageAnimation = anim((10*chapter.text.length).millis) { message.text = messageInterpolator(it) }.delay(200.millis)
+         content.minSize = 300.emScaled x 200.emScaled
          content.prefSize = 300.emScaled x 200.emScaled
          content.padding = Insets(10.0)
          content.onEventDown(Event.ANY) { if (isEdited.value) it.consume() }
-         content.autosize()
+
          // buttons
-         editB = Icon(IconFA.EDIT, 11.0, "Edit chapter") { startEdit() }
-         commitB = Icon(IconFA.CHECK, 11.0, "Confirm changes") { commitEdit() }
+         editB = Icon(IconFA.EDIT, 11.0, "Edit chapter") { editStart() }
+         commitB = Icon(IconFA.CHECK, 11.0, "Confirm changes") { editCommit() }
          delB = Icon(IconFA.TRASH_ALT, 11.0, "Remove chapter") { song.write { it.removeChapter(chapter, song) } }
-         cancelB = Icon(IconFA.REPLY, 11.0, "Cancel edit") { cancelEdit() }
+         cancelB = Icon(IconFA.REPLY, 11.0, "Cancel edit") { editCancel() }
          prevB = Icon(IconFA.CHEVRON_LEFT, 11.0, "Previous chapter") {
             hidePopup()
             p.onHidden.attach1 { SongChapterEdit(song, i-1).showPopup(shower) }
@@ -181,23 +186,27 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
             if (0==i) prevB.isDisable = true
          }
          // popup
-         p = PopWindow()
-         p.content.value = content
-         isEdited sync { p.isAutohide.value = !it } // breaks editing >> p.setAutoHide(true);
-         p.isEscapeHide.value = true
-         p.onHidden += { if (isEdited.value) cancelEdit() }
-         p.title.value = chapter.time.toHMSMs()
-         p.headerIcons setTo listOf(prevB, nextB, editB, delB)
-         content.onEventUp(MOUSE_CLICKED) {
-            if (!isEdited.value) {
-               if (it.clickCount==1 && it.button==PRIMARY && it.isStillSincePress && p.isAutohide.value) {
-                  hidePopup()
-                  it.consume()
-               }
-               if (it.clickCount==2) {
-                  if (it.button==SECONDARY) startEdit()
-                  if (it.button==PRIMARY) seekTo()
-                  it.consume()
+         p = PopWindow().also { p ->
+            p.content.value = content
+            isEdited sync { p.isAutohide.value = !it } // breaks editing >> p.setAutoHide(true);
+            p.isEscapeHide.value = true
+            p.onHidden += {
+               if (isEdited.value) editCancel()
+               onHidden()
+            }
+            p.title.value = chapter.time.toHMSMs()
+            p.headerIcons setTo listOf(prevB, nextB, editB, delB)
+            content.onEventUp(MOUSE_CLICKED) {
+               if (!isEdited.value) {
+                  if (it.clickCount==1 && it.button==PRIMARY && it.isStillSincePress && p.isAutohide.value) {
+                     hidePopup()
+                     it.consume()
+                  }
+                  if (it.clickCount==2) {
+                     if (it.button==SECONDARY) editStart()
+                     if (it.button==PRIMARY) seekTo()
+                     it.consume()
+                  }
                }
             }
          }
@@ -206,11 +215,11 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
          p.show(shower)
          messageAnimation?.play()
       }
-      if (isNew) startEdit()
+      if (isNew) editStart()
    }
 
    /** Starts editable mode. */
-   fun startEdit() {
+   fun editStart() {
       if (isEdited.value) return
 
       isEdited.value = true
@@ -223,12 +232,18 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
          }
          isWrapText = true
          text = message.text
-         onEventDown(KEY_PRESSED, ENTER) {
-            if (it.isShiftDown) insertText(caretPosition, "\n")
-            else commitEdit()
+         onEventDown(KEY_PRESSED, ENTER, false) {
+            if (isEdited.value) {
+               if (it.isShiftDown) insertText(caretPosition, "\n")
+               else editCommit()
+               it.consume()
+            }
          }
-         onEventDown(KEY_PRESSED, ESCAPE) {
-            cancelEdit()
+         onEventDown(KEY_PRESSED, ESCAPE, false) {
+            if (isEdited.value) {
+               editCancel()
+               it.consume()
+            }
          }
 
       }
@@ -254,7 +269,7 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
    }
 
    /** Ends editable mode and applies changes. */
-   fun commitEdit() {
+   fun editCommit() {
       if (chapter.text!=ta.text) {
          message.text = ta.text
          chapter.text = ta.text
@@ -270,7 +285,7 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
    }
 
    /** Ends editable mode and discards all changes. */
-   fun cancelEdit() {
+   fun editCancel() {
       if (isNew) {
          hidePopup()
       } else {

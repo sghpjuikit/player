@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file. Format base
 - Fix config editor caret button menu not showing submenu menu for editor value
 - Fix `File.recycle()` not providing error
 - Fix **ObjectInfo** image metadata parsing causing no output
+- Fix **CommandGrid** UX [disable tooltips & drag&drop]
 - Fix **LibraryView** sorting by VALUE not working
 - Fix `GridFileIconCell` icon layout in some cases
 - Fix grid file deletion not restoring selection properly
@@ -38,6 +39,10 @@ All notable changes to this project will be documented in this file. Format base
 - Fix widget controls sometimes showing up when drag is active
 - Fix wallpaper plugin requiring application to be running to show the wallpaper
 - Fix wallpaper plugin not rendering wallpaper properly in rare cases (e.g. switching screen resolution)
+- Fix playback seeker chapter create cancel not removing chapter properly
+- Fix playback seeker chapter ESCAPE not closing chapter popup properly
+- Fix playback seeker icon layout issues
+- Fix **PlayerControls** widget layout issues in popup
 
 ### JDK19
 The project now uses and requires **JDK 19**.

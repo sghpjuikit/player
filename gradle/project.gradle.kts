@@ -113,7 +113,7 @@ allprojects {
          implementation("org.slf4j", "slf4j-api", "2.0.3")
          implementation("org.slf4j", "jul-to-slf4j", "2.0.3")
          implementation("ch.qos.logback", "logback-classic", "1.4.4")
-         implementation("io.github.microutils", "kotlin-logging", "3.0.2")
+         implementation("io.github.microutils", "kotlin-logging", "3.0.4")
       }
 
       "Audio" group {
@@ -131,7 +131,7 @@ allprojects {
          implementation("com.udojava", "EvalEx", "2.7")
          implementation("org.atteo", "evo-inflector", "1.3")
          implementation("com.github.ajalt.clikt", "clikt", "3.5.0")
-         implementation("com.github.oshi", "oshi-core", "6.3.0")
+         implementation("com.github.oshi", "oshi-core", "6.3.1")
          implementation("com.vladsch.flexmark", "flexmark-all", "0.64.0")
       }
 
@@ -165,8 +165,8 @@ allprojects {
       }
 
       "Test" group {
-         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.5.3")
-         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.5.3")
+         testImplementation("io.kotest", "kotest-runner-junit5-jvm", "5.5.4")
+         testImplementation("io.kotest", "kotest-assertions-core-jvm", "5.5.4")
       }
 
    }

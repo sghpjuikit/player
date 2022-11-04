@@ -2,6 +2,10 @@ package sp.it.pl.main
 
 typealias Bool = Boolean
 
+typealias Byte01 = Double
+typealias Short01 = Double
+typealias Int01 = Double
+typealias Long01 = Double
 typealias Double01 = Double
 
 typealias IconTx = sp.it.pl.ui.objects.icon.TextIcon

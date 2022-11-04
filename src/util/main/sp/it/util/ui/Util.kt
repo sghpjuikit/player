@@ -372,71 +372,61 @@ val Region.size
 /** Min size represented as point */
 var Region.minSize: P
    get() = P(minWidth, minHeight)
-   set(v) {
-      setMinSize(v.x, v.y)
-   }
+   set(v) { setMinSize(v.x, v.y) }
 
 /** Pref size represented as point */
 var Region.prefSize: P
    get() = P(prefWidth, prefHeight)
-   set(v) {
-      setPrefSize(v.x, v.y)
-   }
+   set(v) { setPrefSize(v.x, v.y) }
 
 /** Max size represented as point */
 var Region.maxSize: P
    get() = P(maxWidth, maxHeight)
-   set(v) {
-      setMaxSize(v.x, v.y)
-   }
+   set(v) { setMaxSize(v.x, v.y) }
 
 /** Screen coordinates of position of this window */
 var Window.xy
    get() = P(x, y)
-   set(value) {
-      x = value.x
-      y = value.y
-   }
+   set(value) { x = value.x; y = value.y }
 
 /** Screen of this window */
 var Window.size: P
    get() = P(width, height)
-   set(value) {
-      width = value.x
-      height = value.y
-   }
+   set(value) { width = value.x; height = value.y }
 
 /** Screen coordinates of bounds */
-val Window.bounds: Rectangle2D get() = xy areaBy size
+val Window.bounds: Rectangle2D
+   get() = xy areaBy size
 
 /** Screen coordinates of the centre of this window */
 var Window.centre
    get() = P(centreX, centreY)
-   set(value) {
-      xy = value - size/2.0
-   }
+   set(value) { xy = value - size/2.0 }
 
 /** Screen x coordinate of the centre of this window */
 var Window.centreX
    get() = x + width/2
-   set(value) {
-      x = value - width/2
-   }
+   set(value) { x = value - width/2 }
 
 /** Screen y coordinate of the centre of this window */
 var Window.centreY
    get() = y + height/2
-   set(value) {
-      x = value - height/2
-   }
+   set(value) { x = value - height/2 }
 
 /** Popup anchors */
 var PopupWindow.anchorXy
    get() = P(anchorX, anchorY)
-   set(value) {
-      anchorX = value.x
-      anchorY = value.y
-   }
+   set(value) { anchorX = value.x; anchorY = value.y }
+
+/** ([Arc.centerX],[Arc.centerY)]) */
+var Arc.center: P
+   get() = P(centerX, centerY)
+   set(value) { centerX = value.x; centerY = value.y }
+
+/** ([Arc.radiusX],[Arc.radiusY]) */
+var Arc.radius: P
+   get() = P(radiusX, radiusY)
+   set(value) { radiusX = value.x; radiusY = value.y }
 
 /** ([MouseEvent.x],[MouseEvent.y]) */
 val MouseEvent.xy get() = P(x, y)

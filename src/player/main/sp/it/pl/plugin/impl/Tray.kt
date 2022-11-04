@@ -30,7 +30,9 @@ import sp.it.util.conf.def
 import sp.it.util.functional.Try
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.Subscribed
+import sp.it.util.reactive.attach
 import sp.it.util.reactive.syncFalse
+import sp.it.util.reactive.syncWhileTrue
 import sp.it.util.ui.image.ImageSize
 import sp.it.util.ui.image.createImageBlack
 import sp.it.util.ui.image.loadBufferedImage
@@ -43,9 +45,10 @@ class Tray: PluginBase() {
    val tooltipShowPlaying by cv(true).def(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
    private var tooltipText = APP.name
    private val tooltipPlayingSongUpdater = Subscribed {
-      APP.audio.playingSong.onUpdate { _, song ->
-         if (tooltipShowPlaying.value)
+      tooltipShowPlaying syncWhileTrue {
+         APP.audio.playingSong.updated attach { song ->
             setTooltipText(song.getTitle()?.let { "${APP.name} - $it" })
+         }
       }
    }
    private var tray: SystemTray? = null

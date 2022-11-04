@@ -77,6 +77,7 @@ import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
 import sp.it.util.functional.asIs
+import sp.it.util.reactive.attach
 import sp.it.util.text.keys
 import sp.it.util.text.nameUi
 import sp.it.util.ui.show
@@ -151,7 +152,7 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
             styleRuleAdd(pseudoclass(played)) { APP.audio.playingSong.value.same(it) }
          }
       }
-      APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
+      APP.audio.playingSong.updated attach { table.updateStyleRules() } on onClose
 
       table.defaultColumnInfo   // trigger menu initialization
       table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo

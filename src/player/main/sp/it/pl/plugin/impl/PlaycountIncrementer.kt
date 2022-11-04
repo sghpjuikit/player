@@ -27,6 +27,7 @@ import sp.it.util.math.max
 import sp.it.util.math.min
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Subscribed
+import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.map
 import sp.it.util.type.type
 import sp.it.util.units.millis
@@ -64,7 +65,7 @@ class PlaycountIncrementer: PluginBase() {
    private val incrementer = { increment() }
    private var incHandler: PlayTimeHandler = at({ it }, {})
    private val plyingSongIncrementer = Subscribed {
-      APP.audio.playingSong.onChange { ov, _ ->
+      APP.audio.playingSong.changed attachChanges { ov, _ ->
          if (!ov.isEmpty()) runFX(200.millis) {
             if (it.isSubscribed)
                incrementQueued(ov)

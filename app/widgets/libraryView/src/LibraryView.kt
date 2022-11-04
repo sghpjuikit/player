@@ -213,7 +213,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             }
          }
       }
-      APP.audio.playingSong.onUpdate { _, _ -> table.updateStyleRules() } on onClose
+      APP.audio.playingSong.updated attach { table.updateStyleRules() } on onClose
 
       table.defaultColumnInfo   // trigger menu initialization
       table.columnState = widget.properties["columns"].asIf<String>()?.let { ColumnState.fromString(it).orNull() } ?: table.defaultColumnInfo

@@ -130,7 +130,7 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
       ps.volume sync { muteChanged(ps) } on onClose
-      APP.audio.playingSong.onUpdateAndNow { playingItemChanged(it) } on onClose
+      APP.audio.playingSong.updated sync { playingItemChanged(it) } on onClose
       elapsedTime sync { timeChanged(ps) } on onClose
 
       currTime.onEventDown(MOUSE_CLICKED, PRIMARY) { elapsedTime.toggle() }

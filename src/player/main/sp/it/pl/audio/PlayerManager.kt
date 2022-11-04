@@ -34,7 +34,6 @@ import sp.it.pl.layout.controller.io.Output
 import sp.it.pl.layout.controller.io.appWide
 import sp.it.pl.main.APP
 import sp.it.pl.main.AppProgress
-import sp.it.pl.main.AppTexts.textNoVal
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.initApp
 import sp.it.pl.ui.pane.OverlayPane
@@ -80,6 +79,7 @@ import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.Subscription
 import sp.it.util.reactive.attach
+import sp.it.util.reactive.attachChanges
 import sp.it.util.reactive.on
 import sp.it.util.reactive.onChange
 import sp.it.util.reactive.sync
@@ -186,16 +186,16 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    val onPlaybackAt: MutableList<PlayTimeHandler> = ArrayList()
 
    fun initialize() {
-      playingSong.onUpdate { _, n -> playing.value = n }
+      playingSong.updated attach { playing.value = it }
 
       // use jaudiotagger for total time value (fixes incorrect values coming from player classes)
-      playingSong.onChange { _, n -> state.playback.duration.value = n.getLength() }
+      playingSong.updated attach { state.playback.duration.value = it.getLength() }
 
       // maintain PLAYED_FIRST_TIME & PLAYED_LAST_TIME metadata
       // note: for performance reasons we update AFTER song stops playing, not WHEN it starts
       // as with playcount incrementing, it could disrupt playback, although now we are losing
       // updates on application closing!
-      playingSong.onChange { o, _ ->
+      playingSong.changed attachChanges { o, _ ->
          if (!o.isEmpty()) // TODO: add config to avoid this operation if not in library
             o.write {
                it.setPlayedFirstNowIfEmpty()
@@ -276,32 +276,21 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       object PlaybackActivated { override fun toString() = "PlaybackActivated" }
       object PlaybackSuspended { override fun toString() = "PlaybackSuspended" }
    }
+
    inner class CurrentItem {
 
-      private val valueOImpl = v(Metadata.EMPTY)
-      val valueO = valueOImpl.readOnly()
-
-      /**
-       * Returns the playing song and all its information.
-       *
-       *
-       * Note: It is always safe to call this method, even during playing song
-       * change events.
-       */
+      /** @return the playing song and all its information */
       var value = Metadata.EMPTY
-         private set(value) {
-            field = value
-            valueOImpl.value = value
-         }
+         private set
+
+      private val changedImpl = v(value)
+      private val updatedImpl = v(value)
       private var valNext = Metadata.EMPTY
       private val valNextLoader = fxTimer(400.millis, 1) { preloadNext() }
-      private val changes = ArrayList<(Metadata, Metadata) -> Unit>()
-      private val updates = ArrayList<(Metadata, Metadata) -> Unit>()
 
       private fun setValue(change: Boolean, new_metadata: Metadata) {
          failIfNotFxThread()
 
-         val ov = value
          value = new_metadata
 
          // There is a small problem
@@ -318,32 +307,20 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          if (change) APP.actionStream(PlaybackSongChanged(new_metadata))
          else APP.actionStream(PlaybackSongUpdated(new_metadata))
 
-         if (change) changes.forEach { h -> h(ov, new_metadata) }
-         updates.forEach { h -> h(ov, new_metadata) }
+         if (change) changedImpl.value = new_metadata
+         updatedImpl.value = new_metadata
       }
 
-
       /**
-       * Add behavior to playing song changed event.
+       * Changed every time playing song changes.
+       * This includes replaying the same song.
        *
-       * The event is fired every time playing song changes. This includes
-       * replaying the same song.
-       *
-       * Use in cases requiring constantly updated information about the playing
-       * song.
-       *
-       * Note: It is safe to call [.getValue] method when this even fires.
-       * It has already been updated.
+       * Use in cases requiring constantly updated information about the playing song.
        */
-      fun onChange(bc: (Metadata, Metadata) -> Unit): Subscription {
-         changes.add(bc)
-         return Subscription { changes.remove(bc) }
-      }
+      val changed = changedImpl.readOnly()
 
       /**
-       * Add behavior to playing item updated event.
-       *
-       * The event is fired every time playing item changes or even if some of its
+       * Changed every time playing item changes or even if some of its
        * metadata is changed such artist or rating. More eager version of change
        * event.
        *
@@ -356,19 +333,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
        * item is required. For example lastFM scrobbling service would not want
        * to update played item status when the metadata of the item change as it
        * is not a change in played item - it is still the same item.
-       *
-       * Note: It is safe to call [.getValue] method when this even fires.
-       * It has already been updated.
        */
-      fun onUpdate(bc: (Metadata, Metadata) -> Unit): Subscription {
-         updates.add(bc)
-         return Subscription { updates.remove(bc) }
-      }
-
-      fun onUpdateAndNow(bc: (Metadata) -> Unit): Subscription {
-         bc(value)
-         return onUpdate { _, n -> bc(n) }
-      }
+      val updated = updatedImpl.readOnly()
 
       fun update(m: Metadata) {
          setValue(false, m)
@@ -585,7 +551,7 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
                   textAlignment = TextAlignment.CENTER
                   boundsType = TextBoundsType.VISUAL
                   setMinPrefMaxSize(-1.0)
-                  playingSong.valueO.sync { text = it.getLyrics() ?: "${it.getTitle() ?: it.getFilename()} has no lyrics" } on Disposer().apply { onHiding += this }
+                  playingSong.updated sync { text = it.getLyrics() ?: "${it.getTitle() ?: it.getFilename()} has no lyrics" } on Disposer().apply { onHiding += this }
                }
                lay += layScrollVTextCenter(t).apply {
                   isFitToWidth = true

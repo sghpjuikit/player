@@ -124,7 +124,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
       ps.loopMode sync { loopModeChanged(it) } on onClose
       ps.mute sync { muteChanged(ps) } on onClose
       ps.volume sync { muteChanged(ps) } on onClose
-      APP.audio.playingSong.onUpdateAndNow { seekerChapters setTo it.getChapters().chapters.mapIndexed { i, c -> SeekerChapter(it, c, i) } } on onClose
+      APP.audio.playingSong.updated sync { seekerChapters setTo it.getChapters().chapters.mapIndexed { i, c -> SeekerChapter(it, c, i) } } on onClose
 
       root.onEventDown(MOUSE_CLICKED, BACK) { PlaylistManager.playPreviousItem() }
       root.onEventDown(MOUSE_CLICKED, FORWARD) { PlaylistManager.playNextItem() }

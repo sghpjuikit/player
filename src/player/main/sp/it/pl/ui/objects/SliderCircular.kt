@@ -5,9 +5,14 @@ import javafx.scene.Group
 import javafx.scene.control.Slider
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
-import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseButton.PRIMARY
+import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
-import javafx.scene.input.ScrollEvent
+import javafx.scene.input.MouseEvent.MOUSE_CLICKED
+import javafx.scene.input.MouseEvent.MOUSE_DRAGGED
+import javafx.scene.input.MouseEvent.MOUSE_PRESSED
+import javafx.scene.input.MouseEvent.MOUSE_RELEASED
+import javafx.scene.input.ScrollEvent.SCROLL
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Arc
@@ -15,6 +20,7 @@ import javafx.scene.shape.ArcType
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Rectangle
 import kotlin.math.PI
+import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.sign
 import kotlin.math.sin
@@ -23,8 +29,10 @@ import sp.it.pl.main.F
 import sp.it.util.access.v
 import sp.it.util.animation.Anim
 import sp.it.util.collections.observableList
+import sp.it.util.functional.net
 import sp.it.util.math.clip
 import sp.it.util.math.distance
+import sp.it.util.math.max
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
@@ -36,6 +44,8 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.zip
 import sp.it.util.ui.lay
 import sp.it.util.ui.pseudoClassToggle
+import sp.it.util.ui.sceneXy
+import sp.it.util.ui.toP
 import sp.it.util.ui.x
 import sp.it.util.ui.xy
 import sp.it.util.units.millis
@@ -75,6 +85,11 @@ class SliderCircular(val W: Double): StackPane() {
 
    /** Similar to as [Slider.showTickMarks] and [Slider.snapToTicks]. Default empty. */
    val snaps = observableList<Double>()
+
+   var computeValue: (MouseEvent) -> Double = { 0.0 }
+      private set
+   var computeValueNull: (MouseEvent) -> Double? = { 0.0 }
+      private set
 
    private val anim = Anim.anim(200.millis) { valueShown.value = valueAnimFrom + it*(valueAnimTo - valueAnimFrom) }.intpl { valueAnimationInterpolator(it) }
    private val animSuppressor = Suppressor()
@@ -164,52 +179,58 @@ class SliderCircular(val W: Double): StackPane() {
                }
             }
 
-            fun updateFromMouse(e: MouseEvent, anim: Boolean = true) {
-               val polarPos = (e.xy - (centerX x centerY))
+            computeValue = { e ->
+               val polarPos = e.sceneXy - localToScene(centerX, centerY).toP()
                val angleRad = atan2(polarPos.x, polarPos.y) + PI + valueStartAngle.value*PI/180.0
                val vNorm = (angleRad/2.0/PI + 0.25).rem(1.0)
                val vRaw = when {
                   valueSymmetrical.value -> if (vNorm<=0.5) vNorm*2.0 else (1.0 - vNorm)*2.0
                   else -> vNorm
                }
-               val v = vRaw.clip().snap(e)
+               vRaw.clip()
+            }
+            computeValueNull = { e ->
+               if ((e.x-centerX).absoluteValue max (e.y-centerY).absoluteValue > W/2) null else computeValue(e)
+            }
+            fun updateFromMouse(e: MouseEvent, anim: Boolean = true) {
+               val v = computeValue(e).snap(e)
                if (editable.value) {
                   if (isValueChanging.value && !anim) valueToAnimFalse(v)
                   else valueToAnimTrue(v)
                }
             }
-            onEventDown(ScrollEvent.SCROLL) { e ->
+            onEventDown(SCROLL) { e ->
                if (e.deltaY.sign>0) increment() else decrement()
                e.consume()
             }
-            onEventDown(MouseEvent.MOUSE_PRESSED, MouseButton.PRIMARY) {
+            onEventDown(MOUSE_PRESSED, PRIMARY) {
                this@SliderCircular.requestFocus()
                if (editable.value) {
                   updateFromMouse(it, true)
                   isValueChanging.value = true
                }
             }
-            onEventDown(MouseEvent.MOUSE_RELEASED, MouseButton.PRIMARY) {
+            onEventDown(MOUSE_RELEASED, PRIMARY) {
                if (isValueChanging.value) {
                   isValueChanging.value = false
                   updateFromMouse(it, false)
                }
             }
-            onEventDown(MouseEvent.MOUSE_DRAGGED, MouseButton.PRIMARY) {
+            onEventDown(MOUSE_DRAGGED, PRIMARY) {
                if (isValueChanging.value)
                   updateFromMouse(it, false)
             }
-            onEventDown(MouseEvent.MOUSE_RELEASED, MouseButton.SECONDARY) {
+            onEventDown(MOUSE_RELEASED, SECONDARY) {
                if (isValueChanging.value) {
                   isValueChanging.value = false
                   valueShownToActualAnimTrue()
                }
             }
-            onEventDown(MouseEvent.MOUSE_CLICKED, MouseButton.SECONDARY, false) {
+            onEventDown(MOUSE_CLICKED, SECONDARY, false) {
                if (it.isPrimaryButtonDown)
                   it.consume()
             }
-            onEventDown(MouseEvent.MOUSE_PRESSED, MouseButton.SECONDARY) {
+            onEventDown(MOUSE_PRESSED, SECONDARY) {
                if (isValueChanging.value) {
                   isValueChanging.value = false
                   valueShownToActualAnimTrue()

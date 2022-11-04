@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. Format base
 - Implement better empty lyrics text
 - Implement better styling for some readonly elements
 - Implement better grid-cell styling when cells occupy full width
+- Implement **Playback knobs** writeable chapters
 - Implement lossless WebP image support
 - Implement animated WebP image support
 - Implement faster image loading

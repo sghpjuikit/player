@@ -384,8 +384,7 @@ public final class Seeker extends AnchorPane {
 		}
 
 		public void showPopup() {
-			hover.playOpenDo(runnable(chapterDisplayMode.get().isShownAsPopup() ? () -> showPopup() : () -> {}));
-			sce.showPopup(DOWN_CENTER.invoke(this));
+			hover.playOpenDo(runnable(chapterDisplayMode.get().isShownAsPopup() ? () -> sce.showPopup(DOWN_CENTER.invoke(this)) : () -> {}));
 		}
 
 		public void hidePopup() {
@@ -395,7 +394,7 @@ public final class Seeker extends AnchorPane {
 
 		public void seekTo() {
 			sce.seekTo();
-			hover.playOpenDo(runnable(chapterDisplayMode.get().isShownAsPopup() ? () -> showPopup() : () -> {}));
+			hover.playOpenDo(runnable(chapterDisplayMode.get().isShownAsPopup() ? () -> sce.showPopup(DOWN_CENTER.invoke(this)) : () -> {}));
 		}
 
 		double getCenterX() {

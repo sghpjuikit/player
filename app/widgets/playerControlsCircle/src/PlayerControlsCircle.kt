@@ -83,15 +83,19 @@ import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.reactive.zip
 import sp.it.util.ui.borderPane
+import sp.it.util.ui.center
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
 import sp.it.util.ui.lookupChildAt
 import sp.it.util.ui.prefSize
+import sp.it.util.ui.radius
 import sp.it.util.ui.stackPane
 import sp.it.util.ui.vBox
 import sp.it.util.ui.x
+import sp.it.util.ui.x2
 import sp.it.util.units.divMillis
+import sp.it.util.units.millis
 import sp.it.util.units.minus
 import sp.it.util.units.times
 import sp.it.util.units.toHMSMs
@@ -135,6 +139,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
          lay += stackPane {
             padding = Insets(5.0)
             lay += stackPane {
+
                seekerChapters.onChangeAndNow {
                   val cSpan01 = 0.2
                   val cSpanDeg = 0.8*cSpan01*180.0
@@ -146,17 +151,16 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                      csByLvl.getOrPut(cLvl, ::ArrayList) += c.position01
 
                      seeker.lookupChildAt<Group>(0).children += Arc().apply {
-                        centerX = seeker.W/2.0
-                        centerY = seeker.W/2.0
-                        radiusX = seeker.W/4.0 - cLvl*8.emScaled
-                        radiusY = seeker.W/4.0 - cLvl*8.emScaled
+                        center = (seeker.W/2.0).x2
+                        radius = (seeker.W/4.0 - cLvl*8.emScaled).x2
                         type = ArcType.OPEN
                         styleClass += "slider-circular-mark"
                         length = cSpanDeg
                         startAngle = 360-c.position01*180 -cSpanDeg/2.0
 
                         onEventDown(MOUSE_CLICKED, PRIMARY) {
-                           SongChapterEdit(c.song, c.i).showPopup(DOWN_RIGHT(seeker))
+                           if (!c.isNew)
+                              SongChapterEdit(c.song, c.i).showPopup(DOWN_RIGHT(seeker))
                         }
                      }
                   }
@@ -175,6 +179,20 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                val valueSuppressor = Suppressor()
                bindTimeToSmooth(ps) { valueSuppressor.suppressing { value.value = it } } on onClose
                valueSoft attach { valueSuppressor.suppressed { if (!isValueChanging.value) APP.audio.seek(it) } } on onClose
+
+               onEventDown(MOUSE_CLICKED, SECONDARY) {
+                  val time01 = seeker.computeValueNull(it)
+                  if (time01!=null) {
+                     val timeMs = time01*APP.audio.playingSong.value.getLengthInMs()
+                     val ch = Chapter(timeMs.millis, "")
+                     val sc = SeekerChapter(APP.audio.playingSong.value, ch, -1)
+                     seekerChapters += sc
+                     SongChapterEdit(APP.audio.playingSong.value, timeMs.millis, time01).apply {
+                        onHidden += { seekerChapters -= sc }
+                        showPopup(DOWN_RIGHT(seeker))
+                     }
+                  }
+               }
 
                lay += vBox {
                   alignment = Pos.CENTER
@@ -319,6 +337,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
 
    data class SeekerChapter(val song: Metadata, val chapter: Chapter, val i: Int) {
       val position01 = chapter.time divMillis song.getLength()
+      val isNew: Boolean get() = i==SongChapterEdit.INDEX_NEW
    }
 
    companion object: WidgetCompanion, KLogging() {
@@ -348,16 +367,15 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
          Entry("Seeker", "Seek playback", "LMB"),
          Entry("Seeker", "Seek playback", "drag & release LMB"),
          Entry("Seeker", "Cancel seeking playback", "drag LMB + RMB"),
-         // TODO: document chapter behavior after testing
-         //         Entry("Seeker > Chapter", "Add chapter", "seeker RMB"),
-         //         Entry("Seeker > Chapter mark", "Open chapter", "Hover"),
-         //         Entry("Seeker > Chapter popup", "Hide chapter", "LMB"),
-         //         Entry("Seeker > Chapter popup", "Hide chapter", "Escape"),
-         //         Entry("Seeker > Chapter popup", "Play from chapter", "2xLMB"),
-         //         Entry("Seeker > Chapter popup > Edit", "Start edit", "2xRMB"),
-         //         Entry("Seeker > Chapter popup > Edit", "Apply edit", "Enter"),
-         //         Entry("Seeker > Chapter popup > Edit", "Append new line", "Shift + Enter"),
-         //         Entry("Seeker > Chapter popup > Edit", "Cancel edit", "Escape"),
+         Entry("Seeker > Chapter", "Add chapter", "seeker RMB"),
+         Entry("Seeker > Chapter mark", "Open chapter", "LMB"),
+         Entry("Seeker > Chapter popup", "Hide chapter", "LMB"),
+         Entry("Seeker > Chapter popup", "Hide chapter", "Escape"),
+         Entry("Seeker > Chapter popup", "Play from chapter", "2xLMB"),
+         Entry("Seeker > Chapter popup > Edit", "Start edit", "2xRMB"),
+         Entry("Seeker > Chapter popup > Edit", "Apply edit", "Enter"),
+         Entry("Seeker > Chapter popup > Edit", "Append new line", "Shift + Enter"),
+         Entry("Seeker > Chapter popup > Edit", "Cancel edit", "Escape"),
       )
 
       fun GlyphIcons.icon(size: Double, block: (Boolean) -> Unit) = Icon(this, size).apply {

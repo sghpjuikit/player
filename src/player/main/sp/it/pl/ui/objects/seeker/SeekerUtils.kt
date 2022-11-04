@@ -146,7 +146,7 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
    private lateinit var delB: Icon
    private lateinit var cancelB: Icon
 
-   constructor(song: SongMetadata, posDuration: Duration, pos01: Double): this(song, Chapter(posDuration, ""), pos01, -1, true)
+   constructor(song: SongMetadata, posDuration: Duration, pos01: Double): this(song, Chapter(posDuration, ""), pos01, INDEX_NEW, true)
    constructor(song: SongMetadata, i: Int): this(song, song.getChapters().chapters[i], song.getChapters().chapters[i].time divMillis song.getLength(), i, false)
 
    fun hidePopup(): Unit =
@@ -300,4 +300,7 @@ class SongChapterEdit(song: SongMetadata, chapter: Chapter, pos01: Double, i: In
 
    fun seekTo() = APP.audio.seek(chapter.time)
 
+   companion object {
+      const val INDEX_NEW = -1
+   }
 }

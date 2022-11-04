@@ -8,7 +8,6 @@
 - `EnumerableCE` does not support observable collections as inputs because Config.enumerate() removes observability
 - Implement actions for widget management: delete widget, open with strategy
 - Implement **Playback Knobs** widget skinnable size
-- Implement **Playback Knobs** widget writable chapters
 - song order in ui, editable
 - `Placeholder` should distinguish file `MOVE` and file `COPY` in description?
 - Improve **kotlinc**/**vlc**/**mpeg** setup should not be `Future`, but restartable `Task`

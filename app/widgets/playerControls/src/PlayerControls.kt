@@ -94,8 +94,8 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
    val muteB = IconFA.VOLUME_UP.icon(24.0) { APP.audio.toggleMute() }
    val loopB = IconFA.RANDOM.icon(24.0) { APP.audio.state.playback.loopMode.toggle(it) }
    val playbackButtons = listOf(f2, f3, f4, seeker)
-   private val layoutSmall = LayoutSmall()
-   private val layoutBig = LayoutBig()
+   private val layoutSmall by lazy { LayoutSmall() }
+   private val layoutBig by lazy { LayoutBig() }
 
    val seekType by cv(Seek.RELATIVE).def(name = "Seek type", info = "Forward/backward buttons seek by time (absolute) or fraction of total duration (relative).")
    val showChapters by cv(POPUP_SHARED) { dv -> seeker.chapterDisplayMode.apply { value = dv } }.def(name = "Chapters show", info = "Display chapter marks on seeker.")
@@ -144,12 +144,18 @@ class PlayerControls(widget: Widget): SimpleController(widget), PlaybackFeature,
          { e -> PlaylistManager.use { it.addItems(e.dragboard.getAudio()) } }
       )
 
-      root.heightProperty() map { it.toDouble()<100.0.emScaled } sync {
-         val layout: Layout = if (it) layoutSmall else layoutBig
-         root.children setToOne layout.with(f2, f3, f4, muteB, seeker)
-         f2.size(if (it) 24 else 72)
-         f3.size(if (it) 40 else 144)
-         f4.size(if (it) 24 else 72)
+      root.lay += object: Pane() {
+         override fun layoutChildren() {
+            val it = height<100.0.emScaled
+            val layout = if (it) layoutSmall else layoutBig
+            layout.isManaged = false
+            layout.resizeRelocate(0.0, 0.0, width, height)
+            children setToOne layout.with(f2, f3, f4, muteB, seeker)
+            f2.size(if (it) 24 else 72)
+            f3.size(if (it) 40 else 144)
+            f4.size(if (it) 24 else 72)
+            super.layoutChildren()
+         }
       }
    }
 

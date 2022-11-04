@@ -219,15 +219,14 @@ public final class Seeker extends AnchorPane {
 
 		if (!chapters.isEmpty()) {
 			double fix = 1 + chapters.get(0).getLayoutBounds().getWidth()/2; // bug fix
-			for (SeekerChapter c : chapters) {
+			for (var c : chapters) {
 				c.relocate(clip(fix, w*c.position01, getWidth() - fix), h/2 - c.getHeight()/2);
 			}
 		}
 
 		seeker.resizeRelocate(0, 0, w, h);
 		addB.root.relocate(addB.root.getLayoutX(), h/2 - addB.root.getHeight()/2);
-		r1.relocate(r1.getLayoutX(), 5);
-		r2.relocate(r2.getLayoutX(), h - r2.getLayoutBounds().getHeight() - 5);
+		maMoveTo(maX);
 	}
 
 	private void onHoverChanged(Consumer<? super Boolean> handler) {
@@ -239,8 +238,9 @@ public final class Seeker extends AnchorPane {
 //****************************** runners animation *****************************/
 
 	private static final double MA_ICON_SIZE = 10;
-	private final Icon r1 = new Icon(ANGLE_DOWN, MA_ICON_SIZE);
-	private final Icon r2 = new Icon(ANGLE_UP, MA_ICON_SIZE);
+	private final Icon maR1 = new Icon(ANGLE_UP, MA_ICON_SIZE);
+	private final Icon maR2 = new Icon(ANGLE_DOWN, MA_ICON_SIZE);
+	private double maX = 0.0;
 
 	private void maInstall() {
 		ma_init();
@@ -249,37 +249,40 @@ public final class Seeker extends AnchorPane {
 			double p2 = mapTo01(p, 0.8, 1);
 			double p3 = mapTo01(p, 0.3, 0.6);
 
-			r1.setOpacity(p1);
-			r2.setOpacity(p1);
+			maR1.setOpacity(p1);
+			maR2.setOpacity(p1);
 
 			double scale = 1 + 0.8*mapConcave(p3);
-			r1.setScaleX(scale);
-			r1.setScaleY(scale);
-			r2.setScaleX(scale);
-			r2.setScaleY(scale);
+			maR1.setScaleX(scale);
+			maR1.setScaleY(scale);
+			maR2.setScaleX(scale);
+			maR2.setScaleY(scale);
 		}).intpl(new CircularInterpolator())
 			.delay(millis(150));
 		onHoverChanged(sa::playFromDir);
 	}
 
 	private void ma_init() {
-		r1.setFocusTraversable(false);
-		r2.setFocusTraversable(false);
-		r1.setOpacity(0);
-		r2.setOpacity(0);
-		r1.setMouseTransparent(true);
-		r2.setMouseTransparent(true);
-		r1.setManaged(false);   // fixes a resizing issue
-		r2.setManaged(false);
-		getChildren().addAll(r1, r2);
+		maR1.setFocusTraversable(false);
+		maR2.setFocusTraversable(false);
+		maR1.setOpacity(0);
+		maR2.setOpacity(0);
+		maR1.setMouseTransparent(true);
+		maR2.setMouseTransparent(true);
+		maR1.setManaged(false);
+		maR2.setManaged(false);
+		getChildren().addAll(maR1, maR2);
 
 		addEventFilter(MOUSE_MOVED, e -> maMoveTo(addB.isSelected() ? chapterSelected.getCenterX() : e.getX()));
 		addEventFilter(MOUSE_DRAGGED, e -> maMoveTo(addB.isSelected() ? chapterSelected.getCenterX() : e.getX()));
 	}
 
 	private void maMoveTo(double x) {
-		r1.setLayoutX(x - r1.getLayoutBounds().getWidth()/2.0);
-		r2.setLayoutX(x - r2.getLayoutBounds().getWidth()/2.0);
+		maX = x;
+		maR1.relocate(maX - maR1.getLayoutBounds().getWidth()/2.0, getHeight()/2 + getEmScaled(5));
+		maR2.relocate(maX - maR2.getLayoutBounds().getWidth()/2.0, getHeight()/2 - getEmScaled(5) - maR2.getLayoutBounds().getHeight());
+		maR1.requestLayout();
+		maR2.requestLayout();
 	}
 
 //********************************** chapters *********************************/
@@ -300,8 +303,8 @@ public final class Seeker extends AnchorPane {
 		double h = getHeight();
 		double y = max(0, h - 20 - 10)/3;
 		double dy = y*p*p*p;
-		r1.setTranslateY(dy);
-		r2.setTranslateY(-dy);
+		maR1.setTranslateY(dy);
+		maR2.setTranslateY(-dy);
 	});
 
 	/** Reload chapters. Use on chapter data change, e.g., on chapter add/remove. */

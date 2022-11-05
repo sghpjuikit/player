@@ -24,8 +24,6 @@ import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Mixer
 import javax.sound.sampled.TargetDataLine
 import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.log10
@@ -61,6 +59,7 @@ import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.runTry
 import sp.it.util.math.P
+import sp.it.util.math.abs
 import sp.it.util.math.clip
 import sp.it.util.math.max
 import sp.it.util.reactive.attach
@@ -221,9 +220,9 @@ class Spektrum(widget: Widget): SimpleController(widget) {
          val barsAvg = barsRaw.sumOf { it.height }/barsRaw.count()
          val bars = when (spektrum.barData) {
             BarData.CONSTANT -> barsRaw.map { it.copy(height = 50.0) }
-            BarData.CONSTANT_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = 25.0 * sin(2*PI*i.toDouble()/barsRaw.size).absoluteValue) }
+            BarData.CONSTANT_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = 25.0 * sin(2*PI*i.toDouble()/barsRaw.size).abs) }
             BarData.VOLUME -> barsRaw.map { it.copy(height = barsAvg) }
-            BarData.VOLUME_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = barsAvg * sin(2*PI*i.toDouble()/barsRaw.size).absoluteValue) }
+            BarData.VOLUME_SINE -> barsRaw.mapIndexed { i, b -> b.copy(height = barsAvg * sin(2*PI*i.toDouble()/barsRaw.size).abs) }
             BarData.VOLUME_HISTORY -> {
                if (barsRaw.isEmpty()) {
                   barsRaw
@@ -366,10 +365,10 @@ class Spektrum(widget: Widget): SimpleController(widget) {
             }.net {
                if (it.isEmpty()) it
                else {
-                  val sByRaw = (settings.effectShift.absoluteValue*it.size).toInt() % it.size
+                  val sByRaw = (settings.effectShift.abs*it.size).toInt() % it.size
                   val sBy = if (settings.effectShift<0.0) it.size-sByRaw else sByRaw
                   val mBy = if (settings.effectMoving.toMillis()==0.0) 0 else {
-                     val ms = settings.effectMoving.toMillis().absoluteValue.coerceAtLeast(1.0)
+                     val ms = settings.effectMoving.toMillis().abs.coerceAtLeast(1.0)
                      val mByRaw = (time%ms/ms*it.size).toInt() % it.size
                      if (settings.effectMoving.toMillis()<0.0) it.size-mByRaw else mByRaw
                   }
@@ -905,9 +904,9 @@ class BarsHeightCalculator(settings: Spektrum) {
       val pixelsAmplitude = DoubleArray(dbAmplitude.size)
 
       for (i in pixelsAmplitude.indices) {
-         val maxHeight = abs(signalThreshold).toDouble()
+         val maxHeight = signalThreshold.abs.toDouble()
          var newHeight = dbAmplitude[i]
-         newHeight += abs(signalThreshold)
+         newHeight += signalThreshold.abs
          // normalizing the bar to the height of the window
          newHeight = newHeight*maxBarHeight/maxHeight
          newHeight *= (signalAmplification/100.0)

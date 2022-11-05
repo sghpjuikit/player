@@ -21,7 +21,6 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.MouseEvent.MOUSE_PRESSED
 import javafx.scene.text.Font
-import kotlin.math.absoluteValue
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import mu.KLogging
@@ -77,6 +76,7 @@ import sp.it.util.file.traverseParents
 import sp.it.util.file.writeTextTry
 import sp.it.util.functional.Util.set
 import sp.it.util.functional.asIf
+import sp.it.util.math.abs
 import sp.it.util.reactive.Handler0
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.onEventUp
@@ -134,14 +134,14 @@ class AppUi(val skinDir: File): GlobalSubConfigDelegator(confUi.name) {
 
    fun decFontSize() {
       if (font.value==null) return
-      val sizeOld = FontPickerContent.fontSizes.minByOrNull { (it-(font.value?.size ?: EM.size())).absoluteValue }!!
+      val sizeOld = FontPickerContent.fontSizes.minByOrNull { (it-(font.value?.size ?: EM.size())).abs }!!
       val sizeNew = Values.previous(FontPickerContent.fontSizes, sizeOld)
       if (sizeNew<sizeOld) font.setValueOf { Font(it!!.name, sizeNew) }
    }
 
    fun incFontSize() {
       if (font.value==null) return
-      val sizeOld = FontPickerContent.fontSizes.minByOrNull { (it-(font.value?.size ?: EM.size())).absoluteValue }!!
+      val sizeOld = FontPickerContent.fontSizes.minByOrNull { (it-(font.value?.size ?: EM.size())).abs }!!
       val sizeNew = Values.next(FontPickerContent.fontSizes, sizeOld)
       if (sizeNew>sizeOld) font.setValueOf { Font(it!!.name, sizeNew) }
    }

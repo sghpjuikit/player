@@ -20,7 +20,6 @@ import javafx.scene.shape.ArcType
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Rectangle
 import kotlin.math.PI
-import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.sign
 import kotlin.math.sin
@@ -29,9 +28,9 @@ import sp.it.pl.main.F
 import sp.it.util.access.v
 import sp.it.util.animation.Anim
 import sp.it.util.collections.observableList
-import sp.it.util.functional.net
+import sp.it.util.math.abs
 import sp.it.util.math.clip
-import sp.it.util.math.distance
+import sp.it.util.math.dist
 import sp.it.util.math.max
 import sp.it.util.reactive.Handler1
 import sp.it.util.reactive.Suppressor
@@ -46,8 +45,6 @@ import sp.it.util.ui.lay
 import sp.it.util.ui.pseudoClassToggle
 import sp.it.util.ui.sceneXy
 import sp.it.util.ui.toP
-import sp.it.util.ui.x
-import sp.it.util.ui.xy
 import sp.it.util.units.millis
 
 /** Circular [Slider] with value always normalized to 0..1. */
@@ -190,7 +187,7 @@ class SliderCircular(val W: Double): StackPane() {
                vRaw.clip()
             }
             computeValueNull = { e ->
-               if ((e.x-centerX).absoluteValue max (e.y-centerY).absoluteValue > W/2) null else computeValue(e)
+               if ((e.x-centerX).abs max (e.y-centerY).abs > W/2) null else computeValue(e)
             }
             fun updateFromMouse(e: MouseEvent, anim: Boolean = true) {
                val v = computeValue(e).snap(e)
@@ -285,7 +282,7 @@ class SliderCircular(val W: Double): StackPane() {
       val snap = e!=null && !e.isShiftDown && !e.isShortcutDown
       val snapBy = APP.ui.snapDistance.value/(2*PI*W/4.0)
       val snaps = if (snap) snaps else setOf()
-      return snaps.minByOrNull { it distance this }?.takeIf { it distance this <= snapBy } ?: this
+      return snaps.minByOrNull { it dist this }?.takeIf { it dist this <= snapBy } ?: this
    }
 
 }

@@ -66,7 +66,7 @@ import sp.it.util.conf.cv
 import sp.it.util.conf.def
 import sp.it.util.file.div
 import sp.it.util.functional.traverse
-import sp.it.util.math.distance
+import sp.it.util.math.dist
 import sp.it.util.reactive.Suppressor
 import sp.it.util.reactive.attach
 import sp.it.util.reactive.attachTo
@@ -147,7 +147,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
 
                   seeker.lookupChildAt<Group>(0).children.removeIf { "slider-circular-mark" in it.styleClass }
                   seekerChapters.forEach { c ->
-                     val cLvl = 1.traverse { it + 1 }.first { csByLvl[it].orEmpty().none { it distance c.position01 <= cSpan01 } }
+                     val cLvl = 1.traverse { it + 1 }.first { csByLvl[it].orEmpty().none { it dist c.position01 <= cSpan01 } }
                      csByLvl.getOrPut(cLvl, ::ArrayList) += c.position01
 
                      seeker.lookupChildAt<Group>(0).children += Arc().apply {
@@ -241,7 +241,7 @@ class PlayerControlsCircle(widget: Widget): SimpleController(widget), PlaybackFe
                      PLAYLIST -> 1.0
                   }
                }
-               val mappingInv = { it: Double -> mapping.entries.minByOrNull { (_, v) -> it distance v }!!.key }
+               val mappingInv = { it: Double -> mapping.entries.minByOrNull { (_, v) -> it dist v }!!.key }
 
                snaps setTo mapping.values
                blockIncrement.value = 1.0/valueCount

@@ -13,7 +13,7 @@ private abstract class MappedChanValue<T>: ChanValue<T> {
    protected val listeners = lazy { Handler1<T>() }
 
    override fun subscribe(listener: (T) -> Unit): Subscription {
-      listeners.value += listener;
+      listeners.value += listener
       updateListening()
       return Subscription {
          listeners.orNull()?.remove(listener)
@@ -66,7 +66,7 @@ fun <T> ChanValue<T>.first(): ChanValue<T> = object: ChanValue<T> {
    }
 
    override fun subscribe(listener: (T) -> Unit): Subscription {
-      listeners.value += listener;
+      listeners.value += listener
       updateListening()
       return Subscription {
          listeners.orNull()?.remove(listener)

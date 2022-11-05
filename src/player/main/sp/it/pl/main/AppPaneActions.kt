@@ -66,6 +66,7 @@ import sp.it.util.functional.asIs
 import sp.it.util.functional.ifNotNull
 import sp.it.util.functional.net
 import sp.it.util.functional.orNull
+import sp.it.util.functional.toUnit
 import sp.it.util.reactive.sync
 import sp.it.util.reactive.syncFrom
 import sp.it.util.system.browse
@@ -271,7 +272,7 @@ fun ActionPane.initActionPane(): ActionPane = also { ap ->
          "Opens exported widget.",
          IconMD.IMPORT,
          constriction = { it hasExtension fxwl },
-      ) { it.loadComponentFxwlJson() ui { it.ifNotNull { APP.windowManager.showWindow(it) } } },
+      ) { it.loadComponentFxwlJson() ui { it.ifNotNull { APP.windowManager.showWindow(it) }.toUnit() } },
       actionAll(
          "Set created to last modified time",
          "Sets created time to last modified time for the file. Useful after a file copy destroyed this value.",

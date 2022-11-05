@@ -1037,7 +1037,6 @@ sealed interface ComponentLoader: (Component) -> Any {
          val p = PopWindow().apply {
             content.value = l.root
             title.value = c.name
-            root.installWindowInteraction()::unsubscribe.let(onHiding::attach1)
             properties[Window.keyWindowLayout] = l
             onHiding += { properties -= Window.keyWindowLayout }
             onHiding += { l.close() }

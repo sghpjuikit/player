@@ -15,7 +15,7 @@ sourceSets {
 
 dependencies {
    implementation("org.apache.commons", "commons-text", "1.10.0")
-   implementation("com.fasterxml.jackson.core", "jackson-core", "2.14.0-rc3")
-   implementation("com.fasterxml.jackson.core", "jackson-databind", "2.14.0-rc3")
-   implementation("com.fasterxml.jackson.core", "jackson-annotations", "2.14.0-rc3")
+   implementation("com.fasterxml.jackson.core", "jackson-core", "2.14.0")
+   implementation("com.fasterxml.jackson.core", "jackson-databind", "2.14.0")
+   implementation("com.fasterxml.jackson.core", "jackson-annotations", "2.14.0")
 }

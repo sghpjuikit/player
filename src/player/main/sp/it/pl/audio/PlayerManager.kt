@@ -37,7 +37,9 @@ import sp.it.pl.main.AppProgress
 import sp.it.pl.main.emScaled
 import sp.it.pl.main.initApp
 import sp.it.pl.ui.pane.OverlayPane
+import sp.it.util.Sort
 import sp.it.util.Sort.ASCENDING
+import sp.it.util.Sort.DESCENDING
 import sp.it.util.access.readOnly
 import sp.it.util.access.toggle
 import sp.it.util.access.toggleNext
@@ -49,6 +51,7 @@ import sp.it.util.async.executor.FxTimer.Companion.fxTimer
 import sp.it.util.async.runFX
 import sp.it.util.async.runIO
 import sp.it.util.collections.mapset.MapSet
+import sp.it.util.conf.ConfigurableBase
 import sp.it.util.conf.EditMode
 import sp.it.util.conf.GlobalSubConfigDelegator
 import sp.it.util.conf.between
@@ -61,9 +64,9 @@ import sp.it.util.conf.cvn
 import sp.it.util.conf.cvro
 import sp.it.util.conf.def
 import sp.it.util.conf.noPersist
-import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.conf.relativeTo
+import sp.it.util.conf.values
 import sp.it.util.dev.Idempotent
 import sp.it.util.dev.ThreadSafe
 import sp.it.util.dev.failIfNotFxThread
@@ -118,10 +121,11 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
    val playerVlcLocation by cvn<String>(null).noPersist()
       .def(name = "Vlc player location", info = "Location of the Vlc player that is or wil be used for playback", editable = EditMode.APP)
    val playerVlcLocationsRelativeTo = APP.location
-   val playerVlcLocations by cList<File>().butElement { only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo) }.def(
-      name = "Vlc player locations",
-      info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location. Requires application restart to take effect."
-   )
+   val playerVlcLocations by cList<File>().butElement { only(DIRECTORY).relativeTo(playerVlcLocationsRelativeTo) }
+      .def(
+         name = "Vlc player locations",
+         info = "Custom locations to look for the Vlc player, besides default installation locations and app-relative '/vlc' location. Requires application restart to take effect."
+      )
 
    init {
       playerVlcLocations.onChange { APP.actions.showSuggestRestartNotification() }
@@ -132,24 +136,35 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
       info = "Shows convenient options for initial Vlc setup"
    )
 
-   val songOrderBys by cList<Metadata.Field<*>>(DISCS_INFO, TRACK_INFO).noUi()
-   val songOrderSorts by cList(ASCENDING, ASCENDING).noUi()
-   val songOrderComparator: Comparator<Metadata?>
-      get() {
-         if (songOrderBys.size != songOrderSorts.size) {
-            songOrderBys.clear()
-            songOrderSorts.clear()
+   /** Preferred song order for certain song operations, such as adding songs to playlist */
+   val songOrder by cList(
+      { SongOrder(TRACK_INFO, ASCENDING) },
+      { s ->
+         object: ConfigurableBase<Any>() {
+            val field by cv(s.field).attach { s.field = it }.values(Metadata.Field.all.filter { it.isTypeStringRepresentable() })
+            val sort by cv(s.sort).attach { s.sort = it }.values(setOf(ASCENDING, DESCENDING))
          }
-         return ((songOrderBys zip songOrderSorts).map { (by, sort) -> by.comparator { it.inSort(sort).nullsLast() } }.reduceOrNull { a,b -> a.thenComparing(b) } ?: SAME).asIs()
-      }
+      },
+      SongOrder(DISCS_INFO, ASCENDING),
+      SongOrder(TRACK_INFO, ASCENDING),
+   ).def(
+      name = "Song order",
+      info = "Preferred song order for certain song operations, such as adding songs to playlist"
+   )
+
+   /** New [Comparator] instance derived from [songOrder] */
+   val songOrderComparator: Comparator<Metadata?>
+      get() = songOrder.map { s -> s.field.comparator { it.inSort(s.sort).nullsLast() } }.reduceOrNull { a,b -> a.thenComparing(b) } ?: SAME.asIs()
+
    var browse by c<File>(APP.location.user).only(DIRECTORY)
       .def(name = "Last browse location")
    var lastSavePlaylistLocation by c<File>(APP.location.user).only(DIRECTORY)
       .def(name = "Last playlist export location")
-   var readOnly by c(true).def(
-      name = "No song modification",
-      info = "Disallow all song modifications by this application.\n\nWhen true, app will be unable to change any song metadata"
-   )
+   var readOnly by c(true)
+      .def(
+         name = "No song modification",
+         info = "Disallow all song modifications by this application.\n\nWhen true, app will be unable to change any song metadata"
+      )
 
    var startTime: Duration? = null
    var postActivating = false // this prevents onTime handlers to reset after playback activation the suspension-activation should undergo as if it never happened
@@ -266,6 +281,8 @@ class PlayerManager: GlobalSubConfigDelegator("Playback") {
          else -> isSuspended = false
       }
    }
+
+   data class SongOrder(var field: Metadata.Field<*>, var sort: Sort)
 
    object Events {
       sealed interface PlaybackSongDiff { val song: Metadata }

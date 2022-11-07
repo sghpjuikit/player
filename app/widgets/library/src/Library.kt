@@ -39,7 +39,6 @@ import sp.it.util.conf.noUi
 import sp.it.util.conf.only
 import sp.it.util.file.FileType.DIRECTORY
 import sp.it.util.file.Util.getCommonRoot
-import sp.it.util.functional.net
 import sp.it.util.functional.orNull
 import sp.it.util.reactive.consumeScrolling
 import sp.it.util.reactive.on
@@ -70,9 +69,7 @@ import sp.it.pl.main.contextMenuFor
 import sp.it.pl.main.installDrag
 import sp.it.pl.ui.objects.table.FieldedTable.UNCONSTRAINED_RESIZE_POLICY_FIELDED
 import sp.it.pl.ui.pane.ShortcutPane.Entry
-import sp.it.util.Sort
 import sp.it.util.access.OrV.OrValue.Initial.Inherit
-import sp.it.util.collections.setTo
 import sp.it.util.conf.cOr
 import sp.it.util.conf.defInherit
 import sp.it.util.functional.asIf
@@ -189,13 +186,6 @@ class Library(widget: Widget): SimpleController(widget), SongReader {
       // sync outputs
       table.selectionModel.selectedItemProperty() sync { outputSelected.value = it } on onClose
       root.sync1IfInScene { inputItems.bindDefaultIf1stLoad(APP.db.songs) } on onClose
-
-      // sync library comparator
-      table.itemsComparator sync {
-         val sorts = table.sortOrder.mapNotNull { c -> c.userData?.asIf<Metadata.Field<*>>()?.net { Sort.of(c) to it } }
-         APP.audio.songOrderBys setTo sorts.map { it.second }
-         APP.audio.songOrderSorts setTo sorts.map { it.first }
-      } on onClose
 
    }
 

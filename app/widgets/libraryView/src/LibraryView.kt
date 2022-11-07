@@ -208,7 +208,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
             onLeftDoubleClick { _, _ -> playSelected() }
             onRightSingleClick { row, e ->
                if (!row.isSelected) t.selectionModel.clearAndSelect(row.index)
-               val data = t.selectionModel.selectedItems.takeIf { it.size==1 }?.first() ?: MetadataGroup.groupOfUnrelated(filerSortInputList())
+               val data = t.selectionModel.selectedItems.takeIf { it.size==1 }?.first() ?: MetadataGroup.groupOfUnrelated(inputItemsFiltered())
                contextMenuFor(data).show(table, e)
             }
          }
@@ -264,7 +264,7 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       // drag % drop
       table.onEventDown(DRAG_DETECTED, PRIMARY, false) {
          if (!table.selectedItems.isEmpty() && table.isRowFull(table.getRowS(it.sceneX, it.sceneY))) {
-            table.startDragAndDrop(*ANY).setSongsAndFiles(filerSortInputList())
+            table.startDragAndDrop(*ANY).setSongsAndFiles(inputItemsFiltered())
             it.consume()
          }
       }
@@ -349,13 +349,13 @@ class LibraryView(widget: Widget): SimpleController(widget) {
       }
    }
 
-   private fun filerSortInputList() = filterList(inputItems.value, false).sortedWith(APP.audio.songOrderComparator)
+   private fun inputItemsFiltered() = filterList(inputItems.value, false)
 
-   private fun playSelected() = play(filerSortInputList())
+   private fun playSelected() = play(inputItemsFiltered())
 
    private fun play(items: Metadatas) {
       if (items.isNotEmpty())
-         PlaylistManager.use { it.setAndPlay(items) }
+         PlaylistManager.use { it.setAndPlay(items.sortedWith(APP.audio.songOrderComparator)) }
    }
 
    private fun selectionStore() {

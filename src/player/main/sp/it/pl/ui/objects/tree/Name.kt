@@ -24,7 +24,7 @@ class Name: HierarchicalBase<String, Name> {
       val i = path.indexOf(DELIMITER)
       val isLeaf = i<0
       if (isLeaf) {
-         if (path in this)
+         if (path !in this)
             children += child(path)
       } else {
          val prefix = path.substring(0, i)
@@ -41,6 +41,10 @@ class Name: HierarchicalBase<String, Name> {
    }
 
    private fun child(path: String): Name = Name(path, if (pathUp.isEmpty()) path else pathUp + DELIMITER + path, parent)
+
+   override fun toString(): String =
+      if (children.isEmpty()) value
+      else value + children.joinToString("") { "\n  " + it.toString().replace("\n", "\n  ") }
 
    companion object {
       private const val DELIMITER = '.'

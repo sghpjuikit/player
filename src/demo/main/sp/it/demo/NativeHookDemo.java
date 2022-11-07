@@ -355,6 +355,7 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 	 *
 	 * @see java.awt.event.WindowListener#windowOpened(java.awt.event.WindowEvent)
 	 */
+	@SuppressWarnings("SpellCheckingInspection")
 	public void windowOpened(WindowEvent e) {
 		// Return the focus to the window.
 		this.requestFocusInWindow();
@@ -396,7 +397,6 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 		} catch (NativeHookException ex) {
 			ex.printStackTrace();
 		}
-		System.runFinalization();
 		System.exit(0);
 	}
 
@@ -440,10 +440,10 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 			StringBuilder line = new StringBuilder();
 
 			line.append(new Date(record.getMillis()))
-					.append(" ")
-					.append(record.getLevel().getLocalizedName())
-					.append(":\t")
-					.append(formatMessage(record));
+				.append(" ")
+				.append(record.getLevel().getLocalizedName())
+				.append(":\t")
+				.append(formatMessage(record));
 
 			if (record.getThrown()!=null) {
 				try {
@@ -453,7 +453,9 @@ class NativeHookDemo extends JFrame implements ActionListener, ItemListener, Nat
 					pw.close();
 					line.append(sw);
 					sw.close();
-				} catch (Exception ex) { /* Do Nothing */ }
+				} catch (Exception ex) {
+					/* Do Nothing */
+				}
 			}
 
 			return line.toString();

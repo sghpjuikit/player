@@ -13,14 +13,13 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.Line;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.Port;
-import javax.swing.JApplet;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.Position;
@@ -28,47 +27,27 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import static javax.swing.SwingUtilities.invokeLater;
 
 /**
  * @see <a href=https://stackoverflow.com/questions/7585699/list-of-useful-environment-settings-in-java/7616206#7616206>https://stackoverflow.com/questions/7585699/list-of-useful-environment-settings-in-java/7616206#7616206</a>
  */
-@SuppressWarnings("removal")
 class MediaTypesDemo {
 
 	public static void main(String[] args) {
-		Runnable r = () -> {
+		invokeLater(() -> {
 			MediaTypes mediaTypes = new MediaTypes();
-
 			JPanel p = new JPanel();
 			mediaTypes.createGui(p);
 			JOptionPane.showMessageDialog(null,p);
-		};
-		SwingUtilities.invokeLater(r);
+		});
 	}
 
-	private static class MediaTypes extends JApplet {
+	private static class MediaTypes extends JFrame {
 
 		JTable table;
 		boolean sortable = false;
 		JTree tree;
-
-		@Override
-		public void init() {
-			Runnable r = () -> {
-				MediaTypes mediaTypes = new MediaTypes();
-
-				String show = "";
-				if (getParameter("show")!=null) {
-					show = getParameter("show");
-				}
-
-				JPanel p = new JPanel();
-				mediaTypes.createGui(p, show);
-				add(p);
-				validate();
-			};
-			SwingUtilities.invokeLater(r);
-		}
 
 		public Object[][] mergeArrays(String name1, Object[] data1, String name2, Object[] data2) {
 			Object[][] data = new Object[data1.length+data2.length][2];

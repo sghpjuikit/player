@@ -7,7 +7,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-/** Showcasing javafx bug https://bugs.openjdk.java.net/browse/JDK-9068854 */
+/** Showcasing javafx bug <a href="https://bugs.openjdk.java.net/browse/JDK-9068854">...</a> */
 class JavaFxBugTextAreaDispose extends Application {
 
 	public static void main(String[] args) {

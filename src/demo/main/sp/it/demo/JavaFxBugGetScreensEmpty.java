@@ -7,7 +7,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-/** Showcasing javafx bug https://bugs.openjdk.java.net/browse/JDK-8252446 */
+/** Showcasing javafx bug <a href="https://bugs.openjdk.java.net/browse/JDK-8252446">...</a> */
 class JavaFxBugGetScreensEmpty extends Application {
 
 	public static void main(String[] args) {

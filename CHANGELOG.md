@@ -3,15 +3,22 @@ All notable changes to this project will be documented in this file. Format base
 
 ## [Latest]
 
+- Update dependencies
+- Implement preferred song order settings
+- Fix popup window interaction not working after widget loads in popup
+- Fix `Open widget` action interfering with overlay animation
+- Fix configurable hierarchy computation [affected settings hierarchy]
+
 ## [7.5.0] 2022 11 04
 
+- Update dependencies
 - Implement support for arbitrary widget package
 - Implement JDK19 virtual thread leveraging asynchronous operations across application
 - Implement volume drive add/remove detection
 - Implement better empty lyrics text
 - Implement better styling for some readonly elements
 - Implement better grid-cell styling when cells occupy full width
-- Implement **Playback knobs** writeable chapters
+- Implement **Playback knobs** song chapter creation support
 - Implement lossless WebP image support
 - Implement animated WebP image support
 - Implement faster image loading

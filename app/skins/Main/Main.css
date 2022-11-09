@@ -123,7 +123,7 @@
         rgba(255,255,255,0));
 }
 
-// TODO: generalize to BUTTON-LIKE THINGS
+/* TODO: generalize to BUTTON-LIKE THINGS */
 .button,
 .button:hover,
 .button:focused {
@@ -402,7 +402,6 @@
     -fx-background-radius: 0;
 }
 .slider .track {
-    -fx-padding: 0;
     -fx-background-color: rgba(255,255,255,0.3);
     -fx-background-insets: 0;
     -fx-background-radius: 0;
@@ -684,7 +683,6 @@
     -fx-highlight-fill: -skin-focus-bgr-color;
     -fx-highlight-text-fill: -fx-focus-color;
     -fx-effect: null;
-    -fx-border-width: 0;
     -fx-border-insets: -1;
     -fx-border-width: 1;
     -fx-border-color: rgba(0,0,0,0.3);
@@ -873,7 +871,6 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .menu-item {
     -fx-background-color: transparent;
-    -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-background-radius: 2;
     -fx-border-width: 0;
@@ -897,7 +894,6 @@ Shape, Text, SpitText, TextFlow > * {
  */
 .choice-box > .context-menu {
     -fx-background-color: null;
-    -fx-background-radius: 0;
     -fx-background-insets: 0;
     -fx-background-radius: 2;
     -fx-border-width: 0;
@@ -1778,10 +1774,10 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-fixed-cell-size: 2em;
 }
 
-.list-view: no-fixed-cell-size,
-.table-view: no-fixed-cell-size,
-.tree-view: no-fixed-cell-size,
-.tree-table-view: no-fixed-cell-size {
+.list-view:no-fixed-cell-size,
+.table-view:no-fixed-cell-size,
+.tree-view:no-fixed-cell-size,
+.tree-table-view:no-fixed-cell-size {
     -fx-fixed-cell-size: 0;
 }
 
@@ -2078,7 +2074,7 @@ Shape, Text, SpitText, TextFlow > * {
 .window-top-icon {}
 
 /*
- * Window header icon for autohide
+ * Window header icon for auto-hide
  * Inherits: .check-icon
  */
 .window-pin-icon {}
@@ -2180,7 +2176,7 @@ Shape, Text, SpitText, TextFlow > * {
     -fx-background-color: -skin-pane-color;
 }
 
-.widget-ui: active {
+.widget-ui:active {
     -fx-border-radius: 5;
 }
 
@@ -2202,7 +2198,6 @@ Shape, Text, SpitText, TextFlow > * {
 /** Widget area controls. Shown in layout mode. */
 .widget-ui-controls {
     -fx-padding: 1em;
-    -fx-background-color: null;
     -fx-background-color: -skin-pane-color;
 }
 
@@ -3031,7 +3026,7 @@ Shape, Text, SpitText, TextFlow > * {
  * inherits: .null-check-icon
  */
 .boolean-config-editor Text,
-.boolean-config-editor: hover Text {
+.boolean-config-editor:hover Text {
     -fx-fill: -skin-value-font-color;
 }
 
@@ -3413,18 +3408,18 @@ Shape, Text, SpitText, TextFlow > * {
 .inode-text {
     -fx-font-size: 0.9em;   /* improves readability */
 }
-.inode-text: node-hover,
-.inode-text: node-drag-over,
-.inode-text: node-highlighted,
-.inode-text: node-selected,
-.onode-text: node-hover,
-.onode-text: node-drag-over,
-.onode-text: node-highlighted,
-.onode-text: node-selected,
-.ionode-text: node-hover,
-.ionode-text: node-drag-over,
-.ionode-text: node-highlighted,
-.ionode-text: node-selected {
+.inode-text:node-hover,
+.inode-text:node-drag-over,
+.inode-text:node-highlighted,
+.inode-text:node-selected,
+.onode-text:node-hover,
+.onode-text:node-drag-over,
+.onode-text:node-highlighted,
+.onode-text:node-selected,
+.ionode-text:node-hover,
+.ionode-text:node-drag-over,
+.ionode-text:node-highlighted,
+.ionode-text:node-selected {
     -fx-fill: -fx-focus-color;
 }
 

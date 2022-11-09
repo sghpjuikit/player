@@ -148,7 +148,7 @@ public abstract class ChainValueNode<VAL, C extends ValueNode<VAL>, REDUCED_VAL>
 	}
 
 	public boolean isHeaderVisible() {
-		return !root.getChildren().isEmpty() && root.getChildren().get(0) instanceof ChainValueNode.NullLink;
+		return root.getChildren().stream().findFirst().orElse(null) instanceof ChainValueNode.NullLink;
 	}
 
 	/**

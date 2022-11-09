@@ -9,6 +9,8 @@ import java.net.URLConnection
 import java.util.Locale
 import javafx.application.Application
 import javafx.application.Platform
+import javafx.geometry.Pos.CENTER
+import javafx.scene.control.TextField
 import javafx.scene.image.Image
 import javafx.scene.text.TextAlignment.RIGHT
 import javafx.stage.FileChooser.ExtensionFilter
@@ -60,6 +62,7 @@ import sp.it.pl.ui.objects.autocomplete.ConfigSearch.Entry.SimpleEntry
 import sp.it.pl.ui.objects.window.stage.WindowManager
 import sp.it.pl.ui.pane.ActContext
 import sp.it.pl.ui.pane.ActionData
+import sp.it.util.access.focused
 import sp.it.util.access.v
 import sp.it.util.action.Action
 import sp.it.util.action.ActionManager
@@ -101,6 +104,7 @@ import sp.it.util.functional.runTry
 import sp.it.util.functional.traverse
 import sp.it.util.reactive.Disposer
 import sp.it.util.reactive.Handler1
+import sp.it.util.reactive.sync1If
 import sp.it.util.system.Os.WINDOWS
 import sp.it.util.system.SystemOutListener
 import sp.it.util.system.chooseFile
@@ -116,6 +120,8 @@ import sp.it.util.type.typeNothingNullable
 import sp.it.util.ui.hBox
 import sp.it.util.ui.label
 import sp.it.util.ui.lay
+import sp.it.util.ui.lookupSiblingUp
+import sp.it.util.ui.textField
 import sp.it.util.units.uri
 
 lateinit var APP: App
@@ -494,6 +500,32 @@ class App: Application(), GlobalConfigDelegator {
    }
 
    private fun AppSearch.initForApp() {
+      sources += Source("Math number conversions") {
+         sequenceOf(2 to "bin", 8 to "oct", 10 to "dec", 16 to "hex")
+      } byAny { "bin oct dec hex" } toSource {
+         Entry.of(
+            name = "Math: convert to ${it.second}",
+            icon = IconFA.ARROW_RIGHT,
+         ) {
+            val v = term.trim()
+            val radixes = mapOf("bin" to 2, "oct" to 8, "dec" to 10, "hex" to 16)
+            val radixFromS = v.substringBefore("to", "dec").dropWhile { it.isDigit() }.trim().lowercase()
+            val radixFrom = radixes[radixFromS] ?: 10
+            val radixToS = v.substringAfter(" ").trim().lowercase()
+            val radixTo = radixes[radixToS] ?: 10
+            val nFrom = v.takeWhile { it.isDigit() }
+            val nTo = nFrom.toBigInteger(radixFrom).toString(radixTo)
+            showFloating("Convert ${it.second}") {
+               hBox(5.emScaled, CENTER) {
+                  lay += label(radixFromS)
+                  lay += textField(nFrom).apply { isFocusTraversable = false }
+                  lay += label("=")
+                  lay += label(radixToS)
+                  lay += textField(nTo).apply { focused.sync1If({ it }) { lookupSiblingUp<TextField>(3).isFocusTraversable = true } }
+               }
+            }
+         }
+      }
       sources += Source("Settings") {
          configuration.getConfigs().flatMap {
             it.group.traverse { it.substringBeforeLast(".", "").takeIf { it.isNotEmpty() } }.asIterable()

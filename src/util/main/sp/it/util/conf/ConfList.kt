@@ -10,7 +10,7 @@ private typealias ItemToConf<T> = (T) -> Configurable<*>
 private typealias ItemFac<T> = () -> T
 
 /** [ObservableList] wrapper that provides element type and factory information for user editable lists. */
-open class ConfList<T> private constructor(
+open class ConfList<T>(
    val itemType: VType<T>,
    val itemFactory: ItemFac<T>?,
    val itemToConfigurable: ItemToConf<T?>,

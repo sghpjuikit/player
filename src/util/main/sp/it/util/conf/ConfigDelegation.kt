@@ -235,7 +235,7 @@ class ConfR(private val action: () -> Unit): Conf<Action>() {
    }
 }
 
-class ConfL<T: Any?>(val list: ConfList<T>): Conf<ObservableList<T>>() {
+class ConfL<T: Any?>(private val list: ConfList<T>): Conf<ObservableList<T>>() {
    val elementConstraints = HashSet<Constraint<T>>()
 
    operator fun provideDelegate(ref: ConfigDelegator, property: KProperty<*>): RoProperty<ConfigDelegator, ObservableList<T>> {
@@ -246,14 +246,15 @@ class ConfL<T: Any?>(val list: ConfList<T>): Conf<ObservableList<T>>() {
       val isFinal = property !is KMutableProperty
       failIf(!isFinal) { "Property must be immutable" }
 
-      val c = ListConfig(property.name, info, list, group, constraints, elementConstraints)
+      val cl = ConfList<T>(list.itemType, list.itemFactory, { list.itemToConfigurable(it).apply { if (this is Config<*>) elementConstraints.forEach { addConstraint(it.asIs()) } } }, list.list)
+      val c = ListConfig(property.name, info, cl, group, constraints, elementConstraints)
       validateValue(c.value)
       ref.configurableValueSource.initialize(c)
       validateValueSoft(c.value).ifError { c.setValueToDefault() }
       // TODO: validate elements
 
-      return object: ListConfig<T>(property.name, info, list, group, constraints, elementConstraints), RoProperty<ConfigDelegator, ObservableList<T>> {
-         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = list.list
+      return object: ListConfig<T>(property.name, info, cl, group, constraints, elementConstraints), RoProperty<ConfigDelegator, ObservableList<T>> {
+         override fun getValue(thisRef: ConfigDelegator, property: KProperty<*>) = cl.list
       }.registerConfig(ref)
    }
 }
